@@ -1,15 +1,16 @@
 // =====================================================================
-// app-version.js - Sistema de Versionamento v4.1
+// app-version.js - Sistema de Versionamento v5.0
 // =====================================================================
+// v5.0: Suporte a versionamento separado Admin/App
+//       - Envia header x-client-type para identificar cliente
+//       - Usa endpoint /api/app/check-version
 // v4.1: Otimização - Remove polling de 5min, usa visibilitychange
 // v4.0: Modal de atualização RESTAURADO
-//       - Compara versão local com servidor
-//       - Exibe modal quando há nova versão
-//       - Botão para recarregar e atualizar
 // =====================================================================
 
 const AppVersion = {
     LOCAL_KEY: "app_version",
+    CLIENT_TYPE: "app", // Identificador do cliente (app = participante)
 
     // ✅ Inicializar
     async init() {
@@ -54,12 +55,22 @@ const AppVersion = {
     // ✅ Verificar versão no servidor
     async verificarVersao() {
         try {
-            const response = await fetch("/api/app/versao");
+            // Usar novo endpoint com identificação de cliente
+            const response = await fetch("/api/app/check-version", {
+                headers: {
+                    "x-client-type": this.CLIENT_TYPE
+                }
+            });
             if (!response.ok) return;
 
             const servidor = await response.json();
             const versaoServidor = servidor.version;
             const versaoLocal = localStorage.getItem(this.LOCAL_KEY);
+
+            // Log de debug (só em dev)
+            if (window.Log && servidor.clientDetected) {
+                Log.debug('APP-VERSION', `Cliente detectado: ${servidor.clientDetected}`);
+            }
 
             // Atualizar badge
             this.atualizarBadgeHeader(versaoServidor);
@@ -254,4 +265,4 @@ if (document.readyState === "loading") {
     AppVersion.init();
 }
 
-if (window.Log) Log.info('APP-VERSION', '✅ Sistema de versionamento v4.1 carregado');
+if (window.Log) Log.info('APP-VERSION', '✅ Sistema de versionamento v5.0 carregado');

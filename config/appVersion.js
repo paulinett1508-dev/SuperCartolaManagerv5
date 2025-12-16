@@ -1,9 +1,9 @@
 // =====================================================================
-// appVersion.js - Versionamento Automático Separado v2.0
+// appVersion.js - Versionamento Automático Separado v3.0
 // =====================================================================
-// v2.0: Versões separadas para PARTICIPANTE e ADMIN
-//       - Participante: baseado em modificações em public/participante/
-//       - Admin: baseado em modificações em public/js/, public/fronts/, public/css/
+// v3.0: Usa config/version-scope.json para definir escopos
+//       - Mapa lógico de arquivos Admin/App sem mover pastas
+//       - Suporte a padrões glob para detecção automática
 //       - Formato: DD.MM.YY.HHmm (data + hora de Brasília)
 // =====================================================================
 
@@ -14,59 +14,221 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.join(__dirname, "..");
+const publicDir = path.join(rootDir, "public");
+
+// =====================================================================
+// CARREGAR CONFIGURAÇÃO DE ESCOPO
+// =====================================================================
+
+let versionScope = null;
+try {
+    const scopePath = path.join(__dirname, "version-scope.json");
+    const scopeContent = fs.readFileSync(scopePath, "utf-8");
+    versionScope = JSON.parse(scopeContent);
+    console.log("[APP-VERSION] ✅ version-scope.json carregado com sucesso");
+} catch (error) {
+    console.warn("[APP-VERSION] ⚠️ Falha ao carregar version-scope.json, usando fallback");
+    versionScope = null;
+}
 
 // =====================================================================
 // FUNÇÕES AUXILIARES
 // =====================================================================
 
 /**
- * Busca recursivamente a data de modificação mais recente em um diretório
+ * Converte padrão glob simples para regex
+ * Suporta: *, **, extensões
  */
-function getLatestMtime(dirPath, excludePaths = []) {
-    let latestMtime = new Date(0);
+function globToRegex(pattern) {
+    let regex = pattern
+        .replace(/\./g, "\\.")           // Escapar pontos
+        .replace(/\*\*\//g, "(.+/)?")    // **/ = qualquer subdiretório
+        .replace(/\*\*/g, ".*")          // ** = qualquer coisa
+        .replace(/\*/g, "[^/]*");        // * = qualquer coisa exceto /
+    return new RegExp(`^${regex}$`);
+}
 
-    try {
-        if (!fs.existsSync(dirPath)) {
-            return latestMtime;
+/**
+ * Verifica se um arquivo pertence a um escopo baseado nos padrões
+ */
+function matchesScope(relativePath, patterns) {
+    for (const pattern of patterns) {
+        const regex = globToRegex(pattern);
+        if (regex.test(relativePath)) {
+            return true;
         }
+    }
+    return false;
+}
 
-        const items = fs.readdirSync(dirPath, { withFileTypes: true });
+/**
+ * Coleta todos os padrões de um escopo do JSON
+ */
+function getScopePatterns(scopeConfig) {
+    const patterns = [];
 
-        for (const item of items) {
-            const fullPath = path.join(dirPath, item.name);
-            const relativePath = path.relative(rootDir, fullPath);
+    for (const [key, value] of Object.entries(scopeConfig)) {
+        if (key === "description") continue;
 
-            // Ignorar caminhos excluídos
-            if (excludePaths.some((exc) => relativePath.startsWith(exc))) {
-                continue;
-            }
-
-            // Ignorar node_modules e arquivos ocultos
-            if (item.name.startsWith(".") || item.name === "node_modules") {
-                continue;
-            }
-
-            if (item.isDirectory()) {
-                const subMtime = getLatestMtime(fullPath, excludePaths);
-                if (subMtime > latestMtime) {
-                    latestMtime = subMtime;
+        if (Array.isArray(value)) {
+            patterns.push(...value);
+        } else if (typeof value === "object") {
+            // Para objetos aninhados como "detailed_files"
+            for (const subValue of Object.values(value)) {
+                if (Array.isArray(subValue)) {
+                    patterns.push(...subValue);
                 }
-            } else if (item.isFile()) {
-                // Apenas arquivos JS, CSS, HTML
-                const ext = path.extname(item.name).toLowerCase();
-                if ([".js", ".css", ".html"].includes(ext)) {
-                    const stat = fs.statSync(fullPath);
-                    if (stat.mtime > latestMtime) {
-                        latestMtime = stat.mtime;
+            }
+        }
+    }
+
+    return patterns;
+}
+
+/**
+ * Determina o escopo de um arquivo usando version_triggers
+ */
+function getFileScope(relativePath) {
+    if (!versionScope || !versionScope.version_triggers) {
+        return null;
+    }
+
+    for (const rule of versionScope.version_triggers.rules) {
+        const regex = globToRegex(rule.pattern);
+        if (regex.test(relativePath)) {
+            return rule.increments;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Busca recursivamente a data de modificação mais recente
+ * filtrando por escopo usando o JSON de configuração
+ */
+function getLatestMtimeByScope(dirPath, scope) {
+    let latestMtime = new Date(0);
+    let latestFile = null;
+
+    // Padrões do escopo (para fallback)
+    const scopePatterns = versionScope ? getScopePatterns(versionScope[scope] || {}) : [];
+
+    function scanDir(currentPath) {
+        try {
+            if (!fs.existsSync(currentPath)) return;
+
+            const items = fs.readdirSync(currentPath, { withFileTypes: true });
+
+            for (const item of items) {
+                const fullPath = path.join(currentPath, item.name);
+                const relativePath = path.relative(publicDir, fullPath);
+
+                // Ignorar node_modules e arquivos ocultos
+                if (item.name.startsWith(".") || item.name === "node_modules") {
+                    continue;
+                }
+
+                if (item.isDirectory()) {
+                    scanDir(fullPath);
+                } else if (item.isFile()) {
+                    // Apenas arquivos JS, CSS, HTML
+                    const ext = path.extname(item.name).toLowerCase();
+                    if (![".js", ".css", ".html"].includes(ext)) continue;
+
+                    // Verificar se pertence ao escopo usando version_triggers
+                    const fileScopes = getFileScope(relativePath);
+
+                    let belongsToScope = false;
+                    if (fileScopes) {
+                        // Usar version_triggers se disponível
+                        belongsToScope = fileScopes.includes(scope === "scope_app" ? "app" : "admin");
+                    } else if (scopePatterns.length > 0) {
+                        // Fallback: usar padrões do escopo
+                        belongsToScope = matchesScope(relativePath, scopePatterns);
+                    } else {
+                        // Fallback legacy: lógica original
+                        if (scope === "scope_app") {
+                            belongsToScope = relativePath.startsWith("participante");
+                        } else {
+                            belongsToScope = !relativePath.startsWith("participante");
+                        }
+                    }
+
+                    if (belongsToScope) {
+                        const stat = fs.statSync(fullPath);
+                        if (stat.mtime > latestMtime) {
+                            latestMtime = stat.mtime;
+                            latestFile = relativePath;
+                        }
                     }
                 }
             }
+        } catch (error) {
+            console.error(`[APP-VERSION] Erro ao ler ${currentPath}:`, error.message);
         }
-    } catch (error) {
-        console.error(`[APP-VERSION] Erro ao ler ${dirPath}:`, error.message);
     }
 
-    return latestMtime;
+    scanDir(dirPath);
+
+    return { mtime: latestMtime, file: latestFile };
+}
+
+/**
+ * Busca mtime para arquivos shared (afeta ambos os escopos)
+ */
+function getSharedMtime(dirPath) {
+    let latestMtime = new Date(0);
+    let latestFile = null;
+
+    const sharedPatterns = versionScope ? getScopePatterns(versionScope.shared || {}) : [];
+
+    function scanDir(currentPath) {
+        try {
+            if (!fs.existsSync(currentPath)) return;
+
+            const items = fs.readdirSync(currentPath, { withFileTypes: true });
+
+            for (const item of items) {
+                const fullPath = path.join(currentPath, item.name);
+                const relativePath = path.relative(publicDir, fullPath);
+
+                if (item.name.startsWith(".") || item.name === "node_modules") continue;
+
+                if (item.isDirectory()) {
+                    scanDir(fullPath);
+                } else if (item.isFile()) {
+                    const ext = path.extname(item.name).toLowerCase();
+                    if (![".js", ".css", ".html"].includes(ext)) continue;
+
+                    // Verificar usando version_triggers
+                    const fileScopes = getFileScope(relativePath);
+
+                    let isShared = false;
+                    if (fileScopes && fileScopes.length === 2) {
+                        // Arquivo que incrementa ambos é shared
+                        isShared = fileScopes.includes("admin") && fileScopes.includes("app");
+                    } else if (sharedPatterns.length > 0) {
+                        isShared = matchesScope(relativePath, sharedPatterns);
+                    }
+
+                    if (isShared) {
+                        const stat = fs.statSync(fullPath);
+                        if (stat.mtime > latestMtime) {
+                            latestMtime = stat.mtime;
+                            latestFile = relativePath;
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error(`[APP-VERSION] Erro ao ler shared ${currentPath}:`, error.message);
+        }
+    }
+
+    scanDir(dirPath);
+
+    return { mtime: latestMtime, file: latestFile };
 }
 
 /**
@@ -99,46 +261,39 @@ function dateToVersion(date) {
 }
 
 // =====================================================================
-// DETECÇÃO AUTOMÁTICA DE VERSÕES
+// DETECÇÃO AUTOMÁTICA DE VERSÕES (usando version-scope.json)
 // =====================================================================
 
-// Diretórios do PARTICIPANTE (app mobile)
-const participanteDirs = [path.join(rootDir, "public/participante")];
+// Buscar última modificação de cada escopo
+const appResult = getLatestMtimeByScope(publicDir, "scope_app");
+const adminResult = getLatestMtimeByScope(publicDir, "scope_admin");
+const sharedResult = getSharedMtime(publicDir);
 
-// Diretórios do ADMIN (painel desktop)
-const adminDirs = [
-    path.join(rootDir, "public/js"),
-    path.join(rootDir, "public/fronts"),
-    path.join(rootDir, "public/css"),
-];
-
-// Excluir participante dos diretórios admin (public/js não tem participante, mas por segurança)
-const adminExcludes = ["public/participante"];
-
-// Buscar última modificação de cada área
-let participanteMtime = new Date(0);
-for (const dir of participanteDirs) {
-    const mtime = getLatestMtime(dir);
-    if (mtime > participanteMtime) {
-        participanteMtime = mtime;
-    }
+// Participante: max entre scope_app e shared
+let participanteMtime = appResult.mtime;
+let participanteFile = appResult.file;
+if (sharedResult.mtime > participanteMtime) {
+    participanteMtime = sharedResult.mtime;
+    participanteFile = sharedResult.file + " (shared)";
 }
 
-let adminMtime = new Date(0);
-for (const dir of adminDirs) {
-    const mtime = getLatestMtime(dir, adminExcludes);
-    if (mtime > adminMtime) {
-        adminMtime = mtime;
-    }
+// Admin: max entre scope_admin e shared
+let adminMtime = adminResult.mtime;
+let adminFile = adminResult.file;
+if (sharedResult.mtime > adminMtime) {
+    adminMtime = sharedResult.mtime;
+    adminFile = sharedResult.file + " (shared)";
 }
 
 // Se não encontrou modificações, usar startup time
 const startupTime = new Date();
 if (participanteMtime.getTime() === 0) {
     participanteMtime = startupTime;
+    participanteFile = "(startup)";
 }
 if (adminMtime.getTime() === 0) {
     adminMtime = startupTime;
+    adminFile = "(startup)";
 }
 
 // =====================================================================
@@ -150,6 +305,7 @@ export const PARTICIPANTE_VERSION = {
     ...dateToVersion(participanteMtime),
     area: "participante",
     releaseNotes: "Atualização do app",
+    lastModifiedFile: participanteFile,
 };
 
 // Versão do ADMIN (painel desktop)
@@ -157,22 +313,32 @@ export const ADMIN_VERSION = {
     ...dateToVersion(adminMtime),
     area: "admin",
     releaseNotes: "Atualização do painel",
+    lastModifiedFile: adminFile,
 };
 
 // APP_VERSION para compatibilidade (usa a mais recente das duas)
-const latestMtime =
-    participanteMtime > adminMtime ? participanteMtime : adminMtime;
+const latestMtime = participanteMtime > adminMtime ? participanteMtime : adminMtime;
 export const APP_VERSION = {
     ...dateToVersion(latestMtime),
     releaseNotes: "Atualização do sistema",
 };
 
-// Logs de startup
-console.log(
-    `[APP-VERSION] ✅ Participante: v${PARTICIPANTE_VERSION.version} (${PARTICIPANTE_VERSION.deployedAt})`,
-);
-console.log(
-    `[APP-VERSION] ✅ Admin: v${ADMIN_VERSION.version} (${ADMIN_VERSION.deployedAt})`,
-);
+// Exportar configuração de escopo para uso externo
+export const VERSION_SCOPE = versionScope;
+
+// =====================================================================
+// LOGS DE STARTUP
+// =====================================================================
+
+console.log("[APP-VERSION] ═══════════════════════════════════════════");
+console.log(`[APP-VERSION] 📱 Participante: v${PARTICIPANTE_VERSION.version}`);
+if (participanteFile) {
+    console.log(`[APP-VERSION]    └─ Último: ${participanteFile}`);
+}
+console.log(`[APP-VERSION] 🖥️  Admin: v${ADMIN_VERSION.version}`);
+if (adminFile) {
+    console.log(`[APP-VERSION]    └─ Último: ${adminFile}`);
+}
+console.log("[APP-VERSION] ═══════════════════════════════════════════");
 
 export default APP_VERSION;

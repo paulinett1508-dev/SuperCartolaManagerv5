@@ -1,0 +1,230 @@
+{
+  "_meta": {
+    "description": "Mapa lógico de versionamento Admin/App",
+    "purpose": "Permite ao versionController identificar qual escopo foi alterado sem reorganizar pastas físicas",
+    "updated_at": "2025-12-16",
+    "criteria": "Inferência por nome de arquivo. Em caso de dúvida, marcado como 'shared'"
+  },
+
+  "scope_admin": {
+    "description": "Arquivos do painel administrativo (gestão, config, tesouraria)",
+    "html_pages": [
+      "admin.html",
+      "admin-consolidacao.html",
+      "gerenciar.html",
+      "gerenciar-modulos.html",
+      "ferramentas.html",
+      "ferramentas-rodadas.html",
+      "gerir-senhas-participantes.html",
+      "criar-liga.html",
+      "editar-liga.html",
+      "preencher-liga.html",
+      "detalhe-liga.html",
+      "migrar-localstorage-mongodb.html",
+      "gestao-renovacoes.html",
+      "painel.html",
+      "layout.html"
+    ],
+    "js_files": [
+      "js/admin/**/*",
+      "js/gerenciar-ligas.js",
+      "js/gerir-senhas-participantes.js",
+      "js/criar-liga.js",
+      "js/editar-liga.js",
+      "js/liga-modificacoes.js",
+      "js/detalhe-liga.js",
+      "js/detalhe-liga-orquestrador.js",
+      "js/ferramentas/**/*",
+      "js/fluxo-financeiro/**/*",
+      "js/fluxo-financeiro.js",
+      "js/participantes.js",
+      "js/gols.js",
+      "js/gols-por-rodada.js",
+      "js/filtro-liga-especial.js",
+      "js/seletor-ligas.js"
+    ],
+    "js_modules": [
+      "js/rodadas/**/*",
+      "js/rodadas.js",
+      "js/mata-mata/**/*",
+      "js/mata-mata.js",
+      "js/pontos-corridos/**/*",
+      "js/pontos-corridos.js",
+      "js/pontos-corridos-utils.js",
+      "js/melhor-mes/**/*",
+      "js/melhor-mes.js",
+      "js/luva-de-ouro/**/*",
+      "js/luva-de-ouro.js",
+      "js/artilheiro-campeao/**/*",
+      "js/artilheiro-campeao.js",
+      "js/top10.js",
+      "js/ranking.js",
+      "js/parciais.js",
+      "js/parciais-scheduler.js"
+    ],
+    "css_files": [
+      "css/gerir-senhas-participantes.css",
+      "css/modules/ferramentas.css",
+      "css/modules/dashboard.css",
+      "css/modules/dashboard-redesign.css",
+      "css/modules/detalhe-liga-redesign.css",
+      "css/modules/fluxo-financeiro.css",
+      "css/modules/participantes.css",
+      "css/modules/parciais.css",
+      "css/modules/rodadas.css",
+      "css/modules/mata-mata.css",
+      "css/modules/pontos-corridos.css",
+      "css/modules/melhor-mes.css",
+      "css/modules/luva-de-ouro.css",
+      "css/modules/artilheiro-campeao.css",
+      "css/modules/top10.css",
+      "css/modules/ranking-geral.css",
+      "detalhe-liga.css"
+    ],
+    "html_fragments": [
+      "fronts/**/*",
+      "templates/**/*"
+    ]
+  },
+
+  "scope_app": {
+    "description": "Arquivos do app do participante/usuário final (mobile PWA)",
+    "directories": [
+      "participante/**/*"
+    ],
+    "html_pages": [
+      "participante-dashboard.html",
+      "participante-login.html",
+      "convite.html"
+    ],
+    "detailed_files": {
+      "participante_root": [
+        "participante/index.html",
+        "participante/manifest.json",
+        "participante/service-worker.js",
+        "participante/DESIGN_SYSTEM.md"
+      ],
+      "participante_js": [
+        "participante/js/participante-auth.js",
+        "participante/js/participante-cache.js",
+        "participante/js/participante-cache-manager.js",
+        "participante/js/participante-navigation.js",
+        "participante/js/participante-offline-cache.js",
+        "participante/js/participante-refresh-button.js",
+        "participante/js/participante-status.js",
+        "participante/js/pull-refresh.js",
+        "participante/js/splash-screen.js"
+      ],
+      "participante_modules": [
+        "participante/js/modules/participante-ranking.js",
+        "participante/js/modules/participante-rodadas.js",
+        "participante/js/modules/participante-rodada-parcial.js",
+        "participante/js/modules/participante-pontos-corridos.js",
+        "participante/js/modules/participante-mata-mata.js",
+        "participante/js/modules/participante-melhor-mes.js",
+        "participante/js/modules/participante-artilheiro.js",
+        "participante/js/modules/participante-luva-ouro.js",
+        "participante/js/modules/participante-top10.js",
+        "participante/js/modules/participante-extrato.js",
+        "participante/js/modules/participante-extrato-ui.js",
+        "participante/js/modules/participante-boas-vindas.js"
+      ],
+      "participante_fronts": [
+        "participante/fronts/ranking.html",
+        "participante/fronts/rodadas.html",
+        "participante/fronts/pontos-corridos.html",
+        "participante/fronts/mata-mata.html",
+        "participante/fronts/melhor-mes.html",
+        "participante/fronts/artilheiro.html",
+        "participante/fronts/luva-ouro.html",
+        "participante/fronts/top10.html",
+        "participante/fronts/extrato.html",
+        "participante/fronts/boas-vindas.html"
+      ],
+      "participante_css": [
+        "participante/css/participante.css",
+        "participante/css/boas-vindas.css",
+        "participante/css/pull-refresh.css",
+        "participante/css/splash-screen.css",
+        "participante/css/top10-destaque.css"
+      ]
+    }
+  },
+
+  "shared": {
+    "description": "Arquivos compartilhados - alterações disparam update em AMBOS os escopos",
+    "html_pages": [
+      "index.html"
+    ],
+    "js_core": [
+      "js/core/**/*",
+      "js/utils.js",
+      "js/navigation.js",
+      "js/layout-system.js",
+      "js/sistema-modulos-init.js",
+      "js/cards-condicionais.js"
+    ],
+    "js_app_version": [
+      "js/app/**/*"
+    ],
+    "css_core": [
+      "css/base.css",
+      "css/performance.css",
+      "css/app/**/*",
+      "style.css"
+    ],
+    "assets": [
+      "escudos/**/*",
+      "assets/**/*",
+      "img/**/*",
+      "favicon.ico",
+      "favicon.png"
+    ],
+    "legacy_root": [
+      "gols.js",
+      "script.js"
+    ]
+  },
+
+  "version_triggers": {
+    "description": "Regras para detectar qual versão incrementar",
+    "rules": [
+      {
+        "pattern": "participante/**/*",
+        "increments": ["app"]
+      },
+      {
+        "pattern": "participante-*.html",
+        "increments": ["app"]
+      },
+      {
+        "pattern": "convite.html",
+        "increments": ["app"]
+      },
+      {
+        "pattern": "js/admin/**/*",
+        "increments": ["admin"]
+      },
+      {
+        "pattern": "fronts/**/*",
+        "increments": ["admin"]
+      },
+      {
+        "pattern": "templates/**/*",
+        "increments": ["admin"]
+      },
+      {
+        "pattern": "js/core/**/*",
+        "increments": ["admin", "app"]
+      },
+      {
+        "pattern": "css/base.css",
+        "increments": ["admin", "app"]
+      },
+      {
+        "pattern": "js/app/**/*",
+        "increments": ["admin", "app"]
+      }
+    ]
+  }
+}
