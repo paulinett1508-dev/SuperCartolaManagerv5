@@ -1,5 +1,6 @@
 /**
- * FLUXO-FINANCEIRO-AUDITORIA.JS v1.0
+ * FLUXO-FINANCEIRO-AUDITORIA.JS v2.0 (SaaS - Config Dinamica)
+ * ✅ v2.0: Refatorado para SaaS - remove liga ID hardcoded
  * Sistema de Auditoria Financeira para validar cálculos
  * ✅ Resumo Executivo
  * ✅ Detalhamento por Categoria
@@ -11,14 +12,11 @@ import { obterLigaId } from "../pontos-corridos-utils.js";
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro-campos.js";
 import {
     RODADA_INICIAL_PONTOS_CORRIDOS,
-    ID_SUPERCARTOLA_2025,
-    ID_CARTOLEIROS_SOBRAL,
     normalizarTimeId,
 } from "./fluxo-financeiro-utils.js";
 import {
-    valoresBancoPadrao,
-    valoresBancoCartoleirosSobral,
-    getBancoPorRodada,
+    getBancoPorRodadaAsync,
+    fetchLigaConfig,
 } from "../rodadas/rodadas-config.js";
 
 export class FluxoFinanceiroAuditoria {
@@ -26,7 +24,15 @@ export class FluxoFinanceiroAuditoria {
         this.cache = cache;
         this.core = core;
         this.ligaId = obterLigaId();
-        this.isCartoleirosSobral = this.ligaId === ID_CARTOLEIROS_SOBRAL;
+        this.ligaConfig = null; // v2.0: Cache de config dinamica
+    }
+
+    // v2.0: Carrega config da liga sob demanda
+    async _carregarConfig() {
+        if (!this.ligaConfig && this.ligaId) {
+            this.ligaConfig = await fetchLigaConfig(this.ligaId);
+        }
+        return this.ligaConfig;
     }
 
     // =========================================================================
@@ -223,12 +229,13 @@ export class FluxoFinanceiroAuditoria {
         const auditoria = [];
         let saldoAcumuladoCalculado = 0;
 
+        // v2.0: Pre-carregar config para otimizar
+        await this._carregarConfig();
+
         for (const r of rodadas) {
-            // Calcular valor esperado do Banco de Rodada
-            const bancosConfig = this.isCartoleirosSobral
-                ? getBancoPorRodada(r.rodada, ID_CARTOLEIROS_SOBRAL)
-                : valoresBancoPadrao;
-            const bonusOnusEsperado = bancosConfig[r.posicao] || 0;
+            // v2.0: Calcular valor esperado do Banco de Rodada via config dinamica
+            const bancosConfig = await getBancoPorRodadaAsync(this.ligaId, r.rodada);
+            const bonusOnusEsperado = bancosConfig[r.posicao] || bancosConfig[String(r.posicao)] || 0;
 
             // Calcular valor esperado do Mata-Mata
             let mataMataEsperado = 0;
@@ -1145,4 +1152,4 @@ window.exportarAuditoriaExcel = async function (timeId) {
     // TODO: Implementar com SheetJS ou similar
 };
 
-console.log("[FLUXO-AUDITORIA] ✅ Módulo v1.0 carregado");
+console.log("[FLUXO-AUDITORIA] ✅ Módulo v2.0 SaaS carregado - config dinamica");

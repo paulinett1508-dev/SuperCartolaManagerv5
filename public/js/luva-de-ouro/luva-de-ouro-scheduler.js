@@ -1,19 +1,24 @@
 // =============================================
-// LUVA DE OURO - SCHEDULER DE COLETA AUTOMÁTICA
+// LUVA DE OURO - SCHEDULER DE COLETA AUTOMÁTICA (v2.0 SaaS)
 // =============================================
+// ✅ v2.0: Removido liga ID hardcoded - obtém da URL dinamicamente
 // Coleta dados de goleiros automaticamente:
 // - Mercado fechado: coleta parciais a cada 5 minutos
 // - Mercado abre: consolida rodada anterior
 // =============================================
 
-console.log("⏰ [LUVA-SCHEDULER] Módulo de agendamento carregando...");
+console.log("⏰ [LUVA-SCHEDULER] Módulo de agendamento v2.0 SaaS carregando...");
 
 const LuvaDeOuroScheduler = {
   // Configurações
   config: {
     intervaloVerificacao: 5 * 60 * 1000, // 5 minutos
     intervaloColeta: 5 * 60 * 1000, // 5 minutos durante rodada
-    ligaId: "684d821cf1a7ae16d1f89572",
+    // v2.0: ligaId obtido dinamicamente
+    getLigaId: function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get("id");
+    },
   },
 
   // Estado
@@ -122,7 +127,12 @@ const LuvaDeOuroScheduler = {
     );
 
     try {
-      const url = `/api/luva-de-ouro/${this.config.ligaId}/coletar?inicio=${rodada}&fim=${rodada}`;
+      const ligaId = this.config.getLigaId();
+      if (!ligaId) {
+        console.warn("[LUVA-SCHEDULER] ⚠️ Liga ID não encontrado na URL");
+        return;
+      }
+      const url = `/api/luva-de-ouro/${ligaId}/coletar?inicio=${rodada}&fim=${rodada}`;
       const response = await fetch(url);
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -161,8 +171,13 @@ const LuvaDeOuroScheduler = {
     );
 
     try {
+      const ligaId = this.config.getLigaId();
+      if (!ligaId) {
+        console.warn("[LUVA-SCHEDULER] ⚠️ Liga ID não encontrado na URL");
+        return;
+      }
       // Fazer uma última coleta para garantir dados finais
-      const url = `/api/luva-de-ouro/${this.config.ligaId}/coletar?inicio=${rodada}&fim=${rodada}`;
+      const url = `/api/luva-de-ouro/${ligaId}/coletar?inicio=${rodada}&fim=${rodada}`;
       const response = await fetch(url);
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);

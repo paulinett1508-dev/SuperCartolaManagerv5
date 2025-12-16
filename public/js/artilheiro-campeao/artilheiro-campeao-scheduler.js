@@ -429,9 +429,9 @@ const ArtilheiroScheduler = {
             return window.coordinator.ligaId;
         }
 
-        // 2. Tentar da URL
+        // 2. Tentar da URL (v2.0: adiciona "id" como primeira opção)
         const urlParams = new URLSearchParams(window.location.search);
-        const ligaUrl = urlParams.get("liga") || urlParams.get("ligaId");
+        const ligaUrl = urlParams.get("id") || urlParams.get("liga") || urlParams.get("ligaId");
         if (ligaUrl) return ligaUrl;
 
         // 3. Tentar do localStorage
@@ -443,8 +443,9 @@ const ArtilheiroScheduler = {
         // 4. Tentar de variável global
         if (window.ligaAtual) return window.ligaAtual;
 
-        // 5. Fallback
-        return "684d821cf1a7ae16d1f89572";
+        // 5. v2.0: Sem fallback hardcoded - retorna null
+        console.warn("[ARTILHEIRO-SCHEDULER] ⚠️ Liga ID não encontrado");
+        return null;
     },
 
     // ===== OBTER STATUS =====

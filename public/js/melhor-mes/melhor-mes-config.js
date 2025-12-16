@@ -1,7 +1,27 @@
-// MELHOR DO MÊS - CONFIGURAÇÕES v1.0
+// MELHOR DO MÊS - CONFIGURAÇÕES v2.0 SaaS
+// ✅ v2.0: Removido liga IDs hardcoded - prêmios vêm do servidor
 // public/js/melhor-mes/melhor-mes-config.js
 
-console.log("[MELHOR-MES-CONFIG] Carregando configurações...");
+console.log("[MELHOR-MES-CONFIG] Carregando configurações v2.0 SaaS...");
+
+// Cache para configuração da liga
+let ligaConfigCache = null;
+
+// Função para buscar config da liga
+async function fetchLigaConfigSilent(ligaId) {
+  if (ligaConfigCache?.liga_id === ligaId) return ligaConfigCache;
+  try {
+    const response = await fetch(`/api/ligas/${ligaId}/configuracoes`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        ligaConfigCache = data;
+        return data;
+      }
+    }
+  } catch (e) { /* silencioso */ }
+  return null;
+}
 
 export const MELHOR_MES_CONFIG = {
   // EDIÇÕES DO MELHOR DO MÊS
@@ -15,14 +35,8 @@ export const MELHOR_MES_CONFIG = {
     { id: 7, nome: "Edição 07", inicio: 31, fim: 38, cor: "#34495e" },
   ],
 
-  // CONFIGURAÇÃO DE PRÊMIOS POR LIGA
+  // v2.0: PRÊMIOS DEFAULT (configs específicas vêm da API)
   premios: {
-    "684d821cf1a7ae16d1f89572": {
-      nome: "Cartoleiros Sobral",
-      primeiro: { valor: 15.0, label: "R$ 15,00", cor: "#28a745" },
-      ultimo: { valor: -15.0, label: "-R$ 15,00", cor: "#dc3545" },
-      minimo_participantes: 6,
-    },
     default: {
       nome: "Liga Padrão",
       primeiro: { valor: 0, label: "Troféu", cor: "#ffd700" },
@@ -97,8 +111,55 @@ export const MELHOR_MES_CONFIG = {
 };
 
 // FUNÇÕES UTILITÁRIAS
+
+// v2.0: getPremiosLiga agora é async e busca da API
+export async function getPremiosLigaAsync(ligaId) {
+  const config = await fetchLigaConfigSilent(ligaId);
+
+  // Se config tem melhor_mes com prêmios, usar
+  if (config?.configuracoes?.melhor_mes) {
+    const mm = config.configuracoes.melhor_mes;
+    return {
+      nome: config.liga_nome || "Liga",
+      primeiro: {
+        valor: mm.valor_primeiro || 0,
+        label: mm.valor_primeiro ? `R$ ${mm.valor_primeiro.toFixed(2).replace(".", ",")}` : "Troféu",
+        cor: "#28a745"
+      },
+      ultimo: {
+        valor: mm.valor_ultimo || 0,
+        label: mm.valor_ultimo ? `-R$ ${Math.abs(mm.valor_ultimo).toFixed(2).replace(".", ",")}` : "-",
+        cor: "#dc3545"
+      },
+      minimo_participantes: mm.minimo_participantes || config.total_participantes || 1,
+    };
+  }
+
+  // Fallback para default
+  return MELHOR_MES_CONFIG.premios.default;
+}
+
+// Sync version para compatibilidade (usa cache)
 export function getPremiosLiga(ligaId) {
-  return MELHOR_MES_CONFIG.premios[ligaId] || MELHOR_MES_CONFIG.premios.default;
+  // Se temos config em cache, usar
+  if (ligaConfigCache?.configuracoes?.melhor_mes) {
+    const mm = ligaConfigCache.configuracoes.melhor_mes;
+    return {
+      nome: ligaConfigCache.liga_nome || "Liga",
+      primeiro: {
+        valor: mm.valor_primeiro || 0,
+        label: mm.valor_primeiro ? `R$ ${mm.valor_primeiro.toFixed(2).replace(".", ",")}` : "Troféu",
+        cor: "#28a745"
+      },
+      ultimo: {
+        valor: mm.valor_ultimo || 0,
+        label: mm.valor_ultimo ? `-R$ ${Math.abs(mm.valor_ultimo).toFixed(2).replace(".", ",")}` : "-",
+        cor: "#dc3545"
+      },
+      minimo_participantes: mm.minimo_participantes || ligaConfigCache.total_participantes || 1,
+    };
+  }
+  return MELHOR_MES_CONFIG.premios.default;
 }
 
 export function getEdicaoById(id) {

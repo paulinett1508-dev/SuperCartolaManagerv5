@@ -358,35 +358,15 @@ const LuvaDeOuroUtils = {
 
   /**
    * Busca escudos corretos dos participantes (time do coração)
-   * ✅ HARDCODED para Liga Cartoleiros do Sobral
+   * ✅ v2.0 SaaS: Busca da API para todas as ligas (sem hardcoding)
    */
   buscarEscudosParticipantes: function () {
-    console.log("[LUVA-UTILS] 🔍 Iniciando busca de escudos...");
+    console.log("[LUVA-UTILS] 🔍 Iniciando busca de escudos v2.0 SaaS...");
 
     const urlParams = new URLSearchParams(window.location.search);
     const ligaId = urlParams.get("id");
 
-    // ✅ MAPEAMENTO HARDCODED - Liga Cartoleiros do Sobral
-    if (ligaId === "684d821cf1a7ae16d1f89572") {
-      const escudos = {
-        1926323: 262, // Daniel Barbosa
-        13935277: 262, // Paulinett Miranda
-        14747183: 276, // Carlos Henrique
-        49149009: 262, // Matheus Coutinho
-        49149388: 262, // Junior Brasilino
-        50180257: 267, // Hivisson
-      };
-
-      console.log("[LUVA-UTILS] ✅ Mapa de escudos criado:", escudos);
-      console.log(
-        "[LUVA-UTILS] 📊 Total de escudos:",
-        Object.keys(escudos).length,
-      );
-
-      return Promise.resolve(escudos);
-    }
-
-    // Para outras ligas, buscar da API normalmente
+    // v2.0: Buscar da API para todas as ligas (sem mais hardcoding)
     if (!ligaId) {
       console.warn("[LUVA-UTILS] ⚠️ Liga ID não encontrado na URL");
       return Promise.resolve(null);

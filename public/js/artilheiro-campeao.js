@@ -1,12 +1,17 @@
-// ✅ ARTILHEIRO-CAMPEAO.JS v4.4.1
+// ✅ ARTILHEIRO-CAMPEAO.JS v4.5.0 SaaS
 // Tabela com Rodadas em Colunas - DESTAQUE 1º LUGAR + RODADA FINAL + Material Icons
+// v4.5.0: Removido liga ID hardcoded - usa URL dinamicamente
 // v4.4.1: Fix temporada encerrada (não mostrar como parcial após R38)
-console.log("🏆 [ARTILHEIRO] Sistema v4.4.1 carregando...");
+console.log("🏆 [ARTILHEIRO] Sistema v4.5.0 SaaS carregando...");
 
 const ArtilheiroCampeao = {
     // Configurações
     config: {
-        LIGA_ID: "684d821cf1a7ae16d1f89572",
+        // v4.5.0: Liga ID obtido dinamicamente da URL
+        getLigaId: function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get("id");
+        },
         RODADAS_VISIVEIS: 38,
         RODADA_FINAL: 38, // ✅ v4.3: Constante da rodada final
         API: {
@@ -82,7 +87,7 @@ const ArtilheiroCampeao = {
     async detectarRodada() {
         try {
             const response = await fetch(
-                this.config.API.DETECTAR_RODADA(this.config.LIGA_ID),
+                this.config.API.DETECTAR_RODADA(this.config.getLigaId()),
             );
             if (response.ok) {
                 const data = await response.json();
@@ -447,7 +452,7 @@ const ArtilheiroCampeao = {
                 ...(forcarColeta && { forcar_coleta: "true" }),
             });
 
-            const url = `${this.config.API.RANKING(this.config.LIGA_ID)}?${params}`;
+            const url = `${this.config.API.RANKING(this.config.getLigaId())}?${params}`;
             console.log(`📡 [ARTILHEIRO] Buscando: ${url}`);
 
             const response = await fetch(url);

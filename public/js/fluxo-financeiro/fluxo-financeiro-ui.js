@@ -5,7 +5,8 @@ import {
 } from "./fluxo-financeiro-auditoria.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v5.3 (Botão Registrar Acerto)
+ * FLUXO-FINANCEIRO-UI.JS - v5.4 (SaaS - Config Dinâmica)
+ * ✅ v5.4: Remove liga ID hardcoded - usa config dinâmica para determinar fases
  * ✅ v5.3: Botão "Acerto" para registrar pagamentos/recebimentos
  * ✅ v5.1: Função renderizarRelatorioConsolidado + botão Voltar
  * ✅ v5.0: PDF multi-página com quebra automática e TOP 10 detalhado
@@ -375,14 +376,16 @@ export class FluxoFinanceiroUI {
     }
 
     formatarPosicao(rodada) {
-        // ✅ v4.1: MITO/MICO contextual por rodada
-        const ligaId = window.obterLigaId?.() || null;
-        const isCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
+        // ✅ v5.4: Usar config dinâmica em vez de liga ID hardcoded
+        // O total de times vem da config da liga ou do cache do extrato
+        let totalTimesFase = rodada.totalTimesFase || window.ligaConfig?.totalParticipantes || 32;
 
-        // Determinar total de times da fase
-        let totalTimesFase = 32; // SuperCartola padrão
-        if (isCartoleirosSobral) {
-            totalTimesFase = rodada.rodada >= 29 ? 4 : 6; // FASE2 a partir R29
+        // Se tiver config temporal no cache, usar as fases corretas
+        const config = window.ligaConfigCache;
+        if (config?.ranking_rodada?.temporal) {
+            const rodadaTransicao = config.ranking_rodada.rodada_transicao || 30;
+            const fase = rodada.rodada < rodadaTransicao ? 'fase1' : 'fase2';
+            totalTimesFase = config.ranking_rodada[fase]?.total_participantes || totalTimesFase;
         }
 
         // MITO: 1º lugar
@@ -396,20 +399,17 @@ export class FluxoFinanceiroUI {
         if (rodada.posicao) {
             let classe = "status-neutro";
 
-            if (isCartoleirosSobral && rodada.rodada >= 29) {
-                // Fase 2 (R29+): 4 times (1º=crédito, 2º-3º=neutro, 4º=MICO já tratado acima)
-                if (rodada.posicao === 1) classe = "status-g4";
-                else if (rodada.posicao >= 2 && rodada.posicao <= 3)
-                    classe = "status-neutro";
-            } else if (isCartoleirosSobral) {
-                // Fase 1: 6 times (1º-2º=crédito, 3º=neutro, 4º-5º=débito, 6º=MICO já tratado)
-                if (rodada.posicao >= 1 && rodada.posicao <= 2)
-                    classe = "status-g4";
-                else if (rodada.posicao === 3) classe = "status-neutro";
-                else if (rodada.posicao >= 4 && rodada.posicao <= 5)
-                    classe = "status-z4";
+            // v5.4: Determinar faixas baseado no total de participantes
+            if (totalTimesFase <= 6) {
+                // Liga pequena (ex: 4 ou 6 times)
+                const faixaCredito = Math.ceil(totalTimesFase / 3);
+                const faixaDebito = totalTimesFase - Math.floor(totalTimesFase / 3);
+
+                if (rodada.posicao <= faixaCredito) classe = "status-g4";
+                else if (rodada.posicao >= faixaDebito) classe = "status-z4";
+                else classe = "status-neutro";
             } else {
-                // SuperCartola 2025 (32 times)
+                // Liga grande (32+ times) - padrão SuperCartola
                 classe =
                     rodada.posicao <= 11
                         ? "status-g4"
@@ -1930,4 +1930,4 @@ window.exportarExtratoPDF = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-UI] ✅ v5.1 carregado (Relatório Consolidado)");
+console.log("[FLUXO-UI] ✅ v5.4 SaaS carregado - config dinâmica para fases");

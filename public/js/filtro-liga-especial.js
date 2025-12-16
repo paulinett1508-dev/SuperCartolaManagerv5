@@ -1,12 +1,13 @@
-// Correção para filtrar times na liga Cartoleiros Sobral (ID 684d821cf1a7ae16d1f89572)
+// v2.0 SaaS: Filtro de times da liga (genérico para qualquer liga)
+// Remove o hardcoded "liga especial" - agora todas as ligas podem usar este filtro
 
-// Função para obter os IDs dos times participantes da liga especial
+// Função para obter os IDs dos times participantes de uma liga
 async function obterTimesLigaEspecial(ligaId) {
-  console.log(`[filtro-liga-especial.js] Verificando se é a liga especial: ${ligaId}`);
+  console.log(`[filtro-liga-especial.js] Verificando liga: ${ligaId}`);
 
-  // Verifica se é a liga especial
-  if (ligaId !== "684d821cf1a7ae16d1f89572") {
-    console.log("[filtro-liga-especial.js] Não é a liga especial, retornando null");
+  // v2.0: Não mais verifica liga específica - funciona para todas as ligas
+  if (!ligaId) {
+    console.log("[filtro-liga-especial.js] Liga ID não fornecido");
     return null;
   }
 
@@ -70,17 +71,18 @@ async function filtrarDadosPorTimesLigaEspecial(dados, ligaId, idField = "time_i
 }
 
 // Função para aplicar o filtro em todas as abas
+// v2.0: Funciona para qualquer liga, não apenas "especial"
 async function aplicarFiltroLigaEspecial() {
   const urlParams = new URLSearchParams(window.location.search);
   const ligaId = urlParams.get("id");
 
-  // Verifica se é a liga especial
-  if (ligaId !== "684d821cf1a7ae16d1f89572") {
-    console.log("[filtro-liga-especial.js] Não é a liga especial, nenhum filtro será aplicado");
+  // v2.0: Sem verificação de liga específica - funciona para todas
+  if (!ligaId) {
+    console.log("[filtro-liga-especial.js] Liga ID não encontrado na URL");
     return;
   }
 
-  console.log("[filtro-liga-especial.js] Aplicando filtros para a liga especial");
+  console.log(`[filtro-liga-especial.js] Aplicando filtros para liga ${ligaId}`);
 
   // Obtém os IDs dos times da liga especial
   const timeIds = await obterTimesLigaEspecial(ligaId);

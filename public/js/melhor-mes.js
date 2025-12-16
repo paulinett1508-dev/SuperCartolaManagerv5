@@ -229,28 +229,36 @@ async function calcularRankingEdicaoFallback(rodadaInicio, rodadaFim, ligaId) {
 }
 
 // RENDER TABELA FALLBACK
+// v2.0: Usa config dinâmica ao invés de liga ID hardcoded
 function renderTabelaFallback(ranking, edicao) {
   const container = document.getElementById("melhorMesTabela");
   if (!container) return;
 
   const ligaId = getLigaId();
-  const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
+
+  // v2.0: Verificar se liga tem prêmios configurados (via window.ligaConfigCache)
+  const config = window.ligaConfigCache;
+  const melhorMesConfig = config?.configuracoes?.melhor_mes;
+  const hasPremios = melhorMesConfig && (melhorMesConfig.valor_primeiro > 0 || melhorMesConfig.valor_ultimo !== 0);
+  const valorPrimeiro = melhorMesConfig?.valor_primeiro || 0;
+  const valorUltimo = melhorMesConfig?.valor_ultimo || 0;
+  const minParticipantes = melhorMesConfig?.minimo_participantes || 6;
 
   const tabelaBodyHtml = ranking
     .map((t, i) => {
       let premioHtml = "";
-      if (isLigaCartoleirosSobral) {
-        if (i === 0) {
-          premioHtml = `<td style="text-align:center; color:#198754; font-weight:bold;">R$ 15,00</td>`;
-        } else if (ranking.length >= 6 && i === ranking.length - 1) {
-          premioHtml = `<td style="text-align:center; color:#dc3545; font-weight:bold;">-R$ 15,00</td>`;
+      if (hasPremios) {
+        if (i === 0 && valorPrimeiro > 0) {
+          premioHtml = `<td style="text-align:center; color:#198754; font-weight:bold;">R$ ${valorPrimeiro.toFixed(2).replace(".", ",")}</td>`;
+        } else if (ranking.length >= minParticipantes && i === ranking.length - 1 && valorUltimo !== 0) {
+          premioHtml = `<td style="text-align:center; color:#dc3545; font-weight:bold;">-R$ ${Math.abs(valorUltimo).toFixed(2).replace(".", ",")}</td>`;
         } else {
           premioHtml = `<td style="text-align:center;">-</td>`;
         }
       }
 
       return `
-      <tr style="${i === 0 ? "background:#e3f2fd;font-weight:bold;" : i === ranking.length - 1 && isLigaCartoleirosSobral ? "background:#ffebee;" : ""}">
+      <tr style="${i === 0 ? "background:#e3f2fd;font-weight:bold;" : i === ranking.length - 1 && hasPremios && valorUltimo !== 0 ? "background:#ffebee;" : ""}">
         <td style="text-align:center; padding:8px 2px;">${i === 0 ? "🏆" : i + 1}</td>
         <td style="text-align:left; padding:8px 4px;">${t.nome_cartola}</td>
         <td style="text-align:left; padding:8px 4px;">${t.nome_time}</td>
@@ -258,7 +266,7 @@ function renderTabelaFallback(ranking, edicao) {
           ${t.clube_id ? `<img src="/escudos/${t.clube_id}.png" alt="Escudo" style="width:24px; height:24px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "—"}
         </td>
         <td style="text-align:center; padding:8px 2px;"><span style="font-weight:600;">${t.pontos.toFixed(2)}</span></td>
-        ${isLigaCartoleirosSobral ? premioHtml : ""}
+        ${hasPremios ? premioHtml : ""}
       </tr>
     `;
     })

@@ -1,4 +1,5 @@
-// 🔧 RANKING.JS - v2.3 COM MATERIAL ICONS FORÇADO
+// 🔧 RANKING.JS - v2.4 COM MATERIAL ICONS FORÇADO
+// v2.4: Refatorado para SaaS - usa totalParticipantes em vez de liga ID hardcoded
 // Visual diferenciado para inativos + filtros 1º/2º turno/Geral
 // ✅ NOVO: Card destaque do líder + Card "Seu Desempenho" + Posições por turno
 // ✅ FIX: Material Icons via FontFace API
@@ -1068,7 +1069,7 @@ function criarLinhaParticipante(
 
     const labelPosicao = estaInativo
         ? `<span class="posicao-inativo">—</span>`
-        : obterLabelPosicao(index, ligaId);
+        : obterLabelPosicao(index, ligaId, totalAtivos);
 
     const badgeInativo = estaInativo
         ? `<span class="badge-inativo">INATIVO R${participante.rodada_desistencia || "?"}</span>`
@@ -1127,8 +1128,23 @@ function obterClassePosicao(index) {
     }
 }
 
-function obterLabelPosicao(index, ligaId) {
-    const isLigaSobral = ligaId === "684d821cf1a7ae16d1f89572";
+// v2.4: Usar config dinamica em vez de ID hardcoded
+async function obterConfigLiga(ligaId) {
+    try {
+        const response = await fetch(`/api/ligas/${ligaId}/configuracoes`);
+        if (response.ok) {
+            const config = await response.json();
+            return config;
+        }
+    } catch (e) {
+        console.warn('[RANKING] Erro ao buscar config:', e.message);
+    }
+    return null;
+}
+
+function obterLabelPosicao(index, ligaId, totalParticipantes = 32) {
+    // v2.4: Usar totalParticipantes para determinar se e liga pequena
+    const isLigaPequena = totalParticipantes <= 6;
 
     switch (index) {
         case 0:
@@ -1136,7 +1152,7 @@ function obterLabelPosicao(index, ligaId) {
         case 1:
             return `<span class="trofeu-prata" title="Vice-Campeão"><span class="material-icons" style="color:#c0c0c0;">military_tech</span></span>`;
         case 2:
-            return isLigaSobral
+            return isLigaPequena
                 ? `${index + 1}º`
                 : `<span class="trofeu-bronze" title="Terceiro Lugar"><span class="material-icons" style="color:#cd7f32;">military_tech</span></span>`;
         default:
@@ -1181,5 +1197,5 @@ window.modulosCarregados.ranking = {
 };
 
 console.log(
-    "✅ [RANKING] Módulo v2.3 carregado com Material Icons forçado via FontFace API",
+    "✅ [RANKING] Módulo v2.4 SaaS carregado - usa totalParticipantes para labels",
 );

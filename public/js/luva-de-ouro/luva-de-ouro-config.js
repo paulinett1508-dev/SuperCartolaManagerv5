@@ -1,13 +1,18 @@
-// LUVA DE OURO CONFIG - Configurações e constantes (REFATORADO)
+// LUVA DE OURO CONFIG - Configurações e constantes (v2.0 SaaS)
+// ✅ v2.0: Removido liga IDs hardcoded - config vem do servidor
 
-console.log("🥅 [LUVA-CONFIG] Módulo de configuração carregando...");
+console.log("🥅 [LUVA-CONFIG] Módulo de configuração v2.0 SaaS carregando...");
 
 const LuvaDeOuroConfig = {
   // ==============================
-  // IDENTIFICADORES DE LIGAS
+  // v2.0: IDs removidos - usar getLigaIdAtual()
   // ==============================
 
-  LIGA_SOBRAL_ID: "684d821cf1a7ae16d1f89572",
+  // Obter liga ID da URL (dinâmico)
+  getLigaIdAtual: function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("id");
+  },
 
   // ==============================
   // ENDPOINTS DA API
@@ -38,17 +43,9 @@ const LuvaDeOuroConfig = {
   },
 
   // ==============================
-  // MAPEAMENTO DE ESCUDOS (Times do Coração)
+  // v2.0: ESCUDOS agora vêm da API /api/ligas/:id
+  // Não mais hardcoded - usar buscarEscudosParticipantes()
   // ==============================
-
-  ESCUDOS_PARTICIPANTES: {
-    1926323: 262, // Daniel Barbosa - Flamengo
-    13935277: 262, // Paulinett Miranda - Flamengo
-    14747183: 276, // Carlos Henrique - São Paulo
-    49149009: 262, // Matheus Coutinho - Flamengo
-    49149388: 262, // Junior Brasilino - Flamengo
-    50180257: 267, // Hivisson - Vasco
-  },
 
   // ==============================
   // CONFIGURAÇÕES DE RODADAS

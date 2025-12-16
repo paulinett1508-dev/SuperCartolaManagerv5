@@ -1,5 +1,6 @@
 /**
  * Módulo para seleção e troca de ligas no Super Cartola Manager
+ * v2.0 SaaS: Busca ligas da API ao invés de usar lista hardcoded
  * Implementação não intrusiva que preserva o layout original
  */
 
@@ -8,31 +9,41 @@
   // Verificar se o seletor já foi inicializado para evitar duplicação
   if (window.seletorLigasInicializado) return;
 
+  // v2.0: Buscar ligas da API
+  async function buscarLigasDisponiveis() {
+    try {
+      const response = await fetch("/api/ligas");
+      if (response.ok) {
+        const ligas = await response.json();
+        return ligas.map(l => ({
+          liga_id: l._id || l.liga_id,
+          nome: l.nome || l.liga_nome || "Liga"
+        }));
+      }
+    } catch (e) {
+      console.warn("[SELETOR-LIGAS] Erro ao buscar ligas:", e.message);
+    }
+    return [];
+  }
+
   // Função principal que será executada quando o DOM estiver pronto
-  function inicializarSeletorLigas() {
+  async function inicializarSeletorLigas() {
     // Obter o ID da liga atual da URL
     const urlParams = new URLSearchParams(window.location.search);
     const ligaAtualId = urlParams.get("id");
 
     if (!ligaAtualId) return;
 
-    // Ligas conhecidas para fallback (evita erro 404)
-    const ligasConhecidas = [
-      { liga_id: "684cb1c8af923da7c7df51de", nome: "Super Cartola 2025" },
-      { liga_id: "684d821cf1a7ae16d1f89572", nome: "Cartoleiros Sobral 2025" },
-    ];
+    // v2.0: Buscar ligas da API
+    const ligas = await buscarLigasDisponiveis();
 
-    // Verificar se a liga atual está entre as conhecidas
-    const ligaAtual = ligasConhecidas.find(
-      (liga) => liga.liga_id === ligaAtualId,
-    );
-
-    // Se a liga atual não estiver entre as conhecidas, não mostrar o seletor
+    // Se não tiver ligas ou liga atual não existir, não mostrar seletor
+    if (ligas.length === 0) return;
+    const ligaAtual = ligas.find(liga => liga.liga_id === ligaAtualId);
     if (!ligaAtual) return;
 
-    // Usar diretamente as ligas conhecidas sem tentar buscar da API
-    // Isso evita o erro 404 e mensagens de aviso no console
-    criarSeletorLigas(ligasConhecidas, ligaAtualId);
+    // Criar seletor com ligas da API
+    criarSeletorLigas(ligas, ligaAtualId);
   }
 
   // Função para criar o seletor de ligas de forma não intrusiva

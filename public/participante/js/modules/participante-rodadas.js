@@ -1,5 +1,6 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v4.4 (CACHE-FIRST + Cores por Saldo)
+// PARTICIPANTE-RODADAS.JS - v4.5 SaaS DYNAMIC
+// ✅ v4.5: Removido LIGAS_CONFIG hardcoded - configs vêm do servidor
 // ✅ v4.4: CACHE-FIRST - Carregamento instantâneo do IndexedDB
 // ✅ v4.3: Cards coloridos por saldo financeiro
 //    - VERDE: valorFinanceiro > 0 (ganhou na rodada)
@@ -10,16 +11,10 @@
 // ✅ v4.0: Todos os cálculos movidos para o backend
 // =====================================================================
 
-if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v4.4 (CACHE-FIRST)...");
+if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v4.5 SaaS DYNAMIC...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
-
-// Configuração de IDs das ligas
-const LIGAS_CONFIG = {
-    SUPERCARTOLA: "684cb1c8af923da7c7df51de",
-    CARTOLEIROS_SOBRAL: "684d821cf1a7ae16d1f89572",
-};
 
 // ✅ v4.0: Valores movidos para o backend - frontend apenas exibe
 // Estado do módulo

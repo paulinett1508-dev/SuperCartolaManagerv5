@@ -1,24 +1,13 @@
-// === CARDS-CONDICIONAIS.JS ===
+// === CARDS-CONDICIONAIS.JS v2.0 ===
+// ✅ v2.0: Refatorado para SaaS - busca config do servidor via API
 // Sistema de desativação condicional de cards por liga
 
-console.log("🎛️ [CARDS-CONDICIONAIS] Carregando sistema...");
+console.log("[CARDS-CONDICIONAIS] v2.0 SaaS - Carregando sistema...");
 
-// === CONFIGURAÇÕES POR LIGA ===
-const CARDS_CONFIG = {
-    // Super Cartola 2025 - Desabilitar Prêmios individuais
-    "684cb1c8af923da7c7df51de": {
-        disabled: ["luva-de-ouro", "artilheiro-campeao"],
-        reason: "Prêmios não se aplicam a esta liga",
-    },
-
-    // Cartoleiros do Sobral - Desabilitar Competições individuais e Melhor do Mês
-    "684d821cf1a7ae16d1f89572": {
-        disabled: ["mata-mata", "pontos-corridos", "melhor-mes"],
-        reason: "Competições não se aplicam a esta liga",
-    },
-
-    // Configurações adicionais podem ser adicionadas aqui
-};
+// === CACHE DE CONFIG DA LIGA ===
+let ligaConfigCache = null;
+let cacheTimestamp = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 /**
  * Obter ID da liga atual da URL
@@ -29,12 +18,68 @@ function getLigaIdAtual() {
 }
 
 /**
- * Verificar se um módulo está desabilitado para a liga atual
+ * Buscar configuração da liga do servidor (v2.0 SaaS)
+ */
+async function fetchLigaConfig(ligaId) {
+    // Verificar cache
+    if (ligaConfigCache && Date.now() - cacheTimestamp < CACHE_TTL) {
+        return ligaConfigCache;
+    }
+
+    try {
+        const response = await fetch(`/api/ligas/${ligaId}/configuracoes`);
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (data.success) {
+            ligaConfigCache = data;
+            cacheTimestamp = Date.now();
+            console.log(`[CARDS-CONDICIONAIS] Config carregada para ${data.liga_nome}`);
+            return data;
+        }
+    } catch (error) {
+        console.warn("[CARDS-CONDICIONAIS] Erro ao buscar config:", error.message);
+    }
+
+    return null;
+}
+
+/**
+ * Verificar se um módulo está desabilitado para a liga atual (async)
+ */
+async function isModuleDisabledAsync(moduleId) {
+    const ligaId = getLigaIdAtual();
+    if (!ligaId) return false;
+
+    const config = await fetchLigaConfig(ligaId);
+    if (!config) return false;
+
+    // Verificar em cards_desabilitados (array de IDs de cards)
+    const cardsDesabilitados = config.cards_desabilitados || [];
+    if (cardsDesabilitados.includes(moduleId)) {
+        return true;
+    }
+
+    // Verificar em modulos_ativos (se habilitado = false)
+    const moduloKey = moduleId.replace(/-/g, '_').replace(/([A-Z])/g, '_$1').toLowerCase();
+    const moduloCamel = moduleId.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+
+    const modulos = config.modulos_ativos || {};
+    if (modulos[moduloCamel] === false || modulos[moduloKey] === false) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Verificar se um módulo está desabilitado (sync - usa cache)
  */
 function isModuleDisabled(moduleId) {
-    const ligaId = getLigaIdAtual();
-    const config = CARDS_CONFIG[ligaId];
-    return config && config.disabled.includes(moduleId);
+    if (!ligaConfigCache) return false;
+
+    const cardsDesabilitados = ligaConfigCache.cards_desabilitados || [];
+    return cardsDesabilitados.includes(moduleId);
 }
 
 /**
@@ -53,52 +98,60 @@ function aplicarEstadoDesabilitado(card, moduleId) {
 }
 
 /**
- * Aplicar configurações condicionais baseadas na liga
+ * Aplicar configurações condicionais baseadas na liga (v2.0 - async)
  */
-function aplicarConfiguracaoCards() {
-    console.log("🎯 [CARDS-CONDICIONAIS] Aplicando configuração...");
+async function aplicarConfiguracaoCards() {
+    console.log("[CARDS-CONDICIONAIS] Aplicando configuração dinâmica...");
 
     try {
         const ligaId = getLigaIdAtual();
 
         if (!ligaId) {
-            console.warn("⚠️ [CARDS-CONDICIONAIS] ID da liga não encontrado");
+            console.warn("[CARDS-CONDICIONAIS] ID da liga não encontrado");
             return;
         }
 
-        console.log(`🔍 [CARDS-CONDICIONAIS] Liga atual: ${ligaId}`);
+        console.log(`[CARDS-CONDICIONAIS] Liga atual: ${ligaId}`);
 
-        // Verificar se há configuração para esta liga
-        const config = CARDS_CONFIG[ligaId];
+        // v2.0: Buscar configuração do servidor
+        const config = await fetchLigaConfig(ligaId);
 
-        if (!config || !config.disabled.length) {
-            console.log(
-                "✅ [CARDS-CONDICIONAIS] Nenhuma restrição para esta liga",
-            );
+        if (!config) {
+            console.log("[CARDS-CONDICIONAIS] Config não encontrada - usando padrão (sem restrições)");
+            return;
+        }
+
+        // Obter lista de cards desabilitados da config
+        const cardsDesabilitados = config.cards_desabilitados || [];
+
+        // Também verificar modulos_ativos para detectar módulos desativados
+        const modulos = config.modulos_ativos || {};
+        const modulosDesabilitados = Object.entries(modulos)
+            .filter(([_, enabled]) => enabled === false)
+            .map(([key]) => key.replace(/([A-Z])/g, '-$1').toLowerCase());
+
+        // Unir listas sem duplicatas
+        const todosDesabilitados = [...new Set([...cardsDesabilitados, ...modulosDesabilitados])];
+
+        if (todosDesabilitados.length === 0) {
+            console.log("[CARDS-CONDICIONAIS] Nenhuma restrição para esta liga");
             return;
         }
 
         // Aplicar desabilitações
-        config.disabled.forEach((moduleId) => {
+        todosDesabilitados.forEach((moduleId) => {
             const card = document.querySelector(`[data-module="${moduleId}"]`);
 
             if (card) {
                 aplicarEstadoDesabilitado(card, moduleId);
             } else {
-                console.warn(
-                    `⚠️ [CARDS-CONDICIONAIS] Card "${moduleId}" não encontrado`,
-                );
+                console.log(`[CARDS-CONDICIONAIS] Card "${moduleId}" não encontrado no DOM`);
             }
         });
 
-        console.log(
-            `✅ [CARDS-CONDICIONAIS] ${config.disabled.length} cards desabilitados`,
-        );
+        console.log(`[CARDS-CONDICIONAIS] ${todosDesabilitados.length} cards desabilitados`);
     } catch (error) {
-        console.error(
-            "❌ [CARDS-CONDICIONAIS] Erro ao aplicar configuração:",
-            error,
-        );
+        console.error("[CARDS-CONDICIONAIS] Erro ao aplicar configuração:", error);
     }
 }
 
@@ -314,17 +367,17 @@ function adicionarAnimacoes() {
 }
 
 /**
- * Inicializar sistema quando DOM estiver pronto
+ * Inicializar sistema quando DOM estiver pronto (v2.0 - async)
  */
-function inicializar() {
-    console.log("🚀 [CARDS-CONDICIONAIS] Inicializando...");
+async function inicializar() {
+    console.log("[CARDS-CONDICIONAIS] Inicializando v2.0 SaaS...");
 
     try {
-        // ✅ Garantir que voltarParaCards está disponível globalmente
+        // Garantir que voltarParaCards está disponível globalmente
         window.voltarParaCards = voltarParaCards;
 
-        // Aplicar configurações visuais
-        aplicarConfiguracaoCards();
+        // v2.0: Aplicar configurações visuais (agora async)
+        await aplicarConfiguracaoCards();
 
         // Configurar navegação condicional
         aplicarNavegacaoCondicional();
@@ -339,25 +392,25 @@ function inicializar() {
         adicionarAnimacoes();
         setTimeout(melhorarExperienciaCards, 100);
 
-        console.log(
-            "✅ [CARDS-CONDICIONAIS] Sistema inicializado com UX melhorado",
-        );
+        console.log("[CARDS-CONDICIONAIS] Sistema v2.0 inicializado");
     } catch (error) {
-        console.error("❌ [CARDS-CONDICIONAIS] Erro na inicialização:", error);
+        console.error("[CARDS-CONDICIONAIS] Erro na inicialização:", error);
     }
 }
 
 /**
- * API pública do módulo
+ * API pública do módulo (v2.0 SaaS)
  */
 window.cardsCondicionais = {
     aplicarConfiguracao: aplicarConfiguracaoCards,
     isModuleDisabled: isModuleDisabled,
+    isModuleDisabledAsync: isModuleDisabledAsync,
     verificarBloqueado: verificarCardBloqueado,
     controlarBotaoVoltar: controlarBotaoVoltar,
     voltarParaCards: voltarParaCards,
     melhorarUX: melhorarExperienciaCards,
-    CARDS_CONFIG: CARDS_CONFIG,
+    fetchLigaConfig: fetchLigaConfig,
+    getLigaConfigCache: () => ligaConfigCache,
 };
 
 // Auto-inicialização
@@ -371,4 +424,4 @@ if (document.readyState === "loading") {
     setTimeout(inicializar, 150);
 }
 
-console.log("✅ [CARDS-CONDICIONAIS] Módulo carregado");
+console.log("[CARDS-CONDICIONAIS] Módulo v2.0 SaaS carregado");

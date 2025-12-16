@@ -1,10 +1,31 @@
+// v2.0 SaaS: Modificações de UI baseadas em config dinâmica da liga
+// Função auxiliar para buscar config da liga
+async function fetchLigaConfigForMods() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const ligaId = urlParams.get("id");
+  if (!ligaId) return null;
+
+  try {
+    const response = await fetch(`/api/ligas/${ligaId}/configuracoes`);
+    if (response.ok) {
+      const data = await response.json();
+      return data.success ? data : null;
+    }
+  } catch (e) { /* silencioso */ }
+  return null;
+}
+
 // Função para modificar a tabela de classificação da Liga Pontos Corridos
-function modificarTabelaClassificacao() {
+async function modificarTabelaClassificacao() {
   const urlParams = new URLSearchParams(window.location.search);
   const ligaId = urlParams.get("id");
 
-  // Aplicar apenas para a liga específica
-  if (ligaId === "684cb1c8af923da7c7df51de") {
+  // v2.0: Verificar se liga tem modificações de tabela habilitadas via config
+  const config = await fetchLigaConfigForMods();
+  const habilitarModificacaoTabela = config?.ui?.modificar_tabela_classificacao;
+
+  // Aplicar se config habilitar ou se total de participantes > 20 (ligas grandes)
+  if (habilitarModificacaoTabela || (config?.total_participantes > 20)) {
     // Observar mudanças no DOM para capturar quando a tabela for renderizada
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -139,26 +160,46 @@ function corrigirFluxoFinanceiro() {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
-// Função para modificar o menu com base no ID da liga
-function ajustarMenuPorLiga() {
+// Função para modificar o menu com base na config da liga
+// v2.0: Usa modulos_ativos da config ao invés de liga ID hardcoded
+async function ajustarMenuPorLiga() {
   const urlParams = new URLSearchParams(window.location.search);
   const ligaId = urlParams.get("id");
 
-  if (ligaId === "684d821cf1a7ae16d1f89572") {
-    // Remover abas não desejadas
-    const mataMataTab = document.querySelector('.tab[data-tab="mata-mata"]');
-    if (mataMataTab) mataMataTab.style.display = "none";
+  // Buscar config da liga
+  const config = await fetchLigaConfigForMods();
+  const modulosAtivos = config?.modulos_ativos || {};
 
-    const pontosCorridosTab = document.querySelector(
-      '.tab[data-tab="pontos-corridos"]',
-    );
-    if (pontosCorridosTab) pontosCorridosTab.style.display = "none";
+  // v2.0: Verificar modulos_ativos para decidir quais abas mostrar/esconder
+  // Se mataMata === false, esconder aba
+  // Se pontosCorridos === false, esconder aba
+  // Se artilheiroCampeao === true, mostrar aba
+  // Se luvaDeOuro === true, mostrar aba
 
-    // Adicionar novas abas
+  const esconderMataMata = modulosAtivos.mataMata === false;
+  const esconderPontosCorridos = modulosAtivos.pontosCorridos === false;
+  const mostrarArtilheiro = modulosAtivos.artilheiroCampeao === true;
+  const mostrarLuva = modulosAtivos.luvaDeOuro === true;
+
+  if (esconderMataMata || esconderPontosCorridos || mostrarArtilheiro || mostrarLuva) {
+    // v2.0: Esconder abas condicionalmente baseado em config
+    if (esconderMataMata) {
+      const mataMataTab = document.querySelector('.tab[data-tab="mata-mata"]');
+      if (mataMataTab) mataMataTab.style.display = "none";
+    }
+
+    if (esconderPontosCorridos) {
+      const pontosCorridosTab = document.querySelector(
+        '.tab[data-tab="pontos-corridos"]',
+      );
+      if (pontosCorridosTab) pontosCorridosTab.style.display = "none";
+    }
+
+    // Adicionar novas abas condicionalmente
     const tabs = document.querySelector(".tabs");
     if (tabs) {
-      // Verificar se as abas já existem para evitar duplicação
-      if (!document.querySelector('.tab[data-tab="artilheiro-campeao"]')) {
+      // v2.0: Adicionar Artilheiro só se habilitado
+      if (mostrarArtilheiro && !document.querySelector('.tab[data-tab="artilheiro-campeao"]')) {
         const artilheiroTab = document.createElement("button");
         artilheiroTab.className = "tab";
         artilheiroTab.setAttribute("data-tab", "artilheiro-campeao");
@@ -190,7 +231,8 @@ function ajustarMenuPorLiga() {
         });
       }
 
-      if (!document.querySelector('.tab[data-tab="luva-de-ouro"]')) {
+      // v2.0: Adicionar Luva de Ouro só se habilitado
+      if (mostrarLuva && !document.querySelector('.tab[data-tab="luva-de-ouro"]')) {
         const luvaTab = document.createElement("button");
         luvaTab.className = "tab";
         luvaTab.setAttribute("data-tab", "luva-de-ouro");

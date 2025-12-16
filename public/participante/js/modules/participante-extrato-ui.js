@@ -1,6 +1,7 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.7 SALDO_ATUAL FIX
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.8 SaaS DYNAMIC
 // =====================================================
+// ✅ v10.8: Refatorado para SaaS - remove liga ID hardcoded, usa config dinamica
 // ✅ v10.7: FIX CRÍTICO - Usar saldo_atual como fonte primária (igual Inicio)
 // ✅ v10.6: Mini botão refresh no Bottom Sheet Acertos (atualização pontual)
 // ✅ v10.5: FIX - Campo dataAcerto corrigido (backend envia dataAcerto, não data)
@@ -22,48 +23,54 @@
 // ✅ v9.0: Redesign - Badge BANCO unificado com valor
 // ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
 
-if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v10.7 SALDO_ATUAL FIX");
+if (window.Log) Log.info("[EXTRATO-UI] v10.8 SaaS DYNAMIC");
 
-// ===== CONFIGURAÇÃO DE FAIXAS POR LIGA (COM SUPORTE TEMPORAL) =====
-const FAIXAS_PREMIACAO = {
-    // SuperCartola - 32 times (fixo)
-    "684cb1c8af923da7c7df51de": {
-        nome: "SuperCartola",
-        temporal: false,
-        totalTimes: 32,
-        credito: { inicio: 1, fim: 11 },
-        neutro: { inicio: 12, fim: 21 },
-        debito: { inicio: 22, fim: 32 },
-    },
-    // Cartoleiros Sobral - CONFIGURAÇÃO TEMPORAL
-    "684d821cf1a7ae16d1f89572": {
-        nome: "Cartoleiros Sobral",
-        temporal: true,
-        rodadaTransicao: 30,
-        fase1: {
-            totalTimes: 6,
-            credito: { inicio: 1, fim: 2 },
-            neutro: { inicio: 3, fim: 3 },
-            debito: { inicio: 4, fim: 6 },
-        },
-        fase2: {
-            totalTimes: 4,
-            credito: { inicio: 1, fim: 1 },
-            neutro: { inicio: 2, fim: 3 },
-            debito: { inicio: 4, fim: 4 },
-        },
-    },
-};
+// ===== v10.8: CACHE DE CONFIG DA LIGA =====
+let ligaConfigCache = null;
 
-// Obter faixas corretas para liga E rodada
+// Buscar config dinamica da liga
+async function fetchLigaConfigSilent(ligaId) {
+    if (ligaConfigCache?.liga_id === ligaId) return ligaConfigCache;
+    try {
+        const response = await fetch(`/api/ligas/${ligaId}/configuracoes`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                ligaConfigCache = data;
+                window.ligaConfigCache = data; // Disponibilizar globalmente
+                return data;
+            }
+        }
+    } catch (e) { /* silencioso */ }
+    return null;
+}
+
+// Obter faixas corretas para liga E rodada (v10.8: usa config dinamica)
 function getFaixasParaRodada(ligaId, rodada) {
-    const config = FAIXAS_PREMIACAO[ligaId];
-    if (!config) return detectarFaixasPorTotal(32);
-    if (config.temporal) {
-        const fase = rodada < config.rodadaTransicao ? "fase1" : "fase2";
-        return { nome: config.nome, ...config[fase] };
+    // Usar cache local ou global
+    const config = ligaConfigCache || window.ligaConfigCache;
+    if (!config?.ranking_rodada) return detectarFaixasPorTotal(32);
+
+    const rankingConfig = config.ranking_rodada;
+
+    // Config temporal (ex: Sobral com fases)
+    if (rankingConfig.temporal) {
+        const rodadaTransicao = rankingConfig.rodada_transicao || 30;
+        const fase = rodada < rodadaTransicao ? "fase1" : "fase2";
+        const faseConfig = rankingConfig[fase];
+        return {
+            nome: config.liga_nome,
+            totalTimes: faseConfig?.total_participantes || 32,
+            ...faseConfig?.faixas
+        };
     }
-    return config;
+
+    // Config simples
+    return {
+        nome: config.liga_nome,
+        totalTimes: rankingConfig.total_participantes || 32,
+        ...rankingConfig.faixas
+    };
 }
 
 // Fallback: detectar faixas pelo totalTimes
@@ -115,22 +122,29 @@ function getPosicaoZonaLabel(posicao, faixas) {
     return { label: null, tipo: "neutro" };
 }
 
-// ===== v8.8: CALCULAR POSIÇÃO NO TOP10 PELO VALOR =====
+// ===== v10.8: CALCULAR POSIÇÃO NO TOP10 PELO VALOR (DINÂMICO) =====
 // Deriva a posição no ranking histórico baseado no valor financeiro
+// Usa config dinâmica ao invés de liga IDs hardcoded
 function calcularPosicaoTop10(valor, ligaId) {
     const absValor = Math.abs(valor);
 
-    // SuperCartola: 30, 28, 26, 24, 22, 20, 18, 16, 14, 12
-    const LIGA_SUPERCARTOLA = "684cb1c8af923da7c7df51de";
-    // Sobral: 10, 9, 8, 7, 6, 5, 4, 3, 2, 1
-    const LIGA_SOBRAL = "684d821cf1a7ae16d1f89572";
+    // v10.8: Usar config dinâmica para determinar formato
+    const config = ligaConfigCache || window.ligaConfigCache;
+    const top10Config = config?.top10;
 
-    if (ligaId === LIGA_SUPERCARTOLA) {
-        // SuperCartola: valor = 30 - (pos-1)*2 → pos = (30 - valor)/2 + 1
+    // Detectar formato pelos valores ou total de participantes
+    // Liga grande (>20 times): formato 30,28,26... (decremento de 2)
+    // Liga pequena (<=20 times): formato 10,9,8... (decremento de 1)
+    const totalParticipantes = config?.total_participantes ||
+        config?.ranking_rodada?.total_participantes || 32;
+    const isLigaGrande = totalParticipantes > 20;
+
+    if (isLigaGrande) {
+        // Liga grande: valor = 30 - (pos-1)*2 → pos = (30 - valor)/2 + 1
         const pos = Math.round((30 - absValor) / 2) + 1;
         return Math.min(Math.max(pos, 1), 10);
     } else {
-        // Sobral: valor = 11 - pos → pos = 11 - valor
+        // Liga pequena: valor = 11 - pos → pos = 11 - valor
         const pos = 11 - absValor;
         return Math.min(Math.max(pos, 1), 10);
     }
