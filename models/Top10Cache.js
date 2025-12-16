@@ -1,10 +1,18 @@
 // models/Top10Cache.js
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const Top10CacheSchema = new mongoose.Schema(
     {
         liga_id: { type: String, required: true, index: true },
         rodada_consolidada: { type: Number, required: true }, // Cache válido até esta rodada
+        // ✅ TEMPORADA - Segregação de dados por ano
+        temporada: {
+            type: Number,
+            required: true,
+            default: CURRENT_SEASON,
+            index: true,
+        },
         cache_permanente: { type: Boolean, default: false }, // ✅ NOVO: Flag de cache permanente
 
         mitos: [
@@ -40,7 +48,7 @@ const Top10CacheSchema = new mongoose.Schema(
     { strict: false },
 );
 
-// Índice único para garantir um cache por liga/rodada
-Top10CacheSchema.index({ liga_id: 1, rodada_consolidada: 1 }, { unique: true });
+// Índice único para garantir um cache por liga/rodada/temporada
+Top10CacheSchema.index({ liga_id: 1, rodada_consolidada: 1, temporada: 1 }, { unique: true });
 
 export default mongoose.model("Top10Cache", Top10CacheSchema);

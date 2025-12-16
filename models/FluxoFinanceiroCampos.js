@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const { Schema } = mongoose;
 
@@ -12,6 +13,13 @@ const FluxoFinanceiroCamposSchema = new Schema(
         timeId: {
             type: String,
             required: true,
+            index: true,
+        },
+        // ✅ TEMPORADA - Segregação de dados por ano
+        temporada: {
+            type: Number,
+            required: true,
+            default: CURRENT_SEASON,
             index: true,
         },
         campos: [
@@ -41,8 +49,8 @@ const FluxoFinanceiroCamposSchema = new Schema(
     },
 );
 
-// Índice composto para busca rápida
-FluxoFinanceiroCamposSchema.index({ ligaId: 1, timeId: 1 }, { unique: true });
+// Índice composto para busca rápida (incluindo temporada)
+FluxoFinanceiroCamposSchema.index({ ligaId: 1, timeId: 1, temporada: 1 }, { unique: true });
 
 // Garantir que sempre tenha 4 campos
 FluxoFinanceiroCamposSchema.pre("save", function (next) {

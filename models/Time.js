@@ -1,5 +1,6 @@
 // ✅ models/Time.js - Schema Mongoose para Times
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const timeSchema = new mongoose.Schema(
   {
@@ -94,10 +95,12 @@ const timeSchema = new mongoose.Schema(
       default: {},
     },
 
-    // Temporada
+    // ✅ TEMPORADA - Segregação de dados por ano
     temporada: {
       type: Number,
-      default: new Date().getFullYear(),
+      required: true,
+      default: CURRENT_SEASON,
+      index: true,
     },
   },
   {

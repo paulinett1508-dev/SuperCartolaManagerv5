@@ -11,6 +11,7 @@
  */
 
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const { Schema } = mongoose;
 
@@ -30,10 +31,11 @@ const AcertoFinanceiroSchema = new Schema(
             type: String,
             required: true,
         },
+        // ✅ TEMPORADA - Segregação de dados por ano
         temporada: {
-            type: String,
+            type: Number,
             required: true,
-            default: "2025",
+            default: CURRENT_SEASON,
             index: true,
         },
         tipo: {
@@ -105,7 +107,7 @@ AcertoFinanceiroSchema.virtual("impactoSaldo").get(function () {
 });
 
 // Método estático para buscar acertos de um time
-AcertoFinanceiroSchema.statics.buscarPorTime = async function (ligaId, timeId, temporada = "2025") {
+AcertoFinanceiroSchema.statics.buscarPorTime = async function (ligaId, timeId, temporada = CURRENT_SEASON) {
     return this.find({
         ligaId,
         timeId,
@@ -116,7 +118,7 @@ AcertoFinanceiroSchema.statics.buscarPorTime = async function (ligaId, timeId, t
 
 // Método estático para calcular saldo de acertos de um time
 // ✅ v1.1.0: Correção da lógica de saldo
-AcertoFinanceiroSchema.statics.calcularSaldoAcertos = async function (ligaId, timeId, temporada = "2025") {
+AcertoFinanceiroSchema.statics.calcularSaldoAcertos = async function (ligaId, timeId, temporada = CURRENT_SEASON) {
     const acertos = await this.find({
         ligaId,
         timeId,
@@ -159,7 +161,7 @@ AcertoFinanceiroSchema.statics.calcularSaldoAcertos = async function (ligaId, ti
 };
 
 // Método estático para buscar todos os acertos de uma liga
-AcertoFinanceiroSchema.statics.buscarPorLiga = async function (ligaId, temporada = "2025") {
+AcertoFinanceiroSchema.statics.buscarPorLiga = async function (ligaId, temporada = CURRENT_SEASON) {
     return this.find({
         ligaId,
         temporada,

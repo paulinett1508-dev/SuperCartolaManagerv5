@@ -1,11 +1,19 @@
 // models/Goleiros.js - VERSÃO CORRIGIDA
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const goleirosSchema = new mongoose.Schema(
   {
     ligaId: {
       type: String,
       required: true,
+      index: true,
+    },
+    // ✅ TEMPORADA - Segregação de dados por ano
+    temporada: {
+      type: Number,
+      required: true,
+      default: CURRENT_SEASON,
       index: true,
     },
     participanteId: {

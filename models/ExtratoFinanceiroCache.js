@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const ExtratoFinanceiroCacheSchema = new mongoose.Schema(
     {
@@ -9,6 +10,13 @@ const ExtratoFinanceiroCacheSchema = new mongoose.Schema(
             index: true,
         },
         time_id: { type: Number, required: true, index: true },
+        // ✅ TEMPORADA - Segregação de dados por ano
+        temporada: {
+            type: Number,
+            required: true,
+            default: CURRENT_SEASON,
+            index: true,
+        },
 
         // Controle de Consolidação
         ultima_rodada_consolidada: { type: Number, default: 0 },
@@ -61,9 +69,9 @@ const ExtratoFinanceiroCacheSchema = new mongoose.Schema(
     },
 );
 
-// Índice composto para busca rápida
+// Índice composto para busca rápida (incluindo temporada)
 ExtratoFinanceiroCacheSchema.index(
-    { liga_id: 1, time_id: 1 },
+    { liga_id: 1, time_id: 1, temporada: 1 },
     { unique: true },
 );
 

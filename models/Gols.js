@@ -1,6 +1,7 @@
 
 import mongoose from "mongoose";
 import cartolaApiService from "../services/cartolaApiService.js"; // BEGIN dynamic-round fix
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const golsSchema = new mongoose.Schema(
   {
@@ -15,6 +16,13 @@ const golsSchema = new mongoose.Schema(
         },
         message: 'Liga ID é obrigatório e deve ser válido'
       }
+    },
+    // ✅ TEMPORADA - Segregação de dados por ano
+    temporada: {
+      type: Number,
+      required: true,
+      default: CURRENT_SEASON,
+      index: true,
     },
     rodada: {
       type: Number,
@@ -159,9 +167,9 @@ golsSchema.index({ gols: -1, golsLiquidos: -1 }, { background: true });
 golsSchema.index({ dataColeta: -1 }, { background: true });
 golsSchema.index({ scoutValido: 1, ativo: 1 }, { background: true });
 
-// Índice único para evitar duplicatas
+// Índice único para evitar duplicatas (incluindo temporada)
 golsSchema.index(
-  { ligaId: 1, rodada: 1, atletaId: 1 }, 
+  { ligaId: 1, rodada: 1, atletaId: 1, temporada: 1 },
   { unique: true, background: true }
 );
 

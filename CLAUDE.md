@@ -1,5 +1,15 @@
 # Super Cartola Manager - Diretrizes do Projeto
 
+## ⚠️ VERIFICAR TAREFAS PENDENTES
+
+**Antes de começar qualquer trabalho novo, verifique:**
+```
+.claude/pending-tasks.md
+```
+Use `/retomar-tarefas` para carregar o contexto de sessões anteriores.
+
+---
+
 Este projeto utiliza **Agent Skills** para modularizar o conhecimento.
 Não adicione regras detalhadas aqui. Adicione na Skill correspondente em `.claude/skills/`.
 
@@ -39,4 +49,25 @@ Não adicione regras detalhadas aqui. Adicione na Skill correspondente em `.clau
 1.  **Ambiente:** Respeite `NODE_ENV`. Logs detalhados apenas em 'development'.
 2.  **Circuit Breaker:** Respeite `seasonGuard.js` para bloquear acesso à API Globo fora de temporada.
 3.  **Versionamento:** Use `config/appVersion.js` para detectar versões Admin/App automaticamente.
-- to memorize
+4.  **Banco de Dados:** Use `MONGO_URI` (prod) ou `MONGO_URI_DEV` (dev) baseado em `NODE_ENV`.
+
+---
+
+## 📅 Sistema de Temporadas (IMPORTANTE!)
+
+**Arquivo central:** `config/seasons.js`
+
+```javascript
+export const CURRENT_SEASON = 2025;  // Mude APENAS aqui para virar o ano
+```
+
+**Regras:**
+- Todos os models têm campo `temporada` obrigatório
+- Queries devem filtrar por `temporada: CURRENT_SEASON` por padrão
+- Dados históricos ficam preservados (filtre por `temporada: 2025`)
+
+**Documentação completa:** `docs/TEMPORADAS-GUIA.md`
+
+**Scripts úteis:**
+- `node scripts/migrar-temporada-2025.js` - Migrar dados existentes
+- `node scripts/turn_key_2026.js` - Virada de temporada (só após 01/01/2026)

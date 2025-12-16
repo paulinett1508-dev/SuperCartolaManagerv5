@@ -7,7 +7,7 @@ dotenv.config();
 const backupBaseDir = path.resolve("backups");
 
 function fazerBackup() {
-  const command = `node backupJson.js`;
+  const command = `node scripts/backupJson.js`;
 
   exec(command, (error, stdout, stderr) => {
     if (error) {

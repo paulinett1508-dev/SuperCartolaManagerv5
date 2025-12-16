@@ -1,8 +1,16 @@
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const RodadaSnapshotSchema = new mongoose.Schema({
     liga_id: { type: String, required: true, index: true },
     rodada: { type: Number, required: true, index: true },
+    // ✅ TEMPORADA - Segregação de dados por ano
+    temporada: {
+        type: Number,
+        required: true,
+        default: CURRENT_SEASON,
+        index: true,
+    },
 
     // ✅ NOVO: Status da rodada para controle de consolidação
     status: {
@@ -72,7 +80,7 @@ const RodadaSnapshotSchema = new mongoose.Schema({
     atualizado_em: { type: Date, default: Date.now },
 });
 
-RodadaSnapshotSchema.index({ liga_id: 1, rodada: 1 }, { unique: true });
+RodadaSnapshotSchema.index({ liga_id: 1, rodada: 1, temporada: 1 }, { unique: true });
 RodadaSnapshotSchema.index({ liga_id: 1, status: 1 }); // ✅ NOVO índice
 
 export default mongoose.model("RodadaSnapshot", RodadaSnapshotSchema);

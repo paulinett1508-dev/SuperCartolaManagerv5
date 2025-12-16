@@ -1,16 +1,24 @@
 
 // models/RankingGeralCache.js
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const RankingGeralCacheSchema = new mongoose.Schema({
-  ligaId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "Liga", 
-    required: true 
+  ligaId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Liga",
+    required: true
   },
-  rodadaFinal: { 
-    type: Number, 
-    required: true 
+  rodadaFinal: {
+    type: Number,
+    required: true
+  },
+  // ✅ TEMPORADA - Segregação de dados por ano
+  temporada: {
+    type: Number,
+    required: true,
+    default: CURRENT_SEASON,
+    index: true,
   },
   ranking: [{
     timeId: { type: Number, required: true },
@@ -30,7 +38,7 @@ const RankingGeralCacheSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Índice composto para buscas rápidas
-RankingGeralCacheSchema.index({ ligaId: 1, rodadaFinal: 1 }, { unique: true });
+// Índice composto para buscas rápidas (incluindo temporada)
+RankingGeralCacheSchema.index({ ligaId: 1, rodadaFinal: 1, temporada: 1 }, { unique: true });
 
 export default mongoose.model("RankingGeralCache", RankingGeralCacheSchema);

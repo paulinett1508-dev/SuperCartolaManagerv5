@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const participanteSchema = new mongoose.Schema(
     {
@@ -20,6 +21,13 @@ const ligaSchema = new mongoose.Schema({
     nome: { type: String, required: true },
     descricao: { type: String, default: "" },
     tipo: { type: String, enum: ["publica", "privada"], default: "publica" },
+    // ✅ TEMPORADA - Segregação de dados por ano
+    temporada: {
+        type: Number,
+        required: true,
+        default: CURRENT_SEASON,
+        index: true,
+    },
     times: [{ type: Number }], // Array de IDs dos times da liga
     participantes: [participanteSchema],
     configuracoes: {

@@ -1,5 +1,6 @@
 // models/MelhorMesCache.js
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const LOG_PREFIX = "[MELHOR-MES-CACHE]";
 
@@ -83,7 +84,13 @@ const MelhorMesCacheSchema = new mongoose.Schema(
         ligaId: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
-            unique: true,
+            index: true,
+        },
+        // ✅ TEMPORADA - Segregação de dados por ano
+        temporada: {
+            type: Number,
+            required: true,
+            default: CURRENT_SEASON,
             index: true,
         },
 
@@ -178,7 +185,7 @@ MelhorMesCacheSchema.statics.getEdicaoAtual = function (rodadaAtual) {
 // =====================================================================
 // ÍNDICES
 // =====================================================================
-MelhorMesCacheSchema.index({ ligaId: 1 }, { unique: true });
+MelhorMesCacheSchema.index({ ligaId: 1, temporada: 1 }, { unique: true });
 MelhorMesCacheSchema.index({ "edicoes.status": 1 });
 MelhorMesCacheSchema.index({ temporada_encerrada: 1 });
 

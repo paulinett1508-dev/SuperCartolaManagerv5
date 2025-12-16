@@ -1,9 +1,17 @@
 // models/Rodada.js
 
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const RodadaSchema = new mongoose.Schema({
   ligaId: { type: mongoose.Schema.Types.ObjectId, ref: "Liga", required: true },
+  // ✅ TEMPORADA - Segregação de dados por ano
+  temporada: {
+    type: Number,
+    required: true,
+    default: CURRENT_SEASON,
+    index: true,
+  },
   rodada: { type: Number, required: true },
   timeId: { type: Number, required: true },
   nome_cartola: { type: String, default: "N/D" },

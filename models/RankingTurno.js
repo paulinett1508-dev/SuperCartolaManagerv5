@@ -1,6 +1,7 @@
 // models/RankingTurno.js
 // ✅ v2.0: Adicionado suporte a participantes inativos
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const RankingTurnoSchema = new mongoose.Schema(
     {
@@ -8,6 +9,13 @@ const RankingTurnoSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Liga",
             required: true,
+        },
+        // ✅ TEMPORADA - Segregação de dados por ano
+        temporada: {
+            type: Number,
+            required: true,
+            default: CURRENT_SEASON,
+            index: true,
         },
         turno: {
             type: String,
@@ -62,8 +70,8 @@ const RankingTurnoSchema = new mongoose.Schema(
     },
 );
 
-// Índice composto para buscas rápidas
-RankingTurnoSchema.index({ ligaId: 1, turno: 1 }, { unique: true });
+// Índice composto para buscas rápidas (incluindo temporada)
+RankingTurnoSchema.index({ ligaId: 1, turno: 1, temporada: 1 }, { unique: true });
 
 // Método estático para definir rodadas por turno
 RankingTurnoSchema.statics.getRodadasTurno = function (turno) {

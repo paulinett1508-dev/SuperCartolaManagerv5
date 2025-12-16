@@ -48,7 +48,8 @@
       "Bash(true sleep 2 pgrep -f \"node|nodemon\")",
       "Bash(kill:*)",
       "Bash(netstat:*)",
-      "Bash(ss:*)"
+      "Bash(ss:*)",
+      "Skill(db-guardian)"
     ]
   },
   "enableAllProjectMcpServers": true,

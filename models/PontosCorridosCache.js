@@ -1,10 +1,18 @@
 // models/PontosCorridosCache.js
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const PontosCorridosCacheSchema = new mongoose.Schema(
     {
         liga_id: { type: String, required: true, index: true },
         rodada_consolidada: { type: Number, required: true },
+        // ✅ TEMPORADA - Segregação de dados por ano
+        temporada: {
+            type: Number,
+            required: true,
+            default: CURRENT_SEASON,
+            index: true,
+        },
         cache_permanente: { type: Boolean, default: false },
 
         // ✅ CONFRONTOS DA RODADA
@@ -55,9 +63,9 @@ const PontosCorridosCacheSchema = new mongoose.Schema(
     { strict: false },
 );
 
-// Índice composto para busca rápida
+// Índice composto para busca rápida (incluindo temporada)
 PontosCorridosCacheSchema.index(
-    { liga_id: 1, rodada_consolidada: 1 },
+    { liga_id: 1, rodada_consolidada: 1, temporada: 1 },
     { unique: true },
 );
 

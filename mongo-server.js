@@ -20,13 +20,32 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { MongoClient } from 'mongodb';
 import { z } from 'zod';
 
-// Configuração
-const MONGODB_URI = process.env.MONGODB_URI;
+// =========================================================================
+// 🔐 SELEÇÃO DE AMBIENTE DE BANCO DE DADOS (Prod vs Dev)
+// =========================================================================
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
-if (!MONGODB_URI) {
-  console.error('Erro: MONGODB_URI não está definida nas variáveis de ambiente');
-  process.exit(1);
-}
+const getMongoURI = () => {
+  if (IS_PRODUCTION) {
+    const uri = process.env.MONGO_URI;
+    if (!uri) {
+      console.error('❌ [MCP MongoDB] ERRO: MONGO_URI não configurada para produção!');
+      process.exit(1);
+    }
+    console.error('🔴 [MCP MongoDB] Modo: PRODUÇÃO');
+    return uri;
+  } else {
+    const uri = process.env.MONGO_URI_DEV;
+    if (!uri) {
+      console.error('❌ [MCP MongoDB] ERRO: MONGO_URI_DEV não configurada para desenvolvimento!');
+      process.exit(1);
+    }
+    console.error('🟢 [MCP MongoDB] Modo: DESENVOLVIMENTO (SAFE)');
+    return uri;
+  }
+};
+
+const MONGODB_URI = getMongoURI();
 
 // Cliente MongoDB (conexão lazy)
 let client = null;
