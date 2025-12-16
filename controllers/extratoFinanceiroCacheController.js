@@ -1,5 +1,6 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v5.0 - Fallback para snapshots
+// extratoFinanceiroCacheController.js v5.1 - Integração com Acertos Financeiros
+// ✅ v5.1: Inclui acertos financeiros no extrato do participante
 // ✅ v5.0: Busca extrato de snapshots quando cache não existe
 // ✅ v4.0: Cache permanente para temporadas finalizadas (sem recálculos)
 // ✅ v3.4: Corrige detecção de dados consolidados vs legados
@@ -11,7 +12,63 @@ import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
 import RodadaSnapshot from "../models/RodadaSnapshot.js";
+import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import mongoose from "mongoose";
+
+// ✅ v5.1: Buscar acertos financeiros do participante
+async function buscarAcertosFinanceiros(ligaId, timeId, temporada = "2025") {
+    try {
+        const acertos = await AcertoFinanceiro.find({
+            ligaId: String(ligaId),
+            timeId: String(timeId),
+            temporada,
+            ativo: true,
+        }).sort({ dataAcerto: -1 }).lean();
+
+        if (!acertos || acertos.length === 0) {
+            return {
+                lista: [],
+                resumo: { totalPago: 0, totalRecebido: 0, saldo: 0 },
+            };
+        }
+
+        // Calcular totais
+        let totalPago = 0;
+        let totalRecebido = 0;
+        acertos.forEach((a) => {
+            if (a.tipo === "pagamento") {
+                totalPago += a.valor;
+            } else {
+                totalRecebido += a.valor;
+            }
+        });
+
+        const saldo = parseFloat((totalRecebido - totalPago).toFixed(2));
+
+        return {
+            lista: acertos.map((a) => ({
+                _id: a._id,
+                tipo: a.tipo,
+                valor: a.valor,
+                descricao: a.descricao,
+                metodoPagamento: a.metodoPagamento,
+                dataAcerto: a.dataAcerto,
+                observacoes: a.observacoes,
+            })),
+            resumo: {
+                totalPago: parseFloat(totalPago.toFixed(2)),
+                totalRecebido: parseFloat(totalRecebido.toFixed(2)),
+                saldo,
+            },
+        };
+    } catch (error) {
+        console.error("[CACHE-CONTROLLER] Erro ao buscar acertos:", error);
+        return {
+            lista: [],
+            resumo: { totalPago: 0, totalRecebido: 0, saldo: 0 },
+        };
+    }
+}
 
 // ✅ v4.0: Verificar se temporada está finalizada
 async function verificarTemporadaFinalizada(ligaId) {
@@ -425,10 +482,16 @@ export const getExtratoCache = async (req, res) => {
         const isInativo = statusTime.ativo === false;
         const rodadaDesistencia = statusTime.rodada_desistencia;
 
+        // ✅ v5.1: Buscar acertos financeiros em paralelo
+        const acertosPromise = buscarAcertosFinanceiros(ligaId, timeId);
+
         const cache = await ExtratoFinanceiroCache.findOne({
             liga_id: toLigaId(ligaId),
             time_id: Number(timeId),
         }).lean();
+
+        // ✅ v5.1: Aguardar acertos
+        const acertos = await acertosPromise;
 
         // ✅ v5.0: Se não tem cache, tentar buscar dos snapshots
         if (!cache) {
@@ -439,7 +502,7 @@ export const getExtratoCache = async (req, res) => {
             if (dadosSnapshot) {
                 const camposAtivos = await buscarCamposManuais(ligaId, timeId);
 
-                // Calcular resumo incluindo campos manuais
+                // Calcular resumo incluindo campos manuais E acertos
                 let resumoFinal = dadosSnapshot.resumo;
                 if (camposAtivos.length > 0) {
                     const totalCampos = camposAtivos.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
@@ -451,6 +514,9 @@ export const getExtratoCache = async (req, res) => {
                     };
                 }
 
+                // ✅ v5.1: Incluir saldo de acertos no resumo
+                resumoFinal.saldo_acertos = acertos.resumo.saldo;
+
                 return res.json({
                     cached: true,
                     fonte: 'snapshot',
@@ -458,6 +524,7 @@ export const getExtratoCache = async (req, res) => {
                     rodadas: dadosSnapshot.rodadas,
                     resumo: resumoFinal,
                     camposManuais: camposAtivos,
+                    acertos: acertos, // ✅ v5.1: Incluir acertos
                     metadados: dadosSnapshot.metadados,
                     inativo: isInativo,
                     rodadaDesistencia,
@@ -470,6 +537,7 @@ export const getExtratoCache = async (req, res) => {
             return res.status(404).json({
                 cached: false,
                 message: "Cache não encontrado",
+                acertos: acertos, // ✅ v5.1: Incluir acertos mesmo sem cache
                 inativo: isInativo,
                 rodadaDesistencia,
                 extratoTravado: isInativo && rodadaDesistencia,
@@ -494,7 +562,10 @@ export const getExtratoCache = async (req, res) => {
             camposAtivos,
         );
 
-        // ✅ v3.4: Adicionar qtdRodadas para debug
+        // ✅ v5.1: Incluir saldo de acertos no resumo
+        resumoCalculado.saldo_acertos = acertos.resumo.saldo;
+
+        // ✅ v5.1: Adicionar acertos ao retorno
         res.json({
             cached: true,
             fonte: 'cache',
@@ -502,6 +573,7 @@ export const getExtratoCache = async (req, res) => {
             rodadas: rodadasConsolidadas,
             resumo: resumoCalculado,
             camposManuais: camposAtivos,
+            acertos: acertos, // ✅ v5.1: Incluir acertos
             metadados: cache.metadados,
             ultimaRodadaCalculada: cache.ultima_rodada_consolidada,
             updatedAt: cache.updatedAt,

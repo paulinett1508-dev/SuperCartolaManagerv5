@@ -1,10 +1,17 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.1 ACERTOS FINANCEIROS
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.7 SALDO_ATUAL FIX
 // =====================================================
+// ✅ v10.7: FIX CRÍTICO - Usar saldo_atual como fonte primária (igual Inicio)
+// ✅ v10.6: Mini botão refresh no Bottom Sheet Acertos (atualização pontual)
+// ✅ v10.5: FIX - Campo dataAcerto corrigido (backend envia dataAcerto, não data)
+// ✅ v10.4: Inclui acertos nos cards Créditos/Débitos
+// ✅ v10.3: FIX - Botão Pill com CSS dedicado (alinhamento correto)
+// ✅ v10.2: BOTTOM SHEET ACERTOS - Separação total Jogo vs Financeiro
+//    - Botão "MEUS ACERTOS" pill discreto abaixo de Créditos/Débitos
+//    - Bottom Sheet modal para detalhes de pagamentos/recebimentos
+//    - Lista de rodadas limpa (apenas jogo)
+//    - Saldo principal já inclui acertos no cálculo
 // ✅ v10.1: ACERTOS FINANCEIROS - Exibe pagamentos/recebimentos
-//    - Nova seção "Acertos Financeiros" após histórico de rodadas
-//    - Mostra saldo separado: temporada vs acertos
-//    - Indicadores visuais de pagamentos e recebimentos
 // ✅ v10.0: Novo design visual baseado em referência
 //    - Cards com cores de fundo distintas: #0D1F18 (ganho), #1F0D0D (perda), #1c1c1e (neutro)
 //    - Barra lateral esquerda como indicador visual (verde/vermelho)
@@ -15,7 +22,7 @@
 // ✅ v9.0: Redesign - Badge BANCO unificado com valor
 // ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
 
-if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v10.1 ACERTOS FINANCEIROS");
+if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v10.7 SALDO_ATUAL FIX");
 
 // ===== CONFIGURAÇÃO DE FAIXAS POR LIGA (COM SUPORTE TEMPORAL) =====
 const FAIXAS_PREMIACAO = {
@@ -210,18 +217,44 @@ function renderizarConteudoCompleto(container, extrato) {
 
     // ✅ v8.7: resumo.saldo/totalGanhos/totalPerdas JÁ incluem campos manuais
     // Não duplicar somando novamente!
-    const totalGanhos = resumoBase.totalGanhos || 0;
-    const totalPerdas = Math.abs(resumoBase.totalPerdas || 0);
-
-    // ✅ v10.1: Separar saldo da temporada e saldo de acertos
-    const saldoTemporada = resumoBase.saldo_temporada || resumoBase.saldo_final || resumoBase.saldo || 0;
-    const saldoAcertos = resumoBase.saldo_acertos || 0;
-    const saldo = saldoTemporada + saldoAcertos;
+    const totalGanhosBase = resumoBase.totalGanhos || 0;
+    const totalPerdasBase = Math.abs(resumoBase.totalPerdas || 0);
 
     // ✅ v10.1: Extrair acertos financeiros
     const acertos = extrato.acertos || { lista: [], resumo: {} };
     const listaAcertos = acertos.lista || [];
     const resumoAcertos = acertos.resumo || {};
+
+    // ✅ v10.4: Incluir acertos nos totais de Créditos/Débitos
+    // Recebimentos do participante = créditos (dinheiro que entrou)
+    // Pagamentos do participante = débitos (dinheiro que saiu)
+    const totalGanhos = totalGanhosBase + (resumoAcertos.totalRecebido || 0);
+    const totalPerdas = totalPerdasBase + (resumoAcertos.totalPago || 0);
+
+    // ✅ v10.7: FIX CRÍTICO - Cálculo do saldo igual ao Inicio
+    // O Inicio usa: extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0
+    // Precisamos fazer o mesmo aqui para consistência
+
+    // Fonte primária: saldo_atual (já inclui acertos, calculado pelo backend)
+    // Fallback: saldo_final + saldo_acertos (cálculo manual)
+    const saldoAcertosCalculado =
+        resumoAcertos?.saldo ??           // De extrato.acertos.resumo.saldo
+        resumoBase?.saldo_acertos ??      // De resumo.saldo_acertos
+        extrato?.acertos?.resumo?.saldo ?? // Acesso direto
+        0;
+
+    // Usar saldo_atual se disponível (como faz o Inicio), senão calcular
+    const saldoTemporada = resumoBase.saldo_temporada ?? resumoBase.saldo_final ?? resumoBase.saldo ?? 0;
+    const saldoAcertos = saldoAcertosCalculado; // Alias para uso no bottom sheet
+    const saldo = resumoBase.saldo_atual ?? (saldoTemporada + saldoAcertos);
+
+    if (window.Log) Log.info("[EXTRATO-UI] 💰 Cálculo saldo:", {
+        saldo_atual: resumoBase.saldo_atual,
+        saldoTemporada,
+        saldoAcertosCalculado,
+        saldoFinal: saldo,
+        fonte: resumoBase.saldo_atual !== undefined ? "saldo_atual (backend)" : "calculado (temporada + acertos)"
+    });
 
     const saldoPositivo = saldo >= 0;
     const saldoFormatado = `R$ ${Math.abs(saldo).toFixed(2).replace(".", ",")}`;
@@ -271,7 +304,7 @@ function renderizarConteudoCompleto(container, extrato) {
         </div>
 
         <!-- Cards Ganhos/Perdas -->
-        <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="grid grid-cols-2 gap-3 mb-3">
             <div onclick="window.mostrarDetalhamentoGanhos(event)" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
                 <div class="flex items-center gap-2 min-w-0">
                     <span class="material-icons text-emerald-400 text-base flex-shrink-0">arrow_upward</span>
@@ -287,6 +320,9 @@ function renderizarConteudoCompleto(container, extrato) {
                 <span class="text-sm font-bold text-rose-400 whitespace-nowrap ml-1">-${totalPerdas.toFixed(2).replace(".", ",")}</span>
             </div>
         </div>
+
+        <!-- ✅ v10.2: Botão MEUS ACERTOS (Pill discreto) -->
+        ${renderizarBotaoMeusAcertos(listaAcertos, saldoAcertos)}
 
         <!-- Gráfico de Evolução -->
         <div class="bg-surface-dark p-4 rounded-xl mb-4 border border-white/5">
@@ -331,9 +367,6 @@ function renderizarConteudoCompleto(container, extrato) {
             </div>
         </div>
 
-        <!-- ✅ v10.1: Acertos Financeiros -->
-        ${renderizarSecaoAcertos(listaAcertos, resumoAcertos, saldoTemporada, saldoAcertos)}
-
         <!-- Card Seu Desempenho -->
         ${renderizarCardDesempenho(rodadasOrdenadas, ligaId)}
 
@@ -354,6 +387,9 @@ function renderizarConteudoCompleto(container, extrato) {
                 <div id="modalTop10Body" class="p-4"></div>
             </div>
         </div>
+
+        <!-- ✅ v10.2: Bottom Sheet MEUS ACERTOS -->
+        ${renderizarBottomSheetAcertos(listaAcertos, resumoAcertos, saldoTemporada, saldoAcertos)}
     `;
 }
 
@@ -535,142 +571,342 @@ function renderizarCardsRodadas(rodadas, ligaId) {
         .join("");
 }
 
-// ===== v10.1: SEÇÃO DE ACERTOS FINANCEIROS =====
-function renderizarSecaoAcertos(listaAcertos, resumoAcertos, saldoTemporada, saldoAcertos) {
-    // Se não tem acertos, não mostrar seção
-    if (!listaAcertos || listaAcertos.length === 0) {
-        // Mostrar só se tiver saldo de temporada diferente de zero
-        if (saldoTemporada === 0) return "";
+// ===== v10.3: BOTÃO MEUS ACERTOS (Pill corrigido) =====
+function renderizarBotaoMeusAcertos(listaAcertos, saldoAcertos) {
+    const temAcertos = listaAcertos && listaAcertos.length > 0;
+    const qtdAcertos = listaAcertos?.length || 0;
 
-        // Card resumo simples quando não há acertos
-        return `
-            <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="material-symbols-outlined text-amber-400 text-xl">payments</span>
-                    <h3 class="text-base font-bold text-white">Situação Financeira</h3>
-                </div>
-                <div class="bg-white/5 rounded-lg p-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-white/70">Saldo da Temporada</span>
-                        <span class="text-lg font-bold ${saldoTemporada >= 0 ? "text-emerald-400" : "text-rose-400"}">
-                            ${saldoTemporada >= 0 ? "+" : ""}R$ ${Math.abs(saldoTemporada).toFixed(2).replace(".", ",")}
-                        </span>
-                    </div>
-                    <p class="text-xs text-white/40 mt-2">
-                        ${saldoTemporada > 0
-                            ? "Você tem crédito para receber"
-                            : saldoTemporada < 0
-                                ? "Você tem débito a pagar"
-                                : "Você está quitado"}
-                    </p>
-                </div>
-            </div>
-        `;
+    // Determinar classe e texto do badge
+    let badgeClass = "badge-neutral";
+    let badgeTexto = "Nenhum";
+
+    if (temAcertos) {
+        if (saldoAcertos > 0) {
+            badgeClass = "badge-positive";
+            badgeTexto = `+R$ ${Math.abs(saldoAcertos).toFixed(0)}`;
+        } else if (saldoAcertos < 0) {
+            badgeClass = "badge-negative";
+            badgeTexto = `-R$ ${Math.abs(saldoAcertos).toFixed(0)}`;
+        } else {
+            badgeClass = "badge-positive";
+            badgeTexto = "Quitado";
+        }
     }
 
-    const totalPago = resumoAcertos.totalPago || 0;
-    const totalRecebido = resumoAcertos.totalRecebido || 0;
+    return `
+        <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+            <button onclick="window.abrirBottomSheetAcertos()" class="btn-pill-acertos">
+                <span class="material-symbols-outlined pill-icon">receipt_long</span>
+                <span class="pill-text">Meus Acertos</span>
+                <span class="pill-badge ${badgeClass}">${temAcertos ? qtdAcertos : badgeTexto}</span>
+            </button>
+        </div>
+    `;
+}
+
+// ===== v10.2: BOTTOM SHEET ACERTOS FINANCEIROS =====
+function renderizarBottomSheetAcertos(listaAcertos, resumoAcertos, saldoTemporada, saldoAcertos) {
+    const totalPago = resumoAcertos?.totalPago || 0;
+    const totalRecebido = resumoAcertos?.totalRecebido || 0;
     const saldoFinal = saldoTemporada + saldoAcertos;
     const quitado = Math.abs(saldoFinal) < 0.01;
+    const temAcertos = listaAcertos && listaAcertos.length > 0;
 
     // Ordenar acertos por data (mais recente primeiro)
-    const acertosOrdenados = [...listaAcertos].sort((a, b) =>
-        new Date(b.data || 0) - new Date(a.data || 0)
-    );
+    const acertosOrdenados = temAcertos
+        ? [...listaAcertos].sort((a, b) => new Date(b.dataAcerto || b.data || 0) - new Date(a.dataAcerto || a.data || 0))
+        : [];
 
-    return `
-        <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
-            <div class="flex items-center gap-2 mb-4">
-                <span class="material-symbols-outlined text-amber-400 text-xl">payments</span>
-                <h3 class="text-base font-bold text-white">Acertos Financeiros</h3>
-                <span class="text-xs text-white/50 ml-auto">${listaAcertos.length} acerto(s)</span>
-            </div>
+    // Renderizar lista de acertos
+    const listaHTML = temAcertos
+        ? acertosOrdenados.map(acerto => {
+            const isPagamento = acerto.tipo === "pagamento";
+            const valor = Math.abs(acerto.valor || 0);
+            const dataFormatada = (acerto.dataAcerto || acerto.data)
+                ? new Date(acerto.dataAcerto || acerto.data).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })
+                : "--/--/--";
 
-            <!-- Resumo -->
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div class="bg-white/5 rounded-lg p-3 text-center">
-                    <span class="material-icons text-rose-400 text-lg">arrow_downward</span>
-                    <p class="text-sm font-bold text-rose-400">-R$ ${totalPago.toFixed(2).replace(".", ",")}</p>
-                    <p class="text-[10px] text-white/50">Pago</p>
-                </div>
-                <div class="bg-white/5 rounded-lg p-3 text-center">
-                    <span class="material-icons text-emerald-400 text-lg">arrow_upward</span>
-                    <p class="text-sm font-bold text-emerald-400">+R$ ${totalRecebido.toFixed(2).replace(".", ",")}</p>
-                    <p class="text-[10px] text-white/50">Recebido</p>
-                </div>
-            </div>
+            // Ícone e label do método de pagamento
+            const metodos = {
+                pix: { icon: "qr_code_2", label: "PIX" },
+                transferencia: { icon: "account_balance", label: "TED" },
+                dinheiro: { icon: "payments", label: "Dinheiro" },
+                outro: { icon: "receipt", label: "Outro" }
+            };
+            const metodo = metodos[acerto.metodoPagamento] || metodos.outro;
 
-            <!-- Lista de acertos -->
-            <div class="space-y-2 mb-4">
-                ${acertosOrdenados.map(acerto => {
-                    const isPagamento = acerto.tipo === "pagamento";
-                    const valor = Math.abs(acerto.valor || 0);
-                    const dataFormatada = acerto.data
-                        ? new Date(acerto.data).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
-                        : "--/--";
+            // Cores: Verde = você PAGOU (abateu dívida), Vermelho = admin PAGOU (prêmio)
+            // Pagamento do usuário = verde (reduziu sua dívida)
+            // Recebimento do usuário = vermelho (admin pagou prêmio)
+            const corCard = isPagamento ? "border-emerald-500/20" : "border-rose-500/20";
+            const corIcone = isPagamento ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400";
+            const corValor = isPagamento ? "text-emerald-400" : "text-rose-400";
+            const labelTipo = isPagamento ? "Você pagou" : "Você recebeu";
 
-                    // Ícone do método de pagamento
-                    const iconMetodo = {
-                        pix: "qr_code_2",
-                        transferencia: "account_balance",
-                        dinheiro: "payments",
-                        outro: "receipt"
-                    }[acerto.metodoPagamento] || "receipt";
-
-                    return `
-                        <div class="bg-white/5 rounded-lg p-3 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center ${isPagamento ? "bg-rose-500/20" : "bg-emerald-500/20"}">
-                                    <span class="material-symbols-outlined text-sm ${isPagamento ? "text-rose-400" : "text-emerald-400"}">
-                                        ${isPagamento ? "arrow_downward" : "arrow_upward"}
+            return `
+                <div class="bg-white/5 rounded-xl p-3 border ${corCard}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center ${corIcone}">
+                                <span class="material-symbols-outlined text-lg">
+                                    ${isPagamento ? "arrow_upward" : "arrow_downward"}
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-sm text-white font-medium">${acerto.descricao || labelTipo}</p>
+                                <div class="flex items-center gap-2 text-[10px] text-white/40">
+                                    <span class="flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[10px]">${metodo.icon}</span>
+                                        ${metodo.label}
                                     </span>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-white font-medium">${acerto.descricao || (isPagamento ? "Pagamento" : "Recebimento")}</p>
-                                    <p class="text-[10px] text-white/40 flex items-center gap-1">
-                                        <span class="material-symbols-outlined text-[10px]">${iconMetodo}</span>
-                                        ${dataFormatada}
-                                    </p>
+                                    <span>•</span>
+                                    <span>${dataFormatada}</span>
                                 </div>
                             </div>
-                            <span class="text-sm font-bold ${isPagamento ? "text-rose-400" : "text-emerald-400"}">
-                                ${isPagamento ? "-" : "+"}R$ ${valor.toFixed(2).replace(".", ",")}
+                        </div>
+                        <span class="text-base font-bold ${corValor}">
+                            ${isPagamento ? "-" : "+"}R$ ${valor.toFixed(2).replace(".", ",")}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }).join("")
+        : `
+            <div class="text-center py-8 text-white/50">
+                <span class="material-symbols-outlined text-4xl mb-2 block opacity-50">receipt_long</span>
+                <p class="text-sm">Nenhum acerto registrado</p>
+                <p class="text-xs text-white/30 mt-1">Acertos e pagamentos aparecerão aqui</p>
+            </div>
+        `;
+
+    return `
+        <div id="bottomSheetAcertos" class="fixed inset-0 z-[60] hidden">
+            <!-- Backdrop -->
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="window.fecharBottomSheetAcertos()"></div>
+
+            <!-- Sheet -->
+            <div class="absolute bottom-0 left-0 right-0 bg-[#1a1a1a] rounded-t-3xl max-h-[85vh] flex flex-col transform translate-y-full transition-transform duration-300 ease-out" id="bottomSheetContent">
+                <!-- Handle -->
+                <div class="flex justify-center pt-3 pb-2">
+                    <div class="w-10 h-1 rounded-full bg-white/20"></div>
+                </div>
+
+                <!-- Header -->
+                <div class="px-5 pb-4 border-b border-white/10">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-400">receipt_long</span>
+                            Meus Acertos
+                        </h3>
+                        <div class="flex items-center gap-1">
+                            <!-- Mini Refresh Button -->
+                            <button id="btnRefreshAcertos" onclick="window.refreshAcertosBottomSheet()" class="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all" title="Atualizar acertos">
+                                <span class="material-icons text-white/50 text-lg">sync</span>
+                            </button>
+                            <button onclick="window.fecharBottomSheetAcertos()" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                                <span class="material-icons text-white/50">close</span>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-white/50 mt-1">Acertos e Pagamentos</p>
+                </div>
+
+                <!-- Resumo Cards -->
+                <div class="px-5 py-4 grid grid-cols-2 gap-3">
+                    <div class="bg-emerald-500/10 rounded-xl p-3 text-center border border-emerald-500/20">
+                        <span class="material-icons text-emerald-400 text-lg">arrow_upward</span>
+                        <p class="text-lg font-bold text-emerald-400">R$ ${totalPago.toFixed(2).replace(".", ",")}</p>
+                        <p class="text-[10px] text-white/50 uppercase">Você pagou</p>
+                    </div>
+                    <div class="bg-rose-500/10 rounded-xl p-3 text-center border border-rose-500/20">
+                        <span class="material-icons text-rose-400 text-lg">arrow_downward</span>
+                        <p class="text-lg font-bold text-rose-400">R$ ${totalRecebido.toFixed(2).replace(".", ",")}</p>
+                        <p class="text-[10px] text-white/50 uppercase">Você recebeu</p>
+                    </div>
+                </div>
+
+                <!-- Lista de Acertos (scrollable) -->
+                <div class="flex-1 overflow-y-auto px-5 pb-4 space-y-2">
+                    ${listaHTML}
+                </div>
+
+                <!-- Footer: Saldo Final -->
+                <div class="px-5 py-4 border-t border-white/10 bg-[#141414]">
+                    <div class="${quitado ? "bg-emerald-500/10 border-emerald-500/30" : saldoFinal >= 0 ? "bg-amber-500/10 border-amber-500/30" : "bg-rose-500/10 border-rose-500/30"} rounded-xl p-4 border">
+                        <div class="flex justify-between items-center mb-2 text-xs text-white/50">
+                            <span>Saldo do Jogo</span>
+                            <span class="${saldoTemporada >= 0 ? "text-emerald-400" : "text-rose-400"}">
+                                ${saldoTemporada >= 0 ? "+" : ""}R$ ${Math.abs(saldoTemporada).toFixed(2).replace(".", ",")}
                             </span>
                         </div>
-                    `;
-                }).join("")}
-            </div>
-
-            <!-- Card Saldo Final -->
-            <div class="${quitado ? "bg-emerald-500/10 border-emerald-500/30" : saldoFinal >= 0 ? "bg-amber-500/10 border-amber-500/30" : "bg-rose-500/10 border-rose-500/30"} rounded-xl p-4 border">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs text-white/50">Saldo Temporada</span>
-                    <span class="text-sm ${saldoTemporada >= 0 ? "text-emerald-400" : "text-rose-400"}">
-                        ${saldoTemporada >= 0 ? "+" : ""}R$ ${Math.abs(saldoTemporada).toFixed(2).replace(".", ",")}
-                    </span>
-                </div>
-                <div class="flex justify-between items-center mb-3">
-                    <span class="text-xs text-white/50">Acertos</span>
-                    <span class="text-sm ${saldoAcertos >= 0 ? "text-emerald-400" : "text-rose-400"}">
-                        ${saldoAcertos >= 0 ? "+" : ""}R$ ${Math.abs(saldoAcertos).toFixed(2).replace(".", ",")}
-                    </span>
-                </div>
-                <div class="border-t border-white/10 pt-3">
-                    <div class="flex justify-between items-center">
-                        <span class="flex items-center gap-2 text-sm font-bold text-white">
-                            <span class="material-icons ${quitado ? "text-emerald-400" : saldoFinal >= 0 ? "text-amber-400" : "text-rose-400"}">
-                                ${quitado ? "check_circle" : "account_balance_wallet"}
+                        <div class="flex justify-between items-center mb-3 text-xs text-white/50">
+                            <span>Ajuste Acertos</span>
+                            <span class="${saldoAcertos >= 0 ? "text-emerald-400" : "text-rose-400"}">
+                                ${saldoAcertos >= 0 ? "+" : ""}R$ ${Math.abs(saldoAcertos).toFixed(2).replace(".", ",")}
                             </span>
-                            ${quitado ? "QUITADO" : saldoFinal >= 0 ? "A RECEBER" : "A PAGAR"}
-                        </span>
-                        <span class="text-xl font-extrabold ${quitado ? "text-emerald-400" : saldoFinal >= 0 ? "text-amber-400" : "text-rose-400"}">
-                            R$ ${Math.abs(saldoFinal).toFixed(2).replace(".", ",")}
-                        </span>
+                        </div>
+                        <div class="border-t border-white/10 pt-3 flex justify-between items-center">
+                            <span class="flex items-center gap-2 text-sm font-bold text-white">
+                                <span class="material-icons ${quitado ? "text-emerald-400" : saldoFinal >= 0 ? "text-amber-400" : "text-rose-400"}">
+                                    ${quitado ? "check_circle" : "account_balance_wallet"}
+                                </span>
+                                ${quitado ? "QUITADO" : saldoFinal >= 0 ? "A RECEBER" : "A PAGAR"}
+                            </span>
+                            <span class="text-2xl font-extrabold ${quitado ? "text-emerald-400" : saldoFinal >= 0 ? "text-amber-400" : "text-rose-400"}">
+                                R$ ${Math.abs(saldoFinal).toFixed(2).replace(".", ",")}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     `;
+}
+
+// ===== v10.2: FUNÇÕES GLOBAIS PARA BOTTOM SHEET =====
+window.abrirBottomSheetAcertos = function() {
+    const sheet = document.getElementById('bottomSheetAcertos');
+    const content = document.getElementById('bottomSheetContent');
+
+    if (sheet && content) {
+        sheet.classList.remove('hidden');
+        // Força um reflow antes de animar
+        content.offsetHeight;
+        setTimeout(() => {
+            content.style.transform = 'translateY(0)';
+        }, 10);
+
+        // Prevenir scroll do body
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.fecharBottomSheetAcertos = function() {
+    const sheet = document.getElementById('bottomSheetAcertos');
+    const content = document.getElementById('bottomSheetContent');
+
+    if (sheet && content) {
+        content.style.transform = 'translateY(100%)';
+        setTimeout(() => {
+            sheet.classList.add('hidden');
+            // Restaurar scroll do body
+            document.body.style.overflow = '';
+        }, 300);
+    }
+};
+
+// ===== v10.5: MINI REFRESH - Atualizar apenas acertos =====
+window.refreshAcertosBottomSheet = async function() {
+    const btn = document.getElementById('btnRefreshAcertos');
+    const iconEl = btn?.querySelector('.material-icons');
+
+    // Obter IDs do participante
+    const ligaId = window.PARTICIPANTE_IDS?.ligaId || window.participanteData?.ligaId;
+    const timeId = window.PARTICIPANTE_IDS?.timeId || window.participanteData?.timeId;
+
+    if (!ligaId || !timeId) {
+        if (window.Log) Log.warn("[EXTRATO-UI] ⚠️ IDs não disponíveis para refresh");
+        return;
+    }
+
+    // Loading state
+    if (btn) btn.disabled = true;
+    if (iconEl) iconEl.classList.add('animate-spin');
+
+    try {
+        if (window.Log) Log.info("[EXTRATO-UI] 🔄 Refresh pontual de acertos...");
+
+        // Buscar dados atualizados do cache (que inclui acertos frescos)
+        const url = `/api/extrato-cache/${ligaId}/times/${timeId}/cache`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`Erro ao buscar: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const acertos = data.acertos || { lista: [], resumo: {} };
+        const resumo = data.resumo || {};
+
+        if (window.Log) Log.info("[EXTRATO-UI] ✅ Acertos atualizados:", {
+            qtd: acertos.lista?.length || 0,
+            saldo: acertos.resumo?.saldo || 0
+        });
+
+        // ✅ v10.7: Calcular saldo_atual corretamente (igual ao Inicio)
+        const saldoAcertosAtualizado = acertos.resumo?.saldo ?? resumo.saldo_acertos ?? 0;
+        const saldoTemporadaAtual = resumo.saldo_temporada ?? resumo.saldo_final ?? resumo.saldo ?? 0;
+        const saldoAtualCalculado = saldoTemporadaAtual + saldoAcertosAtualizado;
+
+        if (window.Log) Log.info("[EXTRATO-UI] 🔄 Refresh - Novos valores:", {
+            saldoTemporada: saldoTemporadaAtual,
+            saldoAcertos: saldoAcertosAtualizado,
+            saldoAtual: saldoAtualCalculado
+        });
+
+        // Atualizar extratoAtual global
+        if (window.extratoAtual) {
+            window.extratoAtual.acertos = acertos;
+            window.extratoAtual.resumo = {
+                ...window.extratoAtual.resumo,
+                ...resumo,
+                saldo_acertos: saldoAcertosAtualizado,
+                saldo_atual: saldoAtualCalculado  // ✅ Incluir saldo_atual calculado
+            };
+        }
+
+        // Atualizar cache local (IndexedDB)
+        if (window.ParticipanteCache) {
+            const cacheAtual = await window.ParticipanteCache.getExtratoAsync?.(ligaId, timeId)
+                || window.ParticipanteCache.getExtrato?.(ligaId, timeId);
+            if (cacheAtual) {
+                cacheAtual.acertos = acertos;
+                cacheAtual.resumo = {
+                    ...cacheAtual.resumo,
+                    ...resumo,
+                    saldo_acertos: saldoAcertosAtualizado,
+                    saldo_atual: saldoAtualCalculado  // ✅ Incluir saldo_atual calculado
+                };
+                window.ParticipanteCache.setExtrato(ligaId, timeId, cacheAtual);
+            }
+        }
+
+        // Fechar e reabrir para atualizar conteúdo
+        const wasOpen = !document.getElementById('bottomSheetAcertos')?.classList.contains('hidden');
+
+        // Re-renderizar extrato completo para atualizar cards principais também
+        const container = document.getElementById("fluxoFinanceiroContent");
+        if (container && window.extratoAtual) {
+            renderizarConteudoCompleto(container, window.extratoAtual);
+
+            // Reabrir bottom sheet se estava aberto
+            if (wasOpen) {
+                setTimeout(() => {
+                    window.abrirBottomSheetAcertos();
+                }, 100);
+            }
+        }
+
+        // Toast de sucesso
+        mostrarToastSucesso('Acertos atualizados!');
+
+    } catch (error) {
+        if (window.Log) Log.error("[EXTRATO-UI] ❌ Erro no refresh:", error);
+        mostrarToastErro('Erro ao atualizar');
+    } finally {
+        // Remove loading state
+        if (btn) btn.disabled = false;
+        if (iconEl) iconEl.classList.remove('animate-spin');
+    }
+};
+
+// ===== v10.5: Toast de sucesso =====
+function mostrarToastSucesso(mensagem) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white px-4 py-2 rounded-full text-sm font-medium z-[9999] animate-fade-in';
+    toast.textContent = mensagem;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
 }
 
 // ===== CARD DE DESEMPENHO =====
@@ -1152,4 +1388,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     }
 }
 
-if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.1 carregado com sucesso (ACERTOS)");
+if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.7 carregado com sucesso (SALDO_ATUAL FIX)");

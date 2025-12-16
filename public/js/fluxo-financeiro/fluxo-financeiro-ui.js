@@ -5,7 +5,8 @@ import {
 } from "./fluxo-financeiro-auditoria.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v5.1 (Relatório Consolidado)
+ * FLUXO-FINANCEIRO-UI.JS - v5.3 (Botão Registrar Acerto)
+ * ✅ v5.3: Botão "Acerto" para registrar pagamentos/recebimentos
  * ✅ v5.1: Função renderizarRelatorioConsolidado + botão Voltar
  * ✅ v5.0: PDF multi-página com quebra automática e TOP 10 detalhado
  * ✅ v4.9: Nomes completos: RANKING DE RODADAS, PONTOS CORRIDOS, MATA-MATA
@@ -471,6 +472,9 @@ export class FluxoFinanceiroUI {
                   ? '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">payments</span> Saldo a Pagar'
                   : '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">check_circle</span> Saldo Quitado';
 
+        // ✅ v5.3: Nome escapado para uso no onclick
+        const nomeParticipante = (participante.nome || participante.nomeTime || 'Participante').replace(/'/g, "\\'");
+
         let html = `
         <div class="extrato-container fadeIn">
             <div class="extrato-header-card">
@@ -482,8 +486,11 @@ export class FluxoFinanceiroUI {
                     }
                 </div>
 
-                <!-- ✅ v4.7: Botões Atualizar + Limpar Cache + Exportar PDF -->
+                <!-- ✅ v5.3: Botões Atualizar + Limpar Cache + Exportar PDF + Registrar Acerto -->
                 <div style="position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                    <button onclick="window.abrirModalAcerto('${timeId}', '${nomeParticipante}')" class="btn-modern btn-acerto-gradient" title="Registrar pagamento ou recebimento">
+                        <span class="material-icons" style="font-size: 14px;">payments</span> Acerto
+                    </button>
                     <button onclick="window.exportarExtratoPDF('${timeId}')" class="btn-modern btn-pdf-gradient" title="Exportar extrato em PDF">
                         <span class="material-icons" style="font-size: 14px;">picture_as_pdf</span> PDF
                     </button>

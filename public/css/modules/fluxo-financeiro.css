@@ -1305,6 +1305,8 @@ body {
 .btn-success-gradient { background: linear-gradient(135deg, #2ecc71, #27ae60); }
 .btn-danger-gradient { background: linear-gradient(135deg, #e74c3c, #c0392b); }
 .btn-pdf-gradient { background: linear-gradient(135deg, #dc2626, #991b1b); box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3); }
+.btn-acerto-gradient { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3); }
+.btn-acerto-gradient:hover { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
 
 /* Campos Editáveis */
 .grid-responsive {

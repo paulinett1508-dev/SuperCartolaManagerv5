@@ -19,4 +19,67 @@
     .animate-spin {
         animation: spin 0.8s linear infinite;
     }
+
+    /* ===== BOTÃO PILL MEUS ACERTOS ===== */
+    .btn-pill-acertos {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-pill-acertos:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-pill-acertos:active {
+        transform: scale(0.95);
+    }
+
+    .btn-pill-acertos .pill-icon {
+        font-size: 18px;
+        color: #fbbf24;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-pill-acertos .pill-text {
+        font-size: 11px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        line-height: 1;
+    }
+
+    .btn-pill-acertos .pill-badge {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 50px;
+        line-height: 1;
+    }
+
+    .btn-pill-acertos .pill-badge.badge-neutral {
+        background: rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .btn-pill-acertos .pill-badge.badge-positive {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+    }
+
+    .btn-pill-acertos .pill-badge.badge-negative {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+    }
 </style>

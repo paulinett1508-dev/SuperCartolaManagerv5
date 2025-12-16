@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v5.2"; // v5.2: Acertos Financeiros
+const CACHE_BUSTER = "v5.6"; // v5.6: Botão Deletar no Histórico com confirmação e reversão
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -592,103 +592,144 @@ window.abrirModalAcerto = function (timeId, nomeTime) {
         return;
     }
 
+    // ✅ v5.5: Modal com Abas (Novo Acerto + Histórico) + Máscara Monetária
     const modalHTML = `
-        <div id="modalAcertoFinanceiro" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        <div id="modalAcertoFinanceiro"
+             style="position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);"
              onclick="if(event.target === this) this.remove()">
-            <div class="bg-[#1e293b] rounded-xl w-full max-w-md mx-4 shadow-2xl" onclick="event.stopPropagation()">
+            <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; width: 100%; max-width: 480px; margin: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); max-height: 90vh; display: flex; flex-direction: column;"
+                 onclick="event.stopPropagation()">
+
                 <!-- Header -->
-                <div class="p-4 border-b border-white/10">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                            <span class="material-symbols-outlined text-amber-400">payments</span>
-                            Registrar Acerto
+                <div style="padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-icons" style="color: #fbbf24; font-size: 22px;">payments</span>
+                            Acertos Financeiros
                         </h3>
                         <button onclick="document.getElementById('modalAcertoFinanceiro').remove()"
-                                class="text-white/50 hover:text-white">
-                            <span class="material-symbols-outlined">close</span>
+                                style="background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; padding: 4px;">
+                            <span class="material-icons" style="font-size: 20px;">close</span>
                         </button>
                     </div>
-                    <p class="text-sm text-white/60 mt-1">${nomeTime}</p>
+                    <p style="margin: 6px 0 0 0; font-size: 14px; color: rgba(255,255,255,0.6);">${nomeTime}</p>
                 </div>
 
-                <!-- Form -->
-                <div class="p-4 space-y-4">
-                    <!-- Tipo -->
-                    <div>
-                        <label class="block text-xs text-white/60 mb-2">Tipo de Acerto</label>
-                        <div class="flex gap-2">
-                            <button type="button" id="btnTipoPagamento" onclick="selecionarTipoAcerto('pagamento')"
-                                    class="flex-1 py-2 px-4 rounded-lg border-2 border-rose-500 bg-rose-500/20 text-rose-400 font-medium text-sm transition-all">
-                                <span class="material-symbols-outlined text-sm align-middle mr-1">arrow_downward</span>
-                                Pagamento
+                <!-- Abas -->
+                <div style="display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0;">
+                    <button id="tabNovoAcerto" onclick="trocarAbaAcerto('novo')"
+                            style="flex: 1; padding: 12px 16px; background: rgba(245,158,11,0.1); border: none; border-bottom: 2px solid #f59e0b; color: #fbbf24; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <span class="material-icons" style="font-size: 18px;">add_circle</span>
+                        Novo Acerto
+                    </button>
+                    <button id="tabHistorico" onclick="trocarAbaAcerto('historico')"
+                            style="flex: 1; padding: 12px 16px; background: transparent; border: none; border-bottom: 2px solid transparent; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <span class="material-icons" style="font-size: 18px;">history</span>
+                        Histórico
+                    </button>
+                </div>
+
+                <!-- Conteúdo das Abas -->
+                <div style="flex: 1; overflow-y: auto;">
+
+                    <!-- Aba: Novo Acerto -->
+                    <div id="conteudoNovoAcerto" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Tipo -->
+                        <div>
+                            <label style="display: block; font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Tipo de Acerto</label>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="button" id="btnTipoPagamento" onclick="selecionarTipoAcerto('pagamento')"
+                                        style="flex: 1; padding: 10px 16px; border-radius: 10px; border: 2px solid #f43f5e; background: rgba(244,63,94,0.15); color: #fb7185; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                                    <span class="material-icons" style="font-size: 16px;">arrow_downward</span>
+                                    Pagamento
+                                </button>
+                                <button type="button" id="btnTipoRecebimento" onclick="selecionarTipoAcerto('recebimento')"
+                                        style="flex: 1; padding: 10px 16px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.2); background: transparent; color: rgba(255,255,255,0.6); font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                                    <span class="material-icons" style="font-size: 16px;">arrow_upward</span>
+                                    Recebimento
+                                </button>
+                            </div>
+                            <input type="hidden" id="tipoAcerto" value="pagamento">
+                        </div>
+
+                        <!-- Valor com Máscara Monetária -->
+                        <div>
+                            <label style="display: block; font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Valor (R$)</label>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); font-size: 18px; font-weight: 700;">R$</span>
+                                <input type="text" id="valorAcertoDisplay" placeholder="0,00"
+                                       oninput="formatarCampoMonetario(this)"
+                                       style="width: 100%; padding: 14px 16px 14px 50px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: #fff; font-size: 24px; font-weight: 700; box-sizing: border-box; text-align: right;"
+                                       onfocus="this.style.borderColor='#fbbf24'; this.style.boxShadow='0 0 0 3px rgba(251,191,36,0.2)';"
+                                       onblur="this.style.borderColor='rgba(255,255,255,0.2)'; this.style.boxShadow='none';">
+                                <input type="hidden" id="valorAcerto" value="0">
+                            </div>
+                        </div>
+
+                        <!-- Descrição -->
+                        <div>
+                            <label style="display: block; font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Descrição</label>
+                            <input type="text" id="descricaoAcerto" placeholder="Ex: PIX recebido, Transferência..."
+                                   style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: #fff; font-size: 14px; box-sizing: border-box;"
+                                   onfocus="this.style.borderColor='#fbbf24';"
+                                   onblur="this.style.borderColor='rgba(255,255,255,0.2)';">
+                        </div>
+
+                        <!-- Método + Data (lado a lado) -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Método</label>
+                                <select id="metodoAcerto"
+                                        style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: #fff; font-size: 14px; box-sizing: border-box; cursor: pointer;">
+                                    <option value="pix" style="background: #1e293b;">PIX</option>
+                                    <option value="transferencia" style="background: #1e293b;">Transferência</option>
+                                    <option value="dinheiro" style="background: #1e293b;">Dinheiro</option>
+                                    <option value="outro" style="background: #1e293b;">Outro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Data</label>
+                                <input type="date" id="dataAcerto"
+                                       style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: #fff; font-size: 14px; box-sizing: border-box;"
+                                       value="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                        </div>
+
+                        <!-- Observações -->
+                        <div>
+                            <label style="display: block; font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Observações (opcional)</label>
+                            <textarea id="observacoesAcerto" rows="2" placeholder="Observações adicionais..."
+                                      style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: #fff; font-size: 14px; box-sizing: border-box; resize: none;"></textarea>
+                        </div>
+
+                        <!-- Botões -->
+                        <div style="display: flex; gap: 12px; margin-top: 8px;">
+                            <button onclick="document.getElementById('modalAcertoFinanceiro').remove()"
+                                    style="flex: 1; padding: 14px 16px; border-radius: 10px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); font-weight: 600; font-size: 14px; border: none; cursor: pointer; transition: all 0.2s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.15)';"
+                                    onmouseout="this.style.background='rgba(255,255,255,0.1)';">
+                                Cancelar
                             </button>
-                            <button type="button" id="btnTipoRecebimento" onclick="selecionarTipoAcerto('recebimento')"
-                                    class="flex-1 py-2 px-4 rounded-lg border-2 border-white/20 text-white/60 font-medium text-sm transition-all">
-                                <span class="material-symbols-outlined text-sm align-middle mr-1">arrow_upward</span>
-                                Recebimento
+                            <button onclick="confirmarAcertoFinanceiro('${ligaId}', '${timeId}', '${nomeTime}')"
+                                    style="flex: 1; padding: 14px 16px; border-radius: 10px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 700; font-size: 14px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(245,158,11,0.3);"
+                                    onmouseover="this.style.background='linear-gradient(135deg, #fbbf24, #f59e0b)';"
+                                    onmouseout="this.style.background='linear-gradient(135deg, #f59e0b, #d97706)';">
+                                <span class="material-icons" style="font-size: 16px;">check</span>
+                                Confirmar
                             </button>
                         </div>
-                        <input type="hidden" id="tipoAcerto" value="pagamento">
                     </div>
 
-                    <!-- Valor -->
-                    <div>
-                        <label class="block text-xs text-white/60 mb-2">Valor (R$)</label>
-                        <input type="number" id="valorAcerto" step="0.01" min="0.01" placeholder="0,00"
-                               class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white text-lg font-bold
-                                      focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20">
+                    <!-- Aba: Histórico -->
+                    <div id="conteudoHistorico" style="display: none; padding: 20px;">
+                        <div id="historicoAcertosLista" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.4);">
+                                <span class="material-icons" style="font-size: 48px; margin-bottom: 12px;">hourglass_empty</span>
+                                <p style="margin: 0;">Carregando histórico...</p>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Descrição -->
-                    <div>
-                        <label class="block text-xs text-white/60 mb-2">Descrição</label>
-                        <input type="text" id="descricaoAcerto" placeholder="Ex: PIX recebido, Transferência..."
-                               class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white
-                                      focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20">
-                    </div>
-
-                    <!-- Método -->
-                    <div>
-                        <label class="block text-xs text-white/60 mb-2">Método</label>
-                        <select id="metodoAcerto"
-                                class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white
-                                       focus:border-amber-400 focus:outline-none">
-                            <option value="pix">PIX</option>
-                            <option value="transferencia">Transferência</option>
-                            <option value="dinheiro">Dinheiro</option>
-                            <option value="outro">Outro</option>
-                        </select>
-                    </div>
-
-                    <!-- Data -->
-                    <div>
-                        <label class="block text-xs text-white/60 mb-2">Data do Acerto</label>
-                        <input type="date" id="dataAcerto"
-                               class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white
-                                      focus:border-amber-400 focus:outline-none"
-                               value="${new Date().toISOString().split('T')[0]}">
-                    </div>
-
-                    <!-- Observações -->
-                    <div>
-                        <label class="block text-xs text-white/60 mb-2">Observações (opcional)</label>
-                        <textarea id="observacoesAcerto" rows="2" placeholder="Observações adicionais..."
-                                  class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white
-                                         focus:border-amber-400 focus:outline-none resize-none"></textarea>
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <div class="p-4 border-t border-white/10 flex gap-3">
-                    <button onclick="document.getElementById('modalAcertoFinanceiro').remove()"
-                            class="flex-1 py-3 px-4 rounded-lg bg-white/10 text-white/70 font-medium hover:bg-white/20 transition-all">
-                        Cancelar
-                    </button>
-                    <button onclick="confirmarAcertoFinanceiro('${ligaId}', '${timeId}', '${nomeTime}')"
-                            class="flex-1 py-3 px-4 rounded-lg bg-amber-500 text-white font-bold hover:bg-amber-400 transition-all">
-                        <span class="material-symbols-outlined text-sm align-middle mr-1">check</span>
-                        Confirmar
-                    </button>
                 </div>
             </div>
         </div>
@@ -696,26 +737,282 @@ window.abrirModalAcerto = function (timeId, nomeTime) {
 
     document.body.insertAdjacentHTML("beforeend", modalHTML);
 
+    // Armazenar dados no modal para uso nas funções
+    window._acertoModalData = { ligaId, timeId, nomeTime };
+
     // Focus no campo de valor
     setTimeout(() => {
-        document.getElementById("valorAcerto")?.focus();
+        document.getElementById("valorAcertoDisplay")?.focus();
     }, 100);
+
+    // Pré-carregar histórico em background
+    carregarHistoricoAcertos(ligaId, timeId);
+};
+
+// =============================================================================
+// ✅ v5.5: FUNÇÕES AUXILIARES DO MODAL DE ACERTOS
+// =============================================================================
+
+/**
+ * Formata campo monetário com máscara brasileira (1.234,56)
+ */
+window.formatarCampoMonetario = function (input) {
+    // Remover tudo que não é dígito
+    let valor = input.value.replace(/\D/g, "");
+
+    // Se vazio, limpar
+    if (!valor) {
+        input.value = "";
+        document.getElementById("valorAcerto").value = "0";
+        return;
+    }
+
+    // Converter para centavos e depois para reais
+    let valorNumerico = parseInt(valor, 10) / 100;
+
+    // Limitar a 999.999,99
+    if (valorNumerico > 999999.99) {
+        valorNumerico = 999999.99;
+    }
+
+    // Formatar para exibição (1.234,56)
+    const formatado = valorNumerico.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+
+    input.value = formatado;
+
+    // Atualizar campo hidden com valor numérico
+    document.getElementById("valorAcerto").value = valorNumerico.toFixed(2);
+};
+
+/**
+ * Troca entre abas do modal de acertos
+ */
+window.trocarAbaAcerto = function (aba) {
+    const tabNovo = document.getElementById("tabNovoAcerto");
+    const tabHistorico = document.getElementById("tabHistorico");
+    const conteudoNovo = document.getElementById("conteudoNovoAcerto");
+    const conteudoHistorico = document.getElementById("conteudoHistorico");
+
+    if (aba === "novo") {
+        // Ativar aba Novo Acerto
+        tabNovo.style.cssText = "flex: 1; padding: 12px 16px; background: rgba(245,158,11,0.1); border: none; border-bottom: 2px solid #f59e0b; color: #fbbf24; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;";
+        tabHistorico.style.cssText = "flex: 1; padding: 12px 16px; background: transparent; border: none; border-bottom: 2px solid transparent; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;";
+        conteudoNovo.style.display = "flex";
+        conteudoHistorico.style.display = "none";
+    } else {
+        // Ativar aba Histórico
+        tabHistorico.style.cssText = "flex: 1; padding: 12px 16px; background: rgba(245,158,11,0.1); border: none; border-bottom: 2px solid #f59e0b; color: #fbbf24; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;";
+        tabNovo.style.cssText = "flex: 1; padding: 12px 16px; background: transparent; border: none; border-bottom: 2px solid transparent; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;";
+        conteudoNovo.style.display = "none";
+        conteudoHistorico.style.display = "block";
+    }
+};
+
+/**
+ * Carrega histórico de acertos do participante
+ * ✅ v5.6: Adicionado botão Deletar com confirmação
+ */
+async function carregarHistoricoAcertos(ligaId, timeId) {
+    const container = document.getElementById("historicoAcertosLista");
+    if (!container) return;
+
+    // Armazenar IDs para uso nas funções de delete
+    window._acertoModalData = { ...window._acertoModalData, ligaId, timeId };
+
+    try {
+        const response = await fetch(`/api/acertos/${ligaId}/${timeId}`);
+        const result = await response.json();
+
+        if (!result.success || !result.acertos || result.acertos.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.4);">
+                    <span class="material-icons" style="font-size: 48px; margin-bottom: 12px;">receipt_long</span>
+                    <p style="margin: 0; font-size: 14px;">Nenhum acerto registrado</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Resumo no topo
+        const resumo = result.resumo || {};
+        const saldo = resumo.saldo || 0;
+        const corSaldo = saldo >= 0 ? "#34d399" : "#f87171";
+        const txtSaldo = saldo >= 0 ? "A receber" : "A pagar";
+
+        let html = `
+            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center;">
+                <div style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">${txtSaldo}</div>
+                <div style="font-size: 28px; font-weight: 700; color: ${corSaldo};">R$ ${Math.abs(saldo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                <div style="display: flex; justify-content: center; gap: 20px; margin-top: 12px; font-size: 12px;">
+                    <span style="color: #34d399;">↑ R$ ${(resumo.totalRecebido || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                    <span style="color: #f87171;">↓ R$ ${(resumo.totalPago || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+            </div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+                Histórico (${result.acertos.length} ${result.acertos.length === 1 ? "registro" : "registros"})
+            </div>
+        `;
+
+        // Lista de acertos com botão deletar
+        result.acertos.forEach((acerto) => {
+            const isPagamento = acerto.tipo === "pagamento";
+            const cor = isPagamento ? "#f87171" : "#34d399";
+            const icone = isPagamento ? "arrow_downward" : "arrow_upward";
+            const sinal = isPagamento ? "-" : "+";
+            const data = acerto.dataAcerto ? new Date(acerto.dataAcerto).toLocaleDateString("pt-BR") : "--";
+            const metodo = acerto.metodoPagamento ? acerto.metodoPagamento.toUpperCase() : "";
+            const descricaoEscapada = (acerto.descricao || "Acerto").replace(/'/g, "\\'");
+
+            html += `
+                <div id="acerto-item-${acerto._id}" style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 14px; border-left: 3px solid ${cor}; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; position: relative;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: ${isPagamento ? "rgba(248,113,113,0.15)" : "rgba(52,211,153,0.15)"}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <span class="material-icons" style="font-size: 18px; color: ${cor};">${icone}</span>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 14px; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${acerto.descricao || "Acerto"}</div>
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px;">${data} ${metodo ? "• " + metodo : ""}</div>
+                    </div>
+                    <div style="text-align: right; flex-shrink: 0; display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 16px; font-weight: 700; color: ${cor};">${sinal}R$ ${acerto.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                        <button onclick="confirmarDeletarAcerto('${acerto._id}', '${descricaoEscapada}', ${acerto.valor}, '${acerto.tipo}')"
+                                style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 6px 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                                onmouseover="this.style.background='rgba(239,68,68,0.2)'; this.style.borderColor='rgba(239,68,68,0.5)';"
+                                onmouseout="this.style.background='rgba(239,68,68,0.1)'; this.style.borderColor='rgba(239,68,68,0.3)';"
+                                title="Excluir acerto">
+                            <span class="material-icons" style="font-size: 16px; color: #f87171;">delete</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error("[ACERTOS] Erro ao carregar histórico:", error);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.4);">
+                <span class="material-icons" style="font-size: 48px; margin-bottom: 12px; color: #f87171;">error</span>
+                <p style="margin: 0; font-size: 14px;">Erro ao carregar histórico</p>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Mostra confirmação antes de deletar acerto
+ */
+window.confirmarDeletarAcerto = function(acertoId, descricao, valor, tipo) {
+    const tipoTexto = tipo === "pagamento" ? "PAGAMENTO" : "RECEBIMENTO";
+    const valorFormatado = valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+
+    // Criar modal de confirmação
+    const modalConfirm = document.createElement("div");
+    modalConfirm.id = "modalConfirmarDelete";
+    modalConfirm.style.cssText = "position: fixed; inset: 0; z-index: 10001; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.85);";
+    modalConfirm.innerHTML = `
+        <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 16px; width: 90%; max-width: 380px; padding: 24px; border: 1px solid rgba(239,68,68,0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(239,68,68,0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                    <span class="material-icons" style="font-size: 28px; color: #f87171;">warning</span>
+                </div>
+                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 700; color: #fff;">Excluir Acerto?</h3>
+                <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.5;">
+                    Esta ação irá reverter o ${tipoTexto} de<br>
+                    <strong style="color: #fff;">R$ ${valorFormatado}</strong> - ${descricao}
+                </p>
+            </div>
+            <div style="background: rgba(239,68,68,0.1); border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 12px; color: #f87171; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-icons" style="font-size: 16px;">info</span>
+                    O saldo do participante será ${tipo === "pagamento" ? "aumentado" : "reduzido"} automaticamente.
+                </p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button onclick="document.getElementById('modalConfirmarDelete').remove()"
+                        style="flex: 1; padding: 12px 16px; border-radius: 10px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); font-weight: 600; font-size: 14px; border: none; cursor: pointer;">
+                    Cancelar
+                </button>
+                <button onclick="executarDeletarAcerto('${acertoId}')"
+                        style="flex: 1; padding: 12px 16px; border-radius: 10px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; font-weight: 700; font-size: 14px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <span class="material-icons" style="font-size: 16px;">delete</span>
+                    Excluir
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modalConfirm);
+};
+
+/**
+ * Executa a deleção do acerto
+ */
+window.executarDeletarAcerto = async function(acertoId) {
+    const btnExcluir = document.querySelector("#modalConfirmarDelete button:last-child");
+    if (btnExcluir) {
+        btnExcluir.disabled = true;
+        btnExcluir.innerHTML = '<span class="material-icons" style="font-size: 16px; animation: spin 1s linear infinite;">sync</span> Excluindo...';
+    }
+
+    try {
+        const response = await fetch(`/api/acertos/${acertoId}?hardDelete=true`, {
+            method: "DELETE",
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "Erro ao excluir acerto");
+        }
+
+        // Fechar modal de confirmação
+        document.getElementById("modalConfirmarDelete")?.remove();
+
+        // Mostrar toast de sucesso
+        mostrarToastAcerto("Acerto excluído com sucesso!", true);
+
+        // Recarregar histórico
+        const data = window._acertoModalData;
+        if (data?.ligaId && data?.timeId) {
+            await carregarHistoricoAcertos(data.ligaId, data.timeId);
+        }
+
+        // Recarregar extrato se estiver visualizando
+        if (window.recarregarExtratoAtual) {
+            await window.recarregarExtratoAtual();
+        }
+
+        console.log("[ACERTOS] ✅ Acerto excluído:", result);
+
+    } catch (error) {
+        console.error("[ACERTOS] ❌ Erro ao excluir:", error);
+        mostrarToastAcerto(`Erro: ${error.message}`, false);
+        document.getElementById("modalConfirmarDelete")?.remove();
+    }
 };
 
 /**
  * Seleciona o tipo de acerto (pagamento ou recebimento)
+ * ✅ v5.4: CSS inline ao invés de Tailwind
  */
 window.selecionarTipoAcerto = function (tipo) {
     const btnPagamento = document.getElementById("btnTipoPagamento");
     const btnRecebimento = document.getElementById("btnTipoRecebimento");
     const inputTipo = document.getElementById("tipoAcerto");
 
+    // Estilos base compartilhados
+    const baseStyle = "flex: 1; padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;";
+
     if (tipo === "pagamento") {
-        btnPagamento.className = "flex-1 py-2 px-4 rounded-lg border-2 border-rose-500 bg-rose-500/20 text-rose-400 font-medium text-sm transition-all";
-        btnRecebimento.className = "flex-1 py-2 px-4 rounded-lg border-2 border-white/20 text-white/60 font-medium text-sm transition-all";
+        btnPagamento.style.cssText = baseStyle + "border: 2px solid #f43f5e; background: rgba(244,63,94,0.15); color: #fb7185;";
+        btnRecebimento.style.cssText = baseStyle + "border: 2px solid rgba(255,255,255,0.2); background: transparent; color: rgba(255,255,255,0.6);";
     } else {
-        btnRecebimento.className = "flex-1 py-2 px-4 rounded-lg border-2 border-emerald-500 bg-emerald-500/20 text-emerald-400 font-medium text-sm transition-all";
-        btnPagamento.className = "flex-1 py-2 px-4 rounded-lg border-2 border-white/20 text-white/60 font-medium text-sm transition-all";
+        btnRecebimento.style.cssText = baseStyle + "border: 2px solid #10b981; background: rgba(16,185,129,0.15); color: #34d399;";
+        btnPagamento.style.cssText = baseStyle + "border: 2px solid rgba(255,255,255,0.2); background: transparent; color: rgba(255,255,255,0.6);";
     }
 
     inputTipo.value = tipo;
@@ -723,6 +1020,7 @@ window.selecionarTipoAcerto = function (tipo) {
 
 /**
  * Confirma e envia o acerto financeiro para a API
+ * ✅ v5.5: Atualizado para usar campo hidden de valor
  */
 window.confirmarAcertoFinanceiro = async function (ligaId, timeId, nomeTime) {
     const tipo = document.getElementById("tipoAcerto").value;
@@ -734,15 +1032,23 @@ window.confirmarAcertoFinanceiro = async function (ligaId, timeId, nomeTime) {
 
     // Validações
     if (!valor || valor <= 0) {
-        alert("Informe um valor válido");
-        document.getElementById("valorAcerto").focus();
+        mostrarToastAcerto("Informe um valor válido", false);
+        document.getElementById("valorAcertoDisplay")?.focus();
         return;
     }
 
     if (!descricao) {
-        alert("Informe uma descrição");
-        document.getElementById("descricaoAcerto").focus();
+        mostrarToastAcerto("Informe uma descrição", false);
+        document.getElementById("descricaoAcerto")?.focus();
         return;
+    }
+
+    // Feedback visual no botão
+    const btnConfirmar = document.querySelector("#conteudoNovoAcerto button:last-child");
+    const textoOriginal = btnConfirmar?.innerHTML;
+    if (btnConfirmar) {
+        btnConfirmar.disabled = true;
+        btnConfirmar.innerHTML = '<span class="material-icons" style="font-size: 16px; animation: spin 1s linear infinite;">sync</span> Salvando...';
     }
 
     try {
@@ -783,20 +1089,67 @@ window.confirmarAcertoFinanceiro = async function (ligaId, timeId, nomeTime) {
     } catch (error) {
         console.error("[ACERTOS] ❌ Erro:", error);
         mostrarToastAcerto(`Erro: ${error.message}`, false);
+
+        // Restaurar botão
+        if (btnConfirmar) {
+            btnConfirmar.disabled = false;
+            btnConfirmar.innerHTML = textoOriginal;
+        }
     }
 };
 
 /**
  * Mostra toast de feedback
+ * ✅ v5.5: CSS inline ao invés de Tailwind
  */
 function mostrarToastAcerto(mensagem, sucesso) {
+    // Remover toast anterior se existir
+    document.getElementById("toastAcerto")?.remove();
+
     const toast = document.createElement("div");
-    toast.className = `fixed bottom-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full text-sm font-medium z-[10001] shadow-lg
-                       ${sucesso ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"}`;
+    toast.id = "toastAcerto";
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 14px 24px;
+        border-radius: 50px;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 10001;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideUp 0.3s ease;
+        ${sucesso
+            ? "background: linear-gradient(135deg, #10b981, #059669); color: white;"
+            : "background: linear-gradient(135deg, #ef4444, #dc2626); color: white;"
+        }
+    `;
     toast.innerHTML = `
-        <span class="material-symbols-outlined text-sm align-middle mr-2">${sucesso ? "check_circle" : "error"}</span>
+        <span class="material-icons" style="font-size: 20px;">${sucesso ? "check_circle" : "error"}</span>
         ${mensagem}
     `;
+
+    // Injetar animação se não existir
+    if (!document.getElementById("toastAnimationStyle")) {
+        const style = document.createElement("style");
+        style.id = "toastAnimationStyle";
+        style.textContent = `
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
 }

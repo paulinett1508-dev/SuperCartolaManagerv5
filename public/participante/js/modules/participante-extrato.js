@@ -283,6 +283,8 @@ async function carregarExtrato(ligaId, timeId) {
                             totalPerdas: 0,
                         },
                         camposManuais: cacheData.camposManuais || [],
+                        // ✅ v2.9: Incluir acertos financeiros
+                        acertos: cacheData.acertos || { lista: [], resumo: {} },
                         inativo: cacheData.inativo || false,
                         extratoTravado: cacheData.extratoTravado || false,
                         rodadaTravada: cacheData.rodadaTravada || null,
@@ -383,7 +385,7 @@ async function carregarExtrato(ligaId, timeId) {
             if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", "💾 Dados salvos no cache local");
         }
 
-        // ✅ v3.2: Verificar se dados novos têm MM que cache local não tinha
+        // ✅ v3.3: Verificar se dados novos têm mudanças que justificam re-render
         let deveReRenderizar = !usouCache;
         if (usouCache && extratoDataCache) {
             // Cache local tinha MM?
@@ -393,6 +395,22 @@ async function carregarExtrato(ligaId, timeId) {
 
             if (!cacheLocalTinhaMM && dadosNovosTemMM) {
                 if (window.Log) Log.info("EXTRATO-PARTICIPANTE", "🔄 Dados novos têm MATA_MATA - re-renderizando!");
+                deveReRenderizar = true;
+            }
+
+            // ✅ v3.3: Verificar se acertos financeiros mudaram
+            const acertosCacheLocal = extratoDataCache.acertos?.lista?.length || 0;
+            const acertosNovos = extratoData.acertos?.lista?.length || 0;
+            const saldoAcertosCache = extratoDataCache.acertos?.resumo?.saldo || 0;
+            const saldoAcertosNovo = extratoData.acertos?.resumo?.saldo || 0;
+
+            if (acertosCacheLocal !== acertosNovos || saldoAcertosCache !== saldoAcertosNovo) {
+                if (window.Log) Log.info("EXTRATO-PARTICIPANTE", "🔄 Acertos financeiros mudaram - re-renderizando!", {
+                    cacheQtd: acertosCacheLocal,
+                    novoQtd: acertosNovos,
+                    cacheSaldo: saldoAcertosCache,
+                    novoSaldo: saldoAcertosNovo
+                });
                 deveReRenderizar = true;
             }
         }
