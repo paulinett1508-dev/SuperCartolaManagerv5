@@ -1,9 +1,46 @@
-// controllers/luvaDeOuroController.js
+// controllers/luvaDeOuroController.js v2.0.0 - SaaS DINÂMICO
+// v2.0.0: Configurações dinâmicas via liga.configuracoes (White Label)
 import {
   coletarDadosGoleiros,
   obterRankingGoleiros,
   detectarUltimaRodadaConcluida,
 } from "../services/goleirosService.js";
+import Liga from "../models/Liga.js";
+
+// =====================================================================
+// ✅ v2.0: VALIDAÇÃO DINÂMICA DE LIGA (SaaS)
+// =====================================================================
+
+/**
+ * Verifica se a liga suporta o módulo Luva de Ouro
+ * @param {string} ligaId - ID da liga
+ * @returns {Promise<{valid: boolean, liga: Object|null, error: string|null}>}
+ */
+async function validarLigaLuvaOuro(ligaId) {
+  try {
+    const liga = await Liga.findById(ligaId).lean();
+
+    if (!liga) {
+      return { valid: false, liga: null, error: "Liga não encontrada" };
+    }
+
+    // ✅ v2.0: Verificar se o módulo está habilitado nas configurações
+    const luvaOuroConfig = liga.configuracoes?.luva_ouro;
+    const moduloAtivo = liga.modulos_ativos?.luvaOuro;
+
+    if (!luvaOuroConfig?.habilitado && !moduloAtivo) {
+      return {
+        valid: false,
+        liga,
+        error: `Liga "${liga.nome}" não tem o módulo Luva de Ouro habilitado`
+      };
+    }
+
+    return { valid: true, liga, error: null };
+  } catch (error) {
+    return { valid: false, liga: null, error: error.message };
+  }
+}
 
 class LuvaDeOuroController {
   // GET /api/luva-de-ouro/:ligaId/ranking
@@ -17,11 +54,12 @@ class LuvaDeOuroController {
         `📊 Parâmetros: início=${inicio}, fim=${fim}, forcar_coleta=${forcar_coleta}`,
       );
 
-      // Validar liga (apenas Cartoleiros do Sobral)
-      if (ligaId !== "684d821cf1a7ae16d1f89572") {
+      // ✅ v2.0: Validar liga dinamicamente
+      const validacao = await validarLigaLuvaOuro(ligaId);
+      if (!validacao.valid) {
         return res.status(400).json({
           success: false,
-          error: "Liga não suportada para Luva de Ouro",
+          error: validacao.error,
           ligaId,
         });
       }
@@ -100,11 +138,12 @@ class LuvaDeOuroController {
 
       console.log(`🥅 [LUVA-OURO] Detectando rodada - Liga: ${ligaId}`);
 
-      // Validar liga
-      if (ligaId !== "684d821cf1a7ae16d1f89572") {
+      // ✅ v2.0: Validar liga dinamicamente
+      const validacao = await validarLigaLuvaOuro(ligaId);
+      if (!validacao.valid) {
         return res.status(400).json({
           success: false,
-          error: "Liga não suportada para Luva de Ouro",
+          error: validacao.error,
         });
       }
 
@@ -136,11 +175,12 @@ class LuvaDeOuroController {
 
       console.log(`🥅 [LUVA-OURO] Solicitação de coleta - Liga: ${ligaId}`);
 
-      // Validar liga
-      if (ligaId !== "684d821cf1a7ae16d1f89572") {
+      // ✅ v2.0: Validar liga dinamicamente
+      const validacao = await validarLigaLuvaOuro(ligaId);
+      if (!validacao.valid) {
         return res.status(400).json({
           success: false,
-          error: "Liga não suportada para Luva de Ouro",
+          error: validacao.error,
         });
       }
 
@@ -206,11 +246,12 @@ class LuvaDeOuroController {
 
       console.log(`🔍 [LUVA-OURO] Executando diagnóstico - Liga: ${ligaId}`);
 
-      // Validar liga
-      if (ligaId !== "684d821cf1a7ae16d1f89572") {
+      // ✅ v2.0: Validar liga dinamicamente
+      const validacao = await validarLigaLuvaOuro(ligaId);
+      if (!validacao.valid) {
         return res.status(400).json({
           success: false,
-          error: "Liga não suportada para Luva de Ouro",
+          error: validacao.error,
         });
       }
 
@@ -313,11 +354,12 @@ class LuvaDeOuroController {
 
       console.log(`🥅 [LUVA-OURO] Obtendo estatísticas - Liga: ${ligaId}`);
 
-      // Validar liga
-      if (ligaId !== "684d821cf1a7ae16d1f89572") {
+      // ✅ v2.0: Validar liga dinamicamente
+      const validacao = await validarLigaLuvaOuro(ligaId);
+      if (!validacao.valid) {
         return res.status(400).json({
           success: false,
-          error: "Liga não suportada para Luva de Ouro",
+          error: validacao.error,
         });
       }
 
@@ -353,28 +395,30 @@ class LuvaDeOuroController {
 
       console.log(`🥅 [LUVA-OURO] Listando participantes - Liga: ${ligaId}`);
 
-      // Validar liga
-      if (ligaId !== "684d821cf1a7ae16d1f89572") {
+      // ✅ v2.0: Validar liga dinamicamente
+      const validacao = await validarLigaLuvaOuro(ligaId);
+      if (!validacao.valid) {
         return res.status(400).json({
           success: false,
-          error: "Liga não suportada para Luva de Ouro",
+          error: validacao.error,
         });
       }
 
-      // Hardcoded participantes for Liga Sobral com escudos corretos (baseado em participantes.js)
-      const participantes = [
-        { timeId: 1926323, nome: "Daniel Barbosa", clubeId: 262 },
-        { timeId: 13935277, nome: "Paulinett Miranda", clubeId: 262 },
-        { timeId: 14747183, nome: "Carlos Henrique", clubeId: 276 },
-        { timeId: 49149009, nome: "Matheus Coutinho", clubeId: 262 },
-        { timeId: 49149388, nome: "Junior Brasilino", clubeId: 262 },
-        { timeId: 50180257, nome: "Hivisson", clubeId: 267 },
-      ];
+      // ✅ v2.0: Buscar participantes da liga no banco (não mais hardcoded)
+      const liga = validacao.liga;
+      const participantes = (liga.participantes || [])
+        .filter(p => p.ativo !== false) // Apenas ativos
+        .map(p => ({
+          timeId: p.time_id,
+          nome: p.nome_cartola,
+          clubeId: p.clube_id,
+        }));
 
       res.json({
         success: true,
         data: {
           ligaId,
+          ligaNome: liga.nome,
           totalParticipantes: participantes.length,
           participantes,
         },
@@ -402,11 +446,12 @@ class LuvaDeOuroController {
       );
       console.log(`📊 Parâmetros: início=${inicio}, fim=${fim}`);
 
-      // Validar liga
-      if (ligaId !== "684d821cf1a7ae16d1f89572") {
+      // ✅ v2.0: Validar liga dinamicamente
+      const validacao = await validarLigaLuvaOuro(ligaId);
+      if (!validacao.valid) {
         return res.status(400).json({
           success: false,
-          error: "Liga não suportada para Luva de Ouro",
+          error: validacao.error,
         });
       }
 
