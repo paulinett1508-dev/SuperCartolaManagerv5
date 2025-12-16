@@ -1,6 +1,7 @@
 // =====================================================================
-// rodadasCorrecaoController.js
+// rodadasCorrecaoController.js v2.0.0 - SaaS DINÂMICO
 // Controller para corrigir rodadas com dados corrompidos
+// v2.0.0: Configurações dinâmicas via liga.configuracoes (White Label)
 // Rota: POST /api/rodadas-correcao/:ligaId/corrigir
 // =====================================================================
 
@@ -16,51 +17,57 @@ function toLigaId(ligaId) {
   return ligaId;
 }
 
-// Tabelas de valores por liga
-const VALORES_BANCO = {
-  // SuperCartola (32 participantes)
-  "684cb1c8af923da7c7df51de": {
-    1: 20.0,
-    2: 19.0,
-    3: 18.0,
-    4: 17.0,
-    5: 16.0,
-    6: 15.0,
-    7: 14.0,
-    8: 13.0,
-    9: 12.0,
-    10: 11.0,
-    11: 10.0,
-    12: 0,
-    13: 0,
-    14: 0,
-    15: 0,
-    16: 0,
-    17: 0,
-    18: 0,
-    19: 0,
-    20: 0,
-    21: 0,
-    22: -10.0,
-    23: -11.0,
-    24: -12.0,
-    25: -13.0,
-    26: -14.0,
-    27: -15.0,
-    28: -16.0,
-    29: -17.0,
-    30: -18.0,
-    31: -19.0,
-    32: -20.0,
-  },
-  // Cartoleiros do Sobral (4 times ativos nas rodadas 30+)
-  "684d821cf1a7ae16d1f89572": {
-    1: 5.0,
-    2: 0.0,
-    3: 0.0,
-    4: -5.0,
-  },
-};
+// =====================================================================
+// ✅ v2.0: BUSCAR CONFIGURAÇÕES DA LIGA DO BANCO (SaaS Dinâmico)
+// =====================================================================
+
+/**
+ * Busca as configurações de ranking_rodada da liga
+ * @param {Object} liga - Documento da liga do MongoDB
+ * @param {number} rodada - Número da rodada (para configs temporais)
+ * @returns {Object} { valores: {posicao: valor}, temporal: boolean }
+ */
+function getConfigRankingRodada(liga, rodada = 1) {
+  const config = liga?.configuracoes?.ranking_rodada;
+
+  if (!config) {
+    console.warn(`[CONFIG] Liga ${liga?._id} sem configuracoes.ranking_rodada, usando fallback`);
+    return { valores: {}, temporal: false, totalParticipantes: 0 };
+  }
+
+  // Config temporal (ex: Sobral com 2 fases)
+  if (config.temporal) {
+    const rodadaTransicao = config.rodada_transicao || 30;
+    const fase = rodada < rodadaTransicao ? 'fase1' : 'fase2';
+    const faseConfig = config[fase] || {};
+
+    return {
+      valores: faseConfig.valores || {},
+      temporal: true,
+      rodadaTransicao,
+      fase,
+      totalParticipantes: faseConfig.total_participantes || 0
+    };
+  }
+
+  // Config simples (ex: SuperCartola)
+  return {
+    valores: config.valores || {},
+    temporal: false,
+    totalParticipantes: config.total_participantes || 0
+  };
+}
+
+/**
+ * Obtém valor financeiro para uma posição específica
+ * @param {Object} configRanking - Resultado de getConfigRankingRodada()
+ * @param {number} posicao - Posição do participante
+ * @returns {number} Valor financeiro (positivo, zero ou negativo)
+ */
+function getValorFinanceiroPosicao(configRanking, posicao) {
+  const valores = configRanking?.valores || {};
+  return valores[posicao] || valores[String(posicao)] || 0;
+}
 
 // =====================================================================
 // CORRIGIR RODADAS CORROMPIDAS
@@ -130,8 +137,6 @@ export const corrigirRodadas = async (req, res) => {
     console.log(`[CORRIGIR-RODADAS] IDs: ${timesValidos.join(", ")}`);
 
     const resultados = [];
-    const valoresBanco =
-      VALORES_BANCO[ligaId] || VALORES_BANCO["684cb1c8af923da7c7df51de"];
 
     // ETAPA 2: Para cada rodada a corrigir
     for (let rodada = inicio; rodada <= fim; rodada++) {
@@ -227,12 +232,18 @@ export const corrigirRodadas = async (req, res) => {
       // 2.3: Ordenar e calcular posições
       dadosRodada.sort((a, b) => b.pontos - a.pontos);
 
+      // ✅ v2.0: Buscar config para esta rodada específica
+      const configRanking = getConfigRankingRodada(liga, rodada);
+      console.log(`[CORRIGIR-RODADAS] Config ranking rodada ${rodada}:`,
+        configRanking.temporal ? `${configRanking.fase} (temporal)` : 'simples');
+
       // 2.4: Salvar no banco
       let salvos = 0;
       for (let i = 0; i < dadosRodada.length; i++) {
         const time = dadosRodada[i];
         const posicao = i + 1;
-        const valorFinanceiro = valoresBanco[posicao] || 0;
+        // ✅ v2.0: Usar função que busca do config do banco
+        const valorFinanceiro = getValorFinanceiroPosicao(configRanking, posicao);
 
         await Rodada.findOneAndUpdate(
           { ligaId: ligaIdObj, rodada, timeId: time.timeId },
@@ -264,7 +275,8 @@ export const corrigirRodadas = async (req, res) => {
           posicao: i + 1,
           nome: t.nome_cartola,
           pontos: t.pontos,
-          banco: valoresBanco[i + 1] || 0,
+          // ✅ v2.0: Usar função que busca do config
+          banco: getValorFinanceiroPosicao(configRanking, i + 1),
         })),
       });
     }
@@ -366,4 +378,4 @@ export const verificarCorrompidos = async (req, res) => {
   }
 };
 
-console.log("[RODADAS-CORRECAO] ✅ Controller carregado");
+console.log("[RODADAS-CORRECAO] ✅ v2.0.0 carregado (SaaS Dinâmico)");
