@@ -1,12 +1,15 @@
-// controllers/artilheiroCampeaoController.js - VERSÃO 4.4
+// controllers/artilheiroCampeaoController.js - VERSÃO 5.0.0 (SaaS DINÂMICO)
 // ✅ PERSISTÊNCIA MONGODB + LÓGICA DE RODADA PARCIAL (igual Luva de Ouro)
 // ✅ SUPORTE A PARTICIPANTES INATIVOS - FILTRO INTEGRADO
 // ✅ CORREÇÃO v4.1: Não incluir rodada atual quando mercado aberto (sem scouts válidos)
 // ✅ CORREÇÃO v4.2: Incluir rodadas anteriores mesmo se parcial=true (rodadas passadas são válidas)
 // ✅ CORREÇÃO v4.3: Integração com participanteHelper para filtrar inativos
 // ✅ CORREÇÃO v4.4: COLETA AUTOMÁTICA de rodadas faltantes no MongoDB
+// ✅ v5.0.0: MULTI-TENANT - Busca participantes e configurações do banco (liga.configuracoes)
 
 import mongoose from "mongoose";
+import Liga from "../models/Liga.js";
+import Time from "../models/Time.js";
 import {
     buscarStatusParticipantes,
     obterUltimaRodadaValida,
@@ -49,47 +52,61 @@ const GolsConsolidados =
     mongoose.models.GolsConsolidados ||
     mongoose.model("GolsConsolidados", GolsConsolidadosSchema);
 
-// ========================================
-// PARTICIPANTES DA LIGA (HARDCODED)
-// ========================================
-const PARTICIPANTES_SOBRAL = [
-    {
-        timeId: 1926323,
-        nome: "Daniel Barbosa",
-        nomeTime: "specter United",
-        clubeId: 262,
-    },
-    {
-        timeId: 13935277,
-        nome: "Paulinett Miranda",
-        nomeTime: "Urubu Play F.C.",
-        clubeId: 262,
-    },
-    {
-        timeId: 14747183,
-        nome: "Carlos Henrique",
-        nomeTime: "CHS EC",
-        clubeId: 276,
-    },
-    {
-        timeId: 49149009,
-        nome: "Matheus Coutinho",
-        nomeTime: "RB Teteux SC",
-        clubeId: 262,
-    },
-    {
-        timeId: 49149388,
-        nome: "Junior Brasilino",
-        nomeTime: "JBMENGO94 FC",
-        clubeId: 262,
-    },
-    {
-        timeId: 50180257,
-        nome: "Hivisson",
-        nomeTime: "Senhores Da Escalação",
-        clubeId: 267,
-    },
-];
+// =====================================================================
+// ✅ v5.0: FUNÇÕES SaaS DINÂMICAS (Multi-Tenant)
+// =====================================================================
+
+/**
+ * Valida se a liga tem o módulo Artilheiro habilitado
+ * @param {string} ligaId - ID da liga
+ * @returns {Object} { valid: boolean, liga: Object|null, error: string|null }
+ */
+async function validarLigaArtilheiro(ligaId) {
+    const liga = await Liga.findById(ligaId).lean();
+    if (!liga) {
+        return { valid: false, liga: null, error: "Liga não encontrada" };
+    }
+
+    const artilheiroConfig = liga.configuracoes?.artilheiro;
+    const moduloAtivo = liga.modulos_ativos?.artilheiro;
+
+    if (!artilheiroConfig?.habilitado && !moduloAtivo) {
+        return {
+            valid: false,
+            liga,
+            error: `Liga "${liga.nome}" não tem o módulo Artilheiro habilitado`,
+        };
+    }
+
+    return { valid: true, liga, error: null };
+}
+
+/**
+ * Busca participantes da liga do banco de dados
+ * @param {Object} liga - Documento da liga
+ * @returns {Array} Lista de participantes formatados
+ */
+async function getParticipantesLiga(liga) {
+    if (!liga.times || liga.times.length === 0) {
+        console.warn(`[ARTILHEIRO] Liga ${liga._id} sem times cadastrados`);
+        return [];
+    }
+
+    // Buscar dados completos dos times
+    const times = await Time.find(
+        { id: { $in: liga.times } },
+        { id: 1, nome_cartola: 1, nome: 1, url_escudo_png: 1, clube_id: 1, ativo: 1 }
+    ).lean();
+
+    return times.map((time) => ({
+        timeId: time.id,
+        nome: time.nome_cartola || "N/D",
+        nomeTime: time.nome || "N/D",
+        escudo: time.url_escudo_png || ESCUDOS_CLUBES[time.clube_id] || null,
+        clubeId: time.clube_id,
+        ativo: time.ativo !== false,
+    }));
+}
 
 // ========================================
 // ESCUDOS DOS CLUBES
@@ -144,6 +161,28 @@ class ArtilheiroCampeaoController {
                 ` [ARTILHEIRO] Solicitação de ranking - Liga: ${ligaId}`,
             );
 
+            // ✅ v5.0: Validar se liga tem módulo Artilheiro habilitado
+            const { valid, liga, error } = await validarLigaArtilheiro(ligaId);
+            if (!valid) {
+                console.warn(`[ARTILHEIRO] Liga inválida: ${error}`);
+                return res.status(liga ? 400 : 404).json({
+                    success: false,
+                    error,
+                    moduloDesabilitado: !!liga,
+                });
+            }
+
+            // ✅ v5.0: Buscar participantes dinamicamente do banco
+            const participantes = await getParticipantesLiga(liga);
+            if (participantes.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    error: "Nenhum participante cadastrado nesta liga",
+                });
+            }
+
+            console.log(`[ARTILHEIRO] Liga "${liga.nome}" - ${participantes.length} participantes`);
+
             const rodadaInicio = inicio ? parseInt(inicio) : 1;
 
             // ✅ v4.4: Detectar status do mercado COM temporada encerrada
@@ -185,13 +224,14 @@ class ArtilheiroCampeaoController {
                 `📊 Rodada ${rodadaInicio}-${rodadaFim}, Mercado: ${mercadoAberto ? "Aberto" : "Fechado"}, Temporada: ${temporadaEncerrada ? "ENCERRADA" : "ATIVA"}, Rodada API: ${rodadaAtual}`,
             );
 
-            // ✅ v4.4: Gerar ranking - só busca parciais se rodada em andamento
+            // ✅ v5.0: Gerar ranking - só busca parciais se rodada em andamento
             const ranking = await ArtilheiroCampeaoController.gerarRanking(
                 ligaId,
                 rodadaInicio,
                 rodadaFim,
                 !rodadaEmAndamento, // Se NÃO está em andamento, considera como "mercado aberto" (não busca parciais)
                 forcar_coleta === "true",
+                participantes, // ✅ v5.0: Passa participantes dinamicamente
             );
 
             // Calcular estatísticas (apenas ativos)
@@ -306,7 +346,7 @@ class ArtilheiroCampeaoController {
     }
 
     /**
-     * ✅ v4.3: Gerar ranking completo COM FILTRO DE INATIVOS
+     * ✅ v5.0: Gerar ranking completo COM FILTRO DE INATIVOS (Multi-Tenant)
      */
     static async gerarRanking(
         ligaId,
@@ -314,13 +354,14 @@ class ArtilheiroCampeaoController {
         rodadaFim,
         mercadoAberto,
         forcarColeta,
+        participantes, // ✅ v5.0: Recebe participantes dinamicamente
     ) {
         console.log(
-            `🔄 Processando ${PARTICIPANTES_SOBRAL.length} participantes em PARALELO...`,
+            `🔄 Processando ${participantes.length} participantes em PARALELO...`,
         );
 
         // ✅ v4.3: Buscar status de todos os participantes ANTES de processar
-        const timeIds = PARTICIPANTES_SOBRAL.map((p) => p.timeId);
+        const timeIds = participantes.map((p) => p.timeId);
         const statusMap = await buscarStatusParticipantes(timeIds);
 
         console.log(
@@ -345,9 +386,9 @@ class ArtilheiroCampeaoController {
             console.log(`📊 ${totalAtletas} atletas com scouts em tempo real`);
         }
 
-        // ✅ Processar TODOS os participantes em paralelo
+        // ✅ v5.0: Processar TODOS os participantes em paralelo
         const ranking = await Promise.all(
-            PARTICIPANTES_SOBRAL.map(async (participante, i) => {
+            participantes.map(async (participante, i) => {
                 const status = statusMap[String(participante.timeId)] || {
                     ativo: true,
                     rodada_desistencia: null,
@@ -361,7 +402,7 @@ class ArtilheiroCampeaoController {
                 );
 
                 console.log(
-                    `📊 [${i + 1}/${PARTICIPANTES_SOBRAL.length}] ${participante.nome}${!isAtivo ? ` (INATIVO até R${rodadaFimParticipante})` : ""}...`,
+                    `📊 [${i + 1}/${participantes.length}] ${participante.nome}${!isAtivo ? ` (INATIVO até R${rodadaFimParticipante})` : ""}...`,
                 );
 
                 try {
@@ -628,7 +669,7 @@ class ArtilheiroCampeaoController {
     }
 
     /**
-     * ✅ Endpoint para forçar coleta de uma rodada específica
+     * ✅ v5.0: Endpoint para forçar coleta de uma rodada específica (Multi-Tenant)
      * POST /api/artilheiro-campeao/:ligaId/coletar/:rodada
      */
     static async coletarRodada(req, res) {
@@ -640,9 +681,23 @@ class ArtilheiroCampeaoController {
                 `🔄 [ARTILHEIRO] Coletando rodada ${rodadaNum} para liga ${ligaId}...`,
             );
 
+            // ✅ v5.0: Validar liga e buscar participantes
+            const { valid, liga, error } = await validarLigaArtilheiro(ligaId);
+            if (!valid) {
+                return res.status(liga ? 400 : 404).json({ success: false, error });
+            }
+
+            const participantes = await getParticipantesLiga(liga);
+            if (participantes.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    error: "Nenhum participante cadastrado nesta liga",
+                });
+            }
+
             const resultados = [];
 
-            for (const participante of PARTICIPANTES_SOBRAL) {
+            for (const participante of participantes) {
                 try {
                     const dados =
                         await ArtilheiroCampeaoController.coletarDadosRodada(
@@ -829,12 +884,20 @@ class ArtilheiroCampeaoController {
     }
 
     /**
-     * ✅ Estatísticas do sistema
+     * ✅ v5.0: Estatísticas do sistema (Multi-Tenant)
      * GET /api/artilheiro-campeao/:ligaId/estatisticas
      */
     static async obterEstatisticas(req, res) {
         try {
             const { ligaId } = req.params;
+
+            // ✅ v5.0: Validar liga e buscar participantes
+            const { valid, liga, error } = await validarLigaArtilheiro(ligaId);
+            if (!valid) {
+                return res.status(liga ? 400 : 404).json({ success: false, error });
+            }
+
+            const participantes = await getParticipantesLiga(liga);
 
             const totalRegistros = await GolsConsolidados.countDocuments({
                 ligaId,
@@ -860,7 +923,8 @@ class ArtilheiroCampeaoController {
                     rodadasDisponiveis: rodadasDisponiveis.sort(
                         (a, b) => a - b,
                     ),
-                    participantes: PARTICIPANTES_SOBRAL.length,
+                    participantes: participantes.length,
+                    ligaNome: liga.nome,
                 },
             });
         } catch (error) {
@@ -872,20 +936,30 @@ class ArtilheiroCampeaoController {
     }
 
     /**
-     * ✅ Listar participantes
+     * ✅ v5.0: Listar participantes (Multi-Tenant)
      * GET /api/artilheiro-campeao/:ligaId/participantes
      */
     static async listarParticipantes(req, res) {
         try {
+            const { ligaId } = req.params;
+
+            // ✅ v5.0: Validar liga e buscar participantes
+            const { valid, liga, error } = await validarLigaArtilheiro(ligaId);
+            if (!valid) {
+                return res.status(liga ? 400 : 404).json({ success: false, error });
+            }
+
+            const participantesBanco = await getParticipantesLiga(liga);
+
             // ✅ v4.3: Buscar status de todos
-            const timeIds = PARTICIPANTES_SOBRAL.map((p) => p.timeId);
+            const timeIds = participantesBanco.map((p) => p.timeId);
             const statusMap = await buscarStatusParticipantes(timeIds);
 
-            const participantes = PARTICIPANTES_SOBRAL.map((p) => {
+            const participantes = participantesBanco.map((p) => {
                 const status = statusMap[String(p.timeId)] || { ativo: true };
                 return {
                     ...p,
-                    escudo: ESCUDOS_CLUBES[p.clubeId] || null,
+                    escudo: p.escudo || ESCUDOS_CLUBES[p.clubeId] || null,
                     ativo: status.ativo !== false,
                     rodada_desistencia: status.rodada_desistencia || null,
                 };
@@ -894,6 +968,7 @@ class ArtilheiroCampeaoController {
             res.json({
                 success: true,
                 data: participantes,
+                ligaNome: liga.nome,
             });
         } catch (error) {
             res.status(500).json({
@@ -903,5 +978,7 @@ class ArtilheiroCampeaoController {
         }
     }
 }
+
+console.log("[ARTILHEIRO-CAMPEAO] ✅ v5.0.0 carregado (SaaS Dinâmico)");
 
 export default ArtilheiroCampeaoController;
