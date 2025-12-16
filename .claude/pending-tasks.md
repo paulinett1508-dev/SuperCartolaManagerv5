@@ -1,5 +1,11 @@
 # Tarefas Pendentes - 2025-12-16
 
+## Skill Recomendada
+**frontend-crafter** - Usar para implementação do Sidebar Accordion
+```
+Use a skill frontend-crafter para implementar o Sidebar Accordion conforme arquitetura proposta abaixo.
+```
+
 ## Contexto
 Diagnóstico completo do Sidebar Admin para planejar refatoração para "Sidebar Accordion" com subníveis e carregamento sob demanda.
 
