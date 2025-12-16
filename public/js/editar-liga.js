@@ -85,20 +85,26 @@ class EditarLigaManager {
         // Event delegation para botões da tabela
         this.elements.tabelaTimes?.addEventListener("click", (e) => {
             const target = e.target;
-            const row = target.closest("tr");
+            const button = target.closest(".btn-icon");
+            if (!button) return;
+
+            const row = button.closest("tr");
             if (!row) return;
 
             const index = Array.from(
                 this.elements.tabelaTimes.children,
             ).indexOf(row);
 
-            if (target.classList.contains("btn-success")) {
+            // Detectar ação pelo tipo de botão
+            if (button.classList.contains("btn-success") || button.classList.contains("btn-icon-save")) {
                 this.atualizarTime(index);
-            } else if (target.classList.contains("btn-warning")) {
-                this.limparLinha(index);
-            } else if (target.classList.contains("btn-danger")) {
+            } else if (button.classList.contains("btn-warning") || button.classList.contains("btn-icon-clear")) {
+                if (!row.classList.contains("nova-linha")) {
+                    this.limparLinha(index);
+                }
+            } else if (button.classList.contains("btn-danger") || button.classList.contains("btn-icon-delete")) {
                 this.removerTime(index);
-            } else if (target.classList.contains("btn-add")) {
+            } else if (button.classList.contains("btn-add") || button.classList.contains("btn-icon-add")) {
                 this.adicionarNovoTime();
             }
         });
@@ -238,6 +244,12 @@ class EditarLigaManager {
 
         this.elements.tabelaTimes.innerHTML = "";
 
+        // Atualizar contador no header
+        const totalTimesEl = document.getElementById("totalTimes");
+        if (totalTimesEl) {
+            totalTimesEl.textContent = times.length;
+        }
+
         times.forEach((time, index) => {
             const row = document.createElement("tr");
 
@@ -246,59 +258,63 @@ class EditarLigaManager {
                     ? this.clubes
                           .map(
                               (clube) => `
-                    <option value="${clube.id}" 
-                            data-escudo="/escudos/${clube.id}.png" 
-                            data-nome="${clube.nome}" 
+                    <option value="${clube.id}"
+                            data-escudo="/escudos/${clube.id}.png"
+                            data-nome="${clube.nome}"
                             ${time.clube_id === clube.id ? "selected" : ""}>
-                        ${clube.id} - ${clube.nome}
+                        ${clube.nome}
                     </option>
                 `,
                           )
                           .join("")
-                    : '<option value="">Nenhum clube disponível</option>';
+                    : '<option value="">Nenhum clube</option>';
 
             row.innerHTML = `
-                <td class="col-index">${index + 1}</td>
+                <td class="col-num">${index + 1}</td>
                 <td class="col-id">
-                    <input type="text" class="table-input" value="${time.id}" 
+                    <input type="text" class="form-input" value="${time.id}"
                            data-index="${index}" onchange="editarLiga.atualizarCartoleiro(this, ${index})">
                 </td>
                 <td class="col-cartoleiro">
-                    <span class="status ${time.error ? "error" : "ok"}">
+                    <span class="cartoleiro-name ${time.error ? "error" : ""}">
                         ${time.nome_cartoleiro}
                     </span>
                 </td>
                 <td class="col-brasao">
-                    ${
-                        time.brasao
-                            ? `<img src="${time.brasao}" class="escudo-time" alt="Brasão do Time">`
-                            : "N/D"
-                    }
+                    <div class="avatar-circular">
+                        ${
+                            time.brasao
+                                ? `<img src="${time.brasao}" alt="Brasao">`
+                                : '<span class="material-icons">shield</span>'
+                        }
+                    </div>
                 </td>
                 <td class="col-clube">
-                    <select class="table-select" onchange="editarLiga.atualizarClube(this, ${index})">
-                        <option value="">Selecione um clube</option>
+                    <select class="form-select" onchange="editarLiga.atualizarClube(this, ${index})">
+                        <option value="">Selecione</option>
                         ${options}
                     </select>
                 </td>
                 <td class="col-escudo">
-                    <img id="timeCoracaoResult_${index}" 
-                         src="${time.timeDoCoracao || ""}" 
-                         class="escudo-coracao" 
-                         alt="Escudo do Time do Coração" 
-                         style="display: ${time.timeDoCoracao ? "block" : "none"};" 
+                    <img id="timeCoracaoResult_${index}"
+                         src="${time.timeDoCoracao || ""}"
+                         class="escudo-mini"
+                         alt="Escudo"
+                         style="display: ${time.timeDoCoracao ? "block" : "none"};"
                          onerror="this.src='/escudos/placeholder.png';">
                 </td>
                 <td class="col-acoes">
-                    <button class="btn-table btn-success" title="Alterar">
-                        <span class="material-icons">save</span>Salvar
-                    </button>
-                    <button class="btn-table btn-warning" title="Limpar Campos">
-                        <span class="material-icons">clear</span>Limpar
-                    </button>
-                    <button class="btn-table btn-danger" title="Excluir">
-                        <span class="material-icons">delete</span>Excluir
-                    </button>
+                    <div class="action-buttons">
+                        <button class="btn-icon btn-icon-save btn-success" title="Salvar">
+                            <span class="material-icons">save</span>
+                        </button>
+                        <button class="btn-icon btn-icon-clear btn-warning" title="Limpar">
+                            <span class="material-icons">refresh</span>
+                        </button>
+                        <button class="btn-icon btn-icon-delete btn-danger" title="Excluir">
+                            <span class="material-icons">delete</span>
+                        </button>
+                    </div>
                 </td>
             `;
 
@@ -319,47 +335,51 @@ class EditarLigaManager {
                 ? this.clubes
                       .map(
                           (clube) => `
-                <option value="${clube.id}" 
-                        data-escudo="/escudos/${clube.id}.png" 
+                <option value="${clube.id}"
+                        data-escudo="/escudos/${clube.id}.png"
                         data-nome="${clube.nome}">
-                    ${clube.id} - ${clube.nome}
+                    ${clube.nome}
                 </option>
             `,
                       )
                       .join("")
-                : '<option value="">Nenhum clube disponível</option>';
+                : '<option value="">Nenhum clube</option>';
 
         row.innerHTML = `
-            <td class="col-index">+</td>
+            <td class="col-num">+</td>
             <td class="col-id">
-                <input type="text" class="table-input" id="novoId" 
-                       placeholder="Novo ID">
+                <input type="text" class="form-input" id="novoId"
+                       placeholder="ID do time">
             </td>
             <td class="col-cartoleiro">
-                <span id="novoCartoleiro" class="status"></span>
+                <span id="novoCartoleiro" class="cartoleiro-name"></span>
             </td>
             <td class="col-brasao">
-                <span id="novoNomeTime">N/D</span>
+                <div class="avatar-circular" id="novoBrasaoContainer">
+                    <span class="material-icons">shield</span>
+                </div>
             </td>
             <td class="col-clube">
-                <select class="table-select" id="novoClube" 
+                <select class="form-select" id="novoClube"
                         onchange="editarLiga.atualizarNovoEscudo(this)">
-                    <option value="">Selecione um clube</option>
+                    <option value="">Selecione</option>
                     ${options}
                 </select>
             </td>
             <td class="col-escudo">
-                <img id="novoTimeCoracaoResult" class="escudo-coracao" 
-                     style="display: none;" alt="Escudo do Time do Coração">
+                <img id="novoTimeCoracaoResult" class="escudo-mini"
+                     style="display: none;" alt="Escudo">
             </td>
             <td class="col-acoes">
-                <button class="btn-table btn-add" title="Adicionar">
-                    <span class="material-icons">add</span>Adicionar
-                </button>
-                <button class="btn-table btn-warning" title="Limpar Campos"
-                        onclick="editarLiga.limparCampos()">
-                    <span class="material-icons">clear</span>Limpar
-                </button>
+                <div class="action-buttons">
+                    <button class="btn-icon btn-icon-add btn-add" title="Adicionar">
+                        <span class="material-icons">add</span>
+                    </button>
+                    <button class="btn-icon btn-icon-clear" title="Limpar"
+                            onclick="editarLiga.limparCampos()">
+                        <span class="material-icons">refresh</span>
+                    </button>
+                </div>
             </td>
         `;
 
@@ -371,15 +391,16 @@ class EditarLigaManager {
             novoIdInput.addEventListener("input", () => {
                 const id = novoIdInput.value.trim();
                 const span = document.getElementById("novoCartoleiro");
-                const nomeCell = document.getElementById("novoNomeTime");
+                const brasaoContainer = document.getElementById("novoBrasaoContainer");
                 this.buscarDadosCartola(id).then((data) => {
-                    if (span && nomeCell) {
-                        span.textContent =
-                            data.nome_cartoleiro || "Não encontrado";
-                        span.className = `status ${data.error ? "error" : "ok"}`;
-                        nomeCell.innerHTML = data.url_escudo_png
-                            ? `<img src="${data.url_escudo_png}" class="table-img" alt="Brasão">`
-                            : "N/D";
+                    if (span) {
+                        span.textContent = data.nome_cartoleiro || "";
+                        span.className = `cartoleiro-name ${data.error ? "error" : ""}`;
+                    }
+                    if (brasaoContainer) {
+                        brasaoContainer.innerHTML = data.url_escudo_png
+                            ? `<img src="${data.url_escudo_png}" alt="Brasao">`
+                            : '<span class="material-icons">shield</span>';
                     }
                 });
             });
@@ -497,15 +518,20 @@ class EditarLigaManager {
         const row = this.elements.tabelaTimes?.children[index];
         if (!row) return;
 
-        const idInput = row.querySelector(".table-input");
-        const statusSpan = row.querySelector(".status");
-        const brasaoCell = row.cells[3];
-        const clubeSelect = row.querySelector(".table-select");
-        const escudoImg = row.querySelector(".escudo-coracao");
+        const idInput = row.querySelector(".form-input");
+        const cartoName = row.querySelector(".cartoleiro-name");
+        const brasaoContainer = row.querySelector(".avatar-circular");
+        const clubeSelect = row.querySelector(".form-select");
+        const escudoImg = row.querySelector(".escudo-mini");
 
         if (idInput) idInput.value = "";
-        if (statusSpan) statusSpan.textContent = "";
-        if (brasaoCell) brasaoCell.innerHTML = "N/D";
+        if (cartoName) {
+            cartoName.textContent = "";
+            cartoName.className = "cartoleiro-name";
+        }
+        if (brasaoContainer) {
+            brasaoContainer.innerHTML = '<span class="material-icons">shield</span>';
+        }
         if (clubeSelect) clubeSelect.value = "";
         if (escudoImg) {
             escudoImg.src = "";
@@ -516,31 +542,33 @@ class EditarLigaManager {
     atualizarCartoleiro(input, index) {
         const id = input.value.trim();
         const row = input.closest("tr");
-        const statusSpan = row?.querySelector(".status");
-        const brasaoCell = row?.cells[3];
+        const cartoName = row?.querySelector(".cartoleiro-name");
+        const brasaoContainer = row?.querySelector(".avatar-circular");
 
-        if (statusSpan && brasaoCell) {
+        if (cartoName && brasaoContainer) {
             this.buscarDadosCartola(id).then((data) => {
-                statusSpan.textContent =
-                    data.nome_cartoleiro || "Não encontrado";
-                statusSpan.className = `status ${data.error ? "error" : "ok"}`;
-                brasaoCell.innerHTML = data.url_escudo_png
-                    ? `<img src="${data.url_escudo_png}" class="escudo-time" alt="Brasão">`
-                    : "N/D";
+                cartoName.textContent = data.nome_cartoleiro || "Nao encontrado";
+                cartoName.className = `cartoleiro-name ${data.error ? "error" : ""}`;
+                brasaoContainer.innerHTML = data.url_escudo_png
+                    ? `<img src="${data.url_escudo_png}" alt="Brasao">`
+                    : '<span class="material-icons">shield</span>';
             });
         }
     }
 
     atualizarClube(select, index) {
         const selectedOption = select.options[select.selectedIndex];
-        const escudoUrl =
-            selectedOption.getAttribute("data-escudo") ||
-            "/escudos/placeholder.png";
+        const escudoUrl = selectedOption.getAttribute("data-escudo") || "";
         const escudoImg = document.getElementById(`timeCoracaoResult_${index}`);
 
         if (escudoImg) {
-            escudoImg.src = escudoUrl;
-            escudoImg.style.display = escudoUrl ? "block" : "none";
+            if (escudoUrl) {
+                escudoImg.src = escudoUrl;
+                escudoImg.style.display = "block";
+                escudoImg.onerror = () => { escudoImg.src = "/escudos/placeholder.png"; };
+            } else {
+                escudoImg.style.display = "none";
+            }
         }
     }
 
@@ -550,8 +578,13 @@ class EditarLigaManager {
         const escudoImg = document.getElementById("novoTimeCoracaoResult");
 
         if (escudoImg) {
-            escudoImg.src = escudoUrl;
-            escudoImg.style.display = escudoUrl ? "block" : "none";
+            if (escudoUrl) {
+                escudoImg.src = escudoUrl;
+                escudoImg.style.display = "block";
+                escudoImg.onerror = () => { escudoImg.src = "/escudos/placeholder.png"; };
+            } else {
+                escudoImg.style.display = "none";
+            }
         }
     }
 
@@ -581,13 +614,18 @@ class EditarLigaManager {
     limparCampos() {
         const novoId = document.getElementById("novoId");
         const novoCartoleiro = document.getElementById("novoCartoleiro");
-        const novoNomeTime = document.getElementById("novoNomeTime");
+        const novoBrasaoContainer = document.getElementById("novoBrasaoContainer");
         const novoClube = document.getElementById("novoClube");
         const novoEscudo = document.getElementById("novoTimeCoracaoResult");
 
         if (novoId) novoId.value = "";
-        if (novoCartoleiro) novoCartoleiro.textContent = "";
-        if (novoNomeTime) novoNomeTime.textContent = "N/D";
+        if (novoCartoleiro) {
+            novoCartoleiro.textContent = "";
+            novoCartoleiro.className = "cartoleiro-name";
+        }
+        if (novoBrasaoContainer) {
+            novoBrasaoContainer.innerHTML = '<span class="material-icons">shield</span>';
+        }
         if (novoClube) novoClube.value = "";
         if (novoEscudo) {
             novoEscudo.src = "";

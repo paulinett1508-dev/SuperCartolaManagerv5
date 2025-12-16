@@ -155,17 +155,9 @@
                 font-size: 14px;
             }
 
-            /* Bottom Section */
+            /* Bottom Section - Full width for System Summary */
             .ferramentas-bottom {
-                display: grid;
-                grid-template-columns: 2fr 1fr;
-                gap: 16px;
-            }
-
-            @media (max-width: 1024px) {
-                .ferramentas-bottom {
-                    grid-template-columns: 1fr;
-                }
+                display: block;
             }
 
             /* System Summary */
@@ -249,113 +241,6 @@
                 color: #FF5500;
             }
 
-            /* Logs Section */
-            .logs-section {
-                background: #1a1a1a;
-                border-radius: 10px;
-                border: 1px solid #2d2d2d;
-                padding: 16px;
-            }
-
-            .logs-section h3 {
-                font-size: 0.95rem;
-                font-weight: 700;
-                color: #ffffff;
-                margin: 0 0 14px 0;
-            }
-
-            .log-item {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding-bottom: 10px;
-                margin-bottom: 10px;
-                border-bottom: 1px solid #2d2d2d;
-            }
-
-            .log-item:last-child {
-                border-bottom: none;
-                margin-bottom: 0;
-                padding-bottom: 0;
-            }
-
-            .log-icon {
-                width: 28px;
-                height: 28px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-            }
-
-            .log-icon.blue {
-                background: rgba(59, 130, 246, 0.15);
-                color: #3b82f6;
-            }
-
-            .log-icon.green {
-                background: rgba(16, 185, 129, 0.15);
-                color: #10b981;
-            }
-
-            .log-icon.orange {
-                background: rgba(255, 85, 0, 0.15);
-                color: #FF5500;
-            }
-
-            .log-icon .material-icons {
-                font-size: 14px;
-            }
-
-            .log-content h4 {
-                font-size: 0.8rem;
-                font-weight: 500;
-                color: #e5e7eb;
-                margin: 0 0 2px 0;
-            }
-
-            .log-content p {
-                font-size: 0.7rem;
-                color: #6b7280;
-                margin: 0;
-            }
-
-            /* Server Status */
-            .server-status {
-                background: #252525;
-                border-radius: 6px;
-                padding: 12px;
-                margin-top: 14px;
-            }
-
-            .server-status-label {
-                font-size: 0.7rem;
-                font-weight: 500;
-                color: #9ca3af;
-                margin-bottom: 6px;
-            }
-
-            .server-status-value {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                font-size: 0.8rem;
-                color: #10b981;
-            }
-
-            .server-status-dot {
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                background: #10b981;
-                animation: pulse 2s infinite;
-            }
-
-            @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.5; }
-            }
         </style>
     </head>
 
@@ -500,13 +385,12 @@
                         </div>
                     </div>
 
-                    <!-- Bottom Section -->
+                    <!-- Bottom Section - Resumo do Sistema -->
                     <div class="ferramentas-bottom">
-                        <!-- System Summary -->
                         <div class="system-summary">
                             <div class="system-summary-header">
                                 <h3>Resumo do Sistema</h3>
-                                <a href="painel.html" class="system-summary-link">Ver Dashboard</a>
+                                <a href="painel.html" class="system-summary-link">Ver Dashboard Completo</a>
                             </div>
                             <div class="stats-grid">
                                 <div class="stat-box">
@@ -523,47 +407,6 @@
                                     <div class="stat-box-label">Rodada Atual</div>
                                     <div class="stat-box-value" id="rodadaAtualStat">#38</div>
                                     <div class="stat-box-change primary">Encerrada</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Logs Section -->
-                        <div class="logs-section">
-                            <h3>Acesso Rapido</h3>
-                            <div class="log-item" onclick="window.location.href='painel.html'" style="cursor:pointer">
-                                <div class="log-icon blue">
-                                    <span class="material-icons">dashboard</span>
-                                </div>
-                                <div class="log-content">
-                                    <h4>Dashboard Principal</h4>
-                                    <p>Visao geral do sistema</p>
-                                </div>
-                            </div>
-                            <div class="log-item" onclick="window.location.href='detalhe-liga.html'" style="cursor:pointer">
-                                <div class="log-icon green">
-                                    <span class="material-icons">sports_soccer</span>
-                                </div>
-                                <div class="log-content">
-                                    <h4>Detalhe da Liga</h4>
-                                    <p>Modulos e rankings</p>
-                                </div>
-                            </div>
-                            <div class="log-item" onclick="window.open('/participante/', '_blank')" style="cursor:pointer">
-                                <div class="log-icon orange">
-                                    <span class="material-icons">phone_android</span>
-                                </div>
-                                <div class="log-content">
-                                    <h4>App Mobile</h4>
-                                    <p>Testar area do participante</p>
-                                </div>
-                            </div>
-
-                            <!-- Server Status -->
-                            <div class="server-status">
-                                <div class="server-status-label">Status do Servidor</div>
-                                <div class="server-status-value">
-                                    <span class="server-status-dot"></span>
-                                    Online
                                 </div>
                             </div>
                         </div>
