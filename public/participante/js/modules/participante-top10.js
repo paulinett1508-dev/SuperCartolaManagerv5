@@ -1,18 +1,13 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v4.8 (Padronização Escudos)
+// PARTICIPANTE-TOP10.JS - v5.0 (SaaS Dinamico)
 // =====================================================================
+// ✅ v5.0: SaaS Dinamico - configs via endpoint /api/ligas/:id/configuracoes
 // ✅ v4.8: Padronização de escudos - sempre usa brasão do time do cartoleiro
 // ✅ v4.7: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v4.6: Fix rodada 38 (CAMPEONATO_ENCERRADO)
 // ✅ v4.5: Destaque visual para os 10 primeiros (verdadeiro TOP 10)
-//    - Borda dourada/vermelha nos 10 primeiros
-//    - Separador visual entre TOP 10 e demais
-//    - Badge "TOP 10" nos campeões
-// ✅ v4.4: Card Resumo ao final
-// ✅ v4.3: Filtro de times ativos
-// ✅ v4.2: Cache batch
 
-if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.8...");
+if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v5.0...");
 
 // =====================================================================
 // CONFIGURAÇÃO DO CAMPEONATO 2025
@@ -21,52 +16,47 @@ const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2025
 const CAMPEONATO_ENCERRADO = true; // Flag: temporada finalizada
 
 // =====================================================================
-// CONFIGURAÇÃO DE VALORES BÔNUS/ÔNUS
+// CONFIGURAÇÃO DE VALORES BÔNUS/ÔNUS - v5.0: Dinamicos via API
 // =====================================================================
-const valoresBonusOnusSuperCartola = {
-    mitos: {
-        1: 30,
-        2: 28,
-        3: 26,
-        4: 24,
-        5: 22,
-        6: 20,
-        7: 18,
-        8: 16,
-        9: 14,
-        10: 12,
-    },
-    micos: {
-        1: -30,
-        2: -28,
-        3: -26,
-        4: -24,
-        5: -22,
-        6: -20,
-        7: -18,
-        8: -16,
-        9: -14,
-        10: -12,
-    },
-};
-
-const valoresBonusOnusCartoleirosSobral = {
-    mitos: { 1: 10, 2: 9, 3: 8, 4: 7, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2, 10: 1 },
-    micos: {
-        1: -10,
-        2: -9,
-        3: -8,
-        4: -7,
-        5: -6,
-        6: -5,
-        7: -4,
-        8: -3,
-        9: -2,
-        10: -1,
-    },
+// Valores padrao (fallback se API falhar)
+const valoresBonusOnusPadrao = {
+    mitos: { 1: 30, 2: 28, 3: 26, 4: 24, 5: 22, 6: 20, 7: 18, 8: 16, 9: 14, 10: 12 },
+    micos: { 1: -30, 2: -28, 3: -26, 4: -24, 5: -22, 6: -20, 7: -18, 8: -16, 9: -14, 10: -12 },
 };
 
 let meuTimeIdGlobal = null;
+let ligaConfigCache = null;
+
+/**
+ * v5.0: Obtem valores de Top10 da config da liga
+ * @param {string} ligaId - ID da liga
+ * @returns {Promise<Object>} { mitos: {...}, micos: {...} }
+ */
+async function getValoresBonusOnusAsync(ligaId) {
+    try {
+        const response = await fetch(`/api/ligas/${ligaId}/configuracoes`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const config = await response.json();
+        ligaConfigCache = config;
+
+        if (config?.top10) {
+            const mitos = config.top10.valores_mito || {};
+            const micos = config.top10.valores_mico || {};
+
+            if (Object.keys(mitos).length > 0 || Object.keys(micos).length > 0) {
+                if (window.Log) Log.info(`[PARTICIPANTE-TOP10] ✅ Valores carregados: ${config.liga_nome}`);
+                return { mitos, micos };
+            }
+        }
+
+        if (window.Log) Log.info(`[PARTICIPANTE-TOP10] ℹ️ Usando valores padrao`);
+        return valoresBonusOnusPadrao;
+    } catch (error) {
+        if (window.Log) Log.warn(`[PARTICIPANTE-TOP10] Erro config, usando padrao:`, error.message);
+        return valoresBonusOnusPadrao;
+    }
+}
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -77,7 +67,7 @@ export async function inicializarTop10Participante({
     timeId,
 }) {
     if (window.Log)
-        Log.info("[PARTICIPANTE-TOP10] 🚀 Inicializando v4.7...", {
+        Log.info("[PARTICIPANTE-TOP10] 🚀 Inicializando v5.0...", {
             ligaId,
             timeId,
         });
@@ -89,15 +79,9 @@ export async function inicializarTop10Participante({
     let usouCache = false;
     let dadosCache = null;
 
-    // Selecionar valores corretos por liga (necessário para renderização)
-    let valoresBonusOnus;
-    if (ligaId === "684cb1c8af923da7c7df51de") {
-        valoresBonusOnus = valoresBonusOnusSuperCartola;
-    } else if (ligaId === "684d821cf1a7ae16d1f89572") {
-        valoresBonusOnus = valoresBonusOnusCartoleirosSobral;
-    } else {
-        valoresBonusOnus = valoresBonusOnusCartoleirosSobral; // Fallback
-    }
+    // ✅ v5.0: Obter valores dinamicamente da config (em paralelo)
+    const valoresBonusOnusPromise = getValoresBonusOnusAsync(ligaId);
+    let valoresBonusOnus = valoresBonusOnusPadrao; // fallback inicial
 
     // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
     if (cache && window.OfflineCache) {
@@ -107,7 +91,7 @@ export async function inicializarTop10Participante({
                 usouCache = true;
                 dadosCache = top10Cache;
 
-                // Renderizar IMEDIATAMENTE com dados do cache
+                // Renderizar IMEDIATAMENTE com dados do cache (usa valores padrao)
                 if (window.Log)
                     Log.info(`[PARTICIPANTE-TOP10] ⚡ Cache IndexedDB: ${top10Cache.mitos.length} mitos, ${top10Cache.micos.length} micos`);
 
@@ -118,6 +102,9 @@ export async function inicializarTop10Participante({
             if (window.Log) Log.warn("[PARTICIPANTE-TOP10] ⚠️ Erro ao ler cache:", e);
         }
     }
+
+    // ✅ v5.0: Aguardar valores da config (carregados em paralelo)
+    valoresBonusOnus = await valoresBonusOnusPromise;
 
     // Se não tem cache, mostrar loading
     if (!usouCache) {
@@ -619,5 +606,5 @@ function mostrarEstadoVazio(show) {
 
 if (window.Log)
     Log.info(
-        "[PARTICIPANTE-TOP10] ✅ Módulo v4.8 carregado (Escudos Padronizados)",
+        "[PARTICIPANTE-TOP10] ✅ Módulo v5.0 SaaS Dinamico carregado",
     );

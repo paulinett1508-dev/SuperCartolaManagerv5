@@ -1,10 +1,11 @@
-// FLUXO-FINANCEIRO-CORE.JS v5.0 - SUPORTE TEMPORADA FINALIZADA
+// FLUXO-FINANCEIRO-CORE.JS v6.0 - SaaS DINAMICO
 // ✅ v4.1: Trava extrato para inativos na rodada_desistencia
 // ✅ v4.2: Tabelas contextuais corrigidas
 // ✅ v4.3: Fix await no _carregarMataMataMap + logs debug
 // ✅ v4.4: Fix posição usando apenas ranking de ativos
 // ✅ v4.5: Filtrar registros antigos de inativos via posicao > totalParticipantesAtivos
 // ✅ v5.0: Cache permanente para temporadas finalizadas (sem recálculos no app)
+// ✅ v6.0: SaaS Dinamico - configs do endpoint /api/ligas/:id/configuracoes
 
 // ============================================================================
 // ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
@@ -17,15 +18,13 @@ import { obterLigaId } from "../pontos-corridos-utils.js";
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro-campos.js";
 import {
     RODADA_INICIAL_PONTOS_CORRIDOS,
-    ID_SUPERCARTOLA_2025,
-    ID_CARTOLEIROS_SOBRAL,
     normalizarTimeId,
 } from "./fluxo-financeiro-utils.js";
 import {
-    valoresBancoPadrao,
-    valoresBancoCartoleirosSobral,
+    fetchLigaConfig,
+    getBancoPorRodadaAsync,
+    isModuloHabilitadoAsync,
     getBancoPorRodada,
-    LIGAS_CONFIG,
 } from "../rodadas/rodadas-config.js";
 
 const API_BASE_URL = window.location.origin;
@@ -35,7 +34,65 @@ export class FluxoFinanceiroCore {
         this.cache = cache;
         this.mataMataIntegrado = false;
         this.mataMataMap = new Map();
+        this.ligaConfig = null; // v6.0: Config dinamica da liga
         this._integrarMataMata();
+    }
+
+    // ✅ v6.0: Carregar config da liga
+    async _carregarLigaConfig(ligaId) {
+        if (this.ligaConfig && this.ligaConfig.liga_id === ligaId) {
+            return this.ligaConfig;
+        }
+        try {
+            this.ligaConfig = await fetchLigaConfig(ligaId);
+            console.log(`[FLUXO-CORE] ✅ Config carregada: ${this.ligaConfig?.liga_nome}`);
+            return this.ligaConfig;
+        } catch (error) {
+            console.warn(`[FLUXO-CORE] Erro ao carregar config:`, error.message);
+            return null;
+        }
+    }
+
+    // ✅ v6.0: Verificar se modulo esta habilitado
+    _isModuloHabilitado(modulo) {
+        if (!this.ligaConfig) return true; // fallback: habilitado
+        const configModulo = this.ligaConfig.configuracoes?.[modulo];
+        if (configModulo?.habilitado !== undefined) {
+            return configModulo.habilitado;
+        }
+        const moduloCamel = modulo.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+        return this.ligaConfig.modulos_ativos?.[moduloCamel] || false;
+    }
+
+    // ✅ v6.0: Obter valores de banco para uma rodada
+    async _getValoresBanco(ligaId, rodada) {
+        const config = await this._carregarLigaConfig(ligaId);
+        if (!config?.ranking_rodada) {
+            // Fallback para funcao sincrona
+            return getBancoPorRodada(ligaId, rodada);
+        }
+        const rankingConfig = config.ranking_rodada;
+        if (rankingConfig.temporal) {
+            const rodadaTransicao = rankingConfig.rodada_transicao || 30;
+            const fase = rodada < rodadaTransicao ? 'fase1' : 'fase2';
+            return rankingConfig[fase]?.valores || {};
+        }
+        return rankingConfig.valores || {};
+    }
+
+    // ✅ v6.0: Obter valores de Top10
+    _getValoresTop10() {
+        if (!this.ligaConfig?.top10) {
+            // Fallback para valores padrao (SuperCartola)
+            return {
+                mitos: { 1: 30, 2: 28, 3: 26, 4: 24, 5: 22, 6: 20, 7: 18, 8: 16, 9: 14, 10: 12 },
+                micos: { 1: -30, 2: -28, 3: -26, 4: -24, 5: -22, 6: -20, 7: -18, 8: -16, 9: -14, 10: -12 }
+            };
+        }
+        return {
+            mitos: this.ligaConfig.top10.valores_mito || {},
+            micos: this.ligaConfig.top10.valores_mico || {}
+        };
     }
 
     async _integrarMataMata() {
@@ -261,8 +318,9 @@ export class FluxoFinanceiroCore {
         // =====================================================================
         console.log(`[FLUXO-CORE] 🔄 Calculando extrato completo...`);
 
-        const isSuperCartola2025 = ligaId === ID_SUPERCARTOLA_2025;
-        const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
+        // ✅ v6.0: Carregar config da liga e verificar modulos
+        await this._carregarLigaConfig(ligaId);
+        const hasPontosCorridos = this._isModuloHabilitado('pontos_corridos');
 
         await this.cache.carregarCacheRankingsEmLotes(rodadaParaCalculo, null);
 
@@ -293,7 +351,7 @@ export class FluxoFinanceiroCore {
                 totalPerdas: 0,
                 bonus: 0,
                 onus: 0,
-                pontosCorridos: isSuperCartola2025 ? 0 : null,
+                pontosCorridos: hasPontosCorridos ? 0 : null, // v6.0: config dinamica
                 mataMata: 0,
                 melhorMes: 0,
                 campo1: parseFloat(camposEditaveis.campo1?.valor) || 0,
@@ -318,13 +376,14 @@ export class FluxoFinanceiroCore {
         const top10Map = new Map(dadosTop10.map((item) => [item.rodada, item]));
 
         // ✅ v4.1: Loop até rodadaParaCalculo (já limitada para inativos)
+        // ✅ v6.0: Usar config dinamica em vez de IDs hardcoded
         const rodadasProcessadas = [];
         for (let rodada = 1; rodada <= rodadaParaCalculo; rodada++) {
-            const rodadaData = this._processarRodadaIntegrada(
+            const rodadaData = await this._processarRodadaIntegrada(
                 timeId,
                 rodada,
-                isSuperCartola2025,
-                isCartoleirosSobral,
+                ligaId,
+                hasPontosCorridos,
             );
 
             if (rodadaData) {
@@ -341,7 +400,7 @@ export class FluxoFinanceiroCore {
                 this._acumularValoresIntegrados(
                     extrato.resumo,
                     rodadaData,
-                    isSuperCartola2025,
+                    hasPontosCorridos,
                 );
             }
         }
@@ -472,17 +531,17 @@ export class FluxoFinanceiroCore {
     }
 
     // =====================================================================
-    // PROCESSAR RODADA
+    // PROCESSAR RODADA - v6.0: Config dinamica
     // =====================================================================
-    _processarRodadaIntegrada(
+    async _processarRodadaIntegrada(
         timeId,
         rodada,
-        isSuperCartola2025,
-        isCartoleirosSobral,
+        ligaId,
+        hasPontosCorridos,
     ) {
         const ranking = this.cache.getRankingRodada(rodada);
         if (!ranking || !ranking.length) {
-            return this._criarRodadaVazia(rodada, isSuperCartola2025);
+            return this._criarRodadaVazia(rodada, hasPontosCorridos);
         }
 
         // ✅ v4.5: Obter totalParticipantesAtivos do primeiro registro (calculado pelo backend)
@@ -513,7 +572,7 @@ export class FluxoFinanceiroCore {
             // Time não encontrado entre ativos (provavelmente inativo)
             return this._criarRodadaVazia(
                 rodada,
-                isSuperCartola2025,
+                hasPontosCorridos,
                 totalTimes,
             );
         }
@@ -530,12 +589,13 @@ export class FluxoFinanceiroCore {
         const isMito = posicaoReal === 1;
         const isMico = posicaoReal === totalTimes;
 
-        const bonusOnus = this._calcularBonusOnus(
+        // ✅ v6.0: Usar config dinamica para bonus/onus
+        const bonusOnus = await this._calcularBonusOnus(
             posicaoReal,
-            isCartoleirosSobral,
+            ligaId,
             rodada,
         );
-        const pontosCorridos = isSuperCartola2025
+        const pontosCorridos = hasPontosCorridos
             ? this.calcularPontosCorridosParaRodada(timeId, rodada)
             : null;
         const mataMata = this._calcularMataMataOtimizado(timeId, rodada);
@@ -555,13 +615,13 @@ export class FluxoFinanceiroCore {
         };
     }
 
-    _criarRodadaVazia(rodada, isSuperCartola2025, totalTimes = 0) {
+    _criarRodadaVazia(rodada, hasPontosCorridos, totalTimes = 0) {
         return {
             rodada,
             posicao: null,
             totalTimes,
             bonusOnus: 0,
-            pontosCorridos: isSuperCartola2025 ? 0 : null,
+            pontosCorridos: hasPontosCorridos ? 0 : null,
             mataMata: 0,
             melhorMes: 0,
             top10: 0,
@@ -635,18 +695,11 @@ export class FluxoFinanceiroCore {
         };
     }
 
-    _calcularBonusOnus(posicaoReal, isCartoleirosSobral, rodada = null) {
-        if (isCartoleirosSobral && rodada) {
-            // ✅ v4.0: Usar tabela contextual para Cartoleiros Sobral
-            const ligaId = obterLigaId();
-            const valoresContextuais = getBancoPorRodada(ligaId, rodada);
-            return valoresContextuais[posicaoReal] || 0;
-        }
-
-        const valores = isCartoleirosSobral
-            ? valoresBancoCartoleirosSobral
-            : valoresBancoPadrao;
-        return valores[posicaoReal] || 0;
+    // ✅ v6.0: Calcular bonus/onus usando config dinamica
+    async _calcularBonusOnus(posicaoReal, ligaId, rodada = null) {
+        // Usar valores do config carregado
+        const valores = await this._getValoresBanco(ligaId, rodada || 1);
+        return valores[posicaoReal] || valores[String(posicaoReal)] || 0;
     }
 
     calcularPontosCorridosParaRodada(timeId, rodada) {
@@ -697,10 +750,10 @@ export class FluxoFinanceiroCore {
             : resultado.financeiroB;
     }
 
-    _acumularValoresIntegrados(resumo, r, isSuper) {
+    _acumularValoresIntegrados(resumo, r, hasPontosCorridos) {
         if (r.bonusOnus > 0) resumo.bonus += r.bonusOnus;
         if (r.bonusOnus < 0) resumo.onus += r.bonusOnus;
-        if (isSuper && typeof r.pontosCorridos === "number")
+        if (hasPontosCorridos && typeof r.pontosCorridos === "number")
             resumo.pontosCorridos += r.pontosCorridos;
         resumo.mataMata += r.mataMata || 0;
         resumo.top10 += r.top10 || 0;
@@ -757,86 +810,41 @@ export class FluxoFinanceiroCore {
         });
     }
 
+    // ✅ v6.0: Usar config dinamica para valores de Top10
     async buscarDadosTop10(timeId) {
         try {
             const { garantirDadosCarregados } = await import("../top10.js");
             const { mitos, micos } = await garantirDadosCarregados();
 
             const ligaId = obterLigaId();
-            const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
 
-            const valoresMitos = isCartoleirosSobral
-                ? {
-                      1: 10,
-                      2: 9,
-                      3: 8,
-                      4: 7,
-                      5: 6,
-                      6: 5,
-                      7: 4,
-                      8: 3,
-                      9: 2,
-                      10: 1,
-                  }
-                : {
-                      1: 30,
-                      2: 28,
-                      3: 26,
-                      4: 24,
-                      5: 22,
-                      6: 20,
-                      7: 18,
-                      8: 16,
-                      9: 14,
-                      10: 12,
-                  };
-            const valoresMicos = isCartoleirosSobral
-                ? {
-                      1: -10,
-                      2: -9,
-                      3: -8,
-                      4: -7,
-                      5: -6,
-                      6: -5,
-                      7: -4,
-                      8: -3,
-                      9: -2,
-                      10: -1,
-                  }
-                : {
-                      1: -30,
-                      2: -28,
-                      3: -26,
-                      4: -24,
-                      5: -22,
-                      6: -20,
-                      7: -18,
-                      8: -16,
-                      9: -14,
-                      10: -12,
-                  };
+            // ✅ v6.0: Carregar config e obter valores dinamicos
+            await this._carregarLigaConfig(ligaId);
+            const { mitos: valoresMitos, micos: valoresMicos } = this._getValoresTop10();
 
             const timeIdNormalizado = normalizarTimeId(timeId);
             const historico = [];
 
             mitos.forEach((mito, idx) => {
                 if (normalizarTimeId(mito.timeId) === timeIdNormalizado) {
+                    const posicao = idx + 1;
                     historico.push({
                         rodada: mito.rodada,
-                        valor: valoresMitos[idx + 1] || 0,
+                        valor: valoresMitos[posicao] || valoresMitos[String(posicao)] || 0,
                         status: "MITO",
-                        posicao: idx + 1,
+                        posicao: posicao,
                     });
                 }
             });
 
             micos.forEach((mico, idx) => {
                 if (normalizarTimeId(mico.timeId) === timeIdNormalizado) {
+                    const posicao = idx + 1;
                     historico.push({
                         rodada: mico.rodada,
-                        valor: valoresMicos[idx + 1] || 0,
+                        valor: valoresMicos[posicao] || valoresMicos[String(posicao)] || 0,
                         status: "MICO",
-                        posicao: idx + 1,
+                        posicao: posicao,
                     });
                 }
             });
@@ -884,4 +892,4 @@ window.forcarRefreshExtrato = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-CORE] ✅ v5.1 carregado (refresh sem reload)");
+console.log("[FLUXO-CORE] ✅ v6.0 SaaS Dinamico carregado");

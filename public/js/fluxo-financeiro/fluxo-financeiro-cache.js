@@ -1,5 +1,6 @@
-// FLUXO-FINANCEIRO-CACHE.JS - OTIMIZADO COM MONGODB
+// FLUXO-FINANCEIRO-CACHE.JS v5.0 - SaaS DINAMICO
 // ✅ VERSÃO 4.1 - Integração completa com backend cache + verificação de módulos ativos
+// ✅ VERSÃO 5.0 - SaaS Dinamico - usa LigaConfigService para configs
 
 import {
     getRankingRodadaEspecifica,
@@ -16,8 +17,8 @@ import { getResultadosMelhorMes } from "../melhor-mes.js";
 import { filtrarDadosPorTimesLigaEspecial } from "../filtro-liga-especial.js";
 import {
     gerarRankingSimulado,
-    ID_SUPERCARTOLA_2025,
 } from "./fluxo-financeiro-utils.js";
+import { fetchLigaConfig } from "../rodadas/rodadas-config.js";
 
 import { cacheManager } from "../core/cache-manager.js";
 
@@ -57,51 +58,51 @@ export class FluxoFinanceiroCache {
     }
 
     // ===================================================================
-    // ✅ v4.2: BUSCAR MÓDULOS ATIVOS DA LIGA (endpoint correto)
+    // ✅ v5.0: BUSCAR MÓDULOS ATIVOS DA LIGA (via configuracoes endpoint)
     // ===================================================================
     async _buscarModulosAtivos() {
         try {
-            const response = await fetch(
-                `/api/ligas/${this.ligaId}/modulos-ativos`,
-            );
-            if (response.ok) {
-                const config = await response.json();
+            // v5.0: Usar o endpoint de configuracoes que ja tem modulos_ativos
+            const config = await fetchLigaConfig(this.ligaId);
 
-                // Formato esperado: { "mata-mata": true, "melhor-mes": false, ... }
-                if (config && typeof config === "object") {
-                    Object.keys(config).forEach((modulo) => {
-                        if (typeof config[modulo] === "boolean") {
-                            this.modulosAtivos[modulo] = config[modulo];
-                        }
-                    });
-                }
+            if (config?.modulos_ativos) {
+                // Formato: { mataMata: true, melhorMes: false, pontosCorridos: true, ... }
+                const modulos = config.modulos_ativos;
+
+                // Mapear para o formato com hifen
+                if (modulos.mataMata !== undefined) this.modulosAtivos["mata-mata"] = modulos.mataMata;
+                if (modulos.melhorMes !== undefined) this.modulosAtivos["melhor-mes"] = modulos.melhorMes;
+                if (modulos.pontosCorridos !== undefined) this.modulosAtivos["pontos-corridos"] = modulos.pontosCorridos;
+                if (modulos.luvaDeOuro !== undefined) this.modulosAtivos["luva-de-ouro"] = modulos.luvaDeOuro;
+                if (modulos.artilheiroCampeao !== undefined) this.modulosAtivos["artilheiro-campeao"] = modulos.artilheiroCampeao;
 
                 console.log(
-                    "[FLUXO-CACHE] 📋 Módulos ativos:",
+                    "[FLUXO-CACHE] 📋 Módulos ativos (via config):",
                     this.modulosAtivos,
                 );
+                return;
             }
-        } catch (error) {
-            // Fallback: tentar buscar do cards-condicionais se disponível
-            try {
-                const cardsConfig =
-                    window.CardsCondicionais?.getConfig?.() ||
-                    window.cardsCondicionaisConfig;
-                if (cardsConfig?.modulosDesativados) {
-                    cardsConfig.modulosDesativados.forEach((modulo) => {
-                        this.modulosAtivos[modulo] = false;
-                    });
-                    console.log(
-                        "[FLUXO-CACHE] 📋 Módulos (via cards-condicionais):",
-                        this.modulosAtivos,
-                    );
-                }
-            } catch (e) {
-                // Usar padrão - todos ativos
+
+            // Verificar em configuracoes.{modulo}.habilitado
+            if (config?.configuracoes) {
+                const cfg = config.configuracoes;
+                if (cfg.mata_mata?.habilitado !== undefined) this.modulosAtivos["mata-mata"] = cfg.mata_mata.habilitado;
+                if (cfg.melhor_mes?.habilitado !== undefined) this.modulosAtivos["melhor-mes"] = cfg.melhor_mes.habilitado;
+                if (cfg.pontos_corridos?.habilitado !== undefined) this.modulosAtivos["pontos-corridos"] = cfg.pontos_corridos.habilitado;
+                if (cfg.luva_ouro?.habilitado !== undefined) this.modulosAtivos["luva-de-ouro"] = cfg.luva_ouro.habilitado;
+                if (cfg.artilheiro?.habilitado !== undefined) this.modulosAtivos["artilheiro-campeao"] = cfg.artilheiro.habilitado;
+
                 console.log(
-                    "[FLUXO-CACHE] ℹ️ Usando módulos padrão (todos ativos)",
+                    "[FLUXO-CACHE] 📋 Módulos (via configuracoes):",
+                    this.modulosAtivos,
                 );
+                return;
             }
+
+            console.log("[FLUXO-CACHE] ℹ️ Usando módulos padrão (todos ativos)");
+        } catch (error) {
+            console.warn("[FLUXO-CACHE] Erro ao buscar módulos:", error.message);
+            console.log("[FLUXO-CACHE] ℹ️ Usando módulos padrão (todos ativos)");
         }
     }
 

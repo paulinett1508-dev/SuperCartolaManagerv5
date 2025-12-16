@@ -1,6 +1,9 @@
-// TOP10.JS - MÓDULO DE MITOS E MICOS v2.0
+// TOP10.JS - MÓDULO DE MITOS E MICOS v3.0
 // ✅ v2.0: Fix rodada 38 (CAMPEONATO_ENCERRADO)
+// ✅ v3.0: SaaS Dinamico - usa configs do endpoint /api/ligas/:id/configuracoes
 // ✅ Usando imports dinâmicos para compatibilidade com rodadas.js
+
+import { fetchLigaConfig } from "./rodadas/rodadas-config.js";
 
 // ============================================================================
 // ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
@@ -13,6 +16,7 @@ const CAMPEONATO_ENCERRADO = true; // Flag: temporada finalizada
 // ==============================
 let todosOsMitos = [];
 let todosOsMicos = [];
+let ligaConfigCache = null; // v3.0: Cache da config da liga
 
 // ==============================
 // FUNÇÕES DE IMPORTAÇÃO DINÂMICA
@@ -195,50 +199,42 @@ async function salvarCacheTop10(ligaId, rodada, mitos, micos) {
 }
 
 // ==============================
-// CONFIGURAÇÕES
+// CONFIGURAÇÕES - v3.0: Dinamicas via API
 // ==============================
+// Valores padrao (fallback se API falhar)
 const valoresBonusOnusPadrao = {
-    mitos: {
-        1: 30,
-        2: 28,
-        3: 26,
-        4: 24,
-        5: 22,
-        6: 20,
-        7: 18,
-        8: 16,
-        9: 14,
-        10: 12,
-    },
-    micos: {
-        1: -30,
-        2: -28,
-        3: -26,
-        4: -24,
-        5: -22,
-        6: -20,
-        7: -18,
-        8: -16,
-        9: -14,
-        10: -12,
-    },
+    mitos: { 1: 30, 2: 28, 3: 26, 4: 24, 5: 22, 6: 20, 7: 18, 8: 16, 9: 14, 10: 12 },
+    micos: { 1: -30, 2: -28, 3: -26, 4: -24, 5: -22, 6: -20, 7: -18, 8: -16, 9: -14, 10: -12 },
 };
 
-const valoresBonusOnusCartoleirosSobral = {
-    mitos: { 1: 10, 2: 9, 3: 8, 4: 7, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2, 10: 1 },
-    micos: {
-        1: -10,
-        2: -9,
-        3: -8,
-        4: -7,
-        5: -6,
-        6: -5,
-        7: -4,
-        8: -3,
-        9: -2,
-        10: -1,
-    },
-};
+/**
+ * v3.0: Obtem valores de Top10 da config da liga
+ * @param {string} ligaId - ID da liga
+ * @returns {Promise<Object>} { mitos: {...}, micos: {...} }
+ */
+async function getValoresBonusOnusAsync(ligaId) {
+    try {
+        const config = await fetchLigaConfig(ligaId);
+        ligaConfigCache = config;
+
+        if (config?.top10) {
+            const mitos = config.top10.valores_mito || {};
+            const micos = config.top10.valores_mico || {};
+
+            // Verificar se tem valores
+            if (Object.keys(mitos).length > 0 || Object.keys(micos).length > 0) {
+                console.log(`[TOP10] ✅ Valores carregados da config: ${config.liga_nome}`);
+                return { mitos, micos };
+            }
+        }
+
+        console.log(`[TOP10] ℹ️ Usando valores padrao (config sem top10)`);
+        return valoresBonusOnusPadrao;
+    } catch (error) {
+        console.warn(`[TOP10] Erro ao buscar config, usando padrao:`, error.message);
+        return valoresBonusOnusPadrao;
+    }
+}
 
 // ==============================
 // INICIALIZAÇÃO
@@ -389,7 +385,7 @@ async function carregarDadosTop10() {
 }
 
 // ==============================
-// RENDERIZAÇÃO
+// RENDERIZAÇÃO - v3.0: Usar config dinamica
 // ==============================
 async function renderizarTabelasTop10() {
     const containerMitos = document.getElementById("top10MitosTable");
@@ -397,15 +393,13 @@ async function renderizarTabelasTop10() {
 
     if (!containerMitos || !containerMicos) return;
 
-    // Determinar valores de bônus/ônus
+    // Determinar valores de bônus/ônus via config dinamica
     let ligaId = null;
     if (window.orquestrador?.ligaId) ligaId = window.orquestrador.ligaId;
     if (!ligaId) ligaId = obterLigaId();
 
-    const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
-    const valoresBonusOnus = isLigaCartoleirosSobral
-        ? valoresBonusOnusCartoleirosSobral
-        : valoresBonusOnusPadrao;
+    // v3.0: Obter valores dinamicamente da config
+    const valoresBonusOnus = await getValoresBonusOnusAsync(ligaId);
 
     // Renderizar
     containerMitos.innerHTML = gerarTabelaHTML(
@@ -539,4 +533,4 @@ if (typeof window !== "undefined") {
     window.getTop10Data = getTop10Data;
 }
 
-console.log("[TOP10] ✅ Módulo v2.0 carregado (fix rodada 38)");
+console.log("[TOP10] ✅ Módulo v3.0 SaaS Dinamico carregado");
