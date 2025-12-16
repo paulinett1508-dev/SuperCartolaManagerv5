@@ -1,127 +1,243 @@
-// RODADAS CONFIG - Configurações e Constantes v4.0
-// Responsável por: configurações de banco, ligas, endpoints
-// ✅ v4.0: Sistema de tabelas contextuais por rodada
+// =====================================================================
+// RODADAS CONFIG v5.0.0 - SaaS DINAMICO
+// Responsavel por: configuracoes de banco, ligas, endpoints
+// ✅ v5.0.0: Busca configs do endpoint /api/ligas/:id/configuracoes
+// ✅ v4.0: Sistema de tabelas contextuais por rodada (mantido para fallback)
+// =====================================================================
 
-// VERSÃO DO SISTEMA FINANCEIRO (para invalidação de cache)
-export const VERSAO_SISTEMA_FINANCEIRO = "4.0.0";
+// VERSAO DO SISTEMA FINANCEIRO (para invalidacao de cache)
+export const VERSAO_SISTEMA_FINANCEIRO = "5.0.0";
 
-// VALORES DE BANCO PADRÃO (SuperCartola - 32 times)
-export const valoresBancoPadrao = {
-  1: 20.0,
-  2: 19.0,
-  3: 18.0,
-  4: 17.0,
-  5: 16.0,
-  6: 15.0,
-  7: 14.0,
-  8: 13.0,
-  9: 12.0,
-  10: 11.0,
-  11: 10.0,
-  12: 0.0,
-  13: 0.0,
-  14: 0.0,
-  15: 0.0,
-  16: 0.0,
-  17: 0.0,
-  18: 0.0,
-  19: 0.0,
-  20: 0.0,
-  21: 0.0,
-  22: -10.0,
-  23: -11.0,
-  24: -12.0,
-  25: -13.0,
-  26: -14.0,
-  27: -15.0,
-  28: -16.0,
-  29: -17.0,
-  30: -18.0,
-  31: -19.0,
-  32: -20.0,
+// =====================================================================
+// CACHE LOCAL DE CONFIGS (carregado do servidor)
+// =====================================================================
+let configsCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
+/**
+ * Busca configuracoes da liga do servidor
+ * @param {string} ligaId - ID da liga
+ * @param {boolean} forceRefresh - Forcar refresh
+ * @returns {Promise<Object>}
+ */
+export async function fetchLigaConfig(ligaId, forceRefresh = false) {
+  if (!ligaId) return null;
+
+  const cached = configsCache.get(ligaId);
+  if (cached && !forceRefresh && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+
+  try {
+    const response = await fetch(`/api/ligas/${ligaId}/configuracoes`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const data = await response.json();
+    if (!data.success) throw new Error(data.erro);
+
+    configsCache.set(ligaId, { data, timestamp: Date.now() });
+    console.log(`[RODADAS-CONFIG] Configs carregadas: ${data.liga_nome}`);
+    return data;
+  } catch (error) {
+    console.warn(`[RODADAS-CONFIG] Erro ao buscar configs, usando fallback:`, error.message);
+    return cached?.data || null;
+  }
+}
+
+// =====================================================================
+// FALLBACK VALUES (usados se API falhar)
+// =====================================================================
+
+// Valores de banco fallback - SuperCartola (32 times)
+const FALLBACK_VALORES_SUPERCARTOLA = {
+  1: 20.0, 2: 19.0, 3: 18.0, 4: 17.0, 5: 16.0,
+  6: 15.0, 7: 14.0, 8: 13.0, 9: 12.0, 10: 11.0, 11: 10.0,
+  12: 0.0, 13: 0.0, 14: 0.0, 15: 0.0, 16: 0.0, 17: 0.0,
+  18: 0.0, 19: 0.0, 20: 0.0, 21: 0.0,
+  22: -10.0, 23: -11.0, 24: -12.0, 25: -13.0, 26: -14.0,
+  27: -15.0, 28: -16.0, 29: -17.0, 30: -18.0, 31: -19.0, 32: -20.0,
 };
 
-// =====================================================
-// ✅ CARTOLEIROS SOBRAL - CONFIGURAÇÃO TEMPORAL
-//
-// HISTÓRICO:
-// - Rodadas 1-28: 6 times ativos
-// - Rodadas 29-38: 4 times ativos (2 times desistiram na R29)
-//
-// REGRA: rodada < 29 = fase1 | rodada >= 29 = fase2
-// =====================================================
+// Valores de banco fallback - Sobral Fase 1 (6 times)
+const FALLBACK_VALORES_SOBRAL_FASE1 = {
+  1: 7.0, 2: 4.0, 3: 0.0, 4: -2.0, 5: -5.0, 6: -10.0,
+};
+
+// Valores de banco fallback - Sobral Fase 2 (4 times)
+const FALLBACK_VALORES_SOBRAL_FASE2 = {
+  1: 5.0, 2: 0.0, 3: 0.0, 4: -5.0,
+};
+
+// =====================================================================
+// EXPORTS LEGADOS (compatibilidade com codigo existente)
+// =====================================================================
+
+// Manter exports para compatibilidade
+export const valoresBancoPadrao = FALLBACK_VALORES_SUPERCARTOLA;
+export const valoresFase1_6times = FALLBACK_VALORES_SOBRAL_FASE1;
+export const valoresFase2_4times = FALLBACK_VALORES_SOBRAL_FASE2;
+export const valoresBancoCartoleirosSobral = FALLBACK_VALORES_SOBRAL_FASE2;
 export const RODADA_TRANSICAO_SOBRAL = 29;
 
-// FASE 1: Rodadas 1-28 (6 times - antes da desistência)
-export const valoresFase1_6times = {
-  1: 7.0, // MITO
-  2: 4.0, // G2
-  3: 0.0, // Neutro
-  4: -2.0, // Z3
-  5: -5.0, // Z2
-  6: -10.0, // MICO
-};
-
-// FASE 2: Rodadas 29-38 (4 times - após desistência de 2 participantes)
-export const valoresFase2_4times = {
-  1: 5.0, // MITO
-  2: 0.0, // Neutro
-  3: 0.0, // Neutro
-  4: -5.0, // MICO
-};
-
-// Faixas de premiação - FASE 1 (rodadas 1-28)
 export const faixasFase1 = {
   totalTimes: 6,
-  credito: { inicio: 1, fim: 2 }, // Posições 1-2 ganham
-  neutro: { inicio: 3, fim: 3 }, // Posição 3 empata
-  debito: { inicio: 4, fim: 6 }, // Posições 4-6 perdem
+  credito: { inicio: 1, fim: 2 },
+  neutro: { inicio: 3, fim: 3 },
+  debito: { inicio: 4, fim: 6 },
 };
 
-// Faixas de premiação - FASE 2 (rodadas 29-38)
 export const faixasFase2 = {
   totalTimes: 4,
-  credito: { inicio: 1, fim: 1 }, // Só posição 1 ganha (MITO)
-  neutro: { inicio: 2, fim: 3 }, // Posições 2-3 empatam
-  debito: { inicio: 4, fim: 4 }, // Só posição 4 perde (MICO)
+  credito: { inicio: 1, fim: 1 },
+  neutro: { inicio: 2, fim: 3 },
+  debito: { inicio: 4, fim: 4 },
 };
 
-// Manter compatibilidade com código legado (usa fase atual = fase2)
-export const valoresBancoCartoleirosSobral = valoresFase2_4times;
-
-// CONFIGURAÇÃO DE LIGAS
+// IDs de ligas (ainda necessarios para identificacao)
 export const LIGAS_CONFIG = {
   SUPERCARTOLA: "684cb1c8af923da7c7df51de",
   CARTOLEIROS_SOBRAL: "684d821cf1a7ae16d1f89572",
 };
 
-// =====================================================
-// ✅ FUNÇÃO PRINCIPAL: Obter valores de banco por rodada
-// Esta função substitui getBancoPorLiga() quando a rodada é conhecida
-// =====================================================
+// =====================================================================
+// ✅ v5.0: FUNCOES DINAMICAS (buscam do servidor)
+// =====================================================================
+
+/**
+ * Obtem valores de banco para uma rodada especifica
+ * @param {string} ligaId - ID da liga
+ * @param {number} rodada - Numero da rodada
+ * @returns {Promise<Object>} Mapa de posicao -> valor
+ */
+export async function getBancoPorRodadaAsync(ligaId, rodada) {
+  const config = await fetchLigaConfig(ligaId);
+
+  if (config?.ranking_rodada) {
+    const rankingConfig = config.ranking_rodada;
+
+    if (rankingConfig.temporal) {
+      const rodadaTransicao = rankingConfig.rodada_transicao || 30;
+      const fase = rodada < rodadaTransicao ? "fase1" : "fase2";
+      return rankingConfig[fase]?.valores || {};
+    }
+
+    return rankingConfig.valores || {};
+  }
+
+  // Fallback para valores hardcoded
+  return getBancoPorRodada(ligaId, rodada);
+}
+
+/**
+ * Obtem faixas de premiacao para uma rodada
+ * @param {string} ligaId - ID da liga
+ * @param {number} rodada - Numero da rodada
+ * @returns {Promise<Object>}
+ */
+export async function getFaixasPorRodadaAsync(ligaId, rodada) {
+  const config = await fetchLigaConfig(ligaId);
+
+  if (config?.ranking_rodada) {
+    const rankingConfig = config.ranking_rodada;
+
+    if (rankingConfig.temporal) {
+      const rodadaTransicao = rankingConfig.rodada_transicao || 30;
+      const fase = rodada < rodadaTransicao ? "fase1" : "fase2";
+      const faseConfig = rankingConfig[fase];
+      return {
+        totalTimes: faseConfig?.total_participantes || 0,
+        ...faseConfig?.faixas,
+      };
+    }
+
+    return {
+      totalTimes: rankingConfig.total_participantes || 32,
+      ...rankingConfig.faixas,
+    };
+  }
+
+  // Fallback
+  return getFaixasPorRodada(ligaId, rodada);
+}
+
+/**
+ * Obtem total de times ativos para uma rodada
+ * @param {string} ligaId - ID da liga
+ * @param {number} rodada - Numero da rodada
+ * @returns {Promise<number>}
+ */
+export async function getTotalTimesPorRodadaAsync(ligaId, rodada) {
+  const config = await fetchLigaConfig(ligaId);
+
+  if (config?.ranking_rodada) {
+    const rankingConfig = config.ranking_rodada;
+
+    if (rankingConfig.temporal) {
+      const rodadaTransicao = rankingConfig.rodada_transicao || 30;
+      const fase = rodada < rodadaTransicao ? "fase1" : "fase2";
+      return rankingConfig[fase]?.total_participantes || 0;
+    }
+
+    return rankingConfig.total_participantes || config.total_participantes || 0;
+  }
+
+  // Fallback
+  return getTotalTimesPorRodada(ligaId, rodada);
+}
+
+/**
+ * Verifica se um modulo esta habilitado
+ * @param {string} ligaId - ID da liga
+ * @param {string} modulo - Nome do modulo
+ * @returns {Promise<boolean>}
+ */
+export async function isModuloHabilitadoAsync(ligaId, modulo) {
+  const config = await fetchLigaConfig(ligaId);
+  if (!config) return false;
+
+  const configModulo = config.configuracoes?.[modulo];
+  if (configModulo?.habilitado !== undefined) {
+    return configModulo.habilitado;
+  }
+
+  const moduloCamel = modulo.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  return config.modulos_ativos?.[moduloCamel] || false;
+}
+
+/**
+ * Obtem cards desabilitados da liga
+ * @param {string} ligaId - ID da liga
+ * @returns {Promise<Array>}
+ */
+export async function getCardsDesabilitadosAsync(ligaId) {
+  const config = await fetchLigaConfig(ligaId);
+  return config?.cards_desabilitados || [];
+}
+
+// =====================================================================
+// FUNCOES SINCRONAS (fallback - compatibilidade)
+// =====================================================================
+
 export function getBancoPorRodada(ligaId, rodada) {
   if (ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL) {
     return rodada < RODADA_TRANSICAO_SOBRAL
-      ? valoresFase1_6times
-      : valoresFase2_4times;
+      ? FALLBACK_VALORES_SOBRAL_FASE1
+      : FALLBACK_VALORES_SOBRAL_FASE2;
   }
-  return valoresBancoPadrao;
+  return FALLBACK_VALORES_SUPERCARTOLA;
 }
 
-// Função legada (manter compatibilidade) - usa valores atuais
 export function getBancoPorLiga(ligaId) {
   if (ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL) {
-    return valoresBancoCartoleirosSobral;
+    return FALLBACK_VALORES_SOBRAL_FASE2;
   }
-  return valoresBancoPadrao;
+  return FALLBACK_VALORES_SUPERCARTOLA;
 }
 
-// ✅ FUNÇÃO: Obter faixas de premiação por rodada
 export function getFaixasPorRodada(ligaId, rodada) {
   if (ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL) {
     return rodada < RODADA_TRANSICAO_SOBRAL ? faixasFase1 : faixasFase2;
   }
-  // SuperCartola - faixas fixas
   return {
     totalTimes: 32,
     credito: { inicio: 1, fim: 11 },
@@ -130,15 +246,17 @@ export function getFaixasPorRodada(ligaId, rodada) {
   };
 }
 
-// ✅ FUNÇÃO: Obter total de times ativos por rodada
 export function getTotalTimesPorRodada(ligaId, rodada) {
   if (ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL) {
     return rodada < RODADA_TRANSICAO_SOBRAL ? 6 : 4;
   }
-  return 32; // SuperCartola
+  return 32;
 }
 
-// CONFIGURAÇÃO DE ENDPOINTS
+// =====================================================================
+// CONFIGURACAO DE ENDPOINTS
+// =====================================================================
+
 export const RODADAS_ENDPOINTS = {
   getEndpoints: (ligaId, rodadaNum, baseUrl = "") => [
     `${baseUrl}/api/rodadas/${ligaId}/rodadas?inicio=${rodadaNum}&fim=${rodadaNum}`,
@@ -147,25 +265,27 @@ export const RODADAS_ENDPOINTS = {
   ],
   mercadoStatus: "/api/cartola/mercado/status",
   liga: (ligaId, baseUrl = "") => `${baseUrl}/api/ligas/${ligaId}`,
+  configuracoes: (ligaId, baseUrl = "") => `${baseUrl}/api/ligas/${ligaId}/configuracoes`,
   pontuacoesParciais: "/api/cartola/atletas/pontuados",
   timeEscalacao: (timeId, rodada, baseUrl = "") =>
     `${baseUrl}/api/cartola/time/id/${timeId}/${rodada}`,
 };
 
-// STATUS DO MERCADO DEFAULT
 export const STATUS_MERCADO_DEFAULT = {
   rodada_atual: 1,
   status_mercado: 4,
 };
 
-// ✅ ATUALIZADO: CONFIGURAÇÃO DE LABELS DE POSIÇÃO (contextual)
+// =====================================================================
+// CONFIGURACAO DE LABELS DE POSICAO
+// =====================================================================
+
 export const POSICAO_CONFIG = {
   SUPERCARTOLA: {
     mito: {
       pos: 1,
       label: "MITO",
-      style:
-        "color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;",
+      style: "color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;",
     },
     g2_g11: {
       range: [2, 11],
@@ -183,33 +303,12 @@ export const POSICAO_CONFIG = {
       className: "pos-mico",
     },
   },
-  // ✅ Cartoleiros Sobral - Estrutura compatível (usa fase atual = fase2)
-  // Para compatibilidade com rodadas-ui.js que não passa rodada
   CARTOLEIROS_SOBRAL: {
-    mito: {
-      pos: 1,
-      label: "MITO",
-      style:
-        "color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;",
-    },
-    g2: {
-      pos: 2,
-      label: "2º",
-      className: "pos-neutro",
-    },
-    neutro: {
-      pos: 3,
-      label: "3º",
-      className: "pos-neutro",
-    },
-    mico: {
-      pos: 4,
-      label: "MICO",
-      style:
-        "color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;",
-    },
+    mito: { pos: 1, label: "MITO", style: "color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;" },
+    g2: { pos: 2, label: "2º", className: "pos-neutro" },
+    neutro: { pos: 3, label: "3º", className: "pos-neutro" },
+    mico: { pos: 4, label: "MICO", style: "color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;" },
   },
-  // Configurações por fase para uso contextual
   CARTOLEIROS_SOBRAL_FASES: {
     fase1: {
       totalTimes: 6,
@@ -230,7 +329,6 @@ export const POSICAO_CONFIG = {
   },
 };
 
-// Função para obter config de posição por rodada (para uso contextual)
 export function getPosicaoConfigPorRodada(ligaId, rodada) {
   if (ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL) {
     return rodada < RODADA_TRANSICAO_SOBRAL
@@ -240,7 +338,6 @@ export function getPosicaoConfigPorRodada(ligaId, rodada) {
   return POSICAO_CONFIG.SUPERCARTOLA;
 }
 
-// CONFIGURAÇÃO DE TIMEOUTS E DELAYS
 export const TIMEOUTS_CONFIG = {
   renderizacao: 500,
   imageLoad: 3000,
@@ -248,4 +345,4 @@ export const TIMEOUTS_CONFIG = {
   retryDelay: 1000,
 };
 
-console.log("[RODADAS-CONFIG] Módulo carregado com sucesso");
+console.log("[RODADAS-CONFIG] v5.0.0 SaaS Dinamico carregado");

@@ -1,12 +1,16 @@
-// FLUXO-FINANCEIRO-UTILS.JS - Utilitários e Constantes
+// FLUXO-FINANCEIRO-UTILS.JS v2.0.0 - Utilitarios e Constantes
+// ✅ v2.0.0: Preparado para SaaS Multi-Tenant
 
-// ===== CONSTANTES DE IDENTIFICAÇÃO =====
+// ===== CONSTANTES DE IDENTIFICACAO (FALLBACK) =====
+// NOTA: Estas constantes sao mantidas para compatibilidade.
+// O sistema agora busca configs de /api/ligas/:id/configuracoes
+// Use fetchLigaConfig() de rodadas-config.js para configs dinamicas.
 export const ID_SUPERCARTOLA_2025 = "684cb1c8af923da7c7df51de";
 export const ID_CARTOLEIROS_SOBRAL = "684d821cf1a7ae16d1f89572";
-export const RODADA_INICIAL_PONTOS_CORRIDOS = 7; // Pontos Corridos começam na rodada 7
+export const RODADA_INICIAL_PONTOS_CORRIDOS = 7;
 
-// NOTA: Os valores de bônus/ônus por posição estão em ../rodadas/rodadas-config.js
-// e são importados corretamente pelo fluxo-financeiro-core.js
+// NOTA: Os valores de bonus/onus por posicao estao em ../rodadas/rodadas-config.js
+// Use getBancoPorRodadaAsync() para valores dinamicos do banco
 
 // ===== FUNÇÃO PARA NORMALIZAR IDS =====
 export function normalizarTimeId(timeId) {
