@@ -1,6 +1,10 @@
 // =====================================================================
-// RODADAS CACHE CONTROLLER v1.2 - SEGURO + FASES
+// RODADAS CACHE CONTROLLER v2.0.0 (SaaS DINÂMICO)
 // Sistema de recálculo SEGURO - NUNCA deleta dados
+// ✅ v2.0.0: MULTI-TENANT - Busca configurações de liga.configuracoes (White Label)
+//   - Remove hardcoded IDs e valores de ligas específicas
+//   - getConfigRankingRodada() busca de liga.configuracoes.ranking_rodada
+//   - Suporta configs temporais (fases) automaticamente
 // ✅ v1.2: Suporte a fases (Cartoleiros Sobral: FASE1 R1-28, FASE2 R29-38)
 // =====================================================================
 
@@ -9,67 +13,54 @@ import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
 import mongoose from "mongoose";
 
-// Configuração de valores financeiros por liga
-const LIGAS_CONFIG = {
-  SUPERCARTOLA: "684cb1c8af923da7c7df51de",
-  CARTOLEIROS_SOBRAL: "684d821cf1a7ae16d1f89572",
-};
+// =====================================================================
+// ✅ v2.0: FUNÇÕES SaaS DINÂMICAS (Multi-Tenant)
+// =====================================================================
 
-const VALORES_BANCO = {
-  [LIGAS_CONFIG.SUPERCARTOLA]: {
-    1: 20.0,
-    2: 19.0,
-    3: 18.0,
-    4: 17.0,
-    5: 16.0,
-    6: 15.0,
-    7: 14.0,
-    8: 13.0,
-    9: 12.0,
-    10: 11.0,
-    11: 10.0,
-    12: 0.0,
-    13: 0.0,
-    14: 0.0,
-    15: 0.0,
-    16: 0.0,
-    17: 0.0,
-    18: 0.0,
-    19: 0.0,
-    20: 0.0,
-    21: 0.0,
-    22: -10.0,
-    23: -11.0,
-    24: -12.0,
-    25: -13.0,
-    26: -14.0,
-    27: -15.0,
-    28: -16.0,
-    29: -17.0,
-    30: -18.0,
-    31: -19.0,
-    32: -20.0,
-  },
-};
+/**
+ * Obtém configuração de ranking_rodada (BANCO) da liga
+ * @param {Object} liga - Documento da liga
+ * @param {number} rodada - Número da rodada (para configs temporais)
+ * @returns {Object} { valores: {posicao: valor}, temporal: boolean }
+ */
+function getConfigRankingRodada(liga, rodada = 1) {
+  const config = liga?.configuracoes?.ranking_rodada;
 
-// ✅ v1.2: Valores por fase para Cartoleiros do Sobral
-const CARTOLEIROS_SOBRAL_FASES = {
-  rodadaTransicao: 29,
-  // FASE 1 (R1-R28): 6 participantes
-  fase1: { 1: 7.0, 2: 4.0, 3: 0.0, 4: -2.0, 5: -5.0, 6: -10.0 },
-  // FASE 2 (R29-R38): 4 participantes
-  fase2: { 1: 5.0, 2: 0.0, 3: 0.0, 4: -5.0 },
-};
-
-// ✅ v1.2: Retorna valores corretos por liga E rodada
-function getValoresBanco(ligaId, rodada = 38) {
-  if (ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL) {
-    if (rodada < CARTOLEIROS_SOBRAL_FASES.rodadaTransicao) {
-      return CARTOLEIROS_SOBRAL_FASES.fase1;
-    }
-    return CARTOLEIROS_SOBRAL_FASES.fase2;
+  if (!config) {
+    console.warn(`[RODADAS-CACHE] Liga ${liga?._id} sem configuracoes.ranking_rodada`);
+    return { valores: {}, temporal: false };
   }
-  return VALORES_BANCO[ligaId] || VALORES_BANCO[LIGAS_CONFIG.SUPERCARTOLA];
+
+  // Config temporal (ex: Sobral com 2 fases)
+  if (config.temporal) {
+    const rodadaTransicao = config.rodada_transicao || 30;
+    const fase = rodada < rodadaTransicao ? 'fase1' : 'fase2';
+    const faseConfig = config[fase] || {};
+
+    return {
+      valores: faseConfig.valores || {},
+      temporal: true,
+      rodadaTransicao,
+      fase,
+    };
+  }
+
+  // Config simples
+  return {
+    valores: config.valores || {},
+    temporal: false,
+  };
+}
+
+/**
+ * Obtém valor financeiro para uma posição específica
+ * @param {Object} configRanking - Resultado de getConfigRankingRodada()
+ * @param {number} posicao - Posição do participante
+ * @returns {number} Valor financeiro (positivo, zero ou negativo)
+ */
+function getValorFinanceiroPosicao(configRanking, posicao) {
+  const valores = configRanking?.valores || {};
+  return valores[posicao] || valores[String(posicao)] || 0;
 }
 
 function toLigaId(ligaId) {
@@ -142,8 +133,8 @@ export const recalcularRodadas = async (req, res) => {
     for (let rodada = inicio; rodada <= fim; rodada++) {
       console.log(`[RODADAS-CACHE] 📊 Processando rodada ${rodada}...`);
 
-      // ✅ v1.2: Obter valores corretos para esta rodada específica
-      const valoresBanco = getValoresBanco(ligaId, rodada);
+      // ✅ v2.0: Obter valores do banco da configuração da liga
+      const configRanking = getConfigRankingRodada(liga, rodada);
 
       // Buscar documentos existentes desta rodada
       const documentosRodada = await Rodada.find({
@@ -194,7 +185,8 @@ export const recalcularRodadas = async (req, res) => {
       for (let i = 0; i < timesOrdenados.length; i++) {
         const time = timesOrdenados[i];
         const posicao = i + 1;
-        const valorFinanceiro = valoresBanco[posicao] || 0;
+        // ✅ v2.0: Usar função que busca do config do banco
+        const valorFinanceiro = getValorFinanceiroPosicao(configRanking, posicao);
 
         await Rodada.findByIdAndUpdate(time._id, {
           posicao,
@@ -290,6 +282,4 @@ export const estatisticasCache = async (req, res) => {
   }
 };
 
-console.log(
-  "[RODADAS-CACHE] ✅ Controller v1.2 carregado (suporte a fases + busca Time)",
-);
+console.log("[RODADAS-CACHE] ✅ v2.0.0 carregado (SaaS Dinâmico)");
