@@ -1,6 +1,7 @@
 // =====================================================================
-// rodadaController.js v2.9.3 - SEASON GUARD: Bloqueia API em fim de temporada
+// rodadaController.js v3.0.0 - SaaS DINÂMICO: Configs do banco de dados
 // Busca dados da API do Cartola e calcula posições
+// v3.0.0: Configurações dinâmicas via liga.configuracoes (White Label)
 // v2.9.3: Circuit Breaker de fim de temporada implementado
 // =====================================================================
 
@@ -18,73 +19,59 @@ function toLigaId(ligaId) {
   return ligaId;
 }
 
-// Tabelas de valores financeiros por liga
-const VALORES_FINANCEIROS = {
-  // SuperCartola (32 participantes)
-  "684cb1c8af923da7c7df51de": {
-    1: 20.0,
-    2: 19.0,
-    3: 18.0,
-    4: 17.0,
-    5: 16.0,
-    6: 15.0,
-    7: 14.0,
-    8: 13.0,
-    9: 12.0,
-    10: 11.0,
-    11: 10.0,
-    12: 0,
-    13: 0,
-    14: 0,
-    15: 0,
-    16: 0,
-    17: 0,
-    18: 0,
-    19: 0,
-    20: 0,
-    21: 0,
-    22: -10.0,
-    23: -11.0,
-    24: -12.0,
-    25: -13.0,
-    26: -14.0,
-    27: -15.0,
-    28: -16.0,
-    29: -17.0,
-    30: -18.0,
-    31: -19.0,
-    32: -20.0,
-  },
-  // Cartoleiros do Sobral - FASE 2 (rodadas 29+): 4 participantes ativos
-  "684d821cf1a7ae16d1f89572": {
-    1: 5.0,
-    2: 0.0,
-    3: 0.0,
-    4: -5.0,
-  },
-};
+// =====================================================================
+// ✅ v3.0: BUSCAR CONFIGURAÇÕES DA LIGA DO BANCO (SaaS Dinâmico)
+// =====================================================================
 
-// ✅ Configuração especial para Cartoleiros do Sobral (2 fases)
-const CARTOLEIROS_SOBRAL_CONFIG = {
-  ligaId: "684d821cf1a7ae16d1f89572",
-  rodadaTransicao: 29, // A partir desta rodada, usar FASE 2
-  // FASE 1 (R1-R28): 6 participantes
-  valoresFase1: {
-    1: 7.0,
-    2: 4.0,
-    3: 0.0,
-    4: -2.0,
-    5: -5.0,
-    6: -10.0,
-  },
-  // FASE 2 (R29-R38): 4 participantes
-  valoresFase2: {
-    1: 5.0,
-    2: 0.0,
-    3: 0.0,
-    4: -5.0,
-  },
-};
+/**
+ * Busca as configurações de ranking_rodada da liga
+ * @param {Object} liga - Documento da liga do MongoDB
+ * @param {number} rodada - Número da rodada (para configs temporais)
+ * @returns {Object} { valores: {posicao: valor}, temporal: boolean, totalParticipantes: number }
+ */
+function getConfigRankingRodada(liga, rodada = 1) {
+  const config = liga?.configuracoes?.ranking_rodada;
+
+  if (!config) {
+    console.warn(`[CONFIG] Liga ${liga?._id} sem configuracoes.ranking_rodada, usando fallback`);
+    return { valores: {}, temporal: false, totalParticipantes: 0 };
+  }
+
+  // Config temporal (ex: Sobral com 2 fases)
+  if (config.temporal) {
+    const rodadaTransicao = config.rodada_transicao || 30;
+    const fase = rodada < rodadaTransicao ? 'fase1' : 'fase2';
+    const faseConfig = config[fase] || {};
+
+    return {
+      valores: faseConfig.valores || {},
+      temporal: true,
+      rodadaTransicao,
+      fase,
+      totalParticipantes: faseConfig.total_participantes || 0,
+      faixas: faseConfig.faixas || null
+    };
+  }
+
+  // Config simples (ex: SuperCartola)
+  return {
+    valores: config.valores || {},
+    temporal: false,
+    totalParticipantes: config.total_participantes || 0,
+    faixas: config.faixas || null
+  };
+}
+
+/**
+ * Obtém valor financeiro para uma posição específica
+ * @param {Object} configRanking - Resultado de getConfigRankingRodada()
+ * @param {number} posicao - Posição do participante
+ * @returns {number} Valor financeiro (positivo, zero ou negativo)
+ */
+function getValorFinanceiroPosicao(configRanking, posicao) {
+  const valores = configRanking?.valores || {};
+  return valores[posicao] || valores[String(posicao)] || 0;
+}
 
 // =====================================================================
 // ✅ v2.4: BUSCAR MAPA DE clube_id EXISTENTES
@@ -217,7 +204,8 @@ export const popularRodadas = async (req, res) => {
           numRodada,
           times,
           repopular,
-          mapaClubeId, // ✅ v2.4: Passar mapa de clube_id
+          mapaClubeId,
+          liga, // ✅ v3.0: Passar objeto liga para acessar configuracoes
         );
 
         resumo.processadas++;
@@ -261,7 +249,7 @@ export const popularRodadas = async (req, res) => {
 };
 
 // =====================================================================
-// PROCESSAR UMA RODADA - ✅ v2.4: Recebe mapaClubeId
+// PROCESSAR UMA RODADA - ✅ v3.0: Usa configs do banco
 // =====================================================================
 async function processarRodada(
   ligaIdObj,
@@ -270,8 +258,13 @@ async function processarRodada(
   times,
   repopular,
   mapaClubeId = {},
+  liga = null, // ✅ v3.0: Recebe objeto liga para acessar configuracoes
 ) {
-  const tabelaValores = VALORES_FINANCEIROS[ligaIdStr] || {};
+  // ✅ v3.0: Buscar configuração do banco ao invés de hardcode
+  const configRanking = getConfigRankingRodada(liga, rodada);
+  console.log(`[PROCESSAR-RODADA] Config ranking para rodada ${rodada}:`,
+    configRanking.temporal ? `${configRanking.fase} (temporal)` : 'simples');
+
   let inseridas = 0;
   let atualizadas = 0;
 
@@ -378,7 +371,8 @@ async function processarRodada(
   // Atribuir posições aos ativos
   timesAtivos.forEach((time, index) => {
     time.posicao = index + 1;
-    time.valorFinanceiro = tabelaValores[time.posicao] || 0;
+    // ✅ v3.0: Usar função que busca do config ao invés de hardcode
+    time.valorFinanceiro = getValorFinanceiroPosicao(configRanking, time.posicao);
   });
 
   // Inativos ficam nas últimas posições (sem valor financeiro)
@@ -455,13 +449,16 @@ export const obterRodadas = async (req, res) => {
       .sort({ rodada: 1, posicao: 1 })
       .lean();
 
-    // ✅ Verificar se é a liga Cartoleiros do Sobral (lógica especial de 2 fases)
-    const isCartoleriosSobral = ligaId === CARTOLEIROS_SOBRAL_CONFIG.ligaId;
+    // ✅ v3.0: Buscar liga para acessar configurações do banco
+    const liga = await Liga.findById(ligaIdObj).lean();
 
-    if (!isCartoleriosSobral) {
-      // ✅ v2.9.2: Calcular posições e totalParticipantesAtivos para SuperCartola
+    // ✅ v3.0: Verificar se a liga tem config temporal (ex: 2 fases)
+    const configRanking = getConfigRankingRodada(liga, 1); // Rodada 1 para checar se é temporal
+    const isConfigTemporal = configRanking.temporal;
+
+    if (!isConfigTemporal) {
+      // ✅ v3.0: Liga com config simples (ex: SuperCartola)
       // Necessário porque dados antigos podem não ter esses campos
-      const tabelaValores = VALORES_FINANCEIROS[ligaId] || {};
       const rodadasComTotal = [];
       const rodadasAgrupadas = new Map();
 
@@ -478,13 +475,17 @@ export const obterRodadas = async (req, res) => {
         const naoJogaram = participantes.filter(p => p.rodadaNaoJogada === true);
         const totalAtivos = jogadores.length;
 
+        // ✅ v3.0: Buscar config para esta rodada específica
+        const configRodada = getConfigRankingRodada(liga, numRodada);
+
         // Ordenar por pontos (decrescente) para calcular posição
         jogadores.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
 
         // Atribuir posições e valores financeiros aos que jogaram
         jogadores.forEach((p, index) => {
           const posicao = index + 1;
-          const valorFinanceiro = tabelaValores[posicao] || 0;
+          // ✅ v3.0: Usar função que busca do config
+          const valorFinanceiro = getValorFinanceiroPosicao(configRodada, posicao);
 
           rodadasComTotal.push({
             ...p,
@@ -516,12 +517,11 @@ export const obterRodadas = async (req, res) => {
     }
 
     // =====================================================================
-    // LÓGICA ESPECIAL PARA CARTOLEIROS DO SOBRAL (2 FASES)
+    // ✅ v3.0: LÓGICA PARA LIGAS COM CONFIG TEMPORAL (ex: 2 FASES)
     // =====================================================================
-    console.log(`[OBTER-RODADAS] Liga Cartoleiros do Sobral - aplicando lógica de fases`);
+    console.log(`[OBTER-RODADAS] Liga com config temporal - aplicando lógica de fases`);
 
-    // Buscar mapa de desistências
-    const liga = await Liga.findById(ligaIdObj).lean();
+    // Buscar mapa de desistências (liga já foi buscada acima)
     let mapaDesistencia = {};
 
     if (liga && liga.times && liga.times.length > 0) {
@@ -539,14 +539,15 @@ export const obterRodadas = async (req, res) => {
       console.log(`[OBTER-RODADAS] Mapa de desistências:`, mapaDesistencia);
     }
 
-    const rodadaTransicao = CARTOLEIROS_SOBRAL_CONFIG.rodadaTransicao;
+    // ✅ v3.0: Buscar rodada de transição do config do banco
+    const rodadaTransicao = configRanking.rodadaTransicao || 30;
     const rodadasProcessadas = [];
 
     // Separar rodadas por fase
     const rodadasFase1 = rodadas.filter((r) => r.rodada < rodadaTransicao);
     const rodadasFase2Raw = rodadas.filter((r) => r.rodada >= rodadaTransicao);
 
-    // FASE 1 (R1-R28): Retornar como está no banco (sem alterações)
+    // FASE 1: Retornar como está no banco (sem alterações)
     console.log(`[OBTER-RODADAS] FASE 1 (R1-R${rodadaTransicao - 1}): ${rodadasFase1.length} registros (sem recálculo)`);
     rodadasProcessadas.push(...rodadasFase1);
 
@@ -572,15 +573,18 @@ export const obterRodadas = async (req, res) => {
     });
 
     // Recalcular posições e valores da FASE 2
-    const valoresFase2 = CARTOLEIROS_SOBRAL_CONFIG.valoresFase2;
     rodadasFase2PorNumero.forEach((timesNaRodada, numRodada) => {
+      // ✅ v3.0: Buscar config para esta rodada específica (fase2)
+      const configFase2 = getConfigRankingRodada(liga, numRodada);
+
       // Ordenar por pontos (decrescente)
       timesNaRodada.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
 
       // Atribuir novas posições e valores
       timesNaRodada.forEach((time, index) => {
         const novaPosicao = index + 1;
-        const novoValorFinanceiro = valoresFase2[novaPosicao] || 0;
+        // ✅ v3.0: Usar função que busca do config
+        const novoValorFinanceiro = getValorFinanceiroPosicao(configFase2, novaPosicao);
 
         rodadasProcessadas.push({
           ...time,
@@ -632,4 +636,4 @@ export const criarIndiceUnico = async (req, res) => {
   }
 };
 
-console.log("[RODADA-CONTROLLER] ✅ v2.9.3 carregado (SEASON GUARD ativo: API bloqueada)");
+console.log("[RODADA-CONTROLLER] ✅ v3.0.0 carregado (SaaS Dinâmico + SEASON GUARD)");
