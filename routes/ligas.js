@@ -17,6 +17,8 @@ import {
   atualizarModulosAtivos,
   sincronizarParticipantesLiga,
   sincronizarTodasLigas,
+  buscarConfiguracoes,
+  atualizarConfiguracoes,
 } from "../controllers/ligaController.js";
 
 import { popularRodadas } from "../controllers/rodadaController.js";
@@ -577,6 +579,13 @@ router.get("/:id/rodadas/:rodadaNum", buscarRodadasDaLiga);
 // Rota de módulos ativos
 router.get("/:id/modulos-ativos", buscarModulosAtivos);
 router.put("/:id/modulos-ativos", atualizarModulosAtivos);
+
+// =====================================================================
+// ✅ v2.0: ROTAS DE CONFIGURAÇÕES DINÂMICAS (SaaS Multi-Tenant)
+// Permite frontend buscar configs do banco ao invés de hardcoded
+// =====================================================================
+router.get("/:id/configuracoes", buscarConfiguracoes);
+router.put("/:id/configuracoes", atualizarConfiguracoes);
 
 // =====================================================================
 // ROTAS DE MANUTENÇÃO - MELHOR DO MÊS (ADMIN)

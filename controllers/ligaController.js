@@ -632,6 +632,112 @@ const atualizarModulosAtivos = async (req, res) => {
   }
 };
 
+// =====================================================================
+// ✅ v2.0: ENDPOINT DE CONFIGURAÇÕES DINÂMICAS (SaaS Multi-Tenant)
+// GET /api/ligas/:id/configuracoes
+// Retorna todas as configurações da liga para uso no frontend
+// =====================================================================
+const buscarConfiguracoes = async (req, res) => {
+  const ligaIdParam = req.params.id;
+
+  if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
+    return res.status(400).json({ erro: "ID de liga inválido" });
+  }
+
+  try {
+    const liga = await Liga.findById(ligaIdParam)
+      .select("nome configuracoes modulos_ativos times temporada atualizadaEm")
+      .lean();
+
+    if (!liga) {
+      return res.status(404).json({ erro: "Liga não encontrada" });
+    }
+
+    const config = liga.configuracoes || {};
+
+    // Montar resposta com todas as configurações necessárias para o frontend
+    res.json({
+      success: true,
+      liga_id: ligaIdParam,
+      liga_nome: liga.nome,
+      temporada: liga.temporada || 2025,
+      total_participantes: liga.times?.length || 0,
+      atualizado_em: liga.atualizadaEm,
+
+      // Configurações completas
+      configuracoes: config,
+
+      // Módulos ativos (para compatibilidade)
+      modulos_ativos: liga.modulos_ativos || {},
+
+      // Configurações específicas para fácil acesso no frontend
+      ranking_rodada: config.ranking_rodada || null,
+      top10: config.top10 || null,
+      pontos_corridos: config.pontos_corridos || null,
+      mata_mata: config.mata_mata || null,
+      melhor_mes: config.melhor_mes || null,
+      artilheiro: config.artilheiro || null,
+      luva_ouro: config.luva_ouro || null,
+
+      // Cards desabilitados no frontend
+      cards_desabilitados: config.cards_desabilitados || [],
+
+      // Status da temporada
+      temporada_config: config.temporada_2025 || {
+        status: "ativa",
+        rodada_inicial: 1,
+        rodada_final: 38,
+      },
+    });
+  } catch (err) {
+    console.error("[LIGAS] Erro ao buscar configurações:", err);
+    res.status(500).json({ erro: "Erro ao buscar configurações da liga" });
+  }
+};
+
+// =====================================================================
+// ✅ v2.0: ATUALIZAR CONFIGURAÇÕES DA LIGA (Admin)
+// PUT /api/ligas/:id/configuracoes
+// =====================================================================
+const atualizarConfiguracoes = async (req, res) => {
+  const ligaIdParam = req.params.id;
+  const { configuracoes } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
+    return res.status(400).json({ erro: "ID de liga inválido" });
+  }
+
+  if (!configuracoes || typeof configuracoes !== "object") {
+    return res.status(400).json({ erro: "Dados de configurações inválidos" });
+  }
+
+  try {
+    const liga = await Liga.findById(ligaIdParam);
+    if (!liga) {
+      return res.status(404).json({ erro: "Liga não encontrada" });
+    }
+
+    // Merge das configurações (preserva campos não enviados)
+    liga.configuracoes = {
+      ...liga.configuracoes,
+      ...configuracoes,
+    };
+    liga.atualizadaEm = new Date();
+    await liga.save();
+
+    console.log(`[LIGAS] ✅ Configurações atualizadas para liga ${liga.nome}`);
+
+    res.json({
+      success: true,
+      mensagem: "Configurações atualizadas com sucesso",
+      configuracoes: liga.configuracoes,
+    });
+  } catch (err) {
+    console.error("[LIGAS] Erro ao atualizar configurações:", err);
+    res.status(500).json({ erro: "Erro ao atualizar configurações" });
+  }
+};
+
 export {
   listarLigas,
   buscarLigaPorId,
@@ -649,4 +755,6 @@ export {
   atualizarModulosAtivos,
   sincronizarParticipantesLiga,
   sincronizarTodasLigas,
+  buscarConfiguracoes,
+  atualizarConfiguracoes,
 };
