@@ -83,6 +83,9 @@ import renovacoesRoutes from "./routes/renovacoes-routes.js";
 import acertosFinanceirosRoutes from "./routes/acertos-financeiros-routes.js";
 import tesourariaRoutes from "./routes/tesouraria-routes.js";
 
+// 📦 DATA LAKE dos Participantes
+import dataLakeRoutes from "./routes/data-lake-routes.js";
+
 // 👁️ Monitoramento de usuários online
 import usuariosOnlineRoutes from "./routes/usuarios-online-routes.js";
 import activityTrackerMiddleware from "./middleware/activityTracker.js";
@@ -297,6 +300,12 @@ app.use("/api/times-admin", timesAdminRoutes);
 app.use("/api/renovacoes", renovacoesRoutes);
 app.use("/api/acertos", acertosFinanceirosRoutes);
 app.use("/api/tesouraria", tesourariaRoutes);
+
+// 📦 DATA LAKE dos Participantes
+app.use("/api/data-lake", dataLakeRoutes);
+// Alias para acesso conveniente: /api/participantes/:id/raw → /api/data-lake/raw/:id
+app.use("/api/participantes", dataLakeRoutes);
+console.log("[SERVER] 📦 Data Lake dos Participantes registrado em /api/data-lake");
 
 // Rotas Adicionais (Controllers Diretos)
 app.get("/api/clubes", getClubes);

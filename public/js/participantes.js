@@ -367,7 +367,7 @@ async function carregarParticipantesComBrasoes() {
                 </div>
 
                 <div class="participante-actions">
-                    <button class="btn-action btn-status" 
+                    <button class="btn-action btn-status"
                             data-action="toggle-status"
                             data-time-id="${timeData.id}"
                             data-ativo="${estaAtivo}"
@@ -380,6 +380,14 @@ async function carregarParticipantesComBrasoes() {
                             data-nome="${(timeData.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
                             title="Gerenciar senha de acesso">
                         <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">key</span> Senha
+                    </button>
+                    <button class="btn-action btn-dados-globo"
+                            data-action="ver-dados-globo"
+                            data-time-id="${timeData.id}"
+                            data-nome="${(timeData.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
+                            data-time-nome="${(timeData.nome_time || "").replace(/"/g, "&quot;")}"
+                            title="Ver dados completos do time">
+                        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">person_search</span> Dados do Time
                     </button>
                 </div>
             `;
@@ -420,6 +428,10 @@ async function handleCardClick(e) {
     } else if (action === "gerenciar-senha") {
         const nome = btn.dataset.nome;
         await gerenciarSenhaParticipante(timeId, nome);
+    } else if (action === "ver-dados-globo") {
+        const nome = btn.dataset.nome;
+        const timeNome = btn.dataset.timeNome;
+        await verDadosGlobo(timeId, nome, timeNome, btn);
     }
 }
 
@@ -717,12 +729,341 @@ async function salvarSenhaParticipante(timeId) {
     }
 }
 
+// ==============================
+// 📦 DATA LAKE - DADOS GLOBO
+// ==============================
+
+/**
+ * Abre modal com dados completos do participante da API Globo
+ */
+async function verDadosGlobo(timeId, nomeCartoleiro, nomeTime, btnElement) {
+    // Feedback visual no botão
+    const textoOriginal = btnElement.innerHTML;
+    btnElement.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;animation:spin 1s linear infinite">sync</span> Carregando...';
+    btnElement.disabled = true;
+
+    try {
+        // Buscar dados do Data Lake
+        const response = await fetch(`/api/data-lake/raw/${timeId}?historico=true`);
+        const data = await response.json();
+
+        // Criar modal
+        const modal = criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data);
+        document.body.appendChild(modal);
+
+        // Animar entrada
+        requestAnimationFrame(() => modal.classList.add("modal-visible"));
+
+    } catch (error) {
+        console.error("[DATA-LAKE] Erro ao buscar dados:", error);
+        mostrarToast(`Erro ao buscar dados: ${error.message}`, "error");
+    } finally {
+        btnElement.innerHTML = textoOriginal;
+        btnElement.disabled = false;
+    }
+}
+
+/**
+ * Cria o modal de exibição dos dados da Globo
+ */
+function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
+    // Remover modal existente
+    document.querySelector(".modal-dados-globo")?.remove();
+
+    const modal = document.createElement("div");
+    modal.className = "modal-dados-globo";
+
+    const temDados = data.success && data.dump_atual;
+    const rawJson = temDados ? data.dump_atual.raw_json : null;
+
+    // Extrair dados principais se existirem
+    let resumoDados = "";
+    if (rawJson) {
+        const time = rawJson.time || rawJson;
+        const atletas = rawJson.atletas || [];
+        const patrimonio = rawJson.patrimonio;
+        const pontos = rawJson.pontos || rawJson.pontos_campeonato;
+
+        resumoDados = `
+            <div class="dados-resumo">
+                <div class="resumo-item">
+                    <span class="resumo-icon material-symbols-outlined">person</span>
+                    <div class="resumo-info">
+                        <span class="resumo-label">Cartoleiro</span>
+                        <span class="resumo-value">${time.nome_cartola || nomeCartoleiro}</span>
+                    </div>
+                </div>
+                <div class="resumo-item">
+                    <span class="resumo-icon material-symbols-outlined">sports_soccer</span>
+                    <div class="resumo-info">
+                        <span class="resumo-label">Time</span>
+                        <span class="resumo-value">${time.nome || nomeTime}</span>
+                    </div>
+                </div>
+                ${patrimonio !== undefined ? `
+                <div class="resumo-item">
+                    <span class="resumo-icon material-symbols-outlined">account_balance</span>
+                    <div class="resumo-info">
+                        <span class="resumo-label">Patrimônio</span>
+                        <span class="resumo-value">C$ ${patrimonio.toFixed(2)}</span>
+                    </div>
+                </div>
+                ` : ""}
+                ${pontos !== undefined ? `
+                <div class="resumo-item">
+                    <span class="resumo-icon material-symbols-outlined">star</span>
+                    <div class="resumo-info">
+                        <span class="resumo-label">Pontos Total</span>
+                        <span class="resumo-value">${pontos.toFixed(2)}</span>
+                    </div>
+                </div>
+                ` : ""}
+                ${atletas.length > 0 ? `
+                <div class="resumo-item">
+                    <span class="resumo-icon material-symbols-outlined">group</span>
+                    <div class="resumo-info">
+                        <span class="resumo-label">Atletas</span>
+                        <span class="resumo-value">${atletas.length} jogadores</span>
+                    </div>
+                </div>
+                ` : ""}
+            </div>
+
+            ${atletas.length > 0 ? `
+            <div class="dados-atletas">
+                <h4><span class="material-symbols-outlined" style="vertical-align:middle">sports</span> Escalação</h4>
+                <div class="atletas-grid">
+                    ${atletas.slice(0, 12).map(a => `
+                        <div class="atleta-card">
+                            <img src="${a.foto || '/escudos/placeholder.png'}" alt="${a.apelido}" onerror="this.src='/escudos/placeholder.png'">
+                            <span class="atleta-nome">${a.apelido || a.nome}</span>
+                            <span class="atleta-pontos">${a.pontos_num?.toFixed(1) || '-'} pts</span>
+                        </div>
+                    `).join("")}
+                </div>
+            </div>
+            ` : ""}
+        `;
+    }
+
+    // Tabs para navegação
+    const tabs = temDados ? `
+        <div class="modal-tabs">
+            <button class="tab-btn active" data-tab="resumo">
+                <span class="material-symbols-outlined">dashboard</span> Resumo
+            </button>
+            <button class="tab-btn" data-tab="json">
+                <span class="material-symbols-outlined">code</span> JSON Raw
+            </button>
+            <button class="tab-btn" data-tab="historico">
+                <span class="material-symbols-outlined">history</span> Histórico
+            </button>
+        </div>
+    ` : "";
+
+    // Conteúdo das tabs
+    const tabResumo = temDados ? `
+        <div class="tab-content active" data-tab-content="resumo">
+            ${resumoDados}
+        </div>
+    ` : "";
+
+    const tabJson = temDados ? `
+        <div class="tab-content" data-tab-content="json">
+            <div class="json-header">
+                <span class="json-info">
+                    <span class="material-symbols-outlined" style="vertical-align:middle">data_object</span>
+                    ${Object.keys(rawJson).length} campos • ${(JSON.stringify(rawJson).length / 1024).toFixed(1)} KB
+                </span>
+                <button class="btn-copiar-json" onclick="window.copiarJsonGlobo()">
+                    <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">content_copy</span> Copiar
+                </button>
+            </div>
+            <pre class="json-viewer" id="json-viewer-content">${JSON.stringify(rawJson, null, 2)}</pre>
+        </div>
+    ` : "";
+
+    const tabHistorico = temDados && data.historico ? `
+        <div class="tab-content" data-tab-content="historico">
+            <div class="historico-lista">
+                ${data.historico.map(h => `
+                    <div class="historico-item">
+                        <span class="material-symbols-outlined">schedule</span>
+                        <div class="historico-info">
+                            <span class="historico-data">${new Date(h.data_coleta).toLocaleString('pt-BR')}</span>
+                            <span class="historico-tipo">${h.tipo_coleta} • ${(h.payload_size / 1024).toFixed(1)} KB</span>
+                        </div>
+                    </div>
+                `).join("")}
+            </div>
+        </div>
+    ` : `
+        <div class="tab-content" data-tab-content="historico">
+            <div class="sem-historico">
+                <span class="material-symbols-outlined">history</span>
+                <p>Nenhum histórico disponível</p>
+            </div>
+        </div>
+    `;
+
+    // Estado sem dados
+    const semDados = !temDados ? `
+        <div class="sem-dados">
+            <span class="material-symbols-outlined" style="font-size:64px;color:#666">person_off</span>
+            <h4>Dados ainda não coletados</h4>
+            <p>Clique em "Buscar Dados" para importar as informações completas deste participante da API oficial do Cartola FC.</p>
+            <button class="btn-sincronizar-globo" onclick="window.sincronizarComGlobo(${timeId})">
+                <span class="material-symbols-outlined" style="vertical-align:middle">download</span>
+                Buscar Dados
+            </button>
+        </div>
+    ` : "";
+
+    modal.innerHTML = `
+        <div class="modal-dados-overlay" onclick="this.parentElement.remove()"></div>
+        <div class="modal-dados-content">
+            <div class="modal-dados-header">
+                <div class="header-info">
+                    <h3>
+                        <span class="material-symbols-outlined" style="color:#FF5500">person_search</span>
+                        Dados do Time
+                    </h3>
+                    <span class="header-subtitle">ID Cartola: ${timeId}</span>
+                </div>
+                <div class="header-actions">
+                    ${temDados ? `
+                    <button class="btn-atualizar" onclick="window.sincronizarComGlobo(${timeId})" title="Atualizar dados">
+                        <span class="material-symbols-outlined">refresh</span>
+                    </button>
+                    ` : ""}
+                    <button class="btn-fechar" onclick="this.closest('.modal-dados-globo').remove()">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+            </div>
+
+            ${temDados ? `
+                <div class="modal-dados-meta">
+                    <span class="meta-item">
+                        <span class="material-symbols-outlined" style="font-size:14px">schedule</span>
+                        Última coleta: ${new Date(data.dump_atual.data_coleta).toLocaleString('pt-BR')}
+                    </span>
+                    <span class="meta-item">
+                        <span class="material-symbols-outlined" style="font-size:14px">category</span>
+                        Tipo: ${data.dump_atual.tipo_coleta}
+                    </span>
+                </div>
+            ` : ""}
+
+            ${tabs}
+
+            <div class="modal-dados-body">
+                ${temDados ? tabResumo + tabJson + tabHistorico : semDados}
+            </div>
+        </div>
+    `;
+
+    // Event listeners para tabs
+    modal.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const tab = btn.dataset.tab;
+
+            // Atualizar botões
+            modal.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            // Atualizar conteúdo
+            modal.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+            modal.querySelector(`[data-tab-content="${tab}"]`)?.classList.add("active");
+        });
+    });
+
+    // Fechar com ESC
+    const handleEsc = (e) => {
+        if (e.key === "Escape") {
+            document.removeEventListener("keydown", handleEsc);
+            modal.remove();
+        }
+    };
+    document.addEventListener("keydown", handleEsc);
+
+    return modal;
+}
+
+/**
+ * Sincroniza participante com API Globo
+ */
+async function sincronizarComGlobo(timeId) {
+    const btnSync = document.querySelector(".btn-sincronizar-globo, .btn-atualizar");
+
+    if (btnSync) {
+        btnSync.disabled = true;
+        btnSync.innerHTML = '<span class="material-symbols-outlined" style="animation:spin 1s linear infinite">sync</span> Sincronizando...';
+    }
+
+    try {
+        mostrarToast("Buscando dados do time...", "info");
+
+        const response = await fetch(`/api/data-lake/sincronizar/${timeId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.message || "Erro ao sincronizar");
+        }
+
+        mostrarToast(`Sincronizado! ${data.dump.payload_size} bytes salvos.`, "success");
+
+        // Recarregar modal com novos dados
+        document.querySelector(".modal-dados-globo")?.remove();
+
+        // Buscar e exibir novos dados
+        const card = document.querySelector(`[data-time-id="${timeId}"]`);
+        const nome = card?.dataset.nome || "";
+        const timeNome = card?.dataset.time || "";
+        const btn = card?.querySelector('[data-action="ver-dados-globo"]');
+
+        if (btn) {
+            await verDadosGlobo(timeId, nome, timeNome, btn);
+        }
+
+    } catch (error) {
+        console.error("[DATA-LAKE] Erro ao sincronizar:", error);
+        mostrarToast(`Erro: ${error.message}`, "error");
+
+        if (btnSync) {
+            btnSync.disabled = false;
+            btnSync.innerHTML = '<span class="material-symbols-outlined" style="vertical-align:middle">download</span> Buscar Dados';
+        }
+    }
+}
+
+/**
+ * Copia JSON para clipboard
+ */
+function copiarJsonGlobo() {
+    const jsonContent = document.getElementById("json-viewer-content")?.textContent;
+    if (jsonContent) {
+        navigator.clipboard.writeText(jsonContent).then(() => {
+            mostrarToast("JSON copiado para a área de transferência!", "success");
+        }).catch(() => {
+            mostrarToast("Erro ao copiar JSON", "error");
+        });
+    }
+}
+
 // Exportar globalmente
 window.carregarParticipantesComBrasoes = carregarParticipantesComBrasoes;
 window.toggleStatusParticipante = toggleStatusParticipante;
 window.gerenciarSenhaParticipante = gerenciarSenhaParticipante;
 window.gerarSenhaAleatoria = gerarSenhaAleatoria;
 window.salvarSenhaParticipante = salvarSenhaParticipante;
+window.verDadosGlobo = verDadosGlobo;
+window.sincronizarComGlobo = sincronizarComGlobo;
+window.copiarJsonGlobo = copiarJsonGlobo;
 
 // ==============================
 // CONTROLE DE INICIALIZAÇÃO

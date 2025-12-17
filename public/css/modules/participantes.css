@@ -849,3 +849,536 @@
     width: 100%;
   }
 }
+
+/* ======================================
+   📦 DATA LAKE - MODAL DADOS GLOBO
+   ====================================== */
+
+/* Botão Dados Globo no card */
+.btn-dados-globo {
+    background: rgba(255, 85, 0, 0.2) !important;
+    color: #FF5500 !important;
+    border: 1px solid rgba(255, 85, 0, 0.3) !important;
+}
+
+.btn-dados-globo:hover {
+    background: rgba(255, 85, 0, 0.3) !important;
+    border-color: rgba(255, 85, 0, 0.5) !important;
+}
+
+/* Modal Container */
+.modal-dados-globo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-dados-globo.modal-visible {
+    opacity: 1;
+}
+
+.modal-dados-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+}
+
+.modal-dados-content {
+    position: relative;
+    background: var(--bg-card, #1a1a2e);
+    border: 1px solid rgba(255, 85, 0, 0.3);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.modal-visible .modal-dados-content {
+    transform: translateY(0);
+}
+
+/* Header do Modal */
+.modal-dados-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, rgba(255, 85, 0, 0.15) 0%, rgba(255, 85, 0, 0.05) 100%);
+    border-bottom: 1px solid rgba(255, 85, 0, 0.2);
+}
+
+.modal-dados-header .header-info h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--text-primary, #fff);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-dados-header .header-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted, #888);
+    margin-top: 4px;
+    display: block;
+}
+
+.modal-dados-header .header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.modal-dados-header .btn-atualizar,
+.modal-dados-header .btn-fechar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.modal-dados-header .btn-atualizar {
+    background: rgba(255, 85, 0, 0.2);
+    color: #FF5500;
+}
+
+.modal-dados-header .btn-atualizar:hover {
+    background: rgba(255, 85, 0, 0.3);
+}
+
+.modal-dados-header .btn-fechar {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-muted, #888);
+}
+
+.modal-dados-header .btn-fechar:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+/* Meta info */
+.modal-dados-meta {
+    display: flex;
+    gap: 20px;
+    padding: 12px 24px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-dados-meta .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--text-muted, #888);
+}
+
+/* Tabs */
+.modal-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 12px 24px;
+    background: rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-tabs .tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted, #888);
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.modal-tabs .tab-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary, #fff);
+}
+
+.modal-tabs .tab-btn.active {
+    background: rgba(255, 85, 0, 0.2);
+    color: #FF5500;
+}
+
+/* Body do Modal */
+.modal-dados-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Resumo dos dados */
+.dados-resumo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.resumo-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    transition: border-color 0.2s ease;
+}
+
+.resumo-item:hover {
+    border-color: rgba(255, 85, 0, 0.3);
+}
+
+.resumo-icon {
+    font-size: 24px;
+    color: #FF5500;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 85, 0, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.resumo-info {
+    flex: 1;
+}
+
+.resumo-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.resumo-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary, #fff);
+}
+
+/* Atletas Grid */
+.dados-atletas {
+    margin-top: 24px;
+}
+
+.dados-atletas h4 {
+    margin: 0 0 16px 0;
+    font-size: 1rem;
+    color: var(--text-primary, #fff);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.atletas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+}
+
+.atleta-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.atleta-card:hover {
+    border-color: rgba(255, 85, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.atleta-card img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.atleta-nome {
+    font-size: 0.75rem;
+    color: var(--text-primary, #fff);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.atleta-pontos {
+    font-size: 0.7rem;
+    color: #FF5500;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* JSON Viewer */
+.json-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.json-info {
+    font-size: 0.85rem;
+    color: var(--text-muted, #888);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-copiar-json {
+    padding: 8px 16px;
+    background: rgba(255, 85, 0, 0.2);
+    color: #FF5500;
+    border: 1px solid rgba(255, 85, 0, 0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-copiar-json:hover {
+    background: rgba(255, 85, 0, 0.3);
+}
+
+.json-viewer {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+    font-size: 0.8rem;
+    color: #a0d0a0;
+    overflow-x: auto;
+    max-height: 400px;
+    white-space: pre;
+    line-height: 1.5;
+}
+
+/* Histórico */
+.historico-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.historico-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+}
+
+.historico-item .material-symbols-outlined {
+    color: #FF5500;
+    font-size: 20px;
+}
+
+.historico-info {
+    flex: 1;
+}
+
+.historico-data {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-primary, #fff);
+}
+
+.historico-tipo {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted, #888);
+    margin-top: 2px;
+}
+
+/* Sem dados / Sem histórico */
+.sem-dados,
+.sem-historico {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.sem-dados h4 {
+    margin: 16px 0 8px;
+    color: var(--text-primary, #fff);
+}
+
+.sem-dados p {
+    color: var(--text-muted, #888);
+    font-size: 0.9rem;
+    max-width: 400px;
+    margin: 0 auto 24px;
+    line-height: 1.6;
+}
+
+.btn-sincronizar-globo {
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #FF5500 0%, #cc4400 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(255, 85, 0, 0.4);
+}
+
+.btn-sincronizar-globo:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 85, 0, 0.5);
+}
+
+.btn-sincronizar-globo:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.sem-historico .material-symbols-outlined {
+    font-size: 48px;
+    color: #666;
+}
+
+.sem-historico p {
+    margin: 12px 0 0;
+    color: var(--text-muted, #888);
+}
+
+/* Animação spin para loading */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Responsividade do Modal */
+@media (max-width: 768px) {
+    .modal-dados-content {
+        width: 95%;
+        max-height: 95vh;
+        border-radius: 12px;
+    }
+
+    .modal-dados-header {
+        padding: 16px;
+    }
+
+    .modal-dados-header .header-info h3 {
+        font-size: 1.1rem;
+    }
+
+    .modal-dados-meta {
+        flex-wrap: wrap;
+        padding: 10px 16px;
+        gap: 12px;
+    }
+
+    .modal-tabs {
+        padding: 8px 16px;
+        overflow-x: auto;
+    }
+
+    .modal-tabs .tab-btn {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    .modal-dados-body {
+        padding: 16px;
+    }
+
+    .dados-resumo {
+        grid-template-columns: 1fr;
+    }
+
+    .atletas-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .participante-actions {
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        flex: 1 1 calc(50% - 4px);
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+
+    .btn-dados-globo {
+        flex: 1 1 100%;
+    }
+
+    .atletas-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

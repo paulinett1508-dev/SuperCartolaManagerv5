@@ -95,6 +95,20 @@ const timeSchema = new mongoose.Schema(
       default: {},
     },
 
+    // ✅ DATA LAKE: Referência ao último dump oficial da API Cartola
+    // Aponta para o CartolaOficialDump mais recente deste time
+    ref_dados_oficiais: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CartolaOficialDump",
+      default: null,
+    },
+
+    // ✅ DATA LAKE: Data da última sincronização com a API Globo
+    ultima_sincronizacao_globo: {
+      type: Date,
+      default: null,
+    },
+
     // ✅ TEMPORADA - Segregação de dados por ano
     temporada: {
       type: Number,
