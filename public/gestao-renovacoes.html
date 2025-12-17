@@ -160,15 +160,17 @@
             }
 
             .filtro-group {
-                display: flex;
+                display: inline-flex;
                 align-items: center;
                 gap: 8px;
+                height: 36px;
             }
 
             .filtro-group label {
                 font-size: 0.75rem;
                 color: #9ca3af;
                 font-weight: 500;
+                white-space: nowrap;
             }
 
             .filtro-group select,
@@ -181,6 +183,8 @@
                 color: #ffffff;
                 outline: none;
                 min-width: 130px;
+                height: 36px;
+                box-sizing: border-box;
             }
 
             .filtro-group select:focus,
@@ -197,14 +201,17 @@
                 color: #000;
                 border: none;
                 border-radius: 6px;
-                padding: 8px 16px;
+                padding: 0 16px;
                 font-size: 0.8rem;
                 font-weight: 600;
                 cursor: pointer;
-                display: flex;
+                display: inline-flex;
                 align-items: center;
+                justify-content: center;
                 gap: 6px;
                 margin-left: auto;
+                height: 36px;
+                box-sizing: border-box;
             }
 
             .btn-filtrar:hover {
@@ -213,6 +220,7 @@
 
             .btn-filtrar .material-icons {
                 font-size: 16px;
+                line-height: 1;
             }
 
             /* Tabela */
@@ -282,11 +290,18 @@
                 margin-left: 4px;
             }
 
+            th:last-child {
+                width: 100px;
+                min-width: 100px;
+                text-align: center;
+            }
+
             td {
                 padding: 12px 16px;
                 font-size: 0.85rem;
                 color: #e5e7eb;
                 border-bottom: 1px solid #2d2d2d;
+                vertical-align: middle;
             }
 
             tr:last-child td {
@@ -367,25 +382,39 @@
             }
 
             /* Acoes */
+            td:last-child {
+                width: 100px;
+                min-width: 100px;
+            }
+
             .acoes-cell {
                 display: flex;
-                gap: 6px;
+                flex-direction: row;
+                gap: 12px;
+                align-items: center;
+                justify-content: center;
+                white-space: nowrap;
             }
 
             .btn-acao {
-                width: 28px;
-                height: 28px;
-                border-radius: 6px;
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+                min-height: 36px;
+                border-radius: 8px;
                 border: none;
                 cursor: pointer;
-                display: flex;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
                 transition: all 0.2s ease;
+                flex-shrink: 0;
+                flex-grow: 0;
             }
 
             .btn-acao .material-icons {
-                font-size: 16px;
+                font-size: 18px;
+                line-height: 1;
             }
 
             .btn-acao.pagamento {
@@ -719,18 +748,22 @@
                 display: flex;
                 gap: 10px;
                 justify-content: flex-end;
+                align-items: center;
             }
 
             .btn-modal {
-                padding: 10px 20px;
+                padding: 0 20px;
+                height: 40px;
                 border-radius: 6px;
                 font-size: 0.85rem;
                 font-weight: 600;
                 cursor: pointer;
                 border: none;
-                display: flex;
+                display: inline-flex;
                 align-items: center;
+                justify-content: center;
                 gap: 6px;
+                box-sizing: border-box;
             }
 
             .btn-modal.cancelar {
@@ -749,6 +782,7 @@
 
             .btn-modal .material-icons {
                 font-size: 18px;
+                line-height: 1;
             }
 
             /* Modal Historico */

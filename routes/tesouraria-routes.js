@@ -8,6 +8,7 @@
  */
 
 import express from "express";
+import mongoose from "mongoose";
 import Liga from "../models/Liga.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
@@ -149,6 +150,9 @@ router.get("/participantes", async (req, res) => {
 
         console.log(`[TESOURARIA] ✅ ${participantes.length} participantes processados`);
 
+        // ✅ CORREÇÃO: Do ponto de vista da LIGA:
+        // - Credor (saldo positivo) = participante tem a receber → LIGA deve PAGAR
+        // - Devedor (saldo negativo) = participante deve → LIGA tem a RECEBER
         res.json({
             success: true,
             temporada,
@@ -158,13 +162,168 @@ router.get("/participantes", async (req, res) => {
                 quantidadeCredores,
                 quantidadeDevedores,
                 quantidadeQuitados,
-                totalAReceber: parseFloat(totalCredores.toFixed(2)),
-                totalAPagar: parseFloat(totalDevedores.toFixed(2)),
-                saldoGeral: parseFloat((totalCredores - totalDevedores).toFixed(2)),
+                totalAReceber: parseFloat(totalDevedores.toFixed(2)),  // Liga recebe dos devedores
+                totalAPagar: parseFloat(totalCredores.toFixed(2)),     // Liga paga aos credores
+                saldoGeral: parseFloat((totalDevedores - totalCredores).toFixed(2)),
             },
         });
     } catch (error) {
         console.error("[TESOURARIA] Erro ao buscar participantes:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// =============================================================================
+// GET /api/tesouraria/liga/:ligaId
+// Retorna participantes de UMA LIGA específica com saldos (para módulo Fluxo Financeiro)
+// ✅ OTIMIZADO: Usa bulk queries em vez de queries individuais por participante
+// =============================================================================
+
+router.get("/liga/:ligaId", async (req, res) => {
+    try {
+        const { ligaId } = req.params;
+        const { temporada = CURRENT_SEASON } = req.query;
+        const startTime = Date.now();
+
+        console.log(`[TESOURARIA] Buscando participantes da liga ${ligaId}`);
+
+        const liga = await Liga.findById(ligaId).lean();
+        if (!liga) {
+            return res.status(404).json({ success: false, error: "Liga não encontrada" });
+        }
+
+        const timeIds = (liga.participantes || []).map(p => p.time_id);
+
+        // ✅ BULK QUERIES - Buscar todos os dados de uma vez (4 queries em vez de ~96)
+        const objectIdLiga = new mongoose.Types.ObjectId(ligaId);
+
+        const [todosExtratos, todosCampos, todosAcertos] = await Promise.all([
+            // 1. Todos os extratos da liga (liga_id é ObjectId no schema)
+            ExtratoFinanceiroCache.find({
+                liga_id: objectIdLiga,
+                time_id: { $in: timeIds }
+            }).lean(),
+
+            // 2. Todos os campos manuais da liga
+            FluxoFinanceiroCampos.find({
+                ligaId: String(ligaId),
+                timeId: { $in: timeIds.map(String) }
+            }).lean(),
+
+            // 3. Todos os acertos da liga na temporada
+            AcertoFinanceiro.find({
+                ligaId: String(ligaId),
+                temporada: String(temporada)
+            }).lean()
+        ]);
+
+        // Criar mapas para acesso O(1)
+        const extratoMap = new Map();
+        todosExtratos.forEach(e => extratoMap.set(String(e.time_id), e));
+
+        const camposMap = new Map();
+        todosCampos.forEach(c => camposMap.set(String(c.timeId), c));
+
+        // Agrupar acertos por timeId
+        const acertosMap = new Map();
+        todosAcertos.forEach(a => {
+            const key = String(a.timeId);
+            if (!acertosMap.has(key)) acertosMap.set(key, []);
+            acertosMap.get(key).push(a);
+        });
+
+        console.log(`[TESOURARIA] Bulk queries: ${todosExtratos.length} extratos, ${todosCampos.length} campos, ${todosAcertos.length} acertos`);
+
+        // Processar participantes em memória (sem queries adicionais)
+        const participantes = [];
+        let totalCredores = 0;
+        let totalDevedores = 0;
+        let quantidadeCredores = 0;
+        let quantidadeDevedores = 0;
+        let quantidadeQuitados = 0;
+
+        for (const participante of liga.participantes || []) {
+            const timeId = String(participante.time_id);
+
+            // Calcular saldo do extrato
+            const extrato = extratoMap.get(timeId);
+            const saldoConsolidado = extrato?.saldo_consolidado || 0;
+
+            // Calcular saldo dos campos manuais
+            const camposDoc = camposMap.get(timeId);
+            let saldoCampos = 0;
+            if (camposDoc?.campos) {
+                camposDoc.campos.forEach(c => saldoCampos += c.valor || 0);
+            }
+
+            // Calcular saldo dos acertos
+            const acertosList = acertosMap.get(timeId) || [];
+            let totalPago = 0;
+            let totalRecebido = 0;
+            acertosList.forEach(a => {
+                if (a.tipo === 'pagamento') totalPago += a.valor || 0;
+                else if (a.tipo === 'recebimento') totalRecebido += a.valor || 0;
+            });
+            const saldoAcertos = totalRecebido - totalPago;
+
+            // Calcular saldos finais
+            const saldoTemporada = saldoConsolidado + saldoCampos;
+            const saldoFinal = saldoTemporada + saldoAcertos;
+
+            // Classificar situação
+            let situacao = "quitado";
+            if (saldoFinal > 0.01) {
+                situacao = "credor";
+                totalCredores += saldoFinal;
+                quantidadeCredores++;
+            } else if (saldoFinal < -0.01) {
+                situacao = "devedor";
+                totalDevedores += Math.abs(saldoFinal);
+                quantidadeDevedores++;
+            } else {
+                quantidadeQuitados++;
+            }
+
+            participantes.push({
+                timeId,
+                nomeTime: participante.nome_time || "Time sem nome",
+                nomeCartola: participante.nome_cartola || "",
+                escudo: participante.escudo_url || participante.escudo || null,
+                ativo: participante.ativo !== false,
+                saldoTemporada: parseFloat(saldoTemporada.toFixed(2)),
+                saldoAcertos: parseFloat(saldoAcertos.toFixed(2)),
+                totalPago: parseFloat(totalPago.toFixed(2)),
+                totalRecebido: parseFloat(totalRecebido.toFixed(2)),
+                saldoFinal: parseFloat(saldoFinal.toFixed(2)),
+                situacao,
+                quantidadeAcertos: acertosList.length,
+            });
+        }
+
+        // Ordenar por nome
+        participantes.sort((a, b) => (a.nomeCartola || '').localeCompare(b.nomeCartola || ''));
+
+        const elapsed = Date.now() - startTime;
+        console.log(`[TESOURARIA] ✅ ${participantes.length} participantes em ${elapsed}ms`);
+
+        res.json({
+            success: true,
+            ligaId,
+            ligaNome: liga.nome,
+            temporada,
+            participantes,
+            totais: {
+                totalParticipantes: participantes.length,
+                quantidadeCredores,
+                quantidadeDevedores,
+                quantidadeQuitados,
+                totalAReceber: parseFloat(totalDevedores.toFixed(2)),
+                totalAPagar: parseFloat(totalCredores.toFixed(2)),
+                saldoGeral: parseFloat((totalDevedores - totalCredores).toFixed(2)),
+            },
+        });
+    } catch (error) {
+        console.error("[TESOURARIA] Erro ao buscar participantes da liga:", error);
         res.status(500).json({ success: false, error: error.message });
     }
 });

@@ -255,33 +255,16 @@ function voltarParaCards() {
 window.voltarParaCards = voltarParaCards;
 
 /**
- * Controlar visibilidade do botão voltar de forma inteligente
+ * Controlar visibilidade do botão voltar
+ * ✅ REFATORADO: Botão removido - usa apenas o header global de detalhe-liga.html
+ * O botão "Voltar aos Módulos" no header já cumpre essa função.
  */
 function controlarBotaoVoltar() {
-    const mainScreen = document.getElementById("main-screen");
-    const secondaryScreen = document.getElementById("secondary-screen");
+    // Limpar qualquer botão .back-button residual que possa existir
+    const existingButtons = document.querySelectorAll(".back-button");
+    existingButtons.forEach(btn => btn.remove());
 
-    // Remover botão voltar existente da tela principal se existir
-    const existingButton = document.querySelector("#main-screen .back-button");
-    if (existingButton) {
-        existingButton.remove();
-    }
-
-    // Criar botão voltar apenas para tela secundária se não existir
-    let backButton = document.querySelector("#secondary-screen .back-button");
-    if (!backButton && secondaryScreen) {
-        backButton = document.createElement("button");
-        backButton.className = "back-button";
-        backButton.innerHTML = "← Voltar aos Módulos";
-        backButton.onclick = voltarParaCards; // ✅ Usar função direta
-
-        const contentArea = document.getElementById("dynamic-content-area");
-        if (contentArea) {
-            secondaryScreen.insertBefore(backButton, contentArea);
-        }
-    }
-
-    console.log("✅ [CARDS-CONDICIONAIS] Botão voltar controlado");
+    console.log("✅ [CARDS-CONDICIONAIS] Navegação via header global");
 }
 
 /**

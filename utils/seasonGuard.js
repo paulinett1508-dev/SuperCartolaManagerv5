@@ -19,7 +19,7 @@
  * Para 2026: Basta definir SEASON_ACTIVE=true no .env
  */
 const ENV_SEASON_ACTIVE = process.env.SEASON_ACTIVE;
-const SEASON_FINISHED_DEFAULT = true; // Temporada 2025 encerrada
+const SEASON_FINISHED_DEFAULT = false; // Temporada 2025 ATIVA
 
 export const SEASON_CONFIG = {
     // ⚠️ Calculado dinamicamente baseado em ENV ou default

@@ -78,51 +78,24 @@ body {
 .participante-card {
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 8px;
+    padding: 16px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: visible;
-}
-
-.participante-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--gradient-primary);
-    transition: transform 0.3s ease;
-    border-radius: 12px 12px 0 0;
-}
-
-.participante-card:hover::before {
-    transform: scaleX(1);
+    transition: border-color 0.15s ease;
 }
 
 .participante-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(255, 69, 0, 0.15);
-    border-color: var(--border-primary);
-    background: var(--bg-card-hover);
+    border-color: var(--laranja);
 }
 
 .participante-card.active {
-    background: rgba(255, 69, 0, 0.08);
+    background: rgba(255, 69, 0, 0.05);
     border-color: var(--laranja);
-    box-shadow: 0 4px 16px rgba(255, 69, 0, 0.25);
-}
-
-.participante-card.active::before {
-    transform: scaleX(1);
 }
 
 .participante-card.loading {
-    animation: pulse-card 1.5s ease-in-out infinite;
     pointer-events: none;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 /* === HEADER DO PARTICIPANTE === */
@@ -414,16 +387,7 @@ body {
     overflow: hidden;
 }
 
-.saldo-final-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    animation: shimmer 3s ease-in-out infinite;
-}
+/* Removido efeito shimmer para admin */
 
 .saldo-final-positivo {
     background: var(--gradient-primary);
@@ -517,8 +481,7 @@ body {
 }
 
 .resumo-card:hover {
-    transform: translateY(-1px); /* REDUZIDO de -2px para -1px */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* REDUZIDO shadow */
+    border-color: var(--laranja);
 }
 
 .resumo-card.bonus {
@@ -638,8 +601,7 @@ body {
 }
 
 .grafico-barra:hover .barra {
-    width: 20px; /* REDUZIDO de 24px para 20px */
-    box-shadow: 0 2px 8px rgba(255, 69, 0, 0.4); /* REDUZIDO shadow */
+    width: 18px;
 }
 
 /* ===== DETALHAMENTO COMPACTO ===== */
@@ -719,8 +681,7 @@ body {
 }
 
 .detalhamento-tabela tbody tr:hover {
-    background: rgba(255, 69, 0, 0.08);
-    transform: scale(1.005); /* REDUZIDO de 1.01 para 1.005 */
+    background: rgba(255, 69, 0, 0.05);
 }
 
 .detalhamento-tabela td {
@@ -996,9 +957,7 @@ body {
 }
 
 .retry-button:hover {
-    background: linear-gradient(135deg, var(--laranja-dark) 0%, #d63920 100%);
-    transform: translateY(-1px); /* REDUZIDO de -2px para -1px */
-    box-shadow: 0 2px 8px rgba(255, 69, 0, 0.4); /* REDUZIDO shadow */
+    opacity: 0.9;
 }
 
 /* Exportação removida - usar módulo Relatórios */
@@ -1026,21 +985,7 @@ body {
     border-color: rgba(255, 69, 0, 0.3);
 }
 
-/* ===== ANIMAÇÕES ===== */
-
-@keyframes pulse-card {
-    0%, 100% {
-        box-shadow: 0 2px 8px rgba(255, 69, 0, 0.1); /* REDUZIDO shadow */
-    }
-    50% {
-        box-shadow: 0 4px 16px rgba(255, 69, 0, 0.2); /* REDUZIDO shadow */
-    }
-}
-
-@keyframes shimmer {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+/* ===== ANIMAÇÕES (simplificadas para admin) ===== */
 
 /* ===== RESPONSIVIDADE OTIMIZADA ===== */
 @media (max-width: 768px) {
@@ -1291,18 +1236,16 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    transition: transform 0.2s, box-shadow 0.2s;
     color: white;
 }
-.btn-modern:hover { transform: translateY(-1px); }
+.btn-modern:hover { opacity: 0.9; }
 
-.btn-primary-gradient { background: var(--gradient-primary, linear-gradient(135deg, #ff4500, #ff8c00)); }
-.btn-secondary-gradient { background: var(--gradient-secondary, linear-gradient(135deg, #3498db, #2980b9)); }
-.btn-success-gradient { background: linear-gradient(135deg, #2ecc71, #27ae60); }
-.btn-danger-gradient { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-.btn-pdf-gradient { background: linear-gradient(135deg, #dc2626, #991b1b); box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3); }
-.btn-acerto-gradient { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3); }
-.btn-acerto-gradient:hover { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+.btn-primary-gradient { background: #ff4500; }
+.btn-secondary-gradient { background: #3498db; }
+.btn-success-gradient { background: #2ecc71; }
+.btn-danger-gradient { background: #e74c3c; }
+.btn-pdf-gradient { background: #dc2626; }
+.btn-acerto-gradient { background: #f59e0b; }
 
 /* Campos Editáveis */
 .grid-responsive {
@@ -1345,7 +1288,6 @@ body {
 .btn-editar-nome:hover {
     opacity: 1;
     color: var(--laranja);
-    transform: scale(1.1);
 }
 
 /* ✅ v4.6: Input para edição de títulos dos campos */
@@ -1395,4 +1337,202 @@ body {
 .input-campo-editavel.campo-negativo {
     border-color: #ef4444;
     color: #ef4444;
+}
+
+/* ==========================================================================
+   MODAL FULLSCREEN - EXTRATO FINANCEIRO
+   ========================================================================== */
+
+.modal-extrato-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    display: none;
+}
+
+.modal-extrato-overlay.active {
+    display: flex;
+}
+
+.modal-extrato-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary, #0a0a0a);
+    overflow: hidden;
+}
+
+/* Header do Modal */
+.modal-extrato-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--bg-card, #1e1e1e);
+    border-bottom: 1px solid var(--border-primary, rgba(255, 69, 0, 0.3));
+    flex-shrink: 0;
+}
+
+.modal-extrato-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-extrato-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--laranja, #ff4500);
+    object-fit: contain;
+    background: white;
+}
+
+.modal-extrato-info h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary, #fff);
+}
+
+.modal-extrato-info span {
+    font-size: 12px;
+    color: var(--text-muted, #a0a0a0);
+}
+
+.modal-extrato-close {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--text-primary, #fff);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.modal-extrato-close:hover {
+    background: rgba(255, 69, 0, 0.2);
+    color: var(--laranja, #ff4500);
+}
+
+.modal-extrato-close .material-icons {
+    font-size: 24px;
+}
+
+/* Corpo do Modal com Scroll */
+.modal-extrato-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar estilizada */
+.modal-extrato-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-extrato-body::-webkit-scrollbar-track {
+    background: var(--bg-secondary, #121212);
+}
+
+.modal-extrato-body::-webkit-scrollbar-thumb {
+    background: var(--laranja, #ff4500);
+    border-radius: 4px;
+}
+
+.modal-extrato-body::-webkit-scrollbar-thumb:hover {
+    background: var(--laranja-dark, #e8472b);
+}
+
+/* Footer do Modal (botões de ação) */
+.modal-extrato-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--bg-card, #1e1e1e);
+    border-top: 1px solid var(--border-primary, rgba(255, 69, 0, 0.3));
+    flex-shrink: 0;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.modal-extrato-footer-left {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.modal-extrato-footer-right {
+    display: flex;
+    gap: 8px;
+}
+
+/* Responsividade do Modal */
+@media (max-width: 768px) {
+    .modal-extrato-header {
+        padding: 12px 16px;
+    }
+
+    .modal-extrato-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .modal-extrato-info h3 {
+        font-size: 14px;
+    }
+
+    .modal-extrato-body {
+        padding: 16px;
+    }
+
+    .modal-extrato-footer {
+        padding: 10px 16px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .modal-extrato-footer-left,
+    .modal-extrato-footer-right {
+        justify-content: center;
+    }
+}
+
+/* Modal sem animação para admin (rápido e direto) */
+
+/* Botão "Limpar Cache" estilizado */
+.btn-recalc-cache {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-recalc-cache:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: #ef4444;
 }

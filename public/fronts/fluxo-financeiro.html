@@ -1,14 +1,6 @@
-<!-- FLUXO FINANCEIRO FRONT - Interface Principal v4.3 -->
-<div id="fluxo-financeiro" class="module-content" data-admin-mode="true">
-  <!-- Header do Módulo -->
-  <div class="fluxo-financeiro-header">
-    <h2 class="fluxo-financeiro-titulo">Extrato Financeiro</h2>
-    <p class="fluxo-financeiro-subtitulo">
-      Movimentações completas por participante
-    </p>
-  </div>
-
-  <!-- Seletor de Participantes -->
+<!-- FLUXO FINANCEIRO FRONT - Dashboard Layout v5.0 -->
+<div id="fluxo-financeiro" class="module-content module-dashboard" data-admin-mode="true">
+  <!-- Seletor de Participantes (renderizado via JS com header integrado) -->
   <div id="fluxoFinanceiroButtons" class="fluxo-financeiro-selector">
     <!-- Será preenchido via JavaScript -->
   </div>
@@ -19,12 +11,9 @@
   </div>
 
   <!-- Estado Inicial -->
-  <div
-    id="fluxoFinanceiroInicial"
-    class="fluxo-financeiro-inicial"
-    style="display: none"
-  >
+  <div id="fluxoFinanceiroInicial" class="fluxo-financeiro-inicial" style="display: none">
     <div class="fluxo-financeiro-loading">
+      <div class="loading-spinner"></div>
       <p>Carregando sistema financeiro...</p>
     </div>
   </div>

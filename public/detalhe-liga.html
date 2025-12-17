@@ -29,11 +29,17 @@
         <link rel="stylesheet" href="css/performance.css" />
         <link rel="stylesheet" href="css/modules/detalhe-liga-redesign.css" />
         <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link rel="stylesheet" href="css/modules/fluxo-financeiro.css" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
         <!-- MATERIAL ICONS -->
         <link
             href="https://fonts.googleapis.com/icon?family=Material+Icons"
+            rel="stylesheet"
+        />
+        <!-- MATERIAL SYMBOLS OUTLINED (para módulos novos) -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
             rel="stylesheet"
         />
         <style>
@@ -147,6 +153,75 @@
                 if (modal) modal.classList.add("show");
             }
 
+            // Toggle seção de Administração da Liga
+            function toggleAdminSection() {
+                const section = document.getElementById("admin-tools-section");
+                if (section) {
+                    section.classList.toggle("admin-collapsed");
+                    // Salvar preferência no localStorage
+                    const isCollapsed = section.classList.contains("admin-collapsed");
+                    localStorage.setItem("adminSectionCollapsed", isCollapsed);
+                }
+            }
+
+            // Restaurar estado da seção Admin ao carregar
+            document.addEventListener("DOMContentLoaded", function() {
+                const section = document.getElementById("admin-tools-section");
+                const savedState = localStorage.getItem("adminSectionCollapsed");
+                // Por padrão começa colapsado, a menos que o usuário tenha expandido
+                if (savedState === "false" && section) {
+                    section.classList.remove("admin-collapsed");
+                }
+                // Atualizar texto do botão voltar baseado no estado inicial
+                atualizarBotaoVoltar();
+            });
+
+            // =====================================================================
+            // BOTÃO VOLTAR CONTEXTUAL
+            // - Se estiver nos cards da liga → vai para painel.html (Dashboard)
+            // - Se estiver em um módulo → volta para os cards da liga
+            // =====================================================================
+            function voltarContextual() {
+                const secondaryScreen = document.getElementById("secondary-screen");
+                const estaEmModulo = secondaryScreen &&
+                    (secondaryScreen.classList.contains("active") ||
+                     secondaryScreen.style.display === "block");
+
+                if (estaEmModulo) {
+                    // Está em um módulo → voltar para cards da liga
+                    if (typeof window.voltarParaCards === "function") {
+                        window.voltarParaCards();
+                    } else if (window.orquestrador?.voltarParaCards) {
+                        window.orquestrador.voltarParaCards();
+                    }
+                    atualizarBotaoVoltar();
+                } else {
+                    // Está nos cards → ir para dashboard
+                    window.location.href = "painel.html";
+                }
+            }
+
+            function atualizarBotaoVoltar() {
+                const secondaryScreen = document.getElementById("secondary-screen");
+                const btnTexto = document.getElementById("btnVoltarTexto");
+                if (!btnTexto) return;
+
+                const estaEmModulo = secondaryScreen &&
+                    (secondaryScreen.classList.contains("active") ||
+                     secondaryScreen.style.display === "block");
+
+                btnTexto.textContent = estaEmModulo ? "Voltar aos Cards" : "Voltar ao Dashboard";
+            }
+
+            // Observar mudanças na tela secundária para atualizar o botão
+            document.addEventListener("DOMContentLoaded", function() {
+                const secondaryScreen = document.getElementById("secondary-screen");
+                if (secondaryScreen) {
+                    const observer = new MutationObserver(atualizarBotaoVoltar);
+                    observer.observe(secondaryScreen, { attributes: true, attributeFilter: ["class", "style"] });
+                }
+            });
+
             function fecharModalMini(modalId) {
                 const modal = document.getElementById(modalId);
                 if (modal) modal.classList.remove("show");
@@ -253,12 +328,12 @@
 
             <main class="app-main detalhe-liga-redesign">
                 <div class="page-content">
-                    <!-- Botão Voltar -->
+                    <!-- Botão Voltar Contextual -->
                     <div class="back-button-container">
-                        <a href="painel.html" class="btn-back-new">
+                        <button id="btnVoltarContextual" class="btn-back-new" onclick="voltarContextual()">
                             <span class="material-icons">arrow_back</span>
-                            Voltar aos Módulos
-                        </a>
+                            <span id="btnVoltarTexto">Voltar ao Dashboard</span>
+                        </button>
                     </div>
 
                     <!-- Header da Liga - NOVO DESIGN (IDs MANTIDOS) -->
@@ -418,14 +493,15 @@
                         </div>
                     </div>
 
-                    <!-- === SEÇÃO ADMINISTRAÇÃO DA LIGA === -->
-                    <div class="admin-tools-section">
-                        <div class="admin-tools-header">
+                    <!-- === SEÇÃO ADMINISTRAÇÃO DA LIGA (COLAPSÁVEL) === -->
+                    <div class="admin-tools-section admin-collapsed" id="admin-tools-section">
+                        <button class="admin-tools-toggle" onclick="toggleAdminSection()">
                             <div class="admin-tools-title">
                                 <span class="material-icons">admin_panel_settings</span>
                                 <span>Administração da Liga</span>
                             </div>
-                        </div>
+                            <span class="admin-toggle-icon material-icons">expand_more</span>
+                        </button>
                         <div class="admin-tools-grid">
                             <!-- Editar Dados da Liga -->
                             <a href="#" class="admin-tool-item" id="btnEditarLiga">
@@ -803,7 +879,7 @@
         <!-- MÓDULOS JS EXISTENTES -->
         <script type="module" src="js/utils.js"></script>
         <script type="module" src="js/navigation.js"></script>
-        <script src="js/seletor-ligas.js"></script>
+        <!-- seletor-ligas.js REMOVIDO - redundante com sidebar -->
 
         <!-- LOGO DINAMICA DA LIGA NO HEADER -->
         <script>

@@ -246,14 +246,26 @@ export async function getResultadosMataMataFluxo(ligaIdParam = null) {
     let totalPago = 0;
     const edicoesProcessadas = [];
 
-    for (const edicao of edicoesProcessaveis) {
-      console.log(`[MATA-FINANCEIRO] Processando ${edicao.nome}...`);
-      const resultadosEdicao = await calcularResultadosEdicaoFluxo(
-        ligaId,
-        edicao,
-        rodada_atual,
-      );
+    // ✅ OTIMIZAÇÃO: Processar TODAS as edições em PARALELO
+    console.log(`[MATA-FINANCEIRO] Processando ${edicoesProcessaveis.length} edições em PARALELO...`);
+    const startTime = performance.now();
 
+    const resultadosPorEdicao = await Promise.all(
+      edicoesProcessaveis.map(async (edicao) => {
+        const resultados = await calcularResultadosEdicaoFluxo(
+          ligaId,
+          edicao,
+          rodada_atual,
+        );
+        return { edicao, resultados };
+      })
+    );
+
+    const elapsed = Math.round(performance.now() - startTime);
+    console.log(`[MATA-FINANCEIRO] ${edicoesProcessaveis.length} edições processadas em ${elapsed}ms`);
+
+    // Consolidar resultados
+    for (const { edicao, resultados: resultadosEdicao } of resultadosPorEdicao) {
       if (resultadosEdicao.length > 0) {
         resultadosEdicao.forEach((resultado) => {
           const timeId = resultado.timeId;
@@ -333,18 +345,6 @@ export async function calcularResultadosEdicaoFluxo(
     const resultadosFinanceiros = [];
     const fases = ["primeira", "oitavas", "quartas", "semis", "final"];
 
-    const rankingBase = await getRankingRodadaEspecifica(
-      ligaId,
-      edicao.rodadaDefinicao,
-    );
-
-    if (!Array.isArray(rankingBase) || rankingBase.length < 32) {
-      console.error(
-        `[MATA-FINANCEIRO] Ranking base inválido para ${edicao.nome}`,
-      );
-      return [];
-    }
-
     const rodadasFases = {
       primeira: edicao.rodadaInicial,
       oitavas: edicao.rodadaInicial + 1,
@@ -352,6 +352,43 @@ export async function calcularResultadosEdicaoFluxo(
       semis: edicao.rodadaInicial + 3,
       final: edicao.rodadaInicial + 4,
     };
+
+    // ✅ OTIMIZAÇÃO: Identificar quais rodadas precisam ser carregadas
+    const rodadasNecessarias = fases
+      .map(fase => rodadasFases[fase])
+      .filter(rodada => rodada < rodadaAtual);
+
+    // Incluir rodada de definição
+    const todasRodadas = [edicao.rodadaDefinicao, ...rodadasNecessarias];
+
+    // ✅ PRÉ-CARREGAR TODAS AS RODADAS EM PARALELO
+    const rodadasData = await Promise.all(
+      todasRodadas.map(async (rodada) => {
+        if (rodada === edicao.rodadaDefinicao) {
+          return { rodada, tipo: 'ranking', data: await getRankingRodadaEspecifica(ligaId, rodada) };
+        }
+        return { rodada, tipo: 'pontos', data: await getPontosDaRodada(ligaId, rodada) };
+      })
+    );
+
+    // Criar mapa de dados para acesso rápido
+    const pontosCache = new Map();
+    let rankingBase = null;
+
+    for (const item of rodadasData) {
+      if (item.tipo === 'ranking') {
+        rankingBase = item.data;
+      } else {
+        pontosCache.set(item.rodada, item.data);
+      }
+    }
+
+    if (!Array.isArray(rankingBase) || rankingBase.length < 32) {
+      console.error(
+        `[MATA-FINANCEIRO] Ranking base inválido para ${edicao.nome}`,
+      );
+      return [];
+    }
 
     let vencedoresAnteriores = rankingBase;
     for (const fase of fases) {
@@ -368,10 +405,10 @@ export async function calcularResultadosEdicaoFluxo(
               : fase === "semis"
                 ? 2
                 : 1;
-      const pontosDaRodadaAtual = await getPontosDaRodada(
-        ligaId,
-        rodadaPontosNum,
-      );
+
+      // ✅ USAR CACHE PRÉ-CARREGADO
+      const pontosDaRodadaAtual = pontosCache.get(rodadaPontosNum) || [];
+
       const confrontosFase =
         fase === "primeira"
           ? montarConfrontosPrimeiraFase(rankingBase, pontosDaRodadaAtual)
@@ -435,7 +472,7 @@ export async function calcularResultadosEdicaoFluxo(
     }
 
     console.log(
-      `[MATA-FINANCEIRO] ${edicao.nome}: ${resultadosFinanceiros.length} resultados financeiros calculados`,
+      `[MATA-FINANCEIRO] ${edicao.nome}: ${resultadosFinanceiros.length} resultados`,
     );
     return resultadosFinanceiros;
   } catch (error) {

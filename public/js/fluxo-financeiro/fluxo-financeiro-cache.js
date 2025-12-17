@@ -265,10 +265,11 @@ export class FluxoFinanceiroCache {
     }
 
     // ===================================================================
-    // INICIALIZAÇÃO (OTIMIZADA COM PRÉ-CARREGAMENTO)
+    // INICIALIZAÇÃO (LAZY LOADING - carrega módulos sob demanda)
     // ===================================================================
     async inicializar(ligaId) {
         console.log("[FLUXO-CACHE] 🚀 Inicializando cache para liga:", ligaId);
+        const startTime = performance.now();
 
         this.ligaId = ligaId || obterLigaId();
 
@@ -279,11 +280,11 @@ export class FluxoFinanceiroCache {
 
         window.ligaId = this.ligaId;
 
-        // ✅ Buscar status do mercado uma vez
-        await this._buscarStatusMercado();
-
-        // ✅ NOVO v4.1: Buscar módulos ativos da liga
-        await this._buscarModulosAtivos();
+        // ✅ FASE 1: Buscar configs em PARALELO (essenciais)
+        await Promise.all([
+            this._buscarStatusMercado(),
+            this._buscarModulosAtivos(),
+        ]);
 
         console.log("[FLUXO-CACHE] ✅ ligaId confirmado:", this.ligaId);
 
@@ -298,21 +299,40 @@ export class FluxoFinanceiroCache {
             `[FLUXO-CACHE] 📊 Rodada atual: ${rodadaAtual}, Mercado: ${mercadoAberto ? "aberto" : "fechado"}, Última completa: ${this.ultimaRodadaCompleta}`,
         );
 
-        // Carregar participantes primeiro
+        // ✅ FASE 2: Carregar apenas participantes (essencial para listagem)
         await this.carregarParticipantes();
 
-        // ✅ CRÍTICO: PRÉ-CARREGAR TODAS AS RODADAS EM BATCH (1 requisição!)
-        // Isso popula o cache em memória ANTES dos módulos externos usarem
-        await this.carregarCacheRankingsEmLotes(
-            this.ultimaRodadaCompleta,
-            null,
-        );
+        // ✅ LAZY: Rankings e dados externos serão carregados sob demanda
+        // quando o usuário clicar em um participante para ver extrato
+        this._dadosExternosCarregados = false;
 
-        // Agora sim carregar dados que dependem dos rankings
-        await this.carregarDadosPontosCorridos();
-        await this.carregarDadosExternos();
+        const elapsed = Math.round(performance.now() - startTime);
+        console.log(`[FLUXO-CACHE] ✅ Cache básico inicializado em ${elapsed}ms (lazy loading ativo)`);
+    }
 
-        console.log("[FLUXO-CACHE] ✅ Cache inicializado com sucesso");
+    // ===================================================================
+    // ✅ NOVO: Carregar dados completos sob demanda (lazy loading)
+    // ===================================================================
+    async carregarDadosCompletos() {
+        if (this._dadosExternosCarregados) {
+            console.log("[FLUXO-CACHE] ⚡ Dados já carregados");
+            return;
+        }
+
+        console.log("[FLUXO-CACHE] 🔄 Carregando dados completos (sob demanda)...");
+        const startTime = performance.now();
+
+        // Carregar tudo em paralelo
+        await Promise.all([
+            this.carregarCacheRankingsEmLotes(this.ultimaRodadaCompleta, null),
+            this.carregarDadosPontosCorridos(),
+            this.carregarDadosExternos(),
+        ]);
+
+        this._dadosExternosCarregados = true;
+
+        const elapsed = Math.round(performance.now() - startTime);
+        console.log(`[FLUXO-CACHE] ✅ Dados completos carregados em ${elapsed}ms`);
     }
 
     // ===================================================================
@@ -653,77 +673,67 @@ export class FluxoFinanceiroCache {
     }
 
     // ===================================================================
-    // ✅ CORRIGIDO v4.1: CARREGAR DADOS EXTERNOS (Mata-Mata, Melhor Mês)
-    // Agora verifica se módulos estão ativos antes de carregar
+    // ✅ v5.1: CARREGAR DADOS EXTERNOS EM PARALELO (Mata-Mata, Melhor Mês)
     // ===================================================================
     async carregarDadosExternos() {
-        console.log("[FLUXO-CACHE] Carregando dados externos...");
+        console.log("[FLUXO-CACHE] Carregando dados externos em PARALELO...");
+        const startTime = performance.now();
 
-        // Carregar confrontos de Pontos Corridos
+        // ✅ Preparar promises para execução paralela
+        const promises = [];
+
+        // Promise 1: Confrontos LPC (se não carregado)
         if (!this.cacheConfrontosLPC || this.cacheConfrontosLPC.length === 0) {
-            await this.carregarConfrontosLPC();
+            promises.push(
+                this.carregarConfrontosLPC().then(() => ({ tipo: "lpc" }))
+            );
         }
 
-        // ✅ CORREÇÃO v4.1: Só carregar Mata-Mata se módulo estiver ATIVO
+        // Promise 2: Mata-Mata (se módulo ativo)
         if (this.isModuloAtivo("mata-mata")) {
-            // Invalidar cache do Mata-Mata se versão antiga
+            // Invalidar cache antigo (uma vez)
             const cacheKey = "mataMataFluxo_v2_invalidated";
-            const cacheInvalidado = localStorage.getItem(cacheKey);
-            if (!cacheInvalidado) {
-                console.warn(
-                    "[FLUXO-CACHE] 🔄 Invalidando cache de Mata-Mata (correção 5ª edição)",
-                );
+            if (!localStorage.getItem(cacheKey)) {
                 localStorage.removeItem("mataMataFluxo");
                 localStorage.setItem(cacheKey, "true");
             }
 
-            // Carregar Mata-Mata
-            try {
-                const { getResultadosMataMataFluxo, setRankingFunction } =
-                    await import("../mata-mata/mata-mata-financeiro.js");
-                setRankingFunction(getRankingRodadaEspecifica);
-                console.log(
-                    "[FLUXO-CACHE] ✅ Dependência do Mata-Mata injetada",
-                );
-
-                const resultadosMataMataFluxo =
-                    await getResultadosMataMataFluxo(this.ligaId);
-                this.cacheResultadosMM =
-                    this._processarResultadosMataMataCorrigido(
-                        resultadosMataMataFluxo,
-                    );
-            } catch (error) {
-                console.warn(
-                    "[FLUXO-CACHE] Erro ao carregar Mata-Mata:",
-                    error,
-                );
-                this.cacheResultadosMM = [];
-            }
-        } else {
-            // ✅ Módulo desativado - não carregar e não logar erro
-            console.log(
-                "[FLUXO-CACHE] ℹ️ Mata-Mata desativado para esta liga - pulando",
+            promises.push(
+                this._carregarMataMataAsync().then((result) => ({
+                    tipo: "mata-mata",
+                    data: result,
+                }))
             );
+        } else {
             this.cacheResultadosMM = [];
         }
 
-        // ✅ CORREÇÃO v4.1: Só carregar Melhor Mês se módulo estiver ATIVO
-        let resultadosMelhorMes = [];
-        if (this.isModuloAtivo("melhor-mes")) {
-            resultadosMelhorMes = this.ligaId
-                ? await getResultadosMelhorMes(this.ligaId).catch(() => [])
-                : [];
-        } else {
-            console.log(
-                "[FLUXO-CACHE] ℹ️ Melhor Mês desativado para esta liga - pulando",
+        // Promise 3: Melhor Mês (se módulo ativo)
+        if (this.isModuloAtivo("melhor-mes") && this.ligaId) {
+            promises.push(
+                getResultadosMelhorMes(this.ligaId)
+                    .catch(() => [])
+                    .then((result) => ({ tipo: "melhor-mes", data: result }))
             );
+        } else {
+            this.cacheResultadosMelhorMes = [];
         }
 
-        this.cacheConfrontosLPC = this.cacheConfrontosLPC || [];
-        this.cacheResultadosMelhorMes = Array.isArray(resultadosMelhorMes)
-            ? resultadosMelhorMes
-            : [];
+        // ✅ Executar TODAS em paralelo
+        const results = await Promise.all(promises);
 
+        // Processar resultados
+        for (const result of results) {
+            if (result.tipo === "mata-mata") {
+                this.cacheResultadosMM = result.data || [];
+            } else if (result.tipo === "melhor-mes") {
+                this.cacheResultadosMelhorMes = Array.isArray(result.data)
+                    ? result.data
+                    : [];
+            }
+        }
+
+        // Aplicar filtro de liga especial (se necessário)
         if (this.cacheResultadosMelhorMes.length > 0) {
             try {
                 this.cacheResultadosMelhorMes =
@@ -735,14 +745,34 @@ export class FluxoFinanceiroCache {
             }
         }
 
-        console.log(`[FLUXO-CACHE] Dados externos carregados:`);
-        console.log(`- Confrontos LPC: ${this.cacheConfrontosLPC.length}`);
+        const elapsed = Math.round(performance.now() - startTime);
+        console.log(`[FLUXO-CACHE] Dados externos carregados em ${elapsed}ms:`);
+        console.log(`- Confrontos LPC: ${this.cacheConfrontosLPC?.length || 0}`);
         console.log(
-            `- Mata-Mata: ${this.cacheResultadosMM.length}${!this.isModuloAtivo("mata-mata") ? " (desativado)" : ""}`,
+            `- Mata-Mata: ${this.cacheResultadosMM?.length || 0}${!this.isModuloAtivo("mata-mata") ? " (desativado)" : ""}`,
         );
         console.log(
-            `- Melhor Mês: ${this.cacheResultadosMelhorMes.length}${!this.isModuloAtivo("melhor-mes") ? " (desativado)" : ""}`,
+            `- Melhor Mês: ${this.cacheResultadosMelhorMes?.length || 0}${!this.isModuloAtivo("melhor-mes") ? " (desativado)" : ""}`,
         );
+    }
+
+    // ✅ NOVO: Helper async para carregar Mata-Mata
+    async _carregarMataMataAsync() {
+        try {
+            const { getResultadosMataMataFluxo, setRankingFunction } =
+                await import("../mata-mata/mata-mata-financeiro.js");
+            setRankingFunction(getRankingRodadaEspecifica);
+            console.log("[FLUXO-CACHE] ✅ Dependência do Mata-Mata injetada");
+
+            const resultadosMataMataFluxo =
+                await getResultadosMataMataFluxo(this.ligaId);
+            return this._processarResultadosMataMataCorrigido(
+                resultadosMataMataFluxo,
+            );
+        } catch (error) {
+            console.warn("[FLUXO-CACHE] Erro ao carregar Mata-Mata:", error);
+            return [];
+        }
     }
 
     async carregarConfrontosLPC() {

@@ -439,3 +439,202 @@
     background: var(--gradient-primary) !important;
     box-shadow: var(--shadow-primary-glow) !important;
 }
+
+/* ========================================
+   MODULE TOOLBAR - Layout Dashboard v2.0
+   Toolbar compacto para todos os módulos
+   ======================================== */
+
+.module-dashboard {
+    background: var(--surface-secondary, #1a1a1a);
+    border-radius: var(--radius-lg, 12px);
+    padding: var(--space-4, 16px);
+    border: 1px solid rgba(255, 85, 0, 0.1);
+    position: relative;
+}
+
+.module-dashboard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--color-primary, #FF5500) 0%, transparent 100%);
+}
+
+.module-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Título do Módulo */
+.module-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 600 1.1rem "Inter", -apple-system, sans-serif;
+    color: var(--text-primary, #fff);
+    margin: 0;
+}
+
+.module-title .material-icons {
+    font-size: 22px;
+    color: var(--color-primary, #FF5500);
+}
+
+/* Stats Badges Inline */
+.toolbar-stats {
+    display: flex;
+    gap: 8px;
+}
+
+.stat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary, #888);
+}
+
+.stat-badge .material-icons {
+    font-size: 14px;
+}
+
+.stat-badge.stat-success {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.stat-badge.stat-warning {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+.stat-badge.stat-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+/* Search Inline */
+.search-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 6px 12px;
+    transition: all 0.2s ease;
+}
+
+.search-inline:focus-within {
+    border-color: rgba(255, 85, 0, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.search-inline .material-icons {
+    font-size: 18px;
+    color: #666;
+}
+
+.search-inline input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary, #fff);
+    font-size: 0.85rem;
+    width: 140px;
+}
+
+.search-inline input::placeholder {
+    color: #555;
+}
+
+/* Toolbar Buttons */
+.toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: var(--text-secondary, #888);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.toolbar-btn .material-icons {
+    font-size: 16px;
+}
+
+.toolbar-btn:hover {
+    background: rgba(255, 85, 0, 0.1);
+    border-color: rgba(255, 85, 0, 0.3);
+    color: var(--color-primary, #FF5500);
+}
+
+.toolbar-btn.btn-primary {
+    background: linear-gradient(135deg, #FF5500 0%, #cc4400 100%);
+    border-color: transparent;
+    color: #fff;
+}
+
+.toolbar-btn.btn-primary:hover {
+    background: linear-gradient(135deg, #ff6611 0%, #FF5500 100%);
+}
+
+/* Responsivo Toolbar */
+@media (max-width: 600px) {
+    .module-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .toolbar-left {
+        justify-content: space-between;
+    }
+
+    .toolbar-right {
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .search-inline input {
+        width: 100px;
+    }
+
+    .toolbar-btn .btn-text {
+        display: none;
+    }
+}

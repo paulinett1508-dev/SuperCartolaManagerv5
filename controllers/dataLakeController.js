@@ -133,6 +133,16 @@ export async function sincronizarComGlobo(nomeTime, opcoes = {}) {
     // PASSO 2: Buscar dados COMPLETOS do time
     const dadosCompletos = await buscarDadosCompletosTime(timeId, rodada);
 
+    // ⚠️ Verificar se a API retornou dados válidos do time
+    if (dadosCompletos.game_over === true && !dadosCompletos.time) {
+      console.log(`[DATA-LAKE] ⚠️ API Globo com game_over=true, sem dados do time`);
+      return {
+        success: false,
+        error: 'season_ended',
+        message: 'Temporada do Cartola FC encerrada. A API não retorna mais dados de times individuais.',
+      };
+    }
+
     // PASSO 3: Salvar dump COMPLETO no Data Lake
     const dump = await CartolaOficialDump.salvarDump({
       time_id: timeId,
@@ -240,6 +250,26 @@ export async function sincronizarPorId(timeId, opcoes = {}) {
   try {
     // Buscar dados completos diretamente
     const dadosCompletos = await buscarDadosCompletosTime(timeId, rodada);
+
+    // ⚠️ Verificar se a API retornou dados válidos do time
+    if (dadosCompletos.game_over === true && !dadosCompletos.time) {
+      console.log(`[DATA-LAKE] ⚠️ API Globo com game_over=true, sem dados do time`);
+      return {
+        success: false,
+        error: 'season_ended',
+        message: 'Temporada do Cartola FC encerrada. A API não retorna mais dados de times individuais.',
+      };
+    }
+
+    // Verificar se há dados do time na resposta
+    if (!dadosCompletos.time && !dadosCompletos.nome && !dadosCompletos.time_id) {
+      console.log(`[DATA-LAKE] ⚠️ Resposta da API não contém dados do time`);
+      return {
+        success: false,
+        error: 'no_team_data',
+        message: 'A API não retornou dados do time. Verifique se o ID está correto.',
+      };
+    }
 
     // Salvar dump
     const dump = await CartolaOficialDump.salvarDump({

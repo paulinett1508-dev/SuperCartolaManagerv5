@@ -858,7 +858,13 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                 // ✅ v8.0: Calcular TOP10 histórico na consolidação
                 const top10Habilitado = isModuloHabilitado(liga, 'top10') || liga.modulos_ativos?.top10 !== false;
                 if (top10Habilitado) {
-                    // Remover TOP10 antigos
+                    // ✅ FIX: Subtrair TOP10 antigos do saldo ANTES de remover do array
+                    const top10Antigos = cache.historico_transacoes.filter(
+                        (t) => t.tipo === "MITO" || t.tipo === "MICO"
+                    );
+                    top10Antigos.forEach((t) => (cache.saldo_consolidado -= t.valor));
+
+                    // Remover TOP10 antigos do array
                     cache.historico_transacoes = cache.historico_transacoes.filter(
                         (t) => t.tipo !== "MITO" && t.tipo !== "MICO"
                     );

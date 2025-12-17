@@ -496,20 +496,26 @@ export async function gerarRelatorioMitosMicos() {
 // GESTÃO DE NAVEGAÇÃO E UI
 // ==============================
 
-// Função para voltar à visualização de cards, agora também esconde o relatório
-export function voltarParaCards() {
+/**
+ * Limpa a visualização específica do módulo Rodadas
+ * NÃO sobrescreve window.voltarParaCards - usa a função global do orquestrador
+ */
+export function limparVisaoRodadas() {
   const contentSection = document.getElementById("rodadaContentSection");
   const cardsContainer = document.getElementById("rodadasCards");
   const relatorioSection = document.getElementById("relatorioMitosMicos");
 
   if (contentSection) contentSection.style.display = "none";
-  if (relatorioSection) relatorioSection.style.display = "none"; // Esconde o relatório
+  if (relatorioSection) relatorioSection.style.display = "none";
   if (cardsContainer) {
-    cardsContainer.parentElement.style.display = "block"; // Mostra o container pai dos cards
+    cardsContainer.parentElement.style.display = "block";
   }
 
-  console.log("[RODADAS-ORQUESTRADOR] Voltou para visualização de cards");
+  console.log("[RODADAS-ORQUESTRADOR] Limpou visualização do módulo Rodadas");
 }
+
+// Alias para compatibilidade (uso interno do módulo apenas)
+export const voltarParaCardsRodadas = limparVisaoRodadas;
 
 // Wrapper para a função de seleção de rodada, garantindo que o orquestrador a utilize
 async function selecionarRodadaWrapper(rodada) {
@@ -540,8 +546,9 @@ if (typeof window !== "undefined") {
   // Exposição da função de gerar relatório
   window.gerarRelatorioMitosMicos = gerarRelatorioMitosMicos;
 
-  // Exposição da função de voltar para cards
-  window.voltarParaCards = voltarParaCards;
+  // ✅ NÃO sobrescreve window.voltarParaCards - usa a função global do orquestrador
+  // Expõe apenas a função específica do módulo
+  window.limparVisaoRodadas = limparVisaoRodadas;
 
   // Objeto para debug
   window.rodadasOrquestradorDebug = {
@@ -551,7 +558,7 @@ if (typeof window !== "undefined") {
     getLigaAtual,
     getExportModules,
     isModulosCarregados,
-    voltarParaCards,
+    limparVisaoRodadas,
     selecionarRodadaDebounced: debounce(async (rodada) => {
       // Expondo o debounced também
       await selecionarRodadaWrapper(rodada);

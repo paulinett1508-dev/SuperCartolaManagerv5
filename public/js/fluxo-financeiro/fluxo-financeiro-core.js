@@ -322,7 +322,8 @@ export class FluxoFinanceiroCore {
         await this._carregarLigaConfig(ligaId);
         const hasPontosCorridos = this._isModuloHabilitado('pontos_corridos');
 
-        await this.cache.carregarCacheRankingsEmLotes(rodadaParaCalculo, null);
+        // ✅ LAZY LOADING: Carregar dados completos sob demanda (primeira vez que clica)
+        await this.cache.carregarDadosCompletos();
 
         const camposEditaveis =
             await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);

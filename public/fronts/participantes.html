@@ -1,85 +1,46 @@
-<!-- MÓDULO PARTICIPANTES - Interface Melhorada -->
-<div id="participantes-content" class="module-content">
-    <!-- Header do Módulo -->
-    <div class="participantes-header">
-        <div class="participantes-title-section">
-            <div class="participantes-icon">👥</div>
-            <h2 class="participantes-titulo">Participantes da Liga</h2>
-        </div>
-        <p class="participantes-subtitulo">Membros ativos na competição</p>
-    </div>
-
-    <!-- Estatísticas Compactas -->
-    <div class="participants-stats">
-        <div class="stat-card">
-            <div class="stat-icon">👤</div>
-            <div class="stat-info">
-                <div class="stat-number" id="total-participantes">0</div>
-                <div class="stat-label">Total</div>
+<!-- MÓDULO PARTICIPANTES - Dashboard Layout v2.0 -->
+<div id="participantes-content" class="module-content module-dashboard">
+    <!-- Header Compacto com Stats Inline -->
+    <div class="module-toolbar">
+        <div class="toolbar-left">
+            <h2 class="module-title">
+                <span class="material-icons">groups</span>
+                Participantes
+            </h2>
+            <div class="toolbar-stats">
+                <span class="stat-badge" id="stat-total" title="Total">
+                    <span class="material-icons">person</span>
+                    <span id="total-participantes">0</span>
+                </span>
+                <span class="stat-badge stat-success" id="stat-ativos" title="Ativos">
+                    <span class="material-icons">check_circle</span>
+                    <span id="participantes-ativos">0</span>
+                </span>
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">⚡</div>
-            <div class="stat-info">
-                <div class="stat-number" id="participantes-ativos">0</div>
-                <div class="stat-label">Ativos</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">🆔</div>
-            <div class="stat-info">
-                <div class="stat-number" id="times-diferentes">0</div>
-                <div class="stat-label">Times Únicos</div>
+        <div class="toolbar-right">
+            <div class="search-inline">
+                <span class="material-icons">search</span>
+                <input
+                    type="text"
+                    id="searchParticipantes"
+                    placeholder="Buscar..."
+                    autocomplete="off"
+                />
             </div>
         </div>
     </div>
 
-    <!-- Container Principal com Export e Busca -->
-    <div class="participantes-main-container">
-        <div class="participantes-section">
-            <div class="section-header">
-                <div class="section-icon">📋</div>
-                <h3>Lista de Participantes</h3>
-                <div class="section-actions">
-                    <div class="search-container">
-                        <input
-                            type="text"
-                            id="searchParticipantes"
-                            class="search-input"
-                            placeholder="Buscar participante..."
-                            autocomplete="off"
-                        />
-                        <div class="search-icon">🔍</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Grid de Participantes -->
-            <div id="participantes-grid" class="participantes-grid">
-                <!-- Loading state inicial -->
-                <div class="loading-state-full">
-                    <div class="loading-spinner"></div>
-                    <div class="loading-message">
-                        Carregando dados dos participantes...
-                    </div>
-                </div>
-            </div>
-
-            <!-- Resultado da busca -->
-            <div
-                id="search-results-info"
-                class="search-results-info"
-                style="display: none"
-            >
-                <span id="results-count">0</span> participante(s) encontrado(s)
-            </div>
+    <!-- Grid de Participantes -->
+    <div id="participantes-grid" class="participantes-grid">
+        <div class="loading-state-full">
+            <div class="loading-spinner"></div>
+            <div class="loading-message">Carregando participantes...</div>
         </div>
     </div>
 
-    <!-- Botão Voltar -->
-    <div class="participantes-footer">
-        <button class="btn-voltar" onclick="window.voltarParaCards()">
-            ← Voltar aos Cards
-        </button>
+    <!-- Resultado da busca -->
+    <div id="search-results-info" class="search-results-info" style="display: none">
+        <span id="results-count">0</span> participante(s) encontrado(s)
     </div>
 </div>

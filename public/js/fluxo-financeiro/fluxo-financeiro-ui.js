@@ -3,6 +3,7 @@ import {
     FluxoFinanceiroAuditoria,
     injetarEstilosAuditoria,
 } from "./fluxo-financeiro-auditoria.js";
+import { formatarMoedaBR, parseMoedaBR } from "./fluxo-financeiro-utils.js";
 
 /**
  * FLUXO-FINANCEIRO-UI.JS - v5.4 (SaaS - Config Dinâmica)
@@ -29,10 +30,164 @@ export class FluxoFinanceiroUI {
         this.containerId = "fluxoFinanceiroContent";
         this.buttonsContainerId = "fluxoFinanceiroButtons";
         this.auditoria = null;
+        this.modalId = "modalExtratoFinanceiro";
+        this.participanteAtual = null;
         injetarEstilosAuditoria();
 
         // ✅ v4.3: Detectar modo admin
         this.detectarModoAdmin();
+
+        // ✅ v6.0: Criar modal no DOM
+        this.criarModalExtrato();
+    }
+
+    /**
+     * Cria a estrutura do modal no DOM (apenas uma vez)
+     */
+    criarModalExtrato() {
+        // Se já existe, não criar novamente
+        if (document.getElementById(this.modalId)) {
+            console.log('[FLUXO-UI] Modal já existe no DOM');
+            return;
+        }
+
+        // Aguardar DOM estar pronto
+        if (!document.body) {
+            console.log('[FLUXO-UI] DOM não pronto, agendando criação do modal');
+            document.addEventListener('DOMContentLoaded', () => this.criarModalExtrato());
+            return;
+        }
+
+        console.log('[FLUXO-UI] Criando modal de extrato...');
+        const modal = document.createElement('div');
+        modal.id = this.modalId;
+        modal.className = 'modal-extrato-overlay';
+        modal.innerHTML = `
+            <div class="modal-extrato-container">
+                <div class="modal-extrato-header">
+                    <div class="modal-extrato-header-left">
+                        <img id="modalExtratoAvatar" class="modal-extrato-avatar" src="" alt="">
+                        <div class="modal-extrato-info">
+                            <h3 id="modalExtratoNome">-</h3>
+                            <span id="modalExtratoSubtitulo">Extrato Financeiro</span>
+                        </div>
+                    </div>
+                    <button class="modal-extrato-close" onclick="window.fecharModalExtrato()">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="modal-extrato-body" id="modalExtratoBody">
+                    <!-- Conteúdo do extrato será injetado aqui -->
+                </div>
+                <div class="modal-extrato-footer">
+                    <div class="modal-extrato-footer-left">
+                        <button id="btnModalAcerto" class="btn-modern btn-acerto-gradient" onclick="window.abrirModalAcertoFromExtrato()">
+                            <span class="material-icons" style="font-size: 14px;">payments</span> Acerto
+                        </button>
+                        <button id="btnModalPDF" class="btn-modern btn-pdf-gradient" onclick="window.exportarExtratoPDFFromModal()">
+                            <span class="material-icons" style="font-size: 14px;">picture_as_pdf</span> PDF
+                        </button>
+                    </div>
+                    <div class="modal-extrato-footer-right">
+                        <button id="btnModalAtualizar" class="btn-modern btn-secondary-gradient" onclick="window.atualizarExtratoModal()">
+                            <span class="material-icons" style="font-size: 14px;">refresh</span> Atualizar
+                        </button>
+                        <button id="btnModalLimparCache" class="btn-recalc-cache" onclick="window.limparCacheExtratoModal()">
+                            <span class="material-icons" style="font-size: 14px;">delete_sweep</span> Limpar Cache
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Fechar modal ao clicar fora
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.fecharModalExtrato();
+            }
+        });
+
+        // Fechar com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                this.fecharModalExtrato();
+            }
+        });
+
+        // Expor funções globais para os botões do modal
+        window.fecharModalExtrato = () => this.fecharModalExtrato();
+        window.abrirModalAcertoFromExtrato = () => {
+            if (this.participanteAtual) {
+                const timeId = this.participanteAtual.time_id || this.participanteAtual.id;
+                const nome = (this.participanteAtual.nome || this.participanteAtual.nomeTime || 'Participante').replace(/'/g, "\\'");
+                if (window.abrirModalAcerto) {
+                    window.abrirModalAcerto(timeId, nome);
+                }
+            }
+        };
+        window.exportarExtratoPDFFromModal = () => {
+            if (this.participanteAtual && window.exportarExtratoPDF) {
+                const timeId = this.participanteAtual.time_id || this.participanteAtual.id;
+                window.exportarExtratoPDF(timeId);
+            }
+        };
+        window.atualizarExtratoModal = async () => {
+            if (this.participanteAtual && window.forcarRefreshExtrato) {
+                const timeId = this.participanteAtual.time_id || this.participanteAtual.id;
+                await window.forcarRefreshExtrato(timeId);
+            }
+        };
+        window.limparCacheExtratoModal = async () => {
+            if (this.participanteAtual && window.recalcularCacheParticipante) {
+                const timeId = this.participanteAtual.time_id || this.participanteAtual.id;
+                await window.recalcularCacheParticipante(timeId);
+            }
+        };
+
+        console.log('[FLUXO-UI] Modal de extrato criado');
+    }
+
+    /**
+     * Abre o modal do extrato
+     */
+    abrirModalExtrato(participante) {
+        console.log('[FLUXO-UI] Abrindo modal para:', participante?.nome || participante?.nomeTime);
+        const modal = document.getElementById(this.modalId);
+        if (!modal) {
+            console.error('[FLUXO-UI] Modal não encontrado no DOM!');
+            return;
+        }
+
+        this.participanteAtual = participante;
+
+        // Atualizar header do modal
+        const avatar = document.getElementById('modalExtratoAvatar');
+        const nome = document.getElementById('modalExtratoNome');
+
+        if (avatar) {
+            avatar.src = participante.url_escudo_png || '';
+            avatar.onerror = () => { avatar.style.display = 'none'; };
+            avatar.style.display = participante.url_escudo_png ? 'block' : 'none';
+        }
+        if (nome) {
+            nome.textContent = participante.nome || participante.nomeTime || participante.nome_cartola || 'Participante';
+        }
+
+        // Abrir modal
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    /**
+     * Fecha o modal do extrato
+     */
+    fecharModalExtrato() {
+        const modal = document.getElementById(this.modalId);
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
     }
 
     detectarModoAdmin() {
@@ -52,75 +207,261 @@ export class FluxoFinanceiroUI {
         this.auditoria = auditoria;
     }
 
-    renderizarBotoesParticipantes(participantes) {
+    /**
+     * Renderiza tabela de participantes com dados financeiros completos
+     * v6.0 - Integração com Tesouraria/Prestação de Contas
+     */
+    async renderizarBotoesParticipantes(participantes) {
         const container = document.getElementById(this.buttonsContainerId);
         if (!container) return;
 
-        // Nota: Mantivemos classes inline mínimas aqui pois é um grid flexível que pode variar,
-        // mas o ideal seria mover .participante-card para o CSS também.
+        // Obter ligaId da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const ligaId = urlParams.get("id");
+
+        // Mostrar loading enquanto busca dados de saldo
         container.innerHTML = `
-            <div class="fluxo-controls-header">
-                <div class="fluxo-controls-row">
-                    <button onclick="window.gerarRelatorioFinanceiro()" class="btn-fluxo btn-relatorio">
-                        <span class="material-icons">assessment</span>
-                        <span>Relatório</span>
-                    </button>
-                    <button onclick="window.limparCacheLiga()" class="btn-fluxo btn-limpar" title="Limpar cache de todos os participantes">
-                        <span class="material-icons">delete_sweep</span>
-                        <span>Limpar Cache</span>
-                    </button>
-                    <button onclick="window.recalcularTodosCache()" class="btn-fluxo btn-recalcular" title="Recalcular cache de todos os participantes">
-                        <span class="material-icons">sync</span>
-                        <span>Recalcular</span>
-                    </button>
-                </div>
-                <div class="fluxo-search-row">
-                    <div class="search-container">
-                        <span class="material-icons search-icon">search</span>
-                        <input type="text" id="searchParticipante" placeholder="Pesquisar participante..."
-                               class="input-search"
-                               onkeyup="window.filtrarParticipantes(this.value)">
-                    </div>
-                    <span class="participantes-count">${participantes.length} participantes</span>
+            <div class="module-toolbar">
+                <div class="toolbar-left">
+                    <h2 class="module-title">
+                        <span class="material-icons">account_balance_wallet</span>
+                        Financeiro
+                    </h2>
                 </div>
             </div>
-            <div class="participantes-grid" id="participantesGrid">
-                ${participantes
-                    .map(
-                        (p) => `
-                    <div class="participante-card-wrapper">
-                        <button onclick="window.selecionarParticipante('${p.time_id || p.id}')"
-                                class="participante-card"
-                                data-nome="${(p.nome_cartola || "").toLowerCase()}"
-                                data-time="${(p.nome_time || "").toLowerCase()}">
-                            <div class="participante-header">
-                                <div class="participante-avatar">
-                                    ${
-                                        p.url_escudo_png
-                                            ? `<img src="${p.url_escudo_png}" alt="${p.nome_cartola}">`
-                                            : `<div class="avatar-placeholder"><span class="material-icons" style="font-size: 24px; color: #666;">sports_soccer</span></div>`
-                                    }
-                                </div>
-                                <div class="participante-info">
-                                    <p class="participante-nome">${p.nome_cartola}</p>
-                                    <p class="participante-time">${p.nome_time}</p>
-                                </div>
-                            </div>
-                        </button>
-                        <button onclick="window.abrirAuditoria('${p.time_id || p.id}')" 
-                                class="btn-auditar" title="Auditar financeiro">
-                            <span class="material-icons" style="font-size: 14px;">search</span> Auditar
-                        </button>
-                    </div>
-                `,
-                    )
-                    .join("")}
+            <div class="fluxo-loading-saldos">
+                <div class="loading-spinner"></div>
+                <p>Calculando saldos...</p>
             </div>
         `;
-        window.totalParticipantes = participantes.length;
 
-        // Injetar estilos extras para wrapper
-        this._injetarEstilosWrapper();
+        // Buscar dados de saldo da API de tesouraria
+        let dadosSaldo = null;
+        try {
+            const response = await fetch(`/api/tesouraria/liga/${ligaId}`);
+            if (response.ok) {
+                dadosSaldo = await response.json();
+            }
+        } catch (error) {
+            console.warn("[FLUXO-UI] Erro ao buscar saldos:", error);
+        }
+
+        // Mesclar dados de participantes com dados de saldo
+        const participantesComSaldo = participantes.map(p => {
+            const timeId = String(p.time_id || p.id);
+            const saldoInfo = dadosSaldo?.participantes?.find(s => String(s.timeId) === timeId);
+            return {
+                ...p,
+                saldoTemporada: saldoInfo?.saldoTemporada || 0,
+                saldoAcertos: saldoInfo?.saldoAcertos || 0,
+                saldoFinal: saldoInfo?.saldoFinal || 0,
+                situacao: saldoInfo?.situacao || 'quitado',
+                quantidadeAcertos: saldoInfo?.quantidadeAcertos || 0,
+            };
+        });
+
+        // Ordenar por nome
+        const participantesOrdenados = [...participantesComSaldo].sort((a, b) =>
+            (a.nome_cartola || '').localeCompare(b.nome_cartola || '')
+        );
+
+        // Calcular totais
+        const totais = dadosSaldo?.totais || {
+            totalParticipantes: participantes.length,
+            quantidadeCredores: 0,
+            quantidadeDevedores: 0,
+            quantidadeQuitados: participantes.length,
+            totalAReceber: 0,
+            totalAPagar: 0,
+        };
+
+        // Layout Dashboard com Cards de Resumo + Tabela Expandida
+        container.innerHTML = `
+            <div class="module-toolbar">
+                <div class="toolbar-left">
+                    <h2 class="module-title">
+                        <span class="material-icons">account_balance_wallet</span>
+                        Financeiro
+                    </h2>
+                    <div class="toolbar-stats">
+                        <span class="stat-badge">
+                            <span class="material-icons">people</span>
+                            <span class="participantes-count">${participantes.length}</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="toolbar-right">
+                    <div class="search-inline">
+                        <span class="material-icons">search</span>
+                        <input type="text" id="searchParticipante" placeholder="Buscar..."
+                               onkeyup="window.filtrarParticipantesTabela(this.value)">
+                    </div>
+                    <select id="filtroSituacao" onchange="window.filtrarPorSituacao(this.value)" class="toolbar-select">
+                        <option value="">Todos</option>
+                        <option value="devedor">Devedores</option>
+                        <option value="credor">Credores</option>
+                        <option value="quitado">Quitados</option>
+                    </select>
+                    <button onclick="window.gerarRelatorioFinanceiro()" class="toolbar-btn btn-primary" title="Gerar Relatório">
+                        <span class="material-icons">assessment</span>
+                        <span class="btn-text">Relatório</span>
+                    </button>
+                    <button onclick="window.recarregarFluxoFinanceiro()" class="toolbar-btn" title="Atualizar">
+                        <span class="material-icons">sync</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards de Resumo Financeiro -->
+            <!-- A Pagar = Credores (participantes com saldo positivo, liga deve a eles) -->
+            <!-- A Receber = Devedores (participantes com saldo negativo, devem à liga) -->
+            <div class="fluxo-resumo-cards">
+                <div class="resumo-card card-areceber">
+                    <div class="resumo-icon"><span class="material-icons">trending_up</span></div>
+                    <div class="resumo-info">
+                        <span class="resumo-valor">${formatarMoedaBR(totais.totalAReceber)}</span>
+                        <span class="resumo-label">A Receber</span>
+                    </div>
+                    <span class="resumo-badge">${totais.quantidadeDevedores}</span>
+                </div>
+                <div class="resumo-card card-apagar">
+                    <div class="resumo-icon"><span class="material-icons">trending_down</span></div>
+                    <div class="resumo-info">
+                        <span class="resumo-valor">${formatarMoedaBR(totais.totalAPagar)}</span>
+                        <span class="resumo-label">A Pagar</span>
+                    </div>
+                    <span class="resumo-badge">${totais.quantidadeCredores}</span>
+                </div>
+                <div class="resumo-card card-quitados">
+                    <div class="resumo-icon"><span class="material-icons">check_circle</span></div>
+                    <div class="resumo-info">
+                        <span class="resumo-valor">${totais.quantidadeQuitados}</span>
+                        <span class="resumo-label">Quitados</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela Compacta com Ordenação -->
+            <div class="fluxo-tabela-container">
+                <table class="fluxo-participantes-tabela tabela-compacta">
+                    <thead>
+                        <tr>
+                            <th class="col-num">#</th>
+                            <th class="col-participante sortable" onclick="window.ordenarTabelaFinanceiro('nome')" data-sort="nome">
+                                <span class="th-content"><span class="th-text">Participante</span><span class="material-icons sort-icon">unfold_more</span></span>
+                            </th>
+                            <th class="col-saldo sortable" onclick="window.ordenarTabelaFinanceiro('temporada')" data-sort="temporada">
+                                <span class="th-content th-right"><span class="th-text">Temp</span><span class="material-icons sort-icon">unfold_more</span></span>
+                            </th>
+                            <th class="col-saldo sortable" onclick="window.ordenarTabelaFinanceiro('acertos')" data-sort="acertos">
+                                <span class="th-content th-right"><span class="th-text">Acertos</span><span class="material-icons sort-icon">unfold_more</span></span>
+                            </th>
+                            <th class="col-saldo sortable" onclick="window.ordenarTabelaFinanceiro('saldo')" data-sort="saldo">
+                                <span class="th-content th-right"><span class="th-text">Saldo</span><span class="material-icons sort-icon">unfold_more</span></span>
+                            </th>
+                            <th class="col-situacao sortable" onclick="window.ordenarTabelaFinanceiro('situacao')" data-sort="situacao">
+                                <span class="th-content"><span class="th-text">Status</span><span class="material-icons sort-icon">unfold_more</span></span>
+                            </th>
+                            <th class="col-acoes">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="participantesTableBody">
+                        ${participantesOrdenados.map((p, idx) => this._renderizarLinhaTabela(p, idx, ligaId)).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        window.totalParticipantes = participantes.length;
+        window.participantesFluxo = participantesComSaldo;
+
+        // Injetar estilos
+        this._injetarEstilosTabelaCompacta();
+        this._injetarEstilosTabelaExpandida();
+        this._injetarModalAcerto();
+    }
+
+    /**
+     * Renderiza uma linha compacta da tabela
+     */
+    _renderizarLinhaTabela(p, idx, ligaId) {
+        const timeId = p.time_id || p.id;
+        const saldoTemp = p.saldoTemporada || 0;
+        const saldoAcertos = p.saldoAcertos || 0;
+        const saldoFinal = p.saldoFinal || 0;
+        const situacao = p.situacao || 'quitado';
+
+        const classeSaldoTemp = saldoTemp > 0 ? 'val-positivo' : saldoTemp < 0 ? 'val-negativo' : '';
+        const classeSaldoAcertos = saldoAcertos > 0 ? 'val-positivo' : saldoAcertos < 0 ? 'val-negativo' : '';
+        const classeSaldoFinal = saldoFinal > 0 ? 'val-positivo' : saldoFinal < 0 ? 'val-negativo' : '';
+
+        const statusBadge = {
+            devedor: '<span class="status-badge devedor">Devedor</span>',
+            credor: '<span class="status-badge credor">Credor</span>',
+            quitado: '<span class="status-badge quitado">OK</span>',
+        };
+
+        return `
+            <tr class="linha-participante"
+                data-nome="${(p.nome_cartola || '').toLowerCase()}"
+                data-time="${(p.nome_time || '').toLowerCase()}"
+                data-time-id="${timeId}"
+                data-situacao="${situacao}">
+                <td class="col-num">${idx + 1}</td>
+                <td class="col-participante">
+                    <div class="participante-cell" onclick="window.selecionarParticipante('${timeId}')">
+                        <div class="avatar-mini">
+                            ${p.url_escudo_png
+                                ? `<img src="${p.url_escudo_png}" alt="" onerror="this.style.display='none'">`
+                                : `<span class="material-icons">person</span>`
+                            }
+                        </div>
+                        <div class="info-participante">
+                            <span class="nome">${p.nome_cartola || 'N/D'}</span>
+                            <span class="time">${p.nome_time || '-'}</span>
+                        </div>
+                    </div>
+                </td>
+                <td class="col-saldo ${classeSaldoTemp}">${this._formatarValor(saldoTemp)}</td>
+                <td class="col-saldo ${classeSaldoAcertos}">${this._formatarValor(saldoAcertos)}</td>
+                <td class="col-saldo ${classeSaldoFinal}"><strong>${this._formatarValor(saldoFinal)}</strong></td>
+                <td class="col-situacao">${statusBadge[situacao] || statusBadge.quitado}</td>
+                <td class="col-acoes">
+                    <div class="acoes-grupo">
+                        <button onclick="window.abrirModalAcertoFluxo('${timeId}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}', ${saldoFinal})"
+                                class="btn-acao btn-acerto" title="Acerto">
+                            <span class="material-icons">payments</span>
+                        </button>
+                        <button onclick="window.selecionarParticipante('${timeId}')"
+                                class="btn-acao btn-extrato" title="Extrato">
+                            <span class="material-icons">receipt_long</span>
+                        </button>
+                        <button onclick="window.abrirHistoricoAcertos('${timeId}', '${ligaId}')"
+                                class="btn-acao btn-hist" title="Histórico">
+                            <span class="material-icons">history</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    /**
+     * Formata valor monetário compacto
+     */
+    _formatarValor(valor) {
+        if (Math.abs(valor) < 0.01) return '-';
+        const sinal = valor > 0 ? '+' : '';
+        return `${sinal}${valor.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    }
+
+    /**
+     * Formata saldo de forma compacta
+     */
+    _formatarSaldoCompacto(valor) {
+        if (Math.abs(valor) < 0.01) return '<span class="saldo-zero">R$ 0</span>';
+        const sinal = valor > 0 ? '+' : '';
+        return `${sinal}${formatarMoedaBR(Math.abs(valor))}`;
     }
 
     _injetarEstilosWrapper() {
@@ -314,6 +655,1320 @@ export class FluxoFinanceiroUI {
         document.head.appendChild(style);
     }
 
+    _injetarEstilosTabelaCompacta() {
+        if (document.getElementById("fluxo-tabela-compacta-styles")) return;
+
+        const style = document.createElement("style");
+        style.id = "fluxo-tabela-compacta-styles";
+        style.textContent = `
+            /* ========================================
+               TABELA COMPACTA DE PARTICIPANTES
+               v2.1 - Cores Vivas + Colunas Compactas
+               ======================================== */
+
+            .fluxo-tabela-container {
+                background: #1a1a1a;
+                border: 1px solid rgba(255, 85, 0, 0.25);
+                border-radius: 12px;
+                overflow: hidden;
+                max-height: 500px;
+                overflow-y: auto;
+            }
+
+            /* Scrollbar elegante */
+            .fluxo-tabela-container::-webkit-scrollbar {
+                width: 6px;
+            }
+            .fluxo-tabela-container::-webkit-scrollbar-track {
+                background: #1a1a1a;
+            }
+            .fluxo-tabela-container::-webkit-scrollbar-thumb {
+                background: rgba(255, 85, 0, 0.4);
+                border-radius: 3px;
+            }
+            .fluxo-tabela-container::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 85, 0, 0.6);
+            }
+
+            .fluxo-participantes-tabela {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.9rem;
+                table-layout: fixed;
+            }
+
+            .fluxo-participantes-tabela thead {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .fluxo-participantes-tabela th {
+                background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+                color: #FF5500;
+                font-weight: 700;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                padding: 10px 8px;
+                text-align: left;
+                border-bottom: 2px solid #FF5500;
+            }
+
+            .fluxo-participantes-tabela th.col-num {
+                width: 36px;
+                text-align: center;
+            }
+
+            .fluxo-participantes-tabela th.col-acoes {
+                width: 80px;
+                text-align: center;
+            }
+
+            .fluxo-participantes-tabela th.col-time {
+                width: 140px;
+            }
+
+            /* Linhas da tabela */
+            .participante-row-tabela {
+                transition: all 0.15s ease;
+                border-bottom: 1px solid rgba(255, 85, 0, 0.08);
+            }
+
+            .participante-row-tabela:nth-child(even) {
+                background: rgba(255, 85, 0, 0.03);
+            }
+
+            .participante-row-tabela:hover {
+                background: rgba(255, 85, 0, 0.12);
+            }
+
+            .participante-row-tabela.filtered-hidden {
+                display: none;
+            }
+
+            .participante-row-tabela td {
+                padding: 6px 8px;
+                vertical-align: middle;
+            }
+
+            .participante-row-tabela td.col-num {
+                text-align: center;
+                color: #FF5500;
+                font-size: 0.8rem;
+                font-weight: 600;
+            }
+
+            /* Botão do participante */
+            .participante-btn-tabela {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 4px 6px;
+                border-radius: 6px;
+                transition: all 0.15s ease;
+                width: 100%;
+                text-align: left;
+            }
+
+            .participante-btn-tabela:hover {
+                background: rgba(255, 85, 0, 0.15);
+            }
+
+            .participante-avatar-mini {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: rgba(255, 85, 0, 0.1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                flex-shrink: 0;
+                border: 2px solid rgba(255, 85, 0, 0.4);
+            }
+
+            .participante-avatar-mini img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .participante-avatar-mini .material-icons {
+                font-size: 18px;
+                color: #FF5500;
+            }
+
+            .participante-nome-tabela {
+                color: #fff;
+                font-weight: 600;
+                font-size: 0.9rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .time-nome-tabela {
+                color: #aaa;
+                font-size: 0.85rem;
+                font-weight: 500;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: block;
+            }
+
+            /* Botões de ação - CORES VIVAS */
+            .col-acoes {
+                text-align: center !important;
+            }
+
+            .btn-tabela {
+                width: 30px;
+                height: 30px;
+                border-radius: 6px;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.15s ease;
+                margin: 0 2px;
+            }
+
+            .btn-tabela .material-icons {
+                font-size: 16px;
+            }
+
+            .btn-tabela:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            }
+
+            /* Botão Extrato - Laranja vivo */
+            .btn-extrato {
+                background: linear-gradient(135deg, #FF5500 0%, #cc4400 100%);
+                border: none;
+                color: #fff;
+            }
+            .btn-extrato:hover {
+                background: linear-gradient(135deg, #ff6611 0%, #FF5500 100%);
+            }
+
+            /* Botão Auditar - Azul vivo */
+            .btn-auditar-tabela {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                border: none;
+                color: #fff;
+            }
+            .btn-auditar-tabela:hover {
+                background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            }
+
+            /* Contador de resultados */
+            .fluxo-resultados-busca {
+                padding: 8px 16px;
+                background: rgba(255, 85, 0, 0.05);
+                border-top: 1px solid rgba(255, 85, 0, 0.1);
+                font-size: 0.75rem;
+                color: #888;
+                text-align: center;
+            }
+
+            .fluxo-resultados-busca strong {
+                color: #FF5500;
+            }
+
+            /* Responsivo */
+            @media (max-width: 600px) {
+                .fluxo-participantes-tabela th.col-time,
+                .fluxo-participantes-tabela td.col-time {
+                    display: none;
+                }
+
+                .fluxo-participantes-tabela th.col-num,
+                .fluxo-participantes-tabela td.col-num {
+                    width: 35px;
+                }
+
+                .participante-nome-tabela {
+                    font-size: 0.8rem;
+                }
+
+                .btn-tabela {
+                    width: 28px;
+                    height: 28px;
+                }
+
+                .btn-tabela .material-icons {
+                    font-size: 14px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    /**
+     * Estilos para tabela expandida com saldos e cards de resumo
+     * v6.0 - Integração Tesouraria/Prestação de Contas
+     */
+    _injetarEstilosTabelaExpandida() {
+        if (document.getElementById("fluxo-tabela-expandida-styles")) return;
+
+        const style = document.createElement("style");
+        style.id = "fluxo-tabela-expandida-styles";
+        style.textContent = `
+            /* ========================================
+               TABELA EXPANDIDA + CARDS RESUMO
+               v6.0 - Prestação de Contas Integrada
+               ======================================== */
+
+            /* Loading */
+            .fluxo-loading-saldos {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 60px 20px;
+                gap: 16px;
+            }
+            .fluxo-loading-saldos p {
+                color: #888;
+                font-size: 0.9rem;
+            }
+
+            /* Cards de Resumo */
+            .fluxo-resumo-cards {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .resumo-card {
+                background: #1a1a1a;
+                border-radius: 10px;
+                padding: 14px 16px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                border: 1px solid #2d2d2d;
+                position: relative;
+            }
+
+            .resumo-card.card-apagar {
+                border-color: rgba(239, 68, 68, 0.3);
+            }
+            .resumo-card.card-areceber {
+                border-color: rgba(16, 185, 129, 0.3);
+            }
+            .resumo-card.card-quitados {
+                border-color: rgba(156, 163, 175, 0.3);
+            }
+
+            .resumo-icon {
+                width: 42px;
+                height: 42px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .card-apagar .resumo-icon {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+            .card-areceber .resumo-icon {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+            .card-quitados .resumo-icon {
+                background: rgba(156, 163, 175, 0.15);
+                color: #9ca3af;
+            }
+
+            .resumo-icon .material-icons {
+                font-size: 22px;
+            }
+
+            .resumo-info {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .resumo-valor {
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: #fff;
+            }
+            .card-apagar .resumo-valor { color: #ef4444; }
+            .card-areceber .resumo-valor { color: #10b981; }
+
+            .resumo-label {
+                font-size: 0.7rem;
+                color: #888;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .resumo-badge {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(255,255,255,0.1);
+                color: #fff;
+                font-size: 0.7rem;
+                font-weight: 700;
+                padding: 2px 8px;
+                border-radius: 10px;
+            }
+
+            /* Filtro de Situação */
+            .toolbar-select {
+                background: #1a1a1a;
+                border: 1px solid #333;
+                border-radius: 6px;
+                padding: 8px 12px;
+                color: #fff;
+                font-size: 0.85rem;
+                cursor: pointer;
+                outline: none;
+            }
+            .toolbar-select:focus {
+                border-color: #FF5500;
+            }
+
+            /* Tabela Expandida */
+            .tabela-expandida {
+                table-layout: auto !important;
+            }
+
+            .tabela-expandida th.col-participante {
+                width: auto;
+                min-width: 180px;
+            }
+
+            .tabela-expandida th.col-saldo-temp,
+            .tabela-expandida th.col-saldo-acertos,
+            .tabela-expandida th.col-saldo-final {
+                width: 100px;
+                text-align: right;
+            }
+
+            .tabela-expandida th.col-situacao {
+                width: 95px;
+                text-align: center;
+            }
+
+            .tabela-expandida th.col-acoes-expandida {
+                width: 110px;
+                text-align: center;
+            }
+
+            /* ✅ Cabeçalhos Ordenáveis */
+            .tabela-expandida th.sortable {
+                cursor: pointer;
+                user-select: none;
+                transition: background 0.15s ease;
+                padding: 10px 8px !important;
+            }
+            .tabela-expandida th.sortable:hover {
+                background: rgba(255, 85, 0, 0.1);
+            }
+            .tabela-expandida th.sortable.sorted {
+                background: rgba(255, 85, 0, 0.15);
+            }
+            .tabela-expandida th.sortable.sorted .th-text {
+                color: #FF5500;
+            }
+
+            /* Conteúdo do cabeçalho com flexbox */
+            .tabela-expandida .th-content {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+            .tabela-expandida .th-content.th-right {
+                justify-content: flex-end;
+                width: 100%;
+            }
+            .tabela-expandida .th-content.th-center {
+                justify-content: center;
+                width: 100%;
+            }
+            .tabela-expandida .th-text {
+                white-space: nowrap;
+            }
+
+            /* Ícone de ordenação */
+            .tabela-expandida th .sort-icon {
+                font-size: 14px;
+                opacity: 0.35;
+                transition: all 0.15s ease;
+                flex-shrink: 0;
+            }
+            .tabela-expandida th.sortable:hover .sort-icon {
+                opacity: 0.7;
+            }
+            .tabela-expandida th.sortable.sorted .sort-icon {
+                opacity: 1;
+                color: #FF5500;
+            }
+
+            .tabela-expandida td.col-saldo-temp,
+            .tabela-expandida td.col-saldo-acertos,
+            .tabela-expandida td.col-saldo-final {
+                text-align: right;
+                font-size: 0.85rem;
+                font-family: 'JetBrains Mono', monospace;
+                white-space: nowrap;
+            }
+
+            .tabela-expandida td.col-situacao {
+                text-align: center;
+            }
+
+            .tabela-expandida td.col-acoes-expandida {
+                text-align: center;
+            }
+
+            /* Cores de Saldo */
+            .saldo-positivo {
+                color: #10b981 !important;
+            }
+            .saldo-negativo {
+                color: #ef4444 !important;
+            }
+            .saldo-zero {
+                color: #666;
+            }
+
+            /* Badges de Situação */
+            .situacao-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 8px;
+                border-radius: 20px;
+                font-size: 0.65rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+            .situacao-badge .material-icons {
+                font-size: 12px;
+            }
+
+            .situacao-badge.devedor {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+            .situacao-badge.credor {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+            .situacao-badge.quitado {
+                background: rgba(156, 163, 175, 0.15);
+                color: #9ca3af;
+            }
+
+            /* Info do participante na célula */
+            .participante-info-cell {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                overflow: hidden;
+            }
+            .participante-time-tabela {
+                font-size: 0.7rem;
+                color: #666;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            /* Botão Acerto - Verde */
+            .btn-acerto {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                border: none;
+                color: #fff;
+            }
+            .btn-acerto:hover {
+                background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            }
+
+            /* Botão Histórico - Cinza */
+            .btn-historico {
+                background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+                border: none;
+                color: #fff;
+            }
+            .btn-historico:hover {
+                background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            }
+
+            /* Responsivo */
+            @media (max-width: 900px) {
+                .tabela-expandida th.col-saldo-temp,
+                .tabela-expandida td.col-saldo-temp,
+                .tabela-expandida th.col-saldo-acertos,
+                .tabela-expandida td.col-saldo-acertos {
+                    display: none;
+                }
+            }
+
+            @media (max-width: 600px) {
+                .fluxo-resumo-cards {
+                    grid-template-columns: 1fr 1fr;
+                }
+                .resumo-card {
+                    padding: 10px 12px;
+                }
+                .resumo-valor {
+                    font-size: 1rem;
+                }
+                .tabela-expandida th.col-situacao,
+                .tabela-expandida td.col-situacao {
+                    display: none;
+                }
+            }
+
+            /* ========================================
+               TABELA COMPACTA - Admin Eficiente
+               ======================================== */
+
+            .tabela-compacta {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.8rem;
+            }
+
+            .tabela-compacta th,
+            .tabela-compacta td {
+                padding: 6px 8px;
+                border-bottom: 1px solid #2d2d2d;
+                vertical-align: middle;
+            }
+
+            .tabela-compacta th {
+                background: #1a1a1a;
+                color: #888;
+                font-weight: 600;
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .tabela-compacta .col-num {
+                width: 30px;
+                text-align: center;
+                color: #666;
+            }
+
+            .tabela-compacta .col-participante {
+                min-width: 160px;
+            }
+
+            .tabela-compacta .col-saldo {
+                width: 70px;
+                text-align: right;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.75rem;
+            }
+
+            .tabela-compacta .col-situacao {
+                width: 70px;
+                text-align: center;
+            }
+
+            .tabela-compacta .col-acoes {
+                width: 110px;
+                text-align: center;
+            }
+
+            /* Linha do Participante */
+            .linha-participante {
+                transition: background 0.1s;
+            }
+            .linha-participante:hover {
+                background: rgba(255, 85, 0, 0.03);
+            }
+
+            /* Célula Participante */
+            .participante-cell {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+            }
+
+            .avatar-mini {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background: #2d2d2d;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                overflow: hidden;
+            }
+            .avatar-mini img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+            .avatar-mini .material-icons {
+                font-size: 14px;
+                color: #666;
+            }
+
+            .info-participante {
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+                line-height: 1.2;
+            }
+            .info-participante .nome {
+                font-weight: 500;
+                color: #fff;
+                font-size: 0.8rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .info-participante .time {
+                font-size: 0.65rem;
+                color: #666;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            /* Valores */
+            .val-positivo { color: #10b981; }
+            .val-negativo { color: #ef4444; }
+
+            /* Status Badge Compacto */
+            .status-badge {
+                display: inline-block;
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-size: 0.65rem;
+                font-weight: 600;
+            }
+            .status-badge.devedor {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+            .status-badge.credor {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+            .status-badge.quitado {
+                background: rgba(156, 163, 175, 0.15);
+                color: #9ca3af;
+            }
+
+            /* Grupo de Ações - SEMPRE HORIZONTAL */
+            .acoes-grupo {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                white-space: nowrap;
+            }
+
+            .btn-acao {
+                width: 28px;
+                height: 28px;
+                min-width: 28px;
+                border-radius: 4px;
+                border: none;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+                flex-shrink: 0;
+            }
+            .btn-acao .material-icons {
+                font-size: 16px;
+            }
+            .btn-acao:hover {
+                opacity: 0.8;
+            }
+
+            .btn-acerto { background: #f59e0b; }
+            .btn-extrato { background: #3b82f6; }
+            .btn-hist { background: #6b7280; }
+
+            /* Responsivo */
+            @media (max-width: 768px) {
+                .tabela-compacta .col-saldo:nth-child(3),
+                .tabela-compacta .col-saldo:nth-child(4) {
+                    display: none;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    /**
+     * Injetar modal de acerto financeiro
+     */
+    _injetarModalAcerto() {
+        if (document.getElementById("modal-acerto-fluxo")) return;
+
+        const modalHtml = `
+            <div class="modal-overlay-fluxo" id="modal-acerto-fluxo">
+                <div class="modal-content-fluxo">
+                    <div class="modal-header-fluxo">
+                        <h3>
+                            <span class="material-icons" style="color: #10b981;">payments</span>
+                            Registrar Acerto
+                        </h3>
+                        <button class="modal-close-fluxo" onclick="window.fecharModalAcerto()">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+                    <div class="modal-body-fluxo">
+                        <div class="modal-participante-info-fluxo">
+                            <div class="info">
+                                <h4 id="acertoNomeParticipante">-</h4>
+                                <span id="acertoSaldoAtual">Saldo: R$ 0,00</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group-fluxo">
+                            <label>Tipo de Acerto</label>
+                            <div class="tipo-acerto-btns">
+                                <button type="button" class="tipo-btn pagamento active" onclick="window.selecionarTipoAcerto('pagamento')">
+                                    <span class="material-icons">arrow_downward</span>
+                                    Pagamento
+                                </button>
+                                <button type="button" class="tipo-btn recebimento" onclick="window.selecionarTipoAcerto('recebimento')">
+                                    <span class="material-icons">arrow_upward</span>
+                                    Recebimento
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-zerar-saldo-fluxo" id="btnZerarSaldoFluxo" onclick="window.zerarSaldoFluxo()" style="display: none;">
+                            <span class="material-icons">balance</span>
+                            Preencher valor para zerar saldo
+                        </button>
+
+                        <div class="form-group-fluxo">
+                            <label>Valor (R$)</label>
+                            <input type="number" id="acertoValor" step="0.01" min="0.01" placeholder="0,00">
+                        </div>
+
+                        <div class="form-group-fluxo">
+                            <label>Método</label>
+                            <select id="acertoMetodo">
+                                <option value="pix">PIX</option>
+                                <option value="transferencia">Transferência</option>
+                                <option value="dinheiro">Dinheiro</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group-fluxo">
+                            <label>Descrição</label>
+                            <input type="text" id="acertoDescricao" placeholder="Ex: Acerto mensalidade">
+                        </div>
+                    </div>
+                    <div class="modal-footer-fluxo">
+                        <button class="btn-cancelar-fluxo" onclick="window.fecharModalAcerto()">Cancelar</button>
+                        <button class="btn-confirmar-fluxo" onclick="window.confirmarAcertoFluxo()">
+                            <span class="material-icons">check</span>
+                            Registrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        this._injetarEstilosModal();
+        this._registrarFuncoesGlobaisAcerto();
+    }
+
+    /**
+     * Estilos do modal de acerto
+     */
+    _injetarEstilosModal() {
+        if (document.getElementById("fluxo-modal-acerto-styles")) return;
+
+        const style = document.createElement("style");
+        style.id = "fluxo-modal-acerto-styles";
+        style.textContent = `
+            .modal-overlay-fluxo {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.85);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+            }
+            .modal-overlay-fluxo.active {
+                display: flex;
+            }
+
+            .modal-content-fluxo {
+                background: #1a1a1a;
+                border-radius: 12px;
+                border: 1px solid #333;
+                width: 90%;
+                max-width: 420px;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            .modal-header-fluxo {
+                padding: 16px 20px;
+                border-bottom: 1px solid #333;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .modal-header-fluxo h3 {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #fff;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .modal-close-fluxo {
+                background: none;
+                border: none;
+                color: #666;
+                cursor: pointer;
+                padding: 4px;
+            }
+            .modal-close-fluxo:hover {
+                color: #fff;
+            }
+
+            .modal-body-fluxo {
+                padding: 20px;
+            }
+
+            .modal-participante-info-fluxo {
+                background: #252525;
+                border-radius: 8px;
+                padding: 12px 16px;
+                margin-bottom: 16px;
+            }
+            .modal-participante-info-fluxo h4 {
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: #fff;
+                margin: 0 0 4px 0;
+            }
+            .modal-participante-info-fluxo span {
+                font-size: 0.8rem;
+                color: #888;
+            }
+
+            .form-group-fluxo {
+                margin-bottom: 16px;
+            }
+            .form-group-fluxo label {
+                display: block;
+                font-size: 0.8rem;
+                font-weight: 500;
+                color: #888;
+                margin-bottom: 6px;
+            }
+            .form-group-fluxo input,
+            .form-group-fluxo select {
+                width: 100%;
+                background: #252525;
+                border: 1px solid #333;
+                border-radius: 6px;
+                padding: 10px 12px;
+                font-size: 0.9rem;
+                color: #fff;
+                outline: none;
+                box-sizing: border-box;
+            }
+            .form-group-fluxo input:focus,
+            .form-group-fluxo select:focus {
+                border-color: #FF5500;
+            }
+
+            .tipo-acerto-btns {
+                display: flex;
+                gap: 10px;
+            }
+            .tipo-btn {
+                flex: 1;
+                padding: 12px;
+                border-radius: 8px;
+                border: 2px solid #333;
+                background: transparent;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                color: #888;
+                font-size: 0.8rem;
+                font-weight: 600;
+                transition: all 0.2s ease;
+            }
+            .tipo-btn .material-icons {
+                font-size: 22px;
+            }
+            .tipo-btn:hover {
+                border-color: #555;
+            }
+            .tipo-btn.pagamento.active {
+                border-color: #10b981;
+                background: rgba(16, 185, 129, 0.1);
+                color: #10b981;
+            }
+            .tipo-btn.recebimento.active {
+                border-color: #ef4444;
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+            }
+
+            .btn-zerar-saldo-fluxo {
+                width: 100%;
+                background: rgba(59, 130, 246, 0.1);
+                color: #3b82f6;
+                border: 1px dashed #3b82f6;
+                border-radius: 6px;
+                padding: 10px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                cursor: pointer;
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+            }
+            .btn-zerar-saldo-fluxo:hover {
+                background: rgba(59, 130, 246, 0.2);
+            }
+            .btn-zerar-saldo-fluxo .material-icons {
+                font-size: 18px;
+            }
+
+            .modal-footer-fluxo {
+                padding: 16px 20px;
+                border-top: 1px solid #333;
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+            }
+            .btn-cancelar-fluxo {
+                padding: 10px 20px;
+                border-radius: 6px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                cursor: pointer;
+                background: #333;
+                border: none;
+                color: #888;
+            }
+            .btn-confirmar-fluxo {
+                padding: 10px 20px;
+                border-radius: 6px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                cursor: pointer;
+                background: #10b981;
+                border: none;
+                color: #fff;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .btn-confirmar-fluxo:hover {
+                background: #059669;
+            }
+            .btn-confirmar-fluxo .material-icons {
+                font-size: 18px;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    /**
+     * Registrar funções globais para o modal de acerto
+     */
+    _registrarFuncoesGlobaisAcerto() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const ligaId = urlParams.get("id");
+
+        let timeIdAtual = null;
+        let saldoAtual = 0;
+        let tipoAcertoAtual = 'pagamento';
+
+        // Abrir modal
+        window.abrirModalAcertoFluxo = (timeId, nome, saldo) => {
+            timeIdAtual = timeId;
+            saldoAtual = saldo;
+
+            document.getElementById('acertoNomeParticipante').textContent = nome;
+
+            const saldoTexto = saldo >= 0
+                ? `Credor: +${formatarMoedaBR(saldo)}`
+                : `Devedor: -${formatarMoedaBR(Math.abs(saldo))}`;
+            document.getElementById('acertoSaldoAtual').textContent = saldoTexto;
+            document.getElementById('acertoSaldoAtual').style.color = saldo >= 0 ? '#10b981' : '#ef4444';
+
+            // Mostrar botão zerar se tiver saldo
+            const btnZerar = document.getElementById('btnZerarSaldoFluxo');
+            btnZerar.style.display = Math.abs(saldo) > 0.01 ? 'flex' : 'none';
+
+            // Reset form
+            document.getElementById('acertoValor').value = '';
+            document.getElementById('acertoDescricao').value = '';
+            document.getElementById('acertoMetodo').value = 'pix';
+            window.selecionarTipoAcerto('pagamento');
+
+            document.getElementById('modal-acerto-fluxo').classList.add('active');
+        };
+
+        // Fechar modal
+        window.fecharModalAcerto = () => {
+            document.getElementById('modal-acerto-fluxo').classList.remove('active');
+        };
+
+        // Selecionar tipo
+        window.selecionarTipoAcerto = (tipo) => {
+            tipoAcertoAtual = tipo;
+            document.querySelectorAll('.tipo-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.classList.contains(tipo)) {
+                    btn.classList.add('active');
+                }
+            });
+        };
+
+        // Zerar saldo
+        window.zerarSaldoFluxo = () => {
+            if (Math.abs(saldoAtual) < 0.01) return;
+
+            if (saldoAtual < 0) {
+                // Devedor: precisa pagar
+                window.selecionarTipoAcerto('pagamento');
+                document.getElementById('acertoValor').value = Math.abs(saldoAtual).toFixed(2);
+                document.getElementById('acertoDescricao').value = 'Quitação de dívida';
+            } else {
+                // Credor: precisa receber
+                window.selecionarTipoAcerto('recebimento');
+                document.getElementById('acertoValor').value = saldoAtual.toFixed(2);
+                document.getElementById('acertoDescricao').value = 'Resgate de crédito';
+            }
+        };
+
+        // Confirmar acerto
+        window.confirmarAcertoFluxo = async () => {
+            const valor = parseFloat(document.getElementById('acertoValor').value);
+            const descricao = document.getElementById('acertoDescricao').value;
+            const metodo = document.getElementById('acertoMetodo').value;
+
+            if (!valor || isNaN(valor) || valor <= 0) {
+                alert('Informe um valor válido');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/tesouraria/acerto', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ligaId,
+                        timeId: timeIdAtual,
+                        tipo: tipoAcertoAtual,
+                        valor,
+                        descricao: descricao || `Acerto via Fluxo Financeiro - ${tipoAcertoAtual}`,
+                        metodoPagamento: metodo,
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                window.fecharModalAcerto();
+
+                let msg = data.message;
+                if (data.troco) {
+                    msg += `\n\n${data.troco.mensagem}`;
+                }
+                alert(msg);
+
+                // Recarregar módulo
+                if (window.recarregarFluxoFinanceiro) {
+                    window.recarregarFluxoFinanceiro();
+                }
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        };
+
+        // Filtrar por situação
+        window.filtrarPorSituacao = (situacao) => {
+            const rows = document.querySelectorAll('.participante-row-tabela');
+            rows.forEach(row => {
+                if (!situacao || row.dataset.situacao === situacao) {
+                    row.classList.remove('filtered-hidden');
+                } else {
+                    row.classList.add('filtered-hidden');
+                }
+            });
+        };
+
+        // ✅ Estado de ordenação
+        window._sortState = { coluna: 'nome', direcao: 'asc' };
+        window._fluxoUI = this;
+        window._fluxoLigaId = ligaId;
+
+        // Ordenar tabela financeira
+        window.ordenarTabelaFinanceiro = (coluna) => {
+            const state = window._sortState;
+
+            // Se clicou na mesma coluna, inverte direção
+            if (state.coluna === coluna) {
+                state.direcao = state.direcao === 'asc' ? 'desc' : 'asc';
+            } else {
+                state.coluna = coluna;
+                state.direcao = 'asc';
+            }
+
+            // Ordenar participantes
+            const participantes = window.participantesFluxo || [];
+            const ordenados = [...participantes].sort((a, b) => {
+                let valorA, valorB;
+
+                switch (coluna) {
+                    case 'nome':
+                        valorA = (a.nome_cartola || '').toLowerCase();
+                        valorB = (b.nome_cartola || '').toLowerCase();
+                        return state.direcao === 'asc'
+                            ? valorA.localeCompare(valorB)
+                            : valorB.localeCompare(valorA);
+
+                    case 'temporada':
+                        valorA = a.saldoTemporada || 0;
+                        valorB = b.saldoTemporada || 0;
+                        break;
+
+                    case 'acertos':
+                        valorA = a.saldoAcertos || 0;
+                        valorB = b.saldoAcertos || 0;
+                        break;
+
+                    case 'saldo':
+                        valorA = a.saldoFinal || 0;
+                        valorB = b.saldoFinal || 0;
+                        break;
+
+                    case 'situacao':
+                        const ordem = { devedor: 1, credor: 2, quitado: 3 };
+                        valorA = ordem[a.situacao] || 3;
+                        valorB = ordem[b.situacao] || 3;
+                        break;
+
+                    default:
+                        return 0;
+                }
+
+                // Ordenação numérica
+                if (state.direcao === 'asc') {
+                    return valorA - valorB;
+                } else {
+                    return valorB - valorA;
+                }
+            });
+
+            // Re-renderizar tbody
+            const tbody = document.getElementById('participantesTableBody');
+            if (tbody && window._fluxoUI) {
+                tbody.innerHTML = ordenados.map((p, idx) =>
+                    window._fluxoUI._renderizarLinhaExpandida(p, idx, window._fluxoLigaId)
+                ).join('');
+            }
+
+            // Atualizar ícones dos cabeçalhos
+            document.querySelectorAll('.sortable').forEach(th => {
+                const icon = th.querySelector('.sort-icon');
+                const sortCol = th.dataset.sort;
+
+                if (sortCol === coluna) {
+                    th.classList.add('sorted');
+                    icon.textContent = state.direcao === 'asc' ? 'arrow_upward' : 'arrow_downward';
+                } else {
+                    th.classList.remove('sorted');
+                    icon.textContent = 'unfold_more';
+                }
+            });
+
+            // Reaplicar filtro de situação se ativo
+            const filtroAtual = document.getElementById('filtroSituacao')?.value;
+            if (filtroAtual) {
+                window.filtrarPorSituacao(filtroAtual);
+            }
+        };
+
+        // Histórico de acertos
+        window.abrirHistoricoAcertos = async (timeId, ligaIdParam) => {
+            try {
+                const response = await fetch(`/api/tesouraria/participante/${ligaIdParam}/${timeId}`);
+                const data = await response.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                const acertos = data.acertos || [];
+                if (acertos.length === 0) {
+                    alert('Nenhum acerto registrado para este participante.');
+                    return;
+                }
+
+                let texto = `📋 HISTÓRICO DE ACERTOS\n${data.participante.nomeTime}\n\n`;
+                acertos.forEach(a => {
+                    const dataFormatada = new Date(a.dataAcerto).toLocaleDateString('pt-BR');
+                    const sinal = a.tipo === 'pagamento' ? '+' : '-';
+                    texto += `${dataFormatada} | ${sinal}R$ ${a.valor.toFixed(2)} | ${a.descricao}\n`;
+                });
+
+                alert(texto);
+            } catch (error) {
+                alert('Erro ao carregar histórico: ' + error.message);
+            }
+        };
+
+        // Recarregar módulo
+        window.recarregarFluxoFinanceiro = () => {
+            if (window.fluxoFinanceiroOrquestrador?.recarregar) {
+                window.fluxoFinanceiroOrquestrador.recarregar();
+            } else {
+                // Fallback: reload da página
+                location.reload();
+            }
+        };
+    }
+
     renderizarMensagemInicial() {
         const container = document.getElementById(this.containerId);
         if (container)
@@ -343,7 +1998,7 @@ export class FluxoFinanceiroUI {
 
         const classeCor = valorNum > 0 ? "text-success" : "text-danger";
         const sinal = valorNum > 0 ? "+" : "";
-        return `<span class="${classeCor} font-semibold">${sinal}R$ ${valorNum.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>`;
+        return `<span class="${classeCor} font-semibold">${sinal}${formatarMoedaBR(Math.abs(valorNum))}</span>`;
     }
 
     formatarTop10Cell(rodada) {
@@ -370,7 +2025,7 @@ export class FluxoFinanceiroUI {
         return `
             <div class="${classeContainer}">
                 <span class="${classeTexto} font-bold" style="font-size: 8px;">${icone} ${ordinal} ${isMito ? "MAIOR" : "PIOR"}</span>
-                <span class="${classeTexto} font-semibold" style="font-size: 10px;">${valor > 0 ? "+" : ""}R$ ${Math.abs(valor).toFixed(2)}</span>
+                <span class="${classeTexto} font-semibold" style="font-size: 10px;">${valor > 0 ? "+" : "-"}${formatarMoedaBR(Math.abs(valor))}</span>
             </div>
         `;
     }
@@ -426,8 +2081,19 @@ export class FluxoFinanceiroUI {
     // --- RENDER PRINCIPAL ---
 
     async renderizarExtratoFinanceiro(extrato, participante = null) {
-        const container = document.getElementById(this.containerId);
-        if (!container) return;
+        // ✅ v6.0: Garantir que o modal existe
+        this.criarModalExtrato();
+
+        // ✅ v6.0: Renderizar no MODAL em vez de inline
+        const modalBody = document.getElementById('modalExtratoBody');
+        console.log('[FLUXO-UI] modalExtratoBody encontrado:', !!modalBody);
+
+        // Fallback para container inline se modal não existir
+        const container = modalBody || document.getElementById(this.containerId);
+        if (!container) {
+            console.error('[FLUXO-UI] Nenhum container encontrado para renderizar extrato');
+            return;
+        }
 
         // ✅ DEBUG: Verificar estrutura do extrato
         console.log(`[FLUXO-UI] 📊 Renderizando extrato:`, {
@@ -435,6 +2101,7 @@ export class FluxoFinanceiroUI {
             qtdRodadas: extrato?.rodadas?.length || 0,
             primeiraRodada: extrato?.rodadas?.[0],
             resumo: extrato?.resumo,
+            renderizandoEmModal: !!modalBody,
         });
 
         // ✅ VALIDAÇÃO: Garantir que rodadas existe e é array
@@ -451,6 +2118,11 @@ export class FluxoFinanceiroUI {
                         <span class="material-icons" style="font-size: 14px;">refresh</span> Forçar Atualização
                     </button>
                 </div>`;
+
+            // Abrir modal mesmo com erro
+            if (modalBody && participante) {
+                this.abrirModalExtrato(participante);
+            }
             return;
         }
 
@@ -472,55 +2144,28 @@ export class FluxoFinanceiroUI {
                   ? '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">payments</span> Saldo a Pagar'
                   : '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">check_circle</span> Saldo Quitado';
 
-        // ✅ v5.3: Nome escapado para uso no onclick
-        const nomeParticipante = (participante.nome || participante.nomeTime || 'Participante').replace(/'/g, "\\'");
-
+        // ✅ v6.0: HTML simplificado para o modal (sem botões no header, agora no footer do modal)
         let html = `
         <div class="extrato-container fadeIn">
-            <div class="extrato-header-card">
-                <div style="position: absolute; top: 16px; left: 16px;">
-                    ${
-                        participante.url_escudo_png
-                            ? `<img src="${participante.url_escudo_png}" class="avatar-lg">`
-                            : `<div class="avatar-placeholder-lg"><span class="material-icons" style="font-size: 32px; color: #666;">sports_soccer</span></div>`
-                    }
+            <!-- Card de Saldo Principal -->
+            <div class="extrato-header-card" style="position: relative; padding: 24px;">
+                <div class="text-muted font-bold text-uppercase" style="font-size: 11px;">${labelSaldo}</div>
+                <div class="saldo-display ${classeSaldo}">
+                    R$ ${Math.abs(saldoFinal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                 </div>
 
-                <!-- ✅ v5.3: Botões Atualizar + Limpar Cache + Exportar PDF + Registrar Acerto -->
-                <div style="position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
-                    <button onclick="window.abrirModalAcerto('${timeId}', '${nomeParticipante}')" class="btn-modern btn-acerto-gradient" title="Registrar pagamento ou recebimento">
-                        <span class="material-icons" style="font-size: 14px;">payments</span> Acerto
-                    </button>
-                    <button onclick="window.exportarExtratoPDF('${timeId}')" class="btn-modern btn-pdf-gradient" title="Exportar extrato em PDF">
-                        <span class="material-icons" style="font-size: 14px;">picture_as_pdf</span> PDF
-                    </button>
-                    <button onclick="window.forcarRefreshExtrato('${timeId}')" class="btn-modern btn-secondary-gradient" title="Atualizar dados">
-                        <span class="material-icons" style="font-size: 14px;">refresh</span> Atualizar
-                    </button>
-                    <button id="btnRecalcCache-${timeId}" onclick="window.recalcularCacheParticipante('${timeId}')" class="btn-recalc-cache" title="Limpar cache MongoDB e recalcular do zero">
-                        <span class="material-icons" style="font-size: 14px;">delete_sweep</span> Limpar Cache
-                    </button>
-                </div>
+                ${extrato.updatedAt ? `<div class="text-muted" style="font-size: 9px; margin-top: 8px;">Atualizado: ${new Date(extrato.updatedAt).toLocaleString()}</div>` : ""}
 
-                <div style="padding: 20px 0;">
-                    <div class="text-muted font-bold text-uppercase" style="font-size: 11px;">${labelSaldo}</div>
-                    <div class="saldo-display ${classeSaldo}">
-                        R$ ${Math.abs(saldoFinal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </div>
-
-                    ${extrato.updatedAt ? `<div class="text-muted" style="font-size: 9px; margin-top: 8px;">Atualizado: ${new Date(extrato.updatedAt).toLocaleString()}</div>` : ""}
-
-                    <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
-                        <button onclick="window.mostrarDetalhamentoGanhos()" class="btn-modern btn-success-gradient"><span class="material-icons" style="font-size: 14px;">trending_up</span> GANHOS</button>
-                        <button onclick="window.mostrarDetalhamentoPerdas()" class="btn-modern btn-danger-gradient"><span class="material-icons" style="font-size: 14px;">trending_down</span> PERDAS</button>
-                    </div>
+                <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+                    <button onclick="window.mostrarDetalhamentoGanhos()" class="btn-modern btn-success-gradient"><span class="material-icons" style="font-size: 14px;">trending_up</span> GANHOS</button>
+                    <button onclick="window.mostrarDetalhamentoPerdas()" class="btn-modern btn-danger-gradient"><span class="material-icons" style="font-size: 14px;">trending_down</span> PERDAS</button>
                 </div>
             </div>
 
             ${camposEditaveisHTML}
 
             <div class="card-padrao">
-                <h3 class="card-titulo"><span class="material-icons" style="font-size: 16px;">receipt_long</span> Detalhamento</h3>
+                <h3 class="card-titulo"><span class="material-icons" style="font-size: 16px;">receipt_long</span> Detalhamento por Rodada</h3>
                 <div class="table-responsive">
                     <table class="table-modern">
                         <thead>
@@ -569,6 +2214,15 @@ export class FluxoFinanceiroUI {
         `;
 
         container.innerHTML = html;
+
+        // ✅ v6.0: Abrir o modal automaticamente (verificar novamente após render)
+        const modalAtivo = document.getElementById('modalExtratoBody');
+        if (modalAtivo && participante) {
+            console.log('[FLUXO-UI] Chamando abrirModalExtrato...');
+            this.abrirModalExtrato(participante);
+        } else {
+            console.log('[FLUXO-UI] Modal não aberto:', { modalAtivo: !!modalAtivo, participante: !!participante });
+        }
     }
 
     async renderizarCamposEditaveis(timeId) {
@@ -728,19 +2382,19 @@ export class FluxoFinanceiroUI {
                 <div class="relatorio-resumo">
                     <div class="resumo-item positivo">
                         <span class="resumo-label">Total Bonus</span>
-                        <span class="resumo-valor">R$ ${totalBonus.toFixed(2).replace('.', ',')}</span>
+                        <span class="resumo-valor">${formatarMoedaBR(totalBonus)}</span>
                     </div>
                     <div class="resumo-item negativo">
                         <span class="resumo-label">Total Onus</span>
-                        <span class="resumo-valor">R$ ${totalOnus.toFixed(2).replace('.', ',')}</span>
+                        <span class="resumo-valor">${formatarMoedaBR(totalOnus)}</span>
                     </div>
                     <div class="resumo-item">
                         <span class="resumo-label">Pontos Corridos</span>
-                        <span class="resumo-valor">R$ ${totalPC.toFixed(2).replace('.', ',')}</span>
+                        <span class="resumo-valor">${formatarMoedaBR(totalPC)}</span>
                     </div>
                     <div class="resumo-item">
                         <span class="resumo-label">Mata-Mata</span>
-                        <span class="resumo-valor">R$ ${totalMM.toFixed(2).replace('.', ',')}</span>
+                        <span class="resumo-valor">${formatarMoedaBR(totalMM)}</span>
                     </div>
                 </div>
 
@@ -793,7 +2447,7 @@ export class FluxoFinanceiroUI {
                                     <td class="col-valor">${(p.melhorMes || 0).toFixed(0)}</td>
                                     <td class="col-valor">${(p.ajustes || 0).toFixed(0)}</td>
                                     <td class="col-saldo ${p.saldoFinal >= 0 ? 'positivo' : 'negativo'}">
-                                        R$ ${p.saldoFinal.toFixed(2).replace('.', ',')}
+                                        ${formatarMoedaBR(p.saldoFinal)}
                                     </td>
                                 </tr>
                             `).join('')}
@@ -807,7 +2461,7 @@ export class FluxoFinanceiroUI {
                                 <td class="col-valor"><strong>${totalMM.toFixed(0)}</strong></td>
                                 <td class="col-valor"><strong>${totalMelhorMes.toFixed(0)}</strong></td>
                                 <td class="col-valor"><strong>${totalAjustes.toFixed(0)}</strong></td>
-                                <td class="col-saldo"><strong>R$ ${totalSaldo.toFixed(2).replace('.', ',')}</strong></td>
+                                <td class="col-saldo"><strong>${formatarMoedaBR(totalSaldo)}</strong></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1420,7 +3074,7 @@ window.mostrarDetalhamentoGanhos = function () {
                                       (item) => `
                         <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(34,197,94,0.1); border-radius: 8px; border-left: 3px solid #22c55e;">
                             <span style="color: #e2e8f0;">${item.nome}</span>
-                            <span style="color: #22c55e; font-weight: 600;">+R$ ${item.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                            <span style="color: #22c55e; font-weight: 600;">+${formatarMoedaBR(item.valor)}</span>
                         </div>
                     `,
                                   )
@@ -1431,7 +3085,7 @@ window.mostrarDetalhamentoGanhos = function () {
 
                 <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
                     <span style="color: #94a3b8; font-weight: 600;">TOTAL GANHOS:</span>
-                    <span style="color: #22c55e; font-weight: 700; font-size: 18px;">+R$ ${total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                    <span style="color: #22c55e; font-weight: 700; font-size: 18px;">+${formatarMoedaBR(total)}</span>
                 </div>
             </div>
         </div>
@@ -1512,7 +3166,7 @@ window.mostrarDetalhamentoPerdas = function () {
                                       (item) => `
                         <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(239,68,68,0.1); border-radius: 8px; border-left: 3px solid #ef4444;">
                             <span style="color: #e2e8f0;">${item.nome}</span>
-                            <span style="color: #ef4444; font-weight: 600;">-R$ ${item.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                            <span style="color: #ef4444; font-weight: 600;">-${formatarMoedaBR(item.valor)}</span>
                         </div>
                     `,
                                   )
@@ -1523,7 +3177,7 @@ window.mostrarDetalhamentoPerdas = function () {
 
                 <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
                     <span style="color: #94a3b8; font-weight: 600;">TOTAL PERDAS:</span>
-                    <span style="color: #ef4444; font-weight: 700; font-size: 18px;">-R$ ${total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                    <span style="color: #ef4444; font-weight: 700; font-size: 18px;">-${formatarMoedaBR(total)}</span>
                 </div>
             </div>
         </div>
@@ -1930,4 +3584,65 @@ window.exportarExtratoPDF = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-UI] ✅ v5.4 SaaS carregado - config dinâmica para fases");
+// =========================================================================
+// ✅ v6.1: FUNÇÃO GLOBAL PARA FILTRAR PARTICIPANTES (Tabela Compacta)
+// =========================================================================
+window.filtrarParticipantesTabela = function(termo) {
+    const tbody = document.getElementById('participantesTableBody');
+    if (!tbody) return;
+
+    const rows = tbody.querySelectorAll('.linha-participante');
+    const termoLower = (termo || '').toLowerCase().trim();
+    let visiveis = 0;
+
+    rows.forEach(row => {
+        const nome = row.dataset.nome || '';
+        const time = row.dataset.time || '';
+
+        if (!termoLower || nome.includes(termoLower) || time.includes(termoLower)) {
+            row.style.display = '';
+            visiveis++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Atualizar contador
+    const contador = document.querySelector('.participantes-count');
+    if (contador) {
+        const total = window.totalParticipantes || rows.length;
+        contador.textContent = termoLower ? `${visiveis}/${total}` : `${total}`;
+    }
+};
+
+// ✅ v6.1: FILTRAR POR SITUAÇÃO
+window.filtrarPorSituacao = function(situacao) {
+    const tbody = document.getElementById('participantesTableBody');
+    if (!tbody) return;
+
+    const rows = tbody.querySelectorAll('.linha-participante');
+    let visiveis = 0;
+
+    rows.forEach(row => {
+        const rowSituacao = row.dataset.situacao || '';
+
+        if (!situacao || rowSituacao === situacao) {
+            row.style.display = '';
+            visiveis++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Atualizar contador
+    const contador = document.querySelector('.participantes-count');
+    if (contador) {
+        const total = window.totalParticipantes || rows.length;
+        contador.textContent = situacao ? `${visiveis}/${total}` : `${total}`;
+    }
+};
+
+// Manter compatibilidade
+window.filtrarParticipantes = window.filtrarParticipantesTabela;
+
+console.log("[FLUXO-UI] ✅ v6.1 Tabela Compacta carregada");

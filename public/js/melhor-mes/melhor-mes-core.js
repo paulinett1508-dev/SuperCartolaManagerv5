@@ -143,23 +143,34 @@ export class MelhorMesCore {
     return true;
   }
 
-  // PROCESSAR TODAS AS EDIÇÕES
+  // PROCESSAR TODAS AS EDIÇÕES EM PARALELO
   async processarTodasEdicoes() {
-    console.log("[MELHOR-MES-CORE] Processando todas edições...");
+    console.log("[MELHOR-MES-CORE] Processando todas edições em PARALELO...");
+    const startTime = performance.now();
 
+    // ✅ OTIMIZAÇÃO: Processar TODAS as edições em paralelo
+    const promessas = MELHOR_MES_CONFIG.edicoes.map((edicao, index) =>
+      this.processarEdicaoIndividual(edicao, index)
+        .then((resultado) => ({ index, resultado }))
+        .catch((error) => {
+          console.error(
+            `[MELHOR-MES-CORE] Erro ao processar ${edicao.nome}:`,
+            error,
+          );
+          return { index, resultado: this.criarResultadoErro(edicao, error) };
+        })
+    );
+
+    const resultadosArray = await Promise.all(promessas);
+
+    // Converter array para objeto indexado
     const resultados = {};
-
-    for (const [index, edicao] of MELHOR_MES_CONFIG.edicoes.entries()) {
-      try {
-        resultados[index] = await this.processarEdicaoIndividual(edicao, index);
-      } catch (error) {
-        console.error(
-          `[MELHOR-MES-CORE] Erro ao processar ${edicao.nome}:`,
-          error,
-        );
-        resultados[index] = this.criarResultadoErro(edicao, error);
-      }
+    for (const { index, resultado } of resultadosArray) {
+      resultados[index] = resultado;
     }
+
+    const elapsed = Math.round(performance.now() - startTime);
+    console.log(`[MELHOR-MES-CORE] ${MELHOR_MES_CONFIG.edicoes.length} edições processadas em ${elapsed}ms`);
 
     this.dadosProcessados = {
       resultados,

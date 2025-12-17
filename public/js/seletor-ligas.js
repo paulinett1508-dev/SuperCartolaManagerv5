@@ -46,9 +46,9 @@
     criarSeletorLigas(ligas, ligaAtualId);
   }
 
-  // Função para criar o seletor de ligas de forma não intrusiva
+  // Função para criar o seletor de ligas - Design Seamless Dark Mode v3.0
   function criarSeletorLigas(ligas, ligaAtualId) {
-    // Encontrar o elemento de título da página para inserir o seletor após ele
+    // Encontrar o elemento de título da página para inserir o seletor
     const titulo = document.querySelector(
       ".liga-titulo, #nomeLiga, .titulo-pagina",
     );
@@ -57,39 +57,9 @@
     // Verificar se o seletor já existe para evitar duplicação
     if (document.querySelector(".seletor-ligas-container")) return;
 
-    // Criar o container do seletor com estilo discreto
-    const seletorContainer = document.createElement("div");
-    seletorContainer.className = "seletor-ligas-container";
-    seletorContainer.style.cssText = `
-      display: inline-block;
-      margin-left: 15px;
-      font-size: 14px;
-      vertical-align: middle;
-    `;
-
-    // Criar o label e o select
-    const label = document.createElement("label");
-    label.textContent = "Liga: ";
-    label.style.cssText = `
-      font-weight: normal;
-      color: #666;
-    `;
-
-    const select = document.createElement("select");
-    select.className = "form-control form-control-sm seletor-ligas";
-    select.style.cssText = `
-      display: inline-block;
-      width: auto;
-      margin-left: 5px;
-      padding: 2px 8px;
-      height: auto;
-      font-size: 14px;
-    `;
-
-    // Adicionar as opções ao select (apenas ligas únicas)
+    // Filtrar ligas únicas
     const ligasUnicas = [];
     const ligasIds = new Set();
-
     ligas.forEach((liga) => {
       if (!ligasIds.has(liga.liga_id)) {
         ligasIds.add(liga.liga_id);
@@ -97,29 +67,134 @@
       }
     });
 
+    // Se só tem 1 liga, não mostrar seletor
+    if (ligasUnicas.length <= 1) return;
+
+    // Criar o container do seletor - Estilo Seamless
+    const seletorContainer = document.createElement("div");
+    seletorContainer.className = "seletor-ligas-container";
+    seletorContainer.style.cssText = `
+      display: inline-flex;
+      align-items: center;
+      margin-left: 12px;
+      vertical-align: middle;
+      position: relative;
+    `;
+
+    // Criar wrapper para o select com ícone chevron
+    const selectWrapper = document.createElement("div");
+    selectWrapper.style.cssText = `
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    `;
+
+    // Criar o select - Design Seamless Dark
+    const select = document.createElement("select");
+    select.className = "seletor-ligas-seamless";
+    select.style.cssText = `
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 4px 28px 4px 8px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      min-width: 180px;
+    `;
+
+    // Adicionar opções
     ligasUnicas.forEach((liga) => {
       const option = document.createElement("option");
       option.value = liga.liga_id;
       option.textContent = liga.nome;
       option.selected = liga.liga_id === ligaAtualId;
+      option.style.cssText = `
+        background: #1a1a1a;
+        color: #fff;
+        padding: 8px;
+      `;
       select.appendChild(option);
+    });
+
+    // Criar ícone chevron (Material Icons)
+    const chevron = document.createElement("span");
+    chevron.className = "material-icons";
+    chevron.textContent = "expand_more";
+    chevron.style.cssText = `
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      color: #FF5500;
+      pointer-events: none;
+      transition: transform 0.2s ease;
+    `;
+
+    // Hover effects
+    select.addEventListener("mouseenter", () => {
+      select.style.background = "rgba(255, 85, 0, 0.1)";
+      chevron.style.color = "#ff6611";
+    });
+    select.addEventListener("mouseleave", () => {
+      select.style.background = "transparent";
+      chevron.style.color = "#FF5500";
+    });
+    select.addEventListener("focus", () => {
+      select.style.background = "rgba(255, 85, 0, 0.15)";
+      select.style.boxShadow = "0 0 0 2px rgba(255, 85, 0, 0.3)";
+    });
+    select.addEventListener("blur", () => {
+      select.style.background = "transparent";
+      select.style.boxShadow = "none";
     });
 
     // Adicionar evento de mudança
     select.addEventListener("change", function () {
       const novaLigaId = this.value;
       if (novaLigaId !== ligaAtualId) {
-        // Redirecionar para a nova liga (sem barra inicial)
         window.location.href = `detalhe-liga.html?id=${novaLigaId}`;
       }
     });
 
-    // Montar e inserir o seletor na página
-    seletorContainer.appendChild(label);
-    seletorContainer.appendChild(select);
+    // Montar estrutura
+    selectWrapper.appendChild(select);
+    selectWrapper.appendChild(chevron);
+    seletorContainer.appendChild(selectWrapper);
 
     // Inserir após o título
     titulo.parentNode.insertBefore(seletorContainer, titulo.nextSibling);
+
+    // Injetar CSS para options (dropdown aberto)
+    if (!document.getElementById("seletor-ligas-styles")) {
+      const style = document.createElement("style");
+      style.id = "seletor-ligas-styles";
+      style.textContent = `
+        .seletor-ligas-seamless option {
+          background: #1a1a1a !important;
+          color: #fff !important;
+          padding: 10px !important;
+        }
+        .seletor-ligas-seamless option:hover,
+        .seletor-ligas-seamless option:focus,
+        .seletor-ligas-seamless option:checked {
+          background: linear-gradient(135deg, #FF5500 0%, #cc4400 100%) !important;
+          color: #fff !important;
+        }
+        .seletor-ligas-seamless::-ms-expand {
+          display: none;
+        }
+      `;
+      document.head.appendChild(style);
+    }
   }
 
   // Inicializar quando o DOM estiver pronto

@@ -325,70 +325,53 @@ async function carregarParticipantesComBrasoes() {
                 ? "Ativo"
                 : `Inativo R${timeData.rodada_desistencia || "?"}`;
 
+            // Layout compacto horizontal
             card.innerHTML = `
-                <div class="participante-header">
-                    <span class="participante-avatar material-symbols-outlined">${estaAtivo ? "person" : "pause_circle"}</span>
-                    <div class="participante-status ${statusClass}">
-                        <span class="status-indicator"></span>
-                        ${statusText}
-                    </div>
-                </div>
-
-                <div class="participante-info">
-                    <h4 class="participante-nome">${timeData.nome_cartoleiro || "N/D"}</h4>
-                    <p class="participante-time">${timeData.nome_time || "Time N/A"}</p>
-                </div>
-
-                <div class="brasoes-container">
-                    <div class="brasao-wrapper">
-                        <div class="brasao-circle brasao-fantasy">
-                            <img src="${BrasoesHelper.getTimeFantasyBrasao(timeData)}" 
-                                 alt="Time no Cartola" 
-                                 class="brasao-img"
-                                 onerror="this.src='${CLUBES_CONFIG.PATHS.defaultImage}'">
-                        </div>
-                        <span class="brasao-label fantasy-label">Cartola</span>
+                <div class="participante-row">
+                    <div class="participante-avatar-mini">
+                        <img src="${BrasoesHelper.getTimeFantasyBrasao(timeData)}"
+                             alt="${timeData.nome_cartoleiro}"
+                             onerror="this.src='${CLUBES_CONFIG.PATHS.defaultImage}'">
+                        <span class="status-dot ${statusClass}"></span>
                     </div>
 
-                    <span class="brasao-separator material-symbols-outlined">bolt</span>
-
-                    <div class="brasao-wrapper">
-                        <div class="brasao-circle brasao-clube ${!temClubeCoracao ? "brasao-disabled" : ""}">
-                            <img src="${BrasoesHelper.getClubeBrasao(timeData.clube_id)}" 
-                                 alt="Clube do Coração" 
-                                 title="${BrasoesHelper.getNomeClube(timeData.clube_id)}"
-                                 class="brasao-img"
-                                 onerror="this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
-                        </div>
-                        <span class="brasao-label clube-label">
-                            ${temClubeCoracao ? BrasoesHelper.getNomeClube(timeData.clube_id) : "Não definido"}
-                        </span>
+                    <div class="participante-info-compact">
+                        <span class="participante-nome-compact">${timeData.nome_cartoleiro || "N/D"}</span>
+                        <span class="participante-time-compact">${timeData.nome_time || "Time N/A"}</span>
                     </div>
-                </div>
 
-                <div class="participante-actions">
-                    <button class="btn-action btn-status"
-                            data-action="toggle-status"
-                            data-time-id="${timeData.id}"
-                            data-ativo="${estaAtivo}"
-                            title="${estaAtivo ? "Inativar participante" : "Reativar participante"}">
-                        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">${estaAtivo ? "pause_circle" : "play_circle"}</span> ${estaAtivo ? "Inativar" : "Reativar"}
-                    </button>
-                    <button class="btn-action btn-senha"
-                            data-action="gerenciar-senha"
-                            data-time-id="${timeData.id}"
-                            data-nome="${(timeData.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
-                            title="Gerenciar senha de acesso">
-                        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">key</span> Senha
-                    </button>
-                    <button class="btn-action btn-dados-globo"
-                            data-action="ver-dados-globo"
-                            data-time-id="${timeData.id}"
-                            data-nome="${(timeData.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
-                            data-time-nome="${(timeData.nome_time || "").replace(/"/g, "&quot;")}"
-                            title="Ver dados completos do time">
-                        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">person_search</span> Dados do Time
-                    </button>
+                    ${temClubeCoracao ? `
+                    <div class="participante-clube-mini" title="${BrasoesHelper.getNomeClube(timeData.clube_id)}">
+                        <img src="${BrasoesHelper.getClubeBrasao(timeData.clube_id)}"
+                             alt="${BrasoesHelper.getNomeClube(timeData.clube_id)}"
+                             onerror="this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
+                    </div>
+                    ` : ''}
+
+                    <div class="participante-actions-compact">
+                        <button class="btn-compact btn-compact-status"
+                                data-action="toggle-status"
+                                data-time-id="${timeData.id}"
+                                data-ativo="${estaAtivo}"
+                                title="${estaAtivo ? "Inativar" : "Reativar"}">
+                            <span class="material-symbols-outlined">${estaAtivo ? "pause_circle" : "play_circle"}</span>
+                        </button>
+                        <button class="btn-compact btn-compact-senha"
+                                data-action="gerenciar-senha"
+                                data-time-id="${timeData.id}"
+                                data-nome="${(timeData.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
+                                title="Senha">
+                            <span class="material-symbols-outlined">key</span>
+                        </button>
+                        <button class="btn-compact btn-compact-dados"
+                                data-action="ver-dados-globo"
+                                data-time-id="${timeData.id}"
+                                data-nome="${(timeData.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
+                                data-time-nome="${(timeData.nome_time || "").replace(/"/g, "&quot;")}"
+                                title="Dados do Time">
+                            <span class="material-symbols-outlined">person_search</span>
+                        </button>
+                    </div>
                 </div>
             `;
 
@@ -399,7 +382,34 @@ async function carregarParticipantesComBrasoes() {
         container.removeEventListener("click", handleCardClick);
         container.addEventListener("click", handleCardClick);
 
-        console.log(`✅ ${timesValidos.length} participantes carregados`);
+        // ✅ Atualizar stats do toolbar
+        const totalAtivos = timesValidos.filter(t => t.ativo !== false).length;
+        const totalEl = document.getElementById("total-participantes");
+        const ativosEl = document.getElementById("participantes-ativos");
+        if (totalEl) totalEl.textContent = timesValidos.length;
+        if (ativosEl) ativosEl.textContent = totalAtivos;
+
+        // ✅ Conectar busca inline do toolbar
+        const searchInput = document.getElementById("searchParticipantes");
+        if (searchInput) {
+            searchInput.addEventListener("input", (e) => {
+                filtrarParticipantes(e.target.value);
+                // Atualizar contador de resultados
+                const visibleCards = document.querySelectorAll(".participante-card:not([style*='display: none'])");
+                const resultsInfo = document.getElementById("search-results-info");
+                const resultsCount = document.getElementById("results-count");
+                if (resultsInfo && resultsCount) {
+                    if (e.target.value.trim()) {
+                        resultsInfo.style.display = "block";
+                        resultsCount.textContent = visibleCards.length;
+                    } else {
+                        resultsInfo.style.display = "none";
+                    }
+                }
+            });
+        }
+
+        console.log(`✅ ${timesValidos.length} participantes carregados (${totalAtivos} ativos)`);
     } catch (error) {
         console.error("Erro ao carregar participantes:", error);
         container.innerHTML = `
@@ -733,6 +743,328 @@ async function salvarSenhaParticipante(timeId) {
 // 📦 DATA LAKE - DADOS GLOBO
 // ==============================
 
+// ==============================
+// 🎨 JSON VIEWER INTERATIVO
+// ==============================
+
+/**
+ * Configuração de formatação inteligente
+ */
+const JsonViewerConfig = {
+    // Campos que são valores monetários (Cartoletas)
+    camposMonetarios: ['patrimonio', 'valor_time', 'preco', 'variacao', 'media', 'pontos', 'pontos_num', 'cartoletas', 'saldo'],
+    // Campos que são URLs de imagens
+    camposImagem: ['foto', 'foto_perfil', 'url_escudo_png', 'url_escudo_svg', 'escudo'],
+    // Campos que são datas
+    camposData: ['data', 'created_at', 'updated_at', 'ultima_atualizacao'],
+    // Campos importantes para destacar
+    camposDestaque: ['nome', 'nome_cartola', 'time_id', 'rodada_atual', 'pontos', 'patrimonio'],
+    // Ícones por tipo de dado
+    icones: {
+        object: 'data_object',
+        array: 'lists',
+        string: 'text_fields',
+        number: 'tag',
+        boolean: 'toggle_on',
+        null: 'block',
+        image: 'image',
+        money: 'paid',
+        date: 'schedule'
+    }
+};
+
+/**
+ * Formata valor baseado no tipo e nome do campo
+ */
+function formatarValorJson(valor, chave = '') {
+    if (valor === null) return '<span class="jv-null">null</span>';
+    if (valor === undefined) return '<span class="jv-null">undefined</span>';
+
+    const chaveLower = chave.toLowerCase();
+
+    // Booleano
+    if (typeof valor === 'boolean') {
+        return `<span class="jv-boolean jv-bool-${valor}">${valor ? '✓ Sim' : '✗ Não'}</span>`;
+    }
+
+    // Número
+    if (typeof valor === 'number') {
+        // Monetário (Cartoletas)
+        if (JsonViewerConfig.camposMonetarios.some(c => chaveLower.includes(c))) {
+            return `<span class="jv-money">C$ ${valor.toFixed(2)}</span>`;
+        }
+        // Porcentagem
+        if (chaveLower.includes('percent') || chaveLower.includes('variacao')) {
+            const sinal = valor >= 0 ? '+' : '';
+            const classe = valor >= 0 ? 'jv-positive' : 'jv-negative';
+            return `<span class="${classe}">${sinal}${valor.toFixed(2)}%</span>`;
+        }
+        return `<span class="jv-number">${valor.toLocaleString('pt-BR')}</span>`;
+    }
+
+    // String
+    if (typeof valor === 'string') {
+        // URL de imagem
+        if (JsonViewerConfig.camposImagem.some(c => chaveLower.includes(c)) ||
+            valor.match(/\.(png|jpg|jpeg|svg|gif)$/i) ||
+            valor.includes('s.glbimg.com')) {
+            return `<span class="jv-image-preview">
+                <img src="${valor}" alt="Preview" onerror="this.style.display='none'" />
+                <span class="jv-image-url">${valor.length > 40 ? valor.substring(0, 40) + '...' : valor}</span>
+            </span>`;
+        }
+        // Data ISO
+        if (valor.match(/^\d{4}-\d{2}-\d{2}/) || JsonViewerConfig.camposData.some(c => chaveLower.includes(c))) {
+            try {
+                const date = new Date(valor);
+                if (!isNaN(date)) {
+                    return `<span class="jv-date">${date.toLocaleString('pt-BR')}</span>`;
+                }
+            } catch {}
+        }
+        // String vazia
+        if (valor === '') return '<span class="jv-empty">(vazio)</span>';
+        // String longa
+        if (valor.length > 100) {
+            return `<span class="jv-string jv-string-long" title="${valor.replace(/"/g, '&quot;')}">"${valor.substring(0, 100)}..."</span>`;
+        }
+        return `<span class="jv-string">"${valor}"</span>`;
+    }
+
+    return String(valor);
+}
+
+/**
+ * Renderiza um objeto como seção colapsável
+ */
+function renderizarObjetoJson(obj, nivel = 0, chaveParent = '') {
+    if (!obj || typeof obj !== 'object') return formatarValorJson(obj, chaveParent);
+
+    const isArray = Array.isArray(obj);
+    const entries = isArray ? obj.map((v, i) => [i, v]) : Object.entries(obj);
+
+    if (entries.length === 0) {
+        return `<span class="jv-empty">${isArray ? '[]' : '{}'}</span>`;
+    }
+
+    // Array de atletas - renderização especial como cards
+    if (isArray && entries.length > 0 && entries[0][1]?.apelido) {
+        return renderizarAtletasCards(obj);
+    }
+
+    // Array simples de primitivos
+    if (isArray && entries.every(([_, v]) => typeof v !== 'object' || v === null)) {
+        return `<span class="jv-array-inline">[${entries.map(([_, v]) => formatarValorJson(v)).join(', ')}]</span>`;
+    }
+
+    const linhas = entries.map(([chave, valor]) => {
+        const isObjeto = valor !== null && typeof valor === 'object';
+        const isDestaque = JsonViewerConfig.camposDestaque.includes(chave);
+        const tipoIcone = getTipoIcone(valor, chave);
+
+        if (isObjeto) {
+            const subEntries = Array.isArray(valor) ? valor : Object.entries(valor);
+            const count = Array.isArray(valor) ? valor.length : Object.keys(valor).length;
+            const tipoLabel = Array.isArray(valor) ? `${count} itens` : `${count} campos`;
+
+            return `
+                <div class="jv-row jv-collapsible ${nivel === 0 ? 'jv-expanded' : ''}" data-nivel="${nivel}">
+                    <div class="jv-row-header" onclick="this.parentElement.classList.toggle('jv-expanded')">
+                        <span class="jv-expand-icon material-symbols-outlined">chevron_right</span>
+                        <span class="jv-key ${isDestaque ? 'jv-key-destaque' : ''}">${chave}</span>
+                        <span class="jv-type-badge jv-type-${Array.isArray(valor) ? 'array' : 'object'}">
+                            <span class="material-symbols-outlined">${tipoIcone}</span>
+                            ${tipoLabel}
+                        </span>
+                    </div>
+                    <div class="jv-row-content">
+                        ${renderizarObjetoJson(valor, nivel + 1, chave)}
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="jv-row jv-leaf" data-nivel="${nivel}">
+                <span class="jv-icon material-symbols-outlined">${tipoIcone}</span>
+                <span class="jv-key ${isDestaque ? 'jv-key-destaque' : ''}">${chave}</span>
+                <span class="jv-separator">:</span>
+                <span class="jv-value">${formatarValorJson(valor, chave)}</span>
+            </div>
+        `;
+    });
+
+    return `<div class="jv-object" data-nivel="${nivel}">${linhas.join('')}</div>`;
+}
+
+/**
+ * Renderiza array de atletas como cards visuais
+ */
+function renderizarAtletasCards(atletas) {
+    if (!atletas || atletas.length === 0) return '<span class="jv-empty">Nenhum atleta</span>';
+
+    const cards = atletas.slice(0, 18).map((atleta, idx) => {
+        const posicaoClasse = getPosicaoClasse(atleta.posicao_id);
+        const pontosClasse = atleta.pontos_num > 0 ? 'positivo' : atleta.pontos_num < 0 ? 'negativo' : '';
+
+        return `
+            <div class="jv-atleta-card ${posicaoClasse}">
+                <div class="jv-atleta-foto">
+                    <img src="${atleta.foto || '/escudos/placeholder.png'}"
+                         alt="${atleta.apelido}"
+                         onerror="this.src='/escudos/placeholder.png'" />
+                    ${atleta.capitao ? '<span class="jv-capitao">C</span>' : ''}
+                </div>
+                <div class="jv-atleta-info">
+                    <span class="jv-atleta-nome" title="${atleta.apelido}">${atleta.apelido || 'N/D'}</span>
+                    <span class="jv-atleta-clube">${atleta.clube?.nome || ''}</span>
+                </div>
+                <div class="jv-atleta-stats">
+                    <span class="jv-atleta-pontos ${pontosClasse}">${atleta.pontos_num?.toFixed(1) || '-'}</span>
+                    <span class="jv-atleta-preco">C$ ${atleta.preco_num?.toFixed(1) || '-'}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const restantes = atletas.length > 18 ? `<div class="jv-atletas-mais">+${atletas.length - 18} atletas</div>` : '';
+
+    return `
+        <div class="jv-atletas-grid">
+            ${cards}
+            ${restantes}
+        </div>
+    `;
+}
+
+/**
+ * Retorna classe CSS baseada na posição do atleta
+ */
+function getPosicaoClasse(posicaoId) {
+    const posicoes = {
+        1: 'goleiro',
+        2: 'lateral',
+        3: 'zagueiro',
+        4: 'meia',
+        5: 'atacante',
+        6: 'tecnico'
+    };
+    return posicoes[posicaoId] || '';
+}
+
+/**
+ * Retorna ícone baseado no tipo do valor
+ */
+function getTipoIcone(valor, chave = '') {
+    if (valor === null) return JsonViewerConfig.icones.null;
+    if (Array.isArray(valor)) return JsonViewerConfig.icones.array;
+    if (typeof valor === 'object') return JsonViewerConfig.icones.object;
+    if (typeof valor === 'boolean') return JsonViewerConfig.icones.boolean;
+    if (typeof valor === 'number') {
+        if (JsonViewerConfig.camposMonetarios.some(c => chave.toLowerCase().includes(c))) {
+            return JsonViewerConfig.icones.money;
+        }
+        return JsonViewerConfig.icones.number;
+    }
+    if (typeof valor === 'string') {
+        if (JsonViewerConfig.camposImagem.some(c => chave.toLowerCase().includes(c))) {
+            return JsonViewerConfig.icones.image;
+        }
+        return JsonViewerConfig.icones.string;
+    }
+    return 'help';
+}
+
+/**
+ * Renderiza o JSON Viewer completo
+ */
+function renderizarJsonViewer(json) {
+    if (!json) return '<div class="jv-empty-state">Sem dados</div>';
+
+    const stats = contarEstatisticas(json);
+
+    return `
+        <div class="json-viewer-container">
+            <div class="jv-toolbar">
+                <div class="jv-stats">
+                    <span class="jv-stat"><span class="material-symbols-outlined">data_object</span> ${stats.objetos} objetos</span>
+                    <span class="jv-stat"><span class="material-symbols-outlined">lists</span> ${stats.arrays} arrays</span>
+                    <span class="jv-stat"><span class="material-symbols-outlined">tag</span> ${stats.campos} campos</span>
+                </div>
+                <div class="jv-actions">
+                    <button class="jv-btn" onclick="expandirTudo()" title="Expandir tudo">
+                        <span class="material-symbols-outlined">unfold_more</span>
+                    </button>
+                    <button class="jv-btn" onclick="recolherTudo()" title="Recolher tudo">
+                        <span class="material-symbols-outlined">unfold_less</span>
+                    </button>
+                    <button class="jv-btn" onclick="toggleModoRaw()" title="Ver JSON bruto">
+                        <span class="material-symbols-outlined">code</span>
+                    </button>
+                    <button class="jv-btn jv-btn-primary" onclick="window.copiarJsonGlobo()">
+                        <span class="material-symbols-outlined">content_copy</span> Copiar
+                    </button>
+                </div>
+            </div>
+            <div class="jv-content" id="jv-content-formatted">
+                ${renderizarObjetoJson(json)}
+            </div>
+            <pre class="jv-content-raw" id="jv-content-raw" style="display:none">${JSON.stringify(json, null, 2)}</pre>
+            <div id="json-viewer-content" style="display:none">${JSON.stringify(json, null, 2)}</div>
+        </div>
+    `;
+}
+
+/**
+ * Conta estatísticas do JSON
+ */
+function contarEstatisticas(obj, stats = { objetos: 0, arrays: 0, campos: 0 }) {
+    if (Array.isArray(obj)) {
+        stats.arrays++;
+        obj.forEach(item => {
+            if (typeof item === 'object' && item !== null) {
+                contarEstatisticas(item, stats);
+            }
+        });
+    } else if (typeof obj === 'object' && obj !== null) {
+        stats.objetos++;
+        Object.entries(obj).forEach(([key, value]) => {
+            stats.campos++;
+            if (typeof value === 'object' && value !== null) {
+                contarEstatisticas(value, stats);
+            }
+        });
+    }
+    return stats;
+}
+
+/**
+ * Expande todas as seções
+ */
+window.expandirTudo = function() {
+    document.querySelectorAll('.jv-collapsible').forEach(el => el.classList.add('jv-expanded'));
+};
+
+/**
+ * Recolhe todas as seções
+ */
+window.recolherTudo = function() {
+    document.querySelectorAll('.jv-collapsible').forEach(el => el.classList.remove('jv-expanded'));
+};
+
+/**
+ * Alterna entre visualização formatada e JSON bruto
+ */
+window.toggleModoRaw = function() {
+    const formatted = document.getElementById('jv-content-formatted');
+    const raw = document.getElementById('jv-content-raw');
+    if (formatted && raw) {
+        const showRaw = formatted.style.display !== 'none';
+        formatted.style.display = showRaw ? 'none' : 'block';
+        raw.style.display = showRaw ? 'block' : 'none';
+    }
+};
+
 /**
  * Abre modal com dados completos do participante da API Globo
  */
@@ -764,6 +1096,43 @@ async function verDadosGlobo(timeId, nomeCartoleiro, nomeTime, btnElement) {
 }
 
 /**
+ * Verifica se um dump contém dados reais do participante
+ * ou apenas metadados da temporada (game_over)
+ */
+function verificarDadosValidos(rawJson) {
+    if (!rawJson) return { valido: false, motivo: 'sem_dados' };
+
+    // Campos que indicam dados reais do participante
+    const temTime = rawJson.time && (rawJson.time.nome || rawJson.time.time_id);
+    const temAtletas = Array.isArray(rawJson.atletas) && rawJson.atletas.length > 0;
+    const temPatrimonio = typeof rawJson.patrimonio === 'number';
+    const temPontos = typeof rawJson.pontos === 'number' || typeof rawJson.pontos_campeonato === 'number';
+
+    // Se tem game_over e não tem dados do participante = inválido
+    if (rawJson.game_over === true && !temTime && !temAtletas && !temPatrimonio) {
+        return {
+            valido: false,
+            motivo: 'temporada_encerrada',
+            gameOver: true,
+            temporada: rawJson.temporada || 2025,
+            rodadaAtual: rawJson.rodada_atual || 38
+        };
+    }
+
+    // Verifica se tem pelo menos algum dado útil
+    const temDadosUteis = temTime || temAtletas || temPatrimonio || temPontos;
+
+    return {
+        valido: temDadosUteis,
+        motivo: temDadosUteis ? 'ok' : 'dados_incompletos',
+        temTime,
+        temAtletas,
+        temPatrimonio,
+        temPontos
+    };
+}
+
+/**
  * Cria o modal de exibição dos dados da Globo
  */
 function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
@@ -776,9 +1145,12 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
     const temDados = data.success && data.dump_atual;
     const rawJson = temDados ? data.dump_atual.raw_json : null;
 
+    // Verificar se os dados são válidos (dados do participante vs metadados da temporada)
+    const verificacao = verificarDadosValidos(rawJson);
+
     // Extrair dados principais se existirem
     let resumoDados = "";
-    if (rawJson) {
+    if (rawJson && verificacao.valido) {
         const time = rawJson.time || rawJson;
         const atletas = rawJson.atletas || [];
         const patrimonio = rawJson.patrimonio;
@@ -844,9 +1216,39 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
             </div>
             ` : ""}
         `;
+    } else if (rawJson && !verificacao.valido) {
+        // Dados inválidos - apenas metadados da temporada
+        resumoDados = `
+            <div class="dados-invalidos-aviso">
+                <div class="aviso-icone">
+                    <span class="material-symbols-outlined">warning</span>
+                </div>
+                <h4>Dados Indisponíveis</h4>
+                <p>
+                    ${verificacao.motivo === 'temporada_encerrada'
+                        ? `A <strong>Temporada ${verificacao.temporada}</strong> do Cartola FC está encerrada.
+                           A API oficial não retorna mais dados de times individuais.`
+                        : 'Os dados coletados estão incompletos ou corrompidos.'}
+                </p>
+                <div class="aviso-detalhes">
+                    <span class="detalhe-item">
+                        <span class="material-symbols-outlined">sports_soccer</span>
+                        Rodada ${verificacao.rodadaAtual || 38}/38
+                    </span>
+                    <span class="detalhe-item">
+                        <span class="material-symbols-outlined">event_busy</span>
+                        Temporada Encerrada
+                    </span>
+                </div>
+                <p class="aviso-dica">
+                    <span class="material-symbols-outlined">lightbulb</span>
+                    Os dados do participante serão carregados automaticamente quando a <strong>Temporada ${(verificacao.temporada || 2025) + 1}</strong> iniciar.
+                </p>
+            </div>
+        `;
     }
 
-    // Tabs para navegação
+    // Tabs para navegação (só mostra se tem dados válidos ou se quer ver o JSON mesmo assim)
     const tabs = temDados ? `
         <div class="modal-tabs">
             <button class="tab-btn active" data-tab="resumo">
@@ -870,16 +1272,7 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
 
     const tabJson = temDados ? `
         <div class="tab-content" data-tab-content="json">
-            <div class="json-header">
-                <span class="json-info">
-                    <span class="material-symbols-outlined" style="vertical-align:middle">data_object</span>
-                    ${Object.keys(rawJson).length} campos • ${(JSON.stringify(rawJson).length / 1024).toFixed(1)} KB
-                </span>
-                <button class="btn-copiar-json" onclick="window.copiarJsonGlobo()">
-                    <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">content_copy</span> Copiar
-                </button>
-            </div>
-            <pre class="json-viewer" id="json-viewer-content">${JSON.stringify(rawJson, null, 2)}</pre>
+            ${renderizarJsonViewer(rawJson)}
         </div>
     ` : "";
 

@@ -185,22 +185,25 @@ async function inicializarSistemaFinanceiro(ligaId) {
         <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>`;
     }
 
+    // ✅ OTIMIZAÇÃO: inicializar() já carrega rankings e participantes em paralelo
     await fluxoFinanceiroCache.inicializar(ligaId);
-    await fluxoFinanceiroCache.carregarCacheRankingsEmLotes(
-        ultimaRodadaCompleta,
-        contentContainer,
-    );
 
-    const participantes = await fluxoFinanceiroCache.carregarParticipantes();
+    // Obter participantes do cache (já carregados)
+    const participantes = fluxoFinanceiroCache.getParticipantes();
 
     if (participantes.length === 0) {
         mostrarErro("Nenhum participante encontrado");
         return;
     }
 
-    fluxoFinanceiroUI.renderizarBotoesParticipantes(participantes);
+    await fluxoFinanceiroUI.renderizarBotoesParticipantes(participantes);
     fluxoFinanceiroUI.renderizarMensagemInicial();
     isDataLoaded = true;
+
+    // Expor função de recarregar para uso após acertos
+    window.fluxoFinanceiroOrquestrador = {
+        recarregar: () => carregarDadosIniciais(),
+    };
 }
 
 async function calcularEExibirExtrato(timeId) {

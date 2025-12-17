@@ -4,6 +4,7 @@
 
 import { FluxoFinanceiroAPI } from "./fluxo-financeiro-api.js";
 import { obterLigaId } from "../pontos-corridos-utils.js";
+import { parseMoedaBR } from "./fluxo-financeiro-utils.js";
 
 export class FluxoFinanceiroCampos {
     /**
@@ -60,7 +61,7 @@ export class FluxoFinanceiroCampos {
                 await this.carregarTodosCamposEditaveis(timeId);
             const campoAtual = camposAtuais[nomeCampo];
 
-            const valorNumerico = parseFloat(valor) || 0;
+            const valorNumerico = parseMoedaBR(valor);
 
             // ✅ PRESERVAR O NOME EXISTENTE
             const data = await FluxoFinanceiroAPI.salvarCampo(
@@ -251,11 +252,13 @@ export class FluxoFinanceiroCampos {
 
     /**
      * Valida valor de campo
+     * Aceita formatos: "1234.56", "1234,56", "R$ 1.234,56"
      * @param {*} valor - Valor a ser validado
      * @returns {number} - Valor validado
      */
     static validarValor(valor) {
-        const numero = parseFloat(valor);
+        // Usa parseMoedaBR para aceitar formato brasileiro
+        const numero = parseMoedaBR(valor);
 
         if (isNaN(numero)) {
             return 0;
