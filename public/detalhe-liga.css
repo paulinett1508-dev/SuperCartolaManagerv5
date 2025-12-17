@@ -1,37 +1,33 @@
 /* ============================================================
-   DETALHE-LIGA.CSS - REDESIGN MODERNO v2.0
+   DETALHE-LIGA.CSS - REDESIGN MODERNO v2.1
    ============================================================
    Redesign cosmético mantendo todas as funcionalidades
    Inspirado em dashboards modernos com dark theme
+
+   USA TOKENS DE: public/css/_admin-tokens.css
    ============================================================ */
 
-/* === VARIÁVEIS DO TEMA === */
+/* Variáveis locais mapeadas para tokens globais (compatibilidade) */
 :root {
-    --bg-primary: #0a0a0a;
-    --bg-secondary: #111111;
-    --bg-card: #161616;
-    --bg-card-hover: #1a1a1a;
-    --border-color: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(255, 69, 0, 0.4);
-    --text-primary: #ffffff;
-    --text-secondary: #a1a1aa;
-    --text-muted: #71717a;
-    --accent-orange: #ff4500;
-    --accent-orange-light: #ff6b35;
+    --bg-primary: var(--surface-bg);
+    --bg-secondary: var(--surface-bg);
+    --bg-card: var(--surface-card);
+    --bg-card-hover: var(--surface-elevated);
+    --border-color: var(--border-default);
+    --border-hover: rgba(255, 85, 0, 0.4);
+    --accent-orange: var(--color-primary);
+    --accent-orange-light: var(--color-primary-dark);
     --accent-gold: #fbbf24;
     --accent-green: #22c55e;
     --accent-blue: #3b82f6;
     --accent-purple: #8b5cf6;
     --accent-red: #ef4444;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 20px rgba(255, 69, 0, 0.3);
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-glow: var(--shadow-glow);
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
+    --transition-fast: var(--transition-fast);
+    --transition-normal: var(--transition-normal);
 }
 
 /* === LAYOUT PRINCIPAL === */
@@ -110,11 +106,12 @@
 }
 
 /* === GRID DE MÓDULOS - REDESIGN === */
+/* PADRONIZADO: Mesmas dimensões de detalhe-liga-redesign.css */
 .modules-grid,
 .modules-grid-expanded {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-3);
     margin: 0;
 }
 
@@ -153,10 +150,11 @@
 }
 
 /* === CARDS DOS MÓDULOS - REDESIGN PREMIUM === */
+/* PADRONIZADO: Dimensões consistentes com detalhe-liga-redesign.css */
 .module-card {
     background: var(--bg-card);
-    border-radius: var(--radius-md);
-    padding: 24px;
+    border-radius: var(--radius-card);
+    padding: var(--space-4);
     border: 1px solid var(--border-color);
     cursor: pointer;
     transition: all var(--transition-normal);
@@ -164,7 +162,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    min-height: 120px;
+    min-height: 100px;
 }
 
 /* Linha de destaque lateral */
@@ -550,7 +548,7 @@
     border: 3px solid rgba(255, 69, 0, 0.2);
     border-top-color: var(--accent-orange);
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: admin-spin 0.8s linear infinite;
 }
 
 .loading-message {
@@ -574,12 +572,10 @@
     border: 3px solid rgba(255, 69, 0, 0.2);
     border-top-color: var(--accent-orange);
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: admin-spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
+/* @keyframes spin removido - usa admin-spin de _admin-tokens.css */
 
 @keyframes fadeInUp {
     from {
@@ -739,7 +735,7 @@
     border-top: 2px solid white;
     width: 14px;
     height: 14px;
-    animation: spin 0.8s linear infinite;
+    animation: admin-spin 0.8s linear infinite;
     display: inline-block;
     margin-right: 8px;
 }
