@@ -116,7 +116,7 @@
   border: 3px solid rgba(255, 69, 0, 0.2);
   border-top: 3px solid var(--laranja);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: admin-spin 1s linear infinite;
   margin-bottom: 15px;
 }
 
@@ -332,10 +332,6 @@
 }
 
 /* === ANIMAÇÕES MÍNIMAS === */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
 
 /* === RESPONSIVIDADE === */
 @media (max-width: 1024px) {

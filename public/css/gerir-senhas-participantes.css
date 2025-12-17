@@ -213,13 +213,10 @@ tbody td {
   border: 2px solid #333;
   border-top-color: #ff4500;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: admin-spin 0.8s linear infinite;
   margin: 0 auto 12px;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
 
 /* Stats */
 .stats {

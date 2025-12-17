@@ -4,6 +4,9 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Super Cartola Manager</title>
+        <!-- Design Tokens (SEMPRE PRIMEIRO) -->
+        <link rel="stylesheet" href="css/_admin-tokens.css" />
+        <!-- Estilos Base -->
         <link rel="stylesheet" href="style.css" />
         <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -25,7 +28,7 @@
 
             <!-- Navigation -->
             <nav class="sidebar-nav-new">
-                <!-- Dashboard (sempre visivel) -->
+                <!-- Links diretos (sempre visiveis) -->
                 <div class="sidebar-section-new">
                     <ul class="sidebar-menu-new">
                         <li>
@@ -34,17 +37,24 @@
                                 <span>Dashboard</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="participante/index.html" class="sidebar-menu-item sidebar-app-link" target="_blank">
+                                <span class="material-icons">phone_android</span>
+                                <span>App Participante</span>
+                                <span class="material-icons" style="font-size: 14px; margin-left: auto; color: #9ca3af;">open_in_new</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
                 <!-- ========================================
-                     CAMPEONATOS - Ligas e Formatos
+                     LIGAS - Lista de Ligas Ativas
                      ======================================== -->
-                <div class="sidebar-accordion" data-accordion="campeonatos">
+                <div class="sidebar-accordion" data-accordion="ligas">
                     <div class="sidebar-accordion-header">
                         <div class="sidebar-accordion-title">
                             <span class="material-icons">emoji_events</span>
-                            <span>Campeonatos</span>
+                            <span>Ligas</span>
                         </div>
                         <span class="material-icons sidebar-accordion-arrow">expand_more</span>
                     </div>
@@ -55,147 +65,36 @@
                                 Carregando...
                             </div>
                         </div>
-                        <a href="criar-liga.html" class="sidebar-accordion-action" data-page="criar-liga.html">
-                            <span class="material-icons">add_circle</span>
-                            <span>Criar Nova Liga</span>
-                        </a>
-                        <a href="gerenciar.html" class="sidebar-accordion-item" data-page="gerenciar.html">
-                            <span class="material-icons">format_list_numbered</span>
-                            <span>Gerenciar Todas</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- ========================================
-                     COPAS & DESAFIOS - Mata-Mata, Tiro Certo
-                     ======================================== -->
-                <div class="sidebar-accordion" data-accordion="copas">
-                    <div class="sidebar-accordion-header">
-                        <div class="sidebar-accordion-title">
-                            <span class="material-icons">military_tech</span>
-                            <span>Copas & Desafios</span>
-                        </div>
-                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
-                    </div>
-                    <div class="sidebar-accordion-content">
-                        <ul class="sidebar-accordion-menu">
-                            <li>
-                                <a href="#" class="sidebar-accordion-item disabled" data-page="mata-mata-admin.html">
-                                    <span class="material-icons">whatshot</span>
-                                    <span>Mata-Mata</span>
-                                    <span class="sidebar-badge soon">Em breve</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" class="sidebar-accordion-item disabled" data-page="tiro-certo-admin.html">
-                                    <span class="material-icons">gps_fixed</span>
-                                    <span>Tiro Certo</span>
-                                    <span class="sidebar-badge soon">Em breve</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" class="sidebar-accordion-item disabled" data-page="resta-um-admin.html">
-                                    <span class="material-icons">group_remove</span>
-                                    <span>Resta Um</span>
-                                    <span class="sidebar-badge soon">Em breve</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- ========================================
-                     BOLOES & PALPITES - NOVO!
-                     ======================================== -->
-                <div class="sidebar-accordion" data-accordion="boloes">
-                    <div class="sidebar-accordion-header">
-                        <div class="sidebar-accordion-title">
-                            <span class="material-icons">confirmation_number</span>
-                            <span>Boloes & Palpites</span>
-                            <span class="sidebar-badge new">Novo</span>
-                        </div>
-                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
-                    </div>
-                    <div class="sidebar-accordion-content">
-                        <ul class="sidebar-accordion-menu">
-                            <li>
-                                <a href="#" class="sidebar-accordion-item disabled" data-page="bolao-copa.html">
-                                    <span class="material-icons">public</span>
-                                    <span>Copa do Mundo</span>
-                                    <span class="sidebar-badge soon">2026</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" class="sidebar-accordion-item disabled" data-page="bolao-liberta.html">
-                                    <span class="material-icons">stars</span>
-                                    <span>Libertadores</span>
-                                    <span class="sidebar-badge soon">Em breve</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" class="sidebar-accordion-item disabled" data-page="bolao-brasileirao.html">
-                                    <span class="material-icons">sports_soccer</span>
-                                    <span>Brasileirao</span>
-                                    <span class="sidebar-badge soon">Em breve</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- ========================================
-                     ESTATISTICAS - Artilheiro, Luva, Capitao
-                     ======================================== -->
-                <div class="sidebar-accordion" data-accordion="estatisticas">
-                    <div class="sidebar-accordion-header">
-                        <div class="sidebar-accordion-title">
-                            <span class="material-icons">analytics</span>
-                            <span>Estatisticas</span>
-                        </div>
-                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
-                    </div>
-                    <div class="sidebar-accordion-content">
-                        <ul class="sidebar-accordion-menu">
-                            <li>
-                                <a href="#" class="sidebar-accordion-item disabled" data-page="artilheiro-admin.html">
-                                    <span class="material-icons">sports_soccer</span>
-                                    <span>Artilheiro</span>
-                                    <span class="sidebar-badge soon">Em breve</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" class="sidebar-accordion-item disabled" data-page="luva-ouro-admin.html">
-                                    <span class="material-icons">front_hand</span>
-                                    <span>Luva de Ouro</span>
-                                    <span class="sidebar-badge soon">Em breve</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" class="sidebar-accordion-item disabled" data-page="capitao-admin.html">
-                                    <span class="material-icons">star</span>
-                                    <span>Capitao Luxo</span>
-                                    <span class="sidebar-badge soon">Em breve</span>
-                                </a>
-                            </li>
-                        </ul>
                     </div>
                 </div>
 
                 <div class="sidebar-divider"></div>
 
                 <!-- ========================================
-                     RODADAS - Gestao de Rodadas
+                     GESTAO DE LIGAS - Criar, Gerenciar, Rodadas, Financeiro
                      ======================================== -->
-                <div class="sidebar-accordion" data-accordion="rodadas">
+                <div class="sidebar-accordion" data-accordion="gestao">
                     <div class="sidebar-accordion-header">
                         <div class="sidebar-accordion-title">
-                            <span class="material-icons">event</span>
-                            <span>Rodadas</span>
+                            <span class="material-icons">settings_applications</span>
+                            <span>Gestao de Ligas</span>
                         </div>
                         <span class="material-icons sidebar-accordion-arrow">expand_more</span>
                     </div>
                     <div class="sidebar-accordion-content">
                         <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="criar-liga.html" class="sidebar-accordion-item" data-page="criar-liga.html">
+                                    <span class="material-icons">add_circle</span>
+                                    <span>Criar Nova Liga</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="gerenciar.html" class="sidebar-accordion-item" data-page="gerenciar.html">
+                                    <span class="material-icons">format_list_numbered</span>
+                                    <span>Gerenciar Todas</span>
+                                </a>
+                            </li>
                             <li>
                                 <a href="ferramentas-rodadas.html" class="sidebar-accordion-item" data-page="ferramentas-rodadas.html">
                                     <span class="material-icons">autorenew</span>
@@ -203,97 +102,25 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="parciais.html" class="sidebar-accordion-item" data-page="parciais.html">
-                                    <span class="material-icons">trending_up</span>
-                                    <span>Parciais ao Vivo</span>
-                                    <span class="sidebar-badge live">Live</span>
+                                <a href="fluxo-financeiro.html" class="sidebar-accordion-item" data-page="fluxo-financeiro.html">
+                                    <span class="material-icons">account_balance_wallet</span>
+                                    <span>Fluxo Financeiro</span>
                                 </a>
                             </li>
                         </ul>
                     </div>
                 </div>
 
-                <!-- ========================================
-                     FINANCEIRO - Tesouraria
-                     ======================================== -->
-                <div class="sidebar-accordion" data-accordion="financeiro">
-                    <div class="sidebar-accordion-header">
-                        <div class="sidebar-accordion-title">
-                            <span class="material-icons">account_balance_wallet</span>
-                            <span>Financeiro</span>
-                        </div>
-                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
-                    </div>
-                    <div class="sidebar-accordion-content">
-                        <ul class="sidebar-accordion-menu">
-                            <li>
-                                <a href="gestao-renovacoes.html" class="sidebar-accordion-item" data-page="gestao-renovacoes.html">
-                                    <span class="material-icons">payments</span>
-                                    <span>Tesouraria Geral</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- ========================================
-                     CONFIGURACOES - Sistema
-                     ======================================== -->
-                <div class="sidebar-accordion" data-accordion="config">
-                    <div class="sidebar-accordion-header">
-                        <div class="sidebar-accordion-title">
-                            <span class="material-icons">tune</span>
-                            <span>Configuracoes</span>
-                        </div>
-                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
-                    </div>
-                    <div class="sidebar-accordion-content">
-                        <ul class="sidebar-accordion-menu">
-                            <li>
-                                <a href="gerir-senhas-participantes.html" class="sidebar-accordion-item" data-page="gerir-senhas-participantes.html">
-                                    <span class="material-icons">vpn_key</span>
-                                    <span>Gerir Senhas</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="gerenciar-modulos.html" class="sidebar-accordion-item" data-page="gerenciar-modulos.html">
-                                    <span class="material-icons">widgets</span>
-                                    <span>Modulos</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="sidebar-divider"></div>
-
-                <!-- ========================================
-                     ACESSOS - Links Externos
-                     ======================================== -->
-                <div class="sidebar-accordion" data-accordion="acessos">
-                    <div class="sidebar-accordion-header">
-                        <div class="sidebar-accordion-title">
-                            <span class="material-icons">open_in_new</span>
-                            <span>Acessos</span>
-                        </div>
-                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
-                    </div>
-                    <div class="sidebar-accordion-content">
-                        <ul class="sidebar-accordion-menu">
-                            <li>
-                                <a href="participante-login.html" class="sidebar-accordion-item" data-page="participante-login.html">
-                                    <span class="material-icons">person</span>
-                                    <span>App Participante</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="ferramentas.html" class="sidebar-accordion-item" data-page="ferramentas.html">
-                                    <span class="material-icons">grid_view</span>
-                                    <span>Hub Ferramentas</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+                <!-- Ferramentas (link direto) -->
+                <div class="sidebar-section-new" style="margin-top: 8px;">
+                    <ul class="sidebar-menu-new">
+                        <li>
+                            <a href="ferramentas.html" class="sidebar-menu-item" data-page="ferramentas.html">
+                                <span class="material-icons">build</span>
+                                <span>Ferramentas</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </nav>
 
@@ -427,36 +254,17 @@
 
                     // Mapeamento de paginas para accordions
                     const pageToAccordion = {
-                        // Campeonatos (ligas)
-                        'detalhe-liga.html': 'campeonatos',
-                        'criar-liga.html': 'campeonatos',
-                        'gerenciar.html': 'campeonatos',
-                        'editar-liga.html': 'campeonatos',
-                        'preencher-liga.html': 'campeonatos',
-                        // Copas & Desafios
-                        'mata-mata-admin.html': 'copas',
-                        'tiro-certo-admin.html': 'copas',
-                        'resta-um-admin.html': 'copas',
-                        // Boloes & Palpites
-                        'bolao-copa.html': 'boloes',
-                        'bolao-liberta.html': 'boloes',
-                        'bolao-brasileirao.html': 'boloes',
-                        // Estatisticas
-                        'artilheiro-admin.html': 'estatisticas',
-                        'luva-ouro-admin.html': 'estatisticas',
-                        'capitao-admin.html': 'estatisticas',
-                        // Rodadas
-                        'ferramentas-rodadas.html': 'rodadas',
-                        'parciais.html': 'rodadas',
-                        'admin.html': 'rodadas',
-                        // Financeiro
-                        'gestao-renovacoes.html': 'financeiro',
-                        // Configuracoes
-                        'gerir-senhas-participantes.html': 'config',
-                        'gerenciar-modulos.html': 'config',
-                        // Acessos
-                        'participante-login.html': 'acessos',
-                        'ferramentas.html': 'acessos'
+                        // Ligas (dashboard da liga)
+                        'detalhe-liga.html': 'ligas',
+                        'editar-liga.html': 'ligas',
+                        'preencher-liga.html': 'ligas',
+                        // Gestao de Ligas
+                        'criar-liga.html': 'gestao',
+                        'gerenciar.html': 'gestao',
+                        'ferramentas-rodadas.html': 'gestao',
+                        'fluxo-financeiro.html': 'gestao',
+                        'gestao-renovacoes.html': 'gestao',
+                        'admin.html': 'gestao'
                     };
 
                     const accordionKey = pageToAccordion[currentPage];
@@ -517,11 +325,11 @@
                         })
                         .join("");
 
-                    // Se estamos em uma pagina de liga, expandir o accordion de campeonatos
+                    // Se estamos em uma pagina de liga, expandir o accordion de ligas
                     if (ligaAtualId) {
-                        const campeonatosAccordion = document.querySelector('[data-accordion="campeonatos"]');
-                        if (campeonatosAccordion && window.AccordionManager) {
-                            window.AccordionManager.open(campeonatosAccordion);
+                        const ligasAccordion = document.querySelector('[data-accordion="ligas"]');
+                        if (ligasAccordion && window.AccordionManager) {
+                            window.AccordionManager.open(ligasAccordion);
                         }
                     }
                 } catch (error) {
@@ -584,10 +392,8 @@
                         "ferramentas-rodadas.html": { title: "Rodadas", subtitle: "Popular e Gerenciar Rodadas" },
                         "detalhe-liga.html": { title: "Detalhes da Liga", subtitle: "Visualizacao Completa" },
                         "editar-liga.html": { title: "Editar Liga", subtitle: "Modificar Times da Liga" },
-                        "parciais.html": { title: "Parciais", subtitle: "Pontuacoes em Tempo Real" },
-                        "gestao-renovacoes.html": { title: "Renovacoes 2026", subtitle: "Gestao de Inscricoes" },
-                        "gerir-senhas-participantes.html": { title: "Gerir Senhas", subtitle: "Controle de Acesso" },
-                        "gerenciar-modulos.html": { title: "Modulos", subtitle: "Configurar Funcionalidades" },
+                        "fluxo-financeiro.html": { title: "Fluxo Financeiro", subtitle: "Selecione uma Liga" },
+                        "gestao-renovacoes.html": { title: "Fluxo Financeiro", subtitle: "Gestao de Saldos" },
                         "ferramentas.html": { title: "Ferramentas", subtitle: "Hub de Gestao" },
                     };
 

@@ -316,7 +316,7 @@
   border: 2px solid rgba(255, 69, 0, 0.3);
   border-top: 2px solid var(--laranja);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: admin-spin 1s linear infinite;
 }
 
 /* === BOTÕES === */
@@ -353,10 +353,6 @@
 }
 
 /* === ANIMAÇÕES === */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
 
 /* === RELATÓRIO MITOS/MICOS === */
 .relatorio-section {

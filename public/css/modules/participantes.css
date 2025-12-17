@@ -438,7 +438,7 @@
   border: 3px solid rgba(255, 69, 0, 0.3);
   border-top: 3px solid var(--laranja);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: admin-spin 1s linear infinite;
   margin: 0 auto 15px auto;
 }
 
@@ -732,10 +732,6 @@
   50% { opacity: 0.5; }
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
 
 /* === RESPONSIVIDADE === */
 @media (max-width: 768px) {

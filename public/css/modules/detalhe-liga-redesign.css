@@ -518,7 +518,7 @@
     border: 3px solid #333333;
     border-top-color: #FF5500;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: admin-spin 0.8s linear infinite;
 }
 
 .detalhe-liga-redesign .processing-text {
@@ -527,9 +527,6 @@
     font-size: 0.875rem;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
 
 /* === RESPONSIVIDADE === */
 @media (max-width: 1200px) {

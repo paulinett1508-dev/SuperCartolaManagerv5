@@ -1,0 +1,356 @@
+/**
+ * APP DESIGN TOKENS - Super Cartola Manager
+ * ==========================================
+ * Arquivo central de variáveis CSS para o App do Participante (Mobile PWA)
+ *
+ * USO: Importe este arquivo ANTES de qualquer outro CSS do app
+ *      <link rel="stylesheet" href="/participante/css/_app-tokens.css">
+ *
+ * REGRA: Nunca use cores hardcoded. Use sempre var(--app-nome-da-variavel)
+ *
+ * IMPORTANTE: Este arquivo é otimizado para Mobile-First e PWA
+ */
+
+:root {
+    /* ========================================
+       1. CORES PRIMÁRIAS (Brand - Mobile)
+       ======================================== */
+    --app-primary: #FF5500;              /* Laranja principal - PADRAO OFICIAL */
+    --app-primary-dark: #e8472b;         /* Hover/Active states */
+    --app-primary-light: #ff6b35;        /* Destaques suaves */
+    --app-primary-muted: rgba(255, 85, 0, 0.1);   /* Backgrounds sutis */
+    --app-primary-border: rgba(255, 85, 0, 0.2);  /* Bordas com transparência */
+
+    /* Gradientes primários (Mobile) */
+    --app-gradient-primary: linear-gradient(135deg, var(--app-primary) 0%, var(--app-primary-dark) 100%);
+    --app-gradient-accent: linear-gradient(90deg, var(--app-primary) 0%, var(--app-primary-light) 100%);
+
+    /* ========================================
+       2. CORES DE SUPERFÍCIE (Dark Theme Mobile)
+       ======================================== */
+    --app-bg: #0a0a0a;                   /* Background principal (mais escuro para OLED) */
+    --app-surface: #1a1a1a;              /* Cards e containers */
+    --app-surface-elevated: #1c1c1c;     /* Cards com leve elevação */
+    --app-surface-overlay: rgba(10, 10, 10, 0.95); /* Overlays com blur */
+
+    /* Gradiente de superfície (cards) */
+    --app-gradient-card: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(42, 42, 42, 0.9) 100%);
+
+    /* ========================================
+       3. CORES DE STATUS
+       ======================================== */
+    /* Sucesso/Lucro/Vitória (Verde) */
+    --app-success: #10b981;
+    --app-success-light: #22c55e;
+    --app-success-muted: rgba(16, 185, 129, 0.15);
+    --app-success-text: #86efac;
+
+    /* Erro/Prejuízo/Derrota (Vermelho) */
+    --app-danger: #ef4444;
+    --app-danger-dark: #dc2626;
+    --app-danger-muted: rgba(239, 68, 68, 0.15);
+    --app-danger-text: #fca5a5;
+
+    /* Alerta (Amarelo) */
+    --app-warning: #eab308;
+    --app-warning-muted: rgba(234, 179, 8, 0.15);
+
+    /* Info (Azul) */
+    --app-info: #3b82f6;
+    --app-info-muted: rgba(59, 130, 246, 0.15);
+
+    /* ========================================
+       4. CORES DE RANKING (Posições)
+       ======================================== */
+    --app-gold: #ffd700;
+    --app-gold-muted: rgba(255, 215, 0, 0.15);
+
+    --app-silver: #c0c0c0;
+    --app-silver-muted: rgba(192, 192, 192, 0.15);
+
+    --app-bronze: #cd7f32;
+    --app-bronze-muted: rgba(205, 127, 50, 0.15);
+
+    /* Mitos e Micos (Módulo Top10) */
+    --app-mito: var(--app-gold);
+    --app-mico: var(--app-danger);
+
+    /* ========================================
+       5. CORES DE TEXTO (Mobile)
+       ======================================== */
+    --app-text-primary: #ffffff;
+    --app-text-secondary: rgba(255, 255, 255, 0.85);
+    --app-text-muted: rgba(255, 255, 255, 0.6);
+    --app-text-disabled: rgba(255, 255, 255, 0.4);
+    --app-text-inverse: #000000;
+
+    /* ========================================
+       6. TIPOGRAFIA (Mobile-First)
+       ======================================== */
+    /* Famílias */
+    --app-font-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --app-font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+    /* Tamanhos Mobile (base 16px) */
+    --app-font-xs: 10px;
+    --app-font-sm: 11px;
+    --app-font-base: 13px;
+    --app-font-md: 14px;
+    --app-font-lg: 16px;
+    --app-font-xl: 18px;
+    --app-font-2xl: 20px;
+    --app-font-3xl: 24px;
+    --app-font-hero: 28px;
+
+    /* Pesos */
+    --app-font-regular: 400;
+    --app-font-medium: 500;
+    --app-font-semibold: 600;
+    --app-font-bold: 700;
+    --app-font-extrabold: 800;
+
+    /* Line Heights (Mobile) */
+    --app-leading-tight: 1.2;
+    --app-leading-normal: 1.4;
+    --app-leading-relaxed: 1.6;
+
+    /* ========================================
+       7. ESPAÇAMENTO (Mobile Touch-Friendly)
+       ======================================== */
+    --app-space-1: 4px;
+    --app-space-2: 8px;
+    --app-space-3: 10px;
+    --app-space-4: 12px;
+    --app-space-5: 16px;
+    --app-space-6: 20px;
+    --app-space-8: 24px;
+    --app-space-10: 32px;
+
+    /* ========================================
+       8. BORDER RADIUS (Mobile)
+       ======================================== */
+    --app-radius-sm: 6px;
+    --app-radius-md: 8px;
+    --app-radius-lg: 12px;
+    --app-radius-xl: 16px;
+    --app-radius-full: 9999px;
+
+    /* ========================================
+       9. SOMBRAS (Otimizadas para Mobile)
+       ======================================== */
+    --app-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --app-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --app-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+    /* Sombras com glow (uso moderado - performance) */
+    --app-shadow-glow: 0 2px 8px rgba(255, 85, 0, 0.3);
+    --app-shadow-glow-lg: 0 4px 12px rgba(255, 85, 0, 0.5);
+
+    /* ========================================
+       10. BORDAS (Mobile)
+       ======================================== */
+    --app-border-subtle: 1px solid rgba(255, 255, 255, 0.05);
+    --app-border-default: 1px solid rgba(255, 255, 255, 0.1);
+    --app-border-primary: 1px solid var(--app-primary-border);
+
+    /* ========================================
+       11. TRANSIÇÕES & ANIMAÇÕES (Mobile)
+       ======================================== */
+    /* IMPORTANTE: Manter animações leves para performance */
+    --app-transition-fast: 0.15s ease;
+    --app-transition-normal: 0.25s ease;
+    --app-transition-bounce: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Duração de animações */
+    --app-duration-fast: 0.2s;
+    --app-duration-normal: 0.3s;
+    --app-duration-slow: 0.6s;
+
+    /* ========================================
+       12. Z-INDEX (Camadas Mobile)
+       ======================================== */
+    --app-z-content: 1;
+    --app-z-header: 100;
+    --app-z-nav: 200;
+    --app-z-overlay: 500;
+    --app-z-modal: 600;
+    --app-z-toast: 700;
+    --app-z-bottom-nav: 1000;
+
+    /* ========================================
+       13. COMPONENTES ESPECÍFICOS (Mobile)
+       ======================================== */
+    /* Header */
+    --app-header-height: 64px;
+    --app-header-bg: rgba(10, 10, 10, 0.8);
+
+    /* Bottom Navigation */
+    --app-bottom-nav-height: 72px;
+    --app-bottom-nav-bg: linear-gradient(to top, rgba(10, 10, 10, 0.98), rgba(0, 0, 0, 0.95));
+
+    /* Cards */
+    --app-card-padding: var(--app-space-4);
+    --app-card-radius: var(--app-radius-lg);
+
+    /* Spinners */
+    --app-spinner-sm: 24px;
+    --app-spinner-md: 40px;
+    --app-spinner-lg: 48px;
+
+    /* Touch targets (mínimo 44px para acessibilidade) */
+    --app-touch-target: 44px;
+    --app-touch-target-lg: 48px;
+
+    /* Safe Areas (iOS/Android) */
+    --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --app-safe-top: env(safe-area-inset-top, 0px);
+}
+
+/* ========================================
+   ANIMAÇÕES GLOBAIS MOBILE (Definir apenas 1x)
+   ======================================== */
+
+/* Spinner - ÚNICA DEFINIÇÃO */
+@keyframes app-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Fade In (leve) */
+@keyframes app-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Fade In Up (para cards) */
+@keyframes app-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Pulse (para badges/notificações) */
+@keyframes app-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Scale (feedback de touch) */
+@keyframes app-press {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.96); }
+    100% { transform: scale(1); }
+}
+
+/* ========================================
+   CLASSES UTILITÁRIAS MOBILE
+   ======================================== */
+
+/* Spinner padronizado */
+.app-spinner {
+    width: var(--app-spinner-md);
+    height: var(--app-spinner-md);
+    border: 3px solid var(--app-primary-muted);
+    border-top-color: var(--app-primary);
+    border-radius: var(--app-radius-full);
+    animation: app-spin 0.8s linear infinite;
+}
+
+.app-spinner--sm {
+    width: var(--app-spinner-sm);
+    height: var(--app-spinner-sm);
+    border-width: 2px;
+}
+
+/* Card base */
+.app-card {
+    background: var(--app-surface);
+    border-radius: var(--app-card-radius);
+    padding: var(--app-card-padding);
+    border: var(--app-border-subtle);
+}
+
+.app-card--elevated {
+    background: var(--app-gradient-card);
+    box-shadow: var(--app-shadow-md);
+}
+
+/* Animações utilitárias */
+.app-animate-fade-in {
+    animation: app-fade-in var(--app-duration-normal) ease-out;
+}
+
+.app-animate-fade-in-up {
+    animation: app-fade-in-up var(--app-duration-normal) ease-out;
+}
+
+/* Touch feedback */
+.app-touch-feedback {
+    -webkit-tap-highlight-color: transparent;
+    transition: transform var(--app-transition-fast);
+}
+
+.app-touch-feedback:active {
+    transform: scale(0.96);
+}
+
+/* Valores com estilo mono (pontos, dinheiro) */
+.app-value-mono {
+    font-family: var(--app-font-mono);
+    font-weight: var(--app-font-bold);
+    letter-spacing: -0.5px;
+}
+
+/* Status de valores */
+.app-value-positive {
+    color: var(--app-success-light);
+}
+
+.app-value-negative {
+    color: var(--app-danger);
+}
+
+.app-value-neutral {
+    color: var(--app-text-muted);
+}
+
+/* ========================================
+   MEDIA QUERIES - BREAKPOINTS
+   ======================================== */
+
+/* Tablet */
+@media (min-width: 768px) {
+    :root {
+        --app-font-base: 14px;
+        --app-font-md: 15px;
+        --app-font-lg: 17px;
+        --app-card-padding: var(--app-space-5);
+    }
+}
+
+/* Desktop (quando acessado via browser) */
+@media (min-width: 1024px) {
+    :root {
+        --app-font-base: 15px;
+        --app-font-md: 16px;
+        --app-card-padding: var(--app-space-6);
+    }
+}
+
+/* ========================================
+   PERFORMANCE: Desabilitar animações pesadas
+   quando preferência do usuário
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

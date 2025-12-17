@@ -1,58 +1,57 @@
 /* 🎨 CSS BASE - COMPONENTES REUTILIZÁVEIS PARA MÓDULOS
    Usado por todos os módulos do detalhe-liga.html
-   Hierarquia: style.css → detalhe-liga.css → base.css → modules/[modulo].css
+   Hierarquia: _admin-tokens.css → style.css → detalhe-liga.css → base.css → modules/[modulo].css
+
+   ⚠️  MIGRADO PARA TOKENS: Todas as cores usam var(--*) de _admin-tokens.css
 */
 
 /* === LOADING STATES GLOBAIS === */
 .loading-state {
     text-align: center;
-    padding: 30px;
-    color: #a0a0a0;
-    font-size: 13px;
-    font-weight: 500;
+    padding: var(--space-8);
+    color: var(--text-muted);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
 }
 
 .loading-state-full {
     text-align: center;
-    padding: 40px;
+    padding: var(--space-10);
     background: rgba(42, 42, 42, 0.5);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 69, 0, 0.1);
+    border-radius: var(--radius-lg);
+    border: var(--border-subtle);
 }
 
 .empty-state {
     text-align: center;
-    padding: 40px;
-    color: #666666;
+    padding: var(--space-10);
+    color: var(--text-disabled);
     font-style: italic;
-    font-size: 13px;
+    font-size: var(--font-size-base);
     background: rgba(42, 42, 42, 0.3);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 69, 0, 0.1);
+    border-radius: var(--radius-md);
+    border: var(--border-subtle);
 }
 
 /* === SPINNERS PADRONIZADOS === */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+/* NOTA: @keyframes admin-spin está em _admin-tokens.css */
 
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(255, 69, 0, 0.2);
-    border-top: 4px solid #ff4500;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+    width: var(--spinner-size-md);
+    height: var(--spinner-size-md);
+    border: 4px solid var(--color-primary-muted);
+    border-top: 4px solid var(--color-primary);
+    border-radius: var(--radius-full);
+    animation: admin-spin 1s linear infinite;
 }
 
 .spinner-small {
-    width: 24px;
-    height: 24px;
-    border: 3px solid rgba(255, 69, 0, 0.3);
-    border-top: 3px solid #ff4500;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+    width: var(--spinner-size-sm);
+    height: var(--spinner-size-sm);
+    border: 3px solid var(--color-primary-border);
+    border-top: 3px solid var(--color-primary);
+    border-radius: var(--radius-full);
+    animation: admin-spin 1s linear infinite;
 }
 
 /* === TABELAS PADRONIZADAS === */
@@ -60,136 +59,135 @@
     width: 100%;
     border-collapse: collapse;
     background: rgba(26, 26, 26, 0.9);
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    border: 1px solid rgba(255, 69, 0, 0.3);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--color-primary-border);
+    box-shadow: var(--shadow-lg);
 }
 
 .ranking-table th {
-    background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-    color: #ffffff;
+    background: var(--gradient-primary);
+    color: var(--text-primary);
     padding: 15px 12px;
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 1px;
+    font-size: var(--font-size-sm);
+    letter-spacing: var(--letter-spacing-wider);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    border-bottom: 2px solid rgba(255, 69, 0, 0.5);
+    border-bottom: 2px solid rgba(255, 85, 0, 0.5);
 }
 
 .ranking-table td {
     padding: 14px 12px;
-    border-bottom: 1px solid rgba(255, 69, 0, 0.1);
-    color: #e0e0e0;
-    font-size: 13px;
-    transition: all 0.3s ease;
+    border-bottom: var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: var(--font-size-base);
+    transition: all var(--transition-normal);
 }
 
 .ranking-table tbody tr:hover {
-    background: rgba(255, 69, 0, 0.08);
-    /* Removido scale para evitar reflow */
+    background: var(--table-row-hover);
 }
 
 .ranking-table tbody tr:nth-child(even) {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--table-row-stripe);
 }
 
 /* === TABELAS COMPACTAS === */
 .table-compact {
     background: rgba(26, 26, 26, 0.8);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     overflow: hidden;
-    border: 1px solid rgba(255, 69, 0, 0.2);
+    border: var(--border-default);
 }
 
 .table-compact th {
-    background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-    color: #ffffff;
+    background: var(--gradient-primary);
+    color: var(--text-primary);
     padding: 10px 8px;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 0.5px;
+    font-size: var(--font-size-xs);
+    letter-spacing: var(--letter-spacing-wide);
 }
 
 .table-compact td {
-    padding: 8px;
-    border-bottom: 1px solid rgba(255, 69, 0, 0.1);
-    color: #e0e0e0;
-    font-size: 12px;
+    padding: var(--space-2);
+    border-bottom: var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
 }
 
 /* === BOTÕES PADRONIZADOS === */
 .btn-primary {
-    background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%) !important;
-    color: white !important;
-    border: 2px solid rgba(255, 69, 0, 0.3) !important;
-    padding: 12px 20px !important;
-    border-radius: 8px !important;
-    font-weight: 700 !important;
-    font-size: 13px !important;
+    background: var(--gradient-primary) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid var(--color-primary-border) !important;
+    padding: var(--btn-padding-md) !important;
+    border-radius: var(--radius-md) !important;
+    font-weight: var(--font-weight-bold) !important;
+    font-size: var(--font-size-base) !important;
     cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4) !important;
+    transition: all var(--transition-normal) !important;
+    box-shadow: var(--shadow-primary) !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
+    letter-spacing: var(--letter-spacing-wide) !important;
 }
 
 .btn-primary:hover {
     transform: translateY(-3px) !important;
-    box-shadow: 0 8px 25px rgba(255, 69, 0, 0.5) !important;
-    background: linear-gradient(135deg, #e8472b 0%, #d63920 100%) !important;
-    border-color: #ff4500 !important;
+    box-shadow: var(--shadow-primary-lg) !important;
+    background: var(--gradient-primary-hover) !important;
+    border-color: var(--color-primary) !important;
 }
 
 .btn-secondary {
-    background: rgba(255, 69, 0, 0.1) !important;
-    border: 1px solid rgba(255, 69, 0, 0.3) !important;
-    color: #ff4500 !important;
+    background: var(--color-primary-muted) !important;
+    border: 1px solid var(--color-primary-border) !important;
+    color: var(--color-primary) !important;
     padding: 10px 20px !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius-md) !important;
     cursor: pointer !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    transition: all 0.3s ease !important;
+    font-size: var(--font-size-base) !important;
+    font-weight: var(--font-weight-semibold) !important;
+    transition: all var(--transition-normal) !important;
 }
 
 .btn-secondary:hover {
-    background: #ff4500 !important;
-    color: #ffffff !important;
+    background: var(--color-primary) !important;
+    color: var(--text-primary) !important;
     transform: translateX(-3px) !important;
 }
 
 .back-button {
-    background: rgba(255, 69, 0, 0.1);
-    border: 1px solid rgba(255, 69, 0, 0.3);
-    color: #ff4500;
+    background: var(--color-primary-muted);
+    border: 1px solid var(--color-primary-border);
+    color: var(--color-primary);
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    margin-bottom: 20px;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-normal);
+    margin-bottom: var(--space-5);
 }
 
 .back-button:hover {
-    background: #ff4500;
-    color: #ffffff;
+    background: var(--color-primary);
+    color: var(--text-primary);
     transform: translateX(-3px);
 }
 
 /* === CARDS PADRONIZADOS === */
 .content-card {
-    background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-    border-radius: 16px;
-    padding: 30px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 69, 0, 0.2);
+    background: var(--gradient-card);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-lg);
+    border: var(--border-default);
     position: relative;
     overflow: hidden;
-    margin-bottom: 20px;
+    margin-bottom: var(--space-5);
 }
 
 .content-card::before {
@@ -199,15 +197,15 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-    box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-primary-glow);
 }
 
 .card-header {
     text-align: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid rgba(255, 69, 0, 0.3);
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-5);
+    border-bottom: 2px solid var(--color-primary-border);
 }
 
 .card-title {
@@ -221,31 +219,31 @@
 .card-icon {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-    border-radius: 50%;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-full);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
     color: white;
-    box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
-    border: 3px solid rgba(255, 69, 0, 0.3);
+    box-shadow: var(--shadow-primary);
+    border: 3px solid var(--color-primary-border);
 }
 
 .card-title h2 {
-    color: #ffffff !important;
-    font-size: 28px;
-    font-weight: 800;
+    color: var(--text-primary) !important;
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-extrabold);
     margin: 0;
     text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
-    font-family: "Inter", -apple-system, sans-serif;
-    letter-spacing: -0.5px;
+    font-family: var(--font-family-base);
+    letter-spacing: var(--letter-spacing-tight);
 }
 
 .card-subtitle {
-    color: #a0a0a0 !important;
-    font-size: 14px;
-    font-weight: 500;
+    color: var(--text-muted) !important;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
     margin: 0;
     letter-spacing: 0.3px;
 }
@@ -255,17 +253,17 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: var(--space-5);
     padding: 15px 20px;
-    background: rgba(255, 69, 0, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 69, 0, 0.2);
+    background: rgba(255, 85, 0, 0.05);
+    border-radius: var(--radius-lg);
+    border: var(--border-default);
 }
 
 .control-info {
-    color: #e0e0e0;
-    font-size: 13px;
-    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
 }
 
 .control-actions {
@@ -276,7 +274,7 @@
 /* === GRIDS RESPONSIVOS === */
 .responsive-grid {
     display: grid;
-    gap: 16px;
+    gap: var(--space-4);
 }
 
 .responsive-grid.auto-fit {
@@ -298,81 +296,70 @@
 /* === ESTILOS PARA POSIÇÕES DE RANKING === */
 .position-gold,
 #ranking-geral .ranking-table tbody tr:nth-child(1) {
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 193, 7, 0.1) 100%) !important;
-    border-left: 4px solid #ffd700 !important;
+    background: linear-gradient(135deg, var(--color-gold-muted) 0%, rgba(255, 193, 7, 0.1) 100%) !important;
+    border-left: 4px solid var(--color-gold) !important;
 }
 
 .position-silver,
 #ranking-geral .ranking-table tbody tr:nth-child(2) {
-    background: linear-gradient(135deg, rgba(192, 192, 192, 0.15) 0%, rgba(169, 169, 169, 0.1) 100%) !important;
-    border-left: 4px solid #c0c0c0 !important;
+    background: linear-gradient(135deg, var(--color-silver-muted) 0%, rgba(169, 169, 169, 0.1) 100%) !important;
+    border-left: 4px solid var(--color-silver) !important;
 }
 
 .position-bronze,
 #ranking-geral .ranking-table tbody tr:nth-child(3) {
-    background: linear-gradient(135deg, rgba(205, 127, 50, 0.15) 0%, rgba(184, 115, 51, 0.1) 100%) !important;
-    border-left: 4px solid #cd7f32 !important;
+    background: linear-gradient(135deg, var(--color-bronze-muted) 0%, rgba(184, 115, 51, 0.1) 100%) !important;
+    border-left: 4px solid var(--color-bronze) !important;
 }
 
 /* === BADGES E INDICADORES === */
 .badge {
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-xs);
+    font-family: var(--font-family-mono);
 }
 
 .badge-primary {
-    background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+    background: var(--gradient-primary);
     color: white;
 }
 
 .badge-secondary {
-    background: rgba(255, 69, 0, 0.2);
-    color: #ff4500;
-    border: 1px solid rgba(255, 69, 0, 0.3);
+    background: rgba(255, 85, 0, 0.2);
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary-border);
 }
 
 .badge-success {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    background: linear-gradient(135deg, var(--color-success) 0%, #20c997 100%);
     color: white;
 }
 
 .badge-warning {
-    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
-    color: #000;
+    background: linear-gradient(135deg, var(--color-warning) 0%, #fd7e14 100%);
+    color: var(--text-inverse);
 }
 
 /* === ANIMAÇÕES OTIMIZADAS === */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/* NOTA: @keyframes admin-fade-in-up está em _admin-tokens.css */
 
 .fade-in {
-    animation: fadeInUp 0.2s ease-out;
+    animation: admin-fade-in-up var(--animation-duration-fast) ease-out;
     will-change: transform, opacity;
 }
-
-/* Removidas animações desnecessárias para melhor performance */
 
 /* === RESPONSIVIDADE BASE === */
 @media (max-width: 768px) {
     .responsive-grid.three-cols {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: var(--space-3);
     }
 
     .responsive-grid.two-cols {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: var(--space-3);
     }
 
     .module-controls {
@@ -382,7 +369,7 @@
     }
 
     .card-title h2 {
-        font-size: 24px;
+        font-size: var(--font-size-2xl);
     }
 
     .card-icon {
@@ -394,17 +381,17 @@
 
 @media (max-width: 480px) {
     .content-card {
-        padding: 20px;
+        padding: var(--space-5);
     }
 
     .card-title h2 {
-        font-size: 20px;
+        font-size: var(--font-size-xl);
     }
 
     .ranking-table th,
     .ranking-table td {
-        padding: 8px 6px;
-        font-size: 11px;
+        padding: var(--space-2) var(--space-1);
+        font-size: var(--font-size-xs);
     }
 }
 
@@ -416,29 +403,28 @@
 #ranking-geral h2,
 #ranking-geral .ranking-title h2,
 #ranking-geral h2[style*="font-size: 2rem"] {
-    color: #ffffff !important;
-    font-weight: 800 !important;
+    color: var(--text-primary) !important;
+    font-weight: var(--font-weight-extrabold) !important;
     text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3) !important;
-    font-family: "Inter", -apple-system, sans-serif !important;
+    font-family: var(--font-family-base) !important;
 }
 
 #ranking-geral .ranking-subtitle,
 #ranking-geral [style*="color: #888"],
 #ranking-geral [style*="color:#888"],
 #ranking-geral div[style*="font-size: 1rem; color: #888"] {
-    color: #a0a0a0 !important;
-    font-weight: 500 !important;
-    font-size: 14px !important;
+    color: var(--text-muted) !important;
+    font-weight: var(--font-weight-medium) !important;
+    font-size: var(--font-size-md) !important;
 }
 
-/* Override para botões de exportação - MAS AGRESSIVO */
 /* RANKING GERAL - Container e estrutura */
 #ranking-geral {
-    background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%) !important;
-    border-radius: 16px !important;
-    padding: 30px !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
-    border: 1px solid rgba(255, 69, 0, 0.2) !important;
+    background: var(--gradient-card) !important;
+    border-radius: var(--radius-xl) !important;
+    padding: var(--space-8) !important;
+    box-shadow: var(--shadow-lg) !important;
+    border: var(--border-default) !important;
     position: relative !important;
     overflow: hidden !important;
 }
@@ -450,6 +436,6 @@
     left: 0 !important;
     right: 0 !important;
     height: 4px !important;
-    background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%) !important;
-    box-shadow: 0 0 15px rgba(255, 69, 0, 0.6) !important;
+    background: var(--gradient-primary) !important;
+    box-shadow: var(--shadow-primary-glow) !important;
 }

@@ -770,7 +770,7 @@
     border: 3px solid rgba(255, 85, 0, 0.2);
     border-top: 3px solid #FF5500;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: admin-spin 1s linear infinite;
     margin-bottom: 16px;
 }
 
@@ -916,10 +916,6 @@
 }
 
 /* === ANIMAÇÕES === */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
 
 /* ============================================================
    SIDEBAR REDESIGN v1.0 - Design Moderno
@@ -1318,7 +1314,7 @@
 
 .sidebar-ligas-loading .material-icons {
     font-size: 18px;
-    animation: spin 1s linear infinite;
+    animation: admin-spin 1s linear infinite;
     display: block;
     margin: 0 auto 8px;
     color: #FF5500;
@@ -1807,4 +1803,17 @@
 /* Badge dentro do titulo do accordion */
 .sidebar-accordion-title .sidebar-badge {
     margin-left: 8px;
+}
+
+/* === LINK DIRETO DO APP PARTICIPANTE === */
+.sidebar-app-link {
+    background: linear-gradient(135deg, rgba(255, 85, 0, 0.1), rgba(255, 85, 0, 0.05)) !important;
+    border: 1px solid rgba(255, 85, 0, 0.2);
+    border-radius: 8px;
+    margin: 4px 0;
+}
+
+.sidebar-app-link:hover {
+    background: linear-gradient(135deg, rgba(255, 85, 0, 0.2), rgba(255, 85, 0, 0.1)) !important;
+    border-color: rgba(255, 85, 0, 0.4);
 }

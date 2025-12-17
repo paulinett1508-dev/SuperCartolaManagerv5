@@ -1,0 +1,285 @@
+/**
+ * ADMIN DESIGN TOKENS - Super Cartola Manager
+ * ============================================
+ * Arquivo central de variáveis CSS para o Painel Administrativo (Desktop)
+ *
+ * USO: Importe este arquivo ANTES de qualquer outro CSS admin
+ *      <link rel="stylesheet" href="/css/_admin-tokens.css">
+ *
+ * REGRA: Nunca use cores hardcoded. Use sempre var(--nome-da-variavel)
+ */
+
+:root {
+    /* ========================================
+       1. CORES PRIMÁRIAS (Brand)
+       ======================================== */
+    --color-primary: #FF5500;           /* Laranja principal - PADRAO OFICIAL */
+    --color-primary-dark: #e8472b;      /* Hover/Active states */
+    --color-primary-light: #ff6b35;     /* Destaques suaves */
+    --color-primary-muted: rgba(255, 85, 0, 0.1);  /* Backgrounds sutis */
+    --color-primary-border: rgba(255, 85, 0, 0.3); /* Bordas com transparência */
+
+    /* Gradientes primários */
+    --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    --gradient-primary-hover: linear-gradient(135deg, var(--color-primary-dark) 0%, #d63920 100%);
+
+    /* ========================================
+       2. CORES DE SUPERFÍCIE (Dark Theme)
+       ======================================== */
+    --surface-bg: #121212;              /* Background principal da página */
+    --surface-card: #1a1a1a;            /* Cards e containers */
+    --surface-card-elevated: #2a2a2a;   /* Cards com elevação */
+    --surface-card-hover: #333333;      /* Hover em cards */
+    --surface-overlay: rgba(0, 0, 0, 0.5); /* Overlays de modais */
+
+    /* Gradientes de superfície */
+    --gradient-card: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+
+    /* ========================================
+       3. CORES DE STATUS
+       ======================================== */
+    /* Sucesso (Verde) */
+    --color-success: #10b981;
+    --color-success-light: #22c55e;
+    --color-success-muted: rgba(16, 185, 129, 0.15);
+    --color-success-text: #86efac;
+
+    /* Erro/Perigo (Vermelho) */
+    --color-danger: #ef4444;
+    --color-danger-dark: #dc2626;
+    --color-danger-muted: rgba(239, 68, 68, 0.15);
+    --color-danger-text: #fca5a5;
+
+    /* Alerta (Amarelo) */
+    --color-warning: #eab308;
+    --color-warning-dark: #ca8a04;
+    --color-warning-muted: rgba(234, 179, 8, 0.15);
+
+    /* Info (Azul) */
+    --color-info: #3b82f6;
+    --color-info-muted: rgba(59, 130, 246, 0.15);
+
+    /* ========================================
+       4. CORES DE RANKING (Posições)
+       ======================================== */
+    --color-gold: #ffd700;
+    --color-gold-muted: rgba(255, 215, 0, 0.15);
+
+    --color-silver: #c0c0c0;
+    --color-silver-muted: rgba(192, 192, 192, 0.15);
+
+    --color-bronze: #cd7f32;
+    --color-bronze-muted: rgba(205, 127, 50, 0.15);
+
+    /* Mitos e Micos */
+    --color-mito: var(--color-gold);
+    --color-mico: var(--color-danger);
+
+    /* ========================================
+       5. CORES DE TEXTO
+       ======================================== */
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --text-disabled: #666666;
+    --text-inverse: #000000;
+
+    /* ========================================
+       6. TIPOGRAFIA
+       ======================================== */
+    /* Famílias */
+    --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+    /* Tamanhos */
+    --font-size-xs: 10px;
+    --font-size-sm: 12px;
+    --font-size-base: 13px;
+    --font-size-md: 14px;
+    --font-size-lg: 16px;
+    --font-size-xl: 20px;
+    --font-size-2xl: 24px;
+    --font-size-3xl: 28px;
+    --font-size-hero: 32px;
+
+    /* Pesos */
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+
+    /* Line Heights */
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+
+    /* Letter Spacing */
+    --letter-spacing-tight: -0.5px;
+    --letter-spacing-normal: 0;
+    --letter-spacing-wide: 0.5px;
+    --letter-spacing-wider: 1px;
+
+    /* ========================================
+       7. ESPAÇAMENTO
+       ======================================== */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+
+    /* ========================================
+       8. BORDER RADIUS
+       ======================================== */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-full: 9999px;
+
+    /* ========================================
+       9. SOMBRAS
+       ======================================== */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5);
+
+    /* Sombras com cor primária (glow) */
+    --shadow-primary: 0 4px 15px rgba(255, 85, 0, 0.4);
+    --shadow-primary-lg: 0 8px 25px rgba(255, 85, 0, 0.5);
+    --shadow-primary-glow: 0 0 15px rgba(255, 85, 0, 0.6);
+
+    /* ========================================
+       10. BORDAS
+       ======================================== */
+    --border-subtle: 1px solid rgba(255, 85, 0, 0.1);
+    --border-default: 1px solid rgba(255, 85, 0, 0.2);
+    --border-strong: 1px solid rgba(255, 85, 0, 0.3);
+    --border-accent: 2px solid var(--color-primary);
+
+    /* ========================================
+       11. TRANSIÇÕES & ANIMAÇÕES
+       ======================================== */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+    --transition-bounce: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Duração de animações */
+    --animation-duration-fast: 0.2s;
+    --animation-duration-normal: 0.4s;
+    --animation-duration-slow: 0.8s;
+
+    /* ========================================
+       12. Z-INDEX (Camadas)
+       ======================================== */
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-modal-backdrop: 500;
+    --z-modal: 600;
+    --z-toast: 700;
+    --z-tooltip: 800;
+
+    /* ========================================
+       13. COMPONENTES ESPECÍFICOS
+       ======================================== */
+    /* Sidebar Admin */
+    --sidebar-width: 280px;
+    --sidebar-bg: var(--surface-card);
+
+    /* Tabelas */
+    --table-header-bg: var(--gradient-primary);
+    --table-row-hover: rgba(255, 85, 0, 0.08);
+    --table-row-stripe: rgba(255, 255, 255, 0.02);
+
+    /* Botões */
+    --btn-padding-sm: 8px 16px;
+    --btn-padding-md: 12px 20px;
+    --btn-padding-lg: 16px 24px;
+
+    /* Inputs */
+    --input-bg: var(--surface-card);
+    --input-border: var(--border-default);
+    --input-focus-border: var(--color-primary);
+
+    /* Spinners */
+    --spinner-size-sm: 24px;
+    --spinner-size-md: 40px;
+    --spinner-size-lg: 56px;
+}
+
+/* ========================================
+   ANIMAÇÕES GLOBAIS (Definir apenas 1x)
+   ======================================== */
+
+/* Spinner - ÚNICA DEFINIÇÃO */
+@keyframes admin-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Fade In */
+@keyframes admin-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Fade In Up */
+@keyframes admin-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Pulse */
+@keyframes admin-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* ========================================
+   CLASSES UTILITÁRIAS
+   ======================================== */
+
+/* Spinner padronizado */
+.admin-spinner {
+    width: var(--spinner-size-md);
+    height: var(--spinner-size-md);
+    border: 4px solid var(--color-primary-muted);
+    border-top-color: var(--color-primary);
+    border-radius: var(--radius-full);
+    animation: admin-spin 1s linear infinite;
+}
+
+.admin-spinner--sm {
+    width: var(--spinner-size-sm);
+    height: var(--spinner-size-sm);
+    border-width: 3px;
+}
+
+.admin-spinner--lg {
+    width: var(--spinner-size-lg);
+    height: var(--spinner-size-lg);
+    border-width: 5px;
+}
+
+/* Animações utilitárias */
+.admin-animate-fade-in {
+    animation: admin-fade-in var(--animation-duration-normal) ease-out;
+}
+
+.admin-animate-fade-in-up {
+    animation: admin-fade-in-up var(--animation-duration-normal) ease-out;
+}

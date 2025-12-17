@@ -90,7 +90,7 @@
     border: 3px solid var(--border-primary);
     border-top-color: var(--laranja);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: admin-spin 1s linear infinite;
 }
 
 /* Empty State */
@@ -112,11 +112,6 @@
 }
 
 /* Animações */
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
 
 /* Responsive */
 @media (max-width: 768px) {
