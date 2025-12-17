@@ -1557,3 +1557,254 @@
         height: 28px;
     }
 }
+
+/* ============================================================
+   SIDEBAR ACCORDION v1.0 - Navegação Expandível
+   ============================================================ */
+
+/* Seção Accordion */
+.sidebar-accordion {
+    padding: 0 12px;
+    margin-bottom: 8px;
+}
+
+/* Header clicável do accordion */
+.sidebar-accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.sidebar-accordion-header:hover {
+    background: #1f1f1f;
+}
+
+.sidebar-accordion-header.active {
+    background: rgba(255, 85, 0, 0.08);
+}
+
+.sidebar-accordion-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sidebar-accordion-header:hover .sidebar-accordion-title,
+.sidebar-accordion-header.active .sidebar-accordion-title {
+    color: #e5e7eb;
+}
+
+.sidebar-accordion-title .material-icons {
+    font-size: 18px;
+    color: #6b7280;
+    transition: color 0.15s ease;
+}
+
+.sidebar-accordion-header:hover .sidebar-accordion-title .material-icons,
+.sidebar-accordion-header.active .sidebar-accordion-title .material-icons {
+    color: #FF5500;
+}
+
+/* Seta do accordion */
+.sidebar-accordion-arrow {
+    font-size: 18px !important;
+    color: #6b7280;
+    transition: transform 0.25s ease, color 0.15s ease;
+}
+
+.sidebar-accordion-header:hover .sidebar-accordion-arrow {
+    color: #9ca3af;
+}
+
+.sidebar-accordion.open .sidebar-accordion-arrow {
+    transform: rotate(180deg);
+    color: #FF5500;
+}
+
+/* Conteúdo do accordion */
+.sidebar-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease-out;
+}
+
+.sidebar-accordion.open .sidebar-accordion-content {
+    max-height: 500px;
+    transition: max-height 0.35s ease-in;
+}
+
+/* Lista dentro do accordion */
+.sidebar-accordion-menu {
+    list-style: none;
+    padding: 4px 0 8px 0;
+    margin: 0;
+}
+
+.sidebar-accordion-menu li {
+    margin-bottom: 2px;
+}
+
+/* Item de menu do accordion */
+.sidebar-accordion-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px 8px 40px;
+    color: #9ca3af;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.sidebar-accordion-item:hover {
+    background: #1f1f1f;
+    color: #ffffff;
+}
+
+.sidebar-accordion-item.active {
+    background: rgba(255, 85, 0, 0.1);
+    color: #FF5500;
+}
+
+.sidebar-accordion-item .material-icons {
+    font-size: 16px;
+    opacity: 0.7;
+}
+
+.sidebar-accordion-item:hover .material-icons,
+.sidebar-accordion-item.active .material-icons {
+    opacity: 1;
+}
+
+/* Badge de contagem */
+.sidebar-accordion-badge {
+    margin-left: auto;
+    background: #1f1f1f;
+    color: #6b7280;
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.sidebar-accordion-item.active .sidebar-accordion-badge {
+    background: rgba(255, 85, 0, 0.2);
+    color: #FF5500;
+}
+
+/* Divisor entre seções */
+.sidebar-divider {
+    height: 1px;
+    background: #1f1f1f;
+    margin: 12px 16px;
+}
+
+/* Ajuste para ligas dentro do accordion */
+.sidebar-accordion .sidebar-liga-item {
+    padding-left: 40px;
+}
+
+.sidebar-accordion .sidebar-liga-item .liga-logo-img {
+    width: 20px;
+    height: 20px;
+}
+
+.sidebar-accordion .sidebar-liga-item .liga-name-sidebar {
+    font-size: 0.8rem;
+}
+
+/* Link de ação dentro do accordion (ex: "Criar Nova Liga") */
+.sidebar-accordion-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px 8px 40px;
+    color: #FF5500;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.sidebar-accordion-action:hover {
+    background: rgba(255, 85, 0, 0.1);
+    color: #ff7733;
+}
+
+.sidebar-accordion-action .material-icons {
+    font-size: 14px;
+}
+
+/* === SIDEBAR BADGES (Novo, Em breve, Live) === */
+.sidebar-badge {
+    padding: 2px 6px;
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.sidebar-badge.new {
+    background: linear-gradient(135deg, #ff5500, #ff7733);
+    color: white;
+    animation: pulse-new 2s infinite;
+}
+
+@keyframes pulse-new {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 85, 0, 0.4); }
+    50% { opacity: 0.9; box-shadow: 0 0 8px 2px rgba(255, 85, 0, 0.3); }
+}
+
+.sidebar-badge.soon {
+    background: rgba(255, 255, 255, 0.1);
+    color: #9ca3af;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-badge.live {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    animation: pulse-live 1.5s infinite;
+}
+
+@keyframes pulse-live {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* === SIDEBAR ITEMS DESABILITADOS === */
+.sidebar-accordion-item.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.sidebar-accordion-item.disabled:hover {
+    background: transparent;
+}
+
+.sidebar-accordion-item.disabled .material-icons {
+    color: #6b7280;
+}
+
+/* Badge dentro do titulo do accordion */
+.sidebar-accordion-title .sidebar-badge {
+    margin-left: 8px;
+}

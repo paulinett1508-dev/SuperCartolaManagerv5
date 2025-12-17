@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Gestao de Renovacoes 2026 - Super Cartola Manager</title>
+        <title>Tesouraria Geral - Super Cartola Manager</title>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
         <link rel="stylesheet" href="style.css" />
         <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
@@ -11,37 +11,38 @@
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
         <style>
             /* ============================================================
-               GESTÃO DE RENOVAÇÕES 2026 - v1.0
+               TESOURARIA GERAL - v2.0
+               Painel financeiro centralizado para todas as ligas
                ============================================================ */
 
-            .renovacoes-page {
+            .tesouraria-page {
                 background: #121212;
                 min-height: 100vh;
             }
 
-            .renovacoes-content {
+            .tesouraria-content {
                 padding: 20px 16px;
             }
 
-            /* Header com aviso */
-            .renovacoes-header {
+            /* Header */
+            .tesouraria-header {
                 background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
                 border-radius: 10px;
                 padding: 18px 20px;
                 margin-bottom: 20px;
-                border: 1px solid #f59e0b;
+                border: 1px solid #10b981;
                 position: relative;
                 overflow: hidden;
             }
 
-            .renovacoes-header::before {
+            .tesouraria-header::before {
                 content: '';
                 position: absolute;
                 top: 0;
                 left: 0;
                 right: 0;
                 height: 3px;
-                background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+                background: linear-gradient(90deg, #10b981, #34d399, #10b981);
             }
 
             .header-top {
@@ -49,6 +50,8 @@
                 align-items: center;
                 justify-content: space-between;
                 margin-bottom: 12px;
+                flex-wrap: wrap;
+                gap: 10px;
             }
 
             .header-title {
@@ -59,10 +62,10 @@
 
             .header-title .material-icons {
                 font-size: 28px;
-                color: #f59e0b;
+                color: #10b981;
             }
 
-            .renovacoes-header h1 {
+            .tesouraria-header h1 {
                 font-size: 1.35rem;
                 font-weight: 700;
                 color: #ffffff;
@@ -70,8 +73,8 @@
             }
 
             .header-badge {
-                background: rgba(245, 158, 11, 0.15);
-                color: #f59e0b;
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
                 padding: 4px 12px;
                 border-radius: 20px;
                 font-size: 0.7rem;
@@ -80,39 +83,16 @@
                 letter-spacing: 0.05em;
             }
 
-            .renovacoes-header p {
+            .tesouraria-header p {
                 font-size: 0.8rem;
                 color: #9ca3af;
-                margin: 0;
-            }
-
-            /* Aviso de preparação */
-            .aviso-preparacao {
-                background: rgba(245, 158, 11, 0.1);
-                border: 1px solid rgba(245, 158, 11, 0.3);
-                border-radius: 8px;
-                padding: 12px 16px;
-                margin-bottom: 20px;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-            }
-
-            .aviso-preparacao .material-icons {
-                color: #f59e0b;
-                font-size: 20px;
-            }
-
-            .aviso-preparacao p {
-                font-size: 0.8rem;
-                color: #fbbf24;
                 margin: 0;
             }
 
             /* Stats Cards */
             .stats-row {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
                 gap: 12px;
                 margin-bottom: 20px;
             }
@@ -127,8 +107,8 @@
 
             .stat-card.highlight-green { border-color: rgba(16, 185, 129, 0.3); }
             .stat-card.highlight-red { border-color: rgba(239, 68, 68, 0.3); }
-            .stat-card.highlight-amber { border-color: rgba(245, 158, 11, 0.3); }
             .stat-card.highlight-blue { border-color: rgba(59, 130, 246, 0.3); }
+            .stat-card.highlight-gray { border-color: rgba(156, 163, 175, 0.3); }
 
             .stat-card-icon {
                 width: 36px;
@@ -142,21 +122,23 @@
 
             .stat-card-icon.green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
             .stat-card-icon.red { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-            .stat-card-icon.amber { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
             .stat-card-icon.blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
             .stat-card-icon.gray { background: rgba(156, 163, 175, 0.15); color: #9ca3af; }
 
             .stat-card-icon .material-icons { font-size: 18px; }
 
             .stat-card-value {
-                font-size: 1.5rem;
+                font-size: 1.4rem;
                 font-weight: 700;
                 color: #ffffff;
                 margin-bottom: 2px;
             }
 
+            .stat-card-value.green { color: #10b981; }
+            .stat-card-value.red { color: #ef4444; }
+
             .stat-card-label {
-                font-size: 0.7rem;
+                font-size: 0.65rem;
                 color: #9ca3af;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
@@ -196,11 +178,12 @@
                 font-size: 0.8rem;
                 color: #ffffff;
                 outline: none;
+                min-width: 130px;
             }
 
             .filtro-group select:focus,
             .filtro-group input:focus {
-                border-color: #f59e0b;
+                border-color: #10b981;
             }
 
             .filtro-group input[type="text"] {
@@ -208,7 +191,7 @@
             }
 
             .btn-filtrar {
-                background: #f59e0b;
+                background: #10b981;
                 color: #000;
                 border: none;
                 border-radius: 6px;
@@ -223,14 +206,14 @@
             }
 
             .btn-filtrar:hover {
-                background: #fbbf24;
+                background: #34d399;
             }
 
             .btn-filtrar .material-icons {
                 font-size: 16px;
             }
 
-            /* Tabela de participantes */
+            /* Tabela */
             .tabela-container {
                 background: #1a1a1a;
                 border-radius: 10px;
@@ -282,6 +265,21 @@
                 white-space: nowrap;
             }
 
+            th.sortable {
+                cursor: pointer;
+                user-select: none;
+            }
+
+            th.sortable:hover {
+                color: #10b981;
+            }
+
+            th.sortable .material-icons {
+                font-size: 14px;
+                vertical-align: middle;
+                margin-left: 4px;
+            }
+
             td {
                 padding: 12px 16px;
                 font-size: 0.85rem;
@@ -324,7 +322,7 @@
                 color: #6b7280;
             }
 
-            /* Saldo cell */
+            /* Saldo cells */
             .saldo-positivo {
                 color: #10b981;
                 font-weight: 600;
@@ -351,27 +349,22 @@
                 text-transform: uppercase;
             }
 
-            .status-badge.pendente {
-                background: rgba(245, 158, 11, 0.15);
-                color: #f59e0b;
-            }
-
-            .status-badge.renovado {
+            .status-badge.credor {
                 background: rgba(16, 185, 129, 0.15);
                 color: #10b981;
             }
 
-            .status-badge.nao_renovado {
+            .status-badge.devedor {
                 background: rgba(239, 68, 68, 0.15);
                 color: #ef4444;
             }
 
-            .status-badge.inadimplente {
-                background: rgba(239, 68, 68, 0.3);
-                color: #fca5a5;
+            .status-badge.quitado {
+                background: rgba(156, 163, 175, 0.15);
+                color: #9ca3af;
             }
 
-            /* Ações */
+            /* Acoes */
             .acoes-cell {
                 display: flex;
                 gap: 6px;
@@ -393,39 +386,44 @@
                 font-size: 16px;
             }
 
-            .btn-acao.aprovar {
+            .btn-acao.pagamento {
                 background: rgba(16, 185, 129, 0.15);
                 color: #10b981;
             }
 
-            .btn-acao.aprovar:hover {
+            .btn-acao.pagamento:hover {
                 background: #10b981;
                 color: #fff;
             }
 
-            .btn-acao.rejeitar {
+            .btn-acao.recebimento {
                 background: rgba(239, 68, 68, 0.15);
                 color: #ef4444;
             }
 
-            .btn-acao.rejeitar:hover {
+            .btn-acao.recebimento:hover {
                 background: #ef4444;
                 color: #fff;
             }
 
-            .btn-acao.pagamento {
+            .btn-acao.acerto {
                 background: rgba(59, 130, 246, 0.15);
                 color: #3b82f6;
             }
 
-            .btn-acao.pagamento:hover {
+            .btn-acao.acerto:hover {
                 background: #3b82f6;
                 color: #fff;
             }
 
-            .btn-acao:disabled {
-                opacity: 0.3;
-                cursor: not-allowed;
+            .btn-acao.historico {
+                background: rgba(156, 163, 175, 0.15);
+                color: #9ca3af;
+            }
+
+            .btn-acao.historico:hover {
+                background: #6b7280;
+                color: #fff;
             }
 
             /* Empty state */
@@ -452,6 +450,30 @@
                 margin: 0;
             }
 
+            /* Loading */
+            .loading-overlay {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 60px 20px;
+            }
+
+            .loading-spinner {
+                width: 40px;
+                height: 40px;
+                border: 3px solid rgba(16, 185, 129, 0.2);
+                border-top: 3px solid #10b981;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-bottom: 16px;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
             /* Modal */
             .modal-overlay {
                 position: fixed;
@@ -459,7 +481,7 @@
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(0, 0, 0, 0.7);
+                background: rgba(0, 0, 0, 0.8);
                 display: none;
                 align-items: center;
                 justify-content: center;
@@ -475,15 +497,17 @@
                 border-radius: 12px;
                 border: 1px solid #2d2d2d;
                 width: 90%;
-                max-width: 400px;
-                padding: 24px;
+                max-width: 480px;
+                max-height: 90vh;
+                overflow-y: auto;
             }
 
             .modal-header {
+                padding: 16px 20px;
+                border-bottom: 1px solid #2d2d2d;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                margin-bottom: 20px;
             }
 
             .modal-header h3 {
@@ -491,6 +515,13 @@
                 font-weight: 700;
                 color: #ffffff;
                 margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .modal-header h3 .material-icons {
+                font-size: 22px;
             }
 
             .modal-close {
@@ -506,10 +537,62 @@
             }
 
             .modal-body {
-                margin-bottom: 20px;
+                padding: 20px;
             }
 
-            .modal-body label {
+            /* Participante Info no Modal */
+            .modal-participante-info {
+                background: #252525;
+                border-radius: 8px;
+                padding: 12px 16px;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .modal-participante-info img {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                background: #333;
+            }
+
+            .modal-participante-info .info h4 {
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: #ffffff;
+                margin: 0 0 2px 0;
+            }
+
+            .modal-participante-info .info span {
+                font-size: 0.75rem;
+                color: #9ca3af;
+            }
+
+            .modal-participante-info .saldo {
+                margin-left: auto;
+                text-align: right;
+            }
+
+            .modal-participante-info .saldo .label {
+                font-size: 0.65rem;
+                color: #6b7280;
+                text-transform: uppercase;
+            }
+
+            .modal-participante-info .saldo .valor {
+                font-size: 1.1rem;
+                font-weight: 700;
+            }
+
+            /* Form no Modal */
+            .modal-form-group {
+                margin-bottom: 16px;
+            }
+
+            .modal-form-group label {
                 display: block;
                 font-size: 0.8rem;
                 font-weight: 500;
@@ -517,8 +600,9 @@
                 margin-bottom: 6px;
             }
 
-            .modal-body input,
-            .modal-body textarea {
+            .modal-form-group input,
+            .modal-form-group textarea,
+            .modal-form-group select {
                 width: 100%;
                 background: #252525;
                 border: 1px solid #333;
@@ -530,17 +614,111 @@
                 box-sizing: border-box;
             }
 
-            .modal-body input:focus,
-            .modal-body textarea:focus {
-                border-color: #f59e0b;
+            .modal-form-group input:focus,
+            .modal-form-group textarea:focus,
+            .modal-form-group select:focus {
+                border-color: #10b981;
             }
 
-            .modal-body textarea {
+            .modal-form-group textarea {
                 resize: vertical;
-                min-height: 80px;
+                min-height: 70px;
+            }
+
+            .modal-form-group .input-prefix {
+                position: relative;
+            }
+
+            .modal-form-group .input-prefix::before {
+                content: 'R$';
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #6b7280;
+                font-size: 0.85rem;
+            }
+
+            .modal-form-group .input-prefix input {
+                padding-left: 36px;
+            }
+
+            /* Tipo de Acerto (Radio buttons) */
+            .tipo-acerto-options {
+                display: flex;
+                gap: 12px;
+            }
+
+            .tipo-acerto-option {
+                flex: 1;
+                padding: 12px;
+                border-radius: 8px;
+                border: 2px solid #333;
+                cursor: pointer;
+                text-align: center;
+                transition: all 0.2s ease;
+            }
+
+            .tipo-acerto-option:hover {
+                border-color: #555;
+            }
+
+            .tipo-acerto-option.selected.pagamento {
+                border-color: #10b981;
+                background: rgba(16, 185, 129, 0.1);
+            }
+
+            .tipo-acerto-option.selected.recebimento {
+                border-color: #ef4444;
+                background: rgba(239, 68, 68, 0.1);
+            }
+
+            .tipo-acerto-option .material-icons {
+                font-size: 24px;
+                margin-bottom: 4px;
+            }
+
+            .tipo-acerto-option.pagamento .material-icons { color: #10b981; }
+            .tipo-acerto-option.recebimento .material-icons { color: #ef4444; }
+
+            .tipo-acerto-option span {
+                display: block;
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .tipo-acerto-option.pagamento span { color: #10b981; }
+            .tipo-acerto-option.recebimento span { color: #ef4444; }
+
+            /* Botao Zerar Saldo */
+            .btn-zerar-saldo {
+                width: 100%;
+                background: rgba(59, 130, 246, 0.15);
+                color: #3b82f6;
+                border: 1px dashed #3b82f6;
+                border-radius: 6px;
+                padding: 10px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                cursor: pointer;
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+            }
+
+            .btn-zerar-saldo:hover {
+                background: rgba(59, 130, 246, 0.25);
+            }
+
+            .btn-zerar-saldo .material-icons {
+                font-size: 18px;
             }
 
             .modal-footer {
+                padding: 16px 20px;
+                border-top: 1px solid #2d2d2d;
                 display: flex;
                 gap: 10px;
                 justify-content: flex-end;
@@ -553,6 +731,9 @@
                 font-weight: 600;
                 cursor: pointer;
                 border: none;
+                display: flex;
+                align-items: center;
+                gap: 6px;
             }
 
             .btn-modal.cancelar {
@@ -561,13 +742,57 @@
             }
 
             .btn-modal.confirmar {
-                background: #f59e0b;
+                background: #10b981;
                 color: #000;
             }
 
             .btn-modal:hover {
                 opacity: 0.9;
             }
+
+            .btn-modal .material-icons {
+                font-size: 18px;
+            }
+
+            /* Modal Historico */
+            .historico-lista {
+                max-height: 300px;
+                overflow-y: auto;
+            }
+
+            .historico-item {
+                padding: 12px;
+                border-bottom: 1px solid #2d2d2d;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .historico-item:last-child {
+                border-bottom: none;
+            }
+
+            .historico-item .info {
+                flex: 1;
+            }
+
+            .historico-item .info .descricao {
+                font-size: 0.85rem;
+                color: #ffffff;
+                margin-bottom: 2px;
+            }
+
+            .historico-item .info .data {
+                font-size: 0.7rem;
+                color: #6b7280;
+            }
+
+            .historico-item .valor {
+                font-weight: 600;
+            }
+
+            .historico-item .valor.positivo { color: #10b981; }
+            .historico-item .valor.negativo { color: #ef4444; }
 
             /* Voltar button */
             .btn-voltar {
@@ -594,105 +819,87 @@
         <div class="app-container">
             <div id="sidebar-placeholder"></div>
 
-            <main class="app-main renovacoes-page">
-                <div class="renovacoes-content">
+            <main class="app-main tesouraria-page">
+                <div class="tesouraria-content">
                     <!-- Voltar -->
-                    <a href="ferramentas.html" class="btn-voltar">
+                    <a href="painel.html" class="btn-voltar">
                         <span class="material-icons">arrow_back</span>
-                        Voltar para Ferramentas
+                        Voltar ao Dashboard
                     </a>
 
                     <!-- Header -->
-                    <header class="renovacoes-header">
+                    <header class="tesouraria-header">
                         <div class="header-top">
                             <div class="header-title">
-                                <span class="material-icons">how_to_reg</span>
-                                <h1>Gestao de Renovacoes</h1>
+                                <span class="material-icons">account_balance_wallet</span>
+                                <h1>Tesouraria Geral</h1>
                             </div>
-                            <span class="header-badge">Temporada 2026</span>
+                            <span class="header-badge">Temporada 2025</span>
                         </div>
-                        <p>Gerencie inscricoes, controle financeiro e status dos participantes para a nova temporada.</p>
+                        <p>Gerencie os saldos financeiros de todos os participantes de todas as ligas em um so lugar.</p>
                     </header>
-
-                    <!-- Aviso de preparação -->
-                    <div class="aviso-preparacao">
-                        <span class="material-icons">schedule</span>
-                        <p><strong>Modo Preparacao:</strong> Este modulo sera operacionalizado na abertura da Temporada 2026. Os dados serao populados apos a execucao do script de virada de temporada.</p>
-                    </div>
 
                     <!-- Stats Row -->
                     <div class="stats-row">
-                        <div class="stat-card highlight-amber">
-                            <div class="stat-card-icon amber">
-                                <span class="material-icons">hourglass_empty</span>
-                            </div>
-                            <div class="stat-card-value" id="statPendentes">0</div>
-                            <div class="stat-card-label">Pendentes</div>
-                        </div>
-                        <div class="stat-card highlight-green">
-                            <div class="stat-card-icon green">
-                                <span class="material-icons">check_circle</span>
-                            </div>
-                            <div class="stat-card-value" id="statRenovados">0</div>
-                            <div class="stat-card-label">Renovados</div>
-                        </div>
                         <div class="stat-card highlight-red">
                             <div class="stat-card-icon red">
-                                <span class="material-icons">cancel</span>
+                                <span class="material-icons">trending_down</span>
                             </div>
-                            <div class="stat-card-value" id="statNaoRenovados">0</div>
-                            <div class="stat-card-label">Nao Renovados</div>
+                            <div class="stat-card-value red" id="statTotalAPagar">R$ 0</div>
+                            <div class="stat-card-label">Total a Pagar</div>
                         </div>
                         <div class="stat-card highlight-green">
                             <div class="stat-card-icon green">
                                 <span class="material-icons">trending_up</span>
                             </div>
-                            <div class="stat-card-value" id="statCredores">R$ 0</div>
-                            <div class="stat-card-label">A Receber</div>
+                            <div class="stat-card-value green" id="statTotalAReceber">R$ 0</div>
+                            <div class="stat-card-label">Total a Receber</div>
                         </div>
                         <div class="stat-card highlight-red">
                             <div class="stat-card-icon red">
-                                <span class="material-icons">trending_down</span>
+                                <span class="material-icons">person_off</span>
                             </div>
-                            <div class="stat-card-value" id="statDevedores">R$ 0</div>
-                            <div class="stat-card-label">A Pagar</div>
+                            <div class="stat-card-value" id="statDevedores">0</div>
+                            <div class="stat-card-label">Devedores</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card highlight-green">
+                            <div class="stat-card-icon green">
+                                <span class="material-icons">person</span>
+                            </div>
+                            <div class="stat-card-value" id="statCredores">0</div>
+                            <div class="stat-card-label">Credores</div>
+                        </div>
+                        <div class="stat-card highlight-gray">
                             <div class="stat-card-icon gray">
                                 <span class="material-icons">done_all</span>
                             </div>
                             <div class="stat-card-value" id="statQuitados">0</div>
                             <div class="stat-card-label">Quitados</div>
                         </div>
+                        <div class="stat-card highlight-blue">
+                            <div class="stat-card-icon blue">
+                                <span class="material-icons">groups</span>
+                            </div>
+                            <div class="stat-card-value" id="statTotal">0</div>
+                            <div class="stat-card-label">Total</div>
+                        </div>
                     </div>
 
                     <!-- Filtros -->
                     <div class="filtros-section">
                         <div class="filtro-group">
-                            <label>Status:</label>
-                            <select id="filtroStatus">
-                                <option value="">Todos</option>
-                                <option value="pendente">Pendentes</option>
-                                <option value="renovado">Renovados</option>
-                                <option value="nao_renovado">Nao Renovados</option>
-                                <option value="inadimplente">Inadimplentes</option>
-                            </select>
-                        </div>
-                        <div class="filtro-group">
-                            <label>Financeiro:</label>
-                            <select id="filtroFinanceiro">
-                                <option value="">Todos</option>
-                                <option value="credor">Credores (a receber)</option>
-                                <option value="devedor">Devedores (a pagar)</option>
-                                <option value="zerado">Quitados</option>
-                            </select>
-                        </div>
-                        <div class="filtro-group">
                             <label>Liga:</label>
                             <select id="filtroLiga">
                                 <option value="">Todas</option>
-                                <option value="SUPERCARTOLA">SuperCartola</option>
-                                <option value="SOBRAL">Cartoleiros Sobral</option>
+                            </select>
+                        </div>
+                        <div class="filtro-group">
+                            <label>Situacao:</label>
+                            <select id="filtroSituacao">
+                                <option value="">Todos</option>
+                                <option value="devedor">Devedores</option>
+                                <option value="credor">Credores</option>
+                                <option value="quitado">Quitados</option>
                             </select>
                         </div>
                         <div class="filtro-group">
@@ -704,7 +911,7 @@
                         </button>
                     </div>
 
-                    <!-- Tabela de participantes -->
+                    <!-- Tabela -->
                     <div class="tabela-container">
                         <div class="tabela-header">
                             <h3>Participantes</h3>
@@ -716,9 +923,19 @@
                                     <tr>
                                         <th>Participante</th>
                                         <th>Liga</th>
-                                        <th>Posicao 2025</th>
-                                        <th>Saldo</th>
-                                        <th>Status</th>
+                                        <th class="sortable" onclick="ordenarPor('saldoTemporada')">
+                                            Saldo Temp.
+                                            <span class="material-icons" id="sortTemporada">unfold_more</span>
+                                        </th>
+                                        <th class="sortable" onclick="ordenarPor('saldoAcertos')">
+                                            Acertos
+                                            <span class="material-icons" id="sortAcertos">unfold_more</span>
+                                        </th>
+                                        <th class="sortable" onclick="ordenarPor('saldoFinal')">
+                                            Saldo Final
+                                            <span class="material-icons" id="sortFinal">unfold_more</span>
+                                        </th>
+                                        <th>Situacao</th>
                                         <th>Acoes</th>
                                     </tr>
                                 </thead>
@@ -728,43 +945,139 @@
                             </table>
                         </div>
 
+                        <!-- Loading -->
+                        <div class="loading-overlay" id="loadingOverlay">
+                            <div class="loading-spinner"></div>
+                            <p style="color: #9ca3af;">Carregando participantes...</p>
+                        </div>
+
                         <!-- Empty State -->
                         <div class="empty-state" id="emptyState" style="display: none;">
                             <span class="material-icons">inbox</span>
-                            <h3>Aguardando dados</h3>
-                            <p>Os dados de renovacao serao carregados apos a execucao do script turn_key_2026.js</p>
+                            <h3>Nenhum participante encontrado</h3>
+                            <p>Ajuste os filtros ou verifique se existem ligas cadastradas.</p>
                         </div>
                     </div>
                 </div>
             </main>
         </div>
 
-        <!-- Modal de Pagamento -->
-        <div class="modal-overlay" id="modalPagamento">
+        <!-- Modal de Acerto -->
+        <div class="modal-overlay" id="modalAcerto">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Registrar Pagamento</h3>
-                    <button class="modal-close" onclick="fecharModal('modalPagamento')">
+                    <h3>
+                        <span class="material-icons" style="color: #10b981;">payments</span>
+                        Registrar Acerto
+                    </h3>
+                    <button class="modal-close" onclick="fecharModal('modalAcerto')">
                         <span class="material-icons">close</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div style="margin-bottom: 16px;">
-                        <label>Participante</label>
-                        <input type="text" id="modalParticipanteNome" readonly>
+                    <!-- Info do Participante -->
+                    <div class="modal-participante-info">
+                        <img id="modalEscudo" src="" alt="">
+                        <div class="info">
+                            <h4 id="modalNomeTime">-</h4>
+                            <span id="modalLiga">-</span>
+                        </div>
+                        <div class="saldo">
+                            <div class="label">Saldo Atual</div>
+                            <div class="valor" id="modalSaldoAtual">R$ 0,00</div>
+                        </div>
                     </div>
-                    <div style="margin-bottom: 16px;">
-                        <label>Valor (R$)</label>
-                        <input type="number" id="modalValor" step="0.01" placeholder="0.00">
+
+                    <!-- Botao Zerar Saldo (so aparece se tiver saldo) -->
+                    <button class="btn-zerar-saldo" id="btnZerarSaldo" onclick="zerarSaldo()" style="display: none;">
+                        <span class="material-icons">balance</span>
+                        Acertar valor exato para zerar saldo
+                    </button>
+
+                    <!-- Tipo de Acerto -->
+                    <div class="modal-form-group">
+                        <label>Tipo de Acerto</label>
+                        <div class="tipo-acerto-options">
+                            <div class="tipo-acerto-option pagamento selected" onclick="selecionarTipo('pagamento')">
+                                <span class="material-icons">arrow_downward</span>
+                                <span>Pagamento</span>
+                                <small style="font-size: 0.65rem; color: #6b7280;">Participante pagou</small>
+                            </div>
+                            <div class="tipo-acerto-option recebimento" onclick="selecionarTipo('recebimento')">
+                                <span class="material-icons">arrow_upward</span>
+                                <span>Recebimento</span>
+                                <small style="font-size: 0.65rem; color: #6b7280;">Participante recebeu</small>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label>Observacoes</label>
-                        <textarea id="modalObservacoes" placeholder="Ex: PIX recebido em 15/01/2026"></textarea>
+
+                    <!-- Valor -->
+                    <div class="modal-form-group">
+                        <label>Valor</label>
+                        <div class="input-prefix">
+                            <input type="number" id="modalValor" step="0.01" min="0.01" placeholder="0,00">
+                        </div>
+                    </div>
+
+                    <!-- Metodo -->
+                    <div class="modal-form-group">
+                        <label>Metodo</label>
+                        <select id="modalMetodo">
+                            <option value="pix">PIX</option>
+                            <option value="transferencia">Transferencia</option>
+                            <option value="dinheiro">Dinheiro</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <!-- Descricao -->
+                    <div class="modal-form-group">
+                        <label>Descricao</label>
+                        <input type="text" id="modalDescricao" placeholder="Ex: Acerto mensalidade janeiro">
+                    </div>
+
+                    <!-- Observacoes -->
+                    <div class="modal-form-group">
+                        <label>Observacoes (opcional)</label>
+                        <textarea id="modalObservacoes" placeholder="Informacoes adicionais..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-modal cancelar" onclick="fecharModal('modalPagamento')">Cancelar</button>
-                    <button class="btn-modal confirmar" onclick="confirmarPagamento()">Registrar</button>
+                    <button class="btn-modal cancelar" onclick="fecharModal('modalAcerto')">Cancelar</button>
+                    <button class="btn-modal confirmar" onclick="confirmarAcerto()">
+                        <span class="material-icons">check</span>
+                        Registrar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Historico -->
+        <div class="modal-overlay" id="modalHistorico">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>
+                        <span class="material-icons" style="color: #3b82f6;">history</span>
+                        Historico de Acertos
+                    </h3>
+                    <button class="modal-close" onclick="fecharModal('modalHistorico')">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-participante-info">
+                        <img id="histEscudo" src="" alt="">
+                        <div class="info">
+                            <h4 id="histNomeTime">-</h4>
+                            <span id="histLiga">-</span>
+                        </div>
+                    </div>
+                    <div class="historico-lista" id="historicoLista">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-modal cancelar" onclick="fecharModal('modalHistorico')">Fechar</button>
                 </div>
             </div>
         </div>
@@ -774,6 +1087,10 @@
             // Estado global
             let participantes = [];
             let participantesFiltrados = [];
+            let ligasDisponiveis = [];
+            let participanteSelecionado = null;
+            let tipoAcertoSelecionado = 'pagamento';
+            let ordenacaoAtual = { campo: 'saldoFinal', direcao: 'asc' };
 
             // Carregar layout (sidebar)
             async function loadLayout() {
@@ -796,98 +1113,123 @@
                             document.head.appendChild(newScript);
                         }
                     });
+
+                    // Garantir que AccordionManager seja inicializado apos scripts carregados
+                    setTimeout(() => {
+                        if (window.AccordionManager && !window.AccordionManager._initialized) {
+                            window.AccordionManager.init();
+                        }
+                    }, 150);
                 } catch (error) {
                     console.error("Erro ao carregar layout:", error);
                 }
             }
 
-            // Carregar dados do registry
+            // Carregar dados
             async function carregarDados() {
+                const loading = document.getElementById('loadingOverlay');
+                loading.style.display = 'flex';
+
                 try {
-                    const response = await fetch('/api/renovacoes/registry');
-
-                    if (!response.ok) {
-                        throw new Error('API não disponível');
-                    }
-
+                    const response = await fetch('/api/tesouraria/participantes');
                     const data = await response.json();
-                    participantes = data.users || [];
 
-                    atualizarEstatisticas();
+                    if (!data.success) throw new Error(data.error);
+
+                    participantes = data.participantes || [];
+
+                    // Extrair ligas únicas
+                    ligasDisponiveis = [...new Set(participantes.map(p => p.ligaNome))];
+                    popularFiltroLigas();
+
+                    atualizarEstatisticas(data.totais);
                     aplicarFiltros();
 
                 } catch (error) {
-                    console.warn('Dados de renovação não disponíveis:', error.message);
+                    console.error('[TESOURARIA] Erro:', error);
                     mostrarEmptyState();
+                } finally {
+                    loading.style.display = 'none';
                 }
             }
 
-            // Atualizar estatísticas
-            function atualizarEstatisticas() {
-                let pendentes = 0;
-                let renovados = 0;
-                let naoRenovados = 0;
-                let totalCredores = 0;
-                let totalDevedores = 0;
-                let quitados = 0;
-
-                participantes.forEach(p => {
-                    const status = p.status_renovacao?.temporada_2026?.status || 'pendente';
-                    const saldo = p.situacao_financeira?.saldo_atual || 0;
-
-                    if (status === 'pendente') pendentes++;
-                    else if (status === 'renovado') renovados++;
-                    else if (status === 'nao_renovado') naoRenovados++;
-
-                    if (saldo > 0) totalCredores += saldo;
-                    else if (saldo < 0) totalDevedores += Math.abs(saldo);
-                    else quitados++;
+            // Popular filtro de ligas
+            function popularFiltroLigas() {
+                const select = document.getElementById('filtroLiga');
+                select.innerHTML = '<option value="">Todas</option>';
+                ligasDisponiveis.forEach(liga => {
+                    select.innerHTML += `<option value="${liga}">${liga}</option>`;
                 });
+            }
 
-                document.getElementById('statPendentes').textContent = pendentes;
-                document.getElementById('statRenovados').textContent = renovados;
-                document.getElementById('statNaoRenovados').textContent = naoRenovados;
-                document.getElementById('statCredores').textContent = `R$ ${totalCredores.toFixed(2).replace('.', ',')}`;
-                document.getElementById('statDevedores').textContent = `R$ ${totalDevedores.toFixed(2).replace('.', ',')}`;
-                document.getElementById('statQuitados').textContent = quitados;
+            // Atualizar estatisticas
+            function atualizarEstatisticas(totais) {
+                document.getElementById('statTotalAPagar').textContent = formatarMoeda(totais.totalAPagar);
+                document.getElementById('statTotalAReceber').textContent = formatarMoeda(totais.totalAReceber);
+                document.getElementById('statDevedores').textContent = totais.quantidadeDevedores;
+                document.getElementById('statCredores').textContent = totais.quantidadeCredores;
+                document.getElementById('statQuitados').textContent = totais.quantidadeQuitados;
+                document.getElementById('statTotal').textContent = totais.totalParticipantes;
             }
 
             // Aplicar filtros
             window.aplicarFiltros = function() {
-                const status = document.getElementById('filtroStatus').value;
-                const financeiro = document.getElementById('filtroFinanceiro').value;
                 const liga = document.getElementById('filtroLiga').value;
+                const situacao = document.getElementById('filtroSituacao').value;
                 const busca = document.getElementById('filtroBusca').value.toLowerCase();
 
                 participantesFiltrados = participantes.filter(p => {
-                    // Filtro por status
-                    if (status) {
-                        const pStatus = p.status_renovacao?.temporada_2026?.status || 'pendente';
-                        if (pStatus !== status) return false;
-                    }
-
-                    // Filtro financeiro
-                    if (financeiro) {
-                        const tipo = p.situacao_financeira?.tipo || 'zerado';
-                        if (tipo !== financeiro) return false;
-                    }
-
-                    // Filtro por liga
-                    if (liga) {
-                        const ligaParticipante = p.ligas_participadas?.[0]?.liga_nome || '';
-                        if (!ligaParticipante.toUpperCase().includes(liga)) return false;
-                    }
-
-                    // Busca por nome
+                    if (liga && p.ligaNome !== liga) return false;
+                    if (situacao && p.situacao !== situacao) return false;
                     if (busca) {
-                        const nome = (p.nome || '').toLowerCase();
-                        if (!nome.includes(busca)) return false;
+                        const nome = (p.nomeTime || '').toLowerCase();
+                        const cartola = (p.nomeCartola || '').toLowerCase();
+                        if (!nome.includes(busca) && !cartola.includes(busca)) return false;
                     }
-
                     return true;
                 });
 
+                ordenarLista();
                 renderizarTabela();
+            }
+
+            // Ordenar por campo
+            window.ordenarPor = function(campo) {
+                if (ordenacaoAtual.campo === campo) {
+                    ordenacaoAtual.direcao = ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
+                } else {
+                    ordenacaoAtual.campo = campo;
+                    ordenacaoAtual.direcao = 'asc';
+                }
+                ordenarLista();
+                renderizarTabela();
+                atualizarIconesOrdenacao();
+            }
+
+            function ordenarLista() {
+                participantesFiltrados.sort((a, b) => {
+                    const valorA = a[ordenacaoAtual.campo] || 0;
+                    const valorB = b[ordenacaoAtual.campo] || 0;
+                    return ordenacaoAtual.direcao === 'asc' ? valorA - valorB : valorB - valorA;
+                });
+            }
+
+            function atualizarIconesOrdenacao() {
+                ['Temporada', 'Acertos', 'Final'].forEach(tipo => {
+                    const icon = document.getElementById(`sort${tipo}`);
+                    if (icon) icon.textContent = 'unfold_more';
+                });
+
+                const campoMap = {
+                    saldoTemporada: 'Temporada',
+                    saldoAcertos: 'Acertos',
+                    saldoFinal: 'Final'
+                };
+
+                const icon = document.getElementById(`sort${campoMap[ordenacaoAtual.campo]}`);
+                if (icon) {
+                    icon.textContent = ordenacaoAtual.direcao === 'asc' ? 'arrow_upward' : 'arrow_downward';
+                }
             }
 
             // Renderizar tabela
@@ -907,51 +1249,31 @@
                 totalExibidos.textContent = `${participantesFiltrados.length} participante${participantesFiltrados.length > 1 ? 's' : ''}`;
 
                 tbody.innerHTML = participantesFiltrados.map(p => {
-                    const status = p.status_renovacao?.temporada_2026?.status || 'pendente';
-                    const saldo = p.situacao_financeira?.saldo_atual || 0;
-                    const liga = p.ligas_participadas?.[0]?.liga_nome || '-';
-                    const posicao = p.historico?.[0]?.estatisticas?.posicao_final || '-';
-                    const escudo = p.historico?.[0]?.time_escudo || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23333"/%3E%3C/svg%3E';
-
-                    // Classe do saldo
-                    let saldoClass = 'saldo-zero';
-                    let saldoTexto = 'R$ 0,00';
-                    if (saldo > 0) {
-                        saldoClass = 'saldo-positivo';
-                        saldoTexto = `+R$ ${saldo.toFixed(2).replace('.', ',')}`;
-                    } else if (saldo < 0) {
-                        saldoClass = 'saldo-negativo';
-                        saldoTexto = `-R$ ${Math.abs(saldo).toFixed(2).replace('.', ',')}`;
-                    }
-
-                    // Status badge
-                    let statusLabel = status.replace('_', ' ');
+                    const escudo = p.escudo || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23333"/%3E%3C/svg%3E';
 
                     return `
-                        <tr data-id="${p.id}">
+                        <tr>
                             <td>
                                 <div class="participante-cell">
                                     <img src="${escudo}" alt="" class="participante-escudo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22 fill=%22%23333%22/%3E%3C/svg%3E'">
                                     <div class="participante-info">
-                                        <h4>${p.nome || 'Desconhecido'}</h4>
-                                        <span>ID: ${p.id?.substring(0, 8) || '-'}...</span>
+                                        <h4>${p.nomeTime || 'Sem nome'}</h4>
+                                        <span>${p.nomeCartola || ''}</span>
                                     </div>
                                 </div>
                             </td>
-                            <td>${liga}</td>
-                            <td>${posicao}º</td>
-                            <td class="${saldoClass}">${saldoTexto}</td>
-                            <td><span class="status-badge ${status}">${statusLabel}</span></td>
+                            <td>${p.ligaNome}</td>
+                            <td class="${getSaldoClass(p.saldoTemporada)}">${formatarMoedaComSinal(p.saldoTemporada)}</td>
+                            <td class="${getSaldoClass(p.saldoAcertos)}">${formatarMoedaComSinal(p.saldoAcertos)}</td>
+                            <td class="${getSaldoClass(p.saldoFinal)}"><strong>${formatarMoedaComSinal(p.saldoFinal)}</strong></td>
+                            <td><span class="status-badge ${p.situacao}">${p.situacao}</span></td>
                             <td>
                                 <div class="acoes-cell">
-                                    <button class="btn-acao aprovar" title="Aprovar renovacao" onclick="aprovarRenovacao('${p.id}')" ${status === 'renovado' ? 'disabled' : ''}>
-                                        <span class="material-icons">check</span>
-                                    </button>
-                                    <button class="btn-acao rejeitar" title="Rejeitar renovacao" onclick="rejeitarRenovacao('${p.id}')" ${status === 'nao_renovado' ? 'disabled' : ''}>
-                                        <span class="material-icons">close</span>
-                                    </button>
-                                    <button class="btn-acao pagamento" title="Registrar pagamento" onclick="abrirModalPagamento('${p.id}', '${p.nome}')">
+                                    <button class="btn-acao acerto" title="Registrar acerto" onclick='abrirModalAcerto(${JSON.stringify(p).replace(/'/g, "\\'")})'>
                                         <span class="material-icons">payments</span>
+                                    </button>
+                                    <button class="btn-acao historico" title="Ver historico" onclick='abrirModalHistorico(${JSON.stringify(p).replace(/'/g, "\\'")})'>
+                                        <span class="material-icons">history</span>
                                     </button>
                                 </div>
                             </td>
@@ -960,98 +1282,202 @@
                 }).join('');
             }
 
+            // Helpers
+            function formatarMoeda(valor) {
+                return `R$ ${Math.abs(valor || 0).toFixed(2).replace('.', ',')}`;
+            }
+
+            function formatarMoedaComSinal(valor) {
+                if (!valor || Math.abs(valor) < 0.01) return 'R$ 0,00';
+                const sinal = valor > 0 ? '+' : '-';
+                return `${sinal}R$ ${Math.abs(valor).toFixed(2).replace('.', ',')}`;
+            }
+
+            function getSaldoClass(valor) {
+                if (!valor || Math.abs(valor) < 0.01) return 'saldo-zero';
+                return valor > 0 ? 'saldo-positivo' : 'saldo-negativo';
+            }
+
             // Mostrar empty state
             function mostrarEmptyState() {
                 document.getElementById('tabelaBody').innerHTML = '';
                 document.getElementById('emptyState').style.display = 'block';
-                document.getElementById('totalExibidos').textContent = '0 participantes';
             }
 
-            // Ações
-            window.aprovarRenovacao = async function(id) {
-                if (!confirm('Confirma a aprovacao da renovacao para 2026?')) return;
+            // Modal de Acerto
+            window.abrirModalAcerto = function(p) {
+                participanteSelecionado = p;
 
-                try {
-                    const response = await fetch(`/api/renovacoes/${id}/status`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: 'renovado' })
-                    });
+                document.getElementById('modalEscudo').src = p.escudo || '';
+                document.getElementById('modalNomeTime').textContent = p.nomeTime;
+                document.getElementById('modalLiga').textContent = p.ligaNome;
 
-                    if (response.ok) {
-                        await carregarDados();
-                        alert('Renovacao aprovada com sucesso!');
-                    } else {
-                        throw new Error('Erro ao aprovar');
-                    }
-                } catch (error) {
-                    alert('Erro: ' + error.message);
-                }
-            }
+                const saldoAtual = document.getElementById('modalSaldoAtual');
+                saldoAtual.textContent = formatarMoedaComSinal(p.saldoFinal);
+                saldoAtual.className = `valor ${getSaldoClass(p.saldoFinal)}`;
 
-            window.rejeitarRenovacao = async function(id) {
-                if (!confirm('Confirma a rejeicao da renovacao para 2026?')) return;
+                // Mostrar botao zerar se tiver saldo
+                const btnZerar = document.getElementById('btnZerarSaldo');
+                btnZerar.style.display = Math.abs(p.saldoFinal) > 0.01 ? 'flex' : 'none';
 
-                try {
-                    const response = await fetch(`/api/renovacoes/${id}/status`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: 'nao_renovado' })
-                    });
-
-                    if (response.ok) {
-                        await carregarDados();
-                        alert('Renovacao rejeitada.');
-                    } else {
-                        throw new Error('Erro ao rejeitar');
-                    }
-                } catch (error) {
-                    alert('Erro: ' + error.message);
-                }
-            }
-
-            // Modal de pagamento
-            let participanteSelecionado = null;
-
-            window.abrirModalPagamento = function(id, nome) {
-                participanteSelecionado = id;
-                document.getElementById('modalParticipanteNome').value = nome;
+                // Resetar form
                 document.getElementById('modalValor').value = '';
+                document.getElementById('modalDescricao').value = '';
                 document.getElementById('modalObservacoes').value = '';
-                document.getElementById('modalPagamento').classList.add('active');
+                document.getElementById('modalMetodo').value = 'pix';
+                selecionarTipo('pagamento');
+
+                document.getElementById('modalAcerto').classList.add('active');
+            }
+
+            window.selecionarTipo = function(tipo) {
+                tipoAcertoSelecionado = tipo;
+                document.querySelectorAll('.tipo-acerto-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                    if (opt.classList.contains(tipo)) {
+                        opt.classList.add('selected');
+                    }
+                });
+            }
+
+            window.zerarSaldo = function() {
+                if (!participanteSelecionado) return;
+
+                const saldo = participanteSelecionado.saldoFinal;
+                if (Math.abs(saldo) < 0.01) return;
+
+                // Se devedor (saldo negativo), precisa pagar
+                // Se credor (saldo positivo), precisa receber
+                if (saldo < 0) {
+                    selecionarTipo('pagamento');
+                    document.getElementById('modalValor').value = Math.abs(saldo).toFixed(2);
+                    document.getElementById('modalDescricao').value = 'Quitacao de divida';
+                } else {
+                    selecionarTipo('recebimento');
+                    document.getElementById('modalValor').value = saldo.toFixed(2);
+                    document.getElementById('modalDescricao').value = 'Resgate de credito';
+                }
+            }
+
+            window.confirmarAcerto = async function() {
+                if (!participanteSelecionado) return;
+
+                const valor = parseFloat(document.getElementById('modalValor').value);
+                const descricao = document.getElementById('modalDescricao').value;
+                const observacoes = document.getElementById('modalObservacoes').value;
+                const metodo = document.getElementById('modalMetodo').value;
+
+                if (!valor || isNaN(valor) || valor <= 0) {
+                    alert('Informe um valor valido');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/tesouraria/acerto', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ligaId: participanteSelecionado.ligaId,
+                            timeId: participanteSelecionado.timeId,
+                            nomeTime: participanteSelecionado.nomeTime,
+                            tipo: tipoAcertoSelecionado,
+                            valor,
+                            descricao: descricao || `Acerto via Tesouraria - ${tipoAcertoSelecionado}`,
+                            metodoPagamento: metodo,
+                            observacoes,
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!data.success) throw new Error(data.error);
+
+                    fecharModal('modalAcerto');
+
+                    // Mostrar mensagem de sucesso
+                    let msg = data.message;
+                    if (data.troco) {
+                        msg += `\n\n${data.troco.mensagem}`;
+                    }
+                    alert(msg);
+
+                    // Recarregar dados
+                    await carregarDados();
+
+                } catch (error) {
+                    alert('Erro: ' + error.message);
+                }
+            }
+
+            // Modal de Historico
+            window.abrirModalHistorico = async function(p) {
+                document.getElementById('histEscudo').src = p.escudo || '';
+                document.getElementById('histNomeTime').textContent = p.nomeTime;
+                document.getElementById('histLiga').textContent = p.ligaNome;
+
+                const lista = document.getElementById('historicoLista');
+                lista.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">Carregando...</div>';
+
+                document.getElementById('modalHistorico').classList.add('active');
+
+                try {
+                    const response = await fetch(`/api/tesouraria/participante/${p.ligaId}/${p.timeId}`);
+                    const data = await response.json();
+
+                    if (!data.success) throw new Error(data.error);
+
+                    const acertos = data.acertos || [];
+
+                    if (acertos.length === 0) {
+                        lista.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">Nenhum acerto registrado</div>';
+                        return;
+                    }
+
+                    lista.innerHTML = acertos.map(a => {
+                        const data = new Date(a.dataAcerto).toLocaleDateString('pt-BR');
+                        const valorClass = a.tipo === 'pagamento' ? 'positivo' : 'negativo';
+                        const sinal = a.tipo === 'pagamento' ? '+' : '-';
+
+                        return `
+                            <div class="historico-item">
+                                <div class="info">
+                                    <div class="descricao">${a.descricao}</div>
+                                    <div class="data">${data} - ${a.metodoPagamento || 'PIX'}</div>
+                                </div>
+                                <div class="valor ${valorClass}">${sinal}R$ ${a.valor.toFixed(2).replace('.', ',')}</div>
+                            </div>
+                        `;
+                    }).join('');
+
+                } catch (error) {
+                    lista.innerHTML = `<div style="text-align: center; padding: 20px; color: #ef4444;">Erro: ${error.message}</div>`;
+                }
             }
 
             window.fecharModal = function(modalId) {
                 document.getElementById(modalId).classList.remove('active');
             }
 
-            window.confirmarPagamento = async function() {
-                const valor = parseFloat(document.getElementById('modalValor').value);
-                const observacoes = document.getElementById('modalObservacoes').value;
+            // Event: busca em tempo real
+            document.getElementById('filtroBusca').addEventListener('input', () => {
+                aplicarFiltros();
+            });
 
-                if (!valor || isNaN(valor)) {
-                    alert('Informe um valor valido');
-                    return;
+            // Fechar modais com ESC
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
                 }
+            });
 
-                try {
-                    const response = await fetch(`/api/renovacoes/${participanteSelecionado}/pagamento`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ valor, observacoes })
-                    });
-
-                    if (response.ok) {
-                        fecharModal('modalPagamento');
-                        await carregarDados();
-                        alert('Pagamento registrado com sucesso!');
-                    } else {
-                        throw new Error('Erro ao registrar pagamento');
+            // Fechar modal clicando fora
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
                     }
-                } catch (error) {
-                    alert('Erro: ' + error.message);
-                }
-            }
+                });
+            });
 
             // Inicialização
             document.addEventListener("DOMContentLoaded", () => {

@@ -40,6 +40,13 @@ export class LayoutManager {
             this._injectHeader(doc, pageConfig);
             this._executeLayoutScripts(doc);
 
+            // Garantir que AccordionManager seja inicializado
+            setTimeout(() => {
+                if (window.AccordionManager && !window.AccordionManager._initialized) {
+                    window.AccordionManager.init();
+                }
+            }, 150);
+
             this.layoutLoaded = true;
         } catch (error) {
             console.error('Erro ao carregar layout:', error);

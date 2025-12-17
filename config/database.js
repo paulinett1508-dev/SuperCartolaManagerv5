@@ -1,42 +1,81 @@
 
 // config/database.js
+// =========================================================================
+// 🔐 CONEXÃO MONGODB - REPLIT WORKFLOW
+// =========================================================================
+// FLUXO:
+//   - Run (Workspace)  → NODE_ENV=development → MONGO_URI_DEV (Banco de Testes)
+//   - Deploy (Publish) → NODE_ENV=production  → MONGO_URI     (Banco Oficial)
+// =========================================================================
+
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 // =========================================================================
-// 🔐 SELEÇÃO DE AMBIENTE DE BANCO DE DADOS (Prod vs Dev)
+// 🎨 CORES ANSI PARA TERMINAL
 // =========================================================================
-const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  cyan: '\x1b[36m',
+  bgRed: '\x1b[41m',
+  bgGreen: '\x1b[42m',
+  bgYellow: '\x1b[43m',
+};
+
+// =========================================================================
+// 🔐 DETECÇÃO DE AMBIENTE
+// =========================================================================
+// Regra: APENAS 'production' explícito usa banco de produção
+// Qualquer outro valor (undefined, 'development', 'dev', etc) → usa DEV
+// =========================================================================
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const IS_PRODUCTION = NODE_ENV === 'production';
 
 const getMongoURI = () => {
+  // Log do ambiente detectado
+  console.log('');
+  console.log(`${colors.cyan}[DATABASE] NODE_ENV detectado: "${NODE_ENV}"${colors.reset}`);
+
   if (IS_PRODUCTION) {
-    // 🔴 PRODUÇÃO - Banco de dados real
+    // =========================================================================
+    // 🔴 PRODUÇÃO - Banco de dados OFICIAL (dados reais)
+    // =========================================================================
     const uri = process.env.MONGO_URI;
     if (!uri) {
-      console.error('❌ ERRO FATAL: Variável MONGO_URI não configurada!');
-      console.error('   Configure a secret MONGO_URI no Replit para produção.');
+      console.error(`${colors.red}${colors.bright}❌ ERRO FATAL: Variável MONGO_URI não configurada!${colors.reset}`);
+      console.error('   Configure a Secret MONGO_URI no Replit para produção.');
       process.exit(1);
     }
-    console.log('');
-    console.log('═══════════════════════════════════════════════════════════════');
-    console.log('🔴  ATENÇÃO: RODANDO EM PRODUÇÃO - BANCO DE DADOS REAL!');
-    console.log('═══════════════════════════════════════════════════════════════');
+    console.log(`${colors.bgRed}${colors.bright}                                                               ${colors.reset}`);
+    console.log(`${colors.bgRed}${colors.bright}  🚀 MODO PROD: Conectando ao Banco OFICIAL                    ${colors.reset}`);
+    console.log(`${colors.bgRed}${colors.bright}     Cuidado! Alterações afetam dados reais.                   ${colors.reset}`);
+    console.log(`${colors.bgRed}${colors.bright}                                                               ${colors.reset}`);
     console.log('');
     return uri;
+
   } else {
-    // 🟢 DESENVOLVIMENTO - Banco de dados seguro para testes
+    // =========================================================================
+    // 🧪 DESENVOLVIMENTO - Banco de TESTES (seguro para experimentos)
+    // =========================================================================
     const uri = process.env.MONGO_URI_DEV;
     if (!uri) {
-      console.error('❌ ERRO FATAL: Variável MONGO_URI_DEV não configurada!');
-      console.error('   Configure a secret MONGO_URI_DEV no Replit para desenvolvimento.');
+      console.error(`${colors.red}${colors.bright}❌ ERRO FATAL: Variável MONGO_URI_DEV não configurada!${colors.reset}`);
+      console.error('   Configure a Secret MONGO_URI_DEV no Replit para desenvolvimento.');
+      console.error('');
+      console.error(`${colors.yellow}   Dica: Se quiser forçar produção, defina NODE_ENV=production${colors.reset}`);
       process.exit(1);
     }
-    console.log('');
-    console.log('═══════════════════════════════════════════════════════════════');
-    console.log('🟢  AMBIENTE DE DESENVOLVIMENTO (SAFE) - Banco de testes');
-    console.log('═══════════════════════════════════════════════════════════════');
+    console.log(`${colors.bgGreen}${colors.bright}                                                               ${colors.reset}`);
+    console.log(`${colors.bgGreen}${colors.bright}  🧪 MODO DEV: Conectando ao Banco de TESTES                   ${colors.reset}`);
+    console.log(`${colors.bgGreen}${colors.bright}     Ambiente seguro para experimentos.                        ${colors.reset}`);
+    console.log(`${colors.bgGreen}${colors.bright}                                                               ${colors.reset}`);
     console.log('');
     return uri;
   }
@@ -61,7 +100,14 @@ const connectDB = async () => {
 
     const conn = await mongoose.connect(mongoURI, options);
 
-    console.log(`✅ MongoDB conectado: ${conn.connection.host}`);
+    // Extrair nome do banco da URI
+    const dbName = conn.connection.name || 'unknown';
+    const host = conn.connection.host;
+
+    console.log(`${colors.green}${colors.bright}✅ MongoDB conectado com sucesso!${colors.reset}`);
+    console.log(`   ${colors.blue}Host:${colors.reset} ${host}`);
+    console.log(`   ${colors.blue}Banco:${colors.reset} ${dbName}`);
+    console.log('');
     
     // Event listeners para monitoramento da conexão
     mongoose.connection.on('connected', () => {

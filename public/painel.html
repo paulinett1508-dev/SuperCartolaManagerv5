@@ -219,13 +219,30 @@
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(layoutHtml, "text/html");
 
-                    // Injetar sidebar apenas (sem scripts para evitar conflitos)
+                    // Injetar sidebar
                     const sidebar = doc.querySelector(".app-sidebar");
                     if (sidebar) {
                         document
                             .getElementById("sidebar-placeholder")
                             .replaceWith(sidebar);
                     }
+
+                    // Injetar scripts do layout para accordions funcionarem
+                    const scripts = doc.querySelectorAll("script");
+                    scripts.forEach((script) => {
+                        if (script.textContent.trim()) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
+                        }
+                    });
+
+                    // Garantir que AccordionManager seja inicializado
+                    setTimeout(() => {
+                        if (window.AccordionManager && !window.AccordionManager._initialized) {
+                            window.AccordionManager.init();
+                        }
+                    }, 150);
 
                     // Definir funções de logo após injetar sidebar
                     definirFuncoesLogo();

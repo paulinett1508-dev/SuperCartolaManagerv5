@@ -31,6 +31,13 @@ async function loadLayout() {
                 document.head.appendChild(newScript);
             }
         });
+
+        // Garantir que AccordionManager seja inicializado
+        setTimeout(() => {
+            if (window.AccordionManager && !window.AccordionManager._initialized) {
+                window.AccordionManager.init();
+            }
+        }, 150);
     } catch (error) {
         console.error("Erro ao carregar layout:", error);
     }

@@ -688,8 +688,40 @@
             <span class="toast-message" id="toastMessage">Mensagem</span>
         </div>
 
-        <!-- Sidebar script -->
-        <script src="js/sidebar.js"></script>
+        <!-- Sidebar loader -->
+        <script>
+            async function loadLayout() {
+                try {
+                    const response = await fetch("layout.html");
+                    const layoutHtml = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, "text/html");
+
+                    const sidebar = doc.querySelector(".app-sidebar");
+                    if (sidebar) {
+                        document.getElementById("sidebar-placeholder")?.replaceWith(sidebar);
+                    }
+
+                    const scripts = doc.querySelectorAll("script");
+                    scripts.forEach((script) => {
+                        if (script.textContent.trim()) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
+                        }
+                    });
+
+                    setTimeout(() => {
+                        if (window.AccordionManager && !window.AccordionManager._initialized) {
+                            window.AccordionManager.init();
+                        }
+                    }, 150);
+                } catch (error) {
+                    console.error("Erro ao carregar layout:", error);
+                }
+            }
+            document.addEventListener("DOMContentLoaded", loadLayout);
+        </script>
 
         <script>
             let times = [];

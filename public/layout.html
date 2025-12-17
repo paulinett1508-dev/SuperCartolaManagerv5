@@ -25,52 +25,275 @@
 
             <!-- Navigation -->
             <nav class="sidebar-nav-new">
-                <!-- Dashboard -->
+                <!-- Dashboard (sempre visivel) -->
                 <div class="sidebar-section-new">
                     <ul class="sidebar-menu-new">
                         <li>
-                            <a href="painel.html" class="sidebar-menu-item active">
+                            <a href="painel.html" class="sidebar-menu-item" data-page="painel.html">
                                 <span class="material-icons">dashboard</span>
-                                <span>Dashboard Principal</span>
+                                <span>Dashboard</span>
                             </a>
                         </li>
                     </ul>
                 </div>
 
-                <!-- Ligas Section -->
-                <div class="sidebar-section-new">
-                    <div class="sidebar-section-title-new">
-                        <span class="material-icons">emoji_events</span>
-                        <span>Ligas</span>
-                    </div>
-                    <div id="ligasList">
-                        <div class="sidebar-ligas-loading">
-                            <span class="material-icons">sync</span>
-                            Carregando ligas...
+                <!-- ========================================
+                     CAMPEONATOS - Ligas e Formatos
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="campeonatos">
+                    <div class="sidebar-accordion-header">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">emoji_events</span>
+                            <span>Campeonatos</span>
                         </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <div id="ligasList">
+                            <div class="sidebar-ligas-loading">
+                                <span class="material-icons">sync</span>
+                                Carregando...
+                            </div>
+                        </div>
+                        <a href="criar-liga.html" class="sidebar-accordion-action" data-page="criar-liga.html">
+                            <span class="material-icons">add_circle</span>
+                            <span>Criar Nova Liga</span>
+                        </a>
+                        <a href="gerenciar.html" class="sidebar-accordion-item" data-page="gerenciar.html">
+                            <span class="material-icons">format_list_numbered</span>
+                            <span>Gerenciar Todas</span>
+                        </a>
                     </div>
                 </div>
 
-                <!-- Ferramentas Section -->
-                <div class="sidebar-section-new">
-                    <div class="sidebar-section-title-new">
-                        <span class="material-icons">build</span>
-                        <span>Ferramentas</span>
+                <!-- ========================================
+                     COPAS & DESAFIOS - Mata-Mata, Tiro Certo
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="copas">
+                    <div class="sidebar-accordion-header">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">military_tech</span>
+                            <span>Copas & Desafios</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
                     </div>
-                    <ul class="sidebar-menu-new">
-                        <li>
-                            <a href="ferramentas.html" class="sidebar-menu-item">
-                                <span class="material-icons">settings</span>
-                                <span>Configuracoes</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="ferramentas.html" class="sidebar-menu-item">
-                                <span class="material-icons">grid_view</span>
-                                <span>Ver Todas</span>
-                            </a>
-                        </li>
-                    </ul>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="#" class="sidebar-accordion-item disabled" data-page="mata-mata-admin.html">
+                                    <span class="material-icons">whatshot</span>
+                                    <span>Mata-Mata</span>
+                                    <span class="sidebar-badge soon">Em breve</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="sidebar-accordion-item disabled" data-page="tiro-certo-admin.html">
+                                    <span class="material-icons">gps_fixed</span>
+                                    <span>Tiro Certo</span>
+                                    <span class="sidebar-badge soon">Em breve</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="sidebar-accordion-item disabled" data-page="resta-um-admin.html">
+                                    <span class="material-icons">group_remove</span>
+                                    <span>Resta Um</span>
+                                    <span class="sidebar-badge soon">Em breve</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ========================================
+                     BOLOES & PALPITES - NOVO!
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="boloes">
+                    <div class="sidebar-accordion-header">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">confirmation_number</span>
+                            <span>Boloes & Palpites</span>
+                            <span class="sidebar-badge new">Novo</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="#" class="sidebar-accordion-item disabled" data-page="bolao-copa.html">
+                                    <span class="material-icons">public</span>
+                                    <span>Copa do Mundo</span>
+                                    <span class="sidebar-badge soon">2026</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="sidebar-accordion-item disabled" data-page="bolao-liberta.html">
+                                    <span class="material-icons">stars</span>
+                                    <span>Libertadores</span>
+                                    <span class="sidebar-badge soon">Em breve</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="sidebar-accordion-item disabled" data-page="bolao-brasileirao.html">
+                                    <span class="material-icons">sports_soccer</span>
+                                    <span>Brasileirao</span>
+                                    <span class="sidebar-badge soon">Em breve</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ========================================
+                     ESTATISTICAS - Artilheiro, Luva, Capitao
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="estatisticas">
+                    <div class="sidebar-accordion-header">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">analytics</span>
+                            <span>Estatisticas</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="#" class="sidebar-accordion-item disabled" data-page="artilheiro-admin.html">
+                                    <span class="material-icons">sports_soccer</span>
+                                    <span>Artilheiro</span>
+                                    <span class="sidebar-badge soon">Em breve</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="sidebar-accordion-item disabled" data-page="luva-ouro-admin.html">
+                                    <span class="material-icons">front_hand</span>
+                                    <span>Luva de Ouro</span>
+                                    <span class="sidebar-badge soon">Em breve</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="sidebar-accordion-item disabled" data-page="capitao-admin.html">
+                                    <span class="material-icons">star</span>
+                                    <span>Capitao Luxo</span>
+                                    <span class="sidebar-badge soon">Em breve</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="sidebar-divider"></div>
+
+                <!-- ========================================
+                     RODADAS - Gestao de Rodadas
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="rodadas">
+                    <div class="sidebar-accordion-header">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">event</span>
+                            <span>Rodadas</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="ferramentas-rodadas.html" class="sidebar-accordion-item" data-page="ferramentas-rodadas.html">
+                                    <span class="material-icons">autorenew</span>
+                                    <span>Popular Rodadas</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="parciais.html" class="sidebar-accordion-item" data-page="parciais.html">
+                                    <span class="material-icons">trending_up</span>
+                                    <span>Parciais ao Vivo</span>
+                                    <span class="sidebar-badge live">Live</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ========================================
+                     FINANCEIRO - Tesouraria
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="financeiro">
+                    <div class="sidebar-accordion-header">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">account_balance_wallet</span>
+                            <span>Financeiro</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="gestao-renovacoes.html" class="sidebar-accordion-item" data-page="gestao-renovacoes.html">
+                                    <span class="material-icons">payments</span>
+                                    <span>Tesouraria Geral</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ========================================
+                     CONFIGURACOES - Sistema
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="config">
+                    <div class="sidebar-accordion-header">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">tune</span>
+                            <span>Configuracoes</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="gerir-senhas-participantes.html" class="sidebar-accordion-item" data-page="gerir-senhas-participantes.html">
+                                    <span class="material-icons">vpn_key</span>
+                                    <span>Gerir Senhas</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="gerenciar-modulos.html" class="sidebar-accordion-item" data-page="gerenciar-modulos.html">
+                                    <span class="material-icons">widgets</span>
+                                    <span>Modulos</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="sidebar-divider"></div>
+
+                <!-- ========================================
+                     ACESSOS - Links Externos
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="acessos">
+                    <div class="sidebar-accordion-header">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">open_in_new</span>
+                            <span>Acessos</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="participante-login.html" class="sidebar-accordion-item" data-page="participante-login.html">
+                                    <span class="material-icons">person</span>
+                                    <span>App Participante</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="ferramentas.html" class="sidebar-accordion-item" data-page="ferramentas.html">
+                                    <span class="material-icons">grid_view</span>
+                                    <span>Hub Ferramentas</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </nav>
 
@@ -115,6 +338,137 @@
                 return null; // Sem logo especifica
             }
 
+            // === SISTEMA DE ACCORDION ===
+            window.AccordionManager = {
+                STORAGE_KEY: 'sidebar_accordion_state',
+                _initialized: false,
+
+                init() {
+                    if (this._initialized) return;
+                    this.restoreState();
+                    this.bindEvents();
+                    this.autoExpandForCurrentPage();
+                    this._initialized = true;
+                },
+
+                bindEvents() {
+                    const headers = document.querySelectorAll('.sidebar-accordion-header');
+                    headers.forEach((header) => {
+                        // Evitar duplicar event listeners
+                        if (header.dataset.accordionBound) return;
+                        header.dataset.accordionBound = 'true';
+
+                        header.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const accordion = header.closest('.sidebar-accordion');
+                            window.AccordionManager.toggle(accordion);
+                        });
+                    });
+                },
+
+                toggle(accordion) {
+                    if (!accordion) return;
+                    const isOpen = accordion.classList.contains('open');
+
+                    if (isOpen) {
+                        accordion.classList.remove('open');
+                    } else {
+                        accordion.classList.add('open');
+                    }
+
+                    this.saveState();
+                },
+
+                open(accordion) {
+                    if (accordion && !accordion.classList.contains('open')) {
+                        accordion.classList.add('open');
+                        this.saveState();
+                    }
+                },
+
+                close(accordion) {
+                    if (accordion && accordion.classList.contains('open')) {
+                        accordion.classList.remove('open');
+                        this.saveState();
+                    }
+                },
+
+                saveState() {
+                    const state = {};
+                    document.querySelectorAll('.sidebar-accordion').forEach(acc => {
+                        const key = acc.dataset.accordion;
+                        if (key) {
+                            state[key] = acc.classList.contains('open');
+                        }
+                    });
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
+                },
+
+                restoreState() {
+                    try {
+                        const saved = localStorage.getItem(this.STORAGE_KEY);
+                        if (!saved) return;
+
+                        const state = JSON.parse(saved);
+                        document.querySelectorAll('.sidebar-accordion').forEach(acc => {
+                            const key = acc.dataset.accordion;
+                            if (key && state[key] === true) {
+                                acc.classList.add('open');
+                            }
+                        });
+                    } catch (e) {
+                        console.warn('Erro ao restaurar estado do accordion:', e);
+                    }
+                },
+
+                autoExpandForCurrentPage() {
+                    const currentPage = window.location.pathname.split('/').pop() || 'painel.html';
+
+                    // Mapeamento de paginas para accordions
+                    const pageToAccordion = {
+                        // Campeonatos (ligas)
+                        'detalhe-liga.html': 'campeonatos',
+                        'criar-liga.html': 'campeonatos',
+                        'gerenciar.html': 'campeonatos',
+                        'editar-liga.html': 'campeonatos',
+                        'preencher-liga.html': 'campeonatos',
+                        // Copas & Desafios
+                        'mata-mata-admin.html': 'copas',
+                        'tiro-certo-admin.html': 'copas',
+                        'resta-um-admin.html': 'copas',
+                        // Boloes & Palpites
+                        'bolao-copa.html': 'boloes',
+                        'bolao-liberta.html': 'boloes',
+                        'bolao-brasileirao.html': 'boloes',
+                        // Estatisticas
+                        'artilheiro-admin.html': 'estatisticas',
+                        'luva-ouro-admin.html': 'estatisticas',
+                        'capitao-admin.html': 'estatisticas',
+                        // Rodadas
+                        'ferramentas-rodadas.html': 'rodadas',
+                        'parciais.html': 'rodadas',
+                        'admin.html': 'rodadas',
+                        // Financeiro
+                        'gestao-renovacoes.html': 'financeiro',
+                        // Configuracoes
+                        'gerir-senhas-participantes.html': 'config',
+                        'gerenciar-modulos.html': 'config',
+                        // Acessos
+                        'participante-login.html': 'acessos',
+                        'ferramentas.html': 'acessos'
+                    };
+
+                    const accordionKey = pageToAccordion[currentPage];
+                    if (accordionKey) {
+                        const accordion = document.querySelector(`[data-accordion="${accordionKey}"]`);
+                        if (accordion) {
+                            this.open(accordion);
+                        }
+                    }
+                }
+            };
+
             // === CARREGAMENTO DAS LIGAS NO SIDEBAR ===
             async function carregarLigasLayout() {
                 const ligasList = document.getElementById("ligasList");
@@ -130,9 +484,9 @@
 
                     if (!Array.isArray(ligas) || ligas.length === 0) {
                         ligasList.innerHTML = `
-                            <div class="sidebar-ligas-empty">
-                                <span class="material-icons" style="font-size: 24px; margin-bottom: 8px; display: block;">folder_open</span>
-                                Nenhuma liga criada
+                            <div class="sidebar-ligas-empty" style="margin: 0 0 8px 0;">
+                                <span class="material-icons" style="font-size: 20px; margin-bottom: 6px; display: block;">folder_open</span>
+                                Nenhuma liga
                             </div>
                         `;
                         return;
@@ -152,7 +506,7 @@
                                 : `<span class="liga-dot"></span>`;
 
                             return `
-                                <a href="detalhe-liga.html?id=${ligaId}" class="sidebar-liga-item ${isLigaAtual ? 'active' : ''}">
+                                <a href="detalhe-liga.html?id=${ligaId}" class="sidebar-liga-item ${isLigaAtual ? 'active' : ''}" data-page="detalhe-liga.html">
                                     ${logoHtml}
                                     <div class="liga-info-sidebar">
                                         <div class="liga-name-sidebar">${liga.nome || "Liga sem nome"}</div>
@@ -162,24 +516,30 @@
                             `;
                         })
                         .join("");
+
+                    // Se estamos em uma pagina de liga, expandir o accordion de campeonatos
+                    if (ligaAtualId) {
+                        const campeonatosAccordion = document.querySelector('[data-accordion="campeonatos"]');
+                        if (campeonatosAccordion && window.AccordionManager) {
+                            window.AccordionManager.open(campeonatosAccordion);
+                        }
+                    }
                 } catch (error) {
                     ligasList.innerHTML = `
-                        <div class="sidebar-ligas-empty">
-                            <span class="material-icons" style="color: #ef4444; font-size: 24px; margin-bottom: 8px; display: block;">warning</span>
+                        <div class="sidebar-ligas-empty" style="margin: 0 0 8px 0;">
+                            <span class="material-icons" style="color: #ef4444; font-size: 20px; margin-bottom: 6px; display: block;">warning</span>
                             Erro ao carregar
                             <button onclick="carregarLigasLayout()" style="
-                                margin-top: 8px;
-                                padding: 6px 12px;
+                                margin-top: 6px;
+                                padding: 4px 10px;
                                 background: #FF5500;
                                 color: white;
                                 border: none;
-                                border-radius: 6px;
-                                font-size: 11px;
+                                border-radius: 4px;
+                                font-size: 10px;
                                 cursor: pointer;
                                 font-weight: 600;
-                                display: block;
-                                width: 100%;
-                            ">Tentar Novamente</button>
+                            ">Tentar</button>
                         </div>
                     `;
                 }
@@ -194,6 +554,10 @@
                 }
 
                 init() {
+                    // Inicializar accordions
+                    if (window.AccordionManager) {
+                        window.AccordionManager.init();
+                    }
                     // Set page title baseado na URL
                     this.updatePageTitle();
                 }
@@ -213,12 +577,18 @@
                     const titles = {
                         "painel.html": { title: "Dashboard", subtitle: "Visao Geral do Sistema" },
                         "gerenciar.html": { title: "Gerenciar Ligas", subtitle: "Ferramentas Administrativas" },
+                        "criar-liga.html": { title: "Nova Liga", subtitle: "Criar Nova Liga" },
                         "preencher-liga.html": { title: "Nova Liga", subtitle: "Criar Nova Liga" },
                         "buscar-times.html": { title: "Buscar Times", subtitle: "Adicionar Times do Cartola FC" },
                         "admin.html": { title: "Admin", subtitle: "Popular Rodadas" },
+                        "ferramentas-rodadas.html": { title: "Rodadas", subtitle: "Popular e Gerenciar Rodadas" },
                         "detalhe-liga.html": { title: "Detalhes da Liga", subtitle: "Visualizacao Completa" },
                         "editar-liga.html": { title: "Editar Liga", subtitle: "Modificar Times da Liga" },
-                        "parciais.html": { title: "Resultados Parciais", subtitle: "Pontuacoes em Tempo Real" },
+                        "parciais.html": { title: "Parciais", subtitle: "Pontuacoes em Tempo Real" },
+                        "gestao-renovacoes.html": { title: "Renovacoes 2026", subtitle: "Gestao de Inscricoes" },
+                        "gerir-senhas-participantes.html": { title: "Gerir Senhas", subtitle: "Controle de Acesso" },
+                        "gerenciar-modulos.html": { title: "Modulos", subtitle: "Configurar Funcionalidades" },
+                        "ferramentas.html": { title: "Ferramentas", subtitle: "Hub de Gestao" },
                     };
 
                     const pageInfo = titles[currentPage] || {
@@ -234,15 +604,33 @@
 
                 setActiveNavigation() {
                     const currentPage = window.location.pathname.split("/").pop() || "painel.html";
-                    const menuLinks = document.querySelectorAll(".sidebar-menu-item, .sidebar-liga-item");
+                    const currentUrl = window.location.href;
 
-                    menuLinks.forEach((link) => {
+                    // Limpar todos os estados ativos
+                    document.querySelectorAll(".sidebar-menu-item, .sidebar-liga-item, .sidebar-accordion-item, .sidebar-accordion-action").forEach(link => {
                         link.classList.remove("active");
-                        const href = link.getAttribute("href");
-                        if (href && (href === currentPage || href.includes(currentPage))) {
+                    });
+
+                    // Marcar item ativo baseado na pagina atual
+                    document.querySelectorAll("[data-page]").forEach(link => {
+                        const pageName = link.dataset.page;
+                        if (pageName === currentPage) {
                             link.classList.add("active");
                         }
                     });
+
+                    // Para paginas de detalhe de liga, verificar o ID
+                    if (currentPage === "detalhe-liga.html") {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const ligaId = urlParams.get("id");
+                        if (ligaId) {
+                            document.querySelectorAll(".sidebar-liga-item").forEach(link => {
+                                if (link.href && link.href.includes(`id=${ligaId}`)) {
+                                    link.classList.add("active");
+                                }
+                            });
+                        }
+                    }
                 }
             }
 

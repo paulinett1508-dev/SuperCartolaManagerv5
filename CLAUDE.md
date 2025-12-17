@@ -1,5 +1,24 @@
 # Super Cartola Manager - Diretrizes do Projeto
 
+## 🚨 ESCOPOS RIGIDOS (OBRIGATORIO!)
+
+**ANTES de editar qualquer arquivo, consulte:**
+```
+.claude/scopes.json
+```
+
+| Escopo | Descricao | Caminho Principal |
+|--------|-----------|-------------------|
+| **admin** | Painel administrativo (Desktop) | `public/*.html`, `public/layout.html` |
+| **app** | App do Participante (Mobile) | `public/participante/**/*` |
+| **shared** | Backend, Models, Configs | `routes/`, `controllers/`, `models/` |
+
+**REGRA DE OURO:**
+- Se o usuario pedir "mexa no Admin" → PROIBIDO tocar em `public/participante/**/*`
+- Se o usuario pedir "mexa no App" → PROIBIDO tocar em `public/*.html` (admin)
+
+---
+
 ## ⚠️ VERIFICAR TAREFAS PENDENTES
 
 **Antes de começar qualquer trabalho novo, verifique:**

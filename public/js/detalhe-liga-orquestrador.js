@@ -512,6 +512,23 @@ class DetalheLigaOrquestrador {
                     setTimeout(() => this.carregarLigasSidebar(), 100);
                 }
             }
+
+            // Injetar scripts do layout
+            const scripts = doc.querySelectorAll("script");
+            scripts.forEach((script) => {
+                if (script.textContent.trim()) {
+                    const newScript = document.createElement("script");
+                    newScript.textContent = script.textContent;
+                    document.head.appendChild(newScript);
+                }
+            });
+
+            // Garantir que AccordionManager seja inicializado
+            setTimeout(() => {
+                if (window.AccordionManager && !window.AccordionManager._initialized) {
+                    window.AccordionManager.init();
+                }
+            }, 150);
         } catch (error) {
             console.error("[ORQUESTRADOR] Erro ao carregar layout:", error);
         }

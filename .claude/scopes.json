@@ -1,0 +1,128 @@
+{
+  "version": "1.0",
+  "description": "Mapeamento de escopos do projeto Super Cartola Manager",
+  "last_updated": "2025-12-17",
+  "scopes": {
+    "admin": {
+      "description": "Painel administrativo para gestao do sistema (Desktop)",
+      "keywords": ["admin", "painel", "gestao", "sidebar admin", "dashboard admin"],
+      "allowed_paths": [
+        "public/painel.html",
+        "public/layout.html",
+        "public/gerenciar.html",
+        "public/gerenciar-modulos.html",
+        "public/gerir-senhas-participantes.html",
+        "public/gestao-renovacoes.html",
+        "public/ferramentas.html",
+        "public/ferramentas-rodadas.html",
+        "public/admin.html",
+        "public/admin-consolidacao.html",
+        "public/criar-liga.html",
+        "public/editar-liga.html",
+        "public/detalhe-liga.html",
+        "public/preencher-liga.html",
+        "public/convite.html",
+        "public/migrar-localstorage-mongodb.html",
+        "public/index.html",
+        "public/js/admin/**/*",
+        "public/js/core/layout-manager.js",
+        "public/js/core/sidebar-menu.js",
+        "public/js/criar-liga.js",
+        "public/js/editar-liga.js",
+        "public/js/detalhe-liga-orquestrador.js",
+        "public/js/ferramentas/**/*",
+        "public/js/rodadas/**/*",
+        "public/js/fluxo-financeiro/**/*",
+        "public/js/mata-mata/**/*",
+        "public/js/pontos-corridos/**/*",
+        "public/js/melhor-mes/**/*",
+        "public/js/artilheiro-campeao/**/*",
+        "public/js/luva-de-ouro/**/*",
+        "public/css/modules/dashboard-redesign.css"
+      ],
+      "forbidden_paths": [
+        "public/participante/**/*"
+      ]
+    },
+    "app": {
+      "description": "Interface do usuario final - App Participante (Mobile-First SPA)",
+      "keywords": ["app", "participante", "mobile", "usuario", "jogador"],
+      "allowed_paths": [
+        "public/participante/**/*",
+        "public/participante/index.html",
+        "public/participante/manifest.json",
+        "public/participante/service-worker.js",
+        "public/participante/css/**/*",
+        "public/participante/js/**/*",
+        "public/participante/fronts/**/*"
+      ],
+      "forbidden_paths": [
+        "public/painel.html",
+        "public/layout.html",
+        "public/gerenciar*.html",
+        "public/gestao-*.html",
+        "public/ferramentas*.html",
+        "public/admin*.html",
+        "public/*-liga.html",
+        "public/js/admin/**/*"
+      ],
+      "notes": [
+        "NUNCA adicionar tags <html>, <head> ou <body> em arquivos de public/participante/fronts/ (sao FRAGMENTOS)",
+        "Usar Material Symbols Outlined para icones",
+        "Seguir padrao Cache-First com IndexedDB",
+        "Navegacao via participante-navigation.js v3.x"
+      ]
+    },
+    "shared": {
+      "description": "Arquivos compartilhados - Backend, Models, Utils, Configs",
+      "keywords": ["backend", "api", "model", "config", "service"],
+      "allowed_paths": [
+        "config/**/*",
+        "controllers/**/*",
+        "models/**/*",
+        "routes/**/*",
+        "services/**/*",
+        "middleware/**/*",
+        "utils/**/*",
+        "scripts/**/*",
+        "public/js/core/api-client.js",
+        "public/js/core/cache-manager.js",
+        "public/js/core/log-manager.js",
+        "public/js/app/**/*",
+        "public/css/app/**/*",
+        "public/escudos/**/*",
+        "public/img/**/*",
+        "public/assets/**/*"
+      ]
+    },
+    "auth": {
+      "description": "Arquivos de autenticacao (usados por Admin e App)",
+      "keywords": ["login", "auth", "sessao", "senha"],
+      "allowed_paths": [
+        "public/participante-login.html",
+        "routes/participante-auth.js",
+        "routes/admin-auth.js",
+        "public/participante/js/participante-auth.js"
+      ]
+    }
+  },
+  "rules": {
+    "context_switch": {
+      "description": "Regras para troca de contexto entre escopos",
+      "admin_to_app": "PROIBIDO - Se trabalhando no Admin, NAO tocar em arquivos do escopo 'app'",
+      "app_to_admin": "PROIBIDO - Se trabalhando no App, NAO tocar em arquivos do escopo 'admin'",
+      "shared_access": "PERMITIDO - Arquivos 'shared' podem ser acessados por ambos os escopos"
+    },
+    "validation": {
+      "before_edit": "Sempre verificar se o arquivo pertence ao escopo correto antes de editar",
+      "ask_if_unclear": "Se o escopo nao estiver claro, PERGUNTAR ao usuario antes de prosseguir"
+    }
+  },
+  "quick_reference": {
+    "admin_sidebar": "public/layout.html",
+    "admin_main_page": "public/painel.html",
+    "app_main_page": "public/participante/index.html",
+    "app_navigation": "public/participante/js/participante-navigation.js",
+    "app_fragments": "public/participante/fronts/*.html"
+  }
+}

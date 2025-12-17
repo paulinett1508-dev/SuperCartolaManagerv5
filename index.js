@@ -81,6 +81,7 @@ import rankingTurnoRoutes from "./routes/ranking-turno-routes.js";
 import consolidacaoRoutes from "./routes/consolidacao-routes.js";
 import renovacoesRoutes from "./routes/renovacoes-routes.js";
 import acertosFinanceirosRoutes from "./routes/acertos-financeiros-routes.js";
+import tesourariaRoutes from "./routes/tesouraria-routes.js";
 
 // 👁️ Monitoramento de usuários online
 import usuariosOnlineRoutes from "./routes/usuarios-online-routes.js";
@@ -295,6 +296,7 @@ app.use("/api/mata-mata", mataMataCacheRoutes);
 app.use("/api/times-admin", timesAdminRoutes);
 app.use("/api/renovacoes", renovacoesRoutes);
 app.use("/api/acertos", acertosFinanceirosRoutes);
+app.use("/api/tesouraria", tesourariaRoutes);
 
 // Rotas Adicionais (Controllers Diretos)
 app.get("/api/clubes", getClubes);
