@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Consolidação de Rodadas v2</title>
+    <title>Admin - Consolidacao de Rodadas v2</title>
+    <!-- Design Tokens (SEMPRE PRIMEIRO) -->
+    <link rel="stylesheet" href="css/_admin-tokens.css" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -19,7 +22,12 @@
             margin-bottom: 30px;
             font-size: 2em;
             text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
         }
+        h1 .material-icons { font-size: 1.2em; color: #4CAF50; }
         .version-badge {
             display: inline-block;
             background: #4CAF50;
@@ -50,9 +58,16 @@
             padding-bottom: 15px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .liga-title { font-size: 1.3em; font-weight: 600; }
+        .liga-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .liga-title .material-icons { color: #FF9800; }
         .liga-id { font-size: 0.75em; color: #888; font-family: monospace; }
-        
+
         .status-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -75,7 +90,7 @@
         .status-value.orange { color: #FF9800; }
         .status-value.red { color: #f44336; }
         .status-value.blue { color: #2196F3; }
-        
+
         .versao-info {
             background: rgba(255,152,0,0.2);
             border: 1px solid #FF9800;
@@ -86,7 +101,7 @@
         }
         .versao-info.show { display: block; }
         .versao-info strong { color: #FF9800; }
-        
+
         .form-row {
             display: flex;
             gap: 10px;
@@ -127,7 +142,7 @@
             cursor: pointer;
             font-size: 0.9em;
         }
-        
+
         .btn-group { display: flex; gap: 10px; margin-top: 15px; }
         .btn {
             flex: 1;
@@ -138,6 +153,10 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         .btn:hover { transform: translateY(-2px); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -145,7 +164,8 @@
         .btn-secondary { background: #2196F3; color: #fff; }
         .btn-warning { background: #FF9800; color: #fff; }
         .btn-danger { background: #f44336; color: #fff; }
-        
+        .btn .material-icons { font-size: 18px; }
+
         .progress-container {
             margin-top: 15px;
             display: none;
@@ -169,7 +189,7 @@
             font-size: 0.85em;
             color: #aaa;
         }
-        
+
         .result-box {
             margin-top: 15px;
             padding: 15px;
@@ -186,7 +206,7 @@
             white-space: pre-wrap;
             word-break: break-all;
         }
-        
+
         .rodadas-table {
             width: 100%;
             margin-top: 15px;
@@ -209,12 +229,16 @@
         .badge-v1 { background: #FF9800; color: #000; }
         .badge-v2 { background: #4CAF50; color: #fff; }
         .badge-aberta { background: #666; color: #fff; }
-        
+
         .alert {
             padding: 12px 16px;
             border-radius: 8px;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+        .alert .material-icons { font-size: 20px; }
         .alert-info {
             background: rgba(33,150,243,0.2);
             border: 1px solid #2196F3;
@@ -223,7 +247,7 @@
             background: rgba(255,152,0,0.2);
             border: 1px solid #FF9800;
         }
-        
+
         .toggle-details {
             background: none;
             border: none;
@@ -231,217 +255,281 @@
             cursor: pointer;
             font-size: 0.85em;
             padding: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         .details-panel {
             display: none;
             margin-top: 10px;
         }
         .details-panel.show { display: block; }
+
+        .loading-container {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .loading-container .material-icons {
+            font-size: 48px;
+            animation: admin-spin 1s linear infinite;
+            color: #4CAF50;
+        }
+        .loading-text {
+            margin-top: 16px;
+            color: #aaa;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #aaa;
+        }
+        .empty-state .material-icons {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #666;
+        }
+
+        .consolidar-todas {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .consolidar-todas .btn {
+            display: inline-flex;
+            max-width: 300px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔒 Consolidação de Rodadas <span class="version-badge">v2.0</span></h1>
-        
+        <h1>
+            <span class="material-icons">lock</span>
+            Consolidacao de Rodadas
+            <span class="version-badge">v2.0 SaaS</span>
+        </h1>
+
         <div class="alert alert-info">
-            <strong>ℹ️ Novidades v2:</strong> Agora inclui ranking_rodada, extratos_financeiros, artilheiro_campeao, luva_de_ouro e top10 separado (mitos/micos).
-        </div>
-        
-        <div class="ligas-grid">
-            <!-- Liga 01 -->
-            <div class="liga-card" id="liga01">
-                <div class="liga-header">
-                    <div>
-                        <div class="liga-title">🏆 Liga 01</div>
-                        <div class="liga-id">684cb1c8af923da7c7df51de</div>
-                    </div>
-                    <button class="toggle-details" onclick="toggleDetails('liga01')">Ver detalhes ▼</button>
-                </div>
-                
-                <div class="status-grid">
-                    <div class="status-item">
-                        <span class="status-value" id="liga01-total">-</span>
-                        <span class="status-label">Total</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-value green" id="liga01-consolidadas">-</span>
-                        <span class="status-label">Consolidadas</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-value blue" id="liga01-v2">-</span>
-                        <span class="status-label">Versão 2</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-value orange" id="liga01-atualizar">-</span>
-                        <span class="status-label">Atualizar</span>
-                    </div>
-                </div>
-                
-                <div class="versao-info" id="liga01-versao-info">
-                    <strong>⚠️ Snapshots na versão antiga detectados!</strong>
-                    <p style="margin-top:8px;font-size:0.9em;">Marque "Forçar Reconsolidação" para atualizar para v2 com todos os módulos.</p>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Rodada Início</label>
-                        <input type="number" id="liga01-inicio" value="1" min="1" max="38">
-                    </div>
-                    <div class="form-group">
-                        <label>Rodada Fim</label>
-                        <input type="number" id="liga01-fim" value="35" min="1" max="38">
-                    </div>
-                </div>
-                
-                <div class="checkbox-group" onclick="document.getElementById('liga01-forcar').click(); event.stopPropagation();">
-                    <input type="checkbox" id="liga01-forcar" onclick="event.stopPropagation();">
-                    <label for="liga01-forcar">Forçar Reconsolidação (atualizar v1 → v2)</label>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn btn-secondary" onclick="verificarStatus('684cb1c8af923da7c7df51de', 'liga01')">
-                        📊 Verificar Status
-                    </button>
-                    <button class="btn btn-primary" onclick="consolidar('684cb1c8af923da7c7df51de', 'liga01')">
-                        🚀 Consolidar
-                    </button>
-                </div>
-                
-                <div class="progress-container" id="liga01-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="liga01-progress-fill"></div>
-                    </div>
-                    <div class="progress-text" id="liga01-progress-text">Processando...</div>
-                </div>
-                
-                <div class="details-panel" id="liga01-details">
-                    <table class="rodadas-table">
-                        <thead>
-                            <tr>
-                                <th>Rodada</th>
-                                <th>Status</th>
-                                <th>Versão</th>
-                                <th>Data</th>
-                            </tr>
-                        </thead>
-                        <tbody id="liga01-rodadas-body"></tbody>
-                    </table>
-                </div>
-                
-                <div class="result-box" id="liga01-result">
-                    <pre id="liga01-result-text"></pre>
-                </div>
+            <span class="material-icons">info</span>
+            <div>
+                <strong>Novidades v2:</strong> Agora inclui ranking_rodada, extratos_financeiros, artilheiro_campeao, luva_de_ouro e top10 separado (mitos/micos).
+                <br><small style="color:#888;">Carrega dinamicamente todas as ligas cadastradas.</small>
             </div>
-            
-            <!-- Liga 02 -->
-            <div class="liga-card" id="liga02">
-                <div class="liga-header">
-                    <div>
-                        <div class="liga-title">🏆 Liga 02 (Cartoleiros do Sobral)</div>
-                        <div class="liga-id">684d821cf1a7ae16d1f89572</div>
-                    </div>
-                    <button class="toggle-details" onclick="toggleDetails('liga02')">Ver detalhes ▼</button>
-                </div>
-                
-                <div class="status-grid">
-                    <div class="status-item">
-                        <span class="status-value" id="liga02-total">-</span>
-                        <span class="status-label">Total</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-value green" id="liga02-consolidadas">-</span>
-                        <span class="status-label">Consolidadas</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-value blue" id="liga02-v2">-</span>
-                        <span class="status-label">Versão 2</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-value orange" id="liga02-atualizar">-</span>
-                        <span class="status-label">Atualizar</span>
-                    </div>
-                </div>
-                
-                <div class="versao-info" id="liga02-versao-info">
-                    <strong>⚠️ Snapshots na versão antiga detectados!</strong>
-                    <p style="margin-top:8px;font-size:0.9em;">Esta liga inclui Luva de Ouro. Reconsolide para incluir ranking de goleiros.</p>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Rodada Início</label>
-                        <input type="number" id="liga02-inicio" value="1" min="1" max="38">
-                    </div>
-                    <div class="form-group">
-                        <label>Rodada Fim</label>
-                        <input type="number" id="liga02-fim" value="35" min="1" max="38">
-                    </div>
-                </div>
-                
-                <div class="checkbox-group" onclick="document.getElementById('liga02-forcar').click(); event.stopPropagation();">
-                    <input type="checkbox" id="liga02-forcar" onclick="event.stopPropagation();">
-                    <label for="liga02-forcar">Forçar Reconsolidação (atualizar v1 → v2)</label>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn btn-secondary" onclick="verificarStatus('684d821cf1a7ae16d1f89572', 'liga02')">
-                        📊 Verificar Status
-                    </button>
-                    <button class="btn btn-primary" onclick="consolidar('684d821cf1a7ae16d1f89572', 'liga02')">
-                        🚀 Consolidar
-                    </button>
-                </div>
-                
-                <div class="progress-container" id="liga02-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="liga02-progress-fill"></div>
-                    </div>
-                    <div class="progress-text" id="liga02-progress-text">Processando...</div>
-                </div>
-                
-                <div class="details-panel" id="liga02-details">
-                    <table class="rodadas-table">
-                        <thead>
-                            <tr>
-                                <th>Rodada</th>
-                                <th>Status</th>
-                                <th>Versão</th>
-                                <th>Data</th>
-                            </tr>
-                        </thead>
-                        <tbody id="liga02-rodadas-body"></tbody>
-                    </table>
-                </div>
-                
-                <div class="result-box" id="liga02-result">
-                    <pre id="liga02-result-text"></pre>
-                </div>
+        </div>
+
+        <div class="consolidar-todas" id="consolidarTodasContainer" style="display:none;">
+            <button class="btn btn-warning" onclick="consolidarTodasLigas()">
+                <span class="material-icons">flash_on</span>
+                Consolidar TODAS as Ligas
+            </button>
+        </div>
+
+        <div class="ligas-grid" id="ligasGrid">
+            <div class="loading-container">
+                <span class="material-icons">sync</span>
+                <div class="loading-text">Carregando ligas...</div>
             </div>
         </div>
     </div>
 
     <script>
         const API_BASE = window.location.origin;
-        
+
+        // Armazena dados das ligas carregadas
+        let ligasCarregadas = [];
+
+        // ============================================================
+        // CARREGAR LIGAS DINAMICAMENTE
+        // ============================================================
+        async function carregarLigas() {
+            const grid = document.getElementById('ligasGrid');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/ligas`);
+                const ligas = await response.json();
+
+                if (!Array.isArray(ligas) || ligas.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <span class="material-icons">folder_open</span>
+                            <p>Nenhuma liga cadastrada</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                ligasCarregadas = ligas;
+                grid.innerHTML = '';
+
+                // Gerar card para cada liga
+                ligas.forEach((liga, index) => {
+                    const ligaId = liga._id || liga.id;
+                    const prefix = `liga${index}`;
+                    const ligaNome = liga.nome || `Liga ${index + 1}`;
+                    const timesCount = liga.times?.length || 0;
+
+                    const cardHtml = gerarCardLiga(ligaId, prefix, ligaNome, timesCount);
+                    grid.insertAdjacentHTML('beforeend', cardHtml);
+                });
+
+                // Mostrar botao de consolidar todas
+                if (ligas.length > 1) {
+                    document.getElementById('consolidarTodasContainer').style.display = 'block';
+                }
+
+                // Verificar status de todas as ligas
+                ligas.forEach((liga, index) => {
+                    const ligaId = liga._id || liga.id;
+                    const prefix = `liga${index}`;
+                    verificarStatus(ligaId, prefix);
+                });
+
+            } catch (error) {
+                console.error('Erro ao carregar ligas:', error);
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons" style="color:#f44336;">error</span>
+                        <p>Erro ao carregar ligas</p>
+                        <button class="btn btn-secondary" onclick="carregarLigas()" style="margin-top:16px;">
+                            <span class="material-icons">refresh</span>
+                            Tentar novamente
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // ============================================================
+        // GERAR HTML DO CARD DE LIGA
+        // ============================================================
+        function gerarCardLiga(ligaId, prefix, nome, timesCount) {
+            return `
+                <div class="liga-card" id="${prefix}" data-liga-id="${ligaId}">
+                    <div class="liga-header">
+                        <div>
+                            <div class="liga-title">
+                                <span class="material-icons">emoji_events</span>
+                                ${nome}
+                            </div>
+                            <div class="liga-id">${ligaId} | ${timesCount} participantes</div>
+                        </div>
+                        <button class="toggle-details" onclick="toggleDetails('${prefix}')">
+                            <span class="material-icons">expand_more</span>
+                            Ver detalhes
+                        </button>
+                    </div>
+
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <span class="status-value" id="${prefix}-total">-</span>
+                            <span class="status-label">Total</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-value green" id="${prefix}-consolidadas">-</span>
+                            <span class="status-label">Consolidadas</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-value blue" id="${prefix}-v2">-</span>
+                            <span class="status-label">Versao 2</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-value orange" id="${prefix}-atualizar">-</span>
+                            <span class="status-label">Atualizar</span>
+                        </div>
+                    </div>
+
+                    <div class="versao-info" id="${prefix}-versao-info">
+                        <strong><span class="material-icons" style="font-size:16px;vertical-align:middle;">warning</span> Snapshots na versao antiga detectados!</strong>
+                        <p style="margin-top:8px;font-size:0.9em;">Marque "Forcar Reconsolidacao" para atualizar para v2 com todos os modulos.</p>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Rodada Inicio</label>
+                            <input type="number" id="${prefix}-inicio" value="1" min="1" max="38">
+                        </div>
+                        <div class="form-group">
+                            <label>Rodada Fim</label>
+                            <input type="number" id="${prefix}-fim" value="38" min="1" max="38">
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group" onclick="document.getElementById('${prefix}-forcar').click(); event.stopPropagation();">
+                        <input type="checkbox" id="${prefix}-forcar" onclick="event.stopPropagation();">
+                        <label for="${prefix}-forcar">Forcar Reconsolidacao (atualizar v1 → v2)</label>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="verificarStatus('${ligaId}', '${prefix}')">
+                            <span class="material-icons">bar_chart</span>
+                            Verificar Status
+                        </button>
+                        <button class="btn btn-primary" onclick="consolidar('${ligaId}', '${prefix}')">
+                            <span class="material-icons">rocket_launch</span>
+                            Consolidar
+                        </button>
+                    </div>
+
+                    <div class="progress-container" id="${prefix}-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="${prefix}-progress-fill"></div>
+                        </div>
+                        <div class="progress-text" id="${prefix}-progress-text">Processando...</div>
+                    </div>
+
+                    <div class="details-panel" id="${prefix}-details">
+                        <table class="rodadas-table">
+                            <thead>
+                                <tr>
+                                    <th>Rodada</th>
+                                    <th>Status</th>
+                                    <th>Versao</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="${prefix}-rodadas-body"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="result-box" id="${prefix}-result">
+                        <pre id="${prefix}-result-text"></pre>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // TOGGLE DETALHES
+        // ============================================================
         function toggleDetails(prefix) {
             const panel = document.getElementById(`${prefix}-details`);
             const btn = document.querySelector(`#${prefix} .toggle-details`);
             panel.classList.toggle('show');
-            btn.textContent = panel.classList.contains('show') ? 'Ocultar detalhes ▲' : 'Ver detalhes ▼';
+
+            const icon = btn.querySelector('.material-icons');
+            if (panel.classList.contains('show')) {
+                icon.textContent = 'expand_less';
+                btn.querySelector('span:last-child') && (btn.lastChild.textContent = ' Ocultar detalhes');
+            } else {
+                icon.textContent = 'expand_more';
+                btn.querySelector('span:last-child') && (btn.lastChild.textContent = ' Ver detalhes');
+            }
         }
-        
+
+        // ============================================================
+        // VERIFICAR STATUS DA LIGA
+        // ============================================================
         async function verificarStatus(ligaId, prefix) {
             try {
                 const response = await fetch(`${API_BASE}/api/consolidacao/ligas/${ligaId}/status`);
                 const data = await response.json();
-                
+
                 // Atualizar cards de status
                 document.getElementById(`${prefix}-total`).textContent = data.total_snapshots || 0;
                 document.getElementById(`${prefix}-consolidadas`).textContent = data.consolidadas || 0;
                 document.getElementById(`${prefix}-v2`).textContent = data.versoes?.v2_atual || 0;
                 document.getElementById(`${prefix}-atualizar`).textContent = data.versoes?.precisam_atualizar || 0;
-                
-                // Mostrar aviso se tem versões antigas
+
+                // Mostrar aviso se tem versoes antigas
                 const versaoInfo = document.getElementById(`${prefix}-versao-info`);
                 if (data.versoes?.precisam_atualizar > 0) {
                     versaoInfo.classList.add('show');
@@ -449,49 +537,56 @@
                 } else {
                     versaoInfo.classList.remove('show');
                 }
-                
+
                 // Preencher tabela de rodadas
                 const tbody = document.getElementById(`${prefix}-rodadas-body`);
                 tbody.innerHTML = '';
-                
+
                 if (data.rodadas && data.rodadas.length > 0) {
                     data.rodadas.forEach(r => {
                         const tr = document.createElement('tr');
-                        const versaoBadge = r.status === 'consolidada' 
+                        const versaoBadge = r.status === 'consolidada'
                             ? (r.versao >= 2 ? '<span class="badge badge-v2">v2</span>' : '<span class="badge badge-v1">v1</span>')
                             : '<span class="badge badge-aberta">-</span>';
-                        const dataStr = r.consolidada_em 
+                        const dataStr = r.consolidada_em
                             ? new Date(r.consolidada_em).toLocaleString('pt-BR')
                             : '-';
                         tr.innerHTML = `
                             <td>R${r.rodada}</td>
-                            <td>${r.status === 'consolidada' ? '✅' : '⏳'}</td>
+                            <td>${r.status === 'consolidada' ? '<span class="material-icons" style="color:#4CAF50;font-size:16px;">check_circle</span>' : '<span class="material-icons" style="color:#FF9800;font-size:16px;">schedule</span>'}</td>
                             <td>${versaoBadge}</td>
                             <td style="font-size:0.8em">${dataStr}</td>
                         `;
                         tbody.appendChild(tr);
                     });
                 }
-                
+
                 // Mostrar resultado JSON
                 showResult(prefix, data);
-                
+
             } catch (error) {
                 showResult(prefix, { error: error.message });
             }
         }
-        
+
+        // ============================================================
+        // CONSOLIDAR LIGA
+        // ============================================================
         async function consolidar(ligaId, prefix) {
             const inicio = document.getElementById(`${prefix}-inicio`).value;
             const fim = document.getElementById(`${prefix}-fim`).value;
             const forcar = document.getElementById(`${prefix}-forcar`).checked;
-            
-            const confirmMsg = forcar 
-                ? `⚠️ RECONSOLIDAR rodadas ${inicio} a ${fim}?\n\nIsso irá recalcular TODOS os dados, mesmo os já consolidados.`
+
+            const confirmMsg = forcar
+                ? `RECONSOLIDAR rodadas ${inicio} a ${fim}?\n\nIsso ira recalcular TODOS os dados, mesmo os ja consolidados.`
                 : `Consolidar rodadas ${inicio} a ${fim}?`;
-            
+
             if (!confirm(confirmMsg)) return;
-            
+
+            await executarConsolidacao(ligaId, prefix, inicio, fim, forcar);
+        }
+
+        async function executarConsolidacao(ligaId, prefix, inicio, fim, forcar) {
             // Mostrar progress
             const progressContainer = document.getElementById(`${prefix}-progress`);
             const progressFill = document.getElementById(`${prefix}-progress-fill`);
@@ -499,51 +594,83 @@
             progressContainer.classList.add('show');
             progressFill.style.width = '0%';
             progressFill.style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
-            progressText.textContent = 'Iniciando consolidação...';
-            
+            progressText.textContent = 'Iniciando consolidacao...';
+
             try {
                 const url = `${API_BASE}/api/consolidacao/ligas/${ligaId}/consolidar-historico?rodadaInicio=${inicio}&rodadaFim=${fim}&forcar=${forcar}`;
-                
+
                 progressFill.style.width = '10%';
                 progressText.textContent = 'Processando rodadas...';
-                
+
                 const response = await fetch(url, { method: 'POST' });
                 const data = await response.json();
-                
+
                 progressFill.style.width = '100%';
-                
+
                 if (data.error) {
                     progressFill.style.background = '#f44336';
-                    progressText.textContent = `❌ Erro: ${data.error}`;
+                    progressText.textContent = `Erro: ${data.error}`;
                 } else {
-                    progressText.textContent = `✅ Concluído! ${data.sucessos || 0} processadas, ${data.pulados || 0} puladas, ${data.falhas || 0} erros`;
+                    progressText.textContent = `Concluido! ${data.sucessos || 0} processadas, ${data.pulados || 0} puladas, ${data.falhas || 0} erros`;
                 }
-                
+
                 showResult(prefix, data);
-                
-                // Atualizar status após consolidação
+
+                // Atualizar status apos consolidacao
                 setTimeout(() => verificarStatus(ligaId, prefix), 1000);
-                
+
+                return data;
+
             } catch (error) {
                 progressFill.style.width = '100%';
                 progressFill.style.background = '#f44336';
-                progressText.textContent = `❌ Erro: ${error.message}`;
+                progressText.textContent = `Erro: ${error.message}`;
                 showResult(prefix, { error: error.message });
+                return { error: error.message };
             }
         }
-        
+
+        // ============================================================
+        // CONSOLIDAR TODAS AS LIGAS
+        // ============================================================
+        async function consolidarTodasLigas() {
+            if (!confirm(`Consolidar TODAS as ${ligasCarregadas.length} ligas?\n\nIsso pode demorar alguns minutos.`)) {
+                return;
+            }
+
+            for (let i = 0; i < ligasCarregadas.length; i++) {
+                const liga = ligasCarregadas[i];
+                const ligaId = liga._id || liga.id;
+                const prefix = `liga${i}`;
+
+                const inicio = document.getElementById(`${prefix}-inicio`).value;
+                const fim = document.getElementById(`${prefix}-fim`).value;
+                const forcar = document.getElementById(`${prefix}-forcar`).checked;
+
+                console.log(`Consolidando liga ${i + 1}/${ligasCarregadas.length}: ${liga.nome}`);
+                await executarConsolidacao(ligaId, prefix, inicio, fim, forcar);
+
+                // Pequena pausa entre ligas
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            alert('Consolidacao de todas as ligas concluida!');
+        }
+
+        // ============================================================
+        // MOSTRAR RESULTADO
+        // ============================================================
         function showResult(prefix, data) {
             const resultBox = document.getElementById(`${prefix}-result`);
             const resultText = document.getElementById(`${prefix}-result-text`);
             resultBox.classList.add('show');
             resultText.textContent = JSON.stringify(data, null, 2);
         }
-        
-        // Verificar status ao carregar
-        document.addEventListener('DOMContentLoaded', () => {
-            verificarStatus('684cb1c8af923da7c7df51de', 'liga01');
-            verificarStatus('684d821cf1a7ae16d1f89572', 'liga02');
-        });
+
+        // ============================================================
+        // INICIALIZAR
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', carregarLigas);
     </script>
 </body>
 </html>

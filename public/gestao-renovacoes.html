@@ -3,8 +3,10 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Tesouraria Geral - Super Cartola Manager</title>
+        <title>Fluxo Financeiro - Super Cartola Manager</title>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+        <!-- Design Tokens (SEMPRE PRIMEIRO) -->
+        <link rel="stylesheet" href="css/_admin-tokens.css" />
         <link rel="stylesheet" href="style.css" />
         <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -465,13 +467,8 @@
                 border: 3px solid rgba(16, 185, 129, 0.2);
                 border-top: 3px solid #10b981;
                 border-radius: 50%;
-                animation: spin 1s linear infinite;
+                animation: admin-spin 1s linear infinite;
                 margin-bottom: 16px;
-            }
-
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
             }
 
             /* Modal */
@@ -832,7 +829,7 @@
                         <div class="header-top">
                             <div class="header-title">
                                 <span class="material-icons">account_balance_wallet</span>
-                                <h1>Tesouraria Geral</h1>
+                                <h1>Fluxo Financeiro</h1>
                             </div>
                             <span class="header-badge">Temporada 2025</span>
                         </div>

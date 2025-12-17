@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Redirecionando... - Super Cartola Manager</title>
+    <!-- Design Tokens (SEMPRE PRIMEIRO) -->
+    <link rel="stylesheet" href="css/_admin-tokens.css" />
     <style>
         body {
             background: #121212;
@@ -21,14 +23,11 @@
         .spinner {
             width: 32px;
             height: 32px;
-            border: 3px solid #252525;
-            border-top-color: #FF5500;
+            border: 3px solid var(--surface-tertiary);
+            border-top-color: var(--color-primary);
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: admin-spin 0.8s linear infinite;
             margin: 0 auto 16px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
     </style>
     <script>

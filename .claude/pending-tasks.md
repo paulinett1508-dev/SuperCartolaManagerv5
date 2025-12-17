@@ -1,99 +1,86 @@
-# Tarefas Pendentes - 2025-12-16
+# Tarefas Pendentes - Super Cartola Manager
 
-## Prioridade ALTA
+## Status Atual
 
-*Nenhuma tarefa pendente no momento.*
-
----
-
-## Concluido Nesta Sessao (2025-12-16)
-
-### Sidebar Accordion - Fix (Sessao 3)
-- [x] Diagnosticado problema: paginas nao injetavam scripts do layout.html
-- [x] `AccordionManager` movido para `window.AccordionManager` (escopo global)
-- [x] Adicionada flag `_initialized` para evitar dupla inicializacao
-- [x] Event listeners protegidos com `e.preventDefault()` e `e.stopPropagation()`
-- [x] Corrigidas 11 paginas/arquivos para injetar scripts + inicializar accordion:
-  - gestao-renovacoes.html, ferramentas.html, gerenciar-modulos.html
-  - gerir-senhas-participantes.html, ferramentas-rodadas.html
-  - gerenciar.html, painel.html, preencher-liga.html
-  - js/editar-liga.js, js/criar-liga.js, js/detalhe-liga-orquestrador.js
-  - js/core/layout-manager.js
+**Sem tarefas pendentes de alta prioridade.**
 
 ---
 
-### Sessao Anterior
-- [x] Separacao de ambientes MongoDB (Prod/Dev)
-- [x] Limpeza de 22 scripts obsoletos
-- [x] Sistema de Temporadas (`config/seasons.js`)
-- [x] Campo `temporada` em todos os models
-- [x] Script de migracao (`scripts/migrar-temporada-2025.js`)
-- [x] Documentacao (`docs/TEMPORADAS-GUIA.md`)
+## Concluído - Sessão 2025-12-17
 
-### Sidebar Accordion
-- [x] CSS para accordion em `css/modules/dashboard-redesign.css`
-- [x] HTML com estrutura accordion em `layout.html`
-- [x] JavaScript com toggle e persistencia localStorage
-- [x] Auto-expand baseado na pagina atual
+### Sistema de Design Tokens (100% Completo)
+- [x] Criar `public/css/_admin-tokens.css` com variáveis CSS centralizadas
+- [x] Criar `public/participante/css/_app-tokens.css` para o App
+- [x] Criar documentação `docs/TOKENS-GUIA.md`
+- [x] Integrar tokens em `public/layout.html`
+- [x] Integrar tokens em `public/participante/index.html`
+- [x] Migrar `public/css/base.css` para usar tokens
+- [x] Migrar `public/participante/css/participante.css` para usar tokens
+- [x] Remover `@keyframes spin` duplicados dos módulos CSS do Admin (13 arquivos)
 
-### Tesouraria Geral (Gestao Financeira Centralizada)
+### Migração de 16 Páginas Admin (100% Completo)
+- [x] `admin-consolidacao.html`
+- [x] `admin.html`
+- [x] `convite.html`
+- [x] `criar-liga.html`
+- [x] `editar-liga.html`
+- [x] `ferramentas.html`
+- [x] `ferramentas-rodadas.html`
+- [x] `fluxo-financeiro.html`
+- [x] `gerir-senhas-participantes.html`
+- [x] `gestao-renovacoes.html`
+- [x] `index.html`
+- [x] `migrar-localstorage-mongodb.html`
+- [x] `painel.html`
+- [x] `participante-dashboard.html`
+- [x] `participante-login.html`
+- [x] `preencher-liga.html`
 
-**Arquivos criados/modificados:**
-- [x] `routes/tesouraria-routes.js` - Nova API completa (350+ linhas)
-- [x] `public/gestao-renovacoes.html` - Reformulado como Tesouraria Geral
-- [x] `index.js` - Adicionada rota `/api/tesouraria`
-- [x] `public/layout.html` - Atualizado link no sidebar
+### Gestão de Ligas - Padronização CSS
+- [x] Criar `public/css/modules/gerenciar.css` (CSS consolidado)
+- [x] Migrar `public/gerenciar.html` para usar tokens (removeu 359 linhas inline)
+- [x] Migrar `public/gerenciar-modulos.html` para usar tokens (removeu 394 linhas inline)
+- [x] Migrar `public/detalhe-liga.html` para usar tokens
+- [x] Atualizar `public/detalhe-liga.css` para mapear variáveis para tokens globais
+- [x] Padronizar dimensões de cards (grid 220px, padding var(--space-4), border-radius var(--radius-card))
 
-**Funcionalidades:**
-- [x] Tabela com TODOS participantes de TODAS ligas
-- [x] Saldo Temporada + Saldo Acertos + Saldo Final
-- [x] Filtros por liga, situacao (devedor/credor/quitado), busca
-- [x] Ordenacao por colunas (clicaveis)
-- [x] Modal de acerto (pagamento/recebimento)
-- [x] Botao "Zerar Saldo" automatico
-- [x] Historico de acertos por participante
-- [x] Cards de estatisticas (total a pagar, receber, devedores, credores)
+### Hub de Gestão - Refatoração Layout
+- [x] Limpar Sidebar - manter apenas navegação global
+- [x] Remover seções de estatísticas (Mitos/Micos) do detalhe-liga.html
+- [x] Adicionar "Administração da Liga" com ferramentas admin
 
-**Endpoints da API:**
-- `GET /api/tesouraria/participantes` - Lista todos com saldos
-- `GET /api/tesouraria/participante/:ligaId/:timeId` - Detalhes + historico
-- `POST /api/tesouraria/acerto` - Registrar acerto
-- `DELETE /api/tesouraria/acerto/:id` - Remover acerto
-- `GET /api/tesouraria/resumo` - Totais por liga
-
-**Sincronizacao com App:**
-- Usa mesmo modelo `AcertoFinanceiro` do extrato
-- Cache invalidado automaticamente apos acerto
-- Participante ve saldo atualizado no app
-
----
-
-## Estrutura do Sidebar Atualizada
-
-```
-Dashboard (fixo)
-├── Ligas (accordion)
-│   ├── [Ligas dinamicas]
-│   ├── Criar Nova Liga
-│   └── Gerenciar Todas
-├── Rodadas (accordion)
-│   ├── Popular Rodadas
-│   └── Parciais ao Vivo
-├── Financeiro (accordion)
-│   └── Tesouraria Geral  <-- ATUALIZADO
-├── Configuracoes (accordion)
-│   ├── Gerir Senhas
-│   └── Modulos
-└── Acessos (accordion)
-    ├── App Participante
-    └── Hub Ferramentas
-```
+### Ferramenta Gemini Audit
+- [x] Corrigir `gemini_audit.py` (modelo atualizado para gemini-2.5-flash)
+- [x] Adicionar retry com exponential backoff para rate limits
 
 ---
 
-## Como Retomar
+## Commits Recentes
+1. `e798499` - refactor(css): Standardize Gestão de Ligas with design tokens
+2. `894ffbd` - docs: Update project documentation and add Gemini audit tool
+3. `bc5ce51` - refactor(css): Add design tokens system for Admin and App
 
-Na proxima sessao, execute:
-```
-/retomar-tarefas
+---
+
+## Arquivos de Referência
+| Arquivo | Descrição |
+|---------|-----------|
+| `public/css/_admin-tokens.css` | Tokens do Admin (cores, espaçamento, sombras) |
+| `public/participante/css/_app-tokens.css` | Tokens do App Mobile |
+| `docs/TOKENS-GUIA.md` | Guia de migração |
+| `public/css/modules/gerenciar.css` | CSS consolidado para gerenciamento |
+
+---
+
+## Comandos Úteis
+
+```bash
+# Verificar que todas as páginas usam tokens
+for f in public/*.html; do if grep -q "_admin-tokens" "$f" 2>/dev/null; then echo "✓ $(basename $f)"; else echo "✗ $(basename $f)"; fi; done
+
+# Rodar servidor
+npm run dev
+
+# Status git
+git status
 ```

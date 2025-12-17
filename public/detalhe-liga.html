@@ -418,133 +418,86 @@
                         </div>
                     </div>
 
-                    <!-- === SEÇÃO DE DESTAQUES: MITOS E MICOS DA ÚLTIMA RODADA === -->
-                    <div class="highlights-section">
-                        <!-- Tabela Mitos -->
-                        <div class="highlight-card">
-                            <div class="highlight-card-header">
-                                <div class="highlight-card-title gold">
-                                    <span class="material-icons">emoji_events</span>
-                                    <span>Mitos da Última Rodada (<span id="rodadaMitos">R--</span>)</span>
-                                </div>
-                                <span class="highlight-badge" id="statusRodadaMitos">--</span>
+                    <!-- === SEÇÃO ADMINISTRAÇÃO DA LIGA === -->
+                    <div class="admin-tools-section">
+                        <div class="admin-tools-header">
+                            <div class="admin-tools-title">
+                                <span class="material-icons">admin_panel_settings</span>
+                                <span>Administração da Liga</span>
                             </div>
-                            <table class="highlight-table">
-                                <thead>
-                                    <tr>
-                                        <th>Pos</th>
-                                        <th>Time</th>
-                                        <th>Pts</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabelaMitosBody">
-                                    <tr>
-                                        <td class="pos-cell gold">
-                                            <span class="material-icons">workspace_premium</span> 1º
-                                        </td>
-                                        <td>
-                                            <div class="team-cell">
-                                                <div class="team-avatar">--</div>
-                                                <span class="team-name">Carregando...</span>
-                                            </div>
-                                        </td>
-                                        <td class="pts-cell positive">--</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="pos-cell">2º</td>
-                                        <td>
-                                            <div class="team-cell">
-                                                <div class="team-avatar">--</div>
-                                                <span class="team-name">Carregando...</span>
-                                            </div>
-                                        </td>
-                                        <td class="pts-cell">--</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="pos-cell">3º</td>
-                                        <td>
-                                            <div class="team-cell">
-                                                <div class="team-avatar">--</div>
-                                                <span class="team-name">Carregando...</span>
-                                            </div>
-                                        </td>
-                                        <td class="pts-cell">--</td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
-
-                        <!-- Tabela Micos -->
-                        <div class="highlight-card">
-                            <div class="highlight-card-header">
-                                <div class="highlight-card-title red">
-                                    <span class="material-icons" style="transform: rotate(180deg);">thumb_down</span>
-                                    <span>Micos da Última Rodada (<span id="rodadaMicos">R--</span>)</span>
+                        <div class="admin-tools-grid">
+                            <!-- Editar Dados da Liga -->
+                            <a href="#" class="admin-tool-item" id="btnEditarLiga">
+                                <div class="admin-tool-icon edit">
+                                    <span class="material-icons">edit</span>
                                 </div>
-                            </div>
-                            <table class="highlight-table">
-                                <thead>
-                                    <tr>
-                                        <th>Pos</th>
-                                        <th>Time</th>
-                                        <th>Pts</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabelaMicosBody">
-                                    <tr>
-                                        <td class="pos-cell">
-                                            <span class="material-icons" style="font-size:14px;vertical-align:middle;color:#6b7280;margin-right:4px;">sentiment_very_dissatisfied</span> 32º
-                                        </td>
-                                        <td>
-                                            <div class="team-cell">
-                                                <div class="team-avatar">--</div>
-                                                <span class="team-name">Carregando...</span>
-                                            </div>
-                                        </td>
-                                        <td class="pts-cell negative">--</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="pos-cell">31º</td>
-                                        <td>
-                                            <div class="team-cell">
-                                                <div class="team-avatar">--</div>
-                                                <span class="team-name">Carregando...</span>
-                                            </div>
-                                        </td>
-                                        <td class="pts-cell">--</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="pos-cell">30º</td>
-                                        <td>
-                                            <div class="team-cell">
-                                                <div class="team-avatar">--</div>
-                                                <span class="team-name">Carregando...</span>
-                                            </div>
-                                        </td>
-                                        <td class="pts-cell">--</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                                <div class="admin-tool-info">
+                                    <span class="admin-tool-label">Editar Dados</span>
+                                    <span class="admin-tool-desc">Nome, formato e configurações</span>
+                                </div>
+                                <span class="material-icons admin-tool-arrow">chevron_right</span>
+                            </a>
 
-                    <!-- === CARDS DE ESTATÍSTICAS RÁPIDAS === -->
-                    <div class="quick-stats-section">
-                        <div class="quick-stat-card highlight">
-                            <div class="quick-stat-value" id="statRodadasJogadas">38</div>
-                            <div class="quick-stat-label">Rodadas Jogadas</div>
-                        </div>
-                        <div class="quick-stat-card">
-                            <div class="quick-stat-value" id="statPremiacaoTotal">R$ 0</div>
-                            <div class="quick-stat-label">Premiação Total</div>
-                        </div>
-                        <div class="quick-stat-card">
-                            <div class="quick-stat-value" id="statMediaLiga">0.0</div>
-                            <div class="quick-stat-label">Média Liga</div>
-                        </div>
-                        <div class="quick-stat-card">
-                            <div class="quick-stat-value" id="statRecordePontos">0.0</div>
-                            <div class="quick-stat-label">Recorde Pontos</div>
+                            <!-- Gerenciar Times -->
+                            <a href="#" class="admin-tool-item" id="btnGerenciarTimes">
+                                <div class="admin-tool-icon teams">
+                                    <span class="material-icons">group_add</span>
+                                </div>
+                                <div class="admin-tool-info">
+                                    <span class="admin-tool-label">Gerenciar Times</span>
+                                    <span class="admin-tool-desc">Adicionar ou remover participantes</span>
+                                </div>
+                                <span class="material-icons admin-tool-arrow">chevron_right</span>
+                            </a>
+
+                            <!-- Processar Rodadas -->
+                            <a href="ferramentas-rodadas.html" class="admin-tool-item">
+                                <div class="admin-tool-icon process">
+                                    <span class="material-icons">autorenew</span>
+                                </div>
+                                <div class="admin-tool-info">
+                                    <span class="admin-tool-label">Processar Rodadas</span>
+                                    <span class="admin-tool-desc">Popular e atualizar dados</span>
+                                </div>
+                                <span class="material-icons admin-tool-arrow">chevron_right</span>
+                            </a>
+
+                            <!-- Recalcular Cache -->
+                            <button class="admin-tool-item" onclick="abrirModalRecalcMini()">
+                                <div class="admin-tool-icon cache">
+                                    <span class="material-icons">refresh</span>
+                                </div>
+                                <div class="admin-tool-info">
+                                    <span class="admin-tool-label">Recalcular Cache</span>
+                                    <span class="admin-tool-desc">Recalcula rankings das rodadas</span>
+                                </div>
+                                <span class="material-icons admin-tool-arrow">chevron_right</span>
+                            </button>
+
+                            <!-- Limpar Cache -->
+                            <button class="admin-tool-item danger" onclick="abrirModalLimparMini()">
+                                <div class="admin-tool-icon danger">
+                                    <span class="material-icons">delete_sweep</span>
+                                </div>
+                                <div class="admin-tool-info">
+                                    <span class="admin-tool-label">Limpar Cache</span>
+                                    <span class="admin-tool-desc">Remove dados de cache</span>
+                                </div>
+                                <span class="material-icons admin-tool-arrow">chevron_right</span>
+                            </button>
+
+                            <!-- Criar Nova Liga -->
+                            <a href="criar-liga.html" class="admin-tool-item">
+                                <div class="admin-tool-icon create">
+                                    <span class="material-icons">add_circle</span>
+                                </div>
+                                <div class="admin-tool-info">
+                                    <span class="admin-tool-label">Criar Nova Liga</span>
+                                    <span class="admin-tool-desc">Iniciar uma nova competição</span>
+                                </div>
+                                <span class="material-icons admin-tool-arrow">chevron_right</span>
+                            </a>
                         </div>
                     </div>
 
@@ -890,264 +843,38 @@
             });
         </script>
 
-        <!-- DADOS DE DESTAQUES E ESTATÍSTICAS v2.0 -->
+        <!-- ADMINISTRAÇÃO DA LIGA - HANDLERS -->
         <script>
-            // === CARREGAR DADOS DE DESTAQUES (MITOS/MICOS) E ESTATÍSTICAS ===
-            // v2.0: Usa endpoint consolidacao que retorna RodadaSnapshot com dados reais
-            async function carregarDadosDestaques() {
-                const ligaId = obterLigaIdCache();
-                if (!ligaId) {
-                    console.warn('Liga ID não encontrado para carregar destaques');
-                    return;
-                }
-
-                try {
-                    // Buscar histórico completo consolidado (rodadasnapshots)
-                    const response = await fetch(`/api/consolidacao/ligas/${ligaId}/historico-completo`);
-                    if (!response.ok) throw new Error('Erro ao buscar histórico consolidado');
-
-                    const result = await response.json();
-                    if (!result.success || !result.rodadas || result.rodadas.length === 0) {
-                        console.warn('Nenhum snapshot encontrado');
-                        return;
-                    }
-
-                    // Pegar última rodada COM DADOS (não apenas maior número)
-                    const rodadas = result.rodadas;
-                    // Filtrar rodadas que têm dados de ranking_rodada ou top10
-                    const rodadasComDados = rodadas.filter(r => {
-                        const dados = r.dados || {};
-                        const temRanking = dados.ranking_rodada && dados.ranking_rodada.length > 0;
-                        const temMitos = dados.top10?.mitos && dados.top10.mitos.length > 0;
-                        return temRanking || temMitos;
-                    });
-
-                    console.log('[DEBUG-DESTAQUES] Total rodadas:', rodadas.length, '| Com dados:', rodadasComDados.length);
-
-                    // Usar última rodada com dados, ou última rodada como fallback
-                    const ultimaRodada = rodadasComDados.length > 0
-                        ? rodadasComDados.reduce((max, r) => (r.rodada > max.rodada) ? r : max, rodadasComDados[0])
-                        : rodadas.reduce((max, r) => (r.rodada > max.rodada) ? r : max, rodadas[0]);
-
-                    const rodadaNum = ultimaRodada.rodada;
-                    const dados = ultimaRodada.dados || {};
-
-                    console.log('[DEBUG-DESTAQUES] Usando rodada:', rodadaNum);
-
-                    // Atualizar número da rodada
-                    const rodadaMitosEl = document.getElementById('rodadaMitos');
-                    const rodadaMicosEl = document.getElementById('rodadaMicos');
-                    const statusEl = document.getElementById('statusRodadaMitos');
-
-                    if (rodadaMitosEl) rodadaMitosEl.textContent = `R${rodadaNum}`;
-                    if (rodadaMicosEl) rodadaMicosEl.textContent = `R${rodadaNum}`;
-                    if (statusEl) statusEl.textContent = ultimaRodada.status === 'consolidada' ? 'Finalizada' : 'Em andamento';
-
-                    // Usar ranking_rodada para extrair Top 3 Mitos e Top 3 Micos
-                    // (top10.mitos/micos só guarda 1 item cada - mito e mico da rodada)
-                    const rankingRodada = dados.ranking_rodada || [];
-                    const rankingGeral = dados.ranking_geral || [];
-
-                    // Top 3 Mitos = primeiros 3 do ranking (maior pontuação)
-                    // Top 3 Micos = últimos 3 do ranking (menor pontuação), em ordem reversa
-                    const rankingOrdenado = [...rankingRodada].sort((a, b) =>
-                        (b.pontos_rodada || b.pontuacao || 0) - (a.pontos_rodada || a.pontuacao || 0)
-                    );
-                    const mitos = rankingOrdenado.slice(0, 3);
-                    const micos = rankingOrdenado.slice(-3).reverse();
-
-                    // Criar mapa de nomes/escudos - prioridade: times_stats > ranking_geral
-                    // times_stats sempre tem nomes completos, ranking_geral pode ter null
-                    const timesMap = {};
-                    const timesStats = dados.times_stats || [];
-
-                    // Primeiro, popular com ranking_geral (pode ter escudos)
-                    rankingGeral.forEach(t => {
-                        const id = t.timeId || t.time_id;
-                        if (id) {
-                            timesMap[id] = {
-                                nome_time: t.nome_time,
-                                nome_cartola: t.nome_cartola,
-                                escudo: t.escudo
-                            };
-                        }
-                    });
-
-                    // Depois, sobrescrever com times_stats (sempre tem nomes completos)
-                    timesStats.forEach(t => {
-                        const id = t.time_id || t.timeId;
-                        if (id) {
-                            timesMap[id] = {
-                                ...timesMap[id],
-                                nome_time: t.nome_time || timesMap[id]?.nome_time,
-                                nome_cartola: t.nome_cartola || timesMap[id]?.nome_cartola,
-                                escudo: t.escudo || timesMap[id]?.escudo
-                            };
-                        }
-                    });
-
-                    // Enriquecer mitos/micos com dados do timesMap
-                    const mitosEnriquecidos = mitos.map(m => {
-                        const info = timesMap[m.time_id] || {};
-                        return {
-                            ...m,
-                            nome_time: m.nome_time || info.nome_time || 'Time',
-                            nome_cartola: m.nome_cartola || info.nome_cartola || '',
-                            escudo: m.escudo || info.escudo || ''
-                        };
-                    });
-
-                    const micosEnriquecidos = micos.map(m => {
-                        const info = timesMap[m.time_id] || {};
-                        return {
-                            ...m,
-                            nome_time: m.nome_time || info.nome_time || 'Time',
-                            nome_cartola: m.nome_cartola || info.nome_cartola || '',
-                            escudo: m.escudo || info.escudo || ''
-                        };
-                    });
-
-                    // Renderizar tabelas - usar top 3 de cada
-                    renderizarTabelaMitos(mitosEnriquecidos.slice(0, 3));
-                    renderizarTabelaMicos(micosEnriquecidos.slice(0, 3));
-
-                    // Calcular estatísticas usando todos os snapshots
-                    calcularEstatisticas(rodadas, rankingRodada);
-
-                } catch (error) {
-                    console.error('Erro ao carregar destaques:', error);
-                }
-            }
-
-            function renderizarTabelaMitos(top3) {
-                const tbody = document.getElementById('tabelaMitosBody');
-                if (!tbody || !top3.length) return;
-
-                tbody.innerHTML = top3.map((time, index) => {
-                    const nome = time.nome_time || time.nomeTime || 'Time';
-                    const pontos = (time.pontos_rodada || time.pontuacao || 0).toFixed(2);
-                    const escudo = time.escudo || '';
-                    const sigla = nome.substring(0, 3).toUpperCase();
-                    const isFirst = index === 0;
-
-                    return `
-                        <tr>
-                            <td class="pos-cell ${isFirst ? 'gold' : ''}">
-                                ${isFirst ? '<span class="material-icons">workspace_premium</span>' : ''} ${index + 1}º
-                            </td>
-                            <td>
-                                <div class="team-cell">
-                                    ${escudo
-                                        ? `<img src="${escudo}" alt="" class="team-avatar-img" onerror="this.outerHTML='<div class=\\'team-avatar\\'>${sigla}</div>'" />`
-                                        : `<div class="team-avatar">${sigla}</div>`
-                                    }
-                                    <span class="team-name">${nome}</span>
-                                </div>
-                            </td>
-                            <td class="pts-cell ${isFirst ? 'positive' : ''}">${pontos}</td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-
-            function renderizarTabelaMicos(bottom3) {
-                const tbody = document.getElementById('tabelaMicosBody');
-                if (!tbody || !bottom3.length) return;
-
-                tbody.innerHTML = bottom3.map((time, index) => {
-                    const nome = time.nome_time || time.nomeTime || 'Time';
-                    const pontos = (time.pontos_rodada || time.pontuacao || 0).toFixed(2);
-                    const escudo = time.escudo || '';
-                    const sigla = nome.substring(0, 3).toUpperCase();
-                    const posicao = time.posicao || (32 - index);
-                    const isLast = index === 0;
-
-                    return `
-                        <tr>
-                            <td class="pos-cell">
-                                ${isLast ? '<span class="material-icons" style="font-size:14px;vertical-align:middle;color:#6b7280;margin-right:4px;">sentiment_very_dissatisfied</span>' : ''} ${posicao}º
-                            </td>
-                            <td>
-                                <div class="team-cell">
-                                    ${escudo
-                                        ? `<img src="${escudo}" alt="" class="team-avatar-img" onerror="this.outerHTML='<div class=\\'team-avatar\\'>${sigla}</div>'" />`
-                                        : `<div class="team-avatar">${sigla}</div>`
-                                    }
-                                    <span class="team-name">${nome}</span>
-                                </div>
-                            </td>
-                            <td class="pts-cell ${isLast ? 'negative' : ''}">${pontos}</td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-
-            function calcularEstatisticas(rodadas, rankingAtual) {
-                // Rodadas jogadas (total de snapshots consolidados)
-                const rodadasJogadas = rodadas.length;
-                const statRodadasEl = document.getElementById('statRodadasJogadas');
-                if (statRodadasEl) statRodadasEl.textContent = rodadasJogadas;
-
-                // Média da liga (última rodada)
-                if (rankingAtual && rankingAtual.length > 0) {
-                    const somaTotal = rankingAtual.reduce((sum, t) => sum + (t.pontos_rodada || 0), 0);
-                    const media = somaTotal / rankingAtual.length;
-                    const statMediaEl = document.getElementById('statMediaLiga');
-                    if (statMediaEl) statMediaEl.textContent = media.toFixed(1);
-                }
-
-                // Recorde de pontos (maior pontuação de todas as rodadas)
-                let recorde = 0;
-                rodadas.forEach(rodada => {
-                    const dados = rodada.dados || {};
-                    const ranking = dados.ranking_rodada || [];
-                    ranking.forEach(r => {
-                        const pts = r.pontos_rodada || 0;
-                        if (pts > recorde) recorde = pts;
-                    });
-                    // Também verificar destaques/mitos
-                    const mitos = dados.top10?.mitos || [];
-                    mitos.forEach(m => {
-                        const pts = m.pontos_rodada || 0;
-                        if (pts > recorde) recorde = pts;
-                    });
-                });
-                const statRecordeEl = document.getElementById('statRecordePontos');
-                if (statRecordeEl) statRecordeEl.textContent = recorde.toFixed(1);
-
-                // Premiação total (estimativa: R$100 por participante)
-                const numParticipantes = rankingAtual ? rankingAtual.length : 32;
-                const premiacao = numParticipantes * 100;
-                const statPremiacaoEl = document.getElementById('statPremiacaoTotal');
-                if (statPremiacaoEl) statPremiacaoEl.textContent = `R$ ${premiacao.toLocaleString('pt-BR')}`;
-            }
-
-            // Carregar quando a página estiver pronta e o ligaId disponível
-            let destaquesCarregados = false;
-
-            async function tentarCarregarDestaques() {
-                if (destaquesCarregados) return;
-
-                const ligaId = obterLigaIdCache();
-                if (ligaId) {
-                    destaquesCarregados = true;
-                    await carregarDadosDestaques();
-                }
-            }
-
+            // === HANDLERS PARA BOTÕES DE ADMINISTRAÇÃO ===
             document.addEventListener('DOMContentLoaded', () => {
-                // Tentar carregar em intervalos até conseguir
-                setTimeout(tentarCarregarDestaques, 500);
-                setTimeout(tentarCarregarDestaques, 1500);
-                setTimeout(tentarCarregarDestaques, 3000);
+                const ligaId = obterLigaIdCache();
 
-                // Também escutar por mudanças no nome da liga (indica que dados carregaram)
-                const nomeLigaEl = document.getElementById('nomeLiga');
-                if (nomeLigaEl) {
-                    const observer = new MutationObserver(() => {
-                        setTimeout(tentarCarregarDestaques, 200);
+                // Botão Editar Liga
+                const btnEditar = document.getElementById('btnEditarLiga');
+                if (btnEditar) {
+                    btnEditar.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const id = obterLigaIdCache();
+                        if (id) {
+                            window.location.href = `editar-liga.html?id=${id}`;
+                        } else {
+                            alert('Liga não identificada');
+                        }
                     });
-                    observer.observe(nomeLigaEl, { childList: true, characterData: true, subtree: true });
+                }
+
+                // Botão Gerenciar Times
+                const btnTimes = document.getElementById('btnGerenciarTimes');
+                if (btnTimes) {
+                    btnTimes.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const id = obterLigaIdCache();
+                        if (id) {
+                            window.location.href = `preencher-liga.html?id=${id}`;
+                        } else {
+                            alert('Liga não identificada');
+                        }
+                    });
                 }
             });
         </script>

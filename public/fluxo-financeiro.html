@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Fluxo Financeiro - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+        <!-- Design Tokens (SEMPRE PRIMEIRO) -->
+        <link rel="stylesheet" href="css/_admin-tokens.css" />
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <style>
+            .fluxo-page {
+                background: #121212;
+                min-height: 100vh;
+            }
+
+            .fluxo-content {
+                padding: 20px 16px;
+            }
+
+            .fluxo-header {
+                background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+                border-radius: 10px;
+                padding: 18px 20px;
+                margin-bottom: 24px;
+                border: 1px solid #10b981;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .fluxo-header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+            }
+
+            .fluxo-header h1 {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin: 0 0 8px 0;
+            }
+
+            .fluxo-header h1 .material-icons {
+                font-size: 28px;
+                color: #10b981;
+            }
+
+            .fluxo-header p {
+                color: #9ca3af;
+                font-size: 0.9rem;
+                margin: 0;
+            }
+
+            .ligas-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 16px;
+            }
+
+            .liga-card {
+                background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+                border-radius: 12px;
+                padding: 20px;
+                border: 1px solid #333;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .liga-card:hover {
+                border-color: #10b981;
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15);
+            }
+
+            .liga-card-logo {
+                width: 56px;
+                height: 56px;
+                border-radius: 12px;
+                background: #2a2a2a;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                overflow: hidden;
+            }
+
+            .liga-card-logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+
+            .liga-card-logo .material-icons {
+                font-size: 28px;
+                color: #10b981;
+            }
+
+            .liga-card-info {
+                flex: 1;
+            }
+
+            .liga-card-name {
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: #ffffff;
+                margin-bottom: 4px;
+            }
+
+            .liga-card-stats {
+                display: flex;
+                gap: 12px;
+                font-size: 0.8rem;
+                color: #9ca3af;
+            }
+
+            .liga-card-stats span {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .liga-card-stats .material-icons {
+                font-size: 14px;
+            }
+
+            .liga-card-arrow {
+                color: #6b7280;
+                transition: color 0.3s ease;
+            }
+
+            .liga-card:hover .liga-card-arrow {
+                color: #10b981;
+            }
+
+            .loading-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 60px 20px;
+                color: #9ca3af;
+            }
+
+            .loading-state .material-icons {
+                font-size: 48px;
+                animation: admin-spin 1s linear infinite;
+                margin-bottom: 16px;
+            }
+
+            .empty-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 60px 20px;
+                color: #9ca3af;
+                text-align: center;
+            }
+
+            .empty-state .material-icons {
+                font-size: 48px;
+                margin-bottom: 16px;
+                color: #6b7280;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="app-container">
+            <!-- Sidebar sera injetado -->
+            <div id="sidebar-placeholder"></div>
+
+            <!-- Main Content -->
+            <main class="app-main fluxo-page">
+                <div class="fluxo-content">
+                    <header class="fluxo-header">
+                        <h1>
+                            <span class="material-icons">account_balance_wallet</span>
+                            Fluxo Financeiro
+                        </h1>
+                        <p>Selecione uma liga para gerenciar os saldos financeiros dos participantes.</p>
+                    </header>
+
+                    <div id="ligasGrid" class="ligas-grid">
+                        <div class="loading-state">
+                            <span class="material-icons">sync</span>
+                            <span>Carregando ligas...</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <script>
+            // Carregar sidebar (mesmo padrao das outras paginas)
+            async function carregarLayout() {
+                try {
+                    const response = await fetch('layout.html');
+                    const layoutHtml = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, 'text/html');
+
+                    const sidebar = doc.querySelector('.app-sidebar');
+                    if (sidebar) {
+                        document.getElementById('sidebar-placeholder')?.replaceWith(sidebar);
+                    }
+
+                    const scripts = doc.querySelectorAll('script');
+                    scripts.forEach(script => {
+                        if (script.textContent.trim()) {
+                            const newScript = document.createElement('script');
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
+                        }
+                    });
+
+                    // Inicializar AccordionManager apos scripts carregados
+                    setTimeout(() => {
+                        if (window.AccordionManager && !window.AccordionManager._initialized) {
+                            window.AccordionManager.init();
+                        }
+                    }, 150);
+                } catch (error) {
+                    console.error('Erro ao carregar layout:', error);
+                }
+            }
+
+            carregarLayout();
+
+            // Mapeamento de logos
+            function obterLogoLiga(nomeLiga) {
+                const nome = (nomeLiga || '').toLowerCase();
+                if (nome.includes('super')) return 'img/logo-supercartola.png';
+                if (nome.includes('sobral') || nome.includes('cartoleiros')) return 'img/logo-cartoleirossobral.png';
+                return null;
+            }
+
+            // Carregar ligas
+            async function carregarLigas() {
+                const grid = document.getElementById('ligasGrid');
+
+                try {
+                    const response = await fetch('/api/ligas');
+                    const ligas = await response.json();
+
+                    if (!Array.isArray(ligas) || ligas.length === 0) {
+                        grid.innerHTML = `
+                            <div class="empty-state">
+                                <span class="material-icons">folder_open</span>
+                                <p>Nenhuma liga encontrada</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    grid.innerHTML = ligas.map(liga => {
+                        const ligaId = liga._id || liga.id;
+                        const logoUrl = obterLogoLiga(liga.nome);
+                        const timesCount = liga.times?.length || 0;
+
+                        const logoHtml = logoUrl
+                            ? `<img src="${logoUrl}" alt="${liga.nome}" onerror="this.parentElement.innerHTML='<span class=\\'material-icons\\'>emoji_events</span>'" />`
+                            : `<span class="material-icons">emoji_events</span>`;
+
+                        return `
+                            <a href="gestao-renovacoes.html?liga=${ligaId}" class="liga-card">
+                                <div class="liga-card-logo">
+                                    ${logoHtml}
+                                </div>
+                                <div class="liga-card-info">
+                                    <div class="liga-card-name">${liga.nome || 'Liga sem nome'}</div>
+                                    <div class="liga-card-stats">
+                                        <span>
+                                            <span class="material-icons">groups</span>
+                                            ${timesCount} participantes
+                                        </span>
+                                    </div>
+                                </div>
+                                <span class="material-icons liga-card-arrow">chevron_right</span>
+                            </a>
+                        `;
+                    }).join('');
+                } catch (error) {
+                    console.error('Erro ao carregar ligas:', error);
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <span class="material-icons" style="color: #ef4444;">error</span>
+                            <p>Erro ao carregar ligas</p>
+                            <button onclick="carregarLigas()" style="
+                                margin-top: 12px;
+                                padding: 8px 16px;
+                                background: #10b981;
+                                color: white;
+                                border: none;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-weight: 600;
+                            ">Tentar novamente</button>
+                        </div>
+                    `;
+                }
+            }
+
+            // Inicializar
+            document.addEventListener('DOMContentLoaded', carregarLigas);
+        </script>
+    </body>
+</html>

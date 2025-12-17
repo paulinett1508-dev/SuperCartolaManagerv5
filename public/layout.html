@@ -67,61 +67,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="sidebar-divider"></div>
-
-                <!-- ========================================
-                     GESTAO DE LIGAS - Criar, Gerenciar, Rodadas, Financeiro
-                     ======================================== -->
-                <div class="sidebar-accordion" data-accordion="gestao">
-                    <div class="sidebar-accordion-header">
-                        <div class="sidebar-accordion-title">
-                            <span class="material-icons">settings_applications</span>
-                            <span>Gestao de Ligas</span>
-                        </div>
-                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
-                    </div>
-                    <div class="sidebar-accordion-content">
-                        <ul class="sidebar-accordion-menu">
-                            <li>
-                                <a href="criar-liga.html" class="sidebar-accordion-item" data-page="criar-liga.html">
-                                    <span class="material-icons">add_circle</span>
-                                    <span>Criar Nova Liga</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="gerenciar.html" class="sidebar-accordion-item" data-page="gerenciar.html">
-                                    <span class="material-icons">format_list_numbered</span>
-                                    <span>Gerenciar Todas</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="ferramentas-rodadas.html" class="sidebar-accordion-item" data-page="ferramentas-rodadas.html">
-                                    <span class="material-icons">autorenew</span>
-                                    <span>Popular Rodadas</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="fluxo-financeiro.html" class="sidebar-accordion-item" data-page="fluxo-financeiro.html">
-                                    <span class="material-icons">account_balance_wallet</span>
-                                    <span>Fluxo Financeiro</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Ferramentas (link direto) -->
-                <div class="sidebar-section-new" style="margin-top: 8px;">
-                    <ul class="sidebar-menu-new">
-                        <li>
-                            <a href="ferramentas.html" class="sidebar-menu-item" data-page="ferramentas.html">
-                                <span class="material-icons">build</span>
-                                <span>Ferramentas</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
             </nav>
 
             <!-- User Section com Menu Dropup -->
@@ -258,13 +203,12 @@
                         'detalhe-liga.html': 'ligas',
                         'editar-liga.html': 'ligas',
                         'preencher-liga.html': 'ligas',
-                        // Gestao de Ligas
-                        'criar-liga.html': 'gestao',
-                        'gerenciar.html': 'gestao',
-                        'ferramentas-rodadas.html': 'gestao',
-                        'fluxo-financeiro.html': 'gestao',
-                        'gestao-renovacoes.html': 'gestao',
-                        'admin.html': 'gestao'
+                        'criar-liga.html': 'ligas',
+                        'gerenciar.html': 'ligas',
+                        'ferramentas-rodadas.html': 'ligas',
+                        'fluxo-financeiro.html': 'ligas',
+                        'gestao-renovacoes.html': 'ligas',
+                        'admin.html': 'ligas'
                     };
 
                     const accordionKey = pageToAccordion[currentPage];
