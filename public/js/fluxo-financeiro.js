@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v6.4"; // v6.4: Modal Acertos mostra saldo FINAL (temporada + acertos)
+const CACHE_BUSTER = "v6.5"; // v6.5: Fix - Troco (saldo positivo) mostra A RECEBER, não QUITADO
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -850,16 +850,23 @@ async function carregarHistoricoAcertos(ligaId, timeId) {
         const totalPago = resumoAcertos.totalPago || 0;
         const totalRecebido = resumoAcertos.totalRecebido || 0;
 
-        // ✅ v6.4: Saldo FINAL vem do extrato (inclui temporada + acertos)
-        const saldoFinal = extratoResult.success ? (extratoResult.extrato?.resumo?.saldo ?? 0) : 0;
-        const saldoTemporada = extratoResult.success ? (extratoResult.extrato?.resumo?.saldo_temporada ?? 0) : 0;
+        // ✅ v6.5: Saldo FINAL vem do extrato (inclui temporada + acertos)
+        // Garantir parsing numérico para evitar comparação com strings
+        const saldoFinal = extratoResult.success
+            ? parseFloat(extratoResult.extrato?.resumo?.saldo) || 0
+            : 0;
+        const saldoTemporada = extratoResult.success
+            ? parseFloat(extratoResult.extrato?.resumo?.saldo_temporada) || 0
+            : 0;
 
-        // ✅ v6.3: Terminologia correta baseada no saldo FINAL
+        // ✅ v6.5: Terminologia correta baseada no saldo FINAL
         // DEVE = saldo negativo, participante ainda deve à liga
-        // A RECEBER = saldo positivo, participante tem crédito (admin vai pagar)
-        // QUITADO = saldo zero, tudo acertado
+        // A RECEBER = saldo positivo (mesmo que seja troco de R$ 0,54)
+        // QUITADO = saldo EXATAMENTE zero (tolerância de meio centavo)
         let txtSaldo, corSaldo;
-        if (saldoFinal === 0) {
+        const isZero = Math.abs(saldoFinal) < 0.005; // Menos de meio centavo = zero
+
+        if (isZero) {
             txtSaldo = "QUITADO";
             corSaldo = "#a3a3a3"; // cinza neutro
         } else if (saldoFinal > 0) {
