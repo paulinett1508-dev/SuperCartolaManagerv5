@@ -398,6 +398,13 @@ class DetalheLigaOrquestrador {
 
     async handleModuleClick(module) {
         if (this.processingModule) return;
+
+        // Verificar se é módulo 2026 (em breve)
+        if (this.isModule2026(module)) {
+            this.showComingSoonToast(module);
+            return;
+        }
+
         this.processingModule = true;
 
         this.showLoadingOverlay(
@@ -429,8 +436,94 @@ class DetalheLigaOrquestrador {
             "luva-de-ouro": "Luva de Ouro",
             "artilheiro-campeao": "Artilheiro",
             "fluxo-financeiro": "Fluxo Financeiro",
+            // Módulos 2026
+            "tiro-certo": "Tiro Certo",
+            "bolao-copa": "Bolão Copa & Liberta",
+            "resta-um": "Resta Um",
+            "capitao-luxo": "Capitão Luxo",
         };
         return names[module] || module;
+    }
+
+    // Verifica se módulo é 2026 (em breve)
+    isModule2026(module) {
+        const modules2026 = ["tiro-certo", "bolao-copa", "resta-um", "capitao-luxo"];
+        return modules2026.includes(module);
+    }
+
+    // Mostra toast de "Em Breve" para módulos 2026
+    showComingSoonToast(moduleName) {
+        const displayName = this.getModuleDisplayName(moduleName);
+
+        // Criar toast se não existir
+        let toast = document.getElementById("toast-2026");
+        if (!toast) {
+            toast = document.createElement("div");
+            toast.id = "toast-2026";
+            toast.className = "toast-2026";
+            toast.innerHTML = `
+                <span class="material-icons">rocket_launch</span>
+                <div class="toast-2026-content">
+                    <strong></strong>
+                    <span>Disponível na Temporada 2026</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+
+            // Adicionar estilos inline
+            const style = document.createElement("style");
+            style.textContent = `
+                .toast-2026 {
+                    position: fixed;
+                    bottom: 24px;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(100px);
+                    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+                    border: 1px solid rgba(255, 85, 0, 0.4);
+                    border-radius: 12px;
+                    padding: 16px 24px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 85, 0, 0.2);
+                    z-index: 10001;
+                    opacity: 0;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                .toast-2026.show {
+                    transform: translateX(-50%) translateY(0);
+                    opacity: 1;
+                }
+                .toast-2026 .material-icons {
+                    font-size: 28px;
+                    color: #FF5500;
+                }
+                .toast-2026-content {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                }
+                .toast-2026-content strong {
+                    color: #fff;
+                    font-size: 14px;
+                    font-weight: 600;
+                }
+                .toast-2026-content span {
+                    color: #9ca3af;
+                    font-size: 12px;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Atualizar conteúdo
+        toast.querySelector("strong").textContent = displayName;
+
+        // Mostrar toast
+        setTimeout(() => toast.classList.add("show"), 10);
+
+        // Esconder após 3s
+        setTimeout(() => toast.classList.remove("show"), 3000);
     }
 
     showLoadingOverlay(message = "Carregando...") {

@@ -88,7 +88,9 @@
       "Bash(do if [ -f \"$script\" ])",
       "Bash(then echo \"OK: $script\")",
       "Bash(else echo \"FALTANDO: $script\")",
-      "Bash(timeout 15 node:*)"
+      "Bash(timeout 15 node:*)",
+      "Bash(timeout 60 node scripts/turn_key_2026.js:*)",
+      "Bash(timeout 90 node scripts/turn_key_2026.js:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

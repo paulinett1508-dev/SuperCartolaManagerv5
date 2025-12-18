@@ -2,7 +2,46 @@
 
 ## Status Atual
 
-**Sem tarefas pendentes de alta prioridade.**
+**3 tarefas de alta prioridade para próxima sessão.**
+
+---
+
+## ALTA PRIORIDADE - Próxima Sessão
+
+### 1. Hall da Fama / Histórico do Participante
+**Problema:** O `users_registry.json` (Cartório Vitalício) contém dados de 2025 mas NÃO é consumido por nenhuma tela do App. Quando a temporada 2026 começar, o participante verá telas vazias.
+
+**Tarefas:**
+- [ ] Criar rota backend `/api/participante/:timeId/historico` que lê `users_registry.json`
+- [ ] Criar tela `public/participante/fronts/historico.html` (Hall da Fama pessoal)
+- [ ] Criar módulo `public/participante/js/modules/participante-historico.js`
+- [ ] Adicionar card "Meu Histórico" no menu de navegação do App
+- [ ] Exibir badges conquistados (campeão, vice, top10 mito/mico)
+- [ ] Exibir saldo financeiro de temporadas anteriores
+- [ ] Criar seletor de temporada (2025, 2026...)
+
+**Referências:**
+- Dados salvos em: `data/users_registry.json`
+- Script que popula: `scripts/turn_key_2026.js` (Step 2: atualizarBadges)
+- Estrutura do usuário: `{id, historico[], situacao_financeira, conquistas}`
+
+### 2. Banner de Boas-Vindas com Resumo 2025
+**Problema:** Participante não sabe visualmente que está numa nova temporada.
+
+**Tarefas:**
+- [ ] Adicionar banner no `boas-vindas.html` mostrando resumo de 2025
+- [ ] Exibir posição final, badges conquistados
+- [ ] Mostrar saldo financeiro pendente (se houver)
+- [ ] Indicar claramente "Temporada 2026 - Nova Jornada"
+
+### 3. Seletor de Temporada Global
+**Problema:** Não existe UI para alternar entre temporadas.
+
+**Tarefas:**
+- [ ] Criar componente de seletor de ano (2025/2026)
+- [ ] Persistir preferência no localStorage
+- [ ] Quando em 2025, mostrar dados do `users_registry.json` (histórico)
+- [ ] Quando em 2026, mostrar dados ao vivo do MongoDB
 
 ---
 

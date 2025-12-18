@@ -14,7 +14,7 @@
  *   - Hall da Fama (histórico, badges)
  *   - Extrato Financeiro (saldo devedor/credor)
  *
- * @version 2.0.0
+ * @version 2.1.0
  * @author DevOps Team
  * @date 2025-12-15
  */
@@ -529,6 +529,91 @@ async function atualizarBadges(snapshot) {
 }
 
 // =============================================================================
+// STEP 2.5: BACKUP AUTOMÁTICO - Exportar todas as collections antes do wipe
+// =============================================================================
+
+async function executarBackupCompleto(db) {
+    log.step('2.5', 'BACKUP AUTOMÁTICO - Exportando collections antes do wipe');
+
+    // Criar diretório de backup com timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const backupDir = join(ROOT_DIR, 'data', 'backups', `pre-wipe-${timestamp}`);
+
+    if (!existsSync(backupDir)) {
+        mkdirSync(backupDir, { recursive: true });
+        log.info(`Diretório de backup criado: ${backupDir}`);
+    }
+
+    const resultados = {
+        timestamp,
+        diretorio: backupDir,
+        collections: {},
+        totalDocumentos: 0,
+        erros: []
+    };
+
+    // Backup de todas as collections que serão apagadas
+    for (const collectionName of CONFIG.COLLECTIONS_TO_WIPE) {
+        try {
+            // Verificar se collection existe
+            const collections = await db.listCollections({ name: collectionName }).toArray();
+
+            if (collections.length === 0) {
+                log.warn(`Collection ${collectionName} não existe, pulando backup...`);
+                resultados.collections[collectionName] = { status: 'skipped', reason: 'not_found' };
+                continue;
+            }
+
+            // Buscar todos os documentos
+            const documentos = await db.collection(collectionName).find({}).toArray();
+            const count = documentos.length;
+
+            if (count === 0) {
+                log.info(`Collection ${collectionName}: vazia, pulando...`);
+                resultados.collections[collectionName] = { status: 'skipped', reason: 'empty', count: 0 };
+                continue;
+            }
+
+            // Salvar em arquivo JSON
+            const filePath = join(backupDir, `${collectionName}.json`);
+            writeFileSync(filePath, JSON.stringify(documentos, null, 2), 'utf-8');
+
+            resultados.collections[collectionName] = {
+                status: 'success',
+                count,
+                file: filePath
+            };
+            resultados.totalDocumentos += count;
+
+            log.success(`${collectionName}: ${count} documentos exportados`);
+
+        } catch (err) {
+            log.error(`Erro ao fazer backup de ${collectionName}: ${err.message}`);
+            resultados.collections[collectionName] = { status: 'error', error: err.message };
+            resultados.erros.push({ collection: collectionName, error: err.message });
+        }
+    }
+
+    // Salvar manifest do backup
+    const manifestPath = join(backupDir, '_manifest.json');
+    writeFileSync(manifestPath, JSON.stringify({
+        ...resultados,
+        completado_em: new Date().toISOString(),
+        versao_script: '2.1.0'
+    }, null, 2), 'utf-8');
+
+    log.success(`\n📦 BACKUP COMPLETO:`);
+    log.success(`   Diretório: ${backupDir}`);
+    log.success(`   Total: ${resultados.totalDocumentos} documentos em ${Object.keys(resultados.collections).length} collections`);
+
+    if (resultados.erros.length > 0) {
+        log.warn(`   ⚠️ ${resultados.erros.length} erros durante o backup`);
+    }
+
+    return resultados;
+}
+
+// =============================================================================
 // STEP 3: WIPE - Limpar collections temporárias
 // =============================================================================
 
@@ -623,12 +708,13 @@ async function atualizarConfig(db) {
 // STEP 5: RELATÓRIO FINAL
 // =============================================================================
 
-function gerarRelatorioFinal(snapshot, registry, wipeResults, configResult) {
+function gerarRelatorioFinal(snapshot, registry, wipeResults, configResult, backupResults = null) {
     log.step(5, 'RELATÓRIO FINAL');
 
     const relatorio = {
         timestamp: new Date().toISOString(),
         status: 'SUCCESS',
+        versao_script: '2.1.0',
         steps: {
             snapshot: {
                 status: 'OK',
@@ -640,6 +726,15 @@ function gerarRelatorioFinal(snapshot, registry, wipeResults, configResult) {
                 usuarios_atualizados: registry.users.length,
                 arquivo: CONFIG.PATHS.USERS_REGISTRY
             },
+            backup: backupResults ? {
+                status: backupResults.erros.length === 0 ? 'OK' : 'PARTIAL',
+                diretorio: backupResults.diretorio,
+                total_documentos: backupResults.totalDocumentos,
+                collections_exportadas: Object.keys(backupResults.collections).filter(
+                    k => backupResults.collections[k].status === 'success'
+                ).length,
+                erros: backupResults.erros.length
+            } : { status: 'SKIPPED' },
             wipe: {
                 status: 'OK',
                 collections: wipeResults
@@ -658,10 +753,14 @@ function gerarRelatorioFinal(snapshot, registry, wipeResults, configResult) {
     console.log('╠════════════════════════════════════════════════════════════╣');
     console.log('║  ✅ Snapshot de 2025 salvo                                 ║');
     console.log('║  ✅ Badges atualizadas no Cartório Vitalício               ║');
+    console.log('║  ✅ Backup automático realizado                            ║');
     console.log('║  ✅ Collections temporárias limpas                         ║');
     console.log('║  ✅ Sistema configurado para 2026 (setup_mode)             ║');
     console.log('╠════════════════════════════════════════════════════════════╣');
-    console.log(`║  Relatório: ${relatorioPath.slice(-45).padStart(45)}  ║`);
+    if (backupResults) {
+        console.log(`║  📦 Backup: ${backupResults.diretorio.slice(-45).padStart(45)}  ║`);
+    }
+    console.log(`║  📄 Relatório: ${relatorioPath.slice(-42).padStart(42)}  ║`);
     console.log('╚════════════════════════════════════════════════════════════╝');
 
     return relatorio;
@@ -705,9 +804,13 @@ async function main() {
             verificarDataExecucao();
         }
 
-        // Conectar ao MongoDB
+        // Conectar ao MongoDB (usa MONGO_URI como padrão do projeto)
         log.info('Conectando ao MongoDB...');
-        connection = await mongoose.connect(process.env.MONGODB_URI);
+        const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+        if (!mongoUri) {
+            throw new Error('MONGO_URI ou MONGODB_URI não configurada');
+        }
+        connection = await mongoose.connect(mongoUri);
         const db = connection.connection.db;
         log.success('Conectado ao MongoDB');
 
@@ -717,6 +820,16 @@ async function main() {
         // STEP 2: Badges
         const registry = await atualizarBadges(snapshot);
 
+        // STEP 2.5: Backup Automático (sempre executa, mesmo em dry-run)
+        const backupResults = await executarBackupCompleto(db);
+
+        // Verificar se backup teve sucesso antes de continuar
+        if (backupResults.erros.length > 0 && !dryRun) {
+            log.error('⚠️  BACKUP TEVE ERROS - Abortando para segurança');
+            log.error('⚠️  Verifique os erros acima e tente novamente');
+            throw new Error('BACKUP_FAILED');
+        }
+
         // STEP 3 & 4: Wipe e Config (apenas se não for dry-run)
         let wipeResults = {};
         let configResult = { status: 'skipped', reason: 'dry-run' };
@@ -725,6 +838,7 @@ async function main() {
             // Confirmação extra antes do WIPE
             log.warn('\n⚠️  PRESTES A EXECUTAR WIPE DAS COLLECTIONS');
             log.warn('⚠️  Esta ação é IRREVERSÍVEL!');
+            log.warn(`⚠️  Backup salvo em: ${backupResults.diretorio}`);
             log.warn('⚠️  Pressione Ctrl+C nos próximos 10 segundos para ABORTAR\n');
 
             await new Promise(resolve => setTimeout(resolve, 10000));
@@ -733,10 +847,11 @@ async function main() {
             configResult = await atualizarConfig(db);
         } else {
             log.info('DRY-RUN: Pulando WIPE e CONFIG');
+            log.info(`DRY-RUN: Backup foi executado em: ${backupResults.diretorio}`);
         }
 
         // STEP 5: Relatório
-        const relatorio = gerarRelatorioFinal(snapshot, registry, wipeResults, configResult);
+        const relatorio = gerarRelatorioFinal(snapshot, registry, wipeResults, configResult, backupResults);
 
         process.exit(0);
 
