@@ -2041,8 +2041,11 @@ export class FluxoFinanceiroUI {
                 let texto = `📋 HISTÓRICO DE ACERTOS\n${data.participante.nomeTime}\n\n`;
                 acertos.forEach(a => {
                     const dataFormatada = new Date(a.dataAcerto).toLocaleDateString('pt-BR');
-                    const sinal = a.tipo === 'pagamento' ? '+' : '-';
-                    texto += `${dataFormatada} | ${sinal}R$ ${a.valor.toFixed(2)} | ${a.descricao}\n`;
+                    // ✅ v1.5 FIX: Mostrar tipo explícito em vez de sinal confuso
+                    // PAGAMENTO = participante PAGOU à liga (quitou dívida)
+                    // RECEBIMENTO = participante RECEBEU da liga (usou crédito)
+                    const tipoTexto = a.tipo === 'pagamento' ? '💰 PAGOU' : '📥 RECEBEU';
+                    texto += `${dataFormatada} | ${tipoTexto} R$ ${a.valor.toFixed(2)} | ${a.descricao}\n`;
                 });
 
                 alert(texto);

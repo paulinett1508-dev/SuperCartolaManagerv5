@@ -860,11 +860,15 @@ async function carregarHistoricoAcertos(ligaId, timeId) {
         `;
 
         // Lista de acertos com botão deletar
+        // ✅ v1.5 FIX: Corrigir cores e ícones para refletir impacto no saldo
+        // PAGAMENTO = participante PAGOU à liga → AUMENTA saldo (quita dívida) → VERDE/POSITIVO
+        // RECEBIMENTO = participante RECEBEU da liga → DIMINUI saldo (usa crédito) → VERMELHO/NEGATIVO
         result.acertos.forEach((acerto) => {
             const isPagamento = acerto.tipo === "pagamento";
-            const cor = isPagamento ? "#f87171" : "#34d399";
-            const icone = isPagamento ? "arrow_downward" : "arrow_upward";
-            const sinal = isPagamento ? "-" : "+";
+            const cor = isPagamento ? "#34d399" : "#f87171"; // Verde para pagamento (bom), vermelho para recebimento
+            const icone = isPagamento ? "arrow_upward" : "arrow_downward"; // Seta para cima = saldo subiu
+            const sinal = isPagamento ? "+" : "-"; // Pagamento aumenta saldo
+            const tipoLabel = isPagamento ? "PAGOU" : "RECEBEU";
             const data = acerto.dataAcerto ? new Date(acerto.dataAcerto).toLocaleDateString("pt-BR") : "--";
             const metodo = acerto.metodoPagamento ? acerto.metodoPagamento.toUpperCase() : "";
             const descricaoEscapada = (acerto.descricao || "Acerto").replace(/'/g, "\\'");
@@ -931,7 +935,7 @@ window.confirmarDeletarAcerto = function(acertoId, descricao, valor, tipo) {
             <div style="background: rgba(239,68,68,0.1); border-radius: 8px; padding: 12px; margin-bottom: 20px;">
                 <p style="margin: 0; font-size: 12px; color: #f87171; display: flex; align-items: center; gap: 8px;">
                     <span class="material-icons" style="font-size: 16px;">info</span>
-                    O saldo do participante será ${tipo === "pagamento" ? "aumentado" : "reduzido"} automaticamente.
+                    O saldo do participante será ${tipo === "pagamento" ? "REDUZIDO (volta a dívida)" : "AUMENTADO (volta o crédito)"}.
                 </p>
             </div>
             <div style="display: flex; gap: 12px;">
