@@ -1,5 +1,6 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v5.1 - Integração com Acertos Financeiros
+// extratoFinanceiroCacheController.js v5.2 - Integração com Acertos Financeiros
+// ✅ v5.2: FIX CRÍTICO - lerCacheExtratoFinanceiro agora inclui acertos no saldo
 // ✅ v5.1: Inclui acertos financeiros no extrato do participante
 // ✅ v5.0: Busca extrato de snapshots quando cache não existe
 // ✅ v4.0: Cache permanente para temporadas finalizadas (sem recálculos)
@@ -16,7 +17,7 @@ import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import mongoose from "mongoose";
 
 // ✅ v5.1: Buscar acertos financeiros do participante
-async function buscarAcertosFinanceiros(ligaId, timeId, temporada = "2025") {
+async function buscarAcertosFinanceiros(ligaId, timeId, temporada = 2025) {
     try {
         const acertos = await AcertoFinanceiro.find({
             ligaId: String(ligaId),
@@ -43,7 +44,10 @@ async function buscarAcertosFinanceiros(ligaId, timeId, temporada = "2025") {
             }
         });
 
-        const saldo = parseFloat((totalRecebido - totalPago).toFixed(2));
+        // ✅ v5.2 FIX: Usar mesma lógica do Model (totalPago - totalRecebido)
+        // PAGAMENTO = participante pagou → AUMENTA saldo (quita dívida)
+        // RECEBIMENTO = participante recebeu → DIMINUI saldo (usa crédito)
+        const saldo = parseFloat((totalPago - totalRecebido).toFixed(2));
 
         return {
             lista: acertos.map((a) => ({
@@ -514,8 +518,13 @@ export const getExtratoCache = async (req, res) => {
                     };
                 }
 
-                // ✅ v5.1: Incluir saldo de acertos no resumo
-                resumoFinal.saldo_acertos = acertos.resumo.saldo;
+                // ✅ v5.2 FIX: Incluir saldo de acertos no cálculo do saldo final
+                const saldoAcertosSnap = acertos?.resumo?.saldo ?? 0;
+                resumoFinal.saldo_temporada = resumoFinal.saldo; // Preservar saldo sem acertos
+                resumoFinal.saldo_acertos = saldoAcertosSnap;
+                resumoFinal.saldo = resumoFinal.saldo + saldoAcertosSnap;
+                resumoFinal.saldo_final = resumoFinal.saldo;
+                resumoFinal.saldo_atual = resumoFinal.saldo;
 
                 return res.json({
                     cached: true,
@@ -562,8 +571,13 @@ export const getExtratoCache = async (req, res) => {
             camposAtivos,
         );
 
-        // ✅ v5.1: Incluir saldo de acertos no resumo
-        resumoCalculado.saldo_acertos = acertos.resumo.saldo;
+        // ✅ v5.2 FIX: Incluir saldo de acertos no cálculo do saldo final
+        const saldoAcertosCc = acertos?.resumo?.saldo ?? 0;
+        resumoCalculado.saldo_temporada = resumoCalculado.saldo;
+        resumoCalculado.saldo_acertos = saldoAcertosCc;
+        resumoCalculado.saldo = resumoCalculado.saldo + saldoAcertosCc;
+        resumoCalculado.saldo_final = resumoCalculado.saldo;
+        resumoCalculado.saldo_atual = resumoCalculado.saldo;
 
         // ✅ v5.1: Adicionar acertos ao retorno
         res.json({
@@ -684,6 +698,20 @@ export const verificarCacheValido = async (req, res) => {
             });
         }
 
+        // ✅ v5.2 FIX: Buscar acertos financeiros para incluir no saldo
+        const acertos = await buscarAcertosFinanceiros(ligaId, timeId);
+        const saldoAcertosVal = acertos?.resumo?.saldo ?? 0;
+
+        // Helper para adicionar acertos ao resumo
+        const adicionarAcertosAoResumo = (resumo) => {
+            resumo.saldo_temporada = resumo.saldo;
+            resumo.saldo_acertos = saldoAcertosVal;
+            resumo.saldo = resumo.saldo + saldoAcertosVal;
+            resumo.saldo_final = resumo.saldo;
+            resumo.saldo_atual = resumo.saldo;
+            return resumo;
+        };
+
         // ✅ v4.0: Se temporada finalizada E cache permanente, retorna imediatamente
         if (statusTemporada.finalizada && cacheExistente.cache_permanente) {
             console.log(`[CACHE-CONTROLLER] 🏁 Temporada finalizada - retornando cache permanente para time ${timeId}`);
@@ -705,6 +733,7 @@ export const verificarCacheValido = async (req, res) => {
                 rodadasConsolidadas,
                 camposAtivos,
             );
+            adicionarAcertosAoResumo(resumoCalculado); // ✅ v5.2: Incluir acertos
 
             return res.json({
                 valido: true,
@@ -718,6 +747,7 @@ export const verificarCacheValido = async (req, res) => {
                 rodadas: rodadasConsolidadas,
                 resumo: resumoCalculado,
                 camposManuais: camposAtivos,
+                acertos: acertos, // ✅ v5.2: Incluir acertos
                 inativo: isInativo,
                 rodadaDesistencia,
                 extratoTravado: isInativo && rodadaDesistencia,
@@ -744,6 +774,7 @@ export const verificarCacheValido = async (req, res) => {
                     rodadasConsolidadas,
                     camposAtivos,
                 );
+                adicionarAcertosAoResumo(resumoCalculado); // ✅ v5.2: Incluir acertos
 
                 return res.json({
                     valido: true,
@@ -755,6 +786,7 @@ export const verificarCacheValido = async (req, res) => {
                     rodadas: rodadasConsolidadas,
                     resumo: resumoCalculado,
                     camposManuais: camposAtivos,
+                    acertos: acertos, // ✅ v5.2: Incluir acertos
                     inativo: true,
                     rodadaDesistencia,
                     extratoTravado: true,
@@ -777,6 +809,7 @@ export const verificarCacheValido = async (req, res) => {
                 rodadasConsolidadas,
                 camposAtivos,
             );
+            adicionarAcertosAoResumo(resumoCalculado); // ✅ v5.2: Incluir acertos
 
             return res.json({
                 valido: true,
@@ -790,6 +823,7 @@ export const verificarCacheValido = async (req, res) => {
                 rodadas: rodadasConsolidadas,
                 resumo: resumoCalculado,
                 camposManuais: camposAtivos,
+                acertos: acertos, // ✅ v5.2: Incluir acertos
                 inativo: isInativo,
                 rodadaDesistencia,
                 extratoTravado: isInativo && rodadaDesistencia,
@@ -887,6 +921,27 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
             camposAtivos,
         );
 
+        // ✅ v5.2 FIX: Buscar acertos financeiros e incluir no saldo final
+        const acertos = await buscarAcertosFinanceiros(ligaId, timeId);
+        const saldoAcertos = acertos?.resumo?.saldo ?? 0;
+
+        // Adicionar saldo de acertos ao resumo
+        const saldoTemporada = resumoCalculado.saldo; // Saldo SEM acertos (só rodadas + campos)
+        resumoCalculado.saldo_temporada = saldoTemporada; // Preservar saldo original
+        resumoCalculado.saldo_acertos = saldoAcertos;
+        resumoCalculado.saldo = saldoTemporada + saldoAcertos; // Saldo COM acertos
+        resumoCalculado.saldo_final = resumoCalculado.saldo;
+        resumoCalculado.saldo_atual = resumoCalculado.saldo; // ✅ Usado pelo UI do App
+
+        // Atualizar ganhos/perdas com acertos
+        if (saldoAcertos > 0) {
+            resumoCalculado.totalGanhos = (resumoCalculado.totalGanhos || 0) + saldoAcertos;
+        } else if (saldoAcertos < 0) {
+            resumoCalculado.totalPerdas = (resumoCalculado.totalPerdas || 0) + saldoAcertos;
+        }
+
+        console.log(`[CACHE-EXTRATO] ✅ Extrato time ${timeId}: Saldo rodadas=${(resumoCalculado.saldo - saldoAcertos).toFixed(2)} + Acertos=${saldoAcertos.toFixed(2)} = Final=${resumoCalculado.saldo.toFixed(2)}`);
+
         res.json({
             cached: true,
             qtdRodadas: rodadasConsolidadas.length,
@@ -897,6 +952,7 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
             saldo_total: resumoCalculado.saldo,
             resumo: resumoCalculado,
             camposManuais: camposAtivos,
+            acertos: acertos, // ✅ v5.2: Incluir acertos na resposta
             updatedAt: cache.updatedAt || cache.data_ultima_atualizacao,
             inativo: isInativo,
             rodadaDesistencia,

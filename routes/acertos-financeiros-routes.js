@@ -32,7 +32,7 @@ const router = express.Router();
  * @param {string} temporada - Temporada (default "2025")
  * @returns {Object} { saldoTemporada, saldoAcertos, saldoTotal }
  */
-async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = "2025") {
+async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = 2025) {
     // 1. Buscar saldo consolidado da temporada (do cache)
     const cache = await ExtratoFinanceiroCache.findOne({ ligaId, timeId });
     const saldoConsolidado = cache?.saldo_consolidado || 0;
@@ -53,9 +53,9 @@ async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = "2025"
     const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
 
     // 5. Saldo total = temporada + acertos
-    // Nota: saldoAcertos = totalRecebido - totalPago
-    // Se participante PAGOU, saldoAcertos fica negativo (ele "gastou")
-    // Se participante RECEBEU, saldoAcertos fica positivo (ele "ganhou")
+    // ✅ CORREÇÃO v1.3: saldoAcertos = totalPago - totalRecebido (definido no Model)
+    // Se participante PAGOU à liga → saldoAcertos POSITIVO → quita dívida (saldo sobe)
+    // Se participante RECEBEU da liga → saldoAcertos NEGATIVO → usa crédito (saldo desce)
     const saldoTotal = saldoTemporada + acertosInfo.saldoAcertos;
 
     return {
@@ -78,7 +78,7 @@ async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = "2025"
 router.get("/:ligaId/:timeId", async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-        const { temporada = "2025" } = req.query;
+        const temporada = parseInt(req.query.temporada) || 2025;
 
         const acertos = await AcertoFinanceiro.buscarPorTime(ligaId, timeId, temporada);
         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
@@ -94,7 +94,14 @@ router.get("/:ligaId/:timeId", async (req, res) => {
                 dataAcerto: a.dataAcerto,
                 observacoes: a.observacoes,
             })),
-            resumo: saldoInfo,
+            // ✅ v1.4 FIX: Mapear saldoAcertos para saldo (frontend espera "saldo")
+            resumo: {
+                totalPago: saldoInfo.totalPago,
+                totalRecebido: saldoInfo.totalRecebido,
+                saldo: saldoInfo.saldoAcertos, // Frontend espera "saldo"
+                saldoAcertos: saldoInfo.saldoAcertos, // Manter para compatibilidade
+                quantidadeAcertos: saldoInfo.quantidadeAcertos,
+            },
         });
     } catch (error) {
         console.error("[ACERTOS] Erro ao buscar acertos:", error);
@@ -109,13 +116,14 @@ router.get("/:ligaId/:timeId", async (req, res) => {
 router.get("/:ligaId/:timeId/saldo", async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-        const { temporada = "2025" } = req.query;
+        const temporada = parseInt(req.query.temporada) || 2025;
 
         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
 
         res.json({
             success: true,
             ...saldoInfo,
+            saldo: saldoInfo.saldoAcertos, // ✅ v1.4: Alias para compatibilidade
         });
     } catch (error) {
         console.error("[ACERTOS] Erro ao calcular saldo:", error);
@@ -134,7 +142,7 @@ router.get("/:ligaId/:timeId/saldo", async (req, res) => {
 router.get("/admin/:ligaId", async (req, res) => {
     try {
         const { ligaId } = req.params;
-        const { temporada = "2025" } = req.query;
+        const temporada = parseInt(req.query.temporada) || 2025;
 
         const acertos = await AcertoFinanceiro.buscarPorLiga(ligaId, temporada);
 
@@ -159,8 +167,11 @@ router.get("/admin/:ligaId", async (req, res) => {
         });
 
         // Calcular saldo de cada time
+        // ✅ v1.3 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
+        // PAGAMENTO = participante pagou à liga → AUMENTA saldo (quita dívida)
+        // RECEBIMENTO = participante recebeu da liga → DIMINUI saldo (usa crédito)
         Object.values(porTime).forEach(time => {
-            time.saldoAcertos = parseFloat((time.totalRecebido - time.totalPago).toFixed(2));
+            time.saldoAcertos = parseFloat((time.totalPago - time.totalRecebido).toFixed(2));
             time.totalPago = parseFloat(time.totalPago.toFixed(2));
             time.totalRecebido = parseFloat(time.totalRecebido.toFixed(2));
         });
@@ -196,7 +207,7 @@ router.post("/:ligaId/:timeId", async (req, res) => {
             comprovante,
             observacoes,
             dataAcerto,
-            temporada = "2025",
+            temporada = 2025,
             registradoPor = "admin",
         } = req.body;
 
@@ -479,7 +490,7 @@ router.delete("/:id", async (req, res) => {
 router.get("/admin/:ligaId/resumo", async (req, res) => {
     try {
         const { ligaId } = req.params;
-        const { temporada = "2025" } = req.query;
+        const temporada = parseInt(req.query.temporada) || 2025;
 
         const acertos = await AcertoFinanceiro.aggregate([
             {
@@ -508,6 +519,7 @@ router.get("/admin/:ligaId/resumo", async (req, res) => {
                 },
             },
             {
+                // ✅ v1.3 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
                 $project: {
                     _id: 0,
                     timeId: "$_id",
@@ -515,7 +527,7 @@ router.get("/admin/:ligaId/resumo", async (req, res) => {
                     totalPago: { $round: ["$totalPago", 2] },
                     totalRecebido: { $round: ["$totalRecebido", 2] },
                     saldoAcertos: {
-                        $round: [{ $subtract: ["$totalRecebido", "$totalPago"] }, 2],
+                        $round: [{ $subtract: ["$totalPago", "$totalRecebido"] }, 2],
                     },
                     quantidadeAcertos: 1,
                     ultimoAcerto: 1,
@@ -542,7 +554,8 @@ router.get("/admin/:ligaId/resumo", async (req, res) => {
             totais: {
                 totalPago: parseFloat(totais.totalPago.toFixed(2)),
                 totalRecebido: parseFloat(totais.totalRecebido.toFixed(2)),
-                saldoGeral: parseFloat((totais.totalRecebido - totais.totalPago).toFixed(2)),
+                // ✅ v1.3 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
+                saldoGeral: parseFloat((totais.totalPago - totais.totalRecebido).toFixed(2)),
                 totalAcertos: totais.totalAcertos,
                 timesComAcertos: acertos.length,
             },

@@ -211,7 +211,10 @@ router.get("/participantes", async (req, res) => {
                     if (a.tipo === 'pagamento') totalPago += a.valor || 0;
                     else if (a.tipo === 'recebimento') totalRecebido += a.valor || 0;
                 });
-                const saldoAcertos = totalRecebido - totalPago;
+                // ✅ v1.1.0 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
+                // PAGAMENTO = participante pagou à liga → AUMENTA saldo (quita dívida)
+                // RECEBIMENTO = participante recebeu da liga → DIMINUI saldo (usa crédito)
+                const saldoAcertos = totalPago - totalRecebido;
 
                 // Calcular saldos finais
                 const saldoTemporada = saldoConsolidado + saldoCampos;
@@ -428,7 +431,10 @@ router.get("/liga/:ligaId", async (req, res) => {
                 if (a.tipo === 'pagamento') totalPago += a.valor || 0;
                 else if (a.tipo === 'recebimento') totalRecebido += a.valor || 0;
             });
-            const saldoAcertos = totalRecebido - totalPago;
+            // ✅ v1.1.0 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
+            // PAGAMENTO = participante pagou à liga → AUMENTA saldo (quita dívida)
+            // RECEBIMENTO = participante recebeu da liga → DIMINUI saldo (usa crédito)
+            const saldoAcertos = totalPago - totalRecebido;
 
             // Calcular saldos finais
             const saldoTemporada = saldoConsolidado + saldoCampos;
