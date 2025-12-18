@@ -6,6 +6,21 @@
 
 ---
 
+## Concluído - Sessão 2025-12-18 (Noite)
+
+### Exibição de Composição do Saldo no Extrato (100% Completo)
+- [x] Criar função `_renderizarSecaoAcertos` em `fluxo-financeiro-ui.js`
+- [x] Exibir lista de acertos individuais (PAGOU/RECEBEU + data + valor)
+- [x] Mostrar breakdown: Saldo das Rodadas + Acertos Manuais = SALDO FINAL
+- [x] Seção só aparece se houver acertos registrados
+
+**Commit:** `bd3e0c7` - feat(extrato): Show acertos composition in financial statement
+
+**Arquivos modificados:**
+- `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` (v6.1 → v6.2)
+
+---
+
 ## Concluído - Sessão 2025-12-18 (Tarde)
 
 ### Correção Crítica: Cálculo de Acertos Financeiros (100% Completo)

@@ -90,7 +90,17 @@
       "Bash(else echo \"FALTANDO: $script\")",
       "Bash(timeout 15 node:*)",
       "Bash(timeout 60 node scripts/turn_key_2026.js:*)",
-      "Bash(timeout 90 node scripts/turn_key_2026.js:*)"
+      "Bash(timeout 90 node scripts/turn_key_2026.js:*)",
+      "Bash(routes/participante-historico-routes.js )",
+      "Bash(public/participante/fronts/historico.html )",
+      "Bash(public/participante/js/modules/participante-historico.js )",
+      "Bash(public/participante/js/modules/participante-boas-vindas.js )",
+      "Bash(public/participante/js/participante-config.js )",
+      "Bash(public/participante/js/participante-season-selector.js )",
+      "Bash(public/participante/js/participante-navigation.js )",
+      "Bash(index.js )",
+      "Bash(.claude/pending-tasks.md)",
+      "Bash(timeout 20 node:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
