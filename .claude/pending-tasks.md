@@ -6,7 +6,34 @@
 
 ---
 
-## Concluído - Sessão 2025-12-18
+## Concluído - Sessão 2025-12-18 (Tarde)
+
+### Correção Crítica: Cálculo de Acertos Financeiros (100% Completo)
+- [x] Identificar fórmula invertida (`totalRecebido - totalPago` → `totalPago - totalRecebido`)
+- [x] Corrigir em `routes/tesouraria-routes.js` (2 ocorrências)
+- [x] Corrigir em `routes/acertos-financeiros-routes.js` (4 ocorrências)
+- [x] Corrigir tipo de temporada (string → number) em todas as rotas
+- [x] Corrigir campo da API (`saldoAcertos` → `saldo` alias)
+- [x] Corrigir `controllers/extratoFinanceiroCacheController.js` para incluir acertos no saldo
+- [x] Corrigir dados no MongoDB DEV e PROD (temporada string→number, tipo errado)
+- [x] Atualizar skill `league-architect` com regra de acertos
+
+**Commits:**
+- `81116c8` - fix(financeiro): Corrigir cálculo de saldo com acertos financeiros
+- `66886bc` - feat(frontend): Integrar acertos financeiros no extrato do participante
+
+**Arquivos modificados:**
+- `controllers/extratoFinanceiroCacheController.js` (v5.1 → v5.2)
+- `routes/acertos-financeiros-routes.js` (v1.3 → v1.4)
+- `routes/tesouraria-routes.js` (v1.0 → v1.1)
+- `public/js/fluxo-financeiro/*.js` (integração frontend)
+- `public/participante/js/modules/participante-extrato.js`
+- `scripts/fix-acertos-tipo.js` (novo)
+- `scripts/invalidar-cache-time.js` (novo)
+
+---
+
+## Concluído - Sessão 2025-12-18 (Manhã)
 
 ### Banner de Boas-Vindas com Resumo 2025 (100% Completo)
 - [x] Adicionar banner no `boas-vindas.html` mostrando resumo de 2025
@@ -43,6 +70,19 @@
 - `public/participante/js/modules/participante-historico.js` (novo módulo)
 - `public/participante/js/participante-navigation.js` (menu atualizado)
 - `index.js` (registro da rota)
+
+### Correção de Saldos Financeiros (100% Completo)
+- [x] Investigar por que saldos estavam zerados
+- [x] Identificar que banco DEV estava vazio
+- [x] Criar script `atualizar-saldos-registry.js` para sincronizar do PROD
+- [x] Popular `users_registry.json` com saldos reais (32 participantes)
+- [x] Resultado: 18 credores, 14 devedores, 1 zerado
+
+**Arquivos criados/modificados:**
+- `scripts/atualizar-saldos-registry.js` (novo)
+- `data/users_registry.json` (atualizado com saldos reais)
+- `data/history/2025/final_standings.json` (novo)
+- `data/history/2025/migration_report.json` (novo)
 
 ---
 
@@ -96,9 +136,9 @@
 ---
 
 ## Commits Recentes
-1. `e798499` - refactor(css): Standardize Gestão de Ligas with design tokens
-2. `894ffbd` - docs: Update project documentation and add Gemini audit tool
-3. `bc5ce51` - refactor(css): Add design tokens system for Admin and App
+1. `65abd96` - fix(data): Populate users_registry with real financial saldos from PROD
+2. `d3ff4ff` - feat(app): Add Hall da Fama, season banner and season selector
+3. `18c6902` - docs: Update CLAUDE.md with system-scribe skill and ideias-backlog
 
 ---
 

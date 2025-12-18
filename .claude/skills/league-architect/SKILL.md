@@ -27,6 +27,28 @@ Todo arquivo em `config/definitions/` deve seguir:
     * **Neutra:** 12º ao 21º (R$0).
     * **Z1-Z11:** Zona de Punição (Z11 = Mico).
 
+## 2.1 Acertos Financeiros (Pagamentos/Recebimentos)
+**FÓRMULA CORRETA:** `saldoAcertos = totalPago - totalRecebido`
+
+| Tipo | Significado | Efeito no Saldo |
+|------|-------------|-----------------|
+| **pagamento** | Participante PAGOU à liga | **AUMENTA** saldo (quita dívida) |
+| **recebimento** | Participante RECEBEU da liga | **DIMINUI** saldo (usa crédito) |
+
+**Exemplo - Devedor quitando:**
+```
+saldoTemporada = -203,46 (deve R$203,46)
+Participante PAGA R$204,00
+saldoAcertos = 204 - 0 = +204
+saldoFinal = -203,46 + 204 = +0,54 (troco a receber)
+```
+
+**Arquivos que calculam:**
+- `models/AcertoFinanceiro.js` - Fonte da verdade (Model)
+- `routes/acertos-financeiros-routes.js` - API
+- `routes/tesouraria-routes.js` - Tabela geral
+- `controllers/extratoFinanceiroCacheController.js` - Extrato individual
+
 ## 3. Formatos de Disputa Específicos
 * **Liga SuperCartola:** 32 Times. Regra completa de G-Zones e Z-Zones.
 * **Liga Cartoleiros Sobral:**
