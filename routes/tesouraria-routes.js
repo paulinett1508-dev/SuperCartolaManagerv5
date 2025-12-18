@@ -69,11 +69,13 @@ async function calcularSaldoCompleto(ligaId, timeId, temporada = CURRENT_SEASON)
 // =============================================================================
 // GET /api/tesouraria/participantes
 // Retorna TODOS os participantes de TODAS as ligas com saldos
+// ✅ v2.0: Inclui breakdown por módulo financeiro e módulos ativos por liga
 // =============================================================================
 
 router.get("/participantes", async (req, res) => {
     try {
         const { temporada = CURRENT_SEASON } = req.query;
+        const startTime = Date.now();
 
         console.log(`[TESOURARIA] Buscando participantes - Temporada ${temporada}`);
 
@@ -88,6 +90,46 @@ router.get("/participantes", async (req, res) => {
             });
         }
 
+        // ✅ v2.0: Coletar todos os timeIds para bulk queries
+        const allTimeIds = [];
+        const ligaMap = new Map();
+
+        for (const liga of ligas) {
+            const ligaId = liga._id.toString();
+            ligaMap.set(ligaId, liga);
+            for (const p of liga.participantes || []) {
+                allTimeIds.push(p.time_id);
+            }
+        }
+
+        // ✅ v2.0: Bulk queries para todos os dados
+        const [todosExtratos, todosCampos, todosAcertos] = await Promise.all([
+            ExtratoFinanceiroCache.find({ time_id: { $in: allTimeIds } }).lean(),
+            FluxoFinanceiroCampos.find({ timeId: { $in: allTimeIds.map(String) } }).lean(),
+            AcertoFinanceiro.find({ temporada: String(temporada) }).lean()
+        ]);
+
+        // Criar mapas para acesso O(1) - chave composta liga_time
+        const extratoMap = new Map();
+        todosExtratos.forEach(e => {
+            const key = `${e.liga_id}_${e.time_id}`;
+            extratoMap.set(key, e);
+        });
+
+        const camposMap = new Map();
+        todosCampos.forEach(c => {
+            const key = `${c.ligaId}_${c.timeId}`;
+            camposMap.set(key, c);
+        });
+
+        // Agrupar acertos por liga_time
+        const acertosMap = new Map();
+        todosAcertos.forEach(a => {
+            const key = `${a.ligaId}_${a.timeId}`;
+            if (!acertosMap.has(key)) acertosMap.set(key, []);
+            acertosMap.get(key).push(a);
+        });
+
         const participantes = [];
         let totalCredores = 0;
         let totalDevedores = 0;
@@ -100,26 +142,90 @@ router.get("/participantes", async (req, res) => {
             const ligaId = liga._id.toString();
             const ligaNome = liga.nome || "Liga sem nome";
 
+            // ✅ v2.0: Extrair módulos ativos desta liga
+            const modulosAtivos = {
+                banco: liga.modulos_ativos?.banco !== false,
+                pontosCorridos: liga.modulos_ativos?.pontosCorridos === true || liga.configuracoes?.pontos_corridos?.habilitado === true,
+                mataMata: liga.modulos_ativos?.mataMata === true || liga.configuracoes?.mata_mata?.habilitado === true,
+                top10: liga.modulos_ativos?.top10 !== false || liga.configuracoes?.top10?.habilitado !== false,
+                melhorMes: liga.modulos_ativos?.melhorMes === true || liga.configuracoes?.melhor_mes?.habilitado === true,
+                artilheiro: liga.modulos_ativos?.artilheiro === true || liga.configuracoes?.artilheiro?.habilitado === true,
+                luvaOuro: liga.modulos_ativos?.luvaOuro === true || liga.configuracoes?.luva_ouro?.habilitado === true,
+            };
+
             // Processar cada participante da liga
             for (const participante of liga.participantes || []) {
-                const timeId = participante.time_id;
+                const timeId = String(participante.time_id);
                 const nomeTime = participante.nome_time || "Time sem nome";
                 const nomeCartola = participante.nome_cartola || "";
                 const escudo = participante.escudo_url || participante.escudo || null;
                 const ativo = participante.ativo !== false;
 
-                // Calcular saldo completo
-                const saldo = await calcularSaldoCompleto(ligaId, timeId, temporada);
+                const key = `${ligaId}_${timeId}`;
+
+                // Buscar dados do cache
+                const extrato = extratoMap.get(key);
+                const saldoConsolidado = extrato?.saldo_consolidado || 0;
+
+                // ✅ v2.0: Calcular breakdown por módulo
+                const historico = extrato?.historico_transacoes || [];
+                const breakdown = {
+                    banco: 0,
+                    pontosCorridos: 0,
+                    mataMata: 0,
+                    top10: 0,
+                    melhorMes: 0,
+                    artilheiro: 0,
+                    luvaOuro: 0,
+                };
+
+                historico.forEach(t => {
+                    if (t.bonusOnus !== undefined) breakdown.banco += t.bonusOnus || 0;
+                    if (t.pontosCorridos !== undefined) breakdown.pontosCorridos += t.pontosCorridos || 0;
+                    if (t.mataMata !== undefined) breakdown.mataMata += t.mataMata || 0;
+                    if (t.top10 !== undefined) breakdown.top10 += t.top10 || 0;
+
+                    // Formato legado
+                    if (t.tipo === 'BONUS' || t.tipo === 'ONUS') breakdown.banco += t.valor || 0;
+                    else if (t.tipo === 'PONTOS_CORRIDOS') breakdown.pontosCorridos += t.valor || 0;
+                    else if (t.tipo === 'MATA_MATA') breakdown.mataMata += t.valor || 0;
+                    else if (t.tipo === 'MITO' || t.tipo === 'MICO') breakdown.top10 += t.valor || 0;
+                    else if (t.tipo === 'MELHOR_MES') breakdown.melhorMes += t.valor || 0;
+                    else if (t.tipo === 'ARTILHEIRO') breakdown.artilheiro += t.valor || 0;
+                    else if (t.tipo === 'LUVA_OURO') breakdown.luvaOuro += t.valor || 0;
+                });
+
+                // Campos manuais
+                const camposDoc = camposMap.get(key);
+                let saldoCampos = 0;
+                if (camposDoc?.campos) {
+                    camposDoc.campos.forEach(c => saldoCampos += c.valor || 0);
+                }
+                breakdown.campos = parseFloat(saldoCampos.toFixed(2));
+
+                // Calcular saldo de acertos
+                const acertosList = acertosMap.get(key) || [];
+                let totalPago = 0;
+                let totalRecebido = 0;
+                acertosList.forEach(a => {
+                    if (a.tipo === 'pagamento') totalPago += a.valor || 0;
+                    else if (a.tipo === 'recebimento') totalRecebido += a.valor || 0;
+                });
+                const saldoAcertos = totalRecebido - totalPago;
+
+                // Calcular saldos finais
+                const saldoTemporada = saldoConsolidado + saldoCampos;
+                const saldoFinal = saldoTemporada + saldoAcertos;
 
                 // Classificar situação financeira
                 let situacao = "quitado";
-                if (saldo.saldoFinal > 0.01) {
+                if (saldoFinal > 0.01) {
                     situacao = "credor";
-                    totalCredores += saldo.saldoFinal;
+                    totalCredores += saldoFinal;
                     quantidadeCredores++;
-                } else if (saldo.saldoFinal < -0.01) {
+                } else if (saldoFinal < -0.01) {
                     situacao = "devedor";
-                    totalDevedores += Math.abs(saldo.saldoFinal);
+                    totalDevedores += Math.abs(saldoFinal);
                     quantidadeDevedores++;
                 } else {
                     quantidadeQuitados++;
@@ -128,19 +234,31 @@ router.get("/participantes", async (req, res) => {
                 participantes.push({
                     ligaId,
                     ligaNome,
-                    timeId: String(timeId),
+                    timeId,
                     nomeTime,
                     nomeCartola,
                     escudo,
                     ativo,
                     temporada,
-                    saldoTemporada: saldo.saldoTemporada,
-                    saldoAcertos: saldo.saldoAcertos,
-                    totalPago: saldo.totalPago,
-                    totalRecebido: saldo.totalRecebido,
-                    saldoFinal: saldo.saldoFinal,
+                    saldoTemporada: parseFloat(saldoTemporada.toFixed(2)),
+                    saldoAcertos: parseFloat(saldoAcertos.toFixed(2)),
+                    totalPago: parseFloat(totalPago.toFixed(2)),
+                    totalRecebido: parseFloat(totalRecebido.toFixed(2)),
+                    saldoFinal: parseFloat(saldoFinal.toFixed(2)),
                     situacao,
-                    quantidadeAcertos: saldo.quantidadeAcertos,
+                    quantidadeAcertos: acertosList.length,
+                    // ✅ v2.0: Breakdown e módulos ativos
+                    breakdown: {
+                        banco: parseFloat(breakdown.banco.toFixed(2)),
+                        pontosCorridos: parseFloat(breakdown.pontosCorridos.toFixed(2)),
+                        mataMata: parseFloat(breakdown.mataMata.toFixed(2)),
+                        top10: parseFloat(breakdown.top10.toFixed(2)),
+                        melhorMes: parseFloat(breakdown.melhorMes.toFixed(2)),
+                        artilheiro: parseFloat(breakdown.artilheiro.toFixed(2)),
+                        luvaOuro: parseFloat(breakdown.luvaOuro.toFixed(2)),
+                        campos: breakdown.campos,
+                    },
+                    modulosAtivos,
                 });
             }
         }
@@ -148,11 +266,9 @@ router.get("/participantes", async (req, res) => {
         // Ordenar por saldo (devedores primeiro, depois credores)
         participantes.sort((a, b) => a.saldoFinal - b.saldoFinal);
 
-        console.log(`[TESOURARIA] ✅ ${participantes.length} participantes processados`);
+        const elapsed = Date.now() - startTime;
+        console.log(`[TESOURARIA] ✅ ${participantes.length} participantes em ${elapsed}ms`);
 
-        // ✅ CORREÇÃO: Do ponto de vista da LIGA:
-        // - Credor (saldo positivo) = participante tem a receber → LIGA deve PAGAR
-        // - Devedor (saldo negativo) = participante deve → LIGA tem a RECEBER
         res.json({
             success: true,
             temporada,
@@ -162,8 +278,8 @@ router.get("/participantes", async (req, res) => {
                 quantidadeCredores,
                 quantidadeDevedores,
                 quantidadeQuitados,
-                totalAReceber: parseFloat(totalDevedores.toFixed(2)),  // Liga recebe dos devedores
-                totalAPagar: parseFloat(totalCredores.toFixed(2)),     // Liga paga aos credores
+                totalAReceber: parseFloat(totalDevedores.toFixed(2)),
+                totalAPagar: parseFloat(totalCredores.toFixed(2)),
                 saldoGeral: parseFloat((totalDevedores - totalCredores).toFixed(2)),
             },
         });
@@ -234,6 +350,17 @@ router.get("/liga/:ligaId", async (req, res) => {
 
         console.log(`[TESOURARIA] Bulk queries: ${todosExtratos.length} extratos, ${todosCampos.length} campos, ${todosAcertos.length} acertos`);
 
+        // ✅ v2.0: Extrair módulos ativos da liga para enviar ao frontend
+        const modulosAtivos = {
+            banco: liga.modulos_ativos?.banco !== false,
+            pontosCorridos: liga.modulos_ativos?.pontosCorridos === true || liga.configuracoes?.pontos_corridos?.habilitado === true,
+            mataMata: liga.modulos_ativos?.mataMata === true || liga.configuracoes?.mata_mata?.habilitado === true,
+            top10: liga.modulos_ativos?.top10 !== false || liga.configuracoes?.top10?.habilitado !== false,
+            melhorMes: liga.modulos_ativos?.melhorMes === true || liga.configuracoes?.melhor_mes?.habilitado === true,
+            artilheiro: liga.modulos_ativos?.artilheiro === true || liga.configuracoes?.artilheiro?.habilitado === true,
+            luvaOuro: liga.modulos_ativos?.luvaOuro === true || liga.configuracoes?.luva_ouro?.habilitado === true,
+        };
+
         // Processar participantes em memória (sem queries adicionais)
         const participantes = [];
         let totalCredores = 0;
@@ -248,6 +375,43 @@ router.get("/liga/:ligaId", async (req, res) => {
             // Calcular saldo do extrato
             const extrato = extratoMap.get(timeId);
             const saldoConsolidado = extrato?.saldo_consolidado || 0;
+
+            // ✅ v2.0: Calcular breakdown por módulo (baseado no histórico de transações)
+            const historico = extrato?.historico_transacoes || [];
+            const breakdown = {
+                banco: 0,        // BONUS + ONUS
+                pontosCorridos: 0,
+                mataMata: 0,
+                top10: 0,        // MITO + MICO
+                melhorMes: 0,
+                artilheiro: 0,
+                luvaOuro: 0,
+            };
+
+            historico.forEach(t => {
+                // Formato novo (campos diretos)
+                if (t.bonusOnus !== undefined) breakdown.banco += t.bonusOnus || 0;
+                if (t.pontosCorridos !== undefined) breakdown.pontosCorridos += t.pontosCorridos || 0;
+                if (t.mataMata !== undefined) breakdown.mataMata += t.mataMata || 0;
+                if (t.top10 !== undefined) breakdown.top10 += t.top10 || 0;
+
+                // Formato legado (tipo de transação)
+                if (t.tipo === 'BONUS' || t.tipo === 'ONUS') {
+                    breakdown.banco += t.valor || 0;
+                } else if (t.tipo === 'PONTOS_CORRIDOS') {
+                    breakdown.pontosCorridos += t.valor || 0;
+                } else if (t.tipo === 'MATA_MATA') {
+                    breakdown.mataMata += t.valor || 0;
+                } else if (t.tipo === 'MITO' || t.tipo === 'MICO') {
+                    breakdown.top10 += t.valor || 0;
+                } else if (t.tipo === 'MELHOR_MES') {
+                    breakdown.melhorMes += t.valor || 0;
+                } else if (t.tipo === 'ARTILHEIRO') {
+                    breakdown.artilheiro += t.valor || 0;
+                } else if (t.tipo === 'LUVA_OURO') {
+                    breakdown.luvaOuro += t.valor || 0;
+                }
+            });
 
             // Calcular saldo dos campos manuais
             const camposDoc = camposMap.get(timeId);
@@ -297,6 +461,17 @@ router.get("/liga/:ligaId", async (req, res) => {
                 saldoFinal: parseFloat(saldoFinal.toFixed(2)),
                 situacao,
                 quantidadeAcertos: acertosList.length,
+                // ✅ v2.0: Breakdown por módulo financeiro
+                breakdown: {
+                    banco: parseFloat(breakdown.banco.toFixed(2)),
+                    pontosCorridos: parseFloat(breakdown.pontosCorridos.toFixed(2)),
+                    mataMata: parseFloat(breakdown.mataMata.toFixed(2)),
+                    top10: parseFloat(breakdown.top10.toFixed(2)),
+                    melhorMes: parseFloat(breakdown.melhorMes.toFixed(2)),
+                    artilheiro: parseFloat(breakdown.artilheiro.toFixed(2)),
+                    luvaOuro: parseFloat(breakdown.luvaOuro.toFixed(2)),
+                    campos: parseFloat(saldoCampos.toFixed(2)),
+                },
             });
         }
 
@@ -311,6 +486,8 @@ router.get("/liga/:ligaId", async (req, res) => {
             ligaId,
             ligaNome: liga.nome,
             temporada,
+            // ✅ v2.0: Incluir módulos ativos para renderização condicional no frontend
+            modulosAtivos,
             participantes,
             totais: {
                 totalParticipantes: participantes.length,

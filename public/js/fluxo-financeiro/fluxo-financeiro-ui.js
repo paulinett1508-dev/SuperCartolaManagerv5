@@ -246,6 +246,11 @@ export class FluxoFinanceiroUI {
             console.warn("[FLUXO-UI] Erro ao buscar saldos:", error);
         }
 
+        // ✅ v2.0: Armazenar módulos ativos da liga
+        this._modulosAtivos = dadosSaldo?.modulosAtivos || {
+            banco: true, pontosCorridos: false, mataMata: false, top10: true
+        };
+
         // Mesclar dados de participantes com dados de saldo
         const participantesComSaldo = participantes.map(p => {
             const timeId = String(p.time_id || p.id);
@@ -257,6 +262,8 @@ export class FluxoFinanceiroUI {
                 saldoFinal: saldoInfo?.saldoFinal || 0,
                 situacao: saldoInfo?.situacao || 'quitado',
                 quantidadeAcertos: saldoInfo?.quantidadeAcertos || 0,
+                // ✅ v2.0: Adicionar breakdown por módulo
+                breakdown: saldoInfo?.breakdown || null,
             };
         });
 
@@ -341,26 +348,25 @@ export class FluxoFinanceiroUI {
                 </div>
             </div>
 
-            <!-- Tabela Compacta com Ordenação -->
+            <!-- Tabela Financeira v3.1 - Layout Expandido -->
             <div class="fluxo-tabela-container">
-                <table class="fluxo-participantes-tabela tabela-compacta">
+                <table class="fluxo-participantes-tabela tabela-financeira">
                     <thead>
                         <tr>
                             <th class="col-num">#</th>
                             <th class="col-participante sortable" onclick="window.ordenarTabelaFinanceiro('nome')" data-sort="nome">
-                                <span class="th-content"><span class="th-text">Participante</span><span class="material-icons sort-icon">unfold_more</span></span>
+                                <span class="th-sort">Participante <span class="material-icons sort-icon">unfold_more</span></span>
                             </th>
-                            <th class="col-saldo sortable" onclick="window.ordenarTabelaFinanceiro('temporada')" data-sort="temporada">
-                                <span class="th-content th-right"><span class="th-text">Temp</span><span class="material-icons sort-icon">unfold_more</span></span>
-                            </th>
-                            <th class="col-saldo sortable" onclick="window.ordenarTabelaFinanceiro('acertos')" data-sort="acertos">
-                                <span class="th-content th-right"><span class="th-text">Acertos</span><span class="material-icons sort-icon">unfold_more</span></span>
-                            </th>
+                            ${this._modulosAtivos?.banco !== false ? '<th class="col-modulo">Banco</th>' : ''}
+                            ${this._modulosAtivos?.pontosCorridos ? '<th class="col-modulo">P.Corridos</th>' : ''}
+                            ${this._modulosAtivos?.mataMata ? '<th class="col-modulo">Mata-Mata</th>' : ''}
+                            ${this._modulosAtivos?.top10 ? '<th class="col-modulo">Top 10</th>' : ''}
+                            ${this._modulosAtivos?.melhorMes ? '<th class="col-modulo">Melhor Mês</th>' : ''}
+                            ${this._modulosAtivos?.artilheiro ? '<th class="col-modulo">Artilheiro</th>' : ''}
+                            ${this._modulosAtivos?.luvaOuro ? '<th class="col-modulo">Luva Ouro</th>' : ''}
+                            <th class="col-modulo">Ajustes</th>
                             <th class="col-saldo sortable" onclick="window.ordenarTabelaFinanceiro('saldo')" data-sort="saldo">
-                                <span class="th-content th-right"><span class="th-text">Saldo</span><span class="material-icons sort-icon">unfold_more</span></span>
-                            </th>
-                            <th class="col-situacao sortable" onclick="window.ordenarTabelaFinanceiro('situacao')" data-sort="situacao">
-                                <span class="th-content"><span class="th-text">Status</span><span class="material-icons sort-icon">unfold_more</span></span>
+                                <span class="th-sort">Saldo <span class="material-icons sort-icon">unfold_more</span></span>
                             </th>
                             <th class="col-acoes">Ações</th>
                         </tr>
@@ -376,33 +382,50 @@ export class FluxoFinanceiroUI {
         window.participantesFluxo = participantesComSaldo;
 
         // Injetar estilos
+        this._injetarEstilosWrapper();
         this._injetarEstilosTabelaCompacta();
         this._injetarEstilosTabelaExpandida();
         this._injetarModalAcerto();
     }
 
     /**
-     * Renderiza uma linha compacta da tabela
+     * Renderiza uma linha da tabela financeira
+     * v3.1: Valores monetários + Layout expandido
      */
     _renderizarLinhaTabela(p, idx, ligaId) {
         const timeId = p.time_id || p.id;
-        const saldoTemp = p.saldoTemporada || 0;
-        const saldoAcertos = p.saldoAcertos || 0;
         const saldoFinal = p.saldoFinal || 0;
         const situacao = p.situacao || 'quitado';
+        const breakdown = p.breakdown || {};
 
-        const classeSaldoTemp = saldoTemp > 0 ? 'val-positivo' : saldoTemp < 0 ? 'val-negativo' : '';
-        const classeSaldoAcertos = saldoAcertos > 0 ? 'val-positivo' : saldoAcertos < 0 ? 'val-negativo' : '';
-        const classeSaldoFinal = saldoFinal > 0 ? 'val-positivo' : saldoFinal < 0 ? 'val-negativo' : '';
+        const classeSaldo = saldoFinal > 0 ? 'val-positivo' : saldoFinal < 0 ? 'val-negativo' : '';
 
-        const statusBadge = {
-            devedor: '<span class="status-badge devedor">Devedor</span>',
-            credor: '<span class="status-badge credor">Credor</span>',
-            quitado: '<span class="status-badge quitado">OK</span>',
+        // Função helper para formatar valor monetário
+        const fmtModulo = (val) => {
+            if (!val || Math.abs(val) < 0.01) return '<span class="val-zero">-</span>';
+            const cls = val > 0 ? 'val-positivo' : 'val-negativo';
+            const sinal = val > 0 ? '+' : '';
+            const formatted = Math.abs(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return `<span class="${cls}">${sinal}R$ ${formatted}</span>`;
         };
 
+        // Colunas de módulos baseadas nos módulos ativos
+        let modulosCols = '';
+        if (this._modulosAtivos?.banco !== false) modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.banco)}</td>`;
+        if (this._modulosAtivos?.pontosCorridos) modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.pontosCorridos)}</td>`;
+        if (this._modulosAtivos?.mataMata) modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.mataMata)}</td>`;
+        if (this._modulosAtivos?.top10) modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.top10)}</td>`;
+        if (this._modulosAtivos?.melhorMes) modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.melhorMes)}</td>`;
+        if (this._modulosAtivos?.artilheiro) modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.artilheiro)}</td>`;
+        if (this._modulosAtivos?.luvaOuro) modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.luvaOuro)}</td>`;
+        modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.campos)}</td>`;
+
+        // Formatar saldo final
+        const saldoFormatado = Math.abs(saldoFinal).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const saldoSinal = saldoFinal > 0 ? '+' : saldoFinal < 0 ? '-' : '';
+
         return `
-            <tr class="linha-participante"
+            <tr class="linha-participante ${situacao === 'devedor' ? 'row-devedor' : ''}"
                 data-nome="${(p.nome_cartola || '').toLowerCase()}"
                 data-time="${(p.nome_time || '').toLowerCase()}"
                 data-time-id="${timeId}"
@@ -422,18 +445,16 @@ export class FluxoFinanceiroUI {
                         </div>
                     </div>
                 </td>
-                <td class="col-saldo ${classeSaldoTemp}">${this._formatarValor(saldoTemp)}</td>
-                <td class="col-saldo ${classeSaldoAcertos}">${this._formatarValor(saldoAcertos)}</td>
-                <td class="col-saldo ${classeSaldoFinal}"><strong>${this._formatarValor(saldoFinal)}</strong></td>
-                <td class="col-situacao">${statusBadge[situacao] || statusBadge.quitado}</td>
+                ${modulosCols}
+                <td class="col-saldo ${classeSaldo}"><strong>${saldoSinal}R$ ${saldoFormatado}</strong></td>
                 <td class="col-acoes">
-                    <div class="acoes-grupo">
+                    <div class="acoes-row">
                         <button onclick="window.abrirModalAcertoFluxo('${timeId}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}', ${saldoFinal})"
-                                class="btn-acao btn-acerto" title="Acerto">
+                                class="btn-acao btn-acerto" title="Registrar Acerto">
                             <span class="material-icons">payments</span>
                         </button>
                         <button onclick="window.selecionarParticipante('${timeId}')"
-                                class="btn-acao btn-extrato" title="Extrato">
+                                class="btn-acao btn-extrato" title="Ver Extrato">
                             <span class="material-icons">receipt_long</span>
                         </button>
                         <button onclick="window.abrirHistoricoAcertos('${timeId}', '${ligaId}')"
@@ -1236,67 +1257,137 @@ export class FluxoFinanceiroUI {
             }
 
             /* ========================================
-               TABELA COMPACTA - Admin Eficiente
+               TABELA FINANCEIRA v3.0 - Colunas por Módulo
                ======================================== */
 
-            .tabela-compacta {
+            .tabela-financeira {
                 width: 100%;
                 border-collapse: collapse;
                 font-size: 0.8rem;
+                table-layout: auto;
             }
 
-            .tabela-compacta th,
-            .tabela-compacta td {
-                padding: 6px 8px;
+            .tabela-financeira th,
+            .tabela-financeira td {
+                padding: 8px 10px;
                 border-bottom: 1px solid #2d2d2d;
                 vertical-align: middle;
             }
 
-            .tabela-compacta th {
-                background: #1a1a1a;
-                color: #888;
-                font-weight: 600;
-                font-size: 0.7rem;
-                text-transform: uppercase;
-                letter-spacing: 0.3px;
+            .tabela-financeira thead {
                 position: sticky;
                 top: 0;
                 z-index: 10;
             }
 
-            .tabela-compacta .col-num {
-                width: 30px;
+            .tabela-financeira th {
+                background: linear-gradient(135deg, #1f1f1f 0%, #181818 100%);
+                color: #FF5500;
+                font-weight: 600;
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                white-space: nowrap;
+                border-bottom: 2px solid #FF5500;
+            }
+
+            .tabela-financeira th.sortable {
+                cursor: pointer;
+                transition: background 0.15s;
+            }
+            .tabela-financeira th.sortable:hover {
+                background: rgba(255, 85, 0, 0.15);
+            }
+            .tabela-financeira th.sortable.sorted {
+                background: rgba(255, 85, 0, 0.12);
+            }
+
+            /* Ícone de ordenação */
+            .th-sort {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+            .sort-icon {
+                font-size: 16px;
+                opacity: 0.5;
+                transition: all 0.15s;
+            }
+            .sortable:hover .sort-icon {
+                opacity: 0.8;
+            }
+            .sortable.sorted .sort-icon {
+                opacity: 1;
+                color: #FF5500;
+            }
+
+            .tabela-financeira .col-num {
+                width: 40px;
                 text-align: center;
                 color: #666;
             }
 
-            .tabela-compacta .col-participante {
+            .tabela-financeira .col-participante {
                 min-width: 160px;
+                width: 18%;
             }
 
-            .tabela-compacta .col-saldo {
-                width: 70px;
+            .tabela-financeira .col-modulo {
+                min-width: 90px;
+                width: auto;
                 text-align: right;
-                font-family: 'JetBrains Mono', monospace;
+                font-family: 'JetBrains Mono', 'Consolas', monospace;
                 font-size: 0.75rem;
+                padding-right: 12px;
             }
 
-            .tabela-compacta .col-situacao {
-                width: 70px;
-                text-align: center;
+            .tabela-financeira .col-saldo {
+                min-width: 110px;
+                width: 12%;
+                text-align: right;
+                font-family: 'JetBrains Mono', 'Consolas', monospace;
+                font-size: 0.85rem;
+                font-weight: 700;
+                padding-right: 12px;
             }
 
-            .tabela-compacta .col-acoes {
+            .tabela-financeira .col-acoes {
                 width: 110px;
                 text-align: center;
+                white-space: nowrap;
             }
+
+            /* Linha de ações - NUNCA quebra */
+            .acoes-row {
+                display: flex;
+                flex-wrap: nowrap;
+                gap: 6px;
+                justify-content: center;
+            }
+
+            /* Valores coloridos */
+            .val-positivo { color: #10b981; font-weight: 600; }
+            .val-negativo { color: #ef4444; font-weight: 600; }
+            .val-zero { color: #555; }
 
             /* Linha do Participante */
             .linha-participante {
                 transition: background 0.1s;
             }
             .linha-participante:hover {
-                background: rgba(255, 85, 0, 0.03);
+                background: rgba(255, 85, 0, 0.06);
+            }
+            .linha-participante:nth-child(even) {
+                background: rgba(255, 255, 255, 0.02);
+            }
+            .linha-participante:nth-child(even):hover {
+                background: rgba(255, 85, 0, 0.06);
+            }
+            .row-devedor {
+                background: rgba(239, 68, 68, 0.04) !important;
+            }
+            .row-devedor:hover {
+                background: rgba(239, 68, 68, 0.08) !important;
             }
 
             /* Célula Participante */
@@ -1305,11 +1396,15 @@ export class FluxoFinanceiroUI {
                 align-items: center;
                 gap: 8px;
                 cursor: pointer;
+                padding: 2px 0;
+            }
+            .participante-cell:hover .nome {
+                color: #FF5500;
             }
 
             .avatar-mini {
-                width: 24px;
-                height: 24px;
+                width: 26px;
+                height: 26px;
                 border-radius: 50%;
                 background: #2d2d2d;
                 display: flex;
@@ -1325,7 +1420,7 @@ export class FluxoFinanceiroUI {
             }
             .avatar-mini .material-icons {
                 font-size: 14px;
-                color: #666;
+                color: #555;
             }
 
             .info-participante {
@@ -1341,6 +1436,7 @@ export class FluxoFinanceiroUI {
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                transition: color 0.15s;
             }
             .info-participante .time {
                 font-size: 0.65rem;
@@ -1350,46 +1446,12 @@ export class FluxoFinanceiroUI {
                 text-overflow: ellipsis;
             }
 
-            /* Valores */
-            .val-positivo { color: #10b981; }
-            .val-negativo { color: #ef4444; }
-
-            /* Status Badge Compacto */
-            .status-badge {
-                display: inline-block;
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-size: 0.65rem;
-                font-weight: 600;
-            }
-            .status-badge.devedor {
-                background: rgba(239, 68, 68, 0.15);
-                color: #ef4444;
-            }
-            .status-badge.credor {
-                background: rgba(16, 185, 129, 0.15);
-                color: #10b981;
-            }
-            .status-badge.quitado {
-                background: rgba(156, 163, 175, 0.15);
-                color: #9ca3af;
-            }
-
-            /* Grupo de Ações - SEMPRE HORIZONTAL */
-            .acoes-grupo {
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                justify-content: center;
-                gap: 4px;
-                white-space: nowrap;
-            }
-
+            /* Botões de Ação */
             .btn-acao {
                 width: 28px;
                 height: 28px;
                 min-width: 28px;
-                border-radius: 4px;
+                border-radius: 5px;
                 border: none;
                 cursor: pointer;
                 display: inline-flex;
@@ -1405,15 +1467,40 @@ export class FluxoFinanceiroUI {
                 opacity: 0.8;
             }
 
-            .btn-acerto { background: #f59e0b; }
-            .btn-extrato { background: #3b82f6; }
-            .btn-hist { background: #6b7280; }
+            .btn-acerto { background: #10b981; }
+            .btn-acerto:hover { background: #059669; }
+            .btn-extrato { background: #FF5500; }
+            .btn-extrato:hover { background: #cc4400; }
+            .btn-hist { background: #4b5563; }
+            .btn-hist:hover { background: #374151; }
 
             /* Responsivo */
-            @media (max-width: 768px) {
-                .tabela-compacta .col-saldo:nth-child(3),
-                .tabela-compacta .col-saldo:nth-child(4) {
+            @media (max-width: 900px) {
+                .tabela-financeira .col-modulo {
+                    width: 45px;
+                    padding: 6px 4px;
+                    font-size: 0.7rem;
+                }
+                .tabela-financeira th {
+                    font-size: 0.65rem;
+                    padding: 6px 4px;
+                }
+            }
+            @media (max-width: 700px) {
+                .tabela-financeira .col-participante {
+                    min-width: 100px;
+                    max-width: 120px;
+                }
+                .info-participante .time {
                     display: none;
+                }
+                .btn-acao {
+                    width: 24px;
+                    height: 24px;
+                    min-width: 24px;
+                }
+                .btn-acao .material-icons {
+                    font-size: 14px;
                 }
             }
         `;
@@ -1906,7 +1993,7 @@ export class FluxoFinanceiroUI {
             const tbody = document.getElementById('participantesTableBody');
             if (tbody && window._fluxoUI) {
                 tbody.innerHTML = ordenados.map((p, idx) =>
-                    window._fluxoUI._renderizarLinhaExpandida(p, idx, window._fluxoLigaId)
+                    window._fluxoUI._renderizarLinhaTabela(p, idx, window._fluxoLigaId)
                 ).join('');
             }
 
@@ -2890,16 +2977,18 @@ window.recalcularTodosCache = async function () {
                 );
 
                 if (extrato && extrato.rodadas) {
-                    // Enviar para o cache do backend
+                    // Enviar para o cache do backend (estrutura correta)
                     const response = await fetch(
                         `/api/extrato-cache/${ligaId}/times/${timeId}/cache`,
                         {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
-                                extrato: extrato,
-                                origem: "admin-recalculo-todos",
-                                versao: "4.5",
+                                historico_transacoes: extrato.rodadas || [],
+                                ultimaRodadaCalculada: rodadaAtual,
+                                motivoRecalculo: "admin-recalculo-todos",
+                                resumo: extrato.resumo || {},
+                                saldo: extrato.resumo?.saldo || 0,
                             }),
                         },
                     );
@@ -2965,8 +3054,15 @@ window.salvarCampoEditavel = async function (input) {
     if (valor > 0) input.classList.add("campo-positivo");
     else if (valor < 0) input.classList.add("campo-negativo");
 
-    // Salvar no backend
-    await FluxoFinanceiroCampos.salvarValorCampo(timeId, campo, valor);
+    // Salvar no backend com tratamento de erro
+    try {
+        await FluxoFinanceiroCampos.salvarValorCampo(timeId, campo, valor);
+    } catch (error) {
+        console.error(`[FLUXO-UI] ❌ Erro ao salvar campo:`, error);
+        alert(`Erro ao salvar valor: ${error.message}`);
+        // Reverter visual para indicar erro
+        input.classList.add("campo-erro");
+    }
 };
 
 // =========================================================================

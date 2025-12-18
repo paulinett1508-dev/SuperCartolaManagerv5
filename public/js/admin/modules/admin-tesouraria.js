@@ -4,9 +4,15 @@
  * Dashboard de fechamento financeiro para gestao de caixa da liga.
  * Consolida: Saldo do Sistema (bonus/onus) + Acertos Manuais = Saldo Final
  *
- * @version 1.0.0
+ * @version 2.0.0 - Layout com Badges Financeiros Dinamicos
  * @author Product Team
- * @date 2025-12-15
+ * @date 2025-12-18
+ *
+ * CHANGELOG v2.0:
+ * - Novo layout de linha com breakdown financeiro por modulo
+ * - Badges dinamicos condicionais (mostra apenas modulos ativos da liga)
+ * - Cores semanticas: verde=ganho, vermelho=perda, cinza=zerado
+ * - Scroll horizontal para extrato em telas menores
  */
 
 class AdminTesouraria {
@@ -17,6 +23,29 @@ class AdminTesouraria {
         this.filtroStatus = 'todos';
         this.container = null;
         this.isLoading = false;
+
+        // ✅ v2.0: Modulos ativos da liga (carregados da API)
+        this.modulosAtivos = {
+            banco: true,
+            pontosCorridos: false,
+            mataMata: false,
+            top10: true,
+            melhorMes: false,
+            artilheiro: false,
+            luvaOuro: false,
+        };
+
+        // Configuracao dos badges financeiros
+        this.badgeConfig = {
+            banco: { icon: 'casino', label: 'Rodada', color: 'primary' },
+            pontosCorridos: { icon: 'emoji_events', label: 'Pt.Corridos', color: 'info' },
+            mataMata: { icon: 'sports_mma', label: 'Mata-Mata', color: 'warning' },
+            top10: { icon: 'stars', label: 'Top10', color: 'gold' },
+            melhorMes: { icon: 'calendar_month', label: 'Melhor Mes', color: 'purple' },
+            artilheiro: { icon: 'sports_soccer', label: 'Artilheiro', color: 'success' },
+            luvaOuro: { icon: 'sports_handball', label: 'Luva Ouro', color: 'gold' },
+            campos: { icon: 'edit_note', label: 'Ajustes', color: 'muted' },
+        };
 
         // Cores do tema
         this.cores = {
@@ -29,7 +58,10 @@ class AdminTesouraria {
             amarelo: '#f59e0b',
             cinza: '#6b7280',
             texto: '#ffffff',
-            textoMuted: '#9ca3af'
+            textoMuted: '#9ca3af',
+            azul: '#3b82f6',
+            roxo: '#8b5cf6',
+            gold: '#ffd700',
         };
     }
 
@@ -164,79 +196,50 @@ class AdminTesouraria {
 
     /**
      * Carrega todos os dados necessarios
+     * ✅ v2.0: Usa nova rota otimizada /api/tesouraria/liga/:ligaId
      */
     async _carregarDados() {
         this.isLoading = true;
 
         try {
-            // Buscar participantes da liga
-            const timesResponse = await fetch(`/api/ligas/${this.ligaId}/times`);
-            const timesData = await timesResponse.json();
+            // ✅ v2.0: Usar rota otimizada que retorna tudo de uma vez
+            const response = await fetch(`/api/tesouraria/liga/${this.ligaId}?temporada=${this.season}`);
+            const data = await response.json();
 
-            if (!timesData || timesData.length === 0) {
+            if (!data.success) {
+                this._renderErro(data.error || 'Erro ao carregar dados');
+                return;
+            }
+
+            if (!data.participantes || data.participantes.length === 0) {
                 this._renderErro('Nenhum participante encontrado na liga');
                 return;
             }
 
-            // Buscar resumo de acertos
-            const acertosResponse = await fetch(`/api/acertos/admin/${this.ligaId}/resumo?temporada=${this.season}`);
-            const acertosData = await acertosResponse.json();
-
-            // Mapear acertos por timeId
-            const acertosPorTime = {};
-            if (acertosData.success && acertosData.times) {
-                acertosData.times.forEach(t => {
-                    acertosPorTime[t.timeId] = t;
-                });
+            // ✅ v2.0: Armazenar modulos ativos da liga
+            if (data.modulosAtivos) {
+                this.modulosAtivos = data.modulosAtivos;
+                console.log('[TESOURARIA] Modulos ativos:', this.modulosAtivos);
             }
 
-            // Buscar extrato de cada participante (em paralelo, max 5 concorrentes)
-            const participantesCompletos = [];
-            const chunks = this._chunkArray(timesData, 5);
+            // Mapear dados para formato interno
+            this.participantes = data.participantes.map(p => ({
+                timeId: p.timeId,
+                nome: p.nomeCartola || p.nomeTime || 'Time sem nome',
+                nomeTime: p.nomeTime,
+                escudo: p.escudo,
+                saldoJogo: p.saldoTemporada,
+                saldoAcertos: p.saldoAcertos,
+                totalPago: p.totalPago,
+                totalRecebido: p.totalRecebido,
+                saldoFinal: p.saldoFinal,
+                situacao: p.situacao,
+                quantidadeAcertos: p.quantidadeAcertos,
+                // ✅ v2.0: Breakdown por modulo
+                breakdown: p.breakdown || {},
+            }));
 
-            for (const chunk of chunks) {
-                const promises = chunk.map(async (time) => {
-                    try {
-                        const extratoResp = await fetch(`/api/fluxo-financeiro/${this.ligaId}/extrato/${time.id || time.time_id}`);
-                        const extratoData = await extratoResp.json();
-
-                        const timeId = String(time.id || time.time_id);
-                        const acertos = acertosPorTime[timeId] || { saldoAcertos: 0, totalPago: 0, totalRecebido: 0 };
-
-                        return {
-                            timeId: timeId,
-                            nome: time.nome || time.nomeTime || 'Time sem nome',
-                            escudo: time.url_escudo_png || time.escudo || null,
-                            saldoJogo: extratoData.saldo_temporada || extratoData.saldo || 0,
-                            saldoAcertos: acertos.saldoAcertos || 0,
-                            totalPago: acertos.totalPago || 0,
-                            totalRecebido: acertos.totalRecebido || 0,
-                            saldoFinal: (extratoData.saldo_temporada || extratoData.saldo || 0) + (acertos.saldoAcertos || 0),
-                            detalhes: extratoData
-                        };
-                    } catch (err) {
-                        console.warn(`[TESOURARIA] Erro ao buscar extrato de ${time.id}:`, err);
-                        const timeId = String(time.id || time.time_id);
-                        const acertos = acertosPorTime[timeId] || { saldoAcertos: 0 };
-                        return {
-                            timeId: timeId,
-                            nome: time.nome || time.nomeTime || 'Time sem nome',
-                            escudo: time.url_escudo_png || time.escudo || null,
-                            saldoJogo: 0,
-                            saldoAcertos: acertos.saldoAcertos || 0,
-                            totalPago: 0,
-                            totalRecebido: 0,
-                            saldoFinal: acertos.saldoAcertos || 0,
-                            detalhes: null
-                        };
-                    }
-                });
-
-                const results = await Promise.all(promises);
-                participantesCompletos.push(...results);
-            }
-
-            this.participantes = participantesCompletos;
+            console.log(`[TESOURARIA] ${this.participantes.length} participantes carregados`);
 
             // Renderizar KPIs
             this._renderKPIs();
@@ -325,6 +328,7 @@ class AdminTesouraria {
 
     /**
      * Renderiza a tabela de participantes
+     * ✅ v2.0: Novo layout com badges financeiros dinamicos
      */
     _renderTabela() {
         const container = document.getElementById('tabela-container');
@@ -334,11 +338,11 @@ class AdminTesouraria {
         let dadosFiltrados = [...this.participantes];
 
         if (this.filtroStatus === 'devedores') {
-            dadosFiltrados = dadosFiltrados.filter(p => p.saldoFinal < 0);
+            dadosFiltrados = dadosFiltrados.filter(p => p.saldoFinal < -0.01);
         } else if (this.filtroStatus === 'credores') {
-            dadosFiltrados = dadosFiltrados.filter(p => p.saldoFinal > 0);
+            dadosFiltrados = dadosFiltrados.filter(p => p.saldoFinal > 0.01);
         } else if (this.filtroStatus === 'quitados') {
-            dadosFiltrados = dadosFiltrados.filter(p => p.saldoFinal === 0);
+            dadosFiltrados = dadosFiltrados.filter(p => Math.abs(p.saldoFinal) <= 0.01);
         }
 
         // Ordenar por saldo (devedores primeiro)
@@ -354,87 +358,155 @@ class AdminTesouraria {
             return;
         }
 
+        // ✅ v2.0: Lista de cards ao inves de tabela
         container.innerHTML = `
-            <table class="tesouraria-table">
-                <thead>
-                    <tr>
-                        <th class="col-participante">Participante</th>
-                        <th class="col-jogo">Saldo Jogo</th>
-                        <th class="col-acertos">Acertos</th>
-                        <th class="col-final">Saldo Final</th>
-                        <th class="col-status">Status</th>
-                        <th class="col-acoes">Acoes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${dadosFiltrados.map(p => this._renderLinha(p)).join('')}
-                </tbody>
-            </table>
+            <div class="participantes-lista">
+                ${dadosFiltrados.map(p => this._renderLinha(p)).join('')}
+            </div>
         `;
     }
 
     /**
      * Renderiza uma linha da tabela
+     * ✅ v2.0: Novo layout com badges financeiros dinamicos
+     *
+     * Layout:
+     * [Esquerda] Perfil: Avatar + Nome
+     * [Centro] Extrato: Badges de cada modulo ativo
+     * [Direita] Saldo Final + Acoes
      */
     _renderLinha(participante) {
-        const { timeId, nome, escudo, saldoJogo, saldoAcertos, saldoFinal } = participante;
+        const { timeId, nome, nomeTime, escudo, saldoJogo, saldoAcertos, saldoFinal, breakdown } = participante;
 
-        // Determinar status e cores
-        let statusClass, statusLabel, statusIcon;
-        if (saldoFinal < 0) {
+        // Determinar status
+        let statusClass, statusIcon;
+        if (saldoFinal < -0.01) {
             statusClass = 'status-devedor';
-            statusLabel = 'Devedor';
             statusIcon = 'arrow_downward';
-        } else if (saldoFinal > 0) {
+        } else if (saldoFinal > 0.01) {
             statusClass = 'status-credor';
-            statusLabel = 'Credor';
             statusIcon = 'arrow_upward';
         } else {
             statusClass = 'status-quitado';
-            statusLabel = 'Quitado';
             statusIcon = 'check_circle';
         }
-
-        // Formatar valores
-        const formatarValor = (valor) => {
-            const abs = Math.abs(valor).toFixed(2).replace('.', ',');
-            if (valor > 0) return `<span class="valor-positivo">+R$ ${abs}</span>`;
-            if (valor < 0) return `<span class="valor-negativo">-R$ ${abs}</span>`;
-            return `<span class="valor-neutro">R$ ${abs}</span>`;
-        };
 
         // Escudo placeholder
         const escudoUrl = escudo || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%232d2d2d"/%3E%3Ctext x="50" y="55" text-anchor="middle" fill="%236b7280" font-size="24"%3E?%3C/text%3E%3C/svg%3E';
 
+        // ✅ v2.0: Gerar badges financeiros dinamicos
+        const badges = this._renderBadgesFinanceiros(breakdown);
+
+        // Formatar saldo final
+        const saldoFormatado = this._formatarSaldo(saldoFinal);
+
         return `
-            <tr class="linha-participante ${statusClass}">
-                <td class="col-participante">
-                    <div class="participante-info">
-                        <img src="${escudoUrl}" alt="" class="escudo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%232d2d2d%22/%3E%3C/svg%3E'">
-                        <span class="nome">${nome}</span>
+            <div class="linha-financeira ${statusClass}" data-time-id="${timeId}">
+                <!-- ESQUERDA: Perfil -->
+                <div class="linha-perfil">
+                    <img src="${escudoUrl}" alt="" class="escudo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%232d2d2d%22/%3E%3C/svg%3E'">
+                    <div class="perfil-info">
+                        <span class="nome-cartola">${nome}</span>
+                        <span class="nome-time">${nomeTime || ''}</span>
                     </div>
-                </td>
-                <td class="col-jogo">${formatarValor(saldoJogo)}</td>
-                <td class="col-acertos">${formatarValor(saldoAcertos)}</td>
-                <td class="col-final">
-                    <strong class="saldo-final ${statusClass}">${formatarValor(saldoFinal)}</strong>
-                </td>
-                <td class="col-status">
-                    <span class="badge ${statusClass}">
-                        <span class="material-icons">${statusIcon}</span>
-                        ${statusLabel}
-                    </span>
-                </td>
-                <td class="col-acoes">
-                    <button class="btn-acao" onclick="adminTesouraria.abrirAcerto('${timeId}', '${nome.replace(/'/g, "\\'")}')" title="Registrar Acerto">
-                        <span class="material-icons">payments</span>
-                    </button>
-                    <button class="btn-acao" onclick="adminTesouraria.verDetalhes('${timeId}')" title="Ver Detalhes">
-                        <span class="material-icons">visibility</span>
-                    </button>
-                </td>
-            </tr>
+                </div>
+
+                <!-- CENTRO: Extrato (Badges Financeiros) -->
+                <div class="linha-extrato">
+                    <div class="badges-container">
+                        ${badges}
+                    </div>
+                </div>
+
+                <!-- DIREITA: Saldo Final + Acoes -->
+                <div class="linha-totais">
+                    <div class="saldo-final-box ${statusClass}">
+                        <span class="material-icons status-icon">${statusIcon}</span>
+                        <span class="saldo-valor">${saldoFormatado}</span>
+                    </div>
+                    <div class="linha-acoes">
+                        <button class="btn-acao" onclick="adminTesouraria.abrirAcerto('${timeId}', '${nome.replace(/'/g, "\\'")}')" title="Registrar Acerto">
+                            <span class="material-icons">payments</span>
+                        </button>
+                        <button class="btn-acao" onclick="adminTesouraria.verDetalhes('${timeId}')" title="Ver Detalhes">
+                            <span class="material-icons">visibility</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         `;
+    }
+
+    /**
+     * ✅ v2.0: Renderiza badges financeiros dinamicos
+     * Mostra apenas modulos ativos da liga com valores != 0
+     */
+    _renderBadgesFinanceiros(breakdown) {
+        if (!breakdown) return '<span class="no-data">Sem dados</span>';
+
+        const badges = [];
+
+        // Ordem de exibicao dos badges
+        const ordem = ['banco', 'pontosCorridos', 'mataMata', 'top10', 'melhorMes', 'artilheiro', 'luvaOuro', 'campos'];
+
+        for (const modulo of ordem) {
+            // Verificar se modulo esta ativo (exceto 'campos' que sempre mostra se tiver valor)
+            const ativo = modulo === 'campos' || this.modulosAtivos[modulo];
+            if (!ativo) continue;
+
+            const valor = breakdown[modulo] || 0;
+
+            // Apenas mostrar se tiver valor (diferente de 0)
+            if (Math.abs(valor) < 0.01) continue;
+
+            const config = this.badgeConfig[modulo];
+            if (!config) continue;
+
+            // Determinar cor baseada no valor (ganho/perda)
+            let colorClass = 'badge-neutro';
+            if (valor > 0) colorClass = 'badge-ganho';
+            else if (valor < 0) colorClass = 'badge-perda';
+
+            // Formatar valor
+            const valorFormatado = this._formatarValorBadge(valor);
+
+            badges.push(`
+                <div class="badge-financeiro ${colorClass}" title="${config.label}: R$ ${valor.toFixed(2).replace('.', ',')}">
+                    <span class="material-icons badge-icon">${config.icon}</span>
+                    <span class="badge-valor">${valorFormatado}</span>
+                </div>
+            `);
+        }
+
+        // Se nao tiver nenhum badge, mostrar mensagem
+        if (badges.length === 0) {
+            return '<span class="no-badges">Sem movimentacoes</span>';
+        }
+
+        return badges.join('');
+    }
+
+    /**
+     * Formata valor para exibicao no badge (compacto)
+     */
+    _formatarValorBadge(valor) {
+        const abs = Math.abs(valor);
+        const sinal = valor >= 0 ? '+' : '-';
+
+        if (abs >= 1000) {
+            return `${sinal}${(abs / 1000).toFixed(1)}k`;
+        }
+        return `${sinal}${abs.toFixed(0)}`;
+    }
+
+    /**
+     * Formata saldo para exibicao principal
+     */
+    _formatarSaldo(valor) {
+        const abs = Math.abs(valor).toFixed(2).replace('.', ',');
+        if (valor > 0.01) return `+R$ ${abs}`;
+        if (valor < -0.01) return `-R$ ${abs}`;
+        return `R$ ${abs}`;
     }
 
     /**
@@ -474,17 +546,6 @@ class AdminTesouraria {
                 </div>
             `;
         }
-    }
-
-    /**
-     * Divide array em chunks
-     */
-    _chunkArray(array, size) {
-        const chunks = [];
-        for (let i = 0; i < array.length; i += size) {
-            chunks.push(array.slice(i, i + size));
-        }
-        return chunks;
     }
 
     // ==========================================================================
@@ -532,21 +593,60 @@ class AdminTesouraria {
 
     /**
      * Ver detalhes do participante
+     * ✅ v2.0: Mostra breakdown por modulo
      */
     verDetalhes(timeId) {
         const participante = this.participantes.find(p => p.timeId === timeId);
         if (!participante) return;
 
-        const detalhes = participante.detalhes || {};
+        const bd = participante.breakdown || {};
+
+        // Construir lista de modulos com valores
+        let modulosStr = '';
+        const modulosComValor = [];
+
+        if (this.modulosAtivos.banco && bd.banco) {
+            modulosComValor.push(`  Rodada (Banco): R$ ${bd.banco.toFixed(2)}`);
+        }
+        if (this.modulosAtivos.pontosCorridos && bd.pontosCorridos) {
+            modulosComValor.push(`  Pontos Corridos: R$ ${bd.pontosCorridos.toFixed(2)}`);
+        }
+        if (this.modulosAtivos.mataMata && bd.mataMata) {
+            modulosComValor.push(`  Mata-Mata: R$ ${bd.mataMata.toFixed(2)}`);
+        }
+        if (this.modulosAtivos.top10 && bd.top10) {
+            modulosComValor.push(`  Top10 (Mitos/Micos): R$ ${bd.top10.toFixed(2)}`);
+        }
+        if (this.modulosAtivos.melhorMes && bd.melhorMes) {
+            modulosComValor.push(`  Melhor Mes: R$ ${bd.melhorMes.toFixed(2)}`);
+        }
+        if (this.modulosAtivos.artilheiro && bd.artilheiro) {
+            modulosComValor.push(`  Artilheiro: R$ ${bd.artilheiro.toFixed(2)}`);
+        }
+        if (this.modulosAtivos.luvaOuro && bd.luvaOuro) {
+            modulosComValor.push(`  Luva de Ouro: R$ ${bd.luvaOuro.toFixed(2)}`);
+        }
+        if (bd.campos) {
+            modulosComValor.push(`  Ajustes Manuais: R$ ${bd.campos.toFixed(2)}`);
+        }
+
+        if (modulosComValor.length > 0) {
+            modulosStr = '\nDETALHAMENTO POR MODULO:\n' + modulosComValor.join('\n');
+        }
+
         const msg = `
 DETALHES FINANCEIROS - ${participante.nome}
 ==========================================
+${modulosStr}
 
-Saldo do Jogo: R$ ${participante.saldoJogo.toFixed(2)}
-Acertos (Pago): R$ ${participante.totalPago.toFixed(2)}
-Acertos (Recebido): R$ ${participante.totalRecebido.toFixed(2)}
-Saldo Acertos: R$ ${participante.saldoAcertos.toFixed(2)}
+SALDO TEMPORADA: R$ ${participante.saldoJogo.toFixed(2)}
 
+ACERTOS:
+  Pago: R$ ${participante.totalPago.toFixed(2)}
+  Recebido: R$ ${participante.totalRecebido.toFixed(2)}
+  Saldo Acertos: R$ ${participante.saldoAcertos.toFixed(2)}
+
+==========================================
 SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
         `.trim();
 
@@ -621,7 +721,7 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
         styles.id = 'tesouraria-styles';
         styles.textContent = `
             /* ========================================
-               ADMIN TESOURARIA - Enterprise Dark Theme
+               ADMIN TESOURARIA v2.0 - Badges Financeiros
                ======================================== */
 
             .tesouraria-module {
@@ -889,117 +989,233 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
                 color: ${this.cores.vermelho};
             }
 
-            /* Table */
-            .tesouraria-table {
-                width: 100%;
-                border-collapse: collapse;
+            /* ========================================
+               v2.0: LINHA FINANCEIRA COM BADGES
+               ======================================== */
+
+            .participantes-lista {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
             }
 
-            .tesouraria-table thead {
-                background: ${this.cores.bgPage};
-            }
-
-            .tesouraria-table th {
-                padding: 14px 16px;
-                text-align: left;
-                font-size: 0.75rem;
-                font-weight: 600;
-                color: ${this.cores.textoMuted};
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
+            /* Linha Financeira Principal */
+            .linha-financeira {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 14px 20px;
+                background: ${this.cores.bgCard};
                 border-bottom: 1px solid ${this.cores.border};
+                transition: background 0.2s;
             }
 
-            .tesouraria-table td {
-                padding: 14px 16px;
-                border-bottom: 1px solid ${this.cores.border};
-                color: ${this.cores.texto};
-                font-size: 0.875rem;
+            .linha-financeira:first-child {
+                border-radius: 12px 12px 0 0;
             }
 
-            .tesouraria-table tbody tr:last-child td {
+            .linha-financeira:last-child {
+                border-radius: 0 0 12px 12px;
                 border-bottom: none;
             }
 
-            .tesouraria-table tbody tr:hover {
+            .linha-financeira:only-child {
+                border-radius: 12px;
+            }
+
+            .linha-financeira:hover {
                 background: ${this.cores.laranja}08;
             }
 
-            /* Status-based row styling */
-            .linha-participante.status-devedor {
+            /* Status-based styling */
+            .linha-financeira.status-devedor {
                 background: ${this.cores.vermelho}08;
+                border-left: 3px solid ${this.cores.vermelho};
             }
 
-            .linha-participante.status-devedor:hover {
+            .linha-financeira.status-devedor:hover {
                 background: ${this.cores.vermelho}12;
             }
 
-            /* Participante Info */
-            .participante-info {
+            .linha-financeira.status-credor {
+                border-left: 3px solid ${this.cores.verde};
+            }
+
+            .linha-financeira.status-quitado {
+                border-left: 3px solid ${this.cores.cinza};
+            }
+
+            /* ESQUERDA: Perfil */
+            .linha-perfil {
                 display: flex;
                 align-items: center;
                 gap: 12px;
+                min-width: 200px;
+                flex-shrink: 0;
             }
 
-            .participante-info .escudo {
-                width: 32px;
-                height: 32px;
+            .linha-perfil .escudo {
+                width: 40px;
+                height: 40px;
                 border-radius: 50%;
                 object-fit: cover;
                 background: ${this.cores.border};
+                flex-shrink: 0;
             }
 
-            .participante-info .nome {
-                font-weight: 500;
+            .perfil-info {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                min-width: 0;
             }
 
-            /* Values */
-            .valor-positivo {
-                color: ${this.cores.verde};
-                font-weight: 500;
+            .nome-cartola {
+                font-weight: 600;
+                color: ${this.cores.texto};
+                font-size: 0.9rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
-            .valor-negativo {
-                color: ${this.cores.vermelho};
-                font-weight: 500;
+            .nome-time {
+                font-size: 0.75rem;
+                color: ${this.cores.textoMuted};
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
-            .valor-neutro {
-                color: ${this.cores.cinza};
+            /* CENTRO: Extrato (Badges) */
+            .linha-extrato {
+                flex: 1;
+                min-width: 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+                scrollbar-color: ${this.cores.border} transparent;
             }
 
-            .saldo-final {
-                font-size: 1rem;
+            .linha-extrato::-webkit-scrollbar {
+                height: 4px;
             }
 
-            /* Badge */
-            .badge {
+            .linha-extrato::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .linha-extrato::-webkit-scrollbar-thumb {
+                background: ${this.cores.border};
+                border-radius: 4px;
+            }
+
+            .badges-container {
+                display: flex;
+                gap: 8px;
+                padding: 4px 0;
+            }
+
+            /* Badge Financeiro */
+            .badge-financeiro {
                 display: inline-flex;
                 align-items: center;
                 gap: 4px;
                 padding: 4px 10px;
-                border-radius: 20px;
+                border-radius: 16px;
                 font-size: 0.75rem;
                 font-weight: 600;
+                white-space: nowrap;
+                transition: transform 0.2s;
+                cursor: default;
             }
 
-            .badge .material-icons {
-                font-size: 14px;
+            .badge-financeiro:hover {
+                transform: scale(1.05);
             }
 
-            .badge.status-devedor {
-                background: ${this.cores.vermelho}20;
-                color: ${this.cores.vermelho};
+            .badge-icon {
+                font-size: 14px !important;
             }
 
-            .badge.status-credor {
+            .badge-valor {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.7rem;
+            }
+
+            /* Cores dos Badges */
+            .badge-ganho {
                 background: ${this.cores.verde}20;
                 color: ${this.cores.verde};
             }
 
-            .badge.status-quitado {
+            .badge-perda {
+                background: ${this.cores.vermelho}20;
+                color: ${this.cores.vermelho};
+            }
+
+            .badge-neutro {
                 background: ${this.cores.cinza}20;
                 color: ${this.cores.cinza};
+            }
+
+            .no-badges, .no-data {
+                color: ${this.cores.textoMuted};
+                font-size: 0.75rem;
+                font-style: italic;
+            }
+
+            /* DIREITA: Saldo Final + Acoes */
+            .linha-totais {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                flex-shrink: 0;
+            }
+
+            .saldo-final-box {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 16px;
+                border-radius: 8px;
+                min-width: 140px;
+                justify-content: center;
+            }
+
+            .saldo-final-box.status-devedor {
+                background: ${this.cores.vermelho}15;
+            }
+
+            .saldo-final-box.status-credor {
+                background: ${this.cores.verde}15;
+            }
+
+            .saldo-final-box.status-quitado {
+                background: ${this.cores.cinza}15;
+            }
+
+            .status-icon {
+                font-size: 18px !important;
+            }
+
+            .status-devedor .status-icon { color: ${this.cores.vermelho}; }
+            .status-credor .status-icon { color: ${this.cores.verde}; }
+            .status-quitado .status-icon { color: ${this.cores.cinza}; }
+
+            .saldo-valor {
+                font-weight: 700;
+                font-size: 1rem;
+                font-family: 'JetBrains Mono', monospace;
+            }
+
+            .status-devedor .saldo-valor { color: ${this.cores.vermelho}; }
+            .status-credor .saldo-valor { color: ${this.cores.verde}; }
+            .status-quitado .saldo-valor { color: ${this.cores.cinza}; }
+
+            .linha-acoes {
+                display: flex;
+                gap: 4px;
             }
 
             /* Action Buttons */
@@ -1015,7 +1231,6 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
                 align-items: center;
                 justify-content: center;
                 transition: all 0.2s;
-                margin-right: 4px;
             }
 
             .btn-acao:hover {
@@ -1028,7 +1243,25 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
                 font-size: 18px;
             }
 
-            /* Responsive */
+            /* ========================================
+               RESPONSIVE
+               ======================================== */
+
+            @media (max-width: 1024px) {
+                .linha-perfil {
+                    min-width: 160px;
+                }
+
+                .saldo-final-box {
+                    min-width: 120px;
+                    padding: 6px 12px;
+                }
+
+                .saldo-valor {
+                    font-size: 0.9rem;
+                }
+            }
+
             @media (max-width: 768px) {
                 .tesouraria-module {
                     padding: 16px;
@@ -1051,12 +1284,54 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
                     justify-content: center;
                 }
 
-                .tesouraria-table {
-                    font-size: 0.8rem;
+                /* Mobile: Stack vertical */
+                .linha-financeira {
+                    flex-wrap: wrap;
+                    padding: 12px 16px;
+                    gap: 12px;
                 }
 
-                .col-jogo, .col-acertos {
-                    display: none;
+                .linha-perfil {
+                    min-width: 100%;
+                    order: 1;
+                }
+
+                .linha-extrato {
+                    order: 3;
+                    width: 100%;
+                    padding-bottom: 8px;
+                }
+
+                .linha-totais {
+                    order: 2;
+                    margin-left: auto;
+                }
+
+                .saldo-final-box {
+                    min-width: 110px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .kpi-grid {
+                    grid-template-columns: 1fr 1fr;
+                }
+
+                .kpi-card {
+                    padding: 12px;
+                }
+
+                .kpi-value {
+                    font-size: 1.1rem;
+                }
+
+                .linha-totais {
+                    width: 100%;
+                    justify-content: space-between;
+                }
+
+                .linha-acoes {
+                    margin-left: auto;
                 }
             }
         `;
@@ -1077,4 +1352,4 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = AdminTesouraria;
 }
 
-console.log('[TESOURARIA] Modulo AdminTesouraria carregado v1.0.0');
+console.log('[TESOURARIA] Modulo AdminTesouraria carregado v2.0.0 (Badges Financeiros)');
