@@ -102,9 +102,12 @@ python3 gemini_audit.py "Analise segurança" --model gemini-2.5-pro
 ## ⚠️ VERIFICAR TAREFAS PENDENTES
 
 **Antes de começar qualquer trabalho novo, verifique:**
-```
-.claude/pending-tasks.md
-```
+
+| Arquivo | Propósito |
+|---------|-----------|
+| `.claude/pending-tasks.md` | Tarefas **confirmadas** para implementar |
+| `.claude/ideias-backlog.md` | Ideias em aberto, **não validadas** ainda |
+
 Use `/retomar-tarefas` para carregar o contexto de sessões anteriores.
 
 ---
@@ -120,6 +123,7 @@ Não adicione regras detalhadas aqui. Adicione na Skill correspondente.
 | `frontend-crafter` | UX Mobile, Cores (#FF5500), Cache IndexedDB, Navegação v3.0 |
 | `db-guardian` | MongoDB, Migração de temporada, Scripts de manutenção |
 | `code-inspector` | Auditoria, Debugging, Segurança, Qualidade |
+| `system-scribe` | Documentação, Explicações de regras, Wiki viva (usa Gemini) |
 
 ---
 
