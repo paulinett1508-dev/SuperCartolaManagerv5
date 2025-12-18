@@ -1,14 +1,21 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v8.0 (CACHE-FIRST INSTANTÂNEO)
+// PARTICIPANTE-BOAS-VINDAS.JS - v9.0 (BANNER RESUMO 2025 + TEMPORADA)
 // =====================================================================
+// ✅ v9.0: Banner de Resumo da Temporada Anterior (2025)
+//    - Exibe posição final, badges e saldo de 2025
+//    - Indicação clara de "Nova Temporada 2026"
 // ✅ v8.0: Carregamento INSTANTÂNEO com cache offline (IndexedDB)
-//    - Mostra dados do cache imediatamente
-//    - Atualiza em background sem recarregar
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
-// ✅ v7.4: Usa ParticipanteCache para evitar recarregamentos
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v8.0...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v9.0...");
+
+// Configuração de temporada (com fallback seguro)
+const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
+const TEMPORADA_ANTERIOR = window.ParticipanteConfig?.PREVIOUS_SEASON || 2025;
+
+// Estado do histórico
+let historicoParticipante = null;
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL
@@ -100,7 +107,7 @@ export async function inicializarBoasVindasParticipante(params) {
 window.inicializarBoasVindasParticipante = inicializarBoasVindasParticipante;
 
 // =====================================================================
-// CARREGAR DADOS E RENDERIZAR - v8.0 CACHE-FIRST
+// CARREGAR DADOS E RENDERIZAR - v9.0 COM HISTÓRICO
 // =====================================================================
 async function carregarDadosERenderizar(ligaId, timeId, participante) {
     const container = document.getElementById("boas-vindas-container");
@@ -108,6 +115,9 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 
     const cache = window.ParticipanteCache;
     const meuTimeIdNum = Number(timeId);
+
+    // ✅ v9.0: Buscar histórico do participante em background
+    buscarHistoricoParticipante(timeId);
 
     // =========================================================================
     // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
@@ -289,6 +299,126 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
 }
 
 // =====================================================================
+// ✅ v9.0: BUSCAR HISTÓRICO DO PARTICIPANTE
+// =====================================================================
+async function buscarHistoricoParticipante(timeId) {
+    try {
+        const response = await fetch(`/api/participante/historico/${timeId}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                historicoParticipante = data;
+                if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "📜 Histórico carregado:", {
+                    temporadas: data.historico?.length || 0
+                });
+                // Re-renderizar banner se já tem container
+                renderizarBannerHistorico();
+            }
+        }
+    } catch (error) {
+        if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "⚠️ Histórico não disponível");
+    }
+}
+
+// =====================================================================
+// ✅ v9.0: RENDERIZAR BANNER DE HISTÓRICO (Resumo 2025)
+// =====================================================================
+function renderizarBannerHistorico() {
+    const container = document.getElementById("boas-vindas-container");
+    if (!container || !historicoParticipante) return;
+
+    // Verificar se já existe o banner
+    if (document.getElementById("banner-historico-2025")) return;
+
+    // Buscar dados da temporada anterior
+    const temporadaAnterior = historicoParticipante.historico?.find(
+        h => h.ano === TEMPORADA_ANTERIOR
+    );
+
+    if (!temporadaAnterior) return;
+
+    const stats = temporadaAnterior.estatisticas || {};
+    const financeiro = temporadaAnterior.financeiro || {};
+    const badges = temporadaAnterior.conquistas?.badges || [];
+
+    // Formatar saldo
+    const saldo = financeiro.saldo_final || 0;
+    const saldoAbs = Math.abs(saldo);
+    const saldoFormatado = saldo >= 0
+        ? `+R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`
+        : `-R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`;
+    const saldoCor = saldo > 0 ? "#4ade80" : saldo < 0 ? "#f87171" : "#9ca3af";
+
+    // Renderizar badges
+    const badgesHTML = badges.slice(0, 3).map(badgeId => {
+        const config = window.ParticipanteConfig?.BADGES_CONFIG?.[badgeId] ||
+            { icon: "🎖️", nome: badgeId.replace(/_/g, " ").replace(/\d{4}/, "") };
+        return `<span class="badge-mini" title="${config.nome}">${config.icon}</span>`;
+    }).join("");
+
+    // Criar banner HTML
+    const bannerHTML = `
+        <div id="banner-historico-2025" class="mx-4 mb-4 rounded-xl overflow-hidden" style="background: linear-gradient(135deg, rgba(255, 69, 0, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%); border: 1px solid rgba(255, 69, 0, 0.2);">
+            <!-- Header do Banner -->
+            <div class="flex items-center justify-between px-4 py-3" style="background: rgba(0,0,0,0.2);">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary" style="font-size: 20px;">history</span>
+                    <span class="text-xs font-bold text-white/90 uppercase tracking-wide">Resumo ${TEMPORADA_ANTERIOR}</span>
+                </div>
+                <button onclick="document.getElementById('banner-historico-2025').style.display='none'" class="text-white/50 hover:text-white/80">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                </button>
+            </div>
+
+            <!-- Conteúdo -->
+            <div class="px-4 py-3">
+                <div class="flex items-center justify-between">
+                    <!-- Posição Final -->
+                    <div class="text-center">
+                        <p class="text-3xl font-bold text-white">${stats.posicao_final || "-"}º</p>
+                        <p class="text-[10px] text-white/60 uppercase">Posição Final</p>
+                    </div>
+
+                    <!-- Pontos -->
+                    <div class="text-center">
+                        <p class="text-lg font-bold text-white">${(stats.pontos_totais || 0).toLocaleString("pt-BR", { maximumFractionDigits: 0 })}</p>
+                        <p class="text-[10px] text-white/60 uppercase">Pontos</p>
+                    </div>
+
+                    <!-- Saldo -->
+                    <div class="text-center">
+                        <p class="text-lg font-bold" style="color: ${saldoCor}">${saldoFormatado}</p>
+                        <p class="text-[10px] text-white/60 uppercase">Saldo</p>
+                    </div>
+
+                    <!-- Badges -->
+                    ${badges.length > 0 ? `
+                        <div class="text-center">
+                            <div class="flex gap-1 justify-center text-xl">${badgesHTML}</div>
+                            <p class="text-[10px] text-white/60 uppercase">Conquistas</p>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Link para Hall da Fama -->
+                <button onclick="window.participanteNav?.navegarPara('historico')"
+                        class="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold text-primary"
+                        style="background: rgba(255, 69, 0, 0.15);">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">emoji_events</span>
+                    Ver Hall da Fama Completo
+                </button>
+            </div>
+        </div>
+    `;
+
+    // Inserir após a saudação
+    const saudacao = container.querySelector(".px-4.py-4");
+    if (saudacao) {
+        saudacao.insertAdjacentHTML("afterend", bannerHTML);
+    }
+}
+
+// =====================================================================
 // HELPERS
 // =====================================================================
 function calcularRankingManual(rodadas) {
@@ -428,9 +558,14 @@ function renderizarBoasVindas(container, data) {
     container.innerHTML = `
         <div class="pb-28">
 
-            <!-- Saudação -->
+            <!-- Saudação com indicador de temporada -->
             <div class="px-4 py-4">
-                <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
+                <div class="flex items-center justify-between mb-1">
+                    <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
+                    <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide" style="background: linear-gradient(135deg, #ff4500, #e63e00); color: white;">
+                        ${TEMPORADA_ATUAL}
+                    </span>
+                </div>
                 <p class="text-sm font-normal text-white/70">${nomeLiga} • Rodada ${rodadaAtual || "--"}</p>
             </div>
 
@@ -531,4 +666,4 @@ function renderizarBoasVindas(container, data) {
 }
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Módulo v7.2 carregado");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Módulo v9.0 carregado (Banner Resumo 2025)");

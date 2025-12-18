@@ -27,6 +27,7 @@ class ParticipanteNavigation {
             extrato: "/participante/fronts/extrato.html",
             ranking: "/participante/fronts/ranking.html",
             rodadas: "/participante/fronts/rodadas.html",
+            historico: "/participante/fronts/historico.html",
             top10: "/participante/fronts/top10.html",
             "melhor-mes": "/participante/fronts/melhor-mes.html",
             "pontos-corridos": "/participante/fronts/pontos-corridos.html",
@@ -216,6 +217,7 @@ class ParticipanteNavigation {
             { id: "extrato", icon: "payments", label: "Extrato", config: "extrato", base: true },
             { id: "ranking", icon: "bar_chart", label: "Ranking", config: "ranking", base: true },
             { id: "rodadas", icon: "target", label: "Rodadas", config: "rodadas", base: true },
+            { id: "historico", icon: "emoji_events", label: "Hall da Fama", config: "historico", base: true },
             { id: "top10", icon: "format_list_numbered", label: "Top 10", config: "top10", base: false },
             { id: "melhor-mes", icon: "calendar_month", label: "Melhor Mês", config: "melhorMes", base: false },
             { id: "pontos-corridos", icon: "sync", label: "P. Corridos", config: "pontosCorridos", base: false },
@@ -253,9 +255,18 @@ class ParticipanteNavigation {
     }
 
     verificarModuloAtivo(configKey) {
+        // Módulos base sempre ativos (historico é Hall da Fama)
+        const modulosBase = ["extrato", "ranking", "rodadas", "historico"];
+
         if (!this.modulosAtivos || Object.keys(this.modulosAtivos).length === 0) {
-            return ["extrato", "ranking", "rodadas"].includes(configKey);
+            return modulosBase.includes(configKey);
         }
+
+        // Módulos base sempre ativos, outros dependem da configuração
+        if (modulosBase.includes(configKey)) {
+            return true;
+        }
+
         return this.modulosAtivos[configKey] === true;
     }
 
@@ -655,6 +666,7 @@ class ParticipanteNavigation {
             extrato: "Extrato Financeiro",
             ranking: "Ranking Geral",
             rodadas: "Rodadas",
+            historico: "Hall da Fama",
             top10: "Top 10",
             "melhor-mes": "Melhor Mês",
             "pontos-corridos": "Pontos Corridos",
@@ -688,6 +700,7 @@ class ParticipanteNavigation {
             extrato: "/participante/js/modules/participante-extrato.js",
             ranking: "/participante/js/modules/participante-ranking.js",
             rodadas: "/participante/js/modules/participante-rodadas.js",
+            historico: "/participante/js/modules/participante-historico.js",
             top10: "/participante/js/modules/participante-top10.js",
             "melhor-mes": "/participante/js/modules/participante-melhor-mes.js",
             "pontos-corridos": "/participante/js/modules/participante-pontos-corridos.js",

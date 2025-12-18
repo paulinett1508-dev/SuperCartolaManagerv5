@@ -2,46 +2,47 @@
 
 ## Status Atual
 
-**3 tarefas de alta prioridade para próxima sessão.**
+**Nenhuma tarefa pendente de alta prioridade.**
 
 ---
 
-## ALTA PRIORIDADE - Próxima Sessão
+## Concluído - Sessão 2025-12-18
 
-### 1. Hall da Fama / Histórico do Participante
-**Problema:** O `users_registry.json` (Cartório Vitalício) contém dados de 2025 mas NÃO é consumido por nenhuma tela do App. Quando a temporada 2026 começar, o participante verá telas vazias.
+### Banner de Boas-Vindas com Resumo 2025 (100% Completo)
+- [x] Adicionar banner no `boas-vindas.html` mostrando resumo de 2025
+- [x] Exibir posição final, badges conquistados
+- [x] Mostrar saldo financeiro de 2025
+- [x] Indicador de temporada atual no header da saudação
 
-**Tarefas:**
-- [ ] Criar rota backend `/api/participante/:timeId/historico` que lê `users_registry.json`
-- [ ] Criar tela `public/participante/fronts/historico.html` (Hall da Fama pessoal)
-- [ ] Criar módulo `public/participante/js/modules/participante-historico.js`
-- [ ] Adicionar card "Meu Histórico" no menu de navegação do App
-- [ ] Exibir badges conquistados (campeão, vice, top10 mito/mico)
-- [ ] Exibir saldo financeiro de temporadas anteriores
-- [ ] Criar seletor de temporada (2025, 2026...)
+**Arquivos modificados:**
+- `public/participante/js/modules/participante-boas-vindas.js` (v9.0)
 
-**Referências:**
-- Dados salvos em: `data/users_registry.json`
-- Script que popula: `scripts/turn_key_2026.js` (Step 2: atualizarBadges)
-- Estrutura do usuário: `{id, historico[], situacao_financeira, conquistas}`
+### Seletor de Temporada Global (100% Completo)
+- [x] Criar componente de seletor de ano (2025/2026)
+- [x] Persistir preferência no localStorage
+- [x] Indicador visual de modo histórico
+- [x] Integrar no header secundário do App
 
-### 2. Banner de Boas-Vindas com Resumo 2025
-**Problema:** Participante não sabe visualmente que está numa nova temporada.
+**Arquivos criados/modificados:**
+- `public/participante/js/participante-config.js` (novo)
+- `public/participante/js/participante-season-selector.js` (novo)
+- `public/participante/index.html` (header atualizado)
 
-**Tarefas:**
-- [ ] Adicionar banner no `boas-vindas.html` mostrando resumo de 2025
-- [ ] Exibir posição final, badges conquistados
-- [ ] Mostrar saldo financeiro pendente (se houver)
-- [ ] Indicar claramente "Temporada 2026 - Nova Jornada"
+### Hall da Fama / Histórico do Participante (100% Completo)
+- [x] Criar rota backend `/api/participante/historico/:timeId`
+- [x] Criar tela `public/participante/fronts/historico.html`
+- [x] Criar módulo `public/participante/js/modules/participante-historico.js`
+- [x] Adicionar "Hall da Fama" no menu de navegação do App
+- [x] Exibir badges conquistados (campeão, vice, top10 mito/mico)
+- [x] Exibir saldo financeiro de temporadas anteriores
+- [x] Criar seletor de temporada (2025, 2026...)
 
-### 3. Seletor de Temporada Global
-**Problema:** Não existe UI para alternar entre temporadas.
-
-**Tarefas:**
-- [ ] Criar componente de seletor de ano (2025/2026)
-- [ ] Persistir preferência no localStorage
-- [ ] Quando em 2025, mostrar dados do `users_registry.json` (histórico)
-- [ ] Quando em 2026, mostrar dados ao vivo do MongoDB
+**Arquivos criados/modificados:**
+- `routes/participante-historico-routes.js` (nova rota)
+- `public/participante/fronts/historico.html` (nova tela)
+- `public/participante/js/modules/participante-historico.js` (novo módulo)
+- `public/participante/js/participante-navigation.js` (menu atualizado)
+- `index.js` (registro da rota)
 
 ---
 

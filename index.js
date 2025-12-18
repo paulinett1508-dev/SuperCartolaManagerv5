@@ -72,6 +72,7 @@ import configuracaoRoutes from "./routes/configuracao-routes.js";
 import fluxoFinanceiroRoutes from "./routes/fluxoFinanceiroRoutes.js";
 import extratoFinanceiroCacheRoutes from "./routes/extratoFinanceiroCacheRoutes.js";
 import participanteAuthRoutes from "./routes/participante-auth.js";
+import participanteHistoricoRoutes from "./routes/participante-historico-routes.js";
 import pontosCorridosCacheRoutes from "./routes/pontosCorridosCacheRoutes.js";
 import pontosCorridosMigracaoRoutes from "./routes/pontosCorridosMigracaoRoutes.js";
 import top10CacheRoutes from "./routes/top10CacheRoutes.js";
@@ -254,6 +255,7 @@ console.log("[SERVER] 👁️ Rota de usuários online registrada");
 // Aplicar rate limiting específico para login
 app.use("/api/participante/auth/login", authRateLimiter);
 app.use("/api/participante/auth", participanteAuthRoutes);
+app.use("/api/participante/historico", participanteHistoricoRoutes);
 
 // ====================================================================
 // 📦 ROTA DE VERSÃO DO APP (antes do protegerRotas)

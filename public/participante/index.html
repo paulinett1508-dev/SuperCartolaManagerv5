@@ -235,14 +235,15 @@
                 background: rgba(0, 0, 0, 0.2);
             }
             .header-secondary.active {
-                max-height: 70px;
+                max-height: 120px;
             }
             .secondary-content {
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
+                justify-content: flex-start;
+                flex-wrap: wrap;
                 padding: 10px 12px;
-                gap: 10px;
+                gap: 8px;
             }
             .liga-selector {
                 flex: 1;
@@ -785,6 +786,8 @@
                 <!-- HEADER SECUNDÁRIO (COLLAPSED) -->
                 <div id="headerSecondary" class="header-secondary">
                     <div class="secondary-content">
+                        <!-- Seletor de Temporada -->
+                        <div id="seasonSelectorContainer"></div>
                         <select id="seletorLiga" class="liga-selector">
                             <option></option>
                         </select>
@@ -797,6 +800,18 @@
                     </div>
                 </div>
             </header>
+
+            <!-- Inicializar seletor de temporada -->
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    // Aguardar carregamento do seasonSelector
+                    setTimeout(() => {
+                        if (window.seasonSelector) {
+                            window.seasonSelector.renderizarEm("seasonSelectorContainer");
+                        }
+                    }, 500);
+                });
+            </script>
 
             <script>
                 document.addEventListener("DOMContentLoaded", function () {
@@ -877,6 +892,7 @@
         <script src="js/splash-screen.js"></script>
 
         <!-- ✅ Sistema de Cache Offline (IndexedDB) - ANTES do cache-manager -->
+        <script src="js/participante-config.js"></script>
         <script src="js/participante-offline-cache.js"></script>
 
         <!-- ✅ Cache Manager Participante (usa OfflineCache) -->
@@ -888,6 +904,7 @@
         <!-- Scripts participante -->
         <script src="js/participante-auth.js"></script>
         <script src="js/participante-navigation.js"></script>
+        <script src="js/participante-season-selector.js" type="module"></script>
         <script src="js/participante-status.js"></script>
 
         <!-- ✅ Pull-to-Refresh (Bola Quicando) -->
