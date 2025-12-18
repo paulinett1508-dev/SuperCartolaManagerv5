@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v5.7"; // v5.7: Troco automático - Pagamento a maior gera saldo positivo
+const CACHE_BUSTER = "v6.1"; // v6.1: FIX - Acertos financeiros incluídos no saldo do cabeçalho
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -202,7 +202,7 @@ async function inicializarSistemaFinanceiro(ligaId) {
 
     // Expor função de recarregar para uso após acertos
     window.fluxoFinanceiroOrquestrador = {
-        recarregar: () => carregarDadosIniciais(),
+        recarregar: () => inicializarSistemaFinanceiro(obterLigaId()),
     };
 }
 
@@ -1087,6 +1087,13 @@ window.confirmarAcertoFinanceiro = async function (ligaId, timeId, nomeTime) {
         } else {
             // Mostrar toast de sucesso normal
             mostrarToastAcerto(`Acerto de R$ ${valor.toFixed(2).replace(".", ",")} registrado!`, true);
+        }
+
+        // ✅ v6.1 FIX: INVALIDAR CACHE DO EXTRATO APÓS O ACERTO
+        // Sem isso, o cache antigo (sem o acerto) continuaria sendo retornado
+        console.log(`[ACERTOS] 🔄 Invalidando cache de extrato para time ${timeId} após acerto.`);
+        if (window.invalidarCacheTime) {
+            await window.invalidarCacheTime(ligaId, timeId);
         }
 
         // Recarregar extrato se estiver visualizando

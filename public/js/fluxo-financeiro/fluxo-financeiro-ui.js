@@ -1905,7 +1905,13 @@ export class FluxoFinanceiroUI {
                 }
                 alert(msg);
 
-                // Recarregar módulo
+                // ✅ v6.1 FIX: INVALIDAR CACHE DO EXTRATO APÓS O ACERTO
+                console.log(`[FLUXO-UI] 🔄 Invalidando cache de extrato para time ${timeIdAtual} após acerto.`);
+                if (window.invalidarCacheTime) {
+                    await window.invalidarCacheTime(ligaId, timeIdAtual);
+                }
+
+                // Recarregar módulo (agora com cache invalidado, forçará recálculo)
                 if (window.recarregarFluxoFinanceiro) {
                     window.recarregarFluxoFinanceiro();
                 }

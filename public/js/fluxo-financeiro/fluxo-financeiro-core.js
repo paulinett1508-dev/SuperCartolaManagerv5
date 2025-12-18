@@ -1,4 +1,5 @@
-// FLUXO-FINANCEIRO-CORE.JS v6.0 - SaaS DINAMICO
+// FLUXO-FINANCEIRO-CORE.JS v6.1 - FIX ACERTOS FINANCEIROS
+// ✅ v6.1: FIX - Inclui acertos financeiros no cálculo do saldo final
 // ✅ v4.1: Trava extrato para inativos na rodada_desistencia
 // ✅ v4.2: Tabelas contextuais corrigidas
 // ✅ v4.3: Fix await no _carregarMataMataMap + logs debug
@@ -36,6 +37,34 @@ export class FluxoFinanceiroCore {
         this.mataMataMap = new Map();
         this.ligaConfig = null; // v6.0: Config dinamica da liga
         this._integrarMataMata();
+    }
+
+    // ✅ v6.1: Buscar acertos financeiros do participante
+    async _buscarAcertosFinanceiros(ligaId, timeId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/acertos/${ligaId}/${timeId}`);
+            const result = await response.json();
+
+            if (!result.success || !result.acertos || result.acertos.length === 0) {
+                return {
+                    lista: [],
+                    resumo: { totalPago: 0, totalRecebido: 0, saldo: 0 },
+                };
+            }
+
+            console.log(`[FLUXO-CORE] 💰 Acertos carregados: ${result.acertos.length} registros | Saldo: R$ ${result.resumo?.saldo?.toFixed(2) || 0}`);
+
+            return {
+                lista: result.acertos,
+                resumo: result.resumo || { totalPago: 0, totalRecebido: 0, saldo: 0 },
+            };
+        } catch (error) {
+            console.warn(`[FLUXO-CORE] ⚠️ Erro ao buscar acertos:`, error.message);
+            return {
+                lista: [],
+                resumo: { totalPago: 0, totalRecebido: 0, saldo: 0 },
+            };
+        }
     }
 
     // ✅ v6.0: Carregar config da liga
@@ -265,6 +294,10 @@ export class FluxoFinanceiroCore {
                             await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(
                                 timeId,
                             );
+
+                        // ✅ v6.1: Buscar acertos financeiros em paralelo
+                        const acertos = await this._buscarAcertosFinanceiros(ligaId, timeId);
+
                         const resumoRecalculado = this._recalcularResumoDoCache(
                             rodadasFiltradas,
                             camposEditaveis,
@@ -282,9 +315,11 @@ export class FluxoFinanceiroCore {
                                 parseFloat(camposEditaveis.campo3?.valor) || 0,
                             campo4:
                                 parseFloat(camposEditaveis.campo4?.valor) || 0,
+                            // ✅ v6.1: Incluir saldo de acertos no resumo
+                            saldo_acertos: acertos?.resumo?.saldo ?? 0,
                         };
 
-                        // ✅ v4.2: CALCULAR SALDO FINAL (estava faltando!)
+                        // ✅ v4.2: CALCULAR SALDO FINAL (agora inclui acertos!)
                         resumoCompleto.saldo =
                             this._calcularSaldoFinal(resumoCompleto);
 
@@ -292,6 +327,7 @@ export class FluxoFinanceiroCore {
                             rodadas: rodadasFiltradas,
                             resumo: resumoCompleto,
                             camposEditaveis: camposEditaveis,
+                            acertos: acertos, // ✅ v6.1: Incluir acertos no extrato
                             totalTimes: rodadasFiltradas[0]?.totalTimes || 32,
                             updatedAt: cacheValido.updatedAt,
                             // ✅ v4.1: Informações de inativo
@@ -303,8 +339,9 @@ export class FluxoFinanceiroCore {
                                 : null,
                         };
 
+                        const saldoAcertosLog = acertos?.resumo?.saldo ?? 0;
                         console.log(
-                            `[FLUXO-CORE] ✅ Extrato do cache: ${rodadasFiltradas.length} rodadas | Saldo: R$ ${extratoDoCache.resumo.saldo.toFixed(2)}${isInativo ? " | TRAVADO" : ""}`,
+                            `[FLUXO-CORE] ✅ Extrato do cache: ${rodadasFiltradas.length} rodadas | Saldo: R$ ${extratoDoCache.resumo.saldo.toFixed(2)} (inclui acertos: R$ ${saldoAcertosLog.toFixed(2)})${isInativo ? " | TRAVADO" : ""}`,
                         );
 
                         return extratoDoCache;
@@ -327,6 +364,9 @@ export class FluxoFinanceiroCore {
 
         const camposEditaveis =
             await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+
+        // ✅ v6.1: Buscar acertos financeiros
+        const acertos = await this._buscarAcertosFinanceiros(ligaId, timeId);
 
         // ✅ v4.3: AWAIT no _carregarMataMataMap
         const resultadosMataMata = this.mataMataIntegrado
@@ -363,9 +403,12 @@ export class FluxoFinanceiroCore {
                 vezesMico: 0,
                 saldo: 0,
                 top10: 0,
+                // ✅ v6.1: Incluir saldo de acertos
+                saldo_acertos: acertos?.resumo?.saldo ?? 0,
             },
             totalTimes: 0,
             camposEditaveis: camposEditaveis,
+            acertos: acertos, // ✅ v6.1: Incluir acertos no extrato
             // ✅ v4.1: Informações de inativo
             inativo: isInativo,
             rodadaDesistencia: rodadaDesistencia,
@@ -429,8 +472,9 @@ export class FluxoFinanceiroCore {
             "calculo_completo",
         );
 
+        const saldoAcertosLogFinal = acertos?.resumo?.saldo ?? 0;
         console.log(
-            `[FLUXO-CORE] ✅ Extrato: ${extrato.rodadas.length} rodadas | Saldo: R$ ${extrato.resumo.saldo.toFixed(2)}${isInativo ? " | TRAVADO" : ""}`,
+            `[FLUXO-CORE] ✅ Extrato: ${extrato.rodadas.length} rodadas | Saldo: R$ ${extrato.resumo.saldo.toFixed(2)} (inclui acertos: R$ ${saldoAcertosLogFinal.toFixed(2)})${isInativo ? " | TRAVADO" : ""}`,
         );
 
         return extrato;
@@ -775,6 +819,8 @@ export class FluxoFinanceiroCore {
     _calcularSaldoFinal(resumo) {
         const pontosCorridos =
             resumo.pontosCorridos === null ? 0 : resumo.pontosCorridos;
+        // ✅ v6.1: Incluir saldo de acertos financeiros no cálculo
+        const saldoAcertos = resumo.saldo_acertos || 0;
         return (
             resumo.bonus +
             resumo.onus +
@@ -784,7 +830,8 @@ export class FluxoFinanceiroCore {
             resumo.campo1 +
             resumo.campo2 +
             resumo.campo3 +
-            resumo.campo4
+            resumo.campo4 +
+            saldoAcertos // ✅ v6.1: Somar acertos (positivo = recebimento, negativo = pagamento)
         );
     }
 
@@ -893,4 +940,4 @@ window.forcarRefreshExtrato = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-CORE] ✅ v6.0 SaaS Dinamico carregado");
+console.log("[FLUXO-CORE] ✅ v6.1 FIX Acertos Financeiros carregado");

@@ -1,7 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v3.3 (ACERTOS FINANCEIROS)
+// PARTICIPANTE-EXTRATO.JS - v3.4 (FIX CAMPOS MANUAIS)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v3.4: FIX - Re-renderiza quando campos manuais (ajustes) ou saldo mudam
 // ✅ v3.3: ACERTOS FINANCEIROS - Exibe pagamentos/recebimentos no extrato
 // ✅ v3.2: FIX - Detecta ausência de MATA_MATA mesmo com temporada encerrada
 // ✅ v3.1: CACHE-FIRST - Carregamento instantâneo do IndexedDB
@@ -15,7 +16,7 @@ const RODADA_FINAL_CAMPEONATO = 38;
 const CAMPEONATO_ENCERRADO = true; // ✅ v3.0: Temporada 2025 finalizada
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.3 ACERTOS-FINANCEIROS (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.4 FIX-CAMPOS-MANUAIS (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -385,7 +386,7 @@ async function carregarExtrato(ligaId, timeId) {
             if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", "💾 Dados salvos no cache local");
         }
 
-        // ✅ v3.3: Verificar se dados novos têm mudanças que justificam re-render
+        // ✅ v3.4: Verificar se dados novos têm mudanças que justificam re-render
         let deveReRenderizar = !usouCache;
         if (usouCache && extratoDataCache) {
             // Cache local tinha MM?
@@ -410,6 +411,35 @@ async function carregarExtrato(ligaId, timeId) {
                     novoQtd: acertosNovos,
                     cacheSaldo: saldoAcertosCache,
                     novoSaldo: saldoAcertosNovo
+                });
+                deveReRenderizar = true;
+            }
+
+            // ✅ v3.4 FIX: Verificar se campos manuais (ajustes) mudaram
+            const camposCacheLocal = extratoDataCache.camposManuais || [];
+            const camposNovos = extratoData.camposManuais || [];
+            const totalCamposCache = camposCacheLocal.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+            const totalCamposNovo = camposNovos.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+
+            if (totalCamposCache !== totalCamposNovo || camposCacheLocal.length !== camposNovos.length) {
+                if (window.Log) Log.info("EXTRATO-PARTICIPANTE", "🔄 Campos manuais (ajustes) mudaram - re-renderizando!", {
+                    cacheTotal: totalCamposCache,
+                    novoTotal: totalCamposNovo,
+                    cacheQtd: camposCacheLocal.length,
+                    novoQtd: camposNovos.length
+                });
+                deveReRenderizar = true;
+            }
+
+            // ✅ v3.4 FIX: Verificar se o saldo total mudou (fallback seguro)
+            const saldoCache = extratoDataCache.resumo?.saldo ?? extratoDataCache.resumo?.saldo_final ?? 0;
+            const saldoNovo = extratoData.resumo?.saldo ?? extratoData.resumo?.saldo_final ?? 0;
+
+            if (Math.abs(saldoCache - saldoNovo) > 0.01) {
+                if (window.Log) Log.info("EXTRATO-PARTICIPANTE", "🔄 Saldo total mudou - re-renderizando!", {
+                    saldoCache,
+                    saldoNovo,
+                    diferenca: (saldoNovo - saldoCache).toFixed(2)
                 });
                 deveReRenderizar = true;
             }
@@ -837,5 +867,5 @@ export function initExtratoParticipante() {
 if (window.Log)
     Log.info(
         "EXTRATO-PARTICIPANTE",
-        "✅ Módulo v3.3 carregado (ACERTOS FINANCEIROS)",
+        "✅ Módulo v3.4 carregado (FIX CAMPOS MANUAIS)",
     );
