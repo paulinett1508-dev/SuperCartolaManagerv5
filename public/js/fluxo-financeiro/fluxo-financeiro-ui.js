@@ -2306,6 +2306,8 @@ export class FluxoFinanceiroUI {
                     </table>
                 </div>
             </div>
+
+            ${this._renderizarSecaoAcertos(extrato)}
         </div>
         `;
 
@@ -2319,6 +2321,76 @@ export class FluxoFinanceiroUI {
         } else {
             console.log('[FLUXO-UI] Modal não aberto:', { modalAtivo: !!modalAtivo, participante: !!participante });
         }
+    }
+
+    /**
+     * ✅ v6.2: Renderiza seção de Acertos Financeiros no extrato
+     * Mostra a composição do saldo: Rodadas + Acertos = Saldo Final
+     */
+    _renderizarSecaoAcertos(extrato) {
+        const acertos = extrato.acertos?.lista || [];
+        const saldoTemporada = extrato.resumo?.saldo_temporada ?? extrato.resumo?.saldo ?? 0;
+        const saldoAcertos = extrato.resumo?.saldo_acertos ?? 0;
+        const saldoFinal = extrato.resumo?.saldo ?? 0;
+
+        // Se não tem acertos, não mostrar seção
+        if (acertos.length === 0 && saldoAcertos === 0) {
+            return '';
+        }
+
+        const formatarValor = (v) => Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        const corSaldoTemp = saldoTemporada >= 0 ? 'text-success' : 'text-danger';
+        const corSaldoAcertos = saldoAcertos >= 0 ? 'text-success' : 'text-danger';
+        const corSaldoFinal = saldoFinal >= 0 ? 'text-success' : 'text-danger';
+
+        // Lista de acertos
+        const acertosHTML = acertos.map(a => {
+            const isPagamento = a.tipo === 'pagamento';
+            const cor = isPagamento ? '#34d399' : '#f87171';
+            const icone = isPagamento ? 'arrow_upward' : 'arrow_downward';
+            const sinal = isPagamento ? '+' : '-';
+            const tipoLabel = isPagamento ? 'PAGOU' : 'RECEBEU';
+            const data = a.dataAcerto ? new Date(a.dataAcerto).toLocaleDateString('pt-BR') : '--';
+
+            return `
+                <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border-left: 3px solid ${cor}; margin-bottom: 6px;">
+                    <span class="material-icons" style="font-size: 18px; color: ${cor};">${icone}</span>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 12px; color: #fff; font-weight: 500;">${a.descricao || 'Acerto'}</div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.5);">${data} • ${tipoLabel}</div>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 700; color: ${cor};">${sinal}R$ ${formatarValor(a.valor)}</div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="card-padrao" style="margin-top: 16px;">
+                <h3 class="card-titulo" style="display: flex; align-items: center; gap: 8px;">
+                    <span class="material-icons" style="font-size: 16px; color: var(--laranja);">payments</span>
+                    Acertos Financeiros
+                </h3>
+
+                <!-- Lista de acertos -->
+                ${acertosHTML || '<div style="padding: 12px; text-align: center; color: rgba(255,255,255,0.4); font-size: 12px;">Nenhum acerto registrado</div>'}
+
+                <!-- Resumo da composição -->
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 13px;">
+                        <span style="color: rgba(255,255,255,0.7);">Saldo Financeiro:</span>
+                        <span class="${corSaldoTemp}" style="font-weight: 600;">${saldoTemporada >= 0 ? '+' : '-'}R$ ${formatarValor(saldoTemporada)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 13px;">
+                        <span style="color: rgba(255,255,255,0.7);">Acertos Manuais:</span>
+                        <span class="${corSaldoAcertos}" style="font-weight: 600;">${saldoAcertos >= 0 ? '+' : '-'}R$ ${formatarValor(saldoAcertos)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-top: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 14px;">
+                        <span style="color: #fff; font-weight: 700;">SALDO FINAL:</span>
+                        <span class="${corSaldoFinal}" style="font-weight: 700; font-size: 16px;">${saldoFinal >= 0 ? '+' : '-'}R$ ${formatarValor(saldoFinal)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     async renderizarCamposEditaveis(timeId) {
