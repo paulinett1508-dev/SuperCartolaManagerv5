@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v6.1"; // v6.1: FIX - Acertos financeiros incluídos no saldo do cabeçalho
+const CACHE_BUSTER = "v6.3"; // v6.3: Terminologia correta (DEVE/A RECEBER/QUITADO)
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -842,13 +842,27 @@ async function carregarHistoricoAcertos(ligaId, timeId) {
         // Resumo no topo
         const resumo = result.resumo || {};
         const saldo = resumo.saldo || 0;
-        const corSaldo = saldo >= 0 ? "#34d399" : "#f87171";
-        const txtSaldo = saldo >= 0 ? "A receber" : "A pagar";
+
+        // ✅ v6.3: Terminologia correta
+        // DEVE = saldo negativo, participante ainda deve à liga
+        // A RECEBER = saldo positivo, participante tem crédito (admin vai pagar)
+        // QUITADO = saldo zero, tudo acertado
+        let txtSaldo, corSaldo;
+        if (saldo === 0) {
+            txtSaldo = "QUITADO";
+            corSaldo = "#a3a3a3"; // cinza neutro
+        } else if (saldo > 0) {
+            txtSaldo = "A RECEBER";
+            corSaldo = "#34d399"; // verde
+        } else {
+            txtSaldo = "DEVE";
+            corSaldo = "#f87171"; // vermelho
+        }
 
         let html = `
             <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center;">
                 <div style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">${txtSaldo}</div>
-                <div style="font-size: 28px; font-weight: 700; color: ${corSaldo};">R$ ${Math.abs(saldo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                <div style="font-size: 28px; font-weight: 700; color: ${corSaldo};">${saldo !== 0 ? 'R$ ' + Math.abs(saldo).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : '✓'}</div>
                 <div style="display: flex; justify-content: center; gap: 20px; margin-top: 12px; font-size: 12px;">
                     <span style="color: #34d399;">↑ R$ ${(resumo.totalRecebido || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                     <span style="color: #f87171;">↓ R$ ${(resumo.totalPago || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>

@@ -2232,13 +2232,22 @@ export class FluxoFinanceiroUI {
         this.popularCacheBackend(timeId, extrato);
 
         const saldoFinal = parseFloat(extrato.resumo.saldo) || 0;
-        const classeSaldo = saldoFinal >= 0 ? "text-success" : "text-danger";
-        const labelSaldo =
-            saldoFinal >= 0
-                ? '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">savings</span> Saldo a Receber'
-                : saldoFinal < 0
-                  ? '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">payments</span> Saldo a Pagar'
-                  : '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">check_circle</span> Saldo Quitado';
+
+        // ✅ v6.3: Terminologia correta
+        // DEVE = saldo negativo, participante ainda deve à liga
+        // A RECEBER = saldo positivo, participante tem crédito (admin vai pagar)
+        // QUITADO = saldo zero, tudo acertado
+        let classeSaldo, labelSaldo;
+        if (saldoFinal === 0) {
+            classeSaldo = "text-muted";
+            labelSaldo = '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">check_circle</span> QUITADO';
+        } else if (saldoFinal > 0) {
+            classeSaldo = "text-success";
+            labelSaldo = '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">savings</span> A RECEBER';
+        } else {
+            classeSaldo = "text-danger";
+            labelSaldo = '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">payments</span> DEVE';
+        }
 
         // ✅ v6.0: HTML simplificado para o modal (sem botões no header, agora no footer do modal)
         let html = `
@@ -3606,8 +3615,18 @@ window.exportarExtratoPDF = async function (timeId) {
         let y = desenharHeader(false);
 
         // Saldo central
-        const corSaldo = saldo >= 0 ? [34, 197, 94] : [239, 68, 68];
-        const txtSaldo = saldo >= 0 ? "SALDO A RECEBER" : "SALDO A PAGAR";
+        // ✅ v6.3: Terminologia correta
+        let corSaldo, txtSaldo;
+        if (saldo === 0) {
+            corSaldo = [150, 150, 150]; // cinza
+            txtSaldo = "QUITADO";
+        } else if (saldo > 0) {
+            corSaldo = [34, 197, 94]; // verde
+            txtSaldo = "A RECEBER";
+        } else {
+            corSaldo = [239, 68, 68]; // vermelho
+            txtSaldo = "DEVE";
+        }
 
         doc.setFillColor(30, 30, 35);
         doc.roundedRect(m, y, pw - 2 * m, 18, 2, 2, "F");
