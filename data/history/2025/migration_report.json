@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-12-18T01:42:38.226Z",
+  "status": "SUCCESS",
+  "versao_script": "2.1.0",
+  "steps": {
+    "snapshot": {
+      "status": "OK",
+      "ligas_exportadas": 2,
+      "arquivo": "/home/runner/workspace/data/history/2025/final_standings.json"
+    },
+    "badges": {
+      "status": "OK",
+      "usuarios_atualizados": 33,
+      "arquivo": "/home/runner/workspace/data/users_registry.json"
+    },
+    "backup": {
+      "status": "OK",
+      "diretorio": "/home/runner/workspace/data/backups/pre-wipe-2025-12-18T01-42-30",
+      "total_documentos": 7218,
+      "collections_exportadas": 9,
+      "erros": 0
+    },
+    "wipe": {
+      "status": "OK",
+      "collections": {}
+    },
+    "config": {
+      "status": "skipped",
+      "reason": "dry-run"
+    }
+  }
+}

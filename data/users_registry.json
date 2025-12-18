@@ -4,23 +4,31 @@
     "descricao": "Registro permanente de todos os participantes e seus históricos através das temporadas",
     "versao": "2.0.0",
     "criado_em": "2025-12-15",
-    "ultima_atualizacao": null
+    "ultima_atualizacao": "2025-12-18T13:30:37.169Z"
   },
   "config_renovacao": {
     "temporada_atual": 2026,
     "temporada_anterior": 2025,
     "prazo_renovacao": "2026-03-15T23:59:59-03:00",
     "prazo_quitacao": "2026-03-31T23:59:59-03:00",
-    "status_possiveis": ["pendente", "renovado", "nao_renovado", "quitado", "inadimplente"]
+    "status_possiveis": [
+      "pendente",
+      "renovado",
+      "nao_renovado",
+      "quitado",
+      "inadimplente"
+    ]
   },
   "users": [
     {
-      "id": "exemplo_user_id",
-      "nome": "Exemplo - Remover após popular",
+      "id": "3027272",
+      "nome": "Desconhecido",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
-      "active_seasons": ["2025"],
+      "active_seasons": [
+        "2025"
+      ],
       "status_renovacao": {
         "temporada_2026": {
           "status": "pendente",
@@ -29,13 +37,15 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 150.00,
+        "saldo_atual": 287,
         "tipo": "credor",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_final": 150.00,
-            "total_bonus": 320.00,
-            "total_onus": -170.00,
+            "saldo_extrato": 287,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 287,
+            "total_bonus": 476,
+            "total_onus": -189,
             "quitado": false,
             "data_quitacao": null
           }
@@ -45,51 +55,2411 @@
       "ligas_participadas": [
         {
           "liga_id": "684cb1c8af923da7c7df51de",
-          "liga_nome": "SuperCartola",
-          "temporadas": ["2025"]
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
         }
       ],
       "historico": [
         {
           "ano": 2025,
           "liga_id": "684cb1c8af923da7c7df51de",
-          "liga_nome": "SuperCartola",
-          "time_nome": "Exemplo FC",
-          "time_escudo": null,
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/DANx0cpRHzW-C_XwWkGJJRI1bAM=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_222/escudo/07/48/48/007351dafe-0b47-4f48-a78d-f4aa9ad6c70720240320164848",
           "estatisticas": {
             "posicao_final": 1,
-            "pontos_totais": 2500.50,
-            "media_pontos": 65.80,
-            "rodadas_jogadas": 38,
-            "melhor_rodada": { "numero": 15, "pontos": 120.45 },
-            "pior_rodada": { "numero": 3, "pontos": 25.30 }
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
           },
           "financeiro": {
-            "saldo_final": 150.00,
-            "total_bonus": 320.00,
-            "total_onus": -170.00
+            "saldo_final": 287,
+            "total_bonus": 476,
+            "total_onus": -189
           },
           "conquistas": {
-            "badges": ["campeao_2025", "mito_rodada_15"],
-            "titulos": {
-              "pontos_corridos": 1,
-              "mata_mata": 2,
-              "artilheiro": null,
-              "luva_ouro": null,
-              "melhor_mes": ["maio", "agosto"]
-            },
-            "top10_mitos": [
-              { "posicao": 1, "rodada": 15, "pontos": 120.45 }
-            ],
-            "top10_micos": []
+            "badges": [
+              "campeao_2025"
+            ]
           }
         }
       ],
       "stats_agregadas": {
         "total_temporadas": 1,
-        "total_titulos": 3,
+        "total_titulos": 1,
         "melhor_posicao_geral": 1,
-        "total_pontos_historico": 2500.50
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "164131",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -401,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -401,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -401,
+            "total_bonus": 162,
+            "total_onus": -563,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/613JIbTrU_m1MAm9P7tsCnNc8HQ=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_212/escudo/a3/32/49/00579d8956-dace-4efa-b2b5-7b78a7bb20a320230327223249",
+          "estatisticas": {
+            "posicao_final": 2,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -401,
+            "total_bonus": 162,
+            "total_onus": -563
+          },
+          "conquistas": {
+            "badges": [
+              "vice_2025"
+            ]
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 2,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "1323370",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -197,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -197,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -197,
+            "total_bonus": 195,
+            "total_onus": -392,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/LUGRd8uPVTQmdevtvj_4mKuqxOY=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/5e/59/53/002c87b260-e8bf-415c-a051-18570dec165e20250325095953",
+          "estatisticas": {
+            "posicao_final": 3,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -197,
+            "total_bonus": 195,
+            "total_onus": -392
+          },
+          "conquistas": {
+            "badges": [
+              "terceiro_2025"
+            ]
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 3,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "45004009",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 284,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 284,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 284,
+            "total_bonus": 464,
+            "total_onus": -180,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/xmP3eccyTVmcw9SOwRP2R8mqqcY=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_215/escudo/43/53/40/009730c5f8-bf31-43e2-98ba-f1d1eb83144320230414165340",
+          "estatisticas": {
+            "posicao_final": 4,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 284,
+            "total_bonus": 464,
+            "total_onus": -180
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 4,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "1233737",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -87,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -87,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -87,
+            "total_bonus": 291,
+            "total_onus": -378,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/3u2Gk_8w9JK42F3YFkzZqjgciaE=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/41/54/06/00cdd69d61-e8ad-4156-a490-97724e433f4120250324185406",
+          "estatisticas": {
+            "posicao_final": 5,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -87,
+            "total_bonus": 291,
+            "total_onus": -378
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 5,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "8098497",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -162,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -162,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -162,
+            "total_bonus": 195,
+            "total_onus": -357,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/I_RW8-j0FhezntS3oYwJb6Bpnqo=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/26/04/08/007b16c5d8-6210-40dd-ac62-0a528be5b62620250315120408",
+          "estatisticas": {
+            "posicao_final": 6,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -162,
+            "total_bonus": 195,
+            "total_onus": -357
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 6,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "22623329",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 171,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 171,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 171,
+            "total_bonus": 319,
+            "total_onus": -148,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/78IQ7owWDrI59MlvBdgiwGSqmm4=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_160/escudo/67/18/14/00fede7949-68d0-48c6-a51f-528e7002df6720191002181814",
+          "estatisticas": {
+            "posicao_final": 7,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 171,
+            "total_bonus": 319,
+            "total_onus": -148
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 7,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "1173066",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 212,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 212,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 212,
+            "total_bonus": 395,
+            "total_onus": -183,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/CIrRR4Ic4u-c57vINaMghKdyxTo=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_203/escudo/e2/53/22/00fbdce42d-d54d-40fa-b3cb-c94777a560e220220407125322",
+          "estatisticas": {
+            "posicao_final": 8,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 212,
+            "total_bonus": 395,
+            "total_onus": -183
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 8,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "575856",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -232,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -232,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -232,
+            "total_bonus": 152,
+            "total_onus": -384,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/gLEDdOuQ_n7yCD7n7FmjDDnGdsQ=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/2e/28/03/006801f521-3921-4b83-ad29-34f525542e2e20250315122803",
+          "estatisticas": {
+            "posicao_final": 9,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -232,
+            "total_bonus": 152,
+            "total_onus": -384
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 9,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "1459952",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -61,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -61,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -61,
+            "total_bonus": 294,
+            "total_onus": -355,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/9P-eeFvkTIqbbmfemTuX16zJX3w=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_213/escudo/9b/24/47/00f17face5-70e6-4f2c-bc3a-eded1ce80c9b20230409122447",
+          "estatisticas": {
+            "posicao_final": 10,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -61,
+            "total_bonus": 294,
+            "total_onus": -355
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 10,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "4966295",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 120,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 120,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 120,
+            "total_bonus": 330,
+            "total_onus": -210,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/49qFi-ErG5vjvWynjFmoibKHpjQ=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_166/escudo/65/22/51/00572af97a-a778-4f4a-b9d8-d981efb6456520200727232251",
+          "estatisticas": {
+            "posicao_final": 11,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 120,
+            "total_bonus": 330,
+            "total_onus": -210
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 11,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "5902324",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 197,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 197,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 197,
+            "total_bonus": 411,
+            "total_onus": -214,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/OKcyVs-FCUwC8Vd7afLD-aQpUok=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_222/escudo/72/02/33/00e52b667e-a772-4dda-8b8a-c6685016737220240314140233",
+          "estatisticas": {
+            "posicao_final": 12,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 197,
+            "total_bonus": 411,
+            "total_onus": -214
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 12,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "8188312",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -146,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -146,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -146,
+            "total_bonus": 160,
+            "total_onus": -306,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/YZwWWZwLJSHbYX7Rqqa8a6Cz-Ns=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_106/escudo/9a/40/43/0092958566-cdb9-4da6-bb44-2bfca753b49a20180407194043",
+          "estatisticas": {
+            "posicao_final": 13,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -146,
+            "total_bonus": 160,
+            "total_onus": -306
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 13,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "1568358",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 143,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 143,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 143,
+            "total_bonus": 346,
+            "total_onus": -203,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/TpMxaid-TQgtMB7B41zxEvn3MoA=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/78/44/35/005e1577f1-d3bb-4e23-bd54-d8131889777820250311124435",
+          "estatisticas": {
+            "posicao_final": 14,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 143,
+            "total_bonus": 346,
+            "total_onus": -203
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 14,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "621609",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 112,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 112,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 112,
+            "total_bonus": 367,
+            "total_onus": -255,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/r0mEcixSu8DZGb5-CK3NjuUjMWI=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_183/escudo/af/37/06/008d7e2db3-aaa7-472d-af03-f29b329c35af20210427123706",
+          "estatisticas": {
+            "posicao_final": 15,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 112,
+            "total_bonus": 367,
+            "total_onus": -255
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 15,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "1097804",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 166,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 166,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 166,
+            "total_bonus": 389,
+            "total_onus": -223,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/fya9g-gd1TwwOeBbDeqKRBFYW1E=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/21/34/07/00e46cbf7a-1b79-4523-a2ce-19715897902120250311123407",
+          "estatisticas": {
+            "posicao_final": 16,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 166,
+            "total_bonus": 389,
+            "total_onus": -223
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 16,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "20165417",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -339,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -339,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -339,
+            "total_bonus": 145,
+            "total_onus": -484,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/J39tNqJcxSL9Zk1YfqIUUDBiB28=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_205/escudo/1f/53/55/00ee0f7db4-ac40-4e3b-a713-bd18ddfb051f20220409145355",
+          "estatisticas": {
+            "posicao_final": 17,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -339,
+            "total_bonus": 145,
+            "total_onus": -484
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 17,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "3300583",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -204,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -204,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -204,
+            "total_bonus": 159,
+            "total_onus": -363,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/WOdsMPEJH_PW0PqdH0drZq_0PZY=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/e8/53/30/0035e0f640-0c85-4f82-88b3-74a1ddaff0e820250315175330",
+          "estatisticas": {
+            "posicao_final": 18,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -204,
+            "total_bonus": 159,
+            "total_onus": -363
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 18,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "645089",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -163,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -163,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -163,
+            "total_bonus": 191,
+            "total_onus": -354,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/DSqlg6zDThhgxXybMqqUhKPqB94=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/7a/34/21/00215a5668-4a0a-45ce-b9d8-51110de74a7a20250315083421",
+          "estatisticas": {
+            "posicao_final": 19,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -163,
+            "total_bonus": 191,
+            "total_onus": -354
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 19,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "14916330",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 41,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 41,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 41,
+            "total_bonus": 280,
+            "total_onus": -239,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/mRo85ZdnFerFQyp4W2lOkVYyd98=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/bd/23/37/00cb582f75-e5cc-49d8-8def-bbe68e7764bd20250311222337",
+          "estatisticas": {
+            "posicao_final": 20,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 41,
+            "total_bonus": 280,
+            "total_onus": -239
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 20,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "13935277",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 56,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 56,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 56,
+            "total_bonus": 102,
+            "total_onus": -46,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "estatisticas": {
+            "posicao_final": 21,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 56,
+            "total_bonus": 102,
+            "total_onus": -46
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 21,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "1932235",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 40,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 40,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 40,
+            "total_bonus": 282,
+            "total_onus": -242,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/UhLsNosWoiOG6XxBAXOrQyci2FM=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_212/escudo/1e/46/00/00deaa8f15-208e-4879-99d1-521d6ab6cc1e20230404144600",
+          "estatisticas": {
+            "posicao_final": 22,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 40,
+            "total_bonus": 282,
+            "total_onus": -242
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 22,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "5254799",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 262,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 262,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 262,
+            "total_bonus": 386,
+            "total_onus": -124,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/mWAPeW_4lvsVcZdseSxH_ZBK-6M=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/a1/50/53/00f1dd3e98-9ad5-401c-9f13-8c5421a5a1a120250324165053",
+          "estatisticas": {
+            "posicao_final": 23,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 262,
+            "total_bonus": 386,
+            "total_onus": -124
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 23,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "39786",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 19,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 19,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 19,
+            "total_bonus": 313,
+            "total_onus": -294,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/EupMJQ0P0BOSR8FwlvgdSrtm5Ms=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/69/44/17/001c3cc0b4-f4ce-449a-b54d-9e864790ab6920250315134417",
+          "estatisticas": {
+            "posicao_final": 24,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 19,
+            "total_bonus": 313,
+            "total_onus": -294
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 24,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "1039496",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -135,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -135,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -135,
+            "total_bonus": 211,
+            "total_onus": -346,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/xJRBQn9M94ZZGk2z4W2TW9EAvVg=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_226/escudo/7c/01/59/008e7b57d4-812d-49d5-a904-8403f884e67c20240413120159",
+          "estatisticas": {
+            "posicao_final": 25,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -135,
+            "total_bonus": 211,
+            "total_onus": -346
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 25,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "715731",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -98,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -98,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -98,
+            "total_bonus": 236,
+            "total_onus": -334,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/U3VavTcs6WmBuSMkySM5Dqh9FPE=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/29/48/04/00482fcaf8-292a-4ade-bd93-192c3107792920250320224804",
+          "estatisticas": {
+            "posicao_final": 26,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -98,
+            "total_bonus": 236,
+            "total_onus": -334
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 26,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "2718174",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 79,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 79,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 79,
+            "total_bonus": 324,
+            "total_onus": -245,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/tfD7X-alWaVX43veG4lc20R8zbQ=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/e6/01/07/00a193a589-9941-49e1-acf5-f1224e78bde620250317190107",
+          "estatisticas": {
+            "posicao_final": 27,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 79,
+            "total_bonus": 324,
+            "total_onus": -245
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 27,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "8183683",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 110,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 110,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 110,
+            "total_bonus": 344,
+            "total_onus": -234,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/YR1c2t3ttAn0NfsmTuYMqKsTgp4=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/dd/32/03/00a9b9e295-4ed8-4ab3-bb4e-dba77e035fdd20250311223203",
+          "estatisticas": {
+            "posicao_final": 28,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 110,
+            "total_bonus": 344,
+            "total_onus": -234
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 28,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "25324292",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -93,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -93,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -93,
+            "total_bonus": 192,
+            "total_onus": -285,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/gbjd-QdTHi8-f2AEGyh0IFYq8uE=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/32/15/02/00b17a99c1-1ae7-4ca9-98d3-8f7833ea0f3220250311131502",
+          "estatisticas": {
+            "posicao_final": 29,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -93,
+            "total_bonus": 192,
+            "total_onus": -285
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 29,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "7698677",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 286,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 286,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 286,
+            "total_bonus": 418,
+            "total_onus": -132,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/Wys2YIpHrJUAlYDY9XwVB6EMjnE=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_238/escudo/39/55/15/00488bddce-2a6b-4edc-b39a-ccf3b5f2333920250328095515",
+          "estatisticas": {
+            "posicao_final": 30,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 286,
+            "total_bonus": 418,
+            "total_onus": -132
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 30,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "25371297",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 154,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 154,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 154,
+            "total_bonus": 363,
+            "total_onus": -209,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/_jON9YLuQ_WAradOue9WJWlMaB8=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/d3/48/40/007f2cd575-4692-41b4-82e9-4a8711086cd320250312084840",
+          "estatisticas": {
+            "posicao_final": 31,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": 154,
+            "total_bonus": 363,
+            "total_onus": -209
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 31,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "id": "14569704",
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": -114,
+        "tipo": "devedor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": -114,
+            "saldo_campos_manuais": 0,
+            "saldo_final": -114,
+            "total_bonus": 208,
+            "total_onus": -322,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/nfMz_oystbWZIhJej_7qlCZdBvE=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/e8/10/53/006d7ab9da-e0be-497d-89f3-dcd394e757e820250325061053",
+          "estatisticas": {
+            "posicao_final": 32,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 1216
+          },
+          "financeiro": {
+            "saldo_final": -114,
+            "total_bonus": 208,
+            "total_onus": -322
+          },
+          "conquistas": {
+            "badges": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 0,
+        "melhor_posicao_geral": 32,
+        "total_pontos_historico": 0
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    },
+    {
+      "nome": "Desconhecido",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": [
+        "2025"
+      ],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 0,
+        "tipo": "zerado",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_extrato": 0,
+            "saldo_campos_manuais": 0,
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-18T13:30:37.169Z"
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684d821cf1a7ae16d1f89572",
+          "liga_nome": "SOBRAL",
+          "temporadas": [
+            "2025"
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684d821cf1a7ae16d1f89572",
+          "liga_nome": "SOBRAL",
+          "estatisticas": {
+            "posicao_final": 1,
+            "pontos_totais": 0,
+            "rodadas_jogadas": 222
+          },
+          "financeiro": {
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0
+          },
+          "conquistas": {
+            "badges": [
+              "campeao_2025"
+            ]
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 1,
+        "melhor_posicao_geral": 1,
+        "total_pontos_historico": 0
       },
       "acesso_permitido": {
         "hall_da_fama": true,
