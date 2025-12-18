@@ -357,7 +357,7 @@ export class FluxoFinanceiroUI {
                             <th class="col-participante sortable" onclick="window.ordenarTabelaFinanceiro('nome')" data-sort="nome">
                                 <span class="th-sort">Participante <span class="material-icons sort-icon">unfold_more</span></span>
                             </th>
-                            ${this._modulosAtivos?.banco !== false ? '<th class="col-modulo">Banco</th>' : ''}
+                            ${this._modulosAtivos?.banco !== false ? '<th class="col-modulo">Timeline</th>' : ''}
                             ${this._modulosAtivos?.pontosCorridos ? '<th class="col-modulo">P.Corridos</th>' : ''}
                             ${this._modulosAtivos?.mataMata ? '<th class="col-modulo">Mata-Mata</th>' : ''}
                             ${this._modulosAtivos?.top10 ? '<th class="col-modulo">Top 10</th>' : ''}
