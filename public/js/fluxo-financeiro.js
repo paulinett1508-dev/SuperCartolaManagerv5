@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v6.3"; // v6.3: Terminologia correta (DEVE/A RECEBER/QUITADO)
+const CACHE_BUSTER = "v6.4"; // v6.4: Modal Acertos mostra saldo FINAL (temporada + acertos)
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -826,8 +826,14 @@ async function carregarHistoricoAcertos(ligaId, timeId) {
     window._acertoModalData = { ...window._acertoModalData, ligaId, timeId };
 
     try {
-        const response = await fetch(`/api/acertos/${ligaId}/${timeId}`);
-        const result = await response.json();
+        // ✅ v6.4: Buscar acertos E extrato em paralelo para mostrar saldo FINAL
+        const [acertosResponse, extratoResponse] = await Promise.all([
+            fetch(`/api/acertos/${ligaId}/${timeId}`),
+            fetch(`/api/extrato-financeiro/${ligaId}/${timeId}`)
+        ]);
+
+        const result = await acertosResponse.json();
+        const extratoResult = await extratoResponse.json();
 
         if (!result.success || !result.acertos || result.acertos.length === 0) {
             container.innerHTML = `
@@ -839,19 +845,24 @@ async function carregarHistoricoAcertos(ligaId, timeId) {
             return;
         }
 
-        // Resumo no topo
-        const resumo = result.resumo || {};
-        const saldo = resumo.saldo || 0;
+        // Resumo dos acertos
+        const resumoAcertos = result.resumo || {};
+        const totalPago = resumoAcertos.totalPago || 0;
+        const totalRecebido = resumoAcertos.totalRecebido || 0;
 
-        // ✅ v6.3: Terminologia correta
+        // ✅ v6.4: Saldo FINAL vem do extrato (inclui temporada + acertos)
+        const saldoFinal = extratoResult.success ? (extratoResult.extrato?.resumo?.saldo ?? 0) : 0;
+        const saldoTemporada = extratoResult.success ? (extratoResult.extrato?.resumo?.saldo_temporada ?? 0) : 0;
+
+        // ✅ v6.3: Terminologia correta baseada no saldo FINAL
         // DEVE = saldo negativo, participante ainda deve à liga
         // A RECEBER = saldo positivo, participante tem crédito (admin vai pagar)
         // QUITADO = saldo zero, tudo acertado
         let txtSaldo, corSaldo;
-        if (saldo === 0) {
+        if (saldoFinal === 0) {
             txtSaldo = "QUITADO";
             corSaldo = "#a3a3a3"; // cinza neutro
-        } else if (saldo > 0) {
+        } else if (saldoFinal > 0) {
             txtSaldo = "A RECEBER";
             corSaldo = "#34d399"; // verde
         } else {
@@ -859,13 +870,25 @@ async function carregarHistoricoAcertos(ligaId, timeId) {
             corSaldo = "#f87171"; // vermelho
         }
 
+        // Cores para o breakdown
+        const corTemporada = saldoTemporada >= 0 ? "#34d399" : "#f87171";
+        const corAcertos = (totalPago - totalRecebido) >= 0 ? "#34d399" : "#f87171";
+
         let html = `
             <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center;">
                 <div style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">${txtSaldo}</div>
-                <div style="font-size: 28px; font-weight: 700; color: ${corSaldo};">${saldo !== 0 ? 'R$ ' + Math.abs(saldo).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : '✓'}</div>
-                <div style="display: flex; justify-content: center; gap: 20px; margin-top: 12px; font-size: 12px;">
-                    <span style="color: #34d399;">↑ R$ ${(resumo.totalRecebido || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                    <span style="color: #f87171;">↓ R$ ${(resumo.totalPago || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                <div style="font-size: 28px; font-weight: 700; color: ${corSaldo};">${saldoFinal !== 0 ? 'R$ ' + Math.abs(saldoFinal).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : '✓'}</div>
+
+                <!-- Breakdown: Temporada + Acertos = Final -->
+                <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); text-align: left; font-size: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                        <span style="color: rgba(255,255,255,0.6);">Saldo Financeiro:</span>
+                        <span style="color: ${corTemporada}; font-weight: 600;">${saldoTemporada >= 0 ? '+' : '-'}R$ ${Math.abs(saldoTemporada).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                        <span style="color: rgba(255,255,255,0.6);">Acertos (${result.acertos.length}):</span>
+                        <span style="color: ${corAcertos}; font-weight: 600;">${(totalPago - totalRecebido) >= 0 ? '+' : '-'}R$ ${Math.abs(totalPago - totalRecebido).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                    </div>
                 </div>
             </div>
             <div style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
