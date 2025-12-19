@@ -1,6 +1,8 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.8 SaaS DYNAMIC
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.9 FIX RESUMO
 // =====================================================
+// ✅ v10.9: FIX CRÍTICO - mostrarPopupDetalhamento usa resumo consolidado (igual admin)
+//          Corrige discrepância de valores entre admin e app no modal de débitos/créditos
 // ✅ v10.8: Refatorado para SaaS - remove liga ID hardcoded, usa config dinamica
 // ✅ v10.7: FIX CRÍTICO - Usar saldo_atual como fonte primária (igual Inicio)
 // ✅ v10.6: Mini botão refresh no Bottom Sheet Acertos (atualização pontual)
@@ -23,7 +25,7 @@
 // ✅ v9.0: Redesign - Badge BANCO unificado com valor
 // ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
 
-if (window.Log) Log.info("[EXTRATO-UI] v10.8 SaaS DYNAMIC");
+if (window.Log) Log.info("[EXTRATO-UI] v10.9 FIX RESUMO (igual admin)");
 
 // ===== v10.8: CACHE DE CONFIG DA LIGA =====
 let ligaConfigCache = null;
@@ -239,11 +241,12 @@ function renderizarConteudoCompleto(container, extrato) {
     const listaAcertos = acertos.lista || [];
     const resumoAcertos = acertos.resumo || {};
 
-    // ✅ v10.4: Incluir acertos nos totais de Créditos/Débitos
-    // Recebimentos do participante = créditos (dinheiro que entrou)
-    // Pagamentos do participante = débitos (dinheiro que saiu)
-    const totalGanhos = totalGanhosBase + (resumoAcertos.totalRecebido || 0);
-    const totalPerdas = totalPerdasBase + (resumoAcertos.totalPago || 0);
+    // ✅ v10.10 FIX CRÍTICO: NÃO somar acertos nos cards de Créditos/Débitos
+    // Os cards mostram apenas débitos/créditos da TEMPORADA (igual ao admin)
+    // Acertos (pagamentos/recebimentos) só afetam o SALDO FINAL, não os totais
+    // Motivo: Pagamento QUITA dívida, não cria novo débito
+    const totalGanhos = totalGanhosBase;
+    const totalPerdas = totalPerdasBase;
 
     // ✅ v10.7: FIX CRÍTICO - Cálculo do saldo igual ao Inicio
     // O Inicio usa: extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0
@@ -1151,13 +1154,15 @@ function mostrarToastErro(mensagem) {
     setTimeout(() => toast.remove(), 3000);
 }
 
+// ✅ v10.9: REFATORADO - Usa resumo consolidado do backend (igual ao admin)
+// O resumo contém valores LÍQUIDOS (ex: pontosCorridos = +65 se ganhou mais do que perdeu)
+// Para o modal de DÉBITOS, verificamos se o valor líquido é NEGATIVO
 function mostrarPopupDetalhamento(isGanhos) {
     const extrato = window.extratoAtual;
 
-    // ✅ v8.6: Log de debug e feedback visual melhorado
-    if (window.Log) Log.debug('[EXTRATO-UI] 📊 Abrindo popup:', { isGanhos, temExtrato: !!extrato, temRodadas: extrato?.rodadas?.length });
+    if (window.Log) Log.debug('[EXTRATO-UI] 📊 Abrindo popup:', { isGanhos, temExtrato: !!extrato, temResumo: !!extrato?.resumo });
 
-    if (!extrato || !extrato.rodadas) {
+    if (!extrato || !extrato.resumo) {
         if (window.Log) Log.warn('[EXTRATO-UI] ⚠️ Extrato não disponível para detalhamento');
         mostrarToastErro('Aguarde o carregamento do extrato');
         return;
@@ -1168,128 +1173,92 @@ function mostrarPopupDetalhamento(isGanhos) {
         : "Detalhamento de Débitos";
     const icon = isGanhos ? "arrow_upward" : "arrow_downward";
 
-    const ligaId = window.ligaIdAtual || "";
+    const resumo = extrato.resumo || {};
     const categorias = {};
+    const ligaId = window.ligaIdAtual || "";
 
-    let somaGanhos = 0,
-        somaPerdas = 0;
-    let rodadasComGanho = 0,
-        rodadasComPerda = 0;
-    let totalMito = 0,
-        totalMico = 0;
-    let totalZonaCredito = 0,
-        totalZonaDebito = 0;
+    // ✅ v10.9: Extrair valores LÍQUIDOS do resumo (como admin faz)
+    // Esses são os mesmos valores que o admin usa para mostrar no modal
+    const bonus = resumo.bonus || 0;
+    const onus = resumo.onus || 0;
+    const pontosCorridos = resumo.pontosCorridos || 0;
+    const mataMata = resumo.mataMata || 0;
+    const top10 = resumo.top10 || 0;
 
-    extrato.rodadas.forEach((r) => {
-        const faixas = getFaixasParaRodada(ligaId, r.rodada);
-        const saldo =
-            (r.bonusOnus || 0) +
-            (r.pontosCorridos || 0) +
-            (r.mataMata || 0) +
-            (r.top10 || 0);
+    // Totais consolidados pelo backend
+    const somaGanhos = resumo.totalGanhos || 0;
+    const somaPerdas = Math.abs(resumo.totalPerdas || 0);
 
-        if (saldo > 0) {
-            somaGanhos += saldo;
-            rodadasComGanho++;
+    // ✅ v10.9: Verificar se é participante inativo e filtrar rodadas
+    const isInativo = extrato.inativo || false;
+    const rodadaDesistencia = extrato.rodadaDesistencia || null;
+    const rodadaLimite = isInativo && rodadaDesistencia ? rodadaDesistencia - 1 : 999;
+
+    // Contadores de estatísticas (baseado nas rodadas válidas)
+    let rodadasComGanho = 0, rodadasComPerda = 0;
+    let totalMito = 0, totalMico = 0;
+    let totalZonaCredito = 0, totalZonaDebito = 0;
+
+    // Contar estatísticas das rodadas (apenas para exibição, não para valores)
+    if (extrato.rodadas && Array.isArray(extrato.rodadas)) {
+        extrato.rodadas
+            .filter(r => r.rodada <= rodadaLimite) // ✅ v10.9: Filtrar rodadas válidas
+            .forEach((r) => {
+                const faixas = getFaixasParaRodada(ligaId, r.rodada);
+                const saldo = (r.bonusOnus || 0) + (r.pontosCorridos || 0) + (r.mataMata || 0) + (r.top10 || 0);
+
+                if (saldo > 0) rodadasComGanho++;
+                if (saldo < 0) rodadasComPerda++;
+                if (r.top10 > 0) totalMito++;
+                if (r.top10 < 0) totalMico++;
+                if (r.posicao && r.posicao <= faixas.credito.fim) totalZonaCredito++;
+                if (r.posicao && r.posicao >= faixas.debito.inicio) totalZonaDebito++;
+            });
+    }
+
+    // ✅ v10.9: Montar categorias usando valores LÍQUIDOS do resumo (igual admin)
+    // O admin verifica: if (resumo.pontosCorridos < 0) -> mostra nas perdas
+    // O admin verifica: if (resumo.pontosCorridos > 0) -> mostra nos ganhos
+    if (isGanhos) {
+        // CRÉDITOS - valores positivos
+        if (bonus > 0) {
+            addCategoria(categorias, "Zona de Ganho", bonus, "Total", "add_circle");
         }
-        if (saldo < 0) {
-            somaPerdas += Math.abs(saldo);
-            rodadasComPerda++;
+        if (pontosCorridos > 0) {
+            addCategoria(categorias, "Pontos Corridos", pontosCorridos, "Total", "sports_soccer");
         }
-
-        if (r.top10 > 0) totalMito++;
-        if (r.top10 < 0) totalMico++;
-        if (r.posicao && r.posicao <= faixas.credito.fim) totalZonaCredito++;
-        if (r.posicao && r.posicao >= faixas.debito.inicio) totalZonaDebito++;
-
-        if (isGanhos) {
-            if (r.bonusOnus > 0)
-                addCategoria(
-                    categorias,
-                    "Zona de Ganho",
-                    r.bonusOnus,
-                    r.rodada,
-                    "add_circle",
-                );
-            if (r.pontosCorridos > 0)
-                addCategoria(
-                    categorias,
-                    "Pontos Corridos",
-                    r.pontosCorridos,
-                    r.rodada,
-                    "sports_soccer",
-                );
-            if (r.mataMata > 0)
-                addCategoria(
-                    categorias,
-                    "Mata-Mata",
-                    r.mataMata,
-                    r.rodada,
-                    "emoji_events",
-                );
-            if (r.top10 > 0)
-                addCategoria(
-                    categorias,
-                    "Top 10 (MITO)",
-                    r.top10,
-                    r.rodada,
-                    "star",
-                );
-        } else {
-            if (r.bonusOnus < 0)
-                addCategoria(
-                    categorias,
-                    "Zona de Perda",
-                    Math.abs(r.bonusOnus),
-                    r.rodada,
-                    "remove_circle",
-                );
-            if (r.pontosCorridos < 0)
-                addCategoria(
-                    categorias,
-                    "Pontos Corridos",
-                    Math.abs(r.pontosCorridos),
-                    r.rodada,
-                    "sports_soccer",
-                );
-            if (r.mataMata < 0)
-                addCategoria(
-                    categorias,
-                    "Mata-Mata",
-                    Math.abs(r.mataMata),
-                    r.rodada,
-                    "sports_mma",
-                );
-            if (r.top10 < 0)
-                addCategoria(
-                    categorias,
-                    "Top 10 (MICO)",
-                    Math.abs(r.top10),
-                    r.rodada,
-                    "sentiment_very_dissatisfied",
-                );
+        if (mataMata > 0) {
+            addCategoria(categorias, "Mata-Mata", mataMata, "Total", "emoji_events");
         }
-    });
+        if (top10 > 0) {
+            addCategoria(categorias, "Top 10 (MITO)", top10, "Total", "star");
+        }
+    } else {
+        // DÉBITOS - valores negativos (mostrar como positivo)
+        if (onus < 0) {
+            addCategoria(categorias, "Zona de Perda", Math.abs(onus), "Total", "remove_circle");
+        }
+        if (pontosCorridos < 0) {
+            addCategoria(categorias, "Pontos Corridos", Math.abs(pontosCorridos), "Total", "sports_soccer");
+        }
+        if (mataMata < 0) {
+            addCategoria(categorias, "Mata-Mata", Math.abs(mataMata), "Total", "sports_mma");
+        }
+        if (top10 < 0) {
+            addCategoria(categorias, "Top 10 (MICO)", Math.abs(top10), "Total", "sentiment_very_dissatisfied");
+        }
+    }
 
-    // Campos manuais
-    const camposManuais =
-        extrato.camposManuais || extrato.camposEditaveis || [];
+    // ✅ v10.9: Campos manuais (verificar array ou valor único)
+    const camposManuais = extrato.camposManuais || extrato.camposEditaveis || [];
     if (Array.isArray(camposManuais) && camposManuais.length > 0) {
         camposManuais.forEach((campo) => {
             const valor = parseFloat(campo.valor) || 0;
-            const nome = campo.nome || "Campo Manual";
+            const nome = campo.nome || "Ajuste Manual";
             if (isGanhos && valor > 0) {
-                somaGanhos += valor;
                 addCategoria(categorias, nome, valor, "Manual", "edit");
             } else if (!isGanhos && valor < 0) {
-                somaPerdas += Math.abs(valor);
-                addCategoria(
-                    categorias,
-                    nome,
-                    Math.abs(valor),
-                    "Manual",
-                    "edit",
-                );
+                addCategoria(categorias, nome, Math.abs(valor), "Manual", "edit");
             }
         });
     }
@@ -1402,4 +1371,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     }
 }
 
-if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.7 carregado com sucesso (SALDO_ATUAL FIX)");
+if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.10 carregado (FIX débitos: não somar acertos)");

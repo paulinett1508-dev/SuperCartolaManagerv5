@@ -1,7 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v3.4 (FIX CAMPOS MANUAIS)
+// PARTICIPANTE-EXTRATO.JS - v3.5 (FIX ACERTOS FALLBACK)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v3.5: FIX CRÍTICO - Calcula totalPago/totalRecebido no fallback (não mais zerados)
 // ✅ v3.4: FIX - Re-renderiza quando campos manuais (ajustes) ou saldo mudam
 // ✅ v3.3: ACERTOS FINANCEIROS - Exibe pagamentos/recebimentos no extrato
 // ✅ v3.2: FIX - Detecta ausência de MATA_MATA mesmo com temporada encerrada
@@ -16,7 +17,7 @@ const RODADA_FINAL_CAMPEONATO = 38;
 const CAMPEONATO_ENCERRADO = true; // ✅ v3.0: Temporada 2025 finalizada
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.4 FIX-CAMPOS-MANUAIS (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.5 FIX-ACERTOS-FALLBACK (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -348,6 +349,11 @@ async function carregarExtrato(ligaId, timeId) {
 
             if (resCalculo.ok) {
                 const dadosCalculados = await resCalculo.json();
+                
+                // #region agent log
+                fetch('http://localhost:7242/ingest/cbef168c-dcc3-4ce3-8410-1f2904fb02a5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'participante-extrato.js:350',message:'Dados Calculados do Controller',data:{success:dadosCalculados.success,qtdTransacoes:dadosCalculados.extrato?.length,saldoAtual:dadosCalculados.saldo_atual,resumoController:dadosCalculados.resumo,acertosController:dadosCalculados.acertos?.resumo},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
+                // #endregion
+                
                 if (window.Log)
                     Log.debug("EXTRATO-PARTICIPANTE", "✅ Dados calculados:", {
                         success: dadosCalculados.success,
@@ -358,6 +364,10 @@ async function carregarExtrato(ligaId, timeId) {
                 // Transformar formato do controller para o formato esperado pela UI
                 if (dadosCalculados.success && dadosCalculados.extrato) {
                     extratoData = transformarDadosController(dadosCalculados);
+                    
+                    // #region agent log
+                    fetch('http://localhost:7242/ingest/cbef168c-dcc3-4ce3-8410-1f2904fb02a5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'participante-extrato.js:361',message:'ExtratoData APÓS transformação',data:{resumoTransformado:extratoData.resumo,qtdRodadas:extratoData.rodadas.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B'})}).catch(()=>{});
+                    // #endregion
                 }
             }
         }
@@ -572,6 +582,18 @@ function transformarDadosController(dados) {
             metodoPagamento: t.metodoPagamento,
         }));
 
+    // ✅ v3.5 FIX: Calcular totalPago e totalRecebido a partir do array
+    let totalPagoCalc = 0;
+    let totalRecebidoCalc = 0;
+    acertosFinanceiros.forEach(a => {
+        // valor já vem com sinal correto do controller (pagamento=+, recebimento=-)
+        if (a.tipo === "pagamento") {
+            totalPagoCalc += Math.abs(a.valor);
+        } else {
+            totalRecebidoCalc += Math.abs(a.valor);
+        }
+    });
+
     // Calcular resumo
     let totalGanhos = 0;
     let totalPerdas = 0;
@@ -592,13 +614,14 @@ function transformarDadosController(dados) {
             totalPerdas: totalPerdas,
         },
         camposManuais: camposManuais,
-        // ✅ v3.3: Incluir acertos financeiros
+        // ✅ v3.5 FIX: Incluir acertos financeiros com totais calculados
         acertos: dados.acertos || {
             lista: acertosFinanceiros,
             resumo: {
-                totalPago: 0,
-                totalRecebido: 0,
-                saldoAcertos: dados.saldo_acertos || 0,
+                totalPago: totalPagoCalc,
+                totalRecebido: totalRecebidoCalc,
+                saldo: (totalPagoCalc - totalRecebidoCalc), // pago - recebido
+                saldoAcertos: dados.saldo_acertos || (totalPagoCalc - totalRecebidoCalc),
                 quantidadeAcertos: acertosFinanceiros.length,
             },
         },
@@ -867,5 +890,5 @@ export function initExtratoParticipante() {
 if (window.Log)
     Log.info(
         "EXTRATO-PARTICIPANTE",
-        "✅ Módulo v3.4 carregado (FIX CAMPOS MANUAIS)",
+        "✅ Módulo v3.5 carregado (FIX ACERTOS FALLBACK)",
     );
