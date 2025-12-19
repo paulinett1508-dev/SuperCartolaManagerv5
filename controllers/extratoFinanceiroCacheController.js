@@ -506,17 +506,10 @@ export const getExtratoCache = async (req, res) => {
             if (dadosSnapshot) {
                 const camposAtivos = await buscarCamposManuais(ligaId, timeId);
 
-                // Calcular resumo incluindo campos manuais E acertos
-                let resumoFinal = dadosSnapshot.resumo;
-                if (camposAtivos.length > 0) {
-                    const totalCampos = camposAtivos.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
-                    resumoFinal = {
-                        ...dadosSnapshot.resumo,
-                        saldo: dadosSnapshot.resumo.saldo + totalCampos,
-                        saldo_final: dadosSnapshot.resumo.saldo_final + totalCampos,
-                        camposManuais: totalCampos,
-                    };
-                }
+                // ✅ v5.3 FIX: Calcular resumo COMPLETO a partir das rodadas (igual cache)
+                // Isso garante que campos detalhados (bonus, onus, pontosCorridos, mataMata, top10)
+                // estejam disponíveis no resumo para exibição correta de débitos/créditos no app
+                let resumoFinal = calcularResumoDeRodadas(dadosSnapshot.rodadas, camposAtivos);
 
                 // ✅ v5.2 FIX: Incluir saldo de acertos no cálculo do saldo final
                 const saldoAcertosSnap = acertos?.resumo?.saldo ?? 0;

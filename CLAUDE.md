@@ -76,3 +76,40 @@ O projeto conta com 4 skills especializadas que podem ser invocadas para tarefas
   node scripts/analisar-participantes.js --detalhes
   node scripts/analisar-participantes.js --limpar-testes  # dry-run
   ```
+
+## 📦 Sistema de Versionamento
+
+### Visão Geral
+O sistema de versionamento **força atualizações** no app do participante quando há mudanças.
+
+### Componentes Principais
+- **Badge no Header**: Exibe versão atual (ex: `19.12.24.1430`)
+- **Modal de Atualização**: Aparece automaticamente quando detecta nova versão
+- **API**: `/api/app/check-version` - retorna versão baseada no cliente (admin/app)
+- **Versionamento Separado**: Admin e App têm versões independentes
+
+### Arquivos Principais
+- `config/appVersion.js` - Gera versões automaticamente
+- `config/version-scope.json` - Define escopos (admin/app/shared)
+- `routes/appVersionRoutes.js` - API de versionamento
+- `public/js/app/app-version.js` - Cliente que verifica atualizações
+- `public/participante/js/participante-auth.js` - Inicializa o sistema (linha ~667)
+
+### Como Funciona
+1. App verifica versão ao iniciar e quando volta do background
+2. Compara versão local vs servidor
+3. Se diferente → exibe modal **obrigatório**
+4. Usuário clica "Atualizar" → limpa cache + reload
+
+### Forçar Atualização
+Para forçar todos a atualizarem:
+```bash
+# Modifique qualquer arquivo do app
+touch public/participante/js/participante-rodadas.js
+
+# Restart do servidor
+# Próximo acesso → modal de atualização
+```
+
+### Documentação Completa
+Ver: `docs/VERSIONAMENTO-SISTEMA.md`

@@ -662,10 +662,22 @@ const participanteAuth = new ParticipanteAuth();
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", async () => {
         await participanteAuth.verificarAutenticacao();
+        
+        // ✅ Inicializar sistema de versionamento
+        if (window.AppVersion) {
+            await window.AppVersion.init();
+            if (window.Log) Log.info('PARTICIPANTE-AUTH', '📦 Sistema de versionamento inicializado');
+        }
     });
 } else {
     // DOM já carregado
-    participanteAuth.verificarAutenticacao();
+    participanteAuth.verificarAutenticacao().then(async () => {
+        // ✅ Inicializar sistema de versionamento
+        if (window.AppVersion) {
+            await window.AppVersion.init();
+            if (window.Log) Log.info('PARTICIPANTE-AUTH', '📦 Sistema de versionamento inicializado');
+        }
+    });
 }
 
 // Função de logout global

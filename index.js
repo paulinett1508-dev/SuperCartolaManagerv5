@@ -87,6 +87,9 @@ import tesourariaRoutes from "./routes/tesouraria-routes.js";
 // 📦 DATA LAKE dos Participantes
 import dataLakeRoutes from "./routes/data-lake-routes.js";
 
+// 📦 Versionamento do App
+import appVersionRoutes from "./routes/appVersionRoutes.js";
+
 // 👁️ Monitoramento de usuários online
 import usuariosOnlineRoutes from "./routes/usuarios-online-routes.js";
 import activityTrackerMiddleware from "./middleware/activityTracker.js";
@@ -258,11 +261,10 @@ app.use("/api/participante/auth", participanteAuthRoutes);
 app.use("/api/participante/historico", participanteHistoricoRoutes);
 
 // ====================================================================
-// 📦 ROTA DE VERSÃO DO APP (antes do protegerRotas)
+// 📦 ROTAS DE VERSÃO DO APP (antes do protegerRotas)
 // ====================================================================
-app.get("/api/app/versao", (req, res) => {
-  res.json(APP_VERSION);
-});
+app.use("/api/app", appVersionRoutes);
+console.log("[SERVER] 📦 Rotas de versionamento registradas em /api/app");
 
 // 🛡️ MIDDLEWARE DE PROTEÇÃO DE ROTAS (antes de servir estáticos)
 app.use(protegerRotas);

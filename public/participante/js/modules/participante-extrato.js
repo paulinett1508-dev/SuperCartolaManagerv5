@@ -349,11 +349,6 @@ async function carregarExtrato(ligaId, timeId) {
 
             if (resCalculo.ok) {
                 const dadosCalculados = await resCalculo.json();
-                
-                // #region agent log
-                fetch('http://localhost:7242/ingest/cbef168c-dcc3-4ce3-8410-1f2904fb02a5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'participante-extrato.js:350',message:'Dados Calculados do Controller',data:{success:dadosCalculados.success,qtdTransacoes:dadosCalculados.extrato?.length,saldoAtual:dadosCalculados.saldo_atual,resumoController:dadosCalculados.resumo,acertosController:dadosCalculados.acertos?.resumo},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
-                // #endregion
-                
                 if (window.Log)
                     Log.debug("EXTRATO-PARTICIPANTE", "✅ Dados calculados:", {
                         success: dadosCalculados.success,
@@ -364,10 +359,6 @@ async function carregarExtrato(ligaId, timeId) {
                 // Transformar formato do controller para o formato esperado pela UI
                 if (dadosCalculados.success && dadosCalculados.extrato) {
                     extratoData = transformarDadosController(dadosCalculados);
-                    
-                    // #region agent log
-                    fetch('http://localhost:7242/ingest/cbef168c-dcc3-4ce3-8410-1f2904fb02a5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'participante-extrato.js:361',message:'ExtratoData APÓS transformação',data:{resumoTransformado:extratoData.resumo,qtdRodadas:extratoData.rodadas.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B'})}).catch(()=>{});
-                    // #endregion
                 }
             }
         }

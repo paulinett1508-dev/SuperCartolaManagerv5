@@ -1,20 +1,21 @@
 // =====================================================================
 // PARTICIPANTE-CONFIG.JS - Configurações globais do App do Participante
 // =====================================================================
+// ✅ v1.1 FIX: Removidos exports ES6 pois arquivo é carregado como script normal
 
 // Temporada atual (sincronizado com config/seasons.js do backend)
-export const CURRENT_SEASON = 2026;
-export const PREVIOUS_SEASON = 2025;
+const CURRENT_SEASON = 2026;
+const PREVIOUS_SEASON = 2025;
 
 // Feature flags
-export const FEATURES = {
+const FEATURES = {
     SHOW_HISTORY_BANNER: true,      // Mostrar banner de resumo da temporada anterior
     SHOW_SEASON_SELECTOR: true,     // Mostrar seletor de temporada no header
     ENABLE_OFFLINE_MODE: true,      // Habilitar modo offline com IndexedDB
 };
 
 // Mapeamento de badges para exibição
-export const BADGES_CONFIG = {
+const BADGES_CONFIG = {
     campeao: { icon: "🏆", nome: "Campeão", cor: "#ffd700" },
     campeao_2025: { icon: "🏆", nome: "Campeão", cor: "#ffd700" },
     vice: { icon: "🥈", nome: "Vice", cor: "#c0c0c0" },
@@ -31,12 +32,10 @@ export const BADGES_CONFIG = {
     mata_mata_campeao: { icon: "⚔️", nome: "Mata-Mata", cor: "#ec4899" },
 };
 
-// Exportar para uso global (fallback para módulos que não suportam ES modules)
-if (typeof window !== 'undefined') {
-    window.ParticipanteConfig = {
-        CURRENT_SEASON,
-        PREVIOUS_SEASON,
-        FEATURES,
-        BADGES_CONFIG
-    };
-}
+// Exportar para uso global
+window.ParticipanteConfig = {
+    CURRENT_SEASON,
+    PREVIOUS_SEASON,
+    FEATURES,
+    BADGES_CONFIG
+};
