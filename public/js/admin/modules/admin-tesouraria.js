@@ -240,6 +240,15 @@ class AdminTesouraria {
             }));
 
             console.log(`[TESOURARIA] ${this.participantes.length} participantes carregados`);
+            
+            // 🐛 DEBUG: Log detalhado dos dados carregados
+            console.log('[TESOURARIA] 🔍 DEBUG _carregarDados:');
+            console.log('  📦 Dados da API:', data.participantes);
+            console.log('  📦 Participantes mapeados:', this.participantes);
+            console.log('  📊 Análise de saldos:');
+            this.participantes.forEach(p => {
+                console.log(`    ${p.nome}: saldoFinal=${p.saldoFinal} (${typeof p.saldoFinal}) | situacao=${p.situacao}`);
+            });
 
             // Renderizar KPIs
             this._renderKPIs();
@@ -265,14 +274,28 @@ class AdminTesouraria {
         const kpiContainer = document.getElementById('kpi-container');
         if (!kpiContainer) return;
 
+        // 🐛 DEBUG: Log antes do cálculo
+        console.log('[TESOURARIA] 🔍 DEBUG _renderKPIs:');
+        console.log('  Participantes para KPI:', this.participantes.length);
+
         // Calcular totais
         const totais = this.participantes.reduce((acc, p) => {
             acc.totalBonus += p.saldoJogo > 0 ? p.saldoJogo : 0;
             acc.totalOnus += p.saldoJogo < 0 ? Math.abs(p.saldoJogo) : 0;
             acc.saldoGeral += p.saldoFinal;
-            if (p.saldoFinal < 0) acc.inadimplentes++;
+            if (p.saldoFinal < -0.01) acc.inadimplentes++;
+            if (p.saldoFinal >= -0.01) acc.quitados++;
             return acc;
-        }, { totalBonus: 0, totalOnus: 0, saldoGeral: 0, inadimplentes: 0 });
+        }, { totalBonus: 0, totalOnus: 0, saldoGeral: 0, inadimplentes: 0, quitados: 0 });
+        
+        // 🐛 DEBUG: Log dos totais calculados
+        console.log('  📊 Totais KPI:', {
+            inadimplentes: totais.inadimplentes,
+            quitados: totais.quitados,
+            totalBonus: totais.totalBonus,
+            totalOnus: totais.totalOnus,
+            saldoGeral: totais.saldoGeral
+        });
 
         const kpis = [
             {
@@ -337,12 +360,21 @@ class AdminTesouraria {
         // Aplicar filtro
         let dadosFiltrados = [...this.participantes];
 
+        console.log('[TESOURARIA] 🔍 DEBUG _renderTabela:');
+        console.log('  Antes do filtro:', dadosFiltrados.length, 'participantes');
+        console.log('  Filtro aplicado:', this.filtroStatus);
+
         if (this.filtroStatus === 'devedores') {
             dadosFiltrados = dadosFiltrados.filter(p => p.saldoFinal < -0.01);
+            console.log('  Após filtro devedores:', dadosFiltrados.length);
         } else if (this.filtroStatus === 'credores') {
             dadosFiltrados = dadosFiltrados.filter(p => p.saldoFinal > 0.01);
+            console.log('  Após filtro credores:', dadosFiltrados.length);
         } else if (this.filtroStatus === 'quitados') {
-            dadosFiltrados = dadosFiltrados.filter(p => Math.abs(p.saldoFinal) <= 0.01);
+            // ✅ FIX: Quitados = saldo >= -0.01 (zerado ou credor)
+            dadosFiltrados = dadosFiltrados.filter(p => p.saldoFinal >= -0.01);
+            console.log('  Após filtro quitados:', dadosFiltrados.length);
+            console.log('  Lista filtrada:', dadosFiltrados.map(p => `${p.nome}: ${p.saldoFinal}`));
         }
 
         // Ordenar por saldo (devedores primeiro)
@@ -516,16 +548,36 @@ class AdminTesouraria {
         const countEl = document.getElementById('count-value');
         if (countEl) {
             let count = this.participantes.length;
+            
+            // 🐛 DEBUG: Log do array completo
+            console.log('[TESOURARIA] 🔍 DEBUG _atualizarContador:');
+            console.log('  Total participantes:', this.participantes.length);
+            console.log('  Filtro status atual:', this.filtroStatus);
+            console.log('  Array participantes:', this.participantes.map(p => ({
+                nome: p.nome,
+                saldoFinal: p.saldoFinal,
+                tipo: typeof p.saldoFinal
+            })));
+            
             if (this.filtroStatus !== 'todos') {
                 if (this.filtroStatus === 'devedores') {
-                    count = this.participantes.filter(p => p.saldoFinal < 0).length;
+                    const devedores = this.participantes.filter(p => p.saldoFinal < -0.01);
+                    count = devedores.length;
+                    console.log('  📊 Devedores:', count, devedores.map(p => `${p.nome}: ${p.saldoFinal}`));
                 } else if (this.filtroStatus === 'credores') {
-                    count = this.participantes.filter(p => p.saldoFinal > 0).length;
+                    const credores = this.participantes.filter(p => p.saldoFinal > 0.01);
+                    count = credores.length;
+                    console.log('  📊 Credores:', count, credores.map(p => `${p.nome}: ${p.saldoFinal}`));
                 } else if (this.filtroStatus === 'quitados') {
-                    count = this.participantes.filter(p => p.saldoFinal === 0).length;
+                    // ✅ FIX: Quitados = saldo >= -0.01 (zerados + credores = sem dívidas)
+                    const quitados = this.participantes.filter(p => p.saldoFinal >= -0.01);
+                    count = quitados.length;
+                    console.log('  📊 Quitados (saldo >= -0.01):', count);
+                    console.log('  Lista quitados:', quitados.map(p => `${p.nome}: ${p.saldoFinal}`));
                 }
             }
             countEl.textContent = count;
+            console.log('  ✅ Contador atualizado para:', count);
         }
     }
 
@@ -658,14 +710,15 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
      */
     exportarRelatorio() {
         const devedores = this.participantes
-            .filter(p => p.saldoFinal < 0)
+            .filter(p => p.saldoFinal < -0.01)
             .sort((a, b) => a.saldoFinal - b.saldoFinal);
 
         const credores = this.participantes
-            .filter(p => p.saldoFinal > 0)
+            .filter(p => p.saldoFinal > 0.01)
             .sort((a, b) => b.saldoFinal - a.saldoFinal);
 
-        const quitados = this.participantes.filter(p => p.saldoFinal === 0);
+        // ✅ FIX: Quitados = saldo >= -0.01 (zerado ou credor)
+        const quitados = this.participantes.filter(p => p.saldoFinal >= -0.01);
 
         let relatorio = `*BALANCO FINANCEIRO ${this.season}*\n`;
         relatorio += `_Gerado em ${new Date().toLocaleDateString('pt-BR')}_\n\n`;

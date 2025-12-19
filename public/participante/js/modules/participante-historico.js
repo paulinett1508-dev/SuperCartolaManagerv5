@@ -1,16 +1,22 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v1.0 (Hall da Fama)
+// PARTICIPANTE-HISTORICO.JS - v2.0 (SALA DE TROFÉUS DINÂMICA)
 // Destino: /participante/js/modules/participante-historico.js
 // =====================================================================
-// Módulo para exibir histórico de temporadas do participante
-// Consome dados do Cartório Vitalício (users_registry.json)
+// ✅ v2.0: Sala de Troféus com conquistas dinâmicas e condicionais
+//    - Cards de PONTOS (mantido)
+//    - Card de RODADAS (removido - dado irrelevante)
+//    - Novos cards dinâmicos: Melhor do Mês, Mata-Mata, Ligas
+//    - Lógica condicional: Se ganhou = destaque / Se não = mensagem neutra
+// ✅ v1.0: Histórico básico de temporadas
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "📜 Módulo v1.0 carregando...");
+if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "📜 Módulo v2.0 (Sala de Troféus) carregando...");
 
 // Estado do módulo
 let historicoData = null;
 let temporadaSelecionada = null;
+let ligaId = null;
+let timeId = null;
 
 // Mapeamento de badges para exibição
 const BADGES_CONFIG = {
@@ -34,8 +40,11 @@ const BADGES_CONFIG = {
 // =====================================================================
 // FUNÇÃO PRINCIPAL - INICIALIZAR
 // =====================================================================
-export async function inicializarHistoricoParticipante({ participante, ligaId, timeId }) {
-    if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "🔄 Inicializando...", { timeId });
+export async function inicializarHistoricoParticipante({ participante, ligaId: _ligaId, timeId: _timeId }) {
+    if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "🔄 Inicializando...", { timeId: _timeId });
+
+    ligaId = _ligaId;
+    timeId = _timeId;
 
     if (!timeId) {
         mostrarErro("Dados inválidos para carregar histórico");
@@ -225,9 +234,9 @@ window.selecionarTemporada = function(ano) {
 };
 
 // =====================================================================
-// RENDERIZAR DETALHE DE UMA TEMPORADA
+// ✅ v2.0: RENDERIZAR DETALHE DE UMA TEMPORADA (SALA DE TROFÉUS)
 // =====================================================================
-function renderizarDetalheTemporada(temporada) {
+async function renderizarDetalheTemporada(temporada) {
     const container = document.getElementById("historicoDetalhe");
     if (!container) return;
 
@@ -240,6 +249,10 @@ function renderizarDetalheTemporada(temporada) {
     if (stats.posicao_final === 1) posicaoClasse = "ouro";
     else if (stats.posicao_final === 2) posicaoClasse = "prata";
     else if (stats.posicao_final === 3) posicaoClasse = "bronze";
+
+    // ✅ v2.0: Buscar dados de conquistas dinâmicas
+    const conquistasMelhorMes = await buscarConquistasMelhorMes(temporada.ano);
+    const conquistasMataMata = await buscarConquistasMataMata(temporada.ano);
 
     container.innerHTML = `
         <!-- Header com Escudo e Posição -->
@@ -258,37 +271,21 @@ function renderizarDetalheTemporada(temporada) {
             </div>
         </div>
 
-        <!-- Métricas -->
-        <div class="detalhe-metricas">
-            <div class="metrica-item">
-                <span class="metrica-valor">${formatarPontos(stats.pontos_totais)}</span>
-                <span class="metrica-label">Pontos</span>
+        <!-- ✅ v2.0: Card PONTOS (mantido) -->
+        <div class="conquista-card card-pontos">
+            <div class="conquista-header">
+                <span class="material-symbols-outlined conquista-icon">sports_score</span>
+                <h4 class="conquista-titulo">Pontuação Total</h4>
             </div>
-            <div class="metrica-item">
-                <span class="metrica-valor">${stats.rodadas_jogadas || 0}</span>
-                <span class="metrica-label">Rodadas</span>
-            </div>
-            <div class="metrica-item">
-                <span class="metrica-valor ${financeiro.saldo_final > 0 ? 'positivo' : financeiro.saldo_final < 0 ? 'negativo' : ''}">${formatarMoeda(financeiro.saldo_final || 0)}</span>
-                <span class="metrica-label">Saldo Final</span>
+            <div class="conquista-body">
+                <p class="conquista-valor-principal">${formatarPontos(stats.pontos_totais)}</p>
+                <p class="conquista-descricao">pontos acumulados na Rodada 38</p>
             </div>
         </div>
 
-        <!-- Detalhamento Financeiro -->
-        <div class="detalhe-metricas" style="margin-top: 8px;">
-            <div class="metrica-item">
-                <span class="metrica-valor positivo">+${formatarMoeda(Math.abs(financeiro.total_bonus || 0))}</span>
-                <span class="metrica-label">Bônus</span>
-            </div>
-            <div class="metrica-item">
-                <span class="metrica-valor negativo">-${formatarMoeda(Math.abs(financeiro.total_onus || 0))}</span>
-                <span class="metrica-label">Ônus</span>
-            </div>
-            <div class="metrica-item">
-                <span class="metrica-valor">${calcularAproveitamento(stats)}%</span>
-                <span class="metrica-label">Aproveitamento</span>
-            </div>
-        </div>
+        ${renderizarCardSaldoFinanceiro(financeiro)}
+        ${renderizarCardMelhorMes(conquistasMelhorMes)}
+        ${renderizarCardMataMata(conquistasMataMata)}
 
         ${badges.length > 0 ? `
             <!-- Badges da Temporada -->
@@ -307,6 +304,205 @@ function renderizarDetalheTemporada(temporada) {
             </div>
         ` : ''}
     `;
+}
+
+// =====================================================================
+// ✅ v2.0: RENDERIZAR CARD DE SALDO FINANCEIRO
+// =====================================================================
+function renderizarCardSaldoFinanceiro(financeiro) {
+    const saldoFinal = financeiro.saldo_final || 0;
+    const isPositivo = saldoFinal > 0.01;
+    const isNegativo = saldoFinal < -0.01;
+    const isZerado = Math.abs(saldoFinal) <= 0.01;
+
+    let corClasse = "neutro";
+    let icone = "account_balance_wallet";
+    let status = "Neutro";
+
+    if (isPositivo) {
+        corClasse = "sucesso";
+        icone = "trending_up";
+        status = "Credor";
+    } else if (isNegativo) {
+        corClasse = "alerta";
+        icone = "trending_down";
+        status = "Devedor";
+    } else {
+        corClasse = "sucesso";
+        icone = "check_circle";
+        status = "Quitado";
+    }
+
+    return `
+        <div class="conquista-card card-financeiro card-${corClasse}">
+            <div class="conquista-header">
+                <span class="material-symbols-outlined conquista-icon">${icone}</span>
+                <h4 class="conquista-titulo">Saldo Financeiro</h4>
+            </div>
+            <div class="conquista-body">
+                <p class="conquista-valor-principal">${formatarMoeda(saldoFinal)}</p>
+                <p class="conquista-descricao">${status}</p>
+                <div class="conquista-detalhes">
+                    <div class="detalhe-item">
+                        <span class="detalhe-label">Bônus</span>
+                        <span class="detalhe-valor positivo">+${formatarMoeda(Math.abs(financeiro.total_bonus || 0))}</span>
+                    </div>
+                    <div class="detalhe-item">
+                        <span class="detalhe-label">Ônus</span>
+                        <span class="detalhe-valor negativo">-${formatarMoeda(Math.abs(financeiro.total_onus || 0))}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// =====================================================================
+// ✅ v2.0: RENDERIZAR CARD DE MELHOR DO MÊS
+// =====================================================================
+function renderizarCardMelhorMes(conquistas) {
+    const ganhou = conquistas && conquistas.length > 0;
+
+    if (ganhou) {
+        // Agrupar por mês
+        const mesesGanhos = conquistas.map(c => {
+            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            return meses[c.mes - 1];
+        });
+
+        return `
+            <div class="conquista-card card-melhor-mes card-conquista">
+                <div class="conquista-header">
+                    <span class="material-symbols-outlined conquista-icon">calendar_month</span>
+                    <h4 class="conquista-titulo">Melhor do Mês</h4>
+                    <span class="conquista-badge badge-ouro">🏆 ${conquistas.length}x</span>
+                </div>
+                <div class="conquista-body">
+                    <p class="conquista-texto-destaque">Você foi o melhor do mês em:</p>
+                    <div class="conquista-lista-meses">
+                        ${mesesGanhos.map(mes => `
+                            <span class="mes-badge">${mes}</span>
+                        `).join('')}
+                    </div>
+                    <p class="conquista-descricao-extra">Parabéns pela consistência! 🎉</p>
+                </div>
+            </div>
+        `;
+    } else {
+        return `
+            <div class="conquista-card card-melhor-mes card-vazio">
+                <div class="conquista-header">
+                    <span class="material-symbols-outlined conquista-icon">calendar_month</span>
+                    <h4 class="conquista-titulo">Melhor do Mês</h4>
+                </div>
+                <div class="conquista-body">
+                    <p class="conquista-texto-neutro">Você não ganhou nenhum <strong>MELHOR DO MÊS</strong> nesta temporada.</p>
+                    <p class="conquista-motivacao">Continue se esforçando! Na próxima temporada pode ser diferente. 💪</p>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// =====================================================================
+// ✅ v2.0: RENDERIZAR CARD DE MATA-MATA
+// =====================================================================
+function renderizarCardMataMata(conquistas) {
+    const ganhou = conquistas && conquistas.length > 0;
+
+    if (ganhou) {
+        return `
+            <div class="conquista-card card-mata-mata card-conquista">
+                <div class="conquista-header">
+                    <span class="material-symbols-outlined conquista-icon">emoji_events</span>
+                    <h4 class="conquista-titulo">Mata-Mata</h4>
+                    <span class="conquista-badge badge-ouro">👑 Campeão</span>
+                </div>
+                <div class="conquista-body">
+                    <p class="conquista-texto-destaque">Você foi campeão do Mata-Mata!</p>
+                    <div class="conquista-detalhes-liga">
+                        ${conquistas.map(c => `
+                            <div class="liga-vencida">
+                                <span class="material-symbols-outlined">military_tech</span>
+                                <span>${c.nome || `Edição ${c.edicao}`}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <p class="conquista-descricao-extra">Glória eterna! 🏆</p>
+                </div>
+            </div>
+        `;
+    } else {
+        return `
+            <div class="conquista-card card-mata-mata card-vazio">
+                <div class="conquista-header">
+                    <span class="material-symbols-outlined conquista-icon">sports_mma</span>
+                    <h4 class="conquista-titulo">Mata-Mata</h4>
+                </div>
+                <div class="conquista-body">
+                    <p class="conquista-texto-neutro">Você não ganhou nenhuma edição do <strong>MATA-MATA</strong>.</p>
+                    <p class="conquista-motivacao">A eliminação direta é implacável. Treine e volte mais forte! ⚔️</p>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// =====================================================================
+// ✅ v2.0: BUSCAR CONQUISTAS DE MELHOR DO MÊS
+// =====================================================================
+async function buscarConquistasMelhorMes(ano) {
+    try {
+        if (!ligaId || !timeId) return null;
+
+        const response = await fetch(`/api/melhor-mes/${ligaId}?temporada=${ano}`);
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (!data.success || !data.vencedores) return null;
+
+        // Filtrar meses que o participante ganhou
+        const mesesGanhos = data.vencedores.filter(v => 
+            String(v.time_id) === String(timeId) && v.nome
+        );
+
+        return mesesGanhos.length > 0 ? mesesGanhos : null;
+    } catch (error) {
+        if (window.Log) Log.warn("HISTORICO-PARTICIPANTE", "⚠️ Erro ao buscar Melhor do Mês:", error);
+        return null;
+    }
+}
+
+// =====================================================================
+// ✅ v2.0: BUSCAR CONQUISTAS DE MATA-MATA
+// =====================================================================
+async function buscarConquistasMataMata(ano) {
+    try {
+        if (!ligaId || !timeId) return null;
+
+        const response = await fetch(`/api/mata-mata/${ligaId}/edicoes`);
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (!data.success || !data.edicoes) return null;
+
+        // Filtrar edições que o participante ganhou
+        const edicoesGanhas = data.edicoes.filter(ed => {
+            // Verificar se é campeão (1º lugar)
+            if (!ed.ranking || !Array.isArray(ed.ranking)) return false;
+            
+            const campeao = ed.ranking[0];
+            return campeao && String(campeao.time_id) === String(timeId);
+        });
+
+        return edicoesGanhas.length > 0 ? edicoesGanhas.map(ed => ({
+            edicao: ed.edicao,
+            nome: ed.nome || `${ed.edicao}ª Edição`
+        })) : null;
+    } catch (error) {
+        if (window.Log) Log.warn("HISTORICO-PARTICIPANTE", "⚠️ Erro ao buscar Mata-Mata:", error);
+        return null;
+    }
 }
 
 // =====================================================================
@@ -329,17 +525,6 @@ function formatarPontos(valor) {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
-}
-
-function calcularAproveitamento(stats) {
-    // Placeholder - pode ser calculado com base em vitórias/jogos
-    // Por enquanto retorna baseado na posição final
-    const pos = stats.posicao_final;
-    if (!pos) return 0;
-    if (pos === 1) return 100;
-    if (pos <= 3) return 90;
-    if (pos <= 10) return 70;
-    return Math.max(10, 100 - (pos * 2));
 }
 
 function mostrarVazio() {
@@ -392,4 +577,4 @@ export function initHistoricoParticipante() {
     if (window.Log) Log.debug("HISTORICO-PARTICIPANTE", "Módulo pronto");
 }
 
-if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "✅ Módulo v1.0 carregado");
+if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "✅ Módulo v2.0 (Sala de Troféus) carregado");

@@ -278,7 +278,19 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
         if (meuTimeAnterior) posicaoAnterior = meuTimeAnterior.posicao;
     }
 
+    // ✅ SYNC FIX: Usar mesma lógica do Admin (saldo_final + acertos)
     const saldoFinanceiro = extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0;
+    
+    // 🐛 DEBUG: Log para verificar sincronização com Admin
+    if (window.Log) {
+        Log.info("PARTICIPANTE-BOAS-VINDAS", "💰 Saldo calculado:", {
+            saldo_atual: extratoData?.saldo_atual,
+            saldo_final: extratoData?.resumo?.saldo_final,
+            saldo_usado: saldoFinanceiro,
+            fonte: extratoData?.saldo_atual !== undefined ? "saldo_atual (backend)" : "saldo_final (resumo)"
+        });
+    }
+    
     const nomeTime = participante?.nome_time || meuTime?.nome_time || "Seu Time";
     const nomeCartola = participante?.nome_cartola || meuTime?.nome_cartola || "Cartoleiro";
     const nomeLiga = liga?.nome || "Liga";

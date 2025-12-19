@@ -222,16 +222,24 @@ router.get("/participantes", async (req, res) => {
 
                 // Classificar situação financeira
                 let situacao = "quitado";
-                if (saldoFinal > 0.01) {
-                    situacao = "credor";
-                    totalCredores += saldoFinal;
-                    quantidadeCredores++;
-                } else if (saldoFinal < -0.01) {
+                if (saldoFinal < -0.01) {
+                    // Devedor: saldo negativo (deve à liga)
                     situacao = "devedor";
                     totalDevedores += Math.abs(saldoFinal);
                     quantidadeDevedores++;
                 } else {
+                    // ✅ FIX: Quitados = saldo >= -0.01 (zerados + credores = sem dívidas)
                     quantidadeQuitados++;
+                    if (saldoFinal > 0.01) {
+                        situacao = "credor";
+                        totalCredores += saldoFinal;
+                        quantidadeCredores++;
+                    }
+                }
+                
+                // 🐛 DEBUG: Log da classificação
+                if (participante.time_id) {
+                    console.log(`[TESOURARIA-API] ${nomeTime}: saldoFinal=${saldoFinal.toFixed(2)} | situacao=${situacao}`);
                 }
 
                 participantes.push({
@@ -271,6 +279,14 @@ router.get("/participantes", async (req, res) => {
 
         const elapsed = Date.now() - startTime;
         console.log(`[TESOURARIA] ✅ ${participantes.length} participantes em ${elapsed}ms`);
+
+        // 🐛 DEBUG: Log dos totais calculados
+        console.log(`[TESOURARIA-API] 📊 TOTAIS calculados:`);
+        console.log(`  Total participantes: ${participantes.length}`);
+        console.log(`  Devedores: ${quantidadeDevedores}`);
+        console.log(`  Credores: ${quantidadeCredores}`);
+        console.log(`  Quitados: ${quantidadeQuitados}`);
+        console.log(`  Validação: ${quantidadeDevedores + quantidadeCredores + quantidadeQuitados} = ${participantes.length}`);
 
         res.json({
             success: true,
@@ -442,16 +458,19 @@ router.get("/liga/:ligaId", async (req, res) => {
 
             // Classificar situação
             let situacao = "quitado";
-            if (saldoFinal > 0.01) {
-                situacao = "credor";
-                totalCredores += saldoFinal;
-                quantidadeCredores++;
-            } else if (saldoFinal < -0.01) {
+            if (saldoFinal < -0.01) {
+                // Devedor: saldo negativo (deve à liga)
                 situacao = "devedor";
                 totalDevedores += Math.abs(saldoFinal);
                 quantidadeDevedores++;
             } else {
+                // ✅ FIX: Quitados = saldo >= -0.01 (zerados + credores = sem dívidas)
                 quantidadeQuitados++;
+                if (saldoFinal > 0.01) {
+                    situacao = "credor";
+                    totalCredores += saldoFinal;
+                    quantidadeCredores++;
+                }
             }
 
             participantes.push({
@@ -486,6 +505,14 @@ router.get("/liga/:ligaId", async (req, res) => {
 
         const elapsed = Date.now() - startTime;
         console.log(`[TESOURARIA] ✅ ${participantes.length} participantes em ${elapsed}ms`);
+
+        // 🐛 DEBUG: Log dos totais calculados
+        console.log(`[TESOURARIA-API] 📊 TOTAIS para liga ${ligaId}:`);
+        console.log(`  Total participantes: ${participantes.length}`);
+        console.log(`  Devedores: ${quantidadeDevedores}`);
+        console.log(`  Credores: ${quantidadeCredores}`);
+        console.log(`  Quitados: ${quantidadeQuitados}`);
+        console.log(`  Validação: ${quantidadeDevedores + quantidadeCredores + quantidadeQuitados} = ${participantes.length}`);
 
         res.json({
             success: true,
@@ -835,14 +862,17 @@ router.get("/resumo", async (req, res) => {
             for (const participante of liga.participantes || []) {
                 const saldo = await calcularSaldoCompleto(ligaId, participante.time_id, temporada);
 
-                if (saldo.saldoFinal > 0.01) {
-                    credores += saldo.saldoFinal;
-                    qtdCredores++;
-                } else if (saldo.saldoFinal < -0.01) {
+                if (saldo.saldoFinal < -0.01) {
+                    // Devedor: saldo negativo (deve à liga)
                     devedores += Math.abs(saldo.saldoFinal);
                     qtdDevedores++;
                 } else {
+                    // ✅ FIX: Quitados = saldo >= -0.01 (zerados + credores = sem dívidas)
                     qtdQuitados++;
+                    if (saldo.saldoFinal > 0.01) {
+                        credores += saldo.saldoFinal;
+                        qtdCredores++;
+                    }
                 }
             }
 
