@@ -100,7 +100,9 @@
       "Bash(public/participante/js/participante-navigation.js )",
       "Bash(index.js )",
       "Bash(.claude/pending-tasks.md)",
-      "Bash(timeout 20 node:*)"
+      "Bash(timeout 20 node:*)",
+      "Bash(git config:*)",
+      "Bash(gh auth login:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

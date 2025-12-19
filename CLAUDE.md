@@ -45,3 +45,34 @@ O projeto conta com 4 skills especializadas que podem ser invocadas para tarefas
 1. NEVER remove the `gemini_audit.py` file.
 2. NEVER break the "Follow the Money" audit trail in financial controllers.
 3. Always check if a variable exists before accessing its properties (avoid `undefined` errors).
+
+## 📊 Estrutura de Dados - Participantes
+
+### Collection "times"
+- **IMPORTANTE:** O sistema NÃO usa a collection "users". Todos os participantes estão na collection **"times"**.
+- Model: `models/Time.js`
+- Schema principal: `id` (Number, único), `nome_time`, `nome_cartoleiro`, `ativo`, `rodada_desistencia`, `temporada`
+
+### Configuração de Ambiente
+- **MONGODB_URI:** Não está no arquivo `.env` - está configurada nos **Replit Secrets** (variáveis de ambiente seguras).
+- O sistema detecta automaticamente o ambiente (dev/prod) via `NODE_ENV`:
+  - `development` → usa `MONGO_URI_DEV`
+  - `production` → usa `MONGO_URI`
+
+### Estatísticas Atuais (Referência)
+- **Total de participantes:** 40 registros na collection `times`
+- **Participantes ativos:** 36
+- **Participantes inativos (desistentes):** 2
+  - "JBMENGO94 FC"
+  - "Senhores Da Escuridão"
+- **Times de teste:** 2
+  - "FLAMENGO TESTE FC" (id: 99999999)
+  - "Time 123456"
+
+### Scripts Úteis
+- `scripts/analisar-participantes.js` - Análise completa da collection times
+  ```bash
+  node scripts/analisar-participantes.js
+  node scripts/analisar-participantes.js --detalhes
+  node scripts/analisar-participantes.js --limpar-testes  # dry-run
+  ```
