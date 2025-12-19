@@ -1,0 +1,47 @@
+# SUPER CARTOLA MANAGER - PROJECT RULES
+
+## 🧠 Tech Stack & Constraints
+- **Runtime:** Node.js (Replit Environment).
+- **Database:** MongoDB (Native Driver).
+- **Frontend:** HTML5, CSS3, Vanilla JS (ES6 Modules).
+- **Styling:** TailwindCSS (via CDN).
+- **Architecture:** MVC (Models, Controllers, Views/Public).
+
+## 🎨 UI/UX Guidelines (Dark Mode First)
+- **Theme:** Strict Dark Mode. Backgrounds typically `bg-gray-900` or `bg-slate-900`.
+- **Text:** Primary text `text-white` or `text-gray-100`. Muted text `text-gray-400`.
+- **Components:**
+  - Cards: `bg-gray-800 rounded-lg shadow-lg`.
+  - Buttons: Use explicit feedback (hover/active states).
+  - Inputs: Remove default white backgrounds. Use `bg-gray-700 text-white border-gray-600`.
+
+## 🛡️ Coding Standards
+- **Idempotency:** All financial functions must be idempotent. Prevent double-charging or double-crediting.
+- **Safety:** Always validate `req.session.usuario` before sensitive actions.
+- **Error Handling:** Use `try/catch` in async controllers. Log errors clearly.
+- **No React/Vue:** Stick to pure JavaScript for frontend logic to maintain simplicity.
+
+## 🚀 Replit Specifics
+- **Server:** Always verify port configuration (process.env.PORT || 5000).
+- **File System:** Do not use absolute paths that assume a local Windows/Mac machine. Use relative paths suitable for Linux.
+
+## 🤖 Project Skills (Agentes Especializados)
+O projeto conta com 4 skills especializadas que podem ser invocadas para tarefas específicas:
+
+| Skill | Descrição | Quando Usar |
+|-------|-----------|-------------|
+| **code-inspector** | Code Review, Debugging e Qualidade de Software | "procurar bugs", "auditar código", "corrigir erros", "melhorar qualidade" |
+| **db-guardian** | Banco de Dados (MongoDB), Segurança e Migrações | Scripts de limpeza, manutenção, snapshots de temporada, gestão de acesso |
+| **frontend-crafter** | Frontend Mobile-First, UX Black & Orange, Cache Offline, SPA | Criar telas, ajustar CSS, lógica JS do cliente, navegação |
+| **league-architect** | Regras de Negócio, Formatos de Liga (SaaS), Lógica Financeira | Configs de liga, cálculos financeiros, regras de disputa |
+
+### Exemplos de Uso:
+- "Auditar o sistema de pagamentos" → `code-inspector`
+- "Criar script de migração para nova temporada" → `db-guardian`
+- "Ajustar a tela de ranking no mobile" → `frontend-crafter`
+- "Definir regras do mata-mata" → `league-architect`
+
+## ⚠️ Critical Rules
+1. NEVER remove the `gemini_audit.py` file.
+2. NEVER break the "Follow the Money" audit trail in financial controllers.
+3. Always check if a variable exists before accessing its properties (avoid `undefined` errors).
