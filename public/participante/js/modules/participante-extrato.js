@@ -187,6 +187,7 @@ async function buscarCamposEditaveis(ligaId, timeId) {
 // CARREGAR EXTRATO (v3.1 CACHE-FIRST)
 // =====================================================================
 async function carregarExtrato(ligaId, timeId) {
+
     const container = document.getElementById("fluxoFinanceiroContent");
     if (!container) {
         if (window.Log)

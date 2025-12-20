@@ -1,7 +1,7 @@
 // =====================================================================
 // PARTICIPANTE-SEASON-SELECTOR.JS - Seletor de Temporada v1.0
 // =====================================================================
-// Componente para alternar entre temporadas (2025 histórico / 2026 atual)
+// Componente para alternar entre temporadas (histórico / atual)
 // Persiste a preferência no localStorage
 // =====================================================================
 
@@ -10,8 +10,8 @@ if (window.Log) Log.info("SEASON-SELECTOR", "🗓️ Carregando seletor de tempo
 class SeasonSelector {
     constructor() {
         this.STORAGE_KEY = "participante_temporada_selecionada";
-        this.temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
-        this.temporadaAnterior = window.ParticipanteConfig?.PREVIOUS_SEASON || 2025;
+        this.temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2025;
+        this.temporadaAnterior = window.ParticipanteConfig?.PREVIOUS_SEASON || 2024;
         this.temporadaSelecionada = this.carregarPreferencia();
         this.listeners = [];
     }

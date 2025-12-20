@@ -4,8 +4,9 @@
 // ✅ v1.1 FIX: Removidos exports ES6 pois arquivo é carregado como script normal
 
 // Temporada atual (sincronizado com config/seasons.js do backend)
-const CURRENT_SEASON = 2026;
-const PREVIOUS_SEASON = 2025;
+// ✅ Mantido em 2025 até admin disparar turn_key para 2026
+const CURRENT_SEASON = 2025;
+const PREVIOUS_SEASON = 2024;
 
 // Feature flags
 const FEATURES = {

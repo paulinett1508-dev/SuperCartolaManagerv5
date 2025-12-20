@@ -1,19 +1,17 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v3.0 (SALA DE TROFÉUS COMPLETA)
+// PARTICIPANTE-HISTORICO.JS - v3.2 (LAYOUT CLEANUP)
 // Destino: /participante/js/modules/participante-historico.js
 // =====================================================================
-// ✅ v3.0: TODOS os módulos de conquista agora renderizados:
-//    - Pontos Corridos (posição, V/E/D)
-//    - Top10 Mito/Mico
-//    - Artilheiro Campeão
-//    - Luva de Ouro
-//    - Melhor do Mês
-//    - Mata-Mata
+// ✅ v3.2: Removido header redundante "Liga + Temporada" do detalhe
+// ✅ v3.1: FIX MULTI-LIGA - Conquistas agora usam liga_id da temporada
+//    - Artilheiro/Luva de Ouro agora funcionam para múltiplas ligas
+//    - Pontuação Total trocado de card para linha
+// ✅ v3.0: TODOS os módulos de conquista agora renderizados
 // ✅ v2.0: Sala de Troféus com conquistas dinâmicas e condicionais
 // ✅ v1.0: Histórico básico de temporadas
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "📜 Módulo v3.0 (Sala de Troféus Completa) carregando...");
+if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "📜 Módulo v3.2 (Layout Cleanup) carregando...");
 
 // Estado do módulo
 let historicoData = null;
@@ -355,7 +353,9 @@ async function renderizarDetalheTemporada(temporada) {
     else if (stats.posicao_final === 2) posicaoClasse = "prata";
     else if (stats.posicao_final === 3) posicaoClasse = "bronze";
 
-    // ✅ v3.0: Buscar TODAS as conquistas dinâmicas em paralelo
+    // ✅ v3.1: Buscar conquistas usando liga_id da temporada (suporte multi-liga)
+    const temporadaLigaId = temporada.liga_id || ligaId;
+
     const [
         conquistasMelhorMes,
         conquistasMataMata,
@@ -364,40 +364,32 @@ async function renderizarDetalheTemporada(temporada) {
         conquistasArtilheiro,
         conquistasLuvaOuro
     ] = await Promise.all([
-        buscarConquistasMelhorMes(temporada.ano),
-        buscarConquistasMataMata(temporada.ano),
-        buscarConquistasPontosCorridos(temporada.ano),
-        buscarConquistasTop10(temporada.ano),
-        buscarConquistasArtilheiro(temporada.ano),
-        buscarConquistasLuvaOuro(temporada.ano)
+        buscarConquistasMelhorMes(temporadaLigaId, temporada.ano),
+        buscarConquistasMataMata(temporadaLigaId, temporada.ano),
+        buscarConquistasPontosCorridos(temporadaLigaId, temporada.ano),
+        buscarConquistasTop10(temporadaLigaId, temporada.ano),
+        buscarConquistasArtilheiro(temporadaLigaId, temporada.ano),
+        buscarConquistasLuvaOuro(temporadaLigaId, temporada.ano)
     ]);
 
     container.innerHTML = `
-        <!-- Header com Escudo e Posição -->
+        <!-- Header com Escudo e Posição (v3.2: removido liga_nome/temporada redundante) -->
         <div class="detalhe-header">
             <img src="${temporada.time_escudo || '/participante/img/escudo-placeholder.png'}"
                  alt="Escudo"
                  class="detalhe-escudo"
                  onerror="this.src='/participante/img/escudo-placeholder.png'">
-            <div class="detalhe-info">
-                <h3>${temporada.liga_nome || 'Liga'}</h3>
-                <p>Temporada ${temporada.ano}</p>
-            </div>
-            <div class="detalhe-posicao">
+            <div class="detalhe-posicao" style="margin-left: auto;">
                 <span class="posicao-numero ${posicaoClasse}">${stats.posicao_final || '-'}º</span>
                 <span class="posicao-label">Posição Final</span>
             </div>
         </div>
 
-        <!-- ✅ v2.0: Card PONTOS (mantido) -->
-        <div class="conquista-card card-pontos">
-            <div class="conquista-header">
-                <span class="material-symbols-outlined conquista-icon">sports_score</span>
-                <h4 class="conquista-titulo">Pontuação Total</h4>
-            </div>
-            <div class="conquista-body">
-                <p class="conquista-valor-principal">${formatarPontos(stats.pontos_totais)}</p>
-                <p class="conquista-descricao">pontos acumulados na Rodada 38</p>
+        <!-- ✅ v3.1: Pontuação Total em formato de linha -->
+        <div class="detalhe-metricas" style="margin-top: 16px;">
+            <div class="metrica-item" style="grid-column: span 3;">
+                <span class="metrica-label">Pontuação Total</span>
+                <span class="metrica-valor">${formatarPontos(stats.pontos_totais)} pts</span>
             </div>
         </div>
 
@@ -571,13 +563,14 @@ function renderizarCardMataMata(conquistas) {
 }
 
 // =====================================================================
-// ✅ v2.0: BUSCAR CONQUISTAS DE MELHOR DO MÊS
+// ✅ v3.1: BUSCAR CONQUISTAS DE MELHOR DO MÊS (suporte multi-liga)
 // =====================================================================
-async function buscarConquistasMelhorMes(ano) {
+async function buscarConquistasMelhorMes(temporadaLigaId, ano) {
     try {
-        if (!ligaId || !timeId) return null;
+        const usarLigaId = temporadaLigaId || ligaId;
+        if (!usarLigaId || !timeId) return null;
 
-        const response = await fetch(`/api/melhor-mes/${ligaId}?temporada=${ano}`);
+        const response = await fetch(`/api/ligas/${usarLigaId}/melhor-mes?temporada=${ano}`);
         if (!response.ok) return null;
 
         const data = await response.json();
@@ -596,13 +589,14 @@ async function buscarConquistasMelhorMes(ano) {
 }
 
 // =====================================================================
-// ✅ v2.0: BUSCAR CONQUISTAS DE MATA-MATA
+// ✅ v3.1: BUSCAR CONQUISTAS DE MATA-MATA (suporte multi-liga)
 // =====================================================================
-async function buscarConquistasMataMata(ano) {
+async function buscarConquistasMataMata(temporadaLigaId, ano) {
     try {
-        if (!ligaId || !timeId) return null;
+        const usarLigaId = temporadaLigaId || ligaId;
+        if (!usarLigaId || !timeId) return null;
 
-        const response = await fetch(`/api/mata-mata/${ligaId}/edicoes`);
+        const response = await fetch(`/api/mata-mata/cache/${usarLigaId}/edicoes`);
         if (!response.ok) return null;
 
         const data = await response.json();
@@ -673,13 +667,14 @@ function mostrarVazio() {
 }
 
 // =====================================================================
-// ✅ v3.0: BUSCAR CONQUISTAS PONTOS CORRIDOS
+// ✅ v3.1: BUSCAR CONQUISTAS PONTOS CORRIDOS (suporte multi-liga)
 // =====================================================================
-async function buscarConquistasPontosCorridos(ano) {
+async function buscarConquistasPontosCorridos(temporadaLigaId, ano) {
     try {
-        if (!ligaId || !timeId) return null;
+        const usarLigaId = temporadaLigaId || ligaId;
+        if (!usarLigaId || !timeId) return null;
 
-        const response = await fetch(`/api/pontos-corridos/${ligaId}/cache`);
+        const response = await fetch(`/api/pontos-corridos/cache/${usarLigaId}`);
         if (!response.ok) return null;
 
         const data = await response.json();
@@ -704,13 +699,14 @@ async function buscarConquistasPontosCorridos(ano) {
 }
 
 // =====================================================================
-// ✅ v3.0: BUSCAR CONQUISTAS TOP10 (MITO/MICO)
+// ✅ v3.1: BUSCAR CONQUISTAS TOP10 (MITO/MICO) (suporte multi-liga)
 // =====================================================================
-async function buscarConquistasTop10(ano) {
+async function buscarConquistasTop10(temporadaLigaId, ano) {
     try {
-        if (!ligaId || !timeId) return null;
+        const usarLigaId = temporadaLigaId || ligaId;
+        if (!usarLigaId || !timeId) return null;
 
-        const response = await fetch(`/api/top10/${ligaId}/cache`);
+        const response = await fetch(`/api/top10/cache/${usarLigaId}`);
         if (!response.ok) return null;
 
         const data = await response.json();
@@ -735,13 +731,14 @@ async function buscarConquistasTop10(ano) {
 }
 
 // =====================================================================
-// ✅ v3.0: BUSCAR CONQUISTAS ARTILHEIRO
+// ✅ v3.1: BUSCAR CONQUISTAS ARTILHEIRO (suporte multi-liga)
 // =====================================================================
-async function buscarConquistasArtilheiro(ano) {
+async function buscarConquistasArtilheiro(temporadaLigaId, ano) {
     try {
-        if (!ligaId || !timeId) return null;
+        const usarLigaId = temporadaLigaId || ligaId;
+        if (!usarLigaId || !timeId) return null;
 
-        const response = await fetch(`/api/artilheiro-campeao/${ligaId}/ranking`);
+        const response = await fetch(`/api/artilheiro-campeao/${usarLigaId}/ranking`);
         if (!response.ok) return null;
 
         const data = await response.json();
@@ -764,13 +761,14 @@ async function buscarConquistasArtilheiro(ano) {
 }
 
 // =====================================================================
-// ✅ v3.0: BUSCAR CONQUISTAS LUVA DE OURO
+// ✅ v3.1: BUSCAR CONQUISTAS LUVA DE OURO (suporte multi-liga)
 // =====================================================================
-async function buscarConquistasLuvaOuro(ano) {
+async function buscarConquistasLuvaOuro(temporadaLigaId, ano) {
     try {
-        if (!ligaId || !timeId) return null;
+        const usarLigaId = temporadaLigaId || ligaId;
+        if (!usarLigaId || !timeId) return null;
 
-        const response = await fetch(`/api/luva-de-ouro/${ligaId}/ranking`);
+        const response = await fetch(`/api/luva-de-ouro/${usarLigaId}/ranking`);
         if (!response.ok) return null;
 
         const data = await response.json();
@@ -996,4 +994,4 @@ export function initHistoricoParticipante() {
     if (window.Log) Log.debug("HISTORICO-PARTICIPANTE", "Módulo pronto");
 }
 
-if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "✅ Módulo v2.0 (Sala de Troféus) carregado");
+if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "✅ Módulo v3.2 (Layout Cleanup) carregado");

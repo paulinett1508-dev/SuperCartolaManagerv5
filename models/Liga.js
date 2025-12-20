@@ -31,12 +31,18 @@ const ligaSchema = new mongoose.Schema({
     times: [{ type: Number }], // Array de IDs dos times da liga
     participantes: [participanteSchema],
     configuracoes: {
+        // ✅ Ranking por posição na rodada (BANCO - bônus/ônus)
+        ranking_rodada: { type: Object, default: {} },
         pontos_corridos: { type: Object, default: {} },
         mata_mata: { type: Object, default: {} },
         top10: { type: Object, default: {} },
         melhor_mes: { type: Object, default: {} },
         artilheiro: { type: Object, default: {} },
         luva_ouro: { type: Object, default: {} },
+        // ✅ Cards desabilitados no frontend
+        cards_desabilitados: { type: Array, default: [] },
+        // ✅ Status da temporada
+        temporada_2025: { type: Object, default: {} },
     },
     // ✅ Controle granular de módulos ativos
     modulos_ativos: {

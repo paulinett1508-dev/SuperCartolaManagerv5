@@ -925,8 +925,8 @@
              TEASER TEMPORADA 2026 - Botão Flutuante + Modal
              ============================================ -->
 
-        <!-- Botão Flutuante "Vem aí" -->
-        <button onclick="abrirTeaser()" class="fixed bottom-24 right-4 z-40 flex items-center gap-3 px-5 py-3 bg-[#0a0a0a] border border-[#FF5500]/40 backdrop-blur-xl rounded-full shadow-[0_0_25px_rgba(255,85,0,0.3)] hover:scale-105 transition-transform group ring-1 ring-white/5">
+        <!-- Botão Flutuante "Vem aí" - OCULTO até admin disparar 2026 -->
+        <button onclick="abrirTeaser()" style="display:none !important;" class="fixed bottom-24 right-4 z-40 flex items-center gap-3 px-5 py-3 bg-[#0a0a0a] border border-[#FF5500]/40 backdrop-blur-xl rounded-full shadow-[0_0_25px_rgba(255,85,0,0.3)] hover:scale-105 transition-transform group ring-1 ring-white/5">
             <i class="ph-fill ph-rocket-launch text-xl group-hover:animate-bounce text-[#FF5500]"></i>
             <div class="flex flex-col items-start leading-none">
                 <span class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Vem aí</span>
@@ -1032,12 +1032,12 @@
                 sessionStorage.setItem('spoiler_2026_visto', 'true');
             }
 
-            // Auto-abrir na primeira visita (após 1.5s)
-            window.addEventListener('load', () => {
-                if (!sessionStorage.getItem('spoiler_2026_visto')) {
-                    setTimeout(abrirTeaser, 1500);
-                }
-            });
+            // Auto-abrir DESABILITADO - será habilitado quando admin disparar 2026
+            // window.addEventListener('load', () => {
+            //     if (!sessionStorage.getItem('spoiler_2026_visto')) {
+            //         setTimeout(abrirTeaser, 1500);
+            //     }
+            // });
         </script>
     </body>
 </html>

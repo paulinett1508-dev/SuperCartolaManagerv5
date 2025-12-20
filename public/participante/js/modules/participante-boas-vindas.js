@@ -1,9 +1,9 @@
 // =====================================================================
 // PARTICIPANTE-BOAS-VINDAS.JS - v9.0 (BANNER RESUMO 2025 + TEMPORADA)
 // =====================================================================
-// ✅ v9.0: Banner de Resumo da Temporada Anterior (2025)
-//    - Exibe posição final, badges e saldo de 2025
-//    - Indicação clara de "Nova Temporada 2026"
+// ✅ v9.0: Banner de Resumo da Temporada Anterior
+//    - Exibe posição final, badges e saldo da temporada anterior
+//    - Indicação clara da temporada atual
 // ✅ v8.0: Carregamento INSTANTÂNEO com cache offline (IndexedDB)
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
@@ -11,8 +11,8 @@ if (window.Log)
     Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v9.0...");
 
 // Configuração de temporada (com fallback seguro)
-const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
-const TEMPORADA_ANTERIOR = window.ParticipanteConfig?.PREVIOUS_SEASON || 2025;
+const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2025;
+const TEMPORADA_ANTERIOR = window.ParticipanteConfig?.PREVIOUS_SEASON || 2024;
 
 // Estado do histórico
 let historicoParticipante = null;
