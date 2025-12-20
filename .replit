@@ -19,6 +19,11 @@ localPort = 15179
 externalPort = 3002
 exposeLocalhost = true
 
+[[ports]]
+localPort = 64260
+externalPort = 3003
+exposeLocalhost = true
+
 [deployment]
 deploymentTarget = "gce"
 run = ["sh", "-c", "npm start"]

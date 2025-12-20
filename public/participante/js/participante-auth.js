@@ -460,10 +460,19 @@ class ParticipanteAuth {
         if (window.Log) Log.debug('PARTICIPANTE-AUTH', '✅ Seletor de ligas renderizado e visível');
     }
 
+    // ✅ FUNÇÃO AUXILIAR: Obter logo da liga
+    obterLogoLiga(nomeLiga) {
+        const nome = (nomeLiga || '').toLowerCase();
+        if (nome.includes('super')) return '/img/logo-supercartola.png';
+        if (nome.includes('sobral') || nome.includes('cartoleiros')) return '/img/logo-cartoleirossobral.png';
+        return null;
+    }
+
     // ✅ NOVO: Mostrar badge de liga clicável no header
     mostrarBadgeLiga(ligas) {
         const badgeContainer = document.getElementById("ligaBadgeContainer");
         const badgeNome = document.getElementById("ligaBadgeNome");
+        const badgeIcone = document.getElementById("ligaBadgeIcone");
         const badge = document.getElementById("ligaBadge");
 
         if (!badgeContainer || !badge) {
@@ -474,11 +483,30 @@ class ParticipanteAuth {
         // Encontrar liga atual
         const ligaAtual = ligas.find(l => l.id === this.ligaId);
         if (ligaAtual && badgeNome) {
+            // Obter logo da liga
+            const logoUrl = this.obterLogoLiga(ligaAtual.nome);
+            
             // Truncar nome se muito longo
             const nomeExibir = ligaAtual.nome.length > 18
                 ? ligaAtual.nome.substring(0, 16) + '...'
                 : ligaAtual.nome;
-            badgeNome.textContent = nomeExibir;
+            
+            // Se tem logo, mostrar logo + nome e esconder ícone genérico
+            if (logoUrl) {
+                if (badgeIcone) badgeIcone.style.display = 'none';
+                badgeNome.innerHTML = `
+                    <img src="${logoUrl}" 
+                         alt="${ligaAtual.nome}" 
+                         class="liga-badge-logo"
+                         style="width: 18px; height: 18px; object-fit: contain; margin-right: 4px; vertical-align: middle; border-radius: 3px;"
+                         onerror="this.style.display='none'; document.getElementById('ligaBadgeIcone').style.display='inline-block';">
+                    <span style="vertical-align: middle;">${nomeExibir}</span>
+                `;
+            } else {
+                // Mostrar ícone genérico
+                if (badgeIcone) badgeIcone.style.display = 'inline-block';
+                badgeNome.textContent = nomeExibir;
+            }
         }
 
         // Mostrar badge

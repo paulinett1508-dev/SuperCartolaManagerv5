@@ -47,6 +47,17 @@
         </div>
     </div>
 
+    <!-- Seletor de Liga -->
+    <div id="historicoSeletorLiga" class="historico-seletor mb-4">
+        <h2 class="section-title mb-3">
+            <span class="material-symbols-outlined">emoji_events</span>
+            Selecione uma Liga
+        </h2>
+        <div id="ligasTabs" class="temporadas-tabs">
+            <!-- Tabs de ligas renderizadas via JS -->
+        </div>
+    </div>
+
     <!-- Seletor de Temporada -->
     <div id="historicoSeletor" class="historico-seletor mb-4">
         <h2 class="section-title mb-3">
@@ -114,34 +125,36 @@
     .historico-stats-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        gap: 8px;
     }
     .stat-card {
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        padding: 16px;
+        border-radius: 10px;
+        padding: 10px 8px;
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
-        gap: 4px;
+        gap: 2px;
     }
     .stat-icon {
-        font-size: 24px;
+        font-size: 20px;
         color: #ff4500;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
     }
     .stat-value {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 700;
         color: white;
+        line-height: 1;
     }
     .stat-label {
-        font-size: 11px;
+        font-size: 10px;
         color: #9ca3af;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        line-height: 1.2;
     }
 
     /* ===== BADGES ===== */

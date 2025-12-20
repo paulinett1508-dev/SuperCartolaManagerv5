@@ -15,6 +15,7 @@ if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "📜 Módulo v2.0 (Sala de T
 // Estado do módulo
 let historicoData = null;
 let temporadaSelecionada = null;
+let ligaSelecionada = null; // ✅ NOVO: Liga selecionada
 let ligaId = null;
 let timeId = null;
 
@@ -87,6 +88,7 @@ export async function inicializarHistoricoParticipante({ participante, ligaId: _
         // Renderizar tudo
         renderizarStats();
         renderizarBadges();
+        renderizarSeletorLigas(); // ✅ NOVO
         renderizarTemporadas();
 
     } catch (error) {
@@ -178,6 +180,85 @@ function renderizarBadges() {
 }
 
 // =====================================================================
+// ✅ NOVO: RENDERIZAR SELETOR DE LIGAS
+// =====================================================================
+function renderizarSeletorLigas() {
+    const ligasTabsContainer = document.getElementById("ligasTabs");
+    const seletorLiga = document.getElementById("historicoSeletorLiga");
+
+    if (!ligasTabsContainer || !seletorLiga) return;
+
+    const temporadas = historicoData.historico || [];
+
+    if (temporadas.length === 0) {
+        seletorLiga.style.display = "none";
+        return;
+    }
+
+    // Agrupar temporadas por liga
+    const ligasMap = new Map();
+    temporadas.forEach(temp => {
+        const ligaKey = temp.liga_id;
+        const ligaNome = temp.liga_nome || "Liga Desconhecida";
+        
+        if (!ligasMap.has(ligaKey)) {
+            ligasMap.set(ligaKey, {
+                id: ligaKey,
+                nome: ligaNome,
+                temporadas: []
+            });
+        }
+        ligasMap.get(ligaKey).temporadas.push(temp);
+    });
+
+    const ligas = Array.from(ligasMap.values());
+
+    if (ligas.length === 0) {
+        seletorLiga.style.display = "none";
+        return;
+    }
+
+    // Se há apenas uma liga, ocultar seletor
+    if (ligas.length === 1) {
+        ligaSelecionada = ligas[0].id;
+        seletorLiga.style.display = "none";
+        return;
+    }
+
+    // Renderizar tabs de ligas
+    ligasTabsContainer.innerHTML = ligas.map((liga, idx) => `
+        <button class="temporada-tab ${idx === 0 ? 'active' : ''}"
+                data-liga-id="${liga.id}"
+                onclick="window.selecionarLiga('${liga.id}')">
+            ${liga.nome}
+        </button>
+    `).join("");
+
+    // Selecionar primeira liga por padrão
+    ligaSelecionada = ligas[0].id;
+    seletorLiga.style.display = "block";
+
+    if (window.Log) Log.debug("HISTORICO-PARTICIPANTE", `✅ ${ligas.length} ligas renderizadas`);
+}
+
+// =====================================================================
+// ✅ NOVO: SELECIONAR LIGA (global para onclick)
+// =====================================================================
+window.selecionarLiga = function(ligaIdParam) {
+    if (window.Log) Log.debug("HISTORICO-PARTICIPANTE", "🏆 Selecionando liga:", ligaIdParam);
+
+    ligaSelecionada = ligaIdParam;
+
+    // Atualizar tabs de liga
+    document.querySelectorAll("#ligasTabs .temporada-tab").forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.ligaId === ligaIdParam);
+    });
+
+    // Re-renderizar temporadas da liga selecionada
+    renderizarTemporadas();
+};
+
+// =====================================================================
 // RENDERIZAR SELETOR DE TEMPORADAS
 // =====================================================================
 function renderizarTemporadas() {
@@ -186,10 +267,26 @@ function renderizarTemporadas() {
 
     if (!tabsContainer || !detalheContainer) return;
 
-    const temporadas = historicoData.historico || [];
+    const todasTemporadas = historicoData.historico || [];
+
+    if (todasTemporadas.length === 0) {
+        mostrarVazio();
+        return;
+    }
+
+    // ✅ NOVO: Filtrar temporadas pela liga selecionada (se houver seletor de liga)
+    const temporadas = ligaSelecionada
+        ? todasTemporadas.filter(t => t.liga_id === ligaSelecionada)
+        : todasTemporadas;
 
     if (temporadas.length === 0) {
-        mostrarVazio();
+        detalheContainer.innerHTML = `
+            <div class="historico-vazio">
+                <span class="material-symbols-outlined empty-icon">info</span>
+                <h3>Sem histórico nesta liga</h3>
+                <p>Você não participou de temporadas nesta liga.</p>
+            </div>
+        `;
         return;
     }
 
@@ -221,12 +318,17 @@ window.selecionarTemporada = function(ano) {
     temporadaSelecionada = ano;
 
     // Atualizar tabs
-    document.querySelectorAll(".temporada-tab").forEach(tab => {
+    document.querySelectorAll("#temporadasTabs .temporada-tab").forEach(tab => {
         tab.classList.toggle("active", parseInt(tab.dataset.ano) === ano);
     });
 
-    // Buscar dados da temporada
-    const temporada = historicoData.historico?.find(t => t.ano === ano);
+    // Buscar dados da temporada (filtrado pela liga se necessário)
+    const todasTemporadas = historicoData.historico || [];
+    const temporadasFiltradas = ligaSelecionada
+        ? todasTemporadas.filter(t => t.liga_id === ligaSelecionada)
+        : todasTemporadas;
+    
+    const temporada = temporadasFiltradas.find(t => t.ano === ano);
 
     if (temporada) {
         renderizarDetalheTemporada(temporada);
