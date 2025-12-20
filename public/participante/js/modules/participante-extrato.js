@@ -51,26 +51,35 @@ export async function inicializarExtratoParticipante({
 }
 
 // =====================================================================
-// ✅ v3.2: DETECTAR CACHE INCOMPLETO (com verificação de MATA_MATA)
+// ✅ v3.6: DETECTAR CACHE INCOMPLETO (RESPEITA MÓDULOS DA LIGA)
 // =====================================================================
-function detectarCacheIncompleto(rodadas) {
+function detectarCacheIncompleto(rodadas, modulosAtivos = null) {
     if (!Array.isArray(rodadas) || rodadas.length === 0) return false;
 
-    // ✅ v3.2 FIX: Verificar se falta MATA_MATA mesmo com temporada encerrada
-    // Edições de Mata-Mata ocorrem em rodadas específicas (2-7, 9-14, 15-21, 22-26, 31-35)
-    const rodadasMataMata = [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35];
+    // ✅ v3.6 FIX: Só verificar Mata-Mata se o módulo estiver HABILITADO na liga
+    // Buscar módulos ativos da liga cacheada
+    const ligaCache = window.ParticipanteCache?.getLiga?.(PARTICIPANTE_IDS.ligaId);
+    const mataMataHabilitado = modulosAtivos?.mataMata ||
+                               ligaCache?.modulos_ativos?.mataMata ||
+                               ligaCache?.configuracoes?.mata_mata?.habilitado;
 
-    // Verificar se existe pelo menos uma transação de MATA_MATA nas rodadas que deveriam ter
-    const rodadasComMM = rodadas.filter(r => {
-        const temMM = (r.mataMata || 0) !== 0;
-        const ehRodadaMM = rodadasMataMata.includes(r.rodada);
-        return ehRodadaMM && temMM;
-    });
+    if (mataMataHabilitado) {
+        // Edições de Mata-Mata ocorrem em rodadas específicas
+        const rodadasMataMata = [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35];
 
-    // Se não tem NENHUMA transação de MM nas rodadas de MM, cache está incompleto
-    if (rodadasComMM.length === 0) {
-        if (window.Log) Log.warn("EXTRATO-PARTICIPANTE", "⚠️ Cache sem transações de Mata-Mata - forçando recálculo");
-        return true;
+        const rodadasComMM = rodadas.filter(r => {
+            const temMM = (r.mataMata || 0) !== 0;
+            const ehRodadaMM = rodadasMataMata.includes(r.rodada);
+            return ehRodadaMM && temMM;
+        });
+
+        // Se liga tem MM habilitado mas não tem nenhuma transação, cache incompleto
+        if (rodadasComMM.length === 0) {
+            if (window.Log) Log.warn("EXTRATO-PARTICIPANTE", "⚠️ Cache sem transações de Mata-Mata (módulo habilitado) - forçando recálculo");
+            return true;
+        }
+    } else {
+        if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", "ℹ️ Liga sem Mata-Mata habilitado - pulando verificação");
     }
 
     // ✅ v3.0: TEMPORADA ENCERRADA = NUNCA recalcular (dados são perpétuos)
