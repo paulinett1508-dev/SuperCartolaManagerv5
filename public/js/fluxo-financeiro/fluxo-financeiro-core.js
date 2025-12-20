@@ -804,15 +804,23 @@ export class FluxoFinanceiroCore {
         resumo.top10 += r.top10 || 0;
     }
 
+    // ✅ v6.2 FIX: Corrigido para setar r.saldoAcumulado (não r.saldo)
+    // r.saldo = saldo INDIVIDUAL da rodada
+    // r.saldoAcumulado = soma progressiva de todas as rodadas
     _calcularSaldoAcumulado(rodadas) {
-        let saldo = 0;
+        let saldoAcumulado = 0;
         rodadas.forEach((r) => {
-            saldo +=
-                (r.bonusOnus || 0) +
-                (r.pontosCorridos || 0) +
-                (r.mataMata || 0) +
-                (r.top10 || 0);
-            r.saldo = saldo;
+            // Calcular saldo individual da rodada (se não estiver definido)
+            if (r.saldo === undefined || r.saldo === null) {
+                r.saldo =
+                    (parseFloat(r.bonusOnus) || 0) +
+                    (parseFloat(r.pontosCorridos) || 0) +
+                    (parseFloat(r.mataMata) || 0) +
+                    (parseFloat(r.top10) || 0);
+            }
+            // Acumular progressivamente
+            saldoAcumulado += parseFloat(r.saldo) || 0;
+            r.saldoAcumulado = saldoAcumulado;
         });
     }
 

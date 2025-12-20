@@ -1,5 +1,12 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v5.2 - Integração com Acertos Financeiros
+// extratoFinanceiroCacheController.js v5.5 - Integração com Acertos Financeiros
+// ✅ v5.5: FIX REFORÇADO - salvarExtratoCache SEMPRE recalcula saldo e saldoAcumulado
+//   - Proteção dupla: backend não confia em dados do frontend
+//   - r.saldo = recalculado a partir dos componentes individuais
+//   - r.saldoAcumulado = recalculado progressivamente
+// ✅ v5.4: FIX CRÍTICO - salvarExtratoCache agora recalcula saldoAcumulado
+//   - Frontend enviava saldoAcumulado = 0 em todas as rodadas
+//   - Agora o backend recalcula progressivamente antes de salvar
 // ✅ v5.2: FIX CRÍTICO - lerCacheExtratoFinanceiro agora inclui acertos no saldo
 // ✅ v5.1: Inclui acertos financeiros no extrato do participante
 // ✅ v5.0: Busca extrato de snapshots quando cache não existe
@@ -624,6 +631,33 @@ export const salvarExtratoCache = async (req, res) => {
             (Array.isArray(rodadasArray) && rodadasArray.length > 0
                 ? Math.max(...rodadasArray.map((r) => r.rodada || 0))
                 : 0);
+
+        // ✅ v5.5 FIX: SEMPRE recalcular saldo e saldoAcumulado antes de salvar
+        // Proteção dupla: mesmo se frontend enviar dados corrompidos, backend corrige
+        // - r.saldo = soma dos componentes INDIVIDUAIS da rodada
+        // - r.saldoAcumulado = soma PROGRESSIVA de todos os saldos
+        if (Array.isArray(rodadasArray) && rodadasArray.length > 0) {
+            // Ordenar por rodada
+            rodadasArray.sort((a, b) => (a.rodada || 0) - (b.rodada || 0));
+
+            // SEMPRE recalcular saldo e saldoAcumulado (não confiar no frontend)
+            let saldoAcumulado = 0;
+            rodadasArray.forEach((r) => {
+                // SEMPRE recalcular saldo individual da rodada a partir dos componentes
+                // Isso protege contra bug onde frontend enviava saldo = acumulado
+                r.saldo = (parseFloat(r.bonusOnus) || 0) +
+                          (parseFloat(r.pontosCorridos) || 0) +
+                          (parseFloat(r.mataMata) || 0) +
+                          (parseFloat(r.top10) || 0);
+
+                // Acumular progressivamente
+                saldoAcumulado += r.saldo;
+                r.saldoAcumulado = saldoAcumulado;
+            });
+
+            console.log(`[CACHE-CONTROLLER] ✅ saldo e saldoAcumulado recalculados para ${rodadasArray.length} rodadas (final: ${saldoAcumulado.toFixed(2)})`);
+        }
+
         const resumoCalculado = calcularResumoDeRodadas(rodadasArray);
 
         const cacheData = {

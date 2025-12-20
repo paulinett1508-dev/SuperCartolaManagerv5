@@ -4,10 +4,12 @@
  * Endpoints para registrar pagamentos e recebimentos
  * entre participantes e administração (em tempo real).
  *
- * @version 1.2.0
- * ✅ v1.2.0: INVALIDAÇÃO DE CACHE
- *   - Invalida cache do extrato após POST/PUT/DELETE de acertos
- *   - Força recálculo do saldo na próxima visualização
+ * @version 1.4.0
+ * ✅ v1.4.0: FIX CRÍTICO - NÃO DELETAR CACHE DO EXTRATO
+ *   - Acertos são armazenados em coleção separada (AcertoFinanceiro)
+ *   - São integrados no momento da consulta em getExtratoFinanceiro()
+ *   - Deletar cache zerava dados históricos (Timeline, P.Corridos, MataMata, etc.)
+ *   - Agora o cache é preservado após POST/PUT/DELETE de acertos
  * ✅ v1.1.0: TROCO AUTOMÁTICO - Pagamento a maior gera saldo positivo
  *   - Verifica se pagamento excede a dívida do participante
  *   - Cria automaticamente um recebimento com o troco
@@ -305,21 +307,13 @@ router.post("/:ligaId/:timeId", async (req, res) => {
         }
 
         // =========================================================================
-        // ✅ v1.2.0: INVALIDAR CACHE DO EXTRATO
-        // Força recálculo do saldo na próxima visualização
+        // ✅ v1.4.0: NÃO DELETAR CACHE DO EXTRATO
+        // Acertos são armazenados em coleção separada (AcertoFinanceiro) e são
+        // integrados no momento da consulta em getExtratoFinanceiro().
+        // Deletar o cache zerava todos os dados históricos (Timeline, P.Corridos, etc.)
         // =========================================================================
-        try {
-            const cacheResult = await ExtratoFinanceiroCache.deleteOne({
-                liga_id: ligaId,
-                time_id: parseInt(timeId, 10) || timeId,
-            });
-            if (cacheResult.deletedCount > 0) {
-                console.log(`[ACERTOS] ♻️ Cache do extrato invalidado para time ${timeId}`);
-            }
-        } catch (cacheError) {
-            console.warn(`[ACERTOS] ⚠️ Falha ao invalidar cache:`, cacheError.message);
-            // Não bloqueia a operação principal
-        }
+        // Cache do extrato NÃO precisa ser invalidado - acertos são calculados separadamente
+        console.log(`[ACERTOS] ✅ Acerto registrado para time ${timeId} (cache preservado)`);
 
         // Calcular novo saldo (já incluindo o troco se houver)
         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
@@ -397,16 +391,8 @@ router.put("/:id", async (req, res) => {
             });
         }
 
-        // ✅ v1.2.0: Invalidar cache do extrato
-        try {
-            await ExtratoFinanceiroCache.deleteOne({
-                liga_id: acertoAtualizado.ligaId,
-                time_id: parseInt(acertoAtualizado.timeId, 10) || acertoAtualizado.timeId,
-            });
-            console.log(`[ACERTOS] ♻️ Cache invalidado após atualização`);
-        } catch (cacheError) {
-            console.warn(`[ACERTOS] ⚠️ Falha ao invalidar cache:`, cacheError.message);
-        }
+        // ✅ v1.4.0: NÃO deletar cache - acertos são calculados separadamente
+        console.log(`[ACERTOS] ✅ Acerto atualizado (cache preservado)`);
 
         // Calcular novo saldo
         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(
@@ -454,16 +440,8 @@ router.delete("/:id", async (req, res) => {
             await acerto.save();
         }
 
-        // ✅ v1.2.0: Invalidar cache do extrato
-        try {
-            await ExtratoFinanceiroCache.deleteOne({
-                liga_id: acerto.ligaId,
-                time_id: parseInt(acerto.timeId, 10) || acerto.timeId,
-            });
-            console.log(`[ACERTOS] ♻️ Cache invalidado após deleção`);
-        } catch (cacheError) {
-            console.warn(`[ACERTOS] ⚠️ Falha ao invalidar cache:`, cacheError.message);
-        }
+        // ✅ v1.4.0: NÃO deletar cache - acertos são calculados separadamente
+        console.log(`[ACERTOS] ✅ Acerto removido (cache preservado)`);
 
         // Calcular novo saldo
         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(
