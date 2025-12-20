@@ -1,14 +1,17 @@
 // =====================================================================
 // PARTICIPANTE HISTORICO ROUTES - Hall da Fama / Cartório Vitalício
 // =====================================================================
-// Rota para buscar histórico de temporadas do participante
-// Dados lidos do arquivo users_registry.json (Cartório Vitalício)
+// ✅ v2.0: Busca saldo ATUAL do MongoDB (dados em tempo real)
+// Dados históricos do arquivo users_registry.json (Cartório Vitalício)
+// Dados financeiros ATUAIS do MongoDB (extrato_financeiro_caches)
 // =====================================================================
 
 import express from "express";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
+import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 
 const router = express.Router();
 
@@ -111,6 +114,66 @@ router.get("/:timeId", async (req, res) => {
         };
 
         console.log(`[HISTORICO] ✅ Histórico encontrado: ${response.historico.length} temporada(s)`);
+
+        // ✅ v2.0: Buscar saldo ATUAL do MongoDB (dados em tempo real)
+        try {
+            const extratoCache = await ExtratoFinanceiroCache.findOne({ time_id: Number(timeId) });
+
+            if (extratoCache) {
+                const resumo = extratoCache.resumo || {};
+                // Saldo base do extrato (sem acertos)
+                let saldoTemporada = resumo.saldo_final ?? resumo.saldo ?? extratoCache.saldo_consolidado ?? 0;
+                const totalGanhos = resumo.totalGanhos ?? extratoCache.ganhos_consolidados ?? 0;
+                const totalPerdas = resumo.totalPerdas ?? extratoCache.perdas_consolidadas ?? 0;
+
+                // ✅ Buscar acertos financeiros para somar ao saldo
+                let saldoAcertos = 0;
+                try {
+                    const acertos = await AcertoFinanceiro.find({ timeId: String(timeId) });
+                    if (acertos.length > 0) {
+                        acertos.forEach(a => {
+                            // pagamento = negativo (participante pagou), recebimento = positivo
+                            saldoAcertos += a.tipo === 'pagamento' ? a.valor : -a.valor;
+                        });
+                        console.log(`[HISTORICO] 💳 Acertos: ${acertos.length} registros, saldo: ${saldoAcertos}`);
+                    }
+                } catch (acertosError) {
+                    console.warn(`[HISTORICO] ⚠️ Erro ao buscar acertos:`, acertosError.message);
+                }
+
+                // Saldo final = saldo temporada + acertos
+                const saldoAtual = saldoTemporada + saldoAcertos;
+
+                console.log(`[HISTORICO] 💰 Saldo: temporada=${saldoTemporada}, acertos=${saldoAcertos}, TOTAL=${saldoAtual} (JSON tinha: ${response.situacao_financeira.saldo_atual})`);
+
+                // Atualizar situacao_financeira com dados reais
+                response.situacao_financeira.saldo_atual = saldoAtual;
+                response.situacao_financeira.tipo = saldoAtual > 0 ? "credor" : saldoAtual < 0 ? "devedor" : "zerado";
+
+                // Atualizar histórico da temporada atual (2025) se existir
+                const temporadaAtual = response.historico.find(h => h.ano === 2025);
+                if (temporadaAtual) {
+                    temporadaAtual.financeiro = {
+                        saldo_final: saldoAtual,
+                        total_bonus: totalGanhos,
+                        total_onus: totalPerdas
+                    };
+                }
+
+                // Atualizar detalhamento
+                if (response.situacao_financeira.detalhamento?.temporada_2025) {
+                    response.situacao_financeira.detalhamento.temporada_2025.saldo_final = saldoAtual;
+                    response.situacao_financeira.detalhamento.temporada_2025.saldo_extrato = saldoAtual;
+                    response.situacao_financeira.detalhamento.temporada_2025.total_bonus = totalGanhos;
+                    response.situacao_financeira.detalhamento.temporada_2025.total_onus = totalPerdas;
+                }
+            } else {
+                console.log(`[HISTORICO] ⚠️ Cache MongoDB não encontrado para time ${timeId}, usando dados do JSON`);
+            }
+        } catch (mongoError) {
+            console.warn(`[HISTORICO] ⚠️ Erro ao buscar MongoDB:`, mongoError.message);
+            // Continua com dados do JSON em caso de erro
+        }
 
         res.json(response);
 

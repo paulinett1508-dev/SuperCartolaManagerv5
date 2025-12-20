@@ -1,16 +1,19 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v2.0 (SALA DE TROFÉUS DINÂMICA)
+// PARTICIPANTE-HISTORICO.JS - v3.0 (SALA DE TROFÉUS COMPLETA)
 // Destino: /participante/js/modules/participante-historico.js
 // =====================================================================
+// ✅ v3.0: TODOS os módulos de conquista agora renderizados:
+//    - Pontos Corridos (posição, V/E/D)
+//    - Top10 Mito/Mico
+//    - Artilheiro Campeão
+//    - Luva de Ouro
+//    - Melhor do Mês
+//    - Mata-Mata
 // ✅ v2.0: Sala de Troféus com conquistas dinâmicas e condicionais
-//    - Cards de PONTOS (mantido)
-//    - Card de RODADAS (removido - dado irrelevante)
-//    - Novos cards dinâmicos: Melhor do Mês, Mata-Mata, Ligas
-//    - Lógica condicional: Se ganhou = destaque / Se não = mensagem neutra
 // ✅ v1.0: Histórico básico de temporadas
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "📜 Módulo v2.0 (Sala de Troféus) carregando...");
+if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "📜 Módulo v3.0 (Sala de Troféus Completa) carregando...");
 
 // Estado do módulo
 let historicoData = null;
@@ -352,9 +355,22 @@ async function renderizarDetalheTemporada(temporada) {
     else if (stats.posicao_final === 2) posicaoClasse = "prata";
     else if (stats.posicao_final === 3) posicaoClasse = "bronze";
 
-    // ✅ v2.0: Buscar dados de conquistas dinâmicas
-    const conquistasMelhorMes = await buscarConquistasMelhorMes(temporada.ano);
-    const conquistasMataMata = await buscarConquistasMataMata(temporada.ano);
+    // ✅ v3.0: Buscar TODAS as conquistas dinâmicas em paralelo
+    const [
+        conquistasMelhorMes,
+        conquistasMataMata,
+        conquistasPontosCorridos,
+        conquistasTop10,
+        conquistasArtilheiro,
+        conquistasLuvaOuro
+    ] = await Promise.all([
+        buscarConquistasMelhorMes(temporada.ano),
+        buscarConquistasMataMata(temporada.ano),
+        buscarConquistasPontosCorridos(temporada.ano),
+        buscarConquistasTop10(temporada.ano),
+        buscarConquistasArtilheiro(temporada.ano),
+        buscarConquistasLuvaOuro(temporada.ano)
+    ]);
 
     container.innerHTML = `
         <!-- Header com Escudo e Posição -->
@@ -386,8 +402,12 @@ async function renderizarDetalheTemporada(temporada) {
         </div>
 
         ${renderizarCardSaldoFinanceiro(financeiro)}
+        ${renderizarCardPontosCorridos(conquistasPontosCorridos)}
+        ${renderizarCardTop10(conquistasTop10)}
         ${renderizarCardMelhorMes(conquistasMelhorMes)}
         ${renderizarCardMataMata(conquistasMataMata)}
+        ${renderizarCardArtilheiro(conquistasArtilheiro)}
+        ${renderizarCardLuvaOuro(conquistasLuvaOuro)}
 
         ${badges.length > 0 ? `
             <!-- Badges da Temporada -->
@@ -650,6 +670,303 @@ function mostrarVazio() {
     document.getElementById("statTitulos")?.textContent && (document.getElementById("statTitulos").textContent = "0");
     document.getElementById("statMelhorPos")?.textContent && (document.getElementById("statMelhorPos").textContent = "-");
     document.getElementById("statSaldo")?.textContent && (document.getElementById("statSaldo").textContent = "R$ 0");
+}
+
+// =====================================================================
+// ✅ v3.0: BUSCAR CONQUISTAS PONTOS CORRIDOS
+// =====================================================================
+async function buscarConquistasPontosCorridos(ano) {
+    try {
+        if (!ligaId || !timeId) return null;
+
+        const response = await fetch(`/api/pontos-corridos/${ligaId}/cache`);
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (!data.classificacao) return null;
+
+        // Buscar posição do participante
+        const meuTime = data.classificacao.find(t => String(t.time_id) === String(timeId));
+        if (!meuTime) return null;
+
+        return {
+            posicao: meuTime.posicao || data.classificacao.indexOf(meuTime) + 1,
+            pontos: meuTime.pontos || 0,
+            vitorias: meuTime.vitorias || 0,
+            empates: meuTime.empates || 0,
+            derrotas: meuTime.derrotas || 0,
+            total: data.classificacao.length
+        };
+    } catch (error) {
+        if (window.Log) Log.warn("HISTORICO-PARTICIPANTE", "⚠️ Erro ao buscar Pontos Corridos:", error);
+        return null;
+    }
+}
+
+// =====================================================================
+// ✅ v3.0: BUSCAR CONQUISTAS TOP10 (MITO/MICO)
+// =====================================================================
+async function buscarConquistasTop10(ano) {
+    try {
+        if (!ligaId || !timeId) return null;
+
+        const response = await fetch(`/api/top10/${ligaId}/cache`);
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (!data.mitos && !data.micos) return null;
+
+        // Verificar se está no Top10 Mito
+        const meuMito = data.mitos?.find(t => String(t.time_id) === String(timeId));
+        const meuMico = data.micos?.find(t => String(t.time_id) === String(timeId));
+
+        return {
+            isMito: !!meuMito,
+            isMico: !!meuMico,
+            mitoPos: meuMito ? data.mitos.indexOf(meuMito) + 1 : null,
+            micoPos: meuMico ? data.micos.indexOf(meuMico) + 1 : null,
+            mitoPontos: meuMito?.pontos || 0,
+            micoPontos: meuMico?.pontos || 0
+        };
+    } catch (error) {
+        if (window.Log) Log.warn("HISTORICO-PARTICIPANTE", "⚠️ Erro ao buscar Top10:", error);
+        return null;
+    }
+}
+
+// =====================================================================
+// ✅ v3.0: BUSCAR CONQUISTAS ARTILHEIRO
+// =====================================================================
+async function buscarConquistasArtilheiro(ano) {
+    try {
+        if (!ligaId || !timeId) return null;
+
+        const response = await fetch(`/api/artilheiro-campeao/${ligaId}/ranking`);
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (!data.ranking) return null;
+
+        // Buscar posição do participante
+        const meuTime = data.ranking.find(t => String(t.time_id) === String(timeId));
+        if (!meuTime) return null;
+
+        return {
+            posicao: data.ranking.indexOf(meuTime) + 1,
+            gols: meuTime.gols || 0,
+            jogador: meuTime.artilheiro_nome || null,
+            isCampeao: data.ranking.indexOf(meuTime) === 0
+        };
+    } catch (error) {
+        if (window.Log) Log.warn("HISTORICO-PARTICIPANTE", "⚠️ Erro ao buscar Artilheiro:", error);
+        return null;
+    }
+}
+
+// =====================================================================
+// ✅ v3.0: BUSCAR CONQUISTAS LUVA DE OURO
+// =====================================================================
+async function buscarConquistasLuvaOuro(ano) {
+    try {
+        if (!ligaId || !timeId) return null;
+
+        const response = await fetch(`/api/luva-de-ouro/${ligaId}/ranking`);
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (!data.ranking) return null;
+
+        // Buscar posição do participante
+        const meuTime = data.ranking.find(t => String(t.time_id) === String(timeId));
+        if (!meuTime) return null;
+
+        return {
+            posicao: data.ranking.indexOf(meuTime) + 1,
+            defesas: meuTime.defesas || 0,
+            goleiro: meuTime.goleiro_nome || null,
+            isCampeao: data.ranking.indexOf(meuTime) === 0
+        };
+    } catch (error) {
+        if (window.Log) Log.warn("HISTORICO-PARTICIPANTE", "⚠️ Erro ao buscar Luva de Ouro:", error);
+        return null;
+    }
+}
+
+// =====================================================================
+// ✅ v3.0: RENDERIZAR CARD PONTOS CORRIDOS
+// =====================================================================
+function renderizarCardPontosCorridos(dados) {
+    if (!dados) {
+        return `
+            <div class="conquista-card card-pontos-corridos card-vazio">
+                <div class="conquista-header">
+                    <span class="material-symbols-outlined conquista-icon">format_list_numbered</span>
+                    <h4 class="conquista-titulo">Pontos Corridos</h4>
+                </div>
+                <div class="conquista-body">
+                    <p class="conquista-texto-neutro">Dados de Pontos Corridos não disponíveis para esta temporada.</p>
+                </div>
+            </div>
+        `;
+    }
+
+    const isPodio = dados.posicao <= 3;
+    const cardClass = isPodio ? 'card-conquista' : 'card-vazio';
+
+    return `
+        <div class="conquista-card card-pontos-corridos ${cardClass}">
+            <div class="conquista-header">
+                <span class="material-symbols-outlined conquista-icon">format_list_numbered</span>
+                <h4 class="conquista-titulo">Pontos Corridos</h4>
+                ${isPodio ? '<span class="conquista-badge badge-ouro">🏆 Pódio</span>' : ''}
+            </div>
+            <div class="conquista-body">
+                <p class="conquista-valor-principal">${dados.posicao}º</p>
+                <p class="conquista-descricao">de ${dados.total} participantes</p>
+                <div class="conquista-detalhes">
+                    <div class="detalhe-item">
+                        <span class="detalhe-label">Vitórias</span>
+                        <span class="detalhe-valor positivo">${dados.vitorias}</span>
+                    </div>
+                    <div class="detalhe-item">
+                        <span class="detalhe-label">Empates</span>
+                        <span class="detalhe-valor">${dados.empates}</span>
+                    </div>
+                    <div class="detalhe-item">
+                        <span class="detalhe-label">Derrotas</span>
+                        <span class="detalhe-valor negativo">${dados.derrotas}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// =====================================================================
+// ✅ v3.0: RENDERIZAR CARD TOP10
+// =====================================================================
+function renderizarCardTop10(dados) {
+    if (!dados || (!dados.isMito && !dados.isMico)) {
+        return `
+            <div class="conquista-card card-top10 card-vazio">
+                <div class="conquista-header">
+                    <span class="material-symbols-outlined conquista-icon">star</span>
+                    <h4 class="conquista-titulo">Top 10 (Mito/Mico)</h4>
+                </div>
+                <div class="conquista-body">
+                    <p class="conquista-texto-neutro">Você não ficou no Top 10 de Mitos nem Micos nesta temporada.</p>
+                    <p class="conquista-motivacao">Um bom resultado! Evitou os extremos. 😅</p>
+                </div>
+            </div>
+        `;
+    }
+
+    if (dados.isMito) {
+        return `
+            <div class="conquista-card card-top10 card-conquista" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%); border-color: rgba(16, 185, 129, 0.4);">
+                <div class="conquista-header">
+                    <span class="material-symbols-outlined conquista-icon" style="color: #10b981;">star</span>
+                    <h4 class="conquista-titulo">Top 10 Mitos</h4>
+                    <span class="conquista-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4);">⭐ ${dados.mitoPos}º</span>
+                </div>
+                <div class="conquista-body">
+                    <p class="conquista-texto-destaque">Você foi um dos MELHORES da liga!</p>
+                    <p class="conquista-descricao">${dados.mitoPontos.toFixed(2)} pontos de mito acumulados</p>
+                    <p class="conquista-descricao-extra">Excelente desempenho! 🌟</p>
+                </div>
+            </div>
+        `;
+    }
+
+    // isMico
+    return `
+        <div class="conquista-card card-top10" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%); border-color: rgba(239, 68, 68, 0.4);">
+            <div class="conquista-header">
+                <span class="material-symbols-outlined conquista-icon" style="color: #ef4444;">sentiment_dissatisfied</span>
+                <h4 class="conquista-titulo">Top 10 Micos</h4>
+                <span class="conquista-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4);">💀 ${dados.micoPos}º</span>
+            </div>
+            <div class="conquista-body">
+                <p class="conquista-texto-neutro">Você ficou entre os 10 piores da temporada.</p>
+                <p class="conquista-descricao">${dados.micoPontos.toFixed(2)} pontos de mico acumulados</p>
+                <p class="conquista-motivacao">A próxima temporada será melhor! 💪</p>
+            </div>
+        </div>
+    `;
+}
+
+// =====================================================================
+// ✅ v3.0: RENDERIZAR CARD ARTILHEIRO
+// =====================================================================
+function renderizarCardArtilheiro(dados) {
+    if (!dados) {
+        return `
+            <div class="conquista-card card-artilheiro card-vazio">
+                <div class="conquista-header">
+                    <span class="material-symbols-outlined conquista-icon">sports_soccer</span>
+                    <h4 class="conquista-titulo">Artilheiro Campeão</h4>
+                </div>
+                <div class="conquista-body">
+                    <p class="conquista-texto-neutro">Dados de Artilheiro não disponíveis para esta temporada.</p>
+                </div>
+            </div>
+        `;
+    }
+
+    const cardClass = dados.isCampeao ? 'card-conquista' : 'card-vazio';
+
+    return `
+        <div class="conquista-card card-artilheiro ${cardClass}">
+            <div class="conquista-header">
+                <span class="material-symbols-outlined conquista-icon">sports_soccer</span>
+                <h4 class="conquista-titulo">Artilheiro Campeão</h4>
+                ${dados.isCampeao ? '<span class="conquista-badge badge-ouro">⚽ Campeão</span>' : ''}
+            </div>
+            <div class="conquista-body">
+                <p class="conquista-valor-principal">${dados.posicao}º</p>
+                <p class="conquista-descricao">${dados.gols} gols marcados</p>
+                ${dados.jogador ? `<p class="conquista-texto-neutro">Artilheiro: ${dados.jogador}</p>` : ''}
+                ${dados.isCampeao ? '<p class="conquista-descricao-extra">Seu atacante foi o melhor! ⚽</p>' : ''}
+            </div>
+        </div>
+    `;
+}
+
+// =====================================================================
+// ✅ v3.0: RENDERIZAR CARD LUVA DE OURO
+// =====================================================================
+function renderizarCardLuvaOuro(dados) {
+    if (!dados) {
+        return `
+            <div class="conquista-card card-luva-ouro card-vazio">
+                <div class="conquista-header">
+                    <span class="material-symbols-outlined conquista-icon">sports_handball</span>
+                    <h4 class="conquista-titulo">Luva de Ouro</h4>
+                </div>
+                <div class="conquista-body">
+                    <p class="conquista-texto-neutro">Dados de Luva de Ouro não disponíveis para esta temporada.</p>
+                </div>
+            </div>
+        `;
+    }
+
+    const cardClass = dados.isCampeao ? 'card-conquista' : 'card-vazio';
+
+    return `
+        <div class="conquista-card card-luva-ouro ${cardClass}">
+            <div class="conquista-header">
+                <span class="material-symbols-outlined conquista-icon">sports_handball</span>
+                <h4 class="conquista-titulo">Luva de Ouro</h4>
+                ${dados.isCampeao ? '<span class="conquista-badge badge-ouro">🧤 Campeão</span>' : ''}
+            </div>
+            <div class="conquista-body">
+                <p class="conquista-valor-principal">${dados.posicao}º</p>
+                <p class="conquista-descricao">${dados.defesas} defesas difíceis</p>
+                ${dados.goleiro ? `<p class="conquista-texto-neutro">Goleiro: ${dados.goleiro}</p>` : ''}
+                ${dados.isCampeao ? '<p class="conquista-descricao-extra">Seu goleiro foi o melhor! 🧤</p>' : ''}
+            </div>
+        </div>
+    `;
 }
 
 function mostrarErro(mensagem) {
