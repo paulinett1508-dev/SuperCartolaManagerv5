@@ -348,23 +348,37 @@ export async function sincronizarPorId(timeId, opcoes = {}) {
  * Retorna o conteúdo completo do CartolaOficialDump
  *
  * @param {number} timeId - ID do time
- * @param {object} opcoes - { temporada, incluirHistorico }
+ * @param {object} opcoes - { temporada, incluirHistorico, rodada, limit }
  * @returns {Promise<object>}
  */
 export async function buscarDadosRaw(timeId, opcoes = {}) {
-  const { temporada = CURRENT_SEASON, incluirHistorico = false, limit = 10 } = opcoes;
+  const { temporada = CURRENT_SEASON, incluirHistorico = false, rodada = null, limit = 10 } = opcoes;
 
-  console.log(`[DATA-LAKE] Buscando dados raw: time=${timeId}, temporada=${temporada}`);
+  console.log(`[DATA-LAKE] Buscando dados raw: time=${timeId}, temporada=${temporada}, rodada=${rodada || 'mais recente'}`);
 
   try {
-    // Buscar dump mais recente
-    const dumpRecente = await CartolaOficialDump.buscarMaisRecente(timeId, temporada);
+    let dumpSelecionado;
 
-    if (!dumpRecente) {
+    // Se rodada específica foi solicitada, buscar aquela rodada
+    if (rodada) {
+      dumpSelecionado = await CartolaOficialDump.findOne({
+        time_id: timeId,
+        temporada: temporada,
+        rodada: rodada,
+        tipo_coleta: 'time_rodada'
+      }).lean();
+    } else {
+      // Buscar dump mais recente
+      dumpSelecionado = await CartolaOficialDump.buscarMaisRecente(timeId, temporada);
+    }
+
+    if (!dumpSelecionado) {
       return {
         success: false,
         error: 'not_found',
-        message: `Nenhum dump encontrado para o time ${timeId} na temporada ${temporada}`,
+        message: rodada
+          ? `Nenhum dump encontrado para o time ${timeId} na rodada ${rodada}`
+          : `Nenhum dump encontrado para o time ${timeId} na temporada ${temporada}`,
       };
     }
 
@@ -373,18 +387,27 @@ export async function buscarDadosRaw(timeId, opcoes = {}) {
       time_id: timeId,
       temporada: temporada,
       dump_atual: {
-        _id: dumpRecente._id,
-        tipo_coleta: dumpRecente.tipo_coleta,
-        rodada: dumpRecente.rodada,
-        data_coleta: dumpRecente.data_coleta,
-        raw_json: dumpRecente.raw_json, // ⭐ O JSON COMPLETO
-        meta: dumpRecente.meta,
+        _id: dumpSelecionado._id,
+        tipo_coleta: dumpSelecionado.tipo_coleta,
+        rodada: dumpSelecionado.rodada,
+        data_coleta: dumpSelecionado.data_coleta,
+        raw_json: dumpSelecionado.raw_json, // ⭐ O JSON COMPLETO
+        meta: dumpSelecionado.meta,
       },
     };
 
-    // Incluir histórico se solicitado
+    // Incluir histórico se solicitado (lista de todas as rodadas disponíveis)
     if (incluirHistorico) {
-      const historico = await CartolaOficialDump.buscarHistorico(timeId, { temporada, limit });
+      const historico = await CartolaOficialDump.find({
+        time_id: timeId,
+        temporada: temporada,
+        tipo_coleta: 'time_rodada'
+      })
+        .sort({ rodada: -1 })
+        .limit(limit)
+        .select('_id tipo_coleta rodada data_coleta meta.payload_size')
+        .lean();
+
       resultado.historico = historico.map(d => ({
         _id: d._id,
         tipo_coleta: d.tipo_coleta,
@@ -392,6 +415,9 @@ export async function buscarDadosRaw(timeId, opcoes = {}) {
         data_coleta: d.data_coleta,
         payload_size: d.meta?.payload_size,
       }));
+
+      // Adicionar lista de rodadas disponíveis para o seletor
+      resultado.rodadas_disponiveis = historico.map(d => d.rodada).sort((a, b) => a - b);
     }
 
     return resultado;
@@ -495,8 +521,14 @@ export async function httpSincronizarPorId(req, res) {
 }
 
 /**
- * GET /api/participantes/:id/raw
+ * GET /api/data-lake/raw/:id
  * Retorna os dados raw (dump completo) de um participante
+ *
+ * Query params:
+ *   ?temporada=2025    - Temporada (default: atual)
+ *   ?historico=true    - Incluir lista de rodadas disponíveis
+ *   ?rodada=15         - Buscar rodada específica (1-38)
+ *   ?limit=50          - Limite do histórico (default: 10)
  */
 export async function httpBuscarDadosRaw(req, res) {
   try {
@@ -510,12 +542,13 @@ export async function httpBuscarDadosRaw(req, res) {
       });
     }
 
-    const { temporada, historico, limit } = req.query;
+    const { temporada, historico, rodada, limit } = req.query;
 
     const resultado = await buscarDadosRaw(timeId, {
       temporada: temporada ? parseInt(temporada) : CURRENT_SEASON,
       incluirHistorico: historico === 'true' || historico === '1',
-      limit: limit ? parseInt(limit) : 10,
+      rodada: rodada ? parseInt(rodada) : null,
+      limit: limit ? parseInt(limit) : 50, // Aumentado para pegar todas as 38 rodadas
     });
 
     const statusCode = resultado.success ? 200 : (resultado.error === 'not_found' ? 404 : 500);

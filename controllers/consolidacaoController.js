@@ -1,5 +1,8 @@
 /**
- * CONSOLIDAÇÃO-CONTROLLER v3.0.0 (SaaS DINÂMICO)
+ * CONSOLIDAÇÃO-CONTROLLER v3.1.0 (SaaS DINÂMICO + DATA LAKE)
+ * ✅ v3.1.0: BACKUP AUTOMÁTICO - Salva dumps permanentes na consolidação
+ *   - Hook de backup após consolidação para preservar dados históricos
+ *   - Dados salvos em cartola_oficial_dumps para Hall da Fama e restaurações
  * ✅ v3.0.0: MULTI-TENANT - Busca configurações de liga.configuracoes (White Label)
  *   - Remove hardcoded IDs de ligas
  *   - getValoresTop10() agora busca de liga.configuracoes.top10
@@ -16,6 +19,7 @@ import Top10Cache from '../models/Top10Cache.js';
 import Liga from '../models/Liga.js';
 import Rodada from '../models/Rodada.js';
 import ExtratoFinanceiroCache from '../models/ExtratoFinanceiroCache.js';
+import CartolaOficialDump from '../models/CartolaOficialDump.js';
 import { calcularRankingCompleto } from './rankingGeralCacheController.js';
 import { getFluxoFinanceiroLiga } from './fluxoFinanceiroController.js';
 import { obterConfrontosMataMata } from './mataMataCacheController.js';
@@ -71,6 +75,83 @@ function isModuloHabilitado(liga, modulo) {
     }
 
     return false;
+}
+
+// ============================================================================
+// ✅ v3.1: BACKUP AUTOMÁTICO PARA DATA LAKE
+// ============================================================================
+
+/**
+ * Salva os dados da rodada consolidada como dumps permanentes
+ * Isso preserva os dados históricos para Hall da Fama, restaurações e análises
+ *
+ * @param {string} ligaId - ID da liga
+ * @param {number} rodadaNum - Número da rodada
+ * @param {Array} dadosRodada - Dados da rodada (da collection Rodada)
+ * @param {number} temporada - Temporada atual
+ */
+async function backupRodadaParaDataLake(ligaId, rodadaNum, dadosRodada, temporada = new Date().getFullYear()) {
+    try {
+        console.log(`[DATA-LAKE] 💾 Salvando backup R${rodadaNum} (${dadosRodada.length} times)...`);
+
+        let salvos = 0;
+        let jaExistentes = 0;
+
+        for (const rodadaData of dadosRodada) {
+            const timeId = rodadaData.timeId;
+
+            // Verificar se já existe dump para esta rodada/time
+            const existente = await CartolaOficialDump.findOne({
+                time_id: timeId,
+                temporada: temporada,
+                rodada: rodadaNum,
+                tipo_coleta: 'time_rodada'
+            }).lean();
+
+            if (existente) {
+                jaExistentes++;
+                continue;
+            }
+
+            // Criar dump permanente
+            await CartolaOficialDump.salvarDump({
+                time_id: timeId,
+                temporada: temporada,
+                rodada: rodadaNum,
+                tipo_coleta: 'time_rodada',
+                raw_json: {
+                    time: {
+                        time_id: timeId,
+                        nome: rodadaData.nome_time,
+                        nome_cartola: rodadaData.nome_cartola,
+                        url_escudo_png: rodadaData.escudo,
+                        clube_id: rodadaData.clube_id
+                    },
+                    pontos: rodadaData.pontos,
+                    rodada_atual: rodadaNum,
+                    rodada_nao_jogada: rodadaData.rodadaNaoJogada || false,
+                    _source: 'consolidacao_automatica',
+                    _backup_date: new Date().toISOString()
+                },
+                meta: {
+                    url_origem: `consolidacao://${ligaId}/${timeId}/${rodadaNum}`,
+                    http_status: 200,
+                    origem_trigger: 'consolidacao',
+                    liga_id: new mongoose.Types.ObjectId(ligaId)
+                }
+            });
+
+            salvos++;
+        }
+
+        console.log(`[DATA-LAKE] ✅ Backup R${rodadaNum}: ${salvos} novos, ${jaExistentes} já existentes`);
+
+        return { salvos, jaExistentes };
+    } catch (error) {
+        console.error(`[DATA-LAKE] ⚠️ Erro no backup R${rodadaNum}:`, error.message);
+        // Não lança erro para não interromper a consolidação
+        return { salvos: 0, erro: error.message };
+    }
 }
 
 // ============================================================================
@@ -370,8 +451,13 @@ export const consolidarRodada = async (req, res) => {
             },
             { upsert: true, session }
         );
-        
+
         await session.commitTransaction();
+
+        // 13. BACKUP PARA DATA LAKE (após commit, não bloqueia consolidação)
+        // Salva dados permanentes para Hall da Fama e restaurações futuras
+        const temporadaAtual = SEASON_CONFIG?.temporada || new Date().getFullYear();
+        const backupResult = await backupRodadaParaDataLake(ligaId, rodadaNum, dadosRodada, temporadaAtual);
         
         console.log(`[CONSOLIDAÇÃO] ✅ R${rodadaNum} consolidada com sucesso! (${rankingRodada.length} times)`);
         
@@ -385,7 +471,8 @@ export const consolidarRodada = async (req, res) => {
                 confrontos_pc: confrontosPontosCorridos.length,
                 confrontos_mm: confrontosMataMata.length,
                 mitos: mitos.length,
-                micos: micos.length
+                micos: micos.length,
+                data_lake: backupResult
             }
         });
         

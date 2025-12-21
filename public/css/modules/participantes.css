@@ -2158,3 +2158,220 @@
         display: none;
     }
 }
+
+/* ========================================
+   NAVEGAÇÃO POR RODADAS
+   ======================================== */
+
+.rodadas-navegacao {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.rodadas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.rodadas-header h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--text-primary, #fff);
+    font-size: 1rem;
+}
+
+.rodadas-header h4 .material-symbols-outlined {
+    color: #FF5500;
+}
+
+.rodadas-count {
+    font-size: 0.8rem;
+    color: var(--text-muted, #888);
+    background: rgba(255, 85, 0, 0.15);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.rodadas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+    gap: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.rodada-btn {
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-muted, #888);
+}
+
+.rodada-btn:hover {
+    background: rgba(255, 85, 0, 0.2);
+    border-color: rgba(255, 85, 0, 0.4);
+    color: #FF5500;
+    transform: scale(1.05);
+}
+
+.rodada-btn.active {
+    background: linear-gradient(135deg, #FF5500 0%, #cc4400 100%);
+    border-color: #FF5500;
+    color: white;
+    box-shadow: 0 2px 10px rgba(255, 85, 0, 0.4);
+}
+
+.rodada-numero {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.rodada-content-area {
+    min-height: 300px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.selecione-rodada,
+.sem-rodadas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px;
+    color: var(--text-muted, #888);
+    text-align: center;
+}
+
+.selecione-rodada p,
+.sem-rodadas p {
+    margin-top: 12px;
+    font-size: 0.9rem;
+}
+
+.loading-rodada,
+.erro-rodada {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px;
+    color: var(--text-muted, #888);
+    text-align: center;
+}
+
+.loading-rodada p,
+.erro-rodada p {
+    margin-top: 16px;
+    font-size: 0.95rem;
+}
+
+/* Conteúdo da Rodada */
+.rodada-content {
+    animation: fadeIn 0.3s ease;
+}
+
+.rodada-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: rgba(255, 85, 0, 0.1);
+    border-radius: 10px;
+    margin-bottom: 16px;
+}
+
+.rodada-pontos {
+    text-align: center;
+}
+
+.pontos-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted, #888);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.pontos-valor {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #FF5500;
+}
+
+.rodada-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: right;
+}
+
+.rodada-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-secondary, #aaa);
+    justify-content: flex-end;
+}
+
+.rodada-meta .material-symbols-outlined {
+    font-size: 16px;
+    color: #FF5500;
+}
+
+.rodada-json-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px 0;
+    color: var(--text-primary, #fff);
+    font-size: 0.95rem;
+}
+
+.rodada-json-section h4 .material-symbols-outlined {
+    color: #FF5500;
+    font-size: 18px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+    .rodadas-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .rodada-header-info {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+
+    .rodada-meta {
+        text-align: center;
+    }
+
+    .rodada-meta span {
+        justify-content: center;
+    }
+}

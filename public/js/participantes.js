@@ -1075,8 +1075,8 @@ async function verDadosGlobo(timeId, nomeCartoleiro, nomeTime, btnElement) {
     btnElement.disabled = true;
 
     try {
-        // Buscar dados do Data Lake
-        const response = await fetch(`/api/data-lake/raw/${timeId}?historico=true`);
+        // Buscar dados do Data Lake com histórico completo
+        const response = await fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50`);
         const data = await response.json();
 
         // Criar modal
@@ -1094,6 +1094,97 @@ async function verDadosGlobo(timeId, nomeCartoleiro, nomeTime, btnElement) {
         btnElement.disabled = false;
     }
 }
+
+/**
+ * Carrega dados de uma rodada específica no modal
+ */
+async function carregarRodadaEspecifica(timeId, rodada) {
+    const contentArea = document.getElementById('modal-content-area');
+    if (!contentArea) return;
+
+    // Mostrar loading
+    contentArea.innerHTML = `
+        <div class="loading-rodada">
+            <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:32px">sync</span>
+            <p>Carregando rodada ${rodada}...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`/api/data-lake/raw/${timeId}?rodada=${rodada}&historico=false`);
+        const data = await response.json();
+
+        if (!data.success) {
+            contentArea.innerHTML = `
+                <div class="erro-rodada">
+                    <span class="material-symbols-outlined" style="font-size:48px;color:#ef4444">error</span>
+                    <p>Dados não encontrados para rodada ${rodada}</p>
+                </div>
+            `;
+            return;
+        }
+
+        const rawJson = data.dump_atual?.raw_json;
+        const verificacao = verificarDadosValidos(rawJson);
+
+        // Atualizar conteúdo com os dados da rodada
+        contentArea.innerHTML = renderizarConteudoRodada(rawJson, verificacao, rodada);
+
+        // Atualizar indicador de rodada selecionada
+        document.querySelectorAll('.rodada-btn').forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.rodada) === rodada);
+        });
+
+    } catch (error) {
+        console.error('[DATA-LAKE] Erro ao carregar rodada:', error);
+        contentArea.innerHTML = `
+            <div class="erro-rodada">
+                <span class="material-symbols-outlined" style="font-size:48px;color:#ef4444">wifi_off</span>
+                <p>Erro ao carregar rodada: ${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Renderiza o conteúdo de uma rodada específica
+ */
+function renderizarConteudoRodada(rawJson, verificacao, rodada) {
+    if (!rawJson || !verificacao.valido) {
+        return `
+            <div class="dados-invalidos-aviso">
+                <span class="material-symbols-outlined" style="font-size:48px">warning</span>
+                <h4>Dados não disponíveis para rodada ${rodada}</h4>
+            </div>
+        `;
+    }
+
+    const time = rawJson.time || rawJson;
+    const pontos = rawJson.pontos;
+
+    return `
+        <div class="rodada-content">
+            <div class="rodada-header-info">
+                <div class="rodada-pontos">
+                    <span class="pontos-label">Pontuação</span>
+                    <span class="pontos-valor">${pontos?.toFixed(2) || 'N/D'}</span>
+                </div>
+                <div class="rodada-meta">
+                    <span><span class="material-symbols-outlined">sports_soccer</span> Rodada ${rodada}</span>
+                    <span><span class="material-symbols-outlined">person</span> ${time.nome_cartola || time.nome || 'N/D'}</span>
+                </div>
+            </div>
+
+            <div class="rodada-json-section">
+                <h4><span class="material-symbols-outlined">code</span> JSON Completo</h4>
+                ${renderizarJsonViewer(rawJson)}
+            </div>
+        </div>
+    `;
+}
+
+// Exportar para uso global
+window.carregarRodadaEspecifica = carregarRodadaEspecifica;
 
 /**
  * Verifica se um dump contém dados reais do participante
@@ -1248,17 +1339,22 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
         `;
     }
 
+    // Obter rodadas disponíveis do histórico
+    const rodadasDisponiveis = data.rodadas_disponiveis ||
+        (data.historico ? data.historico.map(h => h.rodada).sort((a, b) => a - b) : []);
+    const rodadaAtual = data.dump_atual?.rodada || rodadasDisponiveis[rodadasDisponiveis.length - 1] || 38;
+
     // Tabs para navegação (só mostra se tem dados válidos ou se quer ver o JSON mesmo assim)
     const tabs = temDados ? `
         <div class="modal-tabs">
             <button class="tab-btn active" data-tab="resumo">
                 <span class="material-symbols-outlined">dashboard</span> Resumo
             </button>
+            <button class="tab-btn" data-tab="rodadas">
+                <span class="material-symbols-outlined">calendar_month</span> Rodadas
+            </button>
             <button class="tab-btn" data-tab="json">
                 <span class="material-symbols-outlined">code</span> JSON Raw
-            </button>
-            <button class="tab-btn" data-tab="historico">
-                <span class="material-symbols-outlined">history</span> Histórico
             </button>
         </div>
     ` : "";
@@ -1269,6 +1365,40 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
             ${resumoDados}
         </div>
     ` : "";
+
+    // Tab de navegação por rodadas
+    const tabRodadas = temDados && rodadasDisponiveis.length > 0 ? `
+        <div class="tab-content" data-tab-content="rodadas">
+            <div class="rodadas-navegacao">
+                <div class="rodadas-header">
+                    <h4><span class="material-symbols-outlined">calendar_month</span> Selecione uma Rodada</h4>
+                    <span class="rodadas-count">${rodadasDisponiveis.length} rodadas disponíveis</span>
+                </div>
+                <div class="rodadas-grid">
+                    ${rodadasDisponiveis.map(r => `
+                        <button class="rodada-btn ${r === rodadaAtual ? 'active' : ''}"
+                                data-rodada="${r}"
+                                onclick="window.carregarRodadaEspecifica(${timeId}, ${r})">
+                            <span class="rodada-numero">${r}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+            <div id="modal-content-area" class="rodada-content-area">
+                <div class="selecione-rodada">
+                    <span class="material-symbols-outlined" style="font-size:48px;color:#666">touch_app</span>
+                    <p>Clique em uma rodada acima para visualizar os dados</p>
+                </div>
+            </div>
+        </div>
+    ` : `
+        <div class="tab-content" data-tab-content="rodadas">
+            <div class="sem-rodadas">
+                <span class="material-symbols-outlined" style="font-size:48px;color:#666">calendar_month</span>
+                <p>Nenhuma rodada disponível</p>
+            </div>
+        </div>
+    `;
 
     const tabJson = temDados ? `
         <div class="tab-content" data-tab-content="json">
@@ -1351,7 +1481,7 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
             ${tabs}
 
             <div class="modal-dados-body">
-                ${temDados ? tabResumo + tabJson + tabHistorico : semDados}
+                ${temDados ? tabResumo + tabRodadas + tabJson : semDados}
             </div>
         </div>
     `;
