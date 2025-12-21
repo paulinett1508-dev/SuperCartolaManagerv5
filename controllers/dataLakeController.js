@@ -405,7 +405,7 @@ export async function buscarDadosRaw(timeId, opcoes = {}) {
       })
         .sort({ rodada: -1 })
         .limit(limit)
-        .select('_id tipo_coleta rodada data_coleta meta.payload_size')
+        .select('_id tipo_coleta rodada data_coleta meta.payload_size raw_json.pontos')
         .lean();
 
       resultado.historico = historico.map(d => ({
@@ -414,10 +414,14 @@ export async function buscarDadosRaw(timeId, opcoes = {}) {
         rodada: d.rodada,
         data_coleta: d.data_coleta,
         payload_size: d.meta?.payload_size,
+        pontos: d.raw_json?.pontos || 0, // ⭐ Pontos da rodada
       }));
 
       // Adicionar lista de rodadas disponíveis para o seletor
       resultado.rodadas_disponiveis = historico.map(d => d.rodada).sort((a, b) => a - b);
+
+      // ⭐ Somar pontos de todas as rodadas disponíveis
+      resultado.pontos_total_temporada = historico.reduce((acc, d) => acc + (d.raw_json?.pontos || 0), 0);
     }
 
     return resultado;

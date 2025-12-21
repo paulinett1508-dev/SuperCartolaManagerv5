@@ -1216,8 +1216,25 @@ function renderizarConteudoRodada(rawJson, verificacao, rodada, timeId = null, r
     `;
 }
 
+/**
+ * Volta para a aba Resumo
+ */
+function voltarParaResumo() {
+    const modal = document.querySelector('.modal-dados-globo');
+    if (!modal) return;
+
+    // Ativar tab Resumo
+    modal.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    modal.querySelector('[data-tab="resumo"]')?.classList.add('active');
+
+    // Mostrar conteúdo Resumo
+    modal.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    modal.querySelector('[data-tab-content="resumo"]')?.classList.add('active');
+}
+
 // Exportar para uso global
 window.carregarRodadaEspecifica = carregarRodadaEspecifica;
+window.voltarParaResumo = voltarParaResumo;
 
 /**
  * Verifica se um dump contém dados reais do participante
@@ -1278,7 +1295,9 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
         const time = rawJson.time || rawJson;
         const atletas = rawJson.atletas || [];
         const patrimonio = rawJson.patrimonio;
-        const pontos = rawJson.pontos || rawJson.pontos_campeonato;
+        // ⭐ Usar soma de todas as rodadas se disponível, senão usar pontos da rodada atual
+        const pontosTotal = data.pontos_total_temporada || rawJson.pontos || rawJson.pontos_campeonato;
+        const rodadasCount = data.rodadas_disponiveis?.length || 0;
 
         resumoDados = `
             <div class="dados-resumo">
@@ -1305,12 +1324,12 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
                     </div>
                 </div>
                 ` : ""}
-                ${pontos !== undefined ? `
-                <div class="resumo-item">
-                    <span class="resumo-icon material-symbols-outlined">star</span>
+                ${pontosTotal !== undefined ? `
+                <div class="resumo-item resumo-item-destaque">
+                    <span class="resumo-icon material-symbols-outlined">emoji_events</span>
                     <div class="resumo-info">
-                        <span class="resumo-label">Pontos Total</span>
-                        <span class="resumo-value">${pontos.toFixed(2)}</span>
+                        <span class="resumo-label">Pontos Total (${rodadasCount} rodadas)</span>
+                        <span class="resumo-value">${pontosTotal.toFixed(2)}</span>
                     </div>
                 </div>
                 ` : ""}
@@ -1377,7 +1396,7 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
         (data.historico ? data.historico.map(h => h.rodada).sort((a, b) => a - b) : []);
     const rodadaAtual = data.dump_atual?.rodada || rodadasDisponiveis[rodadasDisponiveis.length - 1] || 38;
 
-    // Tabs para navegação (só mostra se tem dados válidos ou se quer ver o JSON mesmo assim)
+    // Tabs para navegação (só mostra se tem dados válidos)
     const tabs = temDados ? `
         <div class="modal-tabs">
             <button class="tab-btn active" data-tab="resumo">
@@ -1385,9 +1404,6 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
             </button>
             <button class="tab-btn" data-tab="rodadas">
                 <span class="material-symbols-outlined">calendar_month</span> Rodadas
-            </button>
-            <button class="tab-btn" data-tab="json">
-                <span class="material-symbols-outlined">code</span> JSON Raw
             </button>
         </div>
     ` : "";
@@ -1404,7 +1420,12 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
         <div class="tab-content" data-tab-content="rodadas">
             <div class="rodadas-navegacao">
                 <div class="rodadas-header">
-                    <h4><span class="material-symbols-outlined">calendar_month</span> Selecione uma Rodada</h4>
+                    <div class="rodadas-header-left">
+                        <button class="btn-voltar-resumo" onclick="window.voltarParaResumo()" title="Voltar ao Resumo">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                        </button>
+                        <h4><span class="material-symbols-outlined">calendar_month</span> Selecione uma Rodada</h4>
+                    </div>
                     <span class="rodadas-count">${rodadasDisponiveis.length} rodadas disponíveis</span>
                 </div>
                 <div class="rodadas-grid">
@@ -1433,11 +1454,7 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
         </div>
     `;
 
-    const tabJson = temDados ? `
-        <div class="tab-content" data-tab-content="json">
-            ${renderizarJsonViewer(rawJson)}
-        </div>
-    ` : "";
+    // Tab JSON removida - o JSON está disponível na aba Rodadas ao clicar em cada rodada
 
     const tabHistorico = temDados && data.historico ? `
         <div class="tab-content" data-tab-content="historico">
@@ -1514,7 +1531,7 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
             ${tabs}
 
             <div class="modal-dados-body">
-                ${temDados ? tabResumo + tabRodadas + tabJson : semDados}
+                ${temDados ? tabResumo + tabRodadas : semDados}
             </div>
         </div>
     `;

@@ -1268,6 +1268,24 @@
     border-color: rgba(255, 85, 0, 0.3);
 }
 
+/* Card de Pontos Total em destaque */
+.resumo-item-destaque {
+    background: linear-gradient(135deg, rgba(255, 85, 0, 0.15) 0%, rgba(255, 85, 0, 0.05) 100%);
+    border: 1px solid rgba(255, 85, 0, 0.4);
+    box-shadow: 0 4px 12px rgba(255, 85, 0, 0.15);
+}
+
+.resumo-item-destaque .resumo-icon {
+    background: linear-gradient(135deg, #FF5500 0%, #cc4400 100%);
+    color: white;
+}
+
+.resumo-item-destaque .resumo-value {
+    color: #FF5500;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
 .resumo-icon {
     font-size: 24px;
     color: #FF5500;
@@ -2175,6 +2193,35 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
+}
+
+.rodadas-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-voltar-resumo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 85, 0, 0.15);
+    border: 1px solid rgba(255, 85, 0, 0.3);
+    border-radius: 8px;
+    color: #FF5500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-voltar-resumo:hover {
+    background: rgba(255, 85, 0, 0.25);
+    transform: translateX(-2px);
+}
+
+.btn-voltar-resumo .material-symbols-outlined {
+    font-size: 20px;
 }
 
 .rodadas-header h4 {
