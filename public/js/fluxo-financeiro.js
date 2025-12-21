@@ -108,11 +108,29 @@ async function inicializarFluxoFinanceiro() {
         try {
             const status = await getMercadoStatus();
             rodadaAtual = status.rodada_atual || 1;
-            ultimaRodadaCompleta = Math.max(1, rodadaAtual - 1);
-            console.log("[FLUXO-ADMIN] Rodada atual:", rodadaAtual);
+
+            // ✅ FIX: Verificar se temporada encerrou (game_over) ou mercado fechado
+            // Se encerrou, usar rodada atual (38). Se não, usar rodada anterior.
+            const temporadaEncerrada = status.game_over === true;
+            const mercadoFechado = status.status_mercado !== 1 && !status.mercado_aberto;
+            const rodadaFinal = status.rodada_final || 38;
+
+            if (temporadaEncerrada || (mercadoFechado && rodadaAtual >= rodadaFinal)) {
+                // Temporada encerrada ou última rodada com mercado fechado: usar rodada atual
+                ultimaRodadaCompleta = rodadaAtual;
+                console.log("[FLUXO-ADMIN] 🏁 Temporada encerrada - usando R" + rodadaAtual);
+            } else if (mercadoFechado) {
+                // Mercado fechado durante temporada: rodada atual já consolidada
+                ultimaRodadaCompleta = rodadaAtual;
+            } else {
+                // Mercado aberto: rodada atual ainda em andamento
+                ultimaRodadaCompleta = Math.max(1, rodadaAtual - 1);
+            }
+
+            console.log("[FLUXO-ADMIN] Rodada atual:", rodadaAtual, "| Última completa:", ultimaRodadaCompleta);
         } catch (error) {
-            rodadaAtual = 21;
-            ultimaRodadaCompleta = 20;
+            rodadaAtual = 38;
+            ultimaRodadaCompleta = 38; // ✅ FIX: Padrão para 38 (temporada 2025 encerrada)
             console.warn(
                 "[FLUXO-ADMIN] Usando rodada padrão:",
                 ultimaRodadaCompleta,

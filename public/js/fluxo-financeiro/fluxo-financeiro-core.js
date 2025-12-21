@@ -144,7 +144,7 @@ export class FluxoFinanceiroCore {
 
     async _carregarMataMataMap(resultadosMataMata) {
         this.mataMataMap.clear();
-        let ultimaRodadaConsolidada = 999;
+        let ultimaRodadaConsolidada = 38; // ✅ FIX: Padrão para R38 (temporada 2025 encerrada)
 
         try {
             const mercadoResponse = await fetch("/api/cartola/mercado/status");
@@ -153,9 +153,17 @@ export class FluxoFinanceiroCore {
                 const mercadoAberto =
                     mercadoData.mercado_aberto ||
                     mercadoData.status_mercado === 1;
-                ultimaRodadaConsolidada = mercadoAberto
-                    ? Math.max(1, mercadoData.rodada_atual - 1)
-                    : mercadoData.rodada_atual;
+                const temporadaEncerrada = mercadoData.game_over === true;
+                const rodadaFinal = mercadoData.rodada_final || 38;
+
+                // ✅ FIX: Só usar rodada-1 se mercado aberto E temporada NÃO encerrada
+                if (temporadaEncerrada || mercadoData.rodada_atual >= rodadaFinal) {
+                    ultimaRodadaConsolidada = rodadaFinal;
+                } else if (mercadoAberto) {
+                    ultimaRodadaConsolidada = Math.max(1, mercadoData.rodada_atual - 1);
+                } else {
+                    ultimaRodadaConsolidada = mercadoData.rodada_atual;
+                }
             }
         } catch (error) {
             console.warn("[FLUXO-CORE] Erro ao verificar mercado:", error);
@@ -244,8 +252,15 @@ export class FluxoFinanceiroCore {
                     mercadoData.mercado_aberto ||
                     mercadoData.status_mercado === 1;
                 const rodadaAtualMercado = mercadoData.rodada_atual;
-                if (mercadoAberto && !isInativo) {
+                const temporadaEncerrada = mercadoData.game_over === true;
+                const rodadaFinal = mercadoData.rodada_final || 38;
+
+                // ✅ FIX: Só usar rodada-1 se mercado aberto E temporada NÃO encerrada
+                if (mercadoAberto && !isInativo && !temporadaEncerrada) {
                     rodadaParaCalculo = Math.max(1, rodadaAtualMercado - 1);
+                } else if (temporadaEncerrada || rodadaAtualMercado >= rodadaFinal) {
+                    // Temporada encerrada: usar rodada final
+                    rodadaParaCalculo = rodadaFinal;
                 }
             }
         } catch (error) {
