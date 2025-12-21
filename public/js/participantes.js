@@ -1102,6 +1102,11 @@ async function carregarRodadaEspecifica(timeId, rodada) {
     const contentArea = document.getElementById('modal-content-area');
     if (!contentArea) return;
 
+    // Obter rodadas disponíveis dos botões existentes
+    const rodadasDisponiveis = Array.from(document.querySelectorAll('.rodada-btn'))
+        .map(btn => parseInt(btn.dataset.rodada))
+        .sort((a, b) => a - b);
+
     // Mostrar loading
     contentArea.innerHTML = `
         <div class="loading-rodada">
@@ -1127,8 +1132,8 @@ async function carregarRodadaEspecifica(timeId, rodada) {
         const rawJson = data.dump_atual?.raw_json;
         const verificacao = verificarDadosValidos(rawJson);
 
-        // Atualizar conteúdo com os dados da rodada
-        contentArea.innerHTML = renderizarConteudoRodada(rawJson, verificacao, rodada);
+        // Atualizar conteúdo com os dados da rodada (incluindo navegação)
+        contentArea.innerHTML = renderizarConteudoRodada(rawJson, verificacao, rodada, timeId, rodadasDisponiveis);
 
         // Atualizar indicador de rodada selecionada
         document.querySelectorAll('.rodada-btn').forEach(btn => {
@@ -1149,9 +1154,35 @@ async function carregarRodadaEspecifica(timeId, rodada) {
 /**
  * Renderiza o conteúdo de uma rodada específica
  */
-function renderizarConteudoRodada(rawJson, verificacao, rodada) {
+function renderizarConteudoRodada(rawJson, verificacao, rodada, timeId = null, rodadasDisponiveis = []) {
+    // Calcular rodadas anterior e próxima
+    const idx = rodadasDisponiveis.indexOf(rodada);
+    const rodadaAnterior = idx > 0 ? rodadasDisponiveis[idx - 1] : null;
+    const rodadaProxima = idx < rodadasDisponiveis.length - 1 ? rodadasDisponiveis[idx + 1] : null;
+
+    // Botões de navegação
+    const botoesNavegacao = timeId ? `
+        <div class="rodada-navegacao-btns">
+            <button class="nav-rodada-btn ${!rodadaAnterior ? 'disabled' : ''}"
+                    ${rodadaAnterior ? `onclick="window.carregarRodadaEspecifica(${timeId}, ${rodadaAnterior})"` : 'disabled'}>
+                <span class="material-symbols-outlined">chevron_left</span>
+                <span class="nav-label">Anterior${rodadaAnterior ? ` (R${rodadaAnterior})` : ''}</span>
+            </button>
+            <div class="nav-rodada-atual">
+                <span class="material-symbols-outlined">sports_soccer</span>
+                Rodada ${rodada}
+            </div>
+            <button class="nav-rodada-btn ${!rodadaProxima ? 'disabled' : ''}"
+                    ${rodadaProxima ? `onclick="window.carregarRodadaEspecifica(${timeId}, ${rodadaProxima})"` : 'disabled'}>
+                <span class="nav-label">Próxima${rodadaProxima ? ` (R${rodadaProxima})` : ''}</span>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+        </div>
+    ` : '';
+
     if (!rawJson || !verificacao.valido) {
         return `
+            ${botoesNavegacao}
             <div class="dados-invalidos-aviso">
                 <span class="material-symbols-outlined" style="font-size:48px">warning</span>
                 <h4>Dados não disponíveis para rodada ${rodada}</h4>
@@ -1164,14 +1195,16 @@ function renderizarConteudoRodada(rawJson, verificacao, rodada) {
 
     return `
         <div class="rodada-content">
+            ${botoesNavegacao}
+
             <div class="rodada-header-info">
                 <div class="rodada-pontos">
                     <span class="pontos-label">Pontuação</span>
                     <span class="pontos-valor">${pontos?.toFixed(2) || 'N/D'}</span>
                 </div>
                 <div class="rodada-meta">
-                    <span><span class="material-symbols-outlined">sports_soccer</span> Rodada ${rodada}</span>
                     <span><span class="material-symbols-outlined">person</span> ${time.nome_cartola || time.nome || 'N/D'}</span>
+                    <span><span class="material-symbols-outlined">shield</span> ${time.nome || 'N/D'}</span>
                 </div>
             </div>
 
