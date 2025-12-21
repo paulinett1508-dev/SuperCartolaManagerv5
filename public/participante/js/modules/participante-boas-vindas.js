@@ -1,14 +1,16 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v9.0 (BANNER RESUMO 2025 + TEMPORADA)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.0 (CARD DISCRETO HALL DA FAMA)
 // =====================================================================
-// ✅ v9.0: Banner de Resumo da Temporada Anterior
-//    - Exibe posição final, badges e saldo da temporada anterior
-//    - Indicação clara da temporada atual
+// ✅ v10.0: Hall da Fama discreto na tela inicial
+//    - Card pequeno e clean na parte superior
+//    - Não chama atenção para temporada anterior
+//    - Navegação direta para histórico completo
+// ✅ v9.0: Banner de Resumo da Temporada Anterior (SUBSTITUÍDO)
 // ✅ v8.0: Carregamento INSTANTÂNEO com cache offline (IndexedDB)
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v9.0...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.0...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2025;
@@ -333,100 +335,43 @@ async function buscarHistoricoParticipante(timeId) {
 }
 
 // =====================================================================
-// ✅ v9.0: RENDERIZAR BANNER DE HISTÓRICO (Resumo 2025)
+// ✅ v10.0: RENDERIZAR CARD DISCRETO DO HALL DA FAMA
+// Pequeno, na parte superior, não chama atenção para temporada anterior
 // =====================================================================
 function renderizarBannerHistorico() {
     const container = document.getElementById("boas-vindas-container");
     if (!container || !historicoParticipante) return;
 
-    // Verificar se já existe o banner
-    if (document.getElementById("banner-historico-2025")) return;
+    // Verificar se já existe o card
+    if (document.getElementById("card-hall-fama")) return;
 
-    // Buscar dados da temporada anterior
-    const temporadaAnterior = historicoParticipante.historico?.find(
-        h => h.ano === TEMPORADA_ANTERIOR
-    );
+    // Verificar se tem histórico
+    const totalTemporadas = historicoParticipante.historico?.length || 0;
+    const totalTitulos = historicoParticipante.stats_agregadas?.total_titulos || 0;
 
-    if (!temporadaAnterior) return;
+    if (totalTemporadas === 0) return;
 
-    const stats = temporadaAnterior.estatisticas || {};
-    const financeiro = temporadaAnterior.financeiro || {};
-    const badges = temporadaAnterior.conquistas?.badges || [];
-
-    // Formatar saldo
-    const saldo = financeiro.saldo_final || 0;
-    const saldoAbs = Math.abs(saldo);
-    const saldoFormatado = saldo >= 0
-        ? `+R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`
-        : `-R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`;
-    const saldoCor = saldo > 0 ? "#4ade80" : saldo < 0 ? "#f87171" : "#9ca3af";
-
-    // Renderizar badges
-    const badgesHTML = badges.slice(0, 3).map(badgeId => {
-        const config = window.ParticipanteConfig?.BADGES_CONFIG?.[badgeId] ||
-            { icon: "🎖️", nome: badgeId.replace(/_/g, " ").replace(/\d{4}/, "") };
-        return `<span class="badge-mini" title="${config.nome}">${config.icon}</span>`;
-    }).join("");
-
-    // Criar banner HTML
-    const bannerHTML = `
-        <div id="banner-historico-2025" class="mx-4 mb-4 rounded-xl overflow-hidden" style="background: linear-gradient(135deg, rgba(255, 69, 0, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%); border: 1px solid rgba(255, 69, 0, 0.2);">
-            <!-- Header do Banner -->
-            <div class="flex items-center justify-between px-4 py-3" style="background: rgba(0,0,0,0.2);">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary" style="font-size: 20px;">history</span>
-                    <span class="text-xs font-bold text-white/90 uppercase tracking-wide">Resumo ${TEMPORADA_ANTERIOR}</span>
+    // ✅ v10.0: Card pequeno e discreto
+    const cardHTML = `
+        <div id="card-hall-fama" class="mx-4 mb-3">
+            <button onclick="window.participanteNav?.navegarPara('historico')"
+                    class="w-full flex items-center gap-3 p-3 rounded-xl bg-surface-dark active:scale-[0.98] transition-transform">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" style="background: rgba(255, 193, 7, 0.15);">
+                    <span class="material-icons text-xl" style="color: #ffc107;">emoji_events</span>
                 </div>
-                <button onclick="document.getElementById('banner-historico-2025').style.display='none'" class="text-white/50 hover:text-white/80">
-                    <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
-                </button>
-            </div>
-
-            <!-- Conteúdo -->
-            <div class="px-4 py-3">
-                <div class="flex items-center justify-between">
-                    <!-- Posição Final -->
-                    <div class="text-center">
-                        <p class="text-3xl font-bold text-white">${stats.posicao_final || "-"}º</p>
-                        <p class="text-[10px] text-white/60 uppercase">Posição Final</p>
-                    </div>
-
-                    <!-- Pontos -->
-                    <div class="text-center">
-                        <p class="text-lg font-bold text-white">${(stats.pontos_totais || 0).toLocaleString("pt-BR", { maximumFractionDigits: 0 })}</p>
-                        <p class="text-[10px] text-white/60 uppercase">Pontos</p>
-                    </div>
-
-                    <!-- Saldo -->
-                    <div class="text-center">
-                        <p class="text-lg font-bold" style="color: ${saldoCor}">${saldoFormatado}</p>
-                        <p class="text-[10px] text-white/60 uppercase">Saldo</p>
-                    </div>
-
-                    <!-- Badges -->
-                    ${badges.length > 0 ? `
-                        <div class="text-center">
-                            <div class="flex gap-1 justify-center text-xl">${badgesHTML}</div>
-                            <p class="text-[10px] text-white/60 uppercase">Conquistas</p>
-                        </div>
-                    ` : ''}
+                <div class="flex-1 text-left">
+                    <p class="text-sm font-semibold text-white">Hall da Fama</p>
+                    <p class="text-xs text-white/50">${totalTemporadas} temporada${totalTemporadas > 1 ? 's' : ''}${totalTitulos > 0 ? ` • ${totalTitulos} título${totalTitulos > 1 ? 's' : ''}` : ''}</p>
                 </div>
-
-                <!-- Link para Hall da Fama -->
-                <button onclick="window.participanteNav?.navegarPara('historico')"
-                        class="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold text-primary"
-                        style="background: rgba(255, 69, 0, 0.15);">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">emoji_events</span>
-                    Ver Hall da Fama Completo
-                </button>
-            </div>
+                <span class="material-icons text-white/30 text-lg">chevron_right</span>
+            </button>
         </div>
     `;
 
     // Inserir após a saudação
     const saudacao = container.querySelector(".px-4.py-4");
     if (saudacao) {
-        saudacao.insertAdjacentHTML("afterend", bannerHTML);
+        saudacao.insertAdjacentHTML("afterend", cardHTML);
     }
 }
 

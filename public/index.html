@@ -346,10 +346,13 @@
           admin_required:
             "Você precisa fazer login como administrador para acessar esta área.",
           session: "Erro ao criar sessão. Tente novamente.",
+          auth_init_failed: "Erro ao iniciar autenticação. Tente novamente.",
+          auth_failed: "Falha na autenticação. Verifique suas credenciais.",
+          auth_callback_failed: "Erro no processo de login. Tente novamente.",
         };
 
         errorEl.textContent =
-          messages[error] || "Ocorreu um erro. Tente novamente.";
+          messages[error] || `Erro desconhecido (${error}). Tente novamente.`;
         errorEl.classList.add("show");
 
         // Limpar URL

@@ -206,52 +206,16 @@ class ParticipanteNavigation {
     }
 
     renderizarMenuDinamico() {
-        const bottomNav = document.querySelector(".bottom-nav-modern");
-        if (!bottomNav) {
-            if (window.Log) Log.error('PARTICIPANTE-NAV', '❌ Bottom nav não encontrado');
-            return;
+        // ✅ QUICK ACCESS BAR: Não renderizar bottom-nav-modern (foi substituído)
+        // A Quick Access Bar gerencia a navegação agora
+        if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Quick Access Bar ativa - bottom-nav desabilitado');
+        
+        // Notificar Quick Bar sobre módulos ativos (se já estiver carregada)
+        if (window.quickAccessBar) {
+            window.quickAccessBar.atualizarModulosAtivos(this.modulosAtivos);
         }
-
-        const todosModulosDisponiveis = [
-            { id: "boas-vindas", icon: "home", label: "Início", config: "extrato", base: true },
-            { id: "extrato", icon: "payments", label: "Extrato", config: "extrato", base: true },
-            { id: "ranking", icon: "bar_chart", label: "Ranking", config: "ranking", base: true },
-            { id: "rodadas", icon: "target", label: "Rodadas", config: "rodadas", base: true },
-            { id: "historico", icon: "emoji_events", label: "Hall da Fama", config: "historico", base: true },
-            { id: "top10", icon: "format_list_numbered", label: "Top 10", config: "top10", base: false },
-            { id: "melhor-mes", icon: "calendar_month", label: "Melhor Mês", config: "melhorMes", base: false },
-            { id: "pontos-corridos", icon: "sync", label: "P. Corridos", config: "pontosCorridos", base: false },
-            { id: "mata-mata", icon: "swords", label: "Mata-Mata", config: "mataMata", base: false },
-            { id: "artilheiro", icon: "sports_soccer", label: "Artilheiro", config: "artilheiro", base: false },
-            { id: "luva-ouro", icon: "front_hand", label: "Luva Ouro", config: "luvaOuro", base: false },
-        ];
-
-        const modulosAtivos = todosModulosDisponiveis.filter((m) =>
-            this.verificarModuloAtivo(m.config),
-        );
-
-        if (window.Log) Log.debug('PARTICIPANTE-NAV', '📋 Módulos disponíveis:', modulosAtivos.length);
-
-        bottomNav.innerHTML = modulosAtivos
-            .map(
-                (modulo) => `
-            <button class="nav-item-modern ${modulo.id === "boas-vindas" ? "active" : ""}"
-                    data-module="${modulo.id}"
-                    data-icon="${modulo.icon}"
-                    title="${modulo.label}">
-                <span class="material-symbols-outlined nav-icon-modern">${modulo.icon}</span>
-                <span class="nav-label-modern">${modulo.label}</span>
-            </button>
-        `,
-            )
-            .join("");
-
-        bottomNav.style.overflowX = "auto";
-        bottomNav.style.overflowY = "hidden";
-        bottomNav.style.webkitOverflowScrolling = "touch";
-        bottomNav.style.scrollbarWidth = "thin";
-
-        if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Menu renderizado com', modulosAtivos.length, 'módulos');
+        
+        return;
     }
 
     verificarModuloAtivo(configKey) {
@@ -271,24 +235,13 @@ class ParticipanteNavigation {
     }
 
     configurarEventListeners() {
-        const navButtons = document.querySelectorAll(".nav-item-modern");
-
-        navButtons.forEach((button) => {
-            button.addEventListener("click", async (e) => {
-                const modulo = button.dataset.module;
-                if (window.Log) Log.debug('PARTICIPANTE-NAV', '🎯 Clique no módulo:', modulo);
-
-                navButtons.forEach((btn) => btn.classList.remove("active"));
-                button.classList.add("active");
-
-                await this.navegarPara(modulo);
-            });
-        });
-
-        // Configurar interceptação do botão Voltar (History API)
+        // ✅ QUICK ACCESS BAR: Event listeners não são mais necessários aqui
+        // A Quick Access Bar gerencia os cliques nos módulos
+        
+        // Configurar interceptação do botão Voltar (History API) - ainda necessário
         this.configurarHistoryAPI();
 
-        if (window.Log) Log.debug('PARTICIPANTE-NAV', '✅ Event listeners configurados');
+        if (window.Log) Log.debug('PARTICIPANTE-NAV', '✅ Event listeners configurados (History API apenas)');
     }
 
     // =====================================================================

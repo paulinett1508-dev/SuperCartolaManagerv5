@@ -102,7 +102,22 @@
       "Bash(.claude/pending-tasks.md)",
       "Bash(timeout 20 node:*)",
       "Bash(git config:*)",
-      "Bash(gh auth login:*)"
+      "Bash(gh auth login:*)",
+      "Bash(chmod:*)",
+      "Bash(timeout 60 node:*)",
+      "Bash(timeout 15 curl:*)",
+      "Bash(timeout 20 curl:*)",
+      "Bash(timeout 30 curl:*)",
+      "Bash(timeout 5 curl:*)",
+      "Bash(timeout 10 curl:*)",
+      "WebFetch(domain:api.cartola.globo.com)",
+      "Bash(timeout 120 node:*)",
+      "Bash(public/participante/js/modules/participante-extrato.js )",
+      "Bash(public/participante/js/modules/participante-artilheiro.js )",
+      "Bash(public/participante/js/modules/participante-luva-ouro.js )",
+      "Bash(public/participante/js/modules/participante-boas-vindas.js)",
+      "Bash(tail:*)",
+      "Bash(lsof:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

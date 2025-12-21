@@ -1,11 +1,12 @@
 
 // config/database.js
 // =========================================================================
-// 🔐 CONEXÃO MONGODB - REPLIT WORKFLOW
+// 🔐 CONEXÃO MONGODB - BANCO ÚNICO (DEV e PROD)
 // =========================================================================
-// FLUXO:
-//   - Run (Workspace)  → NODE_ENV=development → MONGO_URI_DEV (Banco de Testes)
-//   - Deploy (Publish) → NODE_ENV=production  → MONGO_URI     (Banco Oficial)
+// ESTRATÉGIA:
+//   - DEV e PROD conectam no MESMO banco MongoDB
+//   - Diferenciação apenas via NODE_ENV (logs e proteções)
+//   - Dados são perpétuos após consolidação de rodadas
 // =========================================================================
 
 import mongoose from "mongoose";
@@ -32,63 +33,24 @@ const colors = {
 // =========================================================================
 // 🔐 DETECÇÃO DE AMBIENTE
 // =========================================================================
-// Regra: APENAS 'production' explícito usa banco de produção
-// Qualquer outro valor (undefined, 'development', 'dev', etc) → usa DEV
-// =========================================================================
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const IS_PRODUCTION = NODE_ENV === 'production';
+const ENV_LABEL = IS_PRODUCTION ? '🟢 PROD' : '🔵 DEV';
 
-const getMongoURI = () => {
-  // Log do ambiente detectado
-  console.log('');
-  console.log(`${colors.cyan}[DATABASE] NODE_ENV detectado: "${NODE_ENV}"${colors.reset}`);
+// ✅ Banco único (REAL) para DEV e PROD
+const MONGO_URI = process.env.MONGO_URI;
 
-  if (IS_PRODUCTION) {
-    // =========================================================================
-    // 🔴 PRODUÇÃO - Banco de dados OFICIAL (dados reais)
-    // =========================================================================
-    const uri = process.env.MONGO_URI;
-    if (!uri) {
-      console.error(`${colors.red}${colors.bright}❌ ERRO FATAL: Variável MONGO_URI não configurada!${colors.reset}`);
-      console.error('   Configure a Secret MONGO_URI no Replit para produção.');
-      process.exit(1);
-    }
-    console.log(`${colors.bgRed}${colors.bright}                                                               ${colors.reset}`);
-    console.log(`${colors.bgRed}${colors.bright}  🚀 MODO PROD: Conectando ao Banco OFICIAL                    ${colors.reset}`);
-    console.log(`${colors.bgRed}${colors.bright}     Cuidado! Alterações afetam dados reais.                   ${colors.reset}`);
-    console.log(`${colors.bgRed}${colors.bright}                                                               ${colors.reset}`);
-    console.log('');
-    return uri;
-
-  } else {
-    // =========================================================================
-    // 🧪 DESENVOLVIMENTO - Banco de TESTES (seguro para experimentos)
-    // =========================================================================
-    const uri = process.env.MONGO_URI_DEV;
-    if (!uri) {
-      console.error(`${colors.red}${colors.bright}❌ ERRO FATAL: Variável MONGO_URI_DEV não configurada!${colors.reset}`);
-      console.error('   Configure a Secret MONGO_URI_DEV no Replit para desenvolvimento.');
-      console.error('');
-      console.error(`${colors.yellow}   Dica: Se quiser forçar produção, defina NODE_ENV=production${colors.reset}`);
-      process.exit(1);
-    }
-    console.log(`${colors.bgGreen}${colors.bright}                                                               ${colors.reset}`);
-    console.log(`${colors.bgGreen}${colors.bright}  🧪 MODO DEV: Conectando ao Banco de TESTES                   ${colors.reset}`);
-    console.log(`${colors.bgGreen}${colors.bright}     Ambiente seguro para experimentos.                        ${colors.reset}`);
-    console.log(`${colors.bgGreen}${colors.bright}                                                               ${colors.reset}`);
-    console.log('');
-    return uri;
-  }
-};
+if (!MONGO_URI) {
+  console.error(`${colors.red}${colors.bright}❌ ERRO FATAL: Variável MONGO_URI não configurada!${colors.reset}`);
+  console.error('   Configure a Secret MONGO_URI nos Replit Secrets.');
+  process.exit(1);
+}
 
 // Configurações modernas do Mongoose (sem opções deprecated)
 const connectDB = async () => {
   try {
     // Configurações recomendadas para Mongoose 6+
     mongoose.set('strictQuery', false);
-
-    // Obter URI baseada no ambiente
-    const mongoURI = getMongoURI();
 
     // Configurações otimizadas para performance
     const options = {
@@ -98,28 +60,34 @@ const connectDB = async () => {
       socketTimeoutMS: 45000,
     };
 
-    const conn = await mongoose.connect(mongoURI, options);
+    const conn = await mongoose.connect(MONGO_URI, options);
 
     // Extrair nome do banco da URI
     const dbName = conn.connection.name || 'unknown';
     const host = conn.connection.host;
 
-    console.log(`${colors.green}${colors.bright}✅ MongoDB conectado com sucesso!${colors.reset}`);
+    console.log('');
+    console.log(`${colors.green}${colors.bright}✅ MongoDB conectado [${ENV_LABEL}]${colors.reset}`);
     console.log(`   ${colors.blue}Host:${colors.reset} ${host}`);
     console.log(`   ${colors.blue}Banco:${colors.reset} ${dbName}`);
+    
+    // ⚠️ Avisar se estiver em DEV com banco real
+    if (!IS_PRODUCTION) {
+      console.log(`${colors.yellow}⚠️  Modo DEV: Conectado no banco REAL (somente leitura recomendado)${colors.reset}`);
+    }
     console.log('');
     
     // Event listeners para monitoramento da conexão
     mongoose.connection.on('connected', () => {
-      console.log('Mongoose conectado ao MongoDB');
+      console.log(`Mongoose conectado ao MongoDB [${ENV_LABEL}]`);
     });
     
     mongoose.connection.on('error', (err) => {
-      console.error('Erro na conexão MongoDB:', err);
+      console.error(`❌ Erro de conexão MongoDB [${ENV_LABEL}]:`, err);
     });
     
     mongoose.connection.on('disconnected', () => {
-      console.log('Mongoose desconectado do MongoDB');
+      console.log(`Mongoose desconectado do MongoDB [${ENV_LABEL}]`);
     });
     
     // Graceful shutdown
@@ -131,9 +99,17 @@ const connectDB = async () => {
     
     return conn;
   } catch (error) {
-    console.error('Erro ao conectar ao MongoDB:', error.message);
+    console.error(`❌ Erro ao conectar ao MongoDB [${ENV_LABEL}]:`, error.message);
     process.exit(1);
   }
 };
+
+// Função helper para obter o banco de dados (usado em rotas)
+export function getDB() {
+  if (!mongoose.connection.readyState) {
+    throw new Error('MongoDB não está conectado. Chame connectDB() primeiro.');
+  }
+  return mongoose.connection.db;
+}
 
 export default connectDB;

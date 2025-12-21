@@ -670,7 +670,14 @@ body {
     }
 }
 
-/* === BOTTOMNAVIGATION FIXO === */
+/* =====================================================================
+   BOTTOM NAVIGATION - DESABILITADO (Substituído por Quick Access Bar)
+   ===================================================================== */
+/* NOTA: O sistema de navegação agora usa Quick Access Bar
+   Ver: public/participante/css/quick-access-bar.css
+   Se precisar reativar o bottom-nav antigo, descomente o código abaixo */
+
+/*
 .bottom-nav-modern {
     position: fixed;
     bottom: 0;
@@ -765,8 +772,10 @@ body {
 .nav-item-modern:active {
     transform: scale(0.95);
 }
+*/
 
-/* Ajustar padding do container principal para safe area */
+/* ✅ Ajustar padding do container para QUICK ACCESS BAR */
 .module-container {
-    padding-bottom: calc(var(--app-bottom-nav-height) + var(--app-safe-bottom) + var(--app-space-2)) !important;
+    /* Quick Access Bar height = 72px + safe area + espaçamento */
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 16px) !important;
 }

@@ -20,7 +20,6 @@
 - **Safety:** Always validate `req.session.usuario` before sensitive actions.
 - **Error Handling:** Use `try/catch` in async controllers. Log errors clearly.
 - **No React/Vue:** Stick to pure JavaScript for frontend logic to maintain simplicity.
-- **Nomenclatura em Português:** O projeto usa nomes de funções/variáveis em PORTUGUÊS. Use `autorizado` (não `authorized`), `usuario` (não `user`), `senha` (não `password`). Ao criar ou modificar código, manter consistência com o idioma português para evitar typos como `isAdminAuthorizado` vs `isAdminAutorizado`.
 
 ## 🚀 Replit Specifics
 - **Server:** Always verify port configuration (process.env.PORT || 5000).
@@ -54,60 +53,21 @@ O projeto conta com 4 skills especializadas que podem ser invocadas para tarefas
 - Model: `models/Time.js`
 - Schema principal: `id` (Number, único), `nome_time`, `nome_cartoleiro`, `ativo`, `rodada_desistencia`, `temporada`
 
-## 🔌 Estratégia de Banco de Dados
+### Configuração de Ambiente
+- **MONGODB_URI:** Não está no arquivo `.env` - está configurada nos **Replit Secrets** (variáveis de ambiente seguras).
+- O sistema detecta automaticamente o ambiente (dev/prod) via `NODE_ENV`:
+  - `development` → usa `MONGO_URI_DEV`
+  - `production` → usa `MONGO_URI`
 
-### Configuração
-- **Ambiente único:** DEV e PROD conectam no mesmo banco MongoDB
-- **Diferenciação:** Apenas via `NODE_ENV` (para logs e proteções)
-- **Razão:** Dados do Cartola são perpétuos após consolidação
-
-### Características do Modelo de Dados
-1. **Participantes fixos** durante temporada ativa
-2. **Rodadas consolidadas** = dados imutáveis
-3. **Acertos financeiros** = transações permanentes
-4. **Cache recalculável** a qualquer momento
-
-### Proteções em Scripts
-```javascript
-// Template de proteção obrigatória
-const isProd = process.env.NODE_ENV === 'production';
-const isDryRun = process.argv.includes('--dry-run');
-const isForced = process.argv.includes('--force');
-
-if (isProd && !isForced && !isDryRun) {
-    console.error('❌ PROD requer --force ou --dry-run');
-    process.exit(1);
-}
-```
-
-### Workflow de Correções
-1. Desenvolve/corrige código localmente (NODE_ENV=development)
-2. Testa no link provisório Replit (conecta no banco real, modo leitura)
-3. Valida funcionamento sem afetar participantes
-4. Deploy (git push) → supercartolamanager.com.br atualiza
-5. Se necessário corrigir dados, roda script com `--force` em PROD
-
-### Comandos Padrão
-```bash
-# Validar antes de executar
-node scripts/[script].js --dry-run
-
-# Executar em PROD (após validação)
-NODE_ENV=production node scripts/[script].js --force
-```
-
-### Quando Reativar Banco DEV Separado
-- Testes destrutivos frequentes
-- Simulações de múltiplas temporadas
-- Refatoração de estrutura de dados
-- Desenvolvimento de features experimentais
-
-Nestes casos, reconfigurar `MONGO_URI_DEV` nos Secrets.
-
-### Dados de Temporada
-- **Estatísticas atuais:** Consulte `docs/TEMPORADA-[ANO].md` (gerado dinamicamente)
-- **Análise em tempo real:** Use `scripts/analisar-participantes.js`
-- **Gerar snapshot:** `node scripts/gerar-snapshot-temporada.js [ANO]`
+### Estatísticas Atuais (Referência)
+- **Total de participantes:** 40 registros na collection `times`
+- **Participantes ativos:** 36
+- **Participantes inativos (desistentes):** 2
+  - "JBMENGO94 FC"
+  - "Senhores Da Escuridão"
+- **Times de teste:** 2
+  - "FLAMENGO TESTE FC" (id: 99999999)
+  - "Time 123456"
 
 ### Scripts Úteis
 - `scripts/analisar-participantes.js` - Análise completa da collection times
@@ -115,10 +75,6 @@ Nestes casos, reconfigurar `MONGO_URI_DEV` nos Secrets.
   node scripts/analisar-participantes.js
   node scripts/analisar-participantes.js --detalhes
   node scripts/analisar-participantes.js --limpar-testes  # dry-run
-  ```
-- `scripts/gerar-snapshot-temporada.js` - Gera documentação de temporada
-  ```bash
-  node scripts/gerar-snapshot-temporada.js 2025
   ```
 
 ## 📦 Sistema de Versionamento
@@ -160,18 +116,20 @@ Ver: `docs/VERSIONAMENTO-SISTEMA.md`
 
 ---
 
-## 📝 Sistema de Gestão de Ideias e Backlog
+## 📝 BACKLOG E IDEIAS FUTURAS
 
-### Visão Geral
-O projeto utiliza um **sistema híbrido** para capturar e organizar ideias futuras:
-- **BACKLOG.md**: Arquivo central com todas as ideias organizadas por prioridade
-- **TODOs no código**: Comentários com padrão específico para ideias localizadas
-- **.cursorrules**: Regras que instruem a IA a sempre consultar o backlog
+### Consultar Sempre
+Antes de implementar novas features, verificar:
+1. Arquivo [`BACKLOG.md`](BACKLOG.md) para ideias relacionadas
+2. TODOs no código com padrão `TODO-[PRIORIDADE]`
+3. Issues fechadas/adiadas que podem ser relevantes
 
-### Arquivos Principais
-- [`BACKLOG.md`](BACKLOG.md) - Backlog central do projeto
-- [`.cursorrules`](.cursorrules) - Regras do projeto (incluem seção de backlog)
-- [`scripts/backlog-helper.js`](scripts/backlog-helper.js) - CLI para gerenciar TODOs
+### Sistema de Prioridades
+- **CRITICAL**: Resolver ASAP, bloqueia outros trabalhos
+- **HIGH**: Próximas sprints, impacto significativo
+- **MEDIUM**: 1-2 meses, melhorias importantes
+- **LOW**: Oportunidade, quando houver tempo
+- **FUTURE**: Backlog distante, reavaliar periodicamente
 
 ### Padrão de TODOs no Código
 ```javascript
@@ -188,51 +146,24 @@ O projeto utiliza um **sistema híbrido** para capturar e organizar ideias futur
 // Ref: BACKLOG.md#PERF-002
 ```
 
-### Sistema de Prioridades
-| Prioridade | Descrição | Quando usar |
-|------------|-----------|-------------|
-| 🔴 **CRITICAL** | Bugs graves, segurança | Resolver ASAP, bloqueia trabalho |
-| 🟠 **HIGH** | Features importantes, performance | Próximas sprints, impacto significativo |
-| 🟡 **MEDIUM** | Melhorias UX, refatorações | 1-2 meses, importante mas não urgente |
-| 🟢 **LOW** | Nice to have, experimentais | Quando houver tempo |
-| 📦 **FUTURE** | Backlog distante | Reavaliar periodicamente |
+### Ao Adicionar Novas Ideias
+1. Avaliar prioridade realista
+2. Adicionar contexto suficiente para retomar meses depois
+3. Referenciar arquivos/linhas específicas quando aplicável
+4. Usar IDs únicos no BACKLOG.md para rastreabilidade (ex: FEAT-001, BUG-002)
+5. Se aplicável, criar TODO no código E entrada no BACKLOG.md
 
 ### Workflow Rápido
-**Quando surge uma ideia:**
-1. **Afeta arquivo específico?** → Adicionar `TODO-X` no código
-2. **É padrão/regra do projeto?** → Adicionar em `.cursorrules`
-3. **É feature ampla?** → Adicionar em `BACKLOG.md`
+- **Ideia afeta arquivo específico?** → Adicionar `TODO-X` no código
+- **Ideia é padrão/regra do projeto?** → Adicionar neste arquivo (.cursorrules)
+- **Ideia é feature ampla?** → Adicionar em BACKLOG.md
 
-### Ferramentas CLI
+### Ferramentas de Suporte
+Use o script helper para gerenciar TODOs:
 ```bash
-# Listar todos os TODOs do código
-node scripts/backlog-helper.js list
-
-# Validar IDs únicos no BACKLOG.md
-node scripts/backlog-helper.js validate
-
-# Relatório resumido
-node scripts/backlog-helper.js report
-
-# Buscar TODOs por palavra-chave
-node scripts/backlog-helper.js search "rate limit"
+node scripts/backlog-helper.js list          # Lista todos os TODOs
+node scripts/backlog-helper.js validate      # Valida IDs únicos no BACKLOG.md
+node scripts/backlog-helper.js report        # Relatório por prioridade
+node scripts/backlog-helper.js search [term] # Busca por palavra-chave
 ```
 
-### IDs Únicos no BACKLOG
-- **BUG-XXX**: Bugs/correções
-- **SEC-XXX**: Segurança
-- **FEAT-XXX**: Novas features
-- **PERF-XXX**: Performance
-- **UX-XXX**: User Experience
-- **REFACTOR-XXX**: Refatorações
-- **IDEA-XXX**: Ideias experimentais
-- **NICE-XXX**: Nice to have
-- **FUTURE-XXX**: Backlog distante
-
-### Benefícios
-- ✅ **Captura rápida**: Anotar ideias em segundos
-- ✅ **Contexto preservado**: TODOs mantêm contexto técnico
-- ✅ **IA informada**: Sistema sempre considera o backlog
-- ✅ **Priorização clara**: Cores/níveis facilitam decisões
-- ✅ **Rastreabilidade**: IDs únicos para vincular discussões
-- ✅ **Flexível**: Funciona para ideias pequenas e grandes

@@ -1,0 +1,480 @@
+/* =====================================================================
+   QUICK ACCESS BAR - Sistema de Navegação Expansível
+   =====================================================================
+   Design: Dark Mode First com accent color #FF4500
+   Layout: Barra fixa + Painel expansível + Overlay
+   Animações: Slide-up, Fade, Bounce (GPU-accelerated)
+   ===================================================================== */
+
+:root {
+    --quick-bar-height: 72px;
+    --quick-panel-max-height: 70vh;
+    --quick-accent: #FF4500;
+    --quick-accent-muted: rgba(255, 69, 0, 0.1);
+    --quick-accent-border: rgba(255, 69, 0, 0.3);
+    --quick-bg-dark: #0a0a0a;
+    --quick-surface: #1c1c1c;
+    --quick-text-primary: #ffffff;
+    --quick-text-muted: #888888;
+}
+
+/* =====================================================================
+   CONTAINER PRINCIPAL
+   ===================================================================== */
+.quick-access-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* =====================================================================
+   OVERLAY ESCURO (quando painel expandido)
+   ===================================================================== */
+.quick-bar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 999;
+    pointer-events: none;
+}
+
+.quick-bar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+/* =====================================================================
+   PAINEL EXPANSÍVEL
+   ===================================================================== */
+.quick-bar-panel {
+    position: fixed;
+    bottom: var(--quick-bar-height);
+    left: 0;
+    right: 0;
+    max-height: var(--quick-panel-max-height);
+    background: var(--quick-surface);
+    border-radius: 24px 24px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1001;
+    overflow: hidden;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
+    border-top: 2px solid var(--quick-accent-border);
+}
+
+.quick-bar-panel.active {
+    transform: translateY(0);
+}
+
+/* Handle (indicador de arraste) */
+.quick-bar-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--quick-text-muted);
+    border-radius: 2px;
+    margin: 12px auto 8px;
+    opacity: 0.5;
+    cursor: grab;
+}
+
+.quick-bar-handle:active {
+    cursor: grabbing;
+}
+
+/* =====================================================================
+   CONTEÚDO DO PAINEL - CATEGORIAS
+   ===================================================================== */
+.quick-bar-categories {
+    padding: 16px 20px 24px;
+    max-height: calc(var(--quick-panel-max-height) - 32px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar customizado */
+.quick-bar-categories::-webkit-scrollbar {
+    width: 4px;
+}
+
+.quick-bar-categories::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+}
+
+.quick-bar-categories::-webkit-scrollbar-thumb {
+    background: var(--quick-accent);
+    border-radius: 2px;
+}
+
+/* =====================================================================
+   CATEGORIA
+   ===================================================================== */
+.quick-category {
+    margin-bottom: 28px;
+}
+
+.quick-category:last-child {
+    margin-bottom: 0;
+}
+
+.quick-category-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--quick-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 12px 0;
+    padding-left: 4px;
+}
+
+.quick-category-title .material-icons {
+    font-size: 18px;
+    color: var(--quick-accent);
+}
+
+/* Grid adaptativo (3 colunas) */
+.quick-category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+/* Em telas pequenas, 2 colunas */
+@media (max-width: 360px) {
+    .quick-category-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* =====================================================================
+   ITEM DO GRID (Módulo)
+   ===================================================================== */
+.quick-module-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    min-height: 90px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.quick-module-item:active {
+    transform: scale(0.95);
+}
+
+.quick-module-item:hover {
+    background: var(--quick-accent-muted);
+    border-color: var(--quick-accent-border);
+}
+
+/* Ícone do módulo */
+.quick-module-icon {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--quick-accent-muted);
+    border-radius: 10px;
+    border: 1px solid var(--quick-accent-border);
+}
+
+.quick-module-icon .material-icons {
+    font-size: 24px;
+    color: var(--quick-accent);
+}
+
+/* Label do módulo */
+.quick-module-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--quick-text-primary);
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* Estados especiais */
+.quick-module-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.quick-module-item.disabled:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+    transform: none;
+}
+
+.quick-module-item.placeholder {
+    opacity: 0.7;
+}
+
+/* Badge "Em breve" */
+.quick-module-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--quick-accent);
+    color: #000;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* =====================================================================
+   BARRA DE BOTÕES FIXOS (sempre visível)
+   ===================================================================== */
+.quick-bar-buttons {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: var(--quick-bar-height);
+    background: linear-gradient(to top, rgba(10, 10, 10, 0.98), rgba(0, 0, 0, 0.95));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--quick-accent-border);
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5), 0 -1px 4px rgba(255, 85, 0, 0.1);
+}
+
+/* =====================================================================
+   BOTÃO FIXO
+   ===================================================================== */
+.quick-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: var(--quick-text-muted);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    flex: 1;
+    max-width: 80px;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.quick-btn:active {
+    transform: scale(0.95);
+}
+
+.quick-btn.active {
+    color: var(--quick-accent);
+    background: var(--quick-accent-muted);
+}
+
+.quick-btn .material-icons {
+    font-size: 26px;
+    transition: all 0.2s ease;
+}
+
+.quick-btn.active .material-icons {
+    filter: drop-shadow(0 2px 8px rgba(255, 85, 0, 0.4));
+}
+
+.quick-btn-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    line-height: 1;
+}
+
+/* =====================================================================
+   BOTÃO "AO VIVO" (especial com pulso)
+   ===================================================================== */
+.quick-btn-live {
+    position: relative;
+}
+
+.quick-live-pulse {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: quick-pulse 2s infinite;
+}
+
+.quick-live-pulse::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: quick-ping 2s infinite;
+}
+
+@keyframes quick-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes quick-ping {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+/* =====================================================================
+   TOAST DE FEEDBACK
+   ===================================================================== */
+.quick-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: var(--quick-surface);
+    border: 1px solid var(--quick-accent-border);
+    border-radius: 12px;
+    padding: 16px 24px;
+    color: var(--quick-text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 280px;
+    text-align: center;
+}
+
+.quick-toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.quick-toast .material-icons {
+    color: var(--quick-accent);
+    font-size: 20px;
+}
+
+/* =====================================================================
+   AJUSTE DO CONTAINER PRINCIPAL
+   ===================================================================== */
+.module-container {
+    padding-bottom: calc(var(--quick-bar-height) + env(safe-area-inset-bottom, 0px) + 16px) !important;
+}
+
+/* =====================================================================
+   ANIMAÇÕES DE ENTRADA
+   ===================================================================== */
+@keyframes quick-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes quick-slide-up {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* =====================================================================
+   MODO LANDSCAPE (opcional)
+   ===================================================================== */
+@media (orientation: landscape) and (max-height: 500px) {
+    .quick-bar-panel {
+        max-height: 60vh;
+    }
+    
+    .quick-bar-buttons {
+        height: 60px;
+        padding: 6px 8px;
+    }
+    
+    .quick-btn {
+        padding: 6px 8px;
+    }
+    
+    .quick-btn .material-icons {
+        font-size: 22px;
+    }
+    
+    .quick-btn-label {
+        font-size: 9px;
+    }
+}
+
+/* =====================================================================
+   TABLET E DESKTOP (opcional - manter funcional)
+   ===================================================================== */
+@media (min-width: 768px) {
+    .quick-bar-buttons {
+        padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+        gap: 8px;
+    }
+    
+    .quick-btn {
+        max-width: 100px;
+        padding: 10px 16px;
+    }
+    
+    .quick-category-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .quick-category-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+

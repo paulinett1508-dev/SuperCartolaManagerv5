@@ -93,15 +93,17 @@ async function getParticipantesLiga(liga) {
     }
 
     // Buscar dados completos dos times
+    // ✅ v5.0.1: Corrigido para buscar campos corretos (nome_cartoleiro, nome_time)
     const times = await Time.find(
         { id: { $in: liga.times } },
-        { id: 1, nome_cartola: 1, nome: 1, url_escudo_png: 1, clube_id: 1, ativo: 1 }
+        { id: 1, nome_cartoleiro: 1, nome_cartola: 1, nome_time: 1, nome: 1, url_escudo_png: 1, clube_id: 1, ativo: 1 }
     ).lean();
 
     return times.map((time) => ({
         timeId: time.id,
-        nome: time.nome_cartola || "N/D",
-        nomeTime: time.nome || "N/D",
+        // ✅ v5.0.1: Priorizar campos corretos (nome_cartoleiro > nome_cartola)
+        nome: time.nome_cartoleiro || time.nome_cartola || "N/D",
+        nomeTime: time.nome_time || time.nome || "N/D",
         escudo: time.url_escudo_png || ESCUDOS_CLUBES[time.clube_id] || null,
         clubeId: time.clube_id,
         ativo: time.ativo !== false,

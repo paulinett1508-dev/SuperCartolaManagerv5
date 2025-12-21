@@ -1,0 +1,1020 @@
+/**
+ * ROTAS DE ACERTOS FINANCEIROS - Temporada 2025+
+ *
+ * Endpoints para registrar pagamentos e recebimentos
+ * entre participantes e administração (em tempo real).
+ *
+ * @version 1.4.0
+ * ✅ v1.4.0: FIX CRÍTICO - NÃO DELETAR CACHE DO EXTRATO
+ *   - Acertos são armazenados em coleção separada (AcertoFinanceiro)
+ *   - São integrados no momento da consulta em getExtratoFinanceiro()
+ *   - Deletar cache zerava dados históricos (Timeline, P.Corridos, MataMata, etc.)
+ *   - Agora o cache é preservado após POST/PUT/DELETE de acertos
+ * ✅ v1.1.0: TROCO AUTOMÁTICO - Pagamento a maior gera saldo positivo
+ *   - Verifica se pagamento excede a dívida do participante
+ *   - Cria automaticamente um recebimento com o troco
+ *   - Registra no histórico com descrição clara
+ */
+
+import express from "express";
+import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
+import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
+import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
+
+const router = express.Router();
+
+// =============================================================================
+// FUNÇÃO AUXILIAR: Calcular saldo total do participante
+// =============================================================================
+
+/**
+ * Calcula o saldo total atual de um participante (temporada + acertos)
+ * @param {string} ligaId - ID da liga
+ * @param {string} timeId - ID do time
+ * @param {string} temporada - Temporada (default "2025")
+ * @returns {Object} { saldoTemporada, saldoAcertos, saldoTotal }
+ */
+async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = 2025) {
+    // 1. Buscar saldo consolidado da temporada (do cache)
+    const cache = await ExtratoFinanceiroCache.findOne({ ligaId, timeId });
+    const saldoConsolidado = cache?.saldo_consolidado || 0;
+
+    // 2. Buscar campos manuais
+    const camposManuais = await FluxoFinanceiroCampos.findOne({ ligaId, timeId });
+    let saldoCampos = 0;
+    if (camposManuais?.campos) {
+        camposManuais.campos.forEach(campo => {
+            saldoCampos += campo.valor || 0;
+        });
+    }
+
+    // 3. Saldo da temporada = consolidado + campos manuais
+    const saldoTemporada = saldoConsolidado + saldoCampos;
+
+    // 4. Buscar saldo de acertos existentes
+    const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
+
+    // 5. Saldo total = temporada + acertos
+    // ✅ CORREÇÃO v1.3: saldoAcertos = totalPago - totalRecebido (definido no Model)
+    // Se participante PAGOU à liga → saldoAcertos POSITIVO → quita dívida (saldo sobe)
+    // Se participante RECEBEU da liga → saldoAcertos NEGATIVO → usa crédito (saldo desce)
+    const saldoTotal = saldoTemporada + acertosInfo.saldoAcertos;
+
+    return {
+        saldoTemporada: parseFloat(saldoTemporada.toFixed(2)),
+        saldoAcertos: acertosInfo.saldoAcertos,
+        saldoTotal: parseFloat(saldoTotal.toFixed(2)),
+        totalPago: acertosInfo.totalPago,
+        totalRecebido: acertosInfo.totalRecebido,
+    };
+}
+
+// =============================================================================
+// ROTAS DO PARTICIPANTE (Visualização)
+// =============================================================================
+
+/**
+ * GET /api/acertos/:ligaId/:timeId
+ * Retorna os acertos financeiros de um participante
+ */
+router.get("/:ligaId/:timeId", async (req, res) => {
+    try {
+        const { ligaId, timeId } = req.params;
+        const temporada = parseInt(req.query.temporada) || 2025;
+
+        const acertos = await AcertoFinanceiro.buscarPorTime(ligaId, timeId, temporada);
+        const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
+
+        res.json({
+            success: true,
+            acertos: acertos.map(a => ({
+                _id: a._id,
+                tipo: a.tipo,
+                valor: a.valor,
+                descricao: a.descricao,
+                metodoPagamento: a.metodoPagamento,
+                dataAcerto: a.dataAcerto,
+                observacoes: a.observacoes,
+            })),
+            // ✅ v1.4 FIX: Mapear saldoAcertos para saldo (frontend espera "saldo")
+            resumo: {
+                totalPago: saldoInfo.totalPago,
+                totalRecebido: saldoInfo.totalRecebido,
+                saldo: saldoInfo.saldoAcertos, // Frontend espera "saldo"
+                saldoAcertos: saldoInfo.saldoAcertos, // Manter para compatibilidade
+                quantidadeAcertos: saldoInfo.quantidadeAcertos,
+            },
+        });
+    } catch (error) {
+        console.error("[ACERTOS] Erro ao buscar acertos:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * GET /api/acertos/:ligaId/:timeId/saldo
+ * Retorna apenas o saldo de acertos (para cálculo rápido)
+ */
+router.get("/:ligaId/:timeId/saldo", async (req, res) => {
+    try {
+        const { ligaId, timeId } = req.params;
+        const temporada = parseInt(req.query.temporada) || 2025;
+
+        const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
+
+        res.json({
+            success: true,
+            ...saldoInfo,
+            saldo: saldoInfo.saldoAcertos, // ✅ v1.4: Alias para compatibilidade
+        });
+    } catch (error) {
+        console.error("[ACERTOS] Erro ao calcular saldo:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// =============================================================================
+// ROTAS ADMIN (Gestão)
+// =============================================================================
+
+/**
+ * GET /api/acertos/admin/:ligaId
+ * Retorna todos os acertos de uma liga (visão admin)
+ */
+router.get("/admin/:ligaId", async (req, res) => {
+    try {
+        const { ligaId } = req.params;
+        const temporada = parseInt(req.query.temporada) || 2025;
+
+        const acertos = await AcertoFinanceiro.buscarPorLiga(ligaId, temporada);
+
+        // Agrupar por time para facilitar visualização
+        const porTime = {};
+        acertos.forEach(a => {
+            if (!porTime[a.timeId]) {
+                porTime[a.timeId] = {
+                    timeId: a.timeId,
+                    nomeTime: a.nomeTime,
+                    acertos: [],
+                    totalPago: 0,
+                    totalRecebido: 0,
+                };
+            }
+            porTime[a.timeId].acertos.push(a);
+            if (a.tipo === "pagamento") {
+                porTime[a.timeId].totalPago += a.valor;
+            } else {
+                porTime[a.timeId].totalRecebido += a.valor;
+            }
+        });
+
+        // Calcular saldo de cada time
+        // ✅ v1.3 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
+        // PAGAMENTO = participante pagou à liga → AUMENTA saldo (quita dívida)
+        // RECEBIMENTO = participante recebeu da liga → DIMINUI saldo (usa crédito)
+        Object.values(porTime).forEach(time => {
+            time.saldoAcertos = parseFloat((time.totalPago - time.totalRecebido).toFixed(2));
+            time.totalPago = parseFloat(time.totalPago.toFixed(2));
+            time.totalRecebido = parseFloat(time.totalRecebido.toFixed(2));
+        });
+
+        res.json({
+            success: true,
+            ligaId,
+            temporada,
+            totalAcertos: acertos.length,
+            porTime: Object.values(porTime),
+            acertos,
+        });
+    } catch (error) {
+        console.error("[ACERTOS] Erro ao buscar acertos da liga:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/acertos/:ligaId/:timeId
+ * Registra um novo acerto financeiro (admin only)
+ * ✅ v1.1.0: Troco automático quando pagamento > dívida
+ */
+router.post("/:ligaId/:timeId", async (req, res) => {
+    try {
+        const { ligaId, timeId } = req.params;
+        const {
+            nomeTime,
+            tipo,
+            valor,
+            descricao,
+            metodoPagamento,
+            comprovante,
+            observacoes,
+            dataAcerto,
+            temporada = 2025,
+            registradoPor = "admin",
+        } = req.body;
+
+        // Validações
+        if (!tipo || !["pagamento", "recebimento"].includes(tipo)) {
+            return res.status(400).json({
+                success: false,
+                error: "Tipo inválido. Use 'pagamento' ou 'recebimento'",
+            });
+        }
+
+        if (!valor || isNaN(valor) || parseFloat(valor) <= 0) {
+            return res.status(400).json({
+                success: false,
+                error: "Valor deve ser um número positivo",
+            });
+        }
+
+        if (!nomeTime) {
+            return res.status(400).json({
+                success: false,
+                error: "Nome do time é obrigatório",
+            });
+        }
+
+        const valorPagamento = parseFloat(valor);
+        const dataAcertoFinal = dataAcerto ? new Date(dataAcerto) : new Date();
+        let acertoTroco = null;
+        let valorTroco = 0;
+
+        // =========================================================================
+        // ✅ v1.1.0: VERIFICAR TROCO EM PAGAMENTOS
+        // Se é um pagamento e excede a dívida, gerar troco automático
+        // =========================================================================
+        if (tipo === "pagamento") {
+            // Calcular saldo ANTES do novo pagamento
+            const saldoAntes = await calcularSaldoTotalParticipante(ligaId, timeId, temporada);
+
+            // Dívida atual = valor absoluto do saldo negativo (se existir)
+            // Se saldo é -100, dívida = 100
+            // Se saldo é +50 (credor), dívida = 0
+            const dividaAtual = saldoAntes.saldoTotal < 0 ? Math.abs(saldoAntes.saldoTotal) : 0;
+
+            console.log(`[ACERTOS] Verificando troco para ${nomeTime}:`);
+            console.log(`  - Saldo antes: R$ ${saldoAntes.saldoTotal.toFixed(2)}`);
+            console.log(`  - Dívida atual: R$ ${dividaAtual.toFixed(2)}`);
+            console.log(`  - Pagamento: R$ ${valorPagamento.toFixed(2)}`);
+
+            // Se há dívida e o pagamento excede a dívida
+            if (dividaAtual > 0 && valorPagamento > dividaAtual) {
+                valorTroco = parseFloat((valorPagamento - dividaAtual).toFixed(2));
+
+                console.log(`[ACERTOS] ✅ TROCO DETECTADO: R$ ${valorTroco.toFixed(2)}`);
+
+                // Criar registro de troco como RECEBIMENTO (saldo positivo)
+                acertoTroco = new AcertoFinanceiro({
+                    ligaId,
+                    timeId,
+                    nomeTime,
+                    temporada,
+                    tipo: "recebimento",
+                    valor: valorTroco,
+                    descricao: `TROCO - Pagamento a maior (Dívida: R$ ${dividaAtual.toFixed(2)})`,
+                    metodoPagamento: metodoPagamento || "pix",
+                    comprovante: null,
+                    observacoes: `Gerado automaticamente. Pagamento original: R$ ${valorPagamento.toFixed(2)} - ${descricao || "Acerto financeiro"}`,
+                    dataAcerto: dataAcertoFinal,
+                    registradoPor: "sistema_troco",
+                });
+            }
+        }
+
+        // Salvar o acerto principal
+        const novoAcerto = new AcertoFinanceiro({
+            ligaId,
+            timeId,
+            nomeTime,
+            temporada,
+            tipo,
+            valor: valorPagamento,
+            descricao: descricao || `Acerto financeiro - ${tipo}`,
+            metodoPagamento: metodoPagamento || "pix",
+            comprovante: comprovante || null,
+            observacoes: observacoes || null,
+            dataAcerto: dataAcertoFinal,
+            registradoPor,
+        });
+
+        await novoAcerto.save();
+
+        // Salvar troco se existir
+        if (acertoTroco) {
+            await acertoTroco.save();
+            console.log(`[ACERTOS] ✅ Troco de R$ ${valorTroco.toFixed(2)} salvo para ${nomeTime}`);
+        }
+
+        // =========================================================================
+        // ✅ v1.4.0: NÃO DELETAR CACHE DO EXTRATO
+        // Acertos são armazenados em coleção separada (AcertoFinanceiro) e são
+        // integrados no momento da consulta em getExtratoFinanceiro().
+        // Deletar o cache zerava todos os dados históricos (Timeline, P.Corridos, etc.)
+        // =========================================================================
+        // Cache do extrato NÃO precisa ser invalidado - acertos são calculados separadamente
+        console.log(`[ACERTOS] ✅ Acerto registrado para time ${timeId} (cache preservado)`);
+
+        // Calcular novo saldo (já incluindo o troco se houver)
+        const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
+
+        // Montar resposta
+        const response = {
+            success: true,
+            message: acertoTroco
+                ? `Pagamento de R$ ${valorPagamento.toFixed(2)} registrado. TROCO de R$ ${valorTroco.toFixed(2)} creditado!`
+                : `Acerto de R$ ${valorPagamento.toFixed(2)} registrado com sucesso`,
+            acerto: novoAcerto,
+            novoSaldo: saldoInfo,
+        };
+
+        // Adicionar info de troco se existir
+        if (acertoTroco) {
+            response.troco = {
+                valor: valorTroco,
+                acerto: acertoTroco,
+                mensagem: `Pagamento excedeu a dívida. R$ ${valorTroco.toFixed(2)} foram creditados como saldo positivo.`,
+            };
+        }
+
+        res.status(201).json(response);
+    } catch (error) {
+        console.error("[ACERTOS] Erro ao registrar acerto:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * PUT /api/acertos/:id
+ * Atualiza um acerto existente (admin only)
+ */
+router.put("/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        // Campos permitidos para atualização
+        const camposPermitidos = [
+            "tipo",
+            "valor",
+            "descricao",
+            "metodoPagamento",
+            "comprovante",
+            "observacoes",
+            "dataAcerto",
+        ];
+
+        const updateObj = {};
+        camposPermitidos.forEach(campo => {
+            if (updates[campo] !== undefined) {
+                updateObj[campo] = updates[campo];
+            }
+        });
+
+        if (updateObj.valor) {
+            updateObj.valor = parseFloat(updateObj.valor);
+        }
+        if (updateObj.dataAcerto) {
+            updateObj.dataAcerto = new Date(updateObj.dataAcerto);
+        }
+
+        const acertoAtualizado = await AcertoFinanceiro.findByIdAndUpdate(
+            id,
+            { $set: updateObj },
+            { new: true },
+        );
+
+        if (!acertoAtualizado) {
+            return res.status(404).json({
+                success: false,
+                error: "Acerto não encontrado",
+            });
+        }
+
+        // ✅ v1.4.0: NÃO deletar cache - acertos são calculados separadamente
+        console.log(`[ACERTOS] ✅ Acerto atualizado (cache preservado)`);
+
+        // Calcular novo saldo
+        const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(
+            acertoAtualizado.ligaId,
+            acertoAtualizado.timeId,
+            acertoAtualizado.temporada,
+        );
+
+        res.json({
+            success: true,
+            message: "Acerto atualizado com sucesso",
+            acerto: acertoAtualizado,
+            novoSaldo: saldoInfo,
+        });
+    } catch (error) {
+        console.error("[ACERTOS] Erro ao atualizar acerto:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * DELETE /api/acertos/:id
+ * Remove um acerto (soft delete - mantém histórico)
+ */
+router.delete("/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { hardDelete = false } = req.query;
+
+        const acerto = await AcertoFinanceiro.findById(id);
+
+        if (!acerto) {
+            return res.status(404).json({
+                success: false,
+                error: "Acerto não encontrado",
+            });
+        }
+
+        if (hardDelete === "true") {
+            // Hard delete (remove definitivamente)
+            await AcertoFinanceiro.findByIdAndDelete(id);
+        } else {
+            // Soft delete (marca como inativo)
+            acerto.ativo = false;
+            await acerto.save();
+        }
+
+        // ✅ v1.4.0: NÃO deletar cache - acertos são calculados separadamente
+        console.log(`[ACERTOS] ✅ Acerto removido (cache preservado)`);
+
+        // Calcular novo saldo
+        const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(
+            acerto.ligaId,
+            acerto.timeId,
+            acerto.temporada,
+        );
+
+        res.json({
+            success: true,
+            message: hardDelete === "true" ? "Acerto removido permanentemente" : "Acerto desativado",
+            novoSaldo: saldoInfo,
+        });
+    } catch (error) {
+        console.error("[ACERTOS] Erro ao remover acerto:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * GET /api/acertos/admin/:ligaId/resumo
+ * Retorna resumo financeiro de todos os participantes da liga
+ */
+router.get("/admin/:ligaId/resumo", async (req, res) => {
+    try {
+        const { ligaId } = req.params;
+        const temporada = parseInt(req.query.temporada) || 2025;
+
+        const acertos = await AcertoFinanceiro.aggregate([
+            {
+                $match: {
+                    ligaId,
+                    temporada,
+                    ativo: true,
+                },
+            },
+            {
+                $group: {
+                    _id: "$timeId",
+                    nomeTime: { $first: "$nomeTime" },
+                    totalPago: {
+                        $sum: {
+                            $cond: [{ $eq: ["$tipo", "pagamento"] }, "$valor", 0],
+                        },
+                    },
+                    totalRecebido: {
+                        $sum: {
+                            $cond: [{ $eq: ["$tipo", "recebimento"] }, "$valor", 0],
+                        },
+                    },
+                    quantidadeAcertos: { $sum: 1 },
+                    ultimoAcerto: { $max: "$dataAcerto" },
+                },
+            },
+            {
+                // ✅ v1.3 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
+                $project: {
+                    _id: 0,
+                    timeId: "$_id",
+                    nomeTime: 1,
+                    totalPago: { $round: ["$totalPago", 2] },
+                    totalRecebido: { $round: ["$totalRecebido", 2] },
+                    saldoAcertos: {
+                        $round: [{ $subtract: ["$totalPago", "$totalRecebido"] }, 2],
+                    },
+                    quantidadeAcertos: 1,
+                    ultimoAcerto: 1,
+                },
+            },
+            { $sort: { nomeTime: 1 } },
+        ]);
+
+        const totais = acertos.reduce(
+            (acc, t) => {
+                acc.totalPago += t.totalPago;
+                acc.totalRecebido += t.totalRecebido;
+                acc.totalAcertos += t.quantidadeAcertos;
+                return acc;
+            },
+            { totalPago: 0, totalRecebido: 0, totalAcertos: 0 },
+        );
+
+        res.json({
+            success: true,
+            ligaId,
+            temporada,
+            times: acertos,
+            totais: {
+                totalPago: parseFloat(totais.totalPago.toFixed(2)),
+                totalRecebido: parseFloat(totais.totalRecebido.toFixed(2)),
+                // ✅ v1.3 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
+                saldoGeral: parseFloat((totais.totalPago - totais.totalRecebido).toFixed(2)),
+                totalAcertos: totais.totalAcertos,
+                timesComAcertos: acertos.length,
+            },
+        });
+    } catch (error) {
+        console.error("[ACERTOS] Erro ao gerar resumo:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+export default router;
+
+
+=== CONTROLLER ===
+
+
+=== MODEL ===
+
+
+=== ÚLTIMO COMMIT ===
+commit 81116c84d1c298dc3ade4f3c099db56bd8394b2b
+Author: Miranda <paulinett1508@gmail.com>
+Date:   Thu Dec 18 19:49:25 2025 +0000
+
+    fix(financeiro): Corrigir cálculo de saldo com acertos financeiros
+    
+    Correções críticas no fluxo financeiro:
+    
+    - Corrigir fórmula invertida: totalPago - totalRecebido (não o inverso)
+      - PAGAMENTO = participante pagou → AUMENTA saldo (quita dívida)
+      - RECEBIMENTO = participante recebeu → DIMINUI saldo (usa crédito)
+    
+    - Corrigir tipo de temporada: number em vez de string
+      - Parâmetros nas rotas agora usam parseInt() ou default 2025
+    
+    - Corrigir campo retornado pela API: adicionar alias "saldo"
+      - Frontend esperava resumo.saldo, API retornava resumo.saldoAcertos
+    
+    - Incluir acertos no cálculo do saldo em todas as funções:
+      - lerCacheExtratoFinanceiro
+      - getExtratoCache
+      - verificarCacheValido
+    
+    - Adicionar scripts de manutenção de dados
+    
+    Arquivos alterados:
+    - controllers/extratoFinanceiroCacheController.js (v5.1 → v5.2)
+    - routes/acertos-financeiros-routes.js (v1.3 → v1.4)
+    - routes/tesouraria-routes.js (v1.0 → v1.1)
+    
+    🤖 Generated with [Claude Code](https://claude.com/claude-code)
+    
+    Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+diff --git a/controllers/extratoFinanceiroCacheController.js b/controllers/extratoFinanceiroCacheController.js
+index ce10c49..d92be3d 100644
+--- a/controllers/extratoFinanceiroCacheController.js
++++ b/controllers/extratoFinanceiroCacheController.js
+@@ -1,5 +1,6 @@
+ // =====================================================================
+-// extratoFinanceiroCacheController.js v5.1 - Integração com Acertos Financeiros
++// extratoFinanceiroCacheController.js v5.2 - Integração com Acertos Financeiros
++// ✅ v5.2: FIX CRÍTICO - lerCacheExtratoFinanceiro agora inclui acertos no saldo
+ // ✅ v5.1: Inclui acertos financeiros no extrato do participante
+ // ✅ v5.0: Busca extrato de snapshots quando cache não existe
+ // ✅ v4.0: Cache permanente para temporadas finalizadas (sem recálculos)
+@@ -16,7 +17,7 @@ import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
+ import mongoose from "mongoose";
+ 
+ // ✅ v5.1: Buscar acertos financeiros do participante
+-async function buscarAcertosFinanceiros(ligaId, timeId, temporada = "2025") {
++async function buscarAcertosFinanceiros(ligaId, timeId, temporada = 2025) {
+     try {
+         const acertos = await AcertoFinanceiro.find({
+             ligaId: String(ligaId),
+@@ -43,7 +44,10 @@ async function buscarAcertosFinanceiros(ligaId, timeId, temporada = "2025") {
+             }
+         });
+ 
+-        const saldo = parseFloat((totalRecebido - totalPago).toFixed(2));
++        // ✅ v5.2 FIX: Usar mesma lógica do Model (totalPago - totalRecebido)
++        // PAGAMENTO = participante pagou → AUMENTA saldo (quita dívida)
++        // RECEBIMENTO = participante recebeu → DIMINUI saldo (usa crédito)
++        const saldo = parseFloat((totalPago - totalRecebido).toFixed(2));
+ 
+         return {
+             lista: acertos.map((a) => ({
+@@ -514,8 +518,13 @@ export const getExtratoCache = async (req, res) => {
+                     };
+                 }
+ 
+-                // ✅ v5.1: Incluir saldo de acertos no resumo
+-                resumoFinal.saldo_acertos = acertos.resumo.saldo;
++                // ✅ v5.2 FIX: Incluir saldo de acertos no cálculo do saldo final
++                const saldoAcertosSnap = acertos?.resumo?.saldo ?? 0;
++                resumoFinal.saldo_temporada = resumoFinal.saldo; // Preservar saldo sem acertos
++                resumoFinal.saldo_acertos = saldoAcertosSnap;
++                resumoFinal.saldo = resumoFinal.saldo + saldoAcertosSnap;
++                resumoFinal.saldo_final = resumoFinal.saldo;
++                resumoFinal.saldo_atual = resumoFinal.saldo;
+ 
+                 return res.json({
+                     cached: true,
+@@ -562,8 +571,13 @@ export const getExtratoCache = async (req, res) => {
+             camposAtivos,
+         );
+ 
+-        // ✅ v5.1: Incluir saldo de acertos no resumo
+-        resumoCalculado.saldo_acertos = acertos.resumo.saldo;
++        // ✅ v5.2 FIX: Incluir saldo de acertos no cálculo do saldo final
++        const saldoAcertosCc = acertos?.resumo?.saldo ?? 0;
++        resumoCalculado.saldo_temporada = resumoCalculado.saldo;
++        resumoCalculado.saldo_acertos = saldoAcertosCc;
++        resumoCalculado.saldo = resumoCalculado.saldo + saldoAcertosCc;
++        resumoCalculado.saldo_final = resumoCalculado.saldo;
++        resumoCalculado.saldo_atual = resumoCalculado.saldo;
+ 
+         // ✅ v5.1: Adicionar acertos ao retorno
+         res.json({
+@@ -684,6 +698,20 @@ export const verificarCacheValido = async (req, res) => {
+             });
+         }
+ 
++        // ✅ v5.2 FIX: Buscar acertos financeiros para incluir no saldo
++        const acertos = await buscarAcertosFinanceiros(ligaId, timeId);
++        const saldoAcertosVal = acertos?.resumo?.saldo ?? 0;
++
++        // Helper para adicionar acertos ao resumo
++        const adicionarAcertosAoResumo = (resumo) => {
++            resumo.saldo_temporada = resumo.saldo;
++            resumo.saldo_acertos = saldoAcertosVal;
++            resumo.saldo = resumo.saldo + saldoAcertosVal;
++            resumo.saldo_final = resumo.saldo;
++            resumo.saldo_atual = resumo.saldo;
++            return resumo;
++        };
++
+         // ✅ v4.0: Se temporada finalizada E cache permanente, retorna imediatamente
+         if (statusTemporada.finalizada && cacheExistente.cache_permanente) {
+             console.log(`[CACHE-CONTROLLER] 🏁 Temporada finalizada - retornando cache permanente para time ${timeId}`);
+@@ -705,6 +733,7 @@ export const verificarCacheValido = async (req, res) => {
+                 rodadasConsolidadas,
+                 camposAtivos,
+             );
++            adicionarAcertosAoResumo(resumoCalculado); // ✅ v5.2: Incluir acertos
+ 
+             return res.json({
+                 valido: true,
+@@ -718,6 +747,7 @@ export const verificarCacheValido = async (req, res) => {
+                 rodadas: rodadasConsolidadas,
+                 resumo: resumoCalculado,
+                 camposManuais: camposAtivos,
++                acertos: acertos, // ✅ v5.2: Incluir acertos
+                 inativo: isInativo,
+                 rodadaDesistencia,
+                 extratoTravado: isInativo && rodadaDesistencia,
+@@ -744,6 +774,7 @@ export const verificarCacheValido = async (req, res) => {
+                     rodadasConsolidadas,
+                     camposAtivos,
+                 );
++                adicionarAcertosAoResumo(resumoCalculado); // ✅ v5.2: Incluir acertos
+ 
+                 return res.json({
+                     valido: true,
+@@ -755,6 +786,7 @@ export const verificarCacheValido = async (req, res) => {
+                     rodadas: rodadasConsolidadas,
+                     resumo: resumoCalculado,
+                     camposManuais: camposAtivos,
++                    acertos: acertos, // ✅ v5.2: Incluir acertos
+                     inativo: true,
+                     rodadaDesistencia,
+                     extratoTravado: true,
+@@ -777,6 +809,7 @@ export const verificarCacheValido = async (req, res) => {
+                 rodadasConsolidadas,
+                 camposAtivos,
+             );
++            adicionarAcertosAoResumo(resumoCalculado); // ✅ v5.2: Incluir acertos
+ 
+             return res.json({
+                 valido: true,
+@@ -790,6 +823,7 @@ export const verificarCacheValido = async (req, res) => {
+                 rodadas: rodadasConsolidadas,
+                 resumo: resumoCalculado,
+                 camposManuais: camposAtivos,
++                acertos: acertos, // ✅ v5.2: Incluir acertos
+                 inativo: isInativo,
+                 rodadaDesistencia,
+                 extratoTravado: isInativo && rodadaDesistencia,
+@@ -887,6 +921,27 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
+             camposAtivos,
+         );
+ 
++        // ✅ v5.2 FIX: Buscar acertos financeiros e incluir no saldo final
++        const acertos = await buscarAcertosFinanceiros(ligaId, timeId);
++        const saldoAcertos = acertos?.resumo?.saldo ?? 0;
++
++        // Adicionar saldo de acertos ao resumo
++        const saldoTemporada = resumoCalculado.saldo; // Saldo SEM acertos (só rodadas + campos)
++        resumoCalculado.saldo_temporada = saldoTemporada; // Preservar saldo original
++        resumoCalculado.saldo_acertos = saldoAcertos;
++        resumoCalculado.saldo = saldoTemporada + saldoAcertos; // Saldo COM acertos
++        resumoCalculado.saldo_final = resumoCalculado.saldo;
++        resumoCalculado.saldo_atual = resumoCalculado.saldo; // ✅ Usado pelo UI do App
++
++        // Atualizar ganhos/perdas com acertos
++        if (saldoAcertos > 0) {
++            resumoCalculado.totalGanhos = (resumoCalculado.totalGanhos || 0) + saldoAcertos;
++        } else if (saldoAcertos < 0) {
++            resumoCalculado.totalPerdas = (resumoCalculado.totalPerdas || 0) + saldoAcertos;
++        }
++
++        console.log(`[CACHE-EXTRATO] ✅ Extrato time ${timeId}: Saldo rodadas=${(resumoCalculado.saldo - saldoAcertos).toFixed(2)} + Acertos=${saldoAcertos.toFixed(2)} = Final=${resumoCalculado.saldo.toFixed(2)}`);
++
+         res.json({
+             cached: true,
+             qtdRodadas: rodadasConsolidadas.length,
+@@ -897,6 +952,7 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
+             saldo_total: resumoCalculado.saldo,
+             resumo: resumoCalculado,
+             camposManuais: camposAtivos,
++            acertos: acertos, // ✅ v5.2: Incluir acertos na resposta
+             updatedAt: cache.updatedAt || cache.data_ultima_atualizacao,
+             inativo: isInativo,
+             rodadaDesistencia,
+diff --git a/routes/acertos-financeiros-routes.js b/routes/acertos-financeiros-routes.js
+index a0a8f38..31a71c5 100644
+--- a/routes/acertos-financeiros-routes.js
++++ b/routes/acertos-financeiros-routes.js
+@@ -32,7 +32,7 @@ const router = express.Router();
+  * @param {string} temporada - Temporada (default "2025")
+  * @returns {Object} { saldoTemporada, saldoAcertos, saldoTotal }
+  */
+-async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = "2025") {
++async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = 2025) {
+     // 1. Buscar saldo consolidado da temporada (do cache)
+     const cache = await ExtratoFinanceiroCache.findOne({ ligaId, timeId });
+     const saldoConsolidado = cache?.saldo_consolidado || 0;
+@@ -53,9 +53,9 @@ async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = "2025"
+     const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
+ 
+     // 5. Saldo total = temporada + acertos
+-    // Nota: saldoAcertos = totalRecebido - totalPago
+-    // Se participante PAGOU, saldoAcertos fica negativo (ele "gastou")
+-    // Se participante RECEBEU, saldoAcertos fica positivo (ele "ganhou")
++    // ✅ CORREÇÃO v1.3: saldoAcertos = totalPago - totalRecebido (definido no Model)
++    // Se participante PAGOU à liga → saldoAcertos POSITIVO → quita dívida (saldo sobe)
++    // Se participante RECEBEU da liga → saldoAcertos NEGATIVO → usa crédito (saldo desce)
+     const saldoTotal = saldoTemporada + acertosInfo.saldoAcertos;
+ 
+     return {
+@@ -78,7 +78,7 @@ async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = "2025"
+ router.get("/:ligaId/:timeId", async (req, res) => {
+     try {
+         const { ligaId, timeId } = req.params;
+-        const { temporada = "2025" } = req.query;
++        const temporada = parseInt(req.query.temporada) || 2025;
+ 
+         const acertos = await AcertoFinanceiro.buscarPorTime(ligaId, timeId, temporada);
+         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
+@@ -94,7 +94,14 @@ router.get("/:ligaId/:timeId", async (req, res) => {
+                 dataAcerto: a.dataAcerto,
+                 observacoes: a.observacoes,
+             })),
+-            resumo: saldoInfo,
++            // ✅ v1.4 FIX: Mapear saldoAcertos para saldo (frontend espera "saldo")
++            resumo: {
++                totalPago: saldoInfo.totalPago,
++                totalRecebido: saldoInfo.totalRecebido,
++                saldo: saldoInfo.saldoAcertos, // Frontend espera "saldo"
++                saldoAcertos: saldoInfo.saldoAcertos, // Manter para compatibilidade
++                quantidadeAcertos: saldoInfo.quantidadeAcertos,
++            },
+         });
+     } catch (error) {
+         console.error("[ACERTOS] Erro ao buscar acertos:", error);
+@@ -109,13 +116,14 @@ router.get("/:ligaId/:timeId", async (req, res) => {
+ router.get("/:ligaId/:timeId/saldo", async (req, res) => {
+     try {
+         const { ligaId, timeId } = req.params;
+-        const { temporada = "2025" } = req.query;
++        const temporada = parseInt(req.query.temporada) || 2025;
+ 
+         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
+ 
+         res.json({
+             success: true,
+             ...saldoInfo,
++            saldo: saldoInfo.saldoAcertos, // ✅ v1.4: Alias para compatibilidade
+         });
+     } catch (error) {
+         console.error("[ACERTOS] Erro ao calcular saldo:", error);
+@@ -134,7 +142,7 @@ router.get("/:ligaId/:timeId/saldo", async (req, res) => {
+ router.get("/admin/:ligaId", async (req, res) => {
+     try {
+         const { ligaId } = req.params;
+-        const { temporada = "2025" } = req.query;
++        const temporada = parseInt(req.query.temporada) || 2025;
+ 
+         const acertos = await AcertoFinanceiro.buscarPorLiga(ligaId, temporada);
+ 
+@@ -159,8 +167,11 @@ router.get("/admin/:ligaId", async (req, res) => {
+         });
+ 
+         // Calcular saldo de cada time
++        // ✅ v1.3 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
++        // PAGAMENTO = participante pagou à liga → AUMENTA saldo (quita dívida)
++        // RECEBIMENTO = participante recebeu da liga → DIMINUI saldo (usa crédito)
+         Object.values(porTime).forEach(time => {
+-            time.saldoAcertos = parseFloat((time.totalRecebido - time.totalPago).toFixed(2));
++            time.saldoAcertos = parseFloat((time.totalPago - time.totalRecebido).toFixed(2));
+             time.totalPago = parseFloat(time.totalPago.toFixed(2));
+             time.totalRecebido = parseFloat(time.totalRecebido.toFixed(2));
+         });
+@@ -196,7 +207,7 @@ router.post("/:ligaId/:timeId", async (req, res) => {
+             comprovante,
+             observacoes,
+             dataAcerto,
+-            temporada = "2025",
++            temporada = 2025,
+             registradoPor = "admin",
+         } = req.body;
+ 
+@@ -479,7 +490,7 @@ router.delete("/:id", async (req, res) => {
+ router.get("/admin/:ligaId/resumo", async (req, res) => {
+     try {
+         const { ligaId } = req.params;
+-        const { temporada = "2025" } = req.query;
++        const temporada = parseInt(req.query.temporada) || 2025;
+ 
+         const acertos = await AcertoFinanceiro.aggregate([
+             {
+@@ -508,6 +519,7 @@ router.get("/admin/:ligaId/resumo", async (req, res) => {
+                 },
+             },
+             {
++                // ✅ v1.3 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
+                 $project: {
+                     _id: 0,
+                     timeId: "$_id",
+@@ -515,7 +527,7 @@ router.get("/admin/:ligaId/resumo", async (req, res) => {
+                     totalPago: { $round: ["$totalPago", 2] },
+                     totalRecebido: { $round: ["$totalRecebido", 2] },
+                     saldoAcertos: {
+-                        $round: [{ $subtract: ["$totalRecebido", "$totalPago"] }, 2],
++                        $round: [{ $subtract: ["$totalPago", "$totalRecebido"] }, 2],
+                     },
+                     quantidadeAcertos: 1,
+                     ultimoAcerto: 1,
+@@ -542,7 +554,8 @@ router.get("/admin/:ligaId/resumo", async (req, res) => {
+             totais: {
+                 totalPago: parseFloat(totais.totalPago.toFixed(2)),
+                 totalRecebido: parseFloat(totais.totalRecebido.toFixed(2)),
+-                saldoGeral: parseFloat((totais.totalRecebido - totais.totalPago).toFixed(2)),
++                // ✅ v1.3 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
++                saldoGeral: parseFloat((totais.totalPago - totais.totalRecebido).toFixed(2)),
+                 totalAcertos: totais.totalAcertos,
+                 timesComAcertos: acertos.length,
+             },
+diff --git a/routes/tesouraria-routes.js b/routes/tesouraria-routes.js
+index 34eef57..8b82624 100644
+--- a/routes/tesouraria-routes.js
++++ b/routes/tesouraria-routes.js
+@@ -211,7 +211,10 @@ router.get("/participantes", async (req, res) => {
+                     if (a.tipo === 'pagamento') totalPago += a.valor || 0;
+                     else if (a.tipo === 'recebimento') totalRecebido += a.valor || 0;
+                 });
+-                const saldoAcertos = totalRecebido - totalPago;
++                // ✅ v1.1.0 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
++                // PAGAMENTO = participante pagou à liga → AUMENTA saldo (quita dívida)
++                // RECEBIMENTO = participante recebeu da liga → DIMINUI saldo (usa crédito)
++                const saldoAcertos = totalPago - totalRecebido;
+ 
+                 // Calcular saldos finais
+                 const saldoTemporada = saldoConsolidado + saldoCampos;
+@@ -428,7 +431,10 @@ router.get("/liga/:ligaId", async (req, res) => {
+                 if (a.tipo === 'pagamento') totalPago += a.valor || 0;
+                 else if (a.tipo === 'recebimento') totalRecebido += a.valor || 0;
+             });
+-            const saldoAcertos = totalRecebido - totalPago;
++            // ✅ v1.1.0 FIX: Usar mesma fórmula do Model (totalPago - totalRecebido)
++            // PAGAMENTO = participante pagou à liga → AUMENTA saldo (quita dívida)
++            // RECEBIMENTO = participante recebeu da liga → DIMINUI saldo (usa crédito)
++            const saldoAcertos = totalPago - totalRecebido;
+ 
+             // Calcular saldos finais
+             const saldoTemporada = saldoConsolidado + saldoCampos;
+diff --git a/scripts/fix-acertos-tipo.js b/scripts/fix-acertos-tipo.js
+new file mode 100644
+index 0000000..eae2344
+--- /dev/null
++++ b/scripts/fix-acertos-tipo.js
+@@ -0,0 +1,59 @@
++/**
++ * Script para corrigir acertos com tipo errado
++ * Acertos com descrição contendo "pagamento" mas tipo="recebimento"
++ * devem ser corrigidos para tipo="pagamento"
++ */
++import mongoose from 'mongoose';
++import dotenv from 'dotenv';
++
++dotenv.config();
++
++const MONGO_URI = process.env.MONGO_URI_DEV || process.env.MONGO_URI;
++
++async function fixAcertos() {
++    console.log('🔧 Conectando ao MongoDB...');
++    await mongoose.connect(MONGO_URI);
++    console.log('✅ Conectado!');
++
++    const db = mongoose.connection.db;
++    const collection = db.collection('acertofinanceiros');
++
++    // Buscar acertos do time 3300583 com tipo errado
++    const acertos = await collection.find({
++        timeId: "3300583",
++        tipo: "recebimento"
++    }).toArray();
++
++    console.log(`\n📋 Encontrados ${acertos.length} acertos do time 3300583:`);
++    acertos.forEach(a => {
++        console.log(`  - ${a._id}: ${a.descricao} (tipo: ${a.tipo}, valor: R$${a.valor})`);
++    });
++
++    // Corrigir tipo de recebimento para pagamento (para acertos que são pagamentos de dívida)
++    const result = await collection.updateMany(
++        {
++            timeId: "3300583",
++            tipo: "recebimento"
++        },
++        { $set: { tipo: "pagamento" } }
++    );
++    console.log(`\n✅ ${result.modifiedCount} acertos corrigidos de "recebimento" para "pagamento"!`);
++
++    // Verificar resultado
++    const acertosCorrigidos = await collection.find({
++        timeId: "3300583"
++    }).toArray();
++
++    console.log(`\n📋 Estado final dos acertos:`);
++    acertosCorrigidos.forEach(a => {
++        console.log(`  - ${a._id}: ${a.descricao} (tipo: ${a.tipo}, valor: R$${a.valor})`);
++    });
++
++    await mongoose.disconnect();
++    console.log('\n✅ Desconectado do MongoDB');
++}
++
++fixAcertos().catch(err => {
++    console.error('❌ Erro:', err);
++    process.exit(1);
++});
+diff --git a/scripts/invalidar-cache-time.js b/scripts/invalidar-cache-time.js
+new file mode 100644
+index 0000000..736c0c3
+--- /dev/null
++++ b/scripts/invalidar-cache-time.js
+@@ -0,0 +1,27 @@
++/**
++ * Script para invalidar cache de extrato de um time específico
++ */
++import mongoose from 'mongoose';
++import dotenv from 'dotenv';
++dotenv.config();
++
++const MONGO_URI = process.env.MONGO_URI_DEV || process.env.MONGO_URI;
++const TIME_ID = parseInt(process.argv[2]) || 3300583;
++
++async function invalidarCache() {
++    console.log('🔧 Conectando ao MongoDB...');
++    await mongoose.connect(MONGO_URI);
++    console.log('✅ Conectado!');
++
++    const db = mongoose.connection.db;
++
++    // Deletar cache do extrato para forçar recálculo
++    const result = await db.collection('extratofinanceirocaches').deleteOne({
++        time_id: TIME_ID
++    });
++
++    console.log(`✅ Cache do time ${TIME_ID} deletado: ${result.deletedCount} documento(s)`);
++    await mongoose.disconnect();
++}
++
++invalidarCache().catch(console.error);

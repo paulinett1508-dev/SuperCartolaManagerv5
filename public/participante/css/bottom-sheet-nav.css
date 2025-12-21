@@ -1,0 +1,377 @@
+/* =============================================================================
+   BOTTOM SHEET NAVIGATION v1.0 - Premium Collapsible Menu
+   =============================================================================
+   ✅ Dock fixo com 5 módulos core + botão "Mais"
+   ✅ Bottom Sheet expansível com todos os módulos
+   ✅ Animações 60fps com spring easing
+   ✅ Backdrop blur + gesture de swipe
+   ============================================================================= */
+
+:root {
+    --nav-height: 64px;
+    --nav-safe-area: env(safe-area-inset-bottom, 0px);
+    --sheet-max-height: 70vh;
+    --spring-easing: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --smooth-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =============================================================================
+   DOCK FIXO (Bottom Bar)
+   ============================================================================= */
+.nav-dock {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--nav-height) + var(--nav-safe-area));
+    padding-bottom: var(--nav-safe-area);
+    background: linear-gradient(to top, #0a0a0a 0%, rgba(10, 10, 10, 0.98) 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px;
+}
+
+.nav-dock-item {
+    flex: 1;
+    max-width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 4px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.2s var(--smooth-easing);
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+}
+
+.nav-dock-item::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 24px;
+    height: 3px;
+    background: #FF5500;
+    border-radius: 2px;
+    transition: transform 0.25s var(--spring-easing);
+}
+
+.nav-dock-item.active::before {
+    transform: translateX(-50%) scaleX(1);
+}
+
+.nav-dock-item.active {
+    color: #FF5500;
+}
+
+.nav-dock-item:active {
+    transform: scale(0.92);
+}
+
+.nav-dock-icon {
+    font-size: 22px;
+    line-height: 1;
+    transition: transform 0.2s var(--spring-easing);
+}
+
+.nav-dock-item.active .nav-dock-icon {
+    transform: scale(1.1);
+}
+
+.nav-dock-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Botão "Mais" especial */
+.nav-dock-more {
+    position: relative;
+}
+
+.nav-dock-more .nav-dock-icon {
+    font-variation-settings: 'FILL' 1;
+}
+
+.nav-dock-more.sheet-open .nav-dock-icon {
+    transform: rotate(45deg);
+}
+
+/* Badge de contagem (módulos extras) */
+.nav-dock-badge {
+    position: absolute;
+    top: 2px;
+    right: 50%;
+    transform: translateX(12px);
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: #FF5500;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =============================================================================
+   BOTTOM SHEET (Painel Expandível)
+   ============================================================================= */
+.nav-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s var(--smooth-easing);
+}
+
+.nav-sheet-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.nav-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: var(--sheet-max-height);
+    background: linear-gradient(to bottom, #1a1a1a 0%, #141414 100%);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    z-index: 1001;
+    transform: translateY(100%);
+    transition: transform 0.35s var(--spring-easing);
+    overflow: hidden;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.nav-sheet.open {
+    transform: translateY(0);
+}
+
+/* Handle de arraste */
+.nav-sheet-handle {
+    display: flex;
+    justify-content: center;
+    padding: 12px 0 8px;
+    cursor: grab;
+}
+
+.nav-sheet-handle::after {
+    content: '';
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    transition: background 0.2s;
+}
+
+.nav-sheet-handle:active::after {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* Header do Sheet */
+.nav-sheet-header {
+    padding: 0 20px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-sheet-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-sheet-title .material-icons {
+    color: #FF5500;
+    font-size: 20px;
+}
+
+.nav-sheet-close {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.nav-sheet-close:active {
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Conteúdo do Sheet */
+.nav-sheet-content {
+    padding: 0 16px calc(var(--nav-height) + var(--nav-safe-area) + 20px);
+    overflow-y: auto;
+    max-height: calc(var(--sheet-max-height) - 80px);
+}
+
+/* Categorias */
+.nav-sheet-category {
+    margin-bottom: 20px;
+}
+
+.nav-sheet-category-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.nav-sheet-category-title .material-icons {
+    font-size: 14px;
+    color: #FF5500;
+}
+
+/* Grid de Módulos */
+.nav-sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.nav-sheet-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: all 0.2s var(--smooth-easing);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nav-sheet-item:active {
+    transform: scale(0.95);
+    background: rgba(255, 85, 0, 0.15);
+    border-color: rgba(255, 85, 0, 0.3);
+}
+
+.nav-sheet-item.active {
+    background: rgba(255, 85, 0, 0.12);
+    border-color: rgba(255, 85, 0, 0.4);
+    color: #FF5500;
+}
+
+.nav-sheet-item-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.nav-sheet-item.active .nav-sheet-item-icon {
+    background: rgba(255, 85, 0, 0.2);
+}
+
+.nav-sheet-item-icon .material-icons {
+    font-size: 24px;
+}
+
+.nav-sheet-item-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.3;
+    max-width: 100%;
+}
+
+/* Item desabilitado */
+.nav-sheet-item.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.nav-sheet-item.disabled:active {
+    transform: none;
+}
+
+/* =============================================================================
+   RESPONSIVIDADE
+   ============================================================================= */
+@media (max-width: 360px) {
+    .nav-sheet-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .nav-dock-label {
+        font-size: 9px;
+    }
+}
+
+@media (min-width: 500px) {
+    .nav-sheet-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* =============================================================================
+   ANIMAÇÕES
+   ============================================================================= */
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 85, 0, 0); }
+    50% { box-shadow: 0 0 12px 4px rgba(255, 85, 0, 0.3); }
+}
+
+.nav-dock-item.active .nav-dock-icon {
+    animation: pulse-glow 2s infinite;
+}
+
+/* Feedback de toque premium */
+@keyframes tap-feedback {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+.nav-sheet-item.tapped {
+    animation: tap-feedback 0.15s ease-out;
+}

@@ -1,11 +1,12 @@
 // =====================================================================
-// service-worker.js - Service Worker do PWA v3.0 (OTIMIZADO)
+// service-worker.js - Service Worker do PWA v3.1 (NETWORK-FIRST)
 // Destino: /participante/service-worker.js
-// ✅ v3.0: Cache First para assets, Network Only para HTML/APIs
+// ✅ v3.1: Network-First com cache fallback (FIX fetch failures)
 // ✅ v3.0: Força limpeza de caches antigos
+// BUILD: 2025-12-20T14:10:00Z
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v7";
+const CACHE_NAME = "super-cartola-v8-fixed";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
@@ -73,27 +74,15 @@ self.addEventListener("fetch", (event) => {
         return; // Deixa o navegador buscar normalmente
     }
 
-    // ✅ CACHE FIRST: Assets estáticos (CSS, JS, imagens, fontes)
+    // ✅ NETWORK FIRST: Assets estáticos (CSS, JS, imagens, fontes)
     const isCacheableAsset = CACHE_FIRST_EXTENSIONS.some(ext => url.pathname.endsWith(ext));
 
     if (isCacheableAsset) {
         event.respondWith(
-            caches.match(request).then((cachedResponse) => {
-                if (cachedResponse) {
-                    // Retorna do cache imediatamente
-                    // Atualiza cache em background (stale-while-revalidate)
-                    fetch(request).then((networkResponse) => {
-                        if (networkResponse && networkResponse.status === 200) {
-                            caches.open(CACHE_NAME).then((cache) => {
-                                cache.put(request, networkResponse);
-                            });
-                        }
-                    }).catch(() => {});
-                    return cachedResponse;
-                }
-
-                // Se não está no cache, busca da rede e cacheia
-                return fetch(request).then((networkResponse) => {
+            // Tenta da rede primeiro, fallback para cache se falhar
+            fetch(request)
+                .then((networkResponse) => {
+                    // Sucesso na rede - cacheia e retorna
                     if (networkResponse && networkResponse.status === 200) {
                         const responseClone = networkResponse.clone();
                         caches.open(CACHE_NAME).then((cache) => {
@@ -101,8 +90,19 @@ self.addEventListener("fetch", (event) => {
                         });
                     }
                     return networkResponse;
-                });
-            })
+                })
+                .catch((fetchError) => {
+                    // Falha na rede - tenta buscar do cache
+                    return caches.match(request).then((cachedResponse) => {
+                        if (cachedResponse) {
+                            return cachedResponse;
+                        }
+                        
+                        // Nem rede nem cache funcionaram
+                        console.warn('[SW] Failed to fetch and no cache:', request.url);
+                        throw new Error('Offline and no cache available');
+                    });
+                })
         );
         return;
     }

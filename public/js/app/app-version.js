@@ -11,9 +11,43 @@
 const AppVersion = {
     LOCAL_KEY: "app_version",
     CLIENT_TYPE: "app", // Identificador do cliente (app = participante)
+    CACHE_TTL: 60000, // ✅ FIX: Cache de 1 minuto para evitar requisições excessivas
+    lastCheck: 0, // Timestamp da última verificação
+
+    // ✅ EMERGENCY: Limpar todos os caches e SW (uma única vez)
+    async limparCachesAntigos() {
+        const FLAG_KEY = 'sw_emergency_clean_v8';
+        if (localStorage.getItem(FLAG_KEY)) {
+            return; // Já foi feito
+        }
+
+        try {
+            // Unregister todos os Service Workers
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (const registration of registrations) {
+                    await registration.unregister();
+                }
+            }
+
+            // Limpar TODOS os caches
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+
+            // Marcar como feito
+            localStorage.setItem(FLAG_KEY, 'done');
+            
+            if (window.Log) Log.info('APP-VERSION', '🧹 Limpeza emergencial concluída');
+        } catch (error) {
+            if (window.Log) Log.warn('APP-VERSION', 'Erro na limpeza:', error);
+        }
+    },
 
     // ✅ Inicializar
     async init() {
+        // ✅ EMERGENCY: Limpar caches antigos UMA VEZ
+        await this.limparCachesAntigos();
+
         // Registrar Service Worker do PWA
         this.registrarServiceWorker();
 
@@ -32,7 +66,12 @@ const AppVersion = {
     async registrarServiceWorker() {
         if ('serviceWorker' in navigator) {
             try {
-                const registration = await navigator.serviceWorker.register('/participante/service-worker.js');
+                const registration = await navigator.serviceWorker.register('/participante/service-worker.js', {
+                    updateViaCache: 'none' // Força buscar SW sempre do servidor
+                });
+
+                // Forçar verificação de atualização
+                registration.update();
 
                 // Detectar quando SW é atualizado
                 registration.addEventListener('updatefound', () => {
@@ -54,6 +93,14 @@ const AppVersion = {
 
     // ✅ Verificar versão no servidor
     async verificarVersao() {
+        // ✅ FIX: Cache de 1 minuto - não verificar se já verificou recentemente
+        const agora = Date.now();
+        if (agora - this.lastCheck < this.CACHE_TTL) {
+            if (window.Log) Log.debug('APP-VERSION', 'Verificação em cache, aguardando TTL');
+            return;
+        }
+        this.lastCheck = agora;
+
         try {
             // Usar novo endpoint com identificação de cliente
             const response = await fetch("/api/app/check-version", {

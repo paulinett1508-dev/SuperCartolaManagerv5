@@ -1,617 +1,329 @@
-<div id="historicoParticipante" class="p-4 pb-28 font-display text-gray-300">
-    <!-- Header com Info do Participante -->
-    <div id="historicoHeader" class="historico-header mb-6">
-        <div class="flex items-center gap-4 mb-4">
-            <div id="historicoAvatar" class="historico-avatar">
-                <span class="material-symbols-outlined">trophy</span>
-            </div>
-            <div class="flex-1">
-                <h1 class="text-xl font-bold text-white mb-1">Hall da Fama</h1>
-                <p class="text-sm text-gray-400">Seu legado no Super Cartola</p>
-            </div>
+<div id="historicoParticipante" class="hall-premium">
+
+    <!-- Header Premium (centralizado como no modelo) -->
+    <div class="header">
+        <div class="material-icons trophy-icon">emoji_events</div>
+        <h1>Hall da Fama</h1>
+        <div class="subtitle" id="headerSubtitle">Carregando...</div>
+    </div>
+
+    <!-- Conteudo Principal (renderizado pelo JS) -->
+    <div id="historicoDetalhe" class="hall-content">
+        <div class="loading-state">
+            <span class="material-icons spin">sync</span>
+            <span>Carregando historico...</span>
         </div>
     </div>
 
-    <!-- Stats Agregadas -->
-    <div id="historicoStats" class="historico-stats-grid mb-6">
-        <div class="stat-card">
-            <span class="stat-icon material-symbols-outlined">calendar_month</span>
-            <span class="stat-value" id="statTemporadas">-</span>
-            <span class="stat-label">Temporadas</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-icon material-symbols-outlined">emoji_events</span>
-            <span class="stat-value" id="statTitulos">-</span>
-            <span class="stat-label">Títulos</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-icon material-symbols-outlined">trending_up</span>
-            <span class="stat-value" id="statMelhorPos">-</span>
-            <span class="stat-label">Melhor Posição</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-icon material-symbols-outlined">account_balance_wallet</span>
-            <span class="stat-value" id="statSaldo">-</span>
-            <span class="stat-label">Saldo Histórico</span>
-        </div>
-    </div>
-
-    <!-- Badges Conquistados -->
-    <div id="historicoBadges" class="historico-badges-section mb-6" style="display: none;">
-        <h2 class="section-title mb-3">
-            <span class="material-symbols-outlined">military_tech</span>
-            Conquistas
-        </h2>
-        <div id="badgesContainer" class="badges-grid">
-            <!-- Badges renderizados via JS -->
-        </div>
-    </div>
-
-    <!-- Seletor de Liga -->
-    <div id="historicoSeletorLiga" class="historico-seletor mb-4">
-        <h2 class="section-title mb-3">
-            <span class="material-symbols-outlined">emoji_events</span>
-            Selecione uma Liga
-        </h2>
-        <div id="ligasTabs" class="temporadas-tabs">
-            <!-- Tabs de ligas renderizadas via JS -->
-        </div>
-    </div>
-
-    <!-- Seletor de Temporada -->
-    <div id="historicoSeletor" class="historico-seletor mb-4">
-        <h2 class="section-title mb-3">
-            <span class="material-symbols-outlined">history</span>
-            Histórico por Temporada
-        </h2>
-        <div id="temporadasTabs" class="temporadas-tabs">
-            <!-- Tabs renderizadas via JS -->
-        </div>
-    </div>
-
-    <!-- Detalhe da Temporada Selecionada -->
-    <div id="historicoDetalhe" class="historico-detalhe">
-        <!-- Conteúdo renderizado via JS -->
-        <div class="loading-placeholder">
-            <div class="spinner"></div>
-            <p>Carregando histórico...</p>
-        </div>
-    </div>
 </div>
 
 <style>
-    /* ===== LOADING SPINNER ===== */
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-    .spinner {
-        width: 32px;
-        height: 32px;
-        border: 3px solid rgba(255, 255, 255, 0.1);
-        border-top-color: #ff4500;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-        margin: 0 auto 12px;
-    }
-    .loading-placeholder {
-        text-align: center;
-        padding: 40px 20px;
-        color: #666;
-    }
+/* =====================================================
+   HALL DA FAMA v7.0 - LAYOUT LIMPO (MODELO REFERENCIA)
+   ===================================================== */
 
-    /* ===== HEADER ===== */
-    .historico-header {
-        background: linear-gradient(135deg, rgba(255, 69, 0, 0.15) 0%, rgba(255, 69, 0, 0.05) 100%);
-        border-radius: 16px;
-        padding: 20px;
-        border: 1px solid rgba(255, 69, 0, 0.2);
-    }
-    .historico-avatar {
-        width: 56px;
-        height: 56px;
-        background: linear-gradient(135deg, #ff4500 0%, #e63e00 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 12px rgba(255, 69, 0, 0.3);
-    }
-    .historico-avatar .material-symbols-outlined {
-        font-size: 28px;
-        color: white;
-    }
+.hall-premium {
+    padding: 20px;
+    font-family: 'Inter', 'Roboto', sans-serif;
+    background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+    color: #fff;
+    min-height: 100vh;
+    max-width: 720px;
+    margin: 0 auto;
+}
 
-    /* ===== STATS GRID ===== */
-    .historico-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+/* Header Centralizado */
+.header {
+    text-align: center;
+    padding: 30px 20px;
+    border-bottom: 1px solid rgba(255, 69, 0, 0.2);
+    margin-bottom: 30px;
+}
+
+.trophy-icon {
+    font-size: 64px;
+    color: #FF4500;
+    margin-bottom: 15px;
+    text-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
+}
+
+.header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #FF4500;
+    margin: 0 0 8px;
+    letter-spacing: -0.5px;
+}
+
+.header .subtitle {
+    font-size: 14px;
+    color: #999;
+    font-weight: 400;
+}
+
+/* Content */
+.hall-content {
+    min-height: 200px;
+}
+
+.loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 50px 20px;
+    color: #555;
+    font-size: 13px;
+}
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =====================================================
+   STATS GRID (4 cards principais)
+   ===================================================== */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover, .stat-card:active {
+    background: rgba(255, 69, 0, 0.1);
+    border-color: rgba(255, 69, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    font-size: 32px;
+    color: #FF4500;
+    margin-bottom: 12px;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+
+.stat-value.positive { color: #10b981; }
+.stat-value.negative { color: #ef4444; }
+
+.stat-subtitle {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+/* =====================================================
+   SECTION (Modulos)
+   ===================================================== */
+
+.section {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-icon {
+    font-size: 24px;
+    color: #FF4500;
+    margin-right: 12px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.section-badge {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(255, 69, 0, 0.15);
+    border: 1px solid rgba(255, 69, 0, 0.3);
+    border-radius: 12px;
+    font-size: 10px;
+    color: #FF4500;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Achievement List */
+.achievement-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.achievement-item:hover, .achievement-item:active {
+    background: rgba(255, 69, 0, 0.05);
+}
+
+.achievement-icon {
+    font-size: 20px;
+    color: #FF4500;
+    margin-right: 12px;
+    width: 24px;
+    text-align: center;
+}
+
+.achievement-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.achievement-title {
+    font-size: 13px;
+    color: #fff;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.achievement-value {
+    font-size: 11px;
+    color: #999;
+}
+
+.achievement-value .highlight {
+    color: #FF4500;
+    font-weight: 600;
+}
+
+.achievement-value .positive { color: #10b981; }
+.achievement-value .negative { color: #ef4444; }
+
+/* Divider */
+.divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 69, 0, 0.3), transparent);
+    margin: 30px 0;
+}
+
+/* Liga Header (para multiplas ligas) */
+.liga-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(255, 69, 0, 0.08);
+    border: 1px solid rgba(255, 69, 0, 0.2);
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.liga-header .material-icons {
+    color: #FF4500;
+    font-size: 20px;
+}
+
+.liga-header-text {
+    flex: 1;
+}
+
+.liga-header-text .liga-nome {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.liga-header-text .liga-ano {
+    font-size: 11px;
+    color: #888;
+}
+
+/* Empty/Error State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #555;
+}
+
+.empty-state .material-icons {
+    font-size: 40px;
+    opacity: 0.3;
+    margin-bottom: 10px;
+}
+
+.empty-state h3 {
+    font-size: 14px;
+    color: #888;
+    margin: 0 0 6px;
+}
+
+.empty-state p {
+    font-size: 11px;
+    margin: 0;
+}
+
+/* Footer */
+.hall-footer {
+    text-align: center;
+    padding: 30px 20px;
+    color: #666;
+    font-size: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 30px;
+}
+
+@media (max-width: 600px) {
+    .stats-grid {
+        gap: 10px;
     }
     .stat-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
-        padding: 10px 8px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 2px;
-    }
-    .stat-icon {
-        font-size: 20px;
-        color: #ff4500;
-        margin-bottom: 2px;
+        padding: 16px;
     }
     .stat-value {
-        font-size: 20px;
-        font-weight: 700;
-        color: white;
-        line-height: 1;
+        font-size: 24px;
     }
-    .stat-label {
-        font-size: 10px;
-        color: #9ca3af;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        line-height: 1.2;
+    .header h1 {
+        font-size: 28px;
     }
-
-    /* ===== BADGES ===== */
-    .historico-badges-section {
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 16px;
-        padding: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
+    .trophy-icon {
+        font-size: 48px;
     }
-    .section-title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        color: white;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .section-title .material-symbols-outlined {
-        font-size: 20px;
-        color: #ff4500;
-    }
-    .badges-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    .badge-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 50px;
-        padding: 8px 14px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .badge-icon {
-        font-size: 18px;
-    }
-    .badge-text {
-        font-size: 12px;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.9);
-    }
-    .badge-year {
-        font-size: 10px;
-        color: #9ca3af;
-        background: rgba(0, 0, 0, 0.3);
-        padding: 2px 6px;
-        border-radius: 4px;
-    }
-
-    /* ===== SELETOR DE TEMPORADA ===== */
-    .historico-seletor {
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 16px;
-        padding: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    .temporadas-tabs {
-        display: flex;
-        gap: 8px;
-        overflow-x: auto;
-        padding-bottom: 4px;
-        -webkit-overflow-scrolling: touch;
-    }
-    .temporada-tab {
-        flex-shrink: 0;
-        padding: 10px 20px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        color: #9ca3af;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .temporada-tab:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-    .temporada-tab.active {
-        background: linear-gradient(135deg, #ff4500 0%, #e63e00 100%);
-        color: white;
-        border-color: transparent;
-    }
-    .temporadas-tabs::-webkit-scrollbar {
-        height: 4px;
-    }
-    .temporadas-tabs::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 2px;
-    }
-
-    /* ===== DETALHE DA TEMPORADA ===== */
-    .historico-detalhe {
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 16px;
-        padding: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    .detalhe-header {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 20px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .detalhe-escudo {
-        width: 64px;
-        height: 64px;
-        border-radius: 12px;
-        object-fit: cover;
-        background: rgba(255, 255, 255, 0.05);
-    }
-    .detalhe-info h3 {
-        font-size: 18px;
-        font-weight: 700;
-        color: white;
-        margin-bottom: 4px;
-    }
-    .detalhe-info p {
-        font-size: 13px;
-        color: #9ca3af;
-    }
-    .detalhe-posicao {
-        margin-left: auto;
-        text-align: center;
-    }
-    .posicao-numero {
-        font-size: 32px;
-        font-weight: 800;
-        line-height: 1;
-    }
-    .posicao-numero.ouro { color: #ffd700; }
-    .posicao-numero.prata { color: #c0c0c0; }
-    .posicao-numero.bronze { color: #cd7f32; }
-    .posicao-numero.normal { color: white; }
-    .posicao-label {
-        font-size: 10px;
-        color: #9ca3af;
-        text-transform: uppercase;
-    }
-
-    /* ===== MÉTRICAS DA TEMPORADA ===== */
-    .detalhe-metricas {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-    .metrica-item {
-        text-align: center;
-        padding: 12px 8px;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 10px;
-    }
-    .metrica-valor {
-        font-size: 18px;
-        font-weight: 700;
-        color: white;
-        display: block;
-    }
-    .metrica-label {
-        font-size: 10px;
-        color: #9ca3af;
-        text-transform: uppercase;
-    }
-    .metrica-valor.positivo { color: #10b981; }
-    .metrica-valor.negativo { color: #ef4444; }
-
-    /* ===== BADGES DA TEMPORADA ===== */
-    .detalhe-badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    .detalhe-badge {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        background: rgba(255, 215, 0, 0.1);
-        border: 1px solid rgba(255, 215, 0, 0.3);
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #ffd700;
-    }
-
-    /* ===== ESTADO VAZIO ===== */
-    .historico-vazio {
-        text-align: center;
-        padding: 40px 20px;
-    }
-    .historico-vazio .empty-icon {
-        font-size: 64px;
-        color: rgba(255, 255, 255, 0.1);
-        margin-bottom: 16px;
-    }
-    .historico-vazio h3 {
-        color: white;
-        font-size: 18px;
-        margin-bottom: 8px;
-    }
-    .historico-vazio p {
-        color: #9ca3af;
-        font-size: 14px;
-    }
-
-    /* ===== ✅ v2.0: CARDS DE CONQUISTAS DINÂMICAS ===== */
-    .conquista-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 16px;
-        margin-bottom: 16px;
-        transition: all 0.3s ease;
-    }
-
-    .conquista-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Card de Pontos */
-    .conquista-card.card-pontos {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
-        border-color: rgba(59, 130, 246, 0.3);
-    }
-
-    /* Card Financeiro */
-    .conquista-card.card-financeiro.card-sucesso {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
-        border-color: rgba(16, 185, 129, 0.3);
-    }
-
-    .conquista-card.card-financeiro.card-alerta {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
-        border-color: rgba(239, 68, 68, 0.3);
-    }
-
-    .conquista-card.card-financeiro.card-neutro {
-        background: rgba(156, 163, 175, 0.05);
-        border-color: rgba(156, 163, 175, 0.2);
-    }
-
-    /* Card Conquista (ganhou) */
-    .conquista-card.card-conquista {
-        background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.08) 100%);
-        border-color: rgba(255, 215, 0, 0.4);
-        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
-    }
-
-    /* Card Vazio (não ganhou) */
-    .conquista-card.card-vazio {
-        background: rgba(75, 85, 99, 0.1);
-        border-color: rgba(75, 85, 99, 0.2);
-        opacity: 0.8;
-    }
-
-    /* Header do Card */
-    .conquista-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 12px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .conquista-icon {
-        font-size: 32px;
-        color: #ff4500;
-    }
-
-    .card-conquista .conquista-icon {
-        color: #ffd700;
-    }
-
-    .card-vazio .conquista-icon {
-        color: #6b7280;
-    }
-
-    .conquista-titulo {
-        font-size: 16px;
-        font-weight: 700;
-        color: white;
-        flex: 1;
-    }
-
-    .conquista-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .conquista-badge.badge-ouro {
-        background: rgba(255, 215, 0, 0.2);
-        color: #ffd700;
-        border: 1px solid rgba(255, 215, 0, 0.4);
-    }
-
-    /* Body do Card */
-    .conquista-body {
-        padding: 8px 0;
-    }
-
-    .conquista-valor-principal {
-        font-size: 32px;
-        font-weight: 800;
-        color: white;
-        line-height: 1;
-        margin-bottom: 8px;
-    }
-
-    .card-financeiro.card-sucesso .conquista-valor-principal {
-        color: #10b981;
-    }
-
-    .card-financeiro.card-alerta .conquista-valor-principal {
-        color: #ef4444;
-    }
-
-    .conquista-descricao {
-        font-size: 13px;
-        color: #9ca3af;
-        margin-bottom: 12px;
-    }
-
-    .conquista-texto-destaque {
-        font-size: 14px;
-        font-weight: 600;
-        color: white;
-        margin-bottom: 12px;
-    }
-
-    .conquista-texto-neutro {
-        font-size: 14px;
-        color: #9ca3af;
-        margin-bottom: 8px;
-        line-height: 1.5;
-    }
-
-    .conquista-motivacao {
-        font-size: 13px;
-        color: #6b7280;
-        font-style: italic;
-        line-height: 1.4;
-    }
-
-    .conquista-descricao-extra {
-        font-size: 13px;
-        color: #ffd700;
-        margin-top: 12px;
-        font-weight: 600;
-    }
-
-    /* Detalhes Financeiros */
-    .conquista-detalhes {
-        display: flex;
-        gap: 16px;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .detalhe-item {
-        flex: 1;
-        text-align: center;
-        padding: 8px;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-    }
-
-    .detalhe-label {
-        display: block;
-        font-size: 10px;
-        color: #9ca3af;
-        text-transform: uppercase;
-        margin-bottom: 4px;
-    }
-
-    .detalhe-valor {
-        display: block;
-        font-size: 14px;
-        font-weight: 700;
-        color: white;
-    }
-
-    .detalhe-valor.positivo {
-        color: #10b981;
-    }
-
-    .detalhe-valor.negativo {
-        color: #ef4444;
-    }
-
-    /* Lista de Meses (Melhor do Mês) */
-    .conquista-lista-meses {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 12px;
-    }
-
-    .mes-badge {
-        padding: 6px 12px;
-        background: rgba(255, 215, 0, 0.2);
-        border: 1px solid rgba(255, 215, 0, 0.4);
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #ffd700;
-    }
-
-    /* Detalhes Liga (Mata-Mata) */
-    .conquista-detalhes-liga {
-        margin: 12px 0;
-    }
-
-    .liga-vencida {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 12px;
-        background: rgba(255, 215, 0, 0.1);
-        border: 1px solid rgba(255, 215, 0, 0.3);
-        border-radius: 8px;
-        margin-bottom: 8px;
-    }
-
-    .liga-vencida .material-symbols-outlined {
-        font-size: 20px;
-        color: #ffd700;
-    }
-
-    .liga-vencida span:last-child {
-        font-size: 14px;
-        font-weight: 600;
-        color: white;
-    }
-
-    /* Responsive */
-    @media (max-width: 640px) {
-        .conquista-valor-principal {
-            font-size: 28px;
-        }
-
-        .conquista-detalhes {
-            flex-direction: column;
-            gap: 8px;
-        }
-    }
+}
 </style>

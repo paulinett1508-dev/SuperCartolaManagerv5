@@ -8,7 +8,7 @@
 // ====================================================================
 const requestCounts = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minuto
-const RATE_LIMIT_MAX_REQUESTS = 100; // máx requisições por minuto
+const RATE_LIMIT_MAX_REQUESTS = 500; // ✅ FIX: aumentado de 100 para 500 (app SPA faz muitas requisições legítimas)
 const RATE_LIMIT_AUTH_MAX = 10; // máx tentativas de login por minuto
 
 // Limpar contadores antigos periodicamente
@@ -25,7 +25,33 @@ setInterval(() => {
  * Rate Limiter genérico
  */
 export function rateLimiter(req, res, next) {
-  const ip = req.ip || req.connection.remoteAddress || "unknown";
+  // ✅ FIX: Excluir assets estáticos do rate limiting
+  // Assets (CSS, JS, imagens, fontes) não devem contar no limite
+  const path = req.path || req.url;
+  const isStaticAsset = /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|webp|map)$/i.test(path) ||
+                        path.startsWith('/css/') ||
+                        path.startsWith('/js/') ||
+                        path.startsWith('/img/') ||
+                        path.startsWith('/images/') ||
+                        path.startsWith('/participante/css/') ||
+                        path.startsWith('/participante/js/') ||
+                        path.startsWith('/participante/img/') ||
+                        path.startsWith('/participante/images/') ||
+                        path.startsWith('/fronts/');
+  
+  // Se é asset estático, pular rate limiting
+  if (isStaticAsset) {
+    return next();
+  }
+
+  // ✅ FIX: Obter IP real do cliente, não do proxy/load balancer
+  // Prioridade: X-Forwarded-For (real client) > X-Real-IP > req.ip (proxy)
+  const forwardedFor = req.headers['x-forwarded-for'];
+  const realIp = req.headers['x-real-ip'];
+  const ip = forwardedFor ? forwardedFor.split(',')[0].trim() :
+             realIp ? realIp :
+             req.ip || req.connection.remoteAddress || "unknown";
+  
   const now = Date.now();
 
   if (!requestCounts.has(ip)) {
@@ -62,7 +88,13 @@ export function rateLimiter(req, res, next) {
 const authAttempts = new Map();
 
 export function authRateLimiter(req, res, next) {
-  const ip = req.ip || req.connection.remoteAddress || "unknown";
+  // ✅ FIX: Mesma lógica de IP real para auth
+  const forwardedFor = req.headers['x-forwarded-for'];
+  const realIp = req.headers['x-real-ip'];
+  const ip = forwardedFor ? forwardedFor.split(',')[0].trim() :
+             realIp ? realIp :
+             req.ip || req.connection.remoteAddress || "unknown";
+  
   const now = Date.now();
 
   if (!authAttempts.has(ip)) {

@@ -325,7 +325,7 @@ class DetalheLigaOrquestrador {
             rodadas: `<div id="rodadas"><div class="loading-state">Carregando rodadas...</div></div>`,
             "mata-mata": `<div id="mata-mata"><div class="loading-state">Carregando mata-mata...</div></div>`,
             "pontos-corridos": `<div id="pontos-corridos"><div class="loading-state">Carregando pontos corridos...</div></div>`,
-            "luva-de-ouro": `<div id="luva-de-ouro-content"><div class="loading-state">Carregando luva de ouro...</div></div>`,
+            "luva-de-ouro": `<div id="luvaDeOuroContent"><div class="loading-state">Carregando luva de ouro...</div></div>`,
             "artilheiro-campeao": `<div id="artilheiro-content"><div class="loading-state">Carregando artilheiros...</div></div>`,
             "melhor-mes": `<div id="melhor-mes-content"><div class="loading-state">Carregando melhor mês...</div></div>`,
             top10: `<div id="top10-content"><div class="loading-state">Carregando top 10...</div></div>`,
