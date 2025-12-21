@@ -1,7 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v3.2 (LAYOUT CLEANUP)
+// PARTICIPANTE-HISTORICO.JS - v3.3 (MODULOS CHECK)
 // Destino: /participante/js/modules/participante-historico.js
 // =====================================================================
+// ✅ v3.3: Verificar modulos_ativos antes de chamar API (evita erros 400)
 // ✅ v3.2: Removido header redundante "Liga + Temporada" do detalhe
 // ✅ v3.1: FIX MULTI-LIGA - Conquistas agora usam liga_id da temporada
 //    - Artilheiro/Luva de Ouro agora funcionam para múltiplas ligas
@@ -11,7 +12,7 @@
 // ✅ v1.0: Histórico básico de temporadas
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "📜 Módulo v3.2 (Layout Cleanup) carregando...");
+if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "📜 Módulo v3.3 (Modulos Check) carregando...");
 
 // Estado do módulo
 let historicoData = null;
@@ -174,7 +175,7 @@ function renderizarBadges() {
             <div class="badge-item" style="border-color: ${config.cor}30;">
                 <span class="badge-icon">${config.icon}</span>
                 <span class="badge-text">${config.nome}</span>
-                ${!badge.id.includes(badge.ano) ? `<span class="badge-year">${badge.ano}</span>` : ''}
+                ${!badge.id.includes(String(badge.ano)) ? `<span class="badge-year">${badge.ano}</span>` : ''}
             </div>
         `;
     }).join("");
@@ -356,6 +357,9 @@ async function renderizarDetalheTemporada(temporada) {
     // ✅ v3.1: Buscar conquistas usando liga_id da temporada (suporte multi-liga)
     const temporadaLigaId = temporada.liga_id || ligaId;
 
+    // ✅ v3.3: Verificar módulos ativos antes de chamar API (evita erros 400)
+    const modulos = temporada.modulos_ativos || {};
+
     const [
         conquistasMelhorMes,
         conquistasMataMata,
@@ -364,12 +368,12 @@ async function renderizarDetalheTemporada(temporada) {
         conquistasArtilheiro,
         conquistasLuvaOuro
     ] = await Promise.all([
-        buscarConquistasMelhorMes(temporadaLigaId, temporada.ano),
-        buscarConquistasMataMata(temporadaLigaId, temporada.ano),
-        buscarConquistasPontosCorridos(temporadaLigaId, temporada.ano),
-        buscarConquistasTop10(temporadaLigaId, temporada.ano),
-        buscarConquistasArtilheiro(temporadaLigaId, temporada.ano),
-        buscarConquistasLuvaOuro(temporadaLigaId, temporada.ano)
+        modulos.melhorMes !== false ? buscarConquistasMelhorMes(temporadaLigaId, temporada.ano) : null,
+        modulos.mataMata !== false ? buscarConquistasMataMata(temporadaLigaId, temporada.ano) : null,
+        modulos.pontosCorridos !== false ? buscarConquistasPontosCorridos(temporadaLigaId, temporada.ano) : null,
+        modulos.top10 !== false ? buscarConquistasTop10(temporadaLigaId, temporada.ano) : null,
+        modulos.artilheiro !== false ? buscarConquistasArtilheiro(temporadaLigaId, temporada.ano) : null,
+        modulos.luvaOuro !== false ? buscarConquistasLuvaOuro(temporadaLigaId, temporada.ano) : null
     ]);
 
     container.innerHTML = `
@@ -994,4 +998,4 @@ export function initHistoricoParticipante() {
     if (window.Log) Log.debug("HISTORICO-PARTICIPANTE", "Módulo pronto");
 }
 
-if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "✅ Módulo v3.2 (Layout Cleanup) carregado");
+if (window.Log) Log.info("HISTORICO-PARTICIPANTE", "✅ Módulo v3.3 (Modulos Check) carregado");

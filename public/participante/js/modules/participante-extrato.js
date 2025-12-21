@@ -707,8 +707,10 @@ function atualizarHeaderZerado() {
     if (ganhosEl) ganhosEl.textContent = "R$ 0,00";
     if (perdasEl) perdasEl.textContent = "R$ 0,00";
     if (badgeEl) {
-        badgeEl.querySelector(".status-icon").textContent = "⏳";
-        badgeEl.querySelector(".status-text").textContent = "AGUARDANDO";
+        const statusIcon = badgeEl.querySelector(".status-icon");
+        const statusText = badgeEl.querySelector(".status-text");
+        if (statusIcon) statusIcon.textContent = "⏳";
+        if (statusText) statusText.textContent = "AGUARDANDO";
     }
 }
 

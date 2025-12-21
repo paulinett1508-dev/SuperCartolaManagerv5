@@ -84,6 +84,16 @@ export async function inicializarLuvaOuroParticipante({
         if (!response.ok) throw new Error("Dados não disponíveis");
 
         const responseData = await response.json();
+        
+        // DEBUG: Ver estrutura da resposta
+        console.log('[DEBUG-LUVA] Response da API:', {
+            hasRanking: !!responseData.ranking,
+            rankingLength: responseData.ranking?.length || 0,
+            firstItem: responseData.ranking?.[0] || null,
+            responseKeys: Object.keys(responseData),
+            fullResponse: responseData
+        });
+        
         if (window.Log) Log.info(
             "[PARTICIPANTE-LUVA-OURO] 📦 Dados recebidos da API",
         );
@@ -382,6 +392,15 @@ function renderizarBannerRodadaFinal(
 async function renderizarLuvaOuro(container, response, meuTimeId) {
     const data = response.data || response;
 
+    console.log('[DEBUG-LUVA] Renderizar - dados recebidos:', {
+        hasData: !!data,
+        hasRanking: !!data.ranking,
+        rankingLength: data.ranking?.length || 0,
+        isArray: Array.isArray(data),
+        dataKeys: Object.keys(data),
+        fullData: data
+    });
+
     let ranking = [];
     let rodadaInicio = 1;
     let rodadaFim = 36;
@@ -398,6 +417,11 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
     } else if (Array.isArray(data)) {
         ranking = data;
     }
+    
+    console.log('[DEBUG-LUVA] Ranking extraído:', {
+        rankingLength: ranking.length,
+        firstItem: ranking[0]
+    });
 
     // ✅ v3.8: BUSCAR STATUS DO MERCADO PARA DETECTAR TEMPORADA ENCERRADA
     try {
@@ -442,6 +466,13 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
     const rankingAtivos = ranking.filter((time) => {
         const isInativo = time.ativo === false || time.status === "inativo";
         return !isInativo;
+    });
+    
+    console.log('[DEBUG-LUVA] Ranking após filtro:', {
+        rankingAtivosLength: rankingAtivos.length,
+        rankingOriginalLength: ranking.length,
+        firstAtivo: rankingAtivos[0],
+        todosItens: rankingAtivos
     });
 
     if (rankingAtivos.length === 0) {

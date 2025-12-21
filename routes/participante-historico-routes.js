@@ -12,6 +12,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
+import Liga from "../models/Liga.js";
 
 const router = express.Router();
 
@@ -65,6 +66,14 @@ router.get("/:timeId", async (req, res) => {
             });
         }
 
+        // ✅ v2.1: Buscar modulos_ativos de cada liga para evitar erros 400 no frontend
+        const ligaIds = [...new Set((participante.historico || []).map(h => h.liga_id).filter(Boolean))];
+        const ligasData = await Liga.find(
+            { _id: { $in: ligaIds } },
+            { _id: 1, modulos_ativos: 1 }
+        ).lean();
+        const ligasMap = new Map(ligasData.map(l => [String(l._id), l.modulos_ativos || {}]));
+
         // Formatar resposta
         const response = {
             success: true,
@@ -80,6 +89,7 @@ router.get("/:timeId", async (req, res) => {
                 liga_id: h.liga_id,
                 liga_nome: h.liga_nome,
                 time_escudo: h.time_escudo,
+                modulos_ativos: ligasMap.get(h.liga_id) || {}, // ✅ v2.1: Módulos ativos da liga
                 estatisticas: {
                     posicao_final: h.estatisticas?.posicao_final,
                     pontos_totais: h.estatisticas?.pontos_totais,
@@ -115,24 +125,35 @@ router.get("/:timeId", async (req, res) => {
 
         console.log(`[HISTORICO] ✅ Histórico encontrado: ${response.historico.length} temporada(s)`);
 
-        // ✅ v2.0: Buscar saldo ATUAL do MongoDB (dados em tempo real)
+        // ✅ v2.2: Buscar saldo ATUAL de TODAS as ligas do participante
         try {
-            const extratoCache = await ExtratoFinanceiroCache.findOne({ time_id: Number(timeId) });
+            const extratosCaches = await ExtratoFinanceiroCache.find({ time_id: Number(timeId) });
 
-            if (extratoCache) {
-                const resumo = extratoCache.resumo || {};
-                // Saldo base do extrato (sem acertos)
-                let saldoTemporada = resumo.saldo_final ?? resumo.saldo ?? extratoCache.saldo_consolidado ?? 0;
-                const totalGanhos = resumo.totalGanhos ?? extratoCache.ganhos_consolidados ?? 0;
-                const totalPerdas = resumo.totalPerdas ?? extratoCache.perdas_consolidadas ?? 0;
+            if (extratosCaches && extratosCaches.length > 0) {
+                // Somar saldos de todas as ligas
+                let saldoTemporada = 0;
+                let totalGanhos = 0;
+                let totalPerdas = 0;
 
-                // ✅ Buscar acertos financeiros para somar ao saldo
+                extratosCaches.forEach(extratoCache => {
+                    const resumo = extratoCache.resumo || {};
+                    const saldoLiga = resumo.saldo_final ?? resumo.saldo ?? extratoCache.saldo_consolidado ?? 0;
+                    const ganhosLiga = resumo.totalGanhos ?? extratoCache.ganhos_consolidados ?? 0;
+                    const perdasLiga = resumo.totalPerdas ?? extratoCache.perdas_consolidadas ?? 0;
+                    
+                    saldoTemporada += saldoLiga;
+                    totalGanhos += ganhosLiga;
+                    totalPerdas += perdasLiga;
+                });
+
+                // ✅ v2.2: Buscar acertos financeiros de TODAS as ligas
                 let saldoAcertos = 0;
                 try {
                     const acertos = await AcertoFinanceiro.find({ timeId: String(timeId) });
                     if (acertos.length > 0) {
                         acertos.forEach(a => {
-                            // pagamento = negativo (participante pagou), recebimento = positivo
+                            // pagamento = participante PAGOU à liga (POSITIVO, quita dívida)
+                            // recebimento = participante RECEBEU da liga (NEGATIVO, usa crédito)
                             saldoAcertos += a.tipo === 'pagamento' ? a.valor : -a.valor;
                         });
                         console.log(`[HISTORICO] 💳 Acertos: ${acertos.length} registros, saldo: ${saldoAcertos}`);
@@ -141,10 +162,13 @@ router.get("/:timeId", async (req, res) => {
                     console.warn(`[HISTORICO] ⚠️ Erro ao buscar acertos:`, acertosError.message);
                 }
 
-                // Saldo final = saldo temporada + acertos
+                // Saldo final = soma de todas ligas + acertos
                 const saldoAtual = saldoTemporada + saldoAcertos;
 
-                console.log(`[HISTORICO] 💰 Saldo: temporada=${saldoTemporada}, acertos=${saldoAcertos}, TOTAL=${saldoAtual} (JSON tinha: ${response.situacao_financeira.saldo_atual})`);
+                // #region agent log
+                fetch('http://localhost:7242/ingest/e93c8ea9-7a4c-4434-afdb-ce7f64009673',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'participante-historico-routes.js:175',message:'[FIX] Cálculo final com TODAS as ligas',data:{saldoTemporada,saldoAcertos,saldoAtual,saldoDoJSON:response.situacao_financeira.saldo_atual,diferenca:saldoAtual-response.situacao_financeira.saldo_atual,totalLigas:extratosCaches.length},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'FIX'})}).catch(()=>{});
+                // #endregion
+                console.log(`[HISTORICO] 💰 Saldo CONSOLIDADO (${extratosCaches.length} ligas): temporada=${saldoTemporada}, acertos=${saldoAcertos}, TOTAL=${saldoAtual} (JSON tinha: ${response.situacao_financeira.saldo_atual})`);
 
                 // Atualizar situacao_financeira com dados reais
                 response.situacao_financeira.saldo_atual = saldoAtual;

@@ -180,7 +180,7 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         }
 
         // Buscar extrato
-        const minhasRodadasTemp = rodadasFresh.filter(
+        const minhasRodadasTemp = (rodadasFresh || []).filter(
             (r) => Number(r.timeId) === meuTimeIdNum || Number(r.time_id) === meuTimeIdNum
         );
         const ultimaRodadaNum = minhasRodadasTemp.length > 0
