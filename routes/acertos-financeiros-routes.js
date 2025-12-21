@@ -4,7 +4,8 @@
  * Endpoints para registrar pagamentos e recebimentos
  * entre participantes e administração (em tempo real).
  *
- * @version 1.4.0
+ * @version 1.5.0
+ * ✅ v1.5.0: Campos manuais preservados (histórico completo) - apenas status muda
  * ✅ v1.4.0: FIX CRÍTICO - NÃO DELETAR CACHE DO EXTRATO
  *   - Acertos são armazenados em coleção separada (AcertoFinanceiro)
  *   - São integrados no momento da consulta em getExtratoFinanceiro()
@@ -317,6 +318,12 @@ router.post("/:ligaId/:timeId", async (req, res) => {
 
         // Calcular novo saldo (já incluindo o troco se houver)
         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
+
+        // =========================================================================
+        // ✅ v1.5.0: Campos manuais NÃO são zerados (mantém histórico completo)
+        // O status (Quitado/Devedor/Credor) é calculado pelo saldo final
+        // que considera: temporada + campos + acertos
+        // =========================================================================
 
         // Montar resposta
         const response = {

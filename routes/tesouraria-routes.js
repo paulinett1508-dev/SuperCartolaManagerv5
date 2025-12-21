@@ -740,6 +740,12 @@ router.post("/acerto", async (req, res) => {
         // Calcular novo saldo
         const novoSaldo = await calcularSaldoCompleto(ligaId, timeId, temporada);
 
+        // =====================================================================
+        // ✅ v2.2: Campos manuais NÃO são zerados (mantém histórico completo)
+        // O status (Quitado/Devedor/Credor) é calculado pelo saldo final
+        // que considera: temporada + campos + acertos
+        // =====================================================================
+
         // Resposta
         const response = {
             success: true,
@@ -904,6 +910,6 @@ router.get("/resumo", async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v2.1 Rotas carregadas (FIX: recalcula saldo igual extrato individual)");
+console.log("[TESOURARIA] ✅ v2.2 Rotas carregadas (Histórico preservado, apenas status muda)");
 
 export default router;
