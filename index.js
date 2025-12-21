@@ -96,6 +96,7 @@ import activityTrackerMiddleware from "./middleware/activityTracker.js";
 
 // 🔐 Rotas de autenticação admin
 import adminAuthRoutes from "./routes/admin-auth.js";
+import adminAuditoriaRoutes from "./routes/admin-auditoria-routes.js";
 console.log("[DEBUG] adminAuthRoutes type:", typeof adminAuthRoutes);
 console.log(
   "[DEBUG] adminAuthRoutes.stack length:",
@@ -249,6 +250,10 @@ console.log("[SERVER] 🔐 Replit Auth ativado");
 // 🔐 Rotas de autenticação admin (Replit Auth) - ANTES do protegerRotas
 app.use("/api/admin/auth", adminAuthRoutes);
 console.log("[DEBUG] Rota /api/admin/auth registrada");
+
+// 📊 Rotas de auditoria admin
+app.use("/api/admin/auditoria", adminAuditoriaRoutes);
+console.log("[SERVER] 📊 Rotas de auditoria admin registradas");
 
 // 👁️ Rota de monitoramento de usuários online (admin)
 app.use("/api/admin/usuarios-online", usuariosOnlineRoutes);
