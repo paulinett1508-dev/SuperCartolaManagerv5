@@ -968,6 +968,13 @@ body.sidebar-collapsed .sidebar-toggle-btn {
     z-index: 1000;
     box-shadow: none !important;
     transition: width 0.3s ease;
+    overflow: hidden; /* Impede conteúdo de vazar para fora */
+}
+
+/* Garantir que main content fique acima de qualquer overflow */
+.app-main {
+    position: relative;
+    z-index: 1;
 }
 
 /* Sidebar Colapsado */
