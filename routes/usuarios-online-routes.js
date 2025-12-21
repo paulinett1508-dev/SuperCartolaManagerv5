@@ -1,10 +1,12 @@
 /**
- * Rotas de Usuários Online v1.0
+ * Rotas de Usuários Online v1.1
  * Endpoint para admin monitorar usuários ativos no app
+ * e histórico de acessos dos últimos 30 dias
  */
 
 import express from 'express';
 import UserActivity from '../models/UserActivity.js';
+import AccessLog from '../models/AccessLog.js';
 import { verificarAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -121,6 +123,87 @@ router.get('/stats', verificarAdmin, async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Erro ao buscar estatísticas'
+        });
+    }
+});
+
+/**
+ * GET /api/admin/usuarios-online/historico
+ * Retorna histórico de acessos agrupado por usuário (últimos 30 dias)
+ *
+ * Query params:
+ *   - liga: filtrar por liga_id específica
+ *   - dias: período em dias (default: 30)
+ *   - page: página (default: 1)
+ *   - limit: itens por página (default: 50)
+ */
+router.get('/historico', verificarAdmin, async (req, res) => {
+    try {
+        const ligaFiltro = req.query.liga || null;
+        const dias = parseInt(req.query.dias) || 30;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+
+        // Buscar histórico agrupado
+        const resultado = await AccessLog.getHistoricoAgrupado(
+            { liga_id: ligaFiltro, dias },
+            { page, limit }
+        );
+
+        // Formatar tempo relativo para cada usuário
+        const usuariosFormatados = resultado.usuarios.map(u => ({
+            ...u,
+            ultimo_acesso_relativo: formatarTempoRelativo(u.ultimo_acesso)
+        }));
+
+        res.json({
+            success: true,
+            ...resultado,
+            usuarios: usuariosFormatados,
+            periodo: {
+                dias,
+                inicio: new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString(),
+                fim: new Date().toISOString()
+            },
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('[UsuariosOnline] Erro historico:', error.message);
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao buscar histórico de acessos',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * GET /api/admin/usuarios-online/ligas
+ * Retorna lista de ligas com acessos no período
+ *
+ * Query params:
+ *   - dias: período em dias (default: 30)
+ */
+router.get('/ligas', verificarAdmin, async (req, res) => {
+    try {
+        const dias = parseInt(req.query.dias) || 30;
+
+        const ligas = await AccessLog.getLigasComAcessos(dias);
+
+        res.json({
+            success: true,
+            total: ligas.length,
+            dias,
+            ligas,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('[UsuariosOnline] Erro ligas:', error.message);
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao buscar ligas com acessos'
         });
     }
 });

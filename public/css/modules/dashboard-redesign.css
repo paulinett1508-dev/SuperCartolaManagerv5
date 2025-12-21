@@ -1817,3 +1817,371 @@
     background: linear-gradient(135deg, rgba(255, 85, 0, 0.2), rgba(255, 85, 0, 0.1)) !important;
     border-color: rgba(255, 85, 0, 0.4);
 }
+
+/* ========================================
+   MODAL HISTÓRICO DE ACESSOS
+   ======================================== */
+
+/* Card clicável */
+.stat-card-new.clicavel {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card-new.clicavel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card-new.clicavel:active {
+    transform: translateY(0);
+}
+
+/* Overlay do Modal */
+.modal-historico-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Conteúdo do Modal */
+.modal-historico-content {
+    background: linear-gradient(180deg, #1f1f1f 0%, #171717 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+    overflow: hidden;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Header do Modal */
+.modal-historico-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
+.modal-historico-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+}
+
+.modal-historico-title .material-icons {
+    font-size: 24px;
+}
+
+.modal-historico-title h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.modal-historico-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    color: white;
+}
+
+.modal-historico-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.modal-historico-close .material-icons {
+    font-size: 20px;
+}
+
+/* Filtros */
+.modal-historico-filtros {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.modal-historico-filtros select {
+    flex: 1;
+    background: #2a2a2a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: white;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.modal-historico-filtros select:focus {
+    outline: none;
+    border-color: #f97316;
+}
+
+.modal-historico-periodo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #9ca3af;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.modal-historico-periodo .material-icons {
+    font-size: 16px;
+}
+
+/* Stats */
+.modal-historico-stats {
+    display: flex;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stat-box {
+    flex: 1;
+    background: rgba(249, 115, 22, 0.1);
+    border: 1px solid rgba(249, 115, 22, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+}
+
+.stat-box .stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f97316;
+}
+
+.stat-box .stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 2px;
+}
+
+/* Lista */
+.modal-historico-lista {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 20px;
+    min-height: 200px;
+    max-height: 400px;
+}
+
+.modal-historico-loading,
+.modal-historico-empty,
+.modal-historico-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.modal-historico-loading .material-icons,
+.modal-historico-empty .material-icons,
+.modal-historico-error .material-icons {
+    font-size: 32px;
+    animation: pulse 1.5s infinite;
+}
+
+.modal-historico-error .material-icons {
+    color: #ef4444;
+    animation: none;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Item do histórico */
+.historico-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: background 0.2s ease;
+}
+
+.historico-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.historico-item:last-child {
+    margin-bottom: 0;
+}
+
+.historico-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.historico-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.historico-avatar .material-icons {
+    font-size: 20px;
+    color: #6b7280;
+}
+
+.historico-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.historico-nome {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.historico-liga {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.historico-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.historico-acessos {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #f97316;
+}
+
+.historico-ultimo {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+/* Footer */
+.modal-historico-footer {
+    padding: 12px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: center;
+}
+
+.btn-carregar-mais {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(249, 115, 22, 0.1);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: #f97316;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-carregar-mais:hover {
+    background: rgba(249, 115, 22, 0.2);
+    border-color: #f97316;
+}
+
+.btn-carregar-mais .material-icons {
+    font-size: 18px;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+    .modal-historico-content {
+        max-height: 90vh;
+        border-radius: 12px;
+    }
+
+    .modal-historico-filtros {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .modal-historico-periodo {
+        justify-content: center;
+    }
+
+    .historico-item {
+        padding: 8px 10px;
+    }
+
+    .historico-avatar {
+        width: 36px;
+        height: 36px;
+    }
+}

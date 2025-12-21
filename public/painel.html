@@ -105,8 +105,8 @@
                             </div>
                         </div>
 
-                        <!-- Card Usuários Online -->
-                        <div class="stat-card-new usuarios-online" id="cardUsuariosOnline">
+                        <!-- Card Usuários Online - Clicável para abrir histórico -->
+                        <div class="stat-card-new usuarios-online clicavel" id="cardUsuariosOnline" onclick="abrirModalHistoricoAcessos()" title="Clique para ver historico de acessos">
                             <div class="stat-card-header">
                                 <div class="stat-card-content">
                                     <p class="stat-label-new">
@@ -199,6 +199,56 @@
                     </div>
                 </div>
             </main>
+
+            <!-- Modal Histórico de Acessos -->
+            <div class="modal-historico-overlay" id="modalHistoricoAcessos" style="display: none;">
+                <div class="modal-historico-content">
+                    <div class="modal-historico-header">
+                        <div class="modal-historico-title">
+                            <span class="material-icons">analytics</span>
+                            <h3>Historico de Acessos</h3>
+                        </div>
+                        <button class="modal-historico-close" onclick="fecharModalHistorico()">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-historico-filtros">
+                        <select id="filtroLigaHistorico" onchange="carregarHistoricoAcessos()">
+                            <option value="">Todas as Ligas</option>
+                        </select>
+                        <div class="modal-historico-periodo">
+                            <span class="material-icons">date_range</span>
+                            <span>Ultimos 30 dias</span>
+                        </div>
+                    </div>
+
+                    <div class="modal-historico-stats" id="statsHistorico">
+                        <div class="stat-box">
+                            <span class="stat-value" id="totalAcessosHistorico">0</span>
+                            <span class="stat-label">Acessos</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value" id="totalUsuariosHistorico">0</span>
+                            <span class="stat-label">Usuarios</span>
+                        </div>
+                    </div>
+
+                    <div class="modal-historico-lista" id="listaHistoricoAcessos">
+                        <div class="modal-historico-loading">
+                            <span class="material-icons">hourglass_empty</span>
+                            <span>Carregando historico...</span>
+                        </div>
+                    </div>
+
+                    <div class="modal-historico-footer" id="footerHistorico" style="display: none;">
+                        <button class="btn-carregar-mais" id="btnCarregarMais" onclick="carregarMaisHistorico()">
+                            <span class="material-icons">expand_more</span>
+                            Carregar mais
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script type="module">
@@ -987,6 +1037,149 @@
                 if (usuariosOnlineInterval) clearInterval(usuariosOnlineInterval);
                 usuariosOnlineInterval = setInterval(carregarUsuariosOnline, 30000);
             }
+
+            // === HISTÓRICO DE ACESSOS ===
+            let historicoPage = 1;
+            let historicoHasMore = false;
+            let ligasHistorico = [];
+
+            async function abrirModalHistoricoAcessos() {
+                const modal = document.getElementById('modalHistoricoAcessos');
+                if (!modal) return;
+
+                modal.style.display = 'flex';
+                historicoPage = 1;
+
+                // Carregar ligas para o filtro
+                await carregarLigasHistorico();
+
+                // Carregar histórico
+                await carregarHistoricoAcessos();
+            }
+
+            function fecharModalHistorico() {
+                const modal = document.getElementById('modalHistoricoAcessos');
+                if (modal) modal.style.display = 'none';
+            }
+
+            async function carregarLigasHistorico() {
+                try {
+                    const response = await fetch('/api/admin/usuarios-online/ligas');
+                    if (!response.ok) throw new Error('Erro ao buscar ligas');
+
+                    const data = await response.json();
+                    ligasHistorico = data.ligas || [];
+
+                    const select = document.getElementById('filtroLigaHistorico');
+                    if (select) {
+                        select.innerHTML = '<option value="">Todas as Ligas</option>' +
+                            ligasHistorico.map(l =>
+                                `<option value="${l.liga_id}">${l.liga_nome} (${l.total_acessos} acessos)</option>`
+                            ).join('');
+                    }
+                } catch (error) {
+                    console.error('[Historico] Erro ao carregar ligas:', error);
+                }
+            }
+
+            async function carregarHistoricoAcessos(reset = true) {
+                if (reset) historicoPage = 1;
+
+                const ligaId = document.getElementById('filtroLigaHistorico')?.value || '';
+                const listaEl = document.getElementById('listaHistoricoAcessos');
+                const footerEl = document.getElementById('footerHistorico');
+
+                if (reset && listaEl) {
+                    listaEl.innerHTML = `
+                        <div class="modal-historico-loading">
+                            <span class="material-icons">hourglass_empty</span>
+                            <span>Carregando historico...</span>
+                        </div>
+                    `;
+                }
+
+                try {
+                    const url = `/api/admin/usuarios-online/historico?page=${historicoPage}&limit=20${ligaId ? '&liga=' + ligaId : ''}`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Erro ao buscar histórico');
+
+                    const data = await response.json();
+
+                    // Atualizar stats
+                    document.getElementById('totalAcessosHistorico').textContent = data.total_acessos || 0;
+                    document.getElementById('totalUsuariosHistorico').textContent = data.total_usuarios || 0;
+
+                    // Renderizar lista
+                    if (!data.usuarios || data.usuarios.length === 0) {
+                        listaEl.innerHTML = `
+                            <div class="modal-historico-empty">
+                                <span class="material-icons">person_off</span>
+                                <span>Nenhum acesso registrado no periodo</span>
+                            </div>
+                        `;
+                        footerEl.style.display = 'none';
+                        return;
+                    }
+
+                    const html = data.usuarios.map(u => `
+                        <div class="historico-item">
+                            <div class="historico-avatar">
+                                ${u.escudo
+                                    ? `<img src="${u.escudo}" alt="" onerror="this.outerHTML='<span class=\\'material-icons\\'>person</span>'" />`
+                                    : '<span class="material-icons">person</span>'
+                                }
+                            </div>
+                            <div class="historico-info">
+                                <span class="historico-nome">${u.nome_time || 'Time'}</span>
+                                <span class="historico-liga">${u.liga_nome || ''}</span>
+                            </div>
+                            <div class="historico-meta">
+                                <span class="historico-acessos">${u.total_acessos} ${u.total_acessos === 1 ? 'acesso' : 'acessos'}</span>
+                                <span class="historico-ultimo">${u.ultimo_acesso_relativo}</span>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    if (reset) {
+                        listaEl.innerHTML = html;
+                    } else {
+                        listaEl.insertAdjacentHTML('beforeend', html);
+                    }
+
+                    // Mostrar/ocultar botão de carregar mais
+                    historicoHasMore = data.has_more;
+                    footerEl.style.display = historicoHasMore ? 'flex' : 'none';
+
+                } catch (error) {
+                    console.error('[Historico] Erro:', error);
+                    listaEl.innerHTML = `
+                        <div class="modal-historico-error">
+                            <span class="material-icons">error_outline</span>
+                            <span>Erro ao carregar historico</span>
+                        </div>
+                    `;
+                }
+            }
+
+            async function carregarMaisHistorico() {
+                if (!historicoHasMore) return;
+                historicoPage++;
+                await carregarHistoricoAcessos(false);
+            }
+
+            // Fechar modal ao clicar fora
+            document.addEventListener('click', (e) => {
+                const modal = document.getElementById('modalHistoricoAcessos');
+                if (modal && e.target === modal) {
+                    fecharModalHistorico();
+                }
+            });
+
+            // Expor funções globalmente
+            window.abrirModalHistoricoAcessos = abrirModalHistoricoAcessos;
+            window.fecharModalHistorico = fecharModalHistorico;
+            window.carregarHistoricoAcessos = carregarHistoricoAcessos;
+            window.carregarMaisHistorico = carregarMaisHistorico;
 
             // === Inicializar quando a página carregar ===
             document.addEventListener("DOMContentLoaded", async () => {

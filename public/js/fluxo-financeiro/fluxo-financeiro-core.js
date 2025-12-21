@@ -1,4 +1,5 @@
-// FLUXO-FINANCEIRO-CORE.JS v6.1 - FIX ACERTOS FINANCEIROS
+// FLUXO-FINANCEIRO-CORE.JS v6.2 - FIX TIMELINE ZERADO
+// ✅ v6.2: FIX - Detecta cache com Timeline (bonusOnus) zerado anormalmente e força recálculo
 // ✅ v6.1: FIX - Inclui acertos financeiros no cálculo do saldo final
 // ✅ v4.1: Trava extrato para inativos na rodada_desistencia
 // ✅ v4.2: Tabelas contextuais corrigidas
@@ -271,9 +272,10 @@ export class FluxoFinanceiroCore {
 
                 if (Array.isArray(rodadasArray) && rodadasArray.length > 0) {
                     const primeiraRodada = rodadasArray[0];
-                    const cacheIncompleto =
-                        !primeiraRodada ||
-                        primeiraRodada.bonusOnus === undefined;
+
+                    // ✅ v6.2 FIX: Detectar cache com Timeline zerado anormalmente
+                    // Se banco habilitado E muitas rodadas E todos bonusOnus = 0, é anomalia
+                    const cacheIncompleto = this._detectarCacheIncompleto(rodadasArray, primeiraRodada, ligaId);
 
                     if (!cacheIncompleto) {
                         console.log(`[FLUXO-CORE] ⚡ CACHE VÁLIDO!`);
@@ -535,6 +537,18 @@ export class FluxoFinanceiroCore {
         motivo,
     ) {
         try {
+            // ✅ v6.2 FIX: Não salvar cache se parecer incompleto (Timeline zerado sem posições)
+            const rodadas = extrato.rodadas || [];
+            if (rodadas.length >= 5) {
+                const totalBonusOnus = rodadas.reduce((sum, r) => sum + (parseFloat(r.bonusOnus) || 0), 0);
+                const temPosicoes = rodadas.some(r => r.posicao !== null && r.posicao !== undefined);
+
+                if (totalBonusOnus === 0 && !temPosicoes) {
+                    console.warn(`[FLUXO-CORE] ⚠️ Cache NÃO salvo: dados parecem incompletos (Timeline zerado, sem posições)`);
+                    return; // Não salvar cache corrompido
+                }
+            }
+
             const payload = {
                 historico_transacoes: extrato.rodadas,
                 ultimaRodadaCalculada,
@@ -691,6 +705,56 @@ export class FluxoFinanceiroCore {
         }
 
         return valor;
+    }
+
+    // =========================================================================
+    // ✅ v6.2 FIX: Detectar cache incompleto (Timeline zerado anormalmente)
+    // =========================================================================
+    _detectarCacheIncompleto(rodadasArray, primeiraRodada, ligaId) {
+        // Verificação básica: sem primeira rodada ou bonusOnus undefined
+        if (!primeiraRodada || primeiraRodada.bonusOnus === undefined) {
+            console.log(`[FLUXO-CORE] ⚠️ Cache incompleto: bonusOnus undefined`);
+            return true;
+        }
+
+        // ✅ Verificar se módulo banco está habilitado
+        // Se config não carregada ainda, assume banco habilitado (default)
+        const bancoHabilitado = this.ligaConfig
+            ? this._isModuloHabilitado('banco')
+            : (this.cache?.modulosAtivos?.banco !== false);
+
+        if (bancoHabilitado === false) {
+            // Se banco explicitamente desabilitado, bonusOnus zerado é esperado
+            return false;
+        }
+
+        // ✅ Verificar anomalia: muitas rodadas com bonusOnus = 0
+        const MIN_RODADAS_PARA_VERIFICAR = 5;
+        if (rodadasArray.length < MIN_RODADAS_PARA_VERIFICAR) {
+            return false; // Poucos dados para detectar anomalia
+        }
+
+        // Calcular total de bonusOnus
+        const totalBonusOnus = rodadasArray.reduce(
+            (sum, r) => sum + (parseFloat(r.bonusOnus) || 0),
+            0
+        );
+
+        // Se TODAS as rodadas têm bonusOnus = 0, provavelmente é anomalia
+        // (participantes ativos sempre têm alguns G/Z ao longo da temporada)
+        if (totalBonusOnus === 0) {
+            // Verificar se há posições definidas
+            const temPosicoesDefinidas = rodadasArray.some(
+                r => r.posicao !== null && r.posicao !== undefined
+            );
+
+            if (!temPosicoesDefinidas) {
+                console.log(`[FLUXO-CORE] ⚠️ Cache incompleto detectado: Timeline zerado e sem posições definidas`);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     _recalcularResumoDoCache(rodadasArray, camposEditaveis) {

@@ -1,11 +1,13 @@
 /**
- * Activity Tracker Middleware v1.0
+ * Activity Tracker Middleware v1.1
  * Rastreia atividade de participantes para monitoramento em tempo real
+ * e registra histórico de acessos por sessão
  *
  * Funciona de forma assíncrona (não bloqueia a resposta)
  */
 
 import UserActivity from '../models/UserActivity.js';
+import AccessLog from '../models/AccessLog.js';
 import Liga from '../models/Liga.js';
 
 // Cache de nomes de liga para evitar lookups repetidos
@@ -102,8 +104,22 @@ export function trackParticipanteActivity(req, res, next) {
                 session_id: req.sessionID || ''
             };
 
-            // Registrar no banco (upsert)
+            // Registrar atividade em tempo real (upsert - atualiza último acesso)
             await UserActivity.registrarAtividade(dadosAtividade);
+
+            // Registrar log de acesso histórico (1 por sessão única)
+            // Usa upsert com session_id - ignora se já existe log para esta sessão
+            await AccessLog.registrarAcesso({
+                time_id: dadosAtividade.time_id,
+                liga_id: dadosAtividade.liga_id,
+                nome_time: dadosAtividade.nome_time,
+                nome_cartola: dadosAtividade.nome_cartola,
+                escudo: dadosAtividade.escudo,
+                liga_nome: dadosAtividade.liga_nome,
+                session_id: dadosAtividade.session_id,
+                dispositivo: dadosAtividade.dispositivo,
+                modulo_entrada: dadosAtividade.modulo_atual
+            });
 
         } catch (error) {
             // Silenciar erros para não afetar a aplicação
