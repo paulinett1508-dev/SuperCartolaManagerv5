@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Historico de Acessos - Super Cartola Manager</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/_admin-tokens.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+        .historico-page { background: #121212; min-height: 100vh; }
+        .historico-content { padding: 20px 16px; max-width: 1400px; margin: 0 auto; }
+
+        .historico-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 24px;
+            border: 1px solid #3b82f6;
+            position: relative;
+        }
+        .historico-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+        }
+        .historico-header h1 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 8px 0;
+        }
+        .historico-header h1 .material-icons { font-size: 28px; color: #3b82f6; }
+        .historico-header p { color: #9ca3af; font-size: 0.9rem; margin: 0; }
+
+        .periodo-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .periodo-tab {
+            padding: 10px 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #9ca3af;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .periodo-tab:hover { border-color: #3b82f6; color: #fff; }
+        .periodo-tab.active {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-color: #3b82f6;
+            color: #fff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #333;
+        }
+        .stat-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .stat-card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stat-card-icon.blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .stat-card-icon.green { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .stat-card-icon.purple { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+        .stat-card-icon.orange { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .stat-card-label { color: #9ca3af; font-size: 0.85rem; }
+        .stat-card-value { font-size: 2rem; font-weight: 700; color: #fff; }
+        .stat-card-detail { color: #666; font-size: 0.8rem; margin-top: 4px; }
+
+        .section-title {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 24px 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title .material-icons { color: #3b82f6; }
+
+        .top-usuarios {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #333;
+        }
+        .usuario-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #252525;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .usuario-item:hover { background: #2a2a2a; border: 1px solid #3b82f6; margin-left: -1px; margin-right: -1px; }
+        .usuario-item:last-child { margin-bottom: 0; }
+        .usuario-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+        .usuario-rank.top3 { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
+        .usuario-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .usuario-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .usuario-info { flex: 1; }
+        .usuario-nome { color: #fff; font-weight: 600; }
+        .usuario-liga { color: #666; font-size: 0.8rem; }
+        .usuario-stats {
+            text-align: right;
+        }
+        .usuario-acessos { color: #3b82f6; font-weight: 700; font-size: 1.1rem; }
+        .usuario-ultimo { color: #666; font-size: 0.75rem; }
+
+        .padroes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        .padrao-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #333;
+        }
+        .padrao-card h4 {
+            color: #fff;
+            margin: 0 0 16px 0;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .padrao-card h4 .material-icons { color: #3b82f6; font-size: 20px; }
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 120px;
+        }
+        .bar-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .bar {
+            width: 100%;
+            background: linear-gradient(to top, #3b82f6, #60a5fa);
+            border-radius: 4px 4px 0 0;
+            min-height: 4px;
+            transition: height 0.3s;
+        }
+        .bar-label {
+            color: #666;
+            font-size: 0.65rem;
+            text-align: center;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 60px;
+            color: #9ca3af;
+        }
+        .loading .material-icons { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+        .empty-state .material-icons { font-size: 64px; margin-bottom: 16px; color: #444; }
+
+        /* Modal de detalhes do usuario */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 { color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 8px;
+        }
+        .modal-close:hover { color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="historico-page">
+        <div id="sidebar-placeholder"></div>
+        <main class="main-content">
+            <div class="historico-content">
+                <div class="historico-header">
+                    <h1>
+                        <span class="material-icons">history</span>
+                        Historico de Acessos
+                    </h1>
+                    <p>Monitorar acessos ao app: ultimas 24h, semana, mes e temporada</p>
+                </div>
+
+                <div class="periodo-tabs">
+                    <button class="periodo-tab active" data-periodo="24h">Ultimas 24h</button>
+                    <button class="periodo-tab" data-periodo="semana">Ultima Semana</button>
+                    <button class="periodo-tab" data-periodo="mes">Ultimo Mes</button>
+                    <button class="periodo-tab" data-periodo="temporada">Temporada</button>
+                </div>
+
+                <div id="statsContainer">
+                    <div class="loading">
+                        <span class="material-icons">sync</span>
+                        Carregando estatisticas...
+                    </div>
+                </div>
+
+                <h3 class="section-title">
+                    <span class="material-icons">emoji_events</span>
+                    Top 10 Usuarios Mais Ativos
+                </h3>
+                <div id="topUsuariosContainer" class="top-usuarios">
+                    <div class="loading">
+                        <span class="material-icons">sync</span>
+                        Carregando...
+                    </div>
+                </div>
+
+                <h3 class="section-title">
+                    <span class="material-icons">insights</span>
+                    Padroes de Acesso (Ultimo Mes)
+                </h3>
+                <div id="padroesContainer" class="padroes-grid">
+                    <div class="loading">
+                        <span class="material-icons">sync</span>
+                        Carregando...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de detalhes -->
+    <div class="modal-overlay" id="modalUsuario">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><span class="material-icons">person</span> Detalhes do Usuario</h3>
+                <button class="modal-close" onclick="fecharModal()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div id="modalUsuarioContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let periodoAtual = '24h';
+        let dadosDashboard = null;
+
+        // Carregar sidebar
+        async function carregarLayout() {
+            try {
+                const response = await fetch('layout.html');
+                const layoutHtml = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(layoutHtml, 'text/html');
+                const sidebar = doc.querySelector('.app-sidebar');
+                if (sidebar) {
+                    document.getElementById('sidebar-placeholder')?.replaceWith(sidebar);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar layout:', error);
+            }
+        }
+        carregarLayout();
+
+        // Carregar dashboard
+        async function carregarDashboard() {
+            try {
+                const response = await fetch('/api/admin/usuarios-online/dashboard');
+                const data = await response.json();
+
+                if (data.success === false) {
+                    throw new Error(data.message || 'Erro ao carregar');
+                }
+
+                dadosDashboard = data;
+                renderizarEstatisticas();
+                renderizarTopUsuarios();
+                renderizarPadroes();
+
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('statsContainer').innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">error</span>
+                        <p>Erro ao carregar: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Renderizar estatisticas do periodo selecionado
+        function renderizarEstatisticas() {
+            if (!dadosDashboard) return;
+
+            const stats = dadosDashboard.estatisticas[periodoAtual];
+            if (!stats) {
+                document.getElementById('statsContainer').innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">info</span>
+                        <p>Sem dados para este periodo</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const periodoLabels = {
+                '24h': 'nas ultimas 24 horas',
+                'semana': 'na ultima semana',
+                'mes': 'no ultimo mes',
+                'temporada': 'na temporada'
+            };
+
+            document.getElementById('statsContainer').innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon blue">
+                                <span class="material-icons">visibility</span>
+                            </div>
+                            <span class="stat-card-label">Total de Acessos</span>
+                        </div>
+                        <div class="stat-card-value">${stats.total_acessos.toLocaleString()}</div>
+                        <div class="stat-card-detail">${periodoLabels[periodoAtual]}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon green">
+                                <span class="material-icons">people</span>
+                            </div>
+                            <span class="stat-card-label">Usuarios Unicos</span>
+                        </div>
+                        <div class="stat-card-value">${stats.usuarios_unicos}</div>
+                        <div class="stat-card-detail">participantes ativos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon purple">
+                                <span class="material-icons">trending_up</span>
+                            </div>
+                            <span class="stat-card-label">Media Diaria</span>
+                        </div>
+                        <div class="stat-card-value">${stats.media_diaria}</div>
+                        <div class="stat-card-detail">acessos por dia</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon orange">
+                                <span class="material-icons">calendar_today</span>
+                            </div>
+                            <span class="stat-card-label">Dias com Acessos</span>
+                        </div>
+                        <div class="stat-card-value">${stats.por_dia?.length || 0}</div>
+                        <div class="stat-card-detail">no periodo</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Renderizar top usuarios
+        function renderizarTopUsuarios() {
+            if (!dadosDashboard || !dadosDashboard.top_usuarios) {
+                document.getElementById('topUsuariosContainer').innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">person_off</span>
+                        <p>Nenhum acesso registrado</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const usuarios = dadosDashboard.top_usuarios;
+
+            if (usuarios.length === 0) {
+                document.getElementById('topUsuariosContainer').innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">person_off</span>
+                        <p>Nenhum acesso registrado no periodo</p>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('topUsuariosContainer').innerHTML = usuarios.map((u, i) => `
+                <div class="usuario-item" onclick="verDetalhesUsuario(${u.time_id})">
+                    <div class="usuario-rank ${i < 3 ? 'top3' : ''}">${i + 1}</div>
+                    <div class="usuario-avatar">
+                        ${u.escudo ? `<img src="${u.escudo}" alt="" onerror="this.parentElement.innerHTML='<span class=\\'material-icons\\'>person</span>'" />` : '<span class="material-icons">person</span>'}
+                    </div>
+                    <div class="usuario-info">
+                        <div class="usuario-nome">${u.nome_cartola || u.nome_time || 'Participante'}</div>
+                        <div class="usuario-liga">${u.liga_nome || 'Liga'}</div>
+                    </div>
+                    <div class="usuario-stats">
+                        <div class="usuario-acessos">${u.total_acessos} acessos</div>
+                        <div class="usuario-ultimo">${u.ultimo_acesso_relativo}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Renderizar padroes de acesso
+        function renderizarPadroes() {
+            if (!dadosDashboard || !dadosDashboard.padroes) {
+                document.getElementById('padroesContainer').innerHTML = '';
+                return;
+            }
+
+            const { por_hora, por_dia_semana } = dadosDashboard.padroes;
+
+            // Encontrar max para normalizar barras
+            const maxHora = Math.max(...por_hora.map(h => h.acessos), 1);
+            const maxDia = Math.max(...por_dia_semana.map(d => d.acessos), 1);
+
+            let html = '';
+
+            // Grafico por hora
+            if (por_hora && por_hora.length > 0) {
+                html += `
+                    <div class="padrao-card">
+                        <h4><span class="material-icons">schedule</span> Acessos por Hora</h4>
+                        <div class="bar-chart">
+                            ${por_hora.map(h => `
+                                <div class="bar-item">
+                                    <div class="bar" style="height: ${(h.acessos / maxHora) * 100}%"></div>
+                                    <div class="bar-label">${h.label.substring(0, 2)}h</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Grafico por dia da semana
+            if (por_dia_semana && por_dia_semana.length > 0) {
+                html += `
+                    <div class="padrao-card">
+                        <h4><span class="material-icons">date_range</span> Acessos por Dia da Semana</h4>
+                        <div class="bar-chart">
+                            ${por_dia_semana.map(d => `
+                                <div class="bar-item">
+                                    <div class="bar" style="height: ${(d.acessos / maxDia) * 100}%"></div>
+                                    <div class="bar-label">${d.label}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('padroesContainer').innerHTML = html || '<p style="color: #666;">Sem dados de padroes</p>';
+        }
+
+        // Ver detalhes do usuario
+        async function verDetalhesUsuario(timeId) {
+            const modal = document.getElementById('modalUsuario');
+            const content = document.getElementById('modalUsuarioContent');
+
+            modal.classList.add('active');
+            content.innerHTML = '<div class="loading"><span class="material-icons">sync</span> Carregando...</div>';
+
+            try {
+                const response = await fetch(`/api/admin/usuarios-online/usuario/${timeId}?dias=30`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message || 'Erro ao carregar');
+                }
+
+                const { usuario, estatisticas, acessos_por_dia } = data;
+
+                content.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                        <div class="usuario-avatar" style="width: 60px; height: 60px;">
+                            ${usuario?.escudo ? `<img src="${usuario.escudo}" alt="" />` : '<span class="material-icons" style="font-size: 32px;">person</span>'}
+                        </div>
+                        <div>
+                            <div style="color: #fff; font-size: 1.2rem; font-weight: 600;">${usuario?.nome_cartola || 'Participante'}</div>
+                            <div style="color: #666;">${usuario?.liga_nome || ''}</div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid" style="margin-bottom: 20px;">
+                        <div class="stat-card">
+                            <div class="stat-card-label">Total Acessos</div>
+                            <div class="stat-card-value" style="font-size: 1.5rem;">${estatisticas.total_acessos}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Dias Ativos</div>
+                            <div class="stat-card-value" style="font-size: 1.5rem;">${estatisticas.dias_ativos}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Media/Dia</div>
+                            <div class="stat-card-value" style="font-size: 1.5rem;">${estatisticas.media_acessos_por_dia}</div>
+                        </div>
+                    </div>
+
+                    <div style="color: #9ca3af; font-size: 0.85rem; margin-bottom: 8px;">
+                        <strong>Ultimo acesso:</strong> ${estatisticas.ultimo_acesso_relativo || 'N/A'}
+                    </div>
+                    <div style="color: #9ca3af; font-size: 0.85rem; margin-bottom: 16px;">
+                        <strong>Dispositivos:</strong> ${estatisticas.dispositivos?.join(', ') || 'N/A'}
+                    </div>
+
+                    <h4 style="color: #fff; margin: 16px 0 12px 0;">Acessos por Dia (ultimos 30 dias)</h4>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        ${acessos_por_dia.slice(0, 15).map(d => `
+                            <div style="display: flex; justify-content: space-between; padding: 8px; background: #252525; border-radius: 4px; margin-bottom: 4px;">
+                                <span style="color: #9ca3af;">${new Date(d.data).toLocaleDateString('pt-BR')}</span>
+                                <span style="color: #3b82f6; font-weight: 600;">${d.acessos} acessos</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+            } catch (error) {
+                content.innerHTML = `<div style="color: #ef4444;">Erro: ${error.message}</div>`;
+            }
+        }
+
+        function fecharModal() {
+            document.getElementById('modalUsuario').classList.remove('active');
+        }
+
+        // Fechar modal ao clicar fora
+        document.getElementById('modalUsuario').addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                fecharModal();
+            }
+        });
+
+        // Tabs de periodo
+        document.querySelectorAll('.periodo-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.periodo-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                periodoAtual = tab.dataset.periodo;
+                renderizarEstatisticas();
+            });
+        });
+
+        // Inicializar
+        carregarDashboard();
+    </script>
+</body>
+</html>
