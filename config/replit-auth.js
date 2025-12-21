@@ -7,11 +7,62 @@ import * as client from "openid-client";
 import { Strategy } from "openid-client/passport";
 import passport from "passport";
 import memoize from "memoizee";
+import { getDB } from "./database.js";
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
+// Fallback para variavel de ambiente (compatibilidade)
+const ADMIN_EMAILS_ENV = (process.env.ADMIN_EMAILS || "")
   .split(",")
   .map((e) => e.trim().toLowerCase())
   .filter(e => e.length > 0);
+
+/**
+ * Verifica se email e admin autorizado
+ * Primeiro verifica no banco, depois na variavel de ambiente
+ */
+async function isAdminAuthorizado(email) {
+  if (!email) return false;
+  const emailLower = email.toLowerCase();
+
+  try {
+    const db = getDB();
+    if (db) {
+      // Verificar na collection admins
+      const admin = await db.collection("admins").findOne({
+        email: emailLower,
+        ativo: { $ne: false }
+      });
+
+      if (admin) {
+        console.log("[REPLIT-AUTH] ✅ Admin encontrado no banco:", emailLower);
+        return true;
+      }
+
+      // Se nao tem admins no banco, usar variavel de ambiente
+      const countAdmins = await db.collection("admins").countDocuments();
+      if (countAdmins === 0 && ADMIN_EMAILS_ENV.length > 0) {
+        console.log("[REPLIT-AUTH] 📋 Sem admins no banco, usando env");
+        return ADMIN_EMAILS_ENV.includes(emailLower);
+      }
+
+      // Se tem admins no banco mas email nao esta, negar
+      if (countAdmins > 0) {
+        console.log("[REPLIT-AUTH] ❌ Email nao encontrado nos admins do banco");
+        return false;
+      }
+    }
+  } catch (error) {
+    console.error("[REPLIT-AUTH] ⚠️ Erro ao verificar admin no banco:", error.message);
+  }
+
+  // Fallback para variavel de ambiente
+  if (ADMIN_EMAILS_ENV.length > 0) {
+    return ADMIN_EMAILS_ENV.includes(emailLower);
+  }
+
+  // Se nao tem restricao, permitir qualquer um (desenvolvimento)
+  console.log("[REPLIT-AUTH] ⚠️ Sem restricao de admin configurada");
+  return true;
+}
 
 const getOidcConfig = memoize(
   async () => {
@@ -50,26 +101,27 @@ function ensureStrategy(domain, config, verify) {
   return strategyName;
 }
 
-const verify = (tokens, done) => {
+const verify = async (tokens, done) => {
   try {
     const claims = tokens.claims();
     const email = claims.email?.toLowerCase();
-    
+
     console.log("[REPLIT-AUTH] 📧 Email autenticado:", email);
-    console.log("[REPLIT-AUTH] 📋 Admins autorizados:", ADMIN_EMAILS);
-    
+
     if (!email) {
       console.log("[REPLIT-AUTH] ❌ Email não encontrado no perfil");
       return done(null, false, { message: "Email não encontrado no perfil" });
     }
-    
-    if (ADMIN_EMAILS.length > 0 && !ADMIN_EMAILS.includes(email)) {
+
+    // Verificar se e admin autorizado (banco ou env)
+    const autorizado = await isAdminAutorizado(email);
+    if (!autorizado) {
       console.log("[REPLIT-AUTH] ❌ Email não autorizado:", email);
       return done(null, false, { message: "Email não autorizado como administrador" });
     }
-    
+
     console.log("[REPLIT-AUTH] ✅ Admin autorizado:", email);
-    
+
     const user = {
       id: claims.sub,
       email: email,
@@ -168,7 +220,7 @@ export function setupReplitAuthRoutes(app) {
   });
 
   console.log("[REPLIT-AUTH] ✅ Replit Auth configurado com sucesso");
-  console.log("[REPLIT-AUTH] 📧 Admins autorizados:", ADMIN_EMAILS.join(", ") || "TODOS (sem restrição)");
+  console.log("[REPLIT-AUTH] 📧 Admins autorizados (env):", ADMIN_EMAILS_ENV.join(", ") || "Verificar banco de dados");
 }
 
 export async function isAuthenticated(req, res, next) {

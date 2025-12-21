@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestao de Administradores - Super Cartola Manager</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/_admin-tokens.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+        .admin-page { background: #121212; min-height: 100vh; }
+        .admin-content { padding: 20px 16px; max-width: 900px; margin: 0 auto; }
+
+        .admin-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 24px;
+            border: 1px solid #8b5cf6;
+            position: relative;
+        }
+        .admin-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #8b5cf6, #a78bfa, #8b5cf6);
+        }
+        .admin-header h1 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 8px 0;
+        }
+        .admin-header h1 .material-icons { font-size: 28px; color: #8b5cf6; }
+        .admin-header p { color: #9ca3af; font-size: 0.9rem; margin: 0; }
+
+        .add-admin-form {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            border: 1px solid #333;
+        }
+        .add-admin-form h3 {
+            color: #fff;
+            margin: 0 0 16px 0;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .add-admin-form h3 .material-icons { color: #8b5cf6; }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        .form-group label {
+            display: block;
+            color: #9ca3af;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #252525;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+        .form-group input:focus {
+            border-color: #8b5cf6;
+            outline: none;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #8b5cf6;
+        }
+        .checkbox-group label {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .btn-add:hover { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+        .btn-add:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .admins-list {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #333;
+        }
+        .admins-list h3 {
+            color: #fff;
+            margin: 0 0 16px 0;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admins-list h3 .material-icons { color: #8b5cf6; }
+
+        .admin-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #252525;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .admin-item:last-child { margin-bottom: 0; }
+
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 600;
+        }
+        .admin-avatar.inactive { background: #444; }
+
+        .admin-info { flex: 1; }
+        .admin-name {
+            color: #fff;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-name .badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .badge-super { background: #8b5cf6; color: #fff; }
+        .badge-inactive { background: #666; color: #ccc; }
+
+        .admin-email { color: #9ca3af; font-size: 0.85rem; }
+        .admin-date { color: #666; font-size: 0.75rem; margin-top: 2px; }
+
+        .admin-actions { display: flex; gap: 8px; }
+        .btn-action {
+            background: transparent;
+            border: 1px solid #444;
+            color: #9ca3af;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+        }
+        .btn-action:hover { border-color: #666; color: #fff; }
+        .btn-action.danger { border-color: #ef4444; color: #ef4444; }
+        .btn-action.danger:hover { background: rgba(239, 68, 68, 0.1); }
+        .btn-action .material-icons { font-size: 16px; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .empty-state .material-icons { font-size: 48px; margin-bottom: 12px; }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 40px;
+            color: #9ca3af;
+        }
+        .loading .material-icons { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-page">
+        <div id="sidebar-placeholder"></div>
+        <main class="main-content">
+            <div class="admin-content">
+                <div class="admin-header">
+                    <h1>
+                        <span class="material-icons">admin_panel_settings</span>
+                        Gestao de Administradores
+                    </h1>
+                    <p>Gerenciar usuarios com acesso administrativo ao sistema</p>
+                </div>
+
+                <div id="alertSetup" class="alert alert-warning" style="display: none;">
+                    <span class="material-icons">warning</span>
+                    <span>Nenhum admin cadastrado. Configure o primeiro administrador abaixo.</span>
+                </div>
+
+                <div class="add-admin-form" id="formAddAdmin">
+                    <h3>
+                        <span class="material-icons">person_add</span>
+                        Adicionar Administrador
+                    </h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputEmail">Email</label>
+                            <input type="email" id="inputEmail" placeholder="email@exemplo.com" />
+                        </div>
+                        <div class="form-group">
+                            <label for="inputNome">Nome (opcional)</label>
+                            <input type="text" id="inputNome" placeholder="Nome do admin" />
+                        </div>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="checkSuperAdmin" />
+                        <label for="checkSuperAdmin">Super Admin (pode gerenciar outros admins)</label>
+                    </div>
+                    <button class="btn-add" id="btnAddAdmin">
+                        <span class="material-icons">add</span>
+                        Adicionar Admin
+                    </button>
+                </div>
+
+                <div class="admins-list">
+                    <h3>
+                        <span class="material-icons">people</span>
+                        Administradores Cadastrados
+                    </h3>
+                    <div id="adminsList">
+                        <div class="loading">
+                            <span class="material-icons">sync</span>
+                            Carregando...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Carregar sidebar
+        async function carregarLayout() {
+            try {
+                const response = await fetch('layout.html');
+                const layoutHtml = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(layoutHtml, 'text/html');
+                const sidebar = doc.querySelector('.app-sidebar');
+                if (sidebar) {
+                    document.getElementById('sidebar-placeholder')?.replaceWith(sidebar);
+                }
+                const scripts = doc.querySelectorAll('script');
+                scripts.forEach(script => {
+                    if (script.textContent.trim()) {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = script.textContent;
+                        document.head.appendChild(newScript);
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar layout:', error);
+            }
+        }
+        carregarLayout();
+
+        // Carregar admins
+        async function carregarAdmins() {
+            const container = document.getElementById('adminsList');
+
+            try {
+                const response = await fetch('/api/admin/gestao/admins');
+                const data = await response.json();
+
+                if (data.success === false) {
+                    throw new Error(data.message);
+                }
+
+                const admins = data.admins || [];
+
+                if (admins.length === 0) {
+                    document.getElementById('alertSetup').style.display = 'flex';
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <span class="material-icons">group_off</span>
+                            <p>Nenhum administrador cadastrado</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                document.getElementById('alertSetup').style.display = 'none';
+
+                container.innerHTML = admins.map(admin => `
+                    <div class="admin-item" data-id="${admin.id}">
+                        <div class="admin-avatar ${admin.ativo ? '' : 'inactive'}">
+                            ${(admin.nome || admin.email)[0].toUpperCase()}
+                        </div>
+                        <div class="admin-info">
+                            <div class="admin-name">
+                                ${admin.nome || admin.email.split('@')[0]}
+                                ${admin.superAdmin ? '<span class="badge badge-super">Super Admin</span>' : ''}
+                                ${admin.ativo === false ? '<span class="badge badge-inactive">Inativo</span>' : ''}
+                            </div>
+                            <div class="admin-email">${admin.email}</div>
+                            <div class="admin-date">Criado em: ${admin.criadoEm ? new Date(admin.criadoEm).toLocaleDateString('pt-BR') : 'N/A'}</div>
+                        </div>
+                        <div class="admin-actions">
+                            <button class="btn-action" onclick="toggleAdmin('${admin.id}', ${admin.ativo !== false})">
+                                <span class="material-icons">${admin.ativo !== false ? 'block' : 'check_circle'}</span>
+                                ${admin.ativo !== false ? 'Desativar' : 'Ativar'}
+                            </button>
+                            <button class="btn-action danger" onclick="removerAdmin('${admin.id}', '${admin.email}')">
+                                <span class="material-icons">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Erro ao carregar admins:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">error</span>
+                        <p>Erro ao carregar: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Adicionar admin
+        async function adicionarAdmin() {
+            const email = document.getElementById('inputEmail').value.trim();
+            const nome = document.getElementById('inputNome').value.trim();
+            const superAdmin = document.getElementById('checkSuperAdmin').checked;
+
+            if (email.length === 0) {
+                alert('Informe o email');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/gestao/admins', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, nome, superAdmin })
+                });
+
+                const data = await response.json();
+
+                if (data.success === false) {
+                    throw new Error(data.message);
+                }
+
+                alert('Administrador adicionado com sucesso!');
+                document.getElementById('inputEmail').value = '';
+                document.getElementById('inputNome').value = '';
+                document.getElementById('checkSuperAdmin').checked = false;
+                carregarAdmins();
+
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        }
+
+        // Toggle ativo/inativo
+        async function toggleAdmin(id, ativoAtual) {
+            const acao = ativoAtual ? 'desativar' : 'ativar';
+            if (confirm(`Deseja ${acao} este administrador?`) === false) return;
+
+            try {
+                const response = await fetch(`/api/admin/gestao/admins/${id}/toggle`, {
+                    method: 'PUT'
+                });
+
+                const data = await response.json();
+
+                if (data.success === false) {
+                    throw new Error(data.message);
+                }
+
+                carregarAdmins();
+
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        }
+
+        // Remover admin
+        async function removerAdmin(id, email) {
+            if (confirm(`Deseja remover o administrador ${email}?`) === false) return;
+
+            try {
+                const response = await fetch(`/api/admin/gestao/admins/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success === false) {
+                    throw new Error(data.message);
+                }
+
+                carregarAdmins();
+
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        }
+
+        // Setup inicial (primeiro admin)
+        async function setupInicial() {
+            try {
+                const response = await fetch('/api/admin/gestao/setup', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Primeiro administrador configurado!');
+                    carregarAdmins();
+                }
+            } catch (error) {
+                console.log('Setup nao necessario');
+            }
+        }
+
+        // Eventos
+        document.getElementById('btnAddAdmin').addEventListener('click', adicionarAdmin);
+        document.getElementById('inputEmail').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') adicionarAdmin();
+        });
+
+        // Inicializar
+        carregarAdmins();
+    </script>
+</body>
+</html>
