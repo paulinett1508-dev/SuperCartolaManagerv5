@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Admin - Super Cartola Manager</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/_admin-tokens.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .container {
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .logo {
+            margin-bottom: 24px;
+        }
+        .logo .material-icons {
+            font-size: 64px;
+            color: #ff4500;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 0.95rem;
+            margin-bottom: 32px;
+        }
+
+        .login-card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 32px 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            color: #a0a0a0;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #252525;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus {
+            border-color: #ff4500;
+            outline: none;
+        }
+        .form-group input::placeholder {
+            color: #666;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+        }
+        .btn-login:hover {
+            box-shadow: 0 4px 16px rgba(255, 69, 0, 0.4);
+        }
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-login .material-icons {
+            font-size: 20px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 24px 0;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #333;
+        }
+
+        .btn-replit {
+            width: 100%;
+            padding: 14px 24px;
+            background: #252525;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn-replit:hover {
+            border-color: #666;
+            background: #2a2a2a;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .success-message.show {
+            display: block;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-top: 24px;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: #fff;
+        }
+        .back-link .material-icons {
+            font-size: 18px;
+        }
+
+        /* Modal troca senha */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            border: 2px solid #f59e0b;
+        }
+        .modal-content h3 {
+            color: #f59e0b;
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-content p {
+            color: #9ca3af;
+            margin: 0 0 20px 0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <span class="material-icons">admin_panel_settings</span>
+        </div>
+
+        <h1>Login Administrador</h1>
+        <p class="subtitle">Acesse o painel de gestao da sua liga</p>
+
+        <div class="login-card">
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="seu@email.com" required />
+                </div>
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" placeholder="Sua senha" required />
+                </div>
+                <button type="submit" class="btn-login" id="btnLogin">
+                    <span class="material-icons">login</span>
+                    Entrar
+                </button>
+            </form>
+
+            <div class="divider">ou</div>
+
+            <a href="/api/admin/auth/login" class="btn-replit">
+                <span class="material-icons">code</span>
+                Entrar com Replit (Desenvolvedor)
+            </a>
+        </div>
+
+        <a href="/" class="back-link">
+            <span class="material-icons">arrow_back</span>
+            Voltar ao inicio
+        </a>
+    </div>
+
+    <!-- Modal Trocar Senha -->
+    <div class="modal" id="modalTrocarSenha">
+        <div class="modal-content">
+            <h3>
+                <span class="material-icons">warning</span>
+                Troque sua Senha
+            </h3>
+            <p>Voce esta usando uma senha provisoria. Por seguranca, defina uma nova senha.</p>
+            <form id="formTrocarSenha">
+                <div class="form-group">
+                    <label for="novaSenha">Nova Senha (minimo 6 caracteres)</label>
+                    <input type="password" id="novaSenha" name="novaSenha" placeholder="Digite nova senha" minlength="6" required />
+                </div>
+                <div class="form-group">
+                    <label for="confirmarSenha">Confirmar Nova Senha</label>
+                    <input type="password" id="confirmarSenha" name="confirmarSenha" placeholder="Confirme a senha" minlength="6" required />
+                </div>
+                <button type="submit" class="btn-login">
+                    <span class="material-icons">lock</span>
+                    Definir Nova Senha
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const btnLogin = document.getElementById('btnLogin');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value;
+
+            if (!email || !senha) {
+                mostrarErro('Preencha email e senha');
+                return;
+            }
+
+            btnLogin.disabled = true;
+            btnLogin.innerHTML = '<span class="material-icons">sync</span> Entrando...';
+            errorMessage.classList.remove('show');
+
+            try {
+                const response = await fetch('/api/admin/cliente/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+
+                // Verificar se precisa trocar senha
+                if (data.senhaProvisoria) {
+                    document.getElementById('modalTrocarSenha').classList.add('show');
+                    return;
+                }
+
+                // Login bem sucedido
+                mostrarSucesso('Login realizado! Redirecionando...');
+                setTimeout(() => {
+                    window.location.href = '/painel.html';
+                }, 1000);
+
+            } catch (error) {
+                mostrarErro(error.message);
+            } finally {
+                btnLogin.disabled = false;
+                btnLogin.innerHTML = '<span class="material-icons">login</span> Entrar';
+            }
+        });
+
+        // Trocar senha
+        document.getElementById('formTrocarSenha').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const novaSenha = document.getElementById('novaSenha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+
+            if (novaSenha !== confirmarSenha) {
+                alert('As senhas nao coincidem');
+                return;
+            }
+
+            if (novaSenha.length < 6) {
+                alert('A senha deve ter pelo menos 6 caracteres');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/cliente/trocar-senha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ novaSenha })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+
+                alert('Senha alterada com sucesso!');
+                document.getElementById('modalTrocarSenha').classList.remove('show');
+                window.location.href = '/painel.html';
+
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        });
+
+        function mostrarErro(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.add('show');
+            successMessage.classList.remove('show');
+        }
+
+        function mostrarSucesso(msg) {
+            successMessage.textContent = msg;
+            successMessage.classList.add('show');
+            errorMessage.classList.remove('show');
+        }
+    </script>
+</body>
+</html>

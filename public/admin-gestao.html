@@ -87,22 +87,6 @@
             outline: none;
         }
 
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 24px;
-        }
-        .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #8b5cf6;
-        }
-        .checkbox-group label {
-            color: #9ca3af;
-            font-size: 0.9rem;
-        }
-
         .btn-add {
             background: linear-gradient(135deg, #8b5cf6, #7c3aed);
             color: #fff;
@@ -145,6 +129,10 @@
             margin-bottom: 8px;
         }
         .admin-item:last-child { margin-bottom: 0; }
+        .admin-item.super-admin {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid #8b5cf6;
+        }
 
         .admin-avatar {
             width: 40px;
@@ -158,6 +146,7 @@
             font-weight: 600;
         }
         .admin-avatar.inactive { background: #444; }
+        .admin-avatar.dev { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
 
         .admin-info { flex: 1; }
         .admin-name {
@@ -173,8 +162,9 @@
             border-radius: 4px;
             font-weight: 500;
         }
-        .badge-super { background: #8b5cf6; color: #fff; }
+        .badge-super { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #000; }
         .badge-inactive { background: #666; color: #ccc; }
+        .badge-env { background: #10b981; color: #fff; font-size: 0.65rem; }
 
         .admin-email { color: #9ca3af; font-size: 0.85rem; }
         .admin-date { color: #666; font-size: 0.75rem; margin-top: 2px; }
@@ -228,10 +218,28 @@
             border: 1px solid #3b82f6;
             color: #3b82f6;
         }
-        .alert-warning {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid #f59e0b;
-            color: #f59e0b;
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+
+        .access-denied {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .access-denied .material-icons {
+            font-size: 64px;
+            color: #ef4444;
+            margin-bottom: 16px;
+        }
+        .access-denied h2 {
+            color: #fff;
+            margin: 0 0 8px 0;
+        }
+        .access-denied p {
+            color: #9ca3af;
+            margin: 0;
         }
     </style>
 </head>
@@ -248,46 +256,11 @@
                     <p>Gerenciar usuarios com acesso administrativo ao sistema</p>
                 </div>
 
-                <div id="alertSetup" class="alert alert-warning" style="display: none;">
-                    <span class="material-icons">warning</span>
-                    <span>Nenhum admin cadastrado. Configure o primeiro administrador abaixo.</span>
-                </div>
-
-                <div class="add-admin-form" id="formAddAdmin">
-                    <h3>
-                        <span class="material-icons">person_add</span>
-                        Adicionar Administrador
-                    </h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="inputEmail">Email</label>
-                            <input type="email" id="inputEmail" placeholder="email@exemplo.com" />
-                        </div>
-                        <div class="form-group">
-                            <label for="inputNome">Nome (opcional)</label>
-                            <input type="text" id="inputNome" placeholder="Nome do admin" />
-                        </div>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="checkSuperAdmin" />
-                        <label for="checkSuperAdmin">Super Admin (pode gerenciar outros admins)</label>
-                    </div>
-                    <button class="btn-add" id="btnAddAdmin">
-                        <span class="material-icons">add</span>
-                        Adicionar Admin
-                    </button>
-                </div>
-
-                <div class="admins-list">
-                    <h3>
-                        <span class="material-icons">people</span>
-                        Administradores Cadastrados
-                    </h3>
-                    <div id="adminsList">
-                        <div class="loading">
-                            <span class="material-icons">sync</span>
-                            Carregando...
-                        </div>
+                <!-- Conteudo carregado via JS -->
+                <div id="pageContent">
+                    <div class="loading">
+                        <span class="material-icons">sync</span>
+                        Verificando permissoes...
                     </div>
                 </div>
             </div>
@@ -320,6 +293,110 @@
         }
         carregarLayout();
 
+        // Verificar se é Super Admin
+        async function verificarAcesso() {
+            try {
+                const response = await fetch('/api/admin/gestao/check-super');
+                const data = await response.json();
+
+                if (!data.success || !data.isSuperAdmin) {
+                    mostrarAcessoNegado();
+                    return false;
+                }
+
+                mostrarConteudo();
+                return true;
+
+            } catch (error) {
+                console.error('Erro ao verificar acesso:', error);
+                mostrarAcessoNegado();
+                return false;
+            }
+        }
+
+        function mostrarAcessoNegado() {
+            document.getElementById('pageContent').innerHTML = `
+                <div class="access-denied">
+                    <span class="material-icons">lock</span>
+                    <h2>Acesso Restrito</h2>
+                    <p>Esta pagina e exclusiva para o desenvolvedor do sistema.</p>
+                </div>
+            `;
+        }
+
+        function mostrarConteudo() {
+            document.getElementById('pageContent').innerHTML = `
+                <div class="add-admin-form" id="formAddAdmin">
+                    <h3>
+                        <span class="material-icons">person_add</span>
+                        Registrar Novo Cliente (Admin)
+                    </h3>
+                    <p style="color: #9ca3af; font-size: 0.85rem; margin: 0 0 16px 0;">
+                        O cliente recebera uma senha provisoria para acessar o sistema.
+                    </p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputEmail">Email do Cliente</label>
+                            <input type="email" id="inputEmail" placeholder="email@cliente.com" />
+                        </div>
+                        <div class="form-group">
+                            <label for="inputNome">Nome do Cliente</label>
+                            <input type="text" id="inputNome" placeholder="Nome completo" />
+                        </div>
+                    </div>
+                    <button class="btn-add" id="btnAddAdmin">
+                        <span class="material-icons">add</span>
+                        Registrar Cliente
+                    </button>
+                </div>
+
+                <div id="senhaModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center;">
+                    <div style="background: #1a1a1a; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; border: 2px solid #10b981;">
+                        <h3 style="color: #10b981; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-icons">check_circle</span>
+                            Cliente Registrado!
+                        </h3>
+                        <p style="color: #9ca3af; margin: 0 0 16px 0;">Envie a senha provisoria abaixo para o cliente:</p>
+                        <div style="background: #252525; padding: 16px; border-radius: 8px; text-align: center; margin-bottom: 16px;">
+                            <span style="color: #fff; font-size: 1.5rem; font-family: monospace; letter-spacing: 2px;" id="senhaProvisoria">--------</span>
+                            <button onclick="copiarSenha()" style="margin-left: 12px; background: #333; border: none; color: #fff; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                                <span class="material-icons" style="font-size: 16px; vertical-align: middle;">content_copy</span>
+                            </button>
+                        </div>
+                        <p style="color: #f59e0b; font-size: 0.85rem; margin: 0 0 16px 0;">
+                            <span class="material-icons" style="font-size: 16px; vertical-align: middle;">warning</span>
+                            Esta senha so aparece uma vez. Anote-a antes de fechar!
+                        </p>
+                        <button onclick="fecharModalSenha()" style="width: 100%; background: #10b981; border: none; color: #fff; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                            Entendido, ja anotei
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admins-list">
+                    <h3>
+                        <span class="material-icons">people</span>
+                        Administradores do Sistema
+                    </h3>
+                    <div id="adminsList">
+                        <div class="loading">
+                            <span class="material-icons">sync</span>
+                            Carregando...
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Eventos
+            document.getElementById('btnAddAdmin').addEventListener('click', adicionarAdmin);
+            document.getElementById('inputEmail').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') adicionarAdmin();
+            });
+
+            // Carregar admins
+            carregarAdmins();
+        }
+
         // Carregar admins
         async function carregarAdmins() {
             const container = document.getElementById('adminsList');
@@ -335,7 +412,6 @@
                 const admins = data.admins || [];
 
                 if (admins.length === 0) {
-                    document.getElementById('alertSetup').style.display = 'flex';
                     container.innerHTML = `
                         <div class="empty-state">
                             <span class="material-icons">group_off</span>
@@ -345,31 +421,32 @@
                     return;
                 }
 
-                document.getElementById('alertSetup').style.display = 'none';
-
                 container.innerHTML = admins.map(admin => `
-                    <div class="admin-item" data-id="${admin.id}">
-                        <div class="admin-avatar ${admin.ativo ? '' : 'inactive'}">
-                            ${(admin.nome || admin.email)[0].toUpperCase()}
+                    <div class="admin-item ${admin.isEnvDefined ? 'super-admin' : ''}" data-id="${admin.id}">
+                        <div class="admin-avatar ${admin.ativo ? '' : 'inactive'} ${admin.isEnvDefined ? 'dev' : ''}">
+                            ${admin.isEnvDefined ? '👑' : (admin.nome || admin.email)[0].toUpperCase()}
                         </div>
                         <div class="admin-info">
                             <div class="admin-name">
                                 ${admin.nome || admin.email.split('@')[0]}
                                 ${admin.superAdmin ? '<span class="badge badge-super">Super Admin</span>' : ''}
+                                ${admin.isEnvDefined ? '<span class="badge badge-env">Definido via ENV</span>' : ''}
                                 ${admin.ativo === false ? '<span class="badge badge-inactive">Inativo</span>' : ''}
                             </div>
                             <div class="admin-email">${admin.email}</div>
-                            <div class="admin-date">Criado em: ${admin.criadoEm ? new Date(admin.criadoEm).toLocaleDateString('pt-BR') : 'N/A'}</div>
+                            <div class="admin-date">${admin.isEnvDefined ? 'Dono do sistema (Replit)' : 'Criado em: ' + (admin.criadoEm ? new Date(admin.criadoEm).toLocaleDateString('pt-BR') : 'N/A')}</div>
                         </div>
-                        <div class="admin-actions">
-                            <button class="btn-action" onclick="toggleAdmin('${admin.id}', ${admin.ativo !== false})">
-                                <span class="material-icons">${admin.ativo !== false ? 'block' : 'check_circle'}</span>
-                                ${admin.ativo !== false ? 'Desativar' : 'Ativar'}
-                            </button>
-                            <button class="btn-action danger" onclick="removerAdmin('${admin.id}', '${admin.email}')">
-                                <span class="material-icons">delete</span>
-                            </button>
-                        </div>
+                        ${!admin.isEnvDefined ? `
+                            <div class="admin-actions">
+                                <button class="btn-action" onclick="toggleAdmin('${admin.id}', ${admin.ativo !== false})">
+                                    <span class="material-icons">${admin.ativo !== false ? 'block' : 'check_circle'}</span>
+                                    ${admin.ativo !== false ? 'Desativar' : 'Ativar'}
+                                </button>
+                                <button class="btn-action danger" onclick="removerAdmin('${admin.id}', '${admin.email}')">
+                                    <span class="material-icons">delete</span>
+                                </button>
+                            </div>
+                        ` : '<div class="admin-actions" style="color: #10b981; font-size: 0.8rem;">Protegido</div>'}
                     </div>
                 `).join('');
 
@@ -384,22 +461,26 @@
             }
         }
 
-        // Adicionar admin
+        // Adicionar cliente (admin)
         async function adicionarAdmin() {
             const email = document.getElementById('inputEmail').value.trim();
             const nome = document.getElementById('inputNome').value.trim();
-            const superAdmin = document.getElementById('checkSuperAdmin').checked;
 
             if (email.length === 0) {
-                alert('Informe o email');
+                alert('Informe o email do cliente');
                 return;
             }
 
+            const btn = document.getElementById('btnAddAdmin');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-icons">sync</span> Registrando...';
+
             try {
-                const response = await fetch('/api/admin/gestao/admins', {
+                // Usar endpoint de registro de cliente (gera senha provisoria)
+                const response = await fetch('/api/admin/cliente/registrar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, nome, superAdmin })
+                    body: JSON.stringify({ email, nome })
                 });
 
                 const data = await response.json();
@@ -408,15 +489,42 @@
                     throw new Error(data.message);
                 }
 
-                alert('Administrador adicionado com sucesso!');
+                // Mostrar modal com senha provisoria
+                document.getElementById('senhaProvisoria').textContent = data.senhaProvisoria;
+                document.getElementById('senhaModal').style.display = 'flex';
+
                 document.getElementById('inputEmail').value = '';
                 document.getElementById('inputNome').value = '';
-                document.getElementById('checkSuperAdmin').checked = false;
                 carregarAdmins();
 
             } catch (error) {
                 alert('Erro: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-icons">add</span> Registrar Cliente';
             }
+        }
+
+        // Copiar senha para clipboard
+        function copiarSenha() {
+            const senha = document.getElementById('senhaProvisoria').textContent;
+            navigator.clipboard.writeText(senha).then(() => {
+                alert('Senha copiada!');
+            }).catch(() => {
+                // Fallback para navegadores antigos
+                const input = document.createElement('input');
+                input.value = senha;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                alert('Senha copiada!');
+            });
+        }
+
+        // Fechar modal de senha
+        function fecharModalSenha() {
+            document.getElementById('senhaModal').style.display = 'none';
         }
 
         // Toggle ativo/inativo
@@ -464,32 +572,8 @@
             }
         }
 
-        // Setup inicial (primeiro admin)
-        async function setupInicial() {
-            try {
-                const response = await fetch('/api/admin/gestao/setup', {
-                    method: 'POST'
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert('Primeiro administrador configurado!');
-                    carregarAdmins();
-                }
-            } catch (error) {
-                console.log('Setup nao necessario');
-            }
-        }
-
-        // Eventos
-        document.getElementById('btnAddAdmin').addEventListener('click', adicionarAdmin);
-        document.getElementById('inputEmail').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') adicionarAdmin();
-        });
-
         // Inicializar
-        carregarAdmins();
+        verificarAcesso();
     </script>
 </body>
 </html>

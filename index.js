@@ -98,6 +98,7 @@ import activityTrackerMiddleware from "./middleware/activityTracker.js";
 import adminAuthRoutes from "./routes/admin-auth.js";
 import adminAuditoriaRoutes from "./routes/admin-auditoria-routes.js";
 import adminGestaoRoutes from "./routes/admin-gestao-routes.js";
+import adminClienteAuthRoutes from "./routes/admin-cliente-auth.js";
 console.log("[DEBUG] adminAuthRoutes type:", typeof adminAuthRoutes);
 console.log(
   "[DEBUG] adminAuthRoutes.stack length:",
@@ -259,6 +260,10 @@ console.log("[SERVER] 📊 Rotas de auditoria admin registradas");
 // 👤 Rotas de gestao de admins
 app.use("/api/admin/gestao", adminGestaoRoutes);
 console.log("[SERVER] 👤 Rotas de gestao de admins registradas");
+
+// 🔑 Rotas de autenticacao de clientes (email + senha)
+app.use("/api/admin/cliente", adminClienteAuthRoutes);
+console.log("[SERVER] 🔑 Rotas de autenticacao de clientes registradas");
 
 // 👁️ Rota de monitoramento de usuários online (admin)
 app.use("/api/admin/usuarios-online", usuariosOnlineRoutes);
