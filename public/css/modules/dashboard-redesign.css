@@ -921,6 +921,41 @@
    SIDEBAR REDESIGN v1.0 - Design Moderno
    ============================================================ */
 
+/* Botão Toggle Sidebar */
+.sidebar-toggle-btn {
+    position: fixed;
+    left: 268px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 48px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    color: #9ca3af;
+    cursor: pointer;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.sidebar-toggle-btn:hover {
+    background: #252525;
+    color: #fff;
+}
+
+.sidebar-toggle-btn .material-icons {
+    font-size: 18px;
+}
+
+/* Estado colapsado do botão */
+body.sidebar-collapsed .sidebar-toggle-btn {
+    left: 68px;
+}
+
 /* Override do sidebar antigo */
 .app-sidebar.sidebar-redesign {
     width: 280px;
@@ -932,6 +967,63 @@
     position: fixed;
     z-index: 1000;
     box-shadow: none !important;
+    transition: width 0.3s ease;
+}
+
+/* Sidebar Colapsado */
+.app-sidebar.sidebar-collapsed {
+    width: 80px;
+}
+
+.app-sidebar.sidebar-collapsed .sidebar-logo-text,
+.app-sidebar.sidebar-collapsed .sidebar-menu-item span:not(.material-icons),
+.app-sidebar.sidebar-collapsed .sidebar-accordion-title span:not(.material-icons),
+.app-sidebar.sidebar-collapsed .sidebar-accordion-arrow,
+.app-sidebar.sidebar-collapsed .sidebar-liga-name,
+.app-sidebar.sidebar-collapsed .sidebar-liga-count,
+.app-sidebar.sidebar-collapsed .sidebar-user-info,
+.app-sidebar.sidebar-collapsed .sidebar-user-menu {
+    display: none !important;
+}
+
+.app-sidebar.sidebar-collapsed .sidebar-logo-new {
+    padding: 16px 8px;
+}
+
+.app-sidebar.sidebar-collapsed .sidebar-menu-item {
+    justify-content: center;
+    padding: 12px;
+}
+
+.app-sidebar.sidebar-collapsed .sidebar-accordion-header {
+    justify-content: center;
+    padding: 12px;
+}
+
+.app-sidebar.sidebar-collapsed .sidebar-liga-item {
+    justify-content: center;
+    padding: 10px;
+}
+
+.app-sidebar.sidebar-collapsed .sidebar-liga-logo {
+    margin-right: 0;
+}
+
+.app-sidebar.sidebar-collapsed .sidebar-user-inner {
+    justify-content: center;
+    padding: 12px;
+}
+
+/* Ajustar main content quando sidebar está colapsado */
+body.sidebar-collapsed .app-main {
+    margin-left: 80px;
+}
+
+/* Esconder toggle em mobile */
+@media (max-width: 768px) {
+    .sidebar-toggle-btn {
+        display: none;
+    }
 }
 
 /* Logo Section */

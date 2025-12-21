@@ -14,8 +14,13 @@
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     </head>
     <body>
+        <!-- Botão Toggle Sidebar (Desktop) -->
+        <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Recolher/Expandir menu">
+            <span class="material-icons">chevron_left</span>
+        </button>
+
         <!-- Sidebar Redesign -->
-        <nav class="sidebar app-sidebar sidebar-redesign">
+        <nav class="sidebar app-sidebar sidebar-redesign" id="appSidebar">
             <!-- Logo -->
             <div class="sidebar-logo-new" onclick="goToDashboard()" style="cursor: pointer;">
                 <div class="sidebar-logo-icon">
@@ -405,6 +410,48 @@
                 window.location.href = "painel.html";
             }
 
+            // === TOGGLE SIDEBAR (DESKTOP) ===
+            function toggleSidebar() {
+                const sidebar = document.getElementById('appSidebar');
+                const toggleBtn = document.getElementById('sidebarToggleBtn');
+                const body = document.body;
+
+                if (!sidebar) return;
+
+                const isCollapsed = sidebar.classList.toggle('sidebar-collapsed');
+                body.classList.toggle('sidebar-collapsed', isCollapsed);
+
+                // Atualizar ícone do botão
+                if (toggleBtn) {
+                    const icon = toggleBtn.querySelector('.material-icons');
+                    if (icon) {
+                        icon.textContent = isCollapsed ? 'chevron_right' : 'chevron_left';
+                    }
+                }
+
+                // Salvar estado
+                localStorage.setItem('sidebar_collapsed', isCollapsed ? 'true' : 'false');
+            }
+
+            // Restaurar estado do sidebar ao carregar
+            function restoreSidebarState() {
+                const isCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
+                if (isCollapsed) {
+                    const sidebar = document.getElementById('appSidebar');
+                    const toggleBtn = document.getElementById('sidebarToggleBtn');
+                    const body = document.body;
+
+                    if (sidebar) {
+                        sidebar.classList.add('sidebar-collapsed');
+                        body.classList.add('sidebar-collapsed');
+                        if (toggleBtn) {
+                            const icon = toggleBtn.querySelector('.material-icons');
+                            if (icon) icon.textContent = 'chevron_right';
+                        }
+                    }
+                }
+            }
+
             // === MENU DROPUP DO PERFIL - INICIALIZAÇÃO ===
             function inicializarMenuPerfil() {
                 const userSection = document.getElementById('sidebarUserSection');
@@ -510,6 +557,7 @@
 
             // === INICIALIZAÇÃO ===
             function inicializarLayout() {
+                restoreSidebarState(); // Restaurar estado do sidebar
                 window.navigationSystem = new NavigationSystem();
                 carregarDadosAdmin();
                 inicializarMenuPerfil();

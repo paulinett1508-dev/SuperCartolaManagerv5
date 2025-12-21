@@ -5,8 +5,10 @@
  * Endpoints para auditoria de extratos financeiros
  */
 import express from "express";
-import { ObjectId } from "mongodb";
+import mongoose from "mongoose";
 import { getDB } from "../config/database.js";
+
+const { ObjectId } = mongoose.Types;
 
 const router = express.Router();
 
