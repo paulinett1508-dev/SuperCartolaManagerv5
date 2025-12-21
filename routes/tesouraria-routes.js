@@ -14,6 +14,11 @@ import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
+// ✅ v2.1: Importar funções de cálculo do controller (mesma lógica do extrato individual)
+import {
+    calcularResumoDeRodadas,
+    transformarTransacoesEmRodadas,
+} from "../controllers/extratoFinanceiroCacheController.js";
 
 const router = express.Router();
 
@@ -22,40 +27,48 @@ const router = express.Router();
 // =============================================================================
 
 async function calcularSaldoCompleto(ligaId, timeId, temporada = CURRENT_SEASON) {
-    // 1. Saldo consolidado da temporada (cache)
+    // ✅ v2.1 FIX: Usar mesma lógica do extrato individual (recalcular a partir das rodadas)
+    // Em vez de confiar no saldo_consolidado que pode estar desatualizado
+
+    // 1. Buscar cache e RECALCULAR a partir das rodadas (igual extrato individual)
     const cache = await ExtratoFinanceiroCache.findOne({
         liga_id: String(ligaId),
-        time_id: timeId,
-    });
-    const saldoConsolidado = cache?.saldo_consolidado || 0;
+        time_id: Number(timeId),
+    }).lean();
+
+    // ✅ RECALCULAR usando as mesmas funções do extrato individual
+    const rodadasProcessadas = transformarTransacoesEmRodadas(
+        cache?.historico_transacoes || [],
+        ligaId
+    );
 
     // 2. Campos manuais
     const camposManuais = await FluxoFinanceiroCampos.findOne({
         ligaId: String(ligaId),
         timeId: String(timeId),
-    });
-    let saldoCampos = 0;
-    if (camposManuais?.campos) {
-        camposManuais.campos.forEach(campo => {
-            saldoCampos += campo.valor || 0;
-        });
-    }
+    }).lean();
+    const camposAtivos = camposManuais?.campos?.filter(c => c.valor !== 0) || [];
 
-    // 3. Saldo da temporada
-    const saldoTemporada = saldoConsolidado + saldoCampos;
+    // 3. Calcular resumo (igual extrato individual)
+    const resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
+    const saldoConsolidado = resumoCalculado.saldo;
+    const saldoCampos = resumoCalculado.camposManuais || 0;
 
-    // 4. Saldo de acertos
+    // 4. Saldo da temporada (já inclui campos manuais no cálculo)
+    const saldoTemporada = saldoConsolidado;
+
+    // 5. Saldo de acertos
     const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(
         String(ligaId),
         String(timeId),
         String(temporada)
     );
 
-    // 5. Saldo final
+    // 6. Saldo final
     const saldoFinal = saldoTemporada + acertosInfo.saldoAcertos;
 
     return {
-        saldoConsolidado: parseFloat(saldoConsolidado.toFixed(2)),
+        saldoConsolidado: parseFloat((saldoConsolidado - saldoCampos).toFixed(2)), // Sem campos manuais
         saldoCampos: parseFloat(saldoCampos.toFixed(2)),
         saldoTemporada: parseFloat(saldoTemporada.toFixed(2)),
         saldoAcertos: acertosInfo.saldoAcertos,
@@ -165,43 +178,39 @@ router.get("/participantes", async (req, res) => {
 
                 // Buscar dados do cache
                 const extrato = extratoMap.get(key);
-                const saldoConsolidado = extrato?.saldo_consolidado || 0;
 
-                // ✅ v2.0: Calcular breakdown por módulo
+                // ✅ v2.1 FIX: RECALCULAR usando mesmas funções do extrato individual
+                // Não usar saldo_consolidado direto (pode estar desatualizado)
                 const historico = extrato?.historico_transacoes || [];
-                const breakdown = {
-                    banco: 0,
-                    pontosCorridos: 0,
-                    mataMata: 0,
-                    top10: 0,
-                    melhorMes: 0,
-                    artilheiro: 0,
-                    luvaOuro: 0,
-                };
-
-                historico.forEach(t => {
-                    if (t.bonusOnus !== undefined) breakdown.banco += t.bonusOnus || 0;
-                    if (t.pontosCorridos !== undefined) breakdown.pontosCorridos += t.pontosCorridos || 0;
-                    if (t.mataMata !== undefined) breakdown.mataMata += t.mataMata || 0;
-                    if (t.top10 !== undefined) breakdown.top10 += t.top10 || 0;
-
-                    // Formato legado
-                    if (t.tipo === 'BONUS' || t.tipo === 'ONUS') breakdown.banco += t.valor || 0;
-                    else if (t.tipo === 'PONTOS_CORRIDOS') breakdown.pontosCorridos += t.valor || 0;
-                    else if (t.tipo === 'MATA_MATA') breakdown.mataMata += t.valor || 0;
-                    else if (t.tipo === 'MITO' || t.tipo === 'MICO') breakdown.top10 += t.valor || 0;
-                    else if (t.tipo === 'MELHOR_MES') breakdown.melhorMes += t.valor || 0;
-                    else if (t.tipo === 'ARTILHEIRO') breakdown.artilheiro += t.valor || 0;
-                    else if (t.tipo === 'LUVA_OURO') breakdown.luvaOuro += t.valor || 0;
-                });
+                const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
 
                 // Campos manuais
                 const camposDoc = camposMap.get(key);
-                let saldoCampos = 0;
-                if (camposDoc?.campos) {
-                    camposDoc.campos.forEach(c => saldoCampos += c.valor || 0);
-                }
-                breakdown.campos = parseFloat(saldoCampos.toFixed(2));
+                const camposAtivos = camposDoc?.campos?.filter(c => c.valor !== 0) || [];
+
+                // ✅ v2.1 FIX: Calcular resumo igual ao extrato individual
+                const resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
+                const saldoConsolidado = resumoCalculado.saldo;
+                const saldoCampos = resumoCalculado.camposManuais || 0;
+
+                // ✅ v2.0: Calcular breakdown por módulo (baseado no resumo calculado)
+                const breakdown = {
+                    banco: resumoCalculado.bonus + resumoCalculado.onus,
+                    pontosCorridos: resumoCalculado.pontosCorridos,
+                    mataMata: resumoCalculado.mataMata,
+                    top10: resumoCalculado.top10,
+                    melhorMes: 0, // Não está no resumoCalculado padrão
+                    artilheiro: 0, // Não está no resumoCalculado padrão
+                    luvaOuro: 0, // Não está no resumoCalculado padrão
+                    campos: saldoCampos,
+                };
+
+                // Calcular campos especiais do histórico legado se houver
+                historico.forEach(t => {
+                    if (t.tipo === 'MELHOR_MES') breakdown.melhorMes += t.valor || 0;
+                    else if (t.tipo === 'ARTILHEIRO') breakdown.artilheiro += t.valor || 0;
+                    else if (t.tipo === 'LUVA_OURO') breakdown.luvaOuro += t.valor || 0;
+                });
 
                 // Calcular saldo de acertos
                 const acertosList = acertosMap.get(key) || [];
@@ -216,8 +225,8 @@ router.get("/participantes", async (req, res) => {
                 // RECEBIMENTO = participante recebeu da liga → DIMINUI saldo (usa crédito)
                 const saldoAcertos = totalPago - totalRecebido;
 
-                // Calcular saldos finais
-                const saldoTemporada = saldoConsolidado + saldoCampos;
+                // ✅ v2.1 FIX: Saldo da temporada já inclui campos (calcularResumoDeRodadas soma tudo)
+                const saldoTemporada = saldoConsolidado;
                 const saldoFinal = saldoTemporada + saldoAcertos;
 
                 // Classificar situação financeira
@@ -393,51 +402,38 @@ router.get("/liga/:ligaId", async (req, res) => {
 
             // Calcular saldo do extrato
             const extrato = extratoMap.get(timeId);
-            const saldoConsolidado = extrato?.saldo_consolidado || 0;
 
-            // ✅ v2.0: Calcular breakdown por módulo (baseado no histórico de transações)
+            // ✅ v2.1 FIX: RECALCULAR usando mesmas funções do extrato individual
+            // Não usar saldo_consolidado direto (pode estar desatualizado)
             const historico = extrato?.historico_transacoes || [];
+            const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
+
+            // Campos manuais
+            const camposDoc = camposMap.get(timeId);
+            const camposAtivos = camposDoc?.campos?.filter(c => c.valor !== 0) || [];
+
+            // ✅ v2.1 FIX: Calcular resumo igual ao extrato individual
+            const resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
+            const saldoConsolidado = resumoCalculado.saldo;
+            const saldoCampos = resumoCalculado.camposManuais || 0;
+
+            // ✅ v2.0: Calcular breakdown por módulo (baseado no resumo calculado)
             const breakdown = {
-                banco: 0,        // BONUS + ONUS
-                pontosCorridos: 0,
-                mataMata: 0,
-                top10: 0,        // MITO + MICO
+                banco: resumoCalculado.bonus + resumoCalculado.onus,
+                pontosCorridos: resumoCalculado.pontosCorridos,
+                mataMata: resumoCalculado.mataMata,
+                top10: resumoCalculado.top10,
                 melhorMes: 0,
                 artilheiro: 0,
                 luvaOuro: 0,
             };
 
+            // Calcular campos especiais do histórico legado se houver
             historico.forEach(t => {
-                // Formato novo (campos diretos)
-                if (t.bonusOnus !== undefined) breakdown.banco += t.bonusOnus || 0;
-                if (t.pontosCorridos !== undefined) breakdown.pontosCorridos += t.pontosCorridos || 0;
-                if (t.mataMata !== undefined) breakdown.mataMata += t.mataMata || 0;
-                if (t.top10 !== undefined) breakdown.top10 += t.top10 || 0;
-
-                // Formato legado (tipo de transação)
-                if (t.tipo === 'BONUS' || t.tipo === 'ONUS') {
-                    breakdown.banco += t.valor || 0;
-                } else if (t.tipo === 'PONTOS_CORRIDOS') {
-                    breakdown.pontosCorridos += t.valor || 0;
-                } else if (t.tipo === 'MATA_MATA') {
-                    breakdown.mataMata += t.valor || 0;
-                } else if (t.tipo === 'MITO' || t.tipo === 'MICO') {
-                    breakdown.top10 += t.valor || 0;
-                } else if (t.tipo === 'MELHOR_MES') {
-                    breakdown.melhorMes += t.valor || 0;
-                } else if (t.tipo === 'ARTILHEIRO') {
-                    breakdown.artilheiro += t.valor || 0;
-                } else if (t.tipo === 'LUVA_OURO') {
-                    breakdown.luvaOuro += t.valor || 0;
-                }
+                if (t.tipo === 'MELHOR_MES') breakdown.melhorMes += t.valor || 0;
+                else if (t.tipo === 'ARTILHEIRO') breakdown.artilheiro += t.valor || 0;
+                else if (t.tipo === 'LUVA_OURO') breakdown.luvaOuro += t.valor || 0;
             });
-
-            // Calcular saldo dos campos manuais
-            const camposDoc = camposMap.get(timeId);
-            let saldoCampos = 0;
-            if (camposDoc?.campos) {
-                camposDoc.campos.forEach(c => saldoCampos += c.valor || 0);
-            }
 
             // Calcular saldo dos acertos
             const acertosList = acertosMap.get(timeId) || [];
@@ -452,8 +448,8 @@ router.get("/liga/:ligaId", async (req, res) => {
             // RECEBIMENTO = participante recebeu da liga → DIMINUI saldo (usa crédito)
             const saldoAcertos = totalPago - totalRecebido;
 
-            // Calcular saldos finais
-            const saldoTemporada = saldoConsolidado + saldoCampos;
+            // ✅ v2.1 FIX: Saldo da temporada já inclui campos (calcularResumoDeRodadas soma tudo)
+            const saldoTemporada = saldoConsolidado;
             const saldoFinal = saldoTemporada + saldoAcertos;
 
             // Classificar situação
@@ -908,6 +904,6 @@ router.get("/resumo", async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ Rotas carregadas");
+console.log("[TESOURARIA] ✅ v2.1 Rotas carregadas (FIX: recalcula saldo igual extrato individual)");
 
 export default router;

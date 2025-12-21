@@ -1098,3 +1098,11 @@ export const estatisticasCache = async (req, res) => {
 };
 
 console.log("[CACHE-CONTROLLER] ✅ v5.0 carregado (fallback para snapshots)");
+
+// ✅ v5.6: Exportar funções auxiliares para uso em outros módulos (tesouraria, etc.)
+export {
+    calcularResumoDeRodadas,
+    transformarTransacoesEmRodadas,
+    buscarCamposManuais,
+    buscarAcertosFinanceiros,
+};
