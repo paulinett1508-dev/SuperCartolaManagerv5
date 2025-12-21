@@ -228,6 +228,12 @@
         }
         carregarLayout();
 
+        // Obter ligaId da URL
+        function obterLigaIdUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('liga') || params.get('id');
+        }
+
         // Carregar ligas
         async function carregarLigas() {
             try {
@@ -244,6 +250,16 @@
                     ligas.map(liga => `<option value="${liga._id || liga.id}">${liga.nome}</option>`).join('');
 
                 document.getElementById('btnAudit').disabled = false;
+
+                // Se veio ligaId na URL, selecionar e executar auditoria
+                const ligaIdUrl = obterLigaIdUrl();
+                if (ligaIdUrl) {
+                    select.value = ligaIdUrl;
+                    if (select.value === ligaIdUrl) {
+                        // Executar auditoria automaticamente
+                        setTimeout(() => executarAuditoria(), 300);
+                    }
+                }
             } catch (error) {
                 console.error('Erro ao carregar ligas:', error);
                 document.getElementById('ligaSelect').innerHTML = '<option value="">Erro ao carregar</option>';

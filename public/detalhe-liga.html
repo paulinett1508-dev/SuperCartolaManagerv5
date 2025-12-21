@@ -607,6 +607,18 @@
                                 <span class="material-icons admin-tool-arrow">chevron_right</span>
                             </button>
 
+                            <!-- Auditoria de Extratos -->
+                            <a href="#" class="admin-tool-item" id="btnAuditoria">
+                                <div class="admin-tool-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                                    <span class="material-icons">fact_check</span>
+                                </div>
+                                <div class="admin-tool-info">
+                                    <span class="admin-tool-label">Auditoria</span>
+                                    <span class="admin-tool-desc">Verificar integridade dos extratos</span>
+                                </div>
+                                <span class="material-icons admin-tool-arrow">chevron_right</span>
+                            </a>
+
                             <!-- Limpar Cache -->
                             <button class="admin-tool-item danger" onclick="abrirModalLimparMini()">
                                 <div class="admin-tool-icon danger">
@@ -1003,6 +1015,20 @@
                         const id = obterLigaIdCache();
                         if (id) {
                             window.location.href = `preencher-liga.html?id=${id}`;
+                        } else {
+                            alert('Liga não identificada');
+                        }
+                    });
+                }
+
+                // Botão Auditoria
+                const btnAuditoria = document.getElementById('btnAuditoria');
+                if (btnAuditoria) {
+                    btnAuditoria.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const id = obterLigaIdCache();
+                        if (id) {
+                            window.location.href = `auditoria-extratos.html?liga=${id}`;
                         } else {
                             alert('Liga não identificada');
                         }
