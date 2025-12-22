@@ -1,91 +1,47 @@
 // =====================================================================
-// QUICK ACCESS BAR - Sistema de Navegação Expansível
+// QUICK ACCESS BAR v2.1 - Performance Optimized
 // =====================================================================
-// Funcionalidades:
-// - 5 botões fixos (Competições, Financeiro, Bolões, Meu Time, Ao Vivo)
-// - Painel expansível com grid de módulos por categorias
-// - Integração com sistema de navegação existente
-// - Toasts de feedback
-// - Gestures (swipe, overlay click)
+// 4 botões: Início, Ranking, Menu (sheet), Financeiro
+// GPU-accelerated, 60fps guaranteed, DOM caching
 // =====================================================================
 
-if (window.Log) Log.info('QUICK-BAR', '🚀 Carregando Quick Access Bar...');
+if (window.Log) Log.info('QUICK-BAR', '🚀 Carregando Quick Access Bar v2.1...');
 
 class QuickAccessBar {
     constructor() {
-        this.painelAberto = false;
-        this.categoriaAtual = null;
+        this.menuAberto = false;
         this.modulosAtivos = {};
-        
-        // Configuração de categorias e módulos
-        this.config = {
-            competicoes: {
-                title: "Competições",
-                icon: "sports_score",
-                modules: [
-                    { id: "rodadas", icon: "target", label: "Rodadas", config: "rodadas" },
-                    { id: "pontos-corridos", icon: "sync", label: "Pontos Corridos", config: "pontosCorridos" },
-                    { id: "mata-mata", icon: "military_tech", label: "Mata-Mata", config: "mataMata" },
-                    { id: "top10", icon: "format_list_numbered", label: "Top 10", config: "top10" }
-                ]
-            },
-            financeiro: {
-                title: "Financeiro",
-                icon: "payments",
-                modules: [
-                    { id: "extrato", icon: "receipt_long", label: "Extrato", config: "extrato" },
-                    { id: "ranking", icon: "leaderboard", label: "Ranking", config: "ranking" }
-                ]
-            },
-            premiacoes: {
-                title: "Premiações",
-                icon: "workspace_premium",
-                modules: [
-                    { id: "melhor-mes", icon: "calendar_month", label: "Melhor do Mês", config: "melhorMes" },
-                    { id: "artilheiro", icon: "sports_soccer", label: "Artilheiro", config: "artilheiro" },
-                    { id: "luva-ouro", icon: "front_hand", label: "Luva de Ouro", config: "luvaOuro" },
-                    { id: "historico", icon: "emoji_events", label: "Hall da Fama", config: "historico" }
-                ]
-            },
-            boloes: {
-                title: "Bolões",
-                icon: "sports_soccer",
-                modules: [
-                    { id: "bolao-copa", icon: "emoji_events", label: "Bolão Copa", placeholder: true },
-                    { id: "bolao-liberta", icon: "emoji_events", label: "Bolão Libertadores", placeholder: true }
-                ]
-            },
-            meuTime: {
-                title: "Meu Time",
-                icon: "shield",
-                modules: [
-                    { id: "boas-vindas", icon: "home", label: "Início", config: "extrato" }
-                ]
-            }
+        this.moduloAtual = 'boas-vindas';
+
+        // DOM Cache - populated on render
+        this._dom = {
+            bottomNav: null,
+            menuOverlay: null,
+            menuSheet: null,
+            menuButton: null,
+            navItems: null
         };
 
-        // Controles de gesture
+        // Touch state
         this._touchStartY = 0;
-        this._touchEndY = 0;
+        this._isAnimating = false;
     }
 
     async inicializar() {
-        if (window.Log) Log.info('QUICK-BAR', 'Inicializando Quick Access Bar...');
-        
+        if (window.Log) Log.info('QUICK-BAR', 'Inicializando...');
+
         await this.aguardarNavegacao();
         await this.carregarModulosAtivos();
-        
+
         this.renderizar();
+        this.cacheDOM();
         this.configurarEventos();
-        
-        if (window.Log) Log.info('QUICK-BAR', '✅ Quick Access Bar pronta');
+
+        if (window.Log) Log.info('QUICK-BAR', '✅ Quick Access Bar v2.1 pronta');
     }
 
     async aguardarNavegacao() {
-        // Aguardar sistema de navegação estar pronto
-        if (window.participanteNav) {
-            return;
-        }
+        if (window.participanteNav) return;
 
         return new Promise((resolve) => {
             const interval = setInterval(() => {
@@ -98,340 +54,339 @@ class QuickAccessBar {
             setTimeout(() => {
                 clearInterval(interval);
                 resolve();
-            }, 5000);
+            }, 3000);
         });
     }
 
     async carregarModulosAtivos() {
-        // Obter módulos ativos da liga atual
-        if (window.participanteNav && window.participanteNav.modulosAtivos) {
+        if (window.participanteNav?.modulosAtivos) {
             this.modulosAtivos = window.participanteNav.modulosAtivos;
-            if (window.Log) Log.debug('QUICK-BAR', 'Módulos ativos carregados:', this.modulosAtivos);
         }
     }
 
     renderizar() {
-        // Verificar se já existe
-        if (document.querySelector('.quick-access-bar')) {
-            if (window.Log) Log.warn('QUICK-BAR', 'Quick Bar já existe, não renderizar novamente');
+        // Skip if already rendered
+        if (document.querySelector('.bottom-nav')) {
+            if (window.Log) Log.warn('QUICK-BAR', 'Já existe');
             return;
         }
 
-        const quickBar = document.createElement('div');
-        quickBar.className = 'quick-access-bar';
-        quickBar.innerHTML = `
-            <!-- Overlay -->
-            <div class="quick-bar-overlay" id="quickBarOverlay"></div>
-            
-            <!-- Painel Expansível -->
-            <div class="quick-bar-panel" id="quickBarPanel">
-                <div class="quick-bar-handle" id="quickBarHandle"></div>
-                <div class="quick-bar-categories" id="quickBarCategories">
-                    <!-- Categorias serão renderizadas aqui -->
-                </div>
-            </div>
-            
-            <!-- Botões Fixos -->
-            <div class="quick-bar-buttons">
-                <button class="quick-btn" data-category="competicoes">
-                    <span class="material-icons">emoji_events</span>
-                    <span class="quick-btn-label">Competições</span>
+        // Create fragment for batch DOM insertion
+        const fragment = document.createDocumentFragment();
+
+        // Menu Overlay
+        const menuOverlay = document.createElement('div');
+        menuOverlay.className = 'menu-overlay';
+        menuOverlay.id = 'menuOverlay';
+        fragment.appendChild(menuOverlay);
+
+        // Menu Sheet (lazy content - rendered on first open)
+        const menuSheet = document.createElement('div');
+        menuSheet.className = 'menu-sheet';
+        menuSheet.id = 'menuSheet';
+        menuSheet.innerHTML = '<div class="menu-handle"></div>';
+        fragment.appendChild(menuSheet);
+
+        // Bottom Navigation
+        const bottomNav = document.createElement('nav');
+        bottomNav.className = 'bottom-nav';
+        bottomNav.innerHTML = `
+            <div class="nav-container">
+                <button class="nav-item active" data-page="boas-vindas" type="button">
+                    <span class="material-icons nav-icon">home</span>
+                    <span class="nav-label">Início</span>
                 </button>
-                
-                <button class="quick-btn" data-category="financeiro">
-                    <span class="material-icons">payments</span>
-                    <span class="quick-btn-label">Financeiro</span>
+                <button class="nav-item" data-page="ranking" type="button">
+                    <span class="material-icons nav-icon">trending_up</span>
+                    <span class="nav-label">Ranking</span>
                 </button>
-                
-                <button class="quick-btn" data-category="boloes">
-                    <span class="material-icons">sports_soccer</span>
-                    <span class="quick-btn-label">Bolões</span>
+                <button class="nav-item" data-page="menu" id="menuButton" type="button">
+                    <span class="material-icons nav-icon">apps</span>
+                    <span class="nav-label">Menu</span>
                 </button>
-                
-                <button class="quick-btn" data-category="meuTime">
-                    <span class="material-icons">shield</span>
-                    <span class="quick-btn-label">Meu Time</span>
-                </button>
-                
-                <button class="quick-btn quick-btn-live" data-action="ao-vivo">
-                    <span class="quick-live-pulse"></span>
-                    <span class="material-icons">sensors</span>
-                    <span class="quick-btn-label">Ao Vivo</span>
+                <button class="nav-item" data-page="extrato" type="button">
+                    <span class="material-icons nav-icon">account_balance_wallet</span>
+                    <span class="nav-label">Financeiro</span>
                 </button>
             </div>
         `;
+        fragment.appendChild(bottomNav);
 
-        document.body.appendChild(quickBar);
-        if (window.Log) Log.debug('QUICK-BAR', '✅ Estrutura HTML renderizada');
+        // Single DOM insertion
+        document.body.appendChild(fragment);
+
+        if (window.Log) Log.debug('QUICK-BAR', '✅ Renderizado');
+    }
+
+    cacheDOM() {
+        this._dom.bottomNav = document.querySelector('.bottom-nav');
+        this._dom.menuOverlay = document.getElementById('menuOverlay');
+        this._dom.menuSheet = document.getElementById('menuSheet');
+        this._dom.menuButton = document.getElementById('menuButton');
+        this._dom.navItems = document.querySelectorAll('.nav-item');
+    }
+
+    renderizarMenuContent() {
+        return `
+            <div class="menu-handle"></div>
+
+            <div class="menu-category">
+                <div class="menu-category-title">
+                    <span class="material-icons">emoji_events</span>
+                    Competições
+                </div>
+                <div class="menu-grid">
+                    <div class="menu-card" data-module="rodadas">
+                        <span class="material-icons">view_week</span>
+                        <span class="menu-card-label">Rodadas</span>
+                    </div>
+                    <div class="menu-card" data-module="pontos-corridos">
+                        <span class="material-icons">format_list_numbered</span>
+                        <span class="menu-card-label">Pontos Corridos</span>
+                    </div>
+                    <div class="menu-card" data-module="mata-mata">
+                        <span class="material-icons">military_tech</span>
+                        <span class="menu-card-label">Mata-Mata</span>
+                    </div>
+                    <div class="menu-card" data-module="top10">
+                        <span class="material-icons">leaderboard</span>
+                        <span class="menu-card-label">TOP 10</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-category">
+                <div class="menu-category-title">
+                    <span class="material-icons">workspace_premium</span>
+                    Prêmios & Estatísticas
+                </div>
+                <div class="menu-grid">
+                    <div class="menu-card" data-module="artilheiro">
+                        <span class="material-icons">sports_soccer</span>
+                        <span class="menu-card-label">Artilheiro</span>
+                    </div>
+                    <div class="menu-card" data-module="luva-ouro">
+                        <span class="material-icons">sports_handball</span>
+                        <span class="menu-card-label">Luva de Ouro</span>
+                    </div>
+                    <div class="menu-card" data-module="melhor-mes">
+                        <span class="material-icons">calendar_month</span>
+                        <span class="menu-card-label">Melhor do Mês</span>
+                    </div>
+                    <div class="menu-card" data-module="historico">
+                        <span class="material-icons">history</span>
+                        <span class="menu-card-label">Hall da Fama</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-category">
+                <div class="menu-category-title">
+                    <span class="material-icons">upcoming</span>
+                    Em Breve (2026)
+                </div>
+                <div class="menu-grid">
+                    <div class="menu-card disabled" data-action="em-breve">
+                        <span class="material-icons">sports</span>
+                        <span class="menu-card-label">Bolão Copa</span>
+                    </div>
+                    <div class="menu-card disabled" data-action="em-breve">
+                        <span class="material-icons">stadium</span>
+                        <span class="menu-card-label">Bolão Libertadores</span>
+                    </div>
+                    <div class="menu-card disabled" data-action="em-breve">
+                        <span class="material-icons">sensors</span>
+                        <span class="menu-card-label">Ao Vivo</span>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     configurarEventos() {
-        // Botões fixos
-        document.querySelectorAll('.quick-btn[data-category]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const categoria = btn.dataset.category;
-                this.abrirCategoria(categoria);
-            });
-        });
+        const { menuOverlay, menuSheet, bottomNav } = this._dom;
 
-        // Botão "Ao Vivo"
-        const btnAoVivo = document.querySelector('.quick-btn[data-action="ao-vivo"]');
-        if (btnAoVivo) {
-            btnAoVivo.addEventListener('click', () => {
-                this.mostrarToast('Em breve na temporada 2026', 'info');
-            });
-        }
+        // Event Delegation for nav items (single listener)
+        if (bottomNav) {
+            bottomNav.addEventListener('click', (e) => {
+                const navItem = e.target.closest('.nav-item');
+                if (!navItem) return;
 
-        // Overlay - fechar ao clicar
-        const overlay = document.getElementById('quickBarOverlay');
-        if (overlay) {
-            overlay.addEventListener('click', () => {
-                this.fecharPainel();
-            });
-        }
-
-        // Handle - swipe down para fechar
-        const handle = document.getElementById('quickBarHandle');
-        if (handle) {
-            handle.addEventListener('touchstart', (e) => {
-                this._touchStartY = e.touches[0].clientY;
-            }, { passive: true });
-
-            handle.addEventListener('touchmove', (e) => {
-                this._touchEndY = e.touches[0].clientY;
-            }, { passive: true });
-
-            handle.addEventListener('touchend', () => {
-                const deltaY = this._touchEndY - this._touchStartY;
-                if (deltaY > 50) {
-                    this.fecharPainel();
+                const page = navItem.dataset.page;
+                if (page === 'menu') {
+                    this.toggleMenu();
+                } else {
+                    this.navegarPara(page);
+                    this.atualizarNavAtivo(page);
                 }
             }, { passive: true });
         }
+
+        // Overlay click
+        if (menuOverlay) {
+            menuOverlay.addEventListener('click', () => this.fecharMenu(), { passive: true });
+        }
+
+        // Menu sheet - Event Delegation + Swipe
+        if (menuSheet) {
+            // Click delegation for menu cards
+            menuSheet.addEventListener('click', (e) => {
+                const card = e.target.closest('.menu-card');
+                const handle = e.target.closest('.menu-handle');
+
+                if (handle) {
+                    this.fecharMenu();
+                    return;
+                }
+
+                if (!card) return;
+
+                const module = card.dataset.module;
+                const action = card.dataset.action;
+
+                if (action === 'em-breve') {
+                    this.mostrarToast('Em breve na temporada 2026!');
+                    return;
+                }
+
+                if (module) {
+                    this.fecharMenu();
+                    this.navegarPara(module);
+                    // Clear nav active states
+                    this._dom.navItems.forEach(nav => nav.classList.remove('active'));
+                }
+            }, { passive: true });
+
+            // Swipe down to close
+            menuSheet.addEventListener('touchstart', (e) => {
+                this._touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            menuSheet.addEventListener('touchend', (e) => {
+                const deltaY = e.changedTouches[0].clientY - this._touchStartY;
+                if (deltaY > 60) {
+                    this.fecharMenu();
+                }
+            }, { passive: true });
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.menuAberto) {
+                this.fecharMenu();
+            }
+        });
 
         if (window.Log) Log.debug('QUICK-BAR', '✅ Eventos configurados');
     }
 
-    abrirCategoria(categoria) {
-        if (window.Log) Log.debug('QUICK-BAR', `Abrindo categoria: ${categoria}`);
-        
-        this.categoriaAtual = categoria;
-        this.renderizarCategorias();
-        this.abrirPainel();
-        
-        // Marcar botão como ativo
-        document.querySelectorAll('.quick-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.querySelector(`.quick-btn[data-category="${categoria}"]`)?.classList.add('active');
+    toggleMenu() {
+        if (this._isAnimating) return;
+        this.menuAberto ? this.fecharMenu() : this.abrirMenu();
     }
 
-    abrirPainel() {
-        this.painelAberto = true;
-        document.getElementById('quickBarOverlay')?.classList.add('active');
-        document.getElementById('quickBarPanel')?.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
+    abrirMenu() {
+        if (this._isAnimating) return;
+        this._isAnimating = true;
 
-    fecharPainel() {
-        this.painelAberto = false;
-        document.getElementById('quickBarOverlay')?.classList.remove('active');
-        document.getElementById('quickBarPanel')?.classList.remove('active');
-        document.body.style.overflow = '';
-        
-        // Desmarcar botão ativo
-        document.querySelectorAll('.quick-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-    }
+        const { menuOverlay, menuSheet } = this._dom;
 
-    renderizarCategorias() {
-        const container = document.getElementById('quickBarCategories');
-        if (!container) return;
-
-        let html = '';
-
-        // Renderizar categoria atual + outras relacionadas
-        const categoriasParaExibir = this.obterCategoriasParaExibir(this.categoriaAtual);
-
-        categoriasParaExibir.forEach(catKey => {
-            const cat = this.config[catKey];
-            if (!cat) return;
-
-            html += `
-                <div class="quick-category">
-                    <h3 class="quick-category-title">
-                        <span class="material-icons">${cat.icon}</span>
-                        ${cat.title}
-                    </h3>
-                    <div class="quick-category-grid">
-                        ${this.renderizarModulos(cat.modules)}
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-
-        // Configurar eventos dos módulos
-        this.configurarEventosModulos();
-    }
-
-    obterCategoriasParaExibir(categoriaAtual) {
-        // Lógica para decidir quais categorias exibir
-        if (categoriaAtual === 'competicoes') {
-            return ['competicoes', 'premiacoes'];
-        } else if (categoriaAtual === 'financeiro') {
-            return ['financeiro', 'premiacoes'];
-        } else if (categoriaAtual === 'boloes') {
-            return ['boloes'];
-        } else if (categoriaAtual === 'meuTime') {
-            return ['meuTime', 'financeiro'];
+        // Lazy load menu content on first open
+        if (menuSheet && !menuSheet.querySelector('.menu-category')) {
+            menuSheet.innerHTML = this.renderizarMenuContent();
         }
-        return [categoriaAtual];
-    }
 
-    renderizarModulos(modules) {
-        return modules.map(mod => {
-            const isPlaceholder = mod.placeholder === true;
-            const isAtivo = this.verificarModuloAtivo(mod.config);
-            const isDisabled = !isPlaceholder && !isAtivo;
+        // Use RAF for smooth animation start
+        requestAnimationFrame(() => {
+            if (menuOverlay) menuOverlay.classList.add('visible');
+            if (menuSheet) menuSheet.classList.add('visible');
+            this.menuAberto = true;
 
-            let classes = 'quick-module-item';
-            if (isDisabled) classes += ' disabled';
-            if (isPlaceholder) classes += ' placeholder';
-
-            return `
-                <button class="${classes}" 
-                        data-module="${mod.id}" 
-                        data-placeholder="${isPlaceholder}"
-                        data-config="${mod.config || ''}"
-                        ${isDisabled ? 'disabled' : ''}>
-                    <div class="quick-module-icon">
-                        <span class="material-icons">${mod.icon || 'apps'}</span>
-                    </div>
-                    <span class="quick-module-label">${mod.label}</span>
-                    ${isPlaceholder ? '<span class="quick-module-badge">Em breve</span>' : ''}
-                </button>
-            `;
-        }).join('');
-    }
-
-    verificarModuloAtivo(configKey) {
-        if (!configKey) return true;
-        
-        // Módulos base sempre ativos
-        const modulosBase = ["extrato", "ranking", "rodadas", "historico"];
-        if (modulosBase.includes(configKey)) return true;
-        
-        // Verificar na configuração da liga
-        return this.modulosAtivos[configKey] === true;
-    }
-
-    configurarEventosModulos() {
-        document.querySelectorAll('.quick-module-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const moduloId = item.dataset.module;
-                const isPlaceholder = item.dataset.placeholder === 'true';
-                const isDisabled = item.disabled;
-
-                if (isPlaceholder) {
-                    this.mostrarToast('Em breve na temporada 2026', 'info');
-                    return;
-                }
-
-                if (isDisabled) {
-                    this.mostrarToast('Módulo não disponível nesta liga', 'warning');
-                    return;
-                }
-
-                // Navegar para o módulo
-                this.navegarParaModulo(moduloId);
-            });
+            setTimeout(() => {
+                this._isAnimating = false;
+            }, 350);
         });
     }
 
-    navegarParaModulo(moduloId) {
-        if (window.Log) Log.info('QUICK-BAR', `Navegando para módulo: ${moduloId}`);
-        
-        // Fechar painel
-        this.fecharPainel();
-        
-        // Aguardar animação e navegar
-        setTimeout(() => {
-            if (window.participanteNav && window.participanteNav.navegarPara) {
-                window.participanteNav.navegarPara(moduloId);
-            } else {
-                if (window.Log) Log.error('QUICK-BAR', 'Sistema de navegação não disponível');
-                this.mostrarToast('Erro ao navegar', 'error');
-            }
-        }, 200);
+    fecharMenu() {
+        if (this._isAnimating) return;
+        this._isAnimating = true;
+
+        const { menuOverlay, menuSheet } = this._dom;
+
+        requestAnimationFrame(() => {
+            if (menuOverlay) menuOverlay.classList.remove('visible');
+            if (menuSheet) menuSheet.classList.remove('visible');
+            this.menuAberto = false;
+
+            setTimeout(() => {
+                this._isAnimating = false;
+            }, 350);
+        });
+    }
+
+    navegarPara(modulo) {
+        if (window.participanteNav) {
+            window.participanteNav.navegarPara(modulo);
+            this.moduloAtual = modulo;
+        }
+    }
+
+    atualizarNavAtivo(page) {
+        this._dom.navItems.forEach(item => {
+            item.classList.toggle('active', item.dataset.page === page);
+        });
     }
 
     mostrarToast(mensagem, tipo = 'info') {
-        // Remover toast anterior se existir
-        const toastExistente = document.querySelector('.quick-toast');
-        if (toastExistente) {
-            toastExistente.remove();
-        }
-
-        const icones = {
-            info: 'info',
-            warning: 'warning',
-            error: 'error',
-            success: 'check_circle'
-        };
+        // Remove existing
+        const existente = document.querySelector('.quick-toast');
+        if (existente) existente.remove();
 
         const toast = document.createElement('div');
         toast.className = 'quick-toast';
+
+        const icone = tipo === 'info' ? 'info' : tipo === 'success' ? 'check_circle' : 'warning';
+
         toast.innerHTML = `
-            <span class="material-icons">${icones[tipo] || 'info'}</span>
+            <span class="material-icons">${icone}</span>
             <span>${mensagem}</span>
         `;
 
         document.body.appendChild(toast);
 
-        // Mostrar
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 10);
+        // RAF for animation
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+        });
 
-        // Esconder após 2.5s
+        // Auto hide
         setTimeout(() => {
             toast.classList.remove('show');
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
+            setTimeout(() => toast.remove(), 300);
         }, 2500);
     }
 
-    // Método público para atualizar módulos ativos (quando trocar de liga)
     atualizarModulosAtivos(modulosAtivos) {
         this.modulosAtivos = modulosAtivos;
-        if (window.Log) Log.debug('QUICK-BAR', 'Módulos ativos atualizados:', modulosAtivos);
-        
-        // Re-renderizar se painel estiver aberto
-        if (this.painelAberto && this.categoriaAtual) {
-            this.renderizarCategorias();
-        }
+        if (window.Log) Log.debug('QUICK-BAR', 'Módulos atualizados');
     }
 }
 
-// Instância global
+// Singleton instance
 const quickAccessBar = new QuickAccessBar();
 
-// Expor globalmente
+// Global exports
 window.quickAccessBar = quickAccessBar;
 window.QuickBar = quickAccessBar;
 
-// Inicializar após DOM carregar
+// Initialize on DOM ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        quickAccessBar.inicializar();
-    });
+    document.addEventListener('DOMContentLoaded', () => quickAccessBar.inicializar());
 } else {
     quickAccessBar.inicializar();
 }
 
-if (window.Log) Log.info('QUICK-BAR', '✅ Sistema carregado e pronto');
-
+if (window.Log) Log.info('QUICK-BAR', '✅ v2.1 carregado');
