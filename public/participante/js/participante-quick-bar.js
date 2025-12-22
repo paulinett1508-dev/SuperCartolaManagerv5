@@ -1,11 +1,12 @@
 // =====================================================================
-// QUICK ACCESS BAR v2.1 - Performance Optimized
+// QUICK ACCESS BAR v2.2 - Splash-Aware
 // =====================================================================
 // 4 botões: Início, Ranking, Menu (sheet), Financeiro
 // GPU-accelerated, 60fps guaranteed, DOM caching
+// v2.2: Aguarda splash fechar antes de renderizar (evita conflito)
 // =====================================================================
 
-if (window.Log) Log.info('QUICK-BAR', '🚀 Carregando Quick Access Bar v2.1...');
+if (window.Log) Log.info('QUICK-BAR', '🚀 Carregando Quick Access Bar v2.2...');
 
 class QuickAccessBar {
     constructor() {
@@ -30,6 +31,9 @@ class QuickAccessBar {
     async inicializar() {
         if (window.Log) Log.info('QUICK-BAR', 'Inicializando...');
 
+        // ✅ v2.2: Aguardar splash fechar na primeira visita
+        await this.aguardarSplashFechar();
+
         await this.aguardarNavegacao();
         await this.carregarModulosAtivos();
 
@@ -37,7 +41,55 @@ class QuickAccessBar {
         this.cacheDOM();
         this.configurarEventos();
 
-        if (window.Log) Log.info('QUICK-BAR', '✅ Quick Access Bar v2.1 pronta');
+        if (window.Log) Log.info('QUICK-BAR', '✅ Quick Access Bar v2.2 pronta');
+    }
+
+    /**
+     * ✅ v2.2: Aguarda splash fechar antes de renderizar a barra
+     * Evita conflito visual onde a barra aparece por cima da splash
+     */
+    async aguardarSplashFechar() {
+        const STORAGE_KEY = 'participante_app_loaded';
+        const isReload = sessionStorage.getItem(STORAGE_KEY);
+
+        // Em reload, splash não aparece - continuar imediatamente
+        if (isReload) {
+            if (window.Log) Log.debug('QUICK-BAR', 'Reload detectado - inicializando imediatamente');
+            return;
+        }
+
+        // Primeira visita: aguardar splash fechar
+        if (window.Log) Log.info('QUICK-BAR', 'Primeira visita - aguardando splash fechar...');
+
+        return new Promise((resolve) => {
+            // Verificar se SplashScreen existe e está visível
+            const checkSplash = () => {
+                // Se SplashScreen não existe ou não está visível, continuar
+                if (!window.SplashScreen || !window.SplashScreen.isVisible) {
+                    if (window.Log) Log.debug('QUICK-BAR', 'Splash fechou - continuando inicialização');
+                    resolve();
+                    return true;
+                }
+                return false;
+            };
+
+            // Verificar imediatamente
+            if (checkSplash()) return;
+
+            // Polling a cada 100ms até splash fechar (max 8s)
+            const interval = setInterval(() => {
+                if (checkSplash()) {
+                    clearInterval(interval);
+                }
+            }, 100);
+
+            // Timeout de segurança (8s)
+            setTimeout(() => {
+                clearInterval(interval);
+                if (window.Log) Log.warn('QUICK-BAR', 'Timeout aguardando splash - forçando inicialização');
+                resolve();
+            }, 8000);
+        });
     }
 
     async aguardarNavegacao() {
@@ -389,4 +441,4 @@ if (document.readyState === 'loading') {
     quickAccessBar.inicializar();
 }
 
-if (window.Log) Log.info('QUICK-BAR', '✅ v2.1 carregado');
+if (window.Log) Log.info('QUICK-BAR', '✅ v2.2 carregado');
