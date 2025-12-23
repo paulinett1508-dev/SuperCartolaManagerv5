@@ -1,6 +1,10 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v9.3 (HALL DA FAMA - TEXTOS DESCRITIVOS)
+// PARTICIPANTE-HISTORICO.JS - v9.4 (HALL DA FAMA - MELHORIAS FINAIS)
 // =====================================================================
+// v9.4: Melhorias finais:
+//       - TOP10: Mostra quantas vezes apareceu no ranking (ex: "2º melhor MITO (3x)")
+//       - Artilheiro/Luva: Remove linha "Melhor: [nome]" (informação redundante)
+//       - Rodapé: Usa nome da liga selecionada (não mais hardcoded "Super Cartola Manager")
 // v9.3: Textos descritivos melhorados + FIX nome da liga + TOP10 sempre visível:
 //       - Pontuação Total: número completo com decimais (ex: 3.012,50)
 //       - Artilheiro: "Você somou XX gols na temporada e ficou em XXº lugar"
@@ -20,7 +24,7 @@
 // v7.0: Layout limpo, sem seletores, mostra TODAS as ligas do participante
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.3 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.4 carregando...");
 
 // Estado do modulo
 let historicoData = null;
@@ -127,9 +131,11 @@ async function renderizarTodasLigas() {
     });
 
     let html = '';
+    let nomeLigaAtual = 'Super Cartola Manager'; // v9.4: Nome da liga para o rodapé
 
     // Para cada liga, renderizar seus dados
     for (const [ligaId, ligaData] of ligasMap) {
+        nomeLigaAtual = ligaData.nome || 'Super Cartola Manager'; // v9.4: Atualizar nome
         // Ordenar temporadas por ano (mais recente primeiro)
         const tempOrdenadas = ligaData.temporadas.sort((a, b) => b.ano - a.ano);
 
@@ -241,7 +247,6 @@ async function renderizarTodasLigas() {
                             <span class="material-icons achievement-icon">sports_soccer</span>
                             <div class="achievement-content">
                                 <div class="achievement-title">Voce somou ${artilheiro.gols} gols na temporada e ficou em ${artilheiro.posicao}º lugar</div>
-                                <div class="achievement-value">${artilheiro.jogador ? `Melhor: ${artilheiro.jogador}` : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -263,7 +268,6 @@ async function renderizarTodasLigas() {
                             <span class="material-icons achievement-icon">sports_handball</span>
                             <div class="achievement-content">
                                 <div class="achievement-title">Seus goleiros somaram ${formatarPontosCompletos(luvaOuro.pontos || luvaOuro.defesas)} pontos na temporada e voce ficou em ${luvaOuro.posicao}º lugar</div>
-                                <div class="achievement-value">${luvaOuro.goleiro ? `Melhor: ${luvaOuro.goleiro}` : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -307,11 +311,12 @@ async function renderizarTodasLigas() {
             `;
 
             if (top10.isMito) {
+                const vezesMito = top10.countMitos > 1 ? ` (${top10.countMitos}x)` : '';
                 html += `
                     <div class="achievement-item">
                         <span class="material-icons achievement-icon">grade</span>
                         <div class="achievement-content">
-                            <div class="achievement-title">Voce foi o ${top10.mitoPos}º melhor MITO da temporada</div>
+                            <div class="achievement-title">Voce foi o ${top10.mitoPos}º melhor MITO da temporada${vezesMito}</div>
                             <div class="achievement-value"><span class="highlight">${formatarPontos(top10.mitoPontos)}</span> pontos na rodada</div>
                         </div>
                     </div>
@@ -319,11 +324,12 @@ async function renderizarTodasLigas() {
             }
 
             if (top10.isMico) {
+                const vezesMico = top10.countMicos > 1 ? ` (${top10.countMicos}x)` : '';
                 html += `
                     <div class="achievement-item">
                         <span class="material-icons achievement-icon">sentiment_dissatisfied</span>
                         <div class="achievement-content">
-                            <div class="achievement-title">Voce foi o ${top10.micoPos}º pior MICO da temporada</div>
+                            <div class="achievement-title">Voce foi o ${top10.micoPos}º pior MICO da temporada${vezesMico}</div>
                             <div class="achievement-value">${formatarPontos(top10.micoPontos)} pontos na rodada</div>
                         </div>
                     </div>
@@ -422,8 +428,8 @@ async function renderizarTodasLigas() {
         }
     }
 
-    // Footer
-    html += `<div class="hall-footer">Super Cartola Manager</div>`;
+    // Footer (v9.4: usa nome da liga atual)
+    html += `<div class="hall-footer">${nomeLigaAtual}</div>`;
 
     container.innerHTML = html;
 }
@@ -459,18 +465,49 @@ async function buscarTop10(tempLigaId) {
             return null;
         }
         const data = await res.json();
-        const mito = data.mitos?.find(t => String(t.timeId) === String(timeId));
-        const mico = data.micos?.find(t => String(t.timeId) === String(timeId));
         
-        // v9.3: Sempre retornar dados do TOP10, mesmo que não esteja nos rankings
+        // v9.4: Contar TODAS as aparições do participante nos rankings (pode aparecer múltiplas vezes)
+        let countMitos = 0;
+        let countMicos = 0;
+        let primeiraMitoPos = null;
+        let primeiraMicoPos = null;
+        let primeiraMitoPts = 0;
+        let primeiraMicoPts = 0;
+        
+        // Contar aparições nos MITOS (TOP 10)
+        data.mitos?.slice(0, 10).forEach((m, index) => {
+            const mTimeId = m.timeId || m.time_id;
+            if (String(mTimeId) === String(timeId)) {
+                countMitos++;
+                if (!primeiraMitoPos) {
+                    primeiraMitoPos = index + 1;
+                    primeiraMitoPts = m.pontos || 0;
+                }
+            }
+        });
+        
+        // Contar aparições nos MICOS (TOP 10)
+        data.micos?.slice(0, 10).forEach((m, index) => {
+            const mTimeId = m.timeId || m.time_id;
+            if (String(mTimeId) === String(timeId)) {
+                countMicos++;
+                if (!primeiraMicoPos) {
+                    primeiraMicoPos = index + 1;
+                    primeiraMicoPts = m.pontos || 0;
+                }
+            }
+        });
+        
         return {
-            isMito: !!mito,
-            isMico: !!mico,
-            mitoPos: mito ? data.mitos.indexOf(mito) + 1 : null,
-            micoPos: mico ? data.micos.indexOf(mico) + 1 : null,
-            mitoPontos: mito?.pontos || 0,
-            micoPontos: mico?.pontos || 0,
-            // v9.3: Adicionar totais para exibir mesmo sem estar no ranking
+            isMito: countMitos > 0,
+            isMico: countMicos > 0,
+            mitoPos: primeiraMitoPos,
+            micoPos: primeiraMicoPos,
+            mitoPontos: primeiraMitoPts,
+            micoPontos: primeiraMicoPts,
+            // v9.4: Contagem de aparições
+            countMitos: countMitos,
+            countMicos: countMicos,
             totalMitos: data.mitos?.length || 0,
             totalMicos: data.micos?.length || 0,
             melhorMito: data.mitos?.[0] || null,
@@ -946,7 +983,6 @@ async function renderizarDadosTempoReal(ligaId) {
                             <span class="material-icons achievement-icon">sports_soccer</span>
                             <div class="achievement-content">
                                 <div class="achievement-title">Voce somou ${artilheiro.gols} gols na temporada e ficou em ${artilheiro.posicao}º lugar</div>
-                                <div class="achievement-value">${artilheiro.jogador ? `Melhor: ${artilheiro.jogador}` : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -968,7 +1004,6 @@ async function renderizarDadosTempoReal(ligaId) {
                             <span class="material-icons achievement-icon">sports_handball</span>
                             <div class="achievement-content">
                                 <div class="achievement-title">Seus goleiros somaram ${formatarPontosCompletos(luvaOuro.pontos || luvaOuro.defesas)} pontos na temporada e voce ficou em ${luvaOuro.posicao}º lugar</div>
-                                <div class="achievement-value">${luvaOuro.goleiro ? `Melhor: ${luvaOuro.goleiro}` : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -1116,7 +1151,8 @@ async function renderizarDadosTempoReal(ligaId) {
             `;
         }
 
-        html += `<div class="hall-footer">Super Cartola Manager</div>`;
+        // Footer (v9.4: usa nome da liga)
+        html += `<div class="hall-footer">${ligaNome}</div>`;
         container.innerHTML = html;
 
         if (window.Log) Log.info("HISTORICO", "Dados em tempo real renderizados para liga:", ligaId);
@@ -1127,4 +1163,4 @@ async function renderizarDadosTempoReal(ligaId) {
     }
 }
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.3 pronto");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.4 pronto");
