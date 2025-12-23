@@ -1,6 +1,11 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v9.2 (HALL DA FAMA - SEU DESEMPENHO)
+// PARTICIPANTE-HISTORICO.JS - v9.3 (HALL DA FAMA - TEXTOS DESCRITIVOS)
 // =====================================================================
+// v9.3: Textos descritivos melhorados + FIX nome da liga:
+//       - Pontuação Total: número completo com decimais (ex: 3.012,50)
+//       - Artilheiro: "Você somou XX gols na temporada e ficou em XXº lugar"
+//       - Luva de Ouro: "Seus goleiros somaram XX pontos na temporada e você ficou em XXº lugar"
+//       - FIX: Subtítulo agora mostra o nome da liga selecionada (não sempre "Super Cartola")
 // v9.2: Adiciona seções "Seu Desempenho" e "Conquistas" consolidadas
 //       - Mostra classificação, rodadas, média por rodada
 //       - Lista conquistas: Artilheiro, Luva de Ouro, TOP10, Melhor Mês, Mata-Mata
@@ -14,7 +19,7 @@
 // v7.0: Layout limpo, sem seletores, mostra TODAS as ligas do participante
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.2 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.3 carregando...");
 
 // Estado do modulo
 let historicoData = null;
@@ -54,14 +59,22 @@ export async function inicializarHistoricoParticipante({ participante, ligaId: _
 
         if (window.Log) Log.info("HISTORICO", "Dados:", { temporadas: historicoData.historico?.length });
 
-        // Atualizar subtitle com temporada(s)
+        // Atualizar subtitle com temporada(s) e nome da liga (v9.3)
         const elSubtitle = document.getElementById("headerSubtitle");
-        const temporadas = historicoData.historico || [];
+        let temporadas = historicoData.historico || [];
+        
+        // v9.3: Filtrar pela liga selecionada para pegar o nome correto
+        if (ligaIdSelecionada) {
+            temporadas = temporadas.filter(t => String(t.liga_id) === String(ligaIdSelecionada));
+        }
+        
         const anos = [...new Set(temporadas.map(t => t.ano))].sort((a, b) => b - a);
+        const nomeLiga = temporadas[0]?.liga_nome || 'Super Cartola'; // v9.3: Pegar nome da liga
+        
         if (elSubtitle) {
             elSubtitle.textContent = anos.length > 0
-                ? `Temporada${anos.length > 1 ? 's' : ''} ${anos.join(', ')} • Super Cartola`
-                : 'Super Cartola';
+                ? `Temporada${anos.length > 1 ? 's' : ''} ${anos.join(', ')} • ${nomeLiga}`
+                : nomeLiga;
         }
 
         // Renderizar TODAS as ligas
@@ -170,7 +183,7 @@ async function renderizarTodasLigas() {
                 <div class="stat-card">
                     <div class="material-icons stat-icon">analytics</div>
                     <div class="stat-label">Pontuacao Total</div>
-                    <div class="stat-value">${formatarPontos(pontosReais)}</div>
+                    <div class="stat-value">${formatarPontosCompletos(pontosReais)}</div>
                     <div class="stat-subtitle">${rodadasJogadas} rodadas</div>
                 </div>
                 <div class="stat-card">
@@ -213,7 +226,7 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // Artilheiro (v9.0: verifica módulo ativo)
+        // Artilheiro (v9.3: texto descritivo atualizado)
         if (modulos.artilheiro !== false && artilheiro) {
             html += `
                 <div class="section">
@@ -224,10 +237,10 @@ async function renderizarTodasLigas() {
                     </div>
                     <div class="achievement-list">
                         <div class="achievement-item">
-                            <span class="material-icons achievement-icon">star</span>
+                            <span class="material-icons achievement-icon">sports_soccer</span>
                             <div class="achievement-content">
-                                <div class="achievement-title">${artilheiro.jogador || 'Melhor Atacante'}</div>
-                                <div class="achievement-value">${artilheiro.gols} gols na temporada</div>
+                                <div class="achievement-title">Voce somou ${artilheiro.gols} gols na temporada e ficou em ${artilheiro.posicao}º lugar</div>
+                                <div class="achievement-value">${artilheiro.jogador ? `Melhor: ${artilheiro.jogador}` : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -235,7 +248,7 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // Luva de Ouro (v9.0: verifica módulo ativo)
+        // Luva de Ouro (v9.3: texto descritivo atualizado)
         if (modulos.luvaOuro !== false && luvaOuro) {
             html += `
                 <div class="section">
@@ -246,10 +259,10 @@ async function renderizarTodasLigas() {
                     </div>
                     <div class="achievement-list">
                         <div class="achievement-item">
-                            <span class="material-icons achievement-icon">shield</span>
+                            <span class="material-icons achievement-icon">sports_handball</span>
                             <div class="achievement-content">
-                                <div class="achievement-title">${luvaOuro.goleiro || 'Melhor Goleiro'}</div>
-                                <div class="achievement-value">${luvaOuro.defesas} defesas na temporada</div>
+                                <div class="achievement-title">Seus goleiros somaram ${formatarPontosCompletos(luvaOuro.pontos || luvaOuro.defesas)} pontos na temporada e voce ficou em ${luvaOuro.posicao}º lugar</div>
+                                <div class="achievement-value">${luvaOuro.goleiro ? `Melhor: ${luvaOuro.goleiro}` : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -536,7 +549,8 @@ async function buscarLuvaOuro(tempLigaId) {
         return {
             posicao: ranking.indexOf(meu) + 1,
             // v9.1 FIX: API usa pontosTotais como score principal
-            defesas: meu.pontosTotais || meu.defesas || meu.total_defesas || 0,
+            pontos: meu.pontosTotais || meu.defesas || meu.total_defesas || 0,
+            defesas: meu.pontosTotais || meu.defesas || meu.total_defesas || 0, // Manter compatibilidade
             goleiro: meu.participanteNome || meu.goleiro_nome || meu.nome_jogador || null,
             isCampeao: ranking.indexOf(meu) === 0
         };
@@ -628,6 +642,12 @@ function formatarPontos(valor) {
     return n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
 }
 
+// v9.3: Formatar pontos completos (sem abreviação "k")
+function formatarPontosCompletos(valor) {
+    const n = parseFloat(valor) || 0;
+    return n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function mostrarErro(msg) {
     const container = document.getElementById("historicoDetalhe");
     if (container) {
@@ -672,6 +692,12 @@ async function renderizarDadosTempoReal(ligaId) {
                 ligaNome = ligaData.nome || 'Liga';
                 modulos = ligaData.modulos_ativos || {};
                 if (window.Log) Log.debug("HISTORICO", "Módulos ativos da liga:", modulos);
+                
+                // v9.3: Atualizar subtitle com nome da liga
+                const elSubtitle = document.getElementById("headerSubtitle");
+                if (elSubtitle) {
+                    elSubtitle.textContent = `Temporada ${ligaData.ano || 2025} • ${ligaNome}`;
+                }
             }
         } catch (e) {
             if (window.Log) Log.warn("HISTORICO", "Erro ao buscar liga:", e);
@@ -715,7 +741,7 @@ async function renderizarDadosTempoReal(ligaId) {
                 <div class="stat-card">
                     <div class="material-icons stat-icon">analytics</div>
                     <div class="stat-label">Pontuacao Total</div>
-                    <div class="stat-value">${formatarPontos(pontosReais)}</div>
+                    <div class="stat-value">${formatarPontosCompletos(pontosReais)}</div>
                     <div class="stat-subtitle">${rodadasJogadas} rodadas</div>
                 </div>
                 <div class="stat-card">
@@ -879,7 +905,7 @@ async function renderizarDadosTempoReal(ligaId) {
             `;
         }
 
-        // Artilheiro
+        // Artilheiro (v9.3: texto descritivo atualizado)
         if (modulos.artilheiro !== false && artilheiro) {
             html += `
                 <div class="section">
@@ -890,10 +916,10 @@ async function renderizarDadosTempoReal(ligaId) {
                     </div>
                     <div class="achievement-list">
                         <div class="achievement-item">
-                            <span class="material-icons achievement-icon">star</span>
+                            <span class="material-icons achievement-icon">sports_soccer</span>
                             <div class="achievement-content">
-                                <div class="achievement-title">${artilheiro.jogador || 'Melhor Atacante'}</div>
-                                <div class="achievement-value">${artilheiro.gols} gols na temporada</div>
+                                <div class="achievement-title">Voce somou ${artilheiro.gols} gols na temporada e ficou em ${artilheiro.posicao}º lugar</div>
+                                <div class="achievement-value">${artilheiro.jogador ? `Melhor: ${artilheiro.jogador}` : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -901,7 +927,7 @@ async function renderizarDadosTempoReal(ligaId) {
             `;
         }
 
-        // Luva de Ouro
+        // Luva de Ouro (v9.3: texto descritivo atualizado)
         if (modulos.luvaOuro !== false && luvaOuro) {
             html += `
                 <div class="section">
@@ -912,10 +938,10 @@ async function renderizarDadosTempoReal(ligaId) {
                     </div>
                     <div class="achievement-list">
                         <div class="achievement-item">
-                            <span class="material-icons achievement-icon">shield</span>
+                            <span class="material-icons achievement-icon">sports_handball</span>
                             <div class="achievement-content">
-                                <div class="achievement-title">${luvaOuro.goleiro || 'Melhor Goleiro'}</div>
-                                <div class="achievement-value">${luvaOuro.defesas} defesas na temporada</div>
+                                <div class="achievement-title">Seus goleiros somaram ${formatarPontosCompletos(luvaOuro.pontos || luvaOuro.defesas)} pontos na temporada e voce ficou em ${luvaOuro.posicao}º lugar</div>
+                                <div class="achievement-value">${luvaOuro.goleiro ? `Melhor: ${luvaOuro.goleiro}` : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -1060,4 +1086,4 @@ async function renderizarDadosTempoReal(ligaId) {
     }
 }
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.0 pronto");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.3 pronto");
