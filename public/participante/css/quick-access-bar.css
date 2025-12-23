@@ -1,8 +1,9 @@
 /* =====================================================================
-   QUICK ACCESS BAR v2.2 - Splash-Aware
+   QUICK ACCESS BAR v2.3 - Ícones Coloridos
    =====================================================================
    GPU-accelerated animations, 60fps guaranteed
    v2.2: Aguarda splash fechar antes de renderizar
+   v2.3: Ícones coloridos por módulo (padrão admin)
    ===================================================================== */
 
 /* =====================================================================
@@ -242,7 +243,61 @@
 
 .menu-card .material-icons {
     font-size: 28px;
+    color: #FF4500; /* Fallback */
+}
+
+/* =====================================================================
+   ÍCONES COLORIDOS POR MÓDULO (Padrão Admin)
+   ===================================================================== */
+
+/* Competições */
+.menu-card[data-module="rodadas"] .material-icons {
+    color: #a855f7; /* Roxo */
+}
+
+.menu-card[data-module="pontos-corridos"] .material-icons {
+    color: #6366f1; /* Índigo */
+}
+
+.menu-card[data-module="mata-mata"] .material-icons {
+    color: #ef4444; /* Vermelho */
+}
+
+.menu-card[data-module="top10"] .material-icons {
+    color: #eab308; /* Amarelo */
+}
+
+/* Prêmios & Estatísticas */
+.menu-card[data-module="artilheiro"] .material-icons {
+    color: #10b981; /* Esmeralda */
+}
+
+.menu-card[data-module="luva-ouro"] .material-icons {
+    color: #14b8a6; /* Teal */
+}
+
+.menu-card[data-module="melhor-mes"] .material-icons {
+    color: #ec4899; /* Rosa */
+}
+
+.menu-card[data-module="historico"] .material-icons {
+    color: #f59e0b; /* Âmbar */
+}
+
+/* Navegação Rápida (Bottom Nav) */
+.menu-card[data-module="ranking"] .material-icons,
+.menu-card[data-module="boas-vindas"] .material-icons {
+    color: #22c55e; /* Verde */
+}
+
+.menu-card[data-module="extrato"] .material-icons {
+    color: #22c55e; /* Verde */
+}
+
+/* Em Breve (2026) - mantém laranja com opacidade */
+.menu-card.disabled .material-icons {
     color: #FF4500;
+    opacity: 0.5;
 }
 
 .menu-card-label {

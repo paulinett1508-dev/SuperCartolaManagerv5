@@ -1,10 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v7.0 (HALL DA FAMA - TODAS AS LIGAS)
+// PARTICIPANTE-HISTORICO.JS - v8.0 (HALL DA FAMA - DADOS REAIS)
 // =====================================================================
+// v8.0: Dados corrigidos: Ranking, Melhor Rodada, Saldo Histórico,
+//       Mata-Mata com aproveitamento, Extrato com Créditos/Débitos
 // v7.0: Layout limpo, sem seletores, mostra TODAS as ligas do participante
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v7.0 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v8.0 carregando...");
 
 // Estado do modulo
 let historicoData = null;
@@ -106,24 +108,29 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // Buscar dados REAIS da API
+        // Buscar dados REAIS da API (v8.0: adicionado ranking, melhorRodada e extrato)
         const modulos = tempRecente.modulos_ativos || {};
-        const [pc, top10, melhorMes, mataMata, artilheiro, luvaOuro] = await Promise.all([
+        const [pc, top10, melhorMes, mataMata, artilheiro, luvaOuro, ranking, melhorRodada, extrato] = await Promise.all([
             modulos.pontosCorridos !== false ? buscarPontosCorridos(ligaId) : null,
             modulos.top10 !== false ? buscarTop10(ligaId) : null,
             modulos.melhorMes !== false ? buscarMelhorMes(ligaId) : null,
             modulos.mataMata !== false ? buscarMataMata(ligaId) : null,
             modulos.artilheiro !== false ? buscarArtilheiro(ligaId) : null,
-            modulos.luvaOuro !== false ? buscarLuvaOuro(ligaId) : null
+            modulos.luvaOuro !== false ? buscarLuvaOuro(ligaId) : null,
+            buscarRanking(ligaId),
+            buscarMelhorRodada(ligaId),
+            buscarExtrato(ligaId)
         ]);
 
-        const fin = tempRecente.financeiro || {};
+        // v8.0: Usar dados do Ranking (prioridade) ou Pontos Corridos como fallback
+        const posicaoReal = ranking?.posicao || pc?.posicao || tempRecente.estatisticas?.posicao_final || '-';
+        const pontosReais = ranking?.pontos || pc?.pontos || 0;
+        const totalParticipantes = ranking?.total || pc?.total || 0;
+        const rodadasJogadas = ranking?.rodadas || (pc ? (pc.vitorias + pc.empates + pc.derrotas) : 0);
 
-        // Stats Grid - DADOS REAIS
-        const posicaoReal = pc?.posicao || tempRecente.estatisticas?.posicao_final || '-';
-        const pontosReais = pc?.pontos || 0;
-        const jogosReais = pc ? (pc.vitorias + pc.empates + pc.derrotas) : 0;
-        const saldoClass = fin.saldo_final > 0 ? 'positive' : fin.saldo_final < 0 ? 'negative' : '';
+        // v8.0: Usar saldo do extrato (histórico real)
+        const saldoHistorico = extrato?.saldo ?? (tempRecente.financeiro?.saldo_final || 0);
+        const saldoClass = saldoHistorico > 0 ? 'positive' : saldoHistorico < 0 ? 'negative' : '';
 
         html += `
             <div class="stats-grid">
@@ -131,32 +138,34 @@ async function renderizarTodasLigas() {
                     <div class="material-icons stat-icon">emoji_events</div>
                     <div class="stat-label">Posicao Final</div>
                     <div class="stat-value">${posicaoReal}º</div>
-                    <div class="stat-subtitle">${pc?.total ? `de ${pc.total} participantes` : 'Pontos Corridos'}</div>
+                    <div class="stat-subtitle">${totalParticipantes ? `de ${totalParticipantes} participantes` : 'Ranking Geral'}</div>
                 </div>
                 <div class="stat-card">
                     <div class="material-icons stat-icon">analytics</div>
                     <div class="stat-label">Pontuacao Total</div>
                     <div class="stat-value">${formatarPontos(pontosReais)}</div>
-                    <div class="stat-subtitle">${jogosReais} rodadas</div>
+                    <div class="stat-subtitle">${rodadasJogadas} rodadas</div>
                 </div>
                 <div class="stat-card">
                     <div class="material-icons stat-icon">paid</div>
                     <div class="stat-label">Saldo Final</div>
-                    <div class="stat-value ${saldoClass}">${formatarMoeda(fin.saldo_final)}</div>
-                    <div class="stat-subtitle">Fluxo Financeiro</div>
+                    <div class="stat-value ${saldoClass}">${formatarMoeda(saldoHistorico)}</div>
+                    <div class="stat-subtitle">Historico Financeiro</div>
                 </div>
                 <div class="stat-card">
                     <div class="material-icons stat-icon">stars</div>
-                    <div class="stat-label">Melhores Rodadas</div>
-                    <div class="stat-value">${top10?.mitoPos ? top10.mitoPos + 'º' : '-'}</div>
-                    <div class="stat-subtitle">${top10?.isMito ? 'Top 10 Mitos' : 'Ranking'}</div>
+                    <div class="stat-label">Melhor Rodada</div>
+                    <div class="stat-value">${melhorRodada ? 'R' + melhorRodada.rodada : '-'}</div>
+                    <div class="stat-subtitle">${melhorRodada ? `${formatarPontos(melhorRodada.pontos)} pontos` : 'Sem dados'}</div>
                 </div>
             </div>
             <div class="divider"></div>
         `;
 
-        // Mata-Mata
+        // Mata-Mata (v8.0: com aproveitamento - estilo "Seu Desempenho")
         if (mataMata && mataMata.participou) {
+            const totalJogos = mataMata.vitorias + mataMata.derrotas;
+            const aproveitamento = totalJogos > 0 ? Math.round((mataMata.vitorias / totalJogos) * 100) : 0;
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -169,7 +178,7 @@ async function renderizarTodasLigas() {
                             <span class="material-icons achievement-icon">workspace_premium</span>
                             <div class="achievement-content">
                                 <div class="achievement-title">${mataMata.campeao ? 'Campeao!' : mataMata.melhorFase || 'Participou'}</div>
-                                <div class="achievement-value">${mataMata.vitorias} vitoria${mataMata.vitorias !== 1 ? 's' : ''} • ${mataMata.derrotas} derrota${mataMata.derrotas !== 1 ? 's' : ''}</div>
+                                <div class="achievement-value">${mataMata.vitorias}V ${mataMata.derrotas}D • <span class="highlight">${aproveitamento}%</span> aproveitamento</div>
                             </div>
                         </div>
                     </div>
@@ -245,7 +254,7 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // TOP 10
+        // TOP 10 (v8.0: texto descritivo)
         if (top10 && (top10.isMito || top10.isMico)) {
             html += `
                 <div class="section">
@@ -261,8 +270,8 @@ async function renderizarTodasLigas() {
                     <div class="achievement-item">
                         <span class="material-icons achievement-icon">grade</span>
                         <div class="achievement-content">
-                            <div class="achievement-title">Maiores MITOS</div>
-                            <div class="achievement-value">${top10.mitoPos}º lugar com <span class="highlight">${formatarPontos(top10.mitoPontos)}</span> pontos</div>
+                            <div class="achievement-title">Voce foi o ${top10.mitoPos}º melhor MITO da temporada</div>
+                            <div class="achievement-value"><span class="highlight">${formatarPontos(top10.mitoPontos)}</span> pontos na rodada</div>
                         </div>
                     </div>
                 `;
@@ -273,8 +282,8 @@ async function renderizarTodasLigas() {
                     <div class="achievement-item">
                         <span class="material-icons achievement-icon">sentiment_dissatisfied</span>
                         <div class="achievement-content">
-                            <div class="achievement-title">Maiores MICOS</div>
-                            <div class="achievement-value">${top10.micoPos}º lugar com ${formatarPontos(top10.micoPontos)} pontos</div>
+                            <div class="achievement-title">Voce foi o ${top10.micoPos}º pior MICO da temporada</div>
+                            <div class="achievement-value">${formatarPontos(top10.micoPontos)} pontos na rodada</div>
                         </div>
                     </div>
                 `;
@@ -315,8 +324,11 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // Financeiro
-        if (fin.total_bonus || fin.total_onus || fin.saldo_final) {
+        // Financeiro (v8.0: usando extrato com créditos/débitos reais)
+        const temDadosFinanceiros = extrato?.creditos || extrato?.debitos || saldoHistorico;
+        if (temDadosFinanceiros) {
+            const creditos = extrato?.creditos || 0;
+            const debitos = extrato?.debitos || 0;
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -327,22 +339,22 @@ async function renderizarTodasLigas() {
                         <div class="achievement-item">
                             <span class="material-icons achievement-icon">arrow_upward</span>
                             <div class="achievement-content">
-                                <div class="achievement-title">Total Recebido</div>
-                                <div class="achievement-value positive">${formatarMoeda(Math.abs(fin.total_bonus || 0))}</div>
+                                <div class="achievement-title">Creditos</div>
+                                <div class="achievement-value positive">+${formatarMoeda(creditos)}</div>
                             </div>
                         </div>
                         <div class="achievement-item">
                             <span class="material-icons achievement-icon">arrow_downward</span>
                             <div class="achievement-content">
-                                <div class="achievement-title">Total Pago</div>
-                                <div class="achievement-value negative">${formatarMoeda(Math.abs(fin.total_onus || 0))}</div>
+                                <div class="achievement-title">Debitos</div>
+                                <div class="achievement-value negative">-${formatarMoeda(debitos)}</div>
                             </div>
                         </div>
                         <div class="achievement-item">
                             <span class="material-icons achievement-icon">account_balance</span>
                             <div class="achievement-content">
-                                <div class="achievement-title">Saldo ${fin.saldo_final >= 0 ? 'Positivo' : 'Negativo'}</div>
-                                <div class="achievement-value ${saldoClass}">${formatarMoeda(fin.saldo_final)}</div>
+                                <div class="achievement-title">Saldo ${saldoHistorico >= 0 ? 'Positivo' : 'Negativo'}</div>
+                                <div class="achievement-value ${saldoClass}">${formatarMoeda(saldoHistorico)}</div>
                             </div>
                         </div>
                     </div>
@@ -493,6 +505,73 @@ async function buscarLuvaOuro(tempLigaId) {
     } catch { return null; }
 }
 
+// v8.0: Buscar dados do Ranking (pontuação total real)
+async function buscarRanking(tempLigaId) {
+    try {
+        const res = await fetch(`/api/ranking-turno/${tempLigaId}?turno=geral`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data.success || !data.ranking) return null;
+        const meu = data.ranking.find(t => String(t.timeId) === String(timeId));
+        if (!meu) return null;
+        return {
+            posicao: meu.posicao || (data.ranking.indexOf(meu) + 1),
+            pontos: meu.pontos || 0,
+            total: data.ranking.length,
+            rodadas: meu.rodadas || 0
+        };
+    } catch { return null; }
+}
+
+// v8.0: Buscar melhor rodada (maior pontuação do participante)
+async function buscarMelhorRodada(tempLigaId) {
+    try {
+        const res = await fetch(`/api/rodadas/${tempLigaId}/rodadas?inicio=1&fim=38`);
+        if (!res.ok) return null;
+        const rodadas = await res.json();
+        if (!rodadas || !Array.isArray(rodadas)) return null;
+
+        // Filtrar apenas rodadas do meu time
+        const minhasRodadas = rodadas.filter(r =>
+            String(r.timeId) === String(timeId) || String(r.time_id) === String(timeId)
+        );
+
+        if (minhasRodadas.length === 0) return null;
+
+        // Encontrar a rodada com maior pontuação
+        let melhorRodada = { rodada: 0, pontos: -Infinity };
+
+        minhasRodadas.forEach(r => {
+            const pontos = r.pontos || 0;
+            if (pontos > melhorRodada.pontos) {
+                melhorRodada = {
+                    rodada: r.rodada,
+                    pontos: pontos
+                };
+            }
+        });
+
+        return melhorRodada.rodada > 0 ? melhorRodada : null;
+    } catch { return null; }
+}
+
+// v8.0: Buscar extrato (créditos/débitos/saldo histórico)
+async function buscarExtrato(tempLigaId) {
+    try {
+        const res = await fetch(`/api/extrato-cache/${tempLigaId}/times/${timeId}/cache`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data) return null;
+
+        const resumo = data.resumo || {};
+        return {
+            creditos: resumo.totalGanhos || 0,
+            debitos: Math.abs(resumo.totalPerdas || 0),
+            saldo: resumo.saldo_atual ?? resumo.saldo_final ?? resumo.saldo ?? (resumo.totalGanhos || 0) - Math.abs(resumo.totalPerdas || 0)
+        };
+    } catch { return null; }
+}
+
 // =====================================================================
 // AUXILIARES
 // =====================================================================
@@ -536,4 +615,4 @@ function mostrarVazio() {
     }
 }
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v7.0 pronto");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v8.0 pronto");
