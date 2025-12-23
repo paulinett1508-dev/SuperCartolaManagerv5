@@ -1,11 +1,12 @@
 // =====================================================================
 // PARTICIPANTE-HISTORICO.JS - v9.3 (HALL DA FAMA - TEXTOS DESCRITIVOS)
 // =====================================================================
-// v9.3: Textos descritivos melhorados + FIX nome da liga:
+// v9.3: Textos descritivos melhorados + FIX nome da liga + TOP10 sempre visível:
 //       - Pontuação Total: número completo com decimais (ex: 3.012,50)
 //       - Artilheiro: "Você somou XX gols na temporada e ficou em XXº lugar"
 //       - Luva de Ouro: "Seus goleiros somaram XX pontos na temporada e você ficou em XXº lugar"
 //       - FIX: Subtítulo agora mostra o nome da liga selecionada (não sempre "Super Cartola")
+//       - TOP10: Card aparece sempre, mostra mensagem se não estiver no ranking
 // v9.2: Adiciona seções "Seu Desempenho" e "Conquistas" consolidadas
 //       - Mostra classificação, rodadas, média por rodada
 //       - Lista conquistas: Artilheiro, Luva de Ouro, TOP10, Melhor Mês, Mata-Mata
@@ -294,8 +295,8 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // TOP 10 (v9.0: verifica módulo ativo + texto descritivo)
-        if (modulos.top10 !== false && top10 && (top10.isMito || top10.isMico)) {
+        // TOP 10 (v9.3: mostra sempre, mesmo sem estar no ranking)
+        if (modulos.top10 !== false && top10) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -324,6 +325,19 @@ async function renderizarTodasLigas() {
                         <div class="achievement-content">
                             <div class="achievement-title">Voce foi o ${top10.micoPos}º pior MICO da temporada</div>
                             <div class="achievement-value">${formatarPontos(top10.micoPontos)} pontos na rodada</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // v9.3: Se não está em nenhum ranking, mostrar mensagem informativa
+            if (!top10.isMito && !top10.isMico && (top10.totalMitos > 0 || top10.totalMicos > 0)) {
+                html += `
+                    <div class="achievement-item">
+                        <span class="material-icons achievement-icon">info</span>
+                        <div class="achievement-content">
+                            <div class="achievement-title">Voce nao esta no TOP 10 desta temporada</div>
+                            <div class="achievement-value">${top10.totalMitos} mitos e ${top10.totalMicos} micos registrados</div>
                         </div>
                     </div>
                 `;
@@ -440,19 +454,32 @@ async function buscarPontosCorridos(tempLigaId) {
 async function buscarTop10(tempLigaId) {
     try {
         const res = await fetch(`/api/top10/cache/${tempLigaId}`);
-        if (!res.ok) return null;
+        if (!res.ok) {
+            if (window.Log) Log.warn("HISTORICO", "TOP10 API não disponível");
+            return null;
+        }
         const data = await res.json();
         const mito = data.mitos?.find(t => String(t.timeId) === String(timeId));
         const mico = data.micos?.find(t => String(t.timeId) === String(timeId));
+        
+        // v9.3: Sempre retornar dados do TOP10, mesmo que não esteja nos rankings
         return {
             isMito: !!mito,
             isMico: !!mico,
             mitoPos: mito ? data.mitos.indexOf(mito) + 1 : null,
             micoPos: mico ? data.micos.indexOf(mico) + 1 : null,
             mitoPontos: mito?.pontos || 0,
-            micoPontos: mico?.pontos || 0
+            micoPontos: mico?.pontos || 0,
+            // v9.3: Adicionar totais para exibir mesmo sem estar no ranking
+            totalMitos: data.mitos?.length || 0,
+            totalMicos: data.micos?.length || 0,
+            melhorMito: data.mitos?.[0] || null,
+            piorMico: data.micos?.[0] || null
         };
-    } catch { return null; }
+    } catch (e) {
+        if (window.Log) Log.error("HISTORICO", "Erro ao buscar TOP10:", e);
+        return null;
+    }
 }
 
 async function buscarMelhorMes(tempLigaId) {
@@ -973,8 +1000,8 @@ async function renderizarDadosTempoReal(ligaId) {
             `;
         }
 
-        // TOP 10
-        if (modulos.top10 !== false && top10 && (top10.isMito || top10.isMico)) {
+        // TOP 10 (v9.3: mostra sempre, mesmo sem estar no ranking)
+        if (modulos.top10 !== false && top10) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -1005,6 +1032,20 @@ async function renderizarDadosTempoReal(ligaId) {
                     </div>
                 `;
             }
+            
+            // v9.3: Se não está em nenhum ranking, mostrar mensagem informativa
+            if (!top10.isMito && !top10.isMico && (top10.totalMitos > 0 || top10.totalMicos > 0)) {
+                html += `
+                    <div class="achievement-item">
+                        <span class="material-icons achievement-icon">info</span>
+                        <div class="achievement-content">
+                            <div class="achievement-title">Voce nao esta no TOP 10 desta temporada</div>
+                            <div class="achievement-value">${top10.totalMitos} mitos e ${top10.totalMicos} micos registrados</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
             html += `</div></div>`;
         }
 
