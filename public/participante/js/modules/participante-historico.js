@@ -1,28 +1,39 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v8.0 (HALL DA FAMA - DADOS REAIS)
+// PARTICIPANTE-HISTORICO.JS - v9.1 (HALL DA FAMA - BUGS CORRIGIDOS)
 // =====================================================================
+// v9.1: FIX APIS - Corrige mapeamento de campos das APIs:
+//       - buscarRanking: rodadas_jogadas (não rodadas)
+//       - buscarArtilheiro: data.data.ranking, golsPro, nome
+//       - buscarLuvaOuro: data.data.ranking, participanteId, pontosTotais
+// v9.0: FIX CRÍTICO - Filtra pela liga selecionada (não ignora mais ligaId)
 // v8.0: Dados corrigidos: Ranking, Melhor Rodada, Saldo Histórico,
 //       Mata-Mata com aproveitamento, Extrato com Créditos/Débitos
 // v7.0: Layout limpo, sem seletores, mostra TODAS as ligas do participante
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v8.0 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.1 carregando...");
 
 // Estado do modulo
 let historicoData = null;
 let timeId = null;
+let ligaIdSelecionada = null; // v9.0: Liga atualmente selecionada
 
 // =====================================================================
 // FUNCAO PRINCIPAL
 // =====================================================================
 export async function inicializarHistoricoParticipante({ participante, ligaId: _ligaId, timeId: _timeId }) {
-    if (window.Log) Log.info("HISTORICO", "Inicializando...", { timeId: _timeId });
+    if (window.Log) Log.info("HISTORICO", "Inicializando...", { ligaId: _ligaId, timeId: _timeId });
 
     timeId = _timeId;
+    ligaIdSelecionada = _ligaId; // v9.0: Armazenar liga selecionada
 
     if (!timeId) {
         mostrarErro("Dados invalidos");
         return;
+    }
+
+    if (!ligaIdSelecionada) {
+        if (window.Log) Log.warn("HISTORICO", "Liga não selecionada - mostrando todas");
     }
 
     try {
@@ -60,7 +71,7 @@ export async function inicializarHistoricoParticipante({ participante, ligaId: _
 }
 
 // =====================================================================
-// RENDERIZAR TODAS AS LIGAS
+// RENDERIZAR LIGAS (v9.0: Filtra pela liga selecionada)
 // =====================================================================
 async function renderizarTodasLigas() {
     const container = document.getElementById("historicoDetalhe");
@@ -68,14 +79,27 @@ async function renderizarTodasLigas() {
 
     container.innerHTML = `<div class="loading-state"><span class="material-icons spin">sync</span><span>Carregando dados...</span></div>`;
 
-    const temporadas = historicoData.historico || [];
+    let temporadas = historicoData.historico || [];
+
+    // v9.0: Filtrar pela liga selecionada (se houver)
+    if (ligaIdSelecionada) {
+        temporadas = temporadas.filter(t => String(t.liga_id) === String(ligaIdSelecionada));
+        if (window.Log) Log.debug("HISTORICO", `Filtrando por liga: ${ligaIdSelecionada}`, { encontradas: temporadas.length });
+    }
+
+    // v9.0: Se não há histórico consolidado para a liga, buscar dados em tempo real
+    if (temporadas.length === 0 && ligaIdSelecionada) {
+        if (window.Log) Log.info("HISTORICO", "Sem histórico consolidado - buscando dados em tempo real");
+        await renderizarDadosTempoReal(ligaIdSelecionada);
+        return;
+    }
 
     if (temporadas.length === 0) {
         mostrarVazio();
         return;
     }
 
-    // Agrupar por liga
+    // Agrupar por liga (agora normalmente terá apenas 1 liga)
     const ligasMap = new Map();
     temporadas.forEach(t => {
         const key = t.liga_id;
@@ -162,8 +186,8 @@ async function renderizarTodasLigas() {
             <div class="divider"></div>
         `;
 
-        // Mata-Mata (v8.0: com aproveitamento - estilo "Seu Desempenho")
-        if (mataMata && mataMata.participou) {
+        // Mata-Mata (v9.0: verifica módulo ativo)
+        if (modulos.mataMata !== false && mataMata && mataMata.participou) {
             const totalJogos = mataMata.vitorias + mataMata.derrotas;
             const aproveitamento = totalJogos > 0 ? Math.round((mataMata.vitorias / totalJogos) * 100) : 0;
             html += `
@@ -186,8 +210,8 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // Artilheiro
-        if (artilheiro) {
+        // Artilheiro (v9.0: verifica módulo ativo)
+        if (modulos.artilheiro !== false && artilheiro) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -208,8 +232,8 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // Luva de Ouro
-        if (luvaOuro) {
+        // Luva de Ouro (v9.0: verifica módulo ativo)
+        if (modulos.luvaOuro !== false && luvaOuro) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -230,8 +254,8 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // Melhor do Mes
-        if (melhorMes && melhorMes.length > 0) {
+        // Melhor do Mes (v9.0: verifica módulo ativo)
+        if (modulos.melhorMes !== false && melhorMes && melhorMes.length > 0) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -254,8 +278,8 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // TOP 10 (v8.0: texto descritivo)
-        if (top10 && (top10.isMito || top10.isMico)) {
+        // TOP 10 (v9.0: verifica módulo ativo + texto descritivo)
+        if (modulos.top10 !== false && top10 && (top10.isMito || top10.isMico)) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -295,8 +319,8 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // Pontos Corridos (detalhes)
-        if (pc) {
+        // Pontos Corridos (v9.0: verifica módulo ativo)
+        if (modulos.pontosCorridos !== false && pc) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -476,14 +500,17 @@ async function buscarArtilheiro(tempLigaId) {
         const res = await fetch(`/api/artilheiro-campeao/${tempLigaId}/ranking`);
         if (!res.ok) return null;
         const data = await res.json();
-        if (!data.ranking) return null;
-        const meu = data.ranking.find(t => String(t.time_id) === String(timeId) || String(t.timeId) === String(timeId));
+        // v9.1 FIX: API retorna data.data.ranking, não data.ranking
+        const ranking = data.data?.ranking || data.ranking;
+        if (!ranking) return null;
+        const meu = ranking.find(t => String(t.time_id) === String(timeId) || String(t.timeId) === String(timeId));
         if (!meu) return null;
         return {
-            posicao: data.ranking.indexOf(meu) + 1,
-            gols: meu.gols || meu.total_gols || 0,
-            jogador: meu.artilheiro_nome || meu.nome_jogador || null,
-            isCampeao: data.ranking.indexOf(meu) === 0
+            posicao: ranking.indexOf(meu) + 1,
+            // v9.1 FIX: Campos corretos da API
+            gols: meu.golsPro || meu.gols || meu.total_gols || 0,
+            jogador: meu.nome || meu.artilheiro_nome || meu.nome_jogador || null,
+            isCampeao: ranking.indexOf(meu) === 0
         };
     } catch { return null; }
 }
@@ -493,14 +520,22 @@ async function buscarLuvaOuro(tempLigaId) {
         const res = await fetch(`/api/luva-de-ouro/${tempLigaId}/ranking`);
         if (!res.ok) return null;
         const data = await res.json();
-        if (!data.ranking) return null;
-        const meu = data.ranking.find(t => String(t.time_id) === String(timeId) || String(t.timeId) === String(timeId));
+        // v9.1 FIX: API retorna data.data.ranking, não data.ranking
+        const ranking = data.data?.ranking || data.ranking;
+        if (!ranking) return null;
+        // v9.1 FIX: API usa participanteId, não time_id ou timeId
+        const meu = ranking.find(t =>
+            String(t.participanteId) === String(timeId) ||
+            String(t.time_id) === String(timeId) ||
+            String(t.timeId) === String(timeId)
+        );
         if (!meu) return null;
         return {
-            posicao: data.ranking.indexOf(meu) + 1,
-            defesas: meu.defesas || meu.total_defesas || 0,
-            goleiro: meu.goleiro_nome || meu.nome_jogador || null,
-            isCampeao: data.ranking.indexOf(meu) === 0
+            posicao: ranking.indexOf(meu) + 1,
+            // v9.1 FIX: API usa pontosTotais como score principal
+            defesas: meu.pontosTotais || meu.defesas || meu.total_defesas || 0,
+            goleiro: meu.participanteNome || meu.goleiro_nome || meu.nome_jogador || null,
+            isCampeao: ranking.indexOf(meu) === 0
         };
     } catch { return null; }
 }
@@ -518,7 +553,8 @@ async function buscarRanking(tempLigaId) {
             posicao: meu.posicao || (data.ranking.indexOf(meu) + 1),
             pontos: meu.pontos || 0,
             total: data.ranking.length,
-            rodadas: meu.rodadas || 0
+            // v9.1 FIX: Campo correto é rodadas_jogadas, não rodadas
+            rodadas: meu.rodadas_jogadas || meu.rodadas || 0
         };
     } catch { return null; }
 }
@@ -615,4 +651,289 @@ function mostrarVazio() {
     }
 }
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v8.0 pronto");
+// v9.0: Buscar e renderizar dados em tempo real quando não há histórico consolidado
+async function renderizarDadosTempoReal(ligaId) {
+    const container = document.getElementById("historicoDetalhe");
+    if (!container) return;
+
+    container.innerHTML = `<div class="loading-state"><span class="material-icons spin">sync</span><span>Carregando dados...</span></div>`;
+
+    try {
+        // Buscar dados da liga (inclui nome e modulos_ativos)
+        let ligaNome = 'Liga';
+        let modulos = {};
+        try {
+            const ligaRes = await fetch(`/api/ligas/${ligaId}`);
+            if (ligaRes.ok) {
+                const ligaData = await ligaRes.json();
+                ligaNome = ligaData.nome || 'Liga';
+                modulos = ligaData.modulos_ativos || {};
+                if (window.Log) Log.debug("HISTORICO", "Módulos ativos da liga:", modulos);
+            }
+        } catch (e) {
+            if (window.Log) Log.warn("HISTORICO", "Erro ao buscar liga:", e);
+        }
+
+        // Buscar dados em paralelo
+        const [ranking, melhorRodada, extrato, pc, top10, mataMata, artilheiro, luvaOuro, melhorMes] = await Promise.all([
+            buscarRanking(ligaId),
+            buscarMelhorRodada(ligaId),
+            buscarExtrato(ligaId),
+            modulos.pontosCorridos !== false ? buscarPontosCorridos(ligaId) : null,
+            modulos.top10 !== false ? buscarTop10(ligaId) : null,
+            modulos.mataMata !== false ? buscarMataMata(ligaId) : null,
+            modulos.artilheiro !== false ? buscarArtilheiro(ligaId) : null,
+            modulos.luvaOuro !== false ? buscarLuvaOuro(ligaId) : null,
+            modulos.melhorMes !== false ? buscarMelhorMes(ligaId) : null
+        ]);
+
+        // Verificar se há dados
+        if (!ranking && !pc && !extrato) {
+            mostrarVazio();
+            return;
+        }
+
+        // Dados principais
+        const posicaoReal = ranking?.posicao || pc?.posicao || '-';
+        const pontosReais = ranking?.pontos || pc?.pontos || 0;
+        const totalParticipantes = ranking?.total || pc?.total || 0;
+        const rodadasJogadas = ranking?.rodadas || (pc ? (pc.vitorias + pc.empates + pc.derrotas) : 0);
+        const saldoHistorico = extrato?.saldo ?? 0;
+        const saldoClass = saldoHistorico > 0 ? 'positive' : saldoHistorico < 0 ? 'negative' : '';
+
+        let html = `
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="material-icons stat-icon">emoji_events</div>
+                    <div class="stat-label">Posicao Atual</div>
+                    <div class="stat-value">${posicaoReal}º</div>
+                    <div class="stat-subtitle">${totalParticipantes ? `de ${totalParticipantes} participantes` : 'Ranking Geral'}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="material-icons stat-icon">analytics</div>
+                    <div class="stat-label">Pontuacao Total</div>
+                    <div class="stat-value">${formatarPontos(pontosReais)}</div>
+                    <div class="stat-subtitle">${rodadasJogadas} rodadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="material-icons stat-icon">paid</div>
+                    <div class="stat-label">Saldo Atual</div>
+                    <div class="stat-value ${saldoClass}">${formatarMoeda(saldoHistorico)}</div>
+                    <div class="stat-subtitle">Historico Financeiro</div>
+                </div>
+                <div class="stat-card">
+                    <div class="material-icons stat-icon">stars</div>
+                    <div class="stat-label">Melhor Rodada</div>
+                    <div class="stat-value">${melhorRodada ? 'R' + melhorRodada.rodada : '-'}</div>
+                    <div class="stat-subtitle">${melhorRodada ? `${formatarPontos(melhorRodada.pontos)} pontos` : 'Sem dados'}</div>
+                </div>
+            </div>
+            <div class="divider"></div>
+        `;
+
+        // Mata-Mata
+        if (modulos.mataMata !== false && mataMata && mataMata.participou) {
+            const totalJogos = mataMata.vitorias + mataMata.derrotas;
+            const aproveitamento = totalJogos > 0 ? Math.round((mataMata.vitorias / totalJogos) * 100) : 0;
+            html += `
+                <div class="section">
+                    <div class="section-header">
+                        <span class="material-icons section-icon">military_tech</span>
+                        <span class="section-title">Mata-Mata</span>
+                        ${mataMata.campeao ? '<span class="section-badge">Campeao</span>' : ''}
+                    </div>
+                    <div class="achievement-list">
+                        <div class="achievement-item">
+                            <span class="material-icons achievement-icon">workspace_premium</span>
+                            <div class="achievement-content">
+                                <div class="achievement-title">${mataMata.campeao ? 'Campeao!' : mataMata.melhorFase || 'Participou'}</div>
+                                <div class="achievement-value">${mataMata.vitorias}V ${mataMata.derrotas}D • <span class="highlight">${aproveitamento}%</span> aproveitamento</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Artilheiro
+        if (modulos.artilheiro !== false && artilheiro) {
+            html += `
+                <div class="section">
+                    <div class="section-header">
+                        <span class="material-icons section-icon">sports_soccer</span>
+                        <span class="section-title">Artilheiro Campeao</span>
+                        ${artilheiro.isCampeao ? '<span class="section-badge">Campeao</span>' : ''}
+                    </div>
+                    <div class="achievement-list">
+                        <div class="achievement-item">
+                            <span class="material-icons achievement-icon">star</span>
+                            <div class="achievement-content">
+                                <div class="achievement-title">${artilheiro.jogador || 'Melhor Atacante'}</div>
+                                <div class="achievement-value">${artilheiro.gols} gols na temporada</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Luva de Ouro
+        if (modulos.luvaOuro !== false && luvaOuro) {
+            html += `
+                <div class="section">
+                    <div class="section-header">
+                        <span class="material-icons section-icon">sports_handball</span>
+                        <span class="section-title">Luva de Ouro</span>
+                        ${luvaOuro.isCampeao ? '<span class="section-badge">Campeao</span>' : ''}
+                    </div>
+                    <div class="achievement-list">
+                        <div class="achievement-item">
+                            <span class="material-icons achievement-icon">shield</span>
+                            <div class="achievement-content">
+                                <div class="achievement-title">${luvaOuro.goleiro || 'Melhor Goleiro'}</div>
+                                <div class="achievement-value">${luvaOuro.defesas} defesas na temporada</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Melhor do Mes
+        if (modulos.melhorMes !== false && melhorMes && melhorMes.length > 0) {
+            html += `
+                <div class="section">
+                    <div class="section-header">
+                        <span class="material-icons section-icon">calendar_month</span>
+                        <span class="section-title">Melhor do Mes</span>
+                        <span class="section-badge">${melhorMes.length}x Campeao</span>
+                    </div>
+                    <div class="achievement-list">
+                        ${melhorMes.map(m => `
+                            <div class="achievement-item">
+                                <span class="material-icons achievement-icon">emoji_events</span>
+                                <div class="achievement-content">
+                                    <div class="achievement-title">Campeao ${m.nome || ''}</div>
+                                    <div class="achievement-value">${m.pontos ? formatarPontos(m.pontos) + ' pts' : ''}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // TOP 10
+        if (modulos.top10 !== false && top10 && (top10.isMito || top10.isMico)) {
+            html += `
+                <div class="section">
+                    <div class="section-header">
+                        <span class="material-icons section-icon">leaderboard</span>
+                        <span class="section-title">TOP 10 Performance</span>
+                    </div>
+                    <div class="achievement-list">
+            `;
+            if (top10.isMito) {
+                html += `
+                    <div class="achievement-item">
+                        <span class="material-icons achievement-icon">grade</span>
+                        <div class="achievement-content">
+                            <div class="achievement-title">Voce foi o ${top10.mitoPos}º melhor MITO da temporada</div>
+                            <div class="achievement-value"><span class="highlight">${formatarPontos(top10.mitoPontos)}</span> pontos na rodada</div>
+                        </div>
+                    </div>
+                `;
+            }
+            if (top10.isMico) {
+                html += `
+                    <div class="achievement-item">
+                        <span class="material-icons achievement-icon">sentiment_dissatisfied</span>
+                        <div class="achievement-content">
+                            <div class="achievement-title">Voce foi o ${top10.micoPos}º pior MICO da temporada</div>
+                            <div class="achievement-value">${formatarPontos(top10.micoPontos)} pontos na rodada</div>
+                        </div>
+                    </div>
+                `;
+            }
+            html += `</div></div>`;
+        }
+
+        // Pontos Corridos
+        if (modulos.pontosCorridos !== false && pc) {
+            html += `
+                <div class="section">
+                    <div class="section-header">
+                        <span class="material-icons section-icon">sync</span>
+                        <span class="section-title">Pontos Corridos</span>
+                        ${pc.posicao <= 3 ? `<span class="section-badge">${pc.posicao}º Lugar</span>` : ''}
+                    </div>
+                    <div class="achievement-list">
+                        <div class="achievement-item">
+                            <span class="material-icons achievement-icon">leaderboard</span>
+                            <div class="achievement-content">
+                                <div class="achievement-title">Classificacao Atual</div>
+                                <div class="achievement-value">${pc.posicao}º de ${pc.total} participantes</div>
+                            </div>
+                        </div>
+                        <div class="achievement-item">
+                            <span class="material-icons achievement-icon">sports_score</span>
+                            <div class="achievement-content">
+                                <div class="achievement-title">Desempenho</div>
+                                <div class="achievement-value">${pc.vitorias}V ${pc.empates}E ${pc.derrotas}D • <span class="highlight">${pc.pontos} pts</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Fluxo Financeiro
+        const temDadosFinanceiros = extrato?.creditos || extrato?.debitos || saldoHistorico;
+        if (temDadosFinanceiros) {
+            const creditos = extrato?.creditos || 0;
+            const debitos = extrato?.debitos || 0;
+            html += `
+                <div class="section">
+                    <div class="section-header">
+                        <span class="material-icons section-icon">account_balance_wallet</span>
+                        <span class="section-title">Fluxo Financeiro</span>
+                    </div>
+                    <div class="achievement-list">
+                        <div class="achievement-item">
+                            <span class="material-icons achievement-icon">arrow_upward</span>
+                            <div class="achievement-content">
+                                <div class="achievement-title">Creditos</div>
+                                <div class="achievement-value positive">+${formatarMoeda(creditos)}</div>
+                            </div>
+                        </div>
+                        <div class="achievement-item">
+                            <span class="material-icons achievement-icon">arrow_downward</span>
+                            <div class="achievement-content">
+                                <div class="achievement-title">Debitos</div>
+                                <div class="achievement-value negative">-${formatarMoeda(debitos)}</div>
+                            </div>
+                        </div>
+                        <div class="achievement-item">
+                            <span class="material-icons achievement-icon">account_balance</span>
+                            <div class="achievement-content">
+                                <div class="achievement-title">Saldo ${saldoHistorico >= 0 ? 'Positivo' : 'Negativo'}</div>
+                                <div class="achievement-value ${saldoClass}">${formatarMoeda(saldoHistorico)}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        html += `<div class="hall-footer">Super Cartola Manager</div>`;
+        container.innerHTML = html;
+
+        if (window.Log) Log.info("HISTORICO", "Dados em tempo real renderizados para liga:", ligaId);
+
+    } catch (error) {
+        if (window.Log) Log.error("HISTORICO", "Erro ao buscar dados em tempo real:", error);
+        mostrarErro("Erro ao carregar dados");
+    }
+}
+
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.0 pronto");
