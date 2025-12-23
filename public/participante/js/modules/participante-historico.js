@@ -1,6 +1,9 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v9.1 (HALL DA FAMA - BUGS CORRIGIDOS)
+// PARTICIPANTE-HISTORICO.JS - v9.2 (HALL DA FAMA - SEU DESEMPENHO)
 // =====================================================================
+// v9.2: Adiciona seções "Seu Desempenho" e "Conquistas" consolidadas
+//       - Mostra classificação, rodadas, média por rodada
+//       - Lista conquistas: Artilheiro, Luva de Ouro, TOP10, Melhor Mês, Mata-Mata
 // v9.1: FIX APIS - Corrige mapeamento de campos das APIs:
 //       - buscarRanking: rodadas_jogadas (não rodadas)
 //       - buscarArtilheiro: data.data.ranking, golsPro, nome
@@ -11,7 +14,7 @@
 // v7.0: Layout limpo, sem seletores, mostra TODAS as ligas do participante
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.1 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.2 carregando...");
 
 // Estado do modulo
 let historicoData = null;
@@ -726,6 +729,127 @@ async function renderizarDadosTempoReal(ligaId) {
                     <div class="stat-label">Melhor Rodada</div>
                     <div class="stat-value">${melhorRodada ? 'R' + melhorRodada.rodada : '-'}</div>
                     <div class="stat-subtitle">${melhorRodada ? `${formatarPontos(melhorRodada.pontos)} pontos` : 'Sem dados'}</div>
+                </div>
+            </div>
+        `;
+
+        // v9.2: Seção "Seu Desempenho" consolidada
+        const conquistas = [];
+        if (posicaoReal !== '-' && posicaoReal <= 3) {
+            conquistas.push({ icone: 'military_tech', texto: `${posicaoReal}º no Ranking Geral`, destaque: true });
+        }
+        if (artilheiro) {
+            conquistas.push({
+                icone: 'sports_soccer',
+                texto: artilheiro.isCampeao ? 'Artilheiro Campeao' : `${artilheiro.posicao}º no Artilheiro`,
+                detalhe: `${artilheiro.gols} gols`,
+                destaque: artilheiro.isCampeao
+            });
+        }
+        if (luvaOuro) {
+            conquistas.push({
+                icone: 'sports_handball',
+                texto: luvaOuro.isCampeao ? 'Luva de Ouro' : `${luvaOuro.posicao}º na Luva de Ouro`,
+                detalhe: `${formatarPontos(luvaOuro.defesas)} pts`,
+                destaque: luvaOuro.isCampeao
+            });
+        }
+        if (top10 && (top10.isMito || top10.isMico)) {
+            if (top10.isMito) {
+                conquistas.push({
+                    icone: 'grade',
+                    texto: `${top10.mitoPos}º melhor MITO`,
+                    detalhe: `${formatarPontos(top10.mitoPontos)} pts`,
+                    destaque: top10.mitoPos <= 3
+                });
+            }
+            if (top10.isMico) {
+                conquistas.push({
+                    icone: 'sentiment_dissatisfied',
+                    texto: `${top10.micoPos}º pior MICO`,
+                    detalhe: `${formatarPontos(top10.micoPontos)} pts`,
+                    destaque: false
+                });
+            }
+        }
+        if (melhorMes && melhorMes.length > 0) {
+            conquistas.push({
+                icone: 'calendar_month',
+                texto: `Melhor do Mes (${melhorMes.length}x)`,
+                detalhe: melhorMes.map(m => m.nome).join(', '),
+                destaque: true
+            });
+        }
+        if (mataMata && mataMata.participou) {
+            const totalJogosM = mataMata.vitorias + mataMata.derrotas;
+            const aprovM = totalJogosM > 0 ? Math.round((mataMata.vitorias / totalJogosM) * 100) : 0;
+            conquistas.push({
+                icone: 'swords',
+                texto: mataMata.campeao ? 'Campeao Mata-Mata' : (mataMata.melhorFase || 'Mata-Mata'),
+                detalhe: `${mataMata.vitorias}V ${mataMata.derrotas}D (${aprovM}%)`,
+                destaque: mataMata.campeao
+            });
+        }
+
+        // Renderizar seção Seu Desempenho
+        html += `
+            <div class="section">
+                <div class="section-header">
+                    <span class="material-icons section-icon">assessment</span>
+                    <span class="section-title">Seu Desempenho</span>
+                    <span class="section-badge">${ligaNome}</span>
+                </div>
+                <div class="achievement-list">
+                    <div class="achievement-item">
+                        <span class="material-icons achievement-icon">leaderboard</span>
+                        <div class="achievement-content">
+                            <div class="achievement-title">Classificacao Geral</div>
+                            <div class="achievement-value"><span class="highlight">${posicaoReal}º</span> de ${totalParticipantes} participantes</div>
+                        </div>
+                    </div>
+                    <div class="achievement-item">
+                        <span class="material-icons achievement-icon">timer</span>
+                        <div class="achievement-content">
+                            <div class="achievement-title">Rodadas Disputadas</div>
+                            <div class="achievement-value"><span class="highlight">${rodadasJogadas}</span> de 38 rodadas</div>
+                        </div>
+                    </div>
+                    <div class="achievement-item">
+                        <span class="material-icons achievement-icon">trending_up</span>
+                        <div class="achievement-content">
+                            <div class="achievement-title">Media por Rodada</div>
+                            <div class="achievement-value"><span class="highlight">${rodadasJogadas > 0 ? formatarPontos(pontosReais / rodadasJogadas) : '-'}</span> pontos/rodada</div>
+                        </div>
+                    </div>
+        `;
+
+        // Adicionar conquistas se houver
+        if (conquistas.length > 0) {
+            html += `
+                </div>
+            </div>
+            <div class="section">
+                <div class="section-header">
+                    <span class="material-icons section-icon">workspace_premium</span>
+                    <span class="section-title">Conquistas</span>
+                    <span class="section-badge">${conquistas.length} ${conquistas.length === 1 ? 'conquista' : 'conquistas'}</span>
+                </div>
+                <div class="achievement-list">
+            `;
+            conquistas.forEach(c => {
+                html += `
+                    <div class="achievement-item${c.destaque ? ' destaque' : ''}">
+                        <span class="material-icons achievement-icon">${c.icone}</span>
+                        <div class="achievement-content">
+                            <div class="achievement-title">${c.texto}</div>
+                            ${c.detalhe ? `<div class="achievement-value">${c.detalhe}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        html += `
                 </div>
             </div>
             <div class="divider"></div>
