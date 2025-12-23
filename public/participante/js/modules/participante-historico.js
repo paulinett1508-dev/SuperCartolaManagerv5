@@ -461,10 +461,24 @@ async function buscarTop10(tempLigaId) {
     try {
         const res = await fetch(`/api/top10/cache/${tempLigaId}`);
         if (!res.ok) {
-            if (window.Log) Log.warn("HISTORICO", "TOP10 API não disponível");
+            if (window.Log) Log.warn("HISTORICO", "TOP10 API não disponível", { status: res.status, ligaId: tempLigaId });
             return null;
         }
         const data = await res.json();
+        
+        // v9.4: DEBUG - Ver estrutura da resposta
+        if (window.Log) Log.debug("HISTORICO", "TOP10 API Response:", {
+            ligaId: tempLigaId,
+            timeId: timeId,
+            totalMitos: data.mitos?.length,
+            totalMicos: data.micos?.length,
+            primeiros3Mitos: data.mitos?.slice(0, 3).map(m => ({ 
+                timeId: m.timeId, 
+                time_id: m.time_id, 
+                nome: m.nome_time || m.nome_cartola,
+                pontos: m.pontos 
+            }))
+        });
         
         // v9.4: Contar TODAS as aparições do participante nos rankings (pode aparecer múltiplas vezes)
         let countMitos = 0;
@@ -477,7 +491,18 @@ async function buscarTop10(tempLigaId) {
         // Contar aparições nos MITOS (TOP 10)
         data.mitos?.slice(0, 10).forEach((m, index) => {
             const mTimeId = m.timeId || m.time_id;
-            if (String(mTimeId) === String(timeId)) {
+            const match = String(mTimeId) === String(timeId);
+            
+            if (window.Log && index < 3) {
+                Log.debug("HISTORICO", `TOP10 MITO #${index + 1}:`, {
+                    mTimeId: mTimeId,
+                    timeId: timeId,
+                    match: match,
+                    nome: m.nome_time || m.nome_cartola
+                });
+            }
+            
+            if (match) {
                 countMitos++;
                 if (!primeiraMitoPos) {
                     primeiraMitoPos = index + 1;
@@ -498,7 +523,7 @@ async function buscarTop10(tempLigaId) {
             }
         });
         
-        return {
+        const result = {
             isMito: countMitos > 0,
             isMico: countMicos > 0,
             mitoPos: primeiraMitoPos,
@@ -513,6 +538,17 @@ async function buscarTop10(tempLigaId) {
             melhorMito: data.mitos?.[0] || null,
             piorMico: data.micos?.[0] || null
         };
+        
+        if (window.Log) Log.info("HISTORICO", "TOP10 Resultado:", {
+            ligaId: tempLigaId,
+            timeId: timeId,
+            countMitos: countMitos,
+            countMicos: countMicos,
+            isMito: result.isMito,
+            isMico: result.isMico
+        });
+        
+        return result;
     } catch (e) {
         if (window.Log) Log.error("HISTORICO", "Erro ao buscar TOP10:", e);
         return null;
