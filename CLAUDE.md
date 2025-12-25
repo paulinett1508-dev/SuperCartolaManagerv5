@@ -27,7 +27,7 @@
 - **File System:** Do not use absolute paths that assume a local Windows/Mac machine. Use relative paths suitable for Linux.
 
 ## 🤖 Project Skills (Agentes Especializados)
-O projeto conta com 4 skills especializadas que podem ser invocadas para tarefas específicas:
+O projeto conta com 5 skills especializadas que podem ser invocadas para tarefas específicas:
 
 | Skill | Descrição | Quando Usar |
 |-------|-----------|-------------|
@@ -35,12 +35,44 @@ O projeto conta com 4 skills especializadas que podem ser invocadas para tarefas
 | **db-guardian** | Banco de Dados (MongoDB), Segurança e Migrações | Scripts de limpeza, manutenção, snapshots de temporada, gestão de acesso |
 | **frontend-crafter** | Frontend Mobile-First, UX Black & Orange, Cache Offline, SPA | Criar telas, ajustar CSS, lógica JS do cliente, navegação |
 | **league-architect** | Regras de Negócio, Formatos de Liga (SaaS), Lógica Financeira | Configs de liga, cálculos financeiros, regras de disputa |
+| **system-scribe** | Documentador Oficial, Wiki Viva do Sistema | "explicar módulo X", "quais as regras do Y?", documentação técnica |
 
 ### Exemplos de Uso:
 - "Auditar o sistema de pagamentos" → `code-inspector`
 - "Criar script de migração para nova temporada" → `db-guardian`
 - "Ajustar a tela de ranking no mobile" → `frontend-crafter`
 - "Definir regras do mata-mata" → `league-architect`
+- "Explicar como funciona o Top 10" → `system-scribe`
+
+## 🎯 Slash Commands (Comandos Rápidos)
+
+Comandos disponíveis para invocar diretamente:
+
+| Comando | Descrição | Exemplo |
+|---------|-----------|---------|
+| `/analisar` | Análise estratégica de jogadores Cartola (Data-Driven) | `/analisar Gabigol` |
+| `/pesquisar` | Pesquisa de notícias via Perplexity (últimas 24-48h) | `/pesquisar escalação Flamengo` |
+| `/feature-scout` | Verifica se uma feature existe no código | `/feature-scout exportar PDF` |
+| `/salvar-tarefas` | Salva tarefas pendentes antes de encerrar sessão | `/salvar-tarefas` |
+| `/retomar-tarefas` | Retoma trabalho da sessão anterior | `/retomar-tarefas` |
+
+### Detalhes dos Commands:
+
+**`/analisar [jogador/setor]`**
+- Cruza dados estatísticos para recomendar escalação
+- Gera cards com Status, Potencial e Veredito (ESCALAR/OBSERVAR/VENDER)
+
+**`/pesquisar [termo]`**
+- Busca notícias de última hora sobre jogadores/times
+- Foco em fontes confiáveis (setoristas, ge.globo)
+
+**`/feature-scout [funcionalidade]`**
+- Analisa se uma feature já existe no código (total/parcial/ausente)
+- Mapeia dependências e sugere estratégia de implementação
+
+**`/salvar-tarefas` e `/retomar-tarefas`**
+- Persistem contexto entre sessões no arquivo `.claude/pending-tasks.md`
+- Útil para pausar e continuar trabalhos complexos
 
 ## ⚠️ Critical Rules
 1. NEVER remove the `gemini_audit.py` file.
