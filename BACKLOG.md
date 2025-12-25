@@ -158,11 +158,23 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
 
 ### 🎮 Gamificação/Social
 
-- [ ] [FEAT-010] **Sistema de Conquistas (Badges)**
-  - **Descrição:** Badges por feitos especiais
-  - **Exemplos:** "10 Mitos", "Campeão", "Invicto 5 rodadas", "Rei do Mico"
-  - **Exibição:** Perfil do participante
-  - **Collection:** `achievements` ou embed no participante
+- [~] [FEAT-010] **Sistema de Conquistas (Badges)** ⚡ 85% IMPLEMENTADO
+  - **Descrição:** Badges por feitos especiais exibidos no Hall da Fama
+  - **Arquivos implementados:**
+    - `routes/participante-historico-routes.js:314-392` - API com 10 badges definidos
+    - `scripts/turn_key_2026.js:285-488` - Atribuição automática no fim da temporada
+    - `public/participante/js/modules/participante-historico.js` - Renderização visual
+    - `data/users_registry.json` - Armazenamento no Cartório Vitalício
+  - **Badges JÁ IMPLEMENTADOS (10 tipos):**
+    - ✅ Campeão 🏆, Vice 🥈, Terceiro 🥉 (auto-atribuição)
+    - ✅ Top 10 Mito ⭐, Top 10 Mico 💀 (auto-atribuição)
+    - ✅ Artilheiro ⚽, Luva de Ouro 🧤, Melhor Mês 📅, Mata-Mata ⚔️, Invicto 🛡️ (definidos, exibição OK)
+  - **Funcionalidades PENDENTES (opcional):**
+    - [ ] Auto-atribuição de Artilheiro, Luva, Melhor Mês e Mata-Mata no `turn_key_2026.js`
+    - [ ] Notificação/toast ao conquistar badge (gamificação)
+    - [ ] Página dedicada de conquistas (vitrine do participante)
+    - [ ] Badges progressivos: "10 Mitos", "Veterano 3 temporadas", "5 Vitórias Consecutivas"
+  - **Status:** Sistema funcional. Badges são atribuídos e exibidos no Hall da Fama.
 
 - [ ] [FEAT-011] **Provocações pós-Rodada**
   - **Descrição:** Mensagens automáticas/customizáveis após resultados
