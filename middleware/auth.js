@@ -47,6 +47,13 @@ export const PAGINAS_ADMIN = [
   "/admin-consolidacao.html",
   "/gerenciar-modulos.html",
   "/layout.html",
+  // Páginas adicionadas (estavam sem proteção)
+  "/admin-gestao.html",
+  "/historico-acessos.html",
+  "/auditoria-extratos.html",
+  "/fluxo-financeiro.html",
+  "/gestao-renovacoes.html",
+  "/preencher-liga.html",
 ];
 
 /**
