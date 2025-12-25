@@ -21,33 +21,57 @@ _Resolver ASAP - Bloqueia funcionalidades ou compromete segurança_
 
 _Próximas sprints - Impacto significativo no sistema_
 
-- [ ] [FEAT-001] **Histórico de Rodadas no App do Participante (Temporada 2026)**
-  - **Descrição:** Permitir que participantes visualizem seus dados históricos de cada rodada (pontuação, escalação, etc.)
-  - **Arquivos base:**
-    - `public/participante/js/modules/participante-historico.js` (novo ou expandir)
-    - `public/participante/fronts/historico.html` (novo template)
-    - Reutilizar endpoint `/api/data-lake/raw/:timeId?rodada=N`
-  - **Funcionalidades:**
-    - Seletor visual de rodadas (1-38) igual ao painel admin
-    - Exibir pontuação, posição no ranking, confrontos da rodada
-    - Timeline visual da temporada do participante
-    - Comparativo com rodada anterior (subiu/desceu posições)
-  - **Dependências:**
-    - ✅ Endpoint de rodada específica (já implementado)
-    - ✅ Backup automático na consolidação (já implementado)
-    - ✅ Collection `cartola_oficial_dumps` populada
-  - **Quando implementar:** Início da Temporada 2026 (antes da rodada 1)
-  - **Ref:** Baseado no modal de "Dados do Time" do painel admin
+- [~] [FEAT-001] **Histórico de Rodadas no App do Participante** ⚡ 80% IMPLEMENTADO
+  - **Descrição:** Permitir que participantes visualizem seus dados históricos de cada rodada
+  - **Arquivos implementados:**
+    - `public/participante/js/modules/participante-rodadas.js` (v4.5) - Grid visual completo
+    - `public/participante/fronts/rodadas.html` (v2.0) - Template com 38 cards
+    - `public/participante/js/modules/participante-historico.js` (v9.4) - Hall da Fama
+    - `routes/participante-historico-routes.js` (v2.0) - API de histórico
+  - **Funcionalidades JÁ IMPLEMENTADAS:**
+    - ✅ Seletor visual de rodadas (grid 5x8 com 38 cards)
+    - ✅ Exibir pontuação por rodada (cards coloridos por saldo)
+    - ✅ Posição no ranking da rodada (ao clicar, mostra ranking completo)
+    - ✅ Timeline visual da temporada (grid funciona como timeline)
+    - ✅ Badges especiais para MITO e MICO
+    - ✅ Card "Seu Desempenho" (contagem mitos/micos)
+    - ✅ Cache instantâneo via IndexedDB
+  - **Funcionalidades PENDENTES (opcional):**
+    - [ ] Comparativo com rodada anterior (indicador subiu/desceu posições)
+    - [ ] Ver Meus Jogadores (escalação detalhada por rodada)
+      - Endpoint existe: `/api/data-lake/raw/:timeId?rodada=N`
+      - Botão existe mas desabilitado (`rodadas.html:126`)
+  - **Status:** Feature principal funcional. Gaps são melhorias opcionais.
 
-- [ ] [FEAT-002] **Hall da Fama - Estatísticas Históricas**
+- [~] [FEAT-002] **Hall da Fama - Estatísticas Históricas** ⚡ 70% IMPLEMENTADO
   - **Descrição:** Página com recordes e estatísticas de todas as temporadas
-  - **Dados necessários:** Collection `cartola_oficial_dumps` com dados permanentes
+  - **Arquivos implementados:**
+    - `public/participante/js/modules/participante-historico.js` (v9.4)
+    - `public/participante/fronts/historico.html` (v7.0)
+  - **Funcionalidades JÁ IMPLEMENTADAS:**
+    - ✅ Posição final, pontuação total, saldo financeiro
+    - ✅ Melhor rodada (maior pontuação)
+    - ✅ Conquistas: Artilheiro, Luva de Ouro, TOP10, Melhor Mês, Mata-Mata
+    - ✅ Fluxo financeiro (créditos/débitos)
+    - ✅ Filtragem por liga selecionada
+  - **Funcionalidades PENDENTES:**
+    - [ ] Maior pontuação de uma rodada (todos os tempos - cross-season)
+    - [ ] Maior sequência de vitórias
+    - [ ] Comparativo entre temporadas (2025 vs 2026)
+  - **Status:** Hall da Fama individual funcional. Falta visão cross-season.
+
+- [ ] [FEAT-014] **Co-Piloto de Análise via CLI (Lab 2026)**
+  - **Descrição:** Ferramenta de terminal para curadoria de dados assistida por IA (Admin).
+  - **Escopo:** MVP restrito a 1 time na temporada 2026 (fase de testes) (participante Paulinett Miranda)
+  - **Fluxo:** Leitura de dados locais (Mongo) → Cruzamento com notícias (Perplexity) → Sugestão de status/escalação.
+  - **Arquivos base:**
+    - `scripts/cli-analyser.js` (novo script de leitura)
+    - `prompts/analisar.md` (novo prompt de comando)
   - **Funcionalidades:**
-    - Maior pontuação de uma rodada (todos os tempos)
-    - Maior sequência de vitórias
-    - Campeões de cada temporada
-    - Artilheiros históricos
-  - **Dependências:** FEAT-001, dados da temporada 2025 já salvos
+    - Auditoria de status de jogadores (Lesionado vs Provável)
+    - Geração de "Dica da Rodada" baseada em estatística + notícias
+  - **Dependências:** Acesso ao banco de dados via script, API de Search (MCP)
+  - **Quando implementar:** Pré-temporada 2026
 
 ---
 
@@ -195,5 +219,5 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
 
 ---
 
-_Última atualização: 21/12/2025_
+_Última atualização: 25/12/2025_
 
