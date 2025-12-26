@@ -1,6 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v9.5 (HALL DA FAMA - FIX TOP10 HISTÓRICO)
+// PARTICIPANTE-HISTORICO.JS - v10.0 (HALL DA FAMA - TOP10 CORRIGIDO)
 // =====================================================================
+// v10.0: TOP10 Histórico CORRIGIDO - Lógica clara e precisa:
+//       - O ranking armazena TODAS as pontuações extremas da temporada
+//       - Apenas as 10 primeiras posições geram bônus/ônus financeiro
+//       - Um participante pode ocupar MÚLTIPLAS posições (ex: 2º, 6º, 7º)
+//       - Mostra: posições ocupadas, bônus/ônus individual e saldo total
+//       - 3 cenários: no TOP10, fora do TOP10 mas no ranking, não aparece
 // v9.5: FIX CRÍTICO - TOP10 agora busca em TODO o array de MITOS/MICOS
 //       - Antes: só buscava nos 10 primeiros registros (slice(0,10))
 //       - Agora: busca em TODOS os registros para contar quantas rodadas o participante foi MITO/MICO
@@ -303,57 +309,85 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // TOP 10 (v9.3: mostra sempre, mesmo sem estar no ranking)
+        // TOP 10 (v10.0: Lógica corrigida - mostra posições no ranking histórico)
         if (modulos.top10 !== false && top10) {
+            const temAlgoNoTop10 = top10.mitosNoTop10 > 0 || top10.micosNoTop10 > 0;
+            const saldoClass = top10.saldoTop10 > 0 ? 'positive' : top10.saldoTop10 < 0 ? 'negative' : '';
+
             html += `
                 <div class="section">
                     <div class="section-header">
                         <span class="material-icons section-icon">leaderboard</span>
-                        <span class="section-title">TOP 10 Performance</span>
+                        <span class="section-title">TOP 10 Historico</span>
+                        ${temAlgoNoTop10 ? `<span class="section-badge">${top10.saldoTop10 >= 0 ? '+' : ''}${formatarMoeda(top10.saldoTop10)}</span>` : ''}
                     </div>
                     <div class="achievement-list">
             `;
 
-            if (top10.isMito) {
-                // v9.5: Texto mais claro - mostra quantas rodadas foi MITO
-                const textoMito = top10.countMitos === 1
-                    ? `Voce foi MITO em 1 rodada (${top10.mitoPos}º no ranking geral)`
-                    : `Voce foi MITO em ${top10.countMitos} rodadas (${top10.mitoPos}º no ranking geral)`;
+            // MITOS no TOP 10
+            if (top10.mitosNoTop10 > 0) {
+                const posicoesTexto = formatarPosicoes(top10.posicoesMitosTop10);
                 html += `
                     <div class="achievement-item destaque">
                         <span class="material-icons achievement-icon">grade</span>
                         <div class="achievement-content">
-                            <div class="achievement-title">${textoMito}</div>
-                            <div class="achievement-value">Melhor: <span class="highlight">${formatarPontos(top10.mitoPontos)}</span> pontos</div>
+                            <div class="achievement-title">${top10.mitosNoTop10}x no TOP 10 Mitos</div>
+                            <div class="achievement-value">
+                                Posicoes: <span class="highlight">${posicoesTexto}</span> |
+                                Bonus: <span class="positive">+${formatarMoeda(top10.totalBonus)}</span>
+                            </div>
+                            <div class="achievement-value">Melhor: ${formatarPontos(top10.melhorMitoPts)} pts (R${top10.melhorMitoRodada})</div>
                         </div>
                     </div>
                 `;
             }
 
-            if (top10.isMico) {
-                // v9.5: Texto mais claro - mostra quantas rodadas foi MICO
-                const textoMico = top10.countMicos === 1
-                    ? `Voce foi MICO em 1 rodada (${top10.micoPos}º no ranking geral)`
-                    : `Voce foi MICO em ${top10.countMicos} rodadas (${top10.micoPos}º no ranking geral)`;
+            // MICOS no TOP 10
+            if (top10.micosNoTop10 > 0) {
+                const posicoesTexto = formatarPosicoes(top10.posicoesMicosTop10);
                 html += `
                     <div class="achievement-item">
                         <span class="material-icons achievement-icon">sentiment_dissatisfied</span>
                         <div class="achievement-content">
-                            <div class="achievement-title">${textoMico}</div>
-                            <div class="achievement-value">Pior: ${formatarPontos(top10.micoPontos)} pontos</div>
+                            <div class="achievement-title">${top10.micosNoTop10}x no TOP 10 Micos</div>
+                            <div class="achievement-value">
+                                Posicoes: <span class="highlight">${posicoesTexto}</span> |
+                                Onus: <span class="negative">-${formatarMoeda(top10.totalOnus)}</span>
+                            </div>
+                            <div class="achievement-value">Pior: ${formatarPontos(top10.piorMicoPts)} pts (R${top10.piorMicoRodada})</div>
                         </div>
                     </div>
                 `;
             }
 
-            // v9.3: Se não está em nenhum ranking, mostrar mensagem informativa
-            if (!top10.isMito && !top10.isMico && (top10.totalMitos > 0 || top10.totalMicos > 0)) {
+            // Não está no TOP 10, mas aparece no ranking geral
+            if (!temAlgoNoTop10 && (top10.temMitos || top10.temMicos)) {
+                const aparicoesMitos = top10.aparicoesMitos?.length || 0;
+                const aparicoesMicos = top10.aparicoesMicos?.length || 0;
                 html += `
                     <div class="achievement-item">
                         <span class="material-icons achievement-icon">info</span>
                         <div class="achievement-content">
-                            <div class="achievement-title">Voce nao esta no TOP 10 desta temporada</div>
-                            <div class="achievement-value">${top10.totalMitos} mitos e ${top10.totalMicos} micos registrados</div>
+                            <div class="achievement-title">Fora do TOP 10 Historico</div>
+                            <div class="achievement-value">
+                                ${aparicoesMitos > 0 ? `${aparicoesMitos}x no ranking de mitos` : ''}
+                                ${aparicoesMitos > 0 && aparicoesMicos > 0 ? ' | ' : ''}
+                                ${aparicoesMicos > 0 ? `${aparicoesMicos}x no ranking de micos` : ''}
+                            </div>
+                            <div class="achievement-value">Apenas as 10 primeiras posicoes geram bonus/onus</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Nunca apareceu em nenhum ranking
+            if (!top10.temMitos && !top10.temMicos && (top10.totalMitosTemporada > 0 || top10.totalMicosTemporada > 0)) {
+                html += `
+                    <div class="achievement-item">
+                        <span class="material-icons achievement-icon">info</span>
+                        <div class="achievement-content">
+                            <div class="achievement-title">Voce nao aparece no ranking TOP 10</div>
+                            <div class="achievement-value">${top10.totalMitosTemporada} mitos e ${top10.totalMicosTemporada} micos registrados na temporada</div>
                         </div>
                     </div>
                 `;
@@ -468,6 +502,31 @@ async function buscarPontosCorridos(tempLigaId) {
 }
 
 async function buscarTop10(tempLigaId) {
+    // v10.3: Lógica corrigida - TOP10 Histórico com valores por liga + debug
+    // O ranking armazena TODAS as pontuações extremas da temporada, ordenadas
+    // Apenas as 10 primeiras posições geram bônus/ônus financeiro
+    // Um participante pode ocupar MÚLTIPLAS posições se teve várias pontuações extremas
+
+    // Valores de bônus/ônus por posição (1º ao 10º) - ESPECÍFICOS POR LIGA
+    const LIGA_SOBRAL_ID = '684d821cf1a7ae16d1f89572';
+
+    // Super Cartola: valores maiores (liga principal com 32 times)
+    const VALORES_SUPER_CARTOLA = {
+        mito: { 1: 30, 2: 28, 3: 26, 4: 24, 5: 22, 6: 20, 7: 18, 8: 16, 9: 14, 10: 12 },
+        mico: { 1: -30, 2: -28, 3: -26, 4: -24, 5: -22, 6: -20, 7: -18, 8: -16, 9: -14, 10: -12 }
+    };
+
+    // Cartoleiros do Sobral: valores menores (liga com 6 times)
+    const VALORES_SOBRAL = {
+        mito: { 1: 10, 2: 9, 3: 8, 4: 7, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2, 10: 1 },
+        mico: { 1: -10, 2: -9, 3: -8, 4: -7, 5: -6, 6: -5, 7: -4, 8: -3, 9: -2, 10: -1 }
+    };
+
+    // Selecionar valores baseado na liga
+    const valoresLiga = (tempLigaId === LIGA_SOBRAL_ID) ? VALORES_SOBRAL : VALORES_SUPER_CARTOLA;
+    const VALORES_MITO = valoresLiga.mito;
+    const VALORES_MICO = valoresLiga.mico;
+
     try {
         const res = await fetch(`/api/top10/cache/${tempLigaId}`);
         if (!res.ok) {
@@ -475,100 +534,121 @@ async function buscarTop10(tempLigaId) {
             return null;
         }
         const data = await res.json();
-        
-        // v9.4: DEBUG - Ver estrutura da resposta
-        if (window.Log) Log.debug("HISTORICO", "TOP10 API Response:", {
-            ligaId: tempLigaId,
-            timeId: timeId,
-            totalMitos: data.mitos?.length,
-            totalMicos: data.micos?.length,
-            primeiros3Mitos: data.mitos?.slice(0, 3).map(m => ({ 
-                timeId: m.timeId, 
-                time_id: m.time_id, 
-                nome: m.nome_time || m.nome_cartola,
-                pontos: m.pontos 
-            }))
-        });
-        
-        // v9.5: FIX - Buscar em TODO o array (não apenas os 10 primeiros)
-        // O cache armazena TODAS as aparições da temporada ordenadas por pontuação
-        // Cada registro representa uma rodada onde o participante foi MITO/MICO
-        let countMitos = 0;
-        let countMicos = 0;
-        let melhorMitoPos = null; // Posição do participante no ranking geral de MITOS
-        let melhorMicoPos = null; // Posição do participante no ranking geral de MICOS
-        let melhorMitoPts = 0;
-        let melhorMicoPts = 0;
-        let rodadasMito = []; // Rodadas onde foi MITO
-        let rodadasMico = []; // Rodadas onde foi MICO
 
-        // Contar aparições nos MITOS (buscar em TODO o array, não apenas slice(0,10))
+        // v10.3: Debug log para verificar busca
+        if (window.Log) Log.debug("HISTORICO", "TOP10 busca iniciada", {
+            ligaId: tempLigaId,
+            timeIdBuscado: timeId,
+            tipoTimeId: typeof timeId,
+            mitosNoCache: data.mitos?.length || 0,
+            micosNoCache: data.micos?.length || 0,
+            primeiroMitoTimeId: data.mitos?.[0]?.time_id || data.mitos?.[0]?.timeId
+        });
+
+        // Arrays para armazenar TODAS as aparições do participante
+        const aparicoesMitos = []; // { posicao, pontos, rodada, noTop10, bonus }
+        const aparicoesMicos = []; // { posicao, pontos, rodada, noTop10, onus }
+
+        // Buscar aparições nos MITOS
+        // v10.1: Suporta campos de diferentes formatos de cache (pontos, pontos_rodada)
         (data.mitos || []).forEach((m, index) => {
             const mTimeId = m.timeId || m.time_id;
-            const match = String(mTimeId) === String(timeId);
-
-            if (match) {
-                countMitos++;
-                rodadasMito.push(m.rodada);
-                // Guardar a MELHOR posição (primeira aparição = maior pontuação)
-                if (!melhorMitoPos) {
-                    melhorMitoPos = index + 1; // Posição no ranking geral
-                    melhorMitoPts = m.pontos || 0;
-                }
+            if (String(mTimeId) === String(timeId)) {
+                const posicao = index + 1;
+                const noTop10 = posicao <= 10;
+                const pontos = m.pontos ?? m.pontos_rodada ?? 0;
+                aparicoesMitos.push({
+                    posicao,
+                    pontos,
+                    rodada: m.rodada || m.rodada_numero || null,
+                    noTop10,
+                    bonus: noTop10 ? (VALORES_MITO[posicao] || 0) : 0
+                });
             }
         });
 
-        // Contar aparições nos MICOS (buscar em TODO o array)
+        // Buscar aparições nos MICOS
+        // v10.1: Suporta campos de diferentes formatos de cache (pontos, pontos_rodada)
         (data.micos || []).forEach((m, index) => {
             const mTimeId = m.timeId || m.time_id;
             if (String(mTimeId) === String(timeId)) {
-                countMicos++;
-                rodadasMico.push(m.rodada);
-                // Guardar a PIOR posição (primeira aparição = menor pontuação = pior MICO)
-                if (!melhorMicoPos) {
-                    melhorMicoPos = index + 1; // Posição no ranking geral
-                    melhorMicoPts = m.pontos || 0;
-                }
+                const posicao = index + 1;
+                const noTop10 = posicao <= 10;
+                const pontos = m.pontos ?? m.pontos_rodada ?? 0;
+                aparicoesMicos.push({
+                    posicao,
+                    pontos,
+                    rodada: m.rodada || m.rodada_numero || null,
+                    noTop10,
+                    onus: noTop10 ? (VALORES_MICO[posicao] || 0) : 0
+                });
             }
         });
 
-        if (window.Log) Log.debug("HISTORICO", "TOP10 busca completa:", {
-            timeId: timeId,
-            totalMitosNoCache: data.mitos?.length,
-            totalMicosNoCache: data.micos?.length,
-            countMitos: countMitos,
-            countMicos: countMicos,
-            rodadasMito: rodadasMito,
-            rodadasMico: rodadasMico
+        // Filtrar apenas as que estão no TOP 10
+        const mitosNoTop10 = aparicoesMitos.filter(a => a.noTop10);
+        const micosNoTop10 = aparicoesMicos.filter(a => a.noTop10);
+
+        // Calcular totais financeiros
+        const totalBonus = mitosNoTop10.reduce((sum, a) => sum + a.bonus, 0);
+        const totalOnus = micosNoTop10.reduce((sum, a) => sum + Math.abs(a.onus), 0);
+        const saldoTop10 = totalBonus - totalOnus;
+
+        // Posições ocupadas no TOP 10 (para exibição: "2º, 6º e 7º")
+        const posicoesMitosTop10 = mitosNoTop10.map(a => a.posicao);
+        const posicoesMicosTop10 = micosNoTop10.map(a => a.posicao);
+
+        if (window.Log) Log.debug("HISTORICO", "TOP10 v10.2:", {
+            timeId,
+            aparicoesMitos: aparicoesMitos.length,
+            aparicoesMicos: aparicoesMicos.length,
+            mitosNoTop10: mitosNoTop10.length,
+            micosNoTop10: micosNoTop10.length,
+            posicoesMitosTop10,
+            posicoesMicosTop10,
+            totalBonus,
+            totalOnus,
+            saldoTop10
         });
-        
+
         const result = {
-            isMito: countMitos > 0,
-            isMico: countMicos > 0,
-            mitoPos: melhorMitoPos,
-            micoPos: melhorMicoPos,
-            mitoPontos: melhorMitoPts,
-            micoPontos: melhorMicoPts,
-            // v9.5: Contagem de aparições (quantas rodadas foi MITO/MICO)
-            countMitos: countMitos,
-            countMicos: countMicos,
-            rodadasMito: rodadasMito,
-            rodadasMico: rodadasMico,
-            totalMitos: data.mitos?.length || 0,
-            totalMicos: data.micos?.length || 0,
-            melhorMito: data.mitos?.[0] || null,
-            piorMico: data.micos?.[0] || null
+            // Flags de participação
+            temMitos: aparicoesMitos.length > 0,
+            temMicos: aparicoesMicos.length > 0,
+
+            // Aparições no TOP 10 (geram bônus/ônus)
+            mitosNoTop10: mitosNoTop10.length,
+            micosNoTop10: micosNoTop10.length,
+            posicoesMitosTop10, // [2, 6, 7] = "2º, 6º e 7º"
+            posicoesMicosTop10, // [1, 3] = "1º e 3º"
+
+            // Melhor/pior pontuação (primeira aparição de cada)
+            melhorMitoPts: aparicoesMitos[0]?.pontos || 0,
+            melhorMitoRodada: aparicoesMitos[0]?.rodada || null,
+            piorMicoPts: aparicoesMicos[0]?.pontos || 0,
+            piorMicoRodada: aparicoesMicos[0]?.rodada || null,
+
+            // Financeiro
+            totalBonus,
+            totalOnus,
+            saldoTop10,
+
+            // Totais gerais (para mensagem "X mitos registrados")
+            totalMitosTemporada: data.mitos?.length || 0,
+            totalMicosTemporada: data.micos?.length || 0,
+
+            // Todas as aparições (para detalhamento se necessário)
+            aparicoesMitos,
+            aparicoesMicos
         };
-        
-        if (window.Log) Log.info("HISTORICO", "TOP10 Resultado:", {
+
+        if (window.Log) Log.info("HISTORICO", "TOP10 Resultado v10.2:", {
             ligaId: tempLigaId,
-            timeId: timeId,
-            countMitos: countMitos,
-            countMicos: countMicos,
-            isMito: result.isMito,
-            isMico: result.isMico
+            mitosNoTop10: result.mitosNoTop10,
+            micosNoTop10: result.micosNoTop10,
+            saldoTop10: result.saldoTop10
         });
-        
+
         return result;
     } catch (e) {
         if (window.Log) Log.error("HISTORICO", "Erro ao buscar TOP10:", e);
@@ -767,6 +847,16 @@ function formatarPontos(valor) {
 function formatarPontosCompletos(valor) {
     const n = parseFloat(valor) || 0;
     return n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// v10.0: Formatar lista de posições (ex: [2, 6, 7] → "2º, 6º e 7º")
+function formatarPosicoes(posicoes) {
+    if (!posicoes || posicoes.length === 0) return '';
+    if (posicoes.length === 1) return `${posicoes[0]}º`;
+    if (posicoes.length === 2) return `${posicoes[0]}º e ${posicoes[1]}º`;
+    const ultimas = posicoes.slice(-2);
+    const primeiras = posicoes.slice(0, -2);
+    return primeiras.map(p => `${p}º`).join(', ') + ', ' + `${ultimas[0]}º e ${ultimas[1]}º`;
 }
 
 function mostrarErro(msg) {
@@ -1092,55 +1182,85 @@ async function renderizarDadosTempoReal(ligaId) {
             `;
         }
 
-        // TOP 10 (v9.5: textos atualizados - mostra quantas rodadas foi MITO/MICO)
+        // TOP 10 (v10.3: Corrigido para usar campos novos - valores por liga)
         if (modulos.top10 !== false && top10) {
+            const temAlgoNoTop10 = top10.mitosNoTop10 > 0 || top10.micosNoTop10 > 0;
+            const saldoClass = top10.saldoTop10 > 0 ? 'positive' : top10.saldoTop10 < 0 ? 'negative' : '';
+
             html += `
                 <div class="section">
                     <div class="section-header">
                         <span class="material-icons section-icon">leaderboard</span>
                         <span class="section-title">TOP 10 Performance</span>
+                        ${temAlgoNoTop10 ? `<span class="section-badge ${saldoClass}">${top10.saldoTop10 >= 0 ? '+' : ''}${formatarMoeda(top10.saldoTop10)}</span>` : ''}
                     </div>
                     <div class="achievement-list">
             `;
-            if (top10.isMito) {
-                // v9.5: Texto mais claro - mostra quantas rodadas foi MITO
-                const textoMito = top10.countMitos === 1
-                    ? `Voce foi MITO em 1 rodada (${top10.mitoPos}º no ranking geral)`
-                    : `Voce foi MITO em ${top10.countMitos} rodadas (${top10.mitoPos}º no ranking geral)`;
+
+            // MITOS no TOP 10
+            if (top10.mitosNoTop10 > 0) {
+                const posicoesTexto = formatarPosicoes(top10.posicoesMitosTop10);
                 html += `
                     <div class="achievement-item destaque">
                         <span class="material-icons achievement-icon">grade</span>
                         <div class="achievement-content">
-                            <div class="achievement-title">${textoMito}</div>
-                            <div class="achievement-value">Melhor: <span class="highlight">${formatarPontos(top10.mitoPontos)}</span> pontos</div>
-                        </div>
-                    </div>
-                `;
-            }
-            if (top10.isMico) {
-                // v9.5: Texto mais claro - mostra quantas rodadas foi MICO
-                const textoMico = top10.countMicos === 1
-                    ? `Voce foi MICO em 1 rodada (${top10.micoPos}º no ranking geral)`
-                    : `Voce foi MICO em ${top10.countMicos} rodadas (${top10.micoPos}º no ranking geral)`;
-                html += `
-                    <div class="achievement-item">
-                        <span class="material-icons achievement-icon">sentiment_dissatisfied</span>
-                        <div class="achievement-content">
-                            <div class="achievement-title">${textoMico}</div>
-                            <div class="achievement-value">Pior: ${formatarPontos(top10.micoPontos)} pontos</div>
+                            <div class="achievement-title">${top10.mitosNoTop10}x no TOP 10 Mitos</div>
+                            <div class="achievement-value">
+                                Posicoes: <span class="highlight">${posicoesTexto}</span> |
+                                Bonus: <span class="positive">+${formatarMoeda(top10.totalBonus)}</span>
+                            </div>
+                            <div class="achievement-value">Melhor: ${formatarPontos(top10.melhorMitoPts)} pts (R${top10.melhorMitoRodada})</div>
                         </div>
                     </div>
                 `;
             }
 
-            // v9.3: Se não está em nenhum ranking, mostrar mensagem informativa
-            if (!top10.isMito && !top10.isMico && (top10.totalMitos > 0 || top10.totalMicos > 0)) {
+            // MICOS no TOP 10
+            if (top10.micosNoTop10 > 0) {
+                const posicoesTexto = formatarPosicoes(top10.posicoesMicosTop10);
+                html += `
+                    <div class="achievement-item">
+                        <span class="material-icons achievement-icon">sentiment_dissatisfied</span>
+                        <div class="achievement-content">
+                            <div class="achievement-title">${top10.micosNoTop10}x no TOP 10 Micos</div>
+                            <div class="achievement-value">
+                                Posicoes: <span class="highlight">${posicoesTexto}</span> |
+                                Onus: <span class="negative">-${formatarMoeda(top10.totalOnus)}</span>
+                            </div>
+                            <div class="achievement-value">Pior: ${formatarPontos(top10.piorMicoPts)} pts (R${top10.piorMicoRodada})</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Não está no TOP 10, mas aparece no ranking geral
+            if (!temAlgoNoTop10 && (top10.temMitos || top10.temMicos)) {
+                const aparicoesMitos = top10.aparicoesMitos?.length || 0;
+                const aparicoesMicos = top10.aparicoesMicos?.length || 0;
                 html += `
                     <div class="achievement-item">
                         <span class="material-icons achievement-icon">info</span>
                         <div class="achievement-content">
-                            <div class="achievement-title">Voce nao esta no TOP 10 desta temporada</div>
-                            <div class="achievement-value">${top10.totalMitos} mitos e ${top10.totalMicos} micos registrados</div>
+                            <div class="achievement-title">Fora do TOP 10 Historico</div>
+                            <div class="achievement-value">
+                                ${aparicoesMitos > 0 ? `${aparicoesMitos}x no ranking de mitos` : ''}
+                                ${aparicoesMitos > 0 && aparicoesMicos > 0 ? ' | ' : ''}
+                                ${aparicoesMicos > 0 ? `${aparicoesMicos}x no ranking de micos` : ''}
+                            </div>
+                            <div class="achievement-value">Apenas as 10 primeiras posicoes geram bonus/onus</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Nunca apareceu em nenhum ranking
+            if (!top10.temMitos && !top10.temMicos && (top10.totalMitosTemporada > 0 || top10.totalMicosTemporada > 0)) {
+                html += `
+                    <div class="achievement-item">
+                        <span class="material-icons achievement-icon">info</span>
+                        <div class="achievement-content">
+                            <div class="achievement-title">Voce nao aparece no ranking TOP 10</div>
+                            <div class="achievement-value">${top10.totalMitosTemporada} mitos e ${top10.totalMicosTemporada} micos registrados na temporada</div>
                         </div>
                     </div>
                 `;
