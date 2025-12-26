@@ -621,6 +621,9 @@ class DetalheLigaOrquestrador {
                 if (window.AccordionManager && !window.AccordionManager._initialized) {
                     window.AccordionManager.init();
                 }
+                if (typeof window.verificarMenuSuperAdmin === 'function') {
+                    window.verificarMenuSuperAdmin();
+                }
             }, 150);
         } catch (error) {
             console.error("[ORQUESTRADOR] Erro ao carregar layout:", error);

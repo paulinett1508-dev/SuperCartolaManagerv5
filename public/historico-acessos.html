@@ -264,6 +264,11 @@
     </style>
 </head>
 <body>
+    <!-- Botão Toggle Mobile -->
+    <button class="mobile-sidebar-toggle" id="mobileSidebarToggle" onclick="toggleMobileSidebar()">
+        <span class="material-icons">menu</span>
+    </button>
+
     <div class="historico-page">
         <div id="sidebar-placeholder"></div>
         <main class="main-content">
@@ -343,6 +348,21 @@
                 if (sidebar) {
                     document.getElementById('sidebar-placeholder')?.replaceWith(sidebar);
                 }
+                // Injetar scripts do layout
+                const scripts = doc.querySelectorAll('script');
+                scripts.forEach(script => {
+                    if (script.textContent.trim()) {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = script.textContent;
+                        document.head.appendChild(newScript);
+                    }
+                });
+                // Carregar dados do admin após scripts
+                setTimeout(() => {
+                    if (typeof window.verificarMenuSuperAdmin === 'function') {
+                        window.verificarMenuSuperAdmin();
+                    }
+                }, 150);
             } catch (error) {
                 console.error('Erro ao carregar layout:', error);
             }
@@ -627,6 +647,26 @@
 
         // Inicializar
         carregarDashboard();
+
+        // Toggle Sidebar Mobile
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.app-sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('mobile-open');
+            }
+        }
+
+        // Fechar sidebar ao clicar fora (mobile)
+        document.addEventListener('click', function(e) {
+            const sidebar = document.querySelector('.app-sidebar');
+            const toggleBtn = document.getElementById('mobileSidebarToggle');
+
+            if (sidebar && sidebar.classList.contains('mobile-open')) {
+                if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            }
+        });
     </script>
 </body>
 </html>

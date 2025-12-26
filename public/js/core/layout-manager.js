@@ -40,10 +40,14 @@ export class LayoutManager {
             this._injectHeader(doc, pageConfig);
             this._executeLayoutScripts(doc);
 
-            // Garantir que AccordionManager seja inicializado
+            // Garantir que AccordionManager seja inicializado e dados do admin carregados
             setTimeout(() => {
                 if (window.AccordionManager && !window.AccordionManager._initialized) {
                     window.AccordionManager.init();
+                }
+                // Carregar dados do admin (menu Super Admin)
+                if (typeof window.verificarMenuSuperAdmin === 'function') {
+                    window.verificarMenuSuperAdmin();
                 }
             }, 150);
 

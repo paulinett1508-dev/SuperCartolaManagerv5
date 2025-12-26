@@ -53,6 +53,7 @@ Comandos disponíveis para invocar diretamente:
 | `/analisar` | Análise estratégica de jogadores Cartola (Data-Driven) | `/analisar Gabigol` |
 | `/pesquisar` | Pesquisa de notícias via Perplexity (últimas 24-48h) | `/pesquisar escalação Flamengo` |
 | `/feature-scout` | Verifica se uma feature existe no código | `/feature-scout exportar PDF` |
+| `/html-audit` | Auditoria de qualidade frontend (QA) - verifica conformidade com padrões | `/html-audit public/participante/fronts/perfil.html` |
 | `/salvar-tarefas` | Salva tarefas pendentes antes de encerrar sessão | `/salvar-tarefas` |
 | `/retomar-tarefas` | Retoma trabalho da sessão anterior | `/retomar-tarefas` |
 
@@ -69,6 +70,17 @@ Comandos disponíveis para invocar diretamente:
 **`/feature-scout [funcionalidade]`**
 - Analisa se uma feature já existe no código (total/parcial/ausente)
 - Mapeia dependências e sugere estratégia de implementação
+
+**`/html-audit [arquivo]`**
+- **QA Frontend:** Audita conformidade com padrões do projeto (SKILL.md)
+- **Verifica:**
+  - ❌ Emojis (devem usar Material Icons)
+  - ❌ Cores hardcoded (devem usar variáveis CSS `--laranja`, `--bg-card`)
+  - ❌ Estrutura HTML completa em fragmentos (devem ser fragmentos limpos)
+  - ❌ Flags manuais de navegação (devem usar Debounce)
+  - ❌ Acessibilidade básica (alt, aria-label)
+- **Gera:** Relatório com % de conformidade + sugestões de correção
+- **Exemplo:** `/html-audit public/participante/fronts/perfil.html`
 
 **`/salvar-tarefas` e `/retomar-tarefas`**
 - Persistem contexto entre sessões no arquivo `.claude/pending-tasks.md`
@@ -201,7 +213,7 @@ O projeto utiliza um **sistema híbrido** para capturar e organizar ideias futur
 - **.cursorrules**: Regras que instruem a IA a sempre consultar o backlog
 
 ### Arquivos Principais
-- [`BACKLOG.md`](BACKLOG.md) - Backlog central do projeto
+- [`BACKLOG.md`](BACKLOG.md) - **Backlog central único do projeto** (fonte da verdade)
 - [`.cursorrules`](.cursorrules) - Regras do projeto (incluem seção de backlog)
 - [`scripts/backlog-helper.js`](scripts/backlog-helper.js) - CLI para gerenciar TODOs
 

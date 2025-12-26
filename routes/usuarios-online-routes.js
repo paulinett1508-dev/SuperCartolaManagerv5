@@ -20,21 +20,27 @@ const PERIODOS = {
 const router = express.Router();
 
 /**
- * Formata tempo relativo (ex: "2 min atrás", "agora")
+ * Formata tempo relativo no formato dd:hh:mm:ss
+ * Ex: "0d 02:15:30" ou "3d 14:22:05"
  */
 function formatarTempoRelativo(data) {
     const agora = Date.now();
     const diff = agora - new Date(data).getTime();
-    const segundos = Math.floor(diff / 1000);
-    const minutos = Math.floor(segundos / 60);
 
-    if (minutos < 1) return 'agora';
-    if (minutos === 1) return '1 min atrás';
-    if (minutos < 60) return `${minutos} min atrás`;
+    if (diff < 1000) return 'agora';
 
-    const horas = Math.floor(minutos / 60);
-    if (horas === 1) return '1 hora atrás';
-    return `${horas} horas atrás`;
+    const totalSegundos = Math.floor(diff / 1000);
+    const dias = Math.floor(totalSegundos / 86400);
+    const horas = Math.floor((totalSegundos % 86400) / 3600);
+    const minutos = Math.floor((totalSegundos % 3600) / 60);
+    const segundos = totalSegundos % 60;
+
+    const pad = (n) => String(n).padStart(2, '0');
+
+    if (dias > 0) {
+        return `${dias}d ${pad(horas)}:${pad(minutos)}:${pad(segundos)}`;
+    }
+    return `${pad(horas)}:${pad(minutos)}:${pad(segundos)}`;
 }
 
 /**

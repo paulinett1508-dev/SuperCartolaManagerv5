@@ -281,20 +281,53 @@
 
                     // Injetar scripts do layout para accordions funcionarem
                     const scripts = doc.querySelectorAll("script");
-                    scripts.forEach((script) => {
+                    console.log("[PAINEL] Scripts encontrados no layout:", scripts.length);
+                    scripts.forEach((script, index) => {
                         if (script.textContent.trim()) {
+                            console.log("[PAINEL] Injetando script", index + 1, "- primeiros 100 chars:", script.textContent.substring(0, 100));
                             const newScript = document.createElement("script");
                             newScript.textContent = script.textContent;
                             document.head.appendChild(newScript);
                         }
                     });
+                    console.log("[PAINEL] verificarMenuSuperAdmin disponível?", typeof window.verificarMenuSuperAdmin);
 
                     // Garantir que AccordionManager seja inicializado
                     setTimeout(() => {
                         if (window.AccordionManager && !window.AccordionManager._initialized) {
                             window.AccordionManager.init();
                         }
-                    }, 150);
+                        // Verificar Super Admin para menu Administradores
+                        verificarSuperAdminDireto();
+                    }, 200);
+
+                    // Função local para verificar Super Admin
+                    async function verificarSuperAdminDireto() {
+                        try {
+                            console.log('[PAINEL] Verificando Super Admin...');
+                            const response = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
+                            if (!response.ok) {
+                                console.log('[PAINEL] check-super falhou:', response.status);
+                                return;
+                            }
+                            const data = await response.json();
+                            console.log('[PAINEL] check-super result:', data);
+                            const menuAdmin = document.getElementById('menuAdministradores');
+                            if (menuAdmin) {
+                                if (data.isSuperAdmin) {
+                                    menuAdmin.style.cssText = 'display: list-item !important;';
+                                    console.log('[PAINEL] Menu Administradores VISÍVEL');
+                                } else {
+                                    menuAdmin.style.cssText = 'display: none !important;';
+                                    console.log('[PAINEL] Menu Administradores OCULTO');
+                                }
+                            } else {
+                                console.log('[PAINEL] Elemento menuAdministradores não encontrado');
+                            }
+                        } catch (e) {
+                            console.error('[PAINEL] Erro ao verificar Super Admin:', e);
+                        }
+                    }
 
                     // Definir funções de logo após injetar sidebar
                     definirFuncoesLogo();

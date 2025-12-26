@@ -117,11 +117,20 @@
       "Bash(public/participante/js/modules/participante-luva-ouro.js )",
       "Bash(public/participante/js/modules/participante-boas-vindas.js)",
       "Bash(tail:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(source:*)",
+      "mcp__perplexity__perplexity_search",
+      "mcp__perplexity__perplexity_ask",
+      "Bash(gh auth status:*)",
+      "Bash(GIT_ASKPASS= git push)",
+      "Bash(timeout 15 grep:*)",
+      "Bash(if grep -q \"AccordionManager.init\\(\\)\" \"$file\")",
+      "Bash(then)"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "mongo"
+    "mongo",
+    "perplexity"
   ]
 }

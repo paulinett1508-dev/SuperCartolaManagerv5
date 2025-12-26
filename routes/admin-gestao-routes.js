@@ -13,19 +13,65 @@ import { getDB } from "../config/database.js";
 const { ObjectId } = mongoose.Types;
 const router = express.Router();
 
-// Super Admin = primeiro email de ADMIN_EMAILS (definido nos Secrets do Replit)
+// Super Admin = SUPER_ADMIN_EMAIL ou REPL_OWNER (dono do Replit)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
 const SUPER_ADMIN_EMAIL = (process.env.SUPER_ADMIN_EMAIL || ADMIN_EMAILS[0] || "").toLowerCase();
+const REPL_OWNER = process.env.REPL_OWNER || "";
+
+// Super Admins adicionais (podem gerenciar admins)
+const SUPER_ADMINS_EXTRAS = [
+    "paulinete.miranda@laboratoriosobral.com.br"
+];
 
 console.log("[ADMIN-GESTAO] Rotas de gestao de admins carregadas");
-console.log("[ADMIN-GESTAO] Super Admin definido:", SUPER_ADMIN_EMAIL || "(nao configurado)");
+console.log("[ADMIN-GESTAO] Super Admin (email):", SUPER_ADMIN_EMAIL || "(nao configurado)");
+console.log("[ADMIN-GESTAO] Repl Owner:", REPL_OWNER || "(nao configurado)");
 
 /**
- * Verifica se o email logado é o Super Admin (DEV)
+ * Verifica se o admin logado é o Super Admin (DEV/Owner)
+ * Verifica por email OU por username (para compatibilidade com Replit Auth)
  */
-function isSuperAdmin(email) {
-    if (!email || !SUPER_ADMIN_EMAIL) return false;
-    return email.toLowerCase() === SUPER_ADMIN_EMAIL;
+function isSuperAdmin(sessionAdmin) {
+    if (!sessionAdmin) return false;
+
+    const email = sessionAdmin.email?.toLowerCase();
+    const nome = sessionAdmin.nome?.toLowerCase();
+    const claims = sessionAdmin.claims;
+
+    // 1. Verificar por SUPER_ADMIN_EMAIL
+    if (SUPER_ADMIN_EMAIL && email === SUPER_ADMIN_EMAIL) {
+        return true;
+    }
+
+    // 1.5 Verificar lista de Super Admins extras
+    if (email && SUPER_ADMINS_EXTRAS.includes(email)) {
+        return true;
+    }
+
+    // 2. Verificar se é o REPL_OWNER (dono do Replit)
+    if (REPL_OWNER) {
+        const replOwnerLower = REPL_OWNER.toLowerCase();
+
+        // Verificar pelo nome do usuário
+        if (nome === replOwnerLower) {
+            return true;
+        }
+
+        // Verificar pelos claims do Replit Auth (username, preferred_username, etc.)
+        if (claims) {
+            const username = (claims.preferred_username || claims.name || claims.sub || "").toLowerCase();
+            if (username === replOwnerLower) {
+                return true;
+            }
+        }
+
+        // Verificar se o email começa com o username do owner
+        if (email && email.startsWith(replOwnerLower + "@")) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -40,9 +86,7 @@ function requireSuperAdmin(req, res, next) {
         });
     }
 
-    const adminEmail = req.session.admin.email?.toLowerCase();
-
-    if (!isSuperAdmin(adminEmail)) {
+    if (!isSuperAdmin(req.session.admin)) {
         return res.status(403).json({
             success: false,
             message: "Acesso restrito ao desenvolvedor do sistema"
@@ -70,13 +114,21 @@ function requireAdmin(req, res, next) {
  * Verifica se o admin logado é Super Admin (DEV)
  */
 router.get("/check-super", requireAdmin, (req, res) => {
-    const adminEmail = req.session.admin.email?.toLowerCase();
-    const isSuper = isSuperAdmin(adminEmail);
+    const isSuper = isSuperAdmin(req.session.admin);
+
+    console.log("[ADMIN-GESTAO] check-super:", {
+        email: req.session.admin?.email,
+        isSuper,
+        superAdminEmail: SUPER_ADMIN_EMAIL,
+        extras: SUPER_ADMINS_EXTRAS
+    });
 
     res.json({
         success: true,
         isSuperAdmin: isSuper,
-        email: adminEmail
+        email: req.session.admin.email,
+        nome: req.session.admin.nome,
+        replOwner: REPL_OWNER
     });
 });
 

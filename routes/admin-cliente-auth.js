@@ -13,7 +13,53 @@ import { getDB } from "../config/database.js";
 
 const router = express.Router();
 
+// Super Admin = SUPER_ADMIN_EMAIL ou primeiro email de ADMIN_EMAILS
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+const SUPER_ADMIN_EMAIL = (process.env.SUPER_ADMIN_EMAIL || ADMIN_EMAILS[0] || "").toLowerCase();
+const REPL_OWNER = process.env.REPL_OWNER || "";
+
+// Super Admins adicionais (podem registrar clientes)
+const SUPER_ADMINS_EXTRAS = [
+    "paulinete.miranda@laboratoriosobral.com.br"
+];
+
+/**
+ * Verifica se o admin logado é Super Admin
+ */
+function isSuperAdmin(sessionAdmin) {
+    if (!sessionAdmin) return false;
+
+    const email = sessionAdmin.email?.toLowerCase();
+    const nome = sessionAdmin.nome?.toLowerCase();
+    const claims = sessionAdmin.claims;
+
+    // 1. Verificar por SUPER_ADMIN_EMAIL
+    if (SUPER_ADMIN_EMAIL && email === SUPER_ADMIN_EMAIL) {
+        return true;
+    }
+
+    // 2. Verificar lista de Super Admins extras
+    if (email && SUPER_ADMINS_EXTRAS.includes(email)) {
+        return true;
+    }
+
+    // 3. Verificar se é o REPL_OWNER (dono do Replit)
+    if (REPL_OWNER) {
+        const replOwnerLower = REPL_OWNER.toLowerCase();
+        if (nome === replOwnerLower) return true;
+        if (claims) {
+            const username = (claims.preferred_username || claims.name || claims.sub || "").toLowerCase();
+            if (username === replOwnerLower) return true;
+        }
+        if (email && email.startsWith(replOwnerLower + "@")) return true;
+    }
+
+    return false;
+}
+
 console.log("[CLIENTE-AUTH] Rotas de autenticacao cliente carregadas");
+console.log("[CLIENTE-AUTH] Super Admin:", SUPER_ADMIN_EMAIL || "(nao configurado)");
+console.log("[CLIENTE-AUTH] Super Admins Extras:", SUPER_ADMINS_EXTRAS);
 
 /**
  * Gera senha provisoria aleatoria
@@ -38,17 +84,15 @@ router.post("/registrar", async (req, res) => {
         const db = getDB();
 
         // Verificar se quem está chamando é Super Admin
-        const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL ||
-            (process.env.ADMIN_EMAILS || "").split(",")[0] || "").toLowerCase();
-
-        const callerEmail = req.session?.admin?.email?.toLowerCase();
-
-        if (callerEmail !== superAdminEmail) {
+        if (!isSuperAdmin(req.session?.admin)) {
+            console.log("[CLIENTE-AUTH] Acesso negado para:", req.session?.admin?.email);
             return res.status(403).json({
                 success: false,
                 message: "Apenas o desenvolvedor pode registrar novos clientes"
             });
         }
+
+        console.log("[CLIENTE-AUTH] Super Admin autorizado:", req.session?.admin?.email);
 
         if (!email) {
             return res.status(400).json({
@@ -80,7 +124,7 @@ router.post("/registrar", async (req, res) => {
             superAdmin: false, // NUNCA super admin
             ativo: true,
             criadoEm: new Date(),
-            criadoPor: callerEmail,
+            criadoPor: req.session?.admin?.email?.toLowerCase() || "sistema",
             tipo: "cliente" // Diferencia de outros admins
         };
 

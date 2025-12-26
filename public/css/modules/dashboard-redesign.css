@@ -1429,8 +1429,31 @@ body.sidebar-collapsed .app-main {
     margin: 0 12px;
 }
 
+/* ============================================================
+   MAIN-CONTENT - Compensação para Sidebar Fixa
+   ============================================================ */
+.main-content {
+    margin-left: 280px;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease;
+}
+
+/* Quando sidebar está colapsada */
+body.sidebar-collapsed .main-content {
+    margin-left: 80px;
+}
+
 /* === RESPONSIVIDADE === */
 @media (max-width: 768px) {
+    /* Em mobile, sidebar está escondida */
+    .main-content {
+        margin-left: 0;
+    }
+
+    body.sidebar-collapsed .main-content {
+        margin-left: 0;
+    }
+
     .dashboard-redesign .page-content {
         padding: 16px !important;
     }

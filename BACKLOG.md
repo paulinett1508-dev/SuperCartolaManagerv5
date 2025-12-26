@@ -60,6 +60,244 @@ _Próximas sprints - Impacto significativo no sistema_
     - [ ] Comparativo entre temporadas (2025 vs 2026)
   - **Status:** Hall da Fama individual funcional. Falta visão cross-season.
 
+- [ ] [FEAT-003] **Notificações Push (Web Push API)** 🔔 ALTA PRIORIDADE
+  - **Descrição:** Sistema completo de notificações push para alertar participantes sobre eventos importantes da liga
+  - **Status Atual:** 0% implementado (infraestrutura PWA existente, mas sem push notifications)
+  - **Impacto:** ALTO - Retenção, engajamento e experiência do usuário
+  - **Complexidade:** ALTA (~11h de implementação)
+  
+  - **Infraestrutura Existente (Base PWA):**
+    - ✅ Service Worker funcional: `public/participante/service-worker.js` (v3.1)
+    - ✅ PWA Manifest: `public/participante/manifest.json`
+    - ✅ App instalável (modo standalone)
+    - ❌ SEM handlers de `push` e `notificationclick` no SW
+    - ❌ SEM backend para gerenciar subscriptions
+    - ❌ SEM biblioteca `web-push` instalada
+  
+  - **Casos de Uso (MVP):**
+    1. **Rodada Consolidada** (essencial)
+       - Título: "Rodada X finalizada! 🎉"
+       - Body: "Você fez X pontos e ficou em Y° lugar"
+       - Ação: Abrir tela de Rodadas
+    2. **Mito/Mico da Rodada** (gamificação)
+       - Título: "Você é o MITO da rodada! 🏆"
+       - Body: "Parabéns! Você foi o melhor desta rodada"
+       - Ação: Abrir Hall da Fama
+    3. **Escalação Pendente** (retenção)
+       - Título: "Esqueceu de escalar? ⚠️"
+       - Body: "Mercado fecha em 30 minutos!"
+       - Ação: Abrir Cartola FC direto
+  
+  - **Roadmap de Implementação:**
+    
+    **FASE 1: Setup Básico** (~2h)
+    - [ ] Instalar biblioteca: `npm install web-push`
+    - [ ] Gerar VAPID keys: `npx web-push generate-vapid-keys`
+    - [ ] Armazenar keys nos Replit Secrets (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`)
+    - [ ] Criar collection MongoDB: `push_subscriptions`
+    - [ ] Criar modelo: `models/PushSubscription.js`
+      ```javascript
+      // Schema: { timeId, endpoint, keys: {p256dh, auth}, createdAt, expiresAt, active }
+      ```
+    
+    **FASE 2: Backend** (~3h)
+    - [ ] Criar `routes/notifications-routes.js`
+      - `POST /api/notifications/subscribe` - Salvar subscription do participante
+      - `POST /api/notifications/unsubscribe` - Remover subscription
+      - `POST /api/notifications/send` - Admin enviar manual
+      - `GET /api/notifications/status` - Verificar status da subscription
+    - [ ] Criar `controllers/notificationsController.js`
+      - Função `sendPushNotification(timeId, payload)` - Enviar via web-push
+      - Função `cleanExpiredSubscriptions()` - Limpar expiradas
+      - Função `sendBulkNotifications(timeIds, payload)` - Envio em lote
+    - [ ] Integrar rotas no `index.js`
+    
+    **FASE 3: Service Worker** (~1h)
+    - [ ] Adicionar handler `push` em `public/participante/service-worker.js`:
+      ```javascript
+      self.addEventListener('push', (event) => {
+          const data = event.data.json();
+          const options = {
+              body: data.body,
+              icon: '/escudos/default.png',
+              badge: '/escudos/badge.png',
+              data: { url: data.url },
+              vibrate: [200, 100, 200],
+              tag: data.tag || 'default'
+          };
+          event.waitUntil(
+              self.registration.showNotification(data.title, options)
+          );
+      });
+      ```
+    - [ ] Adicionar handler `notificationclick`:
+      ```javascript
+      self.addEventListener('notificationclick', (event) => {
+          event.notification.close();
+          event.waitUntil(
+              clients.openWindow(event.notification.data.url)
+          );
+      });
+      ```
+    
+    **FASE 4: Frontend** (~2h)
+    - [ ] Criar `public/participante/js/modules/participante-notifications.js`
+      - Função `solicitarPermissao()` - Request permission
+      - Função `subscreverNotificacoes()` - Subscribe + enviar ao backend
+      - Função `desinscrever()` - Unsubscribe
+      - Função `verificarStatus()` - Checar se já está subscrito
+      - Função `urlBase64ToUint8Array()` - Converter VAPID key
+    - [ ] Adicionar UI de configuração (modal ou tela de perfil):
+      - Toggle "Receber Notificações"
+      - Checkboxes: "Resultados", "Mercado", "Escalação", "Mito/Mico"
+      - Botão "Testar Notificação" (debug)
+    - [ ] Integrar no fluxo de onboarding (primeira vez)
+    - [ ] Badge visual no header indicando status (🔔 ativo / 🔕 desativado)
+    
+    **FASE 5: Gatilhos de Envio** (~2h)
+    - [ ] **Rodada Consolidada** (`controllers/consolidacao-controller.js`):
+      - Após consolidar → buscar subscriptions ativas
+      - Enviar notificação personalizada para cada participante (pontos + posição)
+    - [ ] **Mercado Fechando** (novo cron job):
+      - Verificar status do mercado a cada 5min
+      - 30min antes do fechamento → notificar quem não escalou
+      - Endpoint: `GET /api/mercado/status` (já existe?)
+    - [ ] **Mito/Mico da Rodada** (`controllers/ranking-controller.js`):
+      - Após calcular ranking → identificar 1° e último
+      - Enviar notificações especiais com badge/emoji
+    - [ ] **Admin Manual** (painel admin):
+      - Interface para enviar notificação customizada
+      - Selecionar destinatários (todos, específicos, por liga)
+      - Preview antes de enviar
+    
+    **FASE 6: Testes e Validação** (~1h)
+    - [ ] Testar em Chrome Desktop (Windows/Linux)
+    - [ ] Testar em Chrome Android (instalado como PWA)
+    - [ ] Testar em Edge Desktop
+    - [ ] Testar em Safari iOS 16.4+ (PWA instalado)
+    - [ ] Validar persistência após reinstalar PWA
+    - [ ] Testar renovação de subscription expirada
+    - [ ] Validar rate limiting (max 1 notif/rodada por tipo)
+  
+  - **Considerações Técnicas Críticas:**
+    
+    **Segurança:**
+    - ⚠️ VAPID keys NUNCA no código, sempre em Replit Secrets
+    - ⚠️ Validar `req.session.usuario` antes de salvar subscription
+    - ⚠️ HTTPS obrigatório (Replit já tem SSL)
+    
+    **Compatibilidade:**
+    - ✅ Chrome/Edge: Suporte total (desktop + Android)
+    - ⚠️ Safari iOS: Apenas com PWA instalado (iOS 16.4+)
+    - ⚠️ Firefox: Suporte total, mas menor uso no mobile
+    
+    **LGPD/Privacidade:**
+    - ✅ Opt-in obrigatório (nunca forçar)
+    - ✅ Usuário pode desativar a qualquer momento
+    - ✅ Explicar claramente o que será notificado
+    - ✅ Remover subscription ao desativar
+    
+    **Performance:**
+    - ⚠️ Rate limiting: Máximo 1 notificação por rodada por tipo
+    - ⚠️ Subscriptions podem expirar → implementar renovação automática
+    - ⚠️ Limpar subscriptions inativas periodicamente (cron semanal)
+    
+    **UX:**
+    - ✅ Solicitar permissão no momento certo (não no primeiro acesso)
+    - ✅ Modal educativo explicando benefícios
+    - ✅ Opção de "Lembrar depois"
+    - ✅ Indicador visual de status no app
+  
+  - **Arquivos a Criar/Modificar:**
+    ```
+    📦 Backend
+    ├── models/PushSubscription.js                        [NOVO]
+    ├── controllers/notificationsController.js            [NOVO]
+    ├── routes/notifications-routes.js                    [NOVO]
+    ├── controllers/consolidacao-controller.js            [MODIFICAR]
+    ├── controllers/ranking-controller.js                 [MODIFICAR]
+    └── index.js                                          [MODIFICAR]
+    
+    📱 Frontend
+    ├── public/participante/service-worker.js             [MODIFICAR]
+    ├── public/participante/js/modules/participante-notifications.js  [NOVO]
+    ├── public/participante/fronts/configuracoes.html     [NOVO ou MODIFICAR]
+    └── public/participante/js/participante-navigation.js [MODIFICAR]
+    
+    🔧 Config
+    ├── .env (via Replit Secrets)                         [ADICIONAR]
+    │   ├── VAPID_PUBLIC_KEY
+    │   ├── VAPID_PRIVATE_KEY
+    │   └── VAPID_SUBJECT (email)
+    └── package.json                                      [MODIFICAR]
+    ```
+  
+  - **Dependências NPM:**
+    ```json
+    {
+      "web-push": "^3.6.7"
+    }
+    ```
+  
+  - **Referências Técnicas:**
+    - [Web Push API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/Push_API)
+    - [web-push Library](https://github.com/web-push-libs/web-push)
+    - [VAPID Protocol RFC8292](https://datatracker.ietf.org/doc/html/rfc8292)
+    - [Service Worker Notifications](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification)
+  
+  - **Mockup de UI (Sugestão):**
+    ```
+    ┌────────────────────────────────────┐
+    │  🔔 Notificações                    │
+    │                                     │
+    │  [ ✓ ] Receber notificações push   │
+    │                                     │
+    │  Escolha o que deseja receber:     │
+    │  [ ✓ ] Resultados de rodada        │
+    │  [ ✓ ] Mito/Mico da rodada         │
+    │  [   ] Mercado fechando            │
+    │  [   ] Movimentações financeiras   │
+    │                                     │
+    │  ℹ️  Você pode desativar a qualquer│
+    │     momento nas configurações do   │
+    │     navegador.                     │
+    │                                     │
+    │  [Testar Notificação]  [Salvar]    │
+    └────────────────────────────────────┘
+    ```
+  
+  - **Estimativa Total:** ~11 horas
+    | Fase | Tempo | Complexidade |
+    |------|-------|--------------|
+    | Setup Básico | 2h | Baixa |
+    | Backend | 3h | Média |
+    | Service Worker | 1h | Baixa |
+    | Frontend | 2h | Média |
+    | Gatilhos | 2h | Alta |
+    | Testes | 1h | Média |
+  
+  - **Checklist de Conclusão:**
+    - [ ] VAPID keys geradas e guardadas nos Secrets
+    - [ ] Collection `push_subscriptions` criada e indexada
+    - [ ] Rotas de subscribe/unsubscribe funcionais e testadas
+    - [ ] Service Worker com handlers de push implementados
+    - [ ] UI de permissão implementada (modal educativo)
+    - [ ] Gatilho "rodada consolidada" ativo e enviando notificações
+    - [ ] Gatilho "escalação pendente" ativo (30min antes)
+    - [ ] Testado em Chrome Android (PWA instalado)
+    - [ ] Testado em Safari iOS 16.4+ (se disponível)
+    - [ ] Rate limiting implementado (1 notif/rodada/tipo)
+    - [ ] Cron job para limpar subscriptions expiradas
+    - [ ] Documentação de uso atualizada
+    - [ ] Logs de envio implementados (auditoria)
+  
+  - **Próximos Passos (Pós-MVP):**
+    - [ ] Notificação de "Badge conquistado" (integrar com FEAT-010)
+    - [ ] Notificação de "Provocação pós-rodada" (integrar com FEAT-011)
+    - [ ] Personalização de horário preferido (ex: não notificar à noite)
+    - [ ] Histórico de notificações recebidas (tela no app)
+    - [ ] Analytics: Taxa de abertura, cliques, conversões
+
 - [ ] [FEAT-014] **Co-Piloto de Análise via CLI (Lab 2026)**
   - **Descrição:** Ferramenta de terminal para curadoria de dados assistida por IA (Admin).
   - **Escopo:** MVP restrito a 1 time na temporada 2026 (fase de testes) (participante Paulinett Miranda)
@@ -128,12 +366,6 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
 
 ### 📱 App do Participante
 
-- [ ] [FEAT-003] **Notificações Push**
-  - **Descrição:** Alertas de resultado, fechamento do mercado, escalação não feita
-  - **Tecnologia:** Web Push API + Service Worker
-  - **Servidor:** Precisa de push server (Firebase ou similar)
-  - **Complexidade:** Alta
-
 - [ ] [FEAT-004] **Comparativo Head-to-Head**
   - **Descrição:** Tela para comparar histórico entre dois participantes
   - **Dados:** Confrontos diretos, vitórias, empates, pontuação média
@@ -180,6 +412,26 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
   - **Descrição:** Mensagens automáticas/customizáveis após resultados
   - **Exemplos:** "Fulano tomou de X no confronto!", "Mico da rodada: Y"
   - **Canal:** Notificação in-app ou integração WhatsApp
+
+### 🎨 Visualização/UX Avançado
+
+- [ ] [FEAT-015] **Campinho com Escalação Visual (Field Layout)**
+  - **Descrição:** Visualização gráfica do time escalado pelo participante em formato de "campinho", similar ao app oficial do Cartola FC
+  - **Inspiração:** App Cartola FC (Globo), Fantasy Premier League, SofaScore
+  - **Funcionalidades sugeridas:**
+    - Campo verde com posições táticas (4-3-3, 4-4-2, etc)
+    - Jogadores posicionados por função (GOL, ZAG, LAT, MEI, ATA)
+    - Foto do jogador ou escudo do clube
+    - Parciais em tempo real sobre cada jogador
+    - Indicador de capitão (C) com destaque visual
+    - Cores diferenciadas: pontuação positiva (verde), negativa (vermelha)
+    - Banco de reservas visível abaixo do campo
+  - **Onde usar:**
+    - Módulo Parciais (uso principal)
+    - Tela de Rodadas (resumo visual)
+    - App do Participante (histórico de rodadas)
+  - **Complexidade:** Média-Alta (SVG/Canvas + integração API)
+  - **Status:** Ideia para temporada 2026
 
 ### ⚙️ Infraestrutura/Performance
 
@@ -231,5 +483,5 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
 
 ---
 
-_Última atualização: 25/12/2025_
+_Última atualização: 26/12/2025 - [FEAT-015] Campinho Visual migrado de ideias-backlog.md (arquivo removido por redundância)_
 

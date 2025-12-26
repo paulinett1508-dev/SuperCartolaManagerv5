@@ -50,7 +50,7 @@
                                 <span class="material-icons" style="font-size: 14px; margin-left: auto; color: #9ca3af;">open_in_new</span>
                             </a>
                         </li>
-                        <li>
+                        <li id="menuAdministradores" class="menu-super-admin-only" style="display: none;">
                             <a href="admin-gestao.html" class="sidebar-menu-item" data-page="admin-gestao.html">
                                 <span class="material-icons">admin_panel_settings</span>
                                 <span>Administradores</span>
@@ -120,6 +120,26 @@
         </nav>
 
         <script>
+            // === VERIFICAÇÃO DE SUPER ADMIN - FUNÇÃO SIMPLES ===
+            // Esta função é chamada pelas páginas após injetar o layout
+            window.verificarMenuSuperAdmin = async function() {
+                console.log('[LAYOUT] verificarMenuSuperAdmin() iniciado');
+                try {
+                    console.log('[LAYOUT] Chamando API check-super...');
+                    const response = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
+                    if (!response.ok) return;
+                    const data = await response.json();
+                    const menuAdmin = document.getElementById('menuAdministradores');
+                    if (menuAdmin) {
+                        menuAdmin.style.cssText = data.isSuperAdmin
+                            ? 'display: list-item !important;'
+                            : 'display: none !important;';
+                    }
+                } catch (e) {
+                    console.warn('[LAYOUT] Erro ao verificar Super Admin:', e);
+                }
+            };
+
             // === MAPEAMENTO DE LOGOS DAS LIGAS ===
             function obterLogoLiga(nomeLiga) {
                 const nome = (nomeLiga || '').toLowerCase();
@@ -129,6 +149,7 @@
             }
 
             // === SISTEMA DE ACCORDION ===
+
             window.AccordionManager = {
                 STORAGE_KEY: 'sidebar_accordion_state',
                 _initialized: false,
@@ -536,40 +557,99 @@
 
             // === CARREGAR DADOS DO ADMIN ===
             async function carregarDadosAdmin() {
+                console.log('[LAYOUT] carregarDadosAdmin() chamado');
                 try {
                     const response = await fetch('/api/admin/auth/session', { credentials: 'include' });
                     if (response.ok) {
                         const data = await response.json();
-                        if (data.user) {
+                        console.log('[LAYOUT] Session data:', data);
+                        // API retorna data.admin, não data.user
+                        const admin = data.admin || data.user;
+                        if (admin) {
                             const userName = document.getElementById('userName');
                             if (userName) {
                                 // Usar primeiro nome se disponivel
-                                const nome = data.user.name || data.user.username || 'Admin';
+                                const nome = admin.nome || admin.name || admin.email?.split('@')[0] || 'Admin';
                                 const primeiroNome = nome.split(' ')[0];
                                 userName.textContent = primeiroNome;
+                                console.log('[LAYOUT] Nome do admin definido:', primeiroNome);
                             }
                         }
                     }
+
+                    // Verificar se é Super Admin para mostrar menu Administradores
+                    console.log('[LAYOUT] Chamando check-super...');
+                    const superResponse = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
+                    console.log('[LAYOUT] check-super response status:', superResponse.status);
+                    if (superResponse.ok) {
+                        const superData = await superResponse.json();
+                        console.log('[LAYOUT] Check Super Admin result:', superData);
+
+                        const menuAdmin = document.getElementById('menuAdministradores');
+                        console.log('[LAYOUT] menuAdministradores element:', menuAdmin);
+                        if (menuAdmin) {
+                            if (superData.isSuperAdmin) {
+                                // Super Admin - mostrar menu
+                                menuAdmin.style.cssText = 'display: list-item !important;';
+                                console.log('[LAYOUT] Menu Administradores VISÍVEL (Super Admin)');
+                            } else {
+                                // Admin comum - esconder menu
+                                menuAdmin.style.cssText = 'display: none !important;';
+                                console.log('[LAYOUT] Menu Administradores OCULTO (Admin comum)');
+                            }
+                        } else {
+                            console.warn('[LAYOUT] Elemento menuAdministradores não encontrado!');
+                        }
+                    } else {
+                        console.warn('[LAYOUT] check-super falhou:', superResponse.status);
+                    }
                 } catch (error) {
                     // Silencioso - manter "Admin" como fallback
+                    console.warn('[LAYOUT] Erro ao carregar dados admin:', error);
                 }
             }
 
             // === INICIALIZAÇÃO ===
             function inicializarLayout() {
+                console.log('[LAYOUT] Inicializando layout...');
                 restoreSidebarState(); // Restaurar estado do sidebar
                 window.navigationSystem = new NavigationSystem();
                 carregarDadosAdmin();
                 inicializarMenuPerfil();
+                console.log('[LAYOUT] Layout inicializado');
             }
 
-            if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", () => {
-                    setTimeout(inicializarLayout, 100);
-                });
-            } else {
-                setTimeout(inicializarLayout, 100);
+            // Flag para evitar inicialização duplicada
+            let layoutInicializado = window._layoutInicializado || false;
+
+            // Inicialização - verificar se sidebar já existe no DOM
+            function tentarInicializarLayout() {
+                if (layoutInicializado || window._layoutInicializado) {
+                    console.log('[LAYOUT] Já inicializado, ignorando...');
+                    return;
+                }
+
+                const sidebar = document.getElementById('appSidebar');
+                if (sidebar) {
+                    console.log('[LAYOUT] Sidebar encontrado, inicializando...');
+                    layoutInicializado = true;
+                    window._layoutInicializado = true;
+                    inicializarLayout();
+                } else {
+                    console.log('[LAYOUT] Sidebar não encontrado, aguardando...');
+                    setTimeout(tentarInicializarLayout, 100);
+                }
             }
+
+            // Expor função globalmente ANTES de qualquer inicialização
+            window.carregarDadosAdmin = carregarDadosAdmin;
+            window.inicializarLayout = inicializarLayout;
+            window.tentarInicializarLayout = tentarInicializarLayout;
+
+            // Inicialização automática - sempre executar após pequeno delay
+            // para garantir que o DOM foi atualizado
+            console.log('[LAYOUT] Agendando inicialização... readyState:', document.readyState);
+            setTimeout(tentarInicializarLayout, 200);
 
             // Recarregar ao voltar para página
             window.addEventListener("pageshow", (event) => {

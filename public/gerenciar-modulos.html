@@ -158,10 +158,13 @@
                         }
                     });
 
-                    // Garantir que AccordionManager seja inicializado
+                    // Garantir que AccordionManager seja inicializado e dados do admin carregados
                     setTimeout(() => {
                         if (window.AccordionManager && !window.AccordionManager._initialized) {
                             window.AccordionManager.init();
+                        }
+                        if (typeof window.verificarMenuSuperAdmin === 'function') {
+                            window.verificarMenuSuperAdmin();
                         }
                     }, 150);
                 } catch (error) {

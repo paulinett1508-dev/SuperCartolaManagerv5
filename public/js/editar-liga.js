@@ -77,6 +77,9 @@ class EditarLigaManager {
                 if (window.AccordionManager && !window.AccordionManager._initialized) {
                     window.AccordionManager.init();
                 }
+                if (typeof window.verificarMenuSuperAdmin === 'function') {
+                    window.verificarMenuSuperAdmin();
+                }
             }, 150);
         } catch (error) {
             console.error("Erro ao carregar layout:", error);
