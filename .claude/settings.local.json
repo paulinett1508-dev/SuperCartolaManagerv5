@@ -126,7 +126,8 @@
       "Bash(timeout 15 grep:*)",
       "Bash(if grep -q \"AccordionManager.init\\(\\)\" \"$file\")",
       "Bash(then)",
-      "mcp__mongo__insert_document"
+      "mcp__mongo__insert_document",
+      "Skill(salvar-tarefas)"
     ]
   },
   "enableAllProjectMcpServers": true,
