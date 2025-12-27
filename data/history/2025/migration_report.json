@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-12-18T01:42:38.226Z",
+  "timestamp": "2025-12-27T00:38:13.027Z",
   "status": "SUCCESS",
   "versao_script": "2.1.0",
   "steps": {
@@ -10,13 +10,13 @@
     },
     "badges": {
       "status": "OK",
-      "usuarios_atualizados": 33,
+      "usuarios_atualizados": 37,
       "arquivo": "/home/runner/workspace/data/users_registry.json"
     },
     "backup": {
       "status": "OK",
-      "diretorio": "/home/runner/workspace/data/backups/pre-wipe-2025-12-18T01-42-30",
-      "total_documentos": 7218,
+      "diretorio": "/home/runner/workspace/data/backups/pre-wipe-2025-12-27T00-38-05",
+      "total_documentos": 7187,
       "collections_exportadas": 9,
       "erros": 0
     },

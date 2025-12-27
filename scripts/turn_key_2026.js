@@ -45,13 +45,27 @@ const CONFIG = {
         'rankinggeralcaches',
         'pontoscorridoscaches',
         'matamatas',
+        'matamatacaches',          // Nome real da collection
         'extratofinanceirocaches',
+        'extrato_financeiro_caches', // Duplicata snake_case
+        'extratocaches',
+        'extratocache',
         'goleiros',
         'gols',
+        'golsconsolidados',
+        'defesasconsolidadas',
         'artilheirocampeaos',
         'rodadasnapshots',
         'top10caches',
-        'melhormescaches'
+        'melhormescaches',
+        'melhor_mes_cache',        // Nome real da collection
+        'ranking_turno_caches',
+        'rankingturnos',
+        'cartolaoficialdumps',
+        'cartola_oficial_dumps',
+        'sessions',                // Sessions expiradas
+        'accesslogs',              // Logs de acesso
+        'useractivities'           // Atividades de usuário
     ],
 
     // Collections para PRESERVAR (NUNCA tocar)
@@ -60,7 +74,9 @@ const CONFIG = {
         'times',
         'ligas',
         'fluxofinanceirocampos',
-        'system_configs'
+        'system_configs',
+        'admins',              // Administradores do sistema
+        'acertofinanceiros'    // Registros de pagamentos/recebimentos
     ],
 
     // Caminhos de arquivos

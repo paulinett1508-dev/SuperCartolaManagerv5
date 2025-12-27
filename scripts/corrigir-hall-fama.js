@@ -308,6 +308,13 @@ async function main() {
                 historico.time_escudo = participante.escudo;
             }
 
+            // Corrigir nome "Desconhecido"
+            if (usuario.nome === 'Desconhecido' && participante.nome_cartola) {
+                const nomeAntigo = usuario.nome;
+                usuario.nome = participante.nome_cartola;
+                correcoes.push(`Corrigido nome ${timeId}: "${nomeAntigo}" -> "${participante.nome_cartola}"`);
+            }
+
             // Atualizar badges baseado na posição
             const badges = [];
             if (posicaoReal === 1) badges.push('campeao_2025');

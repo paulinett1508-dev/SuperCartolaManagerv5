@@ -2,10 +2,11 @@
   "_metadata": {
     "nome": "Cartório Vitalício - Super Cartola",
     "descricao": "Registro permanente de todos os participantes e seus históricos através das temporadas",
-    "versao": "2.1.0",
+    "versao": "2.0.0",
     "criado_em": "2025-12-15",
-    "ultima_atualizacao": "2025-12-27T00:08:32.768Z",
-    "correcoes_aplicadas": 2
+    "ultima_atualizacao": "2025-12-27T00:38:05.976Z",
+    "correcoes_aplicadas": 32,
+    "badges_corrigidos": 4
   },
   "config_renovacao": {
     "temporada_atual": 2026,
@@ -22,84 +23,8 @@
   },
   "users": [
     {
-      "id": "3027272",
-      "nome": "Desconhecido",
-      "email": null,
-      "telefone": null,
-      "primeiro_registro": "2025",
-      "active_seasons": [
-        "2025"
-      ],
-      "status_renovacao": {
-        "temporada_2026": {
-          "status": "pendente",
-          "data_decisao": null,
-          "observacoes": null
-        }
-      },
-      "situacao_financeira": {
-        "saldo_atual": 287,
-        "tipo": "credor",
-        "detalhamento": {
-          "temporada_2025": {
-            "saldo_extrato": 287,
-            "saldo_campos_manuais": 0,
-            "saldo_final": 287,
-            "total_bonus": 476,
-            "total_onus": -189,
-            "quitado": false,
-            "data_quitacao": null
-          }
-        },
-        "historico_pagamentos": []
-      },
-      "ligas_participadas": [
-        {
-          "liga_id": "684cb1c8af923da7c7df51de",
-          "liga_nome": "SUPERCARTOLA",
-          "temporadas": [
-            "2025"
-          ]
-        }
-      ],
-      "historico": [
-        {
-          "ano": 2025,
-          "liga_id": "684cb1c8af923da7c7df51de",
-          "liga_nome": "SUPERCARTOLA",
-          "time_escudo": "https://s2-cartola.glbimg.com/DANx0cpRHzW-C_XwWkGJJRI1bAM=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_222/escudo/07/48/48/007351dafe-0b47-4f48-a78d-f4aa9ad6c70720240320164848",
-          "estatisticas": {
-            "posicao_final": 1,
-            "pontos_totais": 0,
-            "rodadas_jogadas": 1216
-          },
-          "financeiro": {
-            "saldo_final": 287,
-            "total_bonus": 476,
-            "total_onus": -189
-          },
-          "conquistas": {
-            "badges": [
-              "campeao_2025"
-            ]
-          }
-        }
-      ],
-      "stats_agregadas": {
-        "total_temporadas": 1,
-        "total_titulos": 1,
-        "melhor_posicao_geral": 1,
-        "total_pontos_historico": 0
-      },
-      "acesso_permitido": {
-        "hall_da_fama": true,
-        "extrato_financeiro": true,
-        "temporada_atual": false
-      }
-    },
-    {
       "id": "164131",
-      "nome": "Desconhecido",
+      "nome": "JB Oliveira",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -114,17 +39,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -401,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -401,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -401,
-            "total_bonus": 162,
-            "total_onus": -563,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -155,9 +80,7 @@
             "total_onus": -563
           },
           "conquistas": {
-            "badges": [
-              "vice_2025"
-            ]
+            "badges": []
           },
           "status": {
             "ativo": true,
@@ -179,7 +102,7 @@
     },
     {
       "id": "1323370",
-      "nome": "Desconhecido",
+      "nome": "Diego Barbosa",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -194,17 +117,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -197,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -197,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -197,
-            "total_bonus": 195,
-            "total_onus": -392,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -235,9 +158,7 @@
             "total_onus": -392
           },
           "conquistas": {
-            "badges": [
-              "terceiro_2025"
-            ]
+            "badges": []
           },
           "status": {
             "ativo": true,
@@ -259,7 +180,7 @@
     },
     {
       "id": "45004009",
-      "nome": "Desconhecido",
+      "nome": "fucim ",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -274,17 +195,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 284,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 284,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 284,
-            "total_bonus": 464,
-            "total_onus": -180,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.975Z"
           }
         },
         "historico_pagamentos": []
@@ -337,7 +258,7 @@
     },
     {
       "id": "1233737",
-      "nome": "Desconhecido",
+      "nome": "Wildemar Silva",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -352,17 +273,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -87,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -87,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -87,
-            "total_bonus": 291,
-            "total_onus": -378,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -415,7 +336,7 @@
     },
     {
       "id": "8098497",
-      "nome": "Desconhecido",
+      "nome": "Felipe Barbosa",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -430,17 +351,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -162,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -162,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -162,
-            "total_bonus": 195,
-            "total_onus": -357,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -493,7 +414,7 @@
     },
     {
       "id": "22623329",
-      "nome": "Desconhecido",
+      "nome": "Emerson",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -508,17 +429,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 171,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 171,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 171,
-            "total_bonus": 319,
-            "total_onus": -148,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -571,7 +492,7 @@
     },
     {
       "id": "1173066",
-      "nome": "Desconhecido",
+      "nome": "Mr. Carmilton",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -586,17 +507,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 212,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 212,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 212,
-            "total_bonus": 395,
-            "total_onus": -183,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -649,7 +570,7 @@
     },
     {
       "id": "575856",
-      "nome": "Desconhecido",
+      "nome": "Felipe Jokstay",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -664,17 +585,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -232,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -232,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -232,
-            "total_bonus": 152,
-            "total_onus": -384,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -727,7 +648,7 @@
     },
     {
       "id": "1459952",
-      "nome": "Desconhecido",
+      "nome": "Sávio C Cavalcante ",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -742,17 +663,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -61,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -61,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -61,
-            "total_bonus": 294,
-            "total_onus": -355,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -805,7 +726,7 @@
     },
     {
       "id": "4966295",
-      "nome": "Desconhecido",
+      "nome": "Rony Morais",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -820,17 +741,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 120,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 120,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 120,
-            "total_bonus": 330,
-            "total_onus": -210,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -883,7 +804,7 @@
     },
     {
       "id": "5902324",
-      "nome": "Desconhecido",
+      "nome": "juniel henrique",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -898,17 +819,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 197,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 197,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 197,
-            "total_bonus": 411,
-            "total_onus": -214,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -961,7 +882,7 @@
     },
     {
       "id": "8188312",
-      "nome": "Desconhecido",
+      "nome": "Felipe Santos",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -976,17 +897,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -146,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -146,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -146,
-            "total_bonus": 160,
-            "total_onus": -306,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -1039,7 +960,7 @@
     },
     {
       "id": "1568358",
-      "nome": "Desconhecido",
+      "nome": "Sir Gegé   ",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1054,17 +975,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 143,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 143,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 143,
-            "total_bonus": 346,
-            "total_onus": -203,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -1117,7 +1038,7 @@
     },
     {
       "id": "621609",
-      "nome": "Desconhecido",
+      "nome": "Eudes Pereira",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1132,17 +1053,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 112,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 112,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 112,
-            "total_bonus": 367,
-            "total_onus": -255,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -1195,7 +1116,7 @@
     },
     {
       "id": "1097804",
-      "nome": "Desconhecido",
+      "nome": "China Guardiola",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1210,17 +1131,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 166,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 166,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 166,
-            "total_bonus": 389,
-            "total_onus": -223,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -1273,7 +1194,7 @@
     },
     {
       "id": "20165417",
-      "nome": "Desconhecido",
+      "nome": "Raylson Fernandes",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1288,17 +1209,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -339,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -339,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -339,
-            "total_bonus": 145,
-            "total_onus": -484,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -1351,7 +1272,7 @@
     },
     {
       "id": "3300583",
-      "nome": "Desconhecido",
+      "nome": "Leilson Bezerra",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1366,17 +1287,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -204,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -204,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -204,
-            "total_bonus": 159,
-            "total_onus": -363,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -1429,7 +1350,7 @@
     },
     {
       "id": "645089",
-      "nome": "Desconhecido",
+      "nome": "Antonio Luis ",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1444,17 +1365,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -163,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -163,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -163,
-            "total_bonus": 191,
-            "total_onus": -354,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -1507,7 +1428,7 @@
     },
     {
       "id": "14916330",
-      "nome": "Desconhecido",
+      "nome": "Raimundo Pinheiro ",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1522,17 +1443,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 41,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 41,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 41,
-            "total_bonus": 280,
-            "total_onus": -239,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -1585,7 +1506,7 @@
     },
     {
       "id": "13935277",
-      "nome": "Desconhecido",
+      "nome": "Paulinett Miranda",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1600,17 +1521,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 56,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 56,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 56,
-            "total_bonus": 102,
-            "total_onus": -46,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -1695,7 +1616,7 @@
     },
     {
       "id": "1932235",
-      "nome": "Desconhecido",
+      "nome": "RODRIGO PAES LANDIM ",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1710,17 +1631,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 40,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 40,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 40,
-            "total_bonus": 282,
-            "total_onus": -242,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -1773,7 +1694,7 @@
     },
     {
       "id": "5254799",
-      "nome": "Desconhecido",
+      "nome": "Mauricio Wendel",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1788,17 +1709,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 262,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 262,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 262,
-            "total_bonus": 386,
-            "total_onus": -124,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.975Z"
           }
         },
         "historico_pagamentos": []
@@ -1853,7 +1774,7 @@
     },
     {
       "id": "39786",
-      "nome": "Desconhecido",
+      "nome": "Cássio Marques",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1868,17 +1789,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 19,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 19,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 19,
-            "total_bonus": 313,
-            "total_onus": -294,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -1931,7 +1852,7 @@
     },
     {
       "id": "1039496",
-      "nome": "Desconhecido",
+      "nome": "Randerson Rodrigues",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -1946,17 +1867,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -135,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -135,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -135,
-            "total_bonus": 211,
-            "total_onus": -346,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -2009,7 +1930,7 @@
     },
     {
       "id": "715731",
-      "nome": "Desconhecido",
+      "nome": "Jonney Vojvoda",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -2024,17 +1945,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -98,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -98,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -98,
-            "total_bonus": 236,
-            "total_onus": -334,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -2087,7 +2008,7 @@
     },
     {
       "id": "2718174",
-      "nome": "Desconhecido",
+      "nome": "Flavio André",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -2102,17 +2023,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 79,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 79,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 79,
-            "total_bonus": 324,
-            "total_onus": -245,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -2165,7 +2086,7 @@
     },
     {
       "id": "8183683",
-      "nome": "Desconhecido",
+      "nome": "Neto Waquim",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -2180,17 +2101,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 110,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 110,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 110,
-            "total_bonus": 344,
-            "total_onus": -234,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -2243,7 +2164,7 @@
     },
     {
       "id": "25324292",
-      "nome": "Desconhecido",
+      "nome": "Pedro Antônio",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -2258,17 +2179,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -93,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -93,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -93,
-            "total_bonus": 192,
-            "total_onus": -285,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -2321,7 +2242,7 @@
     },
     {
       "id": "7698677",
-      "nome": "Desconhecido",
+      "nome": "Wesley Oliveira",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -2336,17 +2257,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 286,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 286,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 286,
-            "total_bonus": 418,
-            "total_onus": -132,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.975Z"
           }
         },
         "historico_pagamentos": []
@@ -2401,7 +2322,7 @@
     },
     {
       "id": "25371297",
-      "nome": "Desconhecido",
+      "nome": "Diogo Monte",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -2416,17 +2337,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 154,
-        "tipo": "credor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 154,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": 154,
-            "total_bonus": 363,
-            "total_onus": -209,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -2479,7 +2400,7 @@
     },
     {
       "id": "14569704",
-      "nome": "Desconhecido",
+      "nome": "Rafael Janderson",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -2494,17 +2415,17 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -114,
-        "tipo": "devedor",
+        "saldo_atual": 0,
+        "tipo": "zerado",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -114,
+            "saldo_extrato": 0,
             "saldo_campos_manuais": 0,
-            "saldo_final": -114,
-            "total_bonus": 208,
-            "total_onus": -322,
-            "quitado": false,
-            "data_quitacao": null
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0,
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -2556,7 +2477,7 @@
       }
     },
     {
-      "nome": "Desconhecido",
+      "nome": "Vitim",
       "email": null,
       "telefone": null,
       "primeiro_registro": "2025",
@@ -2581,7 +2502,7 @@
             "total_bonus": 0,
             "total_onus": 0,
             "quitado": true,
-            "data_quitacao": "2025-12-18T13:30:37.169Z"
+            "data_quitacao": "2025-12-27T00:38:05.975Z"
           }
         },
         "historico_pagamentos": []
@@ -2688,8 +2609,8 @@
             "saldo_final": 0,
             "total_bonus": 0,
             "total_onus": 0,
-            "quitado": false,
-            "data_quitacao": null
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -2720,9 +2641,7 @@
             "total_onus": 0
           },
           "conquistas": {
-            "badges": [
-              "campeao_2025"
-            ]
+            "badges": []
           },
           "status": {
             "ativo": true,
@@ -2768,8 +2687,8 @@
             "saldo_final": 0,
             "total_bonus": 0,
             "total_onus": 0,
-            "quitado": false,
-            "data_quitacao": null
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -2848,8 +2767,8 @@
             "saldo_final": 0,
             "total_bonus": 0,
             "total_onus": 0,
-            "quitado": false,
-            "data_quitacao": null
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -2880,9 +2799,7 @@
             "total_onus": 0
           },
           "conquistas": {
-            "badges": [
-              "terceiro_2025"
-            ]
+            "badges": []
           },
           "status": {
             "ativo": false,
@@ -2931,8 +2848,8 @@
             "saldo_final": 0,
             "total_bonus": 0,
             "total_onus": 0,
-            "quitado": false,
-            "data_quitacao": null
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
@@ -3012,8 +2929,8 @@
             "saldo_final": 0,
             "total_bonus": 0,
             "total_onus": 0,
-            "quitado": false,
-            "data_quitacao": null
+            "quitado": true,
+            "data_quitacao": "2025-12-27T00:38:05.976Z"
           }
         },
         "historico_pagamentos": []
