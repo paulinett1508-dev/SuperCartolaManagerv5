@@ -1,181 +1,124 @@
-# Tarefas Pendentes - Super Cartola Manager
+# Tarefas Pendentes - 2025-12-27
 
-## Status Atual
+## Contexto
+Encerramento da Temporada 2025 e preparação para virada de Temporada 2026.
+Todas as validações foram concluídas. Sistema pronto para executar turn_key em 01/01/2026.
 
-**Nenhuma tarefa pendente de alta prioridade.**
+## Tarefa Principal
+**VIRADA DE TEMPORADA 2025 → 2026**
 
----
+## Concluído (Validações)
+- [x] 38 rodadas consolidadas (ambas ligas)
+- [x] Rankings finais validados (SuperCartola: 32, Sobral: 6)
+- [x] Saldos financeiros verificados (18 credores, 14 devedores)
+- [x] 32 nomes "Desconhecido" corrigidos no users_registry.json
+- [x] 4 badges incorretos removidos
+- [x] Cartório Vitalício: 37 participantes únicos
+- [x] turn_key_2026.js testado em dry-run
+- [x] Collections PRESERVE atualizadas (admins, acertofinanceiros)
+- [x] Collections WIPE expandida (25 collections)
+- [x] Snapshot 2025 gerado (data/history/2025/)
+- [x] Backup automático funcionando
+- [x] Prazos de renovação configurados (15/03, 31/03)
 
-## Concluído - Sessão 2025-12-18 (Noite)
+## Pendente (Ações Manuais)
+- [ ] Notificar participantes sobre encerramento 2025
+- [ ] Cobrar quitação dos 14 devedores (R$ 2.432 pendentes)
+- [ ] Pagar os 18 credores (R$ 2.739 a pagar)
+- [ ] **EXECUTAR turn_key em 01/01/2026**
+- [ ] Atualizar config/seasons.js (CURRENT_SEASON = 2026)
+- [ ] Reiniciar servidor após turn_key
 
-### Exibição de Composição do Saldo no Extrato (100% Completo)
-- [x] Criar função `_renderizarSecaoAcertos` em `fluxo-financeiro-ui.js`
-- [x] Exibir lista de acertos individuais (PAGOU/RECEBEU + data + valor)
-- [x] Mostrar breakdown: Saldo das Rodadas + Acertos Manuais = SALDO FINAL
-- [x] Seção só aparece se houver acertos registrados
+## Situação Financeira Atual
+| Status | Qtd | Valor |
+|--------|-----|-------|
+| Credores | 18 | R$ 2.739,00 |
+| Devedores | 14 | R$ 2.432,00 |
+| Já quitaram | 4 | R$ 548,00 |
 
-**Commit:** `bd3e0c7` - feat(extrato): Show acertos composition in financial statement
+**Quitações recebidas:**
+1. Diego Barbosa - R$ 197
+2. Leilson Bezerra - R$ 204
+3. Chamex F.C. - R$ 146
+4. Paulinett Miranda - R$ 1
 
-**Arquivos modificados:**
-- `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` (v6.1 → v6.2)
+## Campeões 2025
+- **SuperCartola:** Vitim (1º)
+- **Sobral:** Vitim + Daniel Barbosa (empate 1º)
 
----
+## Arquivos Importantes
+- `scripts/turn_key_2026.js` - Script de virada (v2.1.0)
+- `config/seasons.js` - Alterar CURRENT_SEASON para 2026
+- `data/users_registry.json` - Cartório Vitalício (37 usuários)
+- `data/history/2025/` - Snapshot da temporada
 
-## Concluído - Sessão 2025-12-18 (Tarde)
+## Próximos Passos (01/01/2026)
 
-### Correção Crítica: Cálculo de Acertos Financeiros (100% Completo)
-- [x] Identificar fórmula invertida (`totalRecebido - totalPago` → `totalPago - totalRecebido`)
-- [x] Corrigir em `routes/tesouraria-routes.js` (2 ocorrências)
-- [x] Corrigir em `routes/acertos-financeiros-routes.js` (4 ocorrências)
-- [x] Corrigir tipo de temporada (string → number) em todas as rotas
-- [x] Corrigir campo da API (`saldoAcertos` → `saldo` alias)
-- [x] Corrigir `controllers/extratoFinanceiroCacheController.js` para incluir acertos no saldo
-- [x] Corrigir dados no MongoDB DEV e PROD (temporada string→number, tipo errado)
-- [x] Atualizar skill `league-architect` com regra de acertos
-
-**Commits:**
-- `81116c8` - fix(financeiro): Corrigir cálculo de saldo com acertos financeiros
-- `66886bc` - feat(frontend): Integrar acertos financeiros no extrato do participante
-
-**Arquivos modificados:**
-- `controllers/extratoFinanceiroCacheController.js` (v5.1 → v5.2)
-- `routes/acertos-financeiros-routes.js` (v1.3 → v1.4)
-- `routes/tesouraria-routes.js` (v1.0 → v1.1)
-- `public/js/fluxo-financeiro/*.js` (integração frontend)
-- `public/participante/js/modules/participante-extrato.js`
-- `scripts/fix-acertos-tipo.js` (novo)
-- `scripts/invalidar-cache-time.js` (novo)
-
----
-
-## Concluído - Sessão 2025-12-18 (Manhã)
-
-### Banner de Boas-Vindas com Resumo 2025 (100% Completo)
-- [x] Adicionar banner no `boas-vindas.html` mostrando resumo de 2025
-- [x] Exibir posição final, badges conquistados
-- [x] Mostrar saldo financeiro de 2025
-- [x] Indicador de temporada atual no header da saudação
-
-**Arquivos modificados:**
-- `public/participante/js/modules/participante-boas-vindas.js` (v9.0)
-
-### Seletor de Temporada Global (100% Completo)
-- [x] Criar componente de seletor de ano (2025/2026)
-- [x] Persistir preferência no localStorage
-- [x] Indicador visual de modo histórico
-- [x] Integrar no header secundário do App
-
-**Arquivos criados/modificados:**
-- `public/participante/js/participante-config.js` (novo)
-- `public/participante/js/participante-season-selector.js` (novo)
-- `public/participante/index.html` (header atualizado)
-
-### Hall da Fama / Histórico do Participante (100% Completo)
-- [x] Criar rota backend `/api/participante/historico/:timeId`
-- [x] Criar tela `public/participante/fronts/historico.html`
-- [x] Criar módulo `public/participante/js/modules/participante-historico.js`
-- [x] Adicionar "Hall da Fama" no menu de navegação do App
-- [x] Exibir badges conquistados (campeão, vice, top10 mito/mico)
-- [x] Exibir saldo financeiro de temporadas anteriores
-- [x] Criar seletor de temporada (2025, 2026...)
-
-**Arquivos criados/modificados:**
-- `routes/participante-historico-routes.js` (nova rota)
-- `public/participante/fronts/historico.html` (nova tela)
-- `public/participante/js/modules/participante-historico.js` (novo módulo)
-- `public/participante/js/participante-navigation.js` (menu atualizado)
-- `index.js` (registro da rota)
-
-### Correção de Saldos Financeiros (100% Completo)
-- [x] Investigar por que saldos estavam zerados
-- [x] Identificar que banco DEV estava vazio
-- [x] Criar script `atualizar-saldos-registry.js` para sincronizar do PROD
-- [x] Popular `users_registry.json` com saldos reais (32 participantes)
-- [x] Resultado: 18 credores, 14 devedores, 1 zerado
-
-**Arquivos criados/modificados:**
-- `scripts/atualizar-saldos-registry.js` (novo)
-- `data/users_registry.json` (atualizado com saldos reais)
-- `data/history/2025/final_standings.json` (novo)
-- `data/history/2025/migration_report.json` (novo)
-
----
-
-## Concluído - Sessão 2025-12-17
-
-### Sistema de Design Tokens (100% Completo)
-- [x] Criar `public/css/_admin-tokens.css` com variáveis CSS centralizadas
-- [x] Criar `public/participante/css/_app-tokens.css` para o App
-- [x] Criar documentação `docs/TOKENS-GUIA.md`
-- [x] Integrar tokens em `public/layout.html`
-- [x] Integrar tokens em `public/participante/index.html`
-- [x] Migrar `public/css/base.css` para usar tokens
-- [x] Migrar `public/participante/css/participante.css` para usar tokens
-- [x] Remover `@keyframes spin` duplicados dos módulos CSS do Admin (13 arquivos)
-
-### Migração de 16 Páginas Admin (100% Completo)
-- [x] `admin-consolidacao.html`
-- [x] `admin.html`
-- [x] `convite.html`
-- [x] `criar-liga.html`
-- [x] `editar-liga.html`
-- [x] `ferramentas.html`
-- [x] `ferramentas-rodadas.html`
-- [x] `fluxo-financeiro.html`
-- [x] `gerir-senhas-participantes.html`
-- [x] `gestao-renovacoes.html`
-- [x] `index.html`
-- [x] `migrar-localstorage-mongodb.html`
-- [x] `painel.html`
-- [x] `participante-dashboard.html`
-- [x] `participante-login.html`
-- [x] `preencher-liga.html`
-
-### Gestão de Ligas - Padronização CSS
-- [x] Criar `public/css/modules/gerenciar.css` (CSS consolidado)
-- [x] Migrar `public/gerenciar.html` para usar tokens (removeu 359 linhas inline)
-- [x] Migrar `public/gerenciar-modulos.html` para usar tokens (removeu 394 linhas inline)
-- [x] Migrar `public/detalhe-liga.html` para usar tokens
-- [x] Atualizar `public/detalhe-liga.css` para mapear variáveis para tokens globais
-- [x] Padronizar dimensões de cards (grid 220px, padding var(--space-4), border-radius var(--radius-card))
-
-### Hub de Gestão - Refatoração Layout
-- [x] Limpar Sidebar - manter apenas navegação global
-- [x] Remover seções de estatísticas (Mitos/Micos) do detalhe-liga.html
-- [x] Adicionar "Administração da Liga" com ferramentas admin
-
-### Ferramenta Gemini Audit
-- [x] Corrigir `gemini_audit.py` (modelo atualizado para gemini-2.5-flash)
-- [x] Adicionar retry com exponential backoff para rate limits
-
----
-
-## Commits Recentes
-1. `65abd96` - fix(data): Populate users_registry with real financial saldos from PROD
-2. `d3ff4ff` - feat(app): Add Hall da Fama, season banner and season selector
-3. `18c6902` - docs: Update CLAUDE.md with system-scribe skill and ideias-backlog
-
----
-
-## Arquivos de Referência
-| Arquivo | Descrição |
-|---------|-----------|
-| `public/css/_admin-tokens.css` | Tokens do Admin (cores, espaçamento, sombras) |
-| `public/participante/css/_app-tokens.css` | Tokens do App Mobile |
-| `docs/TOKENS-GUIA.md` | Guia de migração |
-| `public/css/modules/gerenciar.css` | CSS consolidado para gerenciamento |
-
----
-
-## Comandos Úteis
-
+### 1. Executar Turn Key
 ```bash
-# Verificar que todas as páginas usam tokens
-for f in public/*.html; do if grep -q "_admin-tokens" "$f" 2>/dev/null; then echo "✓ $(basename $f)"; else echo "✗ $(basename $f)"; fi; done
-
-# Rodar servidor
-npm run dev
-
-# Status git
-git status
+# Conectar ao Replit e rodar:
+NODE_ENV=production node scripts/turn_key_2026.js
 ```
+
+### 2. Atualizar Seasons (manual)
+```javascript
+// Em config/seasons.js, alterar:
+export const CURRENT_SEASON = 2026;
+// E em SEASON_CONFIG:
+status: 'preparando'
+```
+
+### 3. Reiniciar Servidor
+```bash
+# Via Replit Console ou restart automático
+```
+
+## Comandos Úteis para Retomar
+```bash
+# Verificar status do git
+git status
+
+# Verificar situação financeira
+node -e "const d = require('./data/users_registry.json'); console.log('Credores:', d.users.filter(u => u.situacao_financeira?.saldo_atual > 0).length); console.log('Devedores:', d.users.filter(u => u.situacao_financeira?.saldo_atual < 0).length);"
+
+# Testar turn_key novamente (dry-run)
+node scripts/turn_key_2026.js --dry-run --force-date-override
+
+# Verificar acertos financeiros
+node -e "const {MongoClient} = require('mongodb'); require('dotenv').config(); MongoClient.connect(process.env.MONGO_URI).then(c => c.db().collection('acertofinanceiros').countDocuments().then(n => {console.log('Total acertos:', n); c.close();}));"
+```
+
+## Cronograma
+| Data | Ação |
+|------|------|
+| Até 31/12/2025 | Quitar pendências |
+| 01/01/2026 | Executar turn_key |
+| 01/01 - 15/03 | Renovação OPT-IN |
+| 15/03/2026 | Prazo renovação |
+| 31/03/2026 | Prazo quitação |
+| Abril 2026 | Início Brasileirão |
+
+---
+
+## Histórico de Sessões Anteriores
+
+### Sessão 2025-12-18 (Noite)
+- [x] Exibição de Composição do Saldo no Extrato
+
+### Sessão 2025-12-18 (Tarde)
+- [x] Correção Crítica: Cálculo de Acertos Financeiros
+
+### Sessão 2025-12-18 (Manhã)
+- [x] Banner de Boas-Vindas com Resumo 2025
+- [x] Seletor de Temporada Global
+- [x] Hall da Fama / Histórico do Participante
+- [x] Correção de Saldos Financeiros
+
+### Sessão 2025-12-17
+- [x] Sistema de Design Tokens
+- [x] Migração de 16 Páginas Admin
+- [x] Gestão de Ligas - Padronização CSS
+
+---
+*Salvo em: 2025-12-27 00:55 UTC*
+*Use `/retomar-tarefas` para continuar*
