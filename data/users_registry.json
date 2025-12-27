@@ -4,8 +4,8 @@
     "descricao": "Registro permanente de todos os participantes e seus históricos através das temporadas",
     "versao": "2.1.0",
     "criado_em": "2025-12-15",
-    "ultima_atualizacao": "2025-12-27T00:05:00.000Z",
-    "correcoes_aplicadas": 7
+    "ultima_atualizacao": "2025-12-27T00:08:32.768Z",
+    "correcoes_aplicadas": 2
   },
   "config_renovacao": {
     "temporada_atual": 2026,
@@ -158,6 +158,10 @@
             "badges": [
               "vice_2025"
             ]
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -234,6 +238,10 @@
             "badges": [
               "terceiro_2025"
             ]
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -308,6 +316,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -382,6 +394,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -456,6 +472,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -530,6 +550,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -604,6 +628,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -678,6 +706,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -752,6 +784,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -826,6 +862,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -900,6 +940,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -974,6 +1018,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1048,6 +1096,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1122,6 +1174,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1196,6 +1252,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1270,6 +1330,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1344,6 +1408,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1418,6 +1486,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1492,6 +1564,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1573,7 +1649,11 @@
           "conquistas": {
             "badges": []
           },
-          "time_escudo": "https://s2-cartola.glbimg.com/XqTNWtU0S8uzpU6ZUjcMZVWJQYc=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_211/escudo/f8/27/53/00681760d8-c096-4ce7-8896-13b4cc8b71f820230318082753"
+          "time_escudo": "https://s2-cartola.glbimg.com/XqTNWtU0S8uzpU6ZUjcMZVWJQYc=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_211/escudo/f8/27/53/00681760d8-c096-4ce7-8896-13b4cc8b71f820230318082753",
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
+          }
         },
         {
           "ano": 2025,
@@ -1594,6 +1674,10 @@
             "badges": [
               "vice_2025"
             ]
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1668,6 +1752,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1744,6 +1832,10 @@
             "badges": [
               "vice_2025"
             ]
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1818,6 +1910,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1892,6 +1988,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -1966,6 +2066,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -2040,6 +2144,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -2114,6 +2222,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -2188,6 +2300,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -2264,6 +2380,10 @@
             "badges": [
               "terceiro_2025"
             ]
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -2338,6 +2458,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -2412,6 +2536,10 @@
           },
           "conquistas": {
             "badges": []
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -2514,6 +2642,10 @@
             "badges": [
               "campeao_2025"
             ]
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -2591,6 +2723,10 @@
             "badges": [
               "campeao_2025"
             ]
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -2667,6 +2803,10 @@
             "badges": [
               "campeao_2025"
             ]
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],
@@ -2743,7 +2883,14 @@
             "badges": [
               "terceiro_2025"
             ]
-          }
+          },
+          "status": {
+            "ativo": false,
+            "rodada_desistencia": 29
+          },
+          "observacoes": [
+            "Desistiu na rodada 29"
+          ]
         }
       ],
       "stats_agregadas": {
@@ -2817,7 +2964,14 @@
           },
           "conquistas": {
             "badges": []
-          }
+          },
+          "status": {
+            "ativo": false,
+            "rodada_desistencia": 29
+          },
+          "observacoes": [
+            "Desistiu na rodada 29"
+          ]
         }
       ],
       "stats_agregadas": {
@@ -2893,6 +3047,10 @@
             "badges": [
               "terceiro_2025"
             ]
+          },
+          "status": {
+            "ativo": true,
+            "rodada_desistencia": null
           }
         }
       ],

@@ -239,7 +239,11 @@ async function main() {
                     posicao: posicaoReal
                 });
 
-                usuario = criarNovoUsuario(timeId, participante, liga, posicaoReal);
+                // Buscar info de atividade do participante
+                const participanteInfoNovo = ligaInfo?.participantes?.find(p =>
+                    String(p.time_id) === timeId
+                );
+                usuario = criarNovoUsuario(timeId, participante, liga, posicaoReal, participanteInfoNovo);
                 registry.users.push(usuario);
                 usuariosPorId.set(timeId, usuario);
 
@@ -313,6 +317,35 @@ async function main() {
             if (badges.length > 0) {
                 if (!historico.conquistas) historico.conquistas = {};
                 historico.conquistas.badges = badges;
+            }
+
+            // Verificar status de atividade (participantes inativos)
+            const participanteInfo = ligaInfo?.participantes?.find(p =>
+                String(p.time_id) === timeId
+            );
+
+            if (participanteInfo) {
+                const isAtivo = participanteInfo.ativo !== false;
+                const rodadaDesistencia = participanteInfo.rodada_desistencia || null;
+
+                if (!isAtivo) {
+                    historico.status = {
+                        ativo: false,
+                        rodada_desistencia: rodadaDesistencia
+                    };
+
+                    if (!historico.observacoes) historico.observacoes = [];
+                    const msgDesistencia = rodadaDesistencia
+                        ? `Desistiu na rodada ${rodadaDesistencia}`
+                        : 'Participante inativo';
+
+                    if (!historico.observacoes.includes(msgDesistencia)) {
+                        historico.observacoes.push(msgDesistencia);
+                        correcoes.push(`Marcado como inativo: ${timeId} (${participante.nome_cartola}) - R${rodadaDesistencia}`);
+                    }
+                } else {
+                    historico.status = { ativo: true, rodada_desistencia: null };
+                }
             }
 
             // Atualizar stats agregadas
@@ -448,11 +481,49 @@ async function main() {
 // HELPER: Criar novo usuário
 // =============================================================================
 
-function criarNovoUsuario(timeId, participante, liga, posicao) {
+function criarNovoUsuario(timeId, participante, liga, posicao, participanteInfo = null) {
     const badges = [];
     if (posicao === 1) badges.push('campeao_2025');
     if (posicao === 2) badges.push('vice_2025');
     if (posicao === 3) badges.push('terceiro_2025');
+
+    // Verificar status de atividade
+    const isAtivo = participanteInfo?.ativo !== false;
+    const rodadaDesistencia = participanteInfo?.rodada_desistencia || null;
+
+    // Construir objeto de histórico
+    const historicoObj = {
+        ano: 2025,
+        liga_id: liga.id,
+        liga_nome: liga.nome,
+        time_escudo: participante.escudo || '',
+        estatisticas: {
+            posicao_final: posicao,
+            pontos_totais: participante.pontos_totais || 0,
+            rodadas_jogadas: participante.rodadas_jogadas || 38
+        },
+        financeiro: {
+            saldo_final: 0,
+            total_bonus: 0,
+            total_onus: 0
+        },
+        conquistas: {
+            badges
+        },
+        status: {
+            ativo: isAtivo,
+            rodada_desistencia: rodadaDesistencia
+        }
+    };
+
+    // Adicionar observação se inativo
+    if (!isAtivo) {
+        historicoObj.observacoes = [
+            rodadaDesistencia
+                ? `Desistiu na rodada ${rodadaDesistencia}`
+                : 'Participante inativo'
+        ];
+    }
 
     return {
         id: timeId,
@@ -489,25 +560,7 @@ function criarNovoUsuario(timeId, participante, liga, posicao) {
             liga_nome: liga.nome,
             temporadas: ['2025']
         }],
-        historico: [{
-            ano: 2025,
-            liga_id: liga.id,
-            liga_nome: liga.nome,
-            time_escudo: participante.escudo || '',
-            estatisticas: {
-                posicao_final: posicao,
-                pontos_totais: participante.pontos_totais || 0,
-                rodadas_jogadas: participante.rodadas_jogadas || 38
-            },
-            financeiro: {
-                saldo_final: 0,
-                total_bonus: 0,
-                total_onus: 0
-            },
-            conquistas: {
-                badges
-            }
-        }],
+        historico: [historicoObj],
         stats_agregadas: {
             total_temporadas: 1,
             total_titulos: posicao === 1 ? 1 : 0,
