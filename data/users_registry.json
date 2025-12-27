@@ -4,8 +4,8 @@
     "descricao": "Registro permanente de todos os participantes e seus históricos através das temporadas",
     "versao": "2.1.0",
     "criado_em": "2025-12-15",
-    "ultima_atualizacao": "2025-12-27T00:01:20.204Z",
-    "correcoes_aplicadas": 36
+    "ultima_atualizacao": "2025-12-27T00:05:00.000Z",
+    "correcoes_aplicadas": 7
   },
   "config_renovacao": {
     "temporada_atual": 2026,
@@ -1581,8 +1581,8 @@
           "liga_nome": "SOBRAL",
           "time_escudo": "https://s2-cartola.glbimg.com/XqTNWtU0S8uzpU6ZUjcMZVWJQYc=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_211/escudo/f8/27/53/00681760d8-c096-4ce7-8896-13b4cc8b71f820230318082753",
           "estatisticas": {
-            "posicao_final": 6,
-            "pontos_totais": 0,
+            "posicao_final": 2,
+            "pontos_totais": 2990.4303283691406,
             "rodadas_jogadas": 38
           },
           "financeiro": {
@@ -1591,14 +1591,16 @@
             "total_onus": 0
           },
           "conquistas": {
-            "badges": []
+            "badges": [
+              "vice_2025"
+            ]
           }
         }
       ],
       "stats_agregadas": {
         "total_temporadas": 1,
         "total_titulos": 0,
-        "melhor_posicao_geral": 6,
+        "melhor_posicao_geral": 2,
         "total_pontos_historico": 0
       },
       "acesso_permitido": {
@@ -2463,6 +2465,13 @@
           "temporadas": [
             "2025"
           ]
+        },
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "temporadas": [
+            "2025"
+          ]
         }
       ],
       "historico": [
@@ -2474,6 +2483,27 @@
             "posicao_final": 1,
             "pontos_totais": 0,
             "rodadas_jogadas": 222
+          },
+          "financeiro": {
+            "saldo_final": 0,
+            "total_bonus": 0,
+            "total_onus": 0
+          },
+          "conquistas": {
+            "badges": [
+              "campeao_2025"
+            ]
+          }
+        },
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SUPERCARTOLA",
+          "time_escudo": "https://s2-cartola.glbimg.com/DANx0cpRHzW-C_XwWkGJJRI1bAM=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_222/escudo/07/48/48/007351dafe-0b47-4f48-a78d-f4aa9ad6c70720240320164848",
+          "estatisticas": {
+            "posicao_final": 1,
+            "pontos_totais": 3597.87939453125,
+            "rodadas_jogadas": 38
           },
           "financeiro": {
             "saldo_final": 0,
@@ -2548,8 +2578,8 @@
           "liga_nome": "SOBRAL",
           "time_escudo": "https://s2-cartola.glbimg.com/a20EDxltWY_BMWsCandvsi2MJZc=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_238/escudo/16/23/51/00c62828a6-42d4-4f96-917a-612a02b6f31620250326112351",
           "estatisticas": {
-            "posicao_final": 1,
-            "pontos_totais": 0,
+            "posicao_final": 4,
+            "pontos_totais": 2315.87939453125,
             "rodadas_jogadas": 38
           },
           "financeiro": {
@@ -2566,7 +2596,7 @@
       ],
       "stats_agregadas": {
         "total_temporadas": 1,
-        "total_titulos": 1,
+        "total_titulos": 0,
         "melhor_posicao_geral": 1,
         "total_pontos_historico": 0
       },
@@ -2624,8 +2654,8 @@
           "liga_nome": "SOBRAL",
           "time_escudo": "https://s2-cartola.glbimg.com/fJB2769UdYR17XXbWZt_D9dwtJY=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_241/escudo/c3/48/59/00fe9e57e9-431b-41e1-a50e-61b71c71a8c320250419134859",
           "estatisticas": {
-            "posicao_final": 2,
-            "pontos_totais": 0,
+            "posicao_final": 1,
+            "pontos_totais": 3309.05078125,
             "rodadas_jogadas": 38
           },
           "financeiro": {
@@ -2635,15 +2665,15 @@
           },
           "conquistas": {
             "badges": [
-              "vice_2025"
+              "campeao_2025"
             ]
           }
         }
       ],
       "stats_agregadas": {
         "total_temporadas": 1,
-        "total_titulos": 0,
-        "melhor_posicao_geral": 2,
+        "total_titulos": 1,
+        "melhor_posicao_geral": 1,
         "total_pontos_historico": 0
       },
       "acesso_permitido": {
@@ -2700,9 +2730,9 @@
           "liga_nome": "SOBRAL",
           "time_escudo": "https://s2-cartola.glbimg.com/UXMQF_Pc3paiGZanZEVwLSibfEI=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/9c/24/21/002350563c-6c6f-4562-8f4a-193d7c8fa89c20250317132421",
           "estatisticas": {
-            "posicao_final": 3,
-            "pontos_totais": 0,
-            "rodadas_jogadas": 38
+            "posicao_final": 5,
+            "pontos_totais": 2079.9605407714844,
+            "rodadas_jogadas": 35
           },
           "financeiro": {
             "saldo_final": 0,
@@ -2776,9 +2806,9 @@
           "liga_nome": "SOBRAL",
           "time_escudo": "https://s2-cartola.glbimg.com/jwvB7UV--ZydTK3VhTEvJAFUzMA=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_222/escudo/1e/02/44/002b074128-fb38-45f9-af44-c3fa73d3eb1e20240321150244",
           "estatisticas": {
-            "posicao_final": 4,
-            "pontos_totais": 0,
-            "rodadas_jogadas": 38
+            "posicao_final": 6,
+            "pontos_totais": 1785.1698608398438,
+            "rodadas_jogadas": 35
           },
           "financeiro": {
             "saldo_final": 0,
@@ -2850,8 +2880,8 @@
           "liga_nome": "SOBRAL",
           "time_escudo": "https://s2-cartola.glbimg.com/4wDWnvlTv9q1jrLBrVrgF38TfmM=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/a2/23/50/00d5d7efd5-ba38-45cb-ac81-a4ae266e16a220250324172350",
           "estatisticas": {
-            "posicao_final": 5,
-            "pontos_totais": 0,
+            "posicao_final": 3,
+            "pontos_totais": 2415.3900146484375,
             "rodadas_jogadas": 38
           },
           "financeiro": {
@@ -2860,14 +2890,16 @@
             "total_onus": 0
           },
           "conquistas": {
-            "badges": []
+            "badges": [
+              "terceiro_2025"
+            ]
           }
         }
       ],
       "stats_agregadas": {
         "total_temporadas": 1,
         "total_titulos": 0,
-        "melhor_posicao_geral": 5,
+        "melhor_posicao_geral": 3,
         "total_pontos_historico": 0
       },
       "acesso_permitido": {
