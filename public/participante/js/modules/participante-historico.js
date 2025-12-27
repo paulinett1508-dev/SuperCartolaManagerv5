@@ -1,5 +1,5 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v10.0 (HALL DA FAMA - TOP10 CORRIGIDO)
+// PARTICIPANTE-HISTORICO.JS - v10.5 (HALL DA FAMA - STATUS INATIVIDADE)
 // =====================================================================
 // v10.0: TOP10 Histórico CORRIGIDO - Lógica clara e precisa:
 //       - O ranking armazena TODAS as pontuações extremas da temporada
@@ -34,7 +34,7 @@
 // v7.0: Layout limpo, sem seletores, mostra TODAS as ligas do participante
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.5 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v10.5 carregando...");
 
 // Estado do modulo
 let historicoData = null;
@@ -63,7 +63,13 @@ export async function inicializarHistoricoParticipante({ participante, ligaId: _
         const response = await fetch(`/api/participante/historico/${timeId}`);
         if (!response.ok) {
             if (response.status === 404) {
-                mostrarVazio();
+                // v10.4: Participante não está no Cartório - buscar dados em tempo real
+                if (window.Log) Log.info("HISTORICO", "Participante não encontrado no Cartório - buscando dados em tempo real");
+                if (ligaIdSelecionada) {
+                    await renderizarDadosTempoReal(ligaIdSelecionada);
+                } else {
+                    mostrarVazio();
+                }
                 return;
             }
             throw new Error(`Erro ${response.status}`);
@@ -216,8 +222,23 @@ async function renderizarTodasLigas() {
                     <div class="stat-subtitle">${melhorRodada ? `${formatarPontos(melhorRodada.pontos)} pontos` : 'Sem dados'}</div>
                 </div>
             </div>
-            <div class="divider"></div>
         `;
+
+        // v10.5: Banner de inatividade se o participante desistiu
+        if (tempRecente.status && tempRecente.status.ativo === false) {
+            const rodadaDesist = tempRecente.status.rodada_desistencia || 'N/D';
+            html += `
+                <div class="alert-banner warning">
+                    <span class="material-icons">info</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Participante Inativo</div>
+                        <div class="alert-text">Desistiu na rodada ${rodadaDesist}. Estatisticas ate a ultima rodada ativa.</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        html += `<div class="divider"></div>`;
 
         // Mata-Mata (v9.0: verifica módulo ativo)
         if (modulos.mataMata !== false && mataMata && mataMata.participou) {
@@ -309,7 +330,7 @@ async function renderizarTodasLigas() {
             `;
         }
 
-        // TOP 10 (v10.0: Lógica corrigida - mostra posições no ranking histórico)
+        // TOP 10 (v10.4: Unificado - mesmo card para todas as ligas)
         if (modulos.top10 !== false && top10) {
             const temAlgoNoTop10 = top10.mitosNoTop10 > 0 || top10.micosNoTop10 > 0;
             const saldoClass = top10.saldoTop10 > 0 ? 'positive' : top10.saldoTop10 < 0 ? 'negative' : '';
@@ -318,8 +339,8 @@ async function renderizarTodasLigas() {
                 <div class="section">
                     <div class="section-header">
                         <span class="material-icons section-icon">leaderboard</span>
-                        <span class="section-title">TOP 10 Historico</span>
-                        ${temAlgoNoTop10 ? `<span class="section-badge">${top10.saldoTop10 >= 0 ? '+' : ''}${formatarMoeda(top10.saldoTop10)}</span>` : ''}
+                        <span class="section-title">TOP 10 Performance</span>
+                        ${temAlgoNoTop10 ? `<span class="section-badge ${saldoClass}">${top10.saldoTop10 >= 0 ? '+' : ''}${formatarMoeda(top10.saldoTop10)}</span>` : ''}
                     </div>
                     <div class="achievement-list">
             `;
@@ -368,7 +389,7 @@ async function renderizarTodasLigas() {
                     <div class="achievement-item">
                         <span class="material-icons achievement-icon">info</span>
                         <div class="achievement-content">
-                            <div class="achievement-title">Fora do TOP 10 Historico</div>
+                            <div class="achievement-title">Fora do TOP 10</div>
                             <div class="achievement-value">
                                 ${aparicoesMitos > 0 ? `${aparicoesMitos}x no ranking de mitos` : ''}
                                 ${aparicoesMitos > 0 && aparicoesMicos > 0 ? ' | ' : ''}
@@ -1241,7 +1262,7 @@ async function renderizarDadosTempoReal(ligaId) {
                     <div class="achievement-item">
                         <span class="material-icons achievement-icon">info</span>
                         <div class="achievement-content">
-                            <div class="achievement-title">Fora do TOP 10 Historico</div>
+                            <div class="achievement-title">Fora do TOP 10</div>
                             <div class="achievement-value">
                                 ${aparicoesMitos > 0 ? `${aparicoesMitos}x no ranking de mitos` : ''}
                                 ${aparicoesMitos > 0 && aparicoesMicos > 0 ? ' | ' : ''}
@@ -1348,4 +1369,4 @@ async function renderizarDadosTempoReal(ligaId) {
     }
 }
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v9.5 pronto");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v10.5 pronto");

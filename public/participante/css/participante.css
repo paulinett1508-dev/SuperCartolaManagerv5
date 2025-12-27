@@ -779,3 +779,42 @@ body {
     /* Quick Access Bar height = 72px + safe area + espaçamento */
     padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 16px) !important;
 }
+
+/* ====== ALERT BANNER (v10.5 - Status de Inatividade) ====== */
+.alert-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--app-space-3);
+    padding: var(--app-space-3) var(--app-space-4);
+    margin: var(--app-space-4) 0;
+    border-radius: var(--app-radius-lg);
+    border-left: 4px solid;
+}
+
+.alert-banner.warning {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%);
+    border-left-color: var(--app-warning, #f59e0b);
+}
+
+.alert-banner.warning .material-icons {
+    color: var(--app-warning, #f59e0b);
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.alert-banner .alert-content {
+    flex: 1;
+}
+
+.alert-banner .alert-title {
+    font-size: var(--app-font-sm);
+    font-weight: var(--app-font-bold);
+    color: var(--app-text-primary);
+    margin-bottom: var(--app-space-1);
+}
+
+.alert-banner .alert-text {
+    font-size: var(--app-font-xs);
+    color: var(--app-text-muted);
+    line-height: 1.4;
+}

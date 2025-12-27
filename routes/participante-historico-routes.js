@@ -102,7 +102,10 @@ router.get("/:timeId", async (req, res) => {
                 },
                 conquistas: {
                     badges: h.conquistas?.badges || []
-                }
+                },
+                // ✅ v2.3: Status de atividade do participante
+                status: h.status || { ativo: true, rodada_desistencia: null },
+                observacoes: h.observacoes || []
             })),
             situacao_financeira: {
                 saldo_atual: participante.situacao_financeira?.saldo_atual || 0,
