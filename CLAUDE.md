@@ -98,6 +98,64 @@ Comandos disponíveis para invocar diretamente:
 - Model: `models/Time.js`
 - Schema principal: `id` (Number, único), `nome_time`, `nome_cartoleiro`, `ativo`, `rodada_desistencia`, `temporada`
 
+## 🔐 Sistema de Autenticação Admin
+
+### Arquitetura
+O sistema usa **Replit Auth** (OpenID Connect) para autenticação de administradores.
+
+### Arquivos Principais
+- `config/replit-auth.js` - Configuração do Passport + Replit OIDC
+- `config/google-oauth.js` - (Legacy, não usado atualmente)
+
+### Lógica de Autorização
+A função `isAdminAuthorizado()` em `replit-auth.js` segue esta ordem:
+
+1. **Verifica collection `admins`** no MongoDB
+2. Se não existir admins no banco → usa `ADMIN_EMAILS` da env
+3. Se existir admins no banco mas email não está → **NEGA**
+4. Se não há restrição configurada → permite (dev mode)
+
+### Collection `admins`
+```javascript
+{
+  email: "admin@example.com",  // Email do Replit (lowercase)
+  nome: "Nome do Admin",
+  superAdmin: true/false,      // Permissões elevadas
+  ativo: true/false,           // Se pode logar
+  tipo: "owner" | "cliente",   // Tipo de admin
+  criadoPor: "email@...",      // Quem criou
+  criadoEm: Date
+}
+```
+
+### Troubleshooting - "Email não autorizado"
+Se um admin receber erro de "não autorizado":
+
+1. **Verificar email no Replit** - Qual email está logado?
+2. **Consultar collection admins:**
+   ```javascript
+   db.admins.find({})
+   ```
+3. **Se existem admins no banco** → O email DEVE estar lá
+4. **Adicionar admin:**
+   ```javascript
+   db.admins.insertOne({
+     email: "email@dominio.com",
+     nome: "Nome",
+     superAdmin: true,
+     ativo: true,
+     tipo: "owner",
+     criadoEm: new Date(),
+     criadoPor: "sistema"
+   })
+   ```
+
+### Rota de Debug
+Acessar `/api/admin/auth/debug` para ver:
+- Hostname atual
+- Emails autorizados (env)
+- Status do OIDC config
+
 ## 🔌 Estratégia de Banco de Dados
 
 ### Configuração

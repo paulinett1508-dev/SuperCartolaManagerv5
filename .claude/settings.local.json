@@ -125,7 +125,8 @@
       "Bash(GIT_ASKPASS= git push)",
       "Bash(timeout 15 grep:*)",
       "Bash(if grep -q \"AccordionManager.init\\(\\)\" \"$file\")",
-      "Bash(then)"
+      "Bash(then)",
+      "mcp__mongo__insert_document"
     ]
   },
   "enableAllProjectMcpServers": true,
