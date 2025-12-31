@@ -204,6 +204,32 @@
     /* Safe Areas (iOS/Android) */
     --app-safe-bottom: env(safe-area-inset-bottom, 0px);
     --app-safe-top: env(safe-area-inset-top, 0px);
+
+    /* ========================================
+       14. ALIASES DE COMPATIBILIDADE
+       ========================================
+       Mapeamento para padrão --participante-* usado em alguns módulos.
+       Preferir usar --app-* em novos desenvolvimentos.
+    */
+    --participante-primary: var(--app-primary);
+    --participante-card: var(--app-surface);
+    --participante-surface: var(--app-surface-elevated);
+    --participante-bg: var(--app-bg);
+    --participante-border: rgba(255, 255, 255, 0.1);
+    --participante-text: var(--app-text-primary);
+    --participante-text-muted: var(--app-text-muted);
+    --participante-text-secondary: var(--app-text-secondary);
+
+    /* Cores semânticas legadas */
+    --laranja: var(--app-primary);
+    --bg-card: var(--app-surface);
+    --bg-body: var(--app-bg);
+    --success: var(--app-success-light);
+    --danger: var(--app-danger);
+    --warning: var(--app-warning);
+    --gold: var(--app-gold);
+    --silver: var(--app-silver);
+    --bronze: var(--app-bronze);
 }
 
 /* ========================================

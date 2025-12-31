@@ -57,23 +57,23 @@
     @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
     @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
 
-    /* Variáveis */
+    /* Variáveis - Mapeadas para tokens globais (_app-tokens.css) */
     :root {
-        --rank-primary: #ff5c00;
-        --rank-bg: #1c1c1e;
-        --rank-surface: #2c2c2e;
+        --rank-primary: var(--app-primary, #ff5c00);
+        --rank-bg: var(--app-surface, #1c1c1e);
+        --rank-surface: var(--app-surface-elevated, #2c2c2e);
         --rank-surface-light: #3c3c3e;
-        --rank-text: #ffffff;
-        --rank-text-secondary: rgba(255, 255, 255, 0.6);
-        --rank-text-muted: rgba(255, 255, 255, 0.4);
-        --rank-gold: #facc15;
-        --rank-gold-bg: rgba(250, 204, 21, 0.1);
-        --rank-silver: #a1a1aa;
-        --rank-silver-bg: rgba(161, 161, 170, 0.1);
-        --rank-bronze: #d97706;
-        --rank-bronze-bg: rgba(217, 119, 6, 0.1);
-        --rank-danger: rgba(239, 68, 68, 0.15);
-        --rank-danger-border: #ef4444;
+        --rank-text: var(--app-text-primary, #ffffff);
+        --rank-text-secondary: var(--app-text-secondary, rgba(255, 255, 255, 0.6));
+        --rank-text-muted: var(--app-text-muted, rgba(255, 255, 255, 0.4));
+        --rank-gold: var(--app-gold, #facc15);
+        --rank-gold-bg: var(--app-gold-muted, rgba(250, 204, 21, 0.1));
+        --rank-silver: var(--app-silver, #a1a1aa);
+        --rank-silver-bg: var(--app-silver-muted, rgba(161, 161, 170, 0.1));
+        --rank-bronze: var(--app-bronze, #d97706);
+        --rank-bronze-bg: var(--app-bronze-muted, rgba(217, 119, 6, 0.1));
+        --rank-danger: var(--app-danger-muted, rgba(239, 68, 68, 0.15));
+        --rank-danger-border: var(--app-danger, #ef4444);
     }
 
     .ranking-participante-pro {

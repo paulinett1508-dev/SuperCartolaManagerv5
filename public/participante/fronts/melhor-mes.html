@@ -43,7 +43,16 @@
 <style>
     /* ============================================
        MELHOR MÊS v3.5 - HEADER PADRONIZADO
+       Cores mapeadas para tokens globais (_app-tokens.css)
        ============================================ */
+    :root {
+        --mm-primary: var(--app-primary, #ff5c00);
+        --mm-surface: var(--app-surface, #1c1c1c);
+        --mm-success: var(--app-success-light, #22c55e);
+        --mm-text-muted: var(--app-text-muted, #9ca3af);
+        --mm-text-dim: #6b7280;
+        --mm-border: #333;
+    }
 
     .melhor-mes-container-pro {
         padding: 16px;
@@ -70,7 +79,7 @@
 
     .mm-icon {
         font-size: 28px;
-        color: #ff5c00;
+        color: var(--mm-primary);
     }
 
     /* TÍTULO SEM GRADIENTE - Cor sólida branca */
@@ -104,8 +113,8 @@
     .loading-spinner-mm {
         width: 40px;
         height: 40px;
-        border: 3px solid #333;
-        border-top-color: #ff5c00;
+        border: 3px solid var(--mm-border);
+        border-top-color: var(--mm-primary);
         border-radius: 50%;
         animation: spin-mm 0.8s linear infinite;
         margin-bottom: 16px;
@@ -142,7 +151,7 @@
 
     .conquistas-icon {
         font-size: 24px;
-        color: #22c55e;
+        color: var(--mm-success);
     }
 
     .conquistas-meses-pro {
@@ -169,10 +178,10 @@
 
     /* CARDS */
     .mm-edicao-card {
-        background: #1c1c1c;
+        background: var(--mm-surface);
         border-radius: 16px;
         overflow: hidden;
-        border: 1px solid #333;
+        border: 1px solid var(--mm-border);
         transition: all 0.2s ease;
     }
 
@@ -252,7 +261,7 @@
     .mm-campeao-label {
         font-size: 10px;
         font-weight: 700;
-        color: #ff5c00;
+        color: var(--mm-primary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -272,7 +281,7 @@
     .mm-campeao-pontos {
         font-size: 16px;
         font-weight: 800;
-        color: #ff5c00;
+        color: var(--mm-primary);
     }
     .mm-card-campeao.meu .mm-campeao-pontos {
         color: #22c55e;
@@ -354,7 +363,7 @@
         background: transparent;
         border: none;
         border-top: 1px solid #2a2a2a;
-        color: #ff5c00;
+        color: var(--mm-primary);
         font-size: 12px;
         font-weight: 600;
         cursor: pointer;
