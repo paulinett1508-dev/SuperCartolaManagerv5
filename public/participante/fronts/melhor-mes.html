@@ -42,16 +42,22 @@
 
 <style>
     /* ============================================
-       MELHOR MÊS v3.5 - HEADER PADRONIZADO
+       MELHOR MÊS v3.6 - HEADER PADRONIZADO
        Cores mapeadas para tokens globais (_app-tokens.css)
        ============================================ */
     :root {
         --mm-primary: var(--app-primary, #ff5c00);
         --mm-surface: var(--app-surface, #1c1c1c);
+        --mm-surface-elevated: var(--app-surface-elevated, #2a2a2a);
         --mm-success: var(--app-success-light, #22c55e);
+        --mm-text-white: var(--app-text-white, #fff);
+        --mm-text-light: var(--app-text-light, #d1d5db);
         --mm-text-muted: var(--app-text-muted, #9ca3af);
-        --mm-text-dim: #6b7280;
-        --mm-border: #333;
+        --mm-text-dim: var(--app-text-dim, #6b7280);
+        --mm-text-disabled: #404040;
+        --mm-border: var(--app-border, #333);
+        --mm-toast-bg: #1e293b;
+        --mm-toast-border: #334155;
     }
 
     .melhor-mes-container-pro {
@@ -87,13 +93,13 @@
         font-family: "Poppins", sans-serif;
         font-size: 18px;
         font-weight: 700;
-        color: white;
+        color: var(--mm-text-white);
         margin: 0;
     }
 
     .mm-edicoes-badge {
         font-size: 12px;
-        color: #9ca3af;
+        color: var(--mm-text-muted);
         background: rgba(255, 255, 255, 0.05);
         padding: 6px 12px;
         border-radius: 20px;
@@ -107,7 +113,7 @@
         align-items: center;
         justify-content: center;
         padding: 60px 20px;
-        color: #9ca3af;
+        color: var(--mm-text-muted);
     }
 
     .loading-spinner-mm {
@@ -144,7 +150,7 @@
         align-items: center;
         gap: 10px;
         font-weight: 700;
-        color: #22c55e;
+        color: var(--mm-success);
         font-size: 14px;
         margin-bottom: 12px;
     }
@@ -162,7 +168,7 @@
 
     .mes-chip-pro {
         background: rgba(34, 197, 94, 0.2);
-        color: #22c55e;
+        color: var(--mm-success);
         padding: 6px 14px;
         border-radius: 20px;
         font-size: 12px;
@@ -196,13 +202,13 @@
         gap: 12px;
         padding: 16px;
         background: rgba(255, 255, 255, 0.02);
-        border-bottom: 1px solid #2a2a2a;
+        border-bottom: 1px solid var(--mm-surface-elevated);
     }
 
     .mm-card-icon {
         width: 44px;
         height: 44px;
-        background: #2a2a2a;
+        background: var(--mm-surface-elevated);
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -218,12 +224,12 @@
     .mm-card-title {
         font-size: 16px;
         font-weight: 700;
-        color: white;
+        color: var(--mm-text-white);
         margin: 0;
     }
     .mm-card-rodadas {
         font-size: 12px;
-        color: #6b7280;
+        color: var(--mm-text-dim);
     }
 
     .mm-card-status {
@@ -238,7 +244,7 @@
     .mm-card-campeao {
         padding: 16px;
         background: rgba(255, 255, 255, 0.03);
-        border-bottom: 1px solid #2a2a2a;
+        border-bottom: 1px solid var(--mm-surface-elevated);
     }
 
     .mm-card-campeao.meu {
@@ -266,7 +272,7 @@
         letter-spacing: 0.5px;
     }
     .mm-card-campeao.meu .mm-campeao-label {
-        color: #22c55e;
+        color: var(--mm-success);
     }
     .mm-campeao-info {
         display: flex;
@@ -276,7 +282,7 @@
     .mm-campeao-nome {
         font-size: 15px;
         font-weight: 700;
-        color: white;
+        color: var(--mm-text-white);
     }
     .mm-campeao-pontos {
         font-size: 16px;
@@ -284,7 +290,7 @@
         color: var(--mm-primary);
     }
     .mm-card-campeao.meu .mm-campeao-pontos {
-        color: #22c55e;
+        color: var(--mm-success);
     }
 
     /* Aguardando */
@@ -294,8 +300,8 @@
         align-items: center;
         justify-content: center;
         gap: 10px;
-        color: #6b7280;
-        border-bottom: 1px solid #2a2a2a;
+        color: var(--mm-text-dim);
+        border-bottom: 1px solid var(--mm-surface-elevated);
     }
 
     .mm-aguardando-icon {
@@ -337,7 +343,7 @@
     .mm-podio-nome {
         font-size: 11px;
         font-weight: 600;
-        color: #d1d5db;
+        color: var(--mm-text-light);
         text-align: center;
         white-space: nowrap;
         overflow: hidden;
@@ -345,11 +351,11 @@
         max-width: 100%;
     }
     .mm-podio-item.meu .mm-podio-nome {
-        color: #22c55e;
+        color: var(--mm-success);
     }
     .mm-podio-pts {
         font-size: 10px;
-        color: #6b7280;
+        color: var(--mm-text-dim);
     }
 
     /* Botão Expandir */
@@ -362,7 +368,7 @@
         padding: 12px;
         background: transparent;
         border: none;
-        border-top: 1px solid #2a2a2a;
+        border-top: 1px solid var(--mm-surface-elevated);
         color: var(--mm-primary);
         font-size: 12px;
         font-weight: 600;
@@ -382,7 +388,7 @@
     .mm-ranking-expandido {
         padding: 12px 16px 16px;
         background: rgba(0, 0, 0, 0.3);
-        border-top: 1px solid #2a2a2a;
+        border-top: 1px solid var(--mm-surface-elevated);
     }
 
     .mm-ranking-cards {
@@ -410,29 +416,29 @@
         width: 28px;
         font-size: 12px;
         font-weight: 700;
-        color: #6b7280;
+        color: var(--mm-text-dim);
     }
     .mm-rank-nome {
         flex: 1;
         font-size: 13px;
         font-weight: 600;
-        color: #d1d5db;
+        color: var(--mm-text-light);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
     .mm-ranking-card-item.meu .mm-rank-nome {
-        color: #22c55e;
+        color: var(--mm-success);
     }
     .mm-rank-pts {
         font-size: 12px;
         font-weight: 700;
-        color: #9ca3af;
+        color: var(--mm-text-muted);
     }
     .mm-ranking-mais {
         text-align: center;
         padding: 10px;
-        color: #6b7280;
+        color: var(--mm-text-dim);
         font-size: 11px;
     }
 
@@ -447,7 +453,7 @@
         display: block;
         font-size: 11px;
         font-weight: 600;
-        color: #22c55e;
+        color: var(--mm-success);
         margin-bottom: 8px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -472,7 +478,7 @@
     .mm-ranking-vazio {
         text-align: center;
         padding: 16px;
-        color: #6b7280;
+        color: var(--mm-text-dim);
         font-size: 12px;
     }
 
@@ -480,16 +486,16 @@
     .mm-empty-state {
         text-align: center;
         padding: 60px 20px;
-        color: #6b7280;
+        color: var(--mm-text-dim);
     }
     .mm-empty-state .empty-icon {
         font-size: 64px;
         display: block;
         margin-bottom: 16px;
-        color: #404040;
+        color: var(--mm-text-disabled);
     }
     .mm-empty-state h3 {
-        color: #9ca3af;
+        color: var(--mm-text-muted);
         font-size: 18px;
         margin-bottom: 8px;
     }
@@ -504,10 +510,10 @@
         left: 50%;
         transform: translateX(-50%) translateY(100px);
         padding: 14px 24px;
-        background: #1e293b;
-        border: 1px solid #334155;
+        background: var(--mm-toast-bg);
+        border: 1px solid var(--mm-toast-border);
         border-radius: 12px;
-        color: white;
+        color: var(--mm-text-white);
         font-size: 14px;
         font-weight: 500;
         opacity: 0;
@@ -568,7 +574,7 @@
         border-bottom: 1px solid rgba(255, 92, 0, 0.2);
         font-weight: 700;
         font-size: 14px;
-        color: #ff5c00;
+        color: var(--mm-primary);
     }
     .mm-desempenho-content {
         padding: 16px;
@@ -599,15 +605,15 @@
     .mm-desempenho-valor {
         font-size: 24px;
         font-weight: 800;
-        color: white;
+        color: var(--mm-text-white);
         line-height: 1;
     }
     .mm-desempenho-stat.empty .mm-desempenho-valor {
-        color: #6b7280;
+        color: var(--mm-text-dim);
     }
     .mm-desempenho-label {
         font-size: 10px;
-        color: #9ca3af;
+        color: var(--mm-text-muted);
         margin-top: 2px;
     }
     .mm-desempenho-pos {
@@ -624,11 +630,11 @@
         align-items: center;
         gap: 4px;
         font-size: 11px;
-        color: #9ca3af;
+        color: var(--mm-text-muted);
     }
     .mm-desempenho-pos-valor {
         font-size: 16px;
         font-weight: 700;
-        color: white;
+        color: var(--mm-text-white);
     }
 </style>
