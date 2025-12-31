@@ -54,8 +54,27 @@
 
 <style>
     /* =====================================================
-   MATA-MATA v6.5 - Design Moderno
+   MATA-MATA v6.7 - Design Moderno (Tokens CSS)
    ===================================================== */
+
+    /* Variáveis mapeadas para tokens globais (_app-tokens.css) */
+    :root {
+        --mm-bg: var(--app-bg, #0c0c0c);
+        --mm-bg-dark: var(--app-bg-dark, #000);
+        --mm-primary: var(--participante-primary, #ff6a38);
+        --mm-text: var(--participante-text, #f9fafb);
+        --mm-text-white: var(--app-text-white, #fff);
+        --mm-text-muted: var(--participante-text-muted, #9ca3af);
+        --mm-text-dim: var(--app-text-dim, #6b7280);
+        --mm-success: var(--app-success-light, #22c55e);
+        --mm-success-dark: var(--app-success, #16a34a);
+        --mm-danger: var(--app-danger, #ef4444);
+        --mm-warning: var(--app-warning, #eab308);
+        --mm-warning-dark: #ca8a04;
+        --mm-info: var(--app-info, #3b82f6);
+        --mm-purple: #8b5cf6;
+        --mm-pink: #ec4899;
+    }
 
     .mata-mata-module .material-symbols-outlined {
         font-variation-settings:
@@ -68,7 +87,7 @@
     .mata-mata-module {
         min-height: 100%;
         padding: 12px;
-        background: #0c0c0c;
+        background: var(--mm-bg);
     }
 
     /* ===== HEADER ===== */
@@ -137,7 +156,7 @@
 
     .mm-select-wrapper select {
         width: 100%;
-        background: #000;
+        background: var(--mm-bg-dark);
         border: 1px solid var(--participante-border, #3a3a3c);
         color: var(--participante-text, #f9fafb);
         font-size: 13px;
@@ -200,7 +219,7 @@
     .mm-phase-btn.active {
         background: var(--participante-primary, #ff6a38);
         border-color: var(--participante-primary, #ff6a38);
-        color: #fff;
+        color: var(--mm-text-white);
     }
 
     .mm-phase-btn.disabled {
@@ -238,7 +257,7 @@
    CARD "SEU CONFRONTO"
    ===================================================== */
     .mm-meu-confronto {
-        background: #000;
+        background: var(--mm-bg-dark);
         border: 1px solid var(--participante-border, #3a3a3c);
         border-radius: 10px;
         padding: 14px;
@@ -258,19 +277,19 @@
     }
 
     .mm-mc-icon.ganhando {
-        color: #22c55e;
+        color: var(--mm-success);
     }
     .mm-mc-icon.perdendo {
-        color: #ef4444;
+        color: var(--mm-danger);
     }
     .mm-mc-icon.empatando {
-        color: #eab308;
+        color: var(--mm-warning);
     }
 
     .mm-mc-titulo {
         font-size: 14px;
         font-weight: 700;
-        color: #fff;
+        color: var(--mm-text-white);
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -357,13 +376,13 @@
     }
 
     .mm-mc-pts.vencedor {
-        color: #22c55e;
+        color: var(--mm-success);
     }
     .mm-mc-pts.perdedor {
-        color: #ef4444;
+        color: var(--mm-danger);
     }
     .mm-mc-pts.empate {
-        color: #eab308;
+        color: var(--mm-warning);
     }
 
     .mm-mc-vs {
@@ -389,19 +408,19 @@
     .mm-mc-status.passando {
         background: rgba(34, 197, 94, 0.15);
         border: 1px solid rgba(34, 197, 94, 0.3);
-        color: #22c55e;
+        color: var(--mm-success);
     }
 
     .mm-mc-status.sendo-eliminado {
         background: rgba(239, 68, 68, 0.15);
         border: 1px solid rgba(239, 68, 68, 0.3);
-        color: #ef4444;
+        color: var(--mm-danger);
     }
 
     .mm-mc-status.empatando {
         background: rgba(234, 179, 8, 0.15);
         border: 1px solid rgba(234, 179, 8, 0.3);
-        color: #eab308;
+        color: var(--mm-warning);
     }
 
     .mm-mc-status .material-symbols-outlined {
@@ -450,7 +469,7 @@
         background: var(--participante-primary, #ff6a38);
         font-size: 10px;
         font-weight: 700;
-        color: #000;
+        color: var(--mm-bg-dark);
         text-transform: uppercase;
         letter-spacing: 0.3px;
     }
@@ -562,13 +581,13 @@
     }
 
     .mm-pts-valor.vencedor {
-        color: #22c55e;
+        color: var(--mm-success);
     }
     .mm-pts-valor.perdedor {
-        color: #ef4444;
+        color: var(--mm-danger);
     }
     .mm-pts-valor.empate {
-        color: #eab308;
+        color: var(--mm-warning);
     }
 
     .mm-col-time-r {
@@ -588,7 +607,7 @@
         text-align: center;
         font-size: 11px;
         font-weight: 700;
-        color: #22c55e;
+        color: var(--mm-success);
     }
 
     /* ===== LOADING E VAZIO ===== */
@@ -717,19 +736,19 @@
     }
 
     .mm-mc-header-card .mm-mc-icon.passando {
-        color: #22c55e;
+        color: var(--mm-success);
     }
     .mm-mc-header-card .mm-mc-icon.sendo-eliminado {
-        color: #ef4444;
+        color: var(--mm-danger);
     }
     .mm-mc-header-card .mm-mc-icon.empatando {
-        color: #eab308;
+        color: var(--mm-warning);
     }
 
     .mm-mc-header-card .mm-mc-titulo {
         font-size: 13px;
         font-weight: 700;
-        color: #fff;
+        color: var(--mm-text-white);
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -755,7 +774,7 @@
     }
 
     .mm-mc-time-card.adv {
-        border-left: 3px solid #6b7280;
+        border-left: 3px solid var(--mm-text-dim);
     }
 
     .mm-mc-escudo-card {
@@ -785,7 +804,7 @@
     .mm-mc-time-info .mm-mc-nome {
         font-size: 13px;
         font-weight: 700;
-        color: #fff;
+        color: var(--mm-text-white);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -822,19 +841,19 @@
     .mm-mc-status-card.passando {
         background: rgba(34, 197, 94, 0.15);
         border: 1px solid rgba(34, 197, 94, 0.3);
-        color: #22c55e;
+        color: var(--mm-success);
     }
 
     .mm-mc-status-card.sendo-eliminado {
         background: rgba(239, 68, 68, 0.15);
         border: 1px solid rgba(239, 68, 68, 0.3);
-        color: #ef4444;
+        color: var(--mm-danger);
     }
 
     .mm-mc-status-card.empatando {
         background: rgba(234, 179, 8, 0.15);
         border: 1px solid rgba(234, 179, 8, 0.3);
-        color: #eab308;
+        color: var(--mm-warning);
     }
 
     .mm-mc-status-card .material-symbols-outlined {
@@ -876,7 +895,7 @@
         justify-content: center;
         font-size: 10px;
         font-weight: 700;
-        color: #000;
+        color: var(--mm-bg-dark);
     }
 
     .mm-conf-times {
@@ -924,7 +943,7 @@
     .mm-conf-nome {
         font-size: 12px;
         font-weight: 700;
-        color: #fff;
+        color: var(--mm-text-white);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -946,13 +965,13 @@
     }
 
     .mm-conf-pts.vencedor {
-        color: #22c55e;
+        color: var(--mm-success);
     }
     .mm-conf-pts.perdedor {
-        color: #ef4444;
+        color: var(--mm-danger);
     }
     .mm-conf-pts.empate {
-        color: #eab308;
+        color: var(--mm-warning);
     }
 
     .mm-conf-vs {
@@ -966,7 +985,7 @@
     .mm-conf-diff {
         text-align: center;
         font-size: 10px;
-        color: #22c55e;
+        color: var(--mm-success);
         margin-top: 6px;
         padding-top: 6px;
         border-top: 1px dashed rgba(255, 255, 255, 0.1);
@@ -1012,7 +1031,7 @@
 
     .mm-eliminado-card .material-symbols-outlined {
         font-size: 18px;
-        color: #ef4444;
+        color: var(--mm-danger);
     }
 
     .mm-eliminado-card .mm-elim-texto {
@@ -1024,7 +1043,7 @@
     .mm-eliminado-card .mm-elim-titulo {
         font-size: 12px;
         font-weight: 600;
-        color: #ef4444;
+        color: var(--mm-danger);
         margin: 0;
     }
 
@@ -1098,7 +1117,7 @@
     .mm-campeao-titulo {
         font-size: 11px;
         font-weight: 700;
-        color: #eab308;
+        color: var(--mm-warning);
         text-transform: uppercase;
         letter-spacing: 2px;
         margin: 0 0 12px 0;
@@ -1134,7 +1153,7 @@
     .mm-campeao-nome {
         font-size: 16px;
         font-weight: 800;
-        color: #fff;
+        color: var(--mm-text-white);
         margin: 0 0 2px 0;
     }
 
@@ -1147,7 +1166,7 @@
     .mm-campeao-pts {
         font-size: 20px;
         font-weight: 800;
-        color: #eab308;
+        color: var(--mm-warning);
         margin: 0;
     }
 
@@ -1155,8 +1174,8 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: linear-gradient(135deg, #eab308, #ca8a04);
-        color: #000;
+        background: linear-gradient(135deg, var(--mm-warning), var(--mm-warning-dark));
+        color: var(--mm-bg-dark);
         font-size: 10px;
         font-weight: 700;
         padding: 6px 14px;
@@ -1183,11 +1202,11 @@
     }
 
     .mm-campeao-card.sou-eu .mm-campeao-titulo {
-        color: #22c55e;
+        color: var(--mm-success);
     }
 
     .mm-campeao-card.sou-eu .mm-campeao-badge {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, var(--mm-success), var(--mm-success-dark));
     }
 
     /* Responsive para novos cards */
@@ -1223,7 +1242,7 @@
     .mm-desempenho-card {
         background: rgba(26, 26, 26, 0.6);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-left: 4px solid #ff6a38;
+        border-left: 4px solid var(--mm-primary);
         border-radius: 10px;
         padding: 14px 16px;
         margin-top: 20px;
@@ -1237,14 +1256,14 @@
     }
 
     .mm-desemp-header .material-symbols-outlined {
-        color: #ff6a38;
+        color: var(--mm-primary);
         font-size: 18px;
     }
 
     .mm-desemp-header span:not(.material-symbols-outlined) {
         font-size: 12px;
         font-weight: 600;
-        color: #9ca3af;
+        color: var(--mm-text-muted);
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -1270,11 +1289,11 @@
     }
 
     .mm-desemp-main-icon.win {
-        color: #22c55e;
+        color: var(--mm-success);
     }
 
     .mm-desemp-main-icon.loss {
-        color: #ef4444;
+        color: var(--mm-danger);
     }
 
     .mm-desemp-main-info {
@@ -1285,14 +1304,14 @@
 
     .mm-desemp-main-label {
         font-size: 9px;
-        color: #6b7280;
+        color: var(--mm-text-dim);
         text-transform: uppercase;
     }
 
     .mm-desemp-main-value {
         font-size: 20px;
         font-weight: 800;
-        color: #fff;
+        color: var(--mm-text-white);
         line-height: 1;
     }
 
@@ -1313,23 +1332,23 @@
     .mm-desemp-secondary-value {
         font-size: 14px;
         font-weight: 700;
-        color: #fff;
+        color: var(--mm-text-white);
         line-height: 1;
     }
 
     .mm-desemp-secondary-label {
         font-size: 9px;
-        color: #6b7280;
+        color: var(--mm-text-dim);
         margin-top: 4px;
         text-transform: uppercase;
     }
 
     .mm-desemp-secondary-value.highlight {
-        color: #ff6a38;
+        color: var(--mm-primary);
     }
 
     .mm-desemp-secondary-value.success {
-        color: #22c55e;
+        color: var(--mm-success);
     }
 
     /* Histórico de edições */
@@ -1341,7 +1360,7 @@
     .mm-desemp-history-title {
         font-size: 10px;
         font-weight: 600;
-        color: #6b7280;
+        color: var(--mm-text-dim);
         text-transform: uppercase;
         margin-bottom: 8px;
         display: flex;
@@ -1370,7 +1389,7 @@
     }
 
     .mm-desemp-edition-name {
-        color: #9ca3af;
+        color: var(--mm-text-muted);
         font-weight: 600;
     }
 
@@ -1381,7 +1400,7 @@
     }
 
     .mm-desemp-edition-record {
-        color: #6b7280;
+        color: var(--mm-text-dim);
         font-size: 10px;
     }
 
@@ -1395,26 +1414,26 @@
 
     .mm-desemp-edition-phase.campeao {
         background: rgba(234, 179, 8, 0.2);
-        color: #eab308;
+        color: var(--mm-warning);
     }
 
     .mm-desemp-edition-phase.semis {
         background: rgba(59, 130, 246, 0.2);
-        color: #3b82f6;
+        color: var(--mm-info);
     }
 
     .mm-desemp-edition-phase.quartas {
         background: rgba(139, 92, 246, 0.2);
-        color: #8b5cf6;
+        color: var(--mm-purple);
     }
 
     .mm-desemp-edition-phase.oitavas {
         background: rgba(236, 72, 153, 0.2);
-        color: #ec4899;
+        color: var(--mm-pink);
     }
 
     .mm-desemp-edition-phase.primeira {
         background: rgba(107, 114, 128, 0.2);
-        color: #9ca3af;
+        color: var(--mm-text-muted);
     }
 </style>
