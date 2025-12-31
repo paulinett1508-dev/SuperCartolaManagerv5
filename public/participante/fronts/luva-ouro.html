@@ -3,23 +3,9 @@
 <div class="luva-ouro-participante">
     <!-- Container para conteúdo dinâmico -->
     <div id="luvaOuroContainer">
-        <div
-            class="loading-participante"
-            style="text-align: center; padding: 40px"
-        >
-            <div
-                class="spinner-participante"
-                style="
-                    border: 4px solid #f3f3f3;
-                    border-top: 4px solid #ffd700;
-                    border-radius: 50%;
-                    width: 50px;
-                    height: 50px;
-                    animation: spin 1s linear infinite;
-                    margin: 0 auto;
-                "
-            ></div>
-            <p style="margin-top: 20px; color: #888">Carregando goleiros...</p>
+        <div class="loading-participante text-center py-10">
+            <div class="spinner-luva-ouro"></div>
+            <p class="loading-text">Carregando goleiros...</p>
         </div>
     </div>
 
@@ -44,6 +30,22 @@
         100% {
             transform: rotate(360deg);
         }
+    }
+
+    /* Spinner usando variáveis CSS (sem cores hardcoded) */
+    .spinner-luva-ouro {
+        border: 4px solid var(--app-surface-elevated, #2a2a2a);
+        border-top: 4px solid var(--luva-gold);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    .loading-text {
+        margin-top: 20px;
+        color: var(--luva-text-muted);
     }
 
     .luva-ouro-participante {

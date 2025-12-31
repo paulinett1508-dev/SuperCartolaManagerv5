@@ -3,25 +3,9 @@
 <div class="artilheiro-participante">
     <!-- Container para conteúdo dinâmico -->
     <div id="artilheiro-content">
-        <div
-            class="loading-participante"
-            style="text-align: center; padding: 40px"
-        >
-            <div
-                class="spinner-participante"
-                style="
-                    border: 4px solid #f3f3f3;
-                    border-top: 4px solid var(--participante-primary, #22c55e);
-                    border-radius: 50%;
-                    width: 50px;
-                    height: 50px;
-                    animation: spin 1s linear infinite;
-                    margin: 0 auto;
-                "
-            ></div>
-            <p style="margin-top: 20px; color: #888">
-                Carregando artilheiros...
-            </p>
+        <div class="loading-participante text-center py-10">
+            <div class="spinner-artilheiro"></div>
+            <p class="loading-text">Carregando artilheiros...</p>
         </div>
     </div>
 
@@ -45,6 +29,22 @@
         100% {
             transform: rotate(360deg);
         }
+    }
+
+    /* Spinner usando variáveis CSS (sem cores hardcoded) */
+    .spinner-artilheiro {
+        border: 4px solid var(--app-surface-elevated, #2a2a2a);
+        border-top: 4px solid var(--artilheiro-primary);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    .loading-text {
+        margin-top: 20px;
+        color: var(--app-text-muted, #888);
     }
 
     .artilheiro-participante {
