@@ -11,6 +11,13 @@
 </div>
 
 <style>
+    /* Cores mapeadas para tokens globais (_app-tokens.css) */
+    :root {
+        --extrato-gold: var(--app-warning, #fbbf24);
+        --extrato-success: var(--app-success-light, #34d399);
+        --extrato-danger: var(--app-danger, #f87171);
+    }
+
     @keyframes spin {
         to {
             transform: rotate(360deg);
@@ -45,7 +52,7 @@
 
     .btn-pill-acertos .pill-icon {
         font-size: 18px;
-        color: #fbbf24;
+        color: var(--extrato-gold);
         line-height: 1;
         display: flex;
         align-items: center;
@@ -75,11 +82,11 @@
 
     .btn-pill-acertos .pill-badge.badge-positive {
         background: rgba(16, 185, 129, 0.2);
-        color: #34d399;
+        color: var(--extrato-success);
     }
 
     .btn-pill-acertos .pill-badge.badge-negative {
         background: rgba(239, 68, 68, 0.2);
-        color: #f87171;
+        color: var(--extrato-danger);
     }
 </style>

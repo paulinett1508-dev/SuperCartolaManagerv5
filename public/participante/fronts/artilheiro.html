@@ -30,6 +30,14 @@
 </div>
 
 <style>
+    /* Cores mapeadas para tokens globais (_app-tokens.css) */
+    :root {
+        --artilheiro-primary: var(--app-success-light, #22c55e);
+        --artilheiro-card: var(--app-surface, #1a1a1a);
+        --artilheiro-border: var(--participante-border, #333);
+        --artilheiro-danger: var(--app-danger, #ef4444);
+    }
+
     @keyframes spin {
         0% {
             transform: rotate(0deg);
@@ -74,10 +82,10 @@
     }
 
     .text-success {
-        color: #22c55e;
+        color: var(--artilheiro-primary);
     }
     .text-danger {
-        color: #ef4444;
+        color: var(--artilheiro-danger);
     }
     .text-primary {
         color: var(--participante-primary, #22c55e);

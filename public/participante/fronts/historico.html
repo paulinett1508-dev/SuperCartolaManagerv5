@@ -20,12 +20,23 @@
 <style>
 /* =====================================================
    HALL DA FAMA v7.0 - LAYOUT LIMPO (MODELO REFERENCIA)
+   Cores mapeadas para tokens globais (_app-tokens.css)
    ===================================================== */
+:root {
+    --hall-primary: var(--app-primary, #FF4500);
+    --hall-bg: var(--app-bg, #0a0a0a);
+    --hall-surface: var(--app-surface, #1a1a1a);
+    --hall-success: var(--app-success, #10b981);
+    --hall-danger: var(--app-danger, #ef4444);
+    --hall-gold: var(--app-gold, #fbbf24);
+    --hall-text-muted: #999;
+    --hall-text-dim: #666;
+}
 
 .hall-premium {
     padding: 20px;
     font-family: 'Inter', 'Roboto', sans-serif;
-    background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+    background: linear-gradient(180deg, var(--hall-bg) 0%, var(--hall-surface) 100%);
     color: #fff;
     min-height: 100vh;
     max-width: 720px;
@@ -42,7 +53,7 @@
 
 .trophy-icon {
     font-size: 64px;
-    color: #FF4500;
+    color: var(--hall-primary);
     margin-bottom: 15px;
     text-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
 }
@@ -50,14 +61,14 @@
 .header h1 {
     font-size: 32px;
     font-weight: 700;
-    color: #FF4500;
+    color: var(--hall-primary);
     margin: 0 0 8px;
     letter-spacing: -0.5px;
 }
 
 .header .subtitle {
     font-size: 14px;
-    color: #999;
+    color: var(--hall-text-muted);
     font-weight: 400;
 }
 
@@ -106,13 +117,13 @@
 
 .stat-icon {
     font-size: 32px;
-    color: #FF4500;
+    color: var(--hall-primary);
     margin-bottom: 12px;
 }
 
 .stat-label {
     font-size: 11px;
-    color: #999;
+    color: var(--hall-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 8px;
@@ -126,12 +137,12 @@
     line-height: 1;
 }
 
-.stat-value.positive { color: #10b981; }
-.stat-value.negative { color: #ef4444; }
+.stat-value.positive { color: var(--hall-success); }
+.stat-value.negative { color: var(--hall-danger); }
 
 .stat-subtitle {
     font-size: 12px;
-    color: #666;
+    color: var(--hall-text-dim);
     margin-top: 4px;
 }
 
@@ -157,7 +168,7 @@
 
 .section-icon {
     font-size: 24px;
-    color: #FF4500;
+    color: var(--hall-primary);
     margin-right: 12px;
 }
 
@@ -177,7 +188,7 @@
     border: 1px solid rgba(255, 69, 0, 0.3);
     border-radius: 12px;
     font-size: 10px;
-    color: #FF4500;
+    color: var(--hall-primary);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -205,7 +216,7 @@
 
 .achievement-icon {
     font-size: 20px;
-    color: #FF4500;
+    color: var(--hall-primary);
     margin-right: 12px;
     width: 24px;
     text-align: center;
@@ -225,16 +236,16 @@
 
 .achievement-value {
     font-size: 11px;
-    color: #999;
+    color: var(--hall-text-muted);
 }
 
 .achievement-value .highlight {
-    color: #FF4500;
+    color: var(--hall-primary);
     font-weight: 600;
 }
 
-.achievement-value .positive { color: #10b981; }
-.achievement-value .negative { color: #ef4444; }
+.achievement-value .positive { color: var(--hall-success); }
+.achievement-value .negative { color: var(--hall-danger); }
 
 /* Destaque para conquistas especiais */
 .achievement-item.destaque {
@@ -243,7 +254,7 @@
 }
 
 .achievement-item.destaque .achievement-icon {
-    color: #fbbf24;
+    color: var(--hall-gold);
 }
 
 /* Divider */
@@ -266,7 +277,7 @@
 }
 
 .liga-header .material-icons {
-    color: #FF4500;
+    color: var(--hall-primary);
     font-size: 20px;
 }
 

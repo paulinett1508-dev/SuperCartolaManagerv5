@@ -28,6 +28,15 @@
 </div>
 
 <style>
+    /* Cores mapeadas para tokens globais (_app-tokens.css) */
+    :root {
+        --luva-gold: var(--app-gold, #ffd700);
+        --luva-silver: var(--app-silver, #c0c0c0);
+        --luva-bronze: var(--app-bronze, #cd7f32);
+        --luva-card: var(--app-surface, #1a1a1a);
+        --luva-text-muted: #999;
+    }
+
     @keyframes spin {
         0% {
             transform: rotate(0deg);
@@ -68,18 +77,18 @@
         box-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
     }
     .goleiro-card.podium-3 {
-        border-color: #cd7f32;
+        border-color: var(--luva-bronze);
         box-shadow: 0 0 15px rgba(205, 127, 50, 0.3);
     }
     .goleiro-card.meu-goleiro {
         background: rgba(255, 215, 0, 0.15);
-        border-color: #ffd700;
+        border-color: var(--luva-gold);
     }
 
     .goleiro-posicao {
         font-size: 24px;
         font-weight: 700;
-        color: #ffd700;
+        color: var(--luva-gold);
         margin-bottom: 10px;
     }
     .goleiro-nome {
@@ -90,7 +99,7 @@
     }
     .goleiro-time {
         font-size: 14px;
-        color: #999;
+        color: var(--luva-text-muted);
         margin-bottom: 15px;
     }
 
@@ -105,14 +114,14 @@
     .stat-label {
         display: block;
         font-size: 12px;
-        color: #999;
+        color: var(--luva-text-muted);
         margin-bottom: 5px;
     }
     .stat-value {
         display: block;
         font-size: 20px;
         font-weight: 700;
-        color: #ffd700;
+        color: var(--luva-gold);
     }
 
     /* v3.7: Estilos do card desempenho ao final */
