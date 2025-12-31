@@ -50,16 +50,10 @@
                                 <span class="material-icons" style="font-size: 14px; margin-left: auto; color: #9ca3af;">open_in_new</span>
                             </a>
                         </li>
-                        <li id="menuAdministradores" class="menu-super-admin-only" style="display: none;">
-                            <a href="admin-gestao.html" class="sidebar-menu-item" data-page="admin-gestao.html">
-                                <span class="material-icons">admin_panel_settings</span>
-                                <span>Administradores</span>
-                            </a>
-                        </li>
                         <li>
-                            <a href="historico-acessos.html" class="sidebar-menu-item" data-page="historico-acessos.html">
-                                <span class="material-icons">history</span>
-                                <span>Historico Acessos</span>
+                            <a href="ferramentas.html" class="sidebar-menu-item" data-page="ferramentas.html">
+                                <span class="material-icons">build</span>
+                                <span>Ferramentas</span>
                             </a>
                         </li>
                     </ul>
@@ -95,9 +89,9 @@
                         <span class="material-icons">person</span>
                         <span>Meu Perfil</span>
                     </button>
-                    <button class="sidebar-user-menu-item" data-action="config">
-                        <span class="material-icons">settings</span>
-                        <span>Configuracoes</span>
+                    <button class="sidebar-user-menu-item menu-super-admin-only" id="menuAdministradores" data-action="administradores" style="display: none;">
+                        <span class="material-icons">admin_panel_settings</span>
+                        <span>Administradores</span>
                     </button>
                     <div class="sidebar-user-menu-divider"></div>
                     <button class="sidebar-user-menu-item logout" data-action="logout">
@@ -132,7 +126,7 @@
                     const menuAdmin = document.getElementById('menuAdministradores');
                     if (menuAdmin) {
                         menuAdmin.style.cssText = data.isSuperAdmin
-                            ? 'display: list-item !important;'
+                            ? 'display: flex !important;'
                             : 'display: none !important;';
                     }
                 } catch (e) {
@@ -481,6 +475,13 @@
 
                 if (!userSection || !userToggle) return;
 
+                // Evitar dupla inicialização (sidebar-menu.js pode ter inicializado primeiro)
+                if (userToggle.dataset.initialized) {
+                    console.log('[LAYOUT] Menu já inicializado por sidebar-menu.js');
+                    return;
+                }
+                userToggle.dataset.initialized = 'true';
+
                 // Toggle do menu
                 userToggle.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -497,8 +498,8 @@
                             case 'perfil':
                                 abrirPerfilAdmin();
                                 break;
-                            case 'config':
-                                window.location.href = 'ferramentas.html';
+                            case 'administradores':
+                                window.location.href = 'admin-gestao.html';
                                 break;
                             case 'logout':
                                 fazerLogoutAdmin();
@@ -530,12 +531,109 @@
                     .then(data => {
                         const nome = data.user?.name || data.user?.username || 'Admin';
                         const email = data.user?.email || 'Nao informado';
-                        alert(`Perfil do Administrador\n\nNome: ${nome}\nEmail: ${email}\nRole: Administrador`);
+                        const provider = data.user?.provider || 'replit';
+                        const isSuperAdmin = data.user?.superAdmin || false;
+
+                        mostrarModalPerfil({
+                            nome: nome,
+                            email: email,
+                            provider: provider,
+                            isSuperAdmin: isSuperAdmin,
+                            ultimoAcesso: new Date().toLocaleString('pt-BR')
+                        });
                     })
                     .catch(() => {
-                        alert('Perfil do Administrador\n\nUsuario: Admin\nRole: Administrador');
+                        mostrarModalPerfil({
+                            nome: 'Admin',
+                            email: 'Nao informado',
+                            provider: 'local',
+                            isSuperAdmin: false,
+                            ultimoAcesso: new Date().toLocaleString('pt-BR')
+                        });
                     });
             }
+
+            function mostrarModalPerfil(dados) {
+                // Remover modal anterior se existir
+                const modalAnterior = document.getElementById('modalPerfilAdmin');
+                if (modalAnterior) modalAnterior.remove();
+
+                const roleText = dados.isSuperAdmin ? 'Super Administrador' : 'Administrador';
+                const roleClass = dados.isSuperAdmin ? 'super-admin' : 'admin';
+                const providerIcon = dados.provider === 'replit' ? 'cloud' : 'person';
+
+                const modalHtml = `
+                    <div id="modalPerfilAdmin" class="modal-perfil-overlay" onclick="fecharModalPerfil(event)">
+                        <div class="modal-perfil-content" onclick="event.stopPropagation()">
+                            <button class="modal-perfil-close" onclick="fecharModalPerfil()">
+                                <span class="material-icons">close</span>
+                            </button>
+
+                            <div class="modal-perfil-header">
+                                <div class="modal-perfil-avatar">
+                                    <span class="material-icons">admin_panel_settings</span>
+                                </div>
+                                <h2>${dados.nome}</h2>
+                                <span class="modal-perfil-badge ${roleClass}">
+                                    <span class="material-icons">verified</span>
+                                    ${roleText}
+                                </span>
+                            </div>
+
+                            <div class="modal-perfil-info">
+                                <div class="modal-perfil-item">
+                                    <span class="material-icons">email</span>
+                                    <div>
+                                        <label>Email</label>
+                                        <span>${dados.email}</span>
+                                    </div>
+                                </div>
+                                <div class="modal-perfil-item">
+                                    <span class="material-icons">${providerIcon}</span>
+                                    <div>
+                                        <label>Autenticacao</label>
+                                        <span>${dados.provider === 'replit' ? 'Replit Auth (SSO)' : 'Local'}</span>
+                                    </div>
+                                </div>
+                                <div class="modal-perfil-item">
+                                    <span class="material-icons">schedule</span>
+                                    <div>
+                                        <label>Sessao Atual</label>
+                                        <span>${dados.ultimoAcesso}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-perfil-footer">
+                                <button class="btn-modal-secondary" onclick="fecharModalPerfil()">
+                                    Fechar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                // Animar entrada
+                requestAnimationFrame(() => {
+                    document.getElementById('modalPerfilAdmin').classList.add('active');
+                });
+            }
+
+            function fecharModalPerfil(event) {
+                if (event && event.target !== event.currentTarget) return;
+                const modal = document.getElementById('modalPerfilAdmin');
+                if (modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => modal.remove(), 200);
+                }
+            }
+
+            // Expor funções globalmente para sidebar-menu.js
+            window.abrirPerfilAdmin = abrirPerfilAdmin;
+            window.fecharModalPerfil = fecharModalPerfil;
+            window.mostrarModalPerfil = mostrarModalPerfil;
 
             function fazerLogoutAdmin() {
                 if (confirm('Deseja realmente sair do sistema?')) {
@@ -590,7 +688,7 @@
                         if (menuAdmin) {
                             if (superData.isSuperAdmin) {
                                 // Super Admin - mostrar menu
-                                menuAdmin.style.cssText = 'display: list-item !important;';
+                                menuAdmin.style.cssText = 'display: flex !important;';
                                 console.log('[LAYOUT] Menu Administradores VISÍVEL (Super Admin)');
                             } else {
                                 // Admin comum - esconder menu

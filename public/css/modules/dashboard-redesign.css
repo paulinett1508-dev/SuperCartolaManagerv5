@@ -1403,6 +1403,195 @@ body.sidebar-collapsed .app-main {
     color: #f87171;
 }
 
+/* ============================================================
+   MODAL PERFIL ADMIN - v1.0
+   ============================================================ */
+.modal-perfil-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.modal-perfil-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-perfil-content {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.2s ease;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-perfil-overlay.active .modal-perfil-content {
+    transform: scale(1) translateY(0);
+}
+
+.modal-perfil-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.modal-perfil-close:hover {
+    background: rgba(255, 85, 0, 0.2);
+}
+
+.modal-perfil-close .material-icons {
+    font-size: 18px;
+    color: #9ca3af;
+}
+
+.modal-perfil-close:hover .material-icons {
+    color: #FF5500;
+}
+
+.modal-perfil-header {
+    padding: 32px 24px 20px;
+    text-align: center;
+    border-bottom: 1px solid #2d2d2d;
+}
+
+.modal-perfil-avatar {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, #FF5500, #ff7733);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    box-shadow: 0 4px 20px rgba(255, 85, 0, 0.3);
+}
+
+.modal-perfil-avatar .material-icons {
+    font-size: 36px;
+    color: #fff;
+}
+
+.modal-perfil-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px;
+}
+
+.modal-perfil-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.modal-perfil-badge.admin {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+}
+
+.modal-perfil-badge.super-admin {
+    background: rgba(255, 85, 0, 0.15);
+    color: #FF5500;
+}
+
+.modal-perfil-badge .material-icons {
+    font-size: 14px;
+}
+
+.modal-perfil-info {
+    padding: 20px 24px;
+}
+
+.modal-perfil-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #2d2d2d;
+}
+
+.modal-perfil-item:last-child {
+    border-bottom: none;
+}
+
+.modal-perfil-item > .material-icons {
+    font-size: 20px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.modal-perfil-item div {
+    flex: 1;
+}
+
+.modal-perfil-item label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+}
+
+.modal-perfil-item span {
+    font-size: 0.875rem;
+    color: #e5e7eb;
+}
+
+.modal-perfil-footer {
+    padding: 16px 24px 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn-modal-secondary {
+    padding: 10px 24px;
+    border: 1px solid #333;
+    background: transparent;
+    color: #9ca3af;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-modal-secondary:hover {
+    border-color: #FF5500;
+    color: #FF5500;
+}
+
 /* Loading state for ligas */
 .sidebar-ligas-loading {
     padding: 16px 12px;

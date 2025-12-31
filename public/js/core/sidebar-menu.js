@@ -128,8 +128,8 @@
                     case 'perfil':
                         abrirPerfilAdmin();
                         break;
-                    case 'config':
-                        window.location.href = 'ferramentas.html';
+                    case 'administradores':
+                        window.location.href = 'admin-gestao.html';
                         break;
                     case 'logout':
                         fazerLogoutAdmin();
@@ -157,18 +157,23 @@
         console.log('[SIDEBAR-MENU] ✅ Menu do perfil inicializado');
     }
 
-    // Abrir perfil do admin
+    // Abrir perfil do admin - delega para função global do layout
     function abrirPerfilAdmin() {
-        fetch('/api/admin/auth/session', { credentials: 'include' })
-            .then(res => res.json())
-            .then(data => {
-                const nome = data.user?.name || data.user?.username || 'Admin';
-                const email = data.user?.email || 'Nao informado';
-                alert(`Perfil do Administrador\n\nNome: ${nome}\nEmail: ${email}\nRole: Administrador`);
-            })
-            .catch(() => {
-                alert('Perfil do Administrador\n\nUsuario: Admin\nRole: Administrador');
-            });
+        if (typeof window.abrirPerfilAdmin === 'function') {
+            window.abrirPerfilAdmin();
+        } else {
+            // Fallback caso layout não tenha carregado
+            fetch('/api/admin/auth/session', { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    const nome = data.user?.name || data.user?.username || 'Admin';
+                    const email = data.user?.email || 'Nao informado';
+                    alert(`Perfil: ${nome}\nEmail: ${email}`);
+                })
+                .catch(() => {
+                    alert('Perfil do Administrador');
+                });
+        }
     }
 
     // Fazer logout
