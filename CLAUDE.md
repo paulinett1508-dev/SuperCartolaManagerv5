@@ -51,7 +51,7 @@ Comandos disponíveis para invocar diretamente:
 | Comando | Descrição | Exemplo |
 |---------|-----------|---------|
 | `/analisar` | Análise estratégica de jogadores Cartola (Data-Driven) | `/analisar Gabigol` |
-| `/pesquisar` | Pesquisa de notícias via Perplexity (últimas 24-48h) | `/pesquisar escalação Flamengo` |
+| `/perplexity-search` | Pesquisa inteligente via Perplexity MCP (últimas 24-48h) | `/perplexity-search escalação Flamengo` |
 | `/feature-scout` | Verifica se uma feature existe no código | `/feature-scout exportar PDF` |
 | `/html-audit` | Auditoria de qualidade frontend (QA) - verifica conformidade com padrões | `/html-audit public/participante/fronts/perfil.html` |
 | `/salvar-tarefas` | Salva tarefas pendentes antes de encerrar sessão | `/salvar-tarefas` |
@@ -63,9 +63,11 @@ Comandos disponíveis para invocar diretamente:
 - Cruza dados estatísticos para recomendar escalação
 - Gera cards com Status, Potencial e Veredito (ESCALAR/OBSERVAR/VENDER)
 
-**`/pesquisar [termo]`**
-- Busca notícias de última hora sobre jogadores/times
+**`/perplexity-search [termo]`**
+- Pesquisa inteligente usando Perplexity MCP (últimas 24-48h)
 - Foco em fontes confiáveis (setoristas, ge.globo)
+- Retorna resultados em tabelas Markdown quando aplicável
+- **Exemplos:** `/perplexity-search status Arrascaeta`, `/perplexity-search provável escalação Palmeiras`
 
 **`/feature-scout [funcionalidade]`**
 - Analisa se uma feature já existe no código (total/parcial/ausente)
