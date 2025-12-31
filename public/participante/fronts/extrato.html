@@ -15,7 +15,13 @@
     :root {
         --extrato-gold: var(--app-warning, #fbbf24);
         --extrato-success: var(--app-success-light, #34d399);
+        --extrato-success-alpha: rgba(16, 185, 129, 0.2);
         --extrato-danger: var(--app-danger, #f87171);
+        --extrato-danger-alpha: rgba(239, 68, 68, 0.2);
+        --extrato-text-white: var(--app-text-white, #fff);
+        --extrato-text-light: rgba(255, 255, 255, 0.8);
+        --extrato-text-muted: rgba(255, 255, 255, 0.5);
+        --extrato-surface-alpha: rgba(255, 255, 255, 0.15);
     }
 
     @keyframes spin {
@@ -61,7 +67,7 @@
     .btn-pill-acertos .pill-text {
         font-size: 11px;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--extrato-text-light);
         text-transform: uppercase;
         letter-spacing: 0.5px;
         line-height: 1;
@@ -76,17 +82,17 @@
     }
 
     .btn-pill-acertos .pill-badge.badge-neutral {
-        background: rgba(255, 255, 255, 0.15);
-        color: rgba(255, 255, 255, 0.5);
+        background: var(--extrato-surface-alpha);
+        color: var(--extrato-text-muted);
     }
 
     .btn-pill-acertos .pill-badge.badge-positive {
-        background: rgba(16, 185, 129, 0.2);
+        background: var(--extrato-success-alpha);
         color: var(--extrato-success);
     }
 
     .btn-pill-acertos .pill-badge.badge-negative {
-        background: rgba(239, 68, 68, 0.2);
+        background: var(--extrato-danger-alpha);
         color: var(--extrato-danger);
     }
 </style>

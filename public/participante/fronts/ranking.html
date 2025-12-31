@@ -60,10 +60,18 @@
     /* Variáveis - Mapeadas para tokens globais (_app-tokens.css) */
     :root {
         --rank-primary: var(--app-primary, #ff5c00);
+        --rank-primary-light: var(--app-primary-light, #f97316);
+        --rank-primary-alpha-15: rgba(255, 92, 0, 0.15);
+        --rank-primary-alpha-20: rgba(255, 92, 0, 0.2);
+        --rank-primary-alpha-25: rgba(255, 92, 0, 0.25);
+        --rank-primary-alpha-30: rgba(255, 92, 0, 0.3);
+        --rank-primary-alpha-80: rgba(255, 92, 0, 0.8);
         --rank-bg: var(--app-surface, #1c1c1e);
         --rank-surface: var(--app-surface-elevated, #2c2c2e);
-        --rank-surface-light: #3c3c3e;
+        --rank-surface-light: var(--app-surface-hover, #3c3c3e);
         --rank-text: var(--app-text-primary, #ffffff);
+        --rank-text-white: var(--app-text-white, #fff);
+        --rank-text-dark: #1c1c1e;
         --rank-text-secondary: var(--app-text-secondary, rgba(255, 255, 255, 0.6));
         --rank-text-muted: var(--app-text-muted, rgba(255, 255, 255, 0.4));
         --rank-gold: var(--app-gold, #facc15);
@@ -74,6 +82,8 @@
         --rank-bronze-bg: var(--app-bronze-muted, rgba(217, 119, 6, 0.1));
         --rank-danger: var(--app-danger-muted, rgba(239, 68, 68, 0.15));
         --rank-danger-border: var(--app-danger, #ef4444);
+        --rank-danger-light: #fca5a5;
+        --rank-danger-alpha-40: rgba(239, 68, 68, 0.4);
     }
 
     .ranking-participante-pro {
@@ -114,7 +124,7 @@
         font-size: 24px;
         font-weight: 700;
         margin: 0;
-        background: linear-gradient(90deg, var(--rank-primary), #f97316);
+        background: linear-gradient(90deg, var(--rank-primary), var(--rank-primary-light));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -133,7 +143,7 @@
         justify-content: center;
         width: 44px;
         height: 44px;
-        background: rgba(255, 92, 0, 0.15);
+        background: var(--rank-primary-alpha-15);
         border: none;
         border-radius: 50%;
         cursor: pointer;
@@ -147,7 +157,7 @@
 
     .btn-share:active {
         transform: scale(0.95);
-        background: rgba(255, 92, 0, 0.25);
+        background: var(--rank-primary-alpha-25);
     }
 
     /* ===== TABS DE FILTRO ===== */
@@ -184,8 +194,8 @@
 
     .tab-btn.active {
         background: var(--rank-primary);
-        color: white;
-        box-shadow: 0 2px 8px rgba(255, 92, 0, 0.3);
+        color: var(--rank-text-white);
+        box-shadow: 0 2px 8px var(--rank-primary-alpha-30);
     }
 
     /* ===== CARD CONTAINER ===== */
@@ -209,7 +219,7 @@
     .ranking-table-header div {
         font-size: 11px;
         font-weight: 600;
-        color: rgba(255, 92, 0, 0.8);
+        color: var(--rank-primary-alpha-80);
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -273,7 +283,7 @@
 
     /* ===== MEU TIME ===== */
     .ranking-item.meu-time {
-        background: rgba(255, 92, 0, 0.15);
+        background: var(--rank-primary-alpha-15);
         border-left: 4px solid var(--rank-primary);
     }
 
@@ -287,8 +297,8 @@
     }
 
     .ranking-item.zona-rebaixamento .posicao-badge {
-        background: rgba(239, 68, 68, 0.4);
-        color: #fca5a5;
+        background: var(--rank-danger-alpha-40);
+        color: var(--rank-danger-light);
     }
 
     .ranking-item.zona-rebaixamento .time-nome,
@@ -319,17 +329,17 @@
     /* Badges coloridos do pódio */
     .podio-1 .posicao-badge {
         background: var(--rank-gold);
-        color: #1c1c1e;
+        color: var(--rank-text-dark);
     }
 
     .podio-2 .posicao-badge {
         background: var(--rank-silver);
-        color: #1c1c1e;
+        color: var(--rank-text-dark);
     }
 
     .podio-3 .posicao-badge {
         background: var(--rank-bronze);
-        color: white;
+        color: var(--rank-text-white);
     }
 
     /* Ícone do pódio */
@@ -394,7 +404,7 @@
     .spinner {
         width: 32px;
         height: 32px;
-        border: 3px solid rgba(255, 92, 0, 0.2);
+        border: 3px solid var(--rank-primary-alpha-20);
         border-top-color: var(--rank-primary);
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
