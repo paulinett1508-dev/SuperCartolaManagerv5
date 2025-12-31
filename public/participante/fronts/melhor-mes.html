@@ -3,7 +3,7 @@
     <!-- Header PADRONIZADO (sem gradiente laranja) -->
     <div class="mm-header-pro">
         <div class="mm-title-row">
-            <span class="mm-emoji">🏆</span>
+            <span class="material-icons mm-icon">emoji_events</span>
             <h2>Melhor do Mês</h2>
         </div>
         <span id="mmEdicoesCount" class="mm-edicoes-badge">0 edições</span>
@@ -12,7 +12,7 @@
     <!-- Minhas Conquistas (se houver) -->
     <div id="mmConquistas" class="mm-conquistas-pro" style="display: none">
         <div class="conquistas-header-pro">
-            <span class="conquistas-emoji">🎖️</span>
+            <span class="material-icons conquistas-icon">military_tech</span>
             <span id="conquistasTexto">Você foi campeão!</span>
         </div>
         <div id="conquistasMeses" class="conquistas-meses-pro"></div>
@@ -29,7 +29,7 @@
 
     <!-- Estado Vazio -->
     <div id="mmEmpty" class="mm-empty-state" style="display: none">
-        <span class="empty-emoji">📅</span>
+        <span class="material-icons empty-icon">event</span>
         <h3>Sem dados ainda</h3>
         <p>Os rankings mensais serão gerados após as primeiras rodadas</p>
     </div>
@@ -50,7 +50,7 @@
         padding-bottom: 100px;
     }
 
-    /* ✅ HEADER PADRONIZADO (SEM GRADIENTE LARANJA) */
+    /* HEADER PADRONIZADO (SEM GRADIENTE LARANJA) */
     .mm-header-pro {
         display: flex;
         justify-content: space-between;
@@ -68,11 +68,12 @@
         gap: 10px;
     }
 
-    .mm-emoji {
-        font-size: 24px;
+    .mm-icon {
+        font-size: 28px;
+        color: #ff5c00;
     }
 
-    /* ✅ TÍTULO SEM GRADIENTE - Cor sólida branca */
+    /* TÍTULO SEM GRADIENTE - Cor sólida branca */
     .mm-header-pro h2 {
         font-family: "Poppins", sans-serif;
         font-size: 18px;
@@ -139,8 +140,9 @@
         margin-bottom: 12px;
     }
 
-    .conquistas-emoji {
-        font-size: 22px;
+    .conquistas-icon {
+        font-size: 24px;
+        color: #22c55e;
     }
 
     .conquistas-meses-pro {
@@ -223,7 +225,7 @@
         white-space: nowrap;
     }
 
-    /* Seção Campeão - ✅ SEM GRADIENTE LARANJA */
+    /* Seção Campeão - SEM GRADIENTE LARANJA */
     .mm-card-campeao {
         padding: 16px;
         background: rgba(255, 255, 255, 0.03);
@@ -471,11 +473,11 @@
         padding: 60px 20px;
         color: #6b7280;
     }
-    .mm-empty-state .empty-emoji {
+    .mm-empty-state .empty-icon {
         font-size: 64px;
         display: block;
         margin-bottom: 16px;
-        opacity: 0.5;
+        color: #404040;
     }
     .mm-empty-state h3 {
         color: #9ca3af;
@@ -538,7 +540,7 @@
         }
     }
 
-    /* ✅ Card Seu Desempenho */
+    /* Card Seu Desempenho */
     .mm-desempenho-card {
         background: linear-gradient(
             135deg,
