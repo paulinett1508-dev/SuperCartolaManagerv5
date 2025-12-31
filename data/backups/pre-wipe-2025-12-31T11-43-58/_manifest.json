@@ -1,0 +1,133 @@
+{
+  "timestamp": "2025-12-31T11-43-58",
+  "diretorio": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58",
+  "collections": {
+    "rodadas": {
+      "status": "success",
+      "count": 1438,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/rodadas.json"
+    },
+    "rankinggeralcaches": {
+      "status": "success",
+      "count": 2,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/rankinggeralcaches.json"
+    },
+    "pontoscorridoscaches": {
+      "status": "success",
+      "count": 31,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/pontoscorridoscaches.json"
+    },
+    "matamatas": {
+      "status": "skipped",
+      "reason": "not_found"
+    },
+    "matamatacaches": {
+      "status": "success",
+      "count": 5,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/matamatacaches.json"
+    },
+    "extratofinanceirocaches": {
+      "status": "success",
+      "count": 38,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/extratofinanceirocaches.json"
+    },
+    "extrato_financeiro_caches": {
+      "status": "success",
+      "count": 6,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/extrato_financeiro_caches.json"
+    },
+    "extratocaches": {
+      "status": "skipped",
+      "reason": "empty",
+      "count": 0
+    },
+    "extratocache": {
+      "status": "skipped",
+      "reason": "empty",
+      "count": 0
+    },
+    "goleiros": {
+      "status": "success",
+      "count": 228,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/goleiros.json"
+    },
+    "gols": {
+      "status": "success",
+      "count": 5371,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/gols.json"
+    },
+    "golsconsolidados": {
+      "status": "success",
+      "count": 226,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/golsconsolidados.json"
+    },
+    "defesasconsolidadas": {
+      "status": "skipped",
+      "reason": "empty",
+      "count": 0
+    },
+    "artilheirocampeaos": {
+      "status": "success",
+      "count": 1,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/artilheirocampeaos.json"
+    },
+    "rodadasnapshots": {
+      "status": "success",
+      "count": 76,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/rodadasnapshots.json"
+    },
+    "top10caches": {
+      "status": "success",
+      "count": 2,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/top10caches.json"
+    },
+    "melhormescaches": {
+      "status": "skipped",
+      "reason": "not_found"
+    },
+    "melhor_mes_cache": {
+      "status": "success",
+      "count": 2,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/melhor_mes_cache.json"
+    },
+    "ranking_turno_caches": {
+      "status": "success",
+      "count": 1,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/ranking_turno_caches.json"
+    },
+    "rankingturnos": {
+      "status": "success",
+      "count": 6,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/rankingturnos.json"
+    },
+    "cartolaoficialdumps": {
+      "status": "skipped",
+      "reason": "empty",
+      "count": 0
+    },
+    "cartola_oficial_dumps": {
+      "status": "success",
+      "count": 1403,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/cartola_oficial_dumps.json"
+    },
+    "sessions": {
+      "status": "success",
+      "count": 44,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/sessions.json"
+    },
+    "accesslogs": {
+      "status": "success",
+      "count": 13,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/accesslogs.json"
+    },
+    "useractivities": {
+      "status": "success",
+      "count": 21,
+      "file": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58/useractivities.json"
+    }
+  },
+  "totalDocumentos": 8914,
+  "erros": [],
+  "completado_em": "2025-12-31T11:44:11.517Z",
+  "versao_script": "2.1.0"
+}

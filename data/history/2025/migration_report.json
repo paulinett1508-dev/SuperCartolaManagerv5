@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-12-27T00:38:13.027Z",
+  "timestamp": "2025-12-31T11:44:11.518Z",
   "status": "SUCCESS",
   "versao_script": "2.1.0",
   "steps": {
@@ -15,9 +15,9 @@
     },
     "backup": {
       "status": "OK",
-      "diretorio": "/home/runner/workspace/data/backups/pre-wipe-2025-12-27T00-38-05",
-      "total_documentos": 7187,
-      "collections_exportadas": 9,
+      "diretorio": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58",
+      "total_documentos": 8914,
+      "collections_exportadas": 19,
       "erros": 0
     },
     "wipe": {

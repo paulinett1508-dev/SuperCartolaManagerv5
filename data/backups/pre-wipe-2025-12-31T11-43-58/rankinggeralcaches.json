@@ -1,0 +1,439 @@
+[
+  {
+    "_id": "6947e3026be978b76650e272",
+    "ligaId": "684cb1c8af923da7c7df51de",
+    "rodadaFinal": 38,
+    "temporada": 2025,
+    "ranking": [
+      {
+        "timeId": 3027272,
+        "nome_cartola": "Vitim",
+        "nome_time": "Vitim 10 FC",
+        "escudo": "https://s2-cartola.glbimg.com/DANx0cpRHzW-C_XwWkGJJRI1bAM=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_222/escudo/07/48/48/007351dafe-0b47-4f48-a78d-f4aa9ad6c70720240320164848",
+        "clube_id": 262,
+        "pontos_totais": 3597.87939453125,
+        "rodadas_jogadas": 38,
+        "posicao": 1,
+        "_id": "6947e3026be978b76650e273"
+      },
+      {
+        "timeId": 5254799,
+        "nome_cartola": "Mauricio Wendel",
+        "nome_time": "AltosShow",
+        "escudo": "https://s2-cartola.glbimg.com/mWAPeW_4lvsVcZdseSxH_ZBK-6M=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/a1/50/53/00f1dd3e98-9ad5-401c-9f13-8c5421a5a1a120250324165053",
+        "clube_id": 263,
+        "pontos_totais": 3498.090576171875,
+        "rodadas_jogadas": 38,
+        "posicao": 2,
+        "_id": "6947e3026be978b76650e274"
+      },
+      {
+        "timeId": 7698677,
+        "nome_cartola": "Wesley Oliveira",
+        "nome_time": "FC WESLEY OLIVEIRA",
+        "escudo": "https://s2-cartola.glbimg.com/Wys2YIpHrJUAlYDY9XwVB6EMjnE=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_238/escudo/39/55/15/00488bddce-2a6b-4edc-b39a-ccf3b5f2333920250328095515",
+        "clube_id": 262,
+        "pontos_totais": 3489.5302734375,
+        "rodadas_jogadas": 38,
+        "posicao": 3,
+        "_id": "6947e3026be978b76650e275"
+      },
+      {
+        "timeId": 45004009,
+        "nome_cartola": "fucim ",
+        "nome_time": "fc.catumbi",
+        "escudo": "https://s2-cartola.glbimg.com/xmP3eccyTVmcw9SOwRP2R8mqqcY=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_215/escudo/43/53/40/009730c5f8-bf31-43e2-98ba-f1d1eb83144320230414165340",
+        "clube_id": 264,
+        "pontos_totais": 3473.2802734375,
+        "rodadas_jogadas": 38,
+        "posicao": 4,
+        "_id": "6947e3026be978b76650e276"
+      },
+      {
+        "timeId": 22623329,
+        "nome_cartola": "Emerson",
+        "nome_time": "WorldTreta FC",
+        "escudo": "https://s2-cartola.glbimg.com/78IQ7owWDrI59MlvBdgiwGSqmm4=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_160/escudo/67/18/14/00fede7949-68d0-48c6-a51f-528e7002df6720191002181814",
+        "clube_id": 276,
+        "pontos_totais": 3470.861328125,
+        "rodadas_jogadas": 38,
+        "posicao": 5,
+        "_id": "6947e3026be978b76650e277"
+      },
+      {
+        "timeId": 5902324,
+        "nome_cartola": "juniel henrique",
+        "nome_time": "ALA PEDRINHAS FC",
+        "escudo": "https://s2-cartola.glbimg.com/OKcyVs-FCUwC8Vd7afLD-aQpUok=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_222/escudo/72/02/33/00e52b667e-a772-4dda-8b8a-c6685016737220240314140233",
+        "clube_id": 262,
+        "pontos_totais": 3439.740966796875,
+        "rodadas_jogadas": 38,
+        "posicao": 6,
+        "_id": "6947e3026be978b76650e278"
+      },
+      {
+        "timeId": 1097804,
+        "nome_cartola": "China Guardiola",
+        "nome_time": "Quase Nada Palace",
+        "escudo": "https://s2-cartola.glbimg.com/fya9g-gd1TwwOeBbDeqKRBFYW1E=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/21/34/07/00e46cbf7a-1b79-4523-a2ce-19715897902120250311123407",
+        "clube_id": 266,
+        "pontos_totais": 3431.89013671875,
+        "rodadas_jogadas": 38,
+        "posicao": 7,
+        "_id": "6947e3026be978b76650e279"
+      },
+      {
+        "timeId": 1568358,
+        "nome_cartola": "Sir Gegé   ",
+        "nome_time": "Dollynho United FC",
+        "escudo": "https://s2-cartola.glbimg.com/TpMxaid-TQgtMB7B41zxEvn3MoA=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/78/44/35/005e1577f1-d3bb-4e23-bd54-d8131889777820250311124435",
+        "clube_id": 283,
+        "pontos_totais": 3390.46044921875,
+        "rodadas_jogadas": 38,
+        "posicao": 8,
+        "_id": "6947e3026be978b76650e27a"
+      },
+      {
+        "timeId": 25371297,
+        "nome_cartola": "Diogo Monte",
+        "nome_time": "Tabaca Neon",
+        "escudo": "https://s2-cartola.glbimg.com/_jON9YLuQ_WAradOue9WJWlMaB8=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/d3/48/40/007f2cd575-4692-41b4-82e9-4a8711086cd320250312084840",
+        "clube_id": 344,
+        "pontos_totais": 3386.310302734375,
+        "rodadas_jogadas": 38,
+        "posicao": 9,
+        "_id": "6947e3026be978b76650e27b"
+      },
+      {
+        "timeId": 39786,
+        "nome_cartola": "Cássio Marques",
+        "nome_time": "Cassius United FC",
+        "escudo": "https://s2-cartola.glbimg.com/EupMJQ0P0BOSR8FwlvgdSrtm5Ms=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/69/44/17/001c3cc0b4-f4ce-449a-b54d-9e864790ab6920250315134417",
+        "clube_id": 262,
+        "pontos_totais": 3378.85009765625,
+        "rodadas_jogadas": 38,
+        "posicao": 10,
+        "_id": "6947e3026be978b76650e27c"
+      },
+      {
+        "timeId": 4966295,
+        "nome_cartola": "Rony Morais",
+        "nome_time": "Pedras_City AC",
+        "escudo": "https://s2-cartola.glbimg.com/49qFi-ErG5vjvWynjFmoibKHpjQ=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_166/escudo/65/22/51/00572af97a-a778-4f4a-b9d8-d981efb6456520200727232251",
+        "clube_id": 276,
+        "pontos_totais": 3368.750732421875,
+        "rodadas_jogadas": 38,
+        "posicao": 11,
+        "_id": "6947e3026be978b76650e27d"
+      },
+      {
+        "timeId": 2718174,
+        "nome_cartola": "Flavio André",
+        "nome_time": "Red Bull Corissabá",
+        "escudo": "https://s2-cartola.glbimg.com/tfD7X-alWaVX43veG4lc20R8zbQ=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/e6/01/07/00a193a589-9941-49e1-acf5-f1224e78bde620250317190107",
+        "clube_id": 262,
+        "pontos_totais": 3361.130126953125,
+        "rodadas_jogadas": 38,
+        "posicao": 12,
+        "_id": "6947e3026be978b76650e27e"
+      },
+      {
+        "timeId": 621609,
+        "nome_cartola": "Eudes Pereira",
+        "nome_time": "Itaueira Mengão ",
+        "escudo": "https://s2-cartola.glbimg.com/r0mEcixSu8DZGb5-CK3NjuUjMWI=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_183/escudo/af/37/06/008d7e2db3-aaa7-472d-af03-f29b329c35af20210427123706",
+        "clube_id": 262,
+        "pontos_totais": 3346.9501953125,
+        "rodadas_jogadas": 38,
+        "posicao": 13,
+        "_id": "6947e3026be978b76650e27f"
+      },
+      {
+        "timeId": 8183683,
+        "nome_cartola": "Neto Waquim",
+        "nome_time": "FlaMadridFlo",
+        "escudo": "https://s2-cartola.glbimg.com/YR1c2t3ttAn0NfsmTuYMqKsTgp4=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/dd/32/03/00a9b9e295-4ed8-4ab3-bb4e-dba77e035fdd20250311223203",
+        "clube_id": 262,
+        "pontos_totais": 3346.75048828125,
+        "rodadas_jogadas": 38,
+        "posicao": 14,
+        "_id": "6947e3026be978b76650e280"
+      },
+      {
+        "timeId": 1173066,
+        "nome_cartola": "Mr. Carmilton",
+        "nome_time": " two left feet tlf",
+        "escudo": "https://s2-cartola.glbimg.com/CIrRR4Ic4u-c57vINaMghKdyxTo=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_203/escudo/e2/53/22/00fbdce42d-d54d-40fa-b3cb-c94777a560e220220407125322",
+        "clube_id": 262,
+        "pontos_totais": 3326.03955078125,
+        "rodadas_jogadas": 38,
+        "posicao": 15,
+        "_id": "6947e3026be978b76650e281"
+      },
+      {
+        "timeId": 14569704,
+        "nome_cartola": "Rafael Janderson",
+        "nome_time": "Fla Stronger FC",
+        "escudo": "https://s2-cartola.glbimg.com/nfMz_oystbWZIhJej_7qlCZdBvE=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/e8/10/53/006d7ab9da-e0be-497d-89f3-dcd394e757e820250325061053",
+        "clube_id": 262,
+        "pontos_totais": 3302.74853515625,
+        "rodadas_jogadas": 38,
+        "posicao": 16,
+        "_id": "6947e3026be978b76650e282"
+      },
+      {
+        "timeId": 1932235,
+        "nome_cartola": "RODRIGO PAES LANDIM ",
+        "nome_time": "VILA LEÃO F.C",
+        "escudo": "https://s2-cartola.glbimg.com/UhLsNosWoiOG6XxBAXOrQyci2FM=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_212/escudo/1e/46/00/00deaa8f15-208e-4879-99d1-521d6ab6cc1e20230404144600",
+        "clube_id": 267,
+        "pontos_totais": 3289.220703125,
+        "rodadas_jogadas": 38,
+        "posicao": 17,
+        "_id": "6947e3026be978b76650e283"
+      },
+      {
+        "timeId": 25324292,
+        "nome_cartola": "Pedro Antônio",
+        "nome_time": "Invictus Patamar S.A.F.",
+        "escudo": "https://s2-cartola.glbimg.com/gbjd-QdTHi8-f2AEGyh0IFYq8uE=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/32/15/02/00b17a99c1-1ae7-4ca9-98d3-8f7833ea0f3220250311131502",
+        "clube_id": 262,
+        "pontos_totais": 3255.16943359375,
+        "rodadas_jogadas": 38,
+        "posicao": 18,
+        "_id": "6947e3026be978b76650e284"
+      },
+      {
+        "timeId": 715731,
+        "nome_cartola": "Jonney Vojvoda",
+        "nome_time": "La Família 025 Cbjr",
+        "escudo": "https://s2-cartola.glbimg.com/U3VavTcs6WmBuSMkySM5Dqh9FPE=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/29/48/04/00482fcaf8-292a-4ade-bd93-192c3107792920250320224804",
+        "clube_id": 262,
+        "pontos_totais": 3237.5592041015625,
+        "rodadas_jogadas": 38,
+        "posicao": 19,
+        "_id": "6947e3026be978b76650e285"
+      },
+      {
+        "timeId": 3300583,
+        "nome_cartola": "Leilson Bezerra",
+        "nome_time": "FIASCO VET FC",
+        "escudo": "https://s2-cartola.glbimg.com/WOdsMPEJH_PW0PqdH0drZq_0PZY=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/e8/53/30/0035e0f640-0c85-4f82-88b3-74a1ddaff0e820250315175330",
+        "clube_id": 262,
+        "pontos_totais": 3172.070068359375,
+        "rodadas_jogadas": 38,
+        "posicao": 20,
+        "_id": "6947e3026be978b76650e286"
+      },
+      {
+        "timeId": 14916330,
+        "nome_cartola": "Raimundo Pinheiro ",
+        "nome_time": "Lioness  Clubs",
+        "escudo": "https://s2-cartola.glbimg.com/mRo85ZdnFerFQyp4W2lOkVYyd98=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/bd/23/37/00cb582f75-e5cc-49d8-8def-bbe68e7764bd20250311222337",
+        "clube_id": 262,
+        "pontos_totais": 3169.1304931640625,
+        "rodadas_jogadas": 38,
+        "posicao": 21,
+        "_id": "6947e3026be978b76650e287"
+      },
+      {
+        "timeId": 645089,
+        "nome_cartola": "Antonio Luis ",
+        "nome_time": "FloriMengo FC",
+        "escudo": "https://s2-cartola.glbimg.com/DSqlg6zDThhgxXybMqqUhKPqB94=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/7a/34/21/00215a5668-4a0a-45ce-b9d8-51110de74a7a20250315083421",
+        "clube_id": 262,
+        "pontos_totais": 3155.5712890625,
+        "rodadas_jogadas": 38,
+        "posicao": 22,
+        "_id": "6947e3026be978b76650e288"
+      },
+      {
+        "timeId": 1039496,
+        "nome_cartola": "Randerson Rodrigues",
+        "nome_time": "Randim",
+        "escudo": "https://s2-cartola.glbimg.com/xJRBQn9M94ZZGk2z4W2TW9EAvVg=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_226/escudo/7c/01/59/008e7b57d4-812d-49d5-a904-8403f884e67c20240413120159",
+        "clube_id": 262,
+        "pontos_totais": 3147.660400390625,
+        "rodadas_jogadas": 38,
+        "posicao": 23,
+        "_id": "6947e3026be978b76650e289"
+      },
+      {
+        "timeId": 1323370,
+        "nome_cartola": "Diego Barbosa",
+        "nome_time": "adv.DBarbosa.FC",
+        "escudo": "https://s2-cartola.glbimg.com/LUGRd8uPVTQmdevtvj_4mKuqxOY=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/5e/59/53/002c87b260-e8bf-415c-a051-18570dec165e20250325095953",
+        "clube_id": 276,
+        "pontos_totais": 3138.6309814453125,
+        "rodadas_jogadas": 38,
+        "posicao": 24,
+        "_id": "6947e3026be978b76650e28a"
+      },
+      {
+        "timeId": 8188312,
+        "nome_cartola": "Felipe Santos",
+        "nome_time": "Chamex F.C.",
+        "escudo": "https://s2-cartola.glbimg.com/YZwWWZwLJSHbYX7Rqqa8a6Cz-Ns=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_106/escudo/9a/40/43/0092958566-cdb9-4da6-bb44-2bfca753b49a20180407194043",
+        "clube_id": 277,
+        "pontos_totais": 3131.360107421875,
+        "rodadas_jogadas": 38,
+        "posicao": 25,
+        "_id": "6947e3026be978b76650e28b"
+      },
+      {
+        "timeId": 1459952,
+        "nome_cartola": "Sávio C Cavalcante ",
+        "nome_time": "FC Arthur Sávio.C.C",
+        "escudo": "https://s2-cartola.glbimg.com/9P-eeFvkTIqbbmfemTuX16zJX3w=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_213/escudo/9b/24/47/00f17face5-70e6-4f2c-bc3a-eded1ce80c9b20230409122447",
+        "clube_id": 262,
+        "pontos_totais": 3101.230224609375,
+        "rodadas_jogadas": 38,
+        "posicao": 26,
+        "_id": "6947e3026be978b76650e28c"
+      },
+      {
+        "timeId": 1233737,
+        "nome_cartola": "Wildemar Silva",
+        "nome_time": "Wil08",
+        "escudo": "https://s2-cartola.glbimg.com/3u2Gk_8w9JK42F3YFkzZqjgciaE=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/41/54/06/00cdd69d61-e8ad-4156-a490-97724e433f4120250324185406",
+        "clube_id": 275,
+        "pontos_totais": 3084.76171875,
+        "rodadas_jogadas": 38,
+        "posicao": 27,
+        "_id": "6947e3026be978b76650e28d"
+      },
+      {
+        "timeId": 8098497,
+        "nome_cartola": "Felipe Barbosa",
+        "nome_time": "Cangalexeu FC",
+        "escudo": "https://s2-cartola.glbimg.com/I_RW8-j0FhezntS3oYwJb6Bpnqo=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/26/04/08/007b16c5d8-6210-40dd-ac62-0a528be5b62620250315120408",
+        "clube_id": 292,
+        "pontos_totais": 3032.849853515625,
+        "rodadas_jogadas": 38,
+        "posicao": 28,
+        "_id": "6947e3026be978b76650e28e"
+      },
+      {
+        "timeId": 575856,
+        "nome_cartola": "Felipe Jokstay",
+        "nome_time": "Feirão do Insta Floriano PI",
+        "escudo": "https://s2-cartola.glbimg.com/gLEDdOuQ_n7yCD7n7FmjDDnGdsQ=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/2e/28/03/006801f521-3921-4b83-ad29-34f525542e2e20250315122803",
+        "clube_id": 275,
+        "pontos_totais": 2990.369613647461,
+        "rodadas_jogadas": 38,
+        "posicao": 29,
+        "_id": "6947e3026be978b76650e28f"
+      },
+      {
+        "timeId": 13935277,
+        "nome_cartola": "Paulinett Miranda",
+        "nome_time": "Urubu Play F.C.",
+        "escudo": "https://s2-cartola.glbimg.com/XqTNWtU0S8uzpU6ZUjcMZVWJQYc=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_211/escudo/f8/27/53/00681760d8-c096-4ce7-8896-13b4cc8b71f820230318082753",
+        "clube_id": 262,
+        "pontos_totais": 2954.1004943847656,
+        "rodadas_jogadas": 38,
+        "posicao": 30,
+        "_id": "6947e3026be978b76650e290"
+      },
+      {
+        "timeId": 20165417,
+        "nome_cartola": "Raylson Fernandes",
+        "nome_time": "RB Ousadia&Alegria 94",
+        "escudo": "https://s2-cartola.glbimg.com/J39tNqJcxSL9Zk1YfqIUUDBiB28=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_205/escudo/1f/53/55/00ee0f7db4-ac40-4e3b-a713-bd18ddfb051f20220409145355",
+        "clube_id": 276,
+        "pontos_totais": 2842.250213623047,
+        "rodadas_jogadas": 38,
+        "posicao": 31,
+        "_id": "6947e3026be978b76650e291"
+      },
+      {
+        "timeId": 164131,
+        "nome_cartola": "JB Oliveira",
+        "nome_time": " 51 Sportclub",
+        "escudo": "https://s2-cartola.glbimg.com/613JIbTrU_m1MAm9P7tsCnNc8HQ=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_212/escudo/a3/32/49/00579d8956-dace-4efa-b2b5-7b78a7bb20a320230327223249",
+        "clube_id": 264,
+        "pontos_totais": 2729.6197814941406,
+        "rodadas_jogadas": 38,
+        "posicao": 32,
+        "_id": "6947e3026be978b76650e292"
+      }
+    ],
+    "atualizadoEm": "2025-12-21T12:07:30.345Z",
+    "createdAt": "2025-12-21T12:07:30.364Z",
+    "updatedAt": "2025-12-21T12:07:30.364Z",
+    "__v": 0
+  },
+  {
+    "_id": "694f22a1bafd5bf57b0ba29f",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodadaFinal": 38,
+    "temporada": 2025,
+    "ranking": [
+      {
+        "timeId": 1926323,
+        "nome_cartola": "Daniel Barbosa",
+        "nome_time": "specter United",
+        "escudo": "",
+        "clube_id": null,
+        "pontos_totais": 3309.05078125,
+        "rodadas_jogadas": 38,
+        "posicao": 1
+      },
+      {
+        "timeId": 13935277,
+        "nome_cartola": "Paulinett Miranda",
+        "nome_time": "Urubu Play F.C.",
+        "escudo": "",
+        "clube_id": null,
+        "pontos_totais": 2990.4303283691406,
+        "rodadas_jogadas": 38,
+        "posicao": 2
+      },
+      {
+        "timeId": 49149009,
+        "nome_cartola": "Matheus Coutinho",
+        "nome_time": "RB Teteux SC",
+        "escudo": "https://s2-cartola.glbimg.com/4wDWnvlTv9q1jrLBrVrgF38TfmM=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_237/escudo/a2/23/50/00d5d7efd5-ba38-45cb-ac81-a4ae266e16a220250324172350",
+        "clube_id": null,
+        "pontos_totais": 2415.3900146484375,
+        "rodadas_jogadas": 38,
+        "posicao": 3
+      },
+      {
+        "timeId": 14747183,
+        "nome_cartola": "Carlos Henrique",
+        "nome_time": "CHS EC",
+        "escudo": "https://s2-cartola.glbimg.com/a20EDxltWY_BMWsCandvsi2MJZc=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_238/escudo/16/23/51/00c62828a6-42d4-4f96-917a-612a02b6f31620250326112351",
+        "clube_id": null,
+        "pontos_totais": 2315.87939453125,
+        "rodadas_jogadas": 38,
+        "posicao": 4
+      },
+      {
+        "timeId": 50180257,
+        "nome_cartola": "Hivisson ",
+        "nome_time": "Senhores Da Escuridão ",
+        "escudo": "https://s2-cartola.glbimg.com/UXMQF_Pc3paiGZanZEVwLSibfEI=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_236/escudo/9c/24/21/002350563c-6c6f-4562-8f4a-193d7c8fa89c20250317132421",
+        "clube_id": null,
+        "pontos_totais": 2079.9605407714844,
+        "rodadas_jogadas": 35,
+        "posicao": 5
+      },
+      {
+        "timeId": 49149388,
+        "nome_cartola": "Junior Brasilino",
+        "nome_time": "JBMENGO94 FC ",
+        "escudo": "https://s2-cartola.glbimg.com/jwvB7UV--ZydTK3VhTEvJAFUzMA=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_222/escudo/1e/02/44/002b074128-fb38-45f9-af44-c3fa73d3eb1e20240321150244",
+        "clube_id": null,
+        "pontos_totais": 1785.1698608398438,
+        "rodadas_jogadas": 35,
+        "posicao": 6
+      }
+    ],
+    "atualizadoEm": "2025-12-27T00:04:49.416Z",
+    "createdAt": "2025-12-27T00:04:49.416Z",
+    "updatedAt": "2025-12-27T00:04:49.416Z",
+    "cache_permanente": true,
+    "temporada_finalizada": true
+  }
+]
