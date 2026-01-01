@@ -989,9 +989,15 @@
                         </div>
                     </div>
 
-                    <!-- Botão CTA -->
-                    <button onclick="fecharTeaser()" class="w-full py-4 rounded-xl font-brand text-sm uppercase tracking-widest hover:brightness-110 shadow-[0_0_30px_rgba(255,85,0,0.2)] transition-all duration-300 group bg-gradient-to-r from-[#FF5500] to-[#FF8800] text-black font-bold">
-                        <span class="group-hover:scale-105 inline-block transition-transform">Entrar no Jogo</span>
+                    <!-- Countdown -->
+                    <div id="countdown-container" class="mb-4 p-3 rounded-lg bg-black/40 border border-white/10">
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Brasileirao 2026 comeca em</p>
+                        <p id="countdown-days" class="text-2xl font-brand text-[#FF5500]">-- dias</p>
+                    </div>
+
+                    <!-- Botao CTA -->
+                    <button onclick="fecharTeaserComMarcacao()" class="w-full py-4 rounded-xl font-brand text-sm uppercase tracking-widest hover:brightness-110 shadow-[0_0_30px_rgba(255,85,0,0.2)] transition-all duration-300 group bg-gradient-to-r from-[#FF5500] to-[#FF8800] text-black font-bold">
+                        <span class="group-hover:scale-105 inline-block transition-transform">Explorar o App</span>
                     </button>
                 </div>
             </div>
@@ -1001,6 +1007,22 @@
         <script>
             const overlay = document.getElementById('modal-overlay');
             const card = document.getElementById('modal-card');
+
+            // Atualizar countdown
+            function atualizarCountdown() {
+                const config = window.ParticipanteConfig;
+                if (config && config.getCountdownDays) {
+                    const dias = config.getCountdownDays();
+                    const countdownEl = document.getElementById('countdown-days');
+                    if (countdownEl) {
+                        if (dias > 0) {
+                            countdownEl.textContent = dias + (dias === 1 ? ' dia' : ' dias');
+                        } else {
+                            countdownEl.textContent = 'Em breve!';
+                        }
+                    }
+                }
+            }
 
             function dispararConfetes() {
                 var count = 200;
@@ -1014,6 +1036,7 @@
             }
 
             function abrirTeaser() {
+                atualizarCountdown();
                 overlay.classList.remove('hidden');
                 setTimeout(() => {
                     overlay.classList.remove('opacity-0');
@@ -1033,12 +1056,21 @@
                 sessionStorage.setItem('spoiler_2026_visto', 'true');
             }
 
-            // Auto-abrir DESABILITADO - será habilitado quando admin disparar 2026
-            // window.addEventListener('load', () => {
-            //     if (!sessionStorage.getItem('spoiler_2026_visto')) {
-            //         setTimeout(abrirTeaser, 1500);
-            //     }
-            // });
+            // Auto-abrir quando temporada estiver em 'preparando'
+            window.addEventListener('load', () => {
+                const config = window.ParticipanteConfig;
+                if (config && config.isPreparando() && config.FEATURES.SHOW_VEM_AI_MODAL) {
+                    // Mostrar apenas uma vez por sessao
+                    if (!sessionStorage.getItem('vem_ai_2026_visto')) {
+                        setTimeout(abrirTeaser, 1500);
+                    }
+                }
+            });
+
+            function fecharTeaserComMarcacao() {
+                fecharTeaser();
+                sessionStorage.setItem('vem_ai_2026_visto', 'true');
+            }
         </script>
     </body>
 </html>

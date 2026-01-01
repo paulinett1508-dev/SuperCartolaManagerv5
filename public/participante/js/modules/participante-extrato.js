@@ -663,13 +663,58 @@ function mostrarVazio() {
     const container = document.getElementById("fluxoFinanceiroContent");
     if (!container) return;
 
-    container.innerHTML = `
-        <div style="text-align: center; padding: 40px 20px; color: #999;">
-            <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">📊</div>
-            <h3 style="color: #ccc; margin-bottom: 8px;">Sem dados ainda</h3>
-            <p style="font-size: 13px;">O extrato será gerado após a primeira rodada.</p>
-        </div>
-    `;
+    // Verificar se estamos em pre-temporada
+    const config = window.ParticipanteConfig;
+    const isPreTemporada = config && config.isPreparando && config.isPreparando();
+    const temporadaAnterior = config ? config.PREVIOUS_SEASON : 2025;
+    const temporadaAtual = config ? config.CURRENT_SEASON : 2026;
+
+    if (isPreTemporada) {
+        // Mensagem especial para pre-temporada
+        container.innerHTML = `
+            <div style="text-align: center; padding: 32px 20px;">
+                <!-- Card Temporada Nova -->
+                <div style="background: linear-gradient(135deg, rgba(255,85,0,0.1) 0%, rgba(255,136,0,0.05) 100%);
+                            border: 1px solid rgba(255,85,0,0.3); border-radius: 16px; padding: 24px; margin-bottom: 20px;">
+                    <div style="font-size: 40px; margin-bottom: 12px;">🎉</div>
+                    <h3 style="color: #ff5500; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+                        Nova Temporada ${temporadaAtual}
+                    </h3>
+                    <p style="color: #9ca3af; font-size: 13px; margin: 0; line-height: 1.5;">
+                        Seu extrato financeiro comecara a ser calculado quando o Brasileirao iniciar.
+                    </p>
+                </div>
+
+                <!-- Card Historico -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+                            border-radius: 12px; padding: 16px; text-align: left;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                        <span class="material-symbols-outlined" style="color: #fbbf24; font-size: 20px;">history</span>
+                        <span style="color: #e5e5e5; font-size: 14px; font-weight: 600;">Temporada ${temporadaAnterior}</span>
+                    </div>
+                    <p style="color: #9ca3af; font-size: 12px; margin: 0 0 12px 0; line-height: 1.5;">
+                        Para ver seu historico financeiro de ${temporadaAnterior}, incluindo acertos e pagamentos, acesse o <strong style="color: #ff5500;">Hall da Fama</strong>.
+                    </p>
+                    <button onclick="window.participanteNav && window.participanteNav.navegarPara('historico')"
+                            style="width: 100%; padding: 12px; background: rgba(255,85,0,0.15); border: 1px solid rgba(255,85,0,0.3);
+                                   border-radius: 8px; color: #ff5500; font-weight: 600; font-size: 13px; cursor: pointer;
+                                   display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">emoji_events</span>
+                        Ver Historico ${temporadaAnterior}
+                    </button>
+                </div>
+            </div>
+        `;
+    } else {
+        // Mensagem padrao (temporada ativa sem dados ainda)
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: #999;">
+                <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">📊</div>
+                <h3 style="color: #ccc; margin-bottom: 8px;">Sem dados ainda</h3>
+                <p style="font-size: 13px;">O extrato sera gerado apos a primeira rodada.</p>
+            </div>
+        `;
+    }
 
     atualizarHeaderZerado();
 }

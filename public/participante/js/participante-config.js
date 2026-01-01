@@ -4,15 +4,23 @@
 // ✅ v1.1 FIX: Removidos exports ES6 pois arquivo é carregado como script normal
 
 // Temporada atual (sincronizado com config/seasons.js do backend)
-// ✅ Mantido em 2025 até admin disparar turn_key para 2026
-const CURRENT_SEASON = 2025;
-const PREVIOUS_SEASON = 2024;
+// ✅ Atualizado para 2026 apos turn_key em 01/01/2026
+const CURRENT_SEASON = 2026;
+const PREVIOUS_SEASON = 2025;
+
+// Status da temporada: 'ativa' | 'preparando' | 'encerrada'
+// 'preparando' = Brasileirao nao iniciou, modulos bloqueados
+const SEASON_STATUS = 'preparando';
+
+// Data prevista para inicio (usado no modal Vem Ai)
+const SEASON_START_DATE = '2026-01-28';
 
 // Feature flags
 const FEATURES = {
     SHOW_HISTORY_BANNER: true,      // Mostrar banner de resumo da temporada anterior
     SHOW_SEASON_SELECTOR: true,     // Mostrar seletor de temporada no header
     ENABLE_OFFLINE_MODE: true,      // Habilitar modo offline com IndexedDB
+    SHOW_VEM_AI_MODAL: true,        // Mostrar modal "Vem Ai" na entrada (pre-temporada)
 };
 
 // Mapeamento de badges para exibição
@@ -37,6 +45,18 @@ const BADGES_CONFIG = {
 window.ParticipanteConfig = {
     CURRENT_SEASON,
     PREVIOUS_SEASON,
+    SEASON_STATUS,
+    SEASON_START_DATE,
     FEATURES,
-    BADGES_CONFIG
+    BADGES_CONFIG,
+
+    // Helpers
+    isPreparando: () => SEASON_STATUS === 'preparando',
+    isAtiva: () => SEASON_STATUS === 'ativa',
+    getCountdownDays: () => {
+        const start = new Date(SEASON_START_DATE);
+        const now = new Date();
+        const diff = Math.ceil((start - now) / (1000 * 60 * 60 * 24));
+        return diff > 0 ? diff : 0;
+    }
 };

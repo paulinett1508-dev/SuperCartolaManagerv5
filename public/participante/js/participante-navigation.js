@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION v3.1 - Sistema de Navegação entre Módulos
+// PARTICIPANTE NAVIGATION v4.0 - Sistema de Navegação entre Módulos
 // =====================================================================
+// v4.0: Bloqueio de modulos em pre-temporada com modal amigavel
 // v3.1: Feedback visual imediato durante navegação (opacity transition)
 // v3.0: REFATORAÇÃO COMPLETA - Remove flag _navegando que travava
 //       Usa apenas debounce por tempo (mais confiável)
@@ -450,6 +451,13 @@ class ParticipanteNavigation {
     }
 
     async navegarPara(moduloId, forcarReload = false, voltandoHistorico = false) {
+        // ✅ v4.0: Verificar bloqueio de pre-temporada ANTES de qualquer coisa
+        if (this.verificarBloqueioPreTemporada(moduloId)) {
+            if (window.Log) Log.info('PARTICIPANTE-NAV', `🚫 Modulo bloqueado (pre-temporada): ${moduloId}`);
+            this.mostrarModalBloqueioPreTemporada(moduloId);
+            return;
+        }
+
         // ✅ v3.0: APENAS debounce por tempo (sem flag que pode travar)
         const agora = Date.now();
         const navegacaoId = `nav_${agora}_${moduloId}`;
@@ -713,6 +721,268 @@ class ParticipanteNavigation {
             if (window.Log) Log.debug('PARTICIPANTE-NAV', `ℹ️ Sem JS para '${modulo}'`);
         }
     }
+
+    // =====================================================================
+    // BLOQUEIO DE MODULOS EM PRE-TEMPORADA
+    // =====================================================================
+
+    /**
+     * Verifica se o modulo esta bloqueado por conta da pre-temporada
+     * Modulos que dependem de dados de rodadas ficam bloqueados ate o Brasileirao iniciar
+     */
+    verificarBloqueioPreTemporada(moduloId) {
+        const config = window.ParticipanteConfig;
+
+        // Se nao estiver em "preparando", nenhum modulo esta bloqueado
+        if (!config || !config.isPreparando || !config.isPreparando()) {
+            return false;
+        }
+
+        // Modulos que funcionam mesmo em pre-temporada
+        const modulosLiberados = ['boas-vindas', 'extrato', 'historico'];
+
+        // Se o modulo esta na lista de liberados, nao bloquear
+        if (modulosLiberados.includes(moduloId)) {
+            return false;
+        }
+
+        // Todos os outros modulos estao bloqueados em pre-temporada
+        return true;
+    }
+
+    /**
+     * Mostra modal amigavel informando que o modulo esta bloqueado
+     */
+    mostrarModalBloqueioPreTemporada(moduloId) {
+        const config = window.ParticipanteConfig;
+        const diasRestantes = config && config.getCountdownDays ? config.getCountdownDays() : 0;
+
+        // Mapeamento de nomes amigaveis dos modulos
+        const nomesModulos = {
+            'ranking': 'Ranking',
+            'rodadas': 'Rodadas',
+            'top10': 'Top 10',
+            'melhor-mes': 'Melhor do Mes',
+            'pontos-corridos': 'Pontos Corridos',
+            'mata-mata': 'Mata-Mata',
+            'artilheiro': 'Artilheiro',
+            'luva-ouro': 'Luva de Ouro'
+        };
+
+        const nomeModulo = nomesModulos[moduloId] || moduloId;
+
+        // Remover modal existente se houver
+        const modalExistente = document.getElementById('modalBloqueioPreTemporada');
+        if (modalExistente) {
+            modalExistente.remove();
+        }
+
+        // Criar modal
+        const modal = document.createElement('div');
+        modal.id = 'modalBloqueioPreTemporada';
+        modal.innerHTML = `
+            <div class="modal-bloqueio-overlay" onclick="window.participanteNav.fecharModalBloqueio()">
+                <div class="modal-bloqueio-content" onclick="event.stopPropagation()">
+                    <div class="modal-bloqueio-icon">
+                        <span class="material-symbols-outlined">hourglass_top</span>
+                    </div>
+                    <h3 class="modal-bloqueio-titulo">Aguarde o Cartola 2026</h3>
+                    <p class="modal-bloqueio-texto">
+                        O modulo <strong>${nomeModulo}</strong> estara disponivel quando o Brasileirao 2026 comecar.
+                    </p>
+                    ${diasRestantes > 0 ? `
+                    <div class="modal-bloqueio-countdown">
+                        <span class="countdown-numero">${diasRestantes}</span>
+                        <span class="countdown-label">${diasRestantes === 1 ? 'dia' : 'dias'} restantes</span>
+                    </div>
+                    ` : ''}
+                    <div class="modal-bloqueio-dica">
+                        <span class="material-symbols-outlined">lightbulb</span>
+                        <span>Enquanto isso, explore seu <strong>Historico</strong> e veja suas conquistas de 2025!</span>
+                    </div>
+                    <div class="modal-bloqueio-botoes">
+                        <button class="modal-bloqueio-btn secundario" onclick="window.participanteNav.fecharModalBloqueio()">
+                            <span class="material-symbols-outlined">close</span>
+                            Fechar
+                        </button>
+                        <button class="modal-bloqueio-btn primario" onclick="window.participanteNav.irParaHistorico()">
+                            <span class="material-symbols-outlined">emoji_events</span>
+                            Ver Historico
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Adicionar estilos se nao existirem
+        if (!document.getElementById('estilosModalBloqueio')) {
+            const estilos = document.createElement('style');
+            estilos.id = 'estilosModalBloqueio';
+            estilos.textContent = `
+                .modal-bloqueio-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0, 0, 0, 0.9);
+                    backdrop-filter: blur(8px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 9999;
+                    padding: 20px;
+                    animation: fadeIn 0.2s ease;
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                .modal-bloqueio-content {
+                    background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+                    border-radius: 20px;
+                    padding: 28px 24px;
+                    max-width: 340px;
+                    width: 100%;
+                    text-align: center;
+                    border: 1px solid rgba(255, 85, 0, 0.3);
+                    box-shadow: 0 20px 60px rgba(255, 85, 0, 0.15);
+                    animation: slideUp 0.3s ease;
+                }
+                @keyframes slideUp {
+                    from { transform: translateY(30px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                .modal-bloqueio-icon {
+                    width: 72px;
+                    height: 72px;
+                    background: rgba(255, 85, 0, 0.15);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 20px;
+                    animation: pulse 2s infinite;
+                }
+                @keyframes pulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                }
+                .modal-bloqueio-icon .material-symbols-outlined {
+                    font-size: 36px;
+                    color: #ff5500;
+                }
+                .modal-bloqueio-titulo {
+                    color: white;
+                    font-size: 20px;
+                    font-weight: 700;
+                    margin: 0 0 12px 0;
+                }
+                .modal-bloqueio-texto {
+                    color: #9ca3af;
+                    font-size: 14px;
+                    margin: 0 0 20px 0;
+                    line-height: 1.5;
+                }
+                .modal-bloqueio-texto strong {
+                    color: #ff5500;
+                }
+                .modal-bloqueio-countdown {
+                    background: rgba(255, 85, 0, 0.1);
+                    border: 1px solid rgba(255, 85, 0, 0.3);
+                    border-radius: 12px;
+                    padding: 16px;
+                    margin-bottom: 20px;
+                }
+                .modal-bloqueio-countdown .countdown-numero {
+                    display: block;
+                    font-size: 36px;
+                    font-weight: 800;
+                    color: #ff5500;
+                    line-height: 1;
+                }
+                .modal-bloqueio-countdown .countdown-label {
+                    font-size: 12px;
+                    color: #9ca3af;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+                .modal-bloqueio-dica {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 10px;
+                    padding: 12px;
+                    margin-bottom: 20px;
+                    text-align: left;
+                }
+                .modal-bloqueio-dica .material-symbols-outlined {
+                    font-size: 20px;
+                    color: #fbbf24;
+                    flex-shrink: 0;
+                }
+                .modal-bloqueio-dica span:last-child {
+                    font-size: 12px;
+                    color: #9ca3af;
+                    line-height: 1.4;
+                }
+                .modal-bloqueio-dica strong {
+                    color: #ff5500;
+                }
+                .modal-bloqueio-botoes {
+                    display: flex;
+                    gap: 10px;
+                }
+                .modal-bloqueio-btn {
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    padding: 14px 16px;
+                    border-radius: 12px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    border: none;
+                }
+                .modal-bloqueio-btn .material-symbols-outlined {
+                    font-size: 18px;
+                }
+                .modal-bloqueio-btn.secundario {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: white;
+                }
+                .modal-bloqueio-btn.secundario:active {
+                    background: rgba(255, 255, 255, 0.15);
+                    transform: scale(0.98);
+                }
+                .modal-bloqueio-btn.primario {
+                    background: linear-gradient(135deg, #ff5500 0%, #ff8800 100%);
+                    color: white;
+                }
+                .modal-bloqueio-btn.primario:active {
+                    transform: scale(0.98);
+                    filter: brightness(0.9);
+                }
+            `;
+            document.head.appendChild(estilos);
+        }
+
+        document.body.appendChild(modal);
+        if (window.Log) Log.info('PARTICIPANTE-NAV', `🚫 Modal bloqueio exibido para: ${moduloId}`);
+    }
+
+    fecharModalBloqueio() {
+        const modal = document.getElementById('modalBloqueioPreTemporada');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    irParaHistorico() {
+        this.fecharModalBloqueio();
+        this.navegarPara('historico');
+    }
 }
 
 // Instância global
@@ -731,4 +1001,4 @@ if (document.readyState === "loading") {
     participanteNav.inicializar();
 }
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v3.1 pronto (navegação com feedback visual)');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v4.0 pronto (bloqueio pre-temporada + feedback visual)');
