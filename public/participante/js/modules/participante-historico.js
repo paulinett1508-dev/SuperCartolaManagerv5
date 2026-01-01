@@ -144,6 +144,13 @@ async function renderizarTodasLigas() {
     const container = document.getElementById("historicoDetalhe");
     if (!container) return;
 
+    // v11.0: Validar dados antes de renderizar
+    if (!historicoData) {
+        if (window.Log) Log.warn("HISTORICO", "historicoData nulo - abortando render");
+        mostrarErro("Dados nao carregados");
+        return;
+    }
+
     container.innerHTML = `<div class="loading-state"><span class="material-icons spin">sync</span><span>Carregando dados...</span></div>`;
 
     let temporadas = historicoData.historico || [];
@@ -964,7 +971,8 @@ async function renderizarDadosTempoReal(ligaId) {
                 // v9.3: Atualizar subtitle com nome da liga
                 const elSubtitle = document.getElementById("headerSubtitle");
                 if (elSubtitle) {
-                    elSubtitle.textContent = `Temporada ${ligaData.ano || 2025} • ${ligaNome}`;
+                    const anoDisplay = ligaData.ano || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+                    elSubtitle.textContent = `Temporada ${anoDisplay} - ${ligaNome}`;
                 }
             }
         } catch (e) {
