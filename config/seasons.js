@@ -11,7 +11,7 @@
 // =============================================================================
 // TEMPORADA ATUAL - MUDE APENAS AQUI PARA VIRAR O ANO
 // =============================================================================
-export const CURRENT_SEASON = 2025;
+export const CURRENT_SEASON = 2026;
 
 // =============================================================================
 // CONFIGURAÇÕES DE TEMPORADA
@@ -36,7 +36,7 @@ export const SEASON_CONFIG = {
     historico: [2025],
 
     // Status da temporada atual
-    status: 'ativa', // 'ativa' | 'encerrada' | 'preparando'
+    status: 'preparando', // 'ativa' | 'encerrada' | 'preparando'
 };
 
 // =============================================================================

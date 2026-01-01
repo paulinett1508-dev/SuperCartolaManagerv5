@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-12-31T11:44:11.518Z",
+  "timestamp": "2026-01-01T22:53:02.666Z",
   "status": "SUCCESS",
   "versao_script": "2.1.0",
   "steps": {
@@ -15,18 +15,153 @@
     },
     "backup": {
       "status": "OK",
-      "diretorio": "/home/runner/workspace/data/backups/pre-wipe-2025-12-31T11-43-58",
+      "diretorio": "/home/runner/workspace/data/backups/pre-wipe-2026-01-01T22-52-14",
       "total_documentos": 8914,
       "collections_exportadas": 19,
       "erros": 0
     },
     "wipe": {
       "status": "OK",
-      "collections": {}
+      "collections": {
+        "rodadas": {
+          "status": "success",
+          "documentos_removidos": 1438,
+          "documentos_antes": 1438
+        },
+        "rankinggeralcaches": {
+          "status": "success",
+          "documentos_removidos": 2,
+          "documentos_antes": 2
+        },
+        "pontoscorridoscaches": {
+          "status": "success",
+          "documentos_removidos": 31,
+          "documentos_antes": 31
+        },
+        "matamatas": {
+          "status": "skipped",
+          "reason": "not_found"
+        },
+        "matamatacaches": {
+          "status": "success",
+          "documentos_removidos": 5,
+          "documentos_antes": 5
+        },
+        "extratofinanceirocaches": {
+          "status": "success",
+          "documentos_removidos": 38,
+          "documentos_antes": 38
+        },
+        "extrato_financeiro_caches": {
+          "status": "success",
+          "documentos_removidos": 6,
+          "documentos_antes": 6
+        },
+        "extratocaches": {
+          "status": "success",
+          "documentos_removidos": 0,
+          "documentos_antes": 0
+        },
+        "extratocache": {
+          "status": "success",
+          "documentos_removidos": 0,
+          "documentos_antes": 0
+        },
+        "goleiros": {
+          "status": "success",
+          "documentos_removidos": 228,
+          "documentos_antes": 228
+        },
+        "gols": {
+          "status": "success",
+          "documentos_removidos": 5371,
+          "documentos_antes": 5371
+        },
+        "golsconsolidados": {
+          "status": "success",
+          "documentos_removidos": 226,
+          "documentos_antes": 226
+        },
+        "defesasconsolidadas": {
+          "status": "success",
+          "documentos_removidos": 0,
+          "documentos_antes": 0
+        },
+        "artilheirocampeaos": {
+          "status": "success",
+          "documentos_removidos": 1,
+          "documentos_antes": 1
+        },
+        "rodadasnapshots": {
+          "status": "success",
+          "documentos_removidos": 76,
+          "documentos_antes": 76
+        },
+        "top10caches": {
+          "status": "success",
+          "documentos_removidos": 2,
+          "documentos_antes": 2
+        },
+        "melhormescaches": {
+          "status": "skipped",
+          "reason": "not_found"
+        },
+        "melhor_mes_cache": {
+          "status": "success",
+          "documentos_removidos": 2,
+          "documentos_antes": 2
+        },
+        "ranking_turno_caches": {
+          "status": "success",
+          "documentos_removidos": 1,
+          "documentos_antes": 1
+        },
+        "rankingturnos": {
+          "status": "success",
+          "documentos_removidos": 6,
+          "documentos_antes": 6
+        },
+        "cartolaoficialdumps": {
+          "status": "success",
+          "documentos_removidos": 0,
+          "documentos_antes": 0
+        },
+        "cartola_oficial_dumps": {
+          "status": "success",
+          "documentos_removidos": 1403,
+          "documentos_antes": 1403
+        },
+        "sessions": {
+          "status": "success",
+          "documentos_removidos": 43,
+          "documentos_antes": 43
+        },
+        "accesslogs": {
+          "status": "success",
+          "documentos_removidos": 14,
+          "documentos_antes": 14
+        },
+        "useractivities": {
+          "status": "success",
+          "documentos_removidos": 21,
+          "documentos_antes": 21
+        }
+      }
     },
     "config": {
-      "status": "skipped",
-      "reason": "dry-run"
+      "success": true,
+      "config": {
+        "season": 2026,
+        "status": "setup_mode",
+        "previous_season": 2025,
+        "migrated_at": "2026-01-01T22:53:02.460Z",
+        "migrated_by": "turn_key_2026.js",
+        "features": {
+          "inscricoes_abertas": false,
+          "mercado_ativo": false,
+          "rodadas_ativas": false
+        }
+      }
     }
   }
 }

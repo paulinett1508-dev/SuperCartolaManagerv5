@@ -1,128 +1,76 @@
-# Tarefas Pendentes - 2025-12-31
+# Tarefas Pendentes - 2026-01-01
 
 ## Contexto
-Encerramento da Temporada 2025 e preparação para virada de Temporada 2026.
-**HOJE É O DIA DA VIRADA!** Sistema validado e pronto para executar turn_key em 01/01/2026.
+**VIRADA DE TEMPORADA EXECUTADA COM SUCESSO!**
+Temporada 2025 encerrada. Sistema preparado para 2026.
 
-## Tarefa Principal
-**VIRADA DE TEMPORADA 2025 → 2026**
-
-## Concluído (Validações)
+## Concluido (Virada 2025 -> 2026)
 - [x] 38 rodadas consolidadas (ambas ligas)
 - [x] Rankings finais validados (SuperCartola: 32, Sobral: 6)
-- [x] Saldos financeiros verificados e QUITADOS
-- [x] 32 nomes "Desconhecido" corrigidos no users_registry.json
-- [x] 4 badges incorretos removidos
-- [x] Cartório Vitalício: 37 participantes únicos
-- [x] turn_key_2026.js testado em dry-run (31/12/2025)
-- [x] Collections PRESERVE atualizadas (admins, acertofinanceiros)
-- [x] Collections WIPE expandida (25 collections)
-- [x] Snapshot 2025 gerado (data/history/2025/)
-- [x] Backup automático funcionando (8.914 docs salvos)
-- [x] Prazos de renovação configurados (15/03, 31/03)
+- [x] Saldos financeiros QUITADOS (0 credores, 0 devedores)
+- [x] Snapshot 2025 gerado (`data/history/2025/`)
+- [x] Backup pre-wipe: 8.914 docs em 25 collections
+- [x] **turn_key_2026.js EXECUTADO** (01/01/2026 22:52 UTC)
+- [x] 25 collections limpas (rodadas, caches, etc.)
+- [x] Collections preservadas (admins, acertofinanceiros, times, ligas)
+- [x] config/seasons.js atualizado (CURRENT_SEASON = 2026)
+- [x] Status: 'preparando'
 
-## Situação Financeira - ATUALIZADA 31/12/2025
-| Status | Qtd | Valor |
-|--------|-----|-------|
-| Credores | **0** | R$ 0,00 |
-| Devedores | **0** | R$ 0,00 |
-| Quitados | **38** | - |
+## Campeoes 2025
+- **SuperCartola:** Vitim (1o)
+- **Sobral:** Vitim + Daniel Barbosa (empate 1o)
 
-**Todos os participantes estão com saldo zerado.**
+## Cartorio Vitalicio
+- 37 participantes unicos registrados
+- Badges atualizadas com conquistas 2025
 
-## Pendente (Ações para 01/01/2026)
-- [ ] **EXECUTAR turn_key em 01/01/2026**
-- [ ] Atualizar config/seasons.js (CURRENT_SEASON = 2026)
-- [ ] Reiniciar servidor após turn_key
+## Arquivos Gerados
+- `data/history/2025/final_standings.json` - Ranking final
+- `data/history/2025/migration_report.json` - Relatorio da migracao
+- `data/backups/pre-wipe-2026-01-01T22-52-14/` - Backup completo
 
-## Campeões 2025
-- **SuperCartola:** Vitim (1º)
-- **Sobral:** Vitim + Daniel Barbosa (empate 1º)
+## Proximos Passos (Temporada 2026)
 
-## Arquivos Importantes
-- `scripts/turn_key_2026.js` - Script de virada (v2.1.0)
-- `config/seasons.js` - Alterar CURRENT_SEASON para 2026
-- `data/users_registry.json` - Cartório Vitalício (37 usuários)
-- `data/history/2025/` - Snapshot da temporada
-- `data/backups/pre-wipe-2025-12-31T11-43-58/` - Backup mais recente
+### Fase 1: Renovacao (01/01 - 15/03/2026)
+- [ ] Enviar comunicado de renovacao aos participantes
+- [ ] Coletar confirmacoes de renovacao (OPT-IN)
+- [ ] Prazo renovacao: 15/03/2026
 
-## Próximos Passos (01/01/2026)
+### Fase 2: Quitacao (15/03 - 31/03/2026)
+- [ ] Cobrar taxas de inscricao
+- [ ] Prazo quitacao: 31/03/2026
 
-### 1. Executar Turn Key
+### Fase 3: Inicio Temporada (Abril 2026)
+- [ ] Aguardar inicio do Brasileirao 2026
+- [ ] Alterar status para 'ativa' em config/seasons.js
+- [ ] Primeira rodada de pontuacao
+
+## Comandos Uteis
+
 ```bash
-# Conectar ao Replit e rodar:
-NODE_ENV=production node scripts/turn_key_2026.js
+# Verificar status do sistema
+node -e "import('./config/seasons.js').then(m => console.log('Temporada:', m.CURRENT_SEASON, '| Status:', m.SEASON_CONFIG.status))"
+
+# Verificar collections preservadas
+node -e "const {MongoClient} = require('mongodb'); require('dotenv').config(); MongoClient.connect(process.env.MONGO_URI).then(async c => { const db = c.db(); console.log('times:', await db.collection('times').countDocuments()); console.log('ligas:', await db.collection('ligas').countDocuments()); console.log('admins:', await db.collection('admins').countDocuments()); c.close(); });"
+
+# Verificar backup
+ls -la data/backups/pre-wipe-2026-01-01T22-52-14/
 ```
 
-### 2. Atualizar Seasons (manual)
-```javascript
-// Em config/seasons.js, alterar:
-export const CURRENT_SEASON = 2026;
-// E em SEASON_CONFIG:
-status: 'preparando'
-```
+## Historico de Sessoes
 
-### 3. Reiniciar Servidor
-```bash
-# Via Replit Console ou restart automático
-```
+### Sessao 2026-01-01
+- [x] Documentacao MCPs (Perplexity, Mongo, Context7) no CLAUDE.md
+- [x] Correcao skill system-scribe (frontmatter YAML)
+- [x] **EXECUCAO turn_key_2026.js**
+- [x] Atualizacao config/seasons.js para 2026
 
-## Comandos Úteis para Retomar
-```bash
-# Verificar status do git
-git status
-
-# Verificar situação financeira
-node -e "const d = require('./data/users_registry.json'); console.log('Credores:', d.users.filter(u => u.situacao_financeira?.saldo_atual > 0).length); console.log('Devedores:', d.users.filter(u => u.situacao_financeira?.saldo_atual < 0).length);"
-
-# Testar turn_key novamente (dry-run)
-node scripts/turn_key_2026.js --dry-run --force-date-override
-
-# Verificar acertos financeiros
-node -e "const {MongoClient} = require('mongodb'); require('dotenv').config(); MongoClient.connect(process.env.MONGO_URI).then(c => c.db().collection('acertofinanceiros').countDocuments().then(n => {console.log('Total acertos:', n); c.close();}));"
-```
-
-## Cronograma
-| Data | Ação | Status |
-|------|------|--------|
-| Até 31/12/2025 | Quitar pendências | ✅ FEITO |
-| 01/01/2026 | Executar turn_key | ⏳ AMANHÃ |
-| 01/01 - 15/03 | Renovação OPT-IN | - |
-| 15/03/2026 | Prazo renovação | - |
-| 31/03/2026 | Prazo quitação | - |
-| Abril 2026 | Início Brasileirão | - |
-
----
-
-## Histórico de Sessões
-
-### Sessão 2025-12-31
-- [x] Retomada de tarefas pendentes
+### Sessao 2025-12-31
 - [x] Dry-run turn_key_2026.js com sucesso
-- [x] Verificação de saldos (todos quitados)
-- [x] Backup gerado: 8.914 documentos em 25 collections
-
-### Sessão 2025-12-27
-- [x] Validações finais para virada
-- [x] Primeiro dry-run do turn_key
-
-### Sessão 2025-12-18 (Noite)
-- [x] Exibição de Composição do Saldo no Extrato
-
-### Sessão 2025-12-18 (Tarde)
-- [x] Correção Crítica: Cálculo de Acertos Financeiros
-
-### Sessão 2025-12-18 (Manhã)
-- [x] Banner de Boas-Vindas com Resumo 2025
-- [x] Seletor de Temporada Global
-- [x] Hall da Fama / Histórico do Participante
-- [x] Correção de Saldos Financeiros
-
-### Sessão 2025-12-17
-- [x] Sistema de Design Tokens
-- [x] Migração de 16 Páginas Admin
-- [x] Gestão de Ligas - Padronização CSS
+- [x] Verificacao de saldos (todos quitados)
+- [x] Backup gerado: 8.914 documentos
 
 ---
-*Atualizado em: 2025-12-31 11:45 UTC*
-*Use `/retomar-tarefas` para continuar*
+*Atualizado em: 2026-01-01 22:53 UTC*
+*Virada de temporada concluida com sucesso!*
