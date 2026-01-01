@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v11.0 (HALL DA FAMA - SELETOR TEMPORADAS)
+// PARTICIPANTE-HISTORICO.JS - v11.1 (HALL DA FAMA - FIX POS-TURN-KEY)
 // =====================================================================
+// v11.1: Fix pos-turn-key - Usar dados do JSON quando APIs estao vazias
 // v11.0: Seletor de Temporadas
 //       - Permite navegar entre temporadas passadas e atual
 //       - Temporadas passadas mostram dados consolidados (imutaveis)
@@ -10,7 +11,7 @@
 // v9.0+: Filtros por liga, dados reais das APIs
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v11.0 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v11.1 carregando...");
 
 // Estado do modulo
 let historicoData = null;
@@ -228,14 +229,15 @@ async function renderizarTodasLigas() {
             buscarExtrato(ligaId)
         ]);
 
-        // v8.0: Usar dados do Ranking (prioridade) ou Pontos Corridos como fallback
+        // v11.1: CORRECAO - Usar dados do JSON como fallback quando APIs estao vazias
+        // Apos turn_key, os caches sao limpos mas os dados historicos estao no JSON
         const posicaoReal = ranking?.posicao || pc?.posicao || tempRecente.estatisticas?.posicao_final || '-';
-        const pontosReais = ranking?.pontos || pc?.pontos || 0;
-        const totalParticipantes = ranking?.total || pc?.total || 0;
-        const rodadasJogadas = ranking?.rodadas || (pc ? (pc.vitorias + pc.empates + pc.derrotas) : 0);
+        const pontosReais = ranking?.pontos || pc?.pontos || tempRecente.estatisticas?.pontos_totais || 0;
+        const totalParticipantes = ranking?.total || pc?.total || historicoData?.historico?.length || 0;
+        const rodadasJogadas = ranking?.rodadas || (pc ? (pc.vitorias + pc.empates + pc.derrotas) : 0) || tempRecente.estatisticas?.rodadas_jogadas || 38;
 
-        // v8.0: Usar saldo do extrato (histórico real)
-        const saldoHistorico = extrato?.saldo ?? (tempRecente.financeiro?.saldo_final || 0);
+        // v11.1: Saldo - prioridade para extrato da API, fallback para JSON
+        const saldoHistorico = extrato?.saldo ?? tempRecente.financeiro?.saldo_final ?? 0;
         const saldoClass = saldoHistorico > 0 ? 'positive' : saldoHistorico < 0 ? 'negative' : '';
 
         html += `
@@ -1413,4 +1415,4 @@ async function renderizarDadosTempoReal(ligaId) {
     }
 }
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v11.0 pronto");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v11.1 pronto");
