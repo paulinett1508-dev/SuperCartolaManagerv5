@@ -13,6 +13,7 @@ import { fileURLToPath } from "url";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import Liga from "../models/Liga.js";
+import { CURRENT_SEASON, getAvailableSeasons } from "../config/seasons.js";
 
 const router = express.Router();
 
@@ -74,9 +75,16 @@ router.get("/:timeId", async (req, res) => {
         ).lean();
         const ligasMap = new Map(ligasData.map(l => [String(l._id), l.modulos_ativos || {}]));
 
+        // v2.4: Extrair temporadas do historico do participante
+        const temporadasParticipante = [...new Set(
+            (participante.historico || []).map(h => h.ano)
+        )].sort((a, b) => b - a);
+
         // Formatar resposta
         const response = {
             success: true,
+            temporada_atual: CURRENT_SEASON,
+            temporadas_disponiveis: temporadasParticipante,
             participante: {
                 id: participante.id,
                 nome: participante.nome,
@@ -177,22 +185,25 @@ router.get("/:timeId", async (req, res) => {
                 response.situacao_financeira.saldo_atual = saldoAtual;
                 response.situacao_financeira.tipo = saldoAtual > 0 ? "credor" : saldoAtual < 0 ? "devedor" : "zerado";
 
-                // Atualizar histórico da temporada atual (2025) se existir
-                const temporadaAtual = response.historico.find(h => h.ano === 2025);
-                if (temporadaAtual) {
-                    temporadaAtual.financeiro = {
+                // v2.3: Atualizar APENAS a temporada ATUAL com dados do MongoDB
+                // Temporadas passadas mantêm dados consolidados do JSON (imutaveis)
+                const temporadaAtualData = response.historico.find(h => h.ano === CURRENT_SEASON);
+                if (temporadaAtualData) {
+                    temporadaAtualData.financeiro = {
                         saldo_final: saldoAtual,
                         total_bonus: totalGanhos,
                         total_onus: totalPerdas
                     };
+                    console.log(`[HISTORICO] Atualizando dados da temporada ${CURRENT_SEASON} com MongoDB`);
                 }
 
-                // Atualizar detalhamento
-                if (response.situacao_financeira.detalhamento?.temporada_2025) {
-                    response.situacao_financeira.detalhamento.temporada_2025.saldo_final = saldoAtual;
-                    response.situacao_financeira.detalhamento.temporada_2025.saldo_extrato = saldoAtual;
-                    response.situacao_financeira.detalhamento.temporada_2025.total_bonus = totalGanhos;
-                    response.situacao_financeira.detalhamento.temporada_2025.total_onus = totalPerdas;
+                // Atualizar detalhamento da temporada atual
+                const chaveTemporada = `temporada_${CURRENT_SEASON}`;
+                if (response.situacao_financeira.detalhamento?.[chaveTemporada]) {
+                    response.situacao_financeira.detalhamento[chaveTemporada].saldo_final = saldoAtual;
+                    response.situacao_financeira.detalhamento[chaveTemporada].saldo_extrato = saldoAtual;
+                    response.situacao_financeira.detalhamento[chaveTemporada].total_bonus = totalGanhos;
+                    response.situacao_financeira.detalhamento[chaveTemporada].total_onus = totalPerdas;
                 }
             } else {
                 console.log(`[HISTORICO] ⚠️ Cache MongoDB não encontrado para time ${timeId}, usando dados do JSON`);

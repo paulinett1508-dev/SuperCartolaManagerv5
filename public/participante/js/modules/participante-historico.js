@@ -1,45 +1,23 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v10.5 (HALL DA FAMA - STATUS INATIVIDADE)
+// PARTICIPANTE-HISTORICO.JS - v11.0 (HALL DA FAMA - SELETOR TEMPORADAS)
 // =====================================================================
-// v10.0: TOP10 Histórico CORRIGIDO - Lógica clara e precisa:
-//       - O ranking armazena TODAS as pontuações extremas da temporada
-//       - Apenas as 10 primeiras posições geram bônus/ônus financeiro
-//       - Um participante pode ocupar MÚLTIPLAS posições (ex: 2º, 6º, 7º)
-//       - Mostra: posições ocupadas, bônus/ônus individual e saldo total
-//       - 3 cenários: no TOP10, fora do TOP10 mas no ranking, não aparece
-// v9.5: FIX CRÍTICO - TOP10 agora busca em TODO o array de MITOS/MICOS
-//       - Antes: só buscava nos 10 primeiros registros (slice(0,10))
-//       - Agora: busca em TODOS os registros para contar quantas rodadas o participante foi MITO/MICO
-//       - Exibe "Você foi MITO em X rodadas" ou "Você foi MICO em X rodadas"
-// v9.4: Melhorias finais:
-//       - TOP10: Mostra quantas vezes apareceu no ranking (ex: "2º melhor MITO (3x)")
-//       - Artilheiro/Luva: Remove linha "Melhor: [nome]" (informação redundante)
-//       - Rodapé: Usa nome da liga selecionada (não mais hardcoded "Super Cartola Manager")
-// v9.3: Textos descritivos melhorados + FIX nome da liga + TOP10 sempre visível:
-//       - Pontuação Total: número completo com decimais (ex: 3.012,50)
-//       - Artilheiro: "Você somou XX gols na temporada e ficou em XXº lugar"
-//       - Luva de Ouro: "Seus goleiros somaram XX pontos na temporada e você ficou em XXº lugar"
-//       - FIX: Subtítulo agora mostra o nome da liga selecionada (não sempre "Super Cartola")
-//       - TOP10: Card aparece sempre, mostra mensagem se não estiver no ranking
-// v9.2: Adiciona seções "Seu Desempenho" e "Conquistas" consolidadas
-//       - Mostra classificação, rodadas, média por rodada
-//       - Lista conquistas: Artilheiro, Luva de Ouro, TOP10, Melhor Mês, Mata-Mata
-// v9.1: FIX APIS - Corrige mapeamento de campos das APIs:
-//       - buscarRanking: rodadas_jogadas (não rodadas)
-//       - buscarArtilheiro: data.data.ranking, golsPro, nome
-//       - buscarLuvaOuro: data.data.ranking, participanteId, pontosTotais
-// v9.0: FIX CRÍTICO - Filtra pela liga selecionada (não ignora mais ligaId)
-// v8.0: Dados corrigidos: Ranking, Melhor Rodada, Saldo Histórico,
-//       Mata-Mata com aproveitamento, Extrato com Créditos/Débitos
-// v7.0: Layout limpo, sem seletores, mostra TODAS as ligas do participante
+// v11.0: Seletor de Temporadas
+//       - Permite navegar entre temporadas passadas e atual
+//       - Temporadas passadas mostram dados consolidados (imutaveis)
+//       - Temporada atual mostra dados "vivos" do MongoDB
+// v10.5: Status de Inatividade no banner
+// v10.0: TOP10 Historico CORRIGIDO - Logica clara e precisa
+// v9.0+: Filtros por liga, dados reais das APIs
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v10.5 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v11.0 carregando...");
 
 // Estado do modulo
 let historicoData = null;
 let timeId = null;
-let ligaIdSelecionada = null; // v9.0: Liga atualmente selecionada
+let ligaIdSelecionada = null;
+let temporadaSelecionada = null; // v11.0: Temporada selecionada
+let temporadasDisponiveis = []; // v11.0: Lista de temporadas
 
 // =====================================================================
 // FUNCAO PRINCIPAL
@@ -48,7 +26,7 @@ export async function inicializarHistoricoParticipante({ participante, ligaId: _
     if (window.Log) Log.info("HISTORICO", "Inicializando...", { ligaId: _ligaId, timeId: _timeId });
 
     timeId = _timeId;
-    ligaIdSelecionada = _ligaId; // v9.0: Armazenar liga selecionada
+    ligaIdSelecionada = _ligaId;
 
     if (!timeId) {
         mostrarErro("Dados invalidos");
@@ -56,15 +34,14 @@ export async function inicializarHistoricoParticipante({ participante, ligaId: _
     }
 
     if (!ligaIdSelecionada) {
-        if (window.Log) Log.warn("HISTORICO", "Liga não selecionada - mostrando todas");
+        if (window.Log) Log.warn("HISTORICO", "Liga nao selecionada - mostrando todas");
     }
 
     try {
         const response = await fetch(`/api/participante/historico/${timeId}`);
         if (!response.ok) {
             if (response.status === 404) {
-                // v10.4: Participante não está no Cartório - buscar dados em tempo real
-                if (window.Log) Log.info("HISTORICO", "Participante não encontrado no Cartório - buscando dados em tempo real");
+                if (window.Log) Log.info("HISTORICO", "Participante nao encontrado no Cartorio - buscando dados em tempo real");
                 if (ligaIdSelecionada) {
                     await renderizarDadosTempoReal(ligaIdSelecionada);
                 } else {
@@ -80,25 +57,22 @@ export async function inicializarHistoricoParticipante({ participante, ligaId: _
 
         if (window.Log) Log.info("HISTORICO", "Dados:", { temporadas: historicoData.historico?.length });
 
-        // Atualizar subtitle com temporada(s) e nome da liga (v9.3)
-        const elSubtitle = document.getElementById("headerSubtitle");
-        let temporadas = historicoData.historico || [];
-        
-        // v9.3: Filtrar pela liga selecionada para pegar o nome correto
-        if (ligaIdSelecionada) {
-            temporadas = temporadas.filter(t => String(t.liga_id) === String(ligaIdSelecionada));
-        }
-        
-        const anos = [...new Set(temporadas.map(t => t.ano))].sort((a, b) => b - a);
-        const nomeLiga = temporadas[0]?.liga_nome || 'Super Cartola'; // v9.3: Pegar nome da liga
-        
-        if (elSubtitle) {
-            elSubtitle.textContent = anos.length > 0
-                ? `Temporada${anos.length > 1 ? 's' : ''} ${anos.join(', ')} • ${nomeLiga}`
-                : nomeLiga;
+        // v11.0: Armazenar temporadas disponiveis e inicializar seletor
+        temporadasDisponiveis = historicoData.temporadas_disponiveis || [];
+        const temporadaAtualBackend = historicoData.temporada_atual;
+
+        // Se nao tem temporada selecionada, usar a mais recente
+        if (!temporadaSelecionada && temporadasDisponiveis.length > 0) {
+            temporadaSelecionada = temporadasDisponiveis[0]; // Mais recente primeiro
         }
 
-        // Renderizar TODAS as ligas
+        // v11.0: Popular seletor de temporadas
+        popularSeletorTemporadas(temporadasDisponiveis, temporadaAtualBackend);
+
+        // Atualizar subtitle com temporada e nome da liga
+        atualizarSubtitle();
+
+        // Renderizar dados
         await renderizarTodasLigas();
 
     } catch (error) {
@@ -108,7 +82,63 @@ export async function inicializarHistoricoParticipante({ participante, ligaId: _
 }
 
 // =====================================================================
-// RENDERIZAR LIGAS (v9.0: Filtra pela liga selecionada)
+// v11.0: SELETOR DE TEMPORADAS
+// =====================================================================
+function popularSeletorTemporadas(temporadas, temporadaAtual) {
+    const seletorContainer = document.getElementById("seletorTemporadas");
+    const selectEl = document.getElementById("selectTemporada");
+
+    if (!seletorContainer || !selectEl) return;
+
+    // Mostrar seletor apenas se houver mais de 1 temporada
+    if (temporadas.length <= 1) {
+        seletorContainer.style.display = "none";
+        return;
+    }
+
+    seletorContainer.style.display = "flex";
+
+    // Popular opcoes
+    selectEl.innerHTML = temporadas.map(ano => {
+        const isAtual = ano === temporadaAtual;
+        const label = isAtual ? `${ano} (atual)` : ano;
+        const selected = ano === temporadaSelecionada ? 'selected' : '';
+        return `<option value="${ano}" ${selected}>${label}</option>`;
+    }).join('');
+
+    // Listener para mudanca
+    selectEl.onchange = async (e) => {
+        temporadaSelecionada = parseInt(e.target.value);
+        if (window.Log) Log.info("HISTORICO", `Temporada alterada para: ${temporadaSelecionada}`);
+        atualizarSubtitle();
+        await renderizarTodasLigas();
+    };
+}
+
+function atualizarSubtitle() {
+    const elSubtitle = document.getElementById("headerSubtitle");
+    if (!elSubtitle) return;
+
+    let temporadas = historicoData?.historico || [];
+
+    // Filtrar por temporada selecionada
+    if (temporadaSelecionada) {
+        temporadas = temporadas.filter(t => t.ano === temporadaSelecionada);
+    }
+
+    // Filtrar por liga selecionada
+    if (ligaIdSelecionada) {
+        temporadas = temporadas.filter(t => String(t.liga_id) === String(ligaIdSelecionada));
+    }
+
+    const nomeLiga = temporadas[0]?.liga_nome || 'Super Cartola';
+    const ano = temporadaSelecionada || temporadas[0]?.ano || '';
+
+    elSubtitle.textContent = ano ? `Temporada ${ano} - ${nomeLiga}` : nomeLiga;
+}
+
+// =====================================================================
+// RENDERIZAR LIGAS (v11.0: Filtra por temporada e liga)
 // =====================================================================
 async function renderizarTodasLigas() {
     const container = document.getElementById("historicoDetalhe");
@@ -118,15 +148,21 @@ async function renderizarTodasLigas() {
 
     let temporadas = historicoData.historico || [];
 
+    // v11.0: Filtrar pela temporada selecionada
+    if (temporadaSelecionada) {
+        temporadas = temporadas.filter(t => t.ano === temporadaSelecionada);
+        if (window.Log) Log.debug("HISTORICO", `Filtrando por temporada: ${temporadaSelecionada}`, { encontradas: temporadas.length });
+    }
+
     // v9.0: Filtrar pela liga selecionada (se houver)
     if (ligaIdSelecionada) {
         temporadas = temporadas.filter(t => String(t.liga_id) === String(ligaIdSelecionada));
         if (window.Log) Log.debug("HISTORICO", `Filtrando por liga: ${ligaIdSelecionada}`, { encontradas: temporadas.length });
     }
 
-    // v9.0: Se não há histórico consolidado para a liga, buscar dados em tempo real
+    // Se nao ha historico consolidado para a liga/temporada, buscar dados em tempo real
     if (temporadas.length === 0 && ligaIdSelecionada) {
-        if (window.Log) Log.info("HISTORICO", "Sem histórico consolidado - buscando dados em tempo real");
+        if (window.Log) Log.info("HISTORICO", "Sem historico consolidado - buscando dados em tempo real");
         await renderizarDadosTempoReal(ligaIdSelecionada);
         return;
     }
@@ -1369,4 +1405,4 @@ async function renderizarDadosTempoReal(ligaId) {
     }
 }
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v10.5 pronto");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v11.0 pronto");

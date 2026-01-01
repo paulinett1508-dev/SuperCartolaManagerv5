@@ -7,6 +7,14 @@
         <div class="subtitle" id="headerSubtitle">Carregando...</div>
     </div>
 
+    <!-- v2.4: Seletor de Temporadas -->
+    <div id="seletorTemporadas" class="season-selector" style="display: none;">
+        <label for="selectTemporada">Temporada:</label>
+        <select id="selectTemporada" class="season-select">
+            <!-- Populado via JS -->
+        </select>
+    </div>
+
     <!-- Conteudo Principal (renderizado pelo JS) -->
     <div id="historicoDetalhe" class="hall-content">
         <div class="loading-state">
@@ -73,6 +81,54 @@
     font-size: 14px;
     color: var(--hall-text-muted);
     font-weight: 400;
+}
+
+/* Season Selector */
+.season-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+}
+
+.season-selector label {
+    font-size: 13px;
+    color: var(--hall-text-muted);
+    font-weight: 500;
+}
+
+.season-select {
+    background: rgba(255, 69, 0, 0.1);
+    border: 1px solid rgba(255, 69, 0, 0.3);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--hall-primary);
+    cursor: pointer;
+    min-width: 120px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23FF4500' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+.season-select:focus {
+    outline: none;
+    border-color: var(--hall-primary);
+    box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.2);
+}
+
+.season-select option {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 8px;
 }
 
 /* Content */
