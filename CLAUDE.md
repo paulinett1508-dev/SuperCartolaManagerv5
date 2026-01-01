@@ -44,6 +44,159 @@ O projeto conta com 5 skills especializadas que podem ser invocadas para tarefas
 - "Definir regras do mata-mata" → `league-architect`
 - "Explicar como funciona o Top 10" → `system-scribe`
 
+## 🔌 Context7 MCP - Documentação Sempre Atualizada
+
+### O que é?
+**Context7 MCP** é um servidor MCP (Model Context Protocol) que busca documentação técnica sempre atualizada de frameworks, APIs e bibliotecas, reduzindo alucinações de IA e código desatualizado.
+
+### Por que usamos?
+Este projeto enfrenta 3 desafios críticos de documentação:
+1. **API do Cartola FC não-documentada** - Mudanças sem aviso, comunidade esparsa
+2. **Frameworks em evolução rápida** - Mongoose, Express, PWA standards
+3. **Padrões custom reinventados** - Retry logic, auth, caching
+
+Context7 resolve isso buscando:
+- Docs oficiais atualizadas (Mongoose, Express, MDN)
+- Repositórios comunitários (APIs do Cartola FC)
+- Best practices de segurança (OWASP, helmet.js)
+
+### Como usar nos prompts?
+
+**Estrutura:**
+```
+"Usando Context7, busque [fonte específica] para [tarefa no projeto]"
+```
+
+**Exemplos:**
+
+1. **Debug API Cartola:**
+```
+"Usando Context7, verifique no repo henriquepgomide/caRtola se houve mudanças 
+no endpoint /atletas/mercado. Nosso services/cartolaApiService.js retorna 404."
+```
+
+2. **Refatoração Mongoose:**
+```
+"Usando Context7, busque na doc oficial do Mongoose 8.x como substituir 
+Model.collection.dropIndexes() em index.js por método não-deprecated."
+```
+
+3. **Security Audit:**
+```
+"Usando Context7, compare middleware/security.js com recomendações atuais 
+do OWASP Top 10 e helmet.js."
+```
+
+4. **Implementar Push Notifications:**
+```
+"Usando Context7, busque no MDN exemplos modernos de Web Push API para 
+implementar a feature em docs/live_experience_2026.md."
+```
+
+### Quando usar Context7?
+
+**✅ USE:**
+- Antes de cada temporada (verificar mudanças API Cartola)
+- Antes de upgrades (Mongoose, Express, libs)
+- Security audits mensais
+- Implementando features novas (Push, WebSockets)
+
+**❌ NÃO USE:**
+- Lógica de negócio interna (regras liga, cálculos)
+- Arquitetura específica do projeto
+- Debug de código custom sem relação com APIs externas
+
+### Limitações Conhecidas
+- **Repositórios nicho não indexados:** O Context7 NÃO possui repositórios como `henriquepgomide/caRtola` indexados. Para informações sobre API do Cartola FC, usar **Perplexity MCP** como alternativa.
+
+### Documentação completa:
+Ver [docs/CONTEXT7-MCP-SETUP.md](docs/CONTEXT7-MCP-SETUP.md) para:
+- Fontes prioritárias configuradas
+- Exemplos detalhados de prompts
+- Troubleshooting
+- Métricas de ROI (60-85h/ano economizadas)
+
+## 🔌 Perplexity MCP - Pesquisa Web Inteligente
+
+### O que é?
+**Perplexity MCP** conecta à API Perplexity para buscas web com IA, retornando respostas com citações de fontes.
+
+### Ferramentas Disponíveis
+
+| Tool | Função | Quando Usar |
+|------|--------|-------------|
+| `perplexity_ask` | Perguntas gerais com citações | Dúvidas rápidas, informações factuais |
+| `perplexity_search` | Busca web com resultados ranqueados | Encontrar URLs, notícias recentes |
+| `perplexity_research` | Pesquisa profunda/detalhada | Análises extensas, múltiplas fontes |
+| `perplexity_reason` | Raciocínio complexo (sonar-reasoning-pro) | Problemas lógicos, análise crítica |
+
+### Exemplos de Uso
+
+```
+# Buscar info sobre API Cartola (não disponível no Context7)
+perplexity_ask: "Quais endpoints da API Cartola FC retornam dados de mercado?"
+
+# Notícias recentes de jogador
+perplexity_search: "lesão Neymar últimas notícias" (max_results: 5)
+
+# Pesquisa profunda sobre tema técnico
+perplexity_research: "Melhores práticas de rate limiting para APIs Node.js"
+```
+
+### Quando usar Perplexity vs Context7?
+
+| Cenário | Usar |
+|---------|------|
+| Docs oficiais de frameworks (Express, Mongoose) | Context7 |
+| API Cartola FC (não-documentada) | Perplexity |
+| Notícias/eventos recentes (últimas 48h) | Perplexity |
+| Code snippets de bibliotecas | Context7 |
+| Repositórios nicho brasileiros | Perplexity |
+
+## 🔌 Mongo MCP - Acesso Direto ao Banco
+
+### O que é?
+**Mongo MCP** é um servidor MCP local (`mongo-server.js`) que permite operações diretas no MongoDB sem precisar de scripts.
+
+### Ferramentas Disponíveis
+
+| Tool | Função | Exemplo |
+|------|--------|---------|
+| `list_collections` | Lista todas as collections | Ver estrutura do banco |
+| `find_documents` | Busca documentos com query JSON | `{"collection": "times", "query": "{\"ativo\": true}"}` |
+| `insert_document` | Insere novo documento | Testes, seeds |
+| `get_collection_schema` | Analisa schema por amostragem | Entender estrutura de dados |
+
+### Exemplos de Uso
+
+```javascript
+// Listar collections
+mcp__mongo__list_collections()
+
+// Buscar participantes ativos
+mcp__mongo__find_documents({
+  collection: "times",
+  query: '{"ativo": true, "temporada": 2025}',
+  limit: 10
+})
+
+// Ver schema de uma collection
+mcp__mongo__get_collection_schema({
+  collection: "rodadas",
+  sampleSize: 3
+})
+```
+
+### Quando usar Mongo MCP vs Scripts?
+
+| Cenário | Usar |
+|---------|------|
+| Consultas rápidas de verificação | Mongo MCP |
+| Operações destrutivas (delete, update massivo) | Scripts com --dry-run |
+| Debug de dados específicos | Mongo MCP |
+| Migrações de temporada | Scripts + db-guardian |
+| Análise exploratória | Mongo MCP |
+
 ## 🎯 Slash Commands (Comandos Rápidos)
 
 Comandos disponíveis para invocar diretamente:

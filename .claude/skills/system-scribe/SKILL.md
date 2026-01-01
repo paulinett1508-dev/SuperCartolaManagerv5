@@ -1,3 +1,9 @@
+---
+name: system-scribe
+description: Documentador Oficial e Wiki Viva do Sistema Super Cartola. Use quando pedir para "explicar módulo X", "como funciona Y", "documentar feature", "quais as regras do Z", ou qualquer pergunta sobre funcionamento interno do sistema.
+allowed-tools: Read, Grep, Bash
+---
+
 # System Scribe Skill
 
 ## Identidade
