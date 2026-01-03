@@ -1071,6 +1071,65 @@
                 fecharTeaser();
                 sessionStorage.setItem('vem_ai_2026_visto', 'true');
             }
+
+            // Expor funcao globalmente para o botao flutuante
+            window.abrirRoadmap2026 = abrirTeaser;
+
+            // Criar botao flutuante para reabrir o roadmap (apenas em pre-temporada)
+            window.addEventListener('load', () => {
+                const config = window.ParticipanteConfig;
+                if (config && config.isPreparando()) {
+                    // Injetar estilos do FAB
+                    const fabStyles = document.createElement('style');
+                    fabStyles.textContent = `
+                        @keyframes fabGlow {
+                            0%, 100% { box-shadow: 0 4px 20px rgba(255, 107, 0, 0.4), 0 0 40px rgba(255, 107, 0, 0.1); }
+                            50% { box-shadow: 0 4px 30px rgba(255, 107, 0, 0.6), 0 0 60px rgba(255, 107, 0, 0.2); }
+                        }
+                        @keyframes iconBounce {
+                            0%, 100% { transform: scale(1); }
+                            50% { transform: scale(1.1); }
+                        }
+                        #fab-roadmap-2026 {
+                            animation: fabGlow 2s ease-in-out infinite;
+                        }
+                        #fab-roadmap-2026 .fab-icon {
+                            animation: iconBounce 1.5s ease-in-out infinite;
+                        }
+                        #fab-roadmap-2026:hover {
+                            animation: none;
+                            box-shadow: 0 6px 35px rgba(255, 107, 0, 0.7);
+                        }
+                    `;
+                    document.head.appendChild(fabStyles);
+
+                    // Criar botao flutuante
+                    const fab = document.createElement('button');
+                    fab.id = 'fab-roadmap-2026';
+                    fab.className = 'fixed bottom-24 right-4 z-40 px-5 py-3 rounded-2xl bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 text-white flex items-center justify-center gap-3 hover:scale-105 transition-all duration-300 border border-orange-400/30';
+                    fab.innerHTML = `
+                        <span class="material-icons text-2xl fab-icon">emoji_events</span>
+                        <div class="flex flex-col items-start leading-tight">
+                            <span class="text-[10px] uppercase tracking-wider opacity-80">2026</span>
+                            <span class="text-sm font-bold">Vem ai</span>
+                        </div>
+                        <span class="material-icons text-lg opacity-60">arrow_forward</span>
+                    `;
+                    fab.title = 'Ver Roadmap 2026';
+                    fab.onclick = () => {
+                        fab.style.animation = 'none';
+                        abrirTeaser();
+                    };
+                    document.body.appendChild(fab);
+
+                    // Esconder o botao quando o modal estiver aberto
+                    const observer = new MutationObserver(() => {
+                        const isModalOpen = !overlay.classList.contains('hidden');
+                        fab.style.display = isModalOpen ? 'none' : 'flex';
+                    });
+                    observer.observe(overlay, { attributes: true, attributeFilter: ['class'] });
+                }
+            });
         </script>
     </body>
 </html>

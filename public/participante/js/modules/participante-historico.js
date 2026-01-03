@@ -1,6 +1,16 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v12.2 (HALL DA FAMA - FALLBACK ROBUSTO)
+// PARTICIPANTE-HISTORICO.JS - v12.5 (HALL DA FAMA - MATA-MATA INTERATIVO)
 // =====================================================================
+// v12.5: Fix campos do adversario no Mata-Mata (nomeTime vs nome)
+//        - Corrigido acesso aos campos da API: nomeTime, pontos
+// v12.4: Card Mata-Mata interativo com resumo + historico por edicao expandivel
+//        - Resumo horizontal: Vitorias, Derrotas, Aproveitamento %, Edicoes
+//        - Cards de edicao expandiveis com detalhes de confrontos
+//        - CSS dedicado em historico.html (.mm-*)
+// v12.3: Busca modulos_ativos da API da liga quando nao existir no historico
+//        - Evita chamadas desnecessarias a APIs de modulos desabilitados
+//        - SOBRAL: artilheiro, luvaOuro (sem mataMata, melhorMes, pontosCorridos)
+//        - SUPERCARTOLA: mataMata, melhorMes, pontosCorridos (sem artilheiro, luvaOuro)
 // v12.2: Fallback robusto quando APIs retornam 404 pos-turn-key
 //        - Usa ?? (nullish) em vez de || para preservar 0 como valor valido
 //        - Fallback para melhor_rodada do tempRecente
@@ -13,7 +23,7 @@
 // v9.0+: Filtros por liga, dados reais das APIs
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.2 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.5 carregando...");
 
 // Estado do modulo
 let historicoData = null;
@@ -234,8 +244,26 @@ async function renderizarTodasLigas() {
             `;
         }
 
+        // v12.3: Buscar modulos_ativos da API da liga se nao existir no historico
+        let modulos = tempRecente.modulos_ativos;
+        console.log("[HISTORICO-DEBUG] modulos_ativos do historico:", modulos, "tipo:", typeof modulos);
+        if (!modulos || Object.keys(modulos).length === 0) {
+            console.log("[HISTORICO-DEBUG] Buscando modulos da API da liga...");
+            try {
+                const ligaRes = await fetch(`/api/ligas/${ligaId}`);
+                if (ligaRes.ok) {
+                    const ligaData = await ligaRes.json();
+                    modulos = ligaData.modulos_ativos || {};
+                    if (window.Log) Log.info("HISTORICO", "Modulos obtidos da API da liga", { ligaId, modulos });
+                }
+            } catch (e) {
+                if (window.Log) Log.warn("HISTORICO", "Erro ao buscar modulos da liga", e);
+                modulos = {};
+            }
+        }
+        modulos = modulos || {};
+
         // Buscar dados REAIS da API (v8.0: adicionado ranking, melhorRodada e extrato)
-        const modulos = tempRecente.modulos_ativos || {};
         const [pc, top10, melhorMes, mataMata, artilheiro, luvaOuro, ranking, melhorRodada, extrato] = await Promise.all([
             modulos.pontosCorridos !== false ? buscarPontosCorridos(ligaId) : null,
             modulos.top10 !== false ? buscarTop10(ligaId) : null,
@@ -317,26 +345,83 @@ async function renderizarTodasLigas() {
 
         html += `<div class="divider"></div>`;
 
-        // Mata-Mata (v9.0: verifica módulo ativo)
+        // Mata-Mata (v10.0: interativo com detalhes por edição)
         if (modulos.mataMata !== false && mataMata && mataMata.participou) {
             const totalJogos = mataMata.vitorias + mataMata.derrotas;
             const aproveitamento = totalJogos > 0 ? Math.round((mataMata.vitorias / totalJogos) * 100) : 0;
+            const edicoes = mataMata.edicoes || [];
+
+            let edicoesHtml = '';
+            if (edicoes.length > 0) {
+                edicoesHtml = edicoes.map(ed => {
+                    const edAprov = (ed.vitorias + ed.derrotas) > 0
+                        ? Math.round((ed.vitorias / (ed.vitorias + ed.derrotas)) * 100)
+                        : 0;
+                    const confrontosHtml = (ed.confrontos || []).map(c => `
+                        <div class="mm-confronto ${c.venceu ? 'vitoria' : 'derrota'}">
+                            <span class="mm-fase">${c.fase}</span>
+                            <span class="mm-vs">vs ${c.adversario}</span>
+                            <span class="mm-resultado">${c.venceu ? 'V' : 'D'}</span>
+                        </div>
+                    `).join('');
+
+                    return `
+                        <div class="mm-edicao" data-edicao="${ed.edicao}">
+                            <div class="mm-edicao-header" onclick="this.parentElement.classList.toggle('expanded')">
+                                <div class="mm-edicao-info">
+                                    <span class="mm-edicao-num">Edicao ${ed.edicao}</span>
+                                    ${ed.campeao ? '<span class="mm-campeao-badge"><span class="material-icons">emoji_events</span></span>' : ''}
+                                </div>
+                                <div class="mm-edicao-stats">
+                                    <span class="mm-fase-alcancada">${ed.melhorFase}</span>
+                                    <span class="mm-record">${ed.vitorias}V ${ed.derrotas}D</span>
+                                    <span class="material-icons mm-expand-icon">expand_more</span>
+                                </div>
+                            </div>
+                            <div class="mm-edicao-detalhes">
+                                ${confrontosHtml || '<div class="mm-sem-dados">Sem confrontos registrados</div>'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
             html += `
-                <div class="section">
+                <div class="section section-mata-mata">
                     <div class="section-header">
                         <span class="material-icons section-icon">military_tech</span>
                         <span class="section-title">Mata-Mata</span>
                         ${mataMata.campeao ? '<span class="section-badge">Campeao</span>' : ''}
                     </div>
-                    <div class="achievement-list">
-                        <div class="achievement-item">
-                            <span class="material-icons achievement-icon">workspace_premium</span>
-                            <div class="achievement-content">
-                                <div class="achievement-title">${mataMata.campeao ? 'Campeao!' : mataMata.melhorFase || 'Participou'}</div>
-                                <div class="achievement-value">${mataMata.vitorias}V ${mataMata.derrotas}D • <span class="highlight">${aproveitamento}%</span> aproveitamento</div>
-                            </div>
+                    <div class="mm-resumo">
+                        <div class="mm-stat">
+                            <span class="mm-stat-value">${mataMata.vitorias}</span>
+                            <span class="mm-stat-label">Vitorias</span>
+                        </div>
+                        <div class="mm-stat">
+                            <span class="mm-stat-value">${mataMata.derrotas}</span>
+                            <span class="mm-stat-label">Derrotas</span>
+                        </div>
+                        <div class="mm-stat">
+                            <span class="mm-stat-value highlight">${aproveitamento}%</span>
+                            <span class="mm-stat-label">Aproveitamento</span>
+                        </div>
+                        <div class="mm-stat">
+                            <span class="mm-stat-value">${edicoes.length}</span>
+                            <span class="mm-stat-label">Edicoes</span>
                         </div>
                     </div>
+                    ${edicoes.length > 0 ? `
+                        <div class="mm-edicoes-container">
+                            <div class="mm-edicoes-title">
+                                <span class="material-icons">format_list_numbered</span>
+                                Historico por Edicao
+                            </div>
+                            <div class="mm-edicoes-list">
+                                ${edicoesHtml}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -784,31 +869,74 @@ async function buscarMataMata(tempLigaId) {
         let vitorias = 0;
         let derrotas = 0;
         let melhorFase = null;
+        const edicoesPorTime = []; // Detalhes por edição
 
         data.edicoes.forEach(ed => {
+            let edVitorias = 0;
+            let edDerrotas = 0;
+            let edParticipou = false;
+            let edCampeao = false;
+            let edMelhorFase = null;
+            const confrontosEdicao = [];
+
             if (ed.campeao && String(ed.campeao.timeId) === String(timeId)) {
                 campeao = true;
+                edCampeao = true;
                 participou = true;
+                edParticipou = true;
             }
+
             (ed.fases || []).forEach(fase => {
                 (fase.confrontos || []).forEach(confronto => {
                     const isTimeA = confronto.timeA && String(confronto.timeA.timeId) === String(timeId);
                     const isTimeB = confronto.timeB && String(confronto.timeB.timeId) === String(timeId);
                     if (isTimeA || isTimeB) {
                         participou = true;
+                        edParticipou = true;
                         if (!melhorFase || fase.ordem > melhorFase.ordem) {
                             melhorFase = { nome: fase.nome, ordem: fase.ordem };
                         }
-                        if (confronto.vencedor === 'A' && isTimeA) vitorias++;
-                        if (confronto.vencedor === 'B' && isTimeB) vitorias++;
-                        if (confronto.vencedor === 'A' && isTimeB) derrotas++;
-                        if (confronto.vencedor === 'B' && isTimeA) derrotas++;
+                        if (!edMelhorFase || fase.ordem > edMelhorFase.ordem) {
+                            edMelhorFase = { nome: fase.nome, ordem: fase.ordem };
+                        }
+                        const venceu = (confronto.vencedor === 'A' && isTimeA) || (confronto.vencedor === 'B' && isTimeB);
+                        if (venceu) { vitorias++; edVitorias++; }
+                        else { derrotas++; edDerrotas++; }
+
+                        // Guardar detalhes do confronto
+                        const adversario = isTimeA ? confronto.timeB : confronto.timeA;
+                        const meuTime = isTimeA ? confronto.timeA : confronto.timeB;
+                        confrontosEdicao.push({
+                            fase: fase.nome,
+                            adversario: adversario?.nomeTime || adversario?.nome_time || adversario?.nome || 'Adversario',
+                            venceu,
+                            pontosMeu: meuTime?.pontos || 0,
+                            pontosAdv: adversario?.pontos || 0
+                        });
                     }
                 });
             });
+
+            if (edParticipou) {
+                edicoesPorTime.push({
+                    edicao: ed.edicao || ed.numero || edicoesPorTime.length + 1,
+                    campeao: edCampeao,
+                    vitorias: edVitorias,
+                    derrotas: edDerrotas,
+                    melhorFase: edMelhorFase?.nome || 'Participou',
+                    confrontos: confrontosEdicao
+                });
+            }
         });
 
-        return participou ? { participou, campeao, vitorias, derrotas, melhorFase: melhorFase?.nome || null } : null;
+        return participou ? {
+            participou,
+            campeao,
+            vitorias,
+            derrotas,
+            melhorFase: melhorFase?.nome || null,
+            edicoes: edicoesPorTime
+        } : null;
     } catch { return null; }
 }
 
@@ -1196,26 +1324,80 @@ async function renderizarDadosTempoReal(ligaId) {
             <div class="divider"></div>
         `;
 
-        // Mata-Mata
+        // Mata-Mata (interativo com edicoes)
         if (modulos.mataMata !== false && mataMata && mataMata.participou) {
             const totalJogos = mataMata.vitorias + mataMata.derrotas;
             const aproveitamento = totalJogos > 0 ? Math.round((mataMata.vitorias / totalJogos) * 100) : 0;
+            const edicoes = mataMata.edicoes || [];
+
+            let edicoesHtml = '';
+            if (edicoes.length > 0) {
+                edicoesHtml = edicoes.map(ed => {
+                    const confrontosHtml = (ed.confrontos || []).map(c => `
+                        <div class="mm-confronto ${c.venceu ? 'vitoria' : 'derrota'}">
+                            <span class="mm-fase">${c.fase}</span>
+                            <span class="mm-vs">vs ${c.adversario}</span>
+                            <span class="mm-resultado">${c.venceu ? 'V' : 'D'}</span>
+                        </div>
+                    `).join('');
+
+                    return `
+                        <div class="mm-edicao" data-edicao="${ed.edicao}">
+                            <div class="mm-edicao-header" onclick="this.parentElement.classList.toggle('expanded')">
+                                <div class="mm-edicao-info">
+                                    <span class="mm-edicao-num">Edicao ${ed.edicao}</span>
+                                    ${ed.campeao ? '<span class="mm-campeao-badge"><span class="material-icons">emoji_events</span></span>' : ''}
+                                </div>
+                                <div class="mm-edicao-stats">
+                                    <span class="mm-fase-alcancada">${ed.melhorFase}</span>
+                                    <span class="mm-record">${ed.vitorias}V ${ed.derrotas}D</span>
+                                    <span class="material-icons mm-expand-icon">expand_more</span>
+                                </div>
+                            </div>
+                            <div class="mm-edicao-detalhes">
+                                ${confrontosHtml || '<div class="mm-sem-dados">Sem confrontos registrados</div>'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
             html += `
-                <div class="section">
+                <div class="section section-mata-mata">
                     <div class="section-header">
                         <span class="material-icons section-icon">military_tech</span>
                         <span class="section-title">Mata-Mata</span>
                         ${mataMata.campeao ? '<span class="section-badge">Campeao</span>' : ''}
                     </div>
-                    <div class="achievement-list">
-                        <div class="achievement-item">
-                            <span class="material-icons achievement-icon">workspace_premium</span>
-                            <div class="achievement-content">
-                                <div class="achievement-title">${mataMata.campeao ? 'Campeao!' : mataMata.melhorFase || 'Participou'}</div>
-                                <div class="achievement-value">${mataMata.vitorias}V ${mataMata.derrotas}D • <span class="highlight">${aproveitamento}%</span> aproveitamento</div>
-                            </div>
+                    <div class="mm-resumo">
+                        <div class="mm-stat">
+                            <span class="mm-stat-value">${mataMata.vitorias}</span>
+                            <span class="mm-stat-label">Vitorias</span>
+                        </div>
+                        <div class="mm-stat">
+                            <span class="mm-stat-value">${mataMata.derrotas}</span>
+                            <span class="mm-stat-label">Derrotas</span>
+                        </div>
+                        <div class="mm-stat">
+                            <span class="mm-stat-value highlight">${aproveitamento}%</span>
+                            <span class="mm-stat-label">Aproveitamento</span>
+                        </div>
+                        <div class="mm-stat">
+                            <span class="mm-stat-value">${edicoes.length}</span>
+                            <span class="mm-stat-label">Edicoes</span>
                         </div>
                     </div>
+                    ${edicoes.length > 0 ? `
+                        <div class="mm-edicoes-container">
+                            <div class="mm-edicoes-title">
+                                <span class="material-icons">format_list_numbered</span>
+                                Historico por Edicao
+                            </div>
+                            <div class="mm-edicoes-list">
+                                ${edicoesHtml}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -1452,4 +1634,4 @@ async function renderizarDadosTempoReal(ligaId) {
     }
 }
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.2 pronto");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.5 pronto");

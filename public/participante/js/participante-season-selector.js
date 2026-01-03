@@ -92,28 +92,20 @@ class SeasonSelector {
         this.configurarEventos(container);
     }
 
-    // Gerar HTML do seletor
+    // Gerar HTML do seletor (estilo toast elegante)
     getHTML() {
         const isAtual = this.temporadaSelecionada === this.temporadaAtual;
-        const isHistorico = !isAtual;
 
         return `
-            <div class="season-selector" id="seasonSelectorComponent">
+            <div class="season-toast" id="seasonSelectorComponent">
                 <button
-                    class="season-btn ${isHistorico ? 'active' : ''}"
-                    data-ano="${this.temporadaAnterior}"
-                    title="Ver dados históricos de ${this.temporadaAnterior}"
+                    class="season-toggle ${!isAtual ? 'showing-history' : ''}"
+                    data-ano="${isAtual ? this.temporadaAnterior : this.temporadaAtual}"
+                    title="${isAtual ? 'Ver histórico ' + this.temporadaAnterior : 'Voltar para ' + this.temporadaAtual}"
                 >
-                    <span class="material-symbols-outlined" style="font-size: 16px;">history</span>
-                    ${this.temporadaAnterior}
-                </button>
-                <button
-                    class="season-btn ${isAtual ? 'active' : ''}"
-                    data-ano="${this.temporadaAtual}"
-                    title="Ver temporada atual ${this.temporadaAtual}"
-                >
-                    <span class="material-symbols-outlined" style="font-size: 16px;">sports_soccer</span>
-                    ${this.temporadaAtual}
+                    <span class="material-symbols-outlined season-icon">${isAtual ? 'history' : 'sports_soccer'}</span>
+                    <span class="season-label">${isAtual ? this.temporadaAnterior : this.temporadaAtual}</span>
+                    <span class="material-symbols-outlined arrow-icon">chevron_right</span>
                 </button>
             </div>
         `;
@@ -121,17 +113,15 @@ class SeasonSelector {
 
     // Configurar eventos
     configurarEventos(container) {
-        const btns = container.querySelectorAll(".season-btn");
-        btns.forEach(btn => {
+        const btn = container.querySelector(".season-toggle");
+        if (btn) {
             btn.addEventListener("click", () => {
                 const ano = parseInt(btn.dataset.ano);
                 this.alternarTemporada(ano);
-
-                // Atualizar UI
-                btns.forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
+                // Re-renderizar para atualizar o botão
+                this.renderizarEm(container.parentElement?.id || container.id);
             });
-        });
+        }
     }
 
     // Injetar estilos CSS
@@ -141,77 +131,95 @@ class SeasonSelector {
         const styles = document.createElement("style");
         styles.id = "season-selector-styles";
         styles.textContent = `
-            .season-selector {
-                display: flex;
-                gap: 4px;
-                background: rgba(0, 0, 0, 0.3);
-                border-radius: 8px;
-                padding: 4px;
+            /* Toast elegante e discreto */
+            .season-toast {
+                display: inline-flex;
             }
-            .season-btn {
-                display: flex;
-                align-items: center;
-                gap: 4px;
-                padding: 6px 12px;
-                border: none;
-                border-radius: 6px;
-                background: transparent;
-                color: rgba(255, 255, 255, 0.6);
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            .season-btn:hover {
-                background: rgba(255, 255, 255, 0.1);
-                color: rgba(255, 255, 255, 0.9);
-            }
-            .season-btn.active {
-                background: linear-gradient(135deg, #ff4500, #e63e00);
-                color: white;
-            }
-            .season-btn .material-symbols-outlined {
-                font-variation-settings: 'FILL' 0, 'wght' 400;
-            }
-            .season-btn.active .material-symbols-outlined {
-                font-variation-settings: 'FILL' 1, 'wght' 500;
-            }
-
-            /* Indicador de modo histórico */
-            .historico-mode-indicator {
-                position: fixed;
-                top: 60px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-                color: white;
-                padding: 6px 16px;
-                border-radius: 20px;
-                font-size: 11px;
-                font-weight: 600;
+            .season-toggle {
                 display: flex;
                 align-items: center;
                 gap: 6px;
-                z-index: 1000;
-                box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
-                animation: slideDown 0.3s ease;
+                padding: 6px 12px;
+                border: none;
+                border-radius: 20px;
+                background: rgba(255, 255, 255, 0.08);
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 12px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.25s ease;
+                backdrop-filter: blur(8px);
             }
-            @keyframes slideDown {
-                from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+            .season-toggle:hover {
+                background: rgba(255, 255, 255, 0.12);
+                color: rgba(255, 255, 255, 0.9);
+            }
+            .season-toggle .season-icon {
+                font-size: 16px;
+                opacity: 0.8;
+            }
+            .season-toggle .arrow-icon {
+                font-size: 14px;
+                opacity: 0.5;
+                transition: transform 0.2s ease;
+            }
+            .season-toggle:hover .arrow-icon {
+                transform: translateX(2px);
+                opacity: 0.8;
+            }
+            .season-toggle.showing-history {
+                background: rgba(255, 107, 0, 0.15);
+                border: 1px solid rgba(255, 107, 0, 0.3);
+                color: #ff8533;
+            }
+            .season-toggle.showing-history .season-icon {
+                color: #ff6b00;
+            }
+
+            /* Indicador de modo histórico - Toast discreto */
+            .historico-mode-indicator {
+                position: fixed;
+                top: 56px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(20, 20, 20, 0.95);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 107, 0, 0.25);
+                color: rgba(255, 255, 255, 0.9);
+                padding: 8px 14px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                z-index: 1000;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+                animation: toastSlide 0.3s ease;
+            }
+            @keyframes toastSlide {
+                from { transform: translateX(-50%) translateY(-10px); opacity: 0; }
                 to { transform: translateX(-50%) translateY(0); opacity: 1; }
             }
+            .historico-mode-indicator .material-symbols-outlined {
+                font-size: 14px;
+                color: #ff8533;
+            }
             .historico-mode-indicator button {
-                background: rgba(255, 255, 255, 0.2);
-                border: none;
-                color: white;
-                padding: 2px 8px;
-                border-radius: 10px;
+                background: transparent;
+                border: 1px solid rgba(255, 107, 0, 0.4);
+                color: #ff8533;
+                padding: 3px 10px;
+                border-radius: 12px;
                 font-size: 10px;
+                font-weight: 600;
                 cursor: pointer;
-                margin-left: 8px;
+                margin-left: 4px;
+                transition: all 0.2s ease;
             }
             .historico-mode-indicator button:hover {
-                background: rgba(255, 255, 255, 0.3);
+                background: rgba(255, 107, 0, 0.15);
+                border-color: rgba(255, 107, 0, 0.6);
             }
         `;
         document.head.appendChild(styles);

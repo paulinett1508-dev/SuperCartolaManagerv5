@@ -7,7 +7,7 @@
         <div class="subtitle" id="headerSubtitle">Carregando...</div>
     </div>
 
-    <!-- v2.4: Seletor de Temporadas -->
+    <!-- Seletor de Temporadas (liga vem do header do app) -->
     <div id="seletorTemporadas" class="season-selector" style="display: none;">
         <label for="selectTemporada">Temporada:</label>
         <select id="selectTemporada" class="season-select">
@@ -404,6 +404,255 @@
     }
     .trophy-icon {
         font-size: 48px;
+    }
+}
+
+/* =====================================================
+   MATA-MATA INTERATIVO v1.0
+   Resumo + Historico por Edicao expandivel
+   ===================================================== */
+
+/* Resumo com stats horizontais */
+.mm-resumo {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 16px 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.mm-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.mm-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--hall-text-white);
+}
+
+.mm-stat-value.highlight {
+    color: var(--hall-primary);
+}
+
+.mm-stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--hall-text-muted);
+    letter-spacing: 0.5px;
+}
+
+/* Container de edicoes */
+.mm-edicoes-container {
+    margin-top: 16px;
+}
+
+.mm-edicoes-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--hall-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    padding-left: 4px;
+}
+
+.mm-edicoes-title .material-icons {
+    font-size: 16px;
+    color: var(--hall-primary);
+}
+
+.mm-edicoes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Card de cada edicao */
+.mm-edicao {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.mm-edicao.expanded {
+    border-color: rgba(255, 69, 0, 0.3);
+    background: rgba(255, 69, 0, 0.05);
+}
+
+.mm-edicao-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.mm-edicao-header:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.mm-edicao-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mm-edicao-num {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--hall-text-white);
+}
+
+.mm-campeao-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border-radius: 50%;
+}
+
+.mm-campeao-badge .material-icons {
+    font-size: 12px;
+    color: #1a1a1a;
+}
+
+.mm-edicao-stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mm-fase-alcancada {
+    font-size: 11px;
+    color: var(--hall-primary);
+    font-weight: 500;
+    padding: 3px 8px;
+    background: rgba(255, 69, 0, 0.12);
+    border-radius: 10px;
+}
+
+.mm-record {
+    font-size: 11px;
+    color: var(--hall-text-muted);
+    font-weight: 500;
+}
+
+.mm-expand-icon {
+    font-size: 18px;
+    color: var(--hall-text-dim);
+    transition: transform 0.3s ease;
+}
+
+.mm-edicao.expanded .mm-expand-icon {
+    transform: rotate(180deg);
+    color: var(--hall-primary);
+}
+
+/* Detalhes expandiveis */
+.mm-edicao-detalhes {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.mm-edicao.expanded .mm-edicao-detalhes {
+    max-height: 500px;
+    padding: 12px 14px;
+}
+
+/* Cada confronto */
+.mm-confronto {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border-left: 3px solid transparent;
+}
+
+.mm-confronto:last-child {
+    margin-bottom: 0;
+}
+
+.mm-confronto.vitoria {
+    border-left-color: var(--hall-success);
+}
+
+.mm-confronto.derrota {
+    border-left-color: var(--hall-danger);
+}
+
+.mm-fase {
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--hall-text-muted);
+    min-width: 50px;
+}
+
+.mm-vs {
+    flex: 1;
+    font-size: 12px;
+    color: var(--hall-text-white);
+}
+
+.mm-resultado {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.mm-confronto.vitoria .mm-resultado {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--hall-success);
+}
+
+.mm-confronto.derrota .mm-resultado {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--hall-danger);
+}
+
+.mm-sem-dados {
+    font-size: 11px;
+    color: var(--hall-text-dim);
+    text-align: center;
+    padding: 12px;
+}
+
+@media (max-width: 400px) {
+    .mm-resumo {
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .mm-stat {
+        min-width: 70px;
+    }
+    .mm-stat-value {
+        font-size: 20px;
+    }
+    .mm-edicao-stats {
+        gap: 6px;
+    }
+    .mm-fase-alcancada {
+        display: none;
     }
 }
 </style>
