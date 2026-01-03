@@ -127,12 +127,39 @@
       "Bash(if grep -q \"AccordionManager.init\\(\\)\" \"$file\")",
       "Bash(then)",
       "mcp__mongo__insert_document",
-      "Skill(salvar-tarefas)"
+      "Skill(salvar-tarefas)",
+      "Skill(retomar-tarefas)",
+      "Bash(git rm:*)",
+      "Skill(html-audit)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(head:*)",
+      "Bash(NODE_ENV=production node:*)",
+      "mcp__perplexity__perplexity_research",
+      "Bash(timeout 3 curl:*)",
+      "Bash(do echo -n \"$f: \")",
+      "Bash(timeout 2 curl:*)",
+      "Bash(file=\"$dirranking_turno_caches.json\")",
+      "Bash(if [ -f \"$file\" ])",
+      "Bash(LIGA=\"684cb1c8af923da7c7df51de\" echo \"=== APIs SUPERCARTOLA ===\" echo -n \"ranking-turno: \")",
+      "Bash(config/admin-config.js )",
+      "Bash(middleware/tenant.js )",
+      "Bash(public/js/wizard-primeira-liga.js )",
+      "Bash(public/wizard-primeira-liga.html )",
+      "Bash(controllers/ligaController.js )",
+      "Bash(models/Liga.js )",
+      "Bash(routes/ligas.js )",
+      "Bash(routes/admin-cliente-auth.js )",
+      "Bash(routes/admin-gestao-routes.js )",
+      "Bash(public/painel.html )",
+      "Bash(scripts/test-multi-tenant.js )",
+      "Bash(scripts/test-wizard-create-liga.js)"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "mongo",
-    "perplexity"
+    "perplexity",
+    "context7"
   ]
 }

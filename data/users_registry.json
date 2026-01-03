@@ -4,9 +4,11 @@
     "descricao": "Registro permanente de todos os participantes e seus históricos através das temporadas",
     "versao": "2.0.0",
     "criado_em": "2025-12-15",
-    "ultima_atualizacao": "2026-01-02T00:05:57.870Z",
+    "ultima_atualizacao": "2026-01-02T00:37:35.074Z",
     "correcoes_aplicadas": 41,
-    "badges_corrigidos": 4
+    "badges_corrigidos": 4,
+    "correcao_fantasmas_sobral": "2026-01-02T00:35:47.472Z",
+    "restauracao_sobral": "2026-01-02T00:37:35.074Z"
   },
   "config_renovacao": {
     "temporada_atual": 2026,
@@ -1580,7 +1582,7 @@
           "ano": 2025,
           "liga_id": "684d821cf1a7ae16d1f89572",
           "liga_nome": "SOBRAL",
-          "time_escudo": "https://s2-cartola.glbimg.com/XqTNWtU0S8uzpU6ZUjcMZVWJQYc=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_211/escudo/f8/27/53/00681760d8-c096-4ce7-8896-13b4cc8b71f820230318082753",
+          "time_escudo": "",
           "estatisticas": {
             "posicao_final": 2,
             "pontos_totais": 2990.4303283691406,
@@ -1592,14 +1594,13 @@
             "total_onus": -46
           },
           "conquistas": {
-            "badges": [
-              "vice_2025"
-            ]
+            "badges": []
           },
           "status": {
             "ativo": true,
             "rodada_desistencia": null
-          }
+          },
+          "observacoes": []
         }
       ],
       "stats_agregadas": {
@@ -2526,26 +2527,6 @@
       "historico": [
         {
           "ano": 2025,
-          "liga_id": "684d821cf1a7ae16d1f89572",
-          "liga_nome": "SOBRAL",
-          "estatisticas": {
-            "posicao_final": 1,
-            "pontos_totais": 0,
-            "rodadas_jogadas": 222
-          },
-          "financeiro": {
-            "saldo_final": 0,
-            "total_bonus": 0,
-            "total_onus": 0
-          },
-          "conquistas": {
-            "badges": [
-              "campeao_2025"
-            ]
-          }
-        },
-        {
-          "ano": 2025,
           "liga_id": "684cb1c8af923da7c7df51de",
           "liga_nome": "SUPERCARTOLA",
           "time_escudo": "https://s2-cartola.glbimg.com/DANx0cpRHzW-C_XwWkGJJRI1bAM=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_222/escudo/07/48/48/007351dafe-0b47-4f48-a78d-f4aa9ad6c70720240320164848",
@@ -2646,7 +2627,8 @@
           "status": {
             "ativo": true,
             "rodada_desistencia": null
-          }
+          },
+          "observacoes": []
         }
       ],
       "stats_agregadas": {
@@ -2707,7 +2689,7 @@
           "ano": 2025,
           "liga_id": "684d821cf1a7ae16d1f89572",
           "liga_nome": "SOBRAL",
-          "time_escudo": "https://s2-cartola.glbimg.com/fJB2769UdYR17XXbWZt_D9dwtJY=/https://s3.glbimg.com/v1/AUTH_58d78b787ec34892b5aaa0c7a146155f/cartola_svg_241/escudo/c3/48/59/00fe9e57e9-431b-41e1-a50e-61b71c71a8c320250419134859",
+          "time_escudo": "",
           "estatisticas": {
             "posicao_final": 1,
             "pontos_totais": 3309.05078125,
@@ -2719,14 +2701,13 @@
             "total_onus": -7
           },
           "conquistas": {
-            "badges": [
-              "campeao_2025"
-            ]
+            "badges": []
           },
           "status": {
             "ativo": true,
             "rodada_desistencia": null
-          }
+          },
+          "observacoes": []
         }
       ],
       "stats_agregadas": {
@@ -2802,12 +2783,10 @@
             "badges": []
           },
           "status": {
-            "ativo": false,
-            "rodada_desistencia": 29
+            "ativo": true,
+            "rodada_desistencia": null
           },
-          "observacoes": [
-            "Desistiu na rodada 29"
-          ]
+          "observacoes": []
         }
       ],
       "stats_agregadas": {
@@ -2883,12 +2862,10 @@
             "badges": []
           },
           "status": {
-            "ativo": false,
-            "rodada_desistencia": 29
+            "ativo": true,
+            "rodada_desistencia": null
           },
-          "observacoes": [
-            "Desistiu na rodada 29"
-          ]
+          "observacoes": []
         }
       ],
       "stats_agregadas": {
@@ -2961,14 +2938,13 @@
             "total_onus": -100
           },
           "conquistas": {
-            "badges": [
-              "terceiro_2025"
-            ]
+            "badges": []
           },
           "status": {
             "ativo": true,
             "rodada_desistencia": null
-          }
+          },
+          "observacoes": []
         }
       ],
       "stats_agregadas": {

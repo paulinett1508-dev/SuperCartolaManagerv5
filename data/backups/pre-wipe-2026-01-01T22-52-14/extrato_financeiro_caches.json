@@ -1,0 +1,68 @@
+[
+  {
+    "_id": "6949fbe2c0b56c8c33f52cfd",
+    "time_id": 0,
+    "liga_id": "684d821cf1a7ae16d1f89572",
+    "atualizado_em": "2025-12-23T02:18:09.913Z",
+    "fonte": "regeneracao_snapshot",
+    "nome_time": "Time 0",
+    "resumo": {},
+    "rodadas": [],
+    "saldo_consolidado": 0
+  },
+  {
+    "_id": "6949fbe2c0b56c8c33f52cfe",
+    "liga_id": "684d821cf1a7ae16d1f89572",
+    "time_id": 1,
+    "atualizado_em": "2025-12-23T02:18:09.913Z",
+    "fonte": "regeneracao_snapshot",
+    "nome_time": "Time 1",
+    "resumo": {},
+    "rodadas": [],
+    "saldo_consolidado": 0
+  },
+  {
+    "_id": "6949fbe2c0b56c8c33f52cff",
+    "liga_id": "684d821cf1a7ae16d1f89572",
+    "time_id": 2,
+    "atualizado_em": "2025-12-23T02:18:09.913Z",
+    "fonte": "regeneracao_snapshot",
+    "nome_time": "Time 2",
+    "resumo": {},
+    "rodadas": [],
+    "saldo_consolidado": 0
+  },
+  {
+    "_id": "6949fbe2c0b56c8c33f52d01",
+    "time_id": 3,
+    "liga_id": "684d821cf1a7ae16d1f89572",
+    "atualizado_em": "2025-12-23T02:18:09.913Z",
+    "fonte": "regeneracao_snapshot",
+    "nome_time": "Time 3",
+    "resumo": {},
+    "rodadas": [],
+    "saldo_consolidado": 0
+  },
+  {
+    "_id": "6949fbe3c0b56c8c33f52d02",
+    "time_id": 4,
+    "liga_id": "684d821cf1a7ae16d1f89572",
+    "atualizado_em": "2025-12-23T02:18:09.913Z",
+    "fonte": "regeneracao_snapshot",
+    "nome_time": "Time 4",
+    "resumo": {},
+    "rodadas": [],
+    "saldo_consolidado": 0
+  },
+  {
+    "_id": "6949fbe3c0b56c8c33f52d03",
+    "time_id": 5,
+    "liga_id": "684d821cf1a7ae16d1f89572",
+    "atualizado_em": "2025-12-23T02:18:09.913Z",
+    "fonte": "regeneracao_snapshot",
+    "nome_time": "Time 5",
+    "resumo": {},
+    "rodadas": [],
+    "saldo_consolidado": 0
+  }
+]

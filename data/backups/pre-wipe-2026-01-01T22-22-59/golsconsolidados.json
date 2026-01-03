@@ -1,0 +1,6062 @@
+[
+  {
+    "_id": "692c7db1c715c528b8b4ef54",
+    "rodada": 1,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.170Z",
+    "dataColeta": "2025-11-30T17:24:01.169Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 83257,
+        "nome": "Gabriel",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0156"
+      },
+      {
+        "atletaId": 105568,
+        "nome": "Lucero",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0157"
+      },
+      {
+        "atletaId": 98225,
+        "nome": "Pedro Raul",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0158"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:01.170Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef55",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 4,
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.684Z",
+    "dataColeta": "2025-11-30T17:24:01.684Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 99815,
+        "nome": "Arias",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d015a"
+      },
+      {
+        "atletaId": 104528,
+        "nome": "Igor Jesus",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d015b"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:01.684Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef56",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 5,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.687Z",
+    "dataColeta": "2025-11-30T17:24:01.687Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 85048,
+        "nome": "Memphis Depay",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d015d"
+      },
+      {
+        "atletaId": 101290,
+        "nome": "Ferreira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d015e"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:01.687Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef57",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 2,
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.695Z",
+    "dataColeta": "2025-11-30T17:24:01.695Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0160"
+      },
+      {
+        "atletaId": 70788,
+        "nome": "Enner Valencia",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0161"
+      },
+      {
+        "atletaId": 104528,
+        "nome": "Igor Jesus",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0162"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:01.695Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef58",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 2,
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.707Z",
+    "dataColeta": "2025-11-30T17:24:01.707Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 104528,
+        "nome": "Igor Jesus",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0164"
+      },
+      {
+        "atletaId": 109573,
+        "nome": "Martinelli",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0165"
+      },
+      {
+        "atletaId": 100652,
+        "nome": "Yuri Alberto",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0166"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:01.707Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef59",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "rodada": 2,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.711Z",
+    "dataColeta": "2025-11-30T17:24:01.710Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 109573,
+        "nome": "Martinelli",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0168"
+      },
+      {
+        "atletaId": 104528,
+        "nome": "Igor Jesus",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0169"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:01.711Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef5a",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "rodada": 3,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.712Z",
+    "dataColeta": "2025-11-30T17:24:01.712Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:01.712Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef5b",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "rodada": 3,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.733Z",
+    "dataColeta": "2025-11-30T17:24:01.732Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 108683,
+        "nome": "Emiliano Martínez",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d016c"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.733Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef5c",
+    "rodada": 4,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.736Z",
+    "dataColeta": "2025-11-30T17:24:01.735Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:01.736Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef5d",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "rodada": 5,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.738Z",
+    "dataColeta": "2025-11-30T17:24:01.737Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:01.738Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef5e",
+    "rodada": 1,
+    "timeId": 49149009,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.740Z",
+    "dataColeta": "2025-11-30T17:24:01.740Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 70666,
+        "nome": "Marllon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0170"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.740Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef60",
+    "rodada": 3,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.758Z",
+    "dataColeta": "2025-11-30T17:24:01.758Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 99198,
+        "nome": "Vegetti",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0175"
+      },
+      {
+        "atletaId": 109401,
+        "nome": "Erick Pulga",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0176"
+      },
+      {
+        "atletaId": 73384,
+        "nome": "Samuel Xavier",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0177"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:01.758Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef61",
+    "rodada": 3,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.760Z",
+    "dataColeta": "2025-11-30T17:24:01.760Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:01.760Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef62",
+    "rodada": 5,
+    "timeId": 49149009,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.761Z",
+    "dataColeta": "2025-11-30T17:24:01.761Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 101290,
+        "nome": "Ferreira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d017a"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.761Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef63",
+    "rodada": 4,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.762Z",
+    "dataColeta": "2025-11-30T17:24:01.762Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 104528,
+        "nome": "Igor Jesus",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d017c"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.762Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef64",
+    "rodada": 1,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.762Z",
+    "dataColeta": "2025-11-30T17:24:01.762Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 83257,
+        "nome": "Gabriel",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d017e"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.762Z"
+  },
+  {
+    "_id": "692c7db1c715c528b8b4ef65",
+    "rodada": 2,
+    "timeId": 1926323,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.763Z",
+    "dataColeta": "2025-11-30T17:24:01.763Z",
+    "golsContra": 0,
+    "golsPro": 5,
+    "jogadores": [
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0180"
+      },
+      {
+        "atletaId": 98225,
+        "nome": "Pedro Raul",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0181"
+      },
+      {
+        "atletaId": 103388,
+        "nome": "Emmanuel Martínez",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0182"
+      },
+      {
+        "atletaId": 90285,
+        "nome": "Bruno Henrique",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0183"
+      },
+      {
+        "atletaId": 100652,
+        "nome": "Yuri Alberto",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0184"
+      }
+    ],
+    "parcial": false,
+    "saldo": 5,
+    "updatedAt": "2025-11-30T17:24:01.763Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef66",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 5,
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.766Z",
+    "dataColeta": "2025-11-30T17:24:01.766Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:01.766Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef67",
+    "rodada": 5,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.767Z",
+    "dataColeta": "2025-11-30T17:24:01.767Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:01.767Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef68",
+    "rodada": 1,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.771Z",
+    "dataColeta": "2025-11-30T17:24:01.770Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:01.771Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef69",
+    "rodada": 3,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.772Z",
+    "dataColeta": "2025-11-30T17:24:01.772Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 99198,
+        "nome": "Vegetti",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0189"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:01.772Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef6a",
+    "rodada": 4,
+    "timeId": 13935277,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.773Z",
+    "dataColeta": "2025-11-30T17:24:01.773Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 104528,
+        "nome": "Igor Jesus",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d018b"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d018c"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:01.773Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef6b",
+    "rodada": 2,
+    "timeId": 49149009,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.774Z",
+    "dataColeta": "2025-11-30T17:24:01.774Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 104528,
+        "nome": "Igor Jesus",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d018e"
+      },
+      {
+        "atletaId": 100652,
+        "nome": "Yuri Alberto",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d018f"
+      },
+      {
+        "atletaId": 103388,
+        "nome": "Emmanuel Martínez",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0190"
+      },
+      {
+        "atletaId": 90285,
+        "nome": "Bruno Henrique",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0191"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:01.774Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef6c",
+    "rodada": 4,
+    "timeId": 49149009,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.778Z",
+    "dataColeta": "2025-11-30T17:24:01.775Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 90703,
+        "nome": "Matheuzinho",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0193"
+      },
+      {
+        "atletaId": 91473,
+        "nome": "Erick Pulgar",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0194"
+      },
+      {
+        "atletaId": 94968,
+        "nome": "Juninho Capixaba",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0195"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:01.778Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef6d",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "rodada": 1,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.782Z",
+    "dataColeta": "2025-11-30T17:24:01.781Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 63289,
+        "nome": "Edenílson",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0197"
+      },
+      {
+        "atletaId": 68920,
+        "nome": "Dudu",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0198"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:01.782Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef6e",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 4,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.785Z",
+    "dataColeta": "2025-11-30T17:24:01.784Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 104528,
+        "nome": "Igor Jesus",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d019a"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d019b"
+      },
+      {
+        "atletaId": 98672,
+        "nome": "Savarino",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d019c"
+      },
+      {
+        "atletaId": 94968,
+        "nome": "Juninho Capixaba",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d019d"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:01.785Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef6f",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "rodada": 5,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.790Z",
+    "dataColeta": "2025-11-30T17:24:01.786Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 101290,
+        "nome": "Ferreira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d019f"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01a0"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:01.790Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef70",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "rodada": 2,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.795Z",
+    "dataColeta": "2025-11-30T17:24:01.793Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 104528,
+        "nome": "Igor Jesus",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01a2"
+      },
+      {
+        "atletaId": 100652,
+        "nome": "Yuri Alberto",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01a3"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:01.795Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef71",
+    "rodada": 7,
+    "timeId": 49149388,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.943Z",
+    "dataColeta": "2025-11-30T17:24:01.942Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:01.943Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef72",
+    "rodada": 10,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.945Z",
+    "dataColeta": "2025-11-30T17:24:01.944Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 101319,
+        "nome": "Guga",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01a6"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.945Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef73",
+    "rodada": 10,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.950Z",
+    "dataColeta": "2025-11-30T17:24:01.949Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 115248,
+        "nome": "Jhon Jhon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01a8"
+      },
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01a9"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:01.950Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef74",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "rodada": 7,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.952Z",
+    "dataColeta": "2025-11-30T17:24:01.952Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01ab"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.952Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef75",
+    "rodada": 6,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.954Z",
+    "dataColeta": "2025-11-30T17:24:01.953Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 98672,
+        "nome": "Savarino",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01ad"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01ae"
+      },
+      {
+        "atletaId": 111466,
+        "nome": "Victor Gabriel",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01af"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:01.954Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef76",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "rodada": 8,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.960Z",
+    "dataColeta": "2025-11-30T17:24:01.960Z",
+    "golsContra": 1,
+    "golsPro": 0,
+    "jogadores": [
+      {
+        "atletaId": 91639,
+        "nome": "Igor Cariús",
+        "gols": 0,
+        "golsContra": 1,
+        "_id": "692c7db1d5af720d894d01b1"
+      }
+    ],
+    "parcial": false,
+    "saldo": -1,
+    "updatedAt": "2025-11-30T17:24:01.960Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef77",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 7,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.961Z",
+    "dataColeta": "2025-11-30T17:24:01.961Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01b3"
+      },
+      {
+        "atletaId": 78117,
+        "nome": "Everaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01b4"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:01.961Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef78",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "rodada": 6,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.962Z",
+    "dataColeta": "2025-11-30T17:24:01.961Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 100898,
+        "nome": "Vitinho",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01b6"
+      },
+      {
+        "atletaId": 86757,
+        "nome": "Everton",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01b7"
+      },
+      {
+        "atletaId": 84263,
+        "nome": "Jemerson",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01b8"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:01.962Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef79",
+    "rodada": 9,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.962Z",
+    "dataColeta": "2025-11-30T17:24:01.962Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 100652,
+        "nome": "Yuri Alberto",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01ba"
+      },
+      {
+        "atletaId": 91573,
+        "nome": "Arboleda",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01bb"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:01.962Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef7a",
+    "rodada": 10,
+    "timeId": 1926323,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.963Z",
+    "dataColeta": "2025-11-30T17:24:01.963Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 115248,
+        "nome": "Jhon Jhon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01bd"
+      },
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01be"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:01.963Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef7b",
+    "rodada": 8,
+    "timeId": 14747183,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.965Z",
+    "dataColeta": "2025-11-30T17:24:01.965Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01c0"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.965Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef7c",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "rodada": 7,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.966Z",
+    "dataColeta": "2025-11-30T17:24:01.966Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 100652,
+        "nome": "Yuri Alberto",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01c2"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:01.966Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef7d",
+    "rodada": 6,
+    "timeId": 14747183,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.966Z",
+    "dataColeta": "2025-11-30T17:24:01.966Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 39148,
+        "nome": "Hulk",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01c4"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.966Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef7e",
+    "rodada": 9,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.967Z",
+    "dataColeta": "2025-11-30T17:24:01.967Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 91573,
+        "nome": "Arboleda",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01c6"
+      },
+      {
+        "atletaId": 100652,
+        "nome": "Yuri Alberto",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01c7"
+      },
+      {
+        "atletaId": 131617,
+        "nome": "André Silva",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01c8"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:01.967Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef7f",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "rodada": 10,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.970Z",
+    "dataColeta": "2025-11-30T17:24:01.968Z",
+    "golsContra": 1,
+    "golsPro": 0,
+    "jogadores": [
+      {
+        "atletaId": 105300,
+        "nome": "Ferraresi",
+        "gols": 0,
+        "golsContra": 1,
+        "_id": "692c7db1d5af720d894d01ca"
+      }
+    ],
+    "parcial": false,
+    "saldo": -1,
+    "updatedAt": "2025-11-30T17:24:01.970Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef80",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 9,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.978Z",
+    "dataColeta": "2025-11-30T17:24:01.977Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 91573,
+        "nome": "Arboleda",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01cc"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.978Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef81",
+    "rodada": 7,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.979Z",
+    "dataColeta": "2025-11-30T17:24:01.979Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 78117,
+        "nome": "Everaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01ce"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.979Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef82",
+    "rodada": 6,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.980Z",
+    "dataColeta": "2025-11-30T17:24:01.980Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:01.980Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef83",
+    "rodada": 9,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.980Z",
+    "dataColeta": "2025-11-30T17:24:01.980Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 100652,
+        "nome": "Yuri Alberto",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01d1"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.980Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef84",
+    "rodada": 6,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.981Z",
+    "dataColeta": "2025-11-30T17:24:01.981Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01d3"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.981Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef85",
+    "rodada": 10,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.983Z",
+    "dataColeta": "2025-11-30T17:24:01.983Z",
+    "golsContra": 1,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01d5"
+      },
+      {
+        "atletaId": 105300,
+        "nome": "Ferraresi",
+        "gols": 0,
+        "golsContra": 1,
+        "_id": "692c7db1d5af720d894d01d6"
+      },
+      {
+        "atletaId": 115248,
+        "nome": "Jhon Jhon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01d7"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.983Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef86",
+    "rodada": 9,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.984Z",
+    "dataColeta": "2025-11-30T17:24:01.984Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 109401,
+        "nome": "Erick Pulga",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01d9"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.984Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef87",
+    "rodada": 8,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.984Z",
+    "dataColeta": "2025-11-30T17:24:01.984Z",
+    "golsContra": 0,
+    "golsPro": 7,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01db"
+      },
+      {
+        "atletaId": 104528,
+        "nome": "Igor Jesus",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01dc"
+      },
+      {
+        "atletaId": 110727,
+        "nome": "Rubens",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01dd"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01de"
+      },
+      {
+        "atletaId": 96610,
+        "nome": "Matheus Pereira",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01df"
+      },
+      {
+        "atletaId": 116065,
+        "nome": "Cuiabano",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01e0"
+      }
+    ],
+    "parcial": false,
+    "saldo": 7,
+    "updatedAt": "2025-11-30T17:24:01.984Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef88",
+    "rodada": 10,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.985Z",
+    "dataColeta": "2025-11-30T17:24:01.985Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01e2"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.985Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef89",
+    "rodada": 9,
+    "timeId": 49149009,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.987Z",
+    "dataColeta": "2025-11-30T17:24:01.986Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:01.987Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef8a",
+    "rodada": 8,
+    "timeId": 49149009,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.989Z",
+    "dataColeta": "2025-11-30T17:24:01.988Z",
+    "golsContra": 0,
+    "golsPro": 5,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01e5"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01e6"
+      },
+      {
+        "atletaId": 96610,
+        "nome": "Matheus Pereira",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01e7"
+      },
+      {
+        "atletaId": 116065,
+        "nome": "Cuiabano",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01e8"
+      }
+    ],
+    "parcial": false,
+    "saldo": 5,
+    "updatedAt": "2025-11-30T17:24:01.989Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef8b",
+    "rodada": 8,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.991Z",
+    "dataColeta": "2025-11-30T17:24:01.991Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 110727,
+        "nome": "Rubens",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01ea"
+      },
+      {
+        "atletaId": 104204,
+        "nome": "Edson Carioca",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01eb"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01ec"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:01.991Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef8c",
+    "rodada": 8,
+    "timeId": 13935277,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.993Z",
+    "dataColeta": "2025-11-30T17:24:01.992Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01ee"
+      },
+      {
+        "atletaId": 110727,
+        "nome": "Rubens",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01ef"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01f0"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:01.993Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef8d",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 6,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.995Z",
+    "dataColeta": "2025-11-30T17:24:01.994Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01f2"
+      },
+      {
+        "atletaId": 111466,
+        "nome": "Victor Gabriel",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01f3"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:01.995Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef8e",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 7,
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.998Z",
+    "dataColeta": "2025-11-30T17:24:01.997Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d01f5"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.998Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef8f",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 15,
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.158Z",
+    "dataColeta": "2025-11-30T17:24:02.158Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d01f7"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.158Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef90",
+    "rodada": 14,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.160Z",
+    "dataColeta": "2025-11-30T17:24:02.160Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d01f9"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.160Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef91",
+    "rodada": 11,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.164Z",
+    "dataColeta": "2025-11-30T17:24:02.164Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 80287,
+        "nome": "Luciano",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d01fb"
+      },
+      {
+        "atletaId": 82627,
+        "nome": "Luiz Araújo",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d01fc"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.164Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef92",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 3,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.753Z",
+    "dataColeta": "2025-11-30T17:24:01.752Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:01.753Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef93",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 1,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:01.755Z",
+    "dataColeta": "2025-11-30T17:24:01.755Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 83257,
+        "nome": "Gabriel",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db1d5af720d894d0173"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:01.755Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef94",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "rodada": 13,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.167Z",
+    "dataColeta": "2025-11-30T17:24:02.167Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0201"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.167Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef95",
+    "rodada": 12,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.168Z",
+    "dataColeta": "2025-11-30T17:24:02.168Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 99198,
+        "nome": "Vegetti",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0203"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.168Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef96",
+    "rodada": 11,
+    "timeId": 14747183,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.176Z",
+    "dataColeta": "2025-11-30T17:24:02.174Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.176Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef97",
+    "rodada": 12,
+    "timeId": 49149009,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.182Z",
+    "dataColeta": "2025-11-30T17:24:02.181Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.182Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef98",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 13,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.182Z",
+    "dataColeta": "2025-11-30T17:24:02.182Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0207"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.182Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef9a",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149009,
+    "rodada": 15,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.184Z",
+    "dataColeta": "2025-11-30T17:24:02.183Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.184Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef99",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "rodada": 15,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.185Z",
+    "dataColeta": "2025-11-30T17:24:02.184Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.185Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef9b",
+    "rodada": 14,
+    "timeId": 13935277,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.185Z",
+    "dataColeta": "2025-11-30T17:24:02.185Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d020b"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.185Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef9c",
+    "rodada": 14,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.195Z",
+    "dataColeta": "2025-11-30T17:24:02.194Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0211"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.195Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef9d",
+    "rodada": 11,
+    "timeId": 1926323,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.193Z",
+    "dataColeta": "2025-11-30T17:24:02.193Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d020d"
+      },
+      {
+        "atletaId": 113397,
+        "nome": "Cristian Olivera",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d020e"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d020f"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.193Z"
+  },
+  {
+    "_id": "692c7db2c715c528b8b4ef9e",
+    "rodada": 15,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.195Z",
+    "dataColeta": "2025-11-30T17:24:02.195Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0213"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.195Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4ef9f",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "rodada": 13,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.196Z",
+    "dataColeta": "2025-11-30T17:24:02.196Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 82627,
+        "nome": "Luiz Araújo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0215"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.196Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efa0",
+    "rodada": 14,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.197Z",
+    "dataColeta": "2025-11-30T17:24:02.197Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 90768,
+        "nome": "Fabrício Bruno",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0217"
+      },
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0218"
+      },
+      {
+        "atletaId": 102950,
+        "nome": "Facundo Torres",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0219"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.197Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efa1",
+    "rodada": 14,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.200Z",
+    "dataColeta": "2025-11-30T17:24:02.198Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.200Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efa2",
+    "rodada": 11,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.200Z",
+    "dataColeta": "2025-11-30T17:24:02.200Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d021c"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.200Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efa3",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 11,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.203Z",
+    "dataColeta": "2025-11-30T17:24:02.203Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 82627,
+        "nome": "Luiz Araújo",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d021e"
+      },
+      {
+        "atletaId": 80287,
+        "nome": "Luciano",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d021f"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.203Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efa5",
+    "rodada": 14,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.205Z",
+    "dataColeta": "2025-11-30T17:24:02.204Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0221"
+      },
+      {
+        "atletaId": 102950,
+        "nome": "Facundo Torres",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0222"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.205Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efa4",
+    "rodada": 15,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.206Z",
+    "dataColeta": "2025-11-30T17:24:02.206Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.206Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efa6",
+    "rodada": 13,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.207Z",
+    "dataColeta": "2025-11-30T17:24:02.207Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0225"
+      },
+      {
+        "atletaId": 82627,
+        "nome": "Luiz Araújo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0226"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:02.207Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efa7",
+    "rodada": 12,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.210Z",
+    "dataColeta": "2025-11-30T17:24:02.209Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.210Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efa8",
+    "rodada": 13,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.211Z",
+    "dataColeta": "2025-11-30T17:24:02.211Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 102340,
+        "nome": "Cacá",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0229"
+      },
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d022a"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:02.211Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efa9",
+    "rodada": 11,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.213Z",
+    "dataColeta": "2025-11-30T17:24:02.212Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d022c"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.213Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efaa",
+    "rodada": 12,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.214Z",
+    "dataColeta": "2025-11-30T17:24:02.213Z",
+    "golsContra": 1,
+    "golsPro": 0,
+    "jogadores": [
+      {
+        "atletaId": 81881,
+        "nome": "João Ricardo",
+        "gols": 0,
+        "golsContra": 1,
+        "_id": "692c7db2d5af720d894d022e"
+      }
+    ],
+    "parcial": false,
+    "saldo": -1,
+    "updatedAt": "2025-11-30T17:24:02.214Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efab",
+    "rodada": 13,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.215Z",
+    "dataColeta": "2025-11-30T17:24:02.215Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0230"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.215Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efac",
+    "rodada": 12,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.217Z",
+    "dataColeta": "2025-11-30T17:24:02.216Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.217Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efad",
+    "rodada": 19,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.347Z",
+    "dataColeta": "2025-11-30T17:24:02.347Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0233"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.347Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efae",
+    "rodada": 18,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.360Z",
+    "dataColeta": "2025-11-30T17:24:02.360Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 107873,
+        "nome": "Bobadilla",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0235"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.360Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efaf",
+    "rodada": 16,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.361Z",
+    "dataColeta": "2025-11-30T17:24:02.361Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.361Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efb0",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 20,
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.363Z",
+    "dataColeta": "2025-11-30T17:24:02.363Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.363Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efb1",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "rodada": 17,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.366Z",
+    "dataColeta": "2025-11-30T17:24:02.365Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0239"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.366Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efb2",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 16,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.370Z",
+    "dataColeta": "2025-11-30T17:24:02.370Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 92854,
+        "nome": "Borré",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d023b"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d023c"
+      },
+      {
+        "atletaId": 83528,
+        "nome": "Léo Pereira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d023d"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.370Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efb3",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 17,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.371Z",
+    "dataColeta": "2025-11-30T17:24:02.371Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 73384,
+        "nome": "Samuel Xavier",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d023f"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.371Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efb4",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 20,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.373Z",
+    "dataColeta": "2025-11-30T17:24:02.372Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 92854,
+        "nome": "Borré",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0241"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.373Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efb5",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149009,
+    "rodada": 17,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.378Z",
+    "dataColeta": "2025-11-30T17:24:02.377Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 97867,
+        "nome": "Léo Ortiz",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0243"
+      },
+      {
+        "atletaId": 92171,
+        "nome": "Arthur Cabral",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0244"
+      },
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0245"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.378Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efb6",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 19,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.379Z",
+    "dataColeta": "2025-11-30T17:24:02.379Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 109096,
+        "nome": "Plata",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0247"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.379Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efb7",
+    "rodada": 16,
+    "timeId": 49149009,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.379Z",
+    "dataColeta": "2025-11-30T17:24:02.379Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 105647,
+        "nome": "Maurício",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0249"
+      },
+      {
+        "atletaId": 115239,
+        "nome": "Wesley",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d024a"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.379Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efb8",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "rodada": 17,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.382Z",
+    "dataColeta": "2025-11-30T17:24:02.382Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 97867,
+        "nome": "Léo Ortiz",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d024c"
+      },
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d024d"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.382Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efb9",
+    "rodada": 20,
+    "timeId": 1926323,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.383Z",
+    "dataColeta": "2025-11-30T17:24:02.383Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 92696,
+        "nome": "Renato Kayzer",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d024f"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.383Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efba",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 19,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.384Z",
+    "dataColeta": "2025-11-30T17:24:02.383Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.384Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efbc",
+    "rodada": 16,
+    "timeId": 13935277,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.387Z",
+    "dataColeta": "2025-11-30T17:24:02.387Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0255"
+      },
+      {
+        "atletaId": 80287,
+        "nome": "Luciano",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0256"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.387Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efbb",
+    "rodada": 19,
+    "timeId": 49149388,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.386Z",
+    "dataColeta": "2025-11-30T17:24:02.386Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0252"
+      },
+      {
+        "atletaId": 83528,
+        "nome": "Léo Pereira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0253"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.386Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efbd",
+    "rodada": 17,
+    "timeId": 13935277,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.388Z",
+    "dataColeta": "2025-11-30T17:24:02.388Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0258"
+      },
+      {
+        "atletaId": 97867,
+        "nome": "Léo Ortiz",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0259"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.388Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efbe",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "rodada": 20,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.389Z",
+    "dataColeta": "2025-11-30T17:24:02.388Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d025b"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.389Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efbf",
+    "rodada": 19,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.390Z",
+    "dataColeta": "2025-11-30T17:24:02.390Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 107093,
+        "nome": "Luciano Juba",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d025d"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d025e"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.390Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efc0",
+    "rodada": 16,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.391Z",
+    "dataColeta": "2025-11-30T17:24:02.391Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.391Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efc1",
+    "rodada": 18,
+    "timeId": 49149388,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.392Z",
+    "dataColeta": "2025-11-30T17:24:02.391Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.392Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efc2",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 20,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.393Z",
+    "dataColeta": "2025-11-30T17:24:02.393Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.393Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efc3",
+    "rodada": 20,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.395Z",
+    "dataColeta": "2025-11-30T17:24:02.395Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.395Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efc4",
+    "rodada": 18,
+    "timeId": 1926323,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.397Z",
+    "dataColeta": "2025-11-30T17:24:02.397Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0264"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.397Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efc5",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 18,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.400Z",
+    "dataColeta": "2025-11-30T17:24:02.398Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 90608,
+        "nome": "Chico da Costa",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0266"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0267"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.400Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efc6",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 18,
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.401Z",
+    "dataColeta": "2025-11-30T17:24:02.401Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.401Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efc7",
+    "rodada": 18,
+    "timeId": 13935277,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.405Z",
+    "dataColeta": "2025-11-30T17:24:02.405Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d026a"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d026b"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.405Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efc8",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 19,
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.407Z",
+    "dataColeta": "2025-11-30T17:24:02.406Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d026d"
+      },
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d026e"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.407Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efc9",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 16,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.411Z",
+    "dataColeta": "2025-11-30T17:24:02.410Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 80287,
+        "nome": "Luciano",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0270"
+      },
+      {
+        "atletaId": 92854,
+        "nome": "Borré",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0271"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.411Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efca",
+    "rodada": 17,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.413Z",
+    "dataColeta": "2025-11-30T17:24:02.412Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0273"
+      },
+      {
+        "atletaId": 102950,
+        "nome": "Facundo Torres",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0274"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.413Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efcb",
+    "rodada": 24,
+    "timeId": 14747183,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.540Z",
+    "dataColeta": "2025-11-30T17:24:02.540Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0276"
+      },
+      {
+        "atletaId": 115248,
+        "nome": "Jhon Jhon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0277"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.540Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efcc",
+    "rodada": 23,
+    "timeId": 14747183,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.542Z",
+    "dataColeta": "2025-11-30T17:24:02.542Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 90061,
+        "nome": "Bruno Pacheco",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0279"
+      },
+      {
+        "atletaId": 68899,
+        "nome": "Philippe Coutinho",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d027a"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.542Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efcd",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 25,
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.543Z",
+    "dataColeta": "2025-11-30T17:24:02.543Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d027c"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.543Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efce",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "rodada": 21,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.554Z",
+    "dataColeta": "2025-11-30T17:24:02.554Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 107174,
+        "nome": "Bruno Tabata",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d027e"
+      },
+      {
+        "atletaId": 98873,
+        "nome": "Samuel Lino",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d027f"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.554Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efcf",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "rodada": 12,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.165Z",
+    "dataColeta": "2025-11-30T17:24:02.165Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.165Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efd0",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 21,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.564Z",
+    "dataColeta": "2025-11-30T17:24:02.564Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.564Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efd1",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "rodada": 15,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.166Z",
+    "dataColeta": "2025-11-30T17:24:02.166Z",
+    "golsContra": 1,
+    "golsPro": 0,
+    "jogadores": [
+      {
+        "atletaId": 88312,
+        "nome": "Junior Alonso",
+        "gols": 0,
+        "golsContra": 1,
+        "_id": "692c7db2d5af720d894d01ff"
+      }
+    ],
+    "parcial": false,
+    "saldo": -1,
+    "updatedAt": "2025-11-30T17:24:02.166Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efd2",
+    "rodada": 25,
+    "timeId": 49149388,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.567Z",
+    "dataColeta": "2025-11-30T17:24:02.566Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 82627,
+        "nome": "Luiz Araújo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0289"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.567Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efd3",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 22,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.573Z",
+    "dataColeta": "2025-11-30T17:24:02.573Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 68899,
+        "nome": "Philippe Coutinho",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d028b"
+      },
+      {
+        "atletaId": 98672,
+        "nome": "Savarino",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d028c"
+      },
+      {
+        "atletaId": 142890,
+        "nome": "Montoro",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d028d"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.573Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efd4",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 24,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.575Z",
+    "dataColeta": "2025-11-30T17:24:02.574Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d028f"
+      },
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0290"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.575Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efd5",
+    "rodada": 21,
+    "timeId": 13935277,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.585Z",
+    "dataColeta": "2025-11-30T17:24:02.583Z",
+    "golsContra": 0,
+    "golsPro": 9,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0292"
+      },
+      {
+        "atletaId": 94583,
+        "nome": "Pedro",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0293"
+      },
+      {
+        "atletaId": 98873,
+        "nome": "Samuel Lino",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0294"
+      },
+      {
+        "atletaId": 107093,
+        "nome": "Luciano Juba",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0295"
+      },
+      {
+        "atletaId": 71684,
+        "nome": "Gustavo Gómez",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0296"
+      },
+      {
+        "atletaId": 96610,
+        "nome": "Matheus Pereira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0297"
+      }
+    ],
+    "parcial": false,
+    "saldo": 9,
+    "updatedAt": "2025-11-30T17:24:02.585Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efd6",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "rodada": 24,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.590Z",
+    "dataColeta": "2025-11-30T17:24:02.589Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0299"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d029a"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.590Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efd7",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 23,
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.591Z",
+    "dataColeta": "2025-11-30T17:24:02.591Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d029c"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.591Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efd8",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 25,
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.592Z",
+    "dataColeta": "2025-11-30T17:24:02.592Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d029e"
+      },
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d029f"
+      },
+      {
+        "atletaId": 126471,
+        "nome": "Barreal",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02a0"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.592Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efd9",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 23,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.606Z",
+    "dataColeta": "2025-11-30T17:24:02.606Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 68899,
+        "nome": "Philippe Coutinho",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02a2"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.606Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efda",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "rodada": 22,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.607Z",
+    "dataColeta": "2025-11-30T17:24:02.607Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 98672,
+        "nome": "Savarino",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02a4"
+      },
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02a5"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02a6"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.607Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efdb",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 24,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.609Z",
+    "dataColeta": "2025-11-30T17:24:02.609Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 112709,
+        "nome": "Kaiki Bruno",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02a8"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02a9"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.609Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efdc",
+    "rodada": 25,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.611Z",
+    "dataColeta": "2025-11-30T17:24:02.610Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02ab"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.611Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efdd",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "rodada": 21,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.612Z",
+    "dataColeta": "2025-11-30T17:24:02.612Z",
+    "golsContra": 0,
+    "golsPro": 5,
+    "jogadores": [
+      {
+        "atletaId": 71684,
+        "nome": "Gustavo Gómez",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02ad"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02ae"
+      },
+      {
+        "atletaId": 107093,
+        "nome": "Luciano Juba",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02af"
+      },
+      {
+        "atletaId": 96610,
+        "nome": "Matheus Pereira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02b0"
+      }
+    ],
+    "parcial": false,
+    "saldo": 5,
+    "updatedAt": "2025-11-30T17:24:02.612Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efde",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 24,
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.614Z",
+    "dataColeta": "2025-11-30T17:24:02.614Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.614Z"
+  },
+  {
+    "_id": "692c7db3c715c528b8b4efdf",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 24,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.633Z",
+    "dataColeta": "2025-11-30T17:24:02.631Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 115248,
+        "nome": "Jhon Jhon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02b3"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.633Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efe0",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 21,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.634Z",
+    "dataColeta": "2025-11-30T17:24:02.634Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02b5"
+      },
+      {
+        "atletaId": 107093,
+        "nome": "Luciano Juba",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02b6"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.634Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efe1",
+    "rodada": 25,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.636Z",
+    "dataColeta": "2025-11-30T17:24:02.636Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 82627,
+        "nome": "Luiz Araújo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02b8"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.636Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efe2",
+    "rodada": 25,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.637Z",
+    "dataColeta": "2025-11-30T17:24:02.637Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02ba"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.637Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efe3",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 23,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.641Z",
+    "dataColeta": "2025-11-30T17:24:02.639Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 68899,
+        "nome": "Philippe Coutinho",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02bc"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.641Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efe4",
+    "rodada": 22,
+    "timeId": 13935277,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.644Z",
+    "dataColeta": "2025-11-30T17:24:02.642Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02be"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02bf"
+      },
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02c0"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.644Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efe5",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 23,
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.646Z",
+    "dataColeta": "2025-11-30T17:24:02.646Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02c2"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02c3"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:02.646Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efe6",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 23,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.648Z",
+    "dataColeta": "2025-11-30T17:24:02.648Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02c5"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02c6"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:02.648Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efe7",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "rodada": 21,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.652Z",
+    "dataColeta": "2025-11-30T17:24:02.650Z",
+    "golsContra": 0,
+    "golsPro": 6,
+    "jogadores": [
+      {
+        "atletaId": 94583,
+        "nome": "Pedro",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02c8"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02c9"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02ca"
+      }
+    ],
+    "parcial": false,
+    "saldo": 6,
+    "updatedAt": "2025-11-30T17:24:02.652Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efe8",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 22,
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.661Z",
+    "dataColeta": "2025-11-30T17:24:02.659Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02cc"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02cd"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.661Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efe9",
+    "rodada": 29,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.730Z",
+    "dataColeta": "2025-11-30T17:24:02.730Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02cf"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.730Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efea",
+    "rodada": 28,
+    "timeId": 14747183,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.731Z",
+    "dataColeta": "2025-11-30T17:24:02.731Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 115248,
+        "nome": "Jhon Jhon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02d1"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02d2"
+      },
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02d3"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.731Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efeb",
+    "rodada": 30,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.732Z",
+    "dataColeta": "2025-11-30T17:24:02.732Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 105563,
+        "nome": "Carlos Vinícius",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02d5"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.732Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efec",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "rodada": 26,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.742Z",
+    "dataColeta": "2025-11-30T17:24:02.742Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02d7"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.742Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efed",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 27,
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.744Z",
+    "dataColeta": "2025-11-30T17:24:02.743Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 115248,
+        "nome": "Jhon Jhon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02d9"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02da"
+      },
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02db"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:02.744Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efee",
+    "rodada": 26,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.804Z",
+    "dataColeta": "2025-11-30T17:24:02.804Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02dd"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.804Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efef",
+    "rodada": 27,
+    "timeId": 49149388,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.805Z",
+    "dataColeta": "2025-11-30T17:24:02.805Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 115248,
+        "nome": "Jhon Jhon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02df"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02e0"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.805Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4eff0",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 30,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.806Z",
+    "dataColeta": "2025-11-30T17:24:02.806Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.806Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4eff1",
+    "rodada": 27,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.811Z",
+    "dataColeta": "2025-11-30T17:24:02.811Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02e3"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.811Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4eff2",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 26,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.812Z",
+    "dataColeta": "2025-11-30T17:24:02.812Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02e5"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02e6"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.812Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4eff3",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 29,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.815Z",
+    "dataColeta": "2025-11-30T17:24:02.814Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02e8"
+      },
+      {
+        "atletaId": 84735,
+        "nome": "Jorginho",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02e9"
+      },
+      {
+        "atletaId": 94583,
+        "nome": "Pedro",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02ea"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02eb"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:02.815Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4eff4",
+    "rodada": 27,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.818Z",
+    "dataColeta": "2025-11-30T17:24:02.817Z",
+    "golsContra": 0,
+    "golsPro": 5,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02ed"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02ee"
+      },
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02ef"
+      },
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02f0"
+      }
+    ],
+    "parcial": false,
+    "saldo": 5,
+    "updatedAt": "2025-11-30T17:24:02.818Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4eff5",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 30,
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.819Z",
+    "dataColeta": "2025-11-30T17:24:02.819Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 105563,
+        "nome": "Carlos Vinícius",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02f2"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.819Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4eff6",
+    "rodada": 29,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.821Z",
+    "dataColeta": "2025-11-30T17:24:02.820Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02f4"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02f5"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02f6"
+      },
+      {
+        "atletaId": 94583,
+        "nome": "Pedro",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02f7"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:02.821Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4eff7",
+    "rodada": 28,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.822Z",
+    "dataColeta": "2025-11-30T17:24:02.822Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 82627,
+        "nome": "Luiz Araújo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02f9"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02fa"
+      },
+      {
+        "atletaId": 115248,
+        "nome": "Jhon Jhon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02fb"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.822Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4eff8",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 29,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.829Z",
+    "dataColeta": "2025-11-30T17:24:02.827Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 71684,
+        "nome": "Gustavo Gómez",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02fd"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.829Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4eff9",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 26,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.830Z",
+    "dataColeta": "2025-11-30T17:24:02.830Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d02ff"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0300"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.830Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4effa",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 27,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.831Z",
+    "dataColeta": "2025-11-30T17:24:02.831Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0302"
+      },
+      {
+        "atletaId": 83257,
+        "nome": "Gabriel",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0303"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.831Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4effb",
+    "rodada": 29,
+    "timeId": 1926323,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.833Z",
+    "dataColeta": "2025-11-30T17:24:02.832Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0305"
+      },
+      {
+        "atletaId": 94583,
+        "nome": "Pedro",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0306"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0307"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.833Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4effc",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 30,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.834Z",
+    "dataColeta": "2025-11-30T17:24:02.833Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.834Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4effd",
+    "rodada": 30,
+    "timeId": 1926323,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.834Z",
+    "dataColeta": "2025-11-30T17:24:02.834Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 105563,
+        "nome": "Carlos Vinícius",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d030a"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.834Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4effe",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 28,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.841Z",
+    "dataColeta": "2025-11-30T17:24:02.839Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d030c"
+      },
+      {
+        "atletaId": 98225,
+        "nome": "Pedro Raul",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d030d"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d030e"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:02.841Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4efff",
+    "rodada": 28,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.844Z",
+    "dataColeta": "2025-11-30T17:24:02.844Z",
+    "golsContra": 0,
+    "golsPro": 6,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0310"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0311"
+      },
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0312"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0313"
+      },
+      {
+        "atletaId": 96610,
+        "nome": "Matheus Pereira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0314"
+      }
+    ],
+    "parcial": false,
+    "saldo": 6,
+    "updatedAt": "2025-11-30T17:24:02.844Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f000",
+    "rodada": 26,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.846Z",
+    "dataColeta": "2025-11-30T17:24:02.846Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0316"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0317"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.846Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f001",
+    "rodada": 29,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.847Z",
+    "dataColeta": "2025-11-30T17:24:02.847Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0319"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d031a"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.847Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f002",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 30,
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.848Z",
+    "dataColeta": "2025-11-30T17:24:02.848Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.848Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f003",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 28,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.852Z",
+    "dataColeta": "2025-11-30T17:24:02.849Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d031d"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d031e"
+      },
+      {
+        "atletaId": 96610,
+        "nome": "Matheus Pereira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d031f"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:02.852Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f004",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 26,
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.857Z",
+    "dataColeta": "2025-11-30T17:24:02.855Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0321"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0322"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.857Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f005",
+    "rodada": 27,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.865Z",
+    "dataColeta": "2025-11-30T17:24:02.865Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0324"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0325"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.865Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f006",
+    "rodada": 28,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.868Z",
+    "dataColeta": "2025-11-30T17:24:02.867Z",
+    "golsContra": 0,
+    "golsPro": 5,
+    "jogadores": [
+      {
+        "atletaId": 98225,
+        "nome": "Pedro Raul",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0327"
+      },
+      {
+        "atletaId": 70592,
+        "nome": "Felipe Anderson",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0328"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0329"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d032a"
+      }
+    ],
+    "parcial": false,
+    "saldo": 5,
+    "updatedAt": "2025-11-30T17:24:02.868Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f007",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 34,
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.915Z",
+    "dataColeta": "2025-11-30T17:24:02.915Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 68996,
+        "nome": "Willian José",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d032c"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.915Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f008",
+    "rodada": 35,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.928Z",
+    "dataColeta": "2025-11-30T21:41:08.719Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 107873,
+        "nome": "Bobadilla",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc18092"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T21:41:08.719Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f009",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 33,
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.930Z",
+    "dataColeta": "2025-11-30T17:24:02.930Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 68996,
+        "nome": "Willian José",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0330"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:02.930Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f00a",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 32,
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.931Z",
+    "dataColeta": "2025-11-30T17:24:02.931Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:02.931Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f00b",
+    "rodada": 31,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.934Z",
+    "dataColeta": "2025-11-30T17:24:02.933Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 68996,
+        "nome": "Willian José",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0333"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.934Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f00c",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 31,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.001Z",
+    "dataColeta": "2025-11-30T17:24:03.000Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:03.001Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f00d",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 32,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.002Z",
+    "dataColeta": "2025-11-30T17:24:03.001Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:03.002Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f00e",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 35,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.003Z",
+    "dataColeta": "2025-11-30T21:41:08.358Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T21:41:08.359Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f00f",
+    "rodada": 32,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.012Z",
+    "dataColeta": "2025-11-30T17:24:03.012Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:03.012Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f010",
+    "rodada": 34,
+    "timeId": 49149388,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.013Z",
+    "dataColeta": "2025-11-30T17:24:03.013Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:03.013Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f011",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 31,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.015Z",
+    "dataColeta": "2025-11-30T17:24:03.015Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:03.015Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f012",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 34,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.017Z",
+    "dataColeta": "2025-11-30T17:24:03.016Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d033b"
+      },
+      {
+        "atletaId": 63007,
+        "nome": "Neymar",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d033c"
+      },
+      {
+        "atletaId": 105563,
+        "nome": "Carlos Vinícius",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d033d"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:03.017Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f013",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 33,
+    "timeId": 49149388,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.019Z",
+    "dataColeta": "2025-11-30T17:24:03.019Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 115248,
+        "nome": "Jhon Jhon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d033f"
+      },
+      {
+        "atletaId": 83528,
+        "nome": "Léo Pereira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0340"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:03.019Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f014",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 32,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.022Z",
+    "dataColeta": "2025-11-30T17:24:03.022Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 100652,
+        "nome": "Yuri Alberto",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0342"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0343"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0344"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:03.022Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f015",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 34,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.024Z",
+    "dataColeta": "2025-11-30T17:24:03.023Z",
+    "golsContra": 0,
+    "golsPro": 5,
+    "jogadores": [
+      {
+        "atletaId": 68996,
+        "nome": "Willian José",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0346"
+      },
+      {
+        "atletaId": 63007,
+        "nome": "Neymar",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0347"
+      },
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0348"
+      },
+      {
+        "atletaId": 105563,
+        "nome": "Carlos Vinícius",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0349"
+      }
+    ],
+    "parcial": false,
+    "saldo": 5,
+    "updatedAt": "2025-11-30T17:24:03.024Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f016",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 35,
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.025Z",
+    "dataColeta": "2025-11-30T21:41:08.711Z",
+    "golsContra": 0,
+    "golsPro": 5,
+    "jogadores": [
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc18088"
+      },
+      {
+        "atletaId": 126471,
+        "nome": "Barreal",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc18089"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc1808a"
+      },
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc1808b"
+      }
+    ],
+    "parcial": false,
+    "saldo": 5,
+    "updatedAt": "2025-11-30T21:41:08.711Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f017",
+    "rodada": 22,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.558Z",
+    "dataColeta": "2025-11-30T17:24:02.556Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0281"
+      },
+      {
+        "atletaId": 68899,
+        "nome": "Philippe Coutinho",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0282"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:02.558Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f018",
+    "rodada": 31,
+    "timeId": 13935277,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.031Z",
+    "dataColeta": "2025-11-30T17:24:03.030Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0354"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:03.031Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f019",
+    "rodada": 22,
+    "timeId": 49149388,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:02.565Z",
+    "dataColeta": "2025-11-30T17:24:02.565Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 115248,
+        "nome": "Jhon Jhon",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0285"
+      },
+      {
+        "atletaId": 68899,
+        "nome": "Philippe Coutinho",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0286"
+      },
+      {
+        "atletaId": 98672,
+        "nome": "Savarino",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db2d5af720d894d0287"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:02.565Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f01a",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 35,
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.034Z",
+    "dataColeta": "2025-11-30T21:41:08.726Z",
+    "golsContra": 0,
+    "golsPro": 6,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc18094"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc18095"
+      },
+      {
+        "atletaId": 116065,
+        "nome": "Cuiabano",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc18096"
+      },
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc18097"
+      },
+      {
+        "atletaId": 78850,
+        "nome": "Reinaldo",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc18098"
+      }
+    ],
+    "parcial": false,
+    "saldo": 6,
+    "updatedAt": "2025-11-30T21:41:08.727Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f01b",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 33,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.035Z",
+    "dataColeta": "2025-11-30T17:24:03.035Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d035f"
+      },
+      {
+        "atletaId": 105436,
+        "nome": "Carrascal",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0360"
+      },
+      {
+        "atletaId": 83528,
+        "nome": "Léo Pereira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0361"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:03.035Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f01c",
+    "rodada": 33,
+    "timeId": 1926323,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.037Z",
+    "dataColeta": "2025-11-30T17:24:03.037Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 83528,
+        "nome": "Léo Pereira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0363"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T17:24:03.037Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f01d",
+    "rodada": 31,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.039Z",
+    "dataColeta": "2025-11-30T17:24:03.039Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 70592,
+        "nome": "Felipe Anderson",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0365"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0366"
+      },
+      {
+        "atletaId": 98225,
+        "nome": "Pedro Raul",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0367"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:03.039Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f01e",
+    "rodada": 34,
+    "timeId": 50180257,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.040Z",
+    "dataColeta": "2025-11-30T17:24:03.040Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-11-30T17:24:03.040Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f01f",
+    "rodada": 35,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.041Z",
+    "dataColeta": "2025-11-30T21:41:09.286Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692cb9f5ddc3056afcc180a7"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-11-30T21:41:09.287Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f020",
+    "rodada": 31,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.045Z",
+    "dataColeta": "2025-11-30T17:24:03.044Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d036c"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d036d"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:03.045Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f021",
+    "rodada": 33,
+    "timeId": 13935277,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.046Z",
+    "dataColeta": "2025-11-30T17:24:03.046Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d036f"
+      },
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0370"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:03.046Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f022",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 34,
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.048Z",
+    "dataColeta": "2025-11-30T17:24:03.047Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0372"
+      },
+      {
+        "atletaId": 105563,
+        "nome": "Carlos Vinícius",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0373"
+      },
+      {
+        "atletaId": 84735,
+        "nome": "Jorginho",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0374"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:03.048Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f023",
+    "rodada": 33,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.051Z",
+    "dataColeta": "2025-11-30T17:24:03.051Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0376"
+      },
+      {
+        "atletaId": 83528,
+        "nome": "Léo Pereira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0377"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-11-30T17:24:03.051Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f024",
+    "rodada": 32,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.055Z",
+    "dataColeta": "2025-11-30T17:24:03.054Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 98225,
+        "nome": "Pedro Raul",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0379"
+      },
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d037a"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d037b"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T17:24:03.055Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f025",
+    "rodada": 36,
+    "timeId": 14747183,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.124Z",
+    "dataColeta": "2025-12-01T23:47:12.795Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 116706,
+        "nome": "Andrés Gómez",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692e290041776cfc2072de5d"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-12-01T23:47:12.795Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f026",
+    "rodada": 36,
+    "timeId": 49149388,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.204Z",
+    "dataColeta": "2025-12-01T23:47:12.803Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-12-01T23:47:12.803Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f027",
+    "rodada": 36,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.216Z",
+    "dataColeta": "2025-12-01T23:47:12.952Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 78248,
+        "nome": "Gustavo Henrique",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692e290041776cfc2072de67"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-12-01T23:47:12.953Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f028",
+    "rodada": 36,
+    "timeId": 49149009,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.222Z",
+    "dataColeta": "2025-12-01T23:47:12.431Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692e290041776cfc2072de5b"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-12-01T23:47:12.432Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f029",
+    "rodada": 36,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.226Z",
+    "dataColeta": "2025-12-01T23:47:12.800Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-12-01T23:47:12.801Z"
+  },
+  {
+    "_id": "692c7db4c715c528b8b4f02a",
+    "rodada": 36,
+    "timeId": 13935277,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.237Z",
+    "dataColeta": "2025-12-01T23:47:12.955Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 122486,
+        "nome": "Rayan",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692e290041776cfc2072de69"
+      },
+      {
+        "atletaId": 78248,
+        "nome": "Gustavo Henrique",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692e290041776cfc2072de6a"
+      },
+      {
+        "atletaId": 63007,
+        "nome": "Neymar",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692e290041776cfc2072de6b"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-12-01T23:47:12.955Z"
+  },
+  {
+    "_id": "692c7db5c715c528b8b4f02b",
+    "rodada": 35,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.027Z",
+    "dataColeta": "2025-11-30T21:41:08.351Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 105563,
+        "nome": "Carlos Vinícius",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc18078"
+      },
+      {
+        "atletaId": 103445,
+        "nome": "Kaio Jorge",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc18079"
+      },
+      {
+        "atletaId": 90285,
+        "nome": "Bruno Henrique",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692cb9f4ddc3056afcc1807a"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-11-30T21:41:08.352Z"
+  },
+  {
+    "_id": "692c7db5c715c528b8b4f02c",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "rodada": 32,
+    "__v": 0,
+    "createdAt": "2025-11-30T17:24:03.033Z",
+    "dataColeta": "2025-11-30T17:24:03.032Z",
+    "golsContra": 0,
+    "golsPro": 3,
+    "jogadores": [
+      {
+        "atletaId": 87863,
+        "nome": "Arrascaeta",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0356"
+      },
+      {
+        "atletaId": 114802,
+        "nome": "Vitor Roque",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "692c7db3d5af720d894d0357"
+      }
+    ],
+    "parcial": false,
+    "saldo": 3,
+    "updatedAt": "2025-11-30T17:24:03.033Z"
+  },
+  {
+    "_id": "6933fba8c715c528b8b5387d",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "rodada": 37,
+    "__v": 0,
+    "createdAt": "2025-12-06T09:47:19.965Z",
+    "dataColeta": "2025-12-06T09:47:19.963Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 98873,
+        "nome": "Samuel Lino",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "6933fba79c9d0871167c765a"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-12-06T09:47:19.965Z"
+  },
+  {
+    "_id": "6933fba8c715c528b8b5387e",
+    "rodada": 37,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-12-06T09:47:20.358Z",
+    "dataColeta": "2025-12-06T09:47:20.358Z",
+    "golsContra": 0,
+    "golsPro": 2,
+    "jogadores": [
+      {
+        "atletaId": 96610,
+        "nome": "Matheus Pereira",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "6933fba89c9d0871167c765d"
+      },
+      {
+        "atletaId": 107093,
+        "nome": "Luciano Juba",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "6933fba89c9d0871167c765e"
+      }
+    ],
+    "parcial": false,
+    "saldo": 2,
+    "updatedAt": "2025-12-06T09:47:20.358Z"
+  },
+  {
+    "_id": "6933fba8c715c528b8b5387f",
+    "rodada": 37,
+    "timeId": 14747183,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-12-06T09:47:20.730Z",
+    "dataColeta": "2025-12-06T09:47:20.730Z",
+    "golsContra": 0,
+    "golsPro": 1,
+    "jogadores": [
+      {
+        "atletaId": 107093,
+        "nome": "Luciano Juba",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "6933fba89c9d0871167c7662"
+      }
+    ],
+    "parcial": false,
+    "saldo": 1,
+    "updatedAt": "2025-12-06T09:47:20.730Z"
+  },
+  {
+    "_id": "6933fba9c715c528b8b53880",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "rodada": 37,
+    "timeId": 49149009,
+    "__v": 0,
+    "createdAt": "2025-12-06T09:47:21.107Z",
+    "dataColeta": "2025-12-06T09:47:21.105Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 63007,
+        "nome": "Neymar",
+        "gols": 3,
+        "golsContra": 0,
+        "_id": "6933fba99c9d0871167c7665"
+      },
+      {
+        "atletaId": 107093,
+        "nome": "Luciano Juba",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "6933fba99c9d0871167c7666"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-12-06T09:47:21.107Z"
+  },
+  {
+    "_id": "6933fba9c715c528b8b53881",
+    "rodada": 37,
+    "timeId": 49149388,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "__v": 0,
+    "createdAt": "2025-12-06T09:47:21.487Z",
+    "dataColeta": "2025-12-06T09:47:21.486Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-12-06T09:47:21.487Z"
+  },
+  {
+    "_id": "6933fba9c715c528b8b53882",
+    "rodada": 37,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 50180257,
+    "__v": 0,
+    "createdAt": "2025-12-06T09:47:21.857Z",
+    "dataColeta": "2025-12-06T09:47:21.857Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-12-06T09:47:21.857Z"
+  },
+  {
+    "_id": "69376c38c715c528b8b5657a",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 49149009,
+    "rodada": 38,
+    "__v": 0,
+    "createdAt": "2025-12-09T00:24:24.253Z",
+    "dataColeta": "2025-12-09T00:24:24.237Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-12-09T00:24:24.253Z"
+  },
+  {
+    "_id": "69376c38c715c528b8b5657b",
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 14747183,
+    "rodada": 38,
+    "__v": 0,
+    "createdAt": "2025-12-09T00:24:24.572Z",
+    "dataColeta": "2025-12-09T00:24:24.571Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-12-09T00:24:24.572Z"
+  },
+  {
+    "_id": "69376c38c715c528b8b5657c",
+    "rodada": 38,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 13935277,
+    "__v": 0,
+    "createdAt": "2025-12-09T00:24:24.754Z",
+    "dataColeta": "2025-12-09T00:24:24.754Z",
+    "golsContra": 0,
+    "golsPro": 0,
+    "jogadores": [],
+    "parcial": false,
+    "saldo": 0,
+    "updatedAt": "2025-12-09T00:24:24.754Z"
+  },
+  {
+    "_id": "69376c38c715c528b8b5657d",
+    "rodada": 38,
+    "ligaId": "684d821cf1a7ae16d1f89572",
+    "timeId": 1926323,
+    "__v": 0,
+    "createdAt": "2025-12-09T00:24:24.895Z",
+    "dataColeta": "2025-12-09T00:24:24.895Z",
+    "golsContra": 0,
+    "golsPro": 4,
+    "jogadores": [
+      {
+        "atletaId": 105563,
+        "nome": "Carlos Vinícius",
+        "gols": 2,
+        "golsContra": 0,
+        "_id": "69376c383e5a738d77f09229"
+      },
+      {
+        "atletaId": 68685,
+        "nome": "Alan Patrick",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "69376c383e5a738d77f0922a"
+      },
+      {
+        "atletaId": 113103,
+        "nome": "Flaco López",
+        "gols": 1,
+        "golsContra": 0,
+        "_id": "69376c383e5a738d77f0922b"
+      }
+    ],
+    "parcial": false,
+    "saldo": 4,
+    "updatedAt": "2025-12-09T00:24:24.895Z"
+  }
+]

@@ -1,0 +1,163 @@
+{
+  "timestamp": "2026-01-03T01:50:05.313Z",
+  "ligas": {
+    "SOBRAL": {
+      "collections": {
+        "rodadas": {
+          "atual": 222,
+          "backup": 222
+        },
+        "goleiros": {
+          "atual": 228,
+          "backup": 228
+        },
+        "golsconsolidados": {
+          "atual": 226,
+          "backup": 226
+        },
+        "gols": {
+          "atual": 0,
+          "backup": 4694
+        },
+        "rodadasnapshots": {
+          "atual": 0,
+          "backup": 0
+        },
+        "top10caches": {
+          "atual": 2,
+          "backup": 1
+        },
+        "melhor_mes_cache": {
+          "atual": 0,
+          "backup": 0
+        },
+        "matamatacaches": {
+          "atual": 0,
+          "backup": 0
+        },
+        "pontoscorridoscaches": {
+          "atual": 0,
+          "backup": 0
+        },
+        "rankinggeralcaches": {
+          "atual": 0,
+          "backup": 0
+        },
+        "extratofinanceirocaches": {
+          "atual": 12,
+          "backup": 6
+        },
+        "ranking_turno_caches": {
+          "atual": 2,
+          "backup": 1
+        },
+        "rankingturnos": {
+          "atual": 4,
+          "backup": 3
+        },
+        "artilheirocampeaos": {
+          "atual": 1,
+          "backup": 1
+        },
+        "defesasconsolidadas": {
+          "atual": 0,
+          "backup": null
+        },
+        "times": {
+          "atual": null,
+          "backup": null
+        },
+        "ligas": {
+          "atual": null,
+          "backup": null
+        }
+      },
+      "rodadas": {
+        "total": 222,
+        "rodadasUnicas": 38,
+        "faltando": [],
+        "completo": true
+      }
+    },
+    "SUPERCARTOLA": {
+      "collections": {
+        "rodadas": {
+          "atual": 1216,
+          "backup": 1216
+        },
+        "goleiros": {
+          "atual": 0,
+          "backup": 0
+        },
+        "golsconsolidados": {
+          "atual": 0,
+          "backup": 0
+        },
+        "gols": {
+          "atual": 0,
+          "backup": 0
+        },
+        "rodadasnapshots": {
+          "atual": 0,
+          "backup": 0
+        },
+        "top10caches": {
+          "atual": 2,
+          "backup": 1
+        },
+        "melhor_mes_cache": {
+          "atual": 0,
+          "backup": 0
+        },
+        "matamatacaches": {
+          "atual": 10,
+          "backup": 5
+        },
+        "pontoscorridoscaches": {
+          "atual": 62,
+          "backup": 31
+        },
+        "rankinggeralcaches": {
+          "atual": 0,
+          "backup": 0
+        },
+        "extratofinanceirocaches": {
+          "atual": 64,
+          "backup": 32
+        },
+        "ranking_turno_caches": {
+          "atual": 1,
+          "backup": 0
+        },
+        "rankingturnos": {
+          "atual": 4,
+          "backup": 3
+        },
+        "artilheirocampeaos": {
+          "atual": 0,
+          "backup": 0
+        },
+        "defesasconsolidadas": {
+          "atual": 0,
+          "backup": null
+        },
+        "times": {
+          "atual": null,
+          "backup": null
+        },
+        "ligas": {
+          "atual": null,
+          "backup": null
+        }
+      },
+      "rodadas": {
+        "total": 1216,
+        "rodadasUnicas": 38,
+        "faltando": [],
+        "completo": true
+      }
+    }
+  },
+  "problemas": [],
+  "acoes_necessarias": []
+}
