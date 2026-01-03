@@ -489,16 +489,23 @@ async function buscarCamposManuais(ligaId, timeId) {
 export const getExtratoCache = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
+        const { temporada } = req.query;
+        // ✅ v5.6 FIX CRÍTICO: Temporada obrigatória para evitar retornar cache errado
+        const temporadaNum = parseInt(temporada) || 2025;
+
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
         const rodadaDesistencia = statusTime.rodada_desistencia;
 
         // ✅ v5.1: Buscar acertos financeiros em paralelo
-        const acertosPromise = buscarAcertosFinanceiros(ligaId, timeId);
+        // ✅ v5.6 FIX: Passar temporada correta
+        const acertosPromise = buscarAcertosFinanceiros(ligaId, timeId, temporadaNum);
 
+        // ✅ v5.6 FIX: SEMPRE filtrar por temporada
         const cache = await ExtratoFinanceiroCache.findOne({
             liga_id: toLigaId(ligaId),
             time_id: Number(timeId),
+            temporada: temporadaNum,
         }).lean();
 
         // ✅ v5.1: Aguardar acertos
@@ -611,7 +618,10 @@ export const salvarExtratoCache = async (req, res) => {
             extrato,
             ultimaRodadaCalculada,
             motivoRecalculo,
+            temporada,
         } = req.body;
+        // ✅ v5.6 FIX: Temporada obrigatória
+        const temporadaNum = parseInt(temporada) || 2025;
 
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
@@ -663,6 +673,7 @@ export const salvarExtratoCache = async (req, res) => {
         const cacheData = {
             liga_id: toLigaId(ligaId),
             time_id: Number(timeId),
+            temporada: temporadaNum, // ✅ v5.6 FIX
             ultima_rodada_consolidada: rodadaCalculadaReal,
             historico_transacoes: rodadasArray,
             data_ultima_atualizacao: new Date(),
@@ -678,8 +689,9 @@ export const salvarExtratoCache = async (req, res) => {
             },
         };
 
+        // ✅ v5.6 FIX: Incluir temporada na query de upsert
         const cache = await ExtratoFinanceiroCache.findOneAndUpdate(
-            { liga_id: toLigaId(ligaId), time_id: Number(timeId) },
+            { liga_id: toLigaId(ligaId), time_id: Number(timeId), temporada: temporadaNum },
             cacheData,
             { new: true, upsert: true },
         );
@@ -701,7 +713,9 @@ export const salvarExtratoCache = async (req, res) => {
 export const verificarCacheValido = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-        const { rodadaAtual, mercadoAberto } = req.query;
+        const { rodadaAtual, mercadoAberto, temporada } = req.query;
+        // ✅ v5.6 FIX: Temporada obrigatória
+        const temporadaNum = parseInt(temporada) || 2025;
 
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
@@ -710,9 +724,11 @@ export const verificarCacheValido = async (req, res) => {
         // ✅ v4.0: Verificar se temporada está finalizada
         const statusTemporada = await verificarTemporadaFinalizada(ligaId);
 
+        // ✅ v5.6 FIX: Filtrar por temporada
         const cacheExistente = await ExtratoFinanceiroCache.findOne({
             liga_id: toLigaId(ligaId),
             time_id: Number(timeId),
+            temporada: temporadaNum,
         }).lean();
 
         if (!cacheExistente) {
@@ -875,8 +891,11 @@ export const verificarCacheValido = async (req, res) => {
 export const lerCacheExtratoFinanceiro = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-        const { rodadaAtual } = req.query;
+        const { rodadaAtual, temporada } = req.query;
         const rodadaAtualNum = parseInt(rodadaAtual) || 1;
+        // ✅ v5.6 FIX CRÍTICO: Temporada obrigatória para evitar retornar cache errado
+        // Default: 2025 (temporada ativa consolidada)
+        const temporadaNum = parseInt(temporada) || 2025;
 
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
@@ -885,9 +904,11 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
             ? rodadaDesistencia - 1
             : null;
 
+        // ✅ v5.6 FIX: SEMPRE filtrar por temporada para evitar retornar cache de outra temporada
         const cache = await ExtratoFinanceiroCache.findOne({
             liga_id: toLigaId(ligaId),
             time_id: Number(timeId),
+            temporada: temporadaNum,
         }).lean();
 
         if (!cache) {
@@ -949,7 +970,8 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
         );
 
         // ✅ v5.2 FIX: Buscar acertos financeiros e incluir no saldo final
-        const acertos = await buscarAcertosFinanceiros(ligaId, timeId);
+        // ✅ v5.6 FIX: Passar temporada para buscar acertos da temporada correta
+        const acertos = await buscarAcertosFinanceiros(ligaId, timeId, temporadaNum);
         const saldoAcertos = acertos?.resumo?.saldo ?? 0;
 
         // Adicionar saldo de acertos ao resumo

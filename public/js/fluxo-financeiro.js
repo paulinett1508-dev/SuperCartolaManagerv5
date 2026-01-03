@@ -856,7 +856,7 @@ async function carregarHistoricoAcertos(ligaId, timeId) {
         // ✅ v6.4: Buscar acertos E extrato em paralelo para mostrar saldo FINAL
         const [acertosResponse, extratoResponse] = await Promise.all([
             fetch(`/api/acertos/${ligaId}/${timeId}`),
-            fetch(`/api/extrato-financeiro/${ligaId}/${timeId}`)
+            fetch(`/api/extrato-cache/${ligaId}/times/${timeId}`)
         ]);
 
         const result = await acertosResponse.json();
