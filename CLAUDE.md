@@ -204,6 +204,7 @@ Comandos disponíveis para invocar diretamente:
 | Comando | Descrição | Exemplo |
 |---------|-----------|---------|
 | `/analisar` | Análise estratégica de jogadores Cartola (Data-Driven) | `/analisar Gabigol` |
+| `/audit-financa` | Auditoria financeira completa de participante | `/audit-financa Raylson` |
 | `/perplexity-search` | Pesquisa inteligente via Perplexity MCP (últimas 24-48h) | `/perplexity-search escalação Flamengo` |
 | `/feature-scout` | Verifica se uma feature existe no código | `/feature-scout exportar PDF` |
 | `/html-audit` | Auditoria de qualidade frontend (QA) - verifica conformidade com padrões | `/html-audit public/participante/fronts/perfil.html` |
@@ -215,6 +216,24 @@ Comandos disponíveis para invocar diretamente:
 **`/analisar [jogador/setor]`**
 - Cruza dados estatísticos para recomendar escalação
 - Gera cards com Status, Potencial e Veredito (ESCALAR/OBSERVAR/VENDER)
+
+**`/audit-financa [nome_participante]`**
+- Auditoria financeira completa de um participante
+- **Collections consultadas:**
+  - `times` - Dados do participante (ID numérico)
+  - `extratofinanceirocaches` - Saldo das rodadas (`time_id` Number)
+  - `fluxofinanceirocampos` - Campos manuais/prêmios (`timeId` STRING!)
+  - `acertofinanceiros` - Pagamentos/Recebimentos (`timeId` String)
+  - `rodadas` - Histórico de rodadas (`time_id` Number)
+- **Gera relatório com:**
+  - Saldo das rodadas (bônus/ônus)
+  - Campos manuais (Melhor Mês, Pontos Corridos, etc.)
+  - Histórico de acertos (pagamentos/recebimentos)
+  - Saldo final e status (QUITADO/A RECEBER/DEVE)
+- **Lógica dos acertos:**
+  - `pagamento` = participante paga admin → SOMA ao saldo
+  - `recebimento` = admin paga participante → SUBTRAI do saldo
+- **Exemplos:** `/audit-financa Raylson`, `/audit-financa Fucim`
 
 **`/perplexity-search [termo]`**
 - Pesquisa inteligente usando Perplexity MCP (últimas 24-48h)
