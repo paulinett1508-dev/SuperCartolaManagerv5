@@ -1551,10 +1551,10 @@
                 document.getElementById('modalHistorico').classList.add('active');
 
                 try {
-                    // v7.0: Buscar acertos E extrato em paralelo
+                    // v7.1: Buscar acertos E extrato em paralelo COM temporada
                     const [acertosResp, extratoResp] = await Promise.all([
-                        fetch(`/api/tesouraria/participante/${p.ligaId}/${p.timeId}`),
-                        fetch(`/api/extrato-cache/${p.ligaId}/times/${p.timeId}`)
+                        fetch(`/api/tesouraria/participante/${p.ligaId}/${p.timeId}?temporada=${temporadaAtual}`),
+                        fetch(`/api/extrato-cache/${p.ligaId}/times/${p.timeId}?temporada=${temporadaAtual}`)
                     ]);
 
                     const acertosData = await acertosResp.json();
