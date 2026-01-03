@@ -358,6 +358,13 @@ _Quando houver tempo - Melhorias de qualidade de vida_
   - **Implementação:** Middleware com Redis ou in-memory
   - **Prioridade:** Aumenta se houver abuso
 
+- [ ] [QA-001] **Hall da Fama - Debug de renderização**
+  - **Descrição:** Cards não renderizam no frontend (APIs funcionam OK)
+  - **Arquivo:** `public/participante/js/modules/participante-historico.js`
+  - **Debug:** Verificar console do navegador (F12) para logs `[HISTORICO-DEBUG]`
+  - **Possíveis causas:** Erro silencioso em Promise.all, cache corrompido
+  - **Status:** Análise técnica concluída, aguarda debug manual
+
 ---
 
 ## 📦 BACKLOG (Ideias para futuro distante)
