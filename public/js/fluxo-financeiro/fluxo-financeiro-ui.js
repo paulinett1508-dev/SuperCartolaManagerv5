@@ -1890,6 +1890,7 @@ export class FluxoFinanceiroUI {
                         valor,
                         descricao: descricao || `Acerto via Fluxo Financeiro - ${tipoAcertoAtual}`,
                         metodoPagamento: metodo,
+                        temporada: window.temporadaAtual || 2025, // Temporada dinamica
                     })
                 });
 

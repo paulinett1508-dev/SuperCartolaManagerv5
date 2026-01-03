@@ -102,12 +102,21 @@ async function carregarModulos() {
 async function inicializarFluxoFinanceiro() {
     console.log("[FLUXO-ADMIN] 🚀 Inicializando módulo ADMIN");
 
+    // Definir temporada global para uso em acertos (sera atualizado pela API)
+    window.temporadaAtual = window.temporadaAtual || 2025;
+
     try {
         await carregarModulos();
 
         try {
             const status = await getMercadoStatus();
             rodadaAtual = status.rodada_atual || 1;
+
+            // Atualizar temporada global se disponível na API
+            if (status.temporada) {
+                window.temporadaAtual = status.temporada;
+                console.log("[FLUXO-ADMIN] Temporada:", window.temporadaAtual);
+            }
 
             // ✅ FIX: Verificar se temporada encerrou (game_over) ou mercado fechado
             // Se encerrou, usar rodada atual (38). Se não, usar rodada anterior.
@@ -1133,7 +1142,7 @@ window.confirmarAcertoFinanceiro = async function (ligaId, timeId, nomeTime) {
                 metodoPagamento: metodo,
                 dataAcerto: data ? new Date(data).toISOString() : new Date().toISOString(),
                 observacoes: observacoes || null,
-                temporada: "2025",
+                temporada: window.temporadaAtual || 2025,
                 registradoPor: "admin",
             }),
         });

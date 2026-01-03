@@ -4,7 +4,8 @@
  * Endpoints para registrar pagamentos e recebimentos
  * entre participantes e administração (em tempo real).
  *
- * @version 1.5.0
+ * @version 1.6.0
+ * ✅ v1.6.0: FIX - Buscar nomeTime da collection times se não fornecido/genérico
  * ✅ v1.5.0: Campos manuais preservados (histórico completo) - apenas status muda
  * ✅ v1.4.0: FIX CRÍTICO - NÃO DELETAR CACHE DO EXTRATO
  *   - Acertos são armazenados em coleção separada (AcertoFinanceiro)
@@ -21,6 +22,7 @@ import express from "express";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
+import Time from "../models/Time.js";
 
 const router = express.Router();
 
@@ -37,11 +39,19 @@ const router = express.Router();
  */
 async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = 2025) {
     // 1. Buscar saldo consolidado da temporada (do cache)
-    const cache = await ExtratoFinanceiroCache.findOne({ ligaId, timeId });
+    // ✅ v2.0 FIX: Usar campos corretos (liga_id, time_id) e filtrar por temporada
+    const cache = await ExtratoFinanceiroCache.findOne({
+        liga_id: String(ligaId),
+        time_id: Number(timeId),
+        temporada: Number(temporada)
+    });
     const saldoConsolidado = cache?.saldo_consolidado || 0;
 
     // 2. Buscar campos manuais
-    const camposManuais = await FluxoFinanceiroCampos.findOne({ ligaId, timeId });
+    const camposManuais = await FluxoFinanceiroCampos.findOne({
+        ligaId: String(ligaId),
+        timeId: String(timeId)
+    });
     let saldoCampos = 0;
     if (camposManuais?.campos) {
         camposManuais.campos.forEach(campo => {
@@ -229,11 +239,21 @@ router.post("/:ligaId/:timeId", async (req, res) => {
             });
         }
 
-        if (!nomeTime) {
-            return res.status(400).json({
-                success: false,
-                error: "Nome do time é obrigatório",
-            });
+        // ✅ v1.6.0 FIX: Buscar nome real do time se não fornecido ou genérico
+        let nomeTimeFinal = nomeTime;
+        const nomesGenericos = ['Participante', 'Time sem nome', '', null, undefined];
+
+        if (nomesGenericos.includes(nomeTime) || !nomeTime?.trim()) {
+            // Buscar da collection times
+            const time = await Time.findOne({ id: parseInt(timeId) }).lean();
+            if (time?.nome_time) {
+                nomeTimeFinal = time.nome_time;
+                console.log(`[ACERTOS] Nome obtido da collection times: ${nomeTimeFinal}`);
+            } else {
+                // Fallback: usar timeId
+                nomeTimeFinal = `Time ${timeId}`;
+                console.warn(`[ACERTOS] Time ${timeId} não encontrado na collection times`);
+            }
         }
 
         const valorPagamento = parseFloat(valor);
@@ -254,7 +274,7 @@ router.post("/:ligaId/:timeId", async (req, res) => {
             // Se saldo é +50 (credor), dívida = 0
             const dividaAtual = saldoAntes.saldoTotal < 0 ? Math.abs(saldoAntes.saldoTotal) : 0;
 
-            console.log(`[ACERTOS] Verificando troco para ${nomeTime}:`);
+            console.log(`[ACERTOS] Verificando troco para ${nomeTimeFinal}:`);
             console.log(`  - Saldo antes: R$ ${saldoAntes.saldoTotal.toFixed(2)}`);
             console.log(`  - Dívida atual: R$ ${dividaAtual.toFixed(2)}`);
             console.log(`  - Pagamento: R$ ${valorPagamento.toFixed(2)}`);
@@ -269,7 +289,7 @@ router.post("/:ligaId/:timeId", async (req, res) => {
                 acertoTroco = new AcertoFinanceiro({
                     ligaId,
                     timeId,
-                    nomeTime,
+                    nomeTime: nomeTimeFinal,
                     temporada,
                     tipo: "recebimento",
                     valor: valorTroco,
@@ -287,7 +307,7 @@ router.post("/:ligaId/:timeId", async (req, res) => {
         const novoAcerto = new AcertoFinanceiro({
             ligaId,
             timeId,
-            nomeTime,
+            nomeTime: nomeTimeFinal,
             temporada,
             tipo,
             valor: valorPagamento,
@@ -304,7 +324,7 @@ router.post("/:ligaId/:timeId", async (req, res) => {
         // Salvar troco se existir
         if (acertoTroco) {
             await acertoTroco.save();
-            console.log(`[ACERTOS] ✅ Troco de R$ ${valorTroco.toFixed(2)} salvo para ${nomeTime}`);
+            console.log(`[ACERTOS] ✅ Troco de R$ ${valorTroco.toFixed(2)} salvo para ${nomeTimeFinal}`);
         }
 
         // =========================================================================

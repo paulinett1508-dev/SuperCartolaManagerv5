@@ -31,9 +31,12 @@ async function calcularSaldoCompleto(ligaId, timeId, temporada = CURRENT_SEASON)
     // Em vez de confiar no saldo_consolidado que pode estar desatualizado
 
     // 1. Buscar cache e RECALCULAR a partir das rodadas (igual extrato individual)
+    // ✅ v2.2 FIX: Filtrar por temporada para evitar usar cache errado quando
+    // existem múltiplos caches (ex: 2025 e 2026) para o mesmo time
     const cache = await ExtratoFinanceiroCache.findOne({
         liga_id: String(ligaId),
         time_id: Number(timeId),
+        temporada: Number(temporada),
     }).lean();
 
     // ✅ RECALCULAR usando as mesmas funções do extrato individual
