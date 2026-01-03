@@ -4,7 +4,13 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 1.0.0
+ * @version 2.4.0
+ * ✅ v2.4.0: FIX - Invalidar cache COM temporada para evitar inconsistências
+ *   - deleteOne agora inclui temporada no filtro
+ *   - Tipos consistentes: String(ligaId), Number(timeId), Number(temporada)
+ * ✅ v2.3.0: FIX - Usar Number(temporada) em calcularSaldoAcertos
+ * ✅ v2.2.0: Campos manuais preservados (histórico completo)
+ * ✅ v2.1.0: Usar mesma lógica do extrato individual (recalcular de rodadas)
  */
 
 import express from "express";
@@ -61,10 +67,11 @@ async function calcularSaldoCompleto(ligaId, timeId, temporada = CURRENT_SEASON)
     const saldoTemporada = saldoConsolidado;
 
     // 5. Saldo de acertos
+    // ✅ v2.3 FIX: Usar Number para temporada (schema define temporada: Number)
     const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(
         String(ligaId),
         String(timeId),
-        String(temporada)
+        Number(temporada)
     );
 
     // 6. Saldo final
@@ -119,10 +126,11 @@ router.get("/participantes", async (req, res) => {
         }
 
         // ✅ v2.0: Bulk queries para todos os dados
+        // ✅ v2.3 FIX: Usar Number para temporada (schema define temporada: Number)
         const [todosExtratos, todosCampos, todosAcertos] = await Promise.all([
             ExtratoFinanceiroCache.find({ time_id: { $in: allTimeIds } }).lean(),
             FluxoFinanceiroCampos.find({ timeId: { $in: allTimeIds.map(String) } }).lean(),
-            AcertoFinanceiro.find({ temporada: String(temporada) }).lean()
+            AcertoFinanceiro.find({ temporada: Number(temporada), ativo: true }).lean()
         ]);
 
         // Criar mapas para acesso O(1) - chave composta liga_time
@@ -358,9 +366,11 @@ router.get("/liga/:ligaId", async (req, res) => {
             }).lean(),
 
             // 3. Todos os acertos da liga na temporada
+            // ✅ v2.3 FIX: Usar Number para temporada (schema define temporada: Number)
             AcertoFinanceiro.find({
                 ligaId: String(ligaId),
-                temporada: String(temporada)
+                temporada: Number(temporada),
+                ativo: true
             }).lean()
         ]);
 
@@ -562,10 +572,11 @@ router.get("/participante/:ligaId/:timeId", async (req, res) => {
         }
 
         // Calcular saldo completo
-        const saldo = await calcularSaldoCompleto(ligaId, timeId, temporada);
+        // ✅ v2.3 FIX: Usar Number para temporada
+        const saldo = await calcularSaldoCompleto(ligaId, timeId, Number(temporada));
 
         // Buscar histórico de acertos
-        const acertos = await AcertoFinanceiro.buscarPorTime(ligaId, timeId, temporada);
+        const acertos = await AcertoFinanceiro.buscarPorTime(ligaId, timeId, Number(temporada));
 
         // Classificar situação
         let situacao = "quitado";
@@ -729,13 +740,15 @@ router.post("/acerto", async (req, res) => {
             console.log(`[TESOURARIA] ✅ Troco de R$ ${valorTroco.toFixed(2)} salvo`);
         }
 
-        // Invalidar cache do extrato
+        // ✅ v2.4 FIX: Invalidar cache COM temporada para evitar inconsistências
+        // O cache pode ter múltiplos documentos por temporada
         try {
             await ExtratoFinanceiroCache.deleteOne({
-                liga_id: ligaId,
-                time_id: parseInt(timeId, 10) || timeId,
+                liga_id: String(ligaId),
+                time_id: Number(timeId),
+                temporada: Number(temporada),
             });
-            console.log(`[TESOURARIA] ♻️ Cache invalidado para time ${timeId}`);
+            console.log(`[TESOURARIA] ♻️ Cache invalidado para time ${timeId} (temporada ${temporada})`);
         } catch (cacheError) {
             console.warn(`[TESOURARIA] ⚠️ Falha ao invalidar cache:`, cacheError.message);
         }
@@ -809,11 +822,12 @@ router.delete("/acerto/:id", async (req, res) => {
             await acerto.save();
         }
 
-        // Invalidar cache
+        // ✅ v2.4 FIX: Invalidar cache COM temporada
         try {
             await ExtratoFinanceiroCache.deleteOne({
-                liga_id: acerto.ligaId,
-                time_id: parseInt(acerto.timeId, 10) || acerto.timeId,
+                liga_id: String(acerto.ligaId),
+                time_id: Number(acerto.timeId),
+                temporada: Number(acerto.temporada),
             });
         } catch (cacheError) {
             console.warn(`[TESOURARIA] ⚠️ Falha ao invalidar cache:`, cacheError.message);
@@ -913,6 +927,6 @@ router.get("/resumo", async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v2.2 Rotas carregadas (Histórico preservado, apenas status muda)");
+console.log("[TESOURARIA] ✅ v2.3 Rotas carregadas (FIX: temporada Number, seletor frontend)");
 
 export default router;
