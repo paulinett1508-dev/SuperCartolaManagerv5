@@ -46,6 +46,9 @@ import { setupSecurity, authRateLimiter } from "./middleware/security.js";
 
 // 📦 VERSIONAMENTO AUTO
 import { APP_VERSION } from "./config/appVersion.js";
+
+// 📊 MODELS PARA SYNC DE ÍNDICES
+import ExtratoFinanceiroCache from "./models/ExtratoFinanceiroCache.js";
 import { readFile } from "fs/promises";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -416,31 +419,31 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 // ====================================================================
-// 🧹 LIMPEZA DE ÍNDICES ANTIGOS (FIX ERRO E11000)
+// 🔄 SINCRONIZAÇÃO DE ÍNDICES (Mongoose 8.x syncIndexes)
+// Remove índices legados e cria índices definidos no schema
 // ====================================================================
 mongoose.connection.once("open", async () => {
-  console.log("🔧 Verificando índices do banco de dados...");
+  console.log("🔧 Sincronizando índices do banco de dados (Mongoose 8.x)...");
   try {
-    const collection = mongoose.connection.db.collection(
-      "extratofinanceirocaches",
-    );
-    const indexes = await collection.indexes();
-    const indiceAntigo = indexes.find(
-      (idx) => idx.name === "ligaId_1_timeId_1",
-    );
+    // Preview das mudanças antes de aplicar
+    const diff = await ExtratoFinanceiroCache.diffIndexes();
 
-    if (indiceAntigo) {
-      console.log(
-        "🚨 Índice antigo 'ligaId_1_timeId_1' encontrado. Removendo...",
-      );
-      await collection.dropIndex("ligaId_1_timeId_1");
-      console.log("✅ Índice antigo removido com sucesso!");
+    if (diff.toDrop.length > 0 || diff.toCreate.length > 0) {
+      console.log("📋 Índices a remover:", diff.toDrop);
+      console.log("📋 Índices a criar:", diff.toCreate);
+
+      // Sincroniza: remove extras, cria faltantes
+      const dropped = await ExtratoFinanceiroCache.syncIndexes();
+      if (dropped.length > 0) {
+        console.log("✅ Índices removidos:", dropped);
+      }
+      console.log("✅ Índices sincronizados com sucesso!");
     } else {
-      console.log("✅ Nenhum índice conflitante encontrado.");
+      console.log("✅ Índices já estão sincronizados.");
     }
   } catch (error) {
     if (error.codeName !== "NamespaceNotFound") {
-      console.error("⚠️ Erro na verificação de índices:", error.message);
+      console.error("⚠️ Erro na sincronização de índices:", error.message);
     }
   }
 

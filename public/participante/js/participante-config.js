@@ -12,8 +12,9 @@ const PREVIOUS_SEASON = 2025;
 // 'preparando' = Brasileirao nao iniciou, modulos bloqueados
 const SEASON_STATUS = 'preparando';
 
-// Data prevista para inicio (usado no modal Vem Ai)
-const SEASON_START_DATE = '2026-01-28';
+// Datas importantes da temporada 2026
+const MARKET_OPEN_DATE = '2026-01-12';  // Abertura do mercado Cartola FC
+const SEASON_START_DATE = '2026-01-28'; // Inicio do Brasileirao
 
 // Feature flags
 const FEATURES = {
@@ -46,6 +47,7 @@ window.ParticipanteConfig = {
     CURRENT_SEASON,
     PREVIOUS_SEASON,
     SEASON_STATUS,
+    MARKET_OPEN_DATE,
     SEASON_START_DATE,
     FEATURES,
     BADGES_CONFIG,
@@ -53,10 +55,27 @@ window.ParticipanteConfig = {
     // Helpers
     isPreparando: () => SEASON_STATUS === 'preparando',
     isAtiva: () => SEASON_STATUS === 'ativa',
+
+    // Contagem regressiva ate abertura do mercado
+    getMarketCountdown: () => {
+        const open = new Date(MARKET_OPEN_DATE);
+        const now = new Date();
+        const diff = Math.ceil((open - now) / (1000 * 60 * 60 * 24));
+        return diff > 0 ? diff : 0;
+    },
+
+    // Contagem regressiva ate inicio do Brasileirao
     getCountdownDays: () => {
         const start = new Date(SEASON_START_DATE);
         const now = new Date();
         const diff = Math.ceil((start - now) / (1000 * 60 * 60 * 24));
         return diff > 0 ? diff : 0;
+    },
+
+    // Verifica se mercado ja abriu
+    isMarketOpen: () => {
+        const open = new Date(MARKET_OPEN_DATE);
+        const now = new Date();
+        return now >= open;
     }
 };

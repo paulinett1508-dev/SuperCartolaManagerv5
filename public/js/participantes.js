@@ -1076,7 +1076,8 @@ async function verDadosGlobo(timeId, nomeCartoleiro, nomeTime, btnElement) {
 
     try {
         // Buscar dados do Data Lake com histórico completo
-        const response = await fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50`);
+        // Temporada 2025 (histórico) - TODO: tornar dinâmico via seletor de temporada
+        const response = await fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50&temporada=2025`);
         const data = await response.json();
 
         // Criar modal
@@ -1116,7 +1117,8 @@ async function carregarRodadaEspecifica(timeId, rodada) {
     `;
 
     try {
-        const response = await fetch(`/api/data-lake/raw/${timeId}?rodada=${rodada}&historico=false`);
+        // Temporada 2025 (histórico) - TODO: tornar dinâmico via seletor de temporada
+        const response = await fetch(`/api/data-lake/raw/${timeId}?rodada=${rodada}&historico=false&temporada=2025`);
         const data = await response.json();
 
         if (!data.success) {

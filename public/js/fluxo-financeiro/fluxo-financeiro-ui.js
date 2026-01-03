@@ -6,7 +6,8 @@ import {
 import { formatarMoedaBR, parseMoedaBR } from "./fluxo-financeiro-utils.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v5.4 (SaaS - Config Dinâmica)
+ * FLUXO-FINANCEIRO-UI.JS - v5.5 (Sincronização de Temporada)
+ * ✅ v5.5: FIX - Passar temporada em todas as requisições de API
  * ✅ v5.4: Remove liga ID hardcoded - usa config dinâmica para determinar fases
  * ✅ v5.3: Botão "Acerto" para registrar pagamentos/recebimentos
  * ✅ v5.1: Função renderizarRelatorioConsolidado + botão Voltar
@@ -236,9 +237,11 @@ export class FluxoFinanceiroUI {
         `;
 
         // Buscar dados de saldo da API de tesouraria
+        // ✅ v5.5 FIX: Passar temporada para sincronizar com outras telas
         let dadosSaldo = null;
         try {
-            const response = await fetch(`/api/tesouraria/liga/${ligaId}`);
+            const temporada = window.temporadaAtual || 2025;
+            const response = await fetch(`/api/tesouraria/liga/${ligaId}?temporada=${temporada}`);
             if (response.ok) {
                 dadosSaldo = await response.json();
             }
@@ -2026,9 +2029,11 @@ export class FluxoFinanceiroUI {
         };
 
         // Histórico de acertos
+        // ✅ v5.5 FIX: Passar temporada
         window.abrirHistoricoAcertos = async (timeId, ligaIdParam) => {
             try {
-                const response = await fetch(`/api/tesouraria/participante/${ligaIdParam}/${timeId}`);
+                const temporada = window.temporadaAtual || 2025;
+                const response = await fetch(`/api/tesouraria/participante/${ligaIdParam}/${timeId}?temporada=${temporada}`);
                 const data = await response.json();
 
                 if (!data.success) throw new Error(data.error);

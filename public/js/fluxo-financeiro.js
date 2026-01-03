@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v6.5"; // v6.5: Fix - Troco (saldo positivo) mostra A RECEBER, não QUITADO
+const CACHE_BUSTER = "v7.2"; // v7.2: FIX - Temporada em todas as requisições de API (sincronização 3 telas)
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -856,9 +856,11 @@ async function carregarHistoricoAcertos(ligaId, timeId) {
 
     try {
         // ✅ v6.4: Buscar acertos E extrato em paralelo para mostrar saldo FINAL
+        // ✅ v7.1 FIX: Passar temporada nas requisições
+        const temporada = window.temporadaAtual || 2025;
         const [acertosResponse, extratoResponse] = await Promise.all([
-            fetch(`/api/acertos/${ligaId}/${timeId}`),
-            fetch(`/api/extrato-cache/${ligaId}/times/${timeId}`)
+            fetch(`/api/acertos/${ligaId}/${timeId}?temporada=${temporada}`),
+            fetch(`/api/extrato-cache/${ligaId}/times/${timeId}?temporada=${temporada}`)
         ]);
 
         const result = await acertosResponse.json();
@@ -1460,10 +1462,12 @@ function mostrarToastAcerto(mensagem, sucesso) {
 
 /**
  * Lista acertos de um participante (para exibição no admin)
+ * ✅ v7.1 FIX: Passar temporada
  */
 window.listarAcertosParticipante = async function (ligaId, timeId) {
     try {
-        const response = await fetch(`/api/acertos/${ligaId}/${timeId}`);
+        const temporada = window.temporadaAtual || 2025;
+        const response = await fetch(`/api/acertos/${ligaId}/${timeId}?temporada=${temporada}`);
         const result = await response.json();
 
         if (!result.success) {
@@ -1481,4 +1485,4 @@ window.listarAcertosParticipante = async function (ligaId, timeId) {
     }
 };
 
-console.log("[FLUXO-ADMIN] ✅ v5.2 carregado (Acertos Financeiros)");
+console.log("[FLUXO-ADMIN] ✅ v7.1 carregado (FIX: temporada em todas as requisições)");

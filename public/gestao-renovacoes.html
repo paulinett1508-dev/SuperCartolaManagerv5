@@ -791,6 +791,19 @@
                 overflow-y: auto;
             }
 
+            /* Sistema de Abas do Modal v8.0 */
+            .modal-tab {
+                transition: all 0.2s ease;
+            }
+            .modal-tab:hover {
+                background: rgba(255,255,255,0.05) !important;
+            }
+            .modal-tab.active {
+                background: rgba(16,185,129,0.1) !important;
+                border-bottom: 2px solid #10b981 !important;
+                color: #10b981 !important;
+            }
+
             .historico-item {
                 padding: 12px;
                 border-bottom: 1px solid #2d2d2d;
@@ -967,6 +980,13 @@
                     <!-- Filtros -->
                     <div class="filtros-section">
                         <div class="filtro-group">
+                            <label>Temporada:</label>
+                            <select id="filtroTemporada" onchange="trocarTemporada()">
+                                <option value="2025">2025</option>
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+                        <div class="filtro-group">
                             <label>Liga:</label>
                             <select id="filtroLiga">
                                 <option value="">Todas</option>
@@ -1034,92 +1054,134 @@
             </main>
         </div>
 
-        <!-- Modal de Acerto -->
+        <!-- Modal de Acerto - v8.0: Com Sistema de Abas (Novo Acerto + Histórico) -->
         <div class="modal-overlay" id="modalAcerto">
-            <div class="modal-content">
+            <div class="modal-content" style="max-height: 90vh; display: flex; flex-direction: column;">
                 <div class="modal-header">
                     <h3>
-                        <span class="material-icons" style="color: #10b981;">payments</span>
-                        Registrar Acerto
+                        <span class="material-icons" style="color: #fbbf24;">payments</span>
+                        Acertos Financeiros
                     </h3>
                     <button class="modal-close" onclick="fecharModal('modalAcerto')">
                         <span class="material-icons">close</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <!-- Info do Participante -->
-                    <div class="modal-participante-info">
-                        <img id="modalEscudo" src="" alt="">
-                        <div class="info">
-                            <h4 id="modalNomeTime">-</h4>
-                            <span id="modalLiga">-</span>
-                        </div>
-                        <div class="saldo">
-                            <div class="label">Saldo Atual</div>
-                            <div class="valor" id="modalSaldoAtual">R$ 0,00</div>
-                        </div>
+
+                <!-- Info do Participante (sempre visível) -->
+                <div class="modal-participante-info" style="margin: 0 20px; border-radius: 8px 8px 0 0;">
+                    <img id="modalEscudo" src="" alt="">
+                    <div class="info">
+                        <h4 id="modalNomeTime">-</h4>
+                        <span id="modalLiga">-</span>
                     </div>
-
-                    <!-- Botao Zerar Saldo (so aparece se tiver saldo) -->
-                    <button class="btn-zerar-saldo" id="btnZerarSaldo" onclick="zerarSaldo()" style="display: none;">
-                        <span class="material-icons">balance</span>
-                        Acertar valor exato para zerar saldo
-                    </button>
-
-                    <!-- Tipo de Acerto -->
-                    <div class="modal-form-group">
-                        <label>Tipo de Acerto</label>
-                        <div class="tipo-acerto-options">
-                            <div class="tipo-acerto-option pagamento selected" onclick="selecionarTipo('pagamento')">
-                                <span class="material-icons">arrow_downward</span>
-                                <span>Pagamento</span>
-                                <small style="font-size: 0.65rem; color: #6b7280;">Participante pagou</small>
-                            </div>
-                            <div class="tipo-acerto-option recebimento" onclick="selecionarTipo('recebimento')">
-                                <span class="material-icons">arrow_upward</span>
-                                <span>Recebimento</span>
-                                <small style="font-size: 0.65rem; color: #6b7280;">Participante recebeu</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Valor -->
-                    <div class="modal-form-group">
-                        <label>Valor</label>
-                        <div class="input-prefix">
-                            <input type="number" id="modalValor" step="0.01" min="0.01" placeholder="0,00">
-                        </div>
-                    </div>
-
-                    <!-- Metodo -->
-                    <div class="modal-form-group">
-                        <label>Metodo</label>
-                        <select id="modalMetodo">
-                            <option value="pix">PIX</option>
-                            <option value="transferencia">Transferencia</option>
-                            <option value="dinheiro">Dinheiro</option>
-                            <option value="outro">Outro</option>
-                        </select>
-                    </div>
-
-                    <!-- Descricao -->
-                    <div class="modal-form-group">
-                        <label>Descricao</label>
-                        <input type="text" id="modalDescricao" placeholder="Ex: Acerto mensalidade janeiro">
-                    </div>
-
-                    <!-- Observacoes -->
-                    <div class="modal-form-group">
-                        <label>Observacoes (opcional)</label>
-                        <textarea id="modalObservacoes" placeholder="Informacoes adicionais..."></textarea>
+                    <div class="saldo">
+                        <div class="label">Saldo Atual</div>
+                        <div class="valor" id="modalSaldoAtual">R$ 0,00</div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn-modal cancelar" onclick="fecharModal('modalAcerto')">Cancelar</button>
-                    <button class="btn-modal confirmar" onclick="confirmarAcerto()">
-                        <span class="material-icons">check</span>
-                        Registrar
+
+                <!-- Sistema de Abas -->
+                <div class="modal-tabs" style="display: flex; border-bottom: 1px solid #2d2d2d; flex-shrink: 0;">
+                    <button id="tabNovoAcertoGR" onclick="trocarAbaAcertoGR('novo')" class="modal-tab active"
+                            style="flex: 1; padding: 12px 16px; background: rgba(16,185,129,0.1); border: none; border-bottom: 2px solid #10b981; color: #10b981; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <span class="material-icons" style="font-size: 18px;">add_circle</span>
+                        Novo Acerto
                     </button>
+                    <button id="tabHistoricoGR" onclick="trocarAbaAcertoGR('historico')" class="modal-tab"
+                            style="flex: 1; padding: 12px 16px; background: transparent; border: none; border-bottom: 2px solid transparent; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <span class="material-icons" style="font-size: 18px;">history</span>
+                        Histórico
+                    </button>
+                </div>
+
+                <!-- Conteúdo das Abas -->
+                <div style="flex: 1; overflow-y: auto;">
+
+                    <!-- Aba: Novo Acerto -->
+                    <div id="conteudoNovoAcertoGR" class="modal-body" style="display: block;">
+                        <!-- Botao Zerar Saldo (so aparece se tiver saldo) -->
+                        <button class="btn-zerar-saldo" id="btnZerarSaldo" onclick="zerarSaldo()" style="display: none;">
+                            <span class="material-icons">balance</span>
+                            Acertar valor exato para zerar saldo
+                        </button>
+
+                        <!-- Tipo de Acerto -->
+                        <div class="modal-form-group">
+                            <label>Tipo de Acerto</label>
+                            <div class="tipo-acerto-options">
+                                <div class="tipo-acerto-option pagamento selected" onclick="selecionarTipo('pagamento')">
+                                    <span class="material-icons">arrow_downward</span>
+                                    <span>Pagamento</span>
+                                    <small style="font-size: 0.65rem; color: #6b7280;">Participante pagou</small>
+                                </div>
+                                <div class="tipo-acerto-option recebimento" onclick="selecionarTipo('recebimento')">
+                                    <span class="material-icons">arrow_upward</span>
+                                    <span>Recebimento</span>
+                                    <small style="font-size: 0.65rem; color: #6b7280;">Participante recebeu</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Valor com Máscara Monetária -->
+                        <div class="modal-form-group">
+                            <label>Valor (R$)</label>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 16px; font-weight: 700;">R$</span>
+                                <input type="text" id="modalValorDisplay" placeholder="0,00" oninput="formatarCampoMonetarioGR(this)"
+                                       style="padding-left: 42px; font-size: 20px; font-weight: 700; text-align: right;">
+                                <input type="hidden" id="modalValor" value="0">
+                            </div>
+                        </div>
+
+                        <!-- Metodo + Data (lado a lado) -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="modal-form-group" style="margin-bottom: 0;">
+                                <label>Método</label>
+                                <select id="modalMetodo">
+                                    <option value="pix">PIX</option>
+                                    <option value="transferencia">Transferência</option>
+                                    <option value="dinheiro">Dinheiro</option>
+                                    <option value="outro">Outro</option>
+                                </select>
+                            </div>
+                            <div class="modal-form-group" style="margin-bottom: 0;">
+                                <label>Data</label>
+                                <input type="date" id="modalDataAcerto">
+                            </div>
+                        </div>
+
+                        <!-- Descricao -->
+                        <div class="modal-form-group">
+                            <label>Descrição</label>
+                            <input type="text" id="modalDescricao" placeholder="Ex: Acerto mensalidade janeiro">
+                        </div>
+
+                        <!-- Observacoes -->
+                        <div class="modal-form-group">
+                            <label>Observações (opcional)</label>
+                            <textarea id="modalObservacoes" placeholder="Informações adicionais..."></textarea>
+                        </div>
+
+                        <!-- Botões do formulário -->
+                        <div class="modal-footer" style="padding: 16px 0 0 0; border-top: none;">
+                            <button class="btn-modal cancelar" onclick="fecharModal('modalAcerto')">Cancelar</button>
+                            <button class="btn-modal confirmar" onclick="confirmarAcerto()">
+                                <span class="material-icons">check</span>
+                                Registrar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Aba: Histórico -->
+                    <div id="conteudoHistoricoGR" style="display: none; padding: 20px;">
+                        <div id="historicoAcertosListaGR" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.4);">
+                                <span class="material-icons" style="font-size: 48px; margin-bottom: 12px;">hourglass_empty</span>
+                                <p style="margin: 0;">Carregando histórico...</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -1163,7 +1225,7 @@
             let participanteSelecionado = null;
             let tipoAcertoSelecionado = 'pagamento';
             let ordenacaoAtual = { campo: 'saldoFinal', direcao: 'asc' };
-            let temporadaAtual = 2025; // Sera atualizada pela API
+            let temporadaAtual = 2025; // Default: 2025 (onde estao os dados financeiros)
 
             // Carregar layout (sidebar)
             async function loadLayout() {
@@ -1201,23 +1263,35 @@
                 }
             }
 
+            // Trocar temporada
+            window.trocarTemporada = function() {
+                const select = document.getElementById('filtroTemporada');
+                temporadaAtual = parseInt(select.value);
+                console.log('[TESOURARIA] Trocando para temporada:', temporadaAtual);
+                carregarDados();
+            };
+
             // Carregar dados
             async function carregarDados() {
                 const loading = document.getElementById('loadingOverlay');
                 loading.style.display = 'flex';
 
                 try {
-                    const response = await fetch('/api/tesouraria/participantes');
+                    // v2.3: Passar temporada selecionada na query
+                    const response = await fetch(`/api/tesouraria/participantes?temporada=${temporadaAtual}`);
                     const data = await response.json();
 
                     if (!data.success) throw new Error(data.error);
 
                     participantes = data.participantes || [];
 
-                    // Capturar temporada da API (dinamico)
+                    // Atualizar temporadaAtual da resposta
                     if (data.temporada) {
-                        temporadaAtual = data.temporada;
-                        console.log('[TESOURARIA] Temporada:', temporadaAtual);
+                        temporadaAtual = Number(data.temporada);
+                        console.log('[TESOURARIA] Temporada carregada:', temporadaAtual);
+                        // Sincronizar seletor
+                        const select = document.getElementById('filtroTemporada');
+                        if (select) select.value = temporadaAtual;
                     }
 
                     // Extrair ligas únicas
@@ -1433,6 +1507,256 @@
                 document.getElementById('emptyState').style.display = 'block';
             }
 
+            // =============================================================================
+            // ✅ v8.0: MODAL DE ACERTO COM ABAS (Novo Acerto + Histórico)
+            // =============================================================================
+
+            /**
+             * Formata campo monetário com máscara brasileira (1.234,56)
+             */
+            window.formatarCampoMonetarioGR = function(input) {
+                let valor = input.value.replace(/\D/g, '');
+                if (!valor) {
+                    input.value = '';
+                    document.getElementById('modalValor').value = '0';
+                    return;
+                }
+                let valorNumerico = parseInt(valor, 10) / 100;
+                if (valorNumerico > 999999.99) valorNumerico = 999999.99;
+                const formatado = valorNumerico.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                input.value = formatado;
+                document.getElementById('modalValor').value = valorNumerico.toFixed(2);
+            };
+
+            /**
+             * Troca entre abas do modal (Novo Acerto / Histórico)
+             */
+            window.trocarAbaAcertoGR = function(aba) {
+                const tabNovo = document.getElementById('tabNovoAcertoGR');
+                const tabHistorico = document.getElementById('tabHistoricoGR');
+                const conteudoNovo = document.getElementById('conteudoNovoAcertoGR');
+                const conteudoHistorico = document.getElementById('conteudoHistoricoGR');
+
+                if (aba === 'novo') {
+                    tabNovo.style.cssText = 'flex: 1; padding: 12px 16px; background: rgba(16,185,129,0.1); border: none; border-bottom: 2px solid #10b981; color: #10b981; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;';
+                    tabHistorico.style.cssText = 'flex: 1; padding: 12px 16px; background: transparent; border: none; border-bottom: 2px solid transparent; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;';
+                    conteudoNovo.style.display = 'block';
+                    conteudoHistorico.style.display = 'none';
+                } else {
+                    tabHistorico.style.cssText = 'flex: 1; padding: 12px 16px; background: rgba(16,185,129,0.1); border: none; border-bottom: 2px solid #10b981; color: #10b981; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;';
+                    tabNovo.style.cssText = 'flex: 1; padding: 12px 16px; background: transparent; border: none; border-bottom: 2px solid transparent; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;';
+                    conteudoNovo.style.display = 'none';
+                    conteudoHistorico.style.display = 'block';
+                }
+            };
+
+            /**
+             * ✅ v8.0: Carrega histórico completo na aba Histórico do modal
+             * - Card resumo com saldo
+             * - Seção "Movimentação por Rodada" (accordion)
+             * - Seção "Acertos Financeiros" (accordion)
+             */
+            async function carregarHistoricoAcertosGR(ligaId, timeId) {
+                const container = document.getElementById('historicoAcertosListaGR');
+                if (!container) return;
+
+                try {
+                    // ✅ v8.1 FIX: Usar mesmo endpoint de acertos do fluxo-financeiro.js
+                    const temporada = temporadaAtual || 2025;
+                    const [acertosResp, extratoResp] = await Promise.all([
+                        fetch(`/api/acertos/${ligaId}/${timeId}?temporada=${temporada}`),
+                        fetch(`/api/extrato-cache/${ligaId}/times/${timeId}?temporada=${temporada}`)
+                    ]);
+
+                    const acertosData = await acertosResp.json();
+                    const extratoData = await extratoResp.json();
+
+                    const acertos = acertosData.success ? (acertosData.acertos || []) : [];
+                    const rodadas = extratoData.rodadas || [];
+                    const resumo = extratoData.resumo || {};
+
+                    // Calcular saldos
+                    const saldoFinal = parseFloat(resumo.saldo) || parseFloat(resumo.saldo_final) || participanteSelecionado?.saldoFinal || 0;
+                    const saldoTemporada = parseFloat(resumo.saldo_temporada) || saldoFinal;
+                    const totalPago = acertosData.resumo?.totalPago || 0;
+                    const totalRecebido = acertosData.resumo?.totalRecebido || 0;
+                    const saldoAcertos = totalPago - totalRecebido;
+
+                    // Status do saldo
+                    let txtSaldo, corSaldo;
+                    if (Math.abs(saldoFinal) < 0.01) {
+                        txtSaldo = 'QUITADO'; corSaldo = '#a3a3a3';
+                    } else if (saldoFinal > 0) {
+                        txtSaldo = 'A RECEBER'; corSaldo = '#34d399';
+                    } else {
+                        txtSaldo = 'DEVE'; corSaldo = '#f87171';
+                    }
+
+                    // Filtrar rodadas com movimentação
+                    const rodadasComMov = rodadas.filter(r => {
+                        const s = (r.bonusOnus||0) + (r.pontosCorridos||0) + (r.mataMata||0) + (r.top10||0);
+                        return s !== 0 || r.posicao;
+                    }).sort((a,b) => b.rodada - a.rodada);
+
+                    // Montar HTML
+                    let html = `
+                        <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center;">
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">${txtSaldo}</div>
+                            <div style="font-size: 28px; font-weight: 700; color: ${corSaldo};">${Math.abs(saldoFinal) < 0.01 ? '✓' : 'R$ ' + Math.abs(saldoFinal).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); text-align: left; font-size: 12px;">
+                                <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                                    <span style="color: rgba(255,255,255,0.6);">Saldo Jogo:</span>
+                                    <span style="color: ${saldoTemporada >= 0 ? '#34d399' : '#f87171'}; font-weight: 600;">${saldoTemporada >= 0 ? '+' : '-'}R$ ${Math.abs(saldoTemporada).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                                    <span style="color: rgba(255,255,255,0.6);">Acertos (${acertos.length}):</span>
+                                    <span style="color: ${saldoAcertos >= 0 ? '#34d399' : '#f87171'}; font-weight: 600;">${saldoAcertos >= 0 ? '+' : '-'}R$ ${Math.abs(saldoAcertos).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Seção: Rodadas
+                    if (rodadasComMov.length > 0) {
+                        html += `
+                            <div style="margin-bottom: 16px;">
+                                <button onclick="toggleAccordionHistGR('rodadas')" style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span class="material-icons" style="font-size: 18px; color: #fbbf24;">sports_soccer</span>
+                                        <span style="font-size: 13px; font-weight: 600; color: #fff;">Movimentação por Rodada</span>
+                                        <span style="font-size: 11px; color: rgba(255,255,255,0.5);">(${rodadasComMov.length})</span>
+                                    </div>
+                                    <span class="material-icons" id="iconAccordHistGRRodadas" style="font-size: 18px; color: rgba(255,255,255,0.5); transition: transform 0.2s;">expand_more</span>
+                                </button>
+                                <div id="accordHistGRRodadas" style="display: none; margin-top: 8px; max-height: 300px; overflow-y: auto;">
+                                    ${renderizarRodadasHistGR(rodadasComMov)}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    // Seção: Acertos Financeiros
+                    html += `
+                        <div style="margin-bottom: 8px;">
+                            <button onclick="toggleAccordionHistGR('acertos')" style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-icons" style="font-size: 18px; color: #34d399;">payments</span>
+                                    <span style="font-size: 13px; font-weight: 600; color: #fff;">Acertos Financeiros</span>
+                                    <span style="font-size: 11px; color: rgba(255,255,255,0.5);">(${acertos.length})</span>
+                                </div>
+                                <span class="material-icons" id="iconAccordHistGRAcertos" style="font-size: 18px; color: rgba(255,255,255,0.5); transition: transform 0.2s; transform: rotate(180deg);">expand_more</span>
+                            </button>
+                            <div id="accordHistGRAcertos" style="display: block; margin-top: 8px; max-height: 300px; overflow-y: auto;">
+                    `;
+
+                    if (acertos.length === 0) {
+                        html += `
+                            <div style="text-align: center; padding: 24px 16px; color: rgba(255,255,255,0.4);">
+                                <span class="material-icons" style="font-size: 32px; margin-bottom: 8px;">receipt_long</span>
+                                <p style="margin: 0; font-size: 13px;">Nenhum acerto registrado</p>
+                            </div>
+                        `;
+                    } else {
+                        acertos.forEach(a => {
+                            const isPag = a.tipo === 'pagamento';
+                            const cor = isPag ? '#34d399' : '#f87171';
+                            const icone = isPag ? 'arrow_upward' : 'arrow_downward';
+                            const sinal = isPag ? '+' : '-';
+                            const dt = a.dataAcerto ? new Date(a.dataAcerto).toLocaleDateString('pt-BR') : '--';
+                            const metodo = a.metodoPagamento ? a.metodoPagamento.toUpperCase() : '';
+
+                            html += `
+                                <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; border-left: 3px solid ${cor}; display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: ${isPag ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <span class="material-icons" style="font-size: 16px; color: ${cor};">${icone}</span>
+                                    </div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-size: 13px; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.descricao || 'Acerto'}</div>
+                                        <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px;">${dt} ${metodo ? '• ' + metodo : ''}</div>
+                                    </div>
+                                    <div style="font-size: 14px; font-weight: 700; color: ${cor};">${sinal}R$ ${a.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    html += '</div></div>';
+                    container.innerHTML = html;
+
+                } catch (error) {
+                    console.error('[ACERTOS-GR] Erro ao carregar histórico:', error);
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.4);">
+                            <span class="material-icons" style="font-size: 48px; margin-bottom: 12px; color: #f87171;">error</span>
+                            <p style="margin: 0; font-size: 14px;">Erro ao carregar histórico</p>
+                        </div>
+                    `;
+                }
+            }
+
+            /**
+             * Renderiza cards de rodadas no histórico (estilo compacto)
+             */
+            function renderizarRodadasHistGR(rodadas) {
+                if (!rodadas || rodadas.length === 0) {
+                    return `
+                        <div style="text-align: center; padding: 24px 16px; color: rgba(255,255,255,0.4);">
+                            <span class="material-icons" style="font-size: 32px; margin-bottom: 8px;">sports_soccer</span>
+                            <p style="margin: 0; font-size: 13px;">Nenhuma movimentação</p>
+                        </div>
+                    `;
+                }
+
+                return rodadas.map(r => {
+                    const banco = r.bonusOnus || r.banco || 0;
+                    const pc = r.pontosCorridos || 0;
+                    const mm = r.mataMata || 0;
+                    const top10 = r.top10 || 0;
+                    const saldo = banco + pc + mm + top10;
+                    const positivo = saldo >= 0;
+                    const cor = positivo ? '#34d399' : '#f87171';
+                    const bgCor = positivo ? 'rgba(52,211,153,0.08)' : 'rgba(248,113,113,0.08)';
+                    const borderCor = positivo ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.3)';
+
+                    let badges = [];
+                    if (banco !== 0) badges.push(`<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(251,191,36,0.15); color: ${banco >= 0 ? '#fbbf24' : '#f87171'}; font-weight: 600;">BANCO ${banco >= 0 ? '+' : ''}${banco}</span>`);
+                    if (pc !== 0) badges.push(`<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(52,211,153,0.15); color: ${pc >= 0 ? '#34d399' : '#f87171'}; font-weight: 600;">PC ${pc >= 0 ? '+' : ''}${pc}</span>`);
+                    if (mm !== 0) badges.push(`<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(167,139,250,0.15); color: ${mm >= 0 ? '#a78bfa' : '#f87171'}; font-weight: 600;">MM ${mm >= 0 ? '+' : ''}${mm}</span>`);
+                    if (top10 !== 0) {
+                        const isMito = top10 > 0;
+                        badges.push(`<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: ${isMito ? 'rgba(251,191,36,0.15)' : 'rgba(248,113,113,0.15)'}; color: ${isMito ? '#fbbf24' : '#f87171'}; font-weight: 600;">${isMito ? 'MITO' : 'MICO'} ${top10 >= 0 ? '+' : ''}${top10}</span>`);
+                    }
+
+                    return `
+                        <div style="background: ${bgCor}; border-radius: 8px; padding: 10px 12px; border-left: 3px solid ${borderCor}; margin-bottom: 6px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 12px; font-weight: 700; color: #fff;">R${r.rodada}</span>
+                                    <span style="font-size: 10px; color: rgba(255,255,255,0.5);">${r.posicao ? r.posicao + 'º lugar' : '-'}</span>
+                                </div>
+                                <span style="font-size: 14px; font-weight: 700; color: ${cor};">${positivo ? '+' : ''}R$ ${Math.abs(saldo).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">${badges.join('')}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            /**
+             * Toggle accordion no histórico (versão GR)
+             */
+            window.toggleAccordionHistGR = function(tipo) {
+                const el = document.getElementById(`accordHistGR${tipo === 'rodadas' ? 'Rodadas' : 'Acertos'}`);
+                const icon = document.getElementById(`iconAccordHistGR${tipo === 'rodadas' ? 'Rodadas' : 'Acertos'}`);
+                if (!el || !icon) return;
+                const vis = el.style.display !== 'none';
+                el.style.display = vis ? 'none' : 'block';
+                icon.style.transform = vis ? 'rotate(0deg)' : 'rotate(180deg)';
+            };
+
             // Modal de Acerto
             window.abrirModalAcerto = function(p) {
                 participanteSelecionado = p;
@@ -1450,13 +1774,21 @@
                 btnZerar.style.display = Math.abs(p.saldoFinal) > 0.01 ? 'flex' : 'none';
 
                 // Resetar form
-                document.getElementById('modalValor').value = '';
+                document.getElementById('modalValor').value = '0';
+                document.getElementById('modalValorDisplay').value = '';
                 document.getElementById('modalDescricao').value = '';
                 document.getElementById('modalObservacoes').value = '';
                 document.getElementById('modalMetodo').value = 'pix';
+                document.getElementById('modalDataAcerto').value = new Date().toISOString().split('T')[0];
                 selecionarTipo('pagamento');
 
+                // Resetar para aba "Novo Acerto"
+                trocarAbaAcertoGR('novo');
+
                 document.getElementById('modalAcerto').classList.add('active');
+
+                // Pré-carregar histórico em background
+                carregarHistoricoAcertosGR(p.ligaId, p.timeId);
             }
 
             window.selecionarTipo = function(tipo) {
@@ -1477,14 +1809,19 @@
 
                 // Se devedor (saldo negativo), precisa pagar
                 // Se credor (saldo positivo), precisa receber
+                const valorAbs = Math.abs(saldo);
+                const valorFormatado = valorAbs.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
                 if (saldo < 0) {
                     selecionarTipo('pagamento');
-                    document.getElementById('modalValor').value = Math.abs(saldo).toFixed(2);
-                    document.getElementById('modalDescricao').value = 'Quitacao de divida';
+                    document.getElementById('modalValor').value = valorAbs.toFixed(2);
+                    document.getElementById('modalValorDisplay').value = valorFormatado;
+                    document.getElementById('modalDescricao').value = 'Quitação de dívida';
                 } else {
                     selecionarTipo('recebimento');
-                    document.getElementById('modalValor').value = saldo.toFixed(2);
-                    document.getElementById('modalDescricao').value = 'Resgate de credito';
+                    document.getElementById('modalValor').value = valorAbs.toFixed(2);
+                    document.getElementById('modalValorDisplay').value = valorFormatado;
+                    document.getElementById('modalDescricao').value = 'Resgate de crédito';
                 }
             }
 
@@ -1495,9 +1832,10 @@
                 const descricao = document.getElementById('modalDescricao').value;
                 const observacoes = document.getElementById('modalObservacoes').value;
                 const metodo = document.getElementById('modalMetodo').value;
+                const dataAcerto = document.getElementById('modalDataAcerto')?.value;
 
                 if (!valor || isNaN(valor) || valor <= 0) {
-                    alert('Informe um valor valido');
+                    alert('Informe um valor válido');
                     return;
                 }
 
@@ -1514,6 +1852,7 @@
                             descricao: descricao || `Acerto via Tesouraria - ${tipoAcertoSelecionado}`,
                             metodoPagamento: metodo,
                             observacoes,
+                            dataAcerto: dataAcerto || new Date().toISOString(),
                             temporada: temporadaAtual, // Usa temporada dinamica da API
                         })
                     });
@@ -1522,8 +1861,6 @@
 
                     if (!data.success) throw new Error(data.error);
 
-                    fecharModal('modalAcerto');
-
                     // Mostrar mensagem de sucesso
                     let msg = data.message;
                     if (data.troco) {
@@ -1531,8 +1868,33 @@
                     }
                     alert(msg);
 
-                    // Recarregar dados
+                    // Recarregar histórico no modal (atualiza aba Histórico)
+                    await carregarHistoricoAcertosGR(participanteSelecionado.ligaId, participanteSelecionado.timeId);
+
+                    // Recarregar dados da tabela principal
                     await carregarDados();
+
+                    // Atualizar saldo exibido no modal
+                    const novoParticipante = participantesFiltrados.find(p => p.timeId === participanteSelecionado.timeId && p.ligaId === participanteSelecionado.ligaId);
+                    if (novoParticipante) {
+                        participanteSelecionado = novoParticipante;
+                        const saldoAtual = document.getElementById('modalSaldoAtual');
+                        saldoAtual.textContent = formatarMoedaComSinal(novoParticipante.saldoFinal);
+                        saldoAtual.className = `valor ${getSaldoClass(novoParticipante.saldoFinal)}`;
+                        
+                        // Atualizar botão zerar saldo
+                        const btnZerar = document.getElementById('btnZerarSaldo');
+                        btnZerar.style.display = Math.abs(novoParticipante.saldoFinal) > 0.01 ? 'flex' : 'none';
+                    }
+
+                    // Limpar formulário para novo acerto
+                    document.getElementById('modalValor').value = '0';
+                    document.getElementById('modalValorDisplay').value = '';
+                    document.getElementById('modalDescricao').value = '';
+                    document.getElementById('modalObservacoes').value = '';
+
+                    // Mudar para aba Histórico após registrar
+                    trocarAbaAcertoGR('historico');
 
                 } catch (error) {
                     alert('Erro: ' + error.message);

@@ -41,9 +41,11 @@ export class FluxoFinanceiroCore {
     }
 
     // ✅ v6.1: Buscar acertos financeiros do participante
+    // ✅ v6.2 FIX: Passar temporada para sincronização
     async _buscarAcertosFinanceiros(ligaId, timeId) {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/acertos/${ligaId}/${timeId}`);
+            const temporada = window.temporadaAtual || 2025;
+            const response = await fetch(`${API_BASE_URL}/api/acertos/${ligaId}/${timeId}?temporada=${temporada}`);
             const result = await response.json();
 
             if (!result.success || !result.acertos || result.acertos.length === 0) {
@@ -1027,4 +1029,4 @@ window.forcarRefreshExtrato = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-CORE] ✅ v6.1 FIX Acertos Financeiros carregado");
+console.log("[FLUXO-CORE] ✅ v6.2 FIX Temporada em requisições carregado");

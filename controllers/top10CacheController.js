@@ -1,5 +1,7 @@
 // controllers/top10CacheController.js
 import Top10Cache from "../models/Top10Cache.js";
+import mongoose from "mongoose";
+const { ObjectId } = mongoose.Types;
 
 export const salvarCacheTop10 = async (req, res) => {
     try {
@@ -10,9 +12,11 @@ export const salvarCacheTop10 = async (req, res) => {
                 .status(400)
                 .json({ error: "Dados incompletos para cache" });
         }
+        // Converter para ObjectId se for um ID válido
+        const ligaIdQuery = ObjectId.isValid(ligaId) ? new ObjectId(ligaId) : ligaId;
         // Upsert: Atualiza ou Cria
         await Top10Cache.findOneAndUpdate(
-            { liga_id: ligaId, rodada_consolidada: rodada },
+            { liga_id: ligaIdQuery, rodada_consolidada: rodada },
             {
                 mitos,
                 micos,
@@ -36,7 +40,9 @@ export const lerCacheTop10 = async (req, res) => {
     try {
         const { ligaId } = req.params;
         const { rodada } = req.query;
-        const query = { liga_id: ligaId };
+        // Converter para ObjectId se for um ID válido
+        const ligaIdQuery = ObjectId.isValid(ligaId) ? new ObjectId(ligaId) : ligaId;
+        const query = { liga_id: ligaIdQuery };
         if (rodada) query.rodada_consolidada = Number(rodada);
         // Busca o mais recente
         const cache = await Top10Cache.findOne(query).sort({
@@ -61,7 +67,9 @@ export const lerCacheTop10 = async (req, res) => {
 export const limparCacheTop10 = async (req, res) => {
     try {
         const { ligaId } = req.params;
-        const result = await Top10Cache.deleteMany({ liga_id: ligaId });
+        // Converter para ObjectId se for um ID válido
+        const ligaIdQuery = ObjectId.isValid(ligaId) ? new ObjectId(ligaId) : ligaId;
+        const result = await Top10Cache.deleteMany({ liga_id: ligaIdQuery });
         console.log(
             `[CACHE-TOP10] Cache limpo: Liga ${ligaId}, ${result.deletedCount} registros removidos`,
         );

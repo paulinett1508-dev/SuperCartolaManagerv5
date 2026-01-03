@@ -943,12 +943,17 @@ async function buscarMataMata(tempLigaId) {
 async function buscarArtilheiro(tempLigaId) {
     try {
         const res = await fetch(`/api/artilheiro-campeao/${tempLigaId}/ranking`);
-        if (!res.ok) return null;
+        if (!res.ok) {
+            console.log("[ARTILHEIRO-DEBUG] API nao ok:", res.status);
+            return null;
+        }
         const data = await res.json();
         // v9.1 FIX: API retorna data.data.ranking, não data.ranking
         const ranking = data.data?.ranking || data.ranking;
+        console.log("[ARTILHEIRO-DEBUG] timeId buscado:", timeId, "| ranking length:", ranking?.length);
         if (!ranking) return null;
         const meu = ranking.find(t => String(t.time_id) === String(timeId) || String(t.timeId) === String(timeId));
+        console.log("[ARTILHEIRO-DEBUG] Participante encontrado:", meu ? meu.nome : "NAO ENCONTRADO", "| timeIds no ranking:", ranking.map(r => r.timeId));
         if (!meu) return null;
         return {
             posicao: ranking.indexOf(meu) + 1,

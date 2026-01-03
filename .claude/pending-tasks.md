@@ -178,17 +178,25 @@ Implementacao do sistema SaaS multi-tenant com wizard de onboarding.
 
 ## Proximos Passos
 
-### Fase 1: Renovacao (01/01 - 15/03/2026)
+### AUDITORIA FINANCEIRA GERAL (PROXIMA SESSAO)
+- [ ] **AUDITAR TODOS OS PARTICIPANTES** usando o comando `@.claude/commands/audit-financa.md`
+- [ ] Verificar campos manuais (`fluxofinanceirocampos`) para cada participante
+- [ ] Limpar caches duplicados encontrados (problema recorrente do restore)
+- [ ] Garantir que todos os acertos estejam com tipo correto (pagamento/recebimento)
+- [ ] Gerar relatorio consolidado de situacao financeira da liga
+
+### Fase 1: Renovacao (01/01 - 27/01/2026)
 - [ ] Enviar comunicado de renovacao aos participantes
 - [ ] Coletar confirmacoes de renovacao (OPT-IN)
-- [ ] Prazo renovacao: 15/03/2026
+- [ ] Prazo renovacao: **27/01/2026** (antes da 1ª rodada)
 
-### Fase 2: Quitacao (15/03 - 31/03/2026)
+### Fase 2: Quitacao (ate 27/01/2026)
 - [ ] Cobrar taxas de inscricao
-- [ ] Prazo quitacao: 31/03/2026
+- [ ] Prazo quitacao: **27/01/2026**
 
-### Fase 3: Inicio Temporada (Abril 2026)
-- [ ] Aguardar inicio do Brasileirao 2026
+### Fase 3: Inicio Temporada (28/01/2026)
+- [ ] Mercado Cartola: 12/01/2026
+- [ ] **1ª RODADA: 28/01/2026**
 - [ ] Alterar status para 'ativa' em config/seasons.js
 - [ ] Primeira rodada de pontuacao
 
@@ -223,9 +231,14 @@ pkill -f "node.*index.js" && node index.js
 - [x] Leitura mapeada da pasta /docs
 - [x] Roadmap 2026 com contagem regressiva do Mercado
 - [x] Auditoria modulo Ranking Geral (code-inspector)
+- [x] **Auditoria financeira:** Raylson, Fucim, Felipe Santos, Leilson
+- [x] **Fix audit-financa.md:** Incluir campos manuais (fluxofinanceirocampos)
+- [x] **Limpeza caches duplicados:** 3 participantes corrigidos
+- [x] **Sincronizacao temporada:** Todas as APIs financeiras recebem parametro temporada
 - [ ] Pendente: Testar Mata-Mata com adversarios
 - [ ] Pendente: Artilheiro SOBRAL
 - [ ] Pendente: Melhor Rodada
+- [ ] **Pendente: Auditar TODOS os participantes com rigor**
 
 ### Sessao 2026-01-02
 - [x] Investigacao Hall da Fama pos-turn-key

@@ -989,10 +989,35 @@
                         </div>
                     </div>
 
-                    <!-- Countdown -->
-                    <div id="countdown-container" class="mb-4 p-3 rounded-lg bg-black/40 border border-white/10">
-                        <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Brasileirao 2026 comeca em</p>
-                        <p id="countdown-days" class="text-2xl font-brand text-[#FF5500]">-- dias</p>
+                    <!-- Countdown Duplo: Mercado + Brasileirao -->
+                    <div id="countdown-container" class="mb-4 space-y-3">
+                        <!-- Countdown Mercado (principal) -->
+                        <div id="countdown-market" class="p-4 rounded-xl bg-gradient-to-r from-[#FF5500]/20 to-transparent border border-[#FF5500]/40 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-[#FF5500] blur-[60px] opacity-20"></div>
+                            <div class="flex items-center justify-between relative">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-full bg-[#FF5500]/20 flex items-center justify-center border border-[#FF5500]/40">
+                                        <i class="ph-fill ph-shopping-cart text-2xl text-[#FF5500]"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-widest">Mercado Cartola abre em</p>
+                                        <p class="text-xs text-gray-500">12 de Janeiro, 2026</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p id="countdown-market-days" class="text-3xl font-brand text-[#FF5500] leading-none">--</p>
+                                    <p class="text-[10px] text-gray-500 uppercase">dias</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Countdown Brasileirao (secundario) -->
+                        <div class="p-3 rounded-lg bg-black/40 border border-white/10 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i class="ph-fill ph-soccer-ball text-lg text-gray-500"></i>
+                                <p class="text-[10px] text-gray-500 uppercase tracking-widest">Brasileirao 2026</p>
+                            </div>
+                            <p id="countdown-days" class="text-lg font-brand text-gray-400">-- dias</p>
+                        </div>
                     </div>
 
                     <!-- Botao CTA -->
@@ -1008,17 +1033,39 @@
             const overlay = document.getElementById('modal-overlay');
             const card = document.getElementById('modal-card');
 
-            // Atualizar countdown
+            // Atualizar countdowns (Mercado + Brasileirao)
             function atualizarCountdown() {
                 const config = window.ParticipanteConfig;
-                if (config && config.getCountdownDays) {
+                if (!config) return;
+
+                // Countdown Mercado
+                if (config.getMarketCountdown) {
+                    const diasMercado = config.getMarketCountdown();
+                    const marketEl = document.getElementById('countdown-market-days');
+                    const marketContainer = document.getElementById('countdown-market');
+
+                    if (marketEl && marketContainer) {
+                        if (diasMercado > 0) {
+                            marketEl.textContent = diasMercado;
+                        } else {
+                            // Mercado ja abriu - mostrar estado diferente
+                            marketEl.innerHTML = '<i class="ph-fill ph-check-circle"></i>';
+                            marketContainer.querySelector('p.text-\\[10px\\]').textContent = 'MERCADO ABERTO!';
+                            marketContainer.classList.add('border-green-500/40');
+                            marketContainer.classList.remove('border-[#FF5500]/40');
+                        }
+                    }
+                }
+
+                // Countdown Brasileirao
+                if (config.getCountdownDays) {
                     const dias = config.getCountdownDays();
                     const countdownEl = document.getElementById('countdown-days');
                     if (countdownEl) {
                         if (dias > 0) {
                             countdownEl.textContent = dias + (dias === 1 ? ' dia' : ' dias');
                         } else {
-                            countdownEl.textContent = 'Em breve!';
+                            countdownEl.textContent = 'Comecou!';
                         }
                     }
                 }
@@ -1103,15 +1150,21 @@
                     `;
                     document.head.appendChild(fabStyles);
 
-                    // Criar botao flutuante
+                    // Criar botao flutuante com contagem regressiva do mercado
                     const fab = document.createElement('button');
                     fab.id = 'fab-roadmap-2026';
                     fab.className = 'fixed bottom-24 right-4 z-40 px-5 py-3 rounded-2xl bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 text-white flex items-center justify-center gap-3 hover:scale-105 transition-all duration-300 border border-orange-400/30';
+
+                    // Calcular dias ate o mercado
+                    const diasMercado = config.getMarketCountdown ? config.getMarketCountdown() : 0;
+                    const textoContagem = diasMercado > 0 ? `${diasMercado} dias` : 'Aberto!';
+                    const subtitulo = diasMercado > 0 ? 'Mercado abre em' : 'Mercado Cartola';
+
                     fab.innerHTML = `
-                        <span class="material-icons text-2xl fab-icon">emoji_events</span>
+                        <span class="material-icons text-2xl fab-icon">storefront</span>
                         <div class="flex flex-col items-start leading-tight">
-                            <span class="text-[10px] uppercase tracking-wider opacity-80">2026</span>
-                            <span class="text-sm font-bold">Vem ai</span>
+                            <span class="text-[10px] uppercase tracking-wider opacity-80">${subtitulo}</span>
+                            <span class="text-sm font-bold">${textoContagem}</span>
                         </div>
                         <span class="material-icons text-lg opacity-60">arrow_forward</span>
                     `;

@@ -14,13 +14,19 @@ const LuvaDeOuroCore = {
 
     try {
       const config = window.LuvaDeOuroConfig;
+      const ligaId = config.getLigaIdAtual();
+
+      if (!ligaId) {
+        throw new Error("Liga ID não encontrado na URL");
+      }
+
       const params = new URLSearchParams({
         inicio: inicio.toString(),
         ...(fim && { fim: fim.toString() }),
         ...(forcarColeta && { forcar_coleta: "true" }),
       });
 
-      const url = `${config.API.RANKING(config.LIGA_SOBRAL_ID)}?${params}`;
+      const url = `${config.API.RANKING(ligaId)}?${params}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -60,7 +66,9 @@ const LuvaDeOuroCore = {
 
     try {
       const config = window.LuvaDeOuroConfig;
-      const url = config.API.DETECTAR_RODADA(config.LIGA_SOBRAL_ID);
+      const ligaId = config.getLigaIdAtual();
+      if (!ligaId) throw new Error("Liga ID não encontrado na URL");
+      const url = config.API.DETECTAR_RODADA(ligaId);
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -92,9 +100,11 @@ const LuvaDeOuroCore = {
 
     try {
       const config = window.LuvaDeOuroConfig;
+      const ligaId = config.getLigaIdAtual();
+      if (!ligaId) throw new Error("Liga ID não encontrado na URL");
 
       // Construir URL
-      let url = `${config.API.DETALHES_PARTICIPANTE(config.LIGA_SOBRAL_ID, participanteId)}?inicio=${inicio}`;
+      let url = `${config.API.DETALHES_PARTICIPANTE(ligaId, participanteId)}?inicio=${inicio}`;
       if (fim !== null && fim !== undefined && !isNaN(fim)) {
         url += `&fim=${fim}`;
       }
@@ -134,12 +144,15 @@ const LuvaDeOuroCore = {
 
     try {
       const config = window.LuvaDeOuroConfig;
+      const ligaId = config.getLigaIdAtual();
+      if (!ligaId) throw new Error("Liga ID não encontrado na URL");
+
       const params = new URLSearchParams({
         inicio: inicio.toString(),
         ...(fim && { fim: fim.toString() }),
       });
 
-      const url = `${config.API.COLETAR(config.LIGA_SOBRAL_ID)}?${params}`;
+      const url = `${config.API.COLETAR(ligaId)}?${params}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -169,7 +182,9 @@ const LuvaDeOuroCore = {
 
     try {
       const config = window.LuvaDeOuroConfig;
-      const url = config.API.DIAGNOSTICO(config.LIGA_SOBRAL_ID);
+      const ligaId = config.getLigaIdAtual();
+      if (!ligaId) throw new Error("Liga ID não encontrado na URL");
+      const url = config.API.DIAGNOSTICO(ligaId);
       const response = await fetch(url);
 
       if (!response.ok) {

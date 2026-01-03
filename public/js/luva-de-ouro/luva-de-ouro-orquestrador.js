@@ -20,13 +20,21 @@ const LuvaDeOuroOrquestrador = {
 
       // ✅ Usar ID direto do seletor (remover #)
       const contentSelector = config.SELECTORS?.CONTENT || "#luvaDeOuroContent";
-      const container = document.getElementById(
+      let container = document.getElementById(
         contentSelector.replace("#", ""),
       );
 
+      // ✅ Se container nao existe, criar dentro do dynamic-content-area
       if (!container) {
-        console.error("❌ Container não encontrado:", contentSelector);
-        return;
+        const dynamicArea = document.getElementById("dynamic-content-area");
+        if (dynamicArea) {
+          dynamicArea.innerHTML = '<div id="luvaDeOuroContent"></div>';
+          container = document.getElementById("luvaDeOuroContent");
+          console.log("🥅 [LUVA-ORQUESTRADOR] Container criado dinamicamente");
+        } else {
+          // Nenhum container disponivel - comportamento normal
+          return;
+        }
       }
 
       container.innerHTML = window.LuvaDeOuroUI.criarLayoutPrincipal();
@@ -255,9 +263,15 @@ const LuvaDeOuroOrquestrador = {
       });
 
       // ✅ Atualizar status no header (remover "Carregando...")
-      const rodadaInfo = dados.rodadaParcial
-        ? `R1-R${dados.rodadaFim} (R${dados.rodadaParcial} em andamento)`
-        : `R1-R${dados.rodadaFim || rodadaAtual}`;
+      let rodadaInfo;
+      const rodadaFinal = dados.rodadaFim || rodadaAtual;
+      if (rodadaFinal >= 38) {
+        rodadaInfo = `R1-R38 (Temporada Encerrada)`;
+      } else if (dados.rodadaParcial) {
+        rodadaInfo = `R1-R${rodadaFinal} (R${dados.rodadaParcial} em andamento)`;
+      } else {
+        rodadaInfo = `R1-R${rodadaFinal}`;
+      }
       window.LuvaDeOuroUI.atualizarInfoStatus(rodadaInfo);
 
       console.log(
