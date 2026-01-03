@@ -842,8 +842,10 @@ window.trocarAbaAcerto = function (aba) {
 };
 
 /**
- * Carrega histórico de acertos do participante
- * ✅ v5.6: Adicionado botão Deletar com confirmação
+ * ✅ v7.0: Histórico COMPLETO igual extrato individual
+ * - Card resumo com saldo
+ * - Seção "Movimentação por Rodada" (accordion) com banco/PC/MM/Top10
+ * - Seção "Acertos Financeiros" com lista de pagamentos/recebimentos
  */
 async function carregarHistoricoAcertos(ligaId, timeId) {
     const container = document.getElementById("historicoAcertosLista");
@@ -862,110 +864,146 @@ async function carregarHistoricoAcertos(ligaId, timeId) {
         const result = await acertosResponse.json();
         const extratoResult = await extratoResponse.json();
 
-        if (!result.success || !result.acertos || result.acertos.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.4);">
-                    <span class="material-icons" style="font-size: 48px; margin-bottom: 12px;">receipt_long</span>
-                    <p style="margin: 0; font-size: 14px;">Nenhum acerto registrado</p>
-                </div>
-            `;
-            return;
-        }
-
         // Resumo dos acertos
-        const resumoAcertos = result.resumo || {};
+        const resumoAcertos = result.success ? (result.resumo || {}) : {};
         const totalPago = resumoAcertos.totalPago || 0;
         const totalRecebido = resumoAcertos.totalRecebido || 0;
+        const acertosList = result.success ? (result.acertos || []) : [];
+
+        // ✅ v7.0: Extrair dados do extrato (rodadas)
+        const rodadas = extratoResult.rodadas || extratoResult.extrato?.rodadas || [];
+        const resumoExtrato = extratoResult.resumo || extratoResult.extrato?.resumo || {};
 
         // ✅ v6.5: Saldo FINAL vem do extrato (inclui temporada + acertos)
-        // Garantir parsing numérico para evitar comparação com strings
-        const saldoFinal = extratoResult.success
-            ? parseFloat(extratoResult.extrato?.resumo?.saldo) || 0
-            : 0;
-        const saldoTemporada = extratoResult.success
-            ? parseFloat(extratoResult.extrato?.resumo?.saldo_temporada) || 0
-            : 0;
+        const saldoFinal = parseFloat(resumoExtrato.saldo) || parseFloat(resumoExtrato.saldo_final) || 0;
+        const saldoTemporada = parseFloat(resumoExtrato.saldo_temporada) || parseFloat(resumoExtrato.saldo_final) || saldoFinal;
 
-        // ✅ v6.5: Terminologia correta baseada no saldo FINAL
-        // DEVE = saldo negativo, participante ainda deve à liga
-        // A RECEBER = saldo positivo (mesmo que seja troco de R$ 0,54)
-        // QUITADO = saldo EXATAMENTE zero (tolerância de meio centavo)
+        // Terminologia baseada no saldo FINAL
         let txtSaldo, corSaldo;
-        const isZero = Math.abs(saldoFinal) < 0.005; // Menos de meio centavo = zero
+        const isZero = Math.abs(saldoFinal) < 0.005;
 
         if (isZero) {
             txtSaldo = "QUITADO";
-            corSaldo = "#a3a3a3"; // cinza neutro
+            corSaldo = "#a3a3a3";
         } else if (saldoFinal > 0) {
             txtSaldo = "A RECEBER";
-            corSaldo = "#34d399"; // verde
+            corSaldo = "#34d399";
         } else {
             txtSaldo = "DEVE";
-            corSaldo = "#f87171"; // vermelho
+            corSaldo = "#f87171";
         }
 
-        // Cores para o breakdown
         const corTemporada = saldoTemporada >= 0 ? "#34d399" : "#f87171";
         const corAcertos = (totalPago - totalRecebido) >= 0 ? "#34d399" : "#f87171";
 
+        // ===== CARD RESUMO =====
         let html = `
             <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center;">
                 <div style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">${txtSaldo}</div>
                 <div style="font-size: 28px; font-weight: 700; color: ${corSaldo};">${saldoFinal !== 0 ? 'R$ ' + Math.abs(saldoFinal).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : '✓'}</div>
-
-                <!-- Breakdown: Temporada + Acertos = Final -->
                 <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); text-align: left; font-size: 12px;">
                     <div style="display: flex; justify-content: space-between; padding: 4px 0;">
-                        <span style="color: rgba(255,255,255,0.6);">Saldo Financeiro:</span>
+                        <span style="color: rgba(255,255,255,0.6);">Saldo Jogo:</span>
                         <span style="color: ${corTemporada}; font-weight: 600;">${saldoTemporada >= 0 ? '+' : '-'}R$ ${Math.abs(saldoTemporada).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; padding: 4px 0;">
-                        <span style="color: rgba(255,255,255,0.6);">Acertos (${result.acertos.length}):</span>
+                        <span style="color: rgba(255,255,255,0.6);">Acertos (${acertosList.length}):</span>
                         <span style="color: ${corAcertos}; font-weight: 600;">${(totalPago - totalRecebido) >= 0 ? '+' : '-'}R$ ${Math.abs(totalPago - totalRecebido).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                     </div>
                 </div>
             </div>
-            <div style="font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
-                Histórico (${result.acertos.length} ${result.acertos.length === 1 ? "registro" : "registros"})
-            </div>
         `;
 
-        // Lista de acertos com botão deletar
-        // ✅ v1.5 FIX: Corrigir cores e ícones para refletir impacto no saldo
-        // PAGAMENTO = participante PAGOU à liga → AUMENTA saldo (quita dívida) → VERDE/POSITIVO
-        // RECEBIMENTO = participante RECEBEU da liga → DIMINUI saldo (usa crédito) → VERMELHO/NEGATIVO
-        result.acertos.forEach((acerto) => {
-            const isPagamento = acerto.tipo === "pagamento";
-            const cor = isPagamento ? "#34d399" : "#f87171"; // Verde para pagamento (bom), vermelho para recebimento
-            const icone = isPagamento ? "arrow_upward" : "arrow_downward"; // Seta para cima = saldo subiu
-            const sinal = isPagamento ? "+" : "-"; // Pagamento aumenta saldo
-            const tipoLabel = isPagamento ? "PAGOU" : "RECEBEU";
-            const data = acerto.dataAcerto ? new Date(acerto.dataAcerto).toLocaleDateString("pt-BR") : "--";
-            const metodo = acerto.metodoPagamento ? acerto.metodoPagamento.toUpperCase() : "";
-            const descricaoEscapada = (acerto.descricao || "Acerto").replace(/'/g, "\\'");
+        // ===== SEÇÃO: MOVIMENTAÇÃO POR RODADA (ACCORDION) =====
+        const rodadasComMovimento = rodadas.filter(r => {
+            const saldo = (r.bonusOnus || 0) + (r.pontosCorridos || 0) + (r.mataMata || 0) + (r.top10 || 0) + (r.banco || 0);
+            return saldo !== 0 || r.posicao;
+        }).sort((a, b) => b.rodada - a.rodada);
 
+        if (rodadasComMovimento.length > 0) {
             html += `
-                <div id="acerto-item-${acerto._id}" style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 14px; border-left: 3px solid ${cor}; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; position: relative;">
-                    <div style="width: 36px; height: 36px; border-radius: 50%; background: ${isPagamento ? "rgba(248,113,113,0.15)" : "rgba(52,211,153,0.15)"}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <span class="material-icons" style="font-size: 18px; color: ${cor};">${icone}</span>
-                    </div>
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="font-size: 14px; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${acerto.descricao || "Acerto"}</div>
-                        <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px;">${data} ${metodo ? "• " + metodo : ""}</div>
-                    </div>
-                    <div style="text-align: right; flex-shrink: 0; display: flex; align-items: center; gap: 12px;">
-                        <div style="font-size: 16px; font-weight: 700; color: ${cor};">${sinal}R$ ${acerto.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
-                        <button onclick="confirmarDeletarAcerto('${acerto._id}', '${descricaoEscapada}', ${acerto.valor}, '${acerto.tipo}')"
-                                style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 6px 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
-                                onmouseover="this.style.background='rgba(239,68,68,0.2)'; this.style.borderColor='rgba(239,68,68,0.5)';"
-                                onmouseout="this.style.background='rgba(239,68,68,0.1)'; this.style.borderColor='rgba(239,68,68,0.3)';"
-                                title="Excluir acerto">
-                            <span class="material-icons" style="font-size: 16px; color: #f87171;">delete</span>
-                        </button>
+                <div style="margin-bottom: 16px;">
+                    <button onclick="toggleAccordionHistorico('rodadas')"
+                            style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.background='rgba(245,158,11,0.15)';"
+                            onmouseout="this.style.background='rgba(245,158,11,0.1)';">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="material-icons" style="font-size: 18px; color: #fbbf24;">sports_soccer</span>
+                            <span style="font-size: 13px; font-weight: 600; color: #fff;">Movimentação por Rodada</span>
+                            <span style="font-size: 11px; color: rgba(255,255,255,0.5);">(${rodadasComMovimento.length})</span>
+                        </div>
+                        <span class="material-icons" id="iconAccordionRodadas" style="font-size: 18px; color: rgba(255,255,255,0.5); transition: transform 0.2s;">expand_more</span>
+                    </button>
+                    <div id="conteudoAccordionRodadas" style="display: none; margin-top: 8px; max-height: 300px; overflow-y: auto;">
+                        ${renderizarRodadasHistorico(rodadasComMovimento)}
                     </div>
                 </div>
             `;
-        });
+        }
+
+        // ===== SEÇÃO: ACERTOS FINANCEIROS =====
+        html += `
+            <div style="margin-bottom: 8px;">
+                <button onclick="toggleAccordionHistorico('acertos')"
+                        style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); border-radius: 10px; cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.background='rgba(52,211,153,0.15)';"
+                        onmouseout="this.style.background='rgba(52,211,153,0.1)';">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="material-icons" style="font-size: 18px; color: #34d399;">payments</span>
+                        <span style="font-size: 13px; font-weight: 600; color: #fff;">Acertos Financeiros</span>
+                        <span style="font-size: 11px; color: rgba(255,255,255,0.5);">(${acertosList.length})</span>
+                    </div>
+                    <span class="material-icons" id="iconAccordionAcertos" style="font-size: 18px; color: rgba(255,255,255,0.5); transition: transform 0.2s; transform: rotate(180deg);">expand_more</span>
+                </button>
+                <div id="conteudoAccordionAcertos" style="display: block; margin-top: 8px; max-height: 300px; overflow-y: auto;">
+        `;
+
+        if (acertosList.length === 0) {
+            html += `
+                <div style="text-align: center; padding: 24px 16px; color: rgba(255,255,255,0.4);">
+                    <span class="material-icons" style="font-size: 32px; margin-bottom: 8px;">receipt_long</span>
+                    <p style="margin: 0; font-size: 13px;">Nenhum acerto registrado</p>
+                </div>
+            `;
+        } else {
+            // Lista de acertos
+            acertosList.forEach((acerto) => {
+                const isPagamento = acerto.tipo === "pagamento";
+                const cor = isPagamento ? "#34d399" : "#f87171";
+                const icone = isPagamento ? "arrow_upward" : "arrow_downward";
+                const sinal = isPagamento ? "+" : "-";
+                const data = acerto.dataAcerto ? new Date(acerto.dataAcerto).toLocaleDateString("pt-BR") : "--";
+                const metodo = acerto.metodoPagamento ? acerto.metodoPagamento.toUpperCase() : "";
+                const descricaoEscapada = (acerto.descricao || "Acerto").replace(/'/g, "\\'");
+
+                html += `
+                    <div id="acerto-item-${acerto._id}" style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; border-left: 3px solid ${cor}; display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: ${isPagamento ? "rgba(52,211,153,0.15)" : "rgba(248,113,113,0.15)"}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <span class="material-icons" style="font-size: 16px; color: ${cor};">${icone}</span>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-size: 13px; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${acerto.descricao || "Acerto"}</div>
+                            <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px;">${data} ${metodo ? "• " + metodo : ""}</div>
+                        </div>
+                        <div style="text-align: right; flex-shrink: 0; display: flex; align-items: center; gap: 8px;">
+                            <div style="font-size: 14px; font-weight: 700; color: ${cor};">${sinal}R$ ${acerto.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                            <button onclick="confirmarDeletarAcerto('${acerto._id}', '${descricaoEscapada}', ${acerto.valor}, '${acerto.tipo}')"
+                                    style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 5px 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                                    onmouseover="this.style.background='rgba(239,68,68,0.2)';"
+                                    onmouseout="this.style.background='rgba(239,68,68,0.1)';"
+                                    title="Excluir acerto">
+                                <span class="material-icons" style="font-size: 14px; color: #f87171;">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        html += `
+                </div>
+            </div>
+        `;
 
         container.innerHTML = html;
 
@@ -978,6 +1016,85 @@ async function carregarHistoricoAcertos(ligaId, timeId) {
             </div>
         `;
     }
+}
+
+/**
+ * ✅ v7.0: Renderiza cards de rodadas no histórico (estilo compacto)
+ */
+function renderizarRodadasHistorico(rodadas) {
+    if (!rodadas || rodadas.length === 0) {
+        return `
+            <div style="text-align: center; padding: 24px 16px; color: rgba(255,255,255,0.4);">
+                <span class="material-icons" style="font-size: 32px; margin-bottom: 8px;">sports_soccer</span>
+                <p style="margin: 0; font-size: 13px;">Nenhuma movimentação</p>
+            </div>
+        `;
+    }
+
+    return rodadas.map(r => {
+        const banco = r.bonusOnus || r.banco || 0;
+        const pc = r.pontosCorridos || 0;
+        const mm = r.mataMata || 0;
+        const top10 = r.top10 || 0;
+        const saldo = banco + pc + mm + top10;
+        const positivo = saldo >= 0;
+        const cor = positivo ? "#34d399" : "#f87171";
+        const bgCor = positivo ? "rgba(52,211,153,0.08)" : "rgba(248,113,113,0.08)";
+        const borderCor = positivo ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)";
+
+        // Badges para cada componente
+        let badges = [];
+        if (banco !== 0) {
+            const corBanco = banco >= 0 ? "#fbbf24" : "#f87171";
+            badges.push(`<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(251,191,36,0.15); color: ${corBanco}; font-weight: 600;">BANCO ${banco >= 0 ? '+' : ''}${banco}</span>`);
+        }
+        if (pc !== 0) {
+            const corPC = pc >= 0 ? "#34d399" : "#f87171";
+            badges.push(`<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(52,211,153,0.15); color: ${corPC}; font-weight: 600;">PC ${pc >= 0 ? '+' : ''}${pc}</span>`);
+        }
+        if (mm !== 0) {
+            const corMM = mm >= 0 ? "#a78bfa" : "#f87171";
+            badges.push(`<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(167,139,250,0.15); color: ${corMM}; font-weight: 600;">MM ${mm >= 0 ? '+' : ''}${mm}</span>`);
+        }
+        if (top10 !== 0) {
+            const isMito = r.isMito || top10 > 0;
+            const corTop = isMito ? "#fbbf24" : "#f87171";
+            const label = isMito ? "MITO" : "MICO";
+            badges.push(`<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: ${isMito ? 'rgba(251,191,36,0.15)' : 'rgba(248,113,113,0.15)'}; color: ${corTop}; font-weight: 600;">${label} ${top10 >= 0 ? '+' : ''}${top10}</span>`);
+        }
+
+        // Posição
+        const posLabel = r.posicao ? `${r.posicao}º` : "-";
+
+        return `
+            <div style="background: ${bgCor}; border-radius: 8px; padding: 10px 12px; border-left: 3px solid ${borderCor}; margin-bottom: 6px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; font-weight: 700; color: #fff;">R${r.rodada}</span>
+                        <span style="font-size: 10px; color: rgba(255,255,255,0.5);">${posLabel} lugar</span>
+                    </div>
+                    <span style="font-size: 14px; font-weight: 700; color: ${cor};">${positivo ? '+' : ''}R$ ${Math.abs(saldo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                    ${badges.join('')}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * ✅ v7.0: Toggle accordion no histórico
+ */
+window.toggleAccordionHistorico = function(tipo) {
+    const conteudo = document.getElementById(`conteudoAccordion${tipo === 'rodadas' ? 'Rodadas' : 'Acertos'}`);
+    const icone = document.getElementById(`iconAccordion${tipo === 'rodadas' ? 'Rodadas' : 'Acertos'}`);
+
+    if (!conteudo || !icone) return;
+
+    const isVisible = conteudo.style.display !== 'none';
+    conteudo.style.display = isVisible ? 'none' : 'block';
+    icone.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
 }
 
 /**
