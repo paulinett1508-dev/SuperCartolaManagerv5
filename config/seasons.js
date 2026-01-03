@@ -26,17 +26,45 @@ export const SEASON_CONFIG = {
     // Última rodada do campeonato (Brasileirão = 38)
     rodadaFinal: 38,
 
-    // Data de início da temporada (aproximada)
-    dataInicio: new Date(`${CURRENT_SEASON}-04-01`),
+    // ==========================================================================
+    // DATAS CARTOLA FC 2026
+    // ==========================================================================
 
-    // Data de fim da temporada (aproximada)
-    dataFim: new Date(`${CURRENT_SEASON}-12-15`),
+    // Mercado abre (16 dias antes da 1ª rodada)
+    dataMercadoAbre: new Date('2026-01-12'),
+
+    // Primeira rodada do Brasileirão 2026
+    dataPrimeiraRodada: new Date('2026-01-28'),
+
+    // Data de início da temporada (= primeira rodada)
+    dataInicio: new Date('2026-01-28'),
+
+    // Data de fim da temporada (aproximada - dezembro)
+    dataFim: new Date('2026-12-08'),
+
+    // ==========================================================================
+    // REGRAS CARTOLA 2026
+    // ==========================================================================
+
+    // Patrimônio inicial em cartoletas
+    patrimonioInicial: 100,
+
+    // Preços "Bom e Barato" 2026 (mudou de C$5 para novos valores)
+    precosBomEBarato: {
+        goleiro: 6,
+        defensor: 7,
+        meia: 8,
+        atacante: 9,
+    },
 
     // Temporadas anteriores (para consulta histórica)
     historico: [2025],
 
     // Status da temporada atual
-    status: 'preparando', // 'ativa' | 'encerrada' | 'preparando'
+    // 'preparando' = antes da 1ª rodada (mercado pode estar aberto)
+    // 'ativa' = temporada em andamento
+    // 'encerrada' = após última rodada
+    status: 'preparando',
 };
 
 // =============================================================================
