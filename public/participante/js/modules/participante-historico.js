@@ -1,40 +1,46 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v11.1 (HALL DA FAMA - FIX POS-TURN-KEY)
+// PARTICIPANTE-HISTORICO.JS - v12.2 (HALL DA FAMA - FALLBACK ROBUSTO)
 // =====================================================================
+// v12.2: Fallback robusto quando APIs retornam 404 pos-turn-key
+//        - Usa ?? (nullish) em vez de || para preservar 0 como valor valido
+//        - Fallback para melhor_rodada do tempRecente
+//        - Log de warning quando APIs vazias
+// v12.1: Usa liga selecionada no header do app (não tem seletor proprio)
 // v11.1: Fix pos-turn-key - Usar dados do JSON quando APIs estao vazias
 // v11.0: Seletor de Temporadas
-//       - Permite navegar entre temporadas passadas e atual
-//       - Temporadas passadas mostram dados consolidados (imutaveis)
-//       - Temporada atual mostra dados "vivos" do MongoDB
 // v10.5: Status de Inatividade no banner
-// v10.0: TOP10 Historico CORRIGIDO - Logica clara e precisa
+// v10.0: TOP10 Historico CORRIGIDO
 // v9.0+: Filtros por liga, dados reais das APIs
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v11.1 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.2 carregando...");
 
 // Estado do modulo
 let historicoData = null;
 let timeId = null;
-let ligaIdSelecionada = null;
-let temporadaSelecionada = null; // v11.0: Temporada selecionada
-let temporadasDisponiveis = []; // v11.0: Lista de temporadas
+let ligaIdSelecionada = null; // Liga selecionada no header do app
+let temporadaSelecionada = null;
+let temporadasDisponiveis = [];
 
 // =====================================================================
 // FUNCAO PRINCIPAL
 // =====================================================================
 export async function inicializarHistoricoParticipante({ participante, ligaId: _ligaId, timeId: _timeId }) {
+    console.log("[HISTORICO-DEBUG] inicializarHistoricoParticipante CHAMADA", { ligaId: _ligaId, timeId: _timeId });
     if (window.Log) Log.info("HISTORICO", "Inicializando...", { ligaId: _ligaId, timeId: _timeId });
 
     timeId = _timeId;
     ligaIdSelecionada = _ligaId;
+    console.log("[HISTORICO-DEBUG] Variaveis definidas:", { timeId, ligaIdSelecionada, tipoLigaId: typeof _ligaId });
 
     if (!timeId) {
+        console.log("[HISTORICO-DEBUG] timeId INVALIDO - abortando");
         mostrarErro("Dados invalidos");
         return;
     }
 
     if (!ligaIdSelecionada) {
+        console.log("[HISTORICO-DEBUG] ATENCAO: ligaIdSelecionada esta VAZIO/NULL - vai mostrar todas as ligas");
         if (window.Log) Log.warn("HISTORICO", "Liga nao selecionada - mostrando todas");
     }
 
@@ -54,6 +60,7 @@ export async function inicializarHistoricoParticipante({ participante, ligaId: _
         }
 
         historicoData = await response.json();
+        console.log("[HISTORICO-DEBUG] API response:", { success: historicoData.success, temporadas: historicoData.historico?.length, disponiveis: historicoData.temporadas_disponiveis });
         if (!historicoData.success) throw new Error(historicoData.error);
 
         if (window.Log) Log.info("HISTORICO", "Dados:", { temporadas: historicoData.historico?.length });
@@ -67,7 +74,7 @@ export async function inicializarHistoricoParticipante({ participante, ligaId: _
             temporadaSelecionada = temporadasDisponiveis[0]; // Mais recente primeiro
         }
 
-        // v11.0: Popular seletor de temporadas
+        // v12.1: Popular seletor de temporadas (liga vem do header do app)
         popularSeletorTemporadas(temporadasDisponiveis, temporadaAtualBackend);
 
         // Atualizar subtitle com temporada e nome da liga
@@ -83,7 +90,7 @@ export async function inicializarHistoricoParticipante({ participante, ligaId: _
 }
 
 // =====================================================================
-// v11.0: SELETOR DE TEMPORADAS
+// v12.1: SELETOR DE TEMPORADAS (liga vem do header do app)
 // =====================================================================
 function popularSeletorTemporadas(temporadas, temporadaAtual) {
     const seletorContainer = document.getElementById("seletorTemporadas");
@@ -127,7 +134,7 @@ function atualizarSubtitle() {
         temporadas = temporadas.filter(t => t.ano === temporadaSelecionada);
     }
 
-    // Filtrar por liga selecionada
+    // v12.1: Filtrar pela liga selecionada no header do app
     if (ligaIdSelecionada) {
         temporadas = temporadas.filter(t => String(t.liga_id) === String(ligaIdSelecionada));
     }
@@ -142,11 +149,14 @@ function atualizarSubtitle() {
 // RENDERIZAR LIGAS (v11.0: Filtra por temporada e liga)
 // =====================================================================
 async function renderizarTodasLigas() {
+    console.log("[HISTORICO-DEBUG] renderizarTodasLigas CHAMADA");
     const container = document.getElementById("historicoDetalhe");
+    console.log("[HISTORICO-DEBUG] Container encontrado:", !!container);
     if (!container) return;
 
     // v11.0: Validar dados antes de renderizar
     if (!historicoData) {
+        console.log("[HISTORICO-DEBUG] historicoData NULO - abortando");
         if (window.Log) Log.warn("HISTORICO", "historicoData nulo - abortando render");
         mostrarErro("Dados nao carregados");
         return;
@@ -155,27 +165,36 @@ async function renderizarTodasLigas() {
     container.innerHTML = `<div class="loading-state"><span class="material-icons spin">sync</span><span>Carregando dados...</span></div>`;
 
     let temporadas = historicoData.historico || [];
+    console.log("[HISTORICO-DEBUG] Temporadas iniciais:", temporadas.length, temporadas.map(t => ({ ano: t.ano, liga: t.liga_nome })));
 
     // v11.0: Filtrar pela temporada selecionada
     if (temporadaSelecionada) {
         temporadas = temporadas.filter(t => t.ano === temporadaSelecionada);
+        console.log("[HISTORICO-DEBUG] Apos filtro temporada:", temporadaSelecionada, "->", temporadas.length);
         if (window.Log) Log.debug("HISTORICO", `Filtrando por temporada: ${temporadaSelecionada}`, { encontradas: temporadas.length });
     }
 
-    // v9.0: Filtrar pela liga selecionada (se houver)
+    // v12.1: Filtrar pela liga selecionada no header do app
     if (ligaIdSelecionada) {
         temporadas = temporadas.filter(t => String(t.liga_id) === String(ligaIdSelecionada));
-        if (window.Log) Log.debug("HISTORICO", `Filtrando por liga: ${ligaIdSelecionada}`, { encontradas: temporadas.length });
+        console.log("[HISTORICO-DEBUG] Apos filtro liga (header):", ligaIdSelecionada, "->", temporadas.length);
+        if (window.Log) Log.debug("HISTORICO", `Filtrando por liga do header: ${ligaIdSelecionada}`, { encontradas: temporadas.length });
     }
 
-    // Se nao ha historico consolidado para a liga/temporada, buscar dados em tempo real
-    if (temporadas.length === 0 && ligaIdSelecionada) {
-        if (window.Log) Log.info("HISTORICO", "Sem historico consolidado - buscando dados em tempo real");
-        await renderizarDadosTempoReal(ligaIdSelecionada);
-        return;
+    console.log("[HISTORICO-DEBUG] Temporadas disponiveis apos filtros:", temporadas.length, temporadas.map(t => t.liga_nome));
+
+    // v11.2: Só buscar dados em tempo real se NAO tiver nenhum historico consolidado
+    if (temporadas.length === 0) {
+        console.log("[HISTORICO-DEBUG] Sem historico consolidado -> tentando tempo real");
+        if (ligaIdSelecionada) {
+            if (window.Log) Log.info("HISTORICO", "Sem historico consolidado - buscando dados em tempo real");
+            await renderizarDadosTempoReal(ligaIdSelecionada);
+            return;
+        }
     }
 
     if (temporadas.length === 0) {
+        console.log("[HISTORICO-DEBUG] Sem temporadas -> mostrarVazio");
         mostrarVazio();
         return;
     }
@@ -229,16 +248,29 @@ async function renderizarTodasLigas() {
             buscarExtrato(ligaId)
         ]);
 
-        // v11.1: CORRECAO - Usar dados do JSON como fallback quando APIs estao vazias
+        // v12.2: FALLBACK ROBUSTO - Usar dados historicos de tempRecente quando APIs 404
         // Apos turn_key, os caches sao limpos mas os dados historicos estao no JSON
-        const posicaoReal = ranking?.posicao || pc?.posicao || tempRecente.estatisticas?.posicao_final || '-';
-        const pontosReais = ranking?.pontos || pc?.pontos || tempRecente.estatisticas?.pontos_totais || 0;
-        const totalParticipantes = ranking?.total || pc?.total || historicoData?.historico?.length || 0;
-        const rodadasJogadas = ranking?.rodadas || (pc ? (pc.vitorias + pc.empates + pc.derrotas) : 0) || tempRecente.estatisticas?.rodadas_jogadas || 38;
+        const apisVazias = !ranking && !pc && !extrato;
+        if (apisVazias && window.Log) {
+            Log.warn("HISTORICO", "APIs retornaram vazio - usando fallback de tempRecente", {
+                ligaId,
+                temEstatisticas: !!tempRecente.estatisticas,
+                temFinanceiro: !!tempRecente.financeiro
+            });
+        }
 
-        // v11.1: Saldo - prioridade para extrato da API, fallback para JSON
+        // v12.2: Usar ?? (nullish) para preservar 0 como valor valido
+        const posicaoReal = ranking?.posicao ?? pc?.posicao ?? tempRecente.estatisticas?.posicao_final ?? '-';
+        const pontosReais = ranking?.pontos ?? pc?.pontos ?? tempRecente.estatisticas?.pontos_totais ?? 0;
+        const totalParticipantes = ranking?.total ?? pc?.total ?? tempRecente.estatisticas?.total_participantes ?? historicoData?.historico?.length ?? 0;
+        const rodadasJogadas = ranking?.rodadas ?? (pc ? (pc.vitorias + pc.empates + pc.derrotas) : null) ?? tempRecente.estatisticas?.rodadas_jogadas ?? 38;
+
+        // v12.2: Saldo - prioridade para extrato da API, fallback para JSON
         const saldoHistorico = extrato?.saldo ?? tempRecente.financeiro?.saldo_final ?? 0;
         const saldoClass = saldoHistorico > 0 ? 'positive' : saldoHistorico < 0 ? 'negative' : '';
+
+        // v12.2: Fallback para melhorRodada usando dados historicos
+        const melhorRodadaFinal = melhorRodada ?? tempRecente.estatisticas?.melhor_rodada ?? null;
 
         html += `
             <div class="stats-grid">
@@ -263,8 +295,8 @@ async function renderizarTodasLigas() {
                 <div class="stat-card">
                     <div class="material-icons stat-icon">stars</div>
                     <div class="stat-label">Melhor Rodada</div>
-                    <div class="stat-value">${melhorRodada ? 'R' + melhorRodada.rodada : '-'}</div>
-                    <div class="stat-subtitle">${melhorRodada ? `${formatarPontos(melhorRodada.pontos)} pontos` : 'Sem dados'}</div>
+                    <div class="stat-value">${melhorRodadaFinal ? 'R' + (melhorRodadaFinal.rodada ?? melhorRodadaFinal.numero ?? melhorRodadaFinal) : '-'}</div>
+                    <div class="stat-subtitle">${melhorRodadaFinal?.pontos ? `${formatarPontos(melhorRodadaFinal.pontos)} pontos` : 'Sem dados'}</div>
                 </div>
             </div>
         `;
@@ -541,7 +573,9 @@ async function renderizarTodasLigas() {
     // Footer (v9.4: usa nome da liga atual)
     html += `<div class="hall-footer">${nomeLigaAtual}</div>`;
 
+    console.log("[HISTORICO-DEBUG] HTML gerado, tamanho:", html.length);
     container.innerHTML = html;
+    console.log("[HISTORICO-DEBUG] innerHTML definido, container.children:", container.children.length);
 }
 
 // =====================================================================
@@ -926,6 +960,7 @@ function formatarPosicoes(posicoes) {
 }
 
 function mostrarErro(msg) {
+    console.log("[HISTORICO-DEBUG] mostrarErro CHAMADA:", msg);
     const container = document.getElementById("historicoDetalhe");
     if (container) {
         container.innerHTML = `
@@ -939,6 +974,7 @@ function mostrarErro(msg) {
 }
 
 function mostrarVazio() {
+    console.log("[HISTORICO-DEBUG] mostrarVazio CHAMADA");
     const container = document.getElementById("historicoDetalhe");
     if (container) {
         container.innerHTML = `
@@ -953,6 +989,7 @@ function mostrarVazio() {
 
 // v9.0: Buscar e renderizar dados em tempo real quando não há histórico consolidado
 async function renderizarDadosTempoReal(ligaId) {
+    console.log("[HISTORICO-DEBUG] renderizarDadosTempoReal CHAMADA com ligaId:", ligaId);
     const container = document.getElementById("historicoDetalhe");
     if (!container) return;
 
@@ -1415,4 +1452,4 @@ async function renderizarDadosTempoReal(ligaId) {
     }
 }
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v11.1 pronto");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.2 pronto");
