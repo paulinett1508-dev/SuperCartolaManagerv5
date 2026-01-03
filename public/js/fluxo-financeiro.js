@@ -1176,6 +1176,12 @@ window.confirmarAcertoFinanceiro = async function (ligaId, timeId, nomeTime) {
             await window.recarregarExtratoAtual();
         }
 
+        // ✅ v6.2 FIX: RECARREGAR TABELA GERAL para atualizar saldo na lista de participantes
+        if (window.recarregarFluxoFinanceiro) {
+            console.log("[ACERTOS] 🔄 Recarregando tabela de participantes...");
+            window.recarregarFluxoFinanceiro();
+        }
+
         console.log("[ACERTOS] ✅ Acerto registrado:", result);
     } catch (error) {
         console.error("[ACERTOS] ❌ Erro:", error);
