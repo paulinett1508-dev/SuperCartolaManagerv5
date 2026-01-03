@@ -23,8 +23,15 @@ import {
 
 import { popularRodadas } from "../controllers/rodadaController.js";
 import Liga from "../models/Liga.js";
+import { tenantFilter } from "../middleware/tenant.js";
 
 const router = express.Router();
+
+// ==============================
+// MIDDLEWARE MULTI-TENANT
+// Aplica filtro de tenant em todas as rotas de ligas
+// ==============================
+router.use(tenantFilter);
 
 // ==============================
 // FUNÇÃO AUXILIAR: Buscar IDs de participantes inativos

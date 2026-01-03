@@ -21,6 +21,24 @@ const ligaSchema = new mongoose.Schema({
     nome: { type: String, required: true },
     descricao: { type: String, default: "" },
     tipo: { type: String, enum: ["publica", "privada"], default: "publica" },
+
+    // ✅ MULTI-TENANT: Ownership da liga
+    admin_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Admin",
+        index: true,
+        // required: true -> será obrigatório após migração completa
+    },
+    owner_email: {
+        type: String,
+        lowercase: true,
+        trim: true,
+    },
+
+    // ✅ BLINDAGEM: Marca ligas com dados históricos protegidos
+    blindado: { type: Boolean, default: false },
+    blindado_em: { type: Date, default: null },
+
     // ✅ TEMPORADA - Segregação de dados por ano
     temporada: {
         type: Number,

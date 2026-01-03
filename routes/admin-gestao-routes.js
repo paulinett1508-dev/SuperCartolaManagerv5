@@ -2,34 +2,26 @@
  * Rotas de Gestao de Administradores
  * Super Cartola Manager
  *
- * IMPORTANTE: Super Admin é definido via variável de ambiente SUPER_ADMIN_EMAIL
- * ou automaticamente como o PRIMEIRO email de ADMIN_EMAILS.
- * Isso garante que apenas o DEV (dono do Replit) pode gerenciar admins.
+ * IMPORTANTE: Super Admin é definido via variável de ambiente ADMIN_EMAILS.
+ * ✅ Agora usa configuração centralizada (config/admin-config.js)
  */
 import express from "express";
 import mongoose from "mongoose";
 import { getDB } from "../config/database.js";
+import { isSuperAdmin as checkSuperAdmin, SUPER_ADMIN_EMAILS, PRIMARY_SUPER_ADMIN } from "../config/admin-config.js";
 
 const { ObjectId } = mongoose.Types;
 const router = express.Router();
 
-// Super Admin = SUPER_ADMIN_EMAIL ou REPL_OWNER (dono do Replit)
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
-const SUPER_ADMIN_EMAIL = (process.env.SUPER_ADMIN_EMAIL || ADMIN_EMAILS[0] || "").toLowerCase();
 const REPL_OWNER = process.env.REPL_OWNER || "";
 
-// Super Admins adicionais (podem gerenciar admins)
-const SUPER_ADMINS_EXTRAS = [
-    "paulinete.miranda@laboratoriosobral.com.br"
-];
-
 console.log("[ADMIN-GESTAO] Rotas de gestao de admins carregadas");
-console.log("[ADMIN-GESTAO] Super Admin (email):", SUPER_ADMIN_EMAIL || "(nao configurado)");
+console.log("[ADMIN-GESTAO] Super Admins (via env):", SUPER_ADMIN_EMAILS);
 console.log("[ADMIN-GESTAO] Repl Owner:", REPL_OWNER || "(nao configurado)");
 
 /**
  * Verifica se o admin logado é o Super Admin (DEV/Owner)
- * Verifica por email OU por username (para compatibilidade com Replit Auth)
+ * ✅ Agora usa configuração centralizada (config/admin-config.js)
  */
 function isSuperAdmin(sessionAdmin) {
     if (!sessionAdmin) return false;
@@ -38,13 +30,8 @@ function isSuperAdmin(sessionAdmin) {
     const nome = sessionAdmin.nome?.toLowerCase();
     const claims = sessionAdmin.claims;
 
-    // 1. Verificar por SUPER_ADMIN_EMAIL
-    if (SUPER_ADMIN_EMAIL && email === SUPER_ADMIN_EMAIL) {
-        return true;
-    }
-
-    // 1.5 Verificar lista de Super Admins extras
-    if (email && SUPER_ADMINS_EXTRAS.includes(email)) {
+    // 1. Verificar via config centralizada
+    if (checkSuperAdmin(email)) {
         return true;
     }
 
@@ -119,8 +106,7 @@ router.get("/check-super", requireAdmin, (req, res) => {
     console.log("[ADMIN-GESTAO] check-super:", {
         email: req.session.admin?.email,
         isSuper,
-        superAdminEmail: SUPER_ADMIN_EMAIL,
-        extras: SUPER_ADMINS_EXTRAS
+        superAdmins: SUPER_ADMIN_EMAILS
     });
 
     res.json({
@@ -145,7 +131,7 @@ router.get("/admins", requireSuperAdmin, async (req, res) => {
         // Incluir o Super Admin na lista (sempre primeiro)
         const superAdminEntry = {
             id: "super-admin",
-            email: SUPER_ADMIN_EMAIL,
+            email: PRIMARY_SUPER_ADMIN,
             nome: "Desenvolvedor",
             superAdmin: true,
             ativo: true,
@@ -198,11 +184,11 @@ router.post("/admins", requireSuperAdmin, async (req, res) => {
 
         const emailLower = email.toLowerCase();
 
-        // Não permitir adicionar o próprio super admin
-        if (emailLower === SUPER_ADMIN_EMAIL) {
+        // Não permitir adicionar um super admin (já configurado via env)
+        if (checkSuperAdmin(emailLower)) {
             return res.status(400).json({
                 success: false,
-                message: "Super Admin ja esta configurado via ambiente"
+                message: "Este email ja e Super Admin (configurado via ambiente)"
             });
         }
 

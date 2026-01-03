@@ -10,21 +10,15 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { getDB } from "../config/database.js";
+import { isSuperAdmin as checkSuperAdmin, SUPER_ADMIN_EMAILS } from "../config/admin-config.js";
 
 const router = express.Router();
 
-// Super Admin = SUPER_ADMIN_EMAIL ou primeiro email de ADMIN_EMAILS
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
-const SUPER_ADMIN_EMAIL = (process.env.SUPER_ADMIN_EMAIL || ADMIN_EMAILS[0] || "").toLowerCase();
 const REPL_OWNER = process.env.REPL_OWNER || "";
-
-// Super Admins adicionais (podem registrar clientes)
-const SUPER_ADMINS_EXTRAS = [
-    "paulinete.miranda@laboratoriosobral.com.br"
-];
 
 /**
  * Verifica se o admin logado é Super Admin
+ * ✅ Agora usa configuração centralizada (config/admin-config.js)
  */
 function isSuperAdmin(sessionAdmin) {
     if (!sessionAdmin) return false;
@@ -33,17 +27,12 @@ function isSuperAdmin(sessionAdmin) {
     const nome = sessionAdmin.nome?.toLowerCase();
     const claims = sessionAdmin.claims;
 
-    // 1. Verificar por SUPER_ADMIN_EMAIL
-    if (SUPER_ADMIN_EMAIL && email === SUPER_ADMIN_EMAIL) {
+    // 1. Verificar via config centralizada
+    if (checkSuperAdmin(email)) {
         return true;
     }
 
-    // 2. Verificar lista de Super Admins extras
-    if (email && SUPER_ADMINS_EXTRAS.includes(email)) {
-        return true;
-    }
-
-    // 3. Verificar se é o REPL_OWNER (dono do Replit)
+    // 2. Verificar se é o REPL_OWNER (dono do Replit)
     if (REPL_OWNER) {
         const replOwnerLower = REPL_OWNER.toLowerCase();
         if (nome === replOwnerLower) return true;
@@ -58,8 +47,7 @@ function isSuperAdmin(sessionAdmin) {
 }
 
 console.log("[CLIENTE-AUTH] Rotas de autenticacao cliente carregadas");
-console.log("[CLIENTE-AUTH] Super Admin:", SUPER_ADMIN_EMAIL || "(nao configurado)");
-console.log("[CLIENTE-AUTH] Super Admins Extras:", SUPER_ADMINS_EXTRAS);
+console.log("[CLIENTE-AUTH] Super Admins (via env):", SUPER_ADMIN_EMAILS);
 
 /**
  * Gera senha provisoria aleatoria

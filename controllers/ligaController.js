@@ -3,6 +3,7 @@ import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
 import Rodada from "../models/Rodada.js";
 import axios from "axios";
+import { hasAccessToLiga } from "../middleware/tenant.js";
 
 const buscarCartoleiroPorId = async (req, res) => {
   const { id } = req.params;
@@ -24,10 +25,15 @@ const buscarCartoleiroPorId = async (req, res) => {
 
 const listarLigas = async (req, res) => {
   try {
-    const ligas = await Liga.find().lean();
+    // ✅ MULTI-TENANT: Aplica filtro de tenant (definido pelo middleware)
+    const filtro = req.tenantFilter || {};
+
+    const ligas = await Liga.find(filtro).lean();
     if (!ligas || ligas.length === 0) {
       return res.status(200).json([]);
     }
+
+    console.log(`[LIGAS] Listando ${ligas.length} ligas para admin ${req.session?.admin?.email || "anônimo"}`);
     res.status(200).json(ligas);
   } catch (err) {
     console.error("Erro ao listar ligas:", err.message);
@@ -168,6 +174,12 @@ const buscarLigaPorId = async (req, res) => {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
+    // ✅ MULTI-TENANT: Verificar se admin tem acesso a esta liga
+    if (req.session?.admin && !hasAccessToLiga(liga, req.session.admin)) {
+      console.log(`[LIGA] Acesso negado: admin ${req.session.admin.email} tentou acessar liga ${liga.nome}`);
+      return res.status(403).json({ erro: "Acesso negado a esta liga" });
+    }
+
     // ✅ AUTO-SYNC: Se participantes estão vazios ou com N/D, sincronizar automaticamente
     const precisaSincronizar =
       !liga.participantes ||
@@ -234,14 +246,36 @@ const buscarLigaPorId = async (req, res) => {
 
 const criarLiga = async (req, res) => {
   try {
-    const { nome, times } = req.body;
+    const { nome, descricao, times, modulos_ativos, configuracoes } = req.body;
+
+    // Validar que admin está autenticado
+    if (!req.session?.admin) {
+      return res.status(401).json({ erro: "Autenticação necessária para criar liga" });
+    }
+
+    const admin = req.session.admin;
+    const adminId = admin._id || admin.id;
+    const adminEmail = admin.email?.toLowerCase();
 
     const timesIds = Array.isArray(times)
-      ? times.map((t) => Number(t.id)).filter((id) => !isNaN(id))
+      ? times.map((t) => Number(t.id || t)).filter((id) => !isNaN(id))
       : [];
 
-    const novaLiga = new Liga({ nome, times: timesIds });
+    // ✅ MULTI-TENANT: Vincular liga ao admin que está criando
+    const novaLiga = new Liga({
+      nome,
+      descricao: descricao || "",
+      times: timesIds,
+      admin_id: adminId ? new mongoose.Types.ObjectId(adminId) : undefined,
+      owner_email: adminEmail,
+      modulos_ativos: modulos_ativos || undefined,
+      configuracoes: configuracoes || undefined,
+    });
+
     const ligaSalva = await novaLiga.save();
+
+    console.log(`[LIGA] Nova liga "${nome}" criada por ${adminEmail} (admin_id: ${adminId})`);
+
     res.status(201).json(ligaSalva);
   } catch (err) {
     console.error("Erro ao criar liga:", err.message);

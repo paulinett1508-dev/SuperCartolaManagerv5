@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Criar Primeira Liga - Super Cartola Manager</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/_admin-tokens.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .wizard-container {
+            width: 100%;
+            max-width: 700px;
+            background: #1a1a1a;
+            border-radius: 16px;
+            border: 1px solid #2d2d2d;
+            overflow: hidden;
+        }
+
+        /* Header do Wizard */
+        .wizard-header {
+            background: linear-gradient(135deg, #FF5500 0%, #FF7722 100%);
+            padding: 24px 32px;
+            text-align: center;
+        }
+
+        .wizard-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .wizard-header p {
+            font-size: 0.875rem;
+            color: rgba(255,255,255,0.85);
+        }
+
+        /* Progress Steps */
+        .wizard-progress {
+            display: flex;
+            justify-content: center;
+            padding: 24px 16px;
+            background: #151515;
+            border-bottom: 1px solid #2d2d2d;
+            gap: 8px;
+        }
+
+        .wizard-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #2d2d2d;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .step-number.active {
+            background: #FF5500;
+            color: #fff;
+        }
+
+        .step-number.completed {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .step-label {
+            font-size: 0.7rem;
+            color: #666;
+            display: none;
+        }
+
+        @media (min-width: 600px) {
+            .step-label { display: block; }
+        }
+
+        .step-label.active { color: #FF5500; }
+        .step-label.completed { color: #22c55e; }
+
+        .step-connector {
+            width: 24px;
+            height: 2px;
+            background: #2d2d2d;
+        }
+
+        .step-connector.completed { background: #22c55e; }
+
+        /* Conteudo do Step */
+        .wizard-content {
+            padding: 32px;
+            min-height: 350px;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .step-description {
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 24px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #FF5500;
+            background: #2a2a2a;
+        }
+
+        .form-group input::placeholder {
+            color: #555;
+        }
+
+        /* Times List */
+        .times-search {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .times-search input {
+            flex: 1;
+            padding: 14px 16px;
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .times-search input:focus {
+            outline: none;
+            border-color: #FF5500;
+        }
+
+        .btn-buscar {
+            padding: 14px 20px;
+            background: #FF5500;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-buscar:hover {
+            background: #FF6611;
+            transform: translateY(-1px);
+        }
+
+        .btn-buscar:disabled {
+            background: #333;
+            cursor: not-allowed;
+        }
+
+        .times-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #2d2d2d;
+            border-radius: 10px;
+            background: #1f1f1f;
+        }
+
+        .time-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #2d2d2d;
+        }
+
+        .time-item:last-child { border-bottom: none; }
+
+        .time-item img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #252525;
+        }
+
+        .time-info {
+            flex: 1;
+        }
+
+        .time-info .nome {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .time-info .cartoleiro {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .time-remove {
+            padding: 6px;
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .time-remove:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .times-empty {
+            padding: 32px;
+            text-align: center;
+            color: #666;
+        }
+
+        .times-empty .material-icons {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* Modulos Toggle Grid */
+        .modulos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .modulo-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modulo-toggle:hover {
+            border-color: #FF5500;
+        }
+
+        .modulo-toggle.active {
+            background: rgba(255, 85, 0, 0.1);
+            border-color: #FF5500;
+        }
+
+        .modulo-toggle input {
+            display: none;
+        }
+
+        .modulo-check {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #555;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modulo-toggle.active .modulo-check {
+            background: #FF5500;
+            border-color: #FF5500;
+        }
+
+        .modulo-check .material-icons {
+            font-size: 14px;
+            color: #fff;
+            opacity: 0;
+        }
+
+        .modulo-toggle.active .modulo-check .material-icons {
+            opacity: 1;
+        }
+
+        .modulo-info .modulo-nome {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .modulo-info .modulo-desc {
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        /* Configuracoes Accordion */
+        .config-section {
+            margin-bottom: 16px;
+            background: #252525;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .config-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .config-header:hover {
+            background: #2a2a2a;
+        }
+
+        .config-header .title {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .config-header .badge {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            background: #22c55e;
+            color: #fff;
+            border-radius: 20px;
+        }
+
+        .config-body {
+            display: none;
+            padding: 16px;
+            border-top: 1px solid #3d3d3d;
+        }
+
+        .config-body.open {
+            display: block;
+        }
+
+        /* Resumo Final */
+        .resumo-section {
+            background: #252525;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .resumo-section h4 {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .resumo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+        }
+
+        .resumo-item .material-icons {
+            color: #22c55e;
+            font-size: 20px;
+        }
+
+        .resumo-item span {
+            font-size: 0.9rem;
+        }
+
+        /* Footer Buttons */
+        .wizard-footer {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 32px;
+            background: #151515;
+            border-top: 1px solid #2d2d2d;
+        }
+
+        .btn-secondary {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid #3d3d3d;
+            border-radius: 10px;
+            color: #888;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            border-color: #555;
+            color: #fff;
+        }
+
+        .btn-primary {
+            padding: 12px 32px;
+            background: #FF5500;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #FF6611;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            background: #333;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #333;
+            border-top-color: #FF5500;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast Messages */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 14px 20px;
+            background: #1f1f1f;
+            border: 1px solid #3d3d3d;
+            border-radius: 10px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { border-color: #22c55e; }
+        .toast.error { border-color: #ef4444; }
+
+        .toast .material-icons.success { color: #22c55e; }
+        .toast .material-icons.error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="wizard-container">
+        <!-- Header -->
+        <div class="wizard-header">
+            <h1>Bem-vindo ao Super Cartola!</h1>
+            <p>Vamos criar sua primeira liga em poucos passos</p>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="wizard-progress">
+            <div class="wizard-step">
+                <span class="step-number active" data-step="1">1</span>
+                <span class="step-label active">Nome</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="wizard-step">
+                <span class="step-number" data-step="2">2</span>
+                <span class="step-label">Times</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="wizard-step">
+                <span class="step-number" data-step="3">3</span>
+                <span class="step-label">Modulos</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="wizard-step">
+                <span class="step-number" data-step="4">4</span>
+                <span class="step-label">Valores</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="wizard-step">
+                <span class="step-number" data-step="5">5</span>
+                <span class="step-label">Confirmar</span>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="wizard-content">
+            <!-- Step 1: Nome -->
+            <div class="step-content active" data-step="1">
+                <h2 class="step-title">Nome da Liga</h2>
+                <p class="step-description">Escolha um nome marcante para sua liga</p>
+
+                <div class="form-group">
+                    <label for="nome-liga">Nome da Liga *</label>
+                    <input type="text" id="nome-liga" placeholder="Ex: Liga dos Campeoes 2026" maxlength="50" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="descricao-liga">Descricao (opcional)</label>
+                    <textarea id="descricao-liga" rows="3" placeholder="Uma breve descricao da sua liga..."></textarea>
+                </div>
+            </div>
+
+            <!-- Step 2: Times -->
+            <div class="step-content" data-step="2">
+                <h2 class="step-title">Adicionar Times</h2>
+                <p class="step-description">Busque os times pelo ID do Cartola FC (minimo 2 times)</p>
+
+                <div class="times-search">
+                    <input type="number" id="time-id-input" placeholder="Digite o ID do time no Cartola">
+                    <button class="btn-buscar" id="btn-buscar-time">
+                        <span class="material-icons">search</span>
+                        Buscar
+                    </button>
+                </div>
+
+                <div class="times-list" id="times-list">
+                    <div class="times-empty">
+                        <span class="material-icons">groups</span>
+                        <p>Nenhum time adicionado ainda</p>
+                    </div>
+                </div>
+
+                <p style="margin-top: 12px; font-size: 0.75rem; color: #666;">
+                    <span class="material-icons" style="font-size: 14px; vertical-align: middle;">info</span>
+                    O ID do time pode ser encontrado na URL do perfil no Cartola FC
+                </p>
+            </div>
+
+            <!-- Step 3: Modulos -->
+            <div class="step-content" data-step="3">
+                <h2 class="step-title">Modulos Ativos</h2>
+                <p class="step-description">Escolha quais funcionalidades sua liga tera</p>
+
+                <div class="modulos-grid">
+                    <label class="modulo-toggle active">
+                        <input type="checkbox" name="modulo" value="ranking" checked>
+                        <span class="modulo-check"><span class="material-icons">check</span></span>
+                        <div class="modulo-info">
+                            <div class="modulo-nome">Ranking Geral</div>
+                            <div class="modulo-desc">Classificacao por pontos</div>
+                        </div>
+                    </label>
+
+                    <label class="modulo-toggle active">
+                        <input type="checkbox" name="modulo" value="top10" checked>
+                        <span class="modulo-check"><span class="material-icons">check</span></span>
+                        <div class="modulo-info">
+                            <div class="modulo-nome">Top 10</div>
+                            <div class="modulo-desc">Mitos e Micos da rodada</div>
+                        </div>
+                    </label>
+
+                    <label class="modulo-toggle active">
+                        <input type="checkbox" name="modulo" value="pontosCorridos" checked>
+                        <span class="modulo-check"><span class="material-icons">check</span></span>
+                        <div class="modulo-info">
+                            <div class="modulo-nome">Pontos Corridos</div>
+                            <div class="modulo-desc">Confronto direto</div>
+                        </div>
+                    </label>
+
+                    <label class="modulo-toggle active">
+                        <input type="checkbox" name="modulo" value="mataMata" checked>
+                        <span class="modulo-check"><span class="material-icons">check</span></span>
+                        <div class="modulo-info">
+                            <div class="modulo-nome">Mata-Mata</div>
+                            <div class="modulo-desc">Torneio eliminatorio</div>
+                        </div>
+                    </label>
+
+                    <label class="modulo-toggle active">
+                        <input type="checkbox" name="modulo" value="artilheiro" checked>
+                        <span class="modulo-check"><span class="material-icons">check</span></span>
+                        <div class="modulo-info">
+                            <div class="modulo-nome">Artilheiro</div>
+                            <div class="modulo-desc">Maior numero de gols</div>
+                        </div>
+                    </label>
+
+                    <label class="modulo-toggle active">
+                        <input type="checkbox" name="modulo" value="luvaOuro" checked>
+                        <span class="modulo-check"><span class="material-icons">check</span></span>
+                        <div class="modulo-info">
+                            <div class="modulo-nome">Luva de Ouro</div>
+                            <div class="modulo-desc">Melhor goleiro</div>
+                        </div>
+                    </label>
+
+                    <label class="modulo-toggle active">
+                        <input type="checkbox" name="modulo" value="melhorMes" checked>
+                        <span class="modulo-check"><span class="material-icons">check</span></span>
+                        <div class="modulo-info">
+                            <div class="modulo-nome">Melhor Mes</div>
+                            <div class="modulo-desc">Destaque mensal</div>
+                        </div>
+                    </label>
+
+                    <label class="modulo-toggle active">
+                        <input type="checkbox" name="modulo" value="extrato" checked>
+                        <span class="modulo-check"><span class="material-icons">check</span></span>
+                        <div class="modulo-info">
+                            <div class="modulo-nome">Extrato Financeiro</div>
+                            <div class="modulo-desc">Controle de valores</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 4: Valores -->
+            <div class="step-content" data-step="4">
+                <h2 class="step-title">Configurar Valores</h2>
+                <p class="step-description">Defina os valores financeiros ou use os padroes recomendados</p>
+
+                <div class="config-section">
+                    <div class="config-header" onclick="toggleConfig(this)">
+                        <span class="title">Banco (Bonus/Onus por Posicao)</span>
+                        <span class="badge">Padrao</span>
+                    </div>
+                    <div class="config-body">
+                        <p style="color: #888; font-size: 0.875rem;">
+                            Valores serao aplicados automaticamente baseados na quantidade de participantes.
+                            Voce podera ajustar depois no painel da liga.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <div class="config-header" onclick="toggleConfig(this)">
+                        <span class="title">Pontos Corridos</span>
+                        <span class="badge">Padrao</span>
+                    </div>
+                    <div class="config-body">
+                        <p style="color: #888; font-size: 0.875rem;">
+                            Vitoria: R$ 5,00 | Empate: R$ 3,00 | Goleada: R$ 7,00<br>
+                            Inicia na rodada 7 do campeonato.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <div class="config-header" onclick="toggleConfig(this)">
+                        <span class="title">Top 10 (Mito/Mico)</span>
+                        <span class="badge">Padrao</span>
+                    </div>
+                    <div class="config-body">
+                        <p style="color: #888; font-size: 0.875rem;">
+                            Valores decrescentes de R$ 50 (1o) ate R$ 5 (10o) para mitos.<br>
+                            Valores negativos para micos.
+                        </p>
+                    </div>
+                </div>
+
+                <p style="margin-top: 16px; font-size: 0.75rem; color: #666; text-align: center;">
+                    <span class="material-icons" style="font-size: 14px; vertical-align: middle;">tips_and_updates</span>
+                    Todas as configuracoes podem ser alteradas depois no painel administrativo
+                </p>
+            </div>
+
+            <!-- Step 5: Confirmar -->
+            <div class="step-content" data-step="5">
+                <h2 class="step-title">Revisar e Confirmar</h2>
+                <p class="step-description">Confira os dados da sua liga antes de criar</p>
+
+                <div class="resumo-section">
+                    <h4>Dados da Liga</h4>
+                    <div class="resumo-item">
+                        <span class="material-icons success">check_circle</span>
+                        <span>Nome: <strong id="resumo-nome">-</strong></span>
+                    </div>
+                    <div class="resumo-item" id="resumo-descricao-container" style="display: none;">
+                        <span class="material-icons success">check_circle</span>
+                        <span>Descricao: <span id="resumo-descricao">-</span></span>
+                    </div>
+                </div>
+
+                <div class="resumo-section">
+                    <h4>Participantes</h4>
+                    <div class="resumo-item">
+                        <span class="material-icons success">groups</span>
+                        <span><strong id="resumo-times-count">0</strong> times adicionados</span>
+                    </div>
+                </div>
+
+                <div class="resumo-section">
+                    <h4>Modulos Ativos</h4>
+                    <div id="resumo-modulos"></div>
+                </div>
+
+                <label style="display: flex; align-items: center; gap: 10px; margin-top: 20px; cursor: pointer;">
+                    <input type="checkbox" id="aceitar-termos" style="width: 18px; height: 18px; accent-color: #FF5500;">
+                    <span style="font-size: 0.875rem; color: #888;">Li e aceito as regras da liga</span>
+                </label>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span>Criando sua liga...</span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="wizard-footer">
+            <button class="btn-secondary" id="btn-voltar" style="visibility: hidden;">
+                <span class="material-icons" style="font-size: 18px;">arrow_back</span>
+                Voltar
+            </button>
+            <button class="btn-primary" id="btn-proximo">
+                Proximo
+                <span class="material-icons" style="font-size: 18px;">arrow_forward</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span class="material-icons success">check_circle</span>
+        <span class="toast-message">Mensagem</span>
+    </div>
+
+    <script src="js/wizard-primeira-liga.js"></script>
+</body>
+</html>

@@ -1,13 +1,33 @@
 # Tarefas Pendentes - 2026-01-03
 
 ## Contexto da Sessao Atual
-**HALL DA FAMA - MELHORIAS E CORRECOES**
+**WHITE LABEL MULTI-TENANT - FASE 3 COMPLETA**
 
-Continuacao do trabalho pos-turn-key com foco no Hall da Fama.
+Implementacao do sistema SaaS multi-tenant com wizard de onboarding.
 
 ---
 
 ## Corrigido Nesta Sessao (03/01/2026)
+
+### 0. BUG CRITICO - Ranking Geral "N/D" e Pontos Zerados
+- **Problema:** Coluna Cartoleiro mostrava "N/D", pontos = 0-3 (deveria ser ~3500)
+- **Causa raiz:** Collection `rankingturnos` corrompida apos turn_key
+  - Dados consolidados com valores incorretos
+  - Status "consolidado" impedia recalculo automatico
+- **Solucao:**
+  1. Deletado cache corrompido (4 registros: 3 SC + 1 Sobral)
+  2. Forcada reconsolidacao via API `/api/ranking-turno/:ligaId/consolidar`
+- **Resultado:** TOP 5 correto (Vitim 3597.88 pts, 38 rodadas)
+- **Status:** CORRIGIDO
+
+### 1. Roadmap 2026 - Contagem Regressiva do Mercado
+- **Nova feature:** Contagem regressiva para abertura do Mercado Cartola (12/01/2026)
+- **FAB atualizado:** Mostra "Mercado abre em X dias" em vez de "Vem ai"
+- **Modal redesenhado:** Countdown duplo (Mercado + Brasileirao)
+- **Arquivos:**
+  - `public/participante/js/participante-config.js` (MARKET_OPEN_DATE)
+  - `public/participante/index.html` (modal + FAB)
+- **Status:** IMPLEMENTADO
 
 ### 1. Card Mata-Mata Interativo (v12.4-12.5)
 - **Nova estrutura:** Resumo horizontal + edicoes expandiveis
@@ -32,12 +52,60 @@ Continuacao do trabalho pos-turn-key com foco no Hall da Fama.
 
 ---
 
-## PRIMEIRA TAREFA - Proxima Sessao
+## Concluido Nesta Sessao
 
-**LEITURA MAPEADA DA PASTA /home/runner/workspace/docs**
-- Mapear todos os arquivos de documentacao
-- Identificar docs desatualizados
-- Consolidar informacoes relevantes
+### WHITE LABEL MULTI-TENANT - FASES 1, 2 e 3 IMPLEMENTADAS
+
+#### FASE 3: Wizard de Primeira Liga (Onboarding)
+- **wizard-primeira-liga.html** - Interface completa de 5 etapas:
+  1. Nome e Descricao da Liga
+  2. Buscar e Adicionar Times (via API Cartola)
+  3. Selecionar Modulos Ativos (toggles)
+  4. Configurar Valores (accordion com defaults)
+  5. Revisar e Confirmar
+- **wizard-primeira-liga.js** - Logica completa do wizard:
+  - Navegacao entre etapas com validacao
+  - Busca de times via `/api/cartola/time/{id}`
+  - Toggle de modulos com estado visual
+  - Montagem de resumo dinamico
+  - Criacao da liga via `POST /api/ligas`
+  - Redirecionamento para detalhe-liga apos sucesso
+- **painel.html modificado** - Detecta primeiro acesso:
+  - Se admin nao tem ligas, redireciona para wizard
+  - Empty state atualizado com link para wizard
+
+### WHITE LABEL MULTI-TENANT - FASE 1 e 2 IMPLEMENTADAS
+
+**Arquitetura multi-tenant implementada:**
+
+1. **Schema Liga atualizado** (`models/Liga.js`)
+   - Campos: `admin_id`, `owner_email`, `blindado`, `blindado_em`
+
+2. **Middleware de Tenant** (`middleware/tenant.js`)
+   - `tenantFilter()` - injeta filtro em req.tenantFilter
+   - `hasAccessToLiga()` - verifica ownership
+   - `isSuperAdmin()` - via config centralizada
+
+3. **Controllers atualizados** (`controllers/ligaController.js`)
+   - `listarLigas()` - usa req.tenantFilter
+   - `buscarLigaPorId()` - verifica acesso via hasAccessToLiga
+   - `criarLiga()` - vincula admin_id e owner_email
+
+4. **Hardcodes removidos**
+   - `config/admin-config.js` - centraliza SUPER_ADMIN_EMAILS
+   - `routes/admin-cliente-auth.js` - usa config centralizada
+   - `routes/admin-gestao-routes.js` - usa config centralizada
+
+**Pendente:**
+- [ ] FASE 3: Wizard primeira liga (5 etapas)
+- [ ] Testar isolamento com admin de teste
+
+---
+
+**LEITURA MAPEADA DA PASTA /docs** - FEITO
+- Mapeados 7 arquivos de documentacao
+- Identificado: `live_experience_2026.md` (59KB) como feature principal
+- `SINCRONISMO-DEV-PROD.md` desatualizado (menciona dois bancos)
 
 ---
 
@@ -45,10 +113,11 @@ Continuacao do trabalho pos-turn-key com foco no Hall da Fama.
 
 ### ALTA PRIORIDADE
 
-1. **Artilheiro Campeao - SOBRAL**
-   - Card nao renderiza para liga Cartoleiros do Sobral
-   - Verificar funcao `buscarArtilheiro()` e API `/api/artilheiro-campeao/{ligaId}/ranking`
-   - Pode ser problema de modulos_ativos ou dados vazios
+1. **Artilheiro Campeao - SOBRAL** - INVESTIGADO
+   - **API:** Funciona perfeitamente - retorna 4 participantes com dados corretos
+   - **Frontend:** Logs de debug adicionados em `buscarArtilheiro()` (participante-historico.js)
+   - **Dados no banco:** golsconsolidados tem 38 rodadas para cada participante
+   - **Proximo passo:** Verificar logs no console do navegador ao acessar Hall da Fama
 
 2. **Card MELHOR RODADA**
    - Nao mostra dados em alguns casos
@@ -61,7 +130,13 @@ Continuacao do trabalho pos-turn-key com foco no Hall da Fama.
 
 ### MEDIA PRIORIDADE
 
-4. **Erros 502 Bad Gateway no Admin**
+4. **Modulo Classificacao (Ranking Geral)** - SEM BUG
+   - Auditoria code-inspector concluida
+   - Logs "Card nao encontrado no DOM" sao informativos (nao erros)
+   - Inconsistencia de nomenclatura: `artilheiro` vs `artilheiro-campeao`
+   - Cards desabilitados corretamente via `cards_desabilitados[]`
+
+5. **Erros 502 Bad Gateway no Admin**
    - Arquivos JS existem mas servidor nao responde
    - Problema de infraestrutura Replit
    - Solucao: Reiniciar servidor pelo painel Replit
@@ -145,6 +220,9 @@ pkill -f "node.*index.js" && node index.js
 - [x] Fix campo adversario (nomeTime)
 - [x] Seletor temporada toast style
 - [x] FAB Roadmap redesign
+- [x] Leitura mapeada da pasta /docs
+- [x] Roadmap 2026 com contagem regressiva do Mercado
+- [x] Auditoria modulo Ranking Geral (code-inspector)
 - [ ] Pendente: Testar Mata-Mata com adversarios
 - [ ] Pendente: Artilheiro SOBRAL
 - [ ] Pendente: Melhor Rodada
@@ -164,5 +242,5 @@ pkill -f "node.*index.js" && node index.js
 - [x] Backup gerado: 8.914 documentos
 
 ---
-*Atualizado em: 2026-01-03 23:30*
-*Hall da Fama v12.5 - Mata-Mata interativo com adversarios*
+*Atualizado em: 2026-01-03*
+*Roadmap 2026 com contagem regressiva do Mercado Cartola*

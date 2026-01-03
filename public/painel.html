@@ -192,9 +192,9 @@
                             Voce ainda nao criou nenhuma liga.<br />
                             Comece criando sua primeira liga do Cartola FC!
                         </div>
-                        <a href="preencher-liga.html" class="empty-action-new">
-                            <span class="material-icons">add</span>
-                            Criar Primeira Liga
+                        <a href="wizard-primeira-liga.html" class="empty-action-new">
+                            <span class="material-icons">rocket_launch</span>
+                            Criar Minha Primeira Liga
                         </a>
                     </div>
                 </div>
@@ -618,9 +618,9 @@
                     );
 
                     if (ligasData.length === 0) {
-                        container.innerHTML = "";
-                        emptyState.style.display = "block";
-                        atualizarEstatisticas(0, 0);
+                        // MULTI-TENANT: Redirecionar para wizard de primeira liga
+                        console.log("[DASHBOARD] Admin sem ligas - redirecionando para wizard");
+                        window.location.href = "/wizard-primeira-liga.html";
                         return;
                     }
 
