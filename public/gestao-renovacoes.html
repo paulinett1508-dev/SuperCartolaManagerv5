@@ -1124,13 +1124,13 @@
             </div>
         </div>
 
-        <!-- Modal de Historico -->
+        <!-- Modal de Historico - v7.0: Extrato Completo -->
         <div class="modal-overlay" id="modalHistorico">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3>
-                        <span class="material-icons" style="color: #3b82f6;">history</span>
-                        Historico de Acertos
+                        <span class="material-icons" style="color: #3b82f6;">account_balance_wallet</span>
+                        Extrato Financeiro
                     </h3>
                     <button class="modal-close" onclick="fecharModal('modalHistorico')">
                         <span class="material-icons">close</span>
@@ -1539,49 +1539,176 @@
                 }
             }
 
-            // Modal de Historico
+            // Modal de Historico - v7.0: Extrato Completo (Rodadas + Acertos)
             window.abrirModalHistorico = async function(p) {
                 document.getElementById('histEscudo').src = p.escudo || '';
                 document.getElementById('histNomeTime').textContent = p.nomeTime;
                 document.getElementById('histLiga').textContent = p.ligaNome;
 
                 const lista = document.getElementById('historicoLista');
-                lista.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">Carregando...</div>';
+                lista.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">Carregando extrato completo...</div>';
 
                 document.getElementById('modalHistorico').classList.add('active');
 
                 try {
-                    const response = await fetch(`/api/tesouraria/participante/${p.ligaId}/${p.timeId}`);
-                    const data = await response.json();
+                    // v7.0: Buscar acertos E extrato em paralelo
+                    const [acertosResp, extratoResp] = await Promise.all([
+                        fetch(`/api/tesouraria/participante/${p.ligaId}/${p.timeId}`),
+                        fetch(`/api/extrato-cache/${p.ligaId}/times/${p.timeId}`)
+                    ]);
 
-                    if (!data.success) throw new Error(data.error);
+                    const acertosData = await acertosResp.json();
+                    const extratoData = await extratoResp.json();
 
-                    const acertos = data.acertos || [];
+                    const acertos = acertosData.success ? (acertosData.acertos || []) : [];
+                    const rodadas = extratoData.rodadas || [];
+                    const resumo = extratoData.resumo || {};
 
-                    if (acertos.length === 0) {
-                        lista.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">Nenhum acerto registrado</div>';
-                        return;
+                    // Calcular saldos
+                    const saldoFinal = parseFloat(resumo.saldo) || parseFloat(resumo.saldo_final) || p.saldoFinal || 0;
+                    const saldoTemporada = parseFloat(resumo.saldo_temporada) || saldoFinal;
+                    const totalPago = acertosData.resumo?.totalPago || 0;
+                    const totalRecebido = acertosData.resumo?.totalRecebido || 0;
+                    const saldoAcertos = totalPago - totalRecebido;
+
+                    // Status do saldo
+                    let txtSaldo, corSaldo;
+                    if (Math.abs(saldoFinal) < 0.01) {
+                        txtSaldo = 'QUITADO'; corSaldo = '#a3a3a3';
+                    } else if (saldoFinal > 0) {
+                        txtSaldo = 'A RECEBER'; corSaldo = '#34d399';
+                    } else {
+                        txtSaldo = 'DEVE'; corSaldo = '#f87171';
                     }
 
-                    lista.innerHTML = acertos.map(a => {
-                        const data = new Date(a.dataAcerto).toLocaleDateString('pt-BR');
-                        const valorClass = a.tipo === 'pagamento' ? 'positivo' : 'negativo';
-                        const sinal = a.tipo === 'pagamento' ? '+' : '-';
+                    // Filtrar rodadas com movimentação
+                    const rodadasComMov = rodadas.filter(r => {
+                        const s = (r.bonusOnus||0) + (r.pontosCorridos||0) + (r.mataMata||0) + (r.top10||0);
+                        return s !== 0 || r.posicao;
+                    }).sort((a,b) => b.rodada - a.rodada);
 
-                        return `
-                            <div class="historico-item">
-                                <div class="info">
-                                    <div class="descricao">${a.descricao}</div>
-                                    <div class="data">${data} - ${a.metodoPagamento || 'PIX'}</div>
+                    // Montar HTML
+                    let html = `
+                        <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 14px; margin-bottom: 14px; text-align: center;">
+                            <div style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; margin-bottom: 4px;">${txtSaldo}</div>
+                            <div style="font-size: 24px; font-weight: 700; color: ${corSaldo};">${Math.abs(saldoFinal) < 0.01 ? '✓' : 'R$ ' + Math.abs(saldoFinal).toFixed(2).replace('.', ',')}</div>
+                            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); text-align: left; font-size: 11px;">
+                                <div style="display: flex; justify-content: space-between; padding: 3px 0;">
+                                    <span style="color: rgba(255,255,255,0.6);">Saldo Jogo:</span>
+                                    <span style="color: ${saldoTemporada >= 0 ? '#34d399' : '#f87171'}; font-weight: 600;">${saldoTemporada >= 0 ? '+' : '-'}R$ ${Math.abs(saldoTemporada).toFixed(2).replace('.', ',')}</span>
                                 </div>
-                                <div class="valor ${valorClass}">${sinal}R$ ${a.valor.toFixed(2).replace('.', ',')}</div>
+                                <div style="display: flex; justify-content: space-between; padding: 3px 0;">
+                                    <span style="color: rgba(255,255,255,0.6);">Acertos (${acertos.length}):</span>
+                                    <span style="color: ${saldoAcertos >= 0 ? '#34d399' : '#f87171'}; font-weight: 600;">${saldoAcertos >= 0 ? '+' : '-'}R$ ${Math.abs(saldoAcertos).toFixed(2).replace('.', ',')}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Seção: Rodadas
+                    if (rodadasComMov.length > 0) {
+                        html += `
+                            <div style="margin-bottom: 12px;">
+                                <button onclick="toggleAccordionHist('rodadas')" style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; cursor: pointer;">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <span class="material-icons" style="font-size: 16px; color: #fbbf24;">sports_soccer</span>
+                                        <span style="font-size: 12px; font-weight: 600; color: #fff;">Movimentação por Rodada</span>
+                                        <span style="font-size: 10px; color: rgba(255,255,255,0.5);">(${rodadasComMov.length})</span>
+                                    </div>
+                                    <span class="material-icons" id="iconAccordHistRodadas" style="font-size: 16px; color: rgba(255,255,255,0.5);">expand_more</span>
+                                </button>
+                                <div id="accordHistRodadas" style="display: none; margin-top: 6px; max-height: 200px; overflow-y: auto;">
+                                    ${renderizarRodadasHist(rodadasComMov)}
+                                </div>
                             </div>
                         `;
-                    }).join('');
+                    }
+
+                    // Seção: Acertos
+                    html += `
+                        <div>
+                            <button onclick="toggleAccordionHist('acertos')" style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; cursor: pointer;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span class="material-icons" style="font-size: 16px; color: #34d399;">payments</span>
+                                    <span style="font-size: 12px; font-weight: 600; color: #fff;">Acertos Financeiros</span>
+                                    <span style="font-size: 10px; color: rgba(255,255,255,0.5);">(${acertos.length})</span>
+                                </div>
+                                <span class="material-icons" id="iconAccordHistAcertos" style="font-size: 16px; color: rgba(255,255,255,0.5); transform: rotate(180deg);">expand_more</span>
+                            </button>
+                            <div id="accordHistAcertos" style="display: block; margin-top: 6px; max-height: 200px; overflow-y: auto;">
+                    `;
+
+                    if (acertos.length === 0) {
+                        html += '<div style="text-align: center; padding: 16px; color: rgba(255,255,255,0.4); font-size: 12px;">Nenhum acerto registrado</div>';
+                    } else {
+                        acertos.forEach(a => {
+                            const isPag = a.tipo === 'pagamento';
+                            const cor = isPag ? '#34d399' : '#f87171';
+                            const sinal = isPag ? '+' : '-';
+                            const dt = a.dataAcerto ? new Date(a.dataAcerto).toLocaleDateString('pt-BR') : '--';
+                            html += `
+                                <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; border-left: 3px solid ${cor}; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-size: 12px; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.descricao || 'Acerto'}</div>
+                                        <div style="font-size: 10px; color: rgba(255,255,255,0.5);">${dt} ${a.metodoPagamento ? '• ' + a.metodoPagamento.toUpperCase() : ''}</div>
+                                    </div>
+                                    <div style="font-size: 13px; font-weight: 700; color: ${cor};">${sinal}R$ ${a.valor.toFixed(2).replace('.', ',')}</div>
+                                </div>
+                            `;
+                        });
+                    }
+                    html += '</div></div>';
+
+                    lista.innerHTML = html;
 
                 } catch (error) {
                     lista.innerHTML = `<div style="text-align: center; padding: 20px; color: #ef4444;">Erro: ${error.message}</div>`;
                 }
+            }
+
+            // Helper: Renderizar rodadas
+            function renderizarRodadasHist(rodadas) {
+                return rodadas.map(r => {
+                    const banco = r.bonusOnus || r.banco || 0;
+                    const pc = r.pontosCorridos || 0;
+                    const mm = r.mataMata || 0;
+                    const top10 = r.top10 || 0;
+                    const saldo = banco + pc + mm + top10;
+                    const positivo = saldo >= 0;
+                    const cor = positivo ? '#34d399' : '#f87171';
+
+                    let badges = [];
+                    if (banco !== 0) badges.push(`<span style="font-size: 9px; padding: 2px 5px; border-radius: 3px; background: rgba(251,191,36,0.15); color: ${banco >= 0 ? '#fbbf24' : '#f87171'}; font-weight: 600;">BANCO ${banco >= 0 ? '+' : ''}${banco}</span>`);
+                    if (pc !== 0) badges.push(`<span style="font-size: 9px; padding: 2px 5px; border-radius: 3px; background: rgba(52,211,153,0.15); color: ${pc >= 0 ? '#34d399' : '#f87171'}; font-weight: 600;">PC ${pc >= 0 ? '+' : ''}${pc}</span>`);
+                    if (mm !== 0) badges.push(`<span style="font-size: 9px; padding: 2px 5px; border-radius: 3px; background: rgba(167,139,250,0.15); color: ${mm >= 0 ? '#a78bfa' : '#f87171'}; font-weight: 600;">MM ${mm >= 0 ? '+' : ''}${mm}</span>`);
+                    if (top10 !== 0) {
+                        const isMito = top10 > 0;
+                        badges.push(`<span style="font-size: 9px; padding: 2px 5px; border-radius: 3px; background: ${isMito ? 'rgba(251,191,36,0.15)' : 'rgba(248,113,113,0.15)'}; color: ${isMito ? '#fbbf24' : '#f87171'}; font-weight: 600;">${isMito ? 'MITO' : 'MICO'} ${top10 >= 0 ? '+' : ''}${top10}</span>`);
+                    }
+
+                    return `
+                        <div style="background: ${positivo ? 'rgba(52,211,153,0.08)' : 'rgba(248,113,113,0.08)'}; border-radius: 6px; padding: 8px 10px; border-left: 3px solid ${positivo ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.3)'}; margin-bottom: 4px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 11px; font-weight: 700; color: #fff;">R${r.rodada}</span>
+                                    <span style="font-size: 9px; color: rgba(255,255,255,0.5);">${r.posicao ? r.posicao + 'º' : '-'}</span>
+                                </div>
+                                <span style="font-size: 12px; font-weight: 700; color: ${cor};">${positivo ? '+' : ''}R$ ${Math.abs(saldo).toFixed(2).replace('.', ',')}</span>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 3px;">${badges.join('')}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Toggle accordion
+            window.toggleAccordionHist = function(tipo) {
+                const el = document.getElementById(`accordHist${tipo === 'rodadas' ? 'Rodadas' : 'Acertos'}`);
+                const icon = document.getElementById(`iconAccordHist${tipo === 'rodadas' ? 'Rodadas' : 'Acertos'}`);
+                if (!el) return;
+                const vis = el.style.display !== 'none';
+                el.style.display = vis ? 'none' : 'block';
+                icon.style.transform = vis ? 'rotate(0deg)' : 'rotate(180deg)';
             }
 
             window.fecharModal = function(modalId) {
