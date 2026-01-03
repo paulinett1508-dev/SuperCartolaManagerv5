@@ -32,6 +32,15 @@ Continuacao do trabalho pos-turn-key com foco no Hall da Fama.
 
 ---
 
+## PRIMEIRA TAREFA - Proxima Sessao
+
+**LEITURA MAPEADA DA PASTA /home/runner/workspace/docs**
+- Mapear todos os arquivos de documentacao
+- Identificar docs desatualizados
+- Consolidar informacoes relevantes
+
+---
+
 ## Pendencias - Hall da Fama
 
 ### ALTA PRIORIDADE
