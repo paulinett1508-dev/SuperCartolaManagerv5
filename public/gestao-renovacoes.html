@@ -1055,15 +1055,18 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Participante</th>
+                                        <th class="sortable" onclick="ordenarPor('nomeTime')">
+                                            Participante
+                                            <span class="material-icons" id="sortParticipante">unfold_more</span>
+                                        </th>
                                         <th id="colLigaHeader">Liga</th>
-                                        <th>Extrato</th>
+                                        <th>Movimentações</th>
                                         <th class="sortable" onclick="ordenarPor('saldoFinal')">
                                             Saldo Final
                                             <span class="material-icons" id="sortFinal">unfold_more</span>
                                         </th>
-                                        <th>Situacao</th>
-                                        <th>Acoes</th>
+                                        <th>Situação</th>
+                                        <th>Extrato</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tabelaBody">
@@ -1221,35 +1224,7 @@
             </div>
         </div>
 
-        <!-- Modal de Historico - v7.0: Extrato Completo -->
-        <div class="modal-overlay" id="modalHistorico">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>
-                        <span class="material-icons" style="color: #3b82f6;">account_balance_wallet</span>
-                        Extrato Financeiro
-                    </h3>
-                    <button class="modal-close" onclick="fecharModal('modalHistorico')">
-                        <span class="material-icons">close</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="modal-participante-info">
-                        <img id="histEscudo" src="" alt="">
-                        <div class="info">
-                            <h4 id="histNomeTime">-</h4>
-                            <span id="histLiga">-</span>
-                        </div>
-                    </div>
-                    <div class="historico-lista" id="historicoLista">
-                        <!-- Preenchido via JS -->
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn-modal cancelar" onclick="fecharModal('modalHistorico')">Fechar</button>
-                </div>
-            </div>
-        </div>
+        <!-- ✅ v11.0: Modal de Histórico REMOVIDO - agora usa redirect para detalhe-liga.html -->
 
         <!-- Scripts -->
         <script type="module">
@@ -1453,21 +1428,34 @@
                 atualizarIconesOrdenacao();
             }
 
+            // ✅ v11.0: Ordenação com suporte a strings (nomeTime) e números
             function ordenarLista() {
                 participantesFiltrados.sort((a, b) => {
-                    const valorA = a[ordenacaoAtual.campo] || 0;
-                    const valorB = b[ordenacaoAtual.campo] || 0;
-                    return ordenacaoAtual.direcao === 'asc' ? valorA - valorB : valorB - valorA;
+                    const valorA = a[ordenacaoAtual.campo];
+                    const valorB = b[ordenacaoAtual.campo];
+
+                    // Se for string (nomeTime), usar localeCompare
+                    if (typeof valorA === 'string' && typeof valorB === 'string') {
+                        const cmp = valorA.localeCompare(valorB, 'pt-BR', { sensitivity: 'base' });
+                        return ordenacaoAtual.direcao === 'asc' ? cmp : -cmp;
+                    }
+
+                    // Se for número
+                    const numA = valorA || 0;
+                    const numB = valorB || 0;
+                    return ordenacaoAtual.direcao === 'asc' ? numA - numB : numB - numA;
                 });
             }
 
             function atualizarIconesOrdenacao() {
-                ['Temporada', 'Acertos', 'Final'].forEach(tipo => {
+                // Resetar todos os ícones
+                ['Participante', 'Temporada', 'Acertos', 'Final'].forEach(tipo => {
                     const icon = document.getElementById(`sort${tipo}`);
                     if (icon) icon.textContent = 'unfold_more';
                 });
 
                 const campoMap = {
+                    nomeTime: 'Participante',
                     saldoTemporada: 'Temporada',
                     saldoAcertos: 'Acertos',
                     saldoFinal: 'Final'
@@ -1524,6 +1512,9 @@
                 return badges.length > 0 ? badges.join('') : '<span class="no-badges">Sem movimentacoes</span>';
             }
 
+            // ✅ v10.0: Cache global para dados dos participantes (evita problemas de escape JSON)
+            window.participantesCache = new Map();
+
             // Renderizar tabela
             function renderizarTabela() {
                 const tbody = document.getElementById('tabelaBody');
@@ -1543,6 +1534,9 @@
                 // ✅ FIX: Determinar se deve mostrar coluna Liga
                 const mostrarColunaLiga = !ligaIdFiltro;
 
+                // ✅ v10.0: Limpar cache antes de popular
+                window.participantesCache.clear();
+
                 tbody.innerHTML = participantesFiltrados.map(p => {
                     const escudo = p.escudo || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23333"/%3E%3C/svg%3E';
 
@@ -1551,6 +1545,10 @@
 
                     // ✅ FIX: Coluna Liga condicional
                     const colunaLigaHtml = mostrarColunaLiga ? `<td>${p.ligaNome || '-'}</td>` : '';
+
+                    // ✅ v10.0: Chave única para o cache
+                    const cacheKey = `${p.ligaId}_${p.timeId}`;
+                    window.participantesCache.set(cacheKey, p);
 
                     return `
                         <tr>
@@ -1569,7 +1567,7 @@
                             <td><span class="status-badge ${p.situacao}">${p.situacao}</span></td>
                             <td>
                                 <div class="acoes-cell">
-                                    <button class="btn-acao extrato" title="Ver extrato completo" onclick='abrirModalHistorico(${JSON.stringify(p).replace(/'/g, "\\'")})'>
+                                    <button class="btn-acao extrato" title="Ver extrato completo" onclick="abrirModalExtrato('${cacheKey}')">
                                         <span class="material-icons">receipt_long</span>
                                     </button>
                                 </div>
@@ -1995,7 +1993,23 @@
                 }
             }
 
-            // Modal de Historico - v7.0: Extrato Completo (Rodadas + Acertos)
+            // ✅ v11.0: Redirect para extrato completo (sem modal)
+            window.abrirModalExtrato = function(cacheKey) {
+                // Buscar dados do cache
+                const p = window.participantesCache.get(cacheKey);
+                if (!p) {
+                    console.error('[EXTRATO] Participante não encontrado no cache:', cacheKey);
+                    alert('Erro: Dados do participante não encontrados. Recarregue a página.');
+                    return;
+                }
+
+                console.log('[EXTRATO] Redirecionando para extrato completo:', p.nomeTime);
+
+                // ✅ Redirect direto para página de fluxo financeiro com participante selecionado
+                window.location.href = `detalhe-liga.html?id=${p.ligaId}&section=fluxo-financeiro&timeId=${p.timeId}`;
+            };
+
+            // [DEPRECATED] Funções antigas mantidas para compatibilidade
             window.abrirModalHistorico = async function(p) {
                 document.getElementById('histEscudo').src = p.escudo || '';
                 document.getElementById('histNomeTime').textContent = p.nomeTime;
@@ -2007,14 +2021,30 @@
                 document.getElementById('modalHistorico').classList.add('active');
 
                 try {
-                    // v7.1: Buscar acertos E extrato em paralelo COM temporada
+                    // v7.2 FIX: URL correta com /cache no final + fallback para dados já disponíveis
                     const [acertosResp, extratoResp] = await Promise.all([
                         fetch(`/api/tesouraria/participante/${p.ligaId}/${p.timeId}?temporada=${temporadaAtual}`),
-                        fetch(`/api/extrato-cache/${p.ligaId}/times/${p.timeId}?temporada=${temporadaAtual}`)
+                        fetch(`/api/extrato-cache/${p.ligaId}/times/${p.timeId}/cache?temporada=${temporadaAtual}`)
                     ]);
 
                     const acertosData = await acertosResp.json();
-                    const extratoData = await extratoResp.json();
+
+                    // v7.2 FIX: Tratar 404 do cache - usar dados já disponíveis em 'p'
+                    let extratoData = { rodadas: [], resumo: {} };
+                    if (extratoResp.ok) {
+                        extratoData = await extratoResp.json();
+                    } else if (extratoResp.status === 404) {
+                        // Cache não existe - montar resumo a partir dos dados que já temos
+                        console.log('[TESOURARIA] Cache 404 - usando dados locais');
+                        extratoData = {
+                            rodadas: [],
+                            resumo: {
+                                saldo: p.saldoFinal || 0,
+                                saldo_temporada: p.saldoTemporada || p.saldoFinal || 0,
+                                saldo_final: p.saldoFinal || 0
+                            }
+                        };
+                    }
 
                     const acertos = acertosData.success ? (acertosData.acertos || []) : [];
                     const rodadas = extratoData.rodadas || [];

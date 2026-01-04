@@ -1,5 +1,6 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v8.0.0 (SaaS DINÂMICO)
+ * FLUXO-FINANCEIRO-CONTROLLER v8.1.0 (SaaS DINÂMICO)
+ * ✅ v8.1.0: Invalidação de cache em cascata ao salvar campos manuais
  * ✅ v8.0.0: MULTI-TENANT - Busca configurações de liga.configuracoes (White Label)
  *   - Remove hardcoded IDs e valores de ligas específicas
  *   - getBancoPorRodada() agora busca de liga.configuracoes.ranking_rodada
@@ -27,6 +28,8 @@ import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import Top10Cache from "../models/Top10Cache.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import { getResultadosMataMataCompleto } from "./mata-mata-backend.js";
+// ✅ v8.1.0: Invalidação de cache em cascata
+import { onCamposSaved } from "../utils/cache-invalidator.js";
 
 // ============================================================================
 // 🔧 CONSTANTES DE FALLBACK (usadas apenas se liga.configuracoes não existir)
@@ -764,6 +767,9 @@ export const salvarCampo = async (req, res) => {
 
         documento.updatedAt = new Date();
         await documento.save();
+
+        // ✅ v8.1.0: Invalidar cache para recalcular saldos
+        await onCamposSaved(ligaId, timeId);
 
         res.json(documento);
     } catch (error) {

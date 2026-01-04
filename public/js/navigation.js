@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
           carregarMelhorMes();
         } else if (sectionId === "fluxo-financeiro") {
           const { carregarFluxoFinanceiro } = await import(
-            "./fluxo-financeiro.js?v5.1"
+            "./fluxo-financeiro.js?v7.3"
           );
           carregarFluxoFinanceiro();
         }
@@ -72,5 +72,16 @@ document.addEventListener("DOMContentLoaded", () => {
     parciaisBtn.addEventListener("click", () => {
       window.location.href = `parciais.html?id=${ligaId}`;
     });
+  }
+
+  // ✅ v1.1: Suporte a section via URL (para redirect externo)
+  const sectionFromUrl = urlParams.get("section");
+  if (sectionFromUrl) {
+    const targetButton = document.querySelector(`[data-section="${sectionFromUrl}"]`);
+    if (targetButton) {
+      console.log(`[NAVIGATION] Auto-navegando para seção: ${sectionFromUrl}`);
+      // Pequeno delay para garantir que o DOM está pronto
+      setTimeout(() => targetButton.click(), 100);
+    }
   }
 });

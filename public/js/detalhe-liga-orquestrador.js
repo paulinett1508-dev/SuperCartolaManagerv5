@@ -23,6 +23,9 @@ class DetalheLigaOrquestrador {
                 lucide.createIcons();
             }
 
+            // ✅ v2.0: Auto-navegar para módulo via URL (section + timeId)
+            this.handleUrlNavigation();
+
             console.log("[ORQUESTRADOR] ✅ Inicializado");
         } catch (error) {
             console.error("[ORQUESTRADOR] ❌ Erro na inicialização:", error);
@@ -405,11 +408,21 @@ class DetalheLigaOrquestrador {
             return;
         }
 
-        // Redirect para gestao-renovacoes.html (simplificação do fluxo financeiro)
+        // ✅ v2.0: Fluxo financeiro - se vier com timeId, carrega inline; senão redireciona
         if (module === 'fluxo-financeiro') {
-            const ligaId = obterLigaIdCache();
-            window.location.href = `gestao-renovacoes.html?ligaId=${ligaId}`;
-            return;
+            const urlParams = new URLSearchParams(window.location.search);
+            const timeIdFromUrl = urlParams.get('timeId');
+
+            if (timeIdFromUrl) {
+                // Modo extrato individual: carregar fluxo-financeiro inline
+                console.log('[ORQUESTRADOR] Carregando fluxo-financeiro inline para timeId:', timeIdFromUrl);
+                // Continua para showModule
+            } else {
+                // Modo lista: redirecionar para gestao-renovacoes
+                const ligaId = obterLigaIdCache();
+                window.location.href = `gestao-renovacoes.html?ligaId=${ligaId}`;
+                return;
+            }
         }
 
         this.processingModule = true;
@@ -800,6 +813,22 @@ class DetalheLigaOrquestrador {
         if (ligaId) window.location.href = `parciais.html?id=${ligaId}`;
     }
 
+    // ✅ v2.0: Auto-navegar para módulo via URL (section/timeId)
+    handleUrlNavigation() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const sectionFromUrl = urlParams.get('section');
+        const timeIdFromUrl = urlParams.get('timeId');
+
+        if (sectionFromUrl) {
+            console.log(`[ORQUESTRADOR] Auto-navegando para seção: ${sectionFromUrl}${timeIdFromUrl ? ` (timeId: ${timeIdFromUrl})` : ''}`);
+
+            // Pequeno delay para garantir que o DOM está pronto
+            setTimeout(async () => {
+                await this.handleModuleClick(sectionFromUrl);
+            }, 200);
+        }
+    }
+
     setupGlobalFunctions() {
         window.voltarParaCards = () => this.voltarParaCards();
         window.executeAction = (action) => this.executeAction(action);
@@ -900,7 +929,7 @@ async function carregarModuloLuvaDeOuro() {
 async function carregarModuloFluxoFinanceiro() {
     if (!window.orquestrador.modules.fluxoFinanceiro) {
         window.orquestrador.modules.fluxoFinanceiro = await import(
-            "./fluxo-financeiro.js?v7.2"
+            "./fluxo-financeiro.js?v7.3"
         );
     }
     return window.orquestrador.modules.fluxoFinanceiro;

@@ -249,9 +249,15 @@ export class FluxoFinanceiroUI {
             console.warn("[FLUXO-UI] Erro ao buscar saldos:", error);
         }
 
-        // ✅ v2.0: Armazenar módulos ativos da liga
+        // ✅ v2.1: Defaults alinhados com config/modulos-defaults.js
         this._modulosAtivos = dadosSaldo?.modulosAtivos || {
-            banco: true, pontosCorridos: false, mataMata: false, top10: true
+            banco: true,            // Sempre ativo
+            pontosCorridos: false,  // Precisa habilitar
+            mataMata: false,        // Precisa habilitar
+            top10: true,            // Sempre ativo
+            melhorMes: false,       // Precisa habilitar
+            artilheiro: false,      // Precisa habilitar
+            luvaOuro: false,        // Precisa habilitar
         };
 
         // Mesclar dados de participantes com dados de saldo

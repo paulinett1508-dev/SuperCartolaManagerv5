@@ -4,7 +4,10 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.4.0
+ * @version 2.5.0
+ * ✅ v2.5.0: FIX - Incluir ligaId, ligaNome e modulosAtivos na rota /liga/:ligaId
+ *   - Badges de movimentações agora aparecem corretamente
+ *   - Cache de participantes funciona com chave ligaId_timeId
  * ✅ v2.4.0: FIX - Invalidar cache COM temporada para evitar inconsistências
  *   - deleteOne agora inclui temporada no filtro
  *   - Tipos consistentes: String(ligaId), Number(timeId), Number(temporada)
@@ -483,11 +486,15 @@ router.get("/liga/:ligaId", async (req, res) => {
             }
 
             participantes.push({
+                // ✅ v2.5 FIX: Incluir ligaId e ligaNome para consistência com /participantes
+                ligaId,
+                ligaNome: liga.nome || "Liga sem nome",
                 timeId,
                 nomeTime: participante.nome_time || "Time sem nome",
                 nomeCartola: participante.nome_cartola || "",
                 escudo: participante.escudo_url || participante.escudo || null,
                 ativo: participante.ativo !== false,
+                temporada: Number(temporada),
                 saldoTemporada: parseFloat(saldoTemporada.toFixed(2)),
                 saldoAcertos: parseFloat(saldoAcertos.toFixed(2)),
                 totalPago: parseFloat(totalPago.toFixed(2)),
@@ -506,6 +513,8 @@ router.get("/liga/:ligaId", async (req, res) => {
                     luvaOuro: parseFloat(breakdown.luvaOuro.toFixed(2)),
                     campos: parseFloat(saldoCampos.toFixed(2)),
                 },
+                // ✅ v2.5 FIX: Incluir modulosAtivos para renderizar badges
+                modulosAtivos,
             });
         }
 

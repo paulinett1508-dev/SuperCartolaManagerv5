@@ -1,10 +1,11 @@
 /**
- * ROTAS DE ACERTOS FINANCEIROS - Temporada 2025+
+ * ROTAS DE ACERTOS FINANCEIROS - Multi-temporada
  *
  * Endpoints para registrar pagamentos e recebimentos
  * entre participantes e administração (em tempo real).
  *
- * @version 1.6.0
+ * @version 1.7.0
+ * ✅ v1.7.0: FIX - Usar CURRENT_SEASON de config/seasons.js (não mais hardcoded 2025)
  * ✅ v1.6.0: FIX - Buscar nomeTime da collection times se não fornecido/genérico
  * ✅ v1.5.0: Campos manuais preservados (histórico completo) - apenas status muda
  * ✅ v1.4.0: FIX CRÍTICO - NÃO DELETAR CACHE DO EXTRATO
@@ -23,60 +24,37 @@ import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import Time from "../models/Time.js";
+import { CURRENT_SEASON } from "../config/seasons.js";
+// ✅ v1.7.0: Importar calculadora de saldo centralizada
+import { calcularSaldoParticipante } from "../utils/saldo-calculator.js";
 
 const router = express.Router();
 
 // =============================================================================
 // FUNÇÃO AUXILIAR: Calcular saldo total do participante
+// ✅ v1.7.0: Agora usa calculadora centralizada (utils/saldo-calculator.js)
 // =============================================================================
 
 /**
  * Calcula o saldo total atual de um participante (temporada + acertos)
  * @param {string} ligaId - ID da liga
  * @param {string} timeId - ID do time
- * @param {string} temporada - Temporada (default "2025")
- * @returns {Object} { saldoTemporada, saldoAcertos, saldoTotal }
+ * @param {number} temporada - Temporada (default CURRENT_SEASON)
+ * @returns {Object} { saldoTemporada, saldoAcertos, saldoTotal, totalPago, totalRecebido }
  */
-async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = 2025) {
-    // 1. Buscar saldo consolidado da temporada (do cache)
-    // ✅ v2.0 FIX: Usar campos corretos (liga_id, time_id) e filtrar por temporada
-    const cache = await ExtratoFinanceiroCache.findOne({
-        liga_id: String(ligaId),
-        time_id: Number(timeId),
-        temporada: Number(temporada)
+async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = CURRENT_SEASON) {
+    // ✅ v1.7.0: Usar função centralizada com recálculo para precisão
+    const resultado = await calcularSaldoParticipante(ligaId, timeId, temporada, {
+        recalcular: true,
     });
-    const saldoConsolidado = cache?.saldo_consolidado || 0;
 
-    // 2. Buscar campos manuais
-    const camposManuais = await FluxoFinanceiroCampos.findOne({
-        ligaId: String(ligaId),
-        timeId: String(timeId)
-    });
-    let saldoCampos = 0;
-    if (camposManuais?.campos) {
-        camposManuais.campos.forEach(campo => {
-            saldoCampos += campo.valor || 0;
-        });
-    }
-
-    // 3. Saldo da temporada = consolidado + campos manuais
-    const saldoTemporada = saldoConsolidado + saldoCampos;
-
-    // 4. Buscar saldo de acertos existentes
-    const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
-
-    // 5. Saldo total = temporada + acertos
-    // ✅ CORREÇÃO v1.3: saldoAcertos = totalPago - totalRecebido (definido no Model)
-    // Se participante PAGOU à liga → saldoAcertos POSITIVO → quita dívida (saldo sobe)
-    // Se participante RECEBEU da liga → saldoAcertos NEGATIVO → usa crédito (saldo desce)
-    const saldoTotal = saldoTemporada + acertosInfo.saldoAcertos;
-
+    // Mapear para formato esperado (saldoTotal = saldoFinal)
     return {
-        saldoTemporada: parseFloat(saldoTemporada.toFixed(2)),
-        saldoAcertos: acertosInfo.saldoAcertos,
-        saldoTotal: parseFloat(saldoTotal.toFixed(2)),
-        totalPago: acertosInfo.totalPago,
-        totalRecebido: acertosInfo.totalRecebido,
+        saldoTemporada: resultado.saldoTemporada,
+        saldoAcertos: resultado.saldoAcertos,
+        saldoTotal: resultado.saldoFinal,
+        totalPago: resultado.totalPago,
+        totalRecebido: resultado.totalRecebido,
     };
 }
 
@@ -91,7 +69,7 @@ async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = 2025) 
 router.get("/:ligaId/:timeId", async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-        const temporada = parseInt(req.query.temporada) || 2025;
+        const temporada = parseInt(req.query.temporada) || CURRENT_SEASON;
 
         const acertos = await AcertoFinanceiro.buscarPorTime(ligaId, timeId, temporada);
         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
@@ -129,7 +107,7 @@ router.get("/:ligaId/:timeId", async (req, res) => {
 router.get("/:ligaId/:timeId/saldo", async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-        const temporada = parseInt(req.query.temporada) || 2025;
+        const temporada = parseInt(req.query.temporada) || CURRENT_SEASON;
 
         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
 
@@ -155,7 +133,7 @@ router.get("/:ligaId/:timeId/saldo", async (req, res) => {
 router.get("/admin/:ligaId", async (req, res) => {
     try {
         const { ligaId } = req.params;
-        const temporada = parseInt(req.query.temporada) || 2025;
+        const temporada = parseInt(req.query.temporada) || CURRENT_SEASON;
 
         const acertos = await AcertoFinanceiro.buscarPorLiga(ligaId, temporada);
 
@@ -220,7 +198,7 @@ router.post("/:ligaId/:timeId", async (req, res) => {
             comprovante,
             observacoes,
             dataAcerto,
-            temporada = 2025,
+            temporada = CURRENT_SEASON,
             registradoPor = "admin",
         } = req.body;
 
@@ -495,7 +473,7 @@ router.delete("/:id", async (req, res) => {
 router.get("/admin/:ligaId/resumo", async (req, res) => {
     try {
         const { ligaId } = req.params;
-        const temporada = parseInt(req.query.temporada) || 2025;
+        const temporada = parseInt(req.query.temporada) || CURRENT_SEASON;
 
         const acertos = await AcertoFinanceiro.aggregate([
             {

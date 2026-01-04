@@ -47,13 +47,14 @@ export class FluxoFinanceiroCache {
         this.extratosCacheados = new Map(); // timeId -> extrato
         this.statusMercado = null;
 
-        // ✅ NOVO v4.1: Módulos ativos da liga
+        // ✅ v5.1: Módulos ativos da liga (defaults corrigidos)
+        // IMPORTANTE: Valores alinhados com config/modulos-defaults.js
         this.modulosAtivos = {
-            "mata-mata": true,
-            "melhor-mes": true,
-            "pontos-corridos": true,
-            "luva-de-ouro": true,
-            "artilheiro-campeao": true,
+            "mata-mata": false,        // Precisa ser habilitado na liga
+            "melhor-mes": false,       // Precisa ser habilitado na liga
+            "pontos-corridos": false,  // Precisa ser habilitado na liga
+            "luva-de-ouro": false,     // Precisa ser habilitado na liga
+            "artilheiro-campeao": false, // Precisa ser habilitado na liga
         };
     }
 

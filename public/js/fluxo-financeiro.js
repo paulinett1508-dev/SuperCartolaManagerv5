@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v7.2"; // v7.2: FIX - Temporada em todas as requisições de API (sincronização 3 telas)
+const CACHE_BUSTER = "v7.3"; // v7.3: Auto-seleção de participante via URL (timeId param)
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -231,6 +231,23 @@ async function inicializarSistemaFinanceiro(ligaId) {
     window.fluxoFinanceiroOrquestrador = {
         recarregar: () => inicializarSistemaFinanceiro(obterLigaId()),
     };
+
+    // ✅ v7.3: Auto-selecionar participante se timeId vier na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const timeIdFromUrl = urlParams.get("timeId");
+    if (timeIdFromUrl) {
+        console.log("[FLUXO-ADMIN] Auto-selecionando participante da URL:", timeIdFromUrl);
+        // Pequeno delay para garantir que a UI renderizou
+        setTimeout(() => {
+            calcularEExibirExtrato(timeIdFromUrl);
+            // Marcar botão como ativo
+            const botao = document.querySelector(`[data-time-id="${timeIdFromUrl}"]`);
+            if (botao) {
+                document.querySelectorAll('.participante-btn').forEach(b => b.classList.remove('active'));
+                botao.classList.add('active');
+            }
+        }, 100);
+    }
 }
 
 async function calcularEExibirExtrato(timeId) {

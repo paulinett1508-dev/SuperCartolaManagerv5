@@ -13,6 +13,7 @@ import APP_VERSION, {
     ADMIN_VERSION,
     VERSION_SCOPE
 } from "../config/appVersion.js";
+import { CURRENT_SEASON, SEASON_CONFIG } from "../config/seasons.js";
 
 const router = express.Router();
 
@@ -182,6 +183,25 @@ router.get("/versao/debug", (req, res) => {
             time: new Date().toISOString(),
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
         }
+    });
+});
+
+// =====================================================================
+// CONFIGURAÇÃO DE TEMPORADA
+// =====================================================================
+
+// GET /api/app/season-config - Retorna configurações de temporada
+router.get("/season-config", (req, res) => {
+    res.json({
+        current: CURRENT_SEASON,
+        status: SEASON_CONFIG.status,
+        rodadaFinal: SEASON_CONFIG.rodadaFinal,
+        encerrado: SEASON_CONFIG.status === 'encerrada',
+        dataMercadoAbre: SEASON_CONFIG.dataMercadoAbre,
+        dataPrimeiraRodada: SEASON_CONFIG.dataPrimeiraRodada,
+        dataFim: SEASON_CONFIG.dataFim,
+        historico: SEASON_CONFIG.historico,
+        timestamp: new Date().toISOString(),
     });
 });
 
