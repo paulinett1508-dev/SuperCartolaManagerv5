@@ -27,10 +27,12 @@
 
 <style>
 /* =====================================================
-   HALL DA FAMA v7.1 - LAYOUT LIMPO (MODELO REFERENCIA)
+   HALL DA FAMA v7.2 - Russo One Brand Typography
    Cores mapeadas para tokens globais (_app-tokens.css)
    ===================================================== */
 :root {
+    --hall-font-brand: var(--app-font-brand, 'Russo One', sans-serif);
+    --hall-font-body: var(--app-font-base, 'Inter', sans-serif);
     --hall-primary: var(--app-primary, #FF4500);
     --hall-bg: var(--app-bg, #0a0a0a);
     --hall-surface: var(--app-surface, #1a1a1a);
@@ -46,7 +48,7 @@
 
 .hall-premium {
     padding: 20px;
-    font-family: 'Inter', 'Roboto', sans-serif;
+    font-family: var(--hall-font-body);
     background: linear-gradient(180deg, var(--hall-bg) 0%, var(--hall-surface) 100%);
     color: var(--hall-text-white);
     min-height: 100vh;
@@ -70,11 +72,12 @@
 }
 
 .header h1 {
+    font-family: var(--hall-font-brand);
     font-size: 32px;
-    font-weight: 700;
+    font-weight: 400;
     color: var(--hall-primary);
     margin: 0 0 8px;
-    letter-spacing: -0.5px;
+    letter-spacing: 0.5px;
 }
 
 .header .subtitle {
@@ -190,8 +193,10 @@
 }
 
 .stat-value {
+    font-family: var(--hall-font-brand);
     font-size: 28px;
-    font-weight: 700;
+    font-weight: 400;
+    letter-spacing: -0.3px;
     color: var(--hall-text-white);
     line-height: 1;
 }
@@ -232,8 +237,10 @@
 }
 
 .section-title {
+    font-family: var(--hall-font-brand);
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 400;
+    letter-spacing: 0.3px;
     color: var(--hall-text-white);
 }
 
@@ -431,8 +438,10 @@
 }
 
 .mm-stat-value {
+    font-family: var(--hall-font-brand);
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 400;
+    letter-spacing: -0.3px;
     color: var(--hall-text-white);
 }
 
