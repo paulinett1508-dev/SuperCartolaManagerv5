@@ -1,4 +1,4 @@
-<!-- PARTICIPANTE MATA-MATA v6.6 - Card discreto + Campeão -->
+<!-- PARTICIPANTE MATA-MATA v6.8 - Russo One Brand Typography -->
 <div class="mata-mata-module">
     <!-- Header -->
     <div class="mm-header">
@@ -54,11 +54,14 @@
 
 <style>
     /* =====================================================
-   MATA-MATA v6.7 - Design Moderno (Tokens CSS)
+   MATA-MATA v6.8 - Russo One Brand (Tokens CSS)
    ===================================================== */
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Russo+One&display=swap");
 
     /* Variáveis mapeadas para tokens globais (_app-tokens.css) */
     :root {
+        --mm-font-brand: 'Russo One', sans-serif;
+        --mm-font-body: 'Inter', -apple-system, sans-serif;
         --mm-bg: var(--app-bg, #0c0c0c);
         --mm-bg-dark: var(--app-bg-dark, #000);
         --mm-primary: var(--participante-primary, #ff6a38);
@@ -88,6 +91,7 @@
         min-height: 100%;
         padding: 12px;
         background: var(--mm-bg);
+        font-family: var(--mm-font-body);
     }
 
     /* ===== HEADER ===== */
@@ -115,8 +119,10 @@
     }
 
     .mm-title {
+        font-family: var(--mm-font-brand);
         font-size: 16px;
-        font-weight: 700;
+        font-weight: 400;
+        letter-spacing: 0.3px;
         color: var(--participante-text, #f9fafb);
         margin: 0;
     }
@@ -200,8 +206,10 @@
     .mm-phase-btn {
         padding: 6px 14px;
         border-radius: 20px;
+        font-family: var(--mm-font-brand);
         font-size: 11px;
-        font-weight: 600;
+        font-weight: 400;
+        letter-spacing: 0.3px;
         white-space: nowrap;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -241,8 +249,10 @@
     }
 
     .mm-phase-info .mm-phase-name {
+        font-family: var(--mm-font-brand);
         font-size: 14px;
-        font-weight: 700;
+        font-weight: 400;
+        letter-spacing: 0.3px;
         color: var(--participante-primary, #ff6a38);
         margin: 2px 0 0 0;
     }
@@ -370,8 +380,10 @@
     }
 
     .mm-mc-pts {
+        font-family: var(--mm-font-brand);
         font-size: 18px;
-        font-weight: 800;
+        font-weight: 400;
+        letter-spacing: -0.3px;
         margin: 0;
     }
 
@@ -467,11 +479,12 @@
         grid-template-columns: 26px 1fr 52px 52px 1fr 44px;
         align-items: center;
         background: var(--participante-primary, #ff6a38);
+        font-family: var(--mm-font-brand);
         font-size: 10px;
-        font-weight: 700;
+        font-weight: 400;
         color: var(--mm-bg-dark);
         text-transform: uppercase;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.5px;
     }
 
     .mm-tabela-header > div {
@@ -576,8 +589,10 @@
     }
 
     .mm-pts-valor {
+        font-family: var(--mm-font-brand);
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 400;
+        letter-spacing: -0.3px;
     }
 
     .mm-pts-valor.vencedor {
@@ -1115,8 +1130,9 @@
     }
 
     .mm-campeao-titulo {
+        font-family: var(--mm-font-brand);
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 400;
         color: var(--mm-warning);
         text-transform: uppercase;
         letter-spacing: 2px;
@@ -1151,8 +1167,10 @@
     }
 
     .mm-campeao-nome {
+        font-family: var(--mm-font-brand);
         font-size: 16px;
-        font-weight: 800;
+        font-weight: 400;
+        letter-spacing: 0.3px;
         color: var(--mm-text-white);
         margin: 0 0 2px 0;
     }
@@ -1164,8 +1182,10 @@
     }
 
     .mm-campeao-pts {
+        font-family: var(--mm-font-brand);
         font-size: 20px;
-        font-weight: 800;
+        font-weight: 400;
+        letter-spacing: -0.3px;
         color: var(--mm-warning);
         margin: 0;
     }
@@ -1176,8 +1196,9 @@
         gap: 6px;
         background: linear-gradient(135deg, var(--mm-warning), var(--mm-warning-dark));
         color: var(--mm-bg-dark);
+        font-family: var(--mm-font-brand);
         font-size: 10px;
-        font-weight: 700;
+        font-weight: 400;
         padding: 6px 14px;
         border-radius: 20px;
         margin-top: 14px;
@@ -1309,8 +1330,10 @@
     }
 
     .mm-desemp-main-value {
+        font-family: var(--mm-font-brand);
         font-size: 20px;
-        font-weight: 800;
+        font-weight: 400;
+        letter-spacing: -0.3px;
         color: var(--mm-text-white);
         line-height: 1;
     }
@@ -1330,8 +1353,9 @@
     }
 
     .mm-desemp-secondary-value {
+        font-family: var(--mm-font-brand);
         font-size: 14px;
-        font-weight: 700;
+        font-weight: 400;
         color: var(--mm-text-white);
         line-height: 1;
     }

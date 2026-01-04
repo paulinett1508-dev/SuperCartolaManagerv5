@@ -1,4 +1,4 @@
-<!-- PARTICIPANTE MELHOR MÊS - v3.5 Header Padronizado + Card Desempenho ao final -->
+<!-- PARTICIPANTE MELHOR MÊS - v3.7 Russo One Brand Typography -->
 <div class="melhor-mes-container-pro">
     <!-- Header PADRONIZADO (sem gradiente laranja) -->
     <div class="mm-header-pro">
@@ -42,10 +42,14 @@
 
 <style>
     /* ============================================
-       MELHOR MÊS v3.6 - HEADER PADRONIZADO
+       MELHOR MÊS v3.7 - Russo One Brand Typography
        Cores mapeadas para tokens globais (_app-tokens.css)
        ============================================ */
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Russo+One&display=swap");
+
     :root {
+        --mm-font-brand: 'Russo One', sans-serif;
+        --mm-font-body: 'Inter', -apple-system, sans-serif;
         --mm-primary: var(--app-primary, #ff5c00);
         --mm-surface: var(--app-surface, #1c1c1c);
         --mm-surface-elevated: var(--app-surface-elevated, #2a2a2a);
@@ -63,6 +67,7 @@
     .melhor-mes-container-pro {
         padding: 16px;
         padding-bottom: 100px;
+        font-family: var(--mm-font-body);
     }
 
     /* HEADER PADRONIZADO (SEM GRADIENTE LARANJA) */
@@ -88,11 +93,12 @@
         color: var(--mm-primary);
     }
 
-    /* TÍTULO SEM GRADIENTE - Cor sólida branca */
+    /* TÍTULO COM RUSSO ONE */
     .mm-header-pro h2 {
-        font-family: "Poppins", sans-serif;
+        font-family: var(--mm-font-brand);
         font-size: 18px;
-        font-weight: 700;
+        font-weight: 400;
+        letter-spacing: 0.3px;
         color: var(--mm-text-white);
         margin: 0;
     }
@@ -222,8 +228,10 @@
         min-width: 0;
     }
     .mm-card-title {
+        font-family: var(--mm-font-brand);
         font-size: 16px;
-        font-weight: 700;
+        font-weight: 400;
+        letter-spacing: 0.3px;
         color: var(--mm-text-white);
         margin: 0;
     }
@@ -285,8 +293,10 @@
         color: var(--mm-text-white);
     }
     .mm-campeao-pontos {
+        font-family: var(--mm-font-brand);
         font-size: 16px;
-        font-weight: 800;
+        font-weight: 400;
+        letter-spacing: -0.3px;
         color: var(--mm-primary);
     }
     .mm-card-campeao.meu .mm-campeao-pontos {
@@ -603,8 +613,10 @@
         opacity: 0.5;
     }
     .mm-desempenho-valor {
+        font-family: var(--mm-font-brand);
         font-size: 24px;
-        font-weight: 800;
+        font-weight: 400;
+        letter-spacing: -0.3px;
         color: var(--mm-text-white);
         line-height: 1;
     }
@@ -633,8 +645,9 @@
         color: var(--mm-text-muted);
     }
     .mm-desempenho-pos-valor {
+        font-family: var(--mm-font-brand);
         font-size: 16px;
-        font-weight: 700;
+        font-weight: 400;
         color: var(--mm-text-white);
     }
 </style>

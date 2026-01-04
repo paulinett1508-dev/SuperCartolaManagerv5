@@ -89,6 +89,7 @@
        ======================================== */
     /* Famílias */
     --app-font-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --app-font-brand: 'Russo One', sans-serif;  /* Títulos, stats, CTAs - Identidade visual */
     --app-font-mono: 'JetBrains Mono', 'SF Mono', monospace;
 
     /* Tamanhos Mobile (base 16px) */
@@ -379,4 +380,96 @@
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
+}
+
+/* ========================================
+   TIPOGRAFIA BRAND (Russo One) - Mobile
+   ======================================== */
+
+/* Classe base da marca */
+.font-brand {
+    font-family: var(--app-font-brand);
+}
+
+/* Títulos com fonte brand (Mobile-First) */
+.app-brand-title {
+    font-family: var(--app-font-brand);
+    letter-spacing: 0.3px;
+    line-height: var(--app-leading-tight);
+}
+
+.app-brand-title--hero {
+    font-size: var(--app-font-hero);
+}
+
+.app-brand-title--xl {
+    font-size: var(--app-font-2xl);
+}
+
+.app-brand-title--lg {
+    font-size: var(--app-font-xl);
+}
+
+.app-brand-title--md {
+    font-size: var(--app-font-lg);
+}
+
+/* Stats/números com fonte brand - PRINCIPAL USO NO APP */
+.app-brand-stat {
+    font-family: var(--app-font-brand);
+    letter-spacing: -0.5px;
+    line-height: 1;
+}
+
+.app-brand-stat--hero {
+    font-size: var(--app-font-hero);
+}
+
+.app-brand-stat--xl {
+    font-size: var(--app-font-2xl);
+}
+
+.app-brand-stat--lg {
+    font-size: var(--app-font-xl);
+}
+
+.app-brand-stat--md {
+    font-size: var(--app-font-lg);
+}
+
+/* Botões/CTAs com fonte brand */
+.app-brand-btn {
+    font-family: var(--app-font-brand);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+/* Labels/badges brand */
+.app-brand-label {
+    font-family: var(--app-font-brand);
+    font-size: var(--app-font-xs);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+/* Nomes de participantes em destaque */
+.app-brand-name {
+    font-family: var(--app-font-brand);
+    font-size: var(--app-font-md);
+    letter-spacing: 0.2px;
+}
+
+/* Posição no ranking */
+.app-brand-position {
+    font-family: var(--app-font-brand);
+    font-size: var(--app-font-xl);
+    line-height: 1;
+}
+
+/* Gradiente laranja para texto (usa com font-brand) */
+.text-gradient-orange {
+    background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-primary-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }

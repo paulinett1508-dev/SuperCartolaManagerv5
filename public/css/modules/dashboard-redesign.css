@@ -1,8 +1,8 @@
-/* DASHBOARD REDESIGN v1.1
+/* DASHBOARD REDESIGN v1.2 - Russo One Brand Typography
    Arquivo: public/css/modules/dashboard-redesign.css
    Novo design inspirado no mockup moderno
    IMPORTANTE: Este arquivo complementa dashboard.css, não substitui
-   v1.1: Fix gap sidebar + Menu dropup perfil
+   v1.2: Russo One brand font integration
 */
 
 /* === RESET DO LAYOUT PARA NOVO DESIGN === */
@@ -37,8 +37,10 @@
 }
 
 .dashboard-header-info h2 {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
     font-size: 1.875rem;
-    font-weight: 700;
+    font-weight: 400;
+    letter-spacing: 0.5px;
     color: #ffffff;
     margin: 0 0 4px 0;
     text-shadow: none;
@@ -182,11 +184,12 @@
 }
 
 .stat-card-content .stat-number-new {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
     font-size: 1.875rem;
-    font-weight: 700;
+    font-weight: 400;
+    letter-spacing: -0.5px;
     color: #ffffff;
     margin: 0;
-    font-family: 'Inter', sans-serif;
 }
 
 .stat-card-content .stat-number-new.text-lg {
@@ -399,8 +402,10 @@
 }
 
 .liga-card-info h4 {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
     font-size: 1.125rem;
-    font-weight: 700;
+    font-weight: 400;
+    letter-spacing: 0.3px;
     color: #ffffff;
     margin: 0 0 4px 0;
 }
@@ -606,8 +611,10 @@
 }
 
 .liga-card-new h4 {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 400;
+    letter-spacing: 0.3px;
     color: #ffffff;
     margin: 0 0 4px 0;
     transition: color 0.2s ease;

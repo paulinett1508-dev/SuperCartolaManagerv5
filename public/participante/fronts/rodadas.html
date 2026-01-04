@@ -2,10 +2,14 @@
 <!-- Fragmento HTML para inserção via navegação -->
 <style>
 /* ============================================
-   RODADAS PARTICIPANTE v3.7 - CSS Inline
+   RODADAS PARTICIPANTE v3.8 - Russo One Brand
    Cores mapeadas para tokens globais (_app-tokens.css)
    ============================================ */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Russo+One&display=swap");
+
 :root {
+    --rodadas-font-brand: 'Russo One', sans-serif;
+    --rodadas-font-body: 'Inter', -apple-system, sans-serif;
     --rodadas-primary: var(--app-primary, #f97316);
     --rodadas-primary-dark: var(--app-primary-dark, #ea580c);
     --rodadas-surface: var(--app-surface, #1a1a1a);
@@ -28,16 +32,16 @@
     --rodadas-bronze: var(--app-bronze, #cd7f32);
     --rodadas-bronze-dark: #b06c2a;
 }
-.rodadas-participante-container { padding: 16px; padding-bottom: 100px; }
+.rodadas-participante-container { padding: 16px; padding-bottom: 100px; font-family: var(--rodadas-font-body); }
 .rodadas-header-pro { text-align: center; margin-bottom: 16px; }
 .rodadas-title-row { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .rodadas-icon { font-size: 32px; color: var(--rodadas-primary); }
-.rodadas-header-pro h2 { font-family: "Lexend", sans-serif; font-size: 28px; font-weight: 700; color: var(--rodadas-primary); margin: 0; }
+.rodadas-header-pro h2 { font-family: var(--rodadas-font-brand); font-size: 24px; font-weight: 400; letter-spacing: 0.5px; color: var(--rodadas-primary); margin: 0; }
 .rodadas-subtitle { color: var(--rodadas-text-muted); font-size: 14px; margin-top: 8px; }
 .rodadas-ano-selector { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
-.ano-btn { padding: 10px 24px; background: var(--rodadas-surface-elevated); border: none; border-radius: 8px; color: var(--rodadas-text-muted); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+.ano-btn { padding: 10px 24px; background: var(--rodadas-surface-elevated); border: none; border-radius: 8px; color: var(--rodadas-text-muted); font-family: var(--rodadas-font-brand); font-size: 13px; font-weight: 400; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; }
 .ano-btn:hover { background: var(--rodadas-surface-hover); }
-.ano-btn.active { background: var(--rodadas-primary); color: var(--rodadas-text-white); font-weight: 600; }
+.ano-btn.active { background: var(--rodadas-primary); color: var(--rodadas-text-white); }
 .ano-btn.disabled { opacity: 0.4; cursor: not-allowed; }
 .card-desempenho-mitos-micos { background: linear-gradient(135deg, var(--rodadas-surface) 0%, var(--rodadas-surface-elevated) 100%); border-radius: 16px; padding: 16px; margin-top: 16px; border: 1px solid var(--rodadas-border); }
 .desempenho-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: var(--rodadas-primary); font-weight: 600; font-size: 14px; }
@@ -50,8 +54,8 @@
 .stat-icon-wrapper.mico { background: rgba(239, 68, 68, 0.2); color: var(--rodadas-danger); }
 .stat-icon-wrapper .material-symbols-outlined { font-size: 20px; }
 .stat-info { display: flex; align-items: baseline; gap: 8px; }
-.stat-label { color: var(--rodadas-text-dim); font-size: 11px; font-weight: 600; }
-.stat-value { color: var(--rodadas-text-white); font-size: 24px; font-weight: 700; }
+.stat-label { color: var(--rodadas-text-dim); font-family: var(--rodadas-font-brand); font-size: 10px; font-weight: 400; letter-spacing: 0.5px; }
+.stat-value { color: var(--rodadas-text-white); font-family: var(--rodadas-font-brand); font-size: 24px; font-weight: 400; }
 .stat-progress { display: flex; align-items: center; gap: 8px; }
 .progress-bar { flex: 1; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; overflow: hidden; }
 .progress-bar.mito .progress-fill { background: var(--rodadas-success); }
@@ -76,8 +80,8 @@
 .rodada-card-compacto.mico { background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.1) 100%); border-color: var(--rodadas-danger); box-shadow: 0 0 12px rgba(239, 68, 68, 0.3); }
 .rodada-card-compacto.parcial { background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.05) 100%); border-color: var(--rodadas-success); animation: pulse-parcial 2s infinite; }
 @keyframes pulse-parcial { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-.card-numero { font-size: 16px; font-weight: 700; color: var(--rodadas-text-white); }
-.card-pontos { font-size: 10px; color: var(--rodadas-text-muted); margin-top: 2px; }
+.card-numero { font-family: var(--rodadas-font-brand); font-size: 16px; font-weight: 400; color: var(--rodadas-text-white); }
+.card-pontos { font-family: var(--rodadas-font-brand); font-size: 10px; font-weight: 400; color: var(--rodadas-text-muted); margin-top: 2px; letter-spacing: -0.3px; }
 .badge-destaque { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1; }
 .badge-destaque .material-symbols-outlined { font-size: 14px; }
 .rodada-card-compacto.mito .badge-destaque { background: linear-gradient(135deg, var(--rodadas-success), var(--rodadas-success-dark)); box-shadow: 0 2px 6px rgba(34, 197, 94, 0.5); }
@@ -95,7 +99,7 @@
 .rodadas-empty-state h3 { color: var(--rodadas-text-muted); font-size: 18px; margin-bottom: 8px; }
 .rodada-detalhamento-pro { margin-top: 24px; background: var(--rodadas-surface); border-radius: 16px; overflow: hidden; border: 1px solid var(--rodadas-border); }
 .detalhamento-header-pro { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: linear-gradient(135deg, var(--rodadas-primary) 0%, var(--rodadas-primary-dark) 100%); }
-.detalhamento-info h3 { color: var(--rodadas-text-white); font-size: 20px; font-weight: 700; margin: 0 0 4px 0; }
+.detalhamento-info h3 { font-family: var(--rodadas-font-brand); color: var(--rodadas-text-white); font-size: 18px; font-weight: 400; letter-spacing: 0.3px; margin: 0 0 4px 0; }
 .rodada-resumo { color: rgba(255, 255, 255, 0.85); font-size: 13px; margin: 0; }
 .btn-voltar-pro { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: rgba(0, 0, 0, 0.2); border: none; border-radius: 8px; color: var(--rodadas-text-white); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
 .btn-voltar-pro:hover { background: rgba(0, 0, 0, 0.3); }
@@ -106,7 +110,7 @@
 .ranking-item-pro:hover { background: var(--rodadas-surface-hover); }
 .ranking-item-pro.meu-time { background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.3); }
 .ranking-item-pro.inativo { opacity: 0.5; }
-.posicao-badge-pro { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 700; font-size: 14px; background: var(--rodadas-surface-hover); color: var(--rodadas-text-white); }
+.posicao-badge-pro { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-family: var(--rodadas-font-brand); font-weight: 400; font-size: 14px; background: var(--rodadas-surface-hover); color: var(--rodadas-text-white); }
 .posicao-badge-pro.pos-1 { background: linear-gradient(135deg, var(--rodadas-gold), var(--rodadas-gold-dark)); color: #000; }
 .posicao-badge-pro.pos-2 { background: linear-gradient(135deg, var(--rodadas-silver), var(--rodadas-silver-dark)); color: #000; }
 .posicao-badge-pro.pos-3 { background: linear-gradient(135deg, var(--rodadas-bronze), var(--rodadas-bronze-dark)); color: #000; }
@@ -115,7 +119,7 @@
 .ranking-nome-time { font-weight: 600; color: var(--rodadas-text-white); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ranking-nome-cartola { font-size: 12px; color: var(--rodadas-text-muted); }
 .ranking-stats-pro { text-align: right; }
-.ranking-pontos-pro { font-weight: 700; color: var(--rodadas-text-white); font-size: 14px; }
+.ranking-pontos-pro { font-family: var(--rodadas-font-brand); font-weight: 400; color: var(--rodadas-text-white); font-size: 14px; letter-spacing: -0.3px; }
 .ranking-financeiro-pro { font-size: 12px; }
 .ranking-financeiro-pro.positivo { color: var(--rodadas-success); }
 .ranking-financeiro-pro.negativo { color: var(--rodadas-danger); }

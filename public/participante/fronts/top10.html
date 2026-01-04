@@ -3,10 +3,14 @@
 <link rel="stylesheet" href="/participante/css/top10-destaque.css" />
 <style>
 /* ============================================
-   TOP 10 PARTICIPANTE v4.3 - CSS Inline
+   TOP 10 PARTICIPANTE v4.4 - Russo One Brand
    Cores mapeadas para tokens globais (_app-tokens.css)
    ============================================ */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Russo+One&display=swap");
+
 :root {
+    --top10-font-brand: 'Russo One', sans-serif;
+    --top10-font-body: 'Inter', -apple-system, sans-serif;
     --top10-gold: var(--app-warning, #eab308);
     --top10-gold-muted: var(--app-warning-muted, rgba(234, 179, 8, 0.2));
     --top10-surface: var(--app-surface, #1a1a1a);
@@ -22,11 +26,11 @@
     --top10-primary-dark: var(--app-primary-dark, #ea580c);
     --top10-border: var(--app-border, #333);
 }
-.top10-participante-container { padding: 16px; padding-bottom: 100px; }
+.top10-participante-container { padding: 16px; padding-bottom: 100px; font-family: var(--top10-font-body); }
 .top10-header-pro { text-align: center; margin-bottom: 20px; }
 .top10-title-row { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .top10-icon { font-size: 32px; color: var(--top10-gold); }
-.top10-header-pro h2 { font-family: "Lexend", sans-serif; font-size: 28px; font-weight: 700; color: var(--top10-gold); margin: 0; }
+.top10-header-pro h2 { font-family: var(--top10-font-brand); font-size: 24px; font-weight: 400; letter-spacing: 0.5px; color: var(--top10-gold); margin: 0; }
 .top10-subtitle { color: var(--top10-text-muted); font-size: 14px; margin-top: 8px; }
 .top10-resumo-card { background: linear-gradient(135deg, var(--top10-surface) 0%, var(--top10-surface-elevated) 100%); border-radius: 16px; padding: 16px; margin-top: 20px; border: 1px solid var(--top10-border); }
 .resumo-header { display: flex; align-items: center; gap: 8px; color: var(--top10-primary); font-weight: 600; font-size: 14px; margin-bottom: 16px; }
@@ -38,13 +42,13 @@
 .resumo-stat.mico .resumo-stat-icon { background: var(--top10-danger-muted); color: var(--top10-danger); }
 .resumo-stat-icon .material-symbols-outlined { font-size: 20px; }
 .resumo-stat-info { display: flex; align-items: baseline; gap: 8px; }
-.resumo-stat-label { color: var(--top10-text-dim); font-size: 11px; font-weight: 600; }
-.resumo-stat-value { color: var(--top10-text-white); font-size: 24px; font-weight: 700; }
+.resumo-stat-label { color: var(--top10-text-dim); font-family: var(--top10-font-brand); font-size: 10px; font-weight: 400; letter-spacing: 0.5px; }
+.resumo-stat-value { color: var(--top10-text-white); font-family: var(--top10-font-brand); font-size: 24px; font-weight: 400; }
 .resumo-stat-bonus { color: var(--top10-success); font-size: 14px; font-weight: 600; }
 .resumo-stat-onus { color: var(--top10-danger); font-size: 14px; font-weight: 600; }
 .resumo-total { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 12px; }
 .resumo-total-label { color: var(--top10-text-muted); font-size: 14px; }
-.top10-resumo-total-value { font-size: 18px; font-weight: 700; color: var(--top10-text-white); }
+.top10-resumo-total-value { font-family: var(--top10-font-brand); font-size: 18px; font-weight: 400; color: var(--top10-text-white); }
 .top10-resumo-total-value.positivo { color: var(--top10-success); }
 .top10-resumo-total-value.negativo { color: var(--top10-danger); }
 .top10-loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: var(--top10-text-muted); }
@@ -72,11 +76,11 @@
 .nome-texto { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--top10-text-white); font-weight: 500; }
 .escudo-cell { width: 32px; }
 .escudo-mini { width: 24px; height: 24px; object-fit: contain; }
-.pontos-valor { font-weight: 700; color: var(--top10-text-white); }
+.pontos-valor { font-family: var(--top10-font-brand); font-weight: 400; color: var(--top10-text-white); letter-spacing: -0.3px; }
 .rodada-badge { display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 3px 8px; border-radius: 6px; font-size: 11px; color: var(--top10-text-muted); }
 .valor-bonus { color: var(--top10-success); font-weight: 700; }
 .valor-onus { color: var(--top10-danger); font-weight: 700; }
-.posicao-cell { font-weight: 700; font-size: 14px; }
+.posicao-cell { font-family: var(--top10-font-brand); font-weight: 400; font-size: 14px; }
 .posicao-cell.top3 { color: var(--top10-gold); }
 .posicao-cell.bottom3 { color: var(--top10-danger); }
 .btn-ver-time { background: transparent; border: none; color: var(--top10-text-dim); cursor: pointer; padding: 6px; border-radius: 6px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }

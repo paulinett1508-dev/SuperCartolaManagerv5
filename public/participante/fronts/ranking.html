@@ -53,12 +53,15 @@
 <div id="rankingCardDesempenho" class="ranking-card-desempenho-container"></div>
 
 <style>
-    /* ===== RANKING PROFISSIONAL v3.2 ===== */
-    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+    /* ===== RANKING PROFISSIONAL v3.3 - Russo One Brand ===== */
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Russo+One&display=swap");
     @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
 
     /* Variáveis - Mapeadas para tokens globais (_app-tokens.css) */
     :root {
+        /* Fontes */
+        --rank-font-brand: 'Russo One', sans-serif;
+        --rank-font-body: 'Inter', -apple-system, sans-serif;
         --rank-primary: var(--app-primary, #ff5c00);
         --rank-primary-light: var(--app-primary-light, #f97316);
         --rank-primary-alpha-15: rgba(255, 92, 0, 0.15);
@@ -87,7 +90,7 @@
     }
 
     .ranking-participante-pro {
-        font-family: "Poppins", sans-serif;
+        font-family: var(--rank-font-body);
         padding: 16px 0;
     }
 
@@ -121,8 +124,10 @@
     }
 
     .header-title h2 {
-        font-size: 24px;
-        font-weight: 700;
+        font-family: var(--rank-font-brand);
+        font-size: 22px;
+        font-weight: 400; /* Russo One só tem peso 400 */
+        letter-spacing: 0.5px;
         margin: 0;
         background: linear-gradient(90deg, var(--rank-primary), var(--rank-primary-light));
         -webkit-background-clip: text;
@@ -179,9 +184,10 @@
         padding: 10px 12px;
         border: none;
         background: transparent;
-        font-family: "Poppins", sans-serif;
-        font-size: 13px;
-        font-weight: 600;
+        font-family: var(--rank-font-brand);
+        font-size: 12px;
+        font-weight: 400;
+        letter-spacing: 0.3px;
         color: var(--rank-text-secondary);
         cursor: pointer;
         border-radius: 8px;
@@ -217,11 +223,12 @@
     }
 
     .ranking-table-header div {
-        font-size: 11px;
-        font-weight: 600;
+        font-family: var(--rank-font-brand);
+        font-size: 10px;
+        font-weight: 400;
         color: var(--rank-primary-alpha-80);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
     }
 
     .col-pontos {
@@ -317,11 +324,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 26px;
-        height: 26px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
-        font-size: 11px;
-        font-weight: 700;
+        font-family: var(--rank-font-brand);
+        font-size: 12px;
+        font-weight: 400;
         background: var(--rank-surface-light);
         color: var(--rank-text-secondary);
     }
@@ -386,8 +394,10 @@
 
     /* ===== PONTOS ===== */
     .pontos-valor {
-        font-size: 14px;
-        font-weight: 600;
+        font-family: var(--rank-font-brand);
+        font-size: 15px;
+        font-weight: 400;
+        letter-spacing: -0.3px;
         color: var(--rank-text);
         text-align: right;
     }

@@ -1,5 +1,5 @@
-<!-- PARTICIPANTE LUVA DE OURO - Interface v3.7 -->
-<!-- v3.7: Container para card "Seu Desempenho" ao final -->
+<!-- PARTICIPANTE LUVA DE OURO - Interface v3.8 Russo One Brand Typography -->
+<!-- v3.8: Russo One Typography + Card Desempenho -->
 <div class="luva-ouro-participante">
     <!-- Container para conteúdo dinâmico -->
     <div id="luvaOuroContainer">
@@ -15,7 +15,11 @@
 
 <style>
     /* Cores mapeadas para tokens globais (_app-tokens.css) */
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Russo+One&display=swap");
+
     :root {
+        --luva-font-brand: 'Russo One', sans-serif;
+        --luva-font-body: 'Inter', -apple-system, sans-serif;
         --luva-gold: var(--app-gold, #ffd700);
         --luva-silver: var(--app-silver, #c0c0c0);
         --luva-bronze: var(--app-bronze, #cd7f32);
@@ -50,6 +54,7 @@
 
     .luva-ouro-participante {
         padding: 10px 0;
+        font-family: var(--luva-font-body);
     }
 
     .luva-ouro-grid {
@@ -88,8 +93,9 @@
     }
 
     .goleiro-posicao {
+        font-family: var(--luva-font-brand);
         font-size: 24px;
-        font-weight: 700;
+        font-weight: 400;
         color: var(--luva-gold);
         margin-bottom: 10px;
     }
@@ -121,8 +127,10 @@
     }
     .stat-value {
         display: block;
+        font-family: var(--luva-font-brand);
         font-size: 20px;
-        font-weight: 700;
+        font-weight: 400;
+        letter-spacing: -0.3px;
         color: var(--luva-gold);
     }
 

@@ -89,6 +89,7 @@
        ======================================== */
     /* Famílias */
     --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-family-brand: 'Russo One', sans-serif;  /* Títulos, stats, CTAs */
     --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
     /* Tamanhos */
@@ -282,4 +283,70 @@
 
 .admin-animate-fade-in-up {
     animation: admin-fade-in-up var(--animation-duration-normal) ease-out;
+}
+
+/* ========================================
+   TIPOGRAFIA BRAND (Russo One)
+   ======================================== */
+
+/* Classe base da marca */
+.font-brand {
+    font-family: var(--font-family-brand);
+}
+
+/* Títulos com fonte brand */
+.brand-title {
+    font-family: var(--font-family-brand);
+    letter-spacing: 0.5px;
+    line-height: var(--line-height-tight);
+}
+
+.brand-title--hero {
+    font-size: var(--font-size-hero);
+}
+
+.brand-title--xl {
+    font-size: var(--font-size-2xl);
+}
+
+.brand-title--lg {
+    font-size: var(--font-size-xl);
+}
+
+.brand-title--md {
+    font-size: var(--font-size-lg);
+}
+
+/* Stats/números com fonte brand */
+.brand-stat {
+    font-family: var(--font-family-brand);
+    letter-spacing: -0.5px;
+    line-height: 1;
+}
+
+.brand-stat--hero {
+    font-size: var(--font-size-hero);
+}
+
+.brand-stat--xl {
+    font-size: var(--font-size-2xl);
+}
+
+.brand-stat--lg {
+    font-size: var(--font-size-xl);
+}
+
+/* Botões/CTAs com fonte brand */
+.brand-btn {
+    font-family: var(--font-family-brand);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Labels/badges brand */
+.brand-label {
+    font-family: var(--font-family-brand);
+    font-size: var(--font-size-sm);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
