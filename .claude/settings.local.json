@@ -153,7 +153,9 @@
       "Bash(routes/admin-gestao-routes.js )",
       "Bash(public/painel.html )",
       "Bash(scripts/test-multi-tenant.js )",
-      "Bash(scripts/test-wizard-create-liga.js)"
+      "Bash(scripts/test-wizard-create-liga.js)",
+      "Bash(tee:*)",
+      "Skill(audit-financa)"
     ]
   },
   "enableAllProjectMcpServers": true,
