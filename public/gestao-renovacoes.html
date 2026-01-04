@@ -482,6 +482,16 @@
                 color: #fff;
             }
 
+            .btn-acao.extrato {
+                background: rgba(255, 85, 0, 0.15);
+                color: #FF5500;
+            }
+
+            .btn-acao.extrato:hover {
+                background: #FF5500;
+                color: #fff;
+            }
+
             /* Empty state */
             .empty-state {
                 padding: 60px 20px;
@@ -1046,7 +1056,7 @@
                                 <thead>
                                     <tr>
                                         <th>Participante</th>
-                                        <th>Liga</th>
+                                        <th id="colLigaHeader">Liga</th>
                                         <th>Extrato</th>
                                         <th class="sortable" onclick="ordenarPor('saldoFinal')">
                                             Saldo Final
@@ -1342,14 +1352,19 @@
                         const filtroLigaGroup = document.getElementById('filtroLiga')?.closest('.filter-group');
                         if (filtroLigaGroup) filtroLigaGroup.style.display = 'none';
 
+                        // ✅ FIX: Ocultar coluna Liga (header e células)
+                        document.getElementById('colLigaHeader')?.style.setProperty('display', 'none');
+
                         // Mostrar botão Voltar
                         mostrarBotaoVoltar();
 
-                        // Adicionar ligaId aos participantes (endpoint liga retorna sem ligaId)
+                        // ✅ FIX: Adicionar ligaId, ligaNome E modulosAtivos aos participantes
+                        const modulosAtivos = data.modulosAtivos || {};
                         participantes = participantes.map(p => ({
                             ...p,
                             ligaId: ligaIdFiltro,
-                            ligaNome: ligaNomeFiltro
+                            ligaNome: ligaNomeFiltro,
+                            modulosAtivos: modulosAtivos
                         }));
                     } else {
                         // Extrair ligas únicas (modo todas as ligas)
@@ -1525,11 +1540,17 @@
                 emptyState.style.display = 'none';
                 totalExibidos.textContent = `${participantesFiltrados.length} participante${participantesFiltrados.length > 1 ? 's' : ''}`;
 
+                // ✅ FIX: Determinar se deve mostrar coluna Liga
+                const mostrarColunaLiga = !ligaIdFiltro;
+
                 tbody.innerHTML = participantesFiltrados.map(p => {
                     const escudo = p.escudo || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23333"/%3E%3C/svg%3E';
 
                     // ✅ v2.0: Renderizar badges financeiros
                     const badgesHtml = renderizarBadges(p.breakdown, p.modulosAtivos);
+
+                    // ✅ FIX: Coluna Liga condicional
+                    const colunaLigaHtml = mostrarColunaLiga ? `<td>${p.ligaNome || '-'}</td>` : '';
 
                     return `
                         <tr>
@@ -1542,14 +1563,14 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>${p.ligaNome}</td>
+                            ${colunaLigaHtml}
                             <td><div class="badges-cell">${badgesHtml}</div></td>
                             <td class="${getSaldoClass(p.saldoFinal)}"><strong>${formatarMoedaComSinal(p.saldoFinal)}</strong></td>
                             <td><span class="status-badge ${p.situacao}">${p.situacao}</span></td>
                             <td>
                                 <div class="acoes-cell">
-                                    <button class="btn-acao historico" title="Ver historico" onclick='abrirModalHistorico(${JSON.stringify(p).replace(/'/g, "\\'")})'>
-                                        <span class="material-icons">history</span>
+                                    <button class="btn-acao extrato" title="Ver extrato completo" onclick='abrirModalHistorico(${JSON.stringify(p).replace(/'/g, "\\'")})'>
+                                        <span class="material-icons">receipt_long</span>
                                     </button>
                                 </div>
                             </td>
