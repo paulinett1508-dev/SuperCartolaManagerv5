@@ -56,6 +56,31 @@
                 gap: 10px;
             }
 
+            /* Botão Voltar (modo liga-específica) */
+            .btn-voltar-liga {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                padding: 6px 12px;
+                background: rgba(255, 85, 0, 0.1);
+                border: 1px solid rgba(255, 85, 0, 0.3);
+                border-radius: 6px;
+                color: #FF5500;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .btn-voltar-liga:hover {
+                background: rgba(255, 85, 0, 0.2);
+                border-color: #FF5500;
+            }
+
+            .btn-voltar-liga .material-icons {
+                font-size: 16px;
+            }
+
             .header-title {
                 display: flex;
                 align-items: center;
@@ -1227,6 +1252,11 @@
             let ordenacaoAtual = { campo: 'saldoFinal', direcao: 'asc' };
             let temporadaAtual = 2025; // Default: 2025 (onde estao os dados financeiros)
 
+            // Contexto: se veio de detalhe-liga.html, mostra apenas essa liga
+            const urlParams = new URLSearchParams(window.location.search);
+            const ligaIdFiltro = urlParams.get('ligaId');
+            let ligaNomeFiltro = null; // Será preenchido após carregar dados
+
             // Carregar layout (sidebar)
             async function loadLayout() {
                 try {
@@ -1277,8 +1307,12 @@
                 loading.style.display = 'flex';
 
                 try {
-                    // v2.3: Passar temporada selecionada na query
-                    const response = await fetch(`/api/tesouraria/participantes?temporada=${temporadaAtual}`);
+                    // v3.0: Usar endpoint dedicado quando ligaIdFiltro está presente
+                    const endpoint = ligaIdFiltro
+                        ? `/api/tesouraria/liga/${ligaIdFiltro}?temporada=${temporadaAtual}`
+                        : `/api/tesouraria/participantes?temporada=${temporadaAtual}`;
+
+                    const response = await fetch(endpoint);
                     const data = await response.json();
 
                     if (!data.success) throw new Error(data.error);
@@ -1294,9 +1328,34 @@
                         if (select) select.value = temporadaAtual;
                     }
 
-                    // Extrair ligas únicas
-                    ligasDisponiveis = [...new Set(participantes.map(p => p.ligaNome))];
-                    popularFiltroLigas();
+                    // v3.0: Modo liga-específica (vindo de detalhe-liga.html)
+                    if (ligaIdFiltro && participantes.length > 0) {
+                        ligaNomeFiltro = data.ligaNome || participantes[0]?.ligaNome;
+
+                        // Atualizar header para contexto de liga única
+                        const headerTitle = document.querySelector('.tesouraria-header h1');
+                        const headerDesc = document.querySelector('.tesouraria-header p');
+                        if (headerTitle) headerTitle.textContent = `Financeiro - ${ligaNomeFiltro}`;
+                        if (headerDesc) headerDesc.textContent = 'Gestão financeira desta liga';
+
+                        // Esconder filtro de ligas (já estamos em uma liga específica)
+                        const filtroLigaGroup = document.getElementById('filtroLiga')?.closest('.filter-group');
+                        if (filtroLigaGroup) filtroLigaGroup.style.display = 'none';
+
+                        // Mostrar botão Voltar
+                        mostrarBotaoVoltar();
+
+                        // Adicionar ligaId aos participantes (endpoint liga retorna sem ligaId)
+                        participantes = participantes.map(p => ({
+                            ...p,
+                            ligaId: ligaIdFiltro,
+                            ligaNome: ligaNomeFiltro
+                        }));
+                    } else {
+                        // Extrair ligas únicas (modo todas as ligas)
+                        ligasDisponiveis = [...new Set(participantes.map(p => p.ligaNome))];
+                        popularFiltroLigas();
+                    }
 
                     atualizarEstatisticas(data.totais);
                     aplicarFiltros();
@@ -1307,6 +1366,23 @@
                 } finally {
                     loading.style.display = 'none';
                 }
+            }
+
+            // Mostrar botão Voltar (quando em modo liga-específica)
+            function mostrarBotaoVoltar() {
+                const headerTop = document.querySelector('.header-top');
+                if (!headerTop) return;
+
+                const btnVoltar = document.createElement('button');
+                btnVoltar.className = 'btn-voltar-liga';
+                btnVoltar.innerHTML = `
+                    <span class="material-icons">arrow_back</span>
+                    Voltar
+                `;
+                btnVoltar.onclick = () => {
+                    window.location.href = `detalhe-liga.html?id=${ligaIdFiltro}`;
+                };
+                headerTop.insertBefore(btnVoltar, headerTop.firstChild);
             }
 
             // Popular filtro de ligas

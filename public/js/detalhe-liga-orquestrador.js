@@ -405,6 +405,13 @@ class DetalheLigaOrquestrador {
             return;
         }
 
+        // Redirect para gestao-renovacoes.html (simplificação do fluxo financeiro)
+        if (module === 'fluxo-financeiro') {
+            const ligaId = obterLigaIdCache();
+            window.location.href = `gestao-renovacoes.html?ligaId=${ligaId}`;
+            return;
+        }
+
         this.processingModule = true;
 
         this.showLoadingOverlay(
