@@ -276,6 +276,20 @@ const RenovacaoAPI = (function() {
         return fetchJSON(`${CONFIG.ENDPOINTS.TESOURARIA}/${ligaId}/${timeId}?temporada=${temporada}`);
     }
 
+    /**
+     * Marca inscrição como paga (pós-cadastro)
+     * @param {string} ligaId - ID da liga
+     * @param {number} temporada - Temporada
+     * @param {number} timeId - ID do time
+     * @returns {Promise<Object>}
+     */
+    async function marcarInscricaoPaga(ligaId, temporada, timeId) {
+        console.log(`[RENOVACAO-API] Marcando inscrição paga time=${timeId}`);
+        return fetchJSON(`${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}/${timeId}/marcar-pago`, {
+            method: 'PATCH'
+        });
+    }
+
     // =========================================================================
     // PUBLIC API
     // =========================================================================
@@ -299,6 +313,7 @@ const RenovacaoAPI = (function() {
         novoParticipante,
         inicializarInscricoes,
         reverterInscricao,
+        marcarInscricaoPaga,
 
         // Cartola
         buscarTimeCartola,

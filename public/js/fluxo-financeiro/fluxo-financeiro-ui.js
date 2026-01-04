@@ -387,6 +387,9 @@ export class FluxoFinanceiroUI {
                             <th class="col-participante sortable" onclick="window.ordenarTabelaFinanceiro('nome')" data-sort="nome">
                                 <span class="th-sort">Participante <span class="material-icons sort-icon">unfold_more</span></span>
                             </th>
+                            <th class="col-time-coracao" title="Time do Coração">
+                                <span class="material-icons" style="font-size: 16px;">favorite</span>
+                            </th>
                             ${this._modulosAtivos?.banco !== false ? '<th class="col-modulo">Timeline</th>' : ''}
                             ${this._modulosAtivos?.pontosCorridos ? '<th class="col-modulo">P.Corridos</th>' : ''}
                             ${this._modulosAtivos?.mataMata ? '<th class="col-modulo">Mata-Mata</th>' : ''}
@@ -432,6 +435,26 @@ export class FluxoFinanceiroUI {
 
         const classeSaldo = saldoFinal > 0 ? 'val-positivo' : saldoFinal < 0 ? 'val-negativo' : '';
 
+        // Verificar se é novato (ID negativo = cadastro manual OU origem = novo_cadastro/cadastro_manual)
+        const isNovato = timeId < 0 || p.origem === 'novo_cadastro' || p.origem === 'cadastro_manual' || p.novato === true;
+        const badgeNovato = isNovato ? '<span class="badge-novato" title="Novo na liga">NOVATO</span>' : '';
+
+        // Time do coração - mapeamento de IDs para escudos
+        const ESCUDOS_CLUBES = {
+            262: 'fla', 275: 'pal', 264: 'cor', 276: 'sao', 277: 'san',
+            266: 'flu', 267: 'vas', 263: 'bot', 284: 'gre', 285: 'int',
+            283: 'cru', 282: 'cam', 293: 'cap', 265: 'bah', 356: 'for',
+            354: 'cea', 294: 'cfc', 327: 'ame', 373: 'rbb', 280: 'goi',
+            292: 'spo', 386: 'cui', 314: 'juv'
+        };
+        const timeCoracaoId = p.time_coracao || p.clube_id;
+        const escudoTimeCoracao = timeCoracaoId
+            ? `<img src="https://s.sde.globo.com/media/organizations/2024/04/01/${timeCoracaoId}_45x45.png"
+                   alt="" class="escudo-coracao"
+                   onerror="this.style.display='none'"
+                   title="Time do Coração">`
+            : '<span class="material-icons" style="font-size: 16px; color: #666;">favorite_border</span>';
+
         // Função helper para formatar valor monetário
         const fmtModulo = (val) => {
             if (!val || Math.abs(val) < 0.01) return '<span class="val-zero">-</span>';
@@ -458,11 +481,12 @@ export class FluxoFinanceiroUI {
         const saldoSinal = saldoFinal > 0 ? '+' : saldoFinal < 0 ? '-' : '';
 
         return `
-            <tr class="linha-participante ${situacao === 'devedor' ? 'row-devedor' : ''}"
+            <tr class="linha-participante ${situacao === 'devedor' ? 'row-devedor' : ''} ${isNovato ? 'row-novato' : ''}"
                 data-nome="${(p.nome_cartola || '').toLowerCase()}"
                 data-time="${(p.nome_time || '').toLowerCase()}"
                 data-time-id="${timeId}"
-                data-situacao="${situacao}">
+                data-situacao="${situacao}"
+                data-novato="${isNovato}">
                 <td class="col-num">${idx + 1}</td>
                 <td class="col-participante">
                     <div class="participante-cell" onclick="window.selecionarParticipante('${timeId}')">
@@ -473,11 +497,12 @@ export class FluxoFinanceiroUI {
                             }
                         </div>
                         <div class="info-participante">
-                            <span class="nome">${p.nome_cartola || 'N/D'}</span>
+                            <span class="nome">${p.nome_cartola || 'N/D'} ${badgeNovato}</span>
                             <span class="time">${p.nome_time || '-'}</span>
                         </div>
                     </div>
                 </td>
+                <td class="col-time-coracao">${escudoTimeCoracao}</td>
                 ${modulosCols}
                 <td class="col-saldo ${classeSaldo}"><strong>${saldoSinal}R$ ${saldoFormatado}</strong></td>
                 <td class="col-2026">

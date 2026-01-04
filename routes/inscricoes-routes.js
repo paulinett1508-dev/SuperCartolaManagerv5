@@ -271,6 +271,68 @@ router.post("/:ligaId/:temporada/novo", async (req, res) => {
 });
 
 // =============================================================================
+// PATCH /api/inscricoes/:ligaId/:temporada/:timeId/marcar-pago
+// Marca inscrição como paga (remove débito da taxa de inscrição)
+// =============================================================================
+router.patch("/:ligaId/:temporada/:timeId/marcar-pago", async (req, res) => {
+    try {
+        const { ligaId, temporada, timeId } = req.params;
+
+        console.log(`[INSCRICOES] PATCH marcar-pago liga=${ligaId} time=${timeId} temporada=${temporada}`);
+
+        // Buscar inscrição
+        const inscricao = await InscricaoTemporada.findOne({
+            liga_id: ligaId,
+            time_id: Number(timeId),
+            temporada: Number(temporada)
+        });
+
+        if (!inscricao) {
+            return res.status(404).json({
+                success: false,
+                error: "Inscrição não encontrada"
+            });
+        }
+
+        // Verificar se já está paga
+        if (inscricao.pagou_inscricao) {
+            return res.json({
+                success: true,
+                message: "Inscrição já estava marcada como paga",
+                jaEstavaPaga: true
+            });
+        }
+
+        // Marcar como paga
+        inscricao.pagou_inscricao = true;
+        inscricao.data_pagamento_inscricao = new Date();
+        await inscricao.save();
+
+        // TODO: Remover/estornar o débito da taxa de inscrição do extrato
+        // Por agora, apenas atualiza o flag - o recálculo de saldo considera isso
+
+        console.log(`[INSCRICOES] Inscrição marcada como PAGA: liga=${ligaId} time=${timeId}`);
+
+        res.json({
+            success: true,
+            message: "Inscrição marcada como paga com sucesso",
+            inscricao: {
+                time_id: inscricao.time_id,
+                pagou_inscricao: inscricao.pagou_inscricao,
+                data_pagamento: inscricao.data_pagamento_inscricao
+            }
+        });
+
+    } catch (error) {
+        console.error("[INSCRICOES] Erro ao marcar pago:", error);
+        res.status(500).json({
+            success: false,
+            error: "Erro ao marcar inscrição como paga"
+        });
+    }
+});
+
+// =============================================================================
 // POST /api/inscricoes/:ligaId/:temporada/inicializar
 // Inicializa inscrições pendentes para todos os participantes da liga
 // =============================================================================

@@ -1703,3 +1703,106 @@ body {
     border-color: rgba(255, 69, 0, 0.2);
     border-top-color: var(--laranja, #ff4500);
 }
+/* =============================================================================
+   BADGE NOVATO - Indicador visual para novos participantes
+   ============================================================================= */
+.badge-novato {
+    display: inline-block;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3);
+}
+
+.row-novato {
+    background: rgba(16, 185, 129, 0.05) !important;
+}
+
+.row-novato:hover {
+    background: rgba(16, 185, 129, 0.1) !important;
+}
+
+/* =============================================================================
+   COLUNA TIME DO CORAÇÃO
+   ============================================================================= */
+.col-time-coracao {
+    width: 40px;
+    text-align: center;
+    padding: 4px !important;
+}
+
+.col-time-coracao th {
+    color: #ef4444;
+}
+
+.escudo-coracao {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+/* =============================================================================
+   BOTÃO MARCAR PAGO (ação pós-cadastro)
+   ============================================================================= */
+.btn-marcar-pago {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-marcar-pago:hover {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: #10b981;
+}
+
+.btn-marcar-pago .material-icons {
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+/* Badge "Pago" confirmado */
+.badge-pago-ok {
+    display: inline-block;
+    background: #10b981;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+/* Badge "Pendente Pagamento" */
+.badge-pendente-pgto {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.badge-pendente-pgto:hover {
+    background: rgba(245, 158, 11, 0.25);
+}
+
+.badge-pendente-pgto .material-icons {
+    font-size: 12px;
+}
