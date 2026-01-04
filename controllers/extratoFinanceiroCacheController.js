@@ -478,10 +478,66 @@ async function buscarCamposManuais(ligaId, timeId) {
             ligaId: String(ligaId),
             timeId: String(timeId),
         }).lean();
-        if (!doc || !doc.campos) return [];
-        return doc.campos.filter((c) => c.valor !== 0);
+        if (!doc || !doc.campos) {
+            // ✅ v5.8: Retornar array padrão com 4 campos para UI
+            return [
+                { nome: "Campo 1", valor: 0 },
+                { nome: "Campo 2", valor: 0 },
+                { nome: "Campo 3", valor: 0 },
+                { nome: "Campo 4", valor: 0 },
+            ];
+        }
+        // ✅ v5.8: Retornar todos os 4 campos (não só os com valor != 0)
+        // Isso garante que o frontend tenha a estrutura completa
+        return doc.campos;
     } catch (error) {
-        return [];
+        return [
+            { nome: "Campo 1", valor: 0 },
+            { nome: "Campo 2", valor: 0 },
+            { nome: "Campo 3", valor: 0 },
+            { nome: "Campo 4", valor: 0 },
+        ];
+    }
+}
+
+// ✅ v5.8: Transformar array de campos em objeto para frontend
+function transformarCamposParaObjeto(camposArray) {
+    const camposPadrao = [
+        { nome: "Campo 1", valor: 0 },
+        { nome: "Campo 2", valor: 0 },
+        { nome: "Campo 3", valor: 0 },
+        { nome: "Campo 4", valor: 0 },
+    ];
+
+    // Se não tem campos, usar padrão
+    if (!camposArray || !Array.isArray(camposArray)) {
+        return {
+            campo1: camposPadrao[0],
+            campo2: camposPadrao[1],
+            campo3: camposPadrao[2],
+            campo4: camposPadrao[3],
+        };
+    }
+
+    return {
+        campo1: camposArray[0] || camposPadrao[0],
+        campo2: camposArray[1] || camposPadrao[1],
+        campo3: camposArray[2] || camposPadrao[2],
+        campo4: camposArray[3] || camposPadrao[3],
+    };
+}
+
+// ✅ v5.8: Buscar campos já no formato objeto para frontend
+async function buscarCamposComoObjeto(ligaId, timeId) {
+    try {
+        const doc = await FluxoFinanceiroCampos.findOne({
+            ligaId: String(ligaId),
+            timeId: String(timeId),
+        }).lean();
+
+        return transformarCamposParaObjeto(doc?.campos);
+    } catch (error) {
+        return transformarCamposParaObjeto(null);
     }
 }
 
@@ -710,6 +766,7 @@ export const salvarExtratoCache = async (req, res) => {
 };
 
 // ✅ v4.0: VERIFICAR CACHE VÁLIDO COM SUPORTE A TEMPORADA FINALIZADA
+// ✅ v5.7 FIX: Queries paralelas para performance
 export const verificarCacheValido = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
@@ -717,19 +774,20 @@ export const verificarCacheValido = async (req, res) => {
         // ✅ v5.6 FIX: Temporada obrigatória
         const temporadaNum = parseInt(temporada) || 2025;
 
-        const statusTime = await buscarStatusTime(ligaId, timeId);
+        // ✅ v5.7 FIX: Executar queries independentes em PARALELO
+        const [statusTime, statusTemporada, cacheExistente, acertos] = await Promise.all([
+            buscarStatusTime(ligaId, timeId),
+            verificarTemporadaFinalizada(ligaId),
+            ExtratoFinanceiroCache.findOne({
+                liga_id: toLigaId(ligaId),
+                time_id: Number(timeId),
+                temporada: temporadaNum,
+            }).lean(),
+            buscarAcertosFinanceiros(ligaId, timeId),
+        ]);
+
         const isInativo = statusTime.ativo === false;
         const rodadaDesistencia = statusTime.rodada_desistencia;
-
-        // ✅ v4.0: Verificar se temporada está finalizada
-        const statusTemporada = await verificarTemporadaFinalizada(ligaId);
-
-        // ✅ v5.6 FIX: Filtrar por temporada
-        const cacheExistente = await ExtratoFinanceiroCache.findOne({
-            liga_id: toLigaId(ligaId),
-            time_id: Number(timeId),
-            temporada: temporadaNum,
-        }).lean();
 
         if (!cacheExistente) {
             return res.json({
@@ -741,8 +799,7 @@ export const verificarCacheValido = async (req, res) => {
             });
         }
 
-        // ✅ v5.2 FIX: Buscar acertos financeiros para incluir no saldo
-        const acertos = await buscarAcertosFinanceiros(ligaId, timeId);
+        // ✅ v5.2 FIX: Acertos já buscados em paralelo acima
         const saldoAcertosVal = acertos?.resumo?.saldo ?? 0;
 
         // Helper para adicionar acertos ao resumo

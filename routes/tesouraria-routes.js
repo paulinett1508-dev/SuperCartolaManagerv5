@@ -253,22 +253,23 @@ router.get("/participantes", async (req, res) => {
                 const saldoFinal = saldoTemporada + saldoAcertos;
 
                 // Classificar situação financeira
+                // ✅ v2.10 FIX: Corrigir contagem - quitados NÃO deve incluir credores
                 let situacao = "quitado";
                 if (saldoFinal < -0.01) {
                     // Devedor: saldo negativo (deve à liga)
                     situacao = "devedor";
                     totalDevedores += Math.abs(saldoFinal);
                     quantidadeDevedores++;
+                } else if (saldoFinal > 0.01) {
+                    // Credor: saldo positivo (liga deve a ele)
+                    situacao = "credor";
+                    totalCredores += saldoFinal;
+                    quantidadeCredores++;
                 } else {
-                    // ✅ FIX: Quitados = saldo >= -0.01 (zerados + credores = sem dívidas)
+                    // Quitado: saldo entre -0.01 e 0.01 (zerado)
                     quantidadeQuitados++;
-                    if (saldoFinal > 0.01) {
-                        situacao = "credor";
-                        totalCredores += saldoFinal;
-                        quantidadeCredores++;
-                    }
                 }
-                
+
                 // 🐛 DEBUG: Log da classificação
                 if (participante.time_id) {
                     console.log(`[TESOURARIA-API] ${nomeTime}: saldoFinal=${saldoFinal.toFixed(2)} | situacao=${situacao}`);
@@ -374,13 +375,14 @@ router.get("/liga/:ligaId", async (req, res) => {
             // ✅ v2.8 FIX CRÍTICO: Usar acesso DIRETO à collection (bypass schema)
             // Problema: Schema define liga_id como ObjectId, mas docs foram salvos como String
             // Mongoose tenta cast e falha. Usar mongoose.connection.db.collection() resolve
+            // ✅ v2.11 FIX: Buscar temporada atual OU anterior (para transição de temporada)
             mongoose.connection.db.collection('extratofinanceirocaches').find({
                 $or: [
                     { liga_id: ligaIdStr },
                     { liga_id: new mongoose.Types.ObjectId(ligaId) }
                 ],
                 time_id: { $in: timeIds },
-                temporada: temporadaNum
+                temporada: { $in: [temporadaNum, temporadaNum - 1] }
             }).toArray(),
 
             // 2. Todos os campos manuais da liga
@@ -393,16 +395,21 @@ router.get("/liga/:ligaId", async (req, res) => {
 
             // 3. Todos os acertos da liga na temporada
             // ✅ v2.3 FIX: Usar Number para temporada (schema define temporada: Number)
+            // ✅ v2.11 FIX: Buscar temporada atual OU anterior (para transição de temporada)
             AcertoFinanceiro.find({
                 ligaId: String(ligaId),
-                temporada: temporadaNum,
+                temporada: { $in: [temporadaNum, temporadaNum - 1] },
                 ativo: true
             }).lean()
         ]);
 
         // Criar mapas para acesso O(1)
+        // ✅ v2.11: Priorizar temporada atual sobre anterior
         const extratoMap = new Map();
-        todosExtratos.forEach(e => extratoMap.set(String(e.time_id), e));
+        // Ordenar: temporada atual primeiro (se existir, sobrescreve a anterior)
+        const extratosOrdenados = [...todosExtratos].sort((a, b) => (a.temporada || 0) - (b.temporada || 0));
+        extratosOrdenados.forEach(e => extratoMap.set(String(e.time_id), e));
+        console.log(`[TESOURARIA] Extratos carregados: ${todosExtratos.length} (temporadas: ${[...new Set(todosExtratos.map(e => e.temporada))].join(', ')})`);
 
         const camposMap = new Map();
         todosCampos.forEach(c => camposMap.set(String(c.timeId), c));
@@ -497,20 +504,21 @@ router.get("/liga/:ligaId", async (req, res) => {
             const saldoFinal = saldoTemporada + saldoAcertos;
 
             // Classificar situação
+            // ✅ v2.10 FIX: Corrigir contagem - quitados NÃO deve incluir credores
             let situacao = "quitado";
             if (saldoFinal < -0.01) {
                 // Devedor: saldo negativo (deve à liga)
                 situacao = "devedor";
                 totalDevedores += Math.abs(saldoFinal);
                 quantidadeDevedores++;
+            } else if (saldoFinal > 0.01) {
+                // Credor: saldo positivo (liga deve a ele)
+                situacao = "credor";
+                totalCredores += saldoFinal;
+                quantidadeCredores++;
             } else {
-                // ✅ FIX: Quitados = saldo >= -0.01 (zerados + credores = sem dívidas)
+                // Quitado: saldo entre -0.01 e 0.01 (zerado)
                 quantidadeQuitados++;
-                if (saldoFinal > 0.01) {
-                    situacao = "credor";
-                    totalCredores += saldoFinal;
-                    quantidadeCredores++;
-                }
             }
 
             participantes.push({
