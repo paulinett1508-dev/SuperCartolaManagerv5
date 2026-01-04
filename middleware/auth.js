@@ -52,7 +52,6 @@ export const PAGINAS_ADMIN = [
   "/historico-acessos.html",
   "/auditoria-extratos.html",
   "/fluxo-financeiro.html",
-  "/gestao-renovacoes.html",
   "/preencher-liga.html",
 ];
 

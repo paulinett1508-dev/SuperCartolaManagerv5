@@ -408,21 +408,18 @@ class DetalheLigaOrquestrador {
             return;
         }
 
-        // ✅ v2.0: Fluxo financeiro - se vier com timeId, carrega inline; senão redireciona
+        // ✅ v2.1 FIX: Fluxo financeiro SEMPRE carrega inline (não redireciona mais)
+        // O módulo já tem sua própria lista de participantes
         if (module === 'fluxo-financeiro') {
             const urlParams = new URLSearchParams(window.location.search);
             const timeIdFromUrl = urlParams.get('timeId');
 
             if (timeIdFromUrl) {
-                // Modo extrato individual: carregar fluxo-financeiro inline
                 console.log('[ORQUESTRADOR] Carregando fluxo-financeiro inline para timeId:', timeIdFromUrl);
-                // Continua para showModule
             } else {
-                // Modo lista: redirecionar para gestao-renovacoes
-                const ligaId = obterLigaIdCache();
-                window.location.href = `gestao-renovacoes.html?ligaId=${ligaId}`;
-                return;
+                console.log('[ORQUESTRADOR] Carregando fluxo-financeiro (lista de participantes)');
             }
+            // Sempre continua para showModule - o módulo exibe lista ou extrato conforme timeId
         }
 
         this.processingModule = true;
@@ -814,6 +811,7 @@ class DetalheLigaOrquestrador {
     }
 
     // ✅ v2.0: Auto-navegar para módulo via URL (section/timeId)
+    // ✅ v2.1 FIX: Mostrar secondary screen ANTES de carregar módulo para evitar flash dos cards
     handleUrlNavigation() {
         const urlParams = new URLSearchParams(window.location.search);
         const sectionFromUrl = urlParams.get('section');
@@ -821,6 +819,9 @@ class DetalheLigaOrquestrador {
 
         if (sectionFromUrl) {
             console.log(`[ORQUESTRADOR] Auto-navegando para seção: ${sectionFromUrl}${timeIdFromUrl ? ` (timeId: ${timeIdFromUrl})` : ''}`);
+
+            // ✅ v2.1 FIX: Esconder cards IMEDIATAMENTE para evitar flash
+            this.showSecondaryScreen();
 
             // Pequeno delay para garantir que o DOM está pronto
             setTimeout(async () => {
