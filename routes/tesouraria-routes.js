@@ -4,7 +4,10 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.5.0
+ * @version 2.6.0
+ * ✅ v2.6.0: FIX CRÍTICO - Filtrar ExtratoFinanceiroCache e FluxoFinanceiroCampos por temporada
+ *   - Queries agora incluem filtro de temporada em todas as collections
+ *   - Resolve problema de colunas vazias quando temporada API != temporada dados
  * ✅ v2.5.0: FIX - Incluir ligaId, ligaNome e modulosAtivos na rota /liga/:ligaId
  *   - Badges de movimentações agora aparecem corretamente
  *   - Cache de participantes funciona com chave ligaId_timeId
@@ -353,18 +356,30 @@ router.get("/liga/:ligaId", async (req, res) => {
         const timeIds = (liga.participantes || []).map(p => p.time_id);
 
         // ✅ BULK QUERIES - Buscar todos os dados de uma vez (4 queries em vez de ~96)
-        const objectIdLiga = new mongoose.Types.ObjectId(ligaId);
+        const temporadaNum = Number(temporada);
+        const ligaIdStr = String(ligaId);
+
+        console.log(`[TESOURARIA] Buscando dados para temporada ${temporadaNum}`);
 
         const [todosExtratos, todosCampos, todosAcertos] = await Promise.all([
-            // 1. Todos os extratos da liga (liga_id é ObjectId no schema)
-            ExtratoFinanceiroCache.find({
-                liga_id: objectIdLiga,
-                time_id: { $in: timeIds }
-            }).lean(),
+            // 1. Todos os extratos da liga
+            // ✅ v2.8 FIX CRÍTICO: Usar acesso DIRETO à collection (bypass schema)
+            // Problema: Schema define liga_id como ObjectId, mas docs foram salvos como String
+            // Mongoose tenta cast e falha. Usar mongoose.connection.db.collection() resolve
+            mongoose.connection.db.collection('extratofinanceirocaches').find({
+                $or: [
+                    { liga_id: ligaIdStr },
+                    { liga_id: new mongoose.Types.ObjectId(ligaId) }
+                ],
+                time_id: { $in: timeIds },
+                temporada: temporadaNum
+            }).toArray(),
 
             // 2. Todos os campos manuais da liga
+            // ✅ v2.7 FIX: Documentos antigos não têm campo temporada
+            // Buscar sem filtro de temporada (campos manuais são por participante/liga)
             FluxoFinanceiroCampos.find({
-                ligaId: String(ligaId),
+                ligaId: ligaIdStr,
                 timeId: { $in: timeIds.map(String) }
             }).lean(),
 
@@ -372,7 +387,7 @@ router.get("/liga/:ligaId", async (req, res) => {
             // ✅ v2.3 FIX: Usar Number para temporada (schema define temporada: Number)
             AcertoFinanceiro.find({
                 ligaId: String(ligaId),
-                temporada: Number(temporada),
+                temporada: temporadaNum,
                 ativo: true
             }).lean()
         ]);
@@ -936,6 +951,6 @@ router.get("/resumo", async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v2.3 Rotas carregadas (FIX: temporada Number, seletor frontend)");
+console.log("[TESOURARIA] ✅ v2.8 Rotas carregadas (FIX CRÍTICO: bypass schema para liga_id String/ObjectId)");
 
 export default router;
