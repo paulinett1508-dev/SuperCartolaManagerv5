@@ -502,11 +502,97 @@
     font-family: 'Russo One', sans-serif !important;
 }
 
-/* Stats e valores numéricos importantes */
+/* ========================================
+   FORÇADORES RUSSO ONE - Todos os seletores
+   reais usados nos fragmentos HTML
+   ======================================== */
+
+/* TOP10 */
+.top10-header-pro h2,
+.resumo-stat-label,
+.resumo-stat-value,
+.top10-resumo-total-value,
+.posicao-cell {
+    font-family: 'Russo One', sans-serif !important;
+}
+
+/* RODADAS */
+.rodadas-header-pro h2,
+.ano-btn,
+.stat-label,
 .stat-value,
+.card-numero,
+.card-pontos,
+.detalhamento-info h3,
+.posicao-badge-pro,
+.ranking-pontos-pro {
+    font-family: 'Russo One', sans-serif !important;
+}
+
+/* RANKING */
+.ranking-header-pro h2,
+.tab-item,
+.rank-position,
+.rank-points,
+.rank-stats-value,
+.turno-label {
+    font-family: 'Russo One', sans-serif !important;
+}
+
+/* MATA-MATA */
+.mm-header h2,
+.mm-round-title,
+.mm-score,
+.mm-team-name,
+.mm-winner-name,
+.mm-stat-value,
+.confronto-pontos,
+.fase-titulo {
+    font-family: 'Russo One', sans-serif !important;
+}
+
+/* MELHOR MÊS */
+.melhor-mes-header h2,
+.mes-btn,
+.premio-valor,
+.participante-pontos,
+.participante-posicao {
+    font-family: 'Russo One', sans-serif !important;
+}
+
+/* HALL DA FAMA / HISTÓRICO */
+.hall-premium .header h1,
+.historico-header h2,
+.hall-year-btn,
+.trophy-position,
+.trophy-points,
+.champion-name,
+.champion-points {
+    font-family: 'Russo One', sans-serif !important;
+}
+
+/* ARTILHEIRO E LUVA DE OURO */
+.artilheiro-participante h2,
+.luva-ouro-participante h2,
+.gols-count,
+.defesas-count,
+.premio-artilheiro,
+.premio-luva {
+    font-family: 'Russo One', sans-serif !important;
+}
+
+/* EXTRATO */
+.extrato-header h2,
+.extrato-saldo-valor,
+.extrato-item-valor {
+    font-family: 'Russo One', sans-serif !important;
+}
+
+/* GENÉRICOS - Fallback */
 .pontos-valor,
 .posicao-badge,
 .goleiro-posicao,
-.tab-btn {
+.tab-btn,
+[class*="-font-brand"] {
     font-family: 'Russo One', sans-serif !important;
 }

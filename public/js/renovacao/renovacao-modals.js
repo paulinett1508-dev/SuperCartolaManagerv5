@@ -503,7 +503,7 @@ const RenovacaoModals = (function() {
     }
 
     // =========================================================================
-    // MODAL: NOVO PARTICIPANTE
+    // MODAL: NOVO PARTICIPANTE (v2.0 - Com Cadastro Manual)
     // =========================================================================
 
     function modalNovoParticipante(ligaId, temporada, taxa) {
@@ -519,23 +519,135 @@ const RenovacaoModals = (function() {
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="text-muted mb-3">
-                            Busque o time pelo nome no Cartola FC para cadastrar na liga.
-                        </p>
+                        <!-- TABS -->
+                        <ul class="nav nav-tabs nav-fill mb-3" id="tabsNovoParticipante" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active bg-gray-700 text-white border-gray-600" id="tab-busca-nome" data-bs-toggle="tab" data-bs-target="#panel-busca-nome" type="button" role="tab">
+                                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;">search</span>
+                                    Buscar Nome
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link bg-gray-700 text-white border-gray-600" id="tab-busca-id" data-bs-toggle="tab" data-bs-target="#panel-busca-id" type="button" role="tab">
+                                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;">tag</span>
+                                    Buscar ID
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link bg-gray-700 text-white border-gray-600" id="tab-manual" data-bs-toggle="tab" data-bs-target="#panel-manual" type="button" role="tab">
+                                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;">edit</span>
+                                    Manual
+                                </button>
+                            </li>
+                        </ul>
 
-                        <!-- Busca -->
-                        <div class="input-group mb-3">
-                            <span class="input-group-text bg-gray-700 text-white border-gray-600">
-                                <span class="material-icons">search</span>
-                            </span>
-                            <input type="text"
-                                   class="form-control bg-gray-700 text-white border-gray-600"
-                                   id="inputBuscaTime"
-                                   placeholder="Digite o nome do time ou cartoleiro (min 3 letras)..."
-                                   autocomplete="off">
-                            <button class="btn btn-primary" type="button" id="btnBuscarTime">
-                                Buscar
-                            </button>
+                        <div class="tab-content" id="tabsNovoParticipanteContent">
+                            <!-- TAB 1: BUSCA POR NOME -->
+                            <div class="tab-pane fade show active" id="panel-busca-nome" role="tabpanel">
+                                <p class="text-muted mb-3">
+                                    Busque o time pelo nome no banco de participantes existentes.
+                                </p>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-gray-700 text-white border-gray-600">
+                                        <span class="material-icons">search</span>
+                                    </span>
+                                    <input type="text"
+                                           class="form-control bg-gray-700 text-white border-gray-600"
+                                           id="inputBuscaTime"
+                                           placeholder="Digite o nome do time ou cartoleiro (min 3 letras)..."
+                                           autocomplete="off">
+                                    <button class="btn btn-primary" type="button" id="btnBuscarTime">
+                                        Buscar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- TAB 2: BUSCA POR ID -->
+                            <div class="tab-pane fade" id="panel-busca-id" role="tabpanel">
+                                <p class="text-muted mb-3">
+                                    Informe o ID do Cartola FC enviado pelo participante.
+                                </p>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-gray-700 text-white border-gray-600">
+                                        <span class="material-icons">tag</span>
+                                    </span>
+                                    <input type="number"
+                                           class="form-control bg-gray-700 text-white border-gray-600"
+                                           id="inputBuscaTimeId"
+                                           placeholder="Ex: 12345678"
+                                           autocomplete="off">
+                                    <button class="btn btn-primary" type="button" id="btnBuscarTimeId">
+                                        Buscar
+                                    </button>
+                                </div>
+                                <div class="alert alert-secondary small">
+                                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;">info</span>
+                                    O participante encontra seu ID no app Cartola FC > Perfil > "ID do Time"
+                                </div>
+                            </div>
+
+                            <!-- TAB 3: CADASTRO MANUAL -->
+                            <div class="tab-pane fade" id="panel-manual" role="tabpanel">
+                                <div class="alert alert-warning small mb-3">
+                                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;">warning</span>
+                                    <strong>Cadastro com pendencia</strong> - Os dados do Cartola FC serao vinculados posteriormente.
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nome do Participante *</label>
+                                        <input type="text"
+                                               class="form-control bg-gray-700 text-white border-gray-600"
+                                               id="inputNomeManual"
+                                               placeholder="Ex: Joao Silva"
+                                               required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Apelido/Time</label>
+                                        <input type="text"
+                                               class="form-control bg-gray-700 text-white border-gray-600"
+                                               id="inputApelidoManual"
+                                               placeholder="Ex: Mengao FC">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Time do Coracao</label>
+                                        <select class="form-select bg-gray-700 text-white border-gray-600" id="selectTimeCoracao">
+                                            <option value="">Selecione...</option>
+                                            <option value="Flamengo">Flamengo</option>
+                                            <option value="Palmeiras">Palmeiras</option>
+                                            <option value="Corinthians">Corinthians</option>
+                                            <option value="Sao Paulo">Sao Paulo</option>
+                                            <option value="Santos">Santos</option>
+                                            <option value="Fluminense">Fluminense</option>
+                                            <option value="Vasco">Vasco</option>
+                                            <option value="Botafogo">Botafogo</option>
+                                            <option value="Gremio">Gremio</option>
+                                            <option value="Internacional">Internacional</option>
+                                            <option value="Cruzeiro">Cruzeiro</option>
+                                            <option value="Atletico-MG">Atletico-MG</option>
+                                            <option value="Athletico-PR">Athletico-PR</option>
+                                            <option value="Bahia">Bahia</option>
+                                            <option value="Fortaleza">Fortaleza</option>
+                                            <option value="Outro">Outro</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">ID Cartola (se tiver)</label>
+                                        <input type="number"
+                                               class="form-control bg-gray-700 text-white border-gray-600"
+                                               id="inputIdCartolaManual"
+                                               placeholder="Preencher depois...">
+                                        <small class="text-muted">Pode deixar vazio e vincular depois</small>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Contato (WhatsApp/Email)</label>
+                                        <input type="text"
+                                               class="form-control bg-gray-700 text-white border-gray-600"
+                                               id="inputContatoManual"
+                                               placeholder="Ex: (11) 99999-9999">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Loading -->
@@ -545,12 +657,12 @@ const RenovacaoModals = (function() {
                             </div>
                         </div>
 
-                        <!-- Resultados -->
-                        <div id="resultadosBusca" class="mb-3" style="max-height: 300px; overflow-y: auto;">
+                        <!-- Resultados Busca -->
+                        <div id="resultadosBusca" class="mb-3" style="max-height: 200px; overflow-y: auto;">
                             <!-- Resultados serao inseridos aqui -->
                         </div>
 
-                        <!-- Time Selecionado -->
+                        <!-- Time Selecionado (para abas de busca) -->
                         <div id="timeSelecionado" class="d-none">
                             <hr class="border-gray-700">
                             <h6 class="mb-3">Time Selecionado</h6>
@@ -564,6 +676,11 @@ const RenovacaoModals = (function() {
                                     <span class="material-icons">close</span>
                                 </button>
                             </div>
+                        </div>
+
+                        <!-- Secao comum: Taxa e Observacoes -->
+                        <div id="secaoConfirmacao" class="d-none">
+                            <hr class="border-gray-700">
 
                             <!-- Taxa -->
                             <div class="alert alert-info">
@@ -596,6 +713,7 @@ const RenovacaoModals = (function() {
                             <input type="hidden" id="hdnNomeTimeNovo" value="">
                             <input type="hidden" id="hdnNomeCartoleiroNovo" value="">
                             <input type="hidden" id="hdnEscudoNovo" value="">
+                            <input type="hidden" id="hdnModoNovo" value="busca">
                         </div>
                     </div>
                     <div class="modal-footer border-gray-700">

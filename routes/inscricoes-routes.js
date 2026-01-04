@@ -204,27 +204,58 @@ router.post("/:ligaId/:temporada/nao-participar/:timeId", async (req, res) => {
 
 // =============================================================================
 // POST /api/inscricoes/:ligaId/:temporada/novo
-// Cadastrar novo participante
+// Cadastrar novo participante (suporta cadastro manual sem ID)
 // =============================================================================
 router.post("/:ligaId/:temporada/novo", async (req, res) => {
     try {
         const { ligaId, temporada } = req.params;
-        const { time_id, nome_time, nome_cartoleiro, escudo, pagouInscricao, observacoes, aprovadoPor } = req.body;
+        const {
+            time_id,
+            nome_time,
+            nome_cartoleiro,
+            escudo,
+            time_coracao,
+            contato,
+            pendente_sincronizacao,
+            cadastro_manual,
+            pagouInscricao,
+            observacoes,
+            aprovadoPor
+        } = req.body;
 
-        console.log(`[INSCRICOES] POST novo participante liga=${ligaId} time=${time_id} temporada=${temporada} pagou=${pagouInscricao}`);
+        const isCadastroManual = cadastro_manual === true || pendente_sincronizacao === true;
+
+        console.log(`[INSCRICOES] POST novo participante liga=${ligaId} time=${time_id || 'MANUAL'} temporada=${temporada} pagou=${pagouInscricao} manual=${isCadastroManual}`);
 
         // Validar dados obrigatórios
-        if (!time_id) {
+        if (!isCadastroManual && !time_id) {
             return res.status(400).json({
                 success: false,
-                error: "ID do time é obrigatório (use a busca do Cartola)"
+                error: "ID do time é obrigatório (use a busca do Cartola ou cadastro manual)"
+            });
+        }
+
+        // Para cadastro manual, nome é obrigatório
+        if (isCadastroManual && !nome_cartoleiro && !nome_time) {
+            return res.status(400).json({
+                success: false,
+                error: "Nome do participante é obrigatório para cadastro manual"
             });
         }
 
         const resultado = await processarNovoParticipante(
             ligaId,
             Number(temporada),
-            { time_id, nome_time, nome_cartoleiro, escudo },
+            {
+                time_id: time_id || null,
+                nome_time,
+                nome_cartoleiro,
+                escudo,
+                time_coracao,
+                contato,
+                pendente_sincronizacao: isCadastroManual && !time_id,
+                cadastro_manual: isCadastroManual
+            },
             { pagouInscricao, observacoes, aprovadoPor }
         );
 

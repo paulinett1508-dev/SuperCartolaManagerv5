@@ -373,20 +373,98 @@ const RenovacaoUI = (function() {
         const btnCadastrar = document.getElementById('btnCadastrarNovo');
         const btnLimpar = document.getElementById('btnLimparSelecao');
 
-        // Buscar ao clicar ou Enter
-        btnBuscar.addEventListener('click', () => executarBuscaTime());
-        inputBusca.addEventListener('keypress', (e) => {
+        // Tab 1: Buscar por nome
+        btnBuscar?.addEventListener('click', () => executarBuscaTime());
+        inputBusca?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 executarBuscaTime();
             }
         });
 
+        // Tab 2: Buscar por ID
+        const inputBuscaId = document.getElementById('inputBuscaTimeId');
+        const btnBuscarId = document.getElementById('btnBuscarTimeId');
+        btnBuscarId?.addEventListener('click', () => executarBuscaTimeId());
+        inputBuscaId?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                executarBuscaTimeId();
+            }
+        });
+
+        // Tab 3: Cadastro manual - validar campos
+        const inputNomeManual = document.getElementById('inputNomeManual');
+        inputNomeManual?.addEventListener('input', () => validarCadastroManual());
+
+        // Tabs - resetar estado ao trocar de aba
+        document.querySelectorAll('#tabsNovoParticipante button[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', (e) => {
+                limparSelecaoTime();
+                document.getElementById('resultadosBusca').innerHTML = '';
+
+                // Se for aba manual, mostrar secao de confirmacao
+                if (e.target.id === 'tab-manual') {
+                    document.getElementById('secaoConfirmacao').classList.remove('d-none');
+                    document.getElementById('hdnModoNovo').value = 'manual';
+                    validarCadastroManual();
+                } else {
+                    document.getElementById('secaoConfirmacao').classList.add('d-none');
+                    document.getElementById('hdnModoNovo').value = 'busca';
+                    document.getElementById('btnCadastrarNovo').disabled = true;
+                }
+            });
+        });
+
         // Cadastrar
         btnCadastrar.addEventListener('click', () => cadastrarNovoParticipante());
 
         // Limpar selecao
-        btnLimpar.addEventListener('click', () => limparSelecaoTime());
+        btnLimpar?.addEventListener('click', () => limparSelecaoTime());
+    }
+
+    function validarCadastroManual() {
+        const nome = document.getElementById('inputNomeManual')?.value.trim();
+        const btn = document.getElementById('btnCadastrarNovo');
+        btn.disabled = !nome || nome.length < 2;
+    }
+
+    async function executarBuscaTimeId() {
+        const input = document.getElementById('inputBuscaTimeId');
+        const loading = document.getElementById('loadingBusca');
+        const resultados = document.getElementById('resultadosBusca');
+        const timeId = input.value.trim();
+
+        if (!timeId || isNaN(parseInt(timeId))) {
+            showToast('Informe um ID valido', 'warning');
+            return;
+        }
+
+        loading.classList.remove('d-none');
+        resultados.innerHTML = '';
+
+        try {
+            const response = await RenovacaoAPI.buscarTimeCartolaPorId(parseInt(timeId));
+
+            if (response.success && response.time) {
+                const time = response.time;
+                selecionarTime({
+                    timeId: time.time_id,
+                    nomeTime: time.nome_time || time.nome || '',
+                    nomeCartoleiro: time.nome_cartoleiro || '',
+                    escudo: time.escudo || time.url_escudo_png || ''
+                });
+                showToast('Time encontrado!', 'success');
+            } else {
+                resultados.innerHTML = '<p class="text-warning text-center py-3">Time nao encontrado. Tente cadastro manual.</p>';
+            }
+
+        } catch (error) {
+            console.error('[RENOVACAO-UI] Erro na busca por ID:', error);
+            resultados.innerHTML = `<p class="text-warning text-center py-3">Time nao encontrado ou API indisponivel. Use o cadastro manual.</p>`;
+        } finally {
+            loading.classList.add('d-none');
+        }
     }
 
     async function executarBuscaTime() {
@@ -436,6 +514,7 @@ const RenovacaoUI = (function() {
 
         // Atualizar UI
         document.getElementById('timeSelecionado').classList.remove('d-none');
+        document.getElementById('secaoConfirmacao').classList.remove('d-none');
         document.getElementById('escudoSelecionado').src = dados.escudo || '/img/default-escudo.png';
         document.getElementById('nomeTimeSelecionado').textContent = dados.nomeTime;
         document.getElementById('nomeCartoleiroSelecionado').textContent = dados.nomeCartoleiro;
@@ -445,6 +524,7 @@ const RenovacaoUI = (function() {
         document.getElementById('hdnNomeTimeNovo').value = dados.nomeTime;
         document.getElementById('hdnNomeCartoleiroNovo').value = dados.nomeCartoleiro;
         document.getElementById('hdnEscudoNovo').value = dados.escudo;
+        document.getElementById('hdnModoNovo').value = 'busca';
 
         // Habilitar botao
         document.getElementById('btnCadastrarNovo').disabled = false;
@@ -455,20 +535,60 @@ const RenovacaoUI = (function() {
 
     function limparSelecaoTime() {
         state.timeSelecionado = null;
-        document.getElementById('timeSelecionado').classList.add('d-none');
-        document.getElementById('btnCadastrarNovo').disabled = true;
-        document.getElementById('hdnTimeIdNovo').value = '';
+        const timeSelecionado = document.getElementById('timeSelecionado');
+        const secaoConfirmacao = document.getElementById('secaoConfirmacao');
+        const btnCadastrar = document.getElementById('btnCadastrarNovo');
+        const hdnTimeId = document.getElementById('hdnTimeIdNovo');
+        const hdnModo = document.getElementById('hdnModoNovo');
+
+        if (timeSelecionado) timeSelecionado.classList.add('d-none');
+        if (hdnModo?.value !== 'manual' && secaoConfirmacao) {
+            secaoConfirmacao.classList.add('d-none');
+        }
+        if (btnCadastrar && hdnModo?.value !== 'manual') {
+            btnCadastrar.disabled = true;
+        }
+        if (hdnTimeId) hdnTimeId.value = '';
     }
 
     async function cadastrarNovoParticipante() {
-        if (!state.timeSelecionado) {
-            showToast('Selecione um time primeiro', 'warning');
-            return;
-        }
-
+        const modo = document.getElementById('hdnModoNovo')?.value || 'busca';
         const btn = document.getElementById('btnCadastrarNovo');
-        const pagouInscricao = document.getElementById('checkPagouInscricaoNovo').checked;
-        const observacoes = document.getElementById('txtObservacoesNovo').value;
+        const pagouInscricao = document.getElementById('checkPagouInscricaoNovo')?.checked ?? true;
+        const observacoes = document.getElementById('txtObservacoesNovo')?.value || '';
+
+        let dadosTime = null;
+
+        if (modo === 'manual') {
+            // Cadastro manual - pegar dados dos campos
+            const nome = document.getElementById('inputNomeManual')?.value.trim();
+            const apelido = document.getElementById('inputApelidoManual')?.value.trim();
+            const timeCoracao = document.getElementById('selectTimeCoracao')?.value;
+            const idCartola = document.getElementById('inputIdCartolaManual')?.value.trim();
+            const contato = document.getElementById('inputContatoManual')?.value.trim();
+
+            if (!nome || nome.length < 2) {
+                showToast('Informe o nome do participante', 'warning');
+                return;
+            }
+
+            dadosTime = {
+                nome_cartoleiro: nome,
+                nome_time: apelido || nome,
+                time_id: idCartola ? parseInt(idCartola) : null,
+                time_coracao: timeCoracao,
+                contato: contato,
+                pendente_sincronizacao: !idCartola, // Flag de pendencia
+                cadastro_manual: true
+            };
+        } else {
+            // Busca - usar time selecionado
+            if (!state.timeSelecionado) {
+                showToast('Selecione um time primeiro', 'warning');
+                return;
+            }
+            dadosTime = state.timeSelecionado;
+        }
 
         setLoading(btn, true);
 
@@ -476,11 +596,14 @@ const RenovacaoUI = (function() {
             await RenovacaoAPI.novoParticipante(
                 state.ligaId,
                 state.temporada,
-                state.timeSelecionado,
+                dadosTime,
                 { pagouInscricao, observacoes }
             );
 
-            showToast('Novo participante cadastrado com sucesso!');
+            const msg = dadosTime.pendente_sincronizacao
+                ? 'Participante cadastrado! Pendente vincular ID do Cartola.'
+                : 'Novo participante cadastrado com sucesso!';
+            showToast(msg, 'success');
             fecharModal();
 
             // Callback para atualizar UI

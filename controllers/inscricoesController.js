@@ -433,14 +433,27 @@ export async function processarNaoParticipar(ligaId, timeId, temporada, opcoes =
 
 /**
  * Processa cadastro de novo participante
+ * Suporta cadastro manual (sem ID do Cartola) com pendência de sincronização
  * @param {string} ligaId - ID da liga
  * @param {number} temporada - Nova temporada
- * @param {Object} dadosCartola - Dados do time do Cartola { time_id, nome_time, nome_cartoleiro, escudo }
+ * @param {Object} dadosCartola - { time_id, nome_time, nome_cartoleiro, escudo, time_coracao, contato, pendente_sincronizacao }
  * @param {Object} opcoes - { observacoes, aprovadoPor, pagouInscricao }
  * @returns {Promise<Object>}
  */
 export async function processarNovoParticipante(ligaId, temporada, dadosCartola, opcoes = {}) {
-    const timeId = Number(dadosCartola.time_id);
+    const isCadastroManual = dadosCartola.cadastro_manual === true || dadosCartola.pendente_sincronizacao === true;
+
+    // Para cadastro manual sem ID, gerar ID temporário negativo (timestamp)
+    let timeId;
+    if (dadosCartola.time_id) {
+        timeId = Number(dadosCartola.time_id);
+    } else if (isCadastroManual) {
+        // ID temporário negativo = -timestamp para identificar cadastros manuais
+        timeId = -Date.now();
+        console.log(`[INSCRICOES] Cadastro manual - ID temporário gerado: ${timeId}`);
+    } else {
+        throw new Error("ID do time é obrigatório");
+    }
 
     // 1. Verificar se já existe na liga
     const liga = await Liga.findById(ligaId).lean();
@@ -448,9 +461,12 @@ export async function processarNovoParticipante(ligaId, temporada, dadosCartola,
         throw new Error("Liga não encontrada");
     }
 
-    const jaExiste = liga.participantes?.some(p => Number(p.time_id) === timeId);
-    if (jaExiste) {
-        throw new Error("Este time já está cadastrado na liga");
+    // Para IDs positivos (Cartola real), verificar duplicidade
+    if (timeId > 0) {
+        const jaExiste = liga.participantes?.some(p => Number(p.time_id) === timeId);
+        if (jaExiste) {
+            throw new Error("Este time já está cadastrado na liga");
+        }
     }
 
     // 2. Buscar regras da liga
@@ -467,17 +483,23 @@ export async function processarNovoParticipante(ligaId, temporada, dadosCartola,
     const saldoInicialTemporada = taxaComoDebito;
 
     // 3. Criar inscrição
+    const nomeTime = dadosCartola.nome_time || dadosCartola.nome || dadosCartola.nome_cartoleiro;
+    const nomeCartoleiro = dadosCartola.nome_cartoleiro || dadosCartola.cartoleiro || dadosCartola.nome_time;
+
     const inscricao = await InscricaoTemporada.upsert({
         liga_id: ligaId,
         time_id: timeId,
         temporada,
         status: 'novo',
-        origem: 'novo_cadastro',
+        origem: isCadastroManual ? 'cadastro_manual' : 'novo_cadastro',
         dados_participante: {
-            nome_time: dadosCartola.nome_time || dadosCartola.nome,
-            nome_cartoleiro: dadosCartola.nome_cartoleiro || dadosCartola.cartoleiro,
-            escudo: dadosCartola.escudo || dadosCartola.url_escudo_png,
-            id_cartola_oficial: timeId
+            nome_time: nomeTime,
+            nome_cartoleiro: nomeCartoleiro,
+            escudo: dadosCartola.escudo || dadosCartola.url_escudo_png || '',
+            id_cartola_oficial: timeId > 0 ? timeId : null,
+            time_coracao: dadosCartola.time_coracao || null,
+            contato: dadosCartola.contato || null,
+            pendente_sincronizacao: isCadastroManual && timeId < 0
         },
         temporada_anterior: {
             temporada: null,
@@ -491,7 +513,7 @@ export async function processarNovoParticipante(ligaId, temporada, dadosCartola,
         pagou_inscricao: pagouInscricao,
         data_decisao: new Date(),
         aprovado_por: opcoes.aprovadoPor || 'admin',
-        observacoes: opcoes.observacoes || 'Novo participante'
+        observacoes: opcoes.observacoes || (isCadastroManual ? 'Cadastro manual - pendente vincular ID Cartola' : 'Novo participante')
     });
 
     // 4. Criar transações iniciais (só cria débito se NÃO pagou)
@@ -509,23 +531,29 @@ export async function processarNovoParticipante(ligaId, temporada, dadosCartola,
     // 6. Adicionar à liga
     await adicionarParticipanteNaLiga(ligaId, {
         time_id: timeId,
-        nome_time: dadosCartola.nome_time || dadosCartola.nome,
-        nome_cartoleiro: dadosCartola.nome_cartoleiro || dadosCartola.cartoleiro,
-        escudo: dadosCartola.escudo || dadosCartola.url_escudo_png
+        nome_time: nomeTime,
+        nome_cartoleiro: nomeCartoleiro,
+        escudo: dadosCartola.escudo || dadosCartola.url_escudo_png || '',
+        time_coracao: dadosCartola.time_coracao || null,
+        contato: dadosCartola.contato || null,
+        pendente_sincronizacao: isCadastroManual && timeId < 0
     }, temporada);
 
-    console.log(`[INSCRICOES] Novo participante cadastrado: liga=${ligaId} time=${timeId} temporada=${temporada}`);
+    const tipoLog = isCadastroManual ? 'MANUAL' : 'NOVO';
+    console.log(`[INSCRICOES] ${tipoLog} participante cadastrado: liga=${ligaId} time=${timeId} temporada=${temporada}`);
 
     return {
         success: true,
         inscricao: inscricaoDoc,
+        cadastroManual: isCadastroManual,
+        pendenteSincronizacao: isCadastroManual && timeId < 0,
         resumo: {
             taxa,
             pagouInscricao,
             saldoInicialTemporada,
             timeId,
-            nomeTime: dadosCartola.nome_time || dadosCartola.nome,
-            nomeCartoleiro: dadosCartola.nome_cartoleiro || dadosCartola.cartoleiro
+            nomeTime,
+            nomeCartoleiro
         }
     };
 }
