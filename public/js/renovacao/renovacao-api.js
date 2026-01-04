@@ -20,7 +20,7 @@ const RenovacaoAPI = (function() {
         ENDPOINTS: {
             LIGA_RULES: '/api/liga-rules',
             INSCRICOES: '/api/inscricoes',
-            BUSCAR_TIME: '/api/cartola-proxy/buscar-time',
+            BUSCAR_TIME: '/api/cartola/buscar-time',
             TESOURARIA: '/api/tesouraria'
         }
     };
