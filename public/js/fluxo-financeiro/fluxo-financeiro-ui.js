@@ -334,6 +334,14 @@ export class FluxoFinanceiroUI {
                         <span class="material-icons">assessment</span>
                         <span class="btn-text">Relatório</span>
                     </button>
+                    <div class="toolbar-separator"></div>
+                    <button id="btnConfig2026" onclick="window.abrirConfigRenovacao && window.abrirConfigRenovacao()" class="toolbar-btn btn-outline-warning" title="Configurar Renovação 2026">
+                        <span class="material-icons">settings</span>
+                        <span class="btn-text">2026</span>
+                    </button>
+                    <button id="btnNovoParticipante2026" onclick="window.abrirNovoParticipante && window.abrirNovoParticipante()" class="toolbar-btn btn-outline-info" title="Adicionar Participante 2026">
+                        <span class="material-icons">person_add</span>
+                    </button>
                     <button onclick="window.recarregarFluxoFinanceiro()" class="toolbar-btn" title="Atualizar">
                         <span class="material-icons">sync</span>
                     </button>
@@ -391,6 +399,7 @@ export class FluxoFinanceiroUI {
                             <th class="col-saldo sortable" onclick="window.ordenarTabelaFinanceiro('saldo')" data-sort="saldo">
                                 <span class="th-sort">Saldo <span class="material-icons sort-icon">unfold_more</span></span>
                             </th>
+                            <th class="col-2026" title="Status Renovação 2026">2026</th>
                             <th class="col-acoes">Ações</th>
                         </tr>
                     </thead>
@@ -471,6 +480,16 @@ export class FluxoFinanceiroUI {
                 </td>
                 ${modulosCols}
                 <td class="col-saldo ${classeSaldo}"><strong>${saldoSinal}R$ ${saldoFormatado}</strong></td>
+                <td class="col-2026">
+                    <span class="renovacao-badge badge-2026-pendente"
+                          data-time-id="${timeId}"
+                          onclick="window.abrirAcaoRenovacao && window.abrirAcaoRenovacao(${timeId}, '${(p.nome_time || '').replace(/'/g, "\\'")}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}', '${p.url_escudo_png || ''}')"
+                          style="cursor: pointer;"
+                          title="Clique para gerenciar renovação">
+                        <span class="material-icons" style="font-size: 14px; vertical-align: middle;">schedule</span>
+                        Pendente
+                    </span>
+                </td>
                 <td class="col-acoes">
                     <div class="acoes-row">
                         <button onclick="window.selecionarParticipante('${timeId}')"
@@ -1548,6 +1567,89 @@ export class FluxoFinanceiroUI {
                 }
                 .btn-acao .material-icons {
                     font-size: 14px;
+                }
+            }
+
+            /* ========================================
+               COLUNA 2026 - RENOVAÇÃO
+               ======================================== */
+
+            .col-2026 {
+                text-align: center;
+                min-width: 90px;
+                white-space: nowrap;
+            }
+
+            .renovacao-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 0.7rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                transition: all 0.2s ease;
+            }
+            .renovacao-badge:hover {
+                transform: scale(1.05);
+                filter: brightness(1.1);
+            }
+
+            .badge-2026-pendente {
+                background: rgba(245, 158, 11, 0.15);
+                color: #f59e0b;
+                border: 1px solid rgba(245, 158, 11, 0.3);
+            }
+            .badge-2026-renovado {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+                border: 1px solid rgba(16, 185, 129, 0.3);
+            }
+            .badge-2026-nao-participa {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+                border: 1px solid rgba(239, 68, 68, 0.3);
+            }
+            .badge-2026-novo {
+                background: rgba(59, 130, 246, 0.15);
+                color: #3b82f6;
+                border: 1px solid rgba(59, 130, 246, 0.3);
+            }
+
+            /* Toolbar 2026 */
+            .toolbar-separator {
+                width: 1px;
+                height: 24px;
+                background: #333;
+                margin: 0 8px;
+            }
+
+            .toolbar-btn.btn-outline-warning {
+                border: 1px solid #f59e0b;
+                color: #f59e0b;
+                background: transparent;
+            }
+            .toolbar-btn.btn-outline-warning:hover {
+                background: rgba(245, 158, 11, 0.15);
+            }
+
+            .toolbar-btn.btn-outline-info {
+                border: 1px solid #3b82f6;
+                color: #3b82f6;
+                background: transparent;
+            }
+            .toolbar-btn.btn-outline-info:hover {
+                background: rgba(59, 130, 246, 0.15);
+            }
+
+            @media (max-width: 900px) {
+                .col-2026 {
+                    min-width: 70px;
+                }
+                .renovacao-badge {
+                    font-size: 0.6rem;
+                    padding: 3px 6px;
                 }
             }
         `;

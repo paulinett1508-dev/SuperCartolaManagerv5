@@ -260,6 +260,64 @@ Comandos disponíveis para invocar diretamente:
 - Persistem contexto entre sessões no arquivo `.claude/pending-tasks.md`
 - Útil para pausar e continuar trabalhos complexos
 
+## 🔄 Sistema de Renovacao de Temporada
+
+Sistema para gerenciar transicao de participantes entre temporadas (ex: 2025 → 2026).
+
+### Documentacao Completa
+Ver: [`docs/SISTEMA-RENOVACAO-TEMPORADA.md`](docs/SISTEMA-RENOVACAO-TEMPORADA.md)
+
+### Principios Fundamentais
+1. **Zero hardcode**: TODAS as regras sao configuraveis via interface (collection `ligarules`)
+2. **Independencia por liga**: Cada liga pode ter regras DIFERENTES
+3. **Auditoria completa**: Cada acao gera registro em `inscricoestemporada`
+4. **Separacao de temporadas**: Extratos 2025 e 2026 sao independentes
+
+### Collections MongoDB
+
+| Collection | Descricao |
+|------------|-----------|
+| `ligarules` | Regras configuraveis por liga/temporada |
+| `inscricoestemporada` | Registro de cada inscricao/renovacao |
+
+### Regras Configuraveis (Model LigaRules)
+
+| Regra | Campo | Descricao |
+|-------|-------|-----------|
+| Taxa de Inscricao | `inscricao.taxa` | Valor em R$ cobrado de cada participante |
+| Prazo | `inscricao.prazo_renovacao` | Data limite para renovacao |
+| Devedor Renova | `inscricao.permitir_devedor_renovar` | Permite devedor renovar carregando divida |
+| Aproveitar Credito | `inscricao.aproveitar_saldo_positivo` | Credito anterior abate da taxa |
+| Parcelamento | `inscricao.permitir_parcelamento` | Permite parcelar a taxa |
+| Max Parcelas | `inscricao.max_parcelas` | Numero maximo de parcelas |
+
+### Logica do Flag `pagouInscricao`
+
+| Cenario | Flag | Comportamento |
+|---------|------|---------------|
+| Renovou e PAGOU | `true` | Taxa apenas registrada, NAO vira debito |
+| Renovou e NAO PAGOU | `false` | Taxa VIRA DEBITO no extrato |
+
+### Arquivos Principais
+
+**Backend:**
+- `models/LigaRules.js` - Schema de regras
+- `models/InscricaoTemporada.js` - Schema de inscricoes
+- `routes/liga-rules-routes.js` - API de regras
+- `routes/inscricoes-routes.js` - API de inscricoes
+- `controllers/inscricoesController.js` - Logica de negocio
+
+**Frontend:**
+- `public/js/renovacao/renovacao-api.js` - Chamadas API
+- `public/js/renovacao/renovacao-modals.js` - Templates HTML
+- `public/js/renovacao/renovacao-ui.js` - Interacoes
+- `public/js/renovacao/renovacao-core.js` - Orquestracao
+
+### Acesso na Interface
+- Fluxo Financeiro > Botao [Config 2026] (engrenagem)
+- Fluxo Financeiro > Botao [+ Participante]
+- Coluna "2026" na tabela de participantes
+
 ## ⚠️ Critical Rules
 1. NEVER remove the `gemini_audit.py` file.
 2. NEVER break the "Follow the Money" audit trail in financial controllers.

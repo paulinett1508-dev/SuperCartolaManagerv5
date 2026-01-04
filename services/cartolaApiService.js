@@ -665,6 +665,146 @@ class CartolaApiService {
     }
   }
 
+  // =========================================================================
+  // BUSCA DE TIME POR NOME
+  // Usado para cadastrar novos participantes na renovação de temporada
+  // =========================================================================
+
+  /**
+   * Busca times por nome na API do Cartola
+   * @param {string} query - Nome ou parte do nome do time/cartoleiro
+   * @param {number} limit - Máximo de resultados (default: 20)
+   * @returns {Promise<Array>} Lista de times encontrados
+   */
+  async buscarTimePorNome(query, limit = 20) {
+    if (!query || query.trim().length < 3) {
+      throw new Error('A busca requer pelo menos 3 caracteres');
+    }
+
+    const queryNormalizada = query.trim();
+    const cacheKey = `busca_time_${queryNormalizada.toLowerCase()}`;
+    const cached = cache.get(cacheKey);
+
+    if (cached) {
+      CartolaLogger.debug(`Busca por "${queryNormalizada}" obtida do cache`);
+      return cached;
+    }
+
+    try {
+      CartolaLogger.info(`Buscando times com query: "${queryNormalizada}"`);
+
+      const response = await retryRequest(async () => {
+        return await this.httpClient.get(`${this.baseUrl}/times`, {
+          params: { q: queryNormalizada }
+        });
+      });
+
+      if (response.status !== 200) {
+        throw new Error(`API retornou status ${response.status}`);
+      }
+
+      // A API retorna um array de times ou vazio
+      let times = response.data || [];
+
+      // Normalizar e limitar resultados
+      const timesNormalizados = times.slice(0, limit).map(time => ({
+        time_id: parseInt(time.time_id),
+        nome_time: time.nome || '',
+        nome_cartoleiro: time.nome_cartola || '',
+        escudo: time.url_escudo_png || time.url_escudo_svg || '',
+        assinante: time.assinante || false,
+        slug: time.slug || ''
+      }));
+
+      // Cache por 5 minutos (busca é relativamente estável)
+      cache.set(cacheKey, timesNormalizados, 300);
+
+      CartolaLogger.info(`Busca "${queryNormalizada}" retornou ${timesNormalizados.length} times`);
+      return timesNormalizados;
+
+    } catch (error) {
+      CartolaLogger.error(`Erro ao buscar times por nome "${queryNormalizada}"`, {
+        error: error.message,
+        status: error.response?.status
+      });
+
+      // Se 404 ou similar, retornar lista vazia em vez de erro
+      if (error.response?.status === 404) {
+        return [];
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * Busca dados completos de um time específico pelo ID
+   * @param {number} timeId - ID oficial do time no Cartola
+   * @returns {Promise<Object|null>} Dados do time ou null se não encontrado
+   */
+  async buscarTimePorId(timeId) {
+    if (!timeId) {
+      throw new Error('Time ID é obrigatório');
+    }
+
+    const cacheKey = `time_completo_${timeId}`;
+    const cached = cache.get(cacheKey);
+
+    if (cached) {
+      CartolaLogger.debug(`Dados do time ${timeId} obtidos do cache`);
+      return cached;
+    }
+
+    try {
+      CartolaLogger.info(`Buscando dados completos do time ${timeId}`);
+
+      const response = await retryRequest(async () => {
+        return await this.httpClient.get(`${this.baseUrl}/time/id/${timeId}`);
+      });
+
+      if (response.status === 404) {
+        CartolaLogger.warn(`Time ${timeId} não encontrado`);
+        return null;
+      }
+
+      if (response.status !== 200) {
+        throw new Error(`API retornou status ${response.status}`);
+      }
+
+      const time = response.data.time || response.data;
+
+      const dadosNormalizados = {
+        time_id: parseInt(time.time_id),
+        nome_time: time.nome || '',
+        nome_cartoleiro: time.nome_cartola || '',
+        escudo: time.url_escudo_png || time.url_escudo_svg || '',
+        assinante: time.assinante || false,
+        slug: time.slug || '',
+        patrimonio: time.patrimonio || 0,
+        pontos_campeonato: time.pontos_campeonato || 0,
+        rodada_time_id: time.rodada_time_id || null
+      };
+
+      // Cache por 1 hora (dados de time mudam pouco)
+      cache.set(cacheKey, dadosNormalizados, 3600);
+
+      CartolaLogger.info(`Dados do time ${timeId} obtidos com sucesso`);
+      return dadosNormalizados;
+
+    } catch (error) {
+      CartolaLogger.error(`Erro ao buscar time ${timeId}`, {
+        error: error.message,
+        status: error.response?.status
+      });
+
+      if (error.response?.status === 404) {
+        return null;
+      }
+
+      throw error;
+    }
+  }
+
   // Limpar cache
   limparCache() {
     cache.flushAll();

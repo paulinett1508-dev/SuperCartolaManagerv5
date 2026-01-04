@@ -1,6 +1,7 @@
 import express from "express";
 import axios from "axios";
 import { isSeasonFinished, SEASON_CONFIG, logBlockedOperation } from "../utils/seasonGuard.js";
+import cartolaApiService from "../services/cartolaApiService.js";
 
 const router = express.Router();
 const CARTOLA_API_BASE = "https://api.cartola.globo.com";
@@ -255,6 +256,87 @@ router.get("/atletas/mercado", async (req, res) => {
         res.status(error.response?.status || 500).json({
             error: "Erro ao buscar atletas",
             details: error.message,
+        });
+    }
+});
+
+// =============================================================================
+// 🔍 BUSCA DE TIME POR NOME
+// Usado para cadastrar novos participantes na renovação de temporada
+// =============================================================================
+router.get("/buscar-time", async (req, res) => {
+    try {
+        const { q, limit = 20 } = req.query;
+
+        if (!q || q.trim().length < 3) {
+            return res.status(400).json({
+                success: false,
+                error: "Informe pelo menos 3 caracteres para buscar"
+            });
+        }
+
+        console.log(`🔍 [CARTOLA-PROXY] Buscando times: "${q}"`);
+
+        const times = await cartolaApiService.buscarTimePorNome(q, parseInt(limit));
+
+        console.log(`✅ [CARTOLA-PROXY] ${times.length} times encontrados para "${q}"`);
+
+        res.json({
+            success: true,
+            query: q,
+            total: times.length,
+            times
+        });
+
+    } catch (error) {
+        console.error(`❌ [CARTOLA-PROXY] Erro na busca por "${req.query.q}":`, error.message);
+        res.status(500).json({
+            success: false,
+            error: "Erro ao buscar times",
+            details: error.message
+        });
+    }
+});
+
+// =============================================================================
+// 🏠 BUSCA DE TIME POR ID
+// Retorna dados completos de um time específico
+// =============================================================================
+router.get("/buscar-time/:timeId", async (req, res) => {
+    try {
+        const { timeId } = req.params;
+
+        if (!timeId || isNaN(parseInt(timeId))) {
+            return res.status(400).json({
+                success: false,
+                error: "ID do time inválido"
+            });
+        }
+
+        console.log(`🔍 [CARTOLA-PROXY] Buscando time ID: ${timeId}`);
+
+        const time = await cartolaApiService.buscarTimePorId(parseInt(timeId));
+
+        if (!time) {
+            return res.status(404).json({
+                success: false,
+                error: "Time não encontrado"
+            });
+        }
+
+        console.log(`✅ [CARTOLA-PROXY] Time encontrado: ${time.nome_time}`);
+
+        res.json({
+            success: true,
+            time
+        });
+
+    } catch (error) {
+        console.error(`❌ [CARTOLA-PROXY] Erro ao buscar time ${req.params.timeId}:`, error.message);
+        res.status(500).json({
+            success: false,
+            error: "Erro ao buscar time",
+            details: error.message
         });
     }
 });

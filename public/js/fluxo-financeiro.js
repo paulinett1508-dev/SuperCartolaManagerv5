@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v7.6"; // v7.6: Fix filtro cards - remover definição duplicada
+const CACHE_BUSTER = "v7.7"; // v7.7: Integração Renovação Temporada 2026 + coluna 2026 na tabela
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -1502,4 +1502,127 @@ window.listarAcertosParticipante = async function (ligaId, timeId) {
     }
 };
 
-console.log("[FLUXO-ADMIN] ✅ v7.1 carregado (FIX: temporada em todas as requisições)");
+// =============================================================================
+// ===== RENOVAÇÃO DE TEMPORADA 2026 (v7.7) =====
+// =============================================================================
+
+/**
+ * Inicializa módulo de renovação quando disponível
+ */
+async function inicializarModuloRenovacao() {
+    const ligaId = obterLigaId();
+    if (!ligaId) return;
+
+    // Verificar se módulos de renovação estão disponíveis
+    if (typeof RenovacaoCore !== 'undefined' && typeof RenovacaoAPI !== 'undefined') {
+        try {
+            await RenovacaoCore.init(ligaId);
+            RenovacaoCore.setupEventListeners();
+            console.log("[FLUXO-ADMIN] ✅ Módulo de Renovação 2026 inicializado");
+        } catch (error) {
+            console.warn("[FLUXO-ADMIN] Renovação não inicializado:", error.message);
+        }
+    }
+}
+
+/**
+ * Abre modal de configuração de renovação da liga
+ */
+window.abrirConfigRenovacao = function() {
+    const ligaId = obterLigaId();
+    if (!ligaId) {
+        alert("Liga não identificada");
+        return;
+    }
+
+    if (typeof RenovacaoUI !== 'undefined') {
+        RenovacaoUI.abrirModalConfig(ligaId);
+    } else {
+        console.warn("[RENOVACAO] Módulos não carregados - carregando dinamicamente...");
+        carregarModulosRenovacao().then(() => {
+            RenovacaoUI.abrirModalConfig(ligaId);
+        });
+    }
+};
+
+/**
+ * Abre modal para adicionar novo participante
+ */
+window.abrirNovoParticipante = function() {
+    const ligaId = obterLigaId();
+    if (!ligaId) {
+        alert("Liga não identificada");
+        return;
+    }
+
+    if (typeof RenovacaoUI !== 'undefined') {
+        RenovacaoUI.abrirModalNovoParticipante(ligaId);
+    } else {
+        carregarModulosRenovacao().then(() => {
+            RenovacaoUI.abrirModalNovoParticipante(ligaId);
+        });
+    }
+};
+
+/**
+ * Abre modal de ação (renovar/não participar) para um participante
+ */
+window.abrirAcaoRenovacao = function(timeId, nomeTime, nomeCartoleiro, escudo) {
+    const ligaId = obterLigaId();
+    if (!ligaId) {
+        alert("Liga não identificada");
+        return;
+    }
+
+    const participante = {
+        time_id: timeId,
+        nome_time: nomeTime || '',
+        nome_cartoleiro: nomeCartoleiro || '',
+        escudo: escudo || ''
+    };
+
+    if (typeof RenovacaoCore !== 'undefined') {
+        RenovacaoCore.abrirAcao(participante);
+    } else {
+        carregarModulosRenovacao().then(() => {
+            RenovacaoCore.init(ligaId).then(() => {
+                RenovacaoCore.abrirAcao(participante);
+            });
+        });
+    }
+};
+
+/**
+ * Carrega módulos de renovação dinamicamente
+ */
+async function carregarModulosRenovacao() {
+    const CACHE_BUSTER_RENOV = "v1.0";
+
+    const scripts = [
+        '/js/renovacao/renovacao-api.js',
+        '/js/renovacao/renovacao-modals.js',
+        '/js/renovacao/renovacao-ui.js',
+        '/js/renovacao/renovacao-core.js'
+    ];
+
+    for (const src of scripts) {
+        if (!document.querySelector(`script[src*="${src}"]`)) {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = `${src}?${CACHE_BUSTER_RENOV}`;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+    }
+
+    console.log("[FLUXO-ADMIN] Módulos de Renovação carregados dinamicamente");
+}
+
+// Tentar inicializar renovação após carregamento do fluxo
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(inicializarModuloRenovacao, 1000);
+});
+
+console.log("[FLUXO-ADMIN] ✅ v7.7 carregado (Integração Renovação 2026)");

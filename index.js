@@ -87,6 +87,10 @@ import renovacoesRoutes from "./routes/renovacoes-routes.js";
 import acertosFinanceirosRoutes from "./routes/acertos-financeiros-routes.js";
 import tesourariaRoutes from "./routes/tesouraria-routes.js";
 
+// 🔄 Renovação de Temporada
+import ligaRulesRoutes from "./routes/liga-rules-routes.js";
+import inscricoesRoutes from "./routes/inscricoes-routes.js";
+
 // 📦 DATA LAKE dos Participantes
 import dataLakeRoutes from "./routes/data-lake-routes.js";
 
@@ -322,6 +326,11 @@ app.use("/api/times-admin", timesAdminRoutes);
 app.use("/api/renovacoes", renovacoesRoutes);
 app.use("/api/acertos", acertosFinanceirosRoutes);
 app.use("/api/tesouraria", tesourariaRoutes);
+
+// 🔄 Renovação de Temporada
+app.use("/api/liga-rules", ligaRulesRoutes);
+app.use("/api/inscricoes", inscricoesRoutes);
+console.log("[SERVER] 🔄 Sistema de Renovação de Temporada registrado");
 
 // 📦 DATA LAKE dos Participantes
 app.use("/api/data-lake", dataLakeRoutes);
