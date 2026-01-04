@@ -263,29 +263,62 @@ router.get("/atletas/mercado", async (req, res) => {
 // =============================================================================
 // 🔍 BUSCA DE TIME POR NOME
 // Usado para cadastrar novos participantes na renovação de temporada
+// Estratégia: Busca no banco local (times já cadastrados em temporadas anteriores)
 // =============================================================================
 router.get("/buscar-time", async (req, res) => {
     try {
         const { q, limit = 20 } = req.query;
 
-        if (!q || q.trim().length < 3) {
+        if (!q || q.trim().length < 2) {
             return res.status(400).json({
                 success: false,
-                error: "Informe pelo menos 3 caracteres para buscar"
+                error: "Informe pelo menos 2 caracteres para buscar"
             });
         }
 
-        console.log(`🔍 [CARTOLA-PROXY] Buscando times: "${q}"`);
+        console.log(`🔍 [CARTOLA-PROXY] Buscando times no banco local: "${q}"`);
 
-        const times = await cartolaApiService.buscarTimePorNome(q, parseInt(limit));
+        // Buscar no banco de dados local (collection times = participantes do Cartola FC)
+        const { getDB } = await import("../config/database.js");
+        const db = getDB();
 
-        console.log(`✅ [CARTOLA-PROXY] ${times.length} times encontrados para "${q}"`);
+        // Criar regex case-insensitive para busca flexível
+        const regex = new RegExp(q.trim(), 'i');
+
+        // Buscar por nome_time, nome_cartoleiro ou apelido
+        const timesLocal = await db.collection('times').find({
+            $or: [
+                { nome_time: regex },
+                { nome_cartoleiro: regex },
+                { nome: regex }
+            ]
+        }).limit(parseInt(limit)).toArray();
+
+        // Normalizar resultados
+        const times = timesLocal.map(t => ({
+            time_id: t.id || t.time_id,
+            nome_time: t.nome_time || t.nome || '',
+            nome_cartoleiro: t.nome_cartoleiro || '',
+            escudo: t.escudo || t.url_escudo_png || '',
+            assinante: t.assinante || false,
+            slug: t.slug || '',
+            // Dados extras do banco local
+            temporada: t.temporada,
+            ativo: t.ativo,
+            fonte: 'banco_local'
+        }));
+
+        console.log(`✅ [CARTOLA-PROXY] ${times.length} times encontrados no banco local para "${q}"`);
 
         res.json({
             success: true,
             query: q,
             total: times.length,
-            times
+            times,
+            fonte: 'banco_local',
+            aviso: times.length === 0
+                ? 'Nenhum time encontrado. Se for um novo participante, informe o ID do Cartola manualmente.'
+                : null
         });
 
     } catch (error) {
