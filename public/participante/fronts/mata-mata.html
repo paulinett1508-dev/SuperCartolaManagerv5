@@ -60,7 +60,7 @@
 
     /* Variáveis mapeadas para tokens globais (_app-tokens.css) */
     :root {
-        --mm-font-brand: 'Russo One', sans-serif;
+        --mm-font-brand: var(--app-font-brand, 'Russo One', sans-serif);
         --mm-font-body: 'Inter', -apple-system, sans-serif;
         --mm-bg: var(--app-bg, #0c0c0c);
         --mm-bg-dark: var(--app-bg-dark, #000);

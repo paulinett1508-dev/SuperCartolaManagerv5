@@ -58,9 +58,9 @@
 
     /* Variáveis - Mapeadas para tokens globais (_app-tokens.css) */
     :root {
-        /* Fontes */
-        --rank-font-brand: 'Russo One', sans-serif;
-        --rank-font-body: 'Inter', -apple-system, sans-serif;
+        /* Fontes - HERDADAS do _app-tokens.css */
+        --rank-font-brand: var(--app-font-brand, 'Russo One', sans-serif);
+        --rank-font-body: var(--app-font-base, 'Inter', -apple-system, sans-serif);
         --rank-primary: var(--app-primary, #ff5c00);
         --rank-primary-light: var(--app-primary-light, #f97316);
         --rank-primary-alpha-15: rgba(255, 92, 0, 0.15);
