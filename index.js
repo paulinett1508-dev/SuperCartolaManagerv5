@@ -91,6 +91,9 @@ import tesourariaRoutes from "./routes/tesouraria-routes.js";
 import ligaRulesRoutes from "./routes/liga-rules-routes.js";
 import inscricoesRoutes from "./routes/inscricoes-routes.js";
 
+// 🧩 Configuração de Módulos por Liga
+import moduleConfigRoutes from "./routes/module-config-routes.js";
+
 // 📦 DATA LAKE dos Participantes
 import dataLakeRoutes from "./routes/data-lake-routes.js";
 
@@ -330,6 +333,9 @@ app.use("/api/tesouraria", tesourariaRoutes);
 // 🔄 Renovação de Temporada
 app.use("/api/liga-rules", ligaRulesRoutes);
 app.use("/api/inscricoes", inscricoesRoutes);
+
+// 🧩 Configuração de Módulos
+app.use("/api", moduleConfigRoutes);
 console.log("[SERVER] 🔄 Sistema de Renovação de Temporada registrado");
 
 // 📦 DATA LAKE dos Participantes

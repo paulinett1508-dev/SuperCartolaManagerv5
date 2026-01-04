@@ -65,6 +65,34 @@
     "descricao": "Ranking informativo, sem impacto financeiro direto"
   },
 
+  "wizard": {
+    "titulo": "Configurar Ranking Geral",
+    "descricao": "Configuracoes basicas do ranking acumulado",
+    "perguntas": [
+      {
+        "id": "incluir_inativos",
+        "tipo": "boolean",
+        "label": "Incluir participantes inativos?",
+        "descricao": "Se sim, inativos aparecem apos os ativos",
+        "default": true,
+        "required": true,
+        "afeta": "regras.participantes_inativos.incluir_no_ranking"
+      },
+      {
+        "id": "premiacao_campeao",
+        "tipo": "number",
+        "label": "Premiacao do campeao (R$)",
+        "descricao": "Valor para o 1o colocado no fim da temporada",
+        "default": 0,
+        "min": 0,
+        "max": 1000,
+        "step": 10,
+        "required": false,
+        "afeta": "financeiro_override.valores_por_posicao.1"
+      }
+    ]
+  },
+
   "metadados": {
     "criado_em": "2025-12-14",
     "autor": "Sistema",

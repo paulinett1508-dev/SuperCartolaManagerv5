@@ -124,6 +124,73 @@
     }
   },
 
+  "wizard": {
+    "titulo": "Configurar Top 10 Mitos/Micos",
+    "descricao": "Defina quantos participantes entram no ranking e os valores de premiacao",
+    "perguntas": [
+      {
+        "id": "qtd_mitos",
+        "tipo": "number",
+        "label": "Quantas posicoes de MITOS?",
+        "descricao": "Quantidade de melhores pontuacoes premiadas",
+        "default": 10,
+        "min": 3,
+        "max": 20,
+        "step": 1,
+        "required": true,
+        "afeta": "regras.mitos.quantidade"
+      },
+      {
+        "id": "qtd_micos",
+        "tipo": "number",
+        "label": "Quantas posicoes de MICOS?",
+        "descricao": "Quantidade de piores pontuacoes 'premiadas'",
+        "default": 10,
+        "min": 3,
+        "max": 20,
+        "step": 1,
+        "required": true,
+        "afeta": "regras.micos.quantidade"
+      },
+      {
+        "id": "valor_mito_1",
+        "tipo": "number",
+        "label": "Valor do 1o MITO (R$)",
+        "descricao": "Premio do melhor mito da temporada",
+        "default": 30,
+        "min": 0,
+        "max": 500,
+        "step": 1,
+        "required": true,
+        "afeta": "financeiro_override.valores_por_posicao.mitos.1"
+      },
+      {
+        "id": "valor_mico_1",
+        "tipo": "number",
+        "label": "Valor do 1o MICO (R$)",
+        "descricao": "Penalidade do pior mico (valor negativo)",
+        "default": -30,
+        "min": -500,
+        "max": 0,
+        "step": 1,
+        "required": true,
+        "afeta": "financeiro_override.valores_por_posicao.micos.1"
+      },
+      {
+        "id": "decremento_valor",
+        "tipo": "number",
+        "label": "Decremento por posicao (R$)",
+        "descricao": "Quanto diminui a cada posicao (ex: 1o=30, 2o=28, dec=2)",
+        "default": 2,
+        "min": 0,
+        "max": 20,
+        "step": 0.5,
+        "required": true,
+        "afeta": "regras_override.decremento_valor"
+      }
+    ]
+  },
+
   "metadados": {
     "criado_em": "2025-12-14",
     "autor": "Sistema",

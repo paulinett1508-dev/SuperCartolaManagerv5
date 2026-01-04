@@ -1,0 +1,393 @@
+/**
+ * Routes: Module Config
+ *
+ * API para gerenciar configuracao de modulos por liga.
+ * Permite ativar/desativar modulos e configurar via wizard.
+ *
+ * @version 1.0.0
+ * @since 2026-01-04
+ */
+
+import express from 'express';
+import ModuleConfig, { MODULOS_DISPONIVEIS } from '../models/ModuleConfig.js';
+import { getRuleById, allRules } from '../config/rules/index.js';
+import { CURRENT_SEASON } from '../config/seasons.js';
+
+const router = express.Router();
+
+// =============================================================================
+// LISTAR MODULOS
+// =============================================================================
+
+/**
+ * GET /api/liga/:ligaId/modulos
+ * Lista todos os modulos disponiveis e seu status para a liga
+ */
+router.get('/liga/:ligaId/modulos', async (req, res) => {
+    try {
+        const { ligaId } = req.params;
+        const temporada = Number(req.query.temporada) || CURRENT_SEASON;
+
+        // Buscar configs existentes para a liga
+        const configsExistentes = await ModuleConfig.listarTodosModulos(ligaId, temporada);
+
+        // Mapear configs por modulo
+        const configMap = {};
+        configsExistentes.forEach(cfg => {
+            configMap[cfg.modulo] = cfg;
+        });
+
+        // Montar lista completa com todos os modulos disponiveis
+        const modulos = MODULOS_DISPONIVEIS.map(moduloId => {
+            const regrasJson = getRuleById(moduloId);
+            const configDb = configMap[moduloId];
+
+            return {
+                id: moduloId,
+                nome: regrasJson?.nome || moduloId,
+                descricao: regrasJson?.descricao || '',
+                tipo: regrasJson?.tipo || 'desconhecido',
+                status_json: regrasJson?.status || 'desconhecido',
+                ativo: configDb?.ativo ?? false,
+                ativado_em: configDb?.ativado_em || null,
+                configurado: !!configDb,
+                wizard_disponivel: !!regrasJson?.wizard,
+                wizard: regrasJson?.wizard || null
+            };
+        });
+
+        res.json({
+            sucesso: true,
+            liga_id: ligaId,
+            temporada,
+            total: modulos.length,
+            ativos: modulos.filter(m => m.ativo).length,
+            modulos
+        });
+
+    } catch (error) {
+        console.error('[MODULE-CONFIG] Erro ao listar modulos:', error);
+        res.status(500).json({
+            sucesso: false,
+            erro: 'Erro ao listar modulos',
+            detalhes: error.message
+        });
+    }
+});
+
+/**
+ * GET /api/liga/:ligaId/modulos/:modulo
+ * Retorna config detalhada de um modulo especifico
+ */
+router.get('/liga/:ligaId/modulos/:modulo', async (req, res) => {
+    try {
+        const { ligaId, modulo } = req.params;
+        const temporada = Number(req.query.temporada) || CURRENT_SEASON;
+
+        // Validar modulo
+        if (!MODULOS_DISPONIVEIS.includes(modulo)) {
+            return res.status(400).json({
+                sucesso: false,
+                erro: 'Modulo invalido',
+                modulos_validos: MODULOS_DISPONIVEIS
+            });
+        }
+
+        // Buscar regras do JSON
+        const regrasJson = getRuleById(modulo);
+        if (!regrasJson) {
+            return res.status(404).json({
+                sucesso: false,
+                erro: 'Regras do modulo nao encontradas'
+            });
+        }
+
+        // Buscar config do banco
+        const configDb = await ModuleConfig.buscarConfig(ligaId, modulo, temporada);
+
+        res.json({
+            sucesso: true,
+            liga_id: ligaId,
+            temporada,
+            modulo: {
+                id: modulo,
+                nome: regrasJson.nome,
+                descricao: regrasJson.descricao,
+                tipo: regrasJson.tipo,
+                status_json: regrasJson.status
+            },
+            config: configDb || {
+                ativo: false,
+                configurado: false
+            },
+            regras_default: regrasJson,
+            wizard: regrasJson.wizard || null
+        });
+
+    } catch (error) {
+        console.error('[MODULE-CONFIG] Erro ao buscar modulo:', error);
+        res.status(500).json({
+            sucesso: false,
+            erro: 'Erro ao buscar modulo',
+            detalhes: error.message
+        });
+    }
+});
+
+// =============================================================================
+// ATIVAR / DESATIVAR MODULO
+// =============================================================================
+
+/**
+ * POST /api/liga/:ligaId/modulos/:modulo/ativar
+ * Ativa um modulo para a liga com as configuracoes do wizard
+ */
+router.post('/liga/:ligaId/modulos/:modulo/ativar', async (req, res) => {
+    try {
+        const { ligaId, modulo } = req.params;
+        const temporada = Number(req.body.temporada) || CURRENT_SEASON;
+        const { wizard_respostas, financeiro_override, regras_override } = req.body;
+
+        // Validar modulo
+        if (!MODULOS_DISPONIVEIS.includes(modulo)) {
+            return res.status(400).json({
+                sucesso: false,
+                erro: 'Modulo invalido',
+                modulos_validos: MODULOS_DISPONIVEIS
+            });
+        }
+
+        // Usuario que está ativando (se autenticado)
+        const usuario = req.session?.usuario?.email || 'sistema';
+
+        // Montar config
+        const config = {
+            wizard_respostas: wizard_respostas || {},
+            financeiro_override: financeiro_override || null,
+            regras_override: regras_override || null
+        };
+
+        // Ativar modulo
+        const resultado = await ModuleConfig.ativarModulo(
+            ligaId,
+            modulo,
+            config,
+            usuario,
+            temporada
+        );
+
+        console.log(`[MODULE-CONFIG] Modulo ${modulo} ativado para liga ${ligaId} por ${usuario}`);
+
+        res.json({
+            sucesso: true,
+            mensagem: `Modulo ${modulo} ativado com sucesso`,
+            config: resultado
+        });
+
+    } catch (error) {
+        console.error('[MODULE-CONFIG] Erro ao ativar modulo:', error);
+        res.status(500).json({
+            sucesso: false,
+            erro: 'Erro ao ativar modulo',
+            detalhes: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/liga/:ligaId/modulos/:modulo/desativar
+ * Desativa um modulo para a liga
+ */
+router.post('/liga/:ligaId/modulos/:modulo/desativar', async (req, res) => {
+    try {
+        const { ligaId, modulo } = req.params;
+        const temporada = Number(req.body.temporada) || CURRENT_SEASON;
+
+        // Validar modulo
+        if (!MODULOS_DISPONIVEIS.includes(modulo)) {
+            return res.status(400).json({
+                sucesso: false,
+                erro: 'Modulo invalido'
+            });
+        }
+
+        // Usuario
+        const usuario = req.session?.usuario?.email || 'sistema';
+
+        // Desativar
+        const resultado = await ModuleConfig.desativarModulo(
+            ligaId,
+            modulo,
+            usuario,
+            temporada
+        );
+
+        if (!resultado) {
+            return res.status(404).json({
+                sucesso: false,
+                erro: 'Modulo nao estava configurado'
+            });
+        }
+
+        console.log(`[MODULE-CONFIG] Modulo ${modulo} desativado para liga ${ligaId} por ${usuario}`);
+
+        res.json({
+            sucesso: true,
+            mensagem: `Modulo ${modulo} desativado`,
+            config: resultado
+        });
+
+    } catch (error) {
+        console.error('[MODULE-CONFIG] Erro ao desativar modulo:', error);
+        res.status(500).json({
+            sucesso: false,
+            erro: 'Erro ao desativar modulo',
+            detalhes: error.message
+        });
+    }
+});
+
+// =============================================================================
+// ATUALIZAR CONFIGURACAO
+// =============================================================================
+
+/**
+ * PUT /api/liga/:ligaId/modulos/:modulo/config
+ * Atualiza configuracao de um modulo (sem mudar status ativo/inativo)
+ */
+router.put('/liga/:ligaId/modulos/:modulo/config', async (req, res) => {
+    try {
+        const { ligaId, modulo } = req.params;
+        const temporada = Number(req.body.temporada) || CURRENT_SEASON;
+        const { wizard_respostas, financeiro_override, regras_override, calendario_override } = req.body;
+
+        // Validar modulo
+        if (!MODULOS_DISPONIVEIS.includes(modulo)) {
+            return res.status(400).json({
+                sucesso: false,
+                erro: 'Modulo invalido'
+            });
+        }
+
+        // Usuario
+        const usuario = req.session?.usuario?.email || 'sistema';
+
+        // Atualizar apenas respostas wizard
+        if (wizard_respostas) {
+            await ModuleConfig.salvarRespostasWizard(
+                ligaId,
+                modulo,
+                wizard_respostas,
+                usuario,
+                temporada
+            );
+        }
+
+        // Buscar config atualizada
+        const configAtualizada = await ModuleConfig.buscarConfig(ligaId, modulo, temporada);
+
+        res.json({
+            sucesso: true,
+            mensagem: 'Configuracao atualizada',
+            config: configAtualizada
+        });
+
+    } catch (error) {
+        console.error('[MODULE-CONFIG] Erro ao atualizar config:', error);
+        res.status(500).json({
+            sucesso: false,
+            erro: 'Erro ao atualizar configuracao',
+            detalhes: error.message
+        });
+    }
+});
+
+// =============================================================================
+// VERIFICAR STATUS
+// =============================================================================
+
+/**
+ * GET /api/liga/:ligaId/modulos/:modulo/status
+ * Verifica se modulo esta ativo
+ */
+router.get('/liga/:ligaId/modulos/:modulo/status', async (req, res) => {
+    try {
+        const { ligaId, modulo } = req.params;
+        const temporada = Number(req.query.temporada) || CURRENT_SEASON;
+
+        const ativo = await ModuleConfig.isModuloAtivo(ligaId, modulo, temporada);
+
+        res.json({
+            sucesso: true,
+            modulo,
+            liga_id: ligaId,
+            temporada,
+            ativo
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            sucesso: false,
+            erro: 'Erro ao verificar status',
+            detalhes: error.message
+        });
+    }
+});
+
+// =============================================================================
+// WIZARD - OBTER PERGUNTAS
+// =============================================================================
+
+/**
+ * GET /api/modulos/:modulo/wizard
+ * Retorna as perguntas do wizard para um modulo
+ */
+router.get('/modulos/:modulo/wizard', async (req, res) => {
+    try {
+        const { modulo } = req.params;
+
+        // Validar modulo
+        if (!MODULOS_DISPONIVEIS.includes(modulo)) {
+            return res.status(400).json({
+                sucesso: false,
+                erro: 'Modulo invalido'
+            });
+        }
+
+        // Buscar regras do JSON
+        const regrasJson = getRuleById(modulo);
+        if (!regrasJson) {
+            return res.status(404).json({
+                sucesso: false,
+                erro: 'Regras do modulo nao encontradas'
+            });
+        }
+
+        if (!regrasJson.wizard) {
+            return res.status(404).json({
+                sucesso: false,
+                erro: 'Modulo nao possui wizard configurado'
+            });
+        }
+
+        res.json({
+            sucesso: true,
+            modulo: {
+                id: modulo,
+                nome: regrasJson.nome,
+                descricao: regrasJson.descricao
+            },
+            wizard: regrasJson.wizard
+        });
+
+    } catch (error) {
+        console.error('[MODULE-CONFIG] Erro ao buscar wizard:', error);
+        res.status(500).json({
+            sucesso: false,
+            erro: 'Erro ao buscar wizard',
+            detalhes: error.message
+        });
+    }
+});
+
+export default router;

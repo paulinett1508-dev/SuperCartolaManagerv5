@@ -99,6 +99,85 @@
     "precisao_decimal": 2
   },
 
+  "wizard": {
+    "titulo": "Configurar Pontos Corridos",
+    "descricao": "Defina valores de vitoria/empate/derrota e regras de goleada",
+    "perguntas": [
+      {
+        "id": "rodada_inicial",
+        "tipo": "number",
+        "label": "Rodada inicial",
+        "descricao": "A partir de qual rodada comecam os confrontos",
+        "default": 7,
+        "min": 1,
+        "max": 38,
+        "step": 1,
+        "required": true,
+        "afeta": "configuracao.rodada_inicial"
+      },
+      {
+        "id": "valor_vitoria",
+        "tipo": "number",
+        "label": "Valor por vitoria (R$)",
+        "descricao": "Premio por vencer um confronto",
+        "default": 5,
+        "min": 0,
+        "max": 50,
+        "step": 0.5,
+        "required": true,
+        "afeta": "financeiro_override.valores_simples.vitoria"
+      },
+      {
+        "id": "valor_empate",
+        "tipo": "number",
+        "label": "Valor por empate (R$)",
+        "descricao": "Valor recebido em caso de empate",
+        "default": 3,
+        "min": 0,
+        "max": 50,
+        "step": 0.5,
+        "required": true,
+        "afeta": "financeiro_override.valores_simples.empate"
+      },
+      {
+        "id": "valor_derrota",
+        "tipo": "number",
+        "label": "Valor por derrota (R$)",
+        "descricao": "Penalidade por perder (valor negativo)",
+        "default": -5,
+        "min": -50,
+        "max": 0,
+        "step": 0.5,
+        "required": true,
+        "afeta": "financeiro_override.valores_simples.derrota"
+      },
+      {
+        "id": "tolerancia_empate",
+        "tipo": "number",
+        "label": "Tolerancia para empate (pts)",
+        "descricao": "Diferenca maxima de pontos para considerar empate",
+        "default": 0.3,
+        "min": 0,
+        "max": 5,
+        "step": 0.1,
+        "required": true,
+        "afeta": "regras.resultado.tolerancia_empate"
+      },
+      {
+        "id": "bonus_goleada",
+        "tipo": "number",
+        "label": "Bonus por goleada (R$)",
+        "descricao": "Valor extra ao vencer por 50+ pontos",
+        "default": 2,
+        "min": 0,
+        "max": 20,
+        "step": 0.5,
+        "required": false,
+        "afeta": "regras_override.bonus_goleada"
+      }
+    ]
+  },
+
   "metadados": {
     "criado_em": "2025-12-14",
     "autor": "Sistema",

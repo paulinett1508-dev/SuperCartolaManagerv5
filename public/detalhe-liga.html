@@ -153,6 +153,69 @@
                 if (modal) modal.classList.add("show");
             }
 
+            // Abrir modal de configuracao de modulos
+            function abrirModalModulos() {
+                const ligaId = obterLigaIdCache();
+                if (!ligaId) {
+                    alert('Liga nao identificada');
+                    return;
+                }
+
+                // Criar modal container se nao existir
+                let container = document.getElementById('modalModulosContainer');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'modalModulosContainer';
+                    document.body.appendChild(container);
+                }
+
+                // Template do modal principal
+                container.innerHTML = `
+                    <div class="modal fade" id="modalConfigModulos" tabindex="-1" data-bs-backdrop="static">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content bg-gray-800 text-white">
+                                <div class="modal-header border-gray-700">
+                                    <h5 class="modal-title">
+                                        <span class="material-icons" style="vertical-align: middle;">extension</span>
+                                        Configurar Modulos da Liga
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="listaModulosContainer">
+                                        <div class="text-center py-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Carregando...</span>
+                                            </div>
+                                            <p class="text-muted mt-2">Carregando modulos...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-gray-700">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <span class="material-icons" style="vertical-align: middle;">close</span>
+                                        Fechar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Inicializar ModulosUI
+                const temporada = new Date().getFullYear();
+                ModulosUI.init({
+                    ligaId: ligaId,
+                    temporada: temporada,
+                    containerSelector: '#listaModulosContainer',
+                    modalContainerSelector: '#modalModulosContainer'
+                });
+
+                // Exibir modal
+                const modal = new bootstrap.Modal(document.getElementById('modalConfigModulos'));
+                modal.show();
+            }
+
             // Toggle seção de Administração da Liga
             function toggleAdminSection() {
                 const section = document.getElementById("admin-tools-section");
@@ -631,6 +694,18 @@
                                 <span class="material-icons admin-tool-arrow">chevron_right</span>
                             </button>
 
+                            <!-- Configurar Módulos -->
+                            <button class="admin-tool-item" onclick="abrirModalModulos()">
+                                <div class="admin-tool-icon" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+                                    <span class="material-icons">extension</span>
+                                </div>
+                                <div class="admin-tool-info">
+                                    <span class="admin-tool-label">Configurar Modulos</span>
+                                    <span class="admin-tool-desc">Ativar/desativar e configurar modulos</span>
+                                </div>
+                                <span class="material-icons admin-tool-arrow">chevron_right</span>
+                            </button>
+
                             <!-- Criar Nova Liga -->
                             <a href="criar-liga.html" class="admin-tool-item">
                                 <div class="admin-tool-icon create">
@@ -942,6 +1017,11 @@
         <!-- SCRIPTS MODULARES -->
         <script src="js/cards-condicionais.js"></script>
         <script src="js/sistema-modulos-init.js"></script>
+
+        <!-- SISTEMA DE CONFIGURACAO DE MODULOS -->
+        <script src="js/modulos/modulos-api.js"></script>
+        <script src="js/modulos/modulos-wizard.js"></script>
+        <script src="js/modulos/modulos-ui.js"></script>
         <script type="module" src="js/detalhe-liga-orquestrador.js"></script>
 
         <!-- MÓDULOS JS EXISTENTES -->

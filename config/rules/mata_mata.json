@@ -134,6 +134,72 @@
     "precisao_decimal": 2
   },
 
+  "wizard": {
+    "titulo": "Configurar Mata-Mata",
+    "descricao": "Defina formato, quantidade de edicoes e valores financeiros",
+    "perguntas": [
+      {
+        "id": "total_times",
+        "tipo": "select",
+        "label": "Quantos times participam?",
+        "descricao": "Define o formato do chaveamento",
+        "default": 32,
+        "required": true,
+        "options": [
+          { "valor": 8, "label": "8 times (3 fases)" },
+          { "valor": 16, "label": "16 times (4 fases)" },
+          { "valor": 32, "label": "32 times (5 fases)" }
+        ],
+        "afeta": "configuracao.total_times"
+      },
+      {
+        "id": "qtd_edicoes",
+        "tipo": "number",
+        "label": "Quantas edicoes por temporada?",
+        "descricao": "Numero de mata-matas ao longo do campeonato",
+        "default": 5,
+        "min": 1,
+        "max": 10,
+        "step": 1,
+        "required": true,
+        "afeta": "calendario.edicoes.length"
+      },
+      {
+        "id": "valor_vitoria",
+        "tipo": "number",
+        "label": "Valor por vitoria (R$)",
+        "descricao": "Premio por vencer um confronto",
+        "default": 10,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "required": true,
+        "afeta": "financeiro_override.valores_por_fase.*.vitoria"
+      },
+      {
+        "id": "valor_derrota",
+        "tipo": "number",
+        "label": "Valor por derrota (R$)",
+        "descricao": "Penalidade por perder um confronto (valor negativo)",
+        "default": -10,
+        "min": -100,
+        "max": 0,
+        "step": 1,
+        "required": true,
+        "afeta": "financeiro_override.valores_por_fase.*.derrota"
+      },
+      {
+        "id": "valores_progressivos",
+        "tipo": "boolean",
+        "label": "Valores progressivos por fase?",
+        "descricao": "Se sim, semi e final valem mais que fases iniciais",
+        "default": false,
+        "required": false,
+        "afeta": "regras_override.valores_progressivos"
+      }
+    ]
+  },
+
   "metadados": {
     "criado_em": "2025-12-14",
     "autor": "Sistema",

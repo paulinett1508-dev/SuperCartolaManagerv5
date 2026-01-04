@@ -118,6 +118,37 @@
     "precisao_decimal": 2
   },
 
+  "wizard": {
+    "titulo": "Configurar Turno e Returno",
+    "descricao": "Defina premiacao dos campeoes de turno",
+    "perguntas": [
+      {
+        "id": "valor_campeao_turno",
+        "tipo": "number",
+        "label": "Valor por turno vencido (R$)",
+        "descricao": "Premio para o campeao de cada turno",
+        "default": 30,
+        "min": 0,
+        "max": 200,
+        "step": 5,
+        "required": true,
+        "afeta": "financeiro_override.valores_simples.vitoria"
+      },
+      {
+        "id": "valor_campeao_ambos",
+        "tipo": "number",
+        "label": "Bonus se vencer os 2 turnos (R$)",
+        "descricao": "Bonus extra para quem dominar ambos os turnos",
+        "default": 50,
+        "min": 0,
+        "max": 300,
+        "step": 10,
+        "required": false,
+        "afeta": "premiacao.campeao_ambos.valor"
+      }
+    ]
+  },
+
   "metadados": {
     "criado_em": "2025-12-14",
     "autor": "Sistema",

@@ -170,6 +170,58 @@
     }
   },
 
+  "wizard": {
+    "titulo": "Configurar Tiro Certo",
+    "descricao": "Defina edicoes e premiacao do modo Survival",
+    "perguntas": [
+      {
+        "id": "qtd_edicoes",
+        "tipo": "number",
+        "label": "Quantas edicoes por temporada?",
+        "descricao": "Numero de competicoes Tiro Certo na temporada",
+        "default": 3,
+        "min": 1,
+        "max": 6,
+        "step": 1,
+        "required": true,
+        "afeta": "calendario.total_edicoes"
+      },
+      {
+        "id": "valor_campeao",
+        "tipo": "number",
+        "label": "Premio do campeao (R$)",
+        "descricao": "Valor para o ultimo sobrevivente",
+        "default": 100,
+        "min": 0,
+        "max": 500,
+        "step": 10,
+        "required": true,
+        "afeta": "financeiro_override.valores_por_posicao.1"
+      },
+      {
+        "id": "valor_bonus_invicto",
+        "tipo": "number",
+        "label": "Bonus por invencibilidade (R$)",
+        "descricao": "Bonus extra se vencer todas as rodadas",
+        "default": 50,
+        "min": 0,
+        "max": 200,
+        "step": 10,
+        "required": false,
+        "afeta": "premiacao.bonus_invicto.valor"
+      },
+      {
+        "id": "repeticao_times",
+        "tipo": "boolean",
+        "label": "Proibir repetir time na edicao?",
+        "descricao": "Se sim, nao pode escolher o mesmo time 2x na mesma edicao",
+        "default": true,
+        "required": true,
+        "afeta": "regras.restricao_repeticao.ativa"
+      }
+    ]
+  },
+
   "metadados": {
     "criado_em": "2025-12-14",
     "atualizado_em": "2025-12-15",
