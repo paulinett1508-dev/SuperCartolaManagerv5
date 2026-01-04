@@ -930,7 +930,7 @@ async function carregarModuloLuvaDeOuro() {
 async function carregarModuloFluxoFinanceiro() {
     if (!window.orquestrador.modules.fluxoFinanceiro) {
         window.orquestrador.modules.fluxoFinanceiro = await import(
-            "./fluxo-financeiro.js?v7.3"
+            "./fluxo-financeiro.js?v7.6"
         );
     }
     return window.orquestrador.modules.fluxoFinanceiro;

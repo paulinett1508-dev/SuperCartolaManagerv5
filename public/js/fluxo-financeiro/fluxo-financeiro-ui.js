@@ -6,7 +6,19 @@ import {
 import { formatarMoedaBR, parseMoedaBR } from "./fluxo-financeiro-utils.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v5.5 (Sincronização de Temporada)
+ * FLUXO-FINANCEIRO-UI.JS - v6.3 (Cards Clicáveis + Auditoria)
+ * ✅ v6.3: Cards de resumo clicáveis para filtrar tabela
+ *   - Card "A Receber" filtra devedores
+ *   - Card "A Pagar" filtra credores
+ *   - Card "Quitados" filtra participantes sem pendências
+ *   - Sincronização com dropdown de filtro
+ *   - Clique novamente no card ativo para limpar filtro
+ * ✅ v6.2: Modal de Auditoria Financeira com exportação PDF
+ *   - Novo botão "Auditoria" na tabela (substituiu "Registrar Acerto" e "Histórico")
+ *   - Modal bonito com resumo financeiro completo
+ *   - Histórico de acertos integrado
+ *   - Exportação para PDF com jsPDF
+ * ✅ v5.6: Renomeado 'Ajustes' para 'Aj. Manuais' + nova coluna 'Acertos'
  * ✅ v5.5: FIX - Passar temporada em todas as requisições de API
  * ✅ v5.4: Remove liga ID hardcoded - usa config dinâmica para determinar fases
  * ✅ v5.3: Botão "Acerto" para registrar pagamentos/recebimentos
@@ -312,7 +324,7 @@ export class FluxoFinanceiroUI {
                         <input type="text" id="searchParticipante" placeholder="Buscar..."
                                onkeyup="window.filtrarParticipantesTabela(this.value)">
                     </div>
-                    <select id="filtroSituacao" onchange="window.filtrarPorSituacao(this.value)" class="toolbar-select">
+                    <select id="filtroSituacao" onchange="window.filtrarPorDropdown(this.value)" class="toolbar-select">
                         <option value="">Todos</option>
                         <option value="devedor">Devedores</option>
                         <option value="credor">Credores</option>
@@ -328,11 +340,11 @@ export class FluxoFinanceiroUI {
                 </div>
             </div>
 
-            <!-- Cards de Resumo Financeiro -->
-            <!-- A Pagar = Credores (participantes com saldo positivo, liga deve a eles) -->
+            <!-- Cards de Resumo Financeiro (Clicáveis) -->
             <!-- A Receber = Devedores (participantes com saldo negativo, devem à liga) -->
+            <!-- A Pagar = Credores (participantes com saldo positivo, liga deve a eles) -->
             <div class="fluxo-resumo-cards">
-                <div class="resumo-card card-areceber">
+                <div class="resumo-card card-areceber clickable" data-filter="devedor" onclick="window.filtrarPorCard('devedor')" title="Clique para ver devedores">
                     <div class="resumo-icon"><span class="material-icons">trending_up</span></div>
                     <div class="resumo-info">
                         <span class="resumo-valor">${formatarMoedaBR(totais.totalAReceber)}</span>
@@ -340,7 +352,7 @@ export class FluxoFinanceiroUI {
                     </div>
                     <span class="resumo-badge">${totais.quantidadeDevedores}</span>
                 </div>
-                <div class="resumo-card card-apagar">
+                <div class="resumo-card card-apagar clickable" data-filter="credor" onclick="window.filtrarPorCard('credor')" title="Clique para ver credores">
                     <div class="resumo-icon"><span class="material-icons">trending_down</span></div>
                     <div class="resumo-info">
                         <span class="resumo-valor">${formatarMoedaBR(totais.totalAPagar)}</span>
@@ -348,12 +360,13 @@ export class FluxoFinanceiroUI {
                     </div>
                     <span class="resumo-badge">${totais.quantidadeCredores}</span>
                 </div>
-                <div class="resumo-card card-quitados">
+                <div class="resumo-card card-quitados clickable" data-filter="quitado" onclick="window.filtrarPorCard('quitado')" title="Clique para ver quitados">
                     <div class="resumo-icon"><span class="material-icons">check_circle</span></div>
                     <div class="resumo-info">
                         <span class="resumo-valor">${totais.quantidadeQuitados}</span>
                         <span class="resumo-label">Quitados</span>
                     </div>
+                    <span class="resumo-badge">${totais.quantidadeQuitados}</span>
                 </div>
             </div>
 
@@ -373,7 +386,8 @@ export class FluxoFinanceiroUI {
                             ${this._modulosAtivos?.melhorMes ? '<th class="col-modulo">Melhor Mês</th>' : ''}
                             ${this._modulosAtivos?.artilheiro ? '<th class="col-modulo">Artilheiro</th>' : ''}
                             ${this._modulosAtivos?.luvaOuro ? '<th class="col-modulo">Luva Ouro</th>' : ''}
-                            <th class="col-modulo">Ajustes</th>
+                            <th class="col-modulo">Aj. Manuais</th>
+                            <th class="col-modulo">Acertos</th>
                             <th class="col-saldo sortable" onclick="window.ordenarTabelaFinanceiro('saldo')" data-sort="saldo">
                                 <span class="th-sort">Saldo <span class="material-icons sort-icon">unfold_more</span></span>
                             </th>
@@ -428,6 +442,7 @@ export class FluxoFinanceiroUI {
         if (this._modulosAtivos?.artilheiro) modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.artilheiro)}</td>`;
         if (this._modulosAtivos?.luvaOuro) modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.luvaOuro)}</td>`;
         modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.campos)}</td>`;
+        modulosCols += `<td class="col-modulo">${fmtModulo(breakdown.acertos)}</td>`;
 
         // Formatar saldo final
         const saldoFormatado = Math.abs(saldoFinal).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -458,17 +473,13 @@ export class FluxoFinanceiroUI {
                 <td class="col-saldo ${classeSaldo}"><strong>${saldoSinal}R$ ${saldoFormatado}</strong></td>
                 <td class="col-acoes">
                     <div class="acoes-row">
-                        <button onclick="window.abrirModalAcertoFluxo('${timeId}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}', ${saldoFinal})"
-                                class="btn-acao btn-acerto" title="Registrar Acerto">
-                            <span class="material-icons">payments</span>
-                        </button>
                         <button onclick="window.selecionarParticipante('${timeId}')"
                                 class="btn-acao btn-extrato" title="Ver Extrato">
                             <span class="material-icons">receipt_long</span>
                         </button>
-                        <button onclick="window.abrirHistoricoAcertos('${timeId}', '${ligaId}')"
-                                class="btn-acao btn-hist" title="Histórico">
-                            <span class="material-icons">history</span>
+                        <button onclick="window.abrirAuditoriaFinanceira('${timeId}', '${ligaId}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
+                                class="btn-acao btn-auditoria" title="Auditoria Financeira">
+                            <span class="material-icons">fact_check</span>
                         </button>
                     </div>
                 </td>
@@ -986,6 +997,31 @@ export class FluxoFinanceiroUI {
                 gap: 12px;
                 border: 1px solid #2d2d2d;
                 position: relative;
+                transition: all 0.2s ease;
+            }
+
+            .resumo-card.clickable {
+                cursor: pointer;
+            }
+            .resumo-card.clickable:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+            .resumo-card.clickable:active {
+                transform: translateY(0);
+            }
+            .resumo-card.clickable.active {
+                transform: scale(1.02);
+                box-shadow: 0 0 0 2px currentColor;
+            }
+            .resumo-card.card-areceber.active {
+                box-shadow: 0 0 0 2px #10b981, 0 4px 16px rgba(16, 185, 129, 0.3);
+            }
+            .resumo-card.card-apagar.active {
+                box-shadow: 0 0 0 2px #ef4444, 0 4px 16px rgba(239, 68, 68, 0.3);
+            }
+            .resumo-card.card-quitados.active {
+                box-shadow: 0 0 0 2px #9ca3af, 0 4px 16px rgba(156, 163, 175, 0.3);
             }
 
             .resumo-card.card-apagar {
@@ -1480,6 +1516,8 @@ export class FluxoFinanceiroUI {
             .btn-acerto:hover { background: #059669; }
             .btn-extrato { background: #FF5500; }
             .btn-extrato:hover { background: #cc4400; }
+            .btn-auditoria { background: #3b82f6; }
+            .btn-auditoria:hover { background: #2563eb; }
             .btn-hist { background: #4b5563; }
             .btn-hist:hover { background: #374151; }
 
@@ -1930,17 +1968,8 @@ export class FluxoFinanceiroUI {
             }
         };
 
-        // Filtrar por situação
-        window.filtrarPorSituacao = (situacao) => {
-            const rows = document.querySelectorAll('.participante-row-tabela');
-            rows.forEach(row => {
-                if (!situacao || row.dataset.situacao === situacao) {
-                    row.classList.remove('filtered-hidden');
-                } else {
-                    row.classList.add('filtered-hidden');
-                }
-            });
-        };
+        // ✅ Filtro por situação usa função global (linha ~3865)
+        // Removido: definição duplicada que sobrescrevia a correta
 
         // ✅ Estado de ordenação
         window._sortState = { coluna: 'nome', direcao: 'asc' };
@@ -3825,10 +3854,17 @@ window.filtrarParticipantesTabela = function(termo) {
 
 // ✅ v6.1: FILTRAR POR SITUAÇÃO
 window.filtrarPorSituacao = function(situacao) {
+    console.log('[FLUXO-UI] Filtrando por situação:', situacao);
+
     const tbody = document.getElementById('participantesTableBody');
-    if (!tbody) return;
+    if (!tbody) {
+        console.warn('[FLUXO-UI] tbody não encontrado!');
+        return;
+    }
 
     const rows = tbody.querySelectorAll('.linha-participante');
+    console.log('[FLUXO-UI] Linhas encontradas:', rows.length);
+
     let visiveis = 0;
 
     rows.forEach(row => {
@@ -3842,6 +3878,8 @@ window.filtrarPorSituacao = function(situacao) {
         }
     });
 
+    console.log('[FLUXO-UI] Participantes visíveis após filtro:', visiveis);
+
     // Atualizar contador
     const contador = document.querySelector('.participantes-count');
     if (contador) {
@@ -3850,7 +3888,884 @@ window.filtrarPorSituacao = function(situacao) {
     }
 };
 
+// ✅ v6.3: FILTRAR POR CARD (clicável) e DROPDOWN sincronizados
+window._cardFiltroAtivo = null;
+
+// Filtrar via dropdown (sincroniza com cards)
+window.filtrarPorDropdown = function(situacao) {
+    window._cardFiltroAtivo = situacao || null;
+
+    // Aplicar filtro na tabela
+    window.filtrarPorSituacao(situacao);
+
+    // Atualizar estado visual dos cards
+    const cards = document.querySelectorAll('.resumo-card.clickable');
+    cards.forEach(card => {
+        const cardFilter = card.dataset.filter;
+        if (situacao && cardFilter === situacao) {
+            card.classList.add('active');
+        } else {
+            card.classList.remove('active');
+        }
+    });
+};
+
+// Filtrar via card (sincroniza com dropdown)
+window.filtrarPorCard = function(situacao) {
+    console.log('[FLUXO-UI] Card clicado:', situacao);
+
+    // Se clicar no mesmo card, remove o filtro
+    if (window._cardFiltroAtivo === situacao) {
+        console.log('[FLUXO-UI] Removendo filtro (mesmo card)');
+        window._cardFiltroAtivo = null;
+        situacao = ''; // Limpa filtro
+    } else {
+        window._cardFiltroAtivo = situacao;
+    }
+
+    // Aplicar filtro na tabela
+    window.filtrarPorSituacao(situacao);
+
+    // Atualizar select dropdown para refletir o filtro
+    const selectFiltro = document.getElementById('filtroSituacao');
+    if (selectFiltro) {
+        selectFiltro.value = situacao;
+    }
+
+    // Atualizar estado visual dos cards
+    const cards = document.querySelectorAll('.resumo-card.clickable');
+    cards.forEach(card => {
+        const cardFilter = card.dataset.filter;
+        if (situacao && cardFilter === situacao) {
+            card.classList.add('active');
+        } else {
+            card.classList.remove('active');
+        }
+    });
+
+    // Feedback visual - scroll para tabela se filtrou
+    if (situacao) {
+        const tabela = document.querySelector('.fluxo-tabela-container');
+        if (tabela) {
+            tabela.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+};
+
 // Manter compatibilidade
 window.filtrarParticipantes = window.filtrarParticipantesTabela;
 
-console.log("[FLUXO-UI] ✅ v6.1 Tabela Compacta carregada");
+// =============================================================================
+// MODAL DE AUDITORIA FINANCEIRA - v1.0
+// Exibe relatório completo de auditoria financeira do participante
+// =============================================================================
+
+/**
+ * Injeta modal de auditoria no DOM (apenas uma vez)
+ */
+function injetarModalAuditoria() {
+    if (document.getElementById('modal-auditoria-financeira')) return;
+
+    const modalHtml = `
+        <div class="modal-auditoria-overlay" id="modal-auditoria-financeira">
+            <div class="modal-auditoria-container">
+                <div class="modal-auditoria-header">
+                    <div class="header-info">
+                        <span class="material-icons header-icon">fact_check</span>
+                        <div>
+                            <h3 id="auditoria-titulo">Auditoria Financeira</h3>
+                            <span id="auditoria-subtitulo" class="header-sub">Carregando...</span>
+                        </div>
+                    </div>
+                    <button class="modal-auditoria-close" onclick="window.fecharModalAuditoria()">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+
+                <div class="modal-auditoria-body" id="auditoria-body">
+                    <div class="auditoria-loading">
+                        <div class="loading-spinner-audit"></div>
+                        <p>Carregando dados da auditoria...</p>
+                    </div>
+                </div>
+
+                <div class="modal-auditoria-footer">
+                    <button class="btn-audit-secondary" onclick="window.fecharModalAuditoria()">
+                        <span class="material-icons">close</span> Fechar
+                    </button>
+                    <button class="btn-audit-pdf" onclick="window.exportarAuditoriaPDF()">
+                        <span class="material-icons">picture_as_pdf</span> Exportar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    injetarEstilosModalAuditoriaFinanceira();
+}
+
+/**
+ * Injeta estilos do modal de auditoria financeira
+ */
+function injetarEstilosModalAuditoriaFinanceira() {
+    if (document.getElementById('auditoria-modal-financeira-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'auditoria-modal-financeira-styles';
+    style.textContent = `
+        /* ========================================
+           MODAL DE AUDITORIA FINANCEIRA
+           ======================================== */
+        .modal-auditoria-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+        .modal-auditoria-overlay.active {
+            display: flex;
+        }
+
+        .modal-auditoria-container {
+            background: linear-gradient(180deg, #1a1a1a 0%, #121212 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 85, 0, 0.3);
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 85, 0, 0.1);
+        }
+
+        .modal-auditoria-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 85, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(90deg, rgba(255, 85, 0, 0.1) 0%, transparent 100%);
+        }
+        .modal-auditoria-header .header-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .modal-auditoria-header .header-icon {
+            font-size: 32px;
+            color: #FF5500;
+        }
+        .modal-auditoria-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .modal-auditoria-header .header-sub {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .modal-auditoria-close {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: #888;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .modal-auditoria-close:hover {
+            background: rgba(255, 85, 0, 0.2);
+            color: #FF5500;
+        }
+
+        .modal-auditoria-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* Loading state */
+        .auditoria-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+        .loading-spinner-audit {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top-color: #FF5500;
+            border-radius: 50%;
+            animation: spinAudit 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spinAudit {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Seções da auditoria */
+        .audit-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .audit-section-header {
+            background: rgba(255, 85, 0, 0.08);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .audit-section-header .material-icons {
+            color: #FF5500;
+            font-size: 20px;
+        }
+        .audit-section-header h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .audit-section-body {
+            padding: 16px;
+        }
+
+        /* Tabela de resumo */
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .audit-table tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .audit-table tr:last-child {
+            border-bottom: none;
+        }
+        .audit-table td {
+            padding: 10px 0;
+            font-size: 0.9rem;
+        }
+        .audit-table td:first-child {
+            color: #999;
+        }
+        .audit-table td:last-child {
+            text-align: right;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .audit-table tr.total-row td {
+            padding-top: 14px;
+            font-size: 1rem;
+            color: #fff;
+        }
+        .audit-table tr.total-row td:last-child {
+            font-size: 1.1rem;
+        }
+        .audit-table .separator-row td {
+            padding: 4px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+        }
+
+        /* Status badge */
+        .audit-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .audit-status.status-quitado {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .audit-status.status-devedor {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .audit-status.status-credor {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Valores */
+        .val-positivo { color: #10b981; }
+        .val-negativo { color: #ef4444; }
+        .val-neutro { color: #888; }
+
+        /* Lista de histórico */
+        .audit-history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .audit-history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+        .audit-history-item:last-child {
+            margin-bottom: 0;
+        }
+        .history-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .history-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .history-icon.pagamento {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+        .history-icon.recebimento {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+        .history-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .history-desc {
+            font-size: 0.85rem;
+            color: #fff;
+        }
+        .history-date {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .history-valor {
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Campos manuais */
+        .audit-campos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        .audit-campo-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .campo-nome {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .campo-valor {
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Empty state */
+        .audit-empty {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        /* Footer */
+        .modal-auditoria-footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .btn-audit-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-audit-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        .btn-audit-pdf {
+            background: linear-gradient(135deg, #FF5500 0%, #cc4400 100%);
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3);
+        }
+        .btn-audit-pdf:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 85, 0, 0.4);
+        }
+        .btn-audit-pdf .material-icons,
+        .btn-audit-secondary .material-icons {
+            font-size: 18px;
+        }
+
+        /* Responsivo */
+        @media (max-width: 600px) {
+            .modal-auditoria-container {
+                max-height: 95vh;
+                border-radius: 12px 12px 0 0;
+                position: fixed;
+                bottom: 0;
+                max-width: 100%;
+            }
+            .audit-campos-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Dados da auditoria atual (para exportar PDF)
+let auditoriaAtual = null;
+
+/**
+ * Abre o modal de auditoria financeira
+ */
+window.abrirAuditoriaFinanceira = async function(timeId, ligaId, nomeParticipante) {
+    injetarModalAuditoria();
+
+    const modal = document.getElementById('modal-auditoria-financeira');
+    const body = document.getElementById('auditoria-body');
+    const titulo = document.getElementById('auditoria-titulo');
+    const subtitulo = document.getElementById('auditoria-subtitulo');
+
+    // Mostrar modal com loading
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    titulo.textContent = nomeParticipante || 'Auditoria Financeira';
+    subtitulo.textContent = 'Carregando dados...';
+    body.innerHTML = `
+        <div class="auditoria-loading">
+            <div class="loading-spinner-audit"></div>
+            <p>Carregando dados da auditoria...</p>
+        </div>
+    `;
+
+    try {
+        const temporada = window.temporadaAtual || 2025;
+
+        // Buscar dados via API de tesouraria
+        const response = await fetch(`/api/tesouraria/participante/${ligaId}/${timeId}?temporada=${temporada}`);
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.error);
+
+        // Salvar para exportação PDF
+        auditoriaAtual = {
+            participante: data.participante,
+            financeiro: data.financeiro,
+            acertos: data.acertos || [],
+            dataGeracao: new Date()
+        };
+
+        // Renderizar conteúdo
+        renderizarConteudoAuditoria(data, body, subtitulo);
+
+    } catch (error) {
+        console.error('[AUDITORIA] Erro:', error);
+        body.innerHTML = `
+            <div class="auditoria-loading" style="color: #ef4444;">
+                <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">error_outline</span>
+                <p>Erro ao carregar auditoria: ${error.message}</p>
+            </div>
+        `;
+    }
+};
+
+/**
+ * Renderiza o conteúdo da auditoria no modal
+ */
+function renderizarConteudoAuditoria(data, container, subtitulo) {
+    const { participante, financeiro, acertos } = data;
+
+    // Atualizar subtítulo
+    subtitulo.textContent = `${participante.ligaNome} • Temporada ${financeiro.temporada}`;
+
+    // Determinar status
+    let statusClass, statusIcon, statusText;
+    if (financeiro.saldoFinal > 0.01) {
+        statusClass = 'status-credor';
+        statusIcon = 'arrow_upward';
+        statusText = 'A RECEBER';
+    } else if (financeiro.saldoFinal < -0.01) {
+        statusClass = 'status-devedor';
+        statusIcon = 'arrow_downward';
+        statusText = 'DEVE';
+    } else {
+        statusClass = 'status-quitado';
+        statusIcon = 'check_circle';
+        statusText = 'QUITADO';
+    }
+
+    // Formatar valores
+    const fmt = (v) => Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtClass = (v) => v > 0 ? 'val-positivo' : v < 0 ? 'val-negativo' : 'val-neutro';
+    const fmtSinal = (v) => v > 0 ? '+' : v < 0 ? '-' : '';
+
+    // Histórico de acertos HTML
+    let acertosHtml = '';
+    if (acertos.length > 0) {
+        acertosHtml = acertos.map(a => {
+            const dataFormatada = new Date(a.dataAcerto).toLocaleDateString('pt-BR');
+            const isPagamento = a.tipo === 'pagamento';
+            return `
+                <div class="audit-history-item">
+                    <div class="history-left">
+                        <div class="history-icon ${a.tipo}">
+                            <span class="material-icons">${isPagamento ? 'arrow_downward' : 'arrow_upward'}</span>
+                        </div>
+                        <div class="history-info">
+                            <span class="history-desc">${a.descricao || (isPagamento ? 'Pagamento' : 'Recebimento')}</span>
+                            <span class="history-date">${dataFormatada} • ${a.metodoPagamento || 'N/D'}</span>
+                        </div>
+                    </div>
+                    <span class="history-valor ${isPagamento ? 'val-positivo' : 'val-negativo'}">
+                        ${isPagamento ? '+' : '-'}R$ ${fmt(a.valor)}
+                    </span>
+                </div>
+            `;
+        }).join('');
+    } else {
+        acertosHtml = '<div class="audit-empty">Nenhum acerto registrado</div>';
+    }
+
+    container.innerHTML = `
+        <!-- Status Principal -->
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div class="audit-status ${statusClass}">
+                <span class="material-icons">${statusIcon}</span>
+                ${statusText}
+            </div>
+            <div style="margin-top: 12px;">
+                <span style="font-size: 2rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;" class="${fmtClass(financeiro.saldoFinal)}">
+                    ${fmtSinal(financeiro.saldoFinal)}R$ ${fmt(financeiro.saldoFinal)}
+                </span>
+            </div>
+        </div>
+
+        <!-- Resumo Financeiro -->
+        <div class="audit-section">
+            <div class="audit-section-header">
+                <span class="material-icons">summarize</span>
+                <h4>Resumo Financeiro</h4>
+            </div>
+            <div class="audit-section-body">
+                <table class="audit-table">
+                    <tr>
+                        <td>Saldo das Rodadas (Banco)</td>
+                        <td class="${fmtClass(financeiro.saldoConsolidado)}">${fmtSinal(financeiro.saldoConsolidado)}R$ ${fmt(financeiro.saldoConsolidado)}</td>
+                    </tr>
+                    <tr>
+                        <td>Campos Manuais (Prêmios)</td>
+                        <td class="${fmtClass(financeiro.saldoCampos)}">${fmtSinal(financeiro.saldoCampos)}R$ ${fmt(financeiro.saldoCampos)}</td>
+                    </tr>
+                    <tr class="separator-row"><td colspan="2"></td></tr>
+                    <tr>
+                        <td><strong>Crédito/Débito Base</strong></td>
+                        <td class="${fmtClass(financeiro.saldoTemporada)}"><strong>${fmtSinal(financeiro.saldoTemporada)}R$ ${fmt(financeiro.saldoTemporada)}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Pagamentos (Participante → Admin)</td>
+                        <td class="val-positivo">+R$ ${fmt(financeiro.totalPago)}</td>
+                    </tr>
+                    <tr>
+                        <td>Recebimentos (Admin → Participante)</td>
+                        <td class="val-negativo">-R$ ${fmt(financeiro.totalRecebido)}</td>
+                    </tr>
+                    <tr class="separator-row"><td colspan="2"></td></tr>
+                    <tr class="total-row">
+                        <td><strong>SALDO FINAL</strong></td>
+                        <td class="${fmtClass(financeiro.saldoFinal)}"><strong>${fmtSinal(financeiro.saldoFinal)}R$ ${fmt(financeiro.saldoFinal)}</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Histórico de Acertos -->
+        <div class="audit-section">
+            <div class="audit-section-header">
+                <span class="material-icons">history</span>
+                <h4>Histórico de Acertos (${acertos.length})</h4>
+            </div>
+            <div class="audit-section-body">
+                <div class="audit-history-list">
+                    ${acertosHtml}
+                </div>
+            </div>
+        </div>
+
+        <!-- Legenda -->
+        <div style="background: rgba(255, 255, 255, 0.02); border-radius: 8px; padding: 12px 16px; font-size: 0.75rem; color: #666;">
+            <strong style="color: #888;">Lógica dos Acertos:</strong><br>
+            • <span class="val-positivo">Pagamento</span> = participante paga admin (abate dívida) → SOMA ao saldo<br>
+            • <span class="val-negativo">Recebimento</span> = admin paga participante (abate crédito) → SUBTRAI do saldo
+        </div>
+    `;
+}
+
+/**
+ * Fecha o modal de auditoria
+ */
+window.fecharModalAuditoria = function() {
+    const modal = document.getElementById('modal-auditoria-financeira');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+};
+
+/**
+ * Exporta a auditoria para PDF
+ */
+window.exportarAuditoriaPDF = async function() {
+    if (!auditoriaAtual) {
+        alert('Nenhuma auditoria carregada para exportar.');
+        return;
+    }
+
+    const { participante, financeiro, acertos, dataGeracao } = auditoriaAtual;
+
+    // Verificar se jsPDF está disponível
+    if (typeof window.jspdf === 'undefined') {
+        // Carregar jsPDF dinamicamente
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = () => gerarPDFAuditoria();
+        document.head.appendChild(script);
+    } else {
+        gerarPDFAuditoria();
+    }
+};
+
+/**
+ * Gera o PDF da auditoria
+ */
+function gerarPDFAuditoria() {
+    const { jsPDF } = window.jspdf;
+    const { participante, financeiro, acertos, dataGeracao } = auditoriaAtual;
+
+    const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    let y = 20;
+
+    // Cores
+    const laranja = [255, 85, 0];
+    const cinza = [100, 100, 100];
+    const verde = [16, 185, 129];
+    const vermelho = [239, 68, 68];
+    const azul = [59, 130, 246];
+
+    // Helper para formatar valores
+    const fmt = (v) => Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // ========== CABEÇALHO ==========
+    doc.setFillColor(...laranja);
+    doc.rect(0, 0, pageWidth, 35, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AUDITORIA FINANCEIRA', margin, 15);
+    // Nota: Evitamos acentos pois jsPDF nao suporta bem UTF-8 por padrao
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(participante.nomeTime || participante.nomeCartola || 'Participante', margin, 23);
+    doc.text(`${participante.ligaNome} • Temporada ${financeiro.temporada}`, margin, 30);
+
+    // Data no canto
+    doc.setFontSize(9);
+    doc.text(`Gerado em: ${dataGeracao.toLocaleDateString('pt-BR')}`, pageWidth - margin, 30, { align: 'right' });
+
+    y = 45;
+
+    // ========== STATUS ==========
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+
+    let statusText, statusColor;
+    if (financeiro.saldoFinal > 0.01) {
+        statusText = 'STATUS: A RECEBER';
+        statusColor = azul;
+    } else if (financeiro.saldoFinal < -0.01) {
+        statusText = 'STATUS: DEVE';
+        statusColor = vermelho;
+    } else {
+        statusText = 'STATUS: QUITADO';
+        statusColor = verde;
+    }
+
+    doc.setTextColor(...statusColor);
+    doc.text(statusText, pageWidth / 2, y, { align: 'center' });
+    y += 8;
+
+    doc.setFontSize(20);
+    const sinal = financeiro.saldoFinal > 0 ? '+' : financeiro.saldoFinal < 0 ? '-' : '';
+    doc.text(`${sinal}R$ ${fmt(financeiro.saldoFinal)}`, pageWidth / 2, y, { align: 'center' });
+    y += 15;
+
+    // ========== RESUMO FINANCEIRO ==========
+    doc.setTextColor(0, 0, 0);
+    doc.setFillColor(245, 245, 245);
+    doc.rect(margin, y, pageWidth - (margin * 2), 8, 'F');
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('RESUMO FINANCEIRO', margin + 2, y + 5.5);
+    y += 12;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+
+    const linhas = [
+        ['Saldo das Rodadas (Banco)', financeiro.saldoConsolidado],
+        ['Campos Manuais (Premios)', financeiro.saldoCampos],
+        ['----------------------------', null],
+        ['Credito/Debito Base', financeiro.saldoTemporada],
+        ['Pagamentos (Participante > Admin)', financeiro.totalPago],
+        ['Recebimentos (Admin > Participante)', -financeiro.totalRecebido],
+        ['----------------------------', null],
+        ['SALDO FINAL', financeiro.saldoFinal]
+    ];
+
+    linhas.forEach(([label, valor]) => {
+        if (valor === null) {
+            doc.setTextColor(...cinza);
+            doc.text(label, margin, y);
+        } else {
+            doc.setTextColor(0, 0, 0);
+            doc.text(label, margin, y);
+
+            const valorStr = `${valor >= 0 ? '+' : '-'}R$ ${fmt(valor)}`;
+            if (valor > 0) doc.setTextColor(...verde);
+            else if (valor < 0) doc.setTextColor(...vermelho);
+            else doc.setTextColor(...cinza);
+
+            doc.text(valorStr, pageWidth - margin, y, { align: 'right' });
+        }
+        y += 6;
+    });
+
+    y += 5;
+
+    // ========== HISTÓRICO DE ACERTOS ==========
+    doc.setTextColor(0, 0, 0);
+    doc.setFillColor(245, 245, 245);
+    doc.rect(margin, y, pageWidth - (margin * 2), 8, 'F');
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`HISTORICO DE ACERTOS (${acertos.length})`, margin + 2, y + 5.5);
+    y += 12;
+
+    if (acertos.length === 0) {
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(...cinza);
+        doc.text('Nenhum acerto registrado', margin, y);
+        y += 10;
+    } else {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+
+        acertos.forEach(a => {
+            if (y > 270) {
+                doc.addPage();
+                y = 20;
+            }
+
+            const dataFormatada = new Date(a.dataAcerto).toLocaleDateString('pt-BR');
+            const isPagamento = a.tipo === 'pagamento';
+            const tipoTexto = isPagamento ? 'PAGOU' : 'RECEBEU';
+
+            doc.setTextColor(0, 0, 0);
+            doc.text(`${dataFormatada} - ${tipoTexto}`, margin, y);
+            doc.text(a.descricao || '-', margin + 45, y);
+
+            const valorStr = `${isPagamento ? '+' : '-'}R$ ${fmt(a.valor)}`;
+            doc.setTextColor(...(isPagamento ? verde : vermelho));
+            doc.text(valorStr, pageWidth - margin, y, { align: 'right' });
+
+            y += 5;
+        });
+    }
+
+    y += 10;
+
+    // ========== LEGENDA ==========
+    doc.setFillColor(250, 250, 250);
+    doc.rect(margin, y, pageWidth - (margin * 2), 18, 'F');
+
+    doc.setFontSize(8);
+    doc.setTextColor(...cinza);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Logica dos Acertos:', margin + 2, y + 5);
+    doc.setFont('helvetica', 'normal');
+    doc.text('* Pagamento = participante paga admin (abate divida) > SOMA ao saldo', margin + 2, y + 10);
+    doc.text('* Recebimento = admin paga participante (abate credito) > SUBTRAI do saldo', margin + 2, y + 15);
+
+    // ========== RODAPÉ ==========
+    doc.setFontSize(8);
+    doc.setTextColor(...cinza);
+    doc.text('Super Cartola Manager - Relatorio gerado automaticamente', pageWidth / 2, 290, { align: 'center' });
+
+    // Salvar PDF
+    const nomeArquivo = `auditoria_${(participante.nomeCartola || 'participante').replace(/\s+/g, '_')}_${financeiro.temporada}.pdf`;
+    doc.save(nomeArquivo);
+};
+
+console.log("[FLUXO-UI] ✅ v6.3 Cards clicáveis + Modal de Auditoria Financeira");

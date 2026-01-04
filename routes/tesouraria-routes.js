@@ -4,7 +4,8 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.6.0
+ * @version 2.9.0
+ * ✅ v2.9.0: Adicionado 'acertos' ao breakdown (pagamentos/recebimentos)
  * ✅ v2.6.0: FIX CRÍTICO - Filtrar ExtratoFinanceiroCache e FluxoFinanceiroCampos por temporada
  *   - Queries agora incluem filtro de temporada em todas as collections
  *   - Resolve problema de colunas vazias quando temporada API != temporada dados
@@ -211,6 +212,7 @@ router.get("/participantes", async (req, res) => {
                 const saldoCampos = resumoCalculado.camposManuais || 0;
 
                 // ✅ v2.0: Calcular breakdown por módulo (baseado no resumo calculado)
+                // ✅ v2.9: Adicionado 'acertos' ao breakdown
                 const breakdown = {
                     banco: resumoCalculado.bonus + resumoCalculado.onus,
                     pontosCorridos: resumoCalculado.pontosCorridos,
@@ -220,6 +222,7 @@ router.get("/participantes", async (req, res) => {
                     artilheiro: 0, // Não está no resumoCalculado padrão
                     luvaOuro: 0, // Não está no resumoCalculado padrão
                     campos: saldoCampos,
+                    acertos: 0, // Será preenchido abaixo
                 };
 
                 // Calcular campos especiais do histórico legado se houver
@@ -241,6 +244,9 @@ router.get("/participantes", async (req, res) => {
                 // PAGAMENTO = participante pagou à liga → AUMENTA saldo (quita dívida)
                 // RECEBIMENTO = participante recebeu da liga → DIMINUI saldo (usa crédito)
                 const saldoAcertos = totalPago - totalRecebido;
+
+                // ✅ v2.9: Adicionar acertos ao breakdown
+                breakdown.acertos = saldoAcertos;
 
                 // ✅ v2.1 FIX: Saldo da temporada já inclui campos (calcularResumoDeRodadas soma tudo)
                 const saldoTemporada = saldoConsolidado;
@@ -285,6 +291,7 @@ router.get("/participantes", async (req, res) => {
                     situacao,
                     quantidadeAcertos: acertosList.length,
                     // ✅ v2.0: Breakdown e módulos ativos
+                    // ✅ v2.9: Adicionado 'acertos' ao breakdown
                     breakdown: {
                         banco: parseFloat(breakdown.banco.toFixed(2)),
                         pontosCorridos: parseFloat(breakdown.pontosCorridos.toFixed(2)),
@@ -294,6 +301,7 @@ router.get("/participantes", async (req, res) => {
                         artilheiro: parseFloat(breakdown.artilheiro.toFixed(2)),
                         luvaOuro: parseFloat(breakdown.luvaOuro.toFixed(2)),
                         campos: breakdown.campos,
+                        acertos: parseFloat(breakdown.acertos.toFixed(2)),
                     },
                     modulosAtivos,
                 });
@@ -449,6 +457,7 @@ router.get("/liga/:ligaId", async (req, res) => {
             const saldoCampos = resumoCalculado.camposManuais || 0;
 
             // ✅ v2.0: Calcular breakdown por módulo (baseado no resumo calculado)
+            // ✅ v2.9: Adicionado 'acertos' ao breakdown
             const breakdown = {
                 banco: resumoCalculado.bonus + resumoCalculado.onus,
                 pontosCorridos: resumoCalculado.pontosCorridos,
@@ -457,6 +466,7 @@ router.get("/liga/:ligaId", async (req, res) => {
                 melhorMes: 0,
                 artilheiro: 0,
                 luvaOuro: 0,
+                acertos: 0, // Será preenchido abaixo
             };
 
             // Calcular campos especiais do histórico legado se houver
@@ -478,6 +488,9 @@ router.get("/liga/:ligaId", async (req, res) => {
             // PAGAMENTO = participante pagou à liga → AUMENTA saldo (quita dívida)
             // RECEBIMENTO = participante recebeu da liga → DIMINUI saldo (usa crédito)
             const saldoAcertos = totalPago - totalRecebido;
+
+            // ✅ v2.9: Adicionar acertos ao breakdown
+            breakdown.acertos = saldoAcertos;
 
             // ✅ v2.1 FIX: Saldo da temporada já inclui campos (calcularResumoDeRodadas soma tudo)
             const saldoTemporada = saldoConsolidado;
@@ -518,6 +531,7 @@ router.get("/liga/:ligaId", async (req, res) => {
                 situacao,
                 quantidadeAcertos: acertosList.length,
                 // ✅ v2.0: Breakdown por módulo financeiro
+                // ✅ v2.9: Adicionado 'acertos' ao breakdown
                 breakdown: {
                     banco: parseFloat(breakdown.banco.toFixed(2)),
                     pontosCorridos: parseFloat(breakdown.pontosCorridos.toFixed(2)),
@@ -527,6 +541,7 @@ router.get("/liga/:ligaId", async (req, res) => {
                     artilheiro: parseFloat(breakdown.artilheiro.toFixed(2)),
                     luvaOuro: parseFloat(breakdown.luvaOuro.toFixed(2)),
                     campos: parseFloat(saldoCampos.toFixed(2)),
+                    acertos: parseFloat(breakdown.acertos.toFixed(2)),
                 },
                 // ✅ v2.5 FIX: Incluir modulosAtivos para renderizar badges
                 modulosAtivos,
@@ -951,6 +966,6 @@ router.get("/resumo", async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v2.8 Rotas carregadas (FIX CRÍTICO: bypass schema para liga_id String/ObjectId)");
+console.log("[TESOURARIA] ✅ v2.9 Rotas carregadas (adicionado 'acertos' ao breakdown)");
 
 export default router;

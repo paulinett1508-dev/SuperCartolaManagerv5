@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v7.3"; // v7.3: Auto-seleção de participante via URL (timeId param)
+const CACHE_BUSTER = "v7.6"; // v7.6: Fix filtro cards - remover definição duplicada
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;

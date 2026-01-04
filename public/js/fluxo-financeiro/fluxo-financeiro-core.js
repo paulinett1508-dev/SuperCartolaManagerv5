@@ -309,13 +309,28 @@ export class FluxoFinanceiroCore {
                             );
                         }
 
-                        const camposEditaveis =
-                            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(
-                                timeId,
-                            );
+                        // ✅ v6.3 FIX: Usar campos que já vêm do cache (elimina chamada redundante)
+                        // Backend retorna camposManuais como array, transformar para objeto
+                        let camposEditaveis;
+                        if (cacheValido.camposManuais && Array.isArray(cacheValido.camposManuais)) {
+                            const campos = cacheValido.camposManuais;
+                            camposEditaveis = {
+                                campo1: campos[0] || { nome: "Campo 1", valor: 0 },
+                                campo2: campos[1] || { nome: "Campo 2", valor: 0 },
+                                campo3: campos[2] || { nome: "Campo 3", valor: 0 },
+                                campo4: campos[3] || { nome: "Campo 4", valor: 0 },
+                            };
+                            console.log(`[FLUXO-CORE] ✅ Usando campos do cache (${campos.length} itens)`);
+                        } else {
+                            // Fallback: buscar do servidor se não veio no cache
+                            camposEditaveis =
+                                await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(
+                                    timeId,
+                                );
+                        }
 
-                        // ✅ v6.1: Buscar acertos financeiros em paralelo
-                        const acertos = await this._buscarAcertosFinanceiros(ligaId, timeId);
+                        // ✅ v6.3 FIX: Usar acertos que já vêm do cache (elimina chamada redundante)
+                        const acertos = cacheValido.acertos || await this._buscarAcertosFinanceiros(ligaId, timeId);
 
                         const resumoRecalculado = this._recalcularResumoDoCache(
                             rodadasFiltradas,

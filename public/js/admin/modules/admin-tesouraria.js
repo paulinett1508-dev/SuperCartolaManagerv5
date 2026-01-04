@@ -4,9 +4,13 @@
  * Dashboard de fechamento financeiro para gestao de caixa da liga.
  * Consolida: Saldo do Sistema (bonus/onus) + Acertos Manuais = Saldo Final
  *
- * @version 2.0.0 - Layout com Badges Financeiros Dinamicos
+ * @version 2.1.0 - Ajustes Manuais + Acertos
  * @author Product Team
- * @date 2025-12-18
+ * @date 2026-01-04
+ *
+ * CHANGELOG v2.1:
+ * - Renomeado 'Ajustes' para 'Ajustes Manuais' (badge 'Aj. Manuais')
+ * - Nova coluna 'Acertos' para exibir pagamentos/recebimentos do participante
  *
  * CHANGELOG v2.0:
  * - Novo layout de linha com breakdown financeiro por modulo
@@ -36,6 +40,7 @@ class AdminTesouraria {
         };
 
         // Configuracao dos badges financeiros
+        // ✅ v2.1: Renomeado 'Ajustes' para 'Ajustes Manuais' + nova coluna 'Acertos'
         this.badgeConfig = {
             banco: { icon: 'casino', label: 'Rodada', color: 'primary' },
             pontosCorridos: { icon: 'emoji_events', label: 'Pt.Corridos', color: 'info' },
@@ -44,7 +49,8 @@ class AdminTesouraria {
             melhorMes: { icon: 'calendar_month', label: 'Melhor Mes', color: 'purple' },
             artilheiro: { icon: 'sports_soccer', label: 'Artilheiro', color: 'success' },
             luvaOuro: { icon: 'sports_handball', label: 'Luva Ouro', color: 'gold' },
-            campos: { icon: 'edit_note', label: 'Ajustes', color: 'muted' },
+            campos: { icon: 'edit_note', label: 'Aj. Manuais', color: 'muted' },
+            acertos: { icon: 'payments', label: 'Acertos', color: 'info' },
         };
 
         // Cores do tema
@@ -479,11 +485,12 @@ class AdminTesouraria {
         const badges = [];
 
         // Ordem de exibicao dos badges
-        const ordem = ['banco', 'pontosCorridos', 'mataMata', 'top10', 'melhorMes', 'artilheiro', 'luvaOuro', 'campos'];
+        // ✅ v2.1: Adicionado 'acertos' na ordem
+        const ordem = ['banco', 'pontosCorridos', 'mataMata', 'top10', 'melhorMes', 'artilheiro', 'luvaOuro', 'campos', 'acertos'];
 
         for (const modulo of ordem) {
-            // Verificar se modulo esta ativo (exceto 'campos' que sempre mostra se tiver valor)
-            const ativo = modulo === 'campos' || this.modulosAtivos[modulo];
+            // Verificar se modulo esta ativo (exceto 'campos' e 'acertos' que sempre mostram se tiver valor)
+            const ativo = modulo === 'campos' || modulo === 'acertos' || this.modulosAtivos[modulo];
             if (!ativo) continue;
 
             const valor = breakdown[modulo] || 0;
@@ -680,6 +687,9 @@ class AdminTesouraria {
         }
         if (bd.campos) {
             modulosComValor.push(`  Ajustes Manuais: R$ ${bd.campos.toFixed(2)}`);
+        }
+        if (bd.acertos) {
+            modulosComValor.push(`  Acertos: R$ ${bd.acertos.toFixed(2)}`);
         }
 
         if (modulosComValor.length > 0) {
@@ -1405,4 +1415,4 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = AdminTesouraria;
 }
 
-console.log('[TESOURARIA] Modulo AdminTesouraria carregado v2.0.0 (Badges Financeiros)');
+console.log('[TESOURARIA] Modulo AdminTesouraria carregado v2.1.0 (Ajustes Manuais + Acertos)');

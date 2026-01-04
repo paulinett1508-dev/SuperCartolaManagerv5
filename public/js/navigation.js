@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
           carregarMelhorMes();
         } else if (sectionId === "fluxo-financeiro") {
           const { carregarFluxoFinanceiro } = await import(
-            "./fluxo-financeiro.js?v7.3"
+            "./fluxo-financeiro.js?v7.6"
           );
           carregarFluxoFinanceiro();
         }
