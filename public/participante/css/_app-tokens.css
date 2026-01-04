@@ -473,3 +473,40 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
+
+/* ========================================
+   FORÇADORES DE FONTE RUSSO ONE
+   Garantem que a fonte brand seja aplicada
+   mesmo com conflitos de especificidade
+   ======================================== */
+
+/* Seletor genérico para elementos que usam variáveis de fonte brand */
+[style*="font-brand"],
+.font-brand,
+.app-brand-title,
+.app-brand-stat,
+.app-brand-btn,
+.app-brand-label,
+.app-brand-name,
+.app-brand-position {
+    font-family: 'Russo One', sans-serif !important;
+}
+
+/* Seletor para títulos dentro de fragmentos */
+.header-title h2,
+.ranking-header-pro h2,
+.historico-header h2,
+.hall-premium .header h1,
+.luva-ouro-participante h2,
+.artilheiro-participante h2 {
+    font-family: 'Russo One', sans-serif !important;
+}
+
+/* Stats e valores numéricos importantes */
+.stat-value,
+.pontos-valor,
+.posicao-badge,
+.goleiro-posicao,
+.tab-btn {
+    font-family: 'Russo One', sans-serif !important;
+}

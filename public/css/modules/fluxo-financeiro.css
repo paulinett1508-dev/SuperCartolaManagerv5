@@ -1536,3 +1536,170 @@ body {
     background: rgba(239, 68, 68, 0.25);
     border-color: #ef4444;
 }
+
+/* ==========================================================================
+   MODAIS DE RENOVAÇÃO - DARK THEME
+   Classes utilitárias para suportar os modais gerados em renovacao-modals.js
+   ========================================================================== */
+
+/* Background colors (Tailwind-style classes for Bootstrap modals) */
+.bg-gray-700 {
+    background-color: #374151 !important;
+}
+
+.bg-gray-800 {
+    background-color: #1f2937 !important;
+}
+
+.bg-gray-900 {
+    background-color: #111827 !important;
+}
+
+/* Border colors */
+.border-gray-600 {
+    border-color: #4b5563 !important;
+}
+
+.border-gray-700 {
+    border-color: #374151 !important;
+}
+
+/* Text colors */
+.text-white {
+    color: #ffffff !important;
+}
+
+/* Modal content dark theme */
+.modal-content.bg-gray-800 {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+    border: 1px solid #374151;
+}
+
+/* Input fields in dark modals */
+.modal-content .form-control.bg-gray-700,
+.modal-content .form-select.bg-gray-700 {
+    background-color: #374151 !important;
+    color: #ffffff !important;
+    border-color: #4b5563 !important;
+}
+
+.modal-content .form-control.bg-gray-700::placeholder {
+    color: #9ca3af !important;
+}
+
+.modal-content .form-control.bg-gray-700:focus,
+.modal-content .form-select.bg-gray-700:focus {
+    background-color: #374151 !important;
+    color: #ffffff !important;
+    border-color: var(--laranja, #ff4500) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 69, 0, 0.25) !important;
+}
+
+/* Input group addon dark */
+.modal-content .input-group-text.bg-gray-700 {
+    background-color: #374151 !important;
+    color: #ffffff !important;
+    border-color: #4b5563 !important;
+}
+
+/* Cards inside modals */
+.modal-content .card.bg-gray-900 {
+    background-color: #111827 !important;
+    border-color: #374151 !important;
+}
+
+.modal-content .card-header.border-gray-700 {
+    border-color: #374151 !important;
+    color: #ffffff;
+}
+
+/* Modal header/footer borders */
+.modal-content .modal-header.border-gray-700,
+.modal-content .modal-footer.border-gray-700 {
+    border-color: #374151 !important;
+}
+
+/* Close button white */
+.modal-content .btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Textarea in dark modals */
+.modal-content textarea.bg-gray-700 {
+    background-color: #374151 !important;
+    color: #ffffff !important;
+    border-color: #4b5563 !important;
+}
+
+.modal-content textarea.bg-gray-700:focus {
+    background-color: #374151 !important;
+    color: #ffffff !important;
+    border-color: var(--laranja, #ff4500) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 69, 0, 0.25) !important;
+}
+
+/* Form labels in dark modals */
+.modal-content .form-label {
+    color: #e5e7eb !important;
+}
+
+/* Switch/checkbox in dark modals */
+.modal-content .form-check-label {
+    color: #e5e7eb !important;
+}
+
+/* Alert styles adjustment */
+.modal-content .alert {
+    border: none;
+}
+
+.modal-content .alert-info {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+}
+
+.modal-content .alert-warning {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #fcd34d;
+}
+
+.modal-content .alert-danger {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+}
+
+.modal-content .alert-success {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+}
+
+.modal-content .alert-secondary {
+    background-color: rgba(107, 114, 128, 0.15);
+    color: #d1d5db;
+}
+
+/* Table in dark modals */
+.modal-content .table {
+    color: #e5e7eb;
+}
+
+.modal-content .table-borderless td,
+.modal-content .table-borderless th {
+    border: none;
+}
+
+.modal-content .table .border-gray-700 {
+    border-color: #374151 !important;
+}
+
+/* Resultado busca item hover */
+.modal-content .resultado-busca-item:hover {
+    background-color: #374151 !important;
+}
+
+/* Spinner in modal */
+.modal-content .spinner-border {
+    border-color: rgba(255, 69, 0, 0.2);
+    border-top-color: var(--laranja, #ff4500);
+}
