@@ -289,13 +289,15 @@ router.get("/:ligaId/:temporada/preview/:timeId", async (req, res) => {
         const saldoExtrato = extrato?.saldo_consolidado || 0;
         const saldoFinal = saldoExtrato + saldoAcertos;
 
-        // Calcular usando o método do model
-        const calculo = rules.calcularValorInscricao(saldoFinal);
-
         // Determinar status de quitação
         let statusQuitacao = 'quitado';
         if (saldoFinal > 0.01) statusQuitacao = 'credor';
         else if (saldoFinal < -0.01) statusQuitacao = 'devedor';
+
+        // Calcular cenários: pagou vs não pagou
+        // Default: pagouInscricao = true (não gera débito de taxa)
+        const calculoPagou = rules.calcularValorInscricao(saldoFinal, { pagouInscricao: true });
+        const calculoNaoPagou = rules.calcularValorInscricao(saldoFinal, { pagouInscricao: false });
 
         res.json({
             success: true,
@@ -308,15 +310,32 @@ router.get("/:ligaId/:temporada/preview/:timeId", async (req, res) => {
                 final: saldoFinal,
                 status: statusQuitacao
             },
+            // Calculo default (pagouInscricao=true)
             calculo: {
-                taxa: calculo.taxa,
-                credito: calculo.credito,
-                divida: calculo.divida,
-                total: calculo.total
+                taxa: calculoPagou.taxa,
+                credito: calculoPagou.credito,
+                divida: calculoPagou.divida,
+                total: calculoPagou.total
+            },
+            // Cenários para preview dinâmico no frontend
+            cenarios: {
+                pagou: {
+                    taxaComoDivida: calculoPagou.taxaComoDivida,
+                    credito: calculoPagou.credito,
+                    divida: calculoPagou.divida,
+                    total: calculoPagou.total
+                },
+                naoPagou: {
+                    taxaComoDivida: calculoNaoPagou.taxaComoDivida,
+                    credito: calculoNaoPagou.credito,
+                    divida: calculoNaoPagou.divida,
+                    total: calculoNaoPagou.total
+                }
             },
             regras: {
                 permitir_devedor_renovar: rules.inscricao.permitir_devedor_renovar,
-                aproveitar_saldo_positivo: rules.inscricao.aproveitar_saldo_positivo
+                aproveitar_saldo_positivo: rules.inscricao.aproveitar_saldo_positivo,
+                taxa: rules.inscricao.taxa
             },
             podeRenovar: statusQuitacao !== 'devedor' || rules.inscricao.permitir_devedor_renovar
         });

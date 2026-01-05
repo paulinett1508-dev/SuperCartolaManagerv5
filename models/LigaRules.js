@@ -206,29 +206,46 @@ LigaRulesSchema.methods.permiteAproveitarCredito = function() {
 /**
  * Calcula valor a pagar considerando crédito/débito anterior
  * @param {number} saldoAnterior - Saldo da temporada anterior (positivo = crédito)
- * @returns {Object} { taxa, credito, divida, total }
+ * @param {Object} opcoes - Opções de cálculo
+ * @param {boolean} opcoes.pagouInscricao - Se true, taxa não vira débito (default: true)
+ * @param {boolean} opcoes.aproveitarCredito - Se false, não usa crédito mesmo se permitido
+ * @returns {Object} { taxa, credito, divida, total, taxaComoDivida }
  */
-LigaRulesSchema.methods.calcularValorInscricao = function(saldoAnterior = 0) {
+LigaRulesSchema.methods.calcularValorInscricao = function(saldoAnterior = 0, opcoes = {}) {
     const taxa = this.inscricao.taxa || 0;
+    const pagouInscricao = opcoes.pagouInscricao !== false; // default true
+    const querAproveitarCredito = opcoes.aproveitarCredito !== false; // default true
+
     let credito = 0;
     let divida = 0;
 
-    if (saldoAnterior > 0 && this.permiteAproveitarCredito()) {
-        // Credor: pode usar como crédito
-        credito = Math.min(saldoAnterior, taxa); // Não ultrapassa a taxa
+    // Taxa só vira dívida se NÃO pagou
+    const taxaComoDivida = pagouInscricao ? 0 : taxa;
+
+    // Crédito só é aplicado se:
+    // 1. Participante é credor (saldoAnterior > 0)
+    // 2. Regra permite aproveitar saldo positivo
+    // 3. Usuário optou por aproveitar (querAproveitarCredito)
+    // 4. NÃO pagou a inscrição (se pagou, não precisa usar crédito)
+    if (saldoAnterior > 0 && this.permiteAproveitarCredito() && querAproveitarCredito && !pagouInscricao) {
+        // Credor: pode usar como crédito (máximo = taxa)
+        credito = Math.min(saldoAnterior, taxa);
     } else if (saldoAnterior < 0 && this.permiteDevedor()) {
         // Devedor: carrega a dívida
         divida = Math.abs(saldoAnterior);
     }
 
-    const total = taxa + divida - credito;
+    // Total = taxa (se não pagou) + dívida anterior - crédito usado
+    const total = taxaComoDivida + divida - credito;
 
     return {
         taxa,
+        taxaComoDivida,
         credito,
         divida,
         total,
-        saldoAnterior
+        saldoAnterior,
+        pagouInscricao
     };
 };
 

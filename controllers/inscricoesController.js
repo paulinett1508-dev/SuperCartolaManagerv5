@@ -276,25 +276,35 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
 
     // 5. Calcular valores
     const taxa = rules.inscricao.taxa || 0;
-    let saldoTransferido = 0;
-    let dividaAnterior = 0;
-
-    if (saldo.status === 'credor' && rules.inscricao.aproveitar_saldo_positivo && opcoes.aproveitarCredito !== false) {
-        // Aproveitar crédito (máximo = taxa)
-        saldoTransferido = Math.min(saldo.saldoFinal, taxa);
-    } else if (saldo.status === 'devedor') {
-        // Carregar dívida
-        dividaAnterior = Math.abs(saldo.saldoFinal);
-        saldoTransferido = -dividaAnterior; // Negativo = dívida
-    }
 
     // pagouInscricao: default true (presume que pagou, não cria débito)
     // Se false: taxa vira débito no extrato
     const pagouInscricao = opcoes.pagouInscricao !== false;
 
-    // Saldo inicial só considera taxa como débito se NÃO pagou
+    let saldoTransferido = 0;
+    let dividaAnterior = 0;
+    let creditoUsado = 0;
+
+    // REGRA CORRIGIDA: Crédito só é usado se NÃO pagou a inscrição
+    // Se pagou, o crédito fica intacto para uso futuro
+    if (saldo.status === 'credor') {
+        if (!pagouInscricao && rules.inscricao.aproveitar_saldo_positivo && opcoes.aproveitarCredito !== false) {
+            // Aproveitar crédito para abater taxa (máximo = taxa)
+            creditoUsado = Math.min(saldo.saldoFinal, taxa);
+            saldoTransferido = creditoUsado; // Positivo = crédito transferido
+        }
+        // Se pagou OU não quer aproveitar: crédito permanece na temporada anterior
+    } else if (saldo.status === 'devedor') {
+        // Carregar dívida para nova temporada
+        dividaAnterior = Math.abs(saldo.saldoFinal);
+        saldoTransferido = -dividaAnterior; // Negativo = dívida transferida
+    }
+
+    // Taxa só vira dívida se NÃO pagou
     const taxaComoDebito = pagouInscricao ? 0 : taxa;
-    const saldoInicialTemporada = taxaComoDebito + dividaAnterior - Math.max(0, saldoTransferido);
+
+    // Saldo inicial = taxa (se não pagou) + dívida anterior - crédito usado
+    const saldoInicialTemporada = taxaComoDebito + dividaAnterior - creditoUsado;
 
     // 6. Buscar dados do participante
     const liga = await Liga.findById(ligaId).lean();
@@ -322,7 +332,7 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
             saldo_final: saldo.saldoFinal,
             status_quitacao: saldo.status
         },
-        saldo_transferido: saldoTransferido > 0 ? saldoTransferido : 0,
+        saldo_transferido: creditoUsado, // Crédito efetivamente usado (0 se pagou ou devedor)
         taxa_inscricao: taxa,
         divida_anterior: dividaAnterior,
         saldo_inicial_temporada: saldoInicialTemporada,

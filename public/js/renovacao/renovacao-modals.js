@@ -273,8 +273,10 @@ const RenovacaoModals = (function() {
 
     function modalRenovar(participante, preview, regras) {
         const calculo = preview?.calculo || {};
+        const cenarios = preview?.cenarios || { pagou: calculo, naoPagou: calculo };
         const saldoAnterior = preview?.saldoTemporadaAnterior || {};
         const podeRenovar = preview?.podeRenovar !== false;
+        const taxa = preview?.regras?.taxa || calculo.taxa || 0;
 
         return `
         <div class="modal fade" id="modalRenovar" tabindex="-1" data-bs-backdrop="static">
@@ -330,8 +332,11 @@ const RenovacaoModals = (function() {
                             </div>
                         </div>
 
-                        <!-- Calculo 2026 -->
-                        <div class="card bg-gray-900 border-gray-700">
+                        <!-- Calculo 2026 (Dinamico) -->
+                        <div class="card bg-gray-900 border-gray-700" id="cardCalculo2026"
+                             data-cenario-pagou='${JSON.stringify(cenarios.pagou)}'
+                             data-cenario-nao-pagou='${JSON.stringify(cenarios.naoPagou)}'
+                             data-taxa="${taxa}">
                             <div class="card-header border-gray-700">
                                 <span class="material-icons" style="vertical-align: middle;">calculate</span>
                                 Inscricao ${preview?.temporadaDestino || 2026}
@@ -339,27 +344,30 @@ const RenovacaoModals = (function() {
                             <div class="card-body">
                                 <table class="table table-sm table-borderless text-white mb-0">
                                     <tbody>
-                                        <tr>
+                                        <tr id="rowTaxa">
                                             <td>Taxa de Inscricao</td>
-                                            <td class="text-end">${formatarMoeda(calculo.taxa)}</td>
+                                            <td class="text-end" id="valorTaxa">${formatarMoeda(taxa)}</td>
                                         </tr>
-                                        ${calculo.credito > 0 ? `
-                                        <tr class="text-success">
+                                        <tr id="rowTaxaStatus" class="${cenarios.pagou.taxaComoDivida === 0 ? 'text-success' : 'text-warning'}">
+                                            <td colspan="2" class="small" id="statusTaxa">
+                                                ${cenarios.pagou.taxaComoDivida === 0
+                                                    ? '<span class="material-icons" style="font-size:14px;vertical-align:middle;">check_circle</span> Paga (nao vira divida)'
+                                                    : '<span class="material-icons" style="font-size:14px;vertical-align:middle;">warning</span> Pendente (vira divida)'}
+                                            </td>
+                                        </tr>
+                                        <tr id="rowCredito" class="text-success" style="display: ${cenarios.pagou.credito > 0 ? 'table-row' : 'none'};">
                                             <td>(-) Credito aproveitado</td>
-                                            <td class="text-end">- ${formatarMoeda(calculo.credito)}</td>
+                                            <td class="text-end" id="valorCredito">- ${formatarMoeda(cenarios.pagou.credito)}</td>
                                         </tr>
-                                        ` : ''}
-                                        ${calculo.divida > 0 ? `
-                                        <tr class="text-danger">
-                                            <td>(+) Divida 2025</td>
-                                            <td class="text-end">+ ${formatarMoeda(calculo.divida)}</td>
+                                        <tr id="rowDivida" class="text-danger" style="display: ${calculo.divida > 0 ? 'table-row' : 'none'};">
+                                            <td>(+) Divida ${preview?.temporadaOrigem || 2025}</td>
+                                            <td class="text-end" id="valorDivida">+ ${formatarMoeda(calculo.divida)}</td>
                                         </tr>
-                                        ` : ''}
                                         <tr class="border-top border-gray-700">
-                                            <td><strong>Saldo Inicial 2026</strong></td>
+                                            <td><strong>Saldo Inicial ${preview?.temporadaDestino || 2026}</strong></td>
                                             <td class="text-end">
-                                                <strong class="${calculo.total <= 0 ? 'text-success' : 'text-warning'}">
-                                                    ${formatarMoeda(calculo.total)}
+                                                <strong id="valorSaldoInicial" class="${cenarios.pagou.total <= 0 ? 'text-success' : 'text-warning'}">
+                                                    ${formatarMoeda(cenarios.pagou.total)}
                                                 </strong>
                                             </td>
                                         </tr>

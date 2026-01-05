@@ -267,16 +267,96 @@ const RenovacaoUI = (function() {
 
             showModal(html, 'modalRenovar');
 
-            // Event listener
+            // Event listener - Confirmar
             const btnConfirmar = document.getElementById('btnConfirmarRenovacao');
             if (btnConfirmar) {
                 btnConfirmar.addEventListener('click', () => confirmarRenovacao());
+            }
+
+            // Event listener - Atualização dinâmica do preview
+            const checkPagou = document.getElementById('checkPagouInscricao');
+            const checkCredito = document.getElementById('checkAproveitarCredito');
+
+            if (checkPagou) {
+                checkPagou.addEventListener('change', () => atualizarPreviewCalculo());
+            }
+            if (checkCredito) {
+                checkCredito.addEventListener('change', () => atualizarPreviewCalculo());
             }
 
         } catch (error) {
             console.error('[RENOVACAO-UI] Erro ao abrir renovacao:', error);
             showToast('Erro ao carregar dados: ' + error.message, 'error');
         }
+    }
+
+    /**
+     * Atualiza o preview de cálculo quando checkboxes mudam
+     */
+    function atualizarPreviewCalculo() {
+        const card = document.getElementById('cardCalculo2026');
+        if (!card) return;
+
+        const checkPagou = document.getElementById('checkPagouInscricao');
+        const checkCredito = document.getElementById('checkAproveitarCredito');
+        const pagouInscricao = checkPagou?.checked ?? true;
+
+        // Buscar cenários dos data attributes
+        let cenarioPagou, cenarioNaoPagou;
+        try {
+            cenarioPagou = JSON.parse(card.dataset.cenarioPagou || '{}');
+            cenarioNaoPagou = JSON.parse(card.dataset.cenarioNaoPagou || '{}');
+        } catch (e) {
+            console.error('[RENOVACAO-UI] Erro ao parsear cenarios:', e);
+            return;
+        }
+
+        const taxa = parseFloat(card.dataset.taxa) || 0;
+
+        // Selecionar cenário baseado no checkbox
+        const cenario = pagouInscricao ? cenarioPagou : cenarioNaoPagou;
+
+        // Atualizar status da taxa
+        const rowTaxaStatus = document.getElementById('rowTaxaStatus');
+        const statusTaxa = document.getElementById('statusTaxa');
+        if (rowTaxaStatus && statusTaxa) {
+            if (pagouInscricao) {
+                rowTaxaStatus.className = 'text-success';
+                statusTaxa.innerHTML = '<span class="material-icons" style="font-size:14px;vertical-align:middle;">check_circle</span> Paga (nao vira divida)';
+            } else {
+                rowTaxaStatus.className = 'text-warning';
+                statusTaxa.innerHTML = '<span class="material-icons" style="font-size:14px;vertical-align:middle;">warning</span> Pendente (vira divida)';
+            }
+        }
+
+        // Atualizar crédito (só aparece se não pagou E tem crédito)
+        const rowCredito = document.getElementById('rowCredito');
+        const valorCredito = document.getElementById('valorCredito');
+        if (rowCredito && valorCredito) {
+            if (!pagouInscricao && cenario.credito > 0) {
+                rowCredito.style.display = 'table-row';
+                valorCredito.textContent = '- ' + RenovacaoModals.formatarMoeda(cenario.credito);
+            } else {
+                rowCredito.style.display = 'none';
+            }
+        }
+
+        // Atualizar checkbox de crédito (desabilitar se pagou)
+        if (checkCredito) {
+            checkCredito.disabled = pagouInscricao || cenarioNaoPagou.credito <= 0;
+            if (pagouInscricao) {
+                checkCredito.checked = false;
+            }
+        }
+
+        // Atualizar saldo inicial
+        const valorSaldoInicial = document.getElementById('valorSaldoInicial');
+        if (valorSaldoInicial) {
+            valorSaldoInicial.textContent = RenovacaoModals.formatarMoeda(cenario.total);
+            valorSaldoInicial.className = cenario.total <= 0 ? 'text-success' : 'text-warning';
+        }
+
+        console.log('[RENOVACAO-UI] Preview atualizado:', { pagouInscricao, cenario });
     }
 
     async function confirmarRenovacao() {
