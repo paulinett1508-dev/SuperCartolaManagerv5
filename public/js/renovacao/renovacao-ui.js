@@ -302,11 +302,16 @@ const RenovacaoUI = (function() {
         const checkCredito = document.getElementById('checkAproveitarCredito');
         const pagouInscricao = checkPagou?.checked ?? true;
 
-        // Buscar cenários dos data attributes
+        // Buscar cenários dos data attributes (decodificar entities HTML)
         let cenarioPagou, cenarioNaoPagou;
         try {
-            cenarioPagou = JSON.parse(card.dataset.cenarioPagou || '{}');
-            cenarioNaoPagou = JSON.parse(card.dataset.cenarioNaoPagou || '{}');
+            const decodeHtmlEntities = (str) => {
+                const txt = document.createElement('textarea');
+                txt.innerHTML = str;
+                return txt.value;
+            };
+            cenarioPagou = JSON.parse(decodeHtmlEntities(card.dataset.cenarioPagou || '{}'));
+            cenarioNaoPagou = JSON.parse(decodeHtmlEntities(card.dataset.cenarioNaoPagou || '{}'));
         } catch (e) {
             console.error('[RENOVACAO-UI] Erro ao parsear cenarios:', e);
             return;

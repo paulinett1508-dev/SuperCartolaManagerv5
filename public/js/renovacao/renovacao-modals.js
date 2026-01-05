@@ -15,6 +15,29 @@ const RenovacaoModals = (function() {
     // HELPERS
     // =========================================================================
 
+    /**
+     * Escapa JSON para uso seguro em data-attributes HTML
+     * Evita quebra de atributos com aspas simples
+     */
+    function escapeJsonAttr(obj) {
+        return JSON.stringify(obj).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+    }
+
+    /**
+     * Escapa string para prevenir XSS em HTML
+     * @param {string} str - String a escapar
+     * @returns {string} String escapada
+     */
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     function formatarMoeda(valor) {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
@@ -298,8 +321,8 @@ const RenovacaoModals = (function() {
                                  style="width: 48px; height: 48px; object-fit: contain;"
                                  onerror="this.src='/img/default-escudo.png'">
                             <div>
-                                <h6 class="mb-0">${participante.nome_time || 'Time'}</h6>
-                                <small class="text-muted">${participante.nome_cartoleiro || ''}</small>
+                                <h6 class="mb-0">${escapeHtml(participante.nome_time) || 'Time'}</h6>
+                                <small class="text-muted">${escapeHtml(participante.nome_cartoleiro) || ''}</small>
                             </div>
                         </div>
 
@@ -334,8 +357,8 @@ const RenovacaoModals = (function() {
 
                         <!-- Calculo 2026 (Dinamico) -->
                         <div class="card bg-gray-900 border-gray-700" id="cardCalculo2026"
-                             data-cenario-pagou='${JSON.stringify(cenarios.pagou)}'
-                             data-cenario-nao-pagou='${JSON.stringify(cenarios.naoPagou)}'
+                             data-cenario-pagou="${escapeJsonAttr(cenarios.pagou)}"
+                             data-cenario-nao-pagou="${escapeJsonAttr(cenarios.naoPagou)}"
                              data-taxa="${taxa}">
                             <div class="card-header border-gray-700">
                                 <span class="material-icons" style="vertical-align: middle;">calculate</span>
@@ -453,8 +476,8 @@ const RenovacaoModals = (function() {
                                  style="width: 48px; height: 48px; object-fit: contain;"
                                  onerror="this.src='/img/default-escudo.png'">
                             <div>
-                                <h6 class="mb-0">${participante.nome_time || 'Time'}</h6>
-                                <small class="text-muted">${participante.nome_cartoleiro || ''}</small>
+                                <h6 class="mb-0">${escapeHtml(participante.nome_time) || 'Time'}</h6>
+                                <small class="text-muted">${escapeHtml(participante.nome_cartoleiro) || ''}</small>
                             </div>
                         </div>
 
@@ -753,23 +776,23 @@ const RenovacaoModals = (function() {
     function itemResultadoBusca(time) {
         return `
         <div class="resultado-busca-item d-flex align-items-center p-2 border-bottom border-gray-700 cursor-pointer"
-             data-time-id="${time.time_id}"
-             data-nome-time="${time.nome_time || ''}"
-             data-nome-cartoleiro="${time.nome_cartoleiro || ''}"
-             data-escudo="${time.escudo || ''}"
+             data-time-id="${escapeHtml(time.time_id)}"
+             data-nome-time="${escapeHtml(time.nome_time || '')}"
+             data-nome-cartoleiro="${escapeHtml(time.nome_cartoleiro || '')}"
+             data-escudo="${escapeHtml(time.escudo || '')}"
              style="cursor: pointer;"
              onmouseover="this.classList.add('bg-gray-700')"
              onmouseout="this.classList.remove('bg-gray-700')">
-            <img src="${time.escudo || '/img/default-escudo.png'}"
+            <img src="${escapeHtml(time.escudo) || '/img/default-escudo.png'}"
                  alt="Escudo"
                  class="rounded me-3"
                  style="width: 36px; height: 36px; object-fit: contain;"
                  onerror="this.src='/img/default-escudo.png'">
             <div class="flex-grow-1">
-                <div class="fw-bold">${time.nome_time || 'Time sem nome'}</div>
-                <small class="text-muted">${time.nome_cartoleiro || ''}</small>
+                <div class="fw-bold">${escapeHtml(time.nome_time) || 'Time sem nome'}</div>
+                <small class="text-muted">${escapeHtml(time.nome_cartoleiro) || ''}</small>
             </div>
-            <small class="text-muted">ID: ${time.time_id}</small>
+            <small class="text-muted">ID: ${escapeHtml(time.time_id)}</small>
         </div>`;
     }
 
@@ -791,7 +814,8 @@ const RenovacaoModals = (function() {
         formatarMoeda,
         formatarData,
         getStatusBadge,
-        getQuitacaoBadge
+        getQuitacaoBadge,
+        escapeHtml
     };
 
 })();

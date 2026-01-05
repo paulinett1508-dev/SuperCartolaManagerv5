@@ -17,6 +17,7 @@ const RenovacaoAPI = (function() {
 
     const CONFIG = {
         TEMPORADA_ATUAL: 2026,
+        DEBUG: window.DEBUG_MODE || false,
         ENDPOINTS: {
             LIGA_RULES: '/api/liga-rules',
             INSCRICOES: '/api/inscricoes',
@@ -26,8 +27,20 @@ const RenovacaoAPI = (function() {
     };
 
     // =========================================================================
-    // HELPER
+    // HELPERS
     // =========================================================================
+
+    function log(...args) {
+        if (CONFIG.DEBUG) {
+            console.log('[RENOVACAO-API]', ...args);
+        }
+    }
+
+    function logError(...args) {
+        if (CONFIG.DEBUG) {
+            console.error('[RENOVACAO-API]', ...args);
+        }
+    }
 
     async function fetchJSON(url, options = {}) {
         try {
@@ -47,7 +60,7 @@ const RenovacaoAPI = (function() {
 
             return data;
         } catch (error) {
-            console.error(`[RENOVACAO-API] Erro em ${url}:`, error);
+            logError(`Erro em ${url}:`, error);
             throw error;
         }
     }
@@ -63,7 +76,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function buscarRegras(ligaId, temporada = CONFIG.TEMPORADA_ATUAL) {
-        console.log(`[RENOVACAO-API] Buscando regras liga=${ligaId} temporada=${temporada}`);
+        log(`Buscando regras liga=${ligaId} temporada=${temporada}`);
         return fetchJSON(`${CONFIG.ENDPOINTS.LIGA_RULES}/${ligaId}/${temporada}`);
     }
 
@@ -75,7 +88,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function salvarRegras(ligaId, temporada, dados) {
-        console.log(`[RENOVACAO-API] Salvando regras liga=${ligaId}`, dados);
+        log(`Salvando regras liga=${ligaId}`, dados);
         return fetchJSON(`${CONFIG.ENDPOINTS.LIGA_RULES}/${ligaId}/${temporada}`, {
             method: 'POST',
             body: JSON.stringify(dados)
@@ -90,7 +103,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function alterarStatusRenovacao(ligaId, temporada, status) {
-        console.log(`[RENOVACAO-API] Alterando status para ${status}`);
+        log(`Alterando status para ${status}`);
         return fetchJSON(`${CONFIG.ENDPOINTS.LIGA_RULES}/${ligaId}/${temporada}/status`, {
             method: 'PATCH',
             body: JSON.stringify({ status })
@@ -105,7 +118,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function previewInscricao(ligaId, temporada, timeId) {
-        console.log(`[RENOVACAO-API] Preview inscricao time=${timeId}`);
+        log(`Preview inscricao time=${timeId}`);
         return fetchJSON(`${CONFIG.ENDPOINTS.LIGA_RULES}/${ligaId}/${temporada}/preview/${timeId}`);
     }
 
@@ -124,7 +137,7 @@ const RenovacaoAPI = (function() {
         let url = `${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}`;
         if (status) url += `?status=${status}`;
 
-        console.log(`[RENOVACAO-API] Listando inscrições liga=${ligaId}`);
+        log(`Listando inscricoes liga=${ligaId}`);
         return fetchJSON(url);
     }
 
@@ -135,7 +148,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function estatisticasInscricoes(ligaId, temporada = CONFIG.TEMPORADA_ATUAL) {
-        console.log(`[RENOVACAO-API] Buscando estatísticas`);
+        log(`Buscando estatisticas`);
         return fetchJSON(`${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}/estatisticas`);
     }
 
@@ -147,7 +160,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function buscarInscricao(ligaId, temporada, timeId) {
-        console.log(`[RENOVACAO-API] Buscando inscrição time=${timeId}`);
+        log(`Buscando inscricao time=${timeId}`);
         return fetchJSON(`${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}/${timeId}`);
     }
 
@@ -160,7 +173,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function renovarParticipante(ligaId, temporada, timeId, opcoes = {}) {
-        console.log(`[RENOVACAO-API] Renovando time=${timeId}`, opcoes);
+        log(`Renovando time=${timeId}`, opcoes);
         return fetchJSON(`${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}/renovar/${timeId}`, {
             method: 'POST',
             body: JSON.stringify(opcoes)
@@ -176,7 +189,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function naoParticipar(ligaId, temporada, timeId, opcoes = {}) {
-        console.log(`[RENOVACAO-API] Marcando não participa time=${timeId}`);
+        log(`Marcando nao participa time=${timeId}`);
         return fetchJSON(`${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}/nao-participar/${timeId}`, {
             method: 'POST',
             body: JSON.stringify(opcoes)
@@ -192,7 +205,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function novoParticipante(ligaId, temporada, dadosTime, opcoes = {}) {
-        console.log(`[RENOVACAO-API] Cadastrando novo participante`, dadosTime);
+        log(`Cadastrando novo participante`, dadosTime);
         return fetchJSON(`${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}/novo`, {
             method: 'POST',
             body: JSON.stringify({
@@ -209,7 +222,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function inicializarInscricoes(ligaId, temporada) {
-        console.log(`[RENOVACAO-API] Inicializando inscrições`);
+        log(`Inicializando inscricoes`);
         return fetchJSON(`${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}/inicializar`, {
             method: 'POST'
         });
@@ -224,7 +237,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function reverterInscricao(ligaId, temporada, timeId, motivo) {
-        console.log(`[RENOVACAO-API] Revertendo inscrição time=${timeId}`);
+        log(`Revertendo inscricao time=${timeId}`);
         return fetchJSON(`${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}/${timeId}`, {
             method: 'DELETE',
             body: JSON.stringify({ motivo })
@@ -246,7 +259,7 @@ const RenovacaoAPI = (function() {
             throw new Error('Busca requer pelo menos 3 caracteres');
         }
 
-        console.log(`[RENOVACAO-API] Buscando time: "${query}"`);
+        log(`Buscando time: "${query}"`);
         return fetchJSON(`${CONFIG.ENDPOINTS.BUSCAR_TIME}?q=${encodeURIComponent(query)}&limit=${limit}`);
     }
 
@@ -256,7 +269,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function buscarTimeCartolaPorId(timeId) {
-        console.log(`[RENOVACAO-API] Buscando time ID: ${timeId}`);
+        log(`Buscando time ID: ${timeId}`);
         return fetchJSON(`${CONFIG.ENDPOINTS.BUSCAR_TIME}/${timeId}`);
     }
 
@@ -272,7 +285,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function buscarSaldoParticipante(ligaId, timeId, temporada) {
-        console.log(`[RENOVACAO-API] Buscando saldo time=${timeId} temporada=${temporada}`);
+        log(`Buscando saldo time=${timeId} temporada=${temporada}`);
         return fetchJSON(`${CONFIG.ENDPOINTS.TESOURARIA}/${ligaId}/${timeId}?temporada=${temporada}`);
     }
 
@@ -284,7 +297,7 @@ const RenovacaoAPI = (function() {
      * @returns {Promise<Object>}
      */
     async function marcarInscricaoPaga(ligaId, temporada, timeId) {
-        console.log(`[RENOVACAO-API] Marcando inscrição paga time=${timeId}`);
+        log(`Marcando inscricao paga time=${timeId}`);
         return fetchJSON(`${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}/${timeId}/marcar-pago`, {
             method: 'PATCH'
         });

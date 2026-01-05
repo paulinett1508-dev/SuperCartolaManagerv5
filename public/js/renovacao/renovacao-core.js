@@ -18,7 +18,7 @@ const RenovacaoCore = (function() {
     const CONFIG = {
         TEMPORADA_ATUAL: 2026,
         TEMPORADA_ANTERIOR: 2025,
-        DEBUG: true
+        DEBUG: window.DEBUG_MODE || false
     };
 
     // =========================================================================
@@ -243,7 +243,7 @@ const RenovacaoCore = (function() {
                 <div class="modal-content bg-gray-800 text-white">
                     <div class="modal-header border-gray-700">
                         <h6 class="modal-title">
-                            ${participante.nome_time || participante.nome_cartoleiro || 'Participante'}
+                            ${RenovacaoModals.escapeHtml(participante.nome_time || participante.nome_cartoleiro) || 'Participante'}
                         </h6>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
@@ -309,8 +309,8 @@ const RenovacaoCore = (function() {
                                  alt="Escudo" class="rounded me-3" style="width: 48px; height: 48px;"
                                  onerror="this.src='/img/default-escudo.png'">
                             <div>
-                                <h6 class="mb-0">${participante.nome_time || ''}</h6>
-                                <small class="text-muted">${participante.nome_cartoleiro || participante.nome_cartola || ''}</small>
+                                <h6 class="mb-0">${RenovacaoModals.escapeHtml(participante.nome_time) || ''}</h6>
+                                <small class="text-muted">${RenovacaoModals.escapeHtml(participante.nome_cartoleiro || participante.nome_cartola) || ''}</small>
                             </div>
                         </div>
 
