@@ -78,13 +78,14 @@ const RenovacaoUI = (function() {
             }
         };
 
-        // Event listener para botão fechar
-        const btnClose = modalEl.querySelector('[data-bs-dismiss="modal"]');
-        if (btnClose) {
-            btnClose.addEventListener('click', () => {
+        // Event listener para TODOS os botões de fechar (X e Cancelar)
+        const btnsClose = modalEl.querySelectorAll('[data-bs-dismiss="modal"]');
+        btnsClose.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
                 fecharModal();
             });
-        }
+        });
 
         // Fechar ao clicar no backdrop (não, pois é static)
         // backdrop.addEventListener('click', () => fecharModal());
