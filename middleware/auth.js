@@ -79,8 +79,13 @@ export function isPaginaAdmin(url) {
 
 /**
  * Verifica se a URL é uma página de participante
+ * ✅ FIX: Não confundir rotas de API com páginas de participante
  */
 export function isPaginaParticipante(url) {
+  // Rotas de API nunca são páginas de participante
+  if (url.startsWith('/api/')) {
+    return false;
+  }
   return PAGINAS_PARTICIPANTE.some((pagina) => url.includes(pagina));
 }
 
