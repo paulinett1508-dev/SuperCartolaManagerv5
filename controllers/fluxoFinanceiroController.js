@@ -1,5 +1,6 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v8.1.0 (SaaS DINÂMICO)
+ * FLUXO-FINANCEIRO-CONTROLLER v8.2.0 (SaaS DINÂMICO)
+ * ✅ v8.2.0: FIX CRÍTICO - Temporada obrigatória em queries de cache (evita duplicados)
  * ✅ v8.1.0: Invalidação de cache em cascata ao salvar campos manuais
  * ✅ v8.0.0: MULTI-TENANT - Busca configurações de liga.configuracoes (White Label)
  *   - Remove hardcoded IDs e valores de ligas específicas
@@ -30,6 +31,8 @@ import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import { getResultadosMataMataCompleto } from "./mata-mata-backend.js";
 // ✅ v8.1.0: Invalidação de cache em cascata
 import { onCamposSaved } from "../utils/cache-invalidator.js";
+// ✅ v8.2.0: FIX CRÍTICO - Temporada obrigatória em todas as queries de cache
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 // ============================================================================
 // 🔧 CONSTANTES DE FALLBACK (usadas apenas se liga.configuracoes não existir)
@@ -434,10 +437,14 @@ export const getExtratoFinanceiro = async (req, res) => {
             ? rodadaAtualCartola - 1
             : rodadaAtualCartola;
 
-        // Buscar ou criar cache
+        // ✅ v8.2.0 FIX: Buscar ou criar cache COM TEMPORADA (evita duplicados)
+        // Usar temporada atual da config - SEMPRE incluir na query
+        const temporadaAtual = CURRENT_SEASON;
+
         let cache = await ExtratoFinanceiroCache.findOne({
             liga_id: ligaId,
             time_id: timeId,
+            temporada: temporadaAtual,
         });
 
         if (forcarRecalculo && cache) {
@@ -450,6 +457,7 @@ export const getExtratoFinanceiro = async (req, res) => {
             cache = new ExtratoFinanceiroCache({
                 liga_id: ligaId,
                 time_id: timeId,
+                temporada: temporadaAtual,
                 ultima_rodada_consolidada: 0,
                 saldo_consolidado: 0,
                 historico_transacoes: [],
@@ -820,19 +828,24 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
         if (!liga) throw new Error("Liga não encontrada");
 
         const financeiroPorTime = [];
+        // ✅ v8.2.0 FIX: Usar temporada atual em todas as queries
+        const temporadaAtual = CURRENT_SEASON;
 
         for (const participante of liga.participantes) {
             const timeId = participante.time_id;
 
+            // ✅ v8.2.0 FIX: Incluir temporada na query (evita duplicados)
             let cache = await ExtratoFinanceiroCache.findOne({
                 liga_id: ligaId,
                 time_id: timeId,
+                temporada: temporadaAtual,
             });
 
             if (!cache) {
                 cache = new ExtratoFinanceiroCache({
                     liga_id: ligaId,
                     time_id: timeId,
+                    temporada: temporadaAtual,
                     ultima_rodada_consolidada: 0,
                     saldo_consolidado: 0,
                     historico_transacoes: [],
