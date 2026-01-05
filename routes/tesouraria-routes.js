@@ -531,6 +531,9 @@ router.get("/liga/:ligaId", async (req, res) => {
                 escudo: participante.escudo_url || participante.escudo || null,
                 ativo: participante.ativo !== false,
                 temporada: Number(temporada),
+                // ✅ v2.12: Contato para botão WhatsApp
+                contato: participante.contato || null,
+                clube_id: participante.clube_id || participante.time_coracao || null,
                 saldoTemporada: parseFloat(saldoTemporada.toFixed(2)),
                 saldoAcertos: parseFloat(saldoAcertos.toFixed(2)),
                 totalPago: parseFloat(totalPago.toFixed(2)),

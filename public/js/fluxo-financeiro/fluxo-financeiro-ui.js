@@ -285,6 +285,9 @@ export class FluxoFinanceiroUI {
                 quantidadeAcertos: saldoInfo?.quantidadeAcertos || 0,
                 // ✅ v2.0: Adicionar breakdown por módulo
                 breakdown: saldoInfo?.breakdown || null,
+                // ✅ v2.12: Contato para botão WhatsApp (vem da API ou do participante)
+                contato: saldoInfo?.contato || p.contato || null,
+                clube_id: saldoInfo?.clube_id || p.clube_id || p.time_coracao || null,
             };
         });
 
@@ -439,19 +442,12 @@ export class FluxoFinanceiroUI {
         const isNovato = timeId < 0 || p.origem === 'novo_cadastro' || p.origem === 'cadastro_manual' || p.novato === true;
         const badgeNovato = isNovato ? '<span class="badge-novato" title="Novo na liga">NOVATO</span>' : '';
 
-        // Time do coração - mapeamento de IDs para escudos
-        const ESCUDOS_CLUBES = {
-            262: 'fla', 275: 'pal', 264: 'cor', 276: 'sao', 277: 'san',
-            266: 'flu', 267: 'vas', 263: 'bot', 284: 'gre', 285: 'int',
-            283: 'cru', 282: 'cam', 293: 'cap', 265: 'bah', 356: 'for',
-            354: 'cea', 294: 'cfc', 327: 'ame', 373: 'rbb', 280: 'goi',
-            292: 'spo', 386: 'cui', 314: 'juv'
-        };
+        // Time do coração - usar escudos locais
         const timeCoracaoId = p.time_coracao || p.clube_id;
         const escudoTimeCoracao = timeCoracaoId
-            ? `<img src="https://s.sde.globo.com/media/organizations/2024/04/01/${timeCoracaoId}_45x45.png"
+            ? `<img src="/escudos/${timeCoracaoId}.png"
                    alt="" class="escudo-coracao"
-                   onerror="this.style.display='none'"
+                   onerror="this.src='/escudos/default.png'"
                    title="Time do Coração">`
             : '<span class="material-icons" style="font-size: 16px; color: #666;">favorite_border</span>';
 
@@ -525,6 +521,12 @@ export class FluxoFinanceiroUI {
                                 class="btn-acao btn-auditoria" title="Auditoria Financeira">
                             <span class="material-icons">fact_check</span>
                         </button>
+                        ${p.contato ? `
+                        <button onclick="window.abrirWhatsApp('${p.contato.replace(/'/g, "\\'")}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
+                                class="btn-acao btn-whatsapp" title="Enviar WhatsApp para ${p.nome_cartola || 'participante'}">
+                            <span class="material-icons">chat</span>
+                        </button>
+                        ` : ''}
                     </div>
                 </td>
             </tr>
@@ -1564,6 +1566,8 @@ export class FluxoFinanceiroUI {
             .btn-auditoria:hover { background: #2563eb; }
             .btn-hist { background: #4b5563; }
             .btn-hist:hover { background: #374151; }
+            .btn-whatsapp { background: #25D366; }
+            .btn-whatsapp:hover { background: #128C7E; }
 
             /* Responsivo */
             @media (max-width: 900px) {

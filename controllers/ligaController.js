@@ -410,12 +410,66 @@ const buscarTimesDaLiga = async (req, res) => {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    if (!Array.isArray(liga.times) || liga.times.length === 0) {
-      return res.json([]);
+    // =========================================================================
+    // 1. Buscar times existentes (temporada atual/2025)
+    // =========================================================================
+    let timesExistentes = [];
+    if (Array.isArray(liga.times) && liga.times.length > 0) {
+      timesExistentes = await Time.find({ id: { $in: liga.times } }).lean();
     }
 
-    const times = await Time.find({ id: { $in: liga.times } }).lean();
-    res.json(times);
+    // Criar mapa de clube_id a partir de liga.participantes
+    const clubeIdMap = {};
+    if (Array.isArray(liga.participantes)) {
+      liga.participantes.forEach(p => {
+        const timeId = p.time_id || p.id;
+        if (timeId && p.clube_id) {
+          clubeIdMap[String(timeId)] = p.clube_id;
+        }
+      });
+    }
+
+    // Enriquecer times existentes com clube_id
+    const timesEnriquecidos = timesExistentes.map(t => ({
+      ...t,
+      clube_id: t.clube_id || clubeIdMap[String(t.id)] || null
+    }));
+
+    // Criar Set de IDs já presentes para evitar duplicatas
+    const idsExistentes = new Set(timesEnriquecidos.map(t => String(t.id)));
+
+    // =========================================================================
+    // 2. Buscar novos participantes de 2026 (InscricaoTemporada)
+    // =========================================================================
+    const InscricaoTemporada = (await import("../models/InscricaoTemporada.js")).default;
+    const inscricoes2026 = await InscricaoTemporada.find({
+      liga_id: new mongoose.Types.ObjectId(ligaIdParam),
+      temporada: 2026,
+      status: { $in: ['novo', 'renovado', 'pendente'] }
+    }).lean();
+
+    // Converter inscrições para formato de time (apenas os que não existem)
+    const novosParticipantes = inscricoes2026
+      .filter(insc => !idsExistentes.has(String(insc.time_id)))
+      .map(insc => ({
+        id: insc.time_id,
+        time_id: insc.time_id,
+        nome_time: insc.dados_participante?.nome_time || 'Novo Participante',
+        nome_cartoleiro: insc.dados_participante?.nome_cartoleiro || 'N/D',
+        nome_cartola: insc.dados_participante?.nome_cartoleiro || 'N/D',
+        url_escudo_png: insc.dados_participante?.escudo || '',
+        escudo: insc.dados_participante?.escudo || '',
+        clube_id: null,
+        temporada_2026: true, // Flag para identificar origem
+        status_inscricao: insc.status
+      }));
+
+    // Combinar listas
+    const todosParticipantes = [...timesEnriquecidos, ...novosParticipantes];
+
+    console.log(`[LIGAS] buscarTimesDaLiga: ${timesEnriquecidos.length} existentes + ${novosParticipantes.length} novos 2026 = ${todosParticipantes.length} total`);
+
+    res.json(todosParticipantes);
   } catch (err) {
     console.error("Erro ao buscar times da liga:", err);
     if (err.name === "CastError") {

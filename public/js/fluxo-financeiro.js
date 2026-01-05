@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v7.7"; // v7.7: Integração Renovação Temporada 2026 + coluna 2026 na tabela
+const CACHE_BUSTER = "v7.8"; // v7.8: WhatsApp Direto + campo contato na tabela
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -1625,4 +1625,66 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(inicializarModuloRenovacao, 1000);
 });
 
-console.log("[FLUXO-ADMIN] ✅ v7.7 carregado (Integração Renovação 2026)");
+// =============================================================================
+// ===== WHATSAPP DIRETO (v7.8) =====
+// =============================================================================
+
+/**
+ * Formata número de telefone para link do WhatsApp
+ * Aceita formatos: (11) 99999-9999, 11999999999, +55 11 99999-9999
+ * @param {string} telefone - Número do telefone
+ * @returns {string} Número formatado para wa.me (ex: 5511999999999)
+ */
+function formatarTelefoneWhatsApp(telefone) {
+    if (!telefone) return null;
+
+    // Remove tudo que não é número
+    let numeros = telefone.replace(/\D/g, '');
+
+    // Se começar com 0, remove
+    if (numeros.startsWith('0')) {
+        numeros = numeros.substring(1);
+    }
+
+    // Se não tiver código do país (55), adiciona
+    if (!numeros.startsWith('55')) {
+        numeros = '55' + numeros;
+    }
+
+    // Valida tamanho mínimo (55 + DDD + número = 12-13 dígitos)
+    if (numeros.length < 12) {
+        console.warn('[WHATSAPP] Número muito curto:', telefone, '->', numeros);
+        return null;
+    }
+
+    return numeros;
+}
+
+/**
+ * Abre WhatsApp Web/App com mensagem pré-definida
+ * @param {string} contato - Número do telefone
+ * @param {string} nome - Nome do participante
+ */
+window.abrirWhatsApp = function(contato, nome) {
+    const numero = formatarTelefoneWhatsApp(contato);
+
+    if (!numero) {
+        alert('Número de WhatsApp inválido: ' + contato);
+        return;
+    }
+
+    // Mensagem padrão (pode ser customizada)
+    const mensagem = encodeURIComponent(
+        `Olá ${nome}! 👋\n\n` +
+        `Sou da *Super Cartola* e gostaria de falar sobre sua participação na liga.\n\n` +
+        `Posso te ajudar?`
+    );
+
+    // Abrir WhatsApp (funciona em mobile e desktop)
+    const url = `https://wa.me/${numero}?text=${mensagem}`;
+
+    console.log('[WHATSAPP] Abrindo:', url);
+    window.open(url, '_blank');
+};
+
+console.log("[FLUXO-ADMIN] ✅ v7.8 carregado (WhatsApp Direto)");

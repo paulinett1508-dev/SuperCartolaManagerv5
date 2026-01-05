@@ -28,26 +28,68 @@ const RenovacaoUI = (function() {
     // =========================================================================
 
     function showModal(html, modalId) {
+        console.log('[RENOVACAO-UI] showModal() chamado para:', modalId);
+
         // Remove modal anterior se existir
         const existing = document.getElementById(modalId);
-        if (existing) existing.remove();
+        if (existing) {
+            console.log('[RENOVACAO-UI] Removendo modal existente');
+            existing.remove();
+        }
+
+        // Remove backdrop anterior se existir
+        const existingBackdrop = document.querySelector('.custom-modal-backdrop');
+        if (existingBackdrop) existingBackdrop.remove();
+
+        // Criar backdrop customizado
+        const backdrop = document.createElement('div');
+        backdrop.className = 'custom-modal-backdrop';
+        backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1040;';
+        document.body.appendChild(backdrop);
 
         // Insere novo modal
         document.body.insertAdjacentHTML('beforeend', html);
+        console.log('[RENOVACAO-UI] Modal inserido no DOM');
 
-        // Inicializa Bootstrap modal
         const modalEl = document.getElementById(modalId);
-        const modal = new bootstrap.Modal(modalEl);
-        state.modalAtivo = modal;
+        if (!modalEl) {
+            console.error('[RENOVACAO-UI] Modal não encontrado após inserção!');
+            backdrop.remove();
+            return null;
+        }
 
-        // Cleanup ao fechar
-        modalEl.addEventListener('hidden.bs.modal', () => {
-            modalEl.remove();
-            state.modalAtivo = null;
-        });
+        // Aplicar estilos diretamente para garantir visibilidade
+        modalEl.style.cssText = 'display:block !important;position:fixed;top:0;left:0;width:100%;height:100%;z-index:1050;overflow-y:auto;';
+        modalEl.classList.add('show');
+        document.body.style.overflow = 'hidden';
 
-        modal.show();
-        return modal;
+        console.log('[RENOVACAO-UI] Modal visível com estilos inline');
+
+        // Guardar referências para fechar
+        state.modalAtivo = {
+            element: modalEl,
+            backdrop: backdrop,
+            hide: function() {
+                modalEl.style.display = 'none';
+                backdrop.remove();
+                document.body.style.overflow = '';
+                modalEl.remove();
+                state.modalAtivo = null;
+            }
+        };
+
+        // Event listener para botão fechar
+        const btnClose = modalEl.querySelector('[data-bs-dismiss="modal"]');
+        if (btnClose) {
+            btnClose.addEventListener('click', () => {
+                fecharModal();
+            });
+        }
+
+        // Fechar ao clicar no backdrop (não, pois é static)
+        // backdrop.addEventListener('click', () => fecharModal());
+
+        return state.modalAtivo;
     }
 
     function fecharModal() {
@@ -358,6 +400,25 @@ const RenovacaoUI = (function() {
 
             showModal(html, 'modalNovoParticipante');
 
+            // Garantir que todos os painéis estejam configurados corretamente
+            setTimeout(() => {
+                const allPanes = document.querySelectorAll('#tabsNovoParticipanteContent .tab-pane');
+                console.log('[RENOVACAO-UI] Painéis encontrados após inserção:', allPanes.length);
+                
+                allPanes.forEach((pane, index) => {
+                    if (index === 0) {
+                        // Primeiro painel visível
+                        pane.style.cssText = 'display: block !important;';
+                        pane.classList.add('show', 'active');
+                        console.log('[RENOVACAO-UI] Painel ativo:', pane.id);
+                    } else {
+                        // Outros painéis escondidos
+                        pane.style.cssText = 'display: none !important;';
+                        pane.classList.remove('show', 'active');
+                    }
+                });
+            }, 100);
+
             // Event listeners
             setupBuscaTimeListeners();
 
@@ -368,6 +429,7 @@ const RenovacaoUI = (function() {
     }
 
     function setupBuscaTimeListeners() {
+        console.log('[RENOVACAO-UI] Configurando listeners do modal...');
         const inputBusca = document.getElementById('inputBuscaTime');
         const btnBuscar = document.getElementById('btnBuscarTime');
         const btnCadastrar = document.getElementById('btnCadastrarNovo');
@@ -398,23 +460,66 @@ const RenovacaoUI = (function() {
         inputNomeManual?.addEventListener('input', () => validarCadastroManual());
 
         // Tabs - resetar estado ao trocar de aba
-        document.querySelectorAll('#tabsNovoParticipante button[data-bs-toggle="tab"]').forEach(tab => {
-            tab.addEventListener('shown.bs.tab', (e) => {
-                limparSelecaoTime();
-                document.getElementById('resultadosBusca').innerHTML = '';
+        // Fallback manual para garantir que tabs funcionem
+        const tabButtons = document.querySelectorAll('#tabsNovoParticipante button[data-bs-toggle="tab"]');
+        const tabPanes = document.querySelectorAll('#tabsNovoParticipanteContent .tab-pane');
+        console.log('[RENOVACAO-UI] Tabs encontradas:', tabButtons.length, 'Paineis:', tabPanes.length);
 
-                // Se for aba manual, mostrar secao de confirmacao
-                if (e.target.id === 'tab-manual') {
-                    document.getElementById('secaoConfirmacao').classList.remove('d-none');
-                    document.getElementById('hdnModoNovo').value = 'manual';
-                    validarCadastroManual();
+        tabButtons.forEach(tab => {
+            // Listener Bootstrap nativo
+            tab.addEventListener('shown.bs.tab', (e) => {
+                handleTabChange(e.target.id);
+            });
+
+            // Fallback click handler para garantir funcionamento
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const targetId = tab.getAttribute('data-bs-target');
+                console.log('[RENOVACAO-UI] Tab clicada:', tab.id, '-> Target:', targetId);
+
+                // Atualizar tabs ativas
+                tabButtons.forEach(t => {
+                    t.classList.remove('active');
+                    t.setAttribute('aria-selected', 'false');
+                });
+                tab.classList.add('active');
+                tab.setAttribute('aria-selected', 'true');
+
+                // Atualizar paineis - forçar com !important
+                tabPanes.forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                    pane.style.cssText = 'display: none !important;';
+                });
+
+                const targetPane = document.querySelector(targetId);
+                if (targetPane) {
+                    targetPane.classList.add('show', 'active');
+                    targetPane.style.cssText = 'display: block !important;';
+                    console.log('[RENOVACAO-UI] Painel exibido:', targetId, 'computed display:', getComputedStyle(targetPane).display);
                 } else {
-                    document.getElementById('secaoConfirmacao').classList.add('d-none');
-                    document.getElementById('hdnModoNovo').value = 'busca';
-                    document.getElementById('btnCadastrarNovo').disabled = true;
+                    console.error('[RENOVACAO-UI] Painel não encontrado:', targetId);
                 }
+
+                handleTabChange(tab.id);
             });
         });
+
+        function handleTabChange(tabId) {
+            limparSelecaoTime();
+            document.getElementById('resultadosBusca').innerHTML = '';
+
+            // Se for aba manual, mostrar secao de confirmacao
+            if (tabId === 'tab-manual') {
+                document.getElementById('secaoConfirmacao').classList.remove('d-none');
+                document.getElementById('hdnModoNovo').value = 'manual';
+                validarCadastroManual();
+            } else {
+                document.getElementById('secaoConfirmacao').classList.add('d-none');
+                document.getElementById('hdnModoNovo').value = 'busca';
+                document.getElementById('btnCadastrarNovo').disabled = true;
+            }
+        }
 
         // Cadastrar
         btnCadastrar.addEventListener('click', () => cadastrarNovoParticipante());

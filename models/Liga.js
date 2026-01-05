@@ -13,6 +13,7 @@ const participanteSchema = new mongoose.Schema(
         rodada_time_id: { type: Number, default: null },
         senha_acesso: { type: String, default: "" },
         ativo: { type: Boolean, default: true }, // ✅ NOVO: Controle de participante ativo/inativo
+        contato: { type: String, default: "" }, // ✅ v2.12: WhatsApp/telefone para contato direto
     },
     { _id: false },
 );

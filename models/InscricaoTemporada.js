@@ -110,7 +110,7 @@ const InscricaoTemporadaSchema = new mongoose.Schema({
     // =========================================================================
     origem: {
         type: String,
-        enum: ['renovacao', 'novo_cadastro'],
+        enum: ['renovacao', 'novo_cadastro', 'cadastro_manual'],
         default: 'renovacao'
     },
 

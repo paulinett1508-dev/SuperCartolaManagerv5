@@ -330,6 +330,33 @@ Ver: [`docs/SISTEMA-RENOVACAO-TEMPORADA.md`](docs/SISTEMA-RENOVACAO-TEMPORADA.md
 - Model: `models/Time.js`
 - Schema principal: `id` (Number, único), `nome_time`, `nome_cartoleiro`, `ativo`, `rodada_desistencia`, `temporada`
 
+### Schema Liga.participantes (embedded)
+Cada liga tem um array de participantes embutido com os seguintes campos:
+```javascript
+{
+  time_id: Number,        // ID do time no Cartola FC
+  nome_cartola: String,   // Nome do cartoleiro
+  nome_time: String,      // Nome do time
+  clube_id: Number,       // ID do clube do coração (ex: 262=Flamengo)
+  contato: String,        // WhatsApp/telefone para contato direto
+  senha_acesso: String,   // Senha do app mobile
+  ativo: Boolean          // Se participante está ativo na liga
+}
+```
+
+### Escudos dos Clubes
+Os escudos estão em `/public/escudos/{clube_id}.png`. IDs disponíveis:
+- 262 (Flamengo), 263 (Botafogo), 264 (Corinthians), 266 (Fluminense)
+- 267 (Vasco), 275 (Palmeiras), 276 (São Paulo), 277 (Santos)
+- 283 (Cruzeiro), 292 (Sport), 344 (RB Bragantino)
+- `default.png` para clubes sem escudo específico
+
+**Uso no frontend:**
+```javascript
+const escudoUrl = `/escudos/${clube_id}.png`;
+// Fallback: onerror="this.src='/escudos/default.png'"
+```
+
 ## 🔐 Sistema de Autenticação Admin
 
 ### Arquitetura

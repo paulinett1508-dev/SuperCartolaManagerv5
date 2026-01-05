@@ -5,104 +5,47 @@
 
 ---
 
-## Pendencias Ativas
+## Tarefas Concluidas (2026-01-05)
 
-*Nenhuma pendencia ativa no momento.*
-
----
-
-## Tarefas Concluidas (2026-01-04)
-
-### Sistema de Wizard para Configuracao de Modulos por Liga
+### Coluna Time do Coracao e Botao WhatsApp
 
 **Status:** CONCLUIDO
 
-**O que foi implementado:**
+**Problemas Identificados e Corrigidos:**
 
-1. **Model `models/ModuleConfig.js`**
-   - Schema para config de modulo por liga/temporada
-   - Campos: liga_id, temporada, modulo, ativo, financeiro_override, wizard_respostas
-   - Metodos estaticos: ativarModulo, desativarModulo, listarModulosAtivos
+1. **Campo `contato` nao existia no schema**
+   - CORRIGIDO: Adicionado `contato: { type: String, default: "" }` em `models/Liga.js`
 
-2. **JSONs em `config/rules/*.json` expandidos com secao `wizard`**
-   - 12 modulos configurados com perguntas dinamicas
-   - Tipos suportados: number, boolean, select
-   - Cada pergunta com: id, tipo, label, descricao, default, min/max/step
+2. **Funcao `adicionarParticipanteNaLiga` nao salvava `contato` nem `clube_id`**
+   - CORRIGIDO: `controllers/inscricoesController.js` agora salva ambos os campos
 
-3. **Sistema generico de wizard**
-   - `public/js/modulos/modulos-api.js` - Chamadas API
-   - `public/js/modulos/modulos-wizard.js` - Renderizacao dinamica de modais
-   - `public/js/modulos/modulos-ui.js` - Orquestracao de interface
+3. **URL dos escudos estava errada (retornava 404)**
+   - URL antiga: `https://s.sde.globo.com/media/organizations/2024/04/01/${id}_45x45.png`
+   - CORRIGIDO: Agora usa escudos locais `/escudos/${id}.png`
+   - Fallback: `/escudos/default.png`
 
-4. **Rotas de API criadas**
-   - GET `/api/liga/:ligaId/modulos` - Lista modulos
-   - GET `/api/liga/:ligaId/modulos/:modulo` - Detalhe do modulo
-   - POST `/api/liga/:ligaId/modulos/:modulo/ativar` - Ativa modulo
-   - POST `/api/liga/:ligaId/modulos/:modulo/desativar` - Desativa modulo
-   - GET `/api/modulos/:modulo/wizard` - Retorna perguntas do wizard
+**Arquivos Modificados:**
+- `models/Liga.js` - Adicionado campo `contato` ao participanteSchema
+- `controllers/inscricoesController.js` - Funcao `adicionarParticipanteNaLiga` salva `contato` e `clube_id`
+- `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` - URL dos escudos corrigida
 
-5. **Integracao no painel admin**
-   - Botao "Configurar Modulos" na secao Administracao (detalhe-liga.html)
-   - Modal com lista de modulos ativos/inativos
-   - Botoes Ativar/Desativar/Configurar por modulo
+**Como testar:**
 
-**Arquivos criados:**
-- `models/ModuleConfig.js`
-- `routes/module-config-routes.js`
-- `public/js/modulos/modulos-api.js`
-- `public/js/modulos/modulos-wizard.js`
-- `public/js/modulos/modulos-ui.js`
+1. **Coluna Time do Coracao:**
+   - Acessar Fluxo Financeiro
+   - Verificar se coluna com icone de coracao mostra escudos dos times
+   - 32 de 33 participantes tem `clube_id` (apenas "Lucio" nao tem)
 
-**Arquivos modificados:**
-- `index.js` - Registro das novas rotas
-- `public/detalhe-liga.html` - Botao e scripts do wizard
-- `config/rules/*.json` (12 arquivos) - Secao wizard adicionada
+2. **Botao WhatsApp:**
+   - Para ver o botao, participantes precisam ter campo `contato` preenchido
+   - Cadastrar novo participante pelo modal "Novo Participante" (aba Manual) com telefone
+   - O botao verde com icone de chat aparecera na coluna Acoes
 
----
-
-### Sistema de Renovacao de Temporada 2026
-
-**Status:** CONCLUIDO (Backend + Frontend + Documentacao)
-
-**Implementado:**
-- Backend: Models, Routes, Controllers para renovacao
-- Frontend: Modais de config, renovacao, novo participante
-- Logica `pagouInscricao`: true = pago (sem debito), false = cria debito
-- Modal expandido com TODAS as regras configuraveis
-- Documentacao: `docs/SISTEMA-RENOVACAO-TEMPORADA.md`
-- CLAUDE.md atualizado com secao de renovacao
-
-**Arquivos criados:**
-- `models/LigaRules.js`
-- `models/InscricaoTemporada.js`
-- `routes/liga-rules-routes.js`
-- `routes/inscricoes-routes.js`
-- `controllers/inscricoesController.js`
-- `public/js/renovacao/` (api, modals, ui, core)
-- `docs/SISTEMA-RENOVACAO-TEMPORADA.md`
-- `docs/ARQUITETURA-MODULOS.md`
-
-### Restaurar Colunas Financeiras na Lista de Participantes
-
-**Status:** CONCLUIDO
-
-**Problema Identificado:**
-A API `/api/tesouraria/liga/:ligaId` nao retornava os dados de breakdown (Timeline, P.Corridos, Mata-Mata, Top10, Ajustes) porque:
-
-1. O schema do Model `ExtratoFinanceiroCache` define `liga_id` como ObjectId
-2. Mas os documentos no banco foram salvos com `liga_id` como String
-3. O Mongoose tentava fazer cast e a query falhava silenciosamente
-
-**Solucao Aplicada (v2.8):**
-- Alterado `routes/tesouraria-routes.js` para usar acesso DIRETO a collection MongoDB
-- Bypass do schema Mongoose com `mongoose.connection.db.collection('extratofinanceirocaches')`
-- Query com `$or` para cobrir ambos os tipos (String e ObjectId)
-- Removido filtro de temporada nos campos manuais (docs antigos nao tem)
-
-**Resultado:**
-- Todos os 32 participantes agora tem dados de breakdown
-- Colunas Timeline, P.Corridos, Mata-Mata, Top10, Ajustes funcionando
-- modulosAtivos retornados corretamente para renderizacao condicional
+**API verificada:**
+```bash
+curl -s "http://localhost:5000/api/tesouraria/liga/684cb1c8af923da7c7df51de?temporada=2025"
+# Retorna: clube_id: 262, contato: null (esperado - ninguem tem contato ainda)
+```
 
 ---
 
@@ -115,5 +58,11 @@ A API `/api/tesouraria/liga/:ligaId` nao retornava os dados de breakdown (Timeli
 ### Participante Multi-Liga (teste)
 - **Paulinett Miranda:** timeId `13935277`
 
+### Escudos Disponiveis
+- 262 (Flamengo), 263 (Botafogo), 264 (Corinthians), 266 (Fluminense)
+- 267 (Vasco), 275 (Palmeiras), 276 (Sao Paulo), 277 (Santos)
+- 283 (Cruzeiro), 292 (Sport), 344 (RB Bragantino)
+- default.png para clubes sem escudo
+
 ---
-*Atualizado em: 2026-01-04*
+*Atualizado em: 2026-01-05*

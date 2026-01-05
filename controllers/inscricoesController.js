@@ -198,7 +198,10 @@ export async function adicionarParticipanteNaLiga(ligaId, dadosParticipante, tem
             nome_time: dadosParticipante.nome_time,
             nome_cartola: dadosParticipante.nome_cartoleiro || dadosParticipante.nome_cartola,
             escudo_url: dadosParticipante.escudo,
-            ativo: true
+            ativo: true,
+            // ✅ v2.12: Campos adicionais para WhatsApp e Time do Coração
+            contato: dadosParticipante.contato || "",
+            clube_id: dadosParticipante.time_coracao || dadosParticipante.clube_id || null
         });
 
         // Adicionar ao array de times
@@ -347,7 +350,10 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
         time_id: timeId,
         nome_time: participante.nome_time,
         nome_cartoleiro: participante.nome_cartola || participante.nome_cartoleiro,
-        escudo: participante.escudo_url || participante.foto_time
+        escudo: participante.escudo_url || participante.foto_time,
+        // ✅ v2.12: Preservar campos adicionais do participante
+        contato: participante.contato || "",
+        clube_id: participante.clube_id || participante.time_coracao || null
     }, temporada);
 
     console.log(`[INSCRICOES] Renovação processada: liga=${ligaId} time=${timeId} temporada=${temporada}`);

@@ -18,7 +18,7 @@ const CACHE_CONFIG = {
   ttl: {
     // TTL em milissegundos
     rankings: 10 * 60 * 1000, // 10 min
-    participantes: 30 * 60 * 1000, // 30 min
+    participantes: 5 * 60 * 1000, // 5 min (reduzido para atualizar novos participantes)
     extrato: 5 * 60 * 1000, // 5 min
     rodadas: 15 * 60 * 1000, // 15 min
     status: 2 * 60 * 1000, // 2 min

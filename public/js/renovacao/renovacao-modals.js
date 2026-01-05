@@ -508,7 +508,7 @@ const RenovacaoModals = (function() {
 
     function modalNovoParticipante(ligaId, temporada, taxa) {
         return `
-        <div class="modal fade" id="modalNovoParticipante" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal" id="modalNovoParticipante" tabindex="-1" data-bs-backdrop="static">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content bg-gray-800 text-white">
                     <div class="modal-header border-gray-700">
@@ -541,9 +541,9 @@ const RenovacaoModals = (function() {
                             </li>
                         </ul>
 
-                        <div class="tab-content" id="tabsNovoParticipanteContent">
+                        <div class="tab-content active" id="tabsNovoParticipanteContent" style="display: block !important;">
                             <!-- TAB 1: BUSCA POR NOME -->
-                            <div class="tab-pane fade show active" id="panel-busca-nome" role="tabpanel">
+                            <div class="tab-pane show active" id="panel-busca-nome" role="tabpanel" style="display: block;">
                                 <p class="text-muted mb-3">
                                     Busque o time pelo nome no banco de participantes existentes.
                                 </p>
@@ -563,7 +563,7 @@ const RenovacaoModals = (function() {
                             </div>
 
                             <!-- TAB 2: BUSCA POR ID -->
-                            <div class="tab-pane fade" id="panel-busca-id" role="tabpanel">
+                            <div class="tab-pane" id="panel-busca-id" role="tabpanel" style="display: none;">
                                 <p class="text-muted mb-3">
                                     Informe o ID do Cartola FC enviado pelo participante.
                                 </p>
@@ -587,7 +587,7 @@ const RenovacaoModals = (function() {
                             </div>
 
                             <!-- TAB 3: CADASTRO MANUAL -->
-                            <div class="tab-pane fade" id="panel-manual" role="tabpanel">
+                            <div class="tab-pane" id="panel-manual" role="tabpanel" style="display: none;">
                                 <div class="alert alert-warning small mb-3">
                                     <span class="material-icons" style="font-size: 16px; vertical-align: middle;">warning</span>
                                     <strong>Cadastro com pendencia</strong> - Os dados do Cartola FC serao vinculados posteriormente.
