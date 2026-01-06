@@ -996,7 +996,7 @@ export class FluxoFinanceiroCache {
     }
 
     // ✅ v5.3: Limpar todos os caches (para troca de temporada)
-    limparCache() {
+    async limparCache() {
         console.log('[FLUXO-CACHE] 🗑️ Limpando todos os caches...');
 
         // Limpar caches internos
@@ -1008,10 +1008,16 @@ export class FluxoFinanceiroCache {
         this.extratosCacheados.clear();
         this.inscricoes2026.clear();
 
-        // Limpar cache de participantes no cacheManager
+        // Limpar cache de participantes e rankings no cacheManager (IndexedDB)
         if (this.cacheManager) {
-            this.cacheManager.clear('participantes');
-            this.cacheManager.clear('rankings');
+            try {
+                await this.cacheManager.invalidateStore('participantes');
+                await this.cacheManager.invalidateStore('rankings');
+                await this.cacheManager.invalidateStore('extrato');
+                console.log('[FLUXO-CACHE] ✅ IndexedDB limpo');
+            } catch (error) {
+                console.warn('[FLUXO-CACHE] Erro ao limpar IndexedDB:', error);
+            }
         }
 
         // Reset flags

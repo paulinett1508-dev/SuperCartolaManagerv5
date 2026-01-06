@@ -2335,17 +2335,13 @@ export class FluxoFinanceiroUI {
             // Salvar preferência no localStorage
             localStorage.setItem('temporadaSelecionada', temporadaNum);
 
-            // Limpar cache atual
+            // Limpar cache atual (async)
             if (window.fluxoFinanceiroCache) {
-                window.fluxoFinanceiroCache.limparCache();
+                await window.fluxoFinanceiroCache.limparCache();
             }
 
-            // Recarregar fluxo financeiro com nova temporada
-            if (window.fluxoFinanceiroOrquestrador?.recarregar) {
-                window.fluxoFinanceiroOrquestrador.recarregar();
-            } else {
-                location.reload();
-            }
+            // Forçar reload para garantir dados frescos da nova temporada
+            location.reload();
         };
     }
 
