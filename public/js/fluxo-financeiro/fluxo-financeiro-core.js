@@ -516,11 +516,13 @@ export class FluxoFinanceiroCore {
 
     // =====================================================================
     // ✅ v5.0: VERIFICAR CACHE MONGODB COM SUPORTE A TEMPORADA FINALIZADA
+    // ✅ v6.4: Passa temporada selecionada para API
     // =====================================================================
     async _verificarCacheMongoDB(ligaId, timeId, rodadaAtual, mercadoAberto) {
         try {
             const timestamp = Date.now();
-            const url = `${API_BASE_URL}/api/extrato-cache/${ligaId}/times/${timeId}/cache/valido?rodadaAtual=${rodadaAtual}&mercadoAberto=${mercadoAberto}&_=${timestamp}`;
+            const temporada = window.temporadaAtual || 2026;
+            const url = `${API_BASE_URL}/api/extrato-cache/${ligaId}/times/${timeId}/cache/valido?rodadaAtual=${rodadaAtual}&mercadoAberto=${mercadoAberto}&temporada=${temporada}&_=${timestamp}`;
 
             const response = await fetch(url);
             if (!response.ok) return null;
@@ -581,10 +583,14 @@ export class FluxoFinanceiroCore {
                 }
             }
 
+            // ✅ v6.4: Incluir temporada selecionada no payload
+            const temporada = window.temporadaAtual || 2026;
+
             const payload = {
                 historico_transacoes: extrato.rodadas,
                 ultimaRodadaCalculada,
                 motivoRecalculo: motivo,
+                temporada, // ✅ v6.4: Temporada selecionada
                 resumo: {
                     saldo: extrato.resumo.saldo,
                     totalGanhos: extrato.resumo.totalGanhos,

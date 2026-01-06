@@ -120,11 +120,13 @@ export class FluxoFinanceiroCache {
     // ===================================================================
     async buscarExtratoCacheado(timeId, rodadaAtual, mercadoAberto = false) {
         try {
+            // ✅ v5.3: Usar temporada selecionada
+            const temporada = window.temporadaAtual || 2026;
             console.log(
-                `[FLUXO-CACHE] 🔍 Verificando cache MongoDB para time ${timeId}...`,
+                `[FLUXO-CACHE] 🔍 Verificando cache MongoDB para time ${timeId} (temporada ${temporada})...`,
             );
 
-            const url = `${API_BASE_URL}/api/extrato-cache/${this.ligaId}/times/${timeId}/cache/valido?rodadaAtual=${rodadaAtual}&mercadoAberto=${mercadoAberto}`;
+            const url = `${API_BASE_URL}/api/extrato-cache/${this.ligaId}/times/${timeId}/cache/valido?rodadaAtual=${rodadaAtual}&mercadoAberto=${mercadoAberto}&temporada=${temporada}`;
 
             const response = await fetch(url);
 
@@ -190,14 +192,17 @@ export class FluxoFinanceiroCache {
         motivo = "calculo_frontend",
     ) {
         try {
+            // ✅ v5.3: Usar temporada selecionada
+            const temporada = window.temporadaAtual || 2026;
             console.log(
-                `[FLUXO-CACHE] 💾 Salvando cache MongoDB para time ${timeId}...`,
+                `[FLUXO-CACHE] 💾 Salvando cache MongoDB para time ${timeId} (temporada ${temporada})...`,
             );
 
             const payload = {
                 historico_transacoes: extrato.rodadas || [],
                 ultimaRodadaCalculada: rodadaCalculada,
                 motivoRecalculo: motivo,
+                temporada, // ✅ v5.3: Temporada selecionada
                 resumo: extrato.resumo || {},
                 saldo: extrato.resumo?.saldo || 0,
             };
@@ -241,15 +246,17 @@ export class FluxoFinanceiroCache {
 
     // ===================================================================
     // ✅ NOVO: INVALIDAR CACHE DE UM TIME
+    // ✅ v5.3: Passa temporada para invalidar cache correto
     // ===================================================================
     async invalidarCacheTime(timeId) {
         try {
+            const temporada = window.temporadaAtual || 2026;
             console.log(
-                `[FLUXO-CACHE] 🗑️ Invalidando cache do time ${timeId}...`,
+                `[FLUXO-CACHE] 🗑️ Invalidando cache do time ${timeId} (temporada ${temporada})...`,
             );
 
             const response = await fetch(
-                `${API_BASE_URL}/api/extrato-cache/${this.ligaId}/times/${timeId}/cache`,
+                `${API_BASE_URL}/api/extrato-cache/${this.ligaId}/times/${timeId}/cache?temporada=${temporada}`,
                 { method: "DELETE" },
             );
 
@@ -1085,10 +1092,12 @@ export function forceRefresh(ligaId, participante = null) {
 }
 
 // ✅ NOVO: Expor função para invalidar cache de time (chamada global)
+// ✅ v5.3: Passa temporada para invalidar cache correto
 window.invalidarCacheTime = async (ligaId, timeId) => {
     try {
+        const temporada = window.temporadaAtual || 2026;
         const response = await fetch(
-            `${API_BASE_URL}/api/extrato-cache/${ligaId}/times/${timeId}/cache`,
+            `${API_BASE_URL}/api/extrato-cache/${ligaId}/times/${timeId}/cache?temporada=${temporada}`,
             { method: "DELETE" },
         );
         console.log(
