@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v7.8"; // v7.8: WhatsApp Direto + campo contato na tabela
+const CACHE_BUSTER = "v7.9"; // v7.9: Seletor de Temporada (2025/2026)
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -102,8 +102,17 @@ async function carregarModulos() {
 async function inicializarFluxoFinanceiro() {
     console.log("[FLUXO-ADMIN] 🚀 Inicializando módulo ADMIN");
 
-    // Definir temporada global para uso em acertos (sera atualizado pela API)
-    window.temporadaAtual = window.temporadaAtual || 2025;
+    // ✅ v7.9: Verificar temporada salva no localStorage (prioridade)
+    // Ordem: localStorage > default 2026 (API Cartola retorna 2025, ignoramos)
+    const temporadaSalva = localStorage.getItem('temporadaSelecionada');
+    if (temporadaSalva) {
+        window.temporadaAtual = parseInt(temporadaSalva, 10);
+        console.log("[FLUXO-ADMIN] 📅 Temporada do localStorage:", window.temporadaAtual);
+    } else {
+        // Default para 2026 (nova temporada)
+        window.temporadaAtual = 2026;
+        console.log("[FLUXO-ADMIN] 📅 Temporada padrão: 2026");
+    }
 
     try {
         await carregarModulos();
@@ -112,11 +121,9 @@ async function inicializarFluxoFinanceiro() {
             const status = await getMercadoStatus();
             rodadaAtual = status.rodada_atual || 1;
 
-            // Atualizar temporada global se disponível na API
-            if (status.temporada) {
-                window.temporadaAtual = status.temporada;
-                console.log("[FLUXO-ADMIN] Temporada:", window.temporadaAtual);
-            }
+            // ✅ v7.9: NÃO sobrescrever temporada com valor da API Cartola
+            // A API retorna 2025 mas queremos usar 2026 como default
+            console.log("[FLUXO-ADMIN] Temporada selecionada:", window.temporadaAtual, "(API Cartola:", status.temporada, ")");
 
             // ✅ FIX: Verificar se temporada encerrou (game_over) ou mercado fechado
             // Se encerrou, usar rodada atual (38). Se não, usar rodada anterior.
@@ -1687,4 +1694,4 @@ window.abrirWhatsApp = function(contato, nome) {
     window.open(url, '_blank');
 };
 
-console.log("[FLUXO-ADMIN] ✅ v7.8 carregado (WhatsApp Direto)");
+console.log("[FLUXO-ADMIN] ✅ v7.9 carregado (Seletor de Temporada 2025/2026)");

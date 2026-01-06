@@ -988,6 +988,31 @@ export class FluxoFinanceiroCache {
         return { ...this.modulosAtivos };
     }
 
+    // ✅ v5.3: Limpar todos os caches (para troca de temporada)
+    limparCache() {
+        console.log('[FLUXO-CACHE] 🗑️ Limpando todos os caches...');
+
+        // Limpar caches internos
+        this.cacheRankings = {};
+        this.cacheConfrontosLPC = [];
+        this.cacheResultadosMM = [];
+        this.cacheResultadosMelhorMes = [];
+        this.cacheFrontosPontosCorridos = [];
+        this.extratosCacheados.clear();
+        this.inscricoes2026.clear();
+
+        // Limpar cache de participantes no cacheManager
+        if (this.cacheManager) {
+            this.cacheManager.clear('participantes');
+            this.cacheManager.clear('rankings');
+        }
+
+        // Reset flags
+        this._dadosExternosCarregados = false;
+
+        console.log('[FLUXO-CACHE] ✅ Caches limpos com sucesso');
+    }
+
     debugCache() {
         const stats = {
             participantes: this.participantes?.length || 0,

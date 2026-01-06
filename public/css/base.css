@@ -501,6 +501,41 @@
     color: var(--color-primary, #FF5500);
 }
 
+/* ✅ v7.9: Seletor de Temporada */
+.temporada-selector {
+    background: linear-gradient(135deg, #FF5500 0%, #cc4400 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    margin-left: 4px;
+    box-shadow: 0 2px 8px rgba(255, 85, 0, 0.3);
+    transition: all 0.2s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.temporada-selector:hover {
+    background: linear-gradient(135deg, #ff6600 0%, #dd5500 100%);
+    box-shadow: 0 4px 12px rgba(255, 85, 0, 0.4);
+    transform: translateY(-1px);
+}
+
+.temporada-selector:focus {
+    box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.25);
+}
+
+.temporada-selector option {
+    background: #1e293b;
+    color: #fff;
+    padding: 8px;
+}
+
 /* Stats Badges Inline */
 .toolbar-stats {
     display: flex;

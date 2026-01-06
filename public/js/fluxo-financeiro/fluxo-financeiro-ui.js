@@ -314,6 +314,11 @@ export class FluxoFinanceiroUI {
                         <span class="material-icons">account_balance_wallet</span>
                         Financeiro
                     </h2>
+                    <!-- ✅ v7.9: Seletor de Temporada -->
+                    <select id="seletorTemporada" class="temporada-selector" onchange="window.mudarTemporada(this.value)">
+                        <option value="2026" ${(window.temporadaAtual || 2026) === 2026 ? 'selected' : ''}>2026</option>
+                        <option value="2025" ${(window.temporadaAtual || 2026) === 2025 ? 'selected' : ''}>2025</option>
+                    </select>
                     <div class="toolbar-stats">
                         <span class="stat-badge">
                             <span class="material-icons">people</span>
@@ -1193,6 +1198,34 @@ export class FluxoFinanceiroUI {
             }
             .toolbar-select:focus {
                 border-color: #FF5500;
+            }
+
+            /* ✅ v7.9: Seletor de Temporada */
+            .temporada-selector {
+                background: linear-gradient(135deg, #FF5500 0%, #cc4400 100%);
+                border: none;
+                border-radius: 8px;
+                padding: 8px 16px;
+                color: #fff;
+                font-size: 0.9rem;
+                font-weight: 700;
+                cursor: pointer;
+                outline: none;
+                margin-left: 12px;
+                box-shadow: 0 2px 8px rgba(255, 85, 0, 0.3);
+                transition: all 0.2s ease;
+            }
+            .temporada-selector:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(255, 85, 0, 0.4);
+            }
+            .temporada-selector:focus {
+                box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.3);
+            }
+            .temporada-selector option {
+                background: #1a1a1a;
+                color: #fff;
+                padding: 8px;
             }
 
             /* Tabela Expandida */
@@ -2280,6 +2313,37 @@ export class FluxoFinanceiroUI {
                 window.fluxoFinanceiroOrquestrador.recarregar();
             } else {
                 // Fallback: reload da página
+                location.reload();
+            }
+        };
+
+        // ✅ v7.9: Mudar temporada e recarregar dados
+        window.mudarTemporada = async (novaTemporada) => {
+            const temporadaNum = parseInt(novaTemporada);
+            const temporadaAnterior = window.temporadaAtual;
+
+            if (temporadaNum === temporadaAnterior) {
+                console.log('[FLUXO-UI] Temporada já selecionada:', temporadaNum);
+                return;
+            }
+
+            console.log(`[FLUXO-UI] 🔄 Mudando temporada: ${temporadaAnterior} → ${temporadaNum}`);
+
+            // Atualizar variável global
+            window.temporadaAtual = temporadaNum;
+
+            // Salvar preferência no localStorage
+            localStorage.setItem('temporadaSelecionada', temporadaNum);
+
+            // Limpar cache atual
+            if (window.fluxoFinanceiroCache) {
+                window.fluxoFinanceiroCache.limparCache();
+            }
+
+            // Recarregar fluxo financeiro com nova temporada
+            if (window.fluxoFinanceiroOrquestrador?.recarregar) {
+                window.fluxoFinanceiroOrquestrador.recarregar();
+            } else {
                 location.reload();
             }
         };
