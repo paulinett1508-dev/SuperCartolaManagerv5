@@ -155,7 +155,8 @@
       "Bash(scripts/test-multi-tenant.js )",
       "Bash(scripts/test-wizard-create-liga.js)",
       "Bash(tee:*)",
-      "Skill(audit-financa)"
+      "Skill(audit-financa)",
+      "Bash(jq:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
