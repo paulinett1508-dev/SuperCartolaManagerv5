@@ -87,89 +87,113 @@ export async function criarTransacoesIniciais(ligaId, timeId, temporada, valores
     // IMPORTANTE: Se pagouInscricao = true, NÃO cria débito (apenas registro na InscricaoTemporada)
     // Se pagouInscricao = false, cria débito no extrato (participante deve a taxa)
     if (valores.taxa > 0 && valores.pagouInscricao === false) {
-        const txInscricao = {
+        // ✅ v1.1: Verificar se já existe transação de inscrição (evitar duplicação)
+        const extratoExistente = await db.collection('extratofinanceirocaches').findOne({
             liga_id: String(ligaId),
             time_id: Number(timeId),
             temporada: Number(temporada),
-            rodada: 0, // Rodada 0 = pré-temporada
-            tipo: 'INSCRICAO_TEMPORADA',
-            descricao: `Taxa de inscrição temporada ${temporada} (pendente)`,
-            valor: -valores.taxa, // Negativo = débito
-            data: agora,
-            criado_em: agora,
-            origem: 'sistema_renovacao'
-        };
+            'historico_transacoes.tipo': 'INSCRICAO_TEMPORADA'
+        });
 
-        // Inserir no histórico do cache de extrato
-        await db.collection('extratofinanceirocaches').updateOne(
-            {
+        if (extratoExistente) {
+            console.log(`[INSCRICOES] ⚠️ Transação INSCRICAO_TEMPORADA já existe para time ${timeId} em ${temporada}. Pulando...`);
+        } else {
+            const txInscricao = {
                 liga_id: String(ligaId),
                 time_id: Number(timeId),
-                temporada: Number(temporada)
-            },
-            {
-                $push: {
-                    historico_transacoes: {
-                        rodada: 0,
-                        tipo: 'INSCRICAO_TEMPORADA',
-                        valor: -valores.taxa,
-                        descricao: txInscricao.descricao,
-                        data: agora
-                    }
-                },
-                $inc: {
-                    saldo_consolidado: -valores.taxa
-                },
-                $setOnInsert: {
+                temporada: Number(temporada),
+                rodada: 0, // Rodada 0 = pré-temporada
+                tipo: 'INSCRICAO_TEMPORADA',
+                descricao: `Taxa de inscrição temporada ${temporada} (pendente)`,
+                valor: -valores.taxa, // Negativo = débito
+                data: agora,
+                criado_em: agora,
+                origem: 'sistema_renovacao'
+            };
+
+            // Inserir no histórico do cache de extrato
+            await db.collection('extratofinanceirocaches').updateOne(
+                {
                     liga_id: String(ligaId),
                     time_id: Number(timeId),
-                    temporada: Number(temporada),
-                    criado_em: agora
-                }
-            },
-            { upsert: true }
-        );
+                    temporada: Number(temporada)
+                },
+                {
+                    $push: {
+                        historico_transacoes: {
+                            rodada: 0,
+                            tipo: 'INSCRICAO_TEMPORADA',
+                            valor: -valores.taxa,
+                            descricao: txInscricao.descricao,
+                            data: agora
+                        }
+                    },
+                    $inc: {
+                        saldo_consolidado: -valores.taxa
+                    },
+                    $setOnInsert: {
+                        liga_id: String(ligaId),
+                        time_id: Number(timeId),
+                        temporada: Number(temporada),
+                        criado_em: agora
+                    }
+                },
+                { upsert: true }
+            );
 
-        transacoes.push({
-            tipo: 'INSCRICAO_TEMPORADA',
-            valor: -valores.taxa,
-            ref_id: `inscricao_${ligaId}_${timeId}_${temporada}`
-        });
+            transacoes.push({
+                tipo: 'INSCRICAO_TEMPORADA',
+                valor: -valores.taxa,
+                ref_id: `inscricao_${ligaId}_${timeId}_${temporada}`
+            });
+        }
     }
 
     // 2. Transação de Saldo Transferido (pode ser positivo ou negativo)
     if (valores.saldoTransferido !== 0) {
-        const descricao = valores.saldoTransferido > 0
-            ? `Crédito aproveitado da temporada ${temporada - 1}`
-            : `Dívida transferida da temporada ${temporada - 1}`;
-
-        await db.collection('extratofinanceirocaches').updateOne(
-            {
-                liga_id: String(ligaId),
-                time_id: Number(timeId),
-                temporada: Number(temporada)
-            },
-            {
-                $push: {
-                    historico_transacoes: {
-                        rodada: 0,
-                        tipo: 'SALDO_TEMPORADA_ANTERIOR',
-                        valor: valores.saldoTransferido, // Positivo = crédito, Negativo = dívida
-                        descricao,
-                        data: agora
-                    }
-                },
-                $inc: {
-                    saldo_consolidado: valores.saldoTransferido
-                }
-            }
-        );
-
-        transacoes.push({
-            tipo: 'SALDO_TEMPORADA_ANTERIOR',
-            valor: valores.saldoTransferido,
-            ref_id: `saldo_anterior_${ligaId}_${timeId}_${temporada}`
+        // ✅ v1.1: Verificar se já existe transação de saldo anterior (evitar duplicação)
+        const extratoComSaldo = await db.collection('extratofinanceirocaches').findOne({
+            liga_id: String(ligaId),
+            time_id: Number(timeId),
+            temporada: Number(temporada),
+            'historico_transacoes.tipo': 'SALDO_TEMPORADA_ANTERIOR'
         });
+
+        if (extratoComSaldo) {
+            console.log(`[INSCRICOES] ⚠️ Transação SALDO_TEMPORADA_ANTERIOR já existe para time ${timeId} em ${temporada}. Pulando...`);
+        } else {
+            const descricao = valores.saldoTransferido > 0
+                ? `Crédito aproveitado da temporada ${temporada - 1}`
+                : `Dívida transferida da temporada ${temporada - 1}`;
+
+            await db.collection('extratofinanceirocaches').updateOne(
+                {
+                    liga_id: String(ligaId),
+                    time_id: Number(timeId),
+                    temporada: Number(temporada)
+                },
+                {
+                    $push: {
+                        historico_transacoes: {
+                            rodada: 0,
+                            tipo: 'SALDO_TEMPORADA_ANTERIOR',
+                            valor: valores.saldoTransferido, // Positivo = crédito, Negativo = dívida
+                            descricao,
+                            data: agora
+                        }
+                    },
+                    $inc: {
+                        saldo_consolidado: valores.saldoTransferido
+                    }
+                }
+            );
+
+            transacoes.push({
+                tipo: 'SALDO_TEMPORADA_ANTERIOR',
+                valor: valores.saldoTransferido,
+                ref_id: `saldo_anterior_${ligaId}_${timeId}_${temporada}`
+            });
+        }
     }
 
     return transacoes;
