@@ -136,9 +136,13 @@ router.get("/:timeId", async (req, res) => {
 
         console.log(`[HISTORICO] ✅ Histórico encontrado: ${response.historico.length} temporada(s)`);
 
-        // ✅ v2.2: Buscar saldo ATUAL de TODAS as ligas do participante
+        // ✅ v2.4: Buscar saldo ATUAL de TODAS as ligas do participante (APENAS temporada atual)
+        // Gap de segurança corrigido: antes buscava todas as temporadas, misturando saldos
         try {
-            const extratosCaches = await ExtratoFinanceiroCache.find({ time_id: Number(timeId) });
+            const extratosCaches = await ExtratoFinanceiroCache.find({
+                time_id: Number(timeId),
+                temporada: CURRENT_SEASON  // ✅ FIX: Filtrar por temporada atual
+            });
 
             if (extratosCaches && extratosCaches.length > 0) {
                 // Somar saldos de todas as ligas
