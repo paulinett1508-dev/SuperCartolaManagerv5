@@ -157,10 +157,14 @@ router.get("/:timeId", async (req, res) => {
                     totalPerdas += perdasLiga;
                 });
 
-                // ✅ v2.2: Buscar acertos financeiros de TODAS as ligas
+                // ✅ v2.3: Buscar acertos financeiros da temporada ATUAL apenas
+                // Gap de segurança corrigido: antes buscava todas as temporadas
                 let saldoAcertos = 0;
                 try {
-                    const acertos = await AcertoFinanceiro.find({ timeId: String(timeId) });
+                    const acertos = await AcertoFinanceiro.find({
+                        timeId: String(timeId),
+                        temporada: CURRENT_SEASON  // ✅ FIX: Filtrar por temporada
+                    });
                     if (acertos.length > 0) {
                         acertos.forEach(a => {
                             // pagamento = participante PAGOU à liga (POSITIVO, quita dívida)

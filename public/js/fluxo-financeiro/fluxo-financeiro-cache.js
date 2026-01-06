@@ -47,6 +47,9 @@ export class FluxoFinanceiroCache {
         this.extratosCacheados = new Map(); // timeId -> extrato
         this.statusMercado = null;
 
+        // ✅ v5.2: Cache de inscrições 2026
+        this.inscricoes2026 = new Map(); // timeId -> inscricao
+
         // ✅ v5.1: Módulos ativos da liga (defaults corrigidos)
         // IMPORTANTE: Valores alinhados com config/modulos-defaults.js
         this.modulosAtivos = {
@@ -300,12 +303,16 @@ export class FluxoFinanceiroCache {
             `[FLUXO-CACHE] 📊 Rodada atual: ${rodadaAtual}, Mercado: ${mercadoAberto ? "aberto" : "fechado"}, Última completa: ${this.ultimaRodadaCompleta}`,
         );
 
-        // ✅ FASE 2: Carregar apenas participantes (essencial para listagem)
+        // ✅ FASE 2: Carregar participantes + inscrições 2026 (essencial para listagem)
         await this.carregarParticipantes();
+        await this.carregarInscricoes2026();
 
         // ✅ LAZY: Rankings e dados externos serão carregados sob demanda
         // quando o usuário clicar em um participante para ver extrato
         this._dadosExternosCarregados = false;
+
+        // ✅ v5.2: Expor função global para a UI acessar status de inscrição
+        window.getStatusInscricao2026 = (timeId) => this.getStatusInscricao2026(timeId);
 
         const elapsed = Math.round(performance.now() - startTime);
         console.log(`[FLUXO-CACHE] ✅ Cache básico inicializado em ${elapsed}ms (lazy loading ativo)`);
@@ -438,6 +445,87 @@ export class FluxoFinanceiroCache {
             this.participantes = [];
             return [];
         }
+    }
+
+    // ===================================================================
+    // ✅ v5.2: Carregar inscrições temporada 2026
+    // ===================================================================
+    async carregarInscricoes2026() {
+        const ligaId = this.ligaId || obterLigaId();
+        if (!ligaId) return new Map();
+
+        try {
+            const response = await fetch(`/api/inscricoes/${ligaId}/2026`);
+            if (!response.ok) {
+                console.warn('[FLUXO-CACHE] Nenhuma inscrição 2026 encontrada');
+                return this.inscricoes2026;
+            }
+
+            const data = await response.json();
+            if (data.success && data.inscricoes) {
+                this.inscricoes2026.clear();
+                data.inscricoes.forEach(insc => {
+                    this.inscricoes2026.set(String(insc.time_id), insc);
+                });
+                console.log(`[FLUXO-CACHE] ✅ ${this.inscricoes2026.size} inscrições 2026 carregadas`);
+            }
+
+            return this.inscricoes2026;
+        } catch (error) {
+            console.error('[FLUXO-CACHE] Erro ao carregar inscrições 2026:', error);
+            return this.inscricoes2026;
+        }
+    }
+
+    /**
+     * Retorna o status de inscrição de um participante
+     * @param {string|number} timeId
+     * @returns {object} { status, pagouInscricao, badgeClass, badgeIcon, badgeText }
+     */
+    getStatusInscricao2026(timeId) {
+        const inscricao = this.inscricoes2026.get(String(timeId));
+
+        if (!inscricao) {
+            return {
+                status: 'pendente',
+                pagouInscricao: null,
+                badgeClass: 'badge-2026-pendente',
+                badgeIcon: 'schedule',
+                badgeText: 'Pendente'
+            };
+        }
+
+        const statusMap = {
+            'renovado': {
+                status: 'renovado',
+                pagouInscricao: inscricao.pagou_inscricao,
+                badgeClass: inscricao.pagou_inscricao ? 'badge-2026-renovado' : 'badge-2026-renovado-devendo',
+                badgeIcon: 'check_circle',
+                badgeText: inscricao.pagou_inscricao ? 'Renovado' : 'Renovado'
+            },
+            'novo': {
+                status: 'novo',
+                pagouInscricao: inscricao.pagou_inscricao,
+                badgeClass: 'badge-2026-novo',
+                badgeIcon: 'person_add',
+                badgeText: 'Novo'
+            },
+            'nao_participa': {
+                status: 'nao_participa',
+                pagouInscricao: null,
+                badgeClass: 'badge-2026-nao-participa',
+                badgeIcon: 'cancel',
+                badgeText: 'Saiu'
+            }
+        };
+
+        return statusMap[inscricao.status] || {
+            status: inscricao.status || 'pendente',
+            pagouInscricao: null,
+            badgeClass: 'badge-2026-pendente',
+            badgeIcon: 'schedule',
+            badgeText: 'Pendente'
+        };
     }
 
     // ===================================================================

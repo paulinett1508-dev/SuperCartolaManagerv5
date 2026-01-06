@@ -645,15 +645,19 @@ body {
 
 .tabela-wrapper {
     overflow-x: auto;
-    border-radius: 6px; /* REDUZIDO de 8px para 6px */
+    overflow-y: auto; /* ✅ v2.0: Scroll vertical para sticky header */
+    max-height: 70vh; /* ✅ v2.0: Altura máxima para ativar scroll */
+    border-radius: 6px;
     border: 1px solid var(--border-primary);
+    position: relative; /* ✅ v2.0: Contexto para sticky */
 }
 
 .detalhamento-tabela {
     width: 100%;
-    border-collapse: collapse;
-    font-size: 11px; /* REDUZIDO de 13px para 11px */
-    min-width: 600px; /* REDUZIDO de 800px para 600px */
+    border-collapse: separate; /* ✅ v2.0: Necessário para sticky funcionar */
+    border-spacing: 0;
+    font-size: 11px;
+    min-width: 600px;
     background: var(--bg-card);
 }
 
@@ -662,11 +666,20 @@ body {
     color: white;
 }
 
+/* ✅ v2.0: CABEÇALHO CONGELADO (Sticky Header) */
+.detalhamento-tabela thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg-tertiary, #1a1a1a);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Sombra para destacar */
+}
+
 .detalhamento-tabela th {
-    padding: 8px 6px; /* REDUZIDO de 14px 10px */
+    padding: 8px 6px;
     text-align: center;
     font-weight: 600;
-    font-size: 10px; /* REDUZIDO de 12px para 10px */
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
@@ -1926,4 +1939,56 @@ body {
     border-color: var(--laranja);
     box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.25);
     color: #fff;
+}
+
+/* =============================================================================
+   ✅ v2.1: CABEÇALHO CONGELADO - TABELA PRINCIPAL DE PARTICIPANTES
+   Sticky header para a tabela de fluxo financeiro (lista de participantes)
+   NOTA: Os estilos principais estão no JS inline. Este CSS é backup/override.
+   ============================================================================= */
+
+/* Container da tabela - altura fixa para forçar scroll */
+#fluxoFinanceiroButtons .fluxo-tabela-container,
+.page-content .fluxo-tabela-container,
+div.fluxo-tabela-container {
+    height: calc(100vh - 320px) !important;
+    min-height: 300px !important;
+    max-height: 600px !important;
+    overflow-y: scroll !important;
+    overflow-x: auto !important;
+    position: relative !important;
+}
+
+/* Tabela principal - CRITICAL: border-collapse: separate é OBRIGATÓRIO para sticky */
+.fluxo-participantes-tabela,
+table.fluxo-participantes-tabela {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+/* Thead sticky */
+.fluxo-participantes-tabela thead {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 20 !important; /* Acima de outros elementos */
+}
+
+/* Cada th precisa de background sólido para não ficar transparente */
+.fluxo-participantes-tabela thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 20 !important;
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important; /* Sombra para destacar */
+}
+
+/* Garantir que borda inferior do header seja visível */
+.fluxo-participantes-tabela thead th::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: #FF5500;
 }

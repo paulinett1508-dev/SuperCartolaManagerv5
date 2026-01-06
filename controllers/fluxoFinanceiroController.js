@@ -425,6 +425,16 @@ export const getExtratoFinanceiro = async (req, res) => {
         const { ligaId, timeId } = req.params;
         const forcarRecalculo = req.query.refresh === "true";
 
+        // ✅ v8.3.0 FIX: Bloquear tentativa de acessar temporadas passadas via query param
+        // Gap de segurança: alguém poderia tentar ?temporada=2025
+        if (req.query.temporada && parseInt(req.query.temporada) !== CURRENT_SEASON) {
+            console.warn(`[FLUXO-CONTROLLER] ⚠️ Tentativa de acesso a temporada ${req.query.temporada} bloqueada`);
+            return res.status(403).json({
+                error: "Acesso a temporadas anteriores não permitido nesta rota",
+                hint: "Use /api/participante/historico para dados históricos"
+            });
+        }
+
         console.log(
             `[FLUXO-CONTROLLER] Extrato time ${timeId} | refresh=${forcarRecalculo}`,
         );

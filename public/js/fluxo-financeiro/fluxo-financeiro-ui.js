@@ -502,14 +502,7 @@ export class FluxoFinanceiroUI {
                 ${modulosCols}
                 <td class="col-saldo ${classeSaldo}"><strong>${saldoSinal}R$ ${saldoFormatado}</strong></td>
                 <td class="col-2026">
-                    <span class="renovacao-badge badge-2026-pendente"
-                          data-time-id="${timeId}"
-                          onclick="window.abrirAcaoRenovacao && window.abrirAcaoRenovacao(${timeId}, '${(p.nome_time || '').replace(/'/g, "\\'")}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}', '${p.url_escudo_png || ''}')"
-                          style="cursor: pointer;"
-                          title="Clique para gerenciar renovação">
-                        <span class="material-icons" style="font-size: 14px; vertical-align: middle;">schedule</span>
-                        Pendente
-                    </span>
+                    ${this._renderizarBadge2026(timeId, p)}
                 </td>
                 <td class="col-acoes">
                     <div class="acoes-row">
@@ -530,6 +523,45 @@ export class FluxoFinanceiroUI {
                     </div>
                 </td>
             </tr>
+        `;
+    }
+
+    /**
+     * Renderiza o badge de status 2026 com base nos dados de inscrição
+     * @param {string} timeId
+     * @param {object} p - dados do participante
+     */
+    _renderizarBadge2026(timeId, p) {
+        // Obter status da inscrição via função global exposta pelo cache
+        const status = window.getStatusInscricao2026
+            ? window.getStatusInscricao2026(timeId)
+            : { status: 'pendente', badgeClass: 'badge-2026-pendente', badgeIcon: 'schedule', badgeText: 'Pendente' };
+
+        // Tooltip dinâmico
+        let tooltip = 'Clique para gerenciar renovação';
+        if (status.status === 'renovado') {
+            tooltip = status.pagouInscricao ? 'Renovado - Inscrição paga' : 'Renovado - Deve inscrição';
+        } else if (status.status === 'novo') {
+            tooltip = status.pagouInscricao ? 'Novo participante - Inscrição paga' : 'Novo participante - Deve inscrição';
+        } else if (status.status === 'nao_participa') {
+            tooltip = 'Não participa em 2026';
+        }
+
+        // Ícone de alerta para quem deve inscrição
+        const alertaDevendo = (status.status === 'renovado' || status.status === 'novo') && status.pagouInscricao === false
+            ? '<span class="material-icons" style="font-size: 12px; color: #ffc107; vertical-align: middle; margin-left: 2px;" title="Deve inscrição">warning</span>'
+            : '';
+
+        return `
+            <span class="renovacao-badge ${status.badgeClass}"
+                  data-time-id="${timeId}"
+                  data-status="${status.status}"
+                  onclick="window.abrirAcaoRenovacao && window.abrirAcaoRenovacao(${timeId}, '${(p.nome_time || '').replace(/'/g, "\\'")}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}', '${p.url_escudo_png || ''}')"
+                  style="cursor: pointer;"
+                  title="${tooltip}">
+                <span class="material-icons" style="font-size: 14px; vertical-align: middle;">${status.badgeIcon}</span>
+                ${status.badgeText}${alertaDevendo}
+            </span>
         `;
     }
 
@@ -753,13 +785,17 @@ export class FluxoFinanceiroUI {
                v2.1 - Cores Vivas + Colunas Compactas
                ======================================== */
 
+            /* ✅ v2.1: Container com scroll OBRIGATÓRIO para sticky header */
             .fluxo-tabela-container {
                 background: #1a1a1a;
                 border: 1px solid rgba(255, 85, 0, 0.25);
                 border-radius: 12px;
-                overflow: hidden;
-                max-height: 500px;
-                overflow-y: auto;
+                position: relative;
+                height: calc(100vh - 320px);  /* Altura FIXA baseada na viewport */
+                min-height: 300px;
+                max-height: 600px;
+                overflow-y: scroll !important;  /* SCROLL forçado, não auto */
+                overflow-x: auto;
             }
 
             /* Scrollbar elegante */
@@ -779,7 +815,8 @@ export class FluxoFinanceiroUI {
 
             .fluxo-participantes-tabela {
                 width: 100%;
-                border-collapse: collapse;
+                border-collapse: separate;  /* ✅ CRITICAL: separate é OBRIGATÓRIO para sticky funcionar */
+                border-spacing: 0;
                 font-size: 0.9rem;
                 table-layout: fixed;
             }
@@ -787,11 +824,16 @@ export class FluxoFinanceiroUI {
             .fluxo-participantes-tabela thead {
                 position: sticky;
                 top: 0;
-                z-index: 10;
+                z-index: 20;
             }
 
+            /* ✅ v2.0: Cada TH precisa de sticky + background sólido */
             .fluxo-participantes-tabela th {
+                position: sticky;
+                top: 0;
+                z-index: 20;
                 background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
                 color: #FF5500;
                 font-weight: 700;
                 font-size: 0.75rem;
@@ -1644,6 +1686,12 @@ export class FluxoFinanceiroUI {
                 background: rgba(59, 130, 246, 0.15);
                 color: #3b82f6;
                 border: 1px solid rgba(59, 130, 246, 0.3);
+            }
+            .badge-2026-renovado-devendo {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+                border: 1px solid rgba(245, 158, 11, 0.5);
+                box-shadow: 0 0 4px rgba(245, 158, 11, 0.3);
             }
 
             /* Toolbar 2026 */

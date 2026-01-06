@@ -213,15 +213,15 @@ export async function adicionarParticipanteNaLiga(ligaId, dadosParticipante, tem
         await liga.save();
     }
 
-    // Garantir que Time existe para a nova temporada
+    // Garantir que Time existe (busca apenas por id, que é único)
+    // Se existir: atualiza para nova temporada
+    // Se não existir: cria novo
     await Time.findOneAndUpdate(
         {
-            id: Number(dadosParticipante.time_id),
-            temporada: Number(temporada)
+            id: Number(dadosParticipante.time_id)
         },
         {
-            $setOnInsert: {
-                id: Number(dadosParticipante.time_id),
+            $set: {
                 nome_time: dadosParticipante.nome_time,
                 nome_cartoleiro: dadosParticipante.nome_cartoleiro || dadosParticipante.nome_cartola,
                 nome: dadosParticipante.nome_cartoleiro || dadosParticipante.nome_cartola,
@@ -229,9 +229,12 @@ export async function adicionarParticipanteNaLiga(ligaId, dadosParticipante, tem
                 liga_id: ligaId,
                 temporada: Number(temporada),
                 ativo: true
+            },
+            $setOnInsert: {
+                id: Number(dadosParticipante.time_id)
             }
         },
-        { upsert: true }
+        { upsert: true, new: true }
     );
 }
 

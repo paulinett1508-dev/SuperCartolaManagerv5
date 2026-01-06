@@ -371,11 +371,11 @@ const RenovacaoModals = (function() {
                                             <td>Taxa de Inscricao</td>
                                             <td class="text-end" id="valorTaxa">${formatarMoeda(taxa)}</td>
                                         </tr>
-                                        <tr id="rowTaxaStatus" class="${cenarios.pagou.taxaComoDivida === 0 ? 'text-success' : 'text-warning'}">
+                                        <tr id="rowTaxaStatus" class="${cenarios.pagou.taxaComoDivida === 0 ? 'text-success' : 'text-danger'}">
                                             <td colspan="2" class="small" id="statusTaxa">
                                                 ${cenarios.pagou.taxaComoDivida === 0
-                                                    ? '<span class="material-icons" style="font-size:14px;vertical-align:middle;">check_circle</span> Paga (nao vira divida)'
-                                                    : '<span class="material-icons" style="font-size:14px;vertical-align:middle;">warning</span> Pendente (vira divida)'}
+                                                    ? '<span class="material-icons" style="font-size:14px;vertical-align:middle;">check_circle</span> Paga (não vira dívida)'
+                                                    : '<span class="material-icons" style="font-size:14px;vertical-align:middle;">warning</span> Pendente (vira dívida)'}
                                             </td>
                                         </tr>
                                         <tr id="rowCredito" class="text-success" style="display: ${cenarios.pagou.credito > 0 ? 'table-row' : 'none'};">
@@ -389,8 +389,8 @@ const RenovacaoModals = (function() {
                                         <tr class="border-top border-gray-700">
                                             <td><strong>Saldo Inicial ${preview?.temporadaDestino || 2026}</strong></td>
                                             <td class="text-end">
-                                                <strong id="valorSaldoInicial" class="${cenarios.pagou.total <= 0 ? 'text-success' : 'text-warning'}">
-                                                    ${formatarMoeda(cenarios.pagou.total)}
+                                                <strong id="valorSaldoInicial" class="${cenarios.pagou.total > 0 ? 'text-danger fw-bold' : 'text-success fw-bold'}">
+                                                    ${cenarios.pagou.total > 0 ? '-' : ''}${formatarMoeda(cenarios.pagou.total)}
                                                 </strong>
                                             </td>
                                         </tr>

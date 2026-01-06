@@ -63,8 +63,6 @@ const RenovacaoUI = (function() {
         modalEl.classList.add('show');
         document.body.style.overflow = 'hidden';
 
-        console.log('[RENOVACAO-UI] Modal visível com estilos inline');
-
         // Guardar referências para fechar
         state.modalAtivo = {
             element: modalEl,
@@ -318,8 +316,6 @@ const RenovacaoUI = (function() {
         }
 
         const taxa = parseFloat(card.dataset.taxa) || 0;
-
-        // Selecionar cenário baseado no checkbox
         const cenario = pagouInscricao ? cenarioPagou : cenarioNaoPagou;
 
         // Atualizar status da taxa
@@ -330,8 +326,8 @@ const RenovacaoUI = (function() {
                 rowTaxaStatus.className = 'text-success';
                 statusTaxa.innerHTML = '<span class="material-icons" style="font-size:14px;vertical-align:middle;">check_circle</span> Paga (nao vira divida)';
             } else {
-                rowTaxaStatus.className = 'text-warning';
-                statusTaxa.innerHTML = '<span class="material-icons" style="font-size:14px;vertical-align:middle;">warning</span> Pendente (vira divida)';
+                rowTaxaStatus.className = 'text-danger';
+                statusTaxa.innerHTML = '<span class="material-icons" style="font-size:14px;vertical-align:middle;">warning</span> Pendente (vira dívida)';
             }
         }
 
@@ -356,13 +352,15 @@ const RenovacaoUI = (function() {
         }
 
         // Atualizar saldo inicial
+        // Lógica: total > 0 = devedor (vermelho com sinal negativo), senão = quitado/credor (verde)
         const valorSaldoInicial = document.getElementById('valorSaldoInicial');
         if (valorSaldoInicial) {
-            valorSaldoInicial.textContent = RenovacaoModals.formatarMoeda(cenario.total);
-            valorSaldoInicial.className = cenario.total <= 0 ? 'text-success' : 'text-warning';
+            const valorFormatado = cenario.total > 0
+                ? `-R$ ${Math.abs(cenario.total).toFixed(2).replace('.', ',')}`
+                : `R$ ${Math.abs(cenario.total).toFixed(2).replace('.', ',')}`;
+            valorSaldoInicial.textContent = valorFormatado;
+            valorSaldoInicial.className = cenario.total > 0 ? 'text-danger fw-bold' : 'text-success fw-bold';
         }
-
-        console.log('[RENOVACAO-UI] Preview atualizado:', { pagouInscricao, cenario });
     }
 
     async function confirmarRenovacao() {
@@ -383,6 +381,32 @@ const RenovacaoUI = (function() {
             );
 
             showToast('Participante renovado com sucesso!');
+
+            // ✅ Atualizar badge na linha da tabela (Pendente → Renovado)
+            const badgeClass = pagouInscricao ? 'badge-2026-renovado' : 'badge-2026-renovado-devendo';
+            const alertaDevendo = pagouInscricao ? '' : '<span class="material-icons" style="font-size: 12px; color: #ffc107; vertical-align: middle; margin-left: 2px;" title="Deve inscrição">warning</span>';
+            const tooltip = pagouInscricao ? 'Renovado - Inscrição paga' : 'Renovado - Deve inscrição';
+
+            const novoBadge = `
+                <span class="renovacao-badge ${badgeClass}"
+                      data-time-id="${timeId}"
+                      data-status="renovado"
+                      style="cursor: pointer;"
+                      title="${tooltip}">
+                    <span class="material-icons" style="font-size: 14px; vertical-align: middle;">check_circle</span>
+                    Renovado${alertaDevendo}
+                </span>
+            `;
+
+            // Atualizar pelo seletor da coluna 2026
+            const row = document.querySelector(`tr[data-time-id="${timeId}"]`);
+            if (row) {
+                const col2026 = row.querySelector('.col-2026');
+                if (col2026) {
+                    col2026.innerHTML = novoBadge;
+                }
+            }
+
             fecharModal();
 
             // Callback para atualizar UI
@@ -447,6 +471,27 @@ const RenovacaoUI = (function() {
             );
 
             showToast('Participante marcado como NAO PARTICIPA');
+
+            // ✅ Atualizar badge na linha da tabela
+            const novoBadge = `
+                <span class="renovacao-badge badge-2026-nao-participa"
+                      data-time-id="${timeId}"
+                      data-status="nao_participa"
+                      style="cursor: pointer;"
+                      title="Não participa em 2026">
+                    <span class="material-icons" style="font-size: 14px; vertical-align: middle;">cancel</span>
+                    Saiu
+                </span>
+            `;
+
+            const row = document.querySelector(`tr[data-time-id="${timeId}"]`);
+            if (row) {
+                const col2026 = row.querySelector('.col-2026');
+                if (col2026) {
+                    col2026.innerHTML = novoBadge;
+                }
+            }
+
             fecharModal();
 
             // Callback para atualizar UI
