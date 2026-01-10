@@ -1,5 +1,8 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v5.5 - Integração com Acertos Financeiros
+// extratoFinanceiroCacheController.js v5.6 - FIX TEMPORADA DINÂMICA
+// ✅ v5.6: FIX CRÍTICO - Temporada default usa CURRENT_SEASON (não hardcoded 2025)
+//   - Corrige divergência entre Hall da Fama e Módulo Financeiro
+//   - Todas as queries agora usam temporada dinâmica
 // ✅ v5.5: FIX REFORÇADO - salvarExtratoCache SEMPRE recalcula saldo e saldoAcumulado
 //   - Proteção dupla: backend não confia em dados do frontend
 //   - r.saldo = recalculado a partir dos componentes individuais
@@ -22,9 +25,12 @@ import Time from "../models/Time.js";
 import RodadaSnapshot from "../models/RodadaSnapshot.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import mongoose from "mongoose";
+// ✅ v5.6: Import CURRENT_SEASON para usar como default dinâmico
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 // ✅ v5.1: Buscar acertos financeiros do participante
-async function buscarAcertosFinanceiros(ligaId, timeId, temporada = 2025) {
+// ✅ v5.6 FIX: Default usa CURRENT_SEASON (dinâmico)
+async function buscarAcertosFinanceiros(ligaId, timeId, temporada = CURRENT_SEASON) {
     try {
         const acertos = await AcertoFinanceiro.find({
             ligaId: String(ligaId),
@@ -472,11 +478,12 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
     return rodadasArray;
 }
 
-async function buscarCamposManuais(ligaId, timeId) {
+async function buscarCamposManuais(ligaId, timeId, temporada = CURRENT_SEASON) {
     try {
         const doc = await FluxoFinanceiroCampos.findOne({
             ligaId: String(ligaId),
             timeId: String(timeId),
+            temporada: temporada,  // ✅ v5.9: Filtrar por temporada
         }).lean();
         if (!doc || !doc.campos) {
             // ✅ v5.8: Retornar array padrão com 4 campos para UI
@@ -527,12 +534,13 @@ function transformarCamposParaObjeto(camposArray) {
     };
 }
 
-// ✅ v5.8: Buscar campos já no formato objeto para frontend
-async function buscarCamposComoObjeto(ligaId, timeId) {
+// ✅ v5.9: Buscar campos já no formato objeto para frontend (com filtro de temporada)
+async function buscarCamposComoObjeto(ligaId, timeId, temporada = CURRENT_SEASON) {
     try {
         const doc = await FluxoFinanceiroCampos.findOne({
             ligaId: String(ligaId),
             timeId: String(timeId),
+            temporada: temporada,  // ✅ v5.9: Filtrar por temporada
         }).lean();
 
         return transformarCamposParaObjeto(doc?.campos);
@@ -546,8 +554,8 @@ export const getExtratoCache = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const { temporada } = req.query;
-        // ✅ v5.6 FIX CRÍTICO: Temporada obrigatória para evitar retornar cache errado
-        const temporadaNum = parseInt(temporada) || 2025;
+        // ✅ v5.6 FIX CRÍTICO: Temporada usa CURRENT_SEASON como default (não mais 2025 hardcoded)
+        const temporadaNum = parseInt(temporada) || CURRENT_SEASON;
 
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
@@ -574,7 +582,7 @@ export const getExtratoCache = async (req, res) => {
             const dadosSnapshot = await buscarExtratoDeSnapshots(ligaId, timeId);
 
             if (dadosSnapshot) {
-                const camposAtivos = await buscarCamposManuais(ligaId, timeId);
+                const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
 
                 // ✅ v5.3 FIX: Calcular resumo COMPLETO a partir das rodadas (igual cache)
                 // Isso garante que campos detalhados (bonus, onus, pontosCorridos, mataMata, top10)
@@ -616,7 +624,7 @@ export const getExtratoCache = async (req, res) => {
             });
         }
 
-        const camposAtivos = await buscarCamposManuais(ligaId, timeId);
+        const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
         let rodadasConsolidadas = transformarTransacoesEmRodadas(
             cache.historico_transacoes || [],
             ligaId,
@@ -676,8 +684,8 @@ export const salvarExtratoCache = async (req, res) => {
             motivoRecalculo,
             temporada,
         } = req.body;
-        // ✅ v5.6 FIX: Temporada obrigatória
-        const temporadaNum = parseInt(temporada) || 2025;
+        // ✅ v5.6 FIX: Temporada usa CURRENT_SEASON como default
+        const temporadaNum = parseInt(temporada) || CURRENT_SEASON;
 
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
@@ -771,8 +779,8 @@ export const verificarCacheValido = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const { rodadaAtual, mercadoAberto, temporada } = req.query;
-        // ✅ v5.6 FIX: Temporada obrigatória
-        const temporadaNum = parseInt(temporada) || 2025;
+        // ✅ v5.6 FIX: Temporada usa CURRENT_SEASON como default
+        const temporadaNum = parseInt(temporada) || CURRENT_SEASON;
 
         // ✅ v5.7 FIX: Executar queries independentes em PARALELO
         const [statusTime, statusTemporada, cacheExistente, acertos] = await Promise.all([
@@ -828,7 +836,7 @@ export const verificarCacheValido = async (req, res) => {
                 );
             }
 
-            const camposAtivos = await buscarCamposManuais(ligaId, timeId);
+            const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
             const resumoCalculado = calcularResumoDeRodadas(
                 rodadasConsolidadas,
                 camposAtivos,
@@ -869,7 +877,7 @@ export const verificarCacheValido = async (req, res) => {
                     rodadasConsolidadas,
                     rodadaDesistencia,
                 );
-                const camposAtivos = await buscarCamposManuais(ligaId, timeId);
+                const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
                 const resumoCalculado = calcularResumoDeRodadas(
                     rodadasConsolidadas,
                     camposAtivos,
@@ -904,7 +912,7 @@ export const verificarCacheValido = async (req, res) => {
                 cacheExistente.historico_transacoes || [],
                 ligaId,
             );
-            const camposAtivos = await buscarCamposManuais(ligaId, timeId);
+            const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
             const resumoCalculado = calcularResumoDeRodadas(
                 rodadasConsolidadas,
                 camposAtivos,
@@ -950,9 +958,9 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
         const { ligaId, timeId } = req.params;
         const { rodadaAtual, temporada } = req.query;
         const rodadaAtualNum = parseInt(rodadaAtual) || 1;
-        // ✅ v5.6 FIX CRÍTICO: Temporada obrigatória para evitar retornar cache errado
-        // Default: 2025 (temporada ativa consolidada)
-        const temporadaNum = parseInt(temporada) || 2025;
+        // ✅ v5.6 FIX CRÍTICO: Temporada usa CURRENT_SEASON como default
+        // Evita divergência entre Hall da Fama e Módulo Financeiro
+        const temporadaNum = parseInt(temporada) || CURRENT_SEASON;
 
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
@@ -1020,7 +1028,7 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
             );
         }
 
-        const camposAtivos = await buscarCamposManuais(ligaId, timeId);
+        const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
         const resumoCalculado = calcularResumoDeRodadas(
             rodadasConsolidadas,
             camposAtivos,

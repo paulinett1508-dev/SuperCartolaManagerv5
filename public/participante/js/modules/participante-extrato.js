@@ -1,7 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v3.5 (FIX ACERTOS FALLBACK)
+// PARTICIPANTE-EXTRATO.JS - v3.6 (FIX TEMPORADA DINÂMICA)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v3.6: FIX - Usa config global (CURRENT_SEASON) em vez de hardcoded
 // ✅ v3.5: FIX CRÍTICO - Calcula totalPago/totalRecebido no fallback (não mais zerados)
 // ✅ v3.4: FIX - Re-renderiza quando campos manuais (ajustes) ou saldo mudam
 // ✅ v3.3: ACERTOS FINANCEIROS - Exibe pagamentos/recebimentos no extrato
@@ -12,12 +13,14 @@
 // ✅ v2.7: Correção URL campos editáveis (/times/ ao invés de /campos/)
 // =====================================================================
 
-// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
+// ⚽ CONFIGURAÇÃO DO CAMPEONATO - Usa config global do app
 const RODADA_FINAL_CAMPEONATO = 38;
-const CAMPEONATO_ENCERRADO = true; // ✅ v3.0: Temporada 2025 finalizada
+// ✅ v3.6 FIX: Detectar temporada encerrada via config global
+const CONFIG = window.ParticipanteConfig || {};
+const CAMPEONATO_ENCERRADO = CONFIG.isPreparando?.() || false; // Durante pré-temporada, 2025 está encerrada
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.5 FIX-ACERTOS-FALLBACK (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.6 FIX-TEMPORADA-DINAMICA (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 

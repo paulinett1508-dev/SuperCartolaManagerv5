@@ -150,20 +150,45 @@ async function main() {
             }
         }
 
-        // Extratos Financeiros
+        // Extratos Financeiros - filtrar por temporada 2025
         const extratos = await db.collection('extratofinanceirocaches').find({
             $or: [
                 { liga_id: liga.id },
                 { ligaId: liga.id },
                 { ligaId: new mongoose.Types.ObjectId(liga.id) }
-            ]
+            ],
+            temporada: 2025  // ✅ v1.1: Filtrar apenas temporada 2025
         }).toArray();
+
+        // ✅ v1.1: Buscar campos manuais para incluir no saldo
+        const camposManuais = await db.collection('fluxofinanceirocampos').find({
+            ligaId: liga.id
+        }).toArray();
+        
+        // Criar mapa de campos manuais por timeId
+        const camposManuaisMap = {};
+        for (const doc of camposManuais) {
+            const timeId = String(doc.timeId);
+            let totalCampos = 0;
+            if (doc.campos && Array.isArray(doc.campos)) {
+                doc.campos.forEach(c => {
+                    totalCampos += c.valor || 0;
+                });
+            }
+            camposManuaisMap[timeId] = totalCampos;
+        }
+        log.success(`  Campos Manuais: ${camposManuais.length} registros`);
 
         extratosDB[liga.id] = {};
         for (const ext of extratos) {
             const timeId = String(ext.time_id || ext.timeId);
+            const saldoExtrato = ext.resumo?.saldo_final ?? ext.resumo?.saldo ?? ext.saldo_consolidado ?? 0;
+            const saldoCampos = camposManuaisMap[timeId] || 0;
+            
             extratosDB[liga.id][timeId] = {
-                saldo: ext.resumo?.saldo_final ?? ext.resumo?.saldo ?? ext.saldo_consolidado ?? 0,
+                saldo: saldoExtrato + saldoCampos,  // ✅ Incluir campos manuais no saldo
+                saldo_extrato: saldoExtrato,
+                saldo_campos_manuais: saldoCampos,
                 ganhos: ext.resumo?.totalGanhos ?? ext.ganhos_consolidados ?? 0,
                 perdas: ext.resumo?.totalPerdas ?? ext.perdas_consolidadas ?? 0
             };
@@ -371,6 +396,8 @@ async function main() {
             if (extrato) {
                 historico.financeiro = {
                     saldo_final: extrato.saldo,
+                    saldo_extrato: extrato.saldo_extrato || extrato.saldo,  // ✅ v1.1: Detalhar saldo do extrato
+                    saldo_campos_manuais: extrato.saldo_campos_manuais || 0,  // ✅ v1.1: Detalhar campos manuais
                     total_bonus: extrato.ganhos,
                     total_onus: extrato.perdas
                 };
