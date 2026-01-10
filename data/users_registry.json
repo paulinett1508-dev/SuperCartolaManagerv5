@@ -4,7 +4,7 @@
     "descricao": "Registro permanente de todos os participantes e seus históricos através das temporadas",
     "versao": "2.1.0",
     "criado_em": "2025-12-15",
-    "ultima_atualizacao": "2026-01-10T14:54:15.260Z",
+    "ultima_atualizacao": "2026-01-10T15:00:48.687Z",
     "correcoes_aplicadas": 2,
     "badges_corrigidos": 4,
     "correcao_fantasmas_sobral": "2026-01-02T00:35:47.472Z",
@@ -1600,18 +1600,16 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": -193,
-        "tipo": "devedor",
+        "saldo_atual": 190,
+        "tipo": "credor",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": -194,
-            "saldo_campos_manuais": 0,
-            "saldo_acertos": 1,
-            "saldo_final": -193,
-            "total_bonus": 0,
-            "total_onus": 0,
+            "saldo_extrato": 110,
+            "saldo_campos_manuais": 80,
+            "saldo_acertos": 0,
+            "saldo_final": 190,
             "quitado": false,
-            "data_sincronizacao": "2026-01-10T14:54:15.259Z"
+            "data_sincronizacao": "2026-01-10T15:00:48.686Z"
           }
         },
         "historico_pagamentos": []
@@ -2714,17 +2712,16 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 0,
-        "tipo": "zerado",
+        "saldo_atual": -72,
+        "tipo": "devedor",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 0,
+            "saldo_extrato": -72,
             "saldo_campos_manuais": 0,
-            "saldo_final": 0,
-            "total_bonus": 0,
-            "total_onus": 0,
-            "quitado": true,
-            "data_quitacao": "2026-01-01T22:52:14.557Z"
+            "saldo_acertos": 0,
+            "saldo_final": -72,
+            "quitado": false,
+            "data_sincronizacao": "2026-01-10T15:00:48.687Z"
           }
         },
         "historico_pagamentos": []
@@ -2795,17 +2792,16 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 0,
-        "tipo": "zerado",
+        "saldo_atual": 458,
+        "tipo": "credor",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 0,
-            "saldo_campos_manuais": 0,
-            "saldo_final": 0,
-            "total_bonus": 0,
-            "total_onus": 0,
-            "quitado": true,
-            "data_quitacao": "2026-01-01T22:52:14.557Z"
+            "saldo_extrato": 278,
+            "saldo_campos_manuais": 180,
+            "saldo_acertos": 0,
+            "saldo_final": 458,
+            "quitado": false,
+            "data_sincronizacao": "2026-01-10T15:00:48.687Z"
           }
         },
         "historico_pagamentos": []
@@ -2878,17 +2874,16 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 0,
-        "tipo": "zerado",
+        "saldo_atual": -144,
+        "tipo": "devedor",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 0,
+            "saldo_extrato": -144,
             "saldo_campos_manuais": 0,
-            "saldo_final": 0,
-            "total_bonus": 0,
-            "total_onus": 0,
-            "quitado": true,
-            "data_quitacao": "2026-01-01T22:52:14.557Z"
+            "saldo_acertos": 0,
+            "saldo_final": -144,
+            "quitado": false,
+            "data_sincronizacao": "2026-01-10T15:00:48.687Z"
           }
         },
         "historico_pagamentos": []
@@ -2961,17 +2956,16 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 0,
-        "tipo": "zerado",
+        "saldo_atual": -211,
+        "tipo": "devedor",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 0,
+            "saldo_extrato": -211,
             "saldo_campos_manuais": 0,
-            "saldo_final": 0,
-            "total_bonus": 0,
-            "total_onus": 0,
-            "quitado": true,
-            "data_quitacao": "2026-01-01T22:52:14.557Z"
+            "saldo_acertos": 0,
+            "saldo_final": -211,
+            "quitado": false,
+            "data_sincronizacao": "2026-01-10T15:00:48.687Z"
           }
         },
         "historico_pagamentos": []
@@ -3044,17 +3038,16 @@
         }
       },
       "situacao_financeira": {
-        "saldo_atual": 0,
-        "tipo": "zerado",
+        "saldo_atual": -77,
+        "tipo": "devedor",
         "detalhamento": {
           "temporada_2025": {
-            "saldo_extrato": 0,
+            "saldo_extrato": -77,
             "saldo_campos_manuais": 0,
-            "saldo_final": 0,
-            "total_bonus": 0,
-            "total_onus": 0,
-            "quitado": true,
-            "data_quitacao": "2026-01-01T22:52:14.557Z"
+            "saldo_acertos": 0,
+            "saldo_final": -77,
+            "quitado": false,
+            "data_sincronizacao": "2026-01-10T15:00:48.687Z"
           }
         },
         "historico_pagamentos": []
