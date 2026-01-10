@@ -686,6 +686,9 @@ class ParticipanteAuth {
 // Instância global
 const participanteAuth = new ParticipanteAuth();
 
+// ✅ v2.5: Expor instância globalmente para uso em outros módulos
+window.participanteAuth = participanteAuth;
+
 // Inicializar quando a página estiver carregada
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", async () => {

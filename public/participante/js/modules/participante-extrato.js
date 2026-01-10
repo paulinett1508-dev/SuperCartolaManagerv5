@@ -1,7 +1,11 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v4.0 (RENOVACAO DINAMICA)
+// PARTICIPANTE-EXTRATO.JS - v4.1 (FIX TAXA INSCRICAO 2026)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v4.1: FIX CRÍTICO - Taxa de inscrição 2026 exibida corretamente no extrato
+//          - Processa INSCRICAO_TEMPORADA e SALDO_TEMPORADA_ANTERIOR
+//          - Inclui taxaInscricao no resumo para exibição no modal de débitos
+//          - Lançamentos iniciais (rodada 0) extraídos e contabilizados
 // ✅ v4.0: RENOVACAO - Verifica status de renovacao do participante
 //          Se renovado → mostra extrato 2026 (nova temporada)
 //          Se nao renovado → mostra extrato 2025 (temporada anterior)
@@ -230,16 +234,17 @@ function detectarCacheIncompleto(rodadas, modulosAtivos = null) {
 }
 
 // =====================================================================
-// ✅ v2.7: BUSCAR CAMPOS EDITÁVEIS (URL CORRIGIDA)
+// ✅ v4.1: BUSCAR CAMPOS EDITÁVEIS (COM TEMPORADA)
 // =====================================================================
-async function buscarCamposEditaveis(ligaId, timeId) {
+async function buscarCamposEditaveis(ligaId, timeId, temporada = null) {
     try {
-        // ✅ CORREÇÃO: /times/ ao invés de /campos/
-        const url = `/api/fluxo-financeiro/${ligaId}/times/${timeId}`;
+        // ✅ v4.1 FIX: Passar temporada para buscar campos corretos (2025 ou 2026)
+        const temporadaParam = temporada || CONFIG.CURRENT_SEASON || 2026;
+        const url = `/api/fluxo-financeiro/${ligaId}/times/${timeId}?temporada=${temporadaParam}`;
         if (window.Log)
             Log.debug(
                 "EXTRATO-PARTICIPANTE",
-                "📡 Buscando campos editáveis:",
+                `📡 Buscando campos editáveis (temporada ${temporadaParam}):`,
                 url,
             );
 
@@ -476,8 +481,8 @@ async function carregarExtrato(ligaId, timeId) {
             return;
         }
 
-        // ✅ v2.7: Buscar campos editáveis do endpoint específico (URL corrigida)
-        const camposEditaveis = await buscarCamposEditaveis(ligaId, timeId);
+        // ✅ v4.1: Buscar campos editáveis do endpoint específico (com temporada correta)
+        const camposEditaveis = await buscarCamposEditaveis(ligaId, timeId, temporada);
 
         // Mesclar campos: priorizar campos editáveis se existirem
         if (camposEditaveis.length > 0) {
@@ -593,9 +598,40 @@ function transformarDadosController(dados) {
     const transacoes = dados.extrato || [];
     const rodadasMap = {};
 
+    // ✅ v4.1 FIX: Extrair lançamentos iniciais (inscrição, saldo anterior) ANTES do loop
+    // Esses lançamentos têm rodada=0 ou tipos especiais
+    let taxaInscricaoCalculada = 0;
+    let saldoAnteriorTransferido = 0;
+    const lancamentosIniciais = [];
+
     transacoes.forEach((t) => {
+        // ✅ v4.1: Processar lançamentos iniciais separadamente
+        if (t.tipo === "INSCRICAO_TEMPORADA") {
+            const valor = parseFloat(t.valor) || 0;
+            taxaInscricaoCalculada += Math.abs(valor); // Taxa é sempre positiva para exibição
+            lancamentosIniciais.push({
+                tipo: t.tipo,
+                descricao: t.descricao || "Taxa de inscrição",
+                valor: valor,
+                data: t.data
+            });
+            return; // Não processar como rodada normal
+        }
+
+        if (t.tipo === "SALDO_TEMPORADA_ANTERIOR" || t.tipo === "LEGADO_ANTERIOR" || t.tipo === "TRANSFERENCIA_SALDO") {
+            const valor = parseFloat(t.valor) || 0;
+            saldoAnteriorTransferido += valor;
+            lancamentosIniciais.push({
+                tipo: t.tipo,
+                descricao: t.descricao || (valor > 0 ? "Crédito da temporada anterior" : "Dívida da temporada anterior"),
+                valor: valor,
+                data: t.data
+            });
+            return; // Não processar como rodada normal
+        }
+
         // ✅ v3.3: Ignora ajustes manuais e acertos financeiros aqui (processados separadamente)
-        if (t.rodada === null || t.tipo === "ACERTO_FINANCEIRO") return;
+        if (t.rodada === null || t.rodada === 0 || t.tipo === "ACERTO_FINANCEIRO") return;
 
         const numRodada = t.rodada;
         if (!rodadasMap[numRodada]) {
@@ -648,6 +684,15 @@ function transformarDadosController(dados) {
         }
     });
 
+    // ✅ v4.1: Log de lançamentos iniciais para debug
+    if (lancamentosIniciais.length > 0 && window.Log) {
+        Log.info("EXTRATO-PARTICIPANTE", "📋 Lançamentos iniciais:", {
+            taxaInscricao: taxaInscricaoCalculada,
+            saldoAnterior: saldoAnteriorTransferido,
+            total: lancamentosIniciais.length
+        });
+    }
+
     // Ordenar por rodada e calcular acumulado
     const rodadasArray = Object.values(rodadasMap).sort(
         (a, b) => a.rodada - b.rodada,
@@ -697,18 +742,36 @@ function transformarDadosController(dados) {
         else totalPerdas += r.saldo;
     });
 
+    // ✅ v4.1 FIX: Incluir lançamentos iniciais no cálculo
+    // Taxa de inscrição é débito (negativo), saldo anterior pode ser + ou -
+    const saldoLancamentosIniciais = -taxaInscricaoCalculada + saldoAnteriorTransferido;
+    if (saldoAnteriorTransferido > 0) totalGanhos += saldoAnteriorTransferido;
+    if (saldoAnteriorTransferido < 0) totalPerdas += saldoAnteriorTransferido;
+    if (taxaInscricaoCalculada > 0) totalPerdas -= taxaInscricaoCalculada; // Taxa é débito
+
+    // ✅ v4.1 FIX: Construir resumo com taxaInscricao incluída
+    // Se dados.resumo existe (do cache), usar e complementar
+    // Se não existe (fallback), construir do zero com lançamentos iniciais
+    const resumoBase = dados.resumo || {};
+    const resumoFinal = {
+        saldo: resumoBase.saldo ?? (dados.saldo_atual || (saldoAcumulado + saldoLancamentosIniciais)),
+        saldo_final: resumoBase.saldo_final ?? (dados.saldo_atual || (saldoAcumulado + saldoLancamentosIniciais)),
+        saldo_temporada: resumoBase.saldo_temporada ?? (dados.saldo_temporada || (saldoAcumulado + saldoLancamentosIniciais)),
+        saldo_acertos: resumoBase.saldo_acertos ?? (dados.saldo_acertos || 0),
+        totalGanhos: resumoBase.totalGanhos ?? totalGanhos,
+        totalPerdas: resumoBase.totalPerdas ?? totalPerdas,
+        // ✅ v4.1 FIX: Sempre incluir taxaInscricao (do cache ou calculada)
+        taxaInscricao: resumoBase.taxaInscricao ?? taxaInscricaoCalculada,
+        saldoAnteriorTransferido: resumoBase.saldoAnteriorTransferido ?? saldoAnteriorTransferido,
+    };
+
     return {
         ligaId: PARTICIPANTE_IDS.ligaId,
         rodadas: rodadasArray,
-        resumo: dados.resumo || {
-            saldo: dados.saldo_atual || saldoAcumulado,
-            saldo_final: dados.saldo_atual || saldoAcumulado,
-            saldo_temporada: dados.saldo_temporada || saldoAcumulado,
-            saldo_acertos: dados.saldo_acertos || 0,
-            totalGanhos: totalGanhos,
-            totalPerdas: totalPerdas,
-        },
+        resumo: resumoFinal,
         camposManuais: camposManuais,
+        // ✅ v4.1: Incluir lançamentos iniciais para exibição na UI
+        lancamentosIniciais: lancamentosIniciais,
         // ✅ v3.5 FIX: Incluir acertos financeiros com totais calculados
         acertos: dados.acertos || {
             lista: acertosFinanceiros,
@@ -730,28 +793,6 @@ function transformarDadosController(dados) {
 // =====================================================================
 // FUNÇÕES AUXILIARES
 // =====================================================================
-
-function calcularResumoLocal(rodadas) {
-    if (!Array.isArray(rodadas) || rodadas.length === 0) {
-        return { saldo: 0, totalGanhos: 0, totalPerdas: 0, saldo_final: 0 };
-    }
-
-    let totalGanhos = 0;
-    let totalPerdas = 0;
-
-    rodadas.forEach((r) => {
-        const saldoRodada =
-            (r.bonusOnus || 0) +
-            (r.pontosCorridos || 0) +
-            (r.mataMata || 0) +
-            (r.top10 || 0);
-        if (saldoRodada > 0) totalGanhos += saldoRodada;
-        else totalPerdas += saldoRodada;
-    });
-
-    const saldo = totalGanhos + totalPerdas;
-    return { saldo, saldo_final: saldo, totalGanhos, totalPerdas };
-}
 
 function mostrarVazio() {
     const container = document.getElementById("fluxoFinanceiroContent");
@@ -1011,10 +1052,15 @@ window.forcarRefreshExtratoParticipante = async function () {
             return;
         }
 
-        // ✅ v2.7: Buscar campos editáveis após recálculo (URL corrigida)
+        // ✅ v4.1: Buscar campos editáveis após recálculo (com temporada correta)
+        // Usar temporada baseada no status de renovação cacheado
+        const temporadaRefresh = statusRenovacaoCache?.renovado
+            ? (CONFIG.CURRENT_SEASON || 2026)
+            : (CONFIG.getFinancialSeason ? CONFIG.getFinancialSeason() : (CONFIG.PREVIOUS_SEASON || 2025));
         const camposEditaveis = await buscarCamposEditaveis(
             PARTICIPANTE_IDS.ligaId,
             PARTICIPANTE_IDS.timeId,
+            temporadaRefresh,
         );
 
         if (camposEditaveis.length > 0) {
@@ -1075,5 +1121,5 @@ export function initExtratoParticipante() {
 if (window.Log)
     Log.info(
         "EXTRATO-PARTICIPANTE",
-        "✅ Módulo v3.5 carregado (FIX ACERTOS FALLBACK)",
+        "✅ Módulo v4.1 carregado (FIX TAXA INSCRICAO 2026)",
     );

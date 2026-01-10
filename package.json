@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "NODE_ENV=production node index.js",
-    "dev": "NODE_ENV=development nodemon index.js",
+    "dev": "NODE_ENV=development node mongo-server.js & NODE_ENV=development nodemon index.js",
     "consolidar": "node scripts/consolidar-historico-urgente.js",
     "test": "NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --detectOpenHandles --forceExit",
     "test:watch": "NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --watch --detectOpenHandles",

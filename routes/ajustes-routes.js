@@ -8,6 +8,7 @@
  */
 
 import express from "express";
+import { verificarAdmin } from "../middleware/auth.js";
 import {
     listarAjustes,
     criarAjuste,
@@ -45,13 +46,13 @@ router.get("/liga/:ligaId", listarAjustesLiga);
  * Atualiza um ajuste
  * Body: { descricao?, valor? }
  */
-router.patch("/:id", atualizarAjuste);
+router.patch("/:id", verificarAdmin, atualizarAjuste);
 
 /**
  * DELETE /api/ajustes/:id
  * Remove um ajuste (soft delete)
  */
-router.delete("/:id", removerAjuste);
+router.delete("/:id", verificarAdmin, removerAjuste);
 
 // =============================================================================
 // ROTAS DE PARTICIPANTE (parâmetros genéricos - vem por último)
@@ -69,7 +70,7 @@ router.get("/:ligaId/:timeId", listarAjustes);
  * Cria novo ajuste
  * Body: { descricao, valor, temporada? }
  */
-router.post("/:ligaId/:timeId", criarAjuste);
+router.post("/:ligaId/:timeId", verificarAdmin, criarAjuste);
 
 // =============================================================================
 // EXPORT

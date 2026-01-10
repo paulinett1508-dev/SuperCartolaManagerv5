@@ -182,6 +182,40 @@ export function verificarParticipante(req, res, next) {
 }
 
 /**
+ * Middleware para verificar admin OU participante dono do recurso
+ * Usado em rotas onde participante pode acessar/modificar seus próprios dados
+ * Requer timeId nos params da rota
+ */
+export function verificarAdminOuDono(req, res, next) {
+  // Admin sempre pode
+  if (req.session?.admin) {
+    return next();
+  }
+
+  // Participante só pode acessar seus próprios dados
+  if (req.session?.participante) {
+    const timeIdParam = Number(req.params.timeId);
+    const timeIdSessao = Number(req.session.participante.time_id);
+
+    if (timeIdParam === timeIdSessao) {
+      return next();
+    }
+
+    return res.status(403).json({
+      error: "Acesso negado",
+      message: "Você só pode acessar seus próprios dados",
+    });
+  }
+
+  // Nenhuma sessão válida
+  return res.status(401).json({
+    error: "Não autorizado",
+    message: "Faça login para continuar",
+    needsLogin: true,
+  });
+}
+
+/**
  * Middleware legado - bloquear participante de admin
  * @deprecated Use protegerRotas no lugar
  */

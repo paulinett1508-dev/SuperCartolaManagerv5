@@ -1,6 +1,12 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.10 FIX TEMPORADA URLS
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.12 FIX LANCAMENTOS INICIAIS
 // =====================================================
+// ✅ v10.12: FIX - Exibe taxa de inscrição e saldo anterior transferido
+//          - Dívida da temporada anterior aparece nos Débitos
+//          - Crédito da temporada anterior aparece nos Créditos
+// ✅ v10.11: FIX - Não preencher 38 rodadas fixas em pré-temporada
+//          - Taxa de inscrição aparece no modal de Débitos
+//          - Rodadas são carregadas progressivamente (só as que existem)
 // ✅ v10.10: FIX - Inclui temporada nas URLs de API (evita criar cache de temporada futura)
 // ✅ v10.9: FIX CRÍTICO - mostrarPopupDetalhamento usa resumo consolidado (igual admin)
 //          Corrige discrepância de valores entre admin e app no modal de débitos/créditos
@@ -26,7 +32,7 @@
 // ✅ v9.0: Redesign - Badge BANCO unificado com valor
 // ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
 
-if (window.Log) Log.info("[EXTRATO-UI] v10.9 FIX RESUMO (igual admin)");
+if (window.Log) Log.info("[EXTRATO-UI] v10.12 FIX LANCAMENTOS INICIAIS (taxa inscricao + saldo anterior)");
 
 // ===== v10.8: CACHE DE CONFIG DA LIGA =====
 let ligaConfigCache = null;
@@ -153,19 +159,36 @@ function calcularPosicaoTop10(valor, ligaId) {
     }
 }
 
-// ===== v8.8: PREENCHER TODAS AS 38 RODADAS =====
-// Garante que todas as rodadas apareçam no histórico, mesmo as neutras
+// ===== v10.11: PREENCHER RODADAS DINÂMICO =====
+// v10.11 FIX: NÃO preencher 38 rodadas fixas - mostrar apenas rodadas existentes
+// Para temporada em andamento, preenche até a última rodada jogada
+// Para pré-temporada (0 rodadas), retorna array vazio
 function preencherTodasRodadas(rodadasExistentes, totalRodadas = 38) {
+    // Se não há rodadas, retornar array vazio (não criar 38 rodadas vazias)
+    if (!rodadasExistentes || rodadasExistentes.length === 0) {
+        return [];
+    }
+
     const rodadasMap = new Map();
 
-    // Indexar rodadas existentes
+    // Indexar rodadas existentes (ignorar rodada 0 = lançamentos iniciais)
     rodadasExistentes.forEach(r => {
-        rodadasMap.set(r.rodada, r);
+        if (r.rodada && r.rodada > 0) {
+            rodadasMap.set(r.rodada, r);
+        }
     });
 
-    // Criar array completo (1 a totalRodadas)
+    // Se não há rodadas válidas (ex: só tem inscrição), retornar vazio
+    if (rodadasMap.size === 0) {
+        return [];
+    }
+
+    // Encontrar a última rodada jogada
+    const ultimaRodada = Math.max(...Array.from(rodadasMap.keys()));
+
+    // Criar array apenas até a última rodada jogada (não 38 fixas)
     const todasRodadas = [];
-    for (let i = 1; i <= totalRodadas; i++) {
+    for (let i = 1; i <= ultimaRodada; i++) {
         if (rodadasMap.has(i)) {
             todasRodadas.push(rodadasMap.get(i));
         } else {
@@ -1237,8 +1260,23 @@ function mostrarPopupDetalhamento(isGanhos) {
         if (top10 > 0) {
             addCategoria(categorias, "Top 10 (MITO)", top10, "Total", "star");
         }
+        // ✅ v10.12: Crédito transferido da temporada anterior (positivo = crédito)
+        const saldoAnteriorGanho = resumo.saldoAnteriorTransferido || 0;
+        if (saldoAnteriorGanho > 0) {
+            addCategoria(categorias, "Crédito Temporada Anterior", saldoAnteriorGanho, "Transferido", "savings");
+        }
     } else {
         // DÉBITOS - valores negativos (mostrar como positivo)
+        // ✅ v10.11: Taxa de inscrição como débito (nova temporada)
+        const taxaInscricao = resumo.taxaInscricao || 0;
+        if (taxaInscricao > 0) {
+            addCategoria(categorias, "Inscrição Temporada", taxaInscricao, "Inscrição", "receipt_long");
+        }
+        // ✅ v10.12: Dívida transferida da temporada anterior (negativo = débito)
+        const saldoAnterior = resumo.saldoAnteriorTransferido || 0;
+        if (saldoAnterior < 0) {
+            addCategoria(categorias, "Dívida Temporada Anterior", Math.abs(saldoAnterior), "Transferido", "history");
+        }
         if (onus < 0) {
             addCategoria(categorias, "Zona de Perda", Math.abs(onus), "Total", "remove_circle");
         }
@@ -1375,4 +1413,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     }
 }
 
-if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.10 carregado (FIX débitos: não somar acertos)");
+if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.11 carregado (FIX pré-temporada: rodadas dinâmicas + inscrição no débitos)");

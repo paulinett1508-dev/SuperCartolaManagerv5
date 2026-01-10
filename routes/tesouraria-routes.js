@@ -32,6 +32,7 @@
 
 import express from "express";
 import mongoose from "mongoose";
+import { verificarAdmin } from "../middleware/auth.js";
 import Liga from "../models/Liga.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
@@ -151,7 +152,7 @@ async function calcularSaldoCompleto(ligaId, timeId, temporada = CURRENT_SEASON)
 // ✅ v2.0: Inclui breakdown por módulo financeiro e módulos ativos por liga
 // =============================================================================
 
-router.get("/participantes", async (req, res) => {
+router.get("/participantes", verificarAdmin, async (req, res) => {
     try {
         const { temporada = CURRENT_SEASON } = req.query;
         const startTime = Date.now();
@@ -398,7 +399,7 @@ router.get("/participantes", async (req, res) => {
 // ✅ OTIMIZADO: Usa bulk queries em vez de queries individuais por participante
 // =============================================================================
 
-router.get("/liga/:ligaId", async (req, res) => {
+router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
     try {
         const { ligaId } = req.params;
         const { temporada = CURRENT_SEASON } = req.query;
@@ -653,7 +654,7 @@ router.get("/liga/:ligaId", async (req, res) => {
 // Retorna detalhes completos de um participante (incluindo histórico de acertos)
 // =============================================================================
 
-router.get("/participante/:ligaId/:timeId", async (req, res) => {
+router.get("/participante/:ligaId/:timeId", verificarAdmin, async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const { temporada = CURRENT_SEASON } = req.query;
@@ -872,7 +873,7 @@ router.get("/participante/:ligaId/:timeId", async (req, res) => {
 // Registra um novo acerto financeiro (mesma lógica do extrato)
 // =============================================================================
 
-router.post("/acerto", async (req, res) => {
+router.post("/acerto", verificarAdmin, async (req, res) => {
     try {
         const {
             ligaId,
@@ -1045,7 +1046,7 @@ router.post("/acerto", async (req, res) => {
 // Remove um acerto financeiro (soft delete)
 // =============================================================================
 
-router.delete("/acerto/:id", async (req, res) => {
+router.delete("/acerto/:id", verificarAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { hardDelete = false } = req.query;
@@ -1104,7 +1105,7 @@ router.delete("/acerto/:id", async (req, res) => {
 // Retorna resumo financeiro geral (totais por liga)
 // =============================================================================
 
-router.get("/resumo", async (req, res) => {
+router.get("/resumo", verificarAdmin, async (req, res) => {
     try {
         const { temporada = CURRENT_SEASON } = req.query;
 

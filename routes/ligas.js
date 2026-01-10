@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import { verificarAdmin } from "../middleware/auth.js";
 import {
   listarLigas,
   buscarLigaPorId,
@@ -61,22 +62,22 @@ async function getParticipantesInativos(ligaId) {
 // ==============================
 // ROTAS DE SINCRONIZAÇÃO (NOVAS)
 // ==============================
-router.post("/:id/sincronizar-participantes", sincronizarParticipantesLiga);
-router.post("/sincronizar-todas", sincronizarTodasLigas);
+router.post("/:id/sincronizar-participantes", verificarAdmin, sincronizarParticipantesLiga);
+router.post("/sincronizar-todas", verificarAdmin, sincronizarTodasLigas);
 
 // Rotas existentes
 router.get("/", listarLigas);
 router.get("/:id", buscarLigaPorId);
-router.post("/", criarLiga);
-router.delete("/:id", excluirLiga);
-router.put("/:id/times", atualizarTimesLiga);
-router.delete("/:id/times/:timeId", removerTimeDaLiga);
-router.put("/:id/fluxo/:rodada", atualizarFluxoFinanceiro);
+router.post("/", verificarAdmin, criarLiga);
+router.delete("/:id", verificarAdmin, excluirLiga);
+router.put("/:id/times", verificarAdmin, atualizarTimesLiga);
+router.delete("/:id/times/:timeId", verificarAdmin, removerTimeDaLiga);
+router.put("/:id/fluxo/:rodada", verificarAdmin, atualizarFluxoFinanceiro);
 router.get("/:id/fluxo", consultarFluxoFinanceiro);
 router.get("/:id/times", buscarTimesDaLiga);
 router.get("/:id/rodadas", buscarRodadasDaLiga);
 
-router.post("/:id/rodadas", (req, res) => {
+router.post("/:id/rodadas", verificarAdmin, (req, res) => {
   req.params.ligaId = req.params.id;
   delete req.params.id;
   popularRodadas(req, res);
@@ -585,21 +586,21 @@ router.get("/:id/rodadas/:rodadaNum", buscarRodadasDaLiga);
 
 // Rota de módulos ativos
 router.get("/:id/modulos-ativos", buscarModulosAtivos);
-router.put("/:id/modulos-ativos", atualizarModulosAtivos);
+router.put("/:id/modulos-ativos", verificarAdmin, atualizarModulosAtivos);
 
 // =====================================================================
 // ✅ v2.0: ROTAS DE CONFIGURAÇÕES DINÂMICAS (SaaS Multi-Tenant)
 // Permite frontend buscar configs do banco ao invés de hardcoded
 // =====================================================================
 router.get("/:id/configuracoes", buscarConfiguracoes);
-router.put("/:id/configuracoes", atualizarConfiguracoes);
+router.put("/:id/configuracoes", verificarAdmin, atualizarConfiguracoes);
 
 // =====================================================================
 // ROTAS DE MANUTENÇÃO - MELHOR DO MÊS (ADMIN)
 // =====================================================================
 
 // Forçar reconsolidação do cache
-router.post("/:id/melhor-mes/reconsolidar", async (req, res) => {
+router.post("/:id/melhor-mes/reconsolidar", verificarAdmin, async (req, res) => {
   const { id: ligaId } = req.params;
 
   try {
@@ -635,7 +636,7 @@ router.post("/:id/melhor-mes/reconsolidar", async (req, res) => {
 });
 
 // Invalidar cache (remove completamente)
-router.delete("/:id/melhor-mes/cache", async (req, res) => {
+router.delete("/:id/melhor-mes/cache", verificarAdmin, async (req, res) => {
   const { id: ligaId } = req.params;
 
   try {

@@ -4,6 +4,41 @@
 
 ---
 
+## ⚽ FOCO PRINCIPAL: Cartola FC (Globo)
+
+> **95% dos módulos do Super Cartola Manager são baseados nos pontos do fantasy game Cartola FC da Globo.**
+> Todas as features devem considerar a integração com a API do Cartola como fonte primária de dados.
+
+### 🔗 Integração com Cartola FC
+
+- **API Atual:** `services/cartolaApiService.js` - API não-oficial do Cartola
+- **Endpoints principais usados:**
+  - `/atletas/mercado` - Jogadores disponíveis e preços
+  - `/time/id/{timeId}` - Escalação de um time específico
+  - `/time/id/{timeId}/{rodada}` - Escalação histórica por rodada
+  - `/atletas/pontuados` - Parciais em tempo real
+  - `/mercado/status` - Status do mercado (aberto/fechado)
+  - `/rodadas` - Informações das rodadas
+
+### 📊 Dados do Cartola Utilizados
+
+| Dado | Onde é usado | Collection MongoDB |
+|------|--------------|-------------------|
+| Pontuação por rodada | Rankings, Hall da Fama | `rodadas`, `rankinggeral` |
+| Escalação do time | Parciais, Data Lake | `cartolaoficialdumps` |
+| Parciais ao vivo | Módulo Parciais | Cache em memória |
+| Posição no ranking | Top 10, Mito/Mico | `top10caches` |
+| Patrimônio | Fluxo Financeiro | `extratofinanceirocaches` |
+
+### ⚠️ Considerações Importantes
+
+1. **API não-oficial:** A API do Cartola não é documentada oficialmente pela Globo
+2. **Rate limiting:** Evitar muitas requisições simultâneas
+3. **Disponibilidade:** API pode ficar instável durante picos (fechamento de mercado)
+4. **Temporada:** Dados são zerados a cada nova temporada do Brasileirão
+
+---
+
 ## 🔴 CRÍTICO (Bugs graves, problemas de segurança)
 
 _Resolver ASAP - Bloqueia funcionalidades ou compromete segurança_
@@ -457,7 +492,7 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
 
 ### 🎨 Visualização/UX Avançado
 
-- [ ] [FEAT-015] **Campinho com Escalação Visual (Field Layout)**
+- [ ] [FEAT-015] **Campinho com Escalação Visual (Field Layout)** 🔥 PRIORIDADE 2026
   - **Descrição:** Visualização gráfica do time escalado pelo participante em formato de "campinho", similar ao app oficial do Cartola FC
   - **Inspiração:** App Cartola FC (Globo), Fantasy Premier League, SofaScore
   - **Funcionalidades sugeridas:**
@@ -469,11 +504,465 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
     - Cores diferenciadas: pontuação positiva (verde), negativa (vermelha)
     - Banco de reservas visível abaixo do campo
   - **Onde usar:**
-    - Módulo Parciais (uso principal)
+    - Módulo Parciais (uso principal) ⭐
     - Tela de Rodadas (resumo visual)
     - App do Participante (histórico de rodadas)
-  - **Complexidade:** Média-Alta (SVG/Canvas + integração API)
-  - **Status:** Ideia para temporada 2026
+    - Comparativo de Confronto (Mata-Mata/Pontos Corridos) - lado a lado
+  
+  - **⚽ INTEGRAÇÃO CARTOLA FC:**
+    - **Endpoint principal:** `/api/data-lake/raw/:timeId?rodada=N` (escalação completa)
+    - **Dados do jogador disponíveis:**
+      - `atleta_id` - ID único do jogador
+      - `apelido` - Nome de exibição
+      - `foto` - URL da foto (s3.glbimg.com)
+      - `posicao_id` - 1=GOL, 2=LAT, 3=ZAG, 4=MEI, 5=ATA, 6=TEC
+      - `clube_id` - Para buscar escudo
+      - `pontos_num` - Pontuação da rodada
+      - `capitao` - Boolean se é capitão
+      - `scout` - Objeto com detalhes (G, A, SG, CA, CV, etc)
+    - **Parciais ao vivo:** `/atletas/pontuados` (atualiza a cada ~30s durante jogos)
+  
+  - **🛠️ ROADMAP DE IMPLEMENTAÇÃO:**
+  
+    **FASE 1: Componente Base SVG** (~4h)
+    - [ ] Criar `public/participante/js/components/campinho-visual.js`
+      - Classe `CampinhoVisual` com métodos: `render()`, `atualizarParciais()`, `destacarJogador()`
+      - SVG responsivo com viewBox para escalar em qualquer tela
+      - Posições pré-definidas para cada formação (4-3-3, 4-4-2, 3-5-2)
+    - [ ] Criar CSS: `public/css/modules/campinho.css`
+      - Estilo dark mode com campo verde gradiente
+      - Animações para gols, assistências, cartões
+      - Transições suaves para atualização de parciais
+    
+    **FASE 2: Integração com API do Cartola** (~3h)
+    - [ ] Usar endpoint existente: `/api/data-lake/raw/:timeId?rodada=N`
+    - [ ] Mapear `posicao_id` do Cartola para coordenadas X/Y no campo:
+      ```javascript
+      // Mapeamento oficial do Cartola FC
+      const POSICOES_CARTOLA = {
+        1: { nome: 'GOL', x: 50, y: 90, cor: '#1E90FF' },   // Goleiro (azul)
+        2: { nome: 'LAT', x: [15, 85], y: 70 },             // Laterais (2 posições)
+        3: { nome: 'ZAG', x: [35, 65], y: 78 },             // Zagueiros (2 posições)
+        4: { nome: 'MEI', x: [25, 50, 75], y: 50 },         // Meias (3 posições)
+        5: { nome: 'ATA', x: [35, 65], y: 22 },             // Atacantes (2 posições)
+        6: { nome: 'TEC', x: 8, y: 95, fora: true }         // Técnico (fora do campo)
+      };
+      ```
+    - [ ] Buscar fotos: `https://s3.glbimg.com/v1/AUTH_cartola/atletas/{atleta_id}_140x140.png`
+    - [ ] Fallback: escudo do clube se foto não disponível
+    
+    **FASE 3: Renderização de Jogadores** (~3h)
+    - [ ] Componente de jogador individual:
+      - Foto circular com borda (cor = clube ou parcial)
+      - Nome abaixo (truncado se longo)
+      - Parcial atual em badge
+      - Ícone de capitão (C) com brilho dourado
+    - [ ] Estados visuais baseados no scout do Cartola:
+      - 🟢 Verde: parcial positiva
+      - 🔴 Vermelho: parcial negativa
+      - ⚪ Cinza: ainda não jogou (jogo não começou)
+      - 🟡 Amarelo: em campo agora (jogo em andamento)
+      - ⚽ Badge especial: gol marcado
+      - 🅰️ Badge especial: assistência
+    
+    **FASE 4: Integração no Módulo Parciais** (~2h)
+    - [ ] Adicionar toggle "Ver como Lista / Ver como Campo"
+    - [ ] Substituir tabela por campinho quando ativado
+    - [ ] Manter polling de parciais existente (`/atletas/pontuados`)
+    - [ ] Auto-refresh do campinho a cada 30s durante jogos
+    
+    **FASE 5: Banco de Reservas** (~1h)
+    - [ ] Área abaixo do campo com reservas
+    - [ ] Mesmo estilo visual dos titulares
+    - [ ] Indicador se reserva entrou em campo
+  
+  - **Tecnologias:**
+    - **SVG inline** (não Canvas) - melhor para interatividade e responsividade
+    - **CSS Variables** para cores dinâmicas
+    - **Vanilla JS** (sem libs extras) - consistente com o projeto
+  
+  - **Referências visuais:**
+    - https://www.sofascore.com (campinho minimalista)
+    - https://www.fotmob.com (posições precisas)
+    - App Cartola FC (estilo oficial)
+  
+  - **🤖 MCPs RECOMENDADOS:**
+    - **@anthropic/fetch** - Buscar exemplos de SVG de campos de futebol
+    - **@anthropic/puppeteer** - Capturar screenshots de referência (SofaScore, FotMob)
+    - **@anthropic/github** - Buscar repos open-source com componentes de campo:
+      - `football-field-svg`, `soccer-pitch-react`, `pitch-visualizer`
+    - **Context7** - Documentação de SVG e CSS animations
+    - **21st-dev/magic** - Gerar código de componentes UI complexos
+  
+  - **Complexidade:** Média-Alta (~13h total)
+  - **Status:** Pronto para implementar
+
+- [ ] [FEAT-017] **Comparativo de Confronto em Tempo Real** 🔥 PRIORIDADE 2026
+  - **Descrição:** Em **qualquer disputa que envolva 2 participantes diretamente**, exibir ao participante o time escalado do seu adversário e fazer comparativos em tempo real
+  - **Regra de Ouro:** Sempre que houver um confronto direto 1v1 entre participantes (seja em competições existentes ou futuras criadas pelo admin), o sistema deve oferecer essa visualização
+  - **Funcionalidades:**
+    - Exibir escalação do adversário no formato "campinho virtual" (FEAT-015)
+    - Parciais lado a lado em tempo real
+    - Indicador visual de quem está vencendo
+    - Destaque de duelos diretos por posição (ex: seu atacante vs zagueiro dele)
+    - Histórico de parciais durante a rodada
+    - Alertas: "Seu adversário virou!", "Você está na frente!"
+  - **Onde integrar (exemplos atuais):**
+    - Módulo Mata-Mata (confronto da fase atual)
+    - Módulo Pontos Corridos (rodada atual vs adversário)
+    - Módulo Parciais (novo modo "Confronto")
+    - **Qualquer disputa futura** criada pelo admin que seja 1v1
+  
+  - **🛠️ ROADMAP DE IMPLEMENTAÇÃO:**
+  
+    **FASE 1: API de Confronto Atual** (~2h)
+    - [ ] Criar endpoint: `GET /api/participante/:timeId/confronto-atual`
+      - Retorna: `{ adversario: { time_id, nome, escalacao }, tipo_disputa, fase, rodada, placar_parcial }`
+    - [ ] Buscar confronto ativo em **qualquer competição 1v1** (não apenas Mata-Mata/PC)
+    - [ ] Se não houver confronto ativo, retornar `{ confronto: null }`
+    - [ ] **Extensível:** Preparar para novas disputas criadas pelo admin
+    
+    **FASE 2: Componente de Confronto Lado a Lado** (~4h)
+    - [ ] Criar `public/participante/js/components/confronto-visual.js`
+      - Dois campinhos lado a lado (mobile: empilhados)
+      - Placar central grande: "45.2 x 38.7"
+      - Indicador de quem está vencendo (seta ou cor)
+      - Barra de progresso visual (% de vitória)
+    - [ ] CSS responsivo:
+      - Desktop: lado a lado (50% cada)
+      - Mobile: empilhados com placar fixo no topo
+    
+    **FASE 3: Duelos por Posição** (~2h)
+    - [ ] Identificar duelos diretos baseados em `posicao_id` do Cartola:
+      - Meu ATA (5) vs ZAG (3) dele
+      - Meu MEI (4) vs MEI (4) dele
+      - Meu GOL (1) vs ATA (5) dele
+    - [ ] Exibir mini-cards de duelo:
+      ```
+      ⚔️ Duelo de Atacantes
+      [Foto] Neymar 12.5  vs  Mbappé 8.3 [Foto]
+      ```
+    - [ ] Highlight do vencedor de cada duelo
+    
+    **FASE 4: Sistema de Alertas** (~2h)
+    - [ ] Detectar mudanças de liderança via polling de `/atletas/pontuados`:
+      - `if (meuPlacarAnterior < adversario && meuPlacarAtual > adversario)`
+      - Toast: "🎉 Você virou o confronto!"
+    - [ ] Alertas baseados no scout do Cartola:
+      - [ ] "Adversário fez gol!" (detectar 'G' no scout)
+      - [ ] "Você está perdendo por mais de 10 pontos"
+      - [ ] "Faltam 2 jogadores seus para entrar em campo"
+    - [ ] Histórico de eventos da rodada (timeline lateral)
+    
+    **FASE 5: Integração nos Módulos** (~2h)
+    - [ ] Mata-Mata: botão "Ver Confronto Ao Vivo" na fase atual
+    - [ ] Pontos Corridos: card "Seu Adversário da Rodada"
+    - [ ] Parciais: toggle "Modo Confronto"
+    
+    **FASE 6: Polling/WebSocket** (~2h)
+    - [ ] Polling a cada 30s (consistente com parciais existentes)
+    - [ ] Usar mesmo endpoint: `/atletas/pontuados` para ambos os times
+    - [ ] Cache local para evitar re-renders desnecessários
+  
+  - **⚽ INTEGRAÇÃO CARTOLA FC:**
+    - **Escalação adversário:** `/api/data-lake/raw/:adversarioId?rodada=N`
+    - **Parciais ao vivo:** `/atletas/pontuados` (mesmo endpoint, filtrar por atleta_id)
+    - **Dados necessários por jogador:**
+      - `pontos_num` - Parcial atual
+      - `scout` - Detalhes (G, A, SG, CA, CV)
+      - `variacao_num` - Variação desde último refresh
+    - **Considerar:** Capitão dobra pontos (já vem calculado na API)
+  
+  - **Tecnologias:**
+    - **Reutilizar FEAT-015** (CampinhoVisual)
+    - **CSS Grid/Flexbox** para layout responsivo
+    - **Intersection Observer** para pausar polling quando não visível
+  
+  - **🤖 MCPs RECOMENDADOS:**
+    - **@anthropic/fetch** - Buscar dados de parciais em tempo real
+    - **Context7** - Documentação de WebSocket/SSE para real-time
+    - **21st-dev/magic** - Gerar UI de comparativo lado a lado
+    - **@anthropic/github** - Buscar implementações de live score comparisons
+    - **Perplexity MCP** - Pesquisar melhores práticas de UX para confrontos ao vivo
+  
+  - **Dependências:** FEAT-015 (Campinho Visual) - DEVE ser implementado primeiro
+  - **Complexidade:** Alta (~14h total)
+  - **Status:** Aguardando FEAT-015
+
+- [ ] [FEAT-018] **Jogos do Dia** 📅
+  - **Descrição:** Exibir calendário de jogos da rodada atual/próxima, com horários e informações relevantes
+  - **Fonte de dados:** API-Football (principal) ou scraping como fallback
+  - **Funcionalidades:**
+    - Lista de jogos do dia com horários
+    - Escudos dos times
+    - Indicador de jogos em andamento
+    - Placar em tempo real (se possível)
+    - Destaque de jogos com jogadores escalados pelo participante
+    - "Qual jogo assistir" baseado na escalação
+  - **Onde exibir:**
+    - App do Participante (tela inicial ou seção dedicada)
+    - Módulo Parciais (contextualização)
+  
+  - **🛠️ ROADMAP DE IMPLEMENTAÇÃO:**
+  
+    **FASE 1: Pesquisa e Seleção de API** (~1h)
+    - [ ] Avaliar opções de API:
+      - **API-Football** (api-football.com): Plano gratuito 100 req/dia - RECOMENDADO
+      - **Football-Data.org**: Gratuito, limitado ao Brasileirão
+      - **SofaScore API** (não oficial): Scraping arriscado
+      - **Perplexity AI**: Para consultas pontuais, não real-time
+    - [ ] Criar conta e obter API key
+    - [ ] Armazenar em Replit Secrets: `FOOTBALL_API_KEY`
+    
+    **FASE 2: Service de Integração** (~3h)
+    - [ ] Criar `services/footballApiService.js`:
+      ```javascript
+      // Métodos principais:
+      async function getJogosHoje(competicaoId) { }
+      async function getJogosRodada(rodadaId) { }
+      async function getPlacarAoVivo(jogoId) { }
+      async function getProximosJogos(dias = 7) { }
+      ```
+    - [ ] Implementar cache em memória (5 minutos) para reduzir requests
+    - [ ] Fallback para dados estáticos se API falhar
+    
+    **FASE 3: Backend Routes** (~2h)
+    - [ ] Criar `routes/jogos-routes.js`:
+      - `GET /api/jogos/hoje` - Jogos do dia
+      - `GET /api/jogos/rodada/:numero` - Jogos de uma rodada específica
+      - `GET /api/jogos/ao-vivo` - Apenas jogos em andamento
+      - `GET /api/jogos/proximos` - Próximos 7 dias
+    - [ ] Middleware de cache HTTP (Cache-Control: max-age=300)
+    
+    **FASE 4: Frontend - Componente de Jogos** (~3h)
+    - [ ] Criar `public/participante/js/modules/participante-jogos.js`
+    - [ ] Criar `public/participante/fronts/jogos.html`
+    - [ ] UI sugerida:
+      ```
+      ┌─────────────────────────────────────┐
+      │ 📅 JOGOS DE HOJE                    │
+      ├─────────────────────────────────────┤
+      │ 🔴 AO VIVO                          │
+      │ [Flamengo] 2 x 1 [Palmeiras] 67'    │
+      ├─────────────────────────────────────┤
+      │ ⏰ PRÓXIMOS                          │
+      │ [Corinthians] vs [São Paulo] 19:00  │
+      │ [Santos] vs [Grêmio] 21:30          │
+      ├─────────────────────────────────────┤
+      │ ✅ ENCERRADOS                        │
+      │ [Atlético-MG] 1 x 0 [Cruzeiro]      │
+      └─────────────────────────────────────┘
+      ```
+    
+    **FASE 5: Destaque de Jogadores Escalados** (~2h)
+    - [ ] Cruzar jogos com escalação do participante via API Cartola
+    - [ ] Usar `clube_id` dos jogadores para identificar times
+    - [ ] Indicador visual: "⭐ 3 jogadores seus neste jogo"
+    - [ ] Lista de jogadores escalados em cada partida
+    - [ ] Sugestão: "Assista Flamengo x Palmeiras - 5 dos seus jogadores em campo!"
+    
+    **FASE 6: Widget na Home** (~1h)
+    - [ ] Mini-widget na tela inicial do participante
+    - [ ] Mostrar apenas próximo jogo relevante
+    - [ ] Link para tela completa de jogos
+  
+  - **⚽ INTEGRAÇÃO CARTOLA FC:**
+    - **Cruzamento de dados:** Usar `clube_id` da escalação do participante
+    - **Mapeamento de clubes:** IDs do Cartola para times do Brasileirão
+      ```javascript
+      // Alguns clube_id do Cartola FC
+      const CLUBES_CARTOLA = {
+        262: 'Flamengo',
+        263: 'Botafogo', 
+        264: 'Corinthians',
+        265: 'Bahia',
+        266: 'Fluminense',
+        275: 'Palmeiras',
+        276: 'São Paulo',
+        277: 'Santos',
+        // ... ver cartolaApiService.js para lista completa
+      };
+      ```
+    - **Destacar jogos:** Onde o participante tem jogadores escalados
+    - **Sugestão inteligente:** "Você tem 5 jogadores no jogo das 16h!"
+  
+  - **Tecnologias:**
+    - **API-Football** (melhor custo-benefício)
+    - **Node-cache** ou cache em memória existente
+    - **Vanilla JS** para frontend
+  
+  - **Custos:**
+    - API-Football gratuito: 100 requests/dia (suficiente para MVP)
+    - Plano Pro: $15/mês para 7.500 requests/dia (escalar depois)
+  
+  - **🤖 MCPs RECOMENDADOS:**
+    - **Perplexity MCP** ⭐ - Consulta principal para jogos do dia em tempo real
+      - Query: "jogos do brasileirão hoje horários"
+      - Query: "próximos jogos da rodada X do Cartola"
+    - **@anthropic/fetch** - Integração direta com API-Football
+    - **@anthropic/brave-search** - Alternativa ao Perplexity para busca de jogos
+    - **@anthropic/puppeteer** - Scraping de GE/ESPN como fallback
+    - **Context7** - Documentação de APIs de futebol (API-Football, Football-Data)
+    - **@anthropic/github** - Buscar wrappers Node.js para API-Football:
+      - `api-football-nodejs`, `football-data-api`
+  
+  - **Complexidade:** Média (~12h total)
+  - **Status:** Backlog - Avaliar API primeiro
+
+- [ ] [FEAT-019] **Tabelas de Competições Oficiais 2026** 🏆
+  - **Descrição:** Implementar tabelas de classificação e jogos das competições foco da temporada 2026
+  - **Competições:**
+    - 🇧🇷 **Brasileirão Série A** - Tabela de classificação, rodadas, artilharia
+    - 🌎 **Copa Libertadores** - Fase de grupos, mata-mata, classificação
+    - 🏆 **Copa do Mundo de Seleções** - Grupos, mata-mata, calendário completo
+  - **Funcionalidades por competição:**
+    - Tabela de classificação atualizada
+    - Próximos jogos e resultados
+    - Artilheiros da competição
+    - Destaque de times com jogadores escalados na liga
+    - Filtro por time favorito
+  
+  - **🛠️ ROADMAP DE IMPLEMENTAÇÃO:**
+  
+    **FASE 1: Modelo de Dados** (~2h)
+    - [ ] Criar `models/Competicao.js`:
+      ```javascript
+      {
+        id: String,           // 'brasileirao-2026', 'libertadores-2026', 'copa-mundo-2026'
+        nome: String,
+        tipo: String,         // 'pontos-corridos', 'mata-mata', 'grupos+mata-mata'
+        temporada: Number,
+        pais: String,
+        logo_url: String,
+        ativa: Boolean
+      }
+      ```
+    - [ ] Criar `models/TabelaClassificacao.js`:
+      ```javascript
+      {
+        competicao_id: String,
+        grupo: String,        // null para pontos corridos, 'A', 'B', etc para grupos
+        classificacao: [{
+          posicao: Number,
+          time: { nome, escudo_url, sigla },
+          pontos: Number,
+          jogos: Number,
+          vitorias: Number,
+          empates: Number,
+          derrotas: Number,
+          gols_pro: Number,
+          gols_contra: Number,
+          saldo: Number
+        }],
+        atualizado_em: Date
+      }
+      ```
+    
+    **FASE 2: Service de Dados** (~3h)
+    - [ ] Criar `services/competicoesService.js`
+    - [ ] Integrar com API-Football (mesma do FEAT-018):
+      - Brasileirão: `league_id = 71`
+      - Libertadores: `league_id = 13`
+      - Copa do Mundo: `league_id = 1` (quando disponível)
+    - [ ] Cache agressivo: tabelas mudam 1x por rodada
+    - [ ] Cron job para atualizar tabelas a cada 6h
+    
+    **FASE 3: Backend Routes** (~2h)
+    - [ ] Criar `routes/competicoes-routes.js`:
+      - `GET /api/competicoes` - Lista competições ativas
+      - `GET /api/competicoes/:id/tabela` - Tabela de classificação
+      - `GET /api/competicoes/:id/jogos` - Jogos da competição
+      - `GET /api/competicoes/:id/artilheiros` - Top 10 artilheiros
+      - `GET /api/competicoes/:id/rodada/:numero` - Jogos de uma rodada
+    
+    **FASE 4: Frontend - Brasileirão** (~4h)
+    - [ ] Criar `public/participante/fronts/competicoes.html`
+    - [ ] Criar `public/participante/js/modules/participante-competicoes.js`
+    - [ ] Tabela de classificação estilo GE/ESPN:
+      ```
+      ┌────┬─────────────────┬───┬───┬───┬───┬────┐
+      │ #  │ Time            │ P │ J │ V │ SG │ %  │
+      ├────┼─────────────────┼───┼───┼───┼───┼────┤
+      │ 1  │ 🔴 Flamengo     │ 45│ 20│ 14│ +18│ 75%│
+      │ 2  │ 🟢 Palmeiras    │ 42│ 20│ 13│ +15│ 70%│
+      │ ...│                 │   │   │   │    │    │
+      └────┴─────────────────┴───┴───┴───┴───┴────┘
+      ```
+    - [ ] Cores por zona: G4 (verde), rebaixamento (vermelho), Libertadores (azul)
+    - [ ] Clicar no time → ver jogos e detalhes
+    
+    **FASE 5: Frontend - Copa do Mundo** (~4h)
+    - [ ] Layout especial para grupos + mata-mata:
+      ```
+      ┌─────────────────────────────────────────┐
+      │ 🏆 COPA DO MUNDO 2026                   │
+      ├─────────────────────────────────────────┤
+      │ GRUPO A          │ GRUPO B              │
+      │ 1. 🇧🇷 Brasil    │ 1. 🇫🇷 França       │
+      │ 2. 🇩🇪 Alemanha  │ 2. 🇪🇸 Espanha      │
+      │ ...              │ ...                  │
+      ├─────────────────────────────────────────┤
+      │ MATA-MATA (quando disponível)           │
+      │ [Bracket visual tipo NCAA]              │
+      └─────────────────────────────────────────┘
+      ```
+    - [ ] Bracket interativo para mata-mata
+    - [ ] Calendário de jogos com fuso horário local
+    
+    **FASE 6: Integração com Liga Cartola** (~2h)
+    - [ ] Destacar times que têm jogadores escalados na liga
+    - [ ] Cruzar `clube_id` dos jogadores escalados com times da tabela
+    - [ ] "Flamengo tem 5 jogadores escalados na sua liga"
+    - [ ] Filtro "Mostrar apenas times relevantes"
+    
+    **FASE 7: Widget na Sidebar** (~1h)
+    - [ ] Mini-tabela na sidebar do painel
+    - [ ] Top 4 + time favorito do participante
+    - [ ] Atualização automática
+  
+  - **⚽ INTEGRAÇÃO CARTOLA FC:**
+    - **Mapeamento Clube/Time:** Relacionar `clube_id` do Cartola com times das competições
+    - **Destaque inteligente:** 
+      - Mostrar quantos jogadores de cada time estão escalados na liga
+      - "Você tem interesse no jogo Flamengo x Palmeiras - 8 jogadores escalados!"
+    - **Artilheiros do Cartola vs Artilheiros do Brasileirão:**
+      - Comparar top artilheiros do fantasy com artilheiros reais
+      - "Gabigol: 15 gols no Brasileirão, 45 gols no Cartola da liga"
+    - **Impacto na rodada:** 
+      - "Se o Flamengo vencer, 3 participantes ganham bônus de SG"
+  
+  - **Tecnologias:**
+    - **API-Football** (mesmo do FEAT-018 - compartilhar quota)
+    - **MongoDB** para cache persistente de tabelas
+    - **Cron jobs** (node-cron já usado no projeto)
+    - **CSS Grid** para layouts de tabela
+  
+  - **IDs das Competições (API-Football):**
+    - Brasileirão Série A: `71`
+    - Copa Libertadores: `13`
+    - Copa do Mundo: `1` (verificar quando houver dados 2026)
+  
+  - **Custos:**
+    - Compartilha quota com FEAT-018
+    - ~20-30 requests/dia para manter tabelas atualizadas
+  
+  - **🤖 MCPs RECOMENDADOS:**
+    - **Perplexity MCP** ⭐ - Consultas atualizadas sobre competições:
+      - "tabela atualizada do brasileirão 2026"
+      - "grupos da copa do mundo 2026"
+      - "classificação da libertadores 2026"
+    - **@anthropic/fetch** - Integração com API-Football para dados estruturados
+    - **@anthropic/brave-search** - Buscar informações de artilheiros, estatísticas
+    - **@anthropic/puppeteer** - Scraping de tabelas do GE/ESPN/Flashscore como backup
+    - **@anthropic/github** - Buscar componentes de bracket/tournament:
+      - `react-brackets`, `tournament-bracket`, `bracket-generator`
+    - **Context7** - Documentação de CSS Grid para tabelas responsivas
+    - **21st-dev/magic** - Gerar UI de tabelas de classificação e brackets
+    - **@anthropic/filesystem** - Salvar cache de tabelas localmente para dev
+  
+  - **Dependências:** FEAT-018 (compartilha service de API)
+  - **Complexidade:** Alta (~18h total)
+  - **Status:** Backlog - Implementar junto com FEAT-018
 
 ### ⚙️ Infraestrutura/Performance
 
@@ -486,6 +975,77 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
   - **Descrição:** App funciona 100% sem internet (leitura)
   - **Tecnologia:** IndexedDB + Service Worker avançado
   - **Sync:** Background sync quando voltar online
+
+---
+
+## 🤖 MCPs Recomendados (Model Context Protocol)
+
+> Servidores MCP que podem acelerar o desenvolvimento das features do backlog.
+
+### 🔍 Pesquisa e Dados em Tempo Real
+| MCP | Uso Principal | Features Relacionadas |
+|-----|---------------|----------------------|
+| **Perplexity MCP** | Pesquisa web em tempo real, dados atualizados | FEAT-018, FEAT-019 |
+| **@anthropic/brave-search** | Busca alternativa, scraping-friendly | FEAT-018, FEAT-019 |
+| **@anthropic/fetch** | Requisições HTTP para APIs externas | Todas |
+
+### 🎨 Geração de UI/Código
+| MCP | Uso Principal | Features Relacionadas |
+|-----|---------------|----------------------|
+| **21st-dev/magic** | Gerar componentes UI complexos | FEAT-015, FEAT-017 |
+| **Context7** | Documentação técnica de libs/frameworks | Todas |
+| **@anthropic/github** | Buscar código de referência em repos | Todas |
+
+### 🕷️ Scraping e Automação
+| MCP | Uso Principal | Features Relacionadas |
+|-----|---------------|----------------------|
+| **@anthropic/puppeteer** | Screenshots, scraping de sites | FEAT-015, FEAT-018, FEAT-019 |
+| **@anthropic/filesystem** | Manipulação de arquivos locais | Cache, backups |
+
+### 📊 Dados de Futebol
+| MCP | Uso Principal | Features Relacionadas |
+|-----|---------------|----------------------|
+| **API-Football via fetch** | Dados estruturados de competições | FEAT-018, FEAT-019 |
+| **Football-Data.org via fetch** | Alternativa gratuita (limitada) | FEAT-018 |
+
+### 💡 Como Usar MCPs no Desenvolvimento
+
+```bash
+# Exemplo: Pesquisar jogos do dia com Perplexity
+# No Claude/Copilot com MCP configurado:
+"Use o MCP Perplexity para buscar os jogos do Brasileirão de hoje com horários"
+
+# Exemplo: Buscar código de referência
+"Use o MCP GitHub para buscar implementações de 'soccer pitch svg component' em JavaScript"
+
+# Exemplo: Capturar screenshot de referência
+"Use o MCP Puppeteer para capturar screenshot do SofaScore mostrando um campo de futebol"
+```
+
+### 🔧 Configuração de MCPs no VS Code
+
+Ver documentação completa em: [docs/CONTEXT7-MCP-SETUP.md](docs/CONTEXT7-MCP-SETUP.md)
+
+```json
+// .vscode/mcp.json (exemplo)
+{
+  "mcpServers": {
+    "perplexity": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-perplexity"],
+      "env": { "PERPLEXITY_API_KEY": "${env:PERPLEXITY_API_KEY}" }
+    },
+    "fetch": {
+      "command": "npx", 
+      "args": ["-y", "@anthropic/mcp-fetch"]
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-puppeteer"]
+    }
+  }
+}
+```
 
 ---
 
@@ -525,5 +1085,5 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
 
 ---
 
-_Última atualização: 10/01/2026 - [FEAT-016] Participante Premium adicionado ao backlog_
+_Última atualização: 10/01/2026 - Foco Cartola FC + MCPs + Roadmaps detalhados para FEAT-015/17/18/19_
 

@@ -1,5 +1,9 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v8.3.0 (SaaS DINÂMICO)
+ * FLUXO-FINANCEIRO-CONTROLLER v8.4.0 (SaaS DINÂMICO)
+ * ✅ v8.4.0: FIX CRÍTICO - Extrato 2026 não calcula rodadas (pré-temporada)
+ *   - Temporadas futuras mostram apenas: inscrição + legado + ajustes
+ *   - Integração com sistema de Ajustes (substitui campos manuais em 2026+)
+ *   - Bloqueia cálculo de rodadas quando temporada > getFinancialSeason()
  * ✅ v8.3.0: FIX CRÍTICO - Temporada em TODAS as queries (campos, acertos)
  *   - Removido hardcoded "2025" nos acertos financeiros
  *   - getCampos(), salvarCampo(), getCamposLiga() agora filtram por temporada
@@ -32,12 +36,14 @@ import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import Top10Cache from "../models/Top10Cache.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
+import AjusteFinanceiro from "../models/AjusteFinanceiro.js";
 import { getResultadosMataMataCompleto } from "./mata-mata-backend.js";
 // ✅ v8.1.0: Invalidação de cache em cascata
 import { onCamposSaved } from "../utils/cache-invalidator.js";
 // ✅ v8.2.0: FIX CRÍTICO - Temporada obrigatória em todas as queries de cache
 // ✅ v8.3.0: Usa getFinancialSeason() para consistência com quitacaoController
-import { CURRENT_SEASON, getFinancialSeason } from "../config/seasons.js";
+// ✅ v8.4.0: SEASON_CONFIG para verificar status da temporada
+import { CURRENT_SEASON, getFinancialSeason, SEASON_CONFIG } from "../config/seasons.js";
 
 // ============================================================================
 // 🔧 CONSTANTES DE FALLBACK (usadas apenas se liga.configuracoes não existir)
@@ -494,12 +500,26 @@ export const getExtratoFinanceiro = async (req, res) => {
             );
         }
 
+        // ✅ v8.4.0: Verificar se é temporada FUTURA (ainda não começou)
+        // Durante pré-temporada (status='preparando'), getFinancialSeason() retorna temporada anterior
+        // Se temporadaAtual > getFinancialSeason(), significa que estamos consultando uma temporada futura
+        const temporadaFinanceira = getFinancialSeason();
+        const isTemporadaFutura = temporadaAtual > temporadaFinanceira;
+
+        if (isTemporadaFutura) {
+            console.log(
+                `[FLUXO-CONTROLLER] ⚠️ Temporada FUTURA (${temporadaAtual} > ${temporadaFinanceira}) - NÃO calcular rodadas`
+            );
+        }
+
         // Calcular rodadas pendentes
+        // ✅ v8.4.0: BLOQUEAR cálculo de rodadas para temporadas futuras
         let novasTransacoes = [];
         let novoSaldo = 0;
         let cacheModificado = false;
 
-        if (cache.ultima_rodada_consolidada < rodadaLimite) {
+        // Só calcular rodadas se NÃO for temporada futura
+        if (!isTemporadaFutura && cache.ultima_rodada_consolidada < rodadaLimite) {
             console.log(
                 `[FLUXO-CONTROLLER] Calculando R${cache.ultima_rodada_consolidada + 1} → R${rodadaLimite}`,
             );
@@ -525,8 +545,9 @@ export const getExtratoFinanceiro = async (req, res) => {
         }
 
         // ✅ v8.0: Calcular TOP10 histórico (separado do loop de rodadas)
+        // ✅ v8.4.0: Só calcular se NÃO for temporada futura
         const top10Habilitado = isModuloHabilitado(liga, 'top10') || liga.modulos_ativos?.top10 !== false;
-        if (top10Habilitado) {
+        if (top10Habilitado && !isTemporadaFutura) {
             // Verificar se já tem transações de TOP10 no cache
             const temTop10NoCache = cache.historico_transacoes.some(
                 (t) => t.tipo === "MITO" || t.tipo === "MICO"
@@ -553,8 +574,9 @@ export const getExtratoFinanceiro = async (req, res) => {
 
         // ✅ v8.0: Calcular MATA-MATA histórico (separado do loop de rodadas)
         // Usa isModuloHabilitado ao invés de hardcoded ID
+        // ✅ v8.4.0: Só calcular se NÃO for temporada futura
         const mataHabilitado = isModuloHabilitado(liga, 'mata_mata') || liga.modulos_ativos?.mataMata;
-        if (mataHabilitado) {
+        if (mataHabilitado && !isTemporadaFutura) {
             const temMataMataNcache = cache.historico_transacoes.some(
                 (t) => t.tipo === "MATA_MATA"
             );
@@ -628,29 +650,51 @@ export const getExtratoFinanceiro = async (req, res) => {
             );
         }
 
-        // Adicionar campos manuais
-        // ✅ v8.3.0 FIX: Incluir temporada na query (evita mistura de dados entre temporadas)
-        const camposManuais = await FluxoFinanceiroCampos.findOne({
-            ligaId,
-            timeId,
-            temporada: temporadaAtual,
-        });
+        // ✅ v8.4.0: Para temporada 2026+, usar Ajustes. Para anteriores, usar campos manuais
         let saldoCampos = 0;
         let transacoesCampos = [];
 
-        if (camposManuais?.campos) {
-            camposManuais.campos.forEach((campo) => {
-                if (campo.valor !== 0) {
-                    saldoCampos += campo.valor;
-                    transacoesCampos.push({
-                        rodada: null,
-                        tipo: "AJUSTE_MANUAL",
-                        descricao: campo.nome,
-                        valor: campo.valor,
-                        data: camposManuais.updatedAt,
-                    });
-                }
+        if (temporadaAtual >= 2026) {
+            // ✅ v8.4.0: AJUSTES DINÂMICOS (substituem campos manuais em 2026+)
+            const ajustes = await AjusteFinanceiro.listarPorParticipante(ligaId, timeId, temporadaAtual);
+            const totaisAjustes = await AjusteFinanceiro.calcularTotal(ligaId, timeId, temporadaAtual);
+
+            saldoCampos = totaisAjustes.total || 0;
+
+            if (ajustes && ajustes.length > 0) {
+                transacoesCampos = ajustes.map(a => ({
+                    rodada: null,
+                    tipo: "AJUSTE",
+                    descricao: a.descricao,
+                    valor: a.valor,
+                    data: a.criado_em,
+                    _id: a._id,
+                }));
+                console.log(`[FLUXO-CONTROLLER] Ajustes 2026+: ${ajustes.length} transações, total R$ ${saldoCampos}`);
+            }
+        } else {
+            // Campos manuais (temporadas anteriores a 2026)
+            // ✅ v8.3.0 FIX: Incluir temporada na query (evita mistura de dados entre temporadas)
+            const camposManuais = await FluxoFinanceiroCampos.findOne({
+                ligaId,
+                timeId,
+                temporada: temporadaAtual,
             });
+
+            if (camposManuais?.campos) {
+                camposManuais.campos.forEach((campo) => {
+                    if (campo.valor !== 0) {
+                        saldoCampos += campo.valor;
+                        transacoesCampos.push({
+                            rodada: null,
+                            tipo: "AJUSTE_MANUAL",
+                            descricao: campo.nome,
+                            valor: campo.valor,
+                            data: camposManuais.updatedAt,
+                        });
+                    }
+                });
+            }
         }
 
         // ✅ v7.4: Buscar acertos financeiros (pagamentos/recebimentos em tempo real)
@@ -1013,4 +1057,4 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     }
 };
 
-console.log("[FLUXO-CONTROLLER] ✅ v8.3.0 carregado (FIX Temporada Dinâmica)");
+console.log("[FLUXO-CONTROLLER] ✅ v8.4.0 carregado (Extrato 2026 + Ajustes Dinâmicos)");

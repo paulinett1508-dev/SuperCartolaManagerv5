@@ -1,6 +1,11 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.1 (FIX TEMPORADA URLS)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.4 (FIX URL INSCRICAO)
 // =====================================================================
+// ✅ v10.4: FIX - URL correta para API de inscrições (/ligaId/temporada/timeId)
+//          - Verifica status 'renovado' ou 'novo' na resposta
+// ✅ v10.3: FIX - Verifica renovação antes de buscar extrato
+//          - Renovados usam temporada 2026 (saldo começa com inscrição)
+//          - Não renovados usam temporada 2025 (saldo da temporada anterior)
 // ✅ v10.1: FIX - Inclui temporada nas URLs de API (evita criar cache 2026 vazio)
 // ✅ v10.0: Hall da Fama discreto na tela inicial
 //    - Card pequeno e clean na parte superior
@@ -11,11 +16,11 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.0...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.4...");
 
 // Configuração de temporada (com fallback seguro)
-const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2025;
-const TEMPORADA_ANTERIOR = window.ParticipanteConfig?.PREVIOUS_SEASON || 2024;
+const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
+const TEMPORADA_ANTERIOR = window.ParticipanteConfig?.PREVIOUS_SEASON || 2025;
 // ✅ v10.1 FIX: Temporada financeira (2025 durante pré-temporada)
 const TEMPORADA_FINANCEIRA = window.ParticipanteConfig?.getFinancialSeason
     ? window.ParticipanteConfig.getFinancialSeason()
@@ -196,8 +201,29 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 
         let extratoFresh = null;
         try {
-            // ✅ v10.2 FIX: Usar TEMPORADA_FINANCEIRA para pegar dados corretos (2025 em pré-temporada)
-            const resCache = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaNum}&temporada=${TEMPORADA_FINANCEIRA}`);
+            // ✅ v10.4 FIX: Verificar se participante renovou para determinar temporada correta
+            // Se renovou → mostrar extrato 2026 (saldo começa com taxa de inscrição)
+            // Se não renovou → mostrar extrato 2025 (saldo da temporada anterior)
+            let temporadaExtrato = TEMPORADA_FINANCEIRA;
+
+            try {
+                // URL correta: /api/inscricoes/:ligaId/:temporada/:timeId
+                const resRenovacao = await fetch(`/api/inscricoes/${ligaId}/${TEMPORADA_ATUAL}/${timeId}`);
+                if (resRenovacao.ok) {
+                    const data = await resRenovacao.json();
+                    // Verificar se tem inscrição com status renovado ou novo
+                    const status = data.inscricao?.status;
+                    if (status === 'renovado' || status === 'novo') {
+                        temporadaExtrato = TEMPORADA_ATUAL; // 2026
+                        if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", `✅ Inscrito (${status}) - usando temporada ${temporadaExtrato}`);
+                    }
+                }
+            } catch (e) {
+                // Fallback para temporada financeira padrão
+                if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "Erro ao verificar renovação", e);
+            }
+
+            const resCache = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaNum}&temporada=${temporadaExtrato}`);
             if (resCache.ok) {
                 const cacheData = await resCache.json();
                 extratoFresh = {

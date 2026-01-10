@@ -136,10 +136,31 @@ router.post("/batch/status", async (req, res) => {
 router.get("/liga/:ligaId", async (req, res) => {
     try {
         const Time = getTimeModel();
-        const times = await Time.find({
-            liga_id: parseInt(req.params.ligaId),
+        const ligaId = req.params.ligaId;
+
+        // ✅ FIX: Buscar por Number ou ObjectId (liga_id é Mixed no schema)
+        // Tenta primeiro como Number (mais comum), depois como ObjectId
+        let times = await Time.find({
+            liga_id: parseInt(ligaId),
             ativo: true,
         });
+
+        // Fallback: tentar como ObjectId se não encontrou nada
+        if (times.length === 0 && mongoose.Types.ObjectId.isValid(ligaId)) {
+            times = await Time.find({
+                liga_id: new mongoose.Types.ObjectId(ligaId),
+                ativo: true,
+            });
+        }
+
+        // Fallback: tentar como String
+        if (times.length === 0) {
+            times = await Time.find({
+                liga_id: String(ligaId),
+                ativo: true,
+            });
+        }
+
         res.json(times);
     } catch (error) {
         console.error("[TIMES/LIGA] Erro:", error);

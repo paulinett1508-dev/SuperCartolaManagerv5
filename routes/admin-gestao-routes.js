@@ -201,10 +201,10 @@ router.post("/admins", requireSuperAdmin, async (req, res) => {
             });
         }
 
-        // Adicionar também na lista ADMIN_EMAILS (em runtime)
         // Nota: Para persistir, precisa adicionar nos Secrets do Replit
-        if (!ADMIN_EMAILS.includes(emailLower)) {
-            ADMIN_EMAILS.push(emailLower);
+        // SUPER_ADMIN_EMAILS é readonly (vem de env), então só logamos
+        if (SUPER_ADMIN_EMAILS.includes(emailLower)) {
+            console.log(`[ADMIN-GESTAO] Email ${emailLower} já é Super Admin via env`);
         }
 
         const novoAdmin = {

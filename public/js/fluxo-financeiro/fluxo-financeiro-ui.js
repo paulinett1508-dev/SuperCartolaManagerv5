@@ -199,7 +199,7 @@ export class FluxoFinanceiroUI {
      * Abre o modal do extrato
      */
     abrirModalExtrato(participante) {
-        console.log('[FLUXO-UI] Abrindo modal para:', participante?.nome || participante?.nomeTime);
+        console.log('[FLUXO-UI] Abrindo modal para:', participante?.nome_cartola || participante?.nome_time || participante?.nome || 'Participante');
         const modal = document.getElementById(this.modalId);
         if (!modal) {
             console.error('[FLUXO-UI] Modal não encontrado no DOM!');

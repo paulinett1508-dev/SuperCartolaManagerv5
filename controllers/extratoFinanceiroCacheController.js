@@ -1,5 +1,12 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v5.9 - FIX TEMPORADA PRÉ-TEMPORADA
+// extratoFinanceiroCacheController.js v6.1 - FIX LANÇAMENTOS INICIAIS
+// ✅ v6.1: FIX - Lançamentos iniciais (rodada=0) agora são contabilizados no saldo
+//   - Transações com rodada=0, INSCRICAO_TEMPORADA ou TRANSFERENCIA_SALDO são extraídas
+//   - Saldo agora inclui: rodadas + campos + acertos + lançamentos iniciais
+//   - Taxa de inscrição agora aparece corretamente no extrato de nova temporada
+// ✅ v6.0: Inclui lançamentos iniciais (INSCRICAO, TRANSFERENCIA) no saldo
+//   - Transações com rodada=0 ou tipo INSCRICAO_TEMPORADA são extraídas separadamente
+//   - Saldo agora inclui: rodadas + campos + acertos + lançamentos iniciais
 // ✅ v5.9: FIX - Usa getFinancialSeason() para pegar temporada correta
 //   - Durante pré-temporada, busca dados de 2025 (temporada anterior)
 // ✅ v5.8: FIX - totalGanhos/totalPerdas calculados por COMPONENTES (não rodadas)
@@ -637,6 +644,68 @@ export const getExtratoCache = async (req, res) => {
                 });
             }
 
+            // ✅ v6.0: Para temporada nova (2026+), criar extrato inicial com taxa de inscrição
+            if (temporadaNum >= CURRENT_SEASON) {
+                console.log(`[CACHE-CONTROLLER] 🆕 Criando extrato inicial para temporada ${temporadaNum}...`);
+                
+                // Buscar inscrição do participante para a nova temporada
+                const InscricaoTemporada = mongoose.model('InscricaoTemporada');
+                const inscricao = await InscricaoTemporada.findOne({
+                    liga_id: String(ligaId),
+                    time_id: Number(timeId),
+                    temporada: temporadaNum,
+                }).lean();
+                
+                const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
+                
+                // Se tem inscrição, criar extrato com taxa
+                if (inscricao) {
+                    const taxaInscricao = inscricao.taxa_inscricao || 0;
+                    const statusInscricao = inscricao.status;
+                    
+                    // Extrato inicial zerado, apenas com informação da inscrição
+                    const resumoInicial = {
+                        saldo: statusInscricao === 'renovado' ? -taxaInscricao : 0,
+                        saldo_final: statusInscricao === 'renovado' ? -taxaInscricao : 0,
+                        saldo_temporada: statusInscricao === 'renovado' ? -taxaInscricao : 0,
+                        saldo_acertos: 0,
+                        saldo_atual: statusInscricao === 'renovado' ? -taxaInscricao : 0,
+                        totalGanhos: 0,
+                        totalPerdas: statusInscricao === 'renovado' ? -taxaInscricao : 0,
+                        bonus: 0,
+                        onus: 0,
+                        pontosCorridos: 0,
+                        mataMata: 0,
+                        top10: 0,
+                        camposManuais: 0,
+                        taxaInscricao: taxaInscricao,
+                    };
+                    
+                    console.log(`[CACHE-CONTROLLER] ✅ Extrato inicial criado: taxa=${taxaInscricao}, status=${statusInscricao}`);
+                    
+                    return res.json({
+                        cached: false,
+                        fonte: 'inscricao-nova-temporada',
+                        temporada: temporadaNum,
+                        qtdRodadas: 0,
+                        rodadas: [],
+                        resumo: resumoInicial,
+                        camposManuais: camposAtivos,
+                        acertos: acertos,
+                        inscricao: {
+                            status: statusInscricao,
+                            taxaInscricao: taxaInscricao,
+                            pagouInscricao: inscricao.pagou_inscricao || false,
+                            saldoInicial: inscricao.saldo_inicial_temporada || 0,
+                        },
+                        inativo: isInativo,
+                        rodadaDesistencia,
+                        extratoTravado: false,
+                        rodadaTravada: null,
+                    });
+                }
+            }
+
             // Se não tem cache nem snapshot, retorna 404
             return res.status(404).json({
                 cached: false,
@@ -649,8 +718,22 @@ export const getExtratoCache = async (req, res) => {
         }
 
         const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
+
+        // ✅ v6.1 FIX: Extrair lançamentos iniciais (inscrição, transferência) antes de converter
+        // Transações com rodada=0 ou tipo INSCRICAO_TEMPORADA são lançamentos da temporada
+        const transacoesRaw = cache.historico_transacoes || [];
+        const lancamentosIniciais = transacoesRaw.filter(t =>
+            t.rodada === 0 ||
+            t.tipo === 'INSCRICAO_TEMPORADA' ||
+            t.tipo === 'TRANSFERENCIA_SALDO'
+        );
+        const saldoLancamentosIniciais = lancamentosIniciais.reduce((acc, t) =>
+            acc + (parseFloat(t.valor) || 0), 0
+        );
+        console.log(`[CACHE-CONTROLLER] 📋 Lançamentos iniciais: ${lancamentosIniciais.length}, valor: ${saldoLancamentosIniciais}`);
+
         let rodadasConsolidadas = transformarTransacoesEmRodadas(
-            cache.historico_transacoes || [],
+            transacoesRaw,
             ligaId,
         );
 
@@ -665,6 +748,17 @@ export const getExtratoCache = async (req, res) => {
             rodadasConsolidadas,
             camposAtivos,
         );
+
+        // ✅ v6.1 FIX: Incluir lançamentos iniciais no saldo
+        // Isso garante que taxa de inscrição (rodada=0) seja contabilizada
+        resumoCalculado.saldo += saldoLancamentosIniciais;
+        resumoCalculado.saldo_final += saldoLancamentosIniciais;
+        if (saldoLancamentosIniciais < 0) {
+            resumoCalculado.totalPerdas += saldoLancamentosIniciais;
+        } else if (saldoLancamentosIniciais > 0) {
+            resumoCalculado.totalGanhos += saldoLancamentosIniciais;
+        }
+        resumoCalculado.taxaInscricao = Math.abs(saldoLancamentosIniciais);
 
         // ✅ v5.2 FIX: Incluir saldo de acertos no cálculo do saldo final
         const saldoAcertosCc = acertos?.resumo?.saldo ?? 0;
@@ -1067,11 +1161,37 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
             );
         }
 
+        // ✅ v6.0: Extrair lançamentos iniciais (INSCRICAO, TRANSFERENCIA, etc.) que não são rodadas
+        const lancamentosIniciais = (cache.historico_transacoes || []).filter(t =>
+            t.tipo === 'INSCRICAO_TEMPORADA' ||
+            t.tipo === 'TRANSFERENCIA_SALDO' ||
+            t.tipo === 'DIVIDA_ANTERIOR' ||
+            t.tipo === 'CREDITO_ANTERIOR' ||
+            (t.rodada === 0 || t.rodada === null || t.rodada === undefined)
+        );
+
+        let saldoLancamentosIniciais = 0;
+        lancamentosIniciais.forEach(l => {
+            saldoLancamentosIniciais += parseFloat(l.valor) || 0;
+        });
+
         const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
         const resumoCalculado = calcularResumoDeRodadas(
             rodadasConsolidadas,
             camposAtivos,
         );
+
+        // ✅ v6.0: Incluir lançamentos iniciais no resumo
+        if (saldoLancamentosIniciais !== 0) {
+            resumoCalculado.lancamentosIniciais = saldoLancamentosIniciais;
+            resumoCalculado.saldo += saldoLancamentosIniciais;
+            resumoCalculado.saldo_final = resumoCalculado.saldo;
+            if (saldoLancamentosIniciais < 0) {
+                resumoCalculado.totalPerdas = (resumoCalculado.totalPerdas || 0) + saldoLancamentosIniciais;
+            } else {
+                resumoCalculado.totalGanhos = (resumoCalculado.totalGanhos || 0) + saldoLancamentosIniciais;
+            }
+        }
 
         // ✅ v5.2 FIX: Buscar acertos financeiros e incluir no saldo final
         // ✅ v5.6 FIX: Passar temporada para buscar acertos da temporada correta
@@ -1093,10 +1213,11 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
             resumoCalculado.totalPerdas = (resumoCalculado.totalPerdas || 0) + saldoAcertos;
         }
 
-        console.log(`[CACHE-EXTRATO] ✅ Extrato time ${timeId}: Saldo rodadas=${(resumoCalculado.saldo - saldoAcertos).toFixed(2)} + Acertos=${saldoAcertos.toFixed(2)} = Final=${resumoCalculado.saldo.toFixed(2)}`);
+        console.log(`[CACHE-EXTRATO] ✅ Extrato time ${timeId} temp=${temporadaNum}: Lanç.Iniciais=${saldoLancamentosIniciais.toFixed(2)} + Rodadas=${(resumoCalculado.saldo - saldoLancamentosIniciais - saldoAcertos).toFixed(2)} + Acertos=${saldoAcertos.toFixed(2)} = Final=${resumoCalculado.saldo.toFixed(2)}`);
 
         res.json({
             cached: true,
+            fonte: 'cache',
             qtdRodadas: rodadasConsolidadas.length,
             rodada_calculada: rodadaCache,
             dados: rodadasConsolidadas,
@@ -1105,6 +1226,7 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
             saldo_total: resumoCalculado.saldo,
             resumo: resumoCalculado,
             camposManuais: camposAtivos,
+            lancamentosIniciais: lancamentosIniciais, // ✅ v6.0: Incluir lançamentos iniciais
             acertos: acertos, // ✅ v5.2: Incluir acertos na resposta
             updatedAt: cache.updatedAt || cache.data_ultima_atualizacao,
             inativo: isInativo,

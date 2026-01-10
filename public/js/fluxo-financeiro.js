@@ -23,7 +23,6 @@ function obterLigaId() {
     const urlParams = new URLSearchParams(window.location.search);
     const ligaIdFromUrl = urlParams.get("id") || urlParams.get("ligaId");
     if (ligaIdFromUrl) {
-        console.log("[FLUXO-FINANCEIRO-ADMIN] Liga ID da URL:", ligaIdFromUrl);
         return ligaIdFromUrl;
     }
 
@@ -185,6 +184,8 @@ async function inicializarFluxoFinanceiro() {
         window.fluxoFinanceiroAuditoria = fluxoFinanceiroAuditoria;
 
         const ligaId = obterLigaId();
+        console.log("[FLUXO-ADMIN] 📍 Liga ID:", ligaId);
+
         if (!ligaId) {
             mostrarErro("ID da liga não encontrado");
             return;

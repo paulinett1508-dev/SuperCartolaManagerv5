@@ -9,6 +9,7 @@
  */
 
 import express from "express";
+import { verificarAdmin } from "../middleware/auth.js";
 import InscricaoTemporada from "../models/InscricaoTemporada.js";
 import LigaRules from "../models/LigaRules.js";
 import Liga from "../models/Liga.js";
@@ -146,9 +147,9 @@ router.get("/:ligaId/:temporada/:timeId", async (req, res) => {
 
 // =============================================================================
 // POST /api/inscricoes/:ligaId/:temporada/renovar/:timeId
-// Processar renovação de participante
+// Processar renovação de participante (admin only)
 // =============================================================================
-router.post("/:ligaId/:temporada/renovar/:timeId", async (req, res) => {
+router.post("/:ligaId/:temporada/renovar/:timeId", verificarAdmin, async (req, res) => {
     try {
         const { ligaId, temporada, timeId } = req.params;
         const { pagouInscricao, aproveitarCredito, observacoes, aprovadoPor } = req.body;
@@ -175,9 +176,9 @@ router.post("/:ligaId/:temporada/renovar/:timeId", async (req, res) => {
 
 // =============================================================================
 // POST /api/inscricoes/:ligaId/:temporada/nao-participar/:timeId
-// Marcar participante como não participa
+// Marcar participante como não participa (admin only)
 // =============================================================================
-router.post("/:ligaId/:temporada/nao-participar/:timeId", async (req, res) => {
+router.post("/:ligaId/:temporada/nao-participar/:timeId", verificarAdmin, async (req, res) => {
     try {
         const { ligaId, temporada, timeId } = req.params;
         const { observacoes, aprovadoPor } = req.body;
@@ -206,7 +207,7 @@ router.post("/:ligaId/:temporada/nao-participar/:timeId", async (req, res) => {
 // POST /api/inscricoes/:ligaId/:temporada/novo
 // Cadastrar novo participante (suporta cadastro manual sem ID)
 // =============================================================================
-router.post("/:ligaId/:temporada/novo", async (req, res) => {
+router.post("/:ligaId/:temporada/novo", verificarAdmin, async (req, res) => {
     try {
         const { ligaId, temporada } = req.params;
         const {
@@ -274,7 +275,7 @@ router.post("/:ligaId/:temporada/novo", async (req, res) => {
 // PATCH /api/inscricoes/:ligaId/:temporada/:timeId/marcar-pago
 // Marca inscrição como paga (remove débito da taxa de inscrição)
 // =============================================================================
-router.patch("/:ligaId/:temporada/:timeId/marcar-pago", async (req, res) => {
+router.patch("/:ligaId/:temporada/:timeId/marcar-pago", verificarAdmin, async (req, res) => {
     try {
         const { ligaId, temporada, timeId } = req.params;
 
@@ -336,7 +337,7 @@ router.patch("/:ligaId/:temporada/:timeId/marcar-pago", async (req, res) => {
 // POST /api/inscricoes/:ligaId/:temporada/inicializar
 // Inicializa inscrições pendentes para todos os participantes da liga
 // =============================================================================
-router.post("/:ligaId/:temporada/inicializar", async (req, res) => {
+router.post("/:ligaId/:temporada/inicializar", verificarAdmin, async (req, res) => {
     try {
         const { ligaId, temporada } = req.params;
         const temporadaOrigem = Number(temporada) - 1;
@@ -378,7 +379,7 @@ router.post("/:ligaId/:temporada/inicializar", async (req, res) => {
 // DELETE /api/inscricoes/:ligaId/:temporada/:timeId
 // Cancelar/reverter inscrição (admin only)
 // =============================================================================
-router.delete("/:ligaId/:temporada/:timeId", async (req, res) => {
+router.delete("/:ligaId/:temporada/:timeId", verificarAdmin, async (req, res) => {
     try {
         const { ligaId, temporada, timeId } = req.params;
         const { motivo } = req.body;
