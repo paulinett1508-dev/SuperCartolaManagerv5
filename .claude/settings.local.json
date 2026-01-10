@@ -162,7 +162,9 @@
       "Bash(__NEW_LINE__ echo -n \"\n/login.html: \")",
       "Bash(__NEW_LINE__ echo -n \"\nApp Participante: \")",
       "Bash(__NEW_LINE__ echo -n \"\nAPI Health: \")",
-      "Bash(__NEW_LINE__ echo -n \"\nAPI Ligas: \")"
+      "Bash(__NEW_LINE__ echo -n \"\nAPI Ligas: \")",
+      "Bash(__NEW_LINE__ echo \"║ LIGA SUPERCARTOLA                                                ║\")",
+      "Bash(__NEW_LINE__ echo \"🌐 Para testar no navegador, acesse:\")"
     ]
   },
   "enableAllProjectMcpServers": true,
