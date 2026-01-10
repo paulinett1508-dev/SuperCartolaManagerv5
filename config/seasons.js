@@ -105,6 +105,25 @@ export const getAvailableSeasons = () => [
 ];
 
 /**
+ * ✅ v1.1: Retorna a temporada ativa para dados FINANCEIROS
+ * Durante pré-temporada ('preparando'), retorna temporada ANTERIOR
+ * pois os dados financeiros ainda são da temporada que acabou de encerrar.
+ * @returns {number}
+ */
+export const getFinancialSeason = () => {
+    if (SEASON_CONFIG.status === 'preparando') {
+        // Durante pré-temporada, dados financeiros são da temporada anterior
+        return CURRENT_SEASON - 1;
+    }
+    return CURRENT_SEASON;
+};
+
+/**
+ * ✅ v1.1: Temporada anterior (para referência)
+ */
+export const PREVIOUS_SEASON = CURRENT_SEASON - 1;
+
+/**
  * Valor padrão para campo temporada em schemas Mongoose
  */
 export const SEASON_SCHEMA_DEFAULT = {
@@ -119,10 +138,12 @@ export const SEASON_SCHEMA_DEFAULT = {
 // =============================================================================
 export default {
     CURRENT_SEASON,
+    PREVIOUS_SEASON,
     SEASON_CONFIG,
     getSeasonFilter,
     isCurrentSeason,
     isHistoricalSeason,
     getAvailableSeasons,
+    getFinancialSeason,
     SEASON_SCHEMA_DEFAULT,
 };

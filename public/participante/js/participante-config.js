@@ -56,6 +56,15 @@ window.ParticipanteConfig = {
     isPreparando: () => SEASON_STATUS === 'preparando',
     isAtiva: () => SEASON_STATUS === 'ativa',
 
+    // ✅ v1.2 FIX: Retorna temporada correta para dados FINANCEIROS
+    // Durante pré-temporada, retorna 2025 (temporada anterior)
+    getFinancialSeason: () => {
+        if (SEASON_STATUS === 'preparando') {
+            return PREVIOUS_SEASON; // 2025 durante pré-temporada
+        }
+        return CURRENT_SEASON; // 2026 quando temporada ativa
+    },
+
     // Contagem regressiva ate abertura do mercado
     getMarketCountdown: () => {
         const open = new Date(MARKET_OPEN_DATE);

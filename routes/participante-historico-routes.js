@@ -13,7 +13,7 @@ import { fileURLToPath } from "url";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import Liga from "../models/Liga.js";
-import { CURRENT_SEASON, getAvailableSeasons } from "../config/seasons.js";
+import { CURRENT_SEASON, getAvailableSeasons, getFinancialSeason } from "../config/seasons.js";
 
 const router = express.Router();
 
@@ -136,12 +136,13 @@ router.get("/:timeId", async (req, res) => {
 
         console.log(`[HISTORICO] ✅ Histórico encontrado: ${response.historico.length} temporada(s)`);
 
-        // ✅ v2.4: Buscar saldo ATUAL de TODAS as ligas do participante (APENAS temporada atual)
-        // Gap de segurança corrigido: antes buscava todas as temporadas, misturando saldos
+        // ✅ v2.5: Buscar saldo ATUAL de TODAS as ligas do participante
+        // ✅ FIX: Usa getFinancialSeason() para pegar temporada correta (2025 durante pré-temporada)
+        const temporadaFinanceira = getFinancialSeason();
         try {
             const extratosCaches = await ExtratoFinanceiroCache.find({
                 time_id: Number(timeId),
-                temporada: CURRENT_SEASON  // ✅ FIX: Filtrar por temporada atual
+                temporada: temporadaFinanceira
             });
 
             if (extratosCaches && extratosCaches.length > 0) {
@@ -161,13 +162,13 @@ router.get("/:timeId", async (req, res) => {
                     totalPerdas += perdasLiga;
                 });
 
-                // ✅ v2.3: Buscar acertos financeiros da temporada ATUAL apenas
-                // Gap de segurança corrigido: antes buscava todas as temporadas
+                // ✅ v2.5: Buscar acertos financeiros da temporada FINANCEIRA
+                // Usa mesma temporada que os caches (2025 durante pré-temporada)
                 let saldoAcertos = 0;
                 try {
                     const acertos = await AcertoFinanceiro.find({
                         timeId: String(timeId),
-                        temporada: CURRENT_SEASON  // ✅ FIX: Filtrar por temporada
+                        temporada: temporadaFinanceira
                     });
                     if (acertos.length > 0) {
                         acertos.forEach(a => {
@@ -193,20 +194,20 @@ router.get("/:timeId", async (req, res) => {
                 response.situacao_financeira.saldo_atual = saldoAtual;
                 response.situacao_financeira.tipo = saldoAtual > 0 ? "credor" : saldoAtual < 0 ? "devedor" : "zerado";
 
-                // v2.3: Atualizar APENAS a temporada ATUAL com dados do MongoDB
-                // Temporadas passadas mantêm dados consolidados do JSON (imutaveis)
-                const temporadaAtualData = response.historico.find(h => h.ano === CURRENT_SEASON);
+                // ✅ v2.5: Atualizar a temporada FINANCEIRA com dados do MongoDB
+                // Durante pré-temporada, atualiza 2025 (temporadaFinanceira)
+                const temporadaAtualData = response.historico.find(h => h.ano === temporadaFinanceira);
                 if (temporadaAtualData) {
                     temporadaAtualData.financeiro = {
                         saldo_final: saldoAtual,
                         total_bonus: totalGanhos,
                         total_onus: totalPerdas
                     };
-                    console.log(`[HISTORICO] Atualizando dados da temporada ${CURRENT_SEASON} com MongoDB`);
+                    console.log(`[HISTORICO] 💰 Atualizando dados da temporada ${temporadaFinanceira} com MongoDB`);
                 }
 
-                // Atualizar detalhamento da temporada atual
-                const chaveTemporada = `temporada_${CURRENT_SEASON}`;
+                // Atualizar detalhamento da temporada financeira
+                const chaveTemporada = `temporada_${temporadaFinanceira}`;
                 if (response.situacao_financeira.detalhamento?.[chaveTemporada]) {
                     response.situacao_financeira.detalhamento[chaveTemporada].saldo_final = saldoAtual;
                     response.situacao_financeira.detalhamento[chaveTemporada].saldo_extrato = saldoAtual;

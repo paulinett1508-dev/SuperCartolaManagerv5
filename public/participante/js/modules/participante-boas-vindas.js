@@ -16,6 +16,10 @@ if (window.Log)
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2025;
 const TEMPORADA_ANTERIOR = window.ParticipanteConfig?.PREVIOUS_SEASON || 2024;
+// ✅ v10.1 FIX: Temporada financeira (2025 durante pré-temporada)
+const TEMPORADA_FINANCEIRA = window.ParticipanteConfig?.getFinancialSeason
+    ? window.ParticipanteConfig.getFinancialSeason()
+    : TEMPORADA_ATUAL;
 
 // Estado do histórico
 let historicoParticipante = null;
@@ -192,8 +196,8 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 
         let extratoFresh = null;
         try {
-            // ✅ v10.1 FIX: Incluir temporada na URL para evitar criar cache de temporada futura
-            const resCache = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaNum}&temporada=${TEMPORADA_ATUAL}`);
+            // ✅ v10.2 FIX: Usar TEMPORADA_FINANCEIRA para pegar dados corretos (2025 em pré-temporada)
+            const resCache = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaNum}&temporada=${TEMPORADA_FINANCEIRA}`);
             if (resCache.ok) {
                 const cacheData = await resCache.json();
                 extratoFresh = {

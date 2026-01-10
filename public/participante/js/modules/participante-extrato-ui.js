@@ -835,9 +835,9 @@ window.refreshAcertosBottomSheet = async function() {
         if (window.Log) Log.info("[EXTRATO-UI] 🔄 Refresh pontual de acertos...");
 
         // Buscar dados atualizados do cache (que inclui acertos frescos)
-        // ✅ v10.10 FIX: Incluir temporada na URL para evitar criar cache de temporada futura
+        // ✅ v10.11 FIX: Usar getFinancialSeason() para pegar temporada correta
         const CONFIG = window.ParticipanteConfig || {};
-        const temporada = CONFIG.CURRENT_SEASON || 2026;
+        const temporada = CONFIG.getFinancialSeason ? CONFIG.getFinancialSeason() : (CONFIG.CURRENT_SEASON || 2026);
         const url = `/api/extrato-cache/${ligaId}/times/${timeId}/cache?temporada=${temporada}`;
         const response = await fetch(url);
 

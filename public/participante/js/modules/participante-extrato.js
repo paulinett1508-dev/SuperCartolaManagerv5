@@ -264,8 +264,9 @@ async function carregarExtrato(ligaId, timeId) {
         let usouCacheBackend = false;
         let precisaRecalculo = false;
 
-        // ✅ v3.7 FIX: Incluir temporada na URL para garantir consulta correta
-        const temporada = CONFIG.CURRENT_SEASON || 2026;
+        // ✅ v3.8 FIX: Usar getFinancialSeason() para pegar temporada correta
+        // Durante pré-temporada, busca dados de 2025 (temporada anterior)
+        const temporada = CONFIG.getFinancialSeason ? CONFIG.getFinancialSeason() : (CONFIG.CURRENT_SEASON || 2026);
 
         // ✅ PASSO 1: Tentar buscar do cache
         const urlCache = `/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}&temporada=${temporada}`;

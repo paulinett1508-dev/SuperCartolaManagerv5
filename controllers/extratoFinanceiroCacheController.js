@@ -1,5 +1,7 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v5.8 - FIX TOTAIS POR COMPONENTES
+// extratoFinanceiroCacheController.js v5.9 - FIX TEMPORADA PRÉ-TEMPORADA
+// ✅ v5.9: FIX - Usa getFinancialSeason() para pegar temporada correta
+//   - Durante pré-temporada, busca dados de 2025 (temporada anterior)
 // ✅ v5.8: FIX - totalGanhos/totalPerdas calculados por COMPONENTES (não rodadas)
 //   - Garante consistência entre card Créditos/Débitos e popup detalhamento
 // ✅ v5.7: FIX - Busca aceita liga_id como String ou ObjectId (compatibilidade)
@@ -28,8 +30,8 @@ import Time from "../models/Time.js";
 import RodadaSnapshot from "../models/RodadaSnapshot.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import mongoose from "mongoose";
-// ✅ v5.6: Import CURRENT_SEASON para usar como default dinâmico
-import { CURRENT_SEASON } from "../config/seasons.js";
+// ✅ v5.9: Import getFinancialSeason para pegar temporada correta durante pré-temporada
+import { CURRENT_SEASON, getFinancialSeason } from "../config/seasons.js";
 
 // ✅ v5.1: Buscar acertos financeiros do participante
 // ✅ v5.6 FIX: Default usa CURRENT_SEASON (dinâmico)
@@ -569,8 +571,9 @@ export const getExtratoCache = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const { temporada } = req.query;
-        // ✅ v5.6 FIX CRÍTICO: Temporada usa CURRENT_SEASON como default (não mais 2025 hardcoded)
-        const temporadaNum = parseInt(temporada) || CURRENT_SEASON;
+        // ✅ v5.9 FIX: Temporada usa getFinancialSeason() como default
+        // Durante pré-temporada, busca dados de 2025 (temporada anterior)
+        const temporadaNum = parseInt(temporada) || getFinancialSeason();
 
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
@@ -705,8 +708,8 @@ export const salvarExtratoCache = async (req, res) => {
             motivoRecalculo,
             temporada,
         } = req.body;
-        // ✅ v5.6 FIX: Temporada usa CURRENT_SEASON como default
-        const temporadaNum = parseInt(temporada) || CURRENT_SEASON;
+        // ✅ v5.9 FIX: Temporada usa getFinancialSeason() como default
+        const temporadaNum = parseInt(temporada) || getFinancialSeason();
 
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
@@ -800,8 +803,8 @@ export const verificarCacheValido = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const { rodadaAtual, mercadoAberto, temporada } = req.query;
-        // ✅ v5.6 FIX: Temporada usa CURRENT_SEASON como default
-        const temporadaNum = parseInt(temporada) || CURRENT_SEASON;
+        // ✅ v5.9 FIX: Temporada usa getFinancialSeason() como default
+        const temporadaNum = parseInt(temporada) || getFinancialSeason();
 
         // ✅ v5.7 FIX: Executar queries independentes em PARALELO
         const [statusTime, statusTemporada, cacheExistente, acertos] = await Promise.all([
@@ -979,9 +982,9 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
         const { ligaId, timeId } = req.params;
         const { rodadaAtual, temporada } = req.query;
         const rodadaAtualNum = parseInt(rodadaAtual) || 1;
-        // ✅ v5.6 FIX CRÍTICO: Temporada usa CURRENT_SEASON como default
-        // Evita divergência entre Hall da Fama e Módulo Financeiro
-        const temporadaNum = parseInt(temporada) || CURRENT_SEASON;
+        // ✅ v5.9 FIX: Temporada usa getFinancialSeason() como default
+        // Durante pré-temporada, busca dados de 2025 (temporada anterior)
+        const temporadaNum = parseInt(temporada) || getFinancialSeason();
 
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
