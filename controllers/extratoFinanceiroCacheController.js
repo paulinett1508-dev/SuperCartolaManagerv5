@@ -1,5 +1,6 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v5.6 - FIX TEMPORADA DINÂMICA
+// extratoFinanceiroCacheController.js v5.7 - FIX LIGA_ID STRING/OBJECTID
+// ✅ v5.7: FIX - Busca aceita liga_id como String ou ObjectId (compatibilidade)
 // ✅ v5.6: FIX CRÍTICO - Temporada default usa CURRENT_SEASON (não hardcoded 2025)
 //   - Corrige divergência entre Hall da Fama e Módulo Financeiro
 //   - Todas as queries agora usam temporada dinâmica
@@ -565,12 +566,18 @@ export const getExtratoCache = async (req, res) => {
         // ✅ v5.6 FIX: Passar temporada correta
         const acertosPromise = buscarAcertosFinanceiros(ligaId, timeId, temporadaNum);
 
-        // ✅ v5.6 FIX: SEMPRE filtrar por temporada
-        const cache = await ExtratoFinanceiroCache.findOne({
-            liga_id: toLigaId(ligaId),
+        // ✅ v5.7 FIX: Usar query nativa para evitar conversão de tipo pelo Mongoose
+        // O schema define liga_id como ObjectId, mas alguns registros estão como String
+        const db = mongoose.connection.db;
+        const cache = await db.collection('extratofinanceirocaches').findOne({
+            $or: [
+                { liga_id: new mongoose.Types.ObjectId(ligaId) },
+                { liga_id: String(ligaId) }
+            ],
             time_id: Number(timeId),
             temporada: temporadaNum,
-        }).lean();
+        });
+        console.log('[CACHE-CONTROLLER] Cache encontrado via query nativa:', cache ? 'SIM' : 'NÃO');
 
         // ✅ v5.1: Aguardar acertos
         const acertos = await acertosPromise;
