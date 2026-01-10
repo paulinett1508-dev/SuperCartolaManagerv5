@@ -1,5 +1,5 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v12.8 (SALDO CLICÁVEL + MODAL DETALHES)
+// PARTICIPANTE-HISTORICO.JS - v12.9 (FIX: timeId no modal detalhes)
 // =====================================================================
 // v12.8: Card Saldo Final clicável → abre modal com detalhes financeiros
 //        - Mostra créditos, débitos, rodadas, ajustes e acertos
@@ -323,7 +323,7 @@ async function renderizarTodasLigas() {
                     <div class="stat-value">${formatarPontosCompletos(pontosReais)}</div>
                     <div class="stat-subtitle">${rodadasJogadas} rodadas</div>
                 </div>
-                <div class="stat-card stat-card-clickable" onclick="window.abrirModalDetalhesFinanceiros('${ligaId}', ${temporadaTemp}, ${saldoHistorico})" title="Clique para ver detalhes">
+                <div class="stat-card stat-card-clickable" onclick="window.abrirModalDetalhesFinanceiros('${ligaId}', ${timeId}, ${temporadaTemp}, ${saldoHistorico})" title="Clique para ver detalhes">
                     <div class="material-icons stat-icon">paid</div>
                     <div class="stat-label">Saldo Final</div>
                     <div class="stat-value ${saldoClass}">${formatarMoeda(saldoHistorico)}</div>
@@ -1219,7 +1219,7 @@ async function renderizarDadosTempoReal(ligaId) {
                     <div class="stat-value">${formatarPontosCompletos(pontosReais)}</div>
                     <div class="stat-subtitle">${rodadasJogadas} rodadas</div>
                 </div>
-                <div class="stat-card stat-card-clickable" onclick="window.abrirModalDetalhesFinanceiros('${ligaId}', ${temporadaTempoReal}, ${saldoHistorico})" title="Clique para ver detalhes">
+                <div class="stat-card stat-card-clickable" onclick="window.abrirModalDetalhesFinanceiros('${ligaId}', ${timeId}, ${temporadaTempoReal}, ${saldoHistorico})" title="Clique para ver detalhes">
                     <div class="material-icons stat-icon">paid</div>
                     <div class="stat-label">Saldo Atual</div>
                     <div class="stat-value ${saldoClass}">${formatarMoeda(saldoHistorico)}</div>
@@ -1667,10 +1667,10 @@ async function renderizarDadosTempoReal(ligaId) {
 }
 
 // =====================================================================
-// ✅ v12.8: MODAL DETALHES FINANCEIROS
+// ✅ v12.9: MODAL DETALHES FINANCEIROS (FIX: timeId como parâmetro)
 // =====================================================================
-window.abrirModalDetalhesFinanceiros = async function(ligaId, temporada, saldoTotal) {
-    if (window.Log) Log.info("HISTORICO", `Abrindo modal detalhes financeiros: liga=${ligaId} temp=${temporada}`);
+window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada, saldoTotal) {
+    if (window.Log) Log.info("HISTORICO", `Abrindo modal detalhes financeiros: liga=${ligaId} time=${timeId} temp=${temporada}`);
 
     // Criar overlay do modal
     const overlay = document.createElement('div');

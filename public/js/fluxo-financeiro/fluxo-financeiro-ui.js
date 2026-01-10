@@ -3210,15 +3210,26 @@ export class FluxoFinanceiroUI {
     }
 
     // =========================================================================
-    // ✅ v4.5: Popular cache no backend quando admin visualiza extrato
+    // ✅ v4.6: Popular cache no backend quando admin visualiza extrato
+    // ✅ FIX: Não popular cache de 2026 durante pré-temporada (evita corrupção)
     // =========================================================================
     async popularCacheBackend(timeId, extrato) {
         try {
             const ligaId = window.obterLigaId?.();
             if (!ligaId || !timeId || !extrato) return;
 
+            // ✅ v4.6 FIX: Obter temporada do modal
+            const temporada = this.temporadaModalExtrato || window.temporadaAtual || 2025;
+
+            // ✅ v4.6 FIX: NÃO popular cache de 2026 durante pré-temporada
+            // O extrato 2026 só deve ter dados quando a temporada começar
+            if (temporada === 2026) {
+                console.log(`[FLUXO-UI] ⏸️ Skipping cache 2026 (pré-temporada)`);
+                return;
+            }
+
             console.log(
-                `[FLUXO-UI] 📤 Populando cache backend para time ${timeId}...`,
+                `[FLUXO-UI] 📤 Populando cache backend para time ${timeId} (temp ${temporada})...`,
             );
 
             // Enviar extrato calculado pelo frontend para o cache do backend
@@ -3229,8 +3240,9 @@ export class FluxoFinanceiroUI {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         extrato: extrato,
+                        temporada: temporada, // ✅ v4.6 FIX: Incluir temporada
                         origem: "admin-frontend",
-                        versao: "4.5",
+                        versao: "4.6",
                     }),
                 },
             );
