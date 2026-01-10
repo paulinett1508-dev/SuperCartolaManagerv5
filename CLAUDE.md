@@ -31,7 +31,7 @@ O projeto conta com 5 skills especializadas que podem ser invocadas para tarefas
 
 | Skill | Descrição | Quando Usar |
 |-------|-----------|-------------|
-| **code-inspector** | Code Review, Debugging e Qualidade de Software | "procurar bugs", "auditar código", "corrigir erros", "melhorar qualidade" |
+| **code-inspector** | Auditoria Senior Full-Stack (SPARC: Security, Performance, Architecture, Reliability, Code Quality) | "auditar código", "security review", "performance analysis", "OWASP check", "code smell" |
 | **db-guardian** | Banco de Dados (MongoDB), Segurança e Migrações | Scripts de limpeza, manutenção, snapshots de temporada, gestão de acesso |
 | **frontend-crafter** | Frontend Mobile-First, UX Black & Orange, Cache Offline, SPA | Criar telas, ajustar CSS, lógica JS do cliente, navegação |
 | **league-architect** | Regras de Negócio, Formatos de Liga (SaaS), Lógica Financeira | Configs de liga, cálculos financeiros, regras de disputa |
