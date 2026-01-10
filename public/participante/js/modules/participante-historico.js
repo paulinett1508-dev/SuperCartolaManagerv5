@@ -1,6 +1,9 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v12.7 (SALDO HISTÓRICO CONGELADO)
+// PARTICIPANTE-HISTORICO.JS - v12.8 (SALDO CLICÁVEL + MODAL DETALHES)
 // =====================================================================
+// v12.8: Card Saldo Final clicável → abre modal com detalhes financeiros
+//        - Mostra créditos, débitos, rodadas, ajustes e acertos
+//        - Permite ver breakdown completo de cada componente
 // v12.7: FIX - Usar saldo_temporada no Hall da Fama (histórico congelado, sem acertos)
 //        - Saldo Final agora mostra o valor "congelado" da temporada
 //        - Não é afetado por quitações ou acertos posteriores
@@ -320,11 +323,11 @@ async function renderizarTodasLigas() {
                     <div class="stat-value">${formatarPontosCompletos(pontosReais)}</div>
                     <div class="stat-subtitle">${rodadasJogadas} rodadas</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card stat-card-clickable" onclick="window.abrirModalDetalhesFinanceiros('${ligaId}', ${temporadaTemp}, ${saldoHistorico})" title="Clique para ver detalhes">
                     <div class="material-icons stat-icon">paid</div>
                     <div class="stat-label">Saldo Final</div>
                     <div class="stat-value ${saldoClass}">${formatarMoeda(saldoHistorico)}</div>
-                    <div class="stat-subtitle">Historico Financeiro</div>
+                    <div class="stat-subtitle">Toque para detalhes</div>
                 </div>
                 <div class="stat-card">
                     <div class="material-icons stat-icon">stars</div>
@@ -1216,11 +1219,11 @@ async function renderizarDadosTempoReal(ligaId) {
                     <div class="stat-value">${formatarPontosCompletos(pontosReais)}</div>
                     <div class="stat-subtitle">${rodadasJogadas} rodadas</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card stat-card-clickable" onclick="window.abrirModalDetalhesFinanceiros('${ligaId}', ${temporadaTempoReal}, ${saldoHistorico})" title="Clique para ver detalhes">
                     <div class="material-icons stat-icon">paid</div>
                     <div class="stat-label">Saldo Atual</div>
                     <div class="stat-value ${saldoClass}">${formatarMoeda(saldoHistorico)}</div>
-                    <div class="stat-subtitle">Historico Financeiro</div>
+                    <div class="stat-subtitle">Toque para detalhes</div>
                 </div>
                 <div class="stat-card">
                     <div class="material-icons stat-icon">stars</div>
@@ -1663,4 +1666,206 @@ async function renderizarDadosTempoReal(ligaId) {
     }
 }
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.5 pronto");
+// =====================================================================
+// ✅ v12.8: MODAL DETALHES FINANCEIROS
+// =====================================================================
+window.abrirModalDetalhesFinanceiros = async function(ligaId, temporada, saldoTotal) {
+    if (window.Log) Log.info("HISTORICO", `Abrindo modal detalhes financeiros: liga=${ligaId} temp=${temporada}`);
+
+    // Criar overlay do modal
+    const overlay = document.createElement('div');
+    overlay.id = 'modalDetalhesFinanceirosOverlay';
+    overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.85); z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+        padding: 16px; animation: fadeIn 0.2s ease;
+    `;
+
+    // Loading inicial
+    overlay.innerHTML = `
+        <div style="background: #1f2937; border-radius: 16px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto;">
+            <div style="padding: 24px; text-align: center;">
+                <div class="spinner" style="margin: 0 auto 12px;"></div>
+                <p style="color: #9ca3af;">Carregando detalhes...</p>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+    overlay.onclick = (e) => {
+        if (e.target === overlay) overlay.remove();
+    };
+
+    try {
+        // Buscar dados detalhados
+        const [cacheRes, camposRes, acertosRes] = await Promise.all([
+            fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?temporada=${temporada}`),
+            fetch(`/api/fluxo-financeiro/${ligaId}/times/${timeId}?temporada=${temporada}`),
+            fetch(`/api/acertos/${ligaId}/${timeId}?temporada=${temporada}`)
+        ]);
+
+        const cacheData = cacheRes.ok ? await cacheRes.json() : null;
+        const camposData = camposRes.ok ? await camposRes.json() : null;
+        const acertosData = acertosRes.ok ? await acertosRes.json() : null;
+
+        // Processar dados
+        const resumo = cacheData?.resumo || {};
+        const rodadas = cacheData?.rodadas || [];
+        const campos = camposData?.campos || [];
+        const acertos = acertosData?.acertos || [];
+
+        // Calcular totais
+        let totalCreditos = 0;
+        let totalDebitos = 0;
+
+        rodadas.forEach(r => {
+            const saldo = (r.bonusOnus || 0) + (r.pontosCorridos || 0) + (r.mataMata || 0) + (r.top10 || 0);
+            if (saldo > 0) totalCreditos += saldo;
+            else totalDebitos += Math.abs(saldo);
+        });
+
+        let totalCampos = 0;
+        campos.forEach(c => {
+            const valor = parseFloat(c.valor) || 0;
+            totalCampos += valor;
+            if (valor > 0) totalCreditos += valor;
+            else totalDebitos += Math.abs(valor);
+        });
+
+        let totalPagamentos = 0;
+        let totalRecebimentos = 0;
+        acertos.forEach(a => {
+            if (a.tipo === 'pagamento') totalPagamentos += a.valor;
+            else totalRecebimentos += a.valor;
+        });
+
+        // Renderizar modal
+        const saldoClass = saldoTotal > 0 ? 'positive' : saldoTotal < 0 ? 'negative' : '';
+
+        overlay.innerHTML = `
+            <div style="background: #1f2937; border-radius: 16px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto;">
+                <!-- Header -->
+                <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 style="color: #fff; margin: 0; font-size: 18px; font-weight: 700;">Detalhes Financeiros</h2>
+                        <p style="color: #9ca3af; margin: 4px 0 0; font-size: 13px;">Temporada ${temporada}</p>
+                    </div>
+                    <button onclick="document.getElementById('modalDetalhesFinanceirosOverlay').remove()"
+                            style="background: none; border: none; color: #9ca3af; font-size: 24px; cursor: pointer; padding: 4px;">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+
+                <!-- Saldo Principal -->
+                <div style="padding: 20px; background: linear-gradient(135deg, rgba(255,85,0,0.1) 0%, rgba(255,136,0,0.05) 100%); text-align: center;">
+                    <div style="color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Saldo Final</div>
+                    <div style="color: ${saldoTotal > 0 ? '#10b981' : saldoTotal < 0 ? '#ef4444' : '#fff'}; font-size: 32px; font-weight: 700; margin: 8px 0;">
+                        ${formatarMoeda(saldoTotal)}
+                    </div>
+                </div>
+
+                <!-- Resumo -->
+                <div style="padding: 16px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="background: rgba(16,185,129,0.1); border-radius: 8px; padding: 12px; text-align: center;">
+                        <div style="color: #10b981; font-size: 12px;">Creditos</div>
+                        <div style="color: #10b981; font-size: 18px; font-weight: 700;">+${formatarMoeda(totalCreditos)}</div>
+                    </div>
+                    <div style="background: rgba(239,68,68,0.1); border-radius: 8px; padding: 12px; text-align: center;">
+                        <div style="color: #ef4444; font-size: 12px;">Debitos</div>
+                        <div style="color: #ef4444; font-size: 18px; font-weight: 700;">-${formatarMoeda(totalDebitos)}</div>
+                    </div>
+                </div>
+
+                <!-- Detalhamento -->
+                <div style="padding: 0 20px 20px;">
+                    <!-- Rodadas -->
+                    <div style="margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <span class="material-icons" style="color: #ff5500; font-size: 18px;">sports_soccer</span>
+                            <span style="color: #e5e5e5; font-size: 14px; font-weight: 600;">Rodadas Disputadas</span>
+                            <span style="color: #6b7280; font-size: 12px; margin-left: auto;">${rodadas.length} rodadas</span>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: #9ca3af; font-size: 12px;">Bonus/Onus</span>
+                                <span style="color: #e5e5e5; font-size: 12px;">${formatarMoeda(rodadas.reduce((s,r) => s + (r.bonusOnus || 0), 0))}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: #9ca3af; font-size: 12px;">Pontos Corridos</span>
+                                <span style="color: #e5e5e5; font-size: 12px;">${formatarMoeda(rodadas.reduce((s,r) => s + (r.pontosCorridos || 0), 0))}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: #9ca3af; font-size: 12px;">Mata-Mata</span>
+                                <span style="color: #e5e5e5; font-size: 12px;">${formatarMoeda(rodadas.reduce((s,r) => s + (r.mataMata || 0), 0))}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #9ca3af; font-size: 12px;">TOP 10 (Mitos/Micos)</span>
+                                <span style="color: #e5e5e5; font-size: 12px;">${formatarMoeda(rodadas.reduce((s,r) => s + (r.top10 || 0), 0))}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${campos.length > 0 ? `
+                    <!-- Ajustes/Premios -->
+                    <div style="margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <span class="material-icons" style="color: #fbbf24; font-size: 18px;">tune</span>
+                            <span style="color: #e5e5e5; font-size: 14px; font-weight: 600;">Ajustes/Premios</span>
+                            <span style="color: #6b7280; font-size: 12px; margin-left: auto;">${campos.length} itens</span>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px;">
+                            ${campos.map(c => `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="color: #9ca3af; font-size: 12px;">${c.nome}</span>
+                                    <span style="color: ${parseFloat(c.valor) >= 0 ? '#10b981' : '#ef4444'}; font-size: 12px;">
+                                        ${parseFloat(c.valor) >= 0 ? '+' : ''}${formatarMoeda(c.valor)}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${acertos.length > 0 ? `
+                    <!-- Acertos -->
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <span class="material-icons" style="color: #8b5cf6; font-size: 18px;">handshake</span>
+                            <span style="color: #e5e5e5; font-size: 14px; font-weight: 600;">Acertos Financeiros</span>
+                            <span style="color: #6b7280; font-size: 12px; margin-left: auto;">${acertos.length} registros</span>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px;">
+                            ${acertos.slice(0, 5).map(a => `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="color: #9ca3af; font-size: 12px;">${a.tipo === 'pagamento' ? 'Pagou' : 'Recebeu'}</span>
+                                    <span style="color: ${a.tipo === 'pagamento' ? '#10b981' : '#ef4444'}; font-size: 12px;">
+                                        ${a.tipo === 'pagamento' ? '+' : '-'}${formatarMoeda(a.valor)}
+                                    </span>
+                                </div>
+                            `).join('')}
+                            ${acertos.length > 5 ? `<div style="color: #6b7280; font-size: 11px; text-align: center; margin-top: 8px;">+${acertos.length - 5} registros</div>` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+
+    } catch (error) {
+        if (window.Log) Log.error("HISTORICO", "Erro ao carregar detalhes financeiros:", error);
+        overlay.innerHTML = `
+            <div style="background: #1f2937; border-radius: 16px; width: 100%; max-width: 420px; padding: 24px; text-align: center;">
+                <span class="material-icons" style="color: #ef4444; font-size: 48px; margin-bottom: 12px;">error_outline</span>
+                <h3 style="color: #ef4444; margin: 0 0 8px;">Erro ao carregar</h3>
+                <p style="color: #9ca3af; margin: 0 0 16px;">Nao foi possivel carregar os detalhes financeiros.</p>
+                <button onclick="document.getElementById('modalDetalhesFinanceirosOverlay').remove()"
+                        style="padding: 12px 24px; background: #ff5500; border: none; border-radius: 8px; color: #fff; cursor: pointer;">
+                    Fechar
+                </button>
+            </div>
+        `;
+    }
+};
+
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.8 pronto (modal detalhes)");

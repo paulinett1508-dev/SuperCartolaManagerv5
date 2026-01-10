@@ -466,7 +466,7 @@ export class FluxoFinanceiroUI {
             html += `
                 <div class="extrato-transacoes-especiais" style="margin-top: 20px;">
                     <div class="detalhamento-header">
-                        <h3 class="detalhamento-titulo">Lançamentos Iniciais</h3>
+                        <h3 class="detalhamento-titulo">Lançamentos</h3>
                     </div>
                     <div class="transacoes-especiais-lista">
                         ${transacoesEspeciais.map(t => `

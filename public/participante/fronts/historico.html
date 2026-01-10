@@ -177,6 +177,44 @@
     transform: translateY(-2px);
 }
 
+/* v12.8: Card clicável para detalhes financeiros */
+.stat-card-clickable {
+    cursor: pointer;
+    position: relative;
+}
+
+.stat-card-clickable::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--hall-primary);
+    animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.stat-card-clickable:hover {
+    background: rgba(255, 69, 0, 0.15) !important;
+    border-color: var(--hall-primary) !important;
+}
+
+.stat-card-clickable .stat-subtitle {
+    color: var(--hall-primary);
+    font-size: 11px;
+}
+
 .stat-icon {
     font-size: 32px;
     color: var(--hall-primary);

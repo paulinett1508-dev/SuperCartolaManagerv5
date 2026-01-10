@@ -1,7 +1,10 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v3.7 (FIX TEMPORADA NAS URLS)
+// PARTICIPANTE-EXTRATO.JS - v4.0 (RENOVACAO DINAMICA)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v4.0: RENOVACAO - Verifica status de renovacao do participante
+//          Se renovado → mostra extrato 2026 (nova temporada)
+//          Se nao renovado → mostra extrato 2025 (temporada anterior)
 // ✅ v3.7: FIX - Inclui temporada em todas as chamadas de API (evita criar cache 2026 vazio)
 // ✅ v3.6: FIX - Usa config global (CURRENT_SEASON) em vez de hardcoded
 // ✅ v3.5: FIX CRÍTICO - Calcula totalPago/totalRecebido no fallback (não mais zerados)
@@ -20,10 +23,81 @@ const RODADA_FINAL_CAMPEONATO = 38;
 const CONFIG = window.ParticipanteConfig || {};
 const CAMPEONATO_ENCERRADO = CONFIG.isPreparando?.() || false; // Durante pré-temporada, 2025 está encerrada
 
+// ✅ v4.0: Cache de status de renovação
+let statusRenovacaoCache = null;
+
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.6 FIX-TEMPORADA-DINAMICA (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.0 RENOVACAO-DINAMICA (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
+
+// =====================================================================
+// ✅ v4.0: VERIFICAR STATUS DE RENOVAÇÃO
+// =====================================================================
+async function verificarRenovacao(ligaId, timeId) {
+    // Retornar do cache se já verificou
+    if (statusRenovacaoCache !== null) {
+        return statusRenovacaoCache;
+    }
+
+    const temporadaNova = CONFIG.CURRENT_SEASON || 2026;
+
+    try {
+        const url = `/api/inscricoes/${ligaId}/${temporadaNova}/${timeId}`;
+        if (window.Log)
+            Log.debug("EXTRATO-PARTICIPANTE", `🔍 Verificando renovação: ${url}`);
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            if (window.Log)
+                Log.warn("EXTRATO-PARTICIPANTE", `⚠️ API renovação retornou ${response.status}`);
+            statusRenovacaoCache = { renovado: false };
+            return statusRenovacaoCache;
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.inscricao) {
+            // Tem inscrição - verificar status
+            const status = data.inscricao.status;
+            const renovado = status === 'renovado' || status === 'novo';
+
+            statusRenovacaoCache = {
+                renovado,
+                status,
+                pagouInscricao: data.inscricao.pagou_inscricao,
+                taxaInscricao: data.inscricao.taxa_inscricao,
+                saldoInicial: data.inscricao.saldo_inicial_temporada,
+                legado: data.inscricao.legado_manual || null
+            };
+
+            if (window.Log)
+                Log.info("EXTRATO-PARTICIPANTE", `✅ Status renovação: ${status}`, statusRenovacaoCache);
+        } else {
+            // Sem inscrição = pendente (não renovou)
+            statusRenovacaoCache = {
+                renovado: false,
+                status: data.statusImplicito || 'pendente'
+            };
+
+            if (window.Log)
+                Log.info("EXTRATO-PARTICIPANTE", `📋 Sem inscrição 2026 (status: ${statusRenovacaoCache.status})`);
+        }
+
+        return statusRenovacaoCache;
+
+    } catch (error) {
+        if (window.Log)
+            Log.error("EXTRATO-PARTICIPANTE", "❌ Erro ao verificar renovação:", error);
+
+        statusRenovacaoCache = { renovado: false, error: true };
+        return statusRenovacaoCache;
+    }
+}
+
+// Expor função globalmente para uso em outros módulos
+window.verificarRenovacaoParticipante = verificarRenovacao;
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - INICIALIZAR
@@ -264,9 +338,21 @@ async function carregarExtrato(ligaId, timeId) {
         let usouCacheBackend = false;
         let precisaRecalculo = false;
 
-        // ✅ v3.8 FIX: Usar getFinancialSeason() para pegar temporada correta
-        // Durante pré-temporada, busca dados de 2025 (temporada anterior)
-        const temporada = CONFIG.getFinancialSeason ? CONFIG.getFinancialSeason() : (CONFIG.CURRENT_SEASON || 2026);
+        // ✅ v4.0: Verificar status de renovação para determinar temporada
+        const statusRenovacao = await verificarRenovacao(ligaId, timeId);
+        let temporada;
+
+        if (statusRenovacao.renovado) {
+            // Participante RENOVOU → mostrar extrato 2026 (nova temporada)
+            temporada = CONFIG.CURRENT_SEASON || 2026;
+            if (window.Log)
+                Log.info("EXTRATO-PARTICIPANTE", `✅ Participante RENOVADO - exibindo temporada ${temporada}`);
+        } else {
+            // Participante NÃO renovou → mostrar extrato da temporada anterior
+            temporada = CONFIG.getFinancialSeason ? CONFIG.getFinancialSeason() : (CONFIG.PREVIOUS_SEASON || 2025);
+            if (window.Log)
+                Log.info("EXTRATO-PARTICIPANTE", `📋 Participante pendente/não renovado - exibindo temporada ${temporada}`);
+        }
 
         // ✅ PASSO 1: Tentar buscar do cache
         const urlCache = `/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}&temporada=${temporada}`;
@@ -677,19 +763,62 @@ function mostrarVazio() {
     const temporadaAnterior = config ? config.PREVIOUS_SEASON : 2025;
     const temporadaAtual = config ? config.CURRENT_SEASON : 2026;
 
-    if (isPreTemporada) {
-        // Mensagem especial para pre-temporada
+    // ✅ v4.0: Verificar se participante renovou
+    const renovado = statusRenovacaoCache?.renovado || false;
+    const pagouInscricao = statusRenovacaoCache?.pagouInscricao;
+    const taxaInscricao = statusRenovacaoCache?.taxaInscricao || 0;
+
+    if (renovado && isPreTemporada) {
+        // Participante RENOVOU - mostrar mensagem de boas-vindas 2026
+        const saldoInicialHtml = !pagouInscricao && taxaInscricao > 0
+            ? `<div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
+                          border-radius: 8px; padding: 12px; margin-top: 16px;">
+                   <div style="color: #ef4444; font-size: 12px; font-weight: 600;">Taxa de inscricao pendente</div>
+                   <div style="color: #ef4444; font-size: 16px; font-weight: 700;">R$ ${taxaInscricao.toFixed(2).replace('.', ',')}</div>
+               </div>`
+            : '';
+
+        container.innerHTML = `
+            <div style="text-align: center; padding: 32px 20px;">
+                <!-- Card Bem-vindo 2026 -->
+                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+                            border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; padding: 24px;">
+                    <div style="font-size: 40px; margin-bottom: 12px;">✅</div>
+                    <h3 style="color: #10b981; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+                        Renovacao Confirmada!
+                    </h3>
+                    <p style="color: #9ca3af; font-size: 13px; margin: 0; line-height: 1.5;">
+                        Voce esta inscrito na temporada ${temporadaAtual}. Seu extrato financeiro
+                        comecara a ser calculado quando o Brasileirao iniciar.
+                    </p>
+                    ${saldoInicialHtml}
+                </div>
+
+                <!-- Info Historico -->
+                <div style="margin-top: 20px; padding: 12px; background: rgba(255,255,255,0.03);
+                            border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                    <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                        Para ver seu historico de ${temporadaAnterior}, acesse o
+                        <a href="#" onclick="window.participanteNav && window.participanteNav.navegarPara('historico'); return false;"
+                           style="color: #ff5500; text-decoration: none; font-weight: 600;">Hall da Fama</a>.
+                    </p>
+                </div>
+            </div>
+        `;
+    } else if (isPreTemporada) {
+        // Participante NAO renovou - mostrar extrato 2025 ou mensagem de pendente
         container.innerHTML = `
             <div style="text-align: center; padding: 32px 20px;">
                 <!-- Card Temporada Nova -->
                 <div style="background: linear-gradient(135deg, rgba(255,85,0,0.1) 0%, rgba(255,136,0,0.05) 100%);
                             border: 1px solid rgba(255,85,0,0.3); border-radius: 16px; padding: 24px; margin-bottom: 20px;">
-                    <div style="font-size: 40px; margin-bottom: 12px;">🎉</div>
+                    <div style="font-size: 40px; margin-bottom: 12px;">📋</div>
                     <h3 style="color: #ff5500; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
-                        Nova Temporada ${temporadaAtual}
+                        Temporada ${temporadaAtual}
                     </h3>
                     <p style="color: #9ca3af; font-size: 13px; margin: 0; line-height: 1.5;">
-                        Seu extrato financeiro comecara a ser calculado quando o Brasileirao iniciar.
+                        Sua inscricao para ${temporadaAtual} ainda esta pendente.
+                        Entre em contato com o admin da liga para renovar.
                     </p>
                 </div>
 
