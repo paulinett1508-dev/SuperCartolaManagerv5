@@ -1,5 +1,7 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v5.7 - FIX LIGA_ID STRING/OBJECTID
+// extratoFinanceiroCacheController.js v5.8 - FIX TOTAIS POR COMPONENTES
+// ✅ v5.8: FIX - totalGanhos/totalPerdas calculados por COMPONENTES (não rodadas)
+//   - Garante consistência entre card Créditos/Débitos e popup detalhamento
 // ✅ v5.7: FIX - Busca aceita liga_id como String ou ObjectId (compatibilidade)
 // ✅ v5.6: FIX CRÍTICO - Temporada default usa CURRENT_SEASON (não hardcoded 2025)
 //   - Corrige divergência entre Hall da Fama e Módulo Financeiro
@@ -283,6 +285,8 @@ async function buscarExtratoDeSnapshots(ligaId, timeId) {
     }
 }
 
+// ✅ v5.8 FIX: Calcular totalGanhos/totalPerdas por COMPONENTES (não rodadas inteiras)
+// Isso garante consistência entre o card de Créditos/Débitos e o popup de detalhamento
 function calcularResumoDeRodadas(rodadas, camposManuais = null) {
     if (!Array.isArray(rodadas) || rodadas.length === 0) {
         return {
@@ -319,11 +323,21 @@ function calcularResumoDeRodadas(rodadas, camposManuais = null) {
 
         const t10 = parseFloat(r.top10) || 0;
         totalTop10 += t10;
-
-        const saldoRodada = bonusOnus + pc + mm + t10;
-        if (saldoRodada > 0) totalGanhos += saldoRodada;
-        else totalPerdas += saldoRodada;
     });
+
+    // ✅ v5.8 FIX: Calcular ganhos/perdas por COMPONENTES LÍQUIDOS
+    // Isso bate com o que o popup de detalhamento mostra
+    // Ganhos = soma dos componentes positivos
+    if (totalBonus > 0) totalGanhos += totalBonus;
+    if (totalPontosCorridos > 0) totalGanhos += totalPontosCorridos;
+    if (totalMataMata > 0) totalGanhos += totalMataMata;
+    if (totalTop10 > 0) totalGanhos += totalTop10;
+
+    // Perdas = soma dos componentes negativos (valor absoluto)
+    if (totalOnus < 0) totalPerdas += totalOnus;
+    if (totalPontosCorridos < 0) totalPerdas += totalPontosCorridos;
+    if (totalMataMata < 0) totalPerdas += totalMataMata;
+    if (totalTop10 < 0) totalPerdas += totalTop10;
 
     let totalCamposManuais = 0;
     if (camposManuais && Array.isArray(camposManuais)) {
