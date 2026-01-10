@@ -371,6 +371,41 @@ _Quando houver tempo - Melhorias de qualidade de vida_
 
 _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
 
+### 🎖️ Participante Premium
+
+- [ ] [FEAT-016] **Participante Premium - Funcionalidades Extras**
+  - **Descrição:** Nível premium para participantes com funcionalidades exclusivas
+  - **Participante piloto:** Paulinett Miranda (ID: 13935277) - Owner do sistema
+  - **Escopo MVP:**
+
+    **📊 Histórico Completo**
+    - Histórico multi-temporada (2024, 2025, 2026...)
+    - Gráfico de evolução do saldo ao longo das rodadas
+    - Estatísticas consolidadas (melhor rodada, pior rodada, média)
+
+    **📥 Exportar Dados**
+    - Download do extrato em PDF com visual profissional
+    - Exportar histórico para Excel/CSV
+    - Compartilhar card de performance no WhatsApp
+
+    **🔍 Comparar com Outros**
+    - "Duelo" direto com outro participante (quem ganhou mais rodadas)
+    - Ranking de confrontos diretos no mata-mata
+    - Posição relativa na liga ao longo do tempo
+
+    **📈 Projeções e Análises**
+    - Projeção de saldo final baseado em desempenho
+    - Alertas personalizados (ex: "Você precisa de +50 nas próximas 3 rodadas")
+    - Insights automáticos ("Seu melhor desempenho é em rodadas ímpares")
+
+  - **Arquivos a criar:**
+    - `models/ParticipantePremium.js` - Flag e configurações premium
+    - `public/participante/js/modules/participante-premium.js` - Funcionalidades exclusivas
+    - `routes/premium-routes.js` - APIs premium
+  - **Dependências:** FEAT-004 (Head-to-Head), FEAT-005 (Gráficos), FEAT-008 (Exportar PDF)
+  - **Complexidade:** Alta
+  - **Status:** Backlog - Implementar após funcionalidades base
+
 ### 📱 App do Participante
 
 - [ ] [FEAT-004] **Comparativo Head-to-Head**
@@ -490,5 +525,5 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
 
 ---
 
-_Última atualização: 26/12/2025 - [FEAT-015] Campinho Visual migrado de ideias-backlog.md (arquivo removido por redundância)_
+_Última atualização: 10/01/2026 - [FEAT-016] Participante Premium adicionado ao backlog_
 
