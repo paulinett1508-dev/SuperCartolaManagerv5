@@ -44,7 +44,8 @@ export class FluxoFinanceiroCore {
     // ✅ v6.2 FIX: Passar temporada para sincronização
     async _buscarAcertosFinanceiros(ligaId, timeId) {
         try {
-            const temporada = window.temporadaAtual || 2025;
+            // ✅ FIX: Padronizar default para 2026 (igual outras funções)
+            const temporada = window.temporadaAtual || 2026;
             const response = await fetch(`${API_BASE_URL}/api/acertos/${ligaId}/${timeId}?temporada=${temporada}`);
             const result = await response.json();
 

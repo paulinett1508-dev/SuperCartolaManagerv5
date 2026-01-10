@@ -296,14 +296,14 @@
 }
 
 .campeao-title {
+  font-family: var(--font-family-brand);
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 400;
   letter-spacing: 3px;
   margin-bottom: 6px;
   text-transform: uppercase;
   color: #ff4500;
   text-shadow: 0 2px 10px rgba(255, 69, 0, 0.4);
-  font-family: "Inter", -apple-system, sans-serif;
 }
 
 .campeao-edicao {

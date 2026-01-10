@@ -313,8 +313,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    font-family: var(--font-family-brand);
     font-size: 1.25rem;
-    font-weight: 700;
+    font-weight: 400;
     color: #ffffff;
     margin: 0;
 }
@@ -1103,8 +1104,9 @@ body.sidebar-collapsed .app-main {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-family: var(--font-family-brand);
     font-size: 0.7rem;
-    font-weight: 600;
+    font-weight: 400;
     color: #6b7280;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -1906,8 +1908,9 @@ body.sidebar-collapsed .main-content {
     display: flex;
     align-items: center;
     gap: 10px;
+    font-family: var(--font-family-brand);
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 400;
     color: #9ca3af;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -2223,8 +2226,9 @@ body.sidebar-collapsed .main-content {
 }
 
 .modal-historico-title h3 {
+    font-family: var(--font-family-brand);
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: 400;
     margin: 0;
 }
 

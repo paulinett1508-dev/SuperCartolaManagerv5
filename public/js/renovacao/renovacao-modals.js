@@ -69,6 +69,68 @@ const RenovacaoModals = (function() {
         return badges[status] || '<span class="badge bg-secondary">-</span>';
     }
 
+    /**
+     * Renderiza alertas sobre dados de quitação existentes
+     * Integração com o modal de Quitação
+     */
+    function renderAlertasQuitacao(preview) {
+        if (!preview) return '';
+
+        const alertas = [];
+
+        // Caso 1: Extrato da temporada anterior já foi quitado
+        if (preview.quitacao?.quitado) {
+            const tipoLabel = {
+                zerado: 'zerado (perdoado)',
+                integral: 'integral',
+                customizado: 'customizado'
+            }[preview.quitacao.tipo] || preview.quitacao.tipo;
+
+            alertas.push(`
+                <div class="alert alert-success py-2 mb-2">
+                    <span class="material-icons" style="vertical-align: middle; font-size: 18px;">verified</span>
+                    <strong>Temporada ${preview.temporadaOrigem} quitada!</strong>
+                    Tipo: ${tipoLabel}
+                    ${preview.quitacao.valor_legado !== undefined ?
+                        ` | Legado definido: ${formatarMoeda(preview.quitacao.valor_legado)}` : ''}
+                </div>
+            `);
+        }
+
+        // Caso 2: Já existe inscrição com legado_manual definido
+        if (preview.inscricaoExistente?.legado_manual?.origem) {
+            const legado = preview.inscricaoExistente.legado_manual;
+            const origem = legado.origem === 'quitacao_admin' ? 'Quitação' : 'Renovação';
+
+            alertas.push(`
+                <div class="alert alert-warning py-2 mb-2">
+                    <span class="material-icons" style="vertical-align: middle; font-size: 18px;">history</span>
+                    <strong>Legado já definido!</strong>
+                    Origem: ${origem} |
+                    Valor: ${formatarMoeda(legado.valor_definido)}
+                    <br>
+                    <small class="text-muted">Esta renovação usará o legado já configurado.</small>
+                </div>
+            `);
+        }
+
+        // Caso 3: Inscrição já processada anteriormente
+        if (preview.inscricaoExistente?.status === 'renovado') {
+            alertas.push(`
+                <div class="alert alert-info py-2 mb-2">
+                    <span class="material-icons" style="vertical-align: middle; font-size: 18px;">check_circle</span>
+                    <strong>Já renovado!</strong>
+                    Esta inscrição foi processada anteriormente.
+                    ${preview.inscricaoExistente.pagou_inscricao ?
+                        'Inscrição paga.' :
+                        '<span class="text-warning">Inscrição não paga (débito no extrato).</span>'}
+                </div>
+            `);
+        }
+
+        return alertas.join('');
+    }
+
     // =========================================================================
     // MODAL: CONFIGURACAO DA LIGA
     // =========================================================================
@@ -333,13 +395,30 @@ const RenovacaoModals = (function() {
                         </div>
                         ` : ''}
 
+                        <!-- Alertas de integracao com Quitacao -->
+                        ${renderAlertasQuitacao(preview)}
+
                         <!-- Situacao 2025 -->
                         <div class="card bg-gray-900 border-gray-700 mb-3">
                             <div class="card-header border-gray-700">
                                 <span class="material-icons" style="vertical-align: middle;">history</span>
                                 Situacao ${preview?.temporadaOrigem || 2025}
+                                ${preview?.quitacao?.quitado ? '<span class="badge bg-success ms-2">QUITADO</span>' : ''}
                             </div>
                             <div class="card-body">
+                                ${saldoAnterior.usandoLegadoManual ? `
+                                <!-- Usando legado manual (quitação) -->
+                                <div class="text-center">
+                                    <small class="text-muted">Legado definido na quitacao</small>
+                                    <h4 class="${saldoAnterior.saldoUsado >= 0 ? 'text-success' : 'text-danger'}">
+                                        ${formatarMoeda(saldoAnterior.saldoUsado)}
+                                    </h4>
+                                    <small class="text-muted d-block mt-2">
+                                        (Saldo original era ${formatarMoeda(saldoAnterior.final)})
+                                    </small>
+                                </div>
+                                ` : `
+                                <!-- Saldo calculado normalmente -->
                                 <div class="row text-center">
                                     <div class="col-6">
                                         <small class="text-muted">Saldo Final</small>
@@ -352,6 +431,7 @@ const RenovacaoModals = (function() {
                                         <h5>${getQuitacaoBadge(saldoAnterior.status)}</h5>
                                     </div>
                                 </div>
+                                `}
                             </div>
                         </div>
 

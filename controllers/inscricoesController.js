@@ -4,7 +4,7 @@
  * Lógica de negócio para renovação e inscrição de participantes.
  * Gerencia transferência de saldos entre temporadas.
  *
- * @version 1.0.0
+ * @version 1.2.0 (Fix: liga_id como ObjectId para compatibilidade com schema Mongoose)
  * @since 2026-01-04
  */
 
@@ -47,6 +47,20 @@ export async function buscarSaldoTemporada(ligaId, timeId, temporada) {
         ativo: true
     }).toArray();
 
+    // ✅ v1.2: Buscar campos manuais
+    const camposManuais = await db.collection('fluxofinanceirocampos').findOne({
+        ligaId: String(ligaId),
+        timeId: String(timeId),
+        temporada: Number(temporada)
+    });
+
+    let totalCamposManuais = 0;
+    if (camposManuais?.campos) {
+        camposManuais.campos.forEach(c => {
+            totalCamposManuais += parseFloat(c.valor) || 0;
+        });
+    }
+
     // Calcular saldo de acertos
     let saldoAcertos = 0;
     acertos.forEach(a => {
@@ -55,7 +69,7 @@ export async function buscarSaldoTemporada(ligaId, timeId, temporada) {
     });
 
     const saldoExtrato = extrato?.saldo_consolidado || 0;
-    const saldoFinal = saldoExtrato + saldoAcertos;
+    const saldoFinal = saldoExtrato + saldoAcertos + totalCamposManuais;
 
     // Determinar status
     let status = 'quitado';
@@ -65,6 +79,7 @@ export async function buscarSaldoTemporada(ligaId, timeId, temporada) {
     return {
         saldoExtrato,
         saldoAcertos,
+        camposManuais: totalCamposManuais,
         saldoFinal,
         status
     };
@@ -87,9 +102,12 @@ export async function criarTransacoesIniciais(ligaId, timeId, temporada, valores
     // IMPORTANTE: Se pagouInscricao = true, NÃO cria débito (apenas registro na InscricaoTemporada)
     // Se pagouInscricao = false, cria débito no extrato (participante deve a taxa)
     if (valores.taxa > 0 && valores.pagouInscricao === false) {
+        // ✅ v1.2: Usar ObjectId para liga_id (compatível com schema Mongoose)
+        const ligaObjId = new mongoose.Types.ObjectId(ligaId);
+
         // ✅ v1.1: Verificar se já existe transação de inscrição (evitar duplicação)
         const extratoExistente = await db.collection('extratofinanceirocaches').findOne({
-            liga_id: String(ligaId),
+            liga_id: ligaObjId,
             time_id: Number(timeId),
             temporada: Number(temporada),
             'historico_transacoes.tipo': 'INSCRICAO_TEMPORADA'
@@ -99,7 +117,7 @@ export async function criarTransacoesIniciais(ligaId, timeId, temporada, valores
             console.log(`[INSCRICOES] ⚠️ Transação INSCRICAO_TEMPORADA já existe para time ${timeId} em ${temporada}. Pulando...`);
         } else {
             const txInscricao = {
-                liga_id: String(ligaId),
+                liga_id: ligaObjId,
                 time_id: Number(timeId),
                 temporada: Number(temporada),
                 rodada: 0, // Rodada 0 = pré-temporada
@@ -114,7 +132,7 @@ export async function criarTransacoesIniciais(ligaId, timeId, temporada, valores
             // Inserir no histórico do cache de extrato
             await db.collection('extratofinanceirocaches').updateOne(
                 {
-                    liga_id: String(ligaId),
+                    liga_id: ligaObjId,
                     time_id: Number(timeId),
                     temporada: Number(temporada)
                 },
@@ -132,7 +150,7 @@ export async function criarTransacoesIniciais(ligaId, timeId, temporada, valores
                         saldo_consolidado: -valores.taxa
                     },
                     $setOnInsert: {
-                        liga_id: String(ligaId),
+                        liga_id: ligaObjId,
                         time_id: Number(timeId),
                         temporada: Number(temporada),
                         criado_em: agora
@@ -151,9 +169,12 @@ export async function criarTransacoesIniciais(ligaId, timeId, temporada, valores
 
     // 2. Transação de Saldo Transferido (pode ser positivo ou negativo)
     if (valores.saldoTransferido !== 0) {
+        // ✅ v1.2: Usar ObjectId para liga_id (compatível com schema Mongoose)
+        const ligaObjIdSaldo = new mongoose.Types.ObjectId(ligaId);
+
         // ✅ v1.1: Verificar se já existe transação de saldo anterior (evitar duplicação)
         const extratoComSaldo = await db.collection('extratofinanceirocaches').findOne({
-            liga_id: String(ligaId),
+            liga_id: ligaObjIdSaldo,
             time_id: Number(timeId),
             temporada: Number(temporada),
             'historico_transacoes.tipo': 'SALDO_TEMPORADA_ANTERIOR'
@@ -168,7 +189,7 @@ export async function criarTransacoesIniciais(ligaId, timeId, temporada, valores
 
             await db.collection('extratofinanceirocaches').updateOne(
                 {
-                    liga_id: String(ligaId),
+                    liga_id: ligaObjIdSaldo,
                     time_id: Number(timeId),
                     temporada: Number(temporada)
                 },
@@ -293,11 +314,21 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
         throw new Error("Prazo de renovação encerrado");
     }
 
+    // ✅ v1.2: Verificar se já existe inscrição com legado_manual (definido via quitação)
+    const inscricaoExistente = await InscricaoTemporada.findOne({
+        liga_id: new mongoose.Types.ObjectId(ligaId),
+        time_id: Number(timeId),
+        temporada: Number(temporada)
+    }).lean();
+
+    const temLegadoManual = inscricaoExistente?.legado_manual?.origem != null;
+    console.log(`[INSCRICOES] Renovação - legado_manual existente: ${temLegadoManual}`);
+
     // 3. Buscar saldo da temporada anterior
     const saldo = await buscarSaldoTemporada(ligaId, timeId, temporadaAnterior);
 
-    // 4. Verificar se devedor pode renovar
-    if (saldo.status === 'devedor' && !rules.inscricao.permitir_devedor_renovar) {
+    // 4. Verificar se devedor pode renovar (PULAR se tem legado_manual - já foi quitado)
+    if (!temLegadoManual && saldo.status === 'devedor' && !rules.inscricao.permitir_devedor_renovar) {
         throw new Error("Devedores não podem renovar. Quite a dívida primeiro.");
     }
 
@@ -312,19 +343,35 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
     let dividaAnterior = 0;
     let creditoUsado = 0;
 
-    // REGRA CORRIGIDA: Crédito só é usado se NÃO pagou a inscrição
-    // Se pagou, o crédito fica intacto para uso futuro
-    if (saldo.status === 'credor') {
-        if (!pagouInscricao && rules.inscricao.aproveitar_saldo_positivo && opcoes.aproveitarCredito !== false) {
-            // Aproveitar crédito para abater taxa (máximo = taxa)
-            creditoUsado = Math.min(saldo.saldoFinal, taxa);
-            saldoTransferido = creditoUsado; // Positivo = crédito transferido
+    // ✅ v1.2: Se tem legado_manual, usar valores definidos na quitação
+    if (temLegadoManual) {
+        const legadoValor = inscricaoExistente.legado_manual.valor_definido || 0;
+        if (legadoValor > 0) {
+            // Crédito legado
+            creditoUsado = legadoValor;
+            saldoTransferido = legadoValor;
+        } else if (legadoValor < 0) {
+            // Dívida legada
+            dividaAnterior = Math.abs(legadoValor);
+            saldoTransferido = legadoValor;
         }
-        // Se pagou OU não quer aproveitar: crédito permanece na temporada anterior
-    } else if (saldo.status === 'devedor') {
-        // Carregar dívida para nova temporada
-        dividaAnterior = Math.abs(saldo.saldoFinal);
-        saldoTransferido = -dividaAnterior; // Negativo = dívida transferida
+        // Se legadoValor == 0, foi zerado - não transfere nada
+        console.log(`[INSCRICOES] Usando legado_manual: valor=${legadoValor} (tipo: ${inscricaoExistente.legado_manual.tipo_quitacao})`);
+    } else {
+        // REGRA NORMAL: Crédito só é usado se NÃO pagou a inscrição
+        // Se pagou, o crédito fica intacto para uso futuro
+        if (saldo.status === 'credor') {
+            if (!pagouInscricao && rules.inscricao.aproveitar_saldo_positivo && opcoes.aproveitarCredito !== false) {
+                // Aproveitar crédito para abater taxa (máximo = taxa)
+                creditoUsado = Math.min(saldo.saldoFinal, taxa);
+                saldoTransferido = creditoUsado; // Positivo = crédito transferido
+            }
+            // Se pagou OU não quer aproveitar: crédito permanece na temporada anterior
+        } else if (saldo.status === 'devedor') {
+            // Carregar dívida para nova temporada
+            dividaAnterior = Math.abs(saldo.saldoFinal);
+            saldoTransferido = -dividaAnterior; // Negativo = dívida transferida
+        }
     }
 
     // Taxa só vira dívida se NÃO pagou
@@ -342,7 +389,8 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
     }
 
     // 7. Criar/atualizar inscrição
-    const inscricao = await InscricaoTemporada.upsert({
+    // ✅ v1.2: Preservar legado_manual se existir
+    const dadosInscricao = {
         liga_id: ligaId,
         time_id: Number(timeId),
         temporada,
@@ -354,11 +402,13 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
             escudo: participante.escudo_url || participante.foto_time,
             id_cartola_oficial: Number(timeId)
         },
-        temporada_anterior: {
-            temporada: temporadaAnterior,
-            saldo_final: saldo.saldoFinal,
-            status_quitacao: saldo.status
-        },
+        temporada_anterior: temLegadoManual
+            ? inscricaoExistente.temporada_anterior  // Preservar dados da quitação
+            : {
+                temporada: temporadaAnterior,
+                saldo_final: saldo.saldoFinal,
+                status_quitacao: saldo.status
+            },
         saldo_transferido: creditoUsado, // Crédito efetivamente usado (0 se pagou ou devedor)
         taxa_inscricao: taxa,
         divida_anterior: dividaAnterior,
@@ -367,7 +417,14 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
         data_decisao: new Date(),
         aprovado_por: opcoes.aprovadoPor || 'admin',
         observacoes: opcoes.observacoes || ''
-    });
+    };
+
+    // Preservar legado_manual se existir
+    if (temLegadoManual) {
+        dadosInscricao.legado_manual = inscricaoExistente.legado_manual;
+    }
+
+    const inscricao = await InscricaoTemporada.upsert(dadosInscricao);
 
     // 8. Criar transações iniciais no extrato
     // Nota: só cria débito de taxa se NÃO pagou (pagouInscricao = false)

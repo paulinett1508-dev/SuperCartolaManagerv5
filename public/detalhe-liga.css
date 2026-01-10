@@ -247,9 +247,10 @@
 
 /* === TÍTULO DO MÓDULO === */
 .module-title {
+    font-family: var(--font-family-brand);
     color: var(--text-primary) !important;
     font-size: 14px !important;
-    font-weight: 600 !important;
+    font-weight: 400 !important;
     margin: 0;
     letter-spacing: 0.3px;
     line-height: 1.3;

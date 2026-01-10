@@ -81,7 +81,9 @@
 }
 
 .edicoes-title {
-  font: 700 18px "Inter", -apple-system, sans-serif;
+  font-family: var(--font-family-brand);
+  font-size: 18px;
+  font-weight: 400;
   color: var(--text-primary);
   margin: 0;
 }

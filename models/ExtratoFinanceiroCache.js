@@ -63,6 +63,20 @@ const ExtratoFinanceiroCacheSchema = new mongoose.Schema(
             motivoRecalculo: String,
             origem: String,
         },
+
+        // ✅ v6.0: Quitação de temporada (fecha extrato e define legado)
+        quitacao: {
+            quitado: { type: Boolean, default: false },
+            data_quitacao: { type: Date },
+            admin_responsavel: { type: String },
+            saldo_no_momento: { type: Number },  // Snapshot do saldo antes de quitar
+            tipo: {
+                type: String,
+                enum: ['zerado', 'integral', 'customizado'],
+            },
+            valor_legado: { type: Number, default: 0 },  // Valor a carregar para próxima temporada
+            observacao: { type: String },
+        },
     },
     {
         timestamps: true,

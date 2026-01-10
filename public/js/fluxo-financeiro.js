@@ -4,9 +4,11 @@ import {
     FluxoFinanceiroAuditoria,
     injetarEstilosAuditoria,
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
+// v8.0: Módulo de Quitação de Temporada
+import "./fluxo-financeiro/fluxo-financeiro-quitacao.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v7.9"; // v7.9: Seletor de Temporada (2025/2026)
+const CACHE_BUSTER = "v8.0"; // v8.0: Quitação de Temporada
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;

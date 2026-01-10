@@ -26,6 +26,26 @@
   --info: #3b82f6;
 }
 
+/* === CLASSES UTILITÁRIAS DE VALORES === */
+.positivo {
+  color: var(--success) !important;
+  font-weight: 600;
+}
+
+.negativo {
+  color: var(--danger) !important;
+  font-weight: 600;
+}
+
+.neutro {
+  color: var(--text-muted) !important;
+}
+
+.valor-zerado {
+  color: var(--text-muted) !important;
+  font-style: italic;
+}
+
 /* === TEMA ESCURO PROFISSIONAL === */
 body {
   background: var(--bg-primary) !important;
@@ -1743,6 +1763,33 @@ body {
 }
 
 /* =============================================================================
+   BADGE QUITADO - Indicador de extrato fechado/quitado
+   ============================================================================= */
+.badge-quitado {
+    display: inline-block;
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 1px 3px rgba(107, 114, 128, 0.3);
+    cursor: help;
+}
+
+.col-saldo.quitado {
+    color: #6b7280 !important;
+}
+
+.col-saldo.quitado strong {
+    color: #6b7280 !important;
+}
+
+/* =============================================================================
    COLUNA TIME DO CORAÇÃO
    ============================================================================= */
 .col-time-coracao {
@@ -1991,4 +2038,664 @@ table.fluxo-participantes-tabela {
     bottom: 0;
     height: 2px;
     background: #FF5500;
+}
+
+/* =============================================================================
+   ✅ v6.4: SELETOR DE TEMPORADA NO MODAL DE EXTRATO
+   Permite alternar entre 2025 e 2026 para ver histórico e legado
+   ============================================================================= */
+
+/* Row para subtitle e selector */
+.modal-extrato-subtitulo-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Container do seletor */
+.modal-extrato-temporada-selector {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 2px;
+    gap: 2px;
+    border: 1px solid rgba(255, 69, 0, 0.2);
+}
+
+/* Botões de temporada */
+.btn-temporada {
+    padding: 4px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted, #a0a0a0);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-temporada:hover {
+    color: var(--text-primary, #fff);
+    background: rgba(255, 69, 0, 0.15);
+}
+
+.btn-temporada.active {
+    background: var(--laranja, #ff4500);
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(255, 69, 0, 0.3);
+}
+
+.btn-temporada:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.25);
+}
+
+/* Badge de Quitação no Modal */
+.badge-quitacao-extrato {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+.badge-quitacao-extrato .material-icons {
+    font-size: 14px;
+}
+
+/* Banner de Temporada Quitada */
+.extrato-quitado-banner {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.extrato-quitado-banner-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.extrato-quitado-banner-header .material-icons {
+    font-size: 24px;
+    color: #10b981;
+}
+
+.extrato-quitado-banner-header h4 {
+    margin: 0;
+    color: #10b981;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.extrato-quitado-banner-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.extrato-quitado-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.extrato-quitado-item label {
+    font-size: 9px;
+    text-transform: uppercase;
+    color: var(--text-muted, #a0a0a0);
+    letter-spacing: 0.5px;
+}
+
+.extrato-quitado-item span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary, #fff);
+}
+
+.extrato-quitado-item span.valor-positivo {
+    color: #10b981;
+}
+
+.extrato-quitado-item span.valor-negativo {
+    color: #ef4444;
+}
+
+.extrato-quitado-item span.valor-zerado {
+    color: #6b7280;
+}
+
+/* Legado para próxima temporada */
+.extrato-legado-banner {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.extrato-legado-banner-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.extrato-legado-banner-header .material-icons {
+    font-size: 24px;
+    color: #3b82f6;
+}
+
+.extrato-legado-banner-header h4 {
+    margin: 0;
+    color: #3b82f6;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* Cards de Resumo no Modal */
+.extrato-resumo-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.extrato-resumo-card {
+    background: var(--bg-card, #1e1e1e);
+    border: 1px solid var(--border-primary, rgba(255, 69, 0, 0.2));
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.extrato-resumo-card:hover {
+    border-color: var(--laranja, #ff4500);
+}
+
+.extrato-resumo-card .card-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    color: var(--text-muted, #a0a0a0);
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.extrato-resumo-card .card-value {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.extrato-resumo-card .card-value.positivo {
+    color: #10b981;
+}
+
+.extrato-resumo-card .card-value.negativo {
+    color: #ef4444;
+}
+
+.extrato-resumo-card .card-value.neutro {
+    color: var(--text-muted, #a0a0a0);
+}
+
+/* Alerta de Sem Dados da Temporada */
+.extrato-sem-dados-temporada {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted, #a0a0a0);
+}
+
+.extrato-sem-dados-temporada .material-icons {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.extrato-sem-dados-temporada p {
+    margin: 8px 0;
+    font-size: 13px;
+}
+
+.extrato-sem-dados-temporada .hint {
+    font-size: 11px;
+    color: var(--text-dark, #666);
+    font-style: italic;
+}
+
+/* Responsividade do Seletor */
+@media (max-width: 480px) {
+    .modal-extrato-subtitulo-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .modal-extrato-temporada-selector {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn-temporada {
+        flex: 1;
+        text-align: center;
+    }
+
+    .extrato-quitado-banner-content {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ===== TRANSAÇÕES ESPECIAIS (Inscrição, Legado) ===== */
+.extrato-transacoes-especiais {
+    background: var(--bg-card, #1e1e1e);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border-primary, rgba(255, 69, 0, 0.2));
+}
+
+.extrato-transacoes-especiais .detalhamento-titulo {
+    color: var(--laranja, #ff4500);
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.transacoes-especiais-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.transacao-especial-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--bg-tertiary, #1a1a1a);
+    border-radius: 8px;
+    border-left: 3px solid var(--laranja, #ff4500);
+}
+
+.transacao-especial-desc {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary, #e0e0e0);
+    font-size: 14px;
+}
+
+.transacao-especial-desc .material-icons {
+    font-size: 20px;
+}
+
+.transacao-especial-valor {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+    .transacao-especial-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .transacao-especial-valor {
+        align-self: flex-end;
+    }
+}
+
+/* ===== AJUSTES DINÂMICOS (2026+) ===== */
+.extrato-ajustes-section {
+    background: var(--bg-card, #1e1e1e);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border-primary, rgba(255, 69, 0, 0.2));
+}
+
+.extrato-ajustes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.extrato-ajustes-titulo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.extrato-ajustes-titulo .material-icons {
+    color: var(--laranja, #ff4500);
+    font-size: 22px;
+}
+
+.extrato-ajustes-titulo h4 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-primary, #fff);
+}
+
+.ajustes-total {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-adicionar-ajuste {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--laranja, #ff4500);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-adicionar-ajuste:hover {
+    background: var(--laranja-dark, #e8472b);
+    transform: translateY(-1px);
+}
+
+.btn-adicionar-ajuste .material-icons {
+    font-size: 18px;
+}
+
+.extrato-ajustes-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ajuste-vazio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    color: var(--text-muted, #a0a0a0);
+    font-size: 13px;
+}
+
+.ajuste-vazio .material-icons {
+    font-size: 18px;
+    opacity: 0.5;
+}
+
+.ajuste-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-tertiary, #1a1a1a);
+    border-radius: 8px;
+    border-left: 3px solid var(--laranja, #ff4500);
+}
+
+.ajuste-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ajuste-descricao {
+    font-size: 14px;
+    color: var(--text-secondary, #e0e0e0);
+}
+
+.ajuste-data {
+    font-size: 11px;
+    color: var(--text-muted, #a0a0a0);
+}
+
+.ajuste-valor {
+    font-size: 16px;
+    font-weight: 600;
+    min-width: 100px;
+    text-align: right;
+}
+
+.ajuste-remover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--danger, #ef4444);
+    opacity: 0.6;
+    transition: all 0.2s;
+}
+
+.ajuste-remover:hover {
+    opacity: 1;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.ajuste-remover .material-icons {
+    font-size: 16px;
+}
+
+/* ===== MODAL DE AJUSTE ===== */
+.modal-ajuste-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.modal-ajuste-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-ajuste-container {
+    background: var(--bg-card, #1e1e1e);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    border: 1px solid var(--border-primary, rgba(255, 69, 0, 0.2));
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    transform: translateY(20px);
+    transition: transform 0.3s;
+}
+
+.modal-ajuste-overlay.active .modal-ajuste-container {
+    transform: translateY(0);
+}
+
+.modal-ajuste-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-ajuste-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text-primary, #fff);
+}
+
+.modal-ajuste-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted, #a0a0a0);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.modal-ajuste-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary, #fff);
+}
+
+.modal-ajuste-body {
+    padding: 20px;
+}
+
+.modal-ajuste-body .form-group {
+    margin-bottom: 16px;
+}
+
+.modal-ajuste-body .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--text-muted, #a0a0a0);
+}
+
+.input-ajuste {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-tertiary, #1a1a1a);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-primary, #fff);
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.input-ajuste:focus {
+    outline: none;
+    border-color: var(--laranja, #ff4500);
+}
+
+.input-ajuste::placeholder {
+    color: var(--text-dark, #666);
+}
+
+.tipo-ajuste {
+    display: flex;
+    gap: 20px;
+}
+
+.tipo-ajuste label {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.tipo-ajuste input[type="radio"] {
+    accent-color: var(--laranja, #ff4500);
+}
+
+.tipo-label {
+    font-size: 14px !important;
+    color: var(--text-secondary, #e0e0e0) !important;
+}
+
+.tipo-label.credito {
+    color: var(--success, #22c55e) !important;
+}
+
+.tipo-label.debito {
+    color: var(--danger, #ef4444) !important;
+}
+
+.modal-ajuste-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-ajuste-footer .btn-cancelar {
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: var(--text-secondary, #e0e0e0);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.modal-ajuste-footer .btn-cancelar:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.modal-ajuste-footer .btn-salvar {
+    padding: 10px 24px;
+    background: var(--laranja, #ff4500);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.modal-ajuste-footer .btn-salvar:hover {
+    background: var(--laranja-dark, #e8472b);
+}
+
+/* Responsividade Ajustes */
+@media (max-width: 480px) {
+    .extrato-ajustes-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .btn-adicionar-ajuste {
+        justify-content: center;
+    }
+
+    .ajuste-item {
+        flex-wrap: wrap;
+    }
+
+    .ajuste-valor {
+        min-width: auto;
+        flex: 1;
+    }
 }

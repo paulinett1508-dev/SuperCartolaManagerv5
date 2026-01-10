@@ -147,7 +147,29 @@ const InscricaoTemporadaSchema = new mongoose.Schema({
         tipo: String,       // 'INSCRICAO_TEMPORADA' | 'SALDO_TEMPORADA_ANTERIOR'
         valor: Number,
         ref_id: String      // ID do documento criado
-    }]
+    }],
+
+    // =========================================================================
+    // LEGADO MANUAL (Quitação pelo Admin)
+    // =========================================================================
+    // Quando admin usa "Quitar Dívida" na temporada anterior,
+    // este campo armazena a decisão manual do legado
+    legado_manual: {
+        origem: {
+            type: String,
+            enum: ['quitacao_admin', 'acordo', null],  // null permitido
+            default: undefined  // undefined não dispara validação
+        },
+        valor_original: { type: Number },      // Saldo original antes da quitação
+        valor_definido: { type: Number },      // Valor que o admin definiu carregar
+        tipo_quitacao: {
+            type: String,
+            enum: ['zerado', 'integral', 'customizado', null]
+        },
+        observacao: { type: String },
+        admin_responsavel: { type: String },
+        data_quitacao: { type: Date }
+    }
 
 }, {
     timestamps: {

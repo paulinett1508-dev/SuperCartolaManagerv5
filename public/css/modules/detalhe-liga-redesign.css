@@ -266,8 +266,9 @@
 
 /* Título e descrição do card */
 .detalhe-liga-redesign .module-card .module-title {
+    font-family: var(--font-family-brand);
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: 400;
     color: #ffffff;
     margin: 0 0 2px 0;
 }
@@ -357,8 +358,9 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    font-family: var(--font-family-brand);
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 400;
     color: #ffffff;
 }
 
@@ -542,8 +544,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    font-family: var(--font-family-brand);
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: 400;
     color: #ffffff;
 }
 
@@ -782,7 +785,9 @@
     }
 
     .detalhe-liga-redesign .module-card .module-title {
+        font-family: var(--font-family-brand);
         font-size: 0.75rem;
+        font-weight: 400;
     }
 
     .detalhe-liga-redesign .admin-tools-grid {
@@ -866,6 +871,8 @@
 }
 
 .detalhe-liga-redesign .module-card-2026 .module-title {
+    font-family: var(--font-family-brand);
+    font-weight: 400;
     color: #e5e5e5;
 }
 
@@ -901,7 +908,9 @@
 /* Responsivo */
 @media (max-width: 768px) {
     .detalhe-liga-redesign .module-card-2026 .module-title {
+        font-family: var(--font-family-brand);
         font-size: 0.75rem;
+        font-weight: 400;
     }
 
     .detalhe-liga-redesign .badge-2026 {

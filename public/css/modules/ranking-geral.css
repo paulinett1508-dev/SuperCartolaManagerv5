@@ -58,11 +58,11 @@
 
 .ranking-title h2 {
     color: #ffffff !important;
+    font-family: var(--font-family-brand);
     font-size: 28px;
-    font-weight: 800;
+    font-weight: 400;
     margin: 0;
     text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
-    font-family: "Inter", -apple-system, sans-serif;
     letter-spacing: -0.5px;
 }
 

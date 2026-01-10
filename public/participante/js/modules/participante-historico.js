@@ -1,6 +1,9 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v12.6 (FIX TEMPORADA NAS URLS)
+// PARTICIPANTE-HISTORICO.JS - v12.7 (SALDO HISTÓRICO CONGELADO)
 // =====================================================================
+// v12.7: FIX - Usar saldo_temporada no Hall da Fama (histórico congelado, sem acertos)
+//        - Saldo Final agora mostra o valor "congelado" da temporada
+//        - Não é afetado por quitações ou acertos posteriores
 // v12.6: FIX - Inclui temporada nas URLs de API (evita criar cache de temporada futura)
 // v12.5: Fix campos do adversario no Mata-Mata (nomeTime vs nome)
 //        - Corrigido acesso aos campos da API: nomeTime, pontos
@@ -1047,6 +1050,7 @@ async function buscarMelhorRodada(tempLigaId) {
 
 // v8.0: Buscar extrato (créditos/débitos/saldo histórico)
 // v12.6 FIX: Adicionar temporada na URL para evitar criar cache de temporada futura
+// v12.7 FIX: Usar saldo_temporada para Hall da Fama (histórico congelado, sem acertos)
 async function buscarExtrato(tempLigaId, temporada = null) {
     try {
         // Se não informar temporada, usar a selecionada no módulo
@@ -1058,10 +1062,20 @@ async function buscarExtrato(tempLigaId, temporada = null) {
         if (!data) return null;
 
         const resumo = data.resumo || {};
+        
+        // ✅ v12.7: Para Hall da Fama, usar saldo_temporada (congelado)
+        // saldo_temporada = cache + campos manuais (SEM acertos)
+        // Isso garante que o histórico financeiro fique "congelado" como terminou a temporada
+        const saldoHistorico = resumo.saldo_temporada ?? resumo.saldo_final ?? resumo.saldo ?? 0;
+        
         return {
             creditos: resumo.totalGanhos || 0,
             debitos: Math.abs(resumo.totalPerdas || 0),
-            saldo: resumo.saldo_atual ?? resumo.saldo_final ?? resumo.saldo ?? (resumo.totalGanhos || 0) - Math.abs(resumo.totalPerdas || 0)
+            saldo: saldoHistorico,
+            // v12.7: Expor também os campos detalhados para debug/auditoria
+            saldo_temporada: resumo.saldo_temporada ?? 0,
+            saldo_acertos: resumo.saldo_acertos ?? 0,
+            campos_manuais: resumo.camposManuais ?? 0
         };
     } catch { return null; }
 }

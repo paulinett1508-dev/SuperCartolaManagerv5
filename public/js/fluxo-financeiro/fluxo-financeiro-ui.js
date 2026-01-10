@@ -6,7 +6,11 @@ import {
 import { formatarMoedaBR, parseMoedaBR } from "./fluxo-financeiro-utils.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v6.3 (Cards Clicáveis + Auditoria)
+ * FLUXO-FINANCEIRO-UI.JS - v6.4 (Seletor de Temporadas no Modal)
+ * ✅ v6.4: Seletor de temporadas (2025/2026) no modal de extrato individual
+ *   - Permite ver histórico e quitação de temporadas anteriores
+ *   - Mostra badge QUITADO e banner com detalhes da quitação
+ *   - Mostra legado definido para próxima temporada
  * ✅ v6.3: Cards de resumo clicáveis para filtrar tabela
  *   - Card "A Receber" filtra devedores
  *   - Card "A Pagar" filtra credores
@@ -82,7 +86,18 @@ export class FluxoFinanceiroUI {
                         <img id="modalExtratoAvatar" class="modal-extrato-avatar" src="" alt="">
                         <div class="modal-extrato-info">
                             <h3 id="modalExtratoNome">-</h3>
-                            <span id="modalExtratoSubtitulo">Extrato Financeiro</span>
+                            <div class="modal-extrato-subtitulo-row">
+                                <span id="modalExtratoSubtitulo">Extrato Financeiro</span>
+                                <!-- Seletor de Temporada -->
+                                <div class="modal-extrato-temporada-selector" id="modalExtratoTemporadaSelector">
+                                    <button class="btn-temporada" data-temporada="2025" id="btnTemp2025">2025</button>
+                                    <button class="btn-temporada active" data-temporada="2026" id="btnTemp2026">2026</button>
+                                </div>
+                                <!-- Badge de Quitação -->
+                                <span id="modalExtratoBadgeQuitacao" class="badge-quitacao-extrato" style="display: none;">
+                                    <span class="material-icons">verified</span> QUITADO
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <button class="modal-extrato-close" onclick="window.fecharModalExtrato()">
@@ -158,6 +173,25 @@ export class FluxoFinanceiroUI {
             }
         };
 
+        // ✅ v6.4: Seletor de temporadas
+        window.trocarTemporadaExtrato = async (temporada) => {
+            await this.trocarTemporadaExtrato(temporada);
+        };
+
+        // Event listeners para botões de temporada
+        const btnTemp2025 = modal.querySelector('#btnTemp2025');
+        const btnTemp2026 = modal.querySelector('#btnTemp2026');
+
+        if (btnTemp2025) {
+            btnTemp2025.addEventListener('click', () => window.trocarTemporadaExtrato(2025));
+        }
+        if (btnTemp2026) {
+            btnTemp2026.addEventListener('click', () => window.trocarTemporadaExtrato(2026));
+        }
+
+        // Inicializar temporada do modal
+        this.temporadaModalExtrato = window.temporadaAtual || 2025;
+
         console.log('[FLUXO-UI] Modal de extrato criado');
     }
 
@@ -201,6 +235,388 @@ export class FluxoFinanceiroUI {
             modal.classList.remove('active');
             document.body.style.overflow = '';
         }
+    }
+
+    /**
+     * ✅ v6.4: Troca a temporada do extrato individual
+     * @param {number} temporada - 2025 ou 2026
+     */
+    async trocarTemporadaExtrato(temporada) {
+        console.log('[FLUXO-UI] Trocando temporada do extrato para:', temporada);
+
+        if (!this.participanteAtual) {
+            console.error('[FLUXO-UI] Nenhum participante ativo');
+            return;
+        }
+
+        this.temporadaModalExtrato = temporada;
+
+        // Atualizar botões visuais
+        const btn2025 = document.getElementById('btnTemp2025');
+        const btn2026 = document.getElementById('btnTemp2026');
+
+        if (btn2025) btn2025.classList.toggle('active', temporada === 2025);
+        if (btn2026) btn2026.classList.toggle('active', temporada === 2026);
+
+        // Mostrar loading
+        const modalBody = document.getElementById('modalExtratoBody');
+        if (modalBody) {
+            modalBody.innerHTML = `
+                <div class="extrato-loading" style="text-align: center; padding: 40px;">
+                    <div class="spinner-border text-warning" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p style="margin-top: 10px; color: #888;">Carregando extrato ${temporada}...</p>
+                </div>
+            `;
+        }
+
+        try {
+            const timeId = this.participanteAtual.time_id || this.participanteAtual.id;
+            const ligaId = window.ligaId || this.participanteAtual.liga_id;
+
+            // Buscar extrato da temporada selecionada
+            const response = await fetch(`/api/tesouraria/participante/${ligaId}/${timeId}?temporada=${temporada}`, {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar extrato: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Verificar se tem quitação
+            const badgeQuitacao = document.getElementById('modalExtratoBadgeQuitacao');
+            if (badgeQuitacao) {
+                if (data.quitacao?.quitado) {
+                    badgeQuitacao.style.display = 'inline-flex';
+                    badgeQuitacao.title = `Quitado em ${new Date(data.quitacao.data_quitacao).toLocaleDateString('pt-BR')} - ${data.quitacao.tipo}`;
+                } else {
+                    badgeQuitacao.style.display = 'none';
+                }
+            }
+
+            // Renderizar extrato
+            await this.renderizarExtratoTemporada(data, temporada);
+
+        } catch (error) {
+            console.error('[FLUXO-UI] Erro ao trocar temporada:', error);
+            if (modalBody) {
+                modalBody.innerHTML = `
+                    <div class="extrato-erro" style="text-align: center; padding: 40px; color: #ef4444;">
+                        <span class="material-icons" style="font-size: 48px;">error_outline</span>
+                        <p style="margin-top: 10px;">Erro ao carregar extrato ${temporada}</p>
+                        <p style="font-size: 12px; color: #888;">${error.message}</p>
+                        <p style="font-size: 11px; color: #666; margin-top: 10px;">
+                            ${temporada === 2026 ? 'Participante pode não ter sido renovado para 2026.' : ''}
+                        </p>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    /**
+     * ✅ v6.4: Renderiza extrato de uma temporada específica
+     */
+    async renderizarExtratoTemporada(data, temporada) {
+        const modalBody = document.getElementById('modalExtratoBody');
+        if (!modalBody) return;
+
+        // Formatar valores
+        const formatarMoeda = (v) => {
+            const valor = parseFloat(v) || 0;
+            const formatted = 'R$ ' + Math.abs(valor).toFixed(2).replace('.', ',');
+            return valor < 0 ? `-${formatted}` : formatted;
+        };
+
+        const getValorClass = (valor) => {
+            const v = parseFloat(valor) || 0;
+            if (v > 0.01) return 'positivo';
+            if (v < -0.01) return 'negativo';
+            return 'neutro';
+        };
+
+        // Verificar se é temporada quitada
+        const isQuitado = data.quitacao?.quitado;
+        const legadoInfo = data.legado_manual || data.quitacao || null;
+
+        // Preparar resumo
+        const resumo = data.resumo || {};
+        const saldoFinal = isQuitado ? 0 : (resumo.saldo_final || resumo.saldo || 0);
+
+        // HTML do extrato
+        let html = '';
+
+        // Banner de Quitação (se aplicável)
+        if (isQuitado) {
+            const valorLegado = legadoInfo?.valor_legado ?? legadoInfo?.valor_definido ?? 0;
+            const tipoQuitacao = data.quitacao?.tipo || legadoInfo?.tipo_quitacao || 'N/A';
+            html += `
+                <div class="extrato-quitado-banner">
+                    <div class="extrato-quitado-banner-header">
+                        <span class="material-icons">verified</span>
+                        <h4>Temporada ${temporada} Quitada</h4>
+                    </div>
+                    <div class="extrato-quitado-banner-content">
+                        <div class="extrato-quitado-item">
+                            <label>Tipo</label>
+                            <span>${tipoQuitacao === 'zerado' ? 'Zerado' : tipoQuitacao === 'integral' ? 'Integral' : 'Customizado'}</span>
+                        </div>
+                        <div class="extrato-quitado-item">
+                            <label>Saldo Original</label>
+                            <span class="${getValorClass(data.quitacao?.saldo_no_momento)}">${formatarMoeda(data.quitacao?.saldo_no_momento || 0)}</span>
+                        </div>
+                        <div class="extrato-quitado-item">
+                            <label>Legado p/ ${temporada + 1}</label>
+                            <span class="${valorLegado === 0 ? 'valor-zerado' : getValorClass(valorLegado)}">${formatarMoeda(valorLegado)}</span>
+                        </div>
+                        <div class="extrato-quitado-item">
+                            <label>Data</label>
+                            <span>${data.quitacao?.data_quitacao ? new Date(data.quitacao.data_quitacao).toLocaleDateString('pt-BR') : '-'}</span>
+                        </div>
+                        ${data.quitacao?.observacao ? `
+                            <div class="extrato-quitado-item" style="grid-column: span 2;">
+                                <label>Observação</label>
+                                <span style="font-size: 11px;">${data.quitacao.observacao}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Banner de Legado (se tem legado manual na temporada 2026 vindo de 2025)
+        if (temporada === 2026 && data.legado_manual?.origem) {
+            const valorLegado = data.legado_manual.valor_definido || 0;
+            html += `
+                <div class="extrato-legado-banner">
+                    <div class="extrato-legado-banner-header">
+                        <span class="material-icons">history</span>
+                        <h4>Legado da Temporada 2025</h4>
+                    </div>
+                    <div class="extrato-quitado-banner-content">
+                        <div class="extrato-quitado-item">
+                            <label>Origem</label>
+                            <span>${data.legado_manual.origem === 'quitacao_admin' ? 'Quitação Admin' : 'Acordo'}</span>
+                        </div>
+                        <div class="extrato-quitado-item">
+                            <label>Valor Original</label>
+                            <span class="${getValorClass(data.legado_manual.valor_original)}">${formatarMoeda(data.legado_manual.valor_original || 0)}</span>
+                        </div>
+                        <div class="extrato-quitado-item">
+                            <label>Valor Definido</label>
+                            <span class="${getValorClass(valorLegado)}">${formatarMoeda(valorLegado)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Cards de Resumo
+        html += `
+            <div class="extrato-resumo-cards">
+                <div class="extrato-resumo-card">
+                    <span class="card-label">Bônus</span>
+                    <span class="card-value ${getValorClass(resumo.bonus)}">${formatarMoeda(resumo.bonus || 0)}</span>
+                </div>
+                <div class="extrato-resumo-card">
+                    <span class="card-label">Ônus</span>
+                    <span class="card-value ${getValorClass(resumo.onus)}">${formatarMoeda(resumo.onus || 0)}</span>
+                </div>
+                <div class="extrato-resumo-card">
+                    <span class="card-label">Pts Corridos</span>
+                    <span class="card-value ${getValorClass(resumo.pontosCorridos)}">${formatarMoeda(resumo.pontosCorridos || 0)}</span>
+                </div>
+                <div class="extrato-resumo-card">
+                    <span class="card-label">Mata-Mata</span>
+                    <span class="card-value ${getValorClass(resumo.mataMata)}">${formatarMoeda(resumo.mataMata || 0)}</span>
+                </div>
+                <div class="extrato-resumo-card">
+                    <span class="card-label">Top 10</span>
+                    <span class="card-value ${getValorClass(resumo.top10)}">${formatarMoeda(resumo.top10 || 0)}</span>
+                </div>
+                <div class="extrato-resumo-card">
+                    <span class="card-label">Manuais</span>
+                    <span class="card-value ${getValorClass(resumo.camposManuais)}">${formatarMoeda(resumo.camposManuais || 0)}</span>
+                </div>
+            </div>
+        `;
+
+        // Saldo Final
+        html += `
+            <div class="saldo-final-card ${saldoFinal >= 0 ? 'saldo-final-positivo' : 'saldo-final-negativo'}">
+                <div class="saldo-final-titulo">Saldo Final ${temporada}</div>
+                <div class="saldo-final-valor">${formatarMoeda(saldoFinal)}</div>
+                ${isQuitado ? '<span class="performance-badge excelente">QUITADO</span>' : ''}
+            </div>
+        `;
+
+        // Se tem histórico de transações, mostrar tabela resumida
+        // ✅ FIX: API retorna "rodadas", não "historico"
+        const historicoRodadas = data.rodadas || data.historico || [];
+
+        // ✅ v2.16: Separar transações especiais (inscrição, legado) das rodadas normais
+        const transacoesEspeciais = historicoRodadas.filter(t => t.isTransacaoEspecial || t.tipo);
+        const rodadasNormais = historicoRodadas.filter(t => !t.isTransacaoEspecial && !t.tipo);
+
+        // Mostrar transações especiais primeiro (inscrição 2026, legado, etc.)
+        if (transacoesEspeciais.length > 0) {
+            html += `
+                <div class="extrato-transacoes-especiais" style="margin-top: 20px;">
+                    <div class="detalhamento-header">
+                        <h3 class="detalhamento-titulo">Lançamentos Iniciais</h3>
+                    </div>
+                    <div class="transacoes-especiais-lista">
+                        ${transacoesEspeciais.map(t => `
+                            <div class="transacao-especial-item">
+                                <div class="transacao-especial-desc">
+                                    <span class="material-icons" style="color: ${t.valor < 0 ? 'var(--danger)' : 'var(--success)'};">
+                                        ${t.tipo === 'INSCRICAO_TEMPORADA' ? 'receipt_long' : 'swap_horiz'}
+                                    </span>
+                                    <span>${t.descricao || t.tipo}</span>
+                                </div>
+                                <div class="transacao-especial-valor ${getValorClass(t.valor)}">
+                                    ${formatarMoeda(t.valor || 0)}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Mostrar tabela de rodadas se existirem
+        if (rodadasNormais.length > 0) {
+            const ultimasTransacoes = rodadasNormais.slice(-10).reverse();
+            html += `
+                <div class="detalhamento-container" style="margin-top: 20px;">
+                    <div class="detalhamento-header">
+                        <h3 class="detalhamento-titulo">Últimas Rodadas</h3>
+                    </div>
+                    <div class="tabela-wrapper" style="max-height: 300px;">
+                        <table class="detalhamento-tabela">
+                            <thead>
+                                <tr>
+                                    <th>Rod</th>
+                                    <th>Pos</th>
+                                    <th>B/O</th>
+                                    <th>PC</th>
+                                    <th>MM</th>
+                                    <th>Top10</th>
+                                    <th>Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${ultimasTransacoes.map(t => `
+                                    <tr>
+                                        <td class="rodada-col">${t.rodada}</td>
+                                        <td>${t.posicao || '-'}</td>
+                                        <td class="${getValorClass(t.bonusOnus)}">${formatarMoeda(t.bonusOnus || 0)}</td>
+                                        <td class="${getValorClass(t.pontosCorridos)}">${t.pontosCorridos != null ? formatarMoeda(t.pontosCorridos) : '-'}</td>
+                                        <td class="${getValorClass(t.mataMata)}">${t.mataMata != null ? formatarMoeda(t.mataMata) : '-'}</td>
+                                        <td class="${getValorClass(t.top10)}">${t.top10 ? formatarMoeda(t.top10) : '-'}</td>
+                                        <td class="saldo-col ${getValorClass(t.saldoAcumulado)}">${formatarMoeda(t.saldoAcumulado || 0)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        } else if (!isQuitado && transacoesEspeciais.length === 0) {
+            // Sem dados ainda
+            html += `
+                <div class="extrato-sem-dados-temporada">
+                    <span class="material-icons">hourglass_empty</span>
+                    <p>Nenhum dado de rodadas para ${temporada}</p>
+                    <p class="hint">${temporada === 2026 ? 'A temporada 2026 ainda não começou ou o participante não foi renovado.' : 'Verifique se o cache foi gerado.'}</p>
+                </div>
+            `;
+        }
+
+        // Se tem inscrição 2026 (para temporada 2025), mostrar info
+        if (temporada === 2025 && data.inscricao_proxima) {
+            const insc = data.inscricao_proxima;
+            html += `
+                <div class="extrato-legado-banner" style="margin-top: 20px;">
+                    <div class="extrato-legado-banner-header">
+                        <span class="material-icons">update</span>
+                        <h4>Renovação 2026</h4>
+                    </div>
+                    <div class="extrato-quitado-banner-content">
+                        <div class="extrato-quitado-item">
+                            <label>Status</label>
+                            <span style="color: ${insc.status === 'renovado' ? '#10b981' : insc.status === 'pendente' ? '#f59e0b' : '#ef4444'};">
+                                ${insc.status === 'renovado' ? '✓ Renovado' : insc.status === 'pendente' ? '⏳ Pendente' : '✗ Não Participa'}
+                            </span>
+                        </div>
+                        <div class="extrato-quitado-item">
+                            <label>Inscrição</label>
+                            <span style="color: ${insc.pagou_inscricao ? '#10b981' : '#f59e0b'};">
+                                ${insc.pagou_inscricao ? '✓ Pago' : '⏳ Pendente'}
+                            </span>
+                        </div>
+                        ${insc.taxa_inscricao ? `
+                            <div class="extrato-quitado-item">
+                                <label>Taxa</label>
+                                <span class="negativo">${formatarMoeda(insc.taxa_inscricao)}</span>
+                            </div>
+                        ` : ''}
+                        ${insc.legado_manual?.origem ? `
+                            <div class="extrato-quitado-item">
+                                <label>Legado</label>
+                                <span class="${getValorClass(insc.legado_manual.valor_definido)}">${formatarMoeda(insc.legado_manual.valor_definido)}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ✅ v2.17: Seção de Ajustes Dinâmicos (temporada 2026+)
+        if (temporada >= 2026 && window.isAdminMode) {
+            const ajustes = data.ajustes || [];
+            const totalAjustes = data.ajustes_total || 0;
+
+            html += `
+                <div class="extrato-ajustes-section" style="margin-top: 20px;">
+                    <div class="extrato-ajustes-header">
+                        <div class="extrato-ajustes-titulo">
+                            <span class="material-icons">tune</span>
+                            <h4>Ajustes Manuais</h4>
+                            <span class="ajustes-total ${getValorClass(totalAjustes)}">${formatarMoeda(totalAjustes)}</span>
+                        </div>
+                        <button class="btn-adicionar-ajuste" onclick="window.abrirModalAjuste()">
+                            <span class="material-icons">add</span>
+                            Adicionar
+                        </button>
+                    </div>
+                    <div class="extrato-ajustes-lista" id="ajustesListaContainer">
+                        ${ajustes.length === 0 ? `
+                            <div class="ajuste-vazio">
+                                <span class="material-icons">info</span>
+                                <span>Nenhum ajuste cadastrado</span>
+                            </div>
+                        ` : ajustes.map(a => `
+                            <div class="ajuste-item" data-ajuste-id="${a._id}">
+                                <div class="ajuste-info">
+                                    <span class="ajuste-descricao">${a.descricao}</span>
+                                    <span class="ajuste-data">${new Date(a.criado_em).toLocaleDateString('pt-BR')}</span>
+                                </div>
+                                <div class="ajuste-valor ${getValorClass(a.valor)}">${formatarMoeda(a.valor)}</div>
+                                <button class="ajuste-remover" onclick="window.removerAjuste('${a._id}')" title="Remover ajuste">
+                                    <span class="material-icons">close</span>
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        modalBody.innerHTML = html;
     }
 
     detectarModoAdmin() {
@@ -288,6 +704,8 @@ export class FluxoFinanceiroUI {
                 // ✅ v2.12: Contato para botão WhatsApp (vem da API ou do participante)
                 contato: saldoInfo?.contato || p.contato || null,
                 clube_id: saldoInfo?.clube_id || p.clube_id || p.time_coracao || null,
+                // ✅ v2.13: Dados de quitação para exibir badge
+                quitacao: saldoInfo?.quitacao || null,
             };
         });
 
@@ -447,6 +865,12 @@ export class FluxoFinanceiroUI {
         const isNovato = timeId < 0 || p.origem === 'novo_cadastro' || p.origem === 'cadastro_manual' || p.novato === true;
         const badgeNovato = isNovato ? '<span class="badge-novato" title="Novo na liga">NOVATO</span>' : '';
 
+        // ✅ v2.13: Verificar se temporada foi quitada (extrato fechado)
+        const isQuitado = p.quitacao?.quitado === true;
+        const badgeQuitado = isQuitado
+            ? `<span class="badge-quitado" title="Temporada ${p.quitacao?.data_quitacao ? new Date(p.quitacao.data_quitacao).toLocaleDateString('pt-BR') : ''}: ${p.quitacao?.tipo || ''} por ${p.quitacao?.admin_responsavel || 'admin'}">QUITADO</span>`
+            : '';
+
         // Time do coração - usar escudos locais
         const timeCoracaoId = p.time_coracao || p.clube_id;
         const escudoTimeCoracao = timeCoracaoId
@@ -505,7 +929,12 @@ export class FluxoFinanceiroUI {
                 </td>
                 <td class="col-time-coracao">${escudoTimeCoracao}</td>
                 ${modulosCols}
-                <td class="col-saldo ${classeSaldo}"><strong>${saldoSinal}R$ ${saldoFormatado}</strong></td>
+                <td class="col-saldo ${isQuitado ? 'quitado' : classeSaldo}">
+                    ${isQuitado
+                        ? `<strong>R$ 0,00</strong> ${badgeQuitado}`
+                        : `<strong>${saldoSinal}R$ ${saldoFormatado}</strong>`
+                    }
+                </td>
                 <td class="col-2026">
                     ${this._renderizarBadge2026(timeId, p)}
                 </td>
@@ -519,6 +948,12 @@ export class FluxoFinanceiroUI {
                                 class="btn-acao btn-auditoria" title="Auditoria Financeira">
                             <span class="material-icons">fact_check</span>
                         </button>
+                        ${!isQuitado && Math.abs(saldoFinal) >= 0.01 ? `
+                        <button onclick="window.abrirModalQuitacao('${ligaId}', '${timeId}', ${saldoFinal}, ${window.temporadaAtual || 2025}, '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
+                                class="btn-acao btn-quitar" title="Quitar ${window.temporadaAtual || 2025}">
+                            <span class="material-icons">lock</span>
+                        </button>
+                        ` : ''}
                         ${p.contato ? `
                         <button onclick="window.abrirWhatsApp('${p.contato.replace(/'/g, "\\'")}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
                                 class="btn-acao btn-whatsapp" title="Enviar WhatsApp para ${p.nome_cartola || 'participante'}">
@@ -1643,6 +2078,8 @@ export class FluxoFinanceiroUI {
             .btn-hist:hover { background: #374151; }
             .btn-whatsapp { background: #25D366; }
             .btn-whatsapp:hover { background: #128C7E; }
+            .btn-quitar { background: #f97316; }
+            .btn-quitar:hover { background: #ea580c; }
 
             /* Responsivo */
             @media (max-width: 900px) {
@@ -5007,4 +5444,162 @@ function gerarPDFAuditoria() {
     doc.save(nomeArquivo);
 };
 
-console.log("[FLUXO-UI] ✅ v6.3 Cards clicáveis + Modal de Auditoria Financeira");
+console.log("[FLUXO-UI] ✅ v6.4 Cards clicáveis + Modal de Auditoria + Ajustes Dinâmicos 2026+");
+
+// =============================================================================
+// AJUSTES DINÂMICOS (Temporada 2026+)
+// =============================================================================
+
+/**
+ * Abre modal para adicionar novo ajuste
+ */
+window.abrirModalAjuste = function() {
+    // Remover modal existente se houver
+    const existente = document.getElementById('modalAjusteFinanceiro');
+    if (existente) existente.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'modalAjusteFinanceiro';
+    modal.className = 'modal-ajuste-overlay';
+    modal.innerHTML = `
+        <div class="modal-ajuste-container">
+            <div class="modal-ajuste-header">
+                <h3>Novo Ajuste</h3>
+                <button class="modal-ajuste-close" onclick="window.fecharModalAjuste()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-ajuste-body">
+                <div class="form-group">
+                    <label>Descricao</label>
+                    <input type="text" id="ajusteDescricao" class="input-ajuste" placeholder="Ex: Bonus premiacao, Taxa extra..." maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label>Valor (R$)</label>
+                    <input type="number" id="ajusteValor" class="input-ajuste" placeholder="0.00" step="0.01">
+                </div>
+                <div class="form-group tipo-ajuste">
+                    <label>
+                        <input type="radio" name="tipoAjuste" value="credito" checked>
+                        <span class="tipo-label credito">Credito (+)</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="tipoAjuste" value="debito">
+                        <span class="tipo-label debito">Debito (-)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-ajuste-footer">
+                <button class="btn-cancelar" onclick="window.fecharModalAjuste()">Cancelar</button>
+                <button class="btn-salvar" onclick="window.salvarAjuste()">Salvar</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('active'), 10);
+    document.getElementById('ajusteDescricao').focus();
+};
+
+/**
+ * Fecha modal de ajuste
+ */
+window.fecharModalAjuste = function() {
+    const modal = document.getElementById('modalAjusteFinanceiro');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => modal.remove(), 300);
+    }
+};
+
+/**
+ * Salva novo ajuste
+ */
+window.salvarAjuste = async function() {
+    const descricao = document.getElementById('ajusteDescricao')?.value?.trim();
+    const valorInput = parseFloat(document.getElementById('ajusteValor')?.value) || 0;
+    const tipoAjuste = document.querySelector('input[name="tipoAjuste"]:checked')?.value || 'debito';
+
+    // Validacoes
+    if (!descricao) {
+        alert('Descricao e obrigatoria');
+        return;
+    }
+    if (valorInput === 0) {
+        alert('Valor nao pode ser zero');
+        return;
+    }
+
+    // Aplicar sinal baseado no tipo
+    const valor = tipoAjuste === 'credito' ? Math.abs(valorInput) : -Math.abs(valorInput);
+
+    // Obter dados do participante atual
+    const urlParams = new URLSearchParams(window.location.search);
+    const ligaId = urlParams.get('id');
+    const timeId = window.fluxoFinanceiroUI?.participanteAtual?.time_id;
+
+    if (!ligaId || !timeId) {
+        alert('Erro: Participante nao identificado');
+        return;
+    }
+
+    // Usar temporada do MODAL (não da lista principal)
+    const temporadaModal = window.fluxoFinanceiroUI?.temporadaModalExtrato || 2026;
+
+    try {
+        const response = await fetch(`/api/ajustes/${ligaId}/${timeId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                descricao,
+                valor,
+                temporada: temporadaModal
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            window.fecharModalAjuste();
+            // Recarregar extrato MANTENDO a temporada atual do modal
+            if (window.fluxoFinanceiroUI?.trocarTemporadaExtrato) {
+                window.fluxoFinanceiroUI.trocarTemporadaExtrato(temporadaModal);
+            }
+        } else {
+            alert('Erro ao salvar: ' + (result.error || 'Erro desconhecido'));
+        }
+    } catch (error) {
+        console.error('[AJUSTES] Erro ao salvar:', error);
+        alert('Erro de conexao ao salvar ajuste');
+    }
+};
+
+/**
+ * Remove ajuste existente
+ */
+window.removerAjuste = async function(ajusteId) {
+    if (!confirm('Deseja remover este ajuste?')) return;
+
+    // Usar temporada do MODAL (não da lista principal)
+    const temporadaModal = window.fluxoFinanceiroUI?.temporadaModalExtrato || 2026;
+
+    try {
+        const response = await fetch(`/api/ajustes/${ajusteId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Recarregar extrato MANTENDO a temporada atual do modal
+            if (window.fluxoFinanceiroUI?.trocarTemporadaExtrato) {
+                window.fluxoFinanceiroUI.trocarTemporadaExtrato(temporadaModal);
+            }
+        } else {
+            alert('Erro ao remover: ' + (result.error || 'Erro desconhecido'));
+        }
+    } catch (error) {
+        console.error('[AJUSTES] Erro ao remover:', error);
+        alert('Erro de conexao ao remover ajuste');
+    }
+};

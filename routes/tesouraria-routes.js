@@ -4,7 +4,14 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.9.0
+ * @version 2.15.0
+ * ✅ v2.15.0: Ajustes dinâmicos (2026+) - substitui campos fixos
+ *   - Busca ajustes no endpoint do participante
+ *   - Inclui saldoAjustes no cálculo de saldo final
+ * ✅ v2.14.0: Extrato individual agora retorna quitação, legado_manual, resumo e histórico
+ *   - Suporte a seletor de temporadas no modal
+ *   - Dados de inscrição da próxima temporada para exibir status de renovação
+ * ✅ v2.13.0: Dados de quitação incluídos no participante para exibir badge QUITADO
  * ✅ v2.9.0: Adicionado 'acertos' ao breakdown (pagamentos/recebimentos)
  * ✅ v2.6.0: FIX CRÍTICO - Filtrar ExtratoFinanceiroCache e FluxoFinanceiroCampos por temporada
  *   - Queries agora incluem filtro de temporada em todas as collections
@@ -26,6 +33,8 @@ import Liga from "../models/Liga.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
+import InscricaoTemporada from "../models/InscricaoTemporada.js";
+import AjusteFinanceiro from "../models/AjusteFinanceiro.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
 // ✅ v2.1: Importar funções de cálculo do controller (mesma lógica do extrato individual)
 import {
@@ -46,29 +55,53 @@ async function calcularSaldoCompleto(ligaId, timeId, temporada = CURRENT_SEASON)
     // 1. Buscar cache e RECALCULAR a partir das rodadas (igual extrato individual)
     // ✅ v2.2 FIX: Filtrar por temporada para evitar usar cache errado quando
     // existem múltiplos caches (ex: 2025 e 2026) para o mesmo time
-    const cache = await ExtratoFinanceiroCache.findOne({
+    // ✅ v2.4 FIX: Tentar busca com String primeiro (documentos novos), depois ObjectId (antigos)
+    let cache = await ExtratoFinanceiroCache.findOne({
         liga_id: String(ligaId),
         time_id: Number(timeId),
         temporada: Number(temporada),
     }).lean();
 
-    // ✅ RECALCULAR usando as mesmas funções do extrato individual
-    const rodadasProcessadas = transformarTransacoesEmRodadas(
-        cache?.historico_transacoes || [],
-        ligaId
-    );
+    // Fallback para busca com ObjectId (alguns documentos antigos usam ObjectId)
+    if (!cache) {
+        cache = await ExtratoFinanceiroCache.findOne({
+            liga_id: new mongoose.Types.ObjectId(ligaId),
+            time_id: Number(timeId),
+            temporada: Number(temporada),
+        }).lean();
+    }
 
-    // 2. Campos manuais
-    const camposManuais = await FluxoFinanceiroCampos.findOne({
-        ligaId: String(ligaId),
-        timeId: String(timeId),
-    }).lean();
-    const camposAtivos = camposManuais?.campos?.filter(c => c.valor !== 0) || [];
+    // ✅ v2.4 FIX: Verificar se tem apenas transações especiais (rodada 0)
+    // Nesse caso, usar saldo_consolidado diretamente
+    const apenasTransacoesEspeciais = cache?.historico_transacoes?.length > 0 &&
+        cache.historico_transacoes.every(t => t.rodada === 0 || t.tipo);
 
-    // 3. Calcular resumo (igual extrato individual)
-    const resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
-    const saldoConsolidado = resumoCalculado.saldo;
-    const saldoCampos = resumoCalculado.camposManuais || 0;
+    let saldoConsolidado = 0;
+    let saldoCampos = 0;
+
+    if (apenasTransacoesEspeciais) {
+        // ✅ Temporada futura com apenas inscrição/legado - usar saldo_consolidado direto
+        saldoConsolidado = cache.saldo_consolidado || 0;
+        console.log(`[TESOURARIA] Usando saldo_consolidado direto para ${temporada}: ${saldoConsolidado}`);
+    } else {
+        // ✅ RECALCULAR usando as mesmas funções do extrato individual
+        const rodadasProcessadas = transformarTransacoesEmRodadas(
+            cache?.historico_transacoes || [],
+            ligaId
+        );
+
+        // 2. Campos manuais
+        const camposManuais = await FluxoFinanceiroCampos.findOne({
+            ligaId: String(ligaId),
+            timeId: String(timeId),
+        }).lean();
+        const camposAtivos = camposManuais?.campos?.filter(c => c.valor !== 0) || [];
+
+        // 3. Calcular resumo (igual extrato individual)
+        const resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
+        saldoConsolidado = resumoCalculado.saldo;
+        saldoCampos = resumoCalculado.camposManuais || 0;
+    }
 
     // 4. Saldo da temporada (já inclui campos manuais no cálculo)
     const saldoTemporada = saldoConsolidado;
@@ -81,8 +114,16 @@ async function calcularSaldoCompleto(ligaId, timeId, temporada = CURRENT_SEASON)
         Number(temporada)
     );
 
-    // 6. Saldo final
-    const saldoFinal = saldoTemporada + acertosInfo.saldoAcertos;
+    // ✅ v2.15: Buscar ajustes dinâmicos (temporada 2026+)
+    let saldoAjustes = 0;
+    let ajustesInfo = { total: 0, creditos: 0, debitos: 0, quantidade: 0 };
+    if (Number(temporada) >= 2026) {
+        ajustesInfo = await AjusteFinanceiro.calcularTotal(ligaId, timeId, Number(temporada));
+        saldoAjustes = ajustesInfo.total || 0;
+    }
+
+    // 6. Saldo final (inclui ajustes para 2026+)
+    const saldoFinal = saldoTemporada + acertosInfo.saldoAcertos + saldoAjustes;
 
     return {
         saldoConsolidado: parseFloat((saldoConsolidado - saldoCampos).toFixed(2)), // Sem campos manuais
@@ -91,6 +132,9 @@ async function calcularSaldoCompleto(ligaId, timeId, temporada = CURRENT_SEASON)
         saldoAcertos: acertosInfo.saldoAcertos,
         totalPago: acertosInfo.totalPago,
         totalRecebido: acertosInfo.totalRecebido,
+        // ✅ v2.15: Incluir ajustes no retorno
+        saldoAjustes: parseFloat(saldoAjustes.toFixed(2)),
+        ajustesInfo,
         saldoFinal: parseFloat(saldoFinal.toFixed(2)),
         quantidadeAcertos: acertosInfo.quantidadeAcertos,
     };
@@ -556,6 +600,8 @@ router.get("/liga/:ligaId", async (req, res) => {
                 },
                 // ✅ v2.5 FIX: Incluir modulosAtivos para renderizar badges
                 modulosAtivos,
+                // ✅ v2.13: Dados de quitação para exibir badge QUITADO
+                quitacao: extrato?.quitacao || null,
             });
         }
 
@@ -606,6 +652,9 @@ router.get("/participante/:ligaId/:timeId", async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const { temporada = CURRENT_SEASON } = req.query;
+        const tempNum = Number(temporada);
+
+        console.log(`[TESOURARIA] Buscando detalhes: liga=${ligaId} time=${timeId} temporada=${tempNum}`);
 
         // Buscar liga
         const liga = await Liga.findById(ligaId).lean();
@@ -621,17 +670,136 @@ router.get("/participante/:ligaId/:timeId", async (req, res) => {
             return res.status(404).json({ success: false, error: "Participante não encontrado" });
         }
 
-        // Calcular saldo completo
-        // ✅ v2.3 FIX: Usar Number para temporada
-        const saldo = await calcularSaldoCompleto(ligaId, timeId, Number(temporada));
-
-        // Buscar histórico de acertos
-        const acertos = await AcertoFinanceiro.buscarPorTime(ligaId, timeId, Number(temporada));
+        // ✅ v2.14: Buscar cache, histórico de acertos, quitação e inscrição em paralelo
+        // ✅ v2.15: Adicionar busca de ajustes dinâmicos (2026+)
+        const [saldo, acertos, cache, inscricao, inscricaoProxima, ajustes] = await Promise.all([
+            // Calcular saldo completo
+            calcularSaldoCompleto(ligaId, timeId, tempNum),
+            // Buscar histórico de acertos
+            AcertoFinanceiro.buscarPorTime(ligaId, timeId, tempNum),
+            // Buscar cache (para quitação)
+            ExtratoFinanceiroCache.findOne({
+                liga_id: String(ligaId),
+                time_id: Number(timeId),
+                temporada: tempNum
+            }).lean(),
+            // Buscar inscrição da temporada (para legado_manual)
+            InscricaoTemporada.findOne({
+                liga_id: new mongoose.Types.ObjectId(ligaId),
+                time_id: Number(timeId),
+                temporada: tempNum
+            }).lean(),
+            // Buscar inscrição da próxima temporada (para mostrar status de renovação)
+            InscricaoTemporada.findOne({
+                liga_id: new mongoose.Types.ObjectId(ligaId),
+                time_id: Number(timeId),
+                temporada: tempNum + 1
+            }).lean(),
+            // ✅ v2.15: Buscar ajustes dinâmicos (para 2026+)
+            tempNum >= 2026
+                ? AjusteFinanceiro.listarPorParticipante(ligaId, timeId, tempNum)
+                : Promise.resolve([])
+        ]);
 
         // Classificar situação
         let situacao = "quitado";
         if (saldo.saldoFinal > 0.01) situacao = "credor";
         else if (saldo.saldoFinal < -0.01) situacao = "devedor";
+
+        // ✅ v2.14: Preparar resumo de valores por módulo
+        const resumo = {
+            bonus: 0,
+            onus: 0,
+            pontosCorridos: 0,
+            mataMata: 0,
+            top10: 0,
+            camposManuais: saldo.saldoCampos || 0,
+            saldo_final: saldo.saldoFinal
+        };
+
+        // Se tiver cache com historico_transacoes, calcular resumo
+        // ✅ FIX: Usar campos camelCase do banco
+        // ✅ FIX v2.15: Incluir transações especiais (INSCRICAO_TEMPORADA)
+        if (cache?.historico_transacoes?.length > 0) {
+            cache.historico_transacoes.forEach(t => {
+                // ✅ Transação especial (inscrição, legado, etc.)
+                if (t.tipo) {
+                    if (t.tipo === 'INSCRICAO_TEMPORADA') {
+                        resumo.inscricao = t.valor || 0;
+                    } else if (t.tipo === 'SALDO_TEMPORADA_ANTERIOR' || t.tipo === 'LEGADO_ANTERIOR') {
+                        resumo.legado = t.valor || 0;
+                    }
+                    return; // Não processar como rodada normal
+                }
+
+                // Campos novos (camelCase)
+                const bonusOnus = t.bonusOnus || 0;
+                if (bonusOnus > 0) resumo.bonus += bonusOnus;
+                if (bonusOnus < 0) resumo.onus += bonusOnus;
+
+                // Fallback para campos antigos (snake_case) + novos
+                resumo.pontosCorridos += t.pontosCorridos ?? t.pontos_corridos ?? 0;
+                resumo.mataMata += t.mataMata ?? t.mata_mata ?? 0;
+                resumo.top10 += t.top10 ?? ((t.top10_mito || 0) + (t.top10_mico || 0));
+            });
+
+            // ✅ v2.15: Atualizar saldo_final se houver transações especiais
+            if (resumo.inscricao !== undefined || resumo.legado !== undefined) {
+                const saldoTransacoesEspeciais = (resumo.inscricao || 0) + (resumo.legado || 0);
+                resumo.saldo_final = saldo.saldoFinal || saldoTransacoesEspeciais;
+            }
+        }
+
+        // ✅ v2.14: Preparar histórico de rodadas para exibição
+        // ✅ FIX: Campos são camelCase no banco (bonusOnus, pontosCorridos, mataMata)
+        // ✅ FIX v2.15: Suportar transações especiais (INSCRICAO_TEMPORADA, SALDO_ANTERIOR)
+        const historico = cache?.historico_transacoes?.map(t => {
+            // Transação especial (inscrição, legado, etc.)
+            if (t.tipo) {
+                return {
+                    rodada: t.rodada || 0,
+                    tipo: t.tipo,
+                    descricao: t.descricao || t.tipo,
+                    valor: t.valor || 0,
+                    saldo: t.valor || 0,
+                    saldoAcumulado: t.valor || 0,
+                    data: t.data,
+                    isTransacaoEspecial: true
+                };
+            }
+            // Transação normal de rodada
+            return {
+                rodada: t.rodada,
+                posicao: t.posicao || t.colocacao,
+                bonusOnus: t.bonusOnus ?? ((t.bonus || 0) + (t.onus || 0)),
+                pontosCorridos: t.pontosCorridos ?? t.pontos_corridos,
+                mataMata: t.mataMata ?? t.mata_mata,
+                top10: t.top10 || 0,
+                saldo: t.saldo || 0,
+                saldoAcumulado: t.saldoAcumulado ?? t.saldo_acumulado,
+                isMito: t.isMito || false,
+                isMico: t.isMico || false,
+                top10Status: t.top10Status,
+                top10Posicao: t.top10Posicao
+            };
+        }) || [];
+
+        // ✅ v2.15: Se não tem histórico de rodadas, mas tem saldo_consolidado no cache (ex: só inscrição)
+        // usar saldo_consolidado como base
+        if (cache?.saldo_consolidado && historico.length > 0) {
+            // Atualizar resumo com base no cache
+            const temTransacaoEspecial = historico.some(h => h.isTransacaoEspecial);
+            if (temTransacaoEspecial) {
+                // Somar valores das transações especiais no resumo
+                historico.filter(h => h.isTransacaoEspecial).forEach(h => {
+                    if (h.tipo === 'INSCRICAO_TEMPORADA') {
+                        resumo.inscricao = h.valor;
+                    } else if (h.tipo === 'SALDO_TEMPORADA_ANTERIOR' || h.tipo === 'LEGADO_ANTERIOR') {
+                        resumo.legado = h.valor;
+                    }
+                });
+            }
+        }
 
         res.json({
             success: true,
@@ -645,7 +813,7 @@ router.get("/participante/:ligaId/:timeId", async (req, res) => {
                 ativo: participante.ativo !== false,
             },
             financeiro: {
-                temporada,
+                temporada: tempNum,
                 saldoConsolidado: saldo.saldoConsolidado,
                 saldoCampos: saldo.saldoCampos,
                 saldoTemporada: saldo.saldoTemporada,
@@ -655,6 +823,11 @@ router.get("/participante/:ligaId/:timeId", async (req, res) => {
                 saldoFinal: saldo.saldoFinal,
                 situacao,
             },
+            // ✅ v2.14: Resumo por módulo
+            resumo,
+            // ✅ v2.14: Histórico de rodadas (ambos campos para compatibilidade)
+            historico,
+            rodadas: historico,  // ✅ FIX: Alias para compatibilidade com frontend
             acertos: acertos.map(a => ({
                 _id: a._id,
                 tipo: a.tipo,
@@ -666,6 +839,22 @@ router.get("/participante/:ligaId/:timeId", async (req, res) => {
                 registradoPor: a.registradoPor,
                 createdAt: a.createdAt,
             })),
+            // ✅ v2.14: Dados de quitação (se existir)
+            quitacao: cache?.quitacao || null,
+            // ✅ v2.14: Legado manual (se existir)
+            legado_manual: inscricao?.legado_manual || null,
+            // ✅ v2.14: Inscrição da próxima temporada (para ver status de renovação)
+            inscricao_proxima: inscricaoProxima ? {
+                temporada: inscricaoProxima.temporada,
+                status: inscricaoProxima.status,
+                processado: inscricaoProxima.processado,
+                pagou_inscricao: inscricaoProxima.pagou_inscricao,
+                taxa_inscricao: inscricaoProxima.taxa_inscricao || 0,  // ✅ FIX: Incluir valor da taxa
+                legado_manual: inscricaoProxima.legado_manual
+            } : null,
+            // ✅ v2.15: Ajustes dinâmicos (2026+)
+            ajustes: tempNum >= 2026 ? ajustes : [],
+            ajustes_total: saldo.saldoAjustes || 0
         });
     } catch (error) {
         console.error("[TESOURARIA] Erro ao buscar detalhes:", error);

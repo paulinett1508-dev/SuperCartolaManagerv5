@@ -674,6 +674,19 @@ export const getExtratoCache = async (req, res) => {
         resumoCalculado.saldo_final = resumoCalculado.saldo;
         resumoCalculado.saldo_atual = resumoCalculado.saldo;
 
+        // ✅ v6.0: Quitação de temporada - se quitado, saldo = 0 para exibição
+        // (valores originais são preservados no histórico para Hall da Fama)
+        if (cache.quitacao?.quitado) {
+            // Preservar valores originais antes de zerar
+            resumoCalculado.saldo_original = resumoCalculado.saldo;
+            resumoCalculado.saldo_final_original = resumoCalculado.saldo_final;
+            // Zerar para exibição no Fluxo Financeiro e App Participante
+            resumoCalculado.saldo = 0;
+            resumoCalculado.saldo_final = 0;
+            resumoCalculado.saldo_atual = 0;
+            resumoCalculado.quitacao = cache.quitacao;
+        }
+
         // ✅ v5.1: Adicionar acertos ao retorno
         res.json({
             cached: true,
@@ -690,6 +703,8 @@ export const getExtratoCache = async (req, res) => {
             rodadaDesistencia,
             extratoTravado: isInativo && rodadaDesistencia,
             rodadaTravada: rodadaDesistencia ? rodadaDesistencia - 1 : null,
+            // ✅ v6.0: Dados de quitação para exibir badge no frontend
+            quitacao: cache.quitacao || null,
         });
     } catch (error) {
         console.error("[CACHE-CONTROLLER] Erro:", error);

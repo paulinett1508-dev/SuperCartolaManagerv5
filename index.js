@@ -86,10 +86,12 @@ import consolidacaoRoutes from "./routes/consolidacao-routes.js";
 import renovacoesRoutes from "./routes/renovacoes-routes.js";
 import acertosFinanceirosRoutes from "./routes/acertos-financeiros-routes.js";
 import tesourariaRoutes from "./routes/tesouraria-routes.js";
+import ajustesRoutes from "./routes/ajustes-routes.js";
 
 // 🔄 Renovação de Temporada
 import ligaRulesRoutes from "./routes/liga-rules-routes.js";
 import inscricoesRoutes from "./routes/inscricoes-routes.js";
+import quitacaoRoutes from "./routes/quitacao-routes.js";
 
 // 🧩 Configuração de Módulos por Liga
 import moduleConfigRoutes from "./routes/module-config-routes.js";
@@ -329,10 +331,12 @@ app.use("/api/times-admin", timesAdminRoutes);
 app.use("/api/renovacoes", renovacoesRoutes);
 app.use("/api/acertos", acertosFinanceirosRoutes);
 app.use("/api/tesouraria", tesourariaRoutes);
+app.use("/api/ajustes", ajustesRoutes);
 
 // 🔄 Renovação de Temporada
 app.use("/api/liga-rules", ligaRulesRoutes);
 app.use("/api/inscricoes", inscricoesRoutes);
+app.use("/api/quitacao", quitacaoRoutes);
 
 // 🧩 Configuração de Módulos
 app.use("/api", moduleConfigRoutes);

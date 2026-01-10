@@ -14,8 +14,9 @@
 }
 
 .parciais-title {
+    font-family: var(--font-family-brand);
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 400;
     color: var(--text-primary);
     margin-bottom: 8px;
 }
@@ -53,8 +54,9 @@
 }
 
 .parcial-card-title {
+    font-family: var(--font-family-brand);
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 400;
     color: var(--text-primary);
 }
 

@@ -286,18 +286,61 @@ router.get("/:ligaId/:temporada/preview/:timeId", async (req, res) => {
             else if (a.tipo === 'recebimento') saldoAcertos -= a.valor || 0;
         });
 
+        // ✅ v1.2: Buscar campos manuais da temporada anterior
+        const camposManuais = await db.collection('fluxofinanceirocampos').findOne({
+            ligaId: String(ligaId),
+            timeId: String(timeId),
+            temporada: temporadaAnterior
+        });
+
+        let totalCamposManuais = 0;
+        if (camposManuais?.campos) {
+            camposManuais.campos.forEach(c => {
+                totalCamposManuais += parseFloat(c.valor) || 0;
+            });
+        }
+
         const saldoExtrato = extrato?.saldo_consolidado || 0;
-        const saldoFinal = saldoExtrato + saldoAcertos;
+        const saldoFinal = saldoExtrato + saldoAcertos + totalCamposManuais;
 
         // Determinar status de quitação
         let statusQuitacao = 'quitado';
         if (saldoFinal > 0.01) statusQuitacao = 'credor';
         else if (saldoFinal < -0.01) statusQuitacao = 'devedor';
 
+        // ✅ v1.1: Buscar dados de quitação do extrato (se existir)
+        const quitacaoInfo = extrato?.quitacao || null;
+
+        // ✅ v1.1: Buscar inscrição existente para verificar legado_manual
+        const inscricaoExistente = await db.collection('inscricoestemporada').findOne({
+            $or: [
+                { liga_id: ligaId },
+                { liga_id: new mongoose.Types.ObjectId(ligaId) }
+            ],
+            time_id: Number(timeId),
+            temporada: Number(temporada)
+        });
+
+        // ✅ v1.1: Se tem legado_manual definido (via quitação ou outro), usar esse valor
+        // ao invés do saldo calculado automaticamente
+        let saldoParaCalculo = saldoFinal;
+        let usandoLegadoManual = false;
+
+        if (inscricaoExistente?.legado_manual?.valor_definido !== undefined) {
+            saldoParaCalculo = inscricaoExistente.legado_manual.valor_definido;
+            usandoLegadoManual = true;
+            console.log(`[LIGA-RULES] Usando legado_manual: ${saldoParaCalculo} (origem: ${inscricaoExistente.legado_manual.origem})`);
+        } else if (quitacaoInfo?.quitado && quitacaoInfo.valor_legado !== undefined) {
+            // Se extrato foi quitado mas ainda não tem inscrição com legado_manual
+            saldoParaCalculo = quitacaoInfo.valor_legado;
+            usandoLegadoManual = true;
+            console.log(`[LIGA-RULES] Usando valor_legado da quitação: ${saldoParaCalculo}`);
+        }
+
         // Calcular cenários: pagou vs não pagou
         // Default: pagouInscricao = true (não gera débito de taxa)
-        const calculoPagou = rules.calcularValorInscricao(saldoFinal, { pagouInscricao: true });
-        const calculoNaoPagou = rules.calcularValorInscricao(saldoFinal, { pagouInscricao: false });
+        const calculoPagou = rules.calcularValorInscricao(saldoParaCalculo, { pagouInscricao: true });
+        const calculoNaoPagou = rules.calcularValorInscricao(saldoParaCalculo, { pagouInscricao: false });
 
         res.json({
             success: true,
@@ -307,8 +350,12 @@ router.get("/:ligaId/:temporada/preview/:timeId", async (req, res) => {
             saldoTemporadaAnterior: {
                 extrato: saldoExtrato,
                 acertos: saldoAcertos,
+                camposManuais: totalCamposManuais,
                 final: saldoFinal,
-                status: statusQuitacao
+                status: statusQuitacao,
+                // ✅ v1.1: Indicar se está usando legado manual
+                saldoUsado: saldoParaCalculo,
+                usandoLegadoManual
             },
             // Calculo default (pagouInscricao=true)
             calculo: {
@@ -337,7 +384,29 @@ router.get("/:ligaId/:temporada/preview/:timeId", async (req, res) => {
                 aproveitar_saldo_positivo: rules.inscricao.aproveitar_saldo_positivo,
                 taxa: rules.inscricao.taxa
             },
-            podeRenovar: statusQuitacao !== 'devedor' || rules.inscricao.permitir_devedor_renovar
+            podeRenovar: statusQuitacao !== 'devedor' || rules.inscricao.permitir_devedor_renovar,
+
+            // ✅ v1.1: Dados de quitação para integração entre modais
+            quitacao: quitacaoInfo ? {
+                quitado: quitacaoInfo.quitado,
+                data_quitacao: quitacaoInfo.data_quitacao,
+                tipo: quitacaoInfo.tipo,
+                valor_legado: quitacaoInfo.valor_legado,
+                admin_responsavel: quitacaoInfo.admin_responsavel,
+                observacao: quitacaoInfo.observacao
+            } : null,
+
+            // ✅ v1.1: Inscrição existente na temporada destino
+            inscricaoExistente: inscricaoExistente ? {
+                status: inscricaoExistente.status,
+                processado: inscricaoExistente.processado,
+                pagou_inscricao: inscricaoExistente.pagou_inscricao,
+                taxa_inscricao: inscricaoExistente.taxa_inscricao,
+                legado_manual: inscricaoExistente.legado_manual || null,
+                saldo_transferido: inscricaoExistente.saldo_transferido,
+                divida_anterior: inscricaoExistente.divida_anterior,
+                data_decisao: inscricaoExistente.data_decisao
+            } : null
         });
 
     } catch (error) {

@@ -58,14 +58,18 @@
 }
 
 .module-title-section h2 {
-  font: 700 22px "Inter", -apple-system, sans-serif;
+  font-family: var(--font-family-brand);
+  font-size: 22px;
+  font-weight: 400;
   color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.5px;
 }
 
 .module-subtitle {
-  font: 500 13px "Inter", -apple-system, sans-serif;
+  font-family: var(--font-family-brand);
+  font-size: 13px;
+  font-weight: 400;
   color: var(--laranja);
   margin: 0;
   opacity: 0.9;
@@ -542,7 +546,9 @@
 }
 
 .stat-card-title {
-  font: 500 10px "Inter", -apple-system, sans-serif;
+  font-family: var(--font-family-brand);
+  font-size: 10px;
+  font-weight: 400;
   color: var(--text-muted);
   text-transform: uppercase;
   margin-bottom: 4px;
