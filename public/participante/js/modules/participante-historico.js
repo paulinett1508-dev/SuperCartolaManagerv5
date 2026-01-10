@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v12.5 (HALL DA FAMA - MATA-MATA INTERATIVO)
+// PARTICIPANTE-HISTORICO.JS - v12.6 (FIX TEMPORADA NAS URLS)
 // =====================================================================
+// v12.6: FIX - Inclui temporada nas URLs de API (evita criar cache de temporada futura)
 // v12.5: Fix campos do adversario no Mata-Mata (nomeTime vs nome)
 //        - Corrigido acesso aos campos da API: nomeTime, pontos
 // v12.4: Card Mata-Mata interativo com resumo + historico por edicao expandivel
@@ -264,6 +265,8 @@ async function renderizarTodasLigas() {
         modulos = modulos || {};
 
         // Buscar dados REAIS da API (v8.0: adicionado ranking, melhorRodada e extrato)
+        // v12.6 FIX: Passar temporada para buscarExtrato (evita criar cache de temporada futura)
+        const temporadaTemp = tempRecente.ano || temporadaSelecionada;
         const [pc, top10, melhorMes, mataMata, artilheiro, luvaOuro, ranking, melhorRodada, extrato] = await Promise.all([
             modulos.pontosCorridos !== false ? buscarPontosCorridos(ligaId) : null,
             modulos.top10 !== false ? buscarTop10(ligaId) : null,
@@ -273,7 +276,7 @@ async function renderizarTodasLigas() {
             modulos.luvaOuro !== false ? buscarLuvaOuro(ligaId) : null,
             buscarRanking(ligaId),
             buscarMelhorRodada(ligaId),
-            buscarExtrato(ligaId)
+            buscarExtrato(ligaId, temporadaTemp)
         ]);
 
         // v12.2: FALLBACK ROBUSTO - Usar dados historicos de tempRecente quando APIs 404
@@ -1043,9 +1046,13 @@ async function buscarMelhorRodada(tempLigaId) {
 }
 
 // v8.0: Buscar extrato (créditos/débitos/saldo histórico)
-async function buscarExtrato(tempLigaId) {
+// v12.6 FIX: Adicionar temporada na URL para evitar criar cache de temporada futura
+async function buscarExtrato(tempLigaId, temporada = null) {
     try {
-        const res = await fetch(`/api/extrato-cache/${tempLigaId}/times/${timeId}/cache`);
+        // Se não informar temporada, usar a selecionada no módulo
+        const temp = temporada || temporadaSelecionada || '';
+        const queryParams = temp ? `?temporada=${temp}` : '';
+        const res = await fetch(`/api/extrato-cache/${tempLigaId}/times/${timeId}/cache${queryParams}`);
         if (!res.ok) return null;
         const data = await res.json();
         if (!data) return null;
@@ -1151,11 +1158,14 @@ async function renderizarDadosTempoReal(ligaId) {
             if (window.Log) Log.warn("HISTORICO", "Erro ao buscar liga:", e);
         }
 
+        // v12.6 FIX: Capturar temporada para passar ao buscarExtrato
+        const temporadaTempoReal = ligaData.ano || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+
         // Buscar dados em paralelo
         const [ranking, melhorRodada, extrato, pc, top10, mataMata, artilheiro, luvaOuro, melhorMes] = await Promise.all([
             buscarRanking(ligaId),
             buscarMelhorRodada(ligaId),
-            buscarExtrato(ligaId),
+            buscarExtrato(ligaId, temporadaTempoReal),
             modulos.pontosCorridos !== false ? buscarPontosCorridos(ligaId) : null,
             modulos.top10 !== false ? buscarTop10(ligaId) : null,
             modulos.mataMata !== false ? buscarMataMata(ligaId) : null,

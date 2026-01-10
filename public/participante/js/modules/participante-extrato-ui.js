@@ -1,6 +1,7 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.9 FIX RESUMO
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.10 FIX TEMPORADA URLS
 // =====================================================
+// ✅ v10.10: FIX - Inclui temporada nas URLs de API (evita criar cache de temporada futura)
 // ✅ v10.9: FIX CRÍTICO - mostrarPopupDetalhamento usa resumo consolidado (igual admin)
 //          Corrige discrepância de valores entre admin e app no modal de débitos/créditos
 // ✅ v10.8: Refatorado para SaaS - remove liga ID hardcoded, usa config dinamica
@@ -834,7 +835,10 @@ window.refreshAcertosBottomSheet = async function() {
         if (window.Log) Log.info("[EXTRATO-UI] 🔄 Refresh pontual de acertos...");
 
         // Buscar dados atualizados do cache (que inclui acertos frescos)
-        const url = `/api/extrato-cache/${ligaId}/times/${timeId}/cache`;
+        // ✅ v10.10 FIX: Incluir temporada na URL para evitar criar cache de temporada futura
+        const CONFIG = window.ParticipanteConfig || {};
+        const temporada = CONFIG.CURRENT_SEASON || 2026;
+        const url = `/api/extrato-cache/${ligaId}/times/${timeId}/cache?temporada=${temporada}`;
         const response = await fetch(url);
 
         if (!response.ok) {

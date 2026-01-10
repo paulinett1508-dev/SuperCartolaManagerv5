@@ -156,7 +156,13 @@
       "Bash(scripts/test-wizard-create-liga.js)",
       "Bash(tee:*)",
       "Skill(audit-financa)",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "Bash(__NEW_LINE__ echo -n \"\n/painel.html: \")",
+      "Bash(__NEW_LINE__ echo -n \"\n/participante/: \")",
+      "Bash(__NEW_LINE__ echo -n \"\n/login.html: \")",
+      "Bash(__NEW_LINE__ echo -n \"\nApp Participante: \")",
+      "Bash(__NEW_LINE__ echo -n \"\nAPI Health: \")",
+      "Bash(__NEW_LINE__ echo -n \"\nAPI Ligas: \")"
     ]
   },
   "enableAllProjectMcpServers": true,

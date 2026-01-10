@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.0 (CARD DISCRETO HALL DA FAMA)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.1 (FIX TEMPORADA URLS)
 // =====================================================================
+// ✅ v10.1: FIX - Inclui temporada nas URLs de API (evita criar cache 2026 vazio)
 // ✅ v10.0: Hall da Fama discreto na tela inicial
 //    - Card pequeno e clean na parte superior
 //    - Não chama atenção para temporada anterior
@@ -191,7 +192,8 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 
         let extratoFresh = null;
         try {
-            const resCache = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaNum}`);
+            // ✅ v10.1 FIX: Incluir temporada na URL para evitar criar cache de temporada futura
+            const resCache = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaNum}&temporada=${TEMPORADA_ATUAL}`);
             if (resCache.ok) {
                 const cacheData = await resCache.json();
                 extratoFresh = {

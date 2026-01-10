@@ -1,7 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v3.6 (FIX TEMPORADA DINÂMICA)
+// PARTICIPANTE-EXTRATO.JS - v3.7 (FIX TEMPORADA NAS URLS)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v3.7: FIX - Inclui temporada em todas as chamadas de API (evita criar cache 2026 vazio)
 // ✅ v3.6: FIX - Usa config global (CURRENT_SEASON) em vez de hardcoded
 // ✅ v3.5: FIX CRÍTICO - Calcula totalPago/totalRecebido no fallback (não mais zerados)
 // ✅ v3.4: FIX - Re-renderiza quando campos manuais (ajustes) ou saldo mudam
@@ -263,8 +264,11 @@ async function carregarExtrato(ligaId, timeId) {
         let usouCacheBackend = false;
         let precisaRecalculo = false;
 
+        // ✅ v3.7 FIX: Incluir temporada na URL para garantir consulta correta
+        const temporada = CONFIG.CURRENT_SEASON || 2026;
+
         // ✅ PASSO 1: Tentar buscar do cache
-        const urlCache = `/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`;
+        const urlCache = `/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}&temporada=${temporada}`;
         if (window.Log)
             Log.debug("EXTRATO-PARTICIPANTE", "📡 Buscando cache:", urlCache);
 
