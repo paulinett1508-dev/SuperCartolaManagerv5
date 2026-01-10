@@ -4,7 +4,10 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.15.0
+ * @version 2.16.0
+ * ✅ v2.16.0: FIX CRÍTICO - Campos manuais com filtro de temporada
+ *   - calcularSaldoCompleto() agora filtra por temporada
+ *   - Bulk query de campos na rota /liga/:ligaId também filtra
  * ✅ v2.15.0: Ajustes dinâmicos (2026+) - substitui campos fixos
  *   - Busca ajustes no endpoint do participante
  *   - Inclui saldoAjustes no cálculo de saldo final
@@ -91,9 +94,11 @@ async function calcularSaldoCompleto(ligaId, timeId, temporada = CURRENT_SEASON)
         );
 
         // 2. Campos manuais
+        // ✅ v2.16 FIX: Incluir temporada na query (segregação de dados entre temporadas)
         const camposManuais = await FluxoFinanceiroCampos.findOne({
             ligaId: String(ligaId),
             timeId: String(timeId),
+            temporada: Number(temporada),
         }).lean();
         const camposAtivos = camposManuais?.campos?.filter(c => c.valor !== 0) || [];
 
@@ -430,11 +435,11 @@ router.get("/liga/:ligaId", async (req, res) => {
             }).toArray(),
 
             // 2. Todos os campos manuais da liga
-            // ✅ v2.7 FIX: Documentos antigos não têm campo temporada
-            // Buscar sem filtro de temporada (campos manuais são por participante/liga)
+            // ✅ v2.16 FIX: Incluir temporada na query (segregação de dados entre temporadas)
             FluxoFinanceiroCampos.find({
                 ligaId: ligaIdStr,
-                timeId: { $in: timeIds.map(String) }
+                timeId: { $in: timeIds.map(String) },
+                temporada: temporadaNum
             }).lean(),
 
             // 3. Todos os acertos da liga na temporada
@@ -1166,6 +1171,6 @@ router.get("/resumo", async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v2.9 Rotas carregadas (adicionado 'acertos' ao breakdown)");
+console.log("[TESOURARIA] ✅ v2.16 Rotas carregadas (FIX: campos manuais com temporada)");
 
 export default router;

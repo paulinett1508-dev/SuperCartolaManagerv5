@@ -1,5 +1,9 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v8.2.0 (SaaS DINÂMICO)
+ * FLUXO-FINANCEIRO-CONTROLLER v8.3.0 (SaaS DINÂMICO)
+ * ✅ v8.3.0: FIX CRÍTICO - Temporada em TODAS as queries (campos, acertos)
+ *   - Removido hardcoded "2025" nos acertos financeiros
+ *   - getCampos(), salvarCampo(), getCamposLiga() agora filtram por temporada
+ *   - getFluxoFinanceiroLiga() também inclui temporada
  * ✅ v8.2.0: FIX CRÍTICO - Temporada obrigatória em queries de cache (evita duplicados)
  * ✅ v8.1.0: Invalidação de cache em cascata ao salvar campos manuais
  * ✅ v8.0.0: MULTI-TENANT - Busca configurações de liga.configuracoes (White Label)
@@ -32,7 +36,8 @@ import { getResultadosMataMataCompleto } from "./mata-mata-backend.js";
 // ✅ v8.1.0: Invalidação de cache em cascata
 import { onCamposSaved } from "../utils/cache-invalidator.js";
 // ✅ v8.2.0: FIX CRÍTICO - Temporada obrigatória em todas as queries de cache
-import { CURRENT_SEASON } from "../config/seasons.js";
+// ✅ v8.3.0: Usa getFinancialSeason() para consistência com quitacaoController
+import { CURRENT_SEASON, getFinancialSeason } from "../config/seasons.js";
 
 // ============================================================================
 // 🔧 CONSTANTES DE FALLBACK (usadas apenas se liga.configuracoes não existir)
@@ -425,18 +430,14 @@ export const getExtratoFinanceiro = async (req, res) => {
         const { ligaId, timeId } = req.params;
         const forcarRecalculo = req.query.refresh === "true";
 
-        // ✅ v8.3.0 FIX: Bloquear tentativa de acessar temporadas passadas via query param
-        // Gap de segurança: alguém poderia tentar ?temporada=2025
-        if (req.query.temporada && parseInt(req.query.temporada) !== CURRENT_SEASON) {
-            console.warn(`[FLUXO-CONTROLLER] ⚠️ Tentativa de acesso a temporada ${req.query.temporada} bloqueada`);
-            return res.status(403).json({
-                error: "Acesso a temporadas anteriores não permitido nesta rota",
-                hint: "Use /api/participante/historico para dados históricos"
-            });
-        }
+        // ✅ v8.3.0 FIX: Aceitar temporada via query param para fluxo de renovação
+        // Durante pré-temporada (renovação), default é getFinancialSeason() (2025)
+        // Mas permite ?temporada=2026 para ver extrato da nova temporada
+        const temporadaSolicitada = req.query.temporada ? parseInt(req.query.temporada) : null;
+        const temporadaAtual = temporadaSolicitada || getFinancialSeason();
 
         console.log(
-            `[FLUXO-CONTROLLER] Extrato time ${timeId} | refresh=${forcarRecalculo}`,
+            `[FLUXO-CONTROLLER] Extrato time ${timeId} | temporada=${temporadaAtual} | refresh=${forcarRecalculo}`,
         );
 
         const statusMercado = await getStatusMercadoInterno();
@@ -448,8 +449,7 @@ export const getExtratoFinanceiro = async (req, res) => {
             : rodadaAtualCartola;
 
         // ✅ v8.2.0 FIX: Buscar ou criar cache COM TEMPORADA (evita duplicados)
-        // Usar temporada atual da config - SEMPRE incluir na query
-        const temporadaAtual = CURRENT_SEASON;
+        // ✅ v8.3.0: Usa temporadaAtual dinâmica (pode ser 2025 ou 2026)
 
         let cache = await ExtratoFinanceiroCache.findOne({
             liga_id: ligaId,
@@ -629,9 +629,11 @@ export const getExtratoFinanceiro = async (req, res) => {
         }
 
         // Adicionar campos manuais
+        // ✅ v8.3.0 FIX: Incluir temporada na query (evita mistura de dados entre temporadas)
         const camposManuais = await FluxoFinanceiroCampos.findOne({
             ligaId,
             timeId,
+            temporada: temporadaAtual,
         });
         let saldoCampos = 0;
         let transacoesCampos = [];
@@ -652,8 +654,9 @@ export const getExtratoFinanceiro = async (req, res) => {
         }
 
         // ✅ v7.4: Buscar acertos financeiros (pagamentos/recebimentos em tempo real)
-        const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, "2025");
-        const acertos = await AcertoFinanceiro.buscarPorTime(ligaId, timeId, "2025");
+        // ✅ v8.3.0 FIX: Usar temporadaAtual ao invés de hardcoded "2025"
+        const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporadaAtual);
+        const acertos = await AcertoFinanceiro.buscarPorTime(ligaId, timeId, temporadaAtual);
         let transacoesAcertos = [];
 
         if (acertos && acertos.length > 0) {
@@ -732,15 +735,18 @@ export const getExtratoFinanceiro = async (req, res) => {
 export const getCampos = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-        let campos = await FluxoFinanceiroCampos.findOne({ ligaId, timeId });
+        // ✅ v8.3.0 FIX: Aceitar temporada via query param, default getFinancialSeason()
+        const temporadaAtual = req.query.temporada ? parseInt(req.query.temporada) : getFinancialSeason();
+        let campos = await FluxoFinanceiroCampos.findOne({ ligaId, timeId, temporada: temporadaAtual });
 
         if (!campos) {
             console.log(
-                `[FLUXO-CONTROLLER] Criando campos padrão para time ${timeId}`,
+                `[FLUXO-CONTROLLER] Criando campos padrão para time ${timeId} (temporada ${temporadaAtual})`,
             );
             campos = await FluxoFinanceiroCampos.create({
                 ligaId,
                 timeId,
+                temporada: temporadaAtual,
                 campos: [
                     { nome: "Campo 1", valor: 0 },
                     { nome: "Campo 2", valor: 0 },
@@ -763,18 +769,21 @@ export const getCampos = async (req, res) => {
 export const salvarCampo = async (req, res) => {
     try {
         const { ligaId, timeId, campoIndex } = req.params;
-        const { nome, valor } = req.body;
+        const { nome, valor, temporada } = req.body;
         const index = parseInt(campoIndex);
+        // ✅ v8.3.0 FIX: Aceitar temporada via body ou query, default getFinancialSeason()
+        const temporadaAtual = temporada ? parseInt(temporada) : (req.query.temporada ? parseInt(req.query.temporada) : getFinancialSeason());
 
         if (isNaN(index) || index < 0 || index > 3) {
             return res.status(400).json({ error: "Índice inválido" });
         }
 
-        let documento = await FluxoFinanceiroCampos.findOne({ ligaId, timeId });
+        let documento = await FluxoFinanceiroCampos.findOne({ ligaId, timeId, temporada: temporadaAtual });
         if (!documento) {
             documento = new FluxoFinanceiroCampos({
                 ligaId,
                 timeId,
+                temporada: temporadaAtual,
                 campos: [{}, {}, {}, {}],
             });
         }
@@ -799,7 +808,9 @@ export const salvarCampo = async (req, res) => {
 export const getCamposLiga = async (req, res) => {
     try {
         const { ligaId } = req.params;
-        const todosCampos = await FluxoFinanceiroCampos.find({ ligaId });
+        // ✅ v8.3.0 FIX: Aceitar temporada via query, default getFinancialSeason()
+        const temporadaAtual = req.query.temporada ? parseInt(req.query.temporada) : getFinancialSeason();
+        const todosCampos = await FluxoFinanceiroCampos.find({ ligaId, temporada: temporadaAtual });
         res.json(todosCampos);
     } catch (error) {
         res.status(500).json({ error: "Erro ao buscar campos da liga" });
@@ -967,9 +978,11 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                 await cache.save();
             }
 
+            // ✅ v8.3.0 FIX: Incluir temporada na query (segregação de dados)
             const camposManuais = await FluxoFinanceiroCampos.findOne({
                 ligaId,
                 timeId,
+                temporada: temporadaAtual,
             });
             let saldoCampos = 0;
 
@@ -1000,4 +1013,4 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     }
 };
 
-console.log("[FLUXO-CONTROLLER] ✅ v8.0.0 carregado (SaaS Dinâmico)");
+console.log("[FLUXO-CONTROLLER] ✅ v8.3.0 carregado (FIX Temporada Dinâmica)");
