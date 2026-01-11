@@ -1040,9 +1040,9 @@ export class FluxoFinanceiroUI {
         const saldoAnterior = inscricao.saldo_transferido || 0;
         const taxaInscricao = inscricao.taxa_inscricao || 180;
         const pagouDiretamente = inscricao.pagou_inscricao === true;
-        const quitadoViaLegado = inscricao.legado_manual?.tipo_quitacao != null;
+        // ✅ v2.2 FIX: legado_manual.tipo_quitacao='zerado' é sobre SALDO 2025, não inscrição 2026
         const saldoCobriuTaxa = saldoAnterior >= taxaInscricao && taxaInscricao > 0;
-        const inscricaoQuitada = pagouDiretamente || quitadoViaLegado || saldoCobriuTaxa;
+        const inscricaoQuitada = pagouDiretamente || saldoCobriuTaxa;
 
         // Calcular saldo final
         let saldoFinal = inscricao.saldo_inicial_temporada;
@@ -1059,7 +1059,7 @@ export class FluxoFinanceiroUI {
         } else if (saldoCobriuTaxa) {
             statusText = 'Abatido';
             statusClass = 'status-abatido';
-        } else if (quitadoViaLegado) {
+        } else if (false) { // Removido: quitadoViaLegado não se aplica a inscrição 2026
             statusText = 'Quitado';
             statusClass = 'status-quitado';
         } else {

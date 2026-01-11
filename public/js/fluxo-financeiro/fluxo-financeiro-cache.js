@@ -503,14 +503,13 @@ export class FluxoFinanceiroCache {
             };
         }
 
-        // ✅ v2.1 FIX: Considerar inscrição quitada se:
+        // ✅ v2.2 FIX: Considerar inscrição quitada se:
         // 1. pagou_inscricao === true (pagou diretamente) OU
-        // 2. Tem legado_manual (quitação via admin/abatimento) OU
-        // 3. Saldo transferido >= taxa (crédito cobriu a inscrição)
+        // 2. Saldo transferido >= taxa (crédito cobriu a inscrição)
+        // NOTA: legado_manual.tipo_quitacao='zerado' é sobre SALDO 2025, não sobre inscrição 2026
         const pagouDiretamente = inscricao.pagou_inscricao === true;
-        const quitadoViaLegado = inscricao.legado_manual?.tipo_quitacao != null;
         const saldoCobriuTaxa = (inscricao.saldo_transferido || 0) >= (inscricao.taxa_inscricao || 0) && (inscricao.taxa_inscricao || 0) > 0;
-        const inscricaoQuitada = pagouDiretamente || quitadoViaLegado || saldoCobriuTaxa;
+        const inscricaoQuitada = pagouDiretamente || saldoCobriuTaxa;
 
         const statusMap = {
             'renovado': {
