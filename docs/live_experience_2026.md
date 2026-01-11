@@ -1,4 +1,4 @@
-# Super Cartola 2026 - MODO MATCHDAY
+# Super Cartola - MODO MATCHDAY
 
 > **O Sistema Vivo: Transformando o App em uma Plataforma Second Screen**
 > Documento de Arquitetura UX/Frontend

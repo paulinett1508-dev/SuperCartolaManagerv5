@@ -53,7 +53,7 @@ NODE_ENV !== 'production'  → Usa MONGO_URI_DEV (DEV)
 
 ## 🏆 ANÁLISE QUALITATIVA (Por Liga)
 
-### Liga 1: Super Cartola 2025
+### Liga 1: Super Cartola
 - **ID:** `684cb1c8af923da7c7df51de`
 - **Participantes:** 32
 - **Status:** ✅ 100% sincronizados até R38
