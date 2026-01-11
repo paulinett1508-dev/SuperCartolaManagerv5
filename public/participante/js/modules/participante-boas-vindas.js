@@ -1,6 +1,11 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.4 (FIX URL INSCRICAO)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.6 (FIX CACHE TEMPORADA)
 // =====================================================================
+// ✅ v10.6: FIX - Participantes renovados ignoram cache IndexedDB de extrato
+//          - Evita mostrar saldo de 2025 em vez de 2026
+//          - Cache local pode ter dados antigos após renovação
+// ✅ v10.5: Para participantes RENOVADOS, mostra "Aguardando 1ª rodada"
+//          em vez de dados da temporada anterior
 // ✅ v10.4: FIX - URL correta para API de inscrições (/ligaId/temporada/timeId)
 //          - Verifica status 'renovado' ou 'novo' na resposta
 // ✅ v10.3: FIX - Verifica renovação antes de buscar extrato
@@ -16,7 +21,7 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.4...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.6...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -28,6 +33,9 @@ const TEMPORADA_FINANCEIRA = window.ParticipanteConfig?.getFinancialSeason
 
 // Estado do histórico
 let historicoParticipante = null;
+
+// ✅ v10.5: Estado de renovação do participante
+let participanteRenovado = false;
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL
@@ -119,7 +127,7 @@ export async function inicializarBoasVindasParticipante(params) {
 window.inicializarBoasVindasParticipante = inicializarBoasVindasParticipante;
 
 // =====================================================================
-// CARREGAR DADOS E RENDERIZAR - v9.0 COM HISTÓRICO
+// CARREGAR DADOS E RENDERIZAR - v10.6 FIX CACHE TEMPORADA
 // =====================================================================
 async function carregarDadosERenderizar(ligaId, timeId, participante) {
     const container = document.getElementById("boas-vindas-container");
@@ -127,6 +135,9 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 
     const cache = window.ParticipanteCache;
     const meuTimeIdNum = Number(timeId);
+
+    // ✅ v10.5: Verificar se participante renovou ANTES de renderizar
+    await verificarStatusRenovacao(ligaId, timeId);
 
     // ✅ v9.0: Buscar histórico do participante em background
     buscarHistoricoParticipante(timeId);
@@ -140,13 +151,24 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     let usouCache = false;
 
     if (cache) {
+        // ✅ v10.6 FIX: Para participantes RENOVADOS, NÃO usar cache IndexedDB do extrato
+        // O cache pode ter dados de 2025 (saldo antigo) que não se aplica mais em 2026
+        const deveBuscarExtratoDoCacheLocal = !participanteRenovado;
+        
         // Buscar do cache persistente (IndexedDB) - INSTANTÂNEO
         [liga, ranking, rodadas, extratoData] = await Promise.all([
             cache.getLigaAsync ? cache.getLigaAsync(ligaId) : cache.getLiga(ligaId),
             cache.getRankingAsync ? cache.getRankingAsync(ligaId) : cache.getRanking(ligaId),
             cache.getRodadasAsync ? cache.getRodadasAsync(ligaId) : cache.getRodadas(ligaId),
-            cache.getExtratoAsync ? cache.getExtratoAsync(ligaId, timeId) : cache.getExtrato(ligaId, timeId)
+            deveBuscarExtratoDoCacheLocal
+                ? (cache.getExtratoAsync ? cache.getExtratoAsync(ligaId, timeId) : cache.getExtrato(ligaId, timeId))
+                : Promise.resolve(null) // ✅ Renovados: ignorar cache local de extrato
         ]);
+
+        // ✅ v10.6: Log para debug
+        if (participanteRenovado && window.Log) {
+            Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Participante renovado - ignorando cache local de extrato");
+        }
 
         if (liga && ranking?.length && rodadas?.length) {
             usouCache = true;
@@ -345,6 +367,28 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
 }
 
 // =====================================================================
+// ✅ v10.5: VERIFICAR SE PARTICIPANTE RENOVOU
+// =====================================================================
+async function verificarStatusRenovacao(ligaId, timeId) {
+    try {
+        const url = `/api/inscricoes/${ligaId}/${TEMPORADA_ATUAL}/${timeId}`;
+        const response = await fetch(url);
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.inscricao) {
+                const status = data.inscricao.status;
+                participanteRenovado = (status === 'renovado' || status === 'novo');
+                if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", `✅ Status renovação: ${status} → renovado=${participanteRenovado}`);
+            }
+        }
+    } catch (error) {
+        if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "⚠️ Erro ao verificar renovação:", error);
+        participanteRenovado = false;
+    }
+}
+
+// =====================================================================
 // ✅ v9.0: BUSCAR HISTÓRICO DO PARTICIPANTE
 // =====================================================================
 async function buscarHistoricoParticipante(timeId) {
@@ -377,9 +421,12 @@ function renderizarBannerHistorico() {
     // Verificar se já existe o card
     if (document.getElementById("card-hall-fama")) return;
 
-    // Verificar se tem histórico
-    const totalTemporadas = historicoParticipante.historico?.length || 0;
-    const totalTitulos = historicoParticipante.stats_agregadas?.total_titulos || 0;
+    // Filtrar temporadas para exibir apenas até a anterior à atual
+    const temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
+    const temporadasPassadas = (historicoParticipante.historico || []).filter(t => Number(t.temporada) < temporadaAtual);
+    const totalTemporadas = temporadasPassadas.length;
+    // Contar títulos só das temporadas passadas
+    const totalTitulos = temporadasPassadas.reduce((acc, t) => acc + (t.titulos || 0), 0);
 
     if (totalTemporadas === 0) return;
 
@@ -544,115 +591,232 @@ function renderizarBoasVindas(container, data) {
               ? "color: #f87171;"
               : "color: rgba(255,255,255,0.5);";
 
-    container.innerHTML = `
-        <div class="pb-28">
+    // =========================================================================
+    // ✅ v10.5: RENDERIZAÇÃO CONDICIONAL - RENOVADO vs NÃO RENOVADO
+    // =========================================================================
+    
+    if (participanteRenovado) {
+        // ✅ PARTICIPANTE RENOVOU - Mostrar dados zerados com "Aguardando 1ª rodada"
+        container.innerHTML = `
+            <div class="pb-28">
 
-            <!-- Saudação com indicador de temporada -->
-            <div class="px-4 py-4">
-                <div class="flex items-center justify-between mb-1">
-                    <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
-                    <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide" style="background: linear-gradient(135deg, #ff4500, #e63e00); color: white;">
-                        ${TEMPORADA_ATUAL}
-                    </span>
+                <!-- Saudação com indicador de temporada -->
+                <div class="px-4 py-4">
+                    <div class="flex items-center justify-between mb-1">
+                        <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide" style="background: linear-gradient(135deg, #ff4500, #e63e00); color: white;">
+                            ${TEMPORADA_ATUAL}
+                        </span>
+                    </div>
+                    <p class="text-sm font-normal text-white/70">${nomeLiga} • Aguardando 1ª rodada</p>
                 </div>
-                <p class="text-sm font-normal text-white/70">${nomeLiga} • Rodada ${rodadaAtual || "--"}</p>
-            </div>
 
-            <!-- Card Principal do Time -->
-            <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4">
-                <h3 class="mb-4 text-center text-base font-bold leading-tight text-white">${nomeTime}</h3>
-                <div class="flex items-center justify-around">
-                    <div class="text-center">
-                        <p class="text-xs font-medium uppercase leading-normal text-white/70">Posição</p>
-                        <p class="text-4xl font-bold leading-tight tracking-tighter text-white">${posicao ? `${posicao}º` : "--"}</p>
-                        <p class="text-xs font-normal leading-normal text-white/70">de ${totalParticipantes}${variacaoPosHTML}</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-xs font-medium uppercase leading-normal text-white/70">Pontos</p>
-                        <p class="text-4xl font-bold leading-tight tracking-tighter text-white">${formatarPontos(pontosTotal).split(",")[0]}</p>
-                        <p class="text-xs font-normal leading-normal text-white/70">total acumulado</p>
-                    </div>
-                </div>
-                <div class="mt-4 flex items-center justify-center gap-2 rounded-full ${zona.corBg} py-1.5 px-4">
-                    <span class="material-icons text-sm ${zona.corTexto}">${zona.icon}</span>
-                    <p class="text-xs font-medium text-white/90">${zona.texto}</p>
-                </div>
-            </div>
-
-            <!-- Card Saldo Financeiro -->
-            <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4 cursor-pointer active:scale-[0.98] transition-transform" onclick="window.participanteNav?.navegarPara('extrato')">
-                <div class="flex w-full items-center gap-4 text-left">
-                    <div class="flex-shrink-0">
-                        <span class="material-icons text-3xl text-primary">paid</span>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
-                        <p class="text-lg font-bold" style="${saldoCorStyle}">${saldoFormatado}</p>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <span class="material-icons text-white/70">arrow_forward_ios</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Grid de Estatísticas -->
-            <div class="mx-4 mb-4 grid grid-cols-3 gap-3">
-                <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
-                    <p class="text-xs font-medium uppercase text-white/70">Rodadas</p>
-                    <p class="text-2xl font-bold text-white">${rodadaAtual || 0}</p>
-                </div>
-                <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
-                    <p class="text-xs font-medium uppercase text-white/70">Participantes</p>
-                    <p class="text-2xl font-bold text-white">${totalParticipantes}</p>
-                </div>
-                <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
-                    <p class="text-xs font-medium uppercase text-white/70">Faltam</p>
-                    <p class="text-2xl font-bold text-primary">${rodadasRestantes}</p>
-                </div>
-            </div>
-
-            <!-- Card de Desempenho -->
-            <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4">
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="material-icons text-primary">insights</span>
-                    <h3 class="text-sm font-bold text-white">Seu Desempenho</h3>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
-                        <div class="flex items-center gap-2">
-                            <span class="material-icons text-primary text-xl">bolt</span>
-                            <span class="text-xs text-white/70">Rodada ${rodadaAtual}</span>
+                <!-- Card Principal do Time - Aguardando -->
+                <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4">
+                    <h3 class="mb-4 text-center text-base font-bold leading-tight text-white">${nomeTime}</h3>
+                    <div class="flex items-center justify-around">
+                        <div class="text-center">
+                            <p class="text-xs font-medium uppercase leading-normal text-white/70">Posição</p>
+                            <p class="text-4xl font-bold leading-tight tracking-tighter text-white/30">--</p>
+                            <p class="text-xs font-normal leading-normal text-white/50">aguardando</p>
                         </div>
-                        <span class="text-sm font-bold text-white">${pontosUltimaRodada} pts</span>
-                    </div>
-                    <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
-                        <div class="flex items-center gap-2">
-                            <span class="material-icons ${variacaoInfo.cor} text-xl">${variacaoInfo.icon}</span>
-                            <span class="text-xs text-white/70">Variação</span>
+                        <div class="text-center">
+                            <p class="text-xs font-medium uppercase leading-normal text-white/70">Pontos</p>
+                            <p class="text-4xl font-bold leading-tight tracking-tighter text-white/30">0</p>
+                            <p class="text-xs font-normal leading-normal text-white/50">aguardando</p>
                         </div>
-                        <span class="text-sm font-bold ${variacaoInfo.cor}">${variacaoInfo.valor}</span>
                     </div>
-                    <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
-                        <div class="flex items-center gap-2">
-                            <span class="material-icons text-primary text-xl">history</span>
-                            <span class="text-xs text-white/70">Posição anterior</span>
-                        </div>
-                        <span class="text-sm font-bold text-white">${posicaoAnterior ? `${posicaoAnterior}º` : "--"}</span>
+                    <div class="mt-4 flex items-center justify-center gap-2 rounded-full bg-primary/10 py-1.5 px-4">
+                        <span class="material-icons text-sm text-primary">schedule</span>
+                        <p class="text-xs font-medium text-white/90">Aguardando 1ª rodada</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Card de Dica -->
-            <div class="mx-4 mb-4 flex items-start gap-3 rounded-xl bg-primary/10 p-4">
-                <span class="material-icons mt-0.5 text-primary">lightbulb</span>
-                <div>
-                    <p class="text-sm font-bold uppercase text-white/90">Dica</p>
-                    <p class="text-sm font-normal text-white/70">Acompanhe seu extrato financeiro para entender sua evolução na liga!</p>
+                <!-- Card Saldo Financeiro -->
+                <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4 cursor-pointer active:scale-[0.98] transition-transform" onclick="window.participanteNav?.navegarPara('extrato')">
+                    <div class="flex w-full items-center gap-4 text-left">
+                        <div class="flex-shrink-0">
+                            <span class="material-icons text-3xl text-primary">paid</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
+                            <p class="text-lg font-bold" style="${saldoCorStyle}">${saldoFormatado}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <span class="material-icons text-white/70">arrow_forward_ios</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid de Estatísticas - Zerado -->
+                <div class="mx-4 mb-4 grid grid-cols-3 gap-3">
+                    <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
+                        <p class="text-xs font-medium uppercase text-white/70">Rodadas</p>
+                        <p class="text-2xl font-bold text-white/30">0</p>
+                    </div>
+                    <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
+                        <p class="text-xs font-medium uppercase text-white/70">Participantes</p>
+                        <p class="text-2xl font-bold text-white">${totalParticipantes}</p>
+                    </div>
+                    <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
+                        <p class="text-xs font-medium uppercase text-white/70">Faltam</p>
+                        <p class="text-2xl font-bold text-primary">38</p>
+                    </div>
+                </div>
+
+                <!-- Card de Desempenho - Aguardando -->
+                <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-icons text-primary">insights</span>
+                        <h3 class="text-sm font-bold text-white">Seu Desempenho</h3>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons text-white/30 text-xl">bolt</span>
+                                <span class="text-xs text-white/50">Última rodada</span>
+                            </div>
+                            <span class="text-sm font-medium text-white/30">Aguardando</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons text-white/30 text-xl">trending_flat</span>
+                                <span class="text-xs text-white/50">Variação</span>
+                            </div>
+                            <span class="text-sm font-medium text-white/30">Aguardando</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons text-white/30 text-xl">history</span>
+                                <span class="text-xs text-white/50">Posição anterior</span>
+                            </div>
+                            <span class="text-sm font-medium text-white/30">Aguardando</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card de Boas-vindas 2026 -->
+                <div class="mx-4 mb-4 flex items-start gap-3 rounded-xl bg-green-500/10 border border-green-500/20 p-4">
+                    <span class="material-icons mt-0.5 text-green-400">check_circle</span>
+                    <div>
+                        <p class="text-sm font-bold uppercase text-green-400">Inscrição Confirmada!</p>
+                        <p class="text-sm font-normal text-white/70">Sua vaga na temporada ${TEMPORADA_ATUAL} está garantida. O Brasileirão começa em 28/01!</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
+    } else {
+        // ✅ PARTICIPANTE NÃO RENOVOU - Mostrar dados da temporada anterior normalmente
+        container.innerHTML = `
+            <div class="pb-28">
+
+                <!-- Saudação com indicador de temporada -->
+                <div class="px-4 py-4">
+                    <div class="flex items-center justify-between mb-1">
+                        <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide" style="background: linear-gradient(135deg, #ff4500, #e63e00); color: white;">
+                            ${TEMPORADA_ATUAL}
+                        </span>
+                    </div>
+                    <p class="text-sm font-normal text-white/70">${nomeLiga} • Rodada ${rodadaAtual || "--"}</p>
+                </div>
+
+                <!-- Card Principal do Time -->
+                <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4">
+                    <h3 class="mb-4 text-center text-base font-bold leading-tight text-white">${nomeTime}</h3>
+                    <div class="flex items-center justify-around">
+                        <div class="text-center">
+                            <p class="text-xs font-medium uppercase leading-normal text-white/70">Posição</p>
+                            <p class="text-4xl font-bold leading-tight tracking-tighter text-white">${posicao ? `${posicao}º` : "--"}</p>
+                            <p class="text-xs font-normal leading-normal text-white/70">de ${totalParticipantes}${variacaoPosHTML}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs font-medium uppercase leading-normal text-white/70">Pontos</p>
+                            <p class="text-4xl font-bold leading-tight tracking-tighter text-white">${formatarPontos(pontosTotal).split(",")[0]}</p>
+                            <p class="text-xs font-normal leading-normal text-white/70">total acumulado</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center justify-center gap-2 rounded-full ${zona.corBg} py-1.5 px-4">
+                        <span class="material-icons text-sm ${zona.corTexto}">${zona.icon}</span>
+                        <p class="text-xs font-medium text-white/90">${zona.texto}</p>
+                    </div>
+                </div>
+
+                <!-- Card Saldo Financeiro -->
+                <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4 cursor-pointer active:scale-[0.98] transition-transform" onclick="window.participanteNav?.navegarPara('extrato')">
+                    <div class="flex w-full items-center gap-4 text-left">
+                        <div class="flex-shrink-0">
+                            <span class="material-icons text-3xl text-primary">paid</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
+                            <p class="text-lg font-bold" style="${saldoCorStyle}">${saldoFormatado}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <span class="material-icons text-white/70">arrow_forward_ios</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid de Estatísticas -->
+                <div class="mx-4 mb-4 grid grid-cols-3 gap-3">
+                    <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
+                        <p class="text-xs font-medium uppercase text-white/70">Rodadas</p>
+                        <p class="text-2xl font-bold text-white">${rodadaAtual || 0}</p>
+                    </div>
+                    <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
+                        <p class="text-xs font-medium uppercase text-white/70">Participantes</p>
+                        <p class="text-2xl font-bold text-white">${totalParticipantes}</p>
+                    </div>
+                    <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
+                        <p class="text-xs font-medium uppercase text-white/70">Faltam</p>
+                        <p class="text-2xl font-bold text-primary">${rodadasRestantes}</p>
+                    </div>
+                </div>
+
+                <!-- Card de Desempenho -->
+                <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-icons text-primary">insights</span>
+                        <h3 class="text-sm font-bold text-white">Seu Desempenho</h3>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons text-primary text-xl">bolt</span>
+                                <span class="text-xs text-white/70">Rodada ${rodadaAtual}</span>
+                            </div>
+                            <span class="text-sm font-bold text-white">${pontosUltimaRodada} pts</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons ${variacaoInfo.cor} text-xl">${variacaoInfo.icon}</span>
+                                <span class="text-xs text-white/70">Variação</span>
+                            </div>
+                            <span class="text-sm font-bold ${variacaoInfo.cor}">${variacaoInfo.valor}</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons text-primary text-xl">history</span>
+                                <span class="text-xs text-white/70">Posição anterior</span>
+                            </div>
+                            <span class="text-sm font-bold text-white">${posicaoAnterior ? `${posicaoAnterior}º` : "--"}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card de Dica -->
+                <div class="mx-4 mb-4 flex items-start gap-3 rounded-xl bg-primary/10 p-4">
+                    <span class="material-icons mt-0.5 text-primary">lightbulb</span>
+                    <div>
+                        <p class="text-sm font-bold uppercase text-white/90">Dica</p>
+                        <p class="text-sm font-normal text-white/70">Acompanhe seu extrato financeiro para entender sua evolução na liga!</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 }
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Módulo v9.0 carregado (Banner Resumo 2025)");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Módulo v10.6 carregado (Fix cache temporada para renovados)");

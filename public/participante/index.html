@@ -1136,9 +1136,16 @@
 
             // Auto-abrir quando temporada estiver em 'preparando'
             // ✅ v2.0: Verifica renovação - Se renovou, mostra boas-vindas. Senão, mostra teaser.
+            // ✅ v2.1: Modal de boas-vindas só aparece até véspera da 1ª rodada (27/01/2026)
             window.addEventListener('load', () => {
                 const config = window.ParticipanteConfig;
                 if (config && config.isPreparando() && config.FEATURES.SHOW_VEM_AI_MODAL) {
+                    // Verificar se ainda está dentro do período do modal de boas-vindas
+                    // Véspera da 1ª rodada do Brasileirão 2026: 27/01/2026
+                    const dataLimiteBoasVindas = new Date('2026-01-28T00:00:00-03:00'); // Meia-noite de 28/01 = fim do dia 27/01
+                    const agora = new Date();
+                    const dentroDoPeríodoBoasVindas = agora < dataLimiteBoasVindas;
+
                     // Aguardar auth estar pronto para verificar renovação
                     const verificarEAbrir = async () => {
                         // Se já viu boas-vindas ou teaser, não mostrar nada
@@ -1149,13 +1156,13 @@
                         const ligaId = window.participanteAuth?.ligaId;
                         const timeId = window.participanteAuth?.timeId;
 
-                        if (ligaId && timeId) {
+                        if (ligaId && timeId && dentroDoPeríodoBoasVindas) {
                             try {
                                 const status = await verificarRenovacaoInline(ligaId, timeId);
 
                                 if (status.renovado) {
                                     // Participante RENOVOU - mostrar boas-vindas verde
-                                    console.log('[MODAL] Participante renovado - mostrando boas-vindas');
+                                    console.log('[MODAL] Participante renovado - mostrando boas-vindas (até 27/01/2026)');
                                     abrirBoasVindas();
                                     return;
                                 }
@@ -1224,7 +1231,7 @@
                                     <div class="space-y-2 text-xs">
                                         <div class="flex items-center gap-2 text-gray-400">
                                             <span class="material-icons text-sm text-green-400">sports_soccer</span>
-                                            <span>Extrato financeiro zerado</span>
+                                            <span>O melhor fantasy game da internet</span>
                                         </div>
                                         <div class="flex items-center gap-2 text-gray-400">
                                             <span class="material-icons text-sm text-green-400">calendar_today</span>

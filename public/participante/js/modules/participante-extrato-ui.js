@@ -1,6 +1,14 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.12 FIX LANCAMENTOS INICIAIS
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.14 RENOVADOS 2026
 // =====================================================
+// ✅ v10.14: RENOVADOS - Layout específico para temporada 2026
+//          - Créditos/Débitos mostram apenas realidade 2026
+//          - Gráfico com curvas suaves prevendo 38 rodadas
+//          - Histórico: "Aguardando a rodada 1"
+//          - Desempenho zerado até campeonato começar
+// ✅ v10.13: FORCE UPDATE - Limpeza obrigatória de cache IndexedDB
+//          - Resolve dados desatualizados de temporada anterior
+//          - Garante extrato 2026 com apenas taxa de inscrição
 // ✅ v10.12: FIX - Exibe taxa de inscrição e saldo anterior transferido
 //          - Dívida da temporada anterior aparece nos Débitos
 //          - Crédito da temporada anterior aparece nos Créditos
@@ -32,10 +40,35 @@
 // ✅ v9.0: Redesign - Badge BANCO unificado com valor
 // ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
 
-if (window.Log) Log.info("[EXTRATO-UI] v10.12 FIX LANCAMENTOS INICIAIS (taxa inscricao + saldo anterior)");
+if (window.Log) Log.info("[EXTRATO-UI] v10.14 RENOVADOS 2026 (layout pré-temporada)");
 
 // ===== v10.8: CACHE DE CONFIG DA LIGA =====
 let ligaConfigCache = null;
+
+// ✅ v10.14: Cache de status de renovação
+let statusRenovacaoParticipante = null;
+
+// ✅ v10.14: Detectar se é pré-temporada (antes da rodada 1)
+function isPreTemporada(rodadas) {
+    // Se não tem rodadas ou todas são rodada 0 (lançamentos iniciais), é pré-temporada
+    if (!rodadas || rodadas.length === 0) return true;
+    const rodadasValidas = rodadas.filter(r => r.rodada && r.rodada > 0);
+    return rodadasValidas.length === 0;
+}
+
+// ✅ v10.14: Verificar se participante renovou para nova temporada
+async function verificarStatusRenovacao() {
+    // Usar cache global se disponível
+    if (window.verificarRenovacaoParticipante) {
+        const ligaId = window.PARTICIPANTE_IDS?.ligaId || window.participanteData?.ligaId;
+        const timeId = window.PARTICIPANTE_IDS?.timeId || window.participanteData?.timeId;
+        if (ligaId && timeId) {
+            statusRenovacaoParticipante = await window.verificarRenovacaoParticipante(ligaId, timeId);
+            return statusRenovacaoParticipante;
+        }
+    }
+    return { renovado: false };
+}
 
 // Buscar config dinamica da liga
 async function fetchLigaConfigSilent(ligaId) {
@@ -209,7 +242,7 @@ function preencherTodasRodadas(rodadasExistentes, totalRodadas = 38) {
 }
 
 // ===== EXPORTAR FUNÇÃO PRINCIPAL =====
-export function renderizarExtratoParticipante(extrato, participanteId) {
+export async function renderizarExtratoParticipante(extrato, participanteId) {
     const container = document.getElementById("fluxoFinanceiroContent");
     if (!container) {
         if (window.Log) Log.error("[EXTRATO-UI] ❌ Container não encontrado!");
@@ -221,14 +254,236 @@ export function renderizarExtratoParticipante(extrato, participanteId) {
         return;
     }
 
+    // ✅ v10.14: Verificar status de renovação
+    await verificarStatusRenovacao();
+    const renovado = statusRenovacaoParticipante?.renovado || false;
+    const preTemporada = isPreTemporada(extrato.rodadas);
+
+    if (window.Log) Log.info("[EXTRATO-UI] 📊 Status:", { renovado, preTemporada, rodadas: extrato.rodadas.length });
+
     window.extratoAtual = extrato;
-    renderizarConteudoCompleto(container, extrato);
+    
+    // ✅ v10.14: Renderização condicional para renovados em pré-temporada
+    if (renovado && preTemporada) {
+        renderizarConteudoRenovadoPreTemporada(container, extrato);
+    } else {
+        renderizarConteudoCompleto(container, extrato);
+    }
 
     setTimeout(() => {
-        renderizarGraficoEvolucao(extrato.rodadas);
+        // ✅ v10.14: Gráfico diferente para pré-temporada
+        if (renovado && preTemporada) {
+            renderizarGraficoPreTemporada();
+        } else {
+            renderizarGraficoEvolucao(extrato.rodadas);
+        }
         configurarFiltrosGrafico(extrato.rodadas);
         configurarBotaoRefresh();
     }, 100);
+}
+
+// =====================================================================
+// ✅ v10.14: RENDERIZAÇÃO PARA RENOVADOS EM PRÉ-TEMPORADA
+// =====================================================================
+function renderizarConteudoRenovadoPreTemporada(container, extrato) {
+    const resumoBase = extrato.resumo || {};
+    const inscricaoInfo = statusRenovacaoParticipante || {};
+    
+    // Taxa de inscrição (débito se não pagou)
+    const taxaInscricao = inscricaoInfo.taxaInscricao || resumoBase.taxaInscricao || 180;
+    // ✅ v10.15: Verificar pagamento tanto do status de renovação quanto do resumo do backend
+    const pagouInscricao = inscricaoInfo.pagouInscricao === true || resumoBase.pagouInscricao === true;
+    
+    // Saldo = -taxa se não pagou, 0 se pagou
+    const saldo = resumoBase.saldo_atual ?? resumoBase.saldo ?? (pagouInscricao ? 0 : -taxaInscricao);
+    const saldoPositivo = saldo >= 0;
+    const saldoFormatado = `R$ ${Math.abs(saldo).toFixed(2).replace(".", ",")}`;
+    const statusTexto = saldoPositivo ? (saldo === 0 ? "QUITADO" : "A RECEBER") : "A PAGAR";
+    
+    // ✅ Créditos e Débitos apenas 2026
+    const totalGanhos = 0; // Nenhum crédito ainda
+    const totalPerdas = pagouInscricao ? 0 : taxaInscricao;
+    
+    // Acertos
+    const acertos = extrato.acertos || { lista: [], resumo: {} };
+    const listaAcertos = acertos.lista || [];
+    const saldoAcertos = acertos.resumo?.saldo || 0;
+
+    container.innerHTML = `
+        <!-- Card Saldo Principal -->
+        <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-3xl ${saldoPositivo ? "text-emerald-400" : "text-rose-400"}">account_balance_wallet</span>
+                    <div>
+                        <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
+                        <p class="text-2xl font-bold ${saldoPositivo ? "text-emerald-400" : "text-rose-400"}">${saldoPositivo ? "+" : "-"}${saldoFormatado}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="${saldoPositivo ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"} text-[10px] font-semibold px-2 py-1 rounded-full">${statusTexto}</span>
+                    <button id="btnRefreshExtrato" class="p-2 rounded-full bg-white/10 text-white/70 hover:bg-white/20 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined text-lg">sync</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards Ganhos/Perdas - Apenas 2026 -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div onclick="window.mostrarDetalhamentoGanhos(event)" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="material-icons text-emerald-400 text-base flex-shrink-0">arrow_upward</span>
+                    <p class="text-xs text-white/70 uppercase truncate">Créditos</p>
+                </div>
+                <span class="text-sm font-bold text-emerald-400 whitespace-nowrap ml-1">+0,00</span>
+            </div>
+            <div onclick="window.mostrarDetalhamentoPerdas(event)" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="material-icons text-rose-400 text-base flex-shrink-0">arrow_downward</span>
+                    <p class="text-xs text-white/70 uppercase truncate">Débitos</p>
+                </div>
+                <span class="text-sm font-bold text-rose-400 whitespace-nowrap ml-1">-${totalPerdas.toFixed(2).replace(".", ",")}</span>
+            </div>
+        </div>
+
+        <!-- Botão MEUS ACERTOS -->
+        ${renderizarBotaoMeusAcertos(listaAcertos, saldoAcertos)}
+
+        <!-- Gráfico de Evolução - PRÉ-TEMPORADA -->
+        <div class="bg-surface-dark p-4 rounded-xl mb-4 border border-white/5">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">show_chart</span>
+                    <h3 class="text-sm font-bold text-white">Evolução Financeira</h3>
+                </div>
+                <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full font-semibold">
+                    PRÉ-TEMPORADA
+                </span>
+            </div>
+            <div class="relative h-40">
+                <svg id="graficoSVG" class="absolute inset-0 w-full h-full" viewBox="0 0 300 160" preserveAspectRatio="none" fill="none">
+                    <defs>
+                        <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stop-color="#F97316" stop-opacity="0.2"></stop>
+                            <stop offset="100%" stop-color="#F97316" stop-opacity="0"></stop>
+                        </linearGradient>
+                    </defs>
+                    <!-- Grid lines -->
+                    <line class="stroke-zinc-700/40" stroke-dasharray="3 3" x1="0" x2="300" y1="40" y2="40"></line>
+                    <line class="stroke-zinc-700/40" stroke-dasharray="3 3" x1="0" x2="300" y1="80" y2="80"></line>
+                    <line class="stroke-zinc-700/40" stroke-dasharray="3 3" x1="0" x2="300" y1="120" y2="120"></line>
+                    <path id="graficoArea" fill="url(#chartGradient)" d=""></path>
+                    <path id="graficoPath" fill="none" stroke="#F97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d=""></path>
+                </svg>
+                <div id="graficoLabels" class="absolute inset-x-0 bottom-0 flex justify-between text-[10px] text-gray-500 px-1"></div>
+            </div>
+        </div>
+
+        <!-- Histórico por Rodada - AGUARDANDO -->
+        <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="material-symbols-outlined text-primary text-xl">history</span>
+                <h3 class="text-base font-bold text-white">Histórico por Rodada</h3>
+                <span class="text-xs text-white/50 ml-auto">0 rodadas</span>
+            </div>
+            <div class="flex flex-col items-center justify-center py-8 text-center">
+                <div class="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-3xl text-amber-400">hourglass_empty</span>
+                </div>
+                <p class="text-base font-semibold text-white mb-1">Aguardando a rodada 1</p>
+                <p class="text-sm text-white/50">O Brasileirão 2026 ainda não começou</p>
+                <p class="text-xs text-white/30 mt-2">Início previsto: 28/01/2026</p>
+            </div>
+        </div>
+
+        <!-- Card Seu Desempenho - ZERADO -->
+        <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-primary">analytics</span>
+                <h3 class="text-sm font-bold text-white">Seu Desempenho</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white/5 rounded-lg p-3 text-center">
+                    <span class="material-icons text-amber-400/50 text-lg">star</span>
+                    <p class="text-lg font-bold text-white/30">0</p>
+                    <p class="text-[10px] text-white/50">Mitos</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-3 text-center">
+                    <span class="material-icons text-rose-400/50 text-lg">sentiment_very_dissatisfied</span>
+                    <p class="text-lg font-bold text-white/30">0</p>
+                    <p class="text-[10px] text-white/50">Micos</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-3 text-center">
+                    <span class="material-icons text-emerald-400/50 text-lg">trending_up</span>
+                    <p class="text-lg font-bold text-white/30">0</p>
+                    <p class="text-[10px] text-white/50">Zona Ganho</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-3 text-center">
+                    <span class="material-icons text-rose-400/50 text-lg">trending_down</span>
+                    <p class="text-lg font-bold text-white/30">0</p>
+                    <p class="text-[10px] text-white/50">Zona Perda</p>
+                </div>
+            </div>
+            <div class="mt-3 bg-white/5 rounded-lg p-3 text-center">
+                <p class="text-xs text-white/40">Estatísticas serão atualizadas após a rodada 1</p>
+            </div>
+        </div>
+
+        <!-- Banner Temporada 2026 -->
+        <div class="bg-gradient-to-r from-primary/20 to-amber-500/20 rounded-xl p-4 border border-primary/30">
+            <div class="flex items-start gap-3">
+                <span class="material-icons text-primary text-xl mt-0.5">emoji_events</span>
+                <div>
+                    <p class="text-sm font-bold text-white">Temporada 2026</p>
+                    <p class="text-xs text-white/70 mt-1">Sua inscrição está confirmada! Aguardando o início do Brasileirão.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal TOP10 Info (mantido para compatibilidade) -->
+        <div id="modalTop10Info" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4" onclick="this.classList.add('hidden'); this.classList.remove('flex');"></div>
+
+        <!-- Bottom Sheet MEUS ACERTOS -->
+        ${renderizarBottomSheetAcertos(listaAcertos, acertos.resumo || {}, saldo, saldoAcertos)}
+    `;
+}
+
+// =====================================================================
+// ✅ v10.14: GRÁFICO PRÉ-TEMPORADA - Curvas suaves prevendo 38 rodadas
+// =====================================================================
+function renderizarGraficoPreTemporada() {
+    const path = document.getElementById("graficoPath");
+    const area = document.getElementById("graficoArea");
+    const labels = document.getElementById("graficoLabels");
+
+    if (!path || !area || !labels) return;
+
+    const width = 300;
+    const height = 140;
+    const paddingY = 10;
+    const centerY = height / 2; // Linha central (saldo 0)
+    
+    // ✅ Criar linha horizontal no centro (estagnada) com curva suave no início
+    // Representa que ainda não começou - linha reta no nível 0
+    const startX = 10;
+    const endX = width - 10;
+    
+    // Path com curva Bezier suave - linha horizontal
+    const pathD = `M ${startX} ${centerY} C ${startX + 30} ${centerY}, ${endX - 30} ${centerY}, ${endX} ${centerY}`;
+    
+    // Área abaixo da curva (muito sutil)
+    const areaD = `${pathD} L ${endX} ${height} L ${startX} ${height} Z`;
+
+    path.setAttribute("d", pathD);
+    area.setAttribute("d", areaD);
+
+    // Labels para rodadas (R1 a R38 espaçadas)
+    const rodadasMarcadas = [1, 8, 15, 22, 29, 36, 38];
+    labels.innerHTML = rodadasMarcadas.map((rodada, i) => {
+        const x = startX + ((endX - startX) * (rodada - 1) / 37);
+        return `<span style="position: absolute; left: ${(x / width) * 100}%; transform: translateX(-50%);">R${rodada}</span>`;
+    }).join("");
 }
 
 // ===== RENDERIZAR CONTEÚDO COMPLETO =====

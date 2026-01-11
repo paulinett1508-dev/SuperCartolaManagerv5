@@ -1,6 +1,8 @@
 // =====================================================================
-// app-version.js - Sistema de Versionamento v5.0
+// app-version.js - Sistema de Versionamento v5.1
 // =====================================================================
+// v5.1: Modal obrigatório - Removido botão "Depois"
+//       - Participante é obrigado a clicar em "Atualizar"
 // v5.0: Suporte a versionamento separado Admin/App
 //       - Envia header x-client-type para identificar cliente
 //       - Usa endpoint /api/app/check-version
@@ -163,7 +165,6 @@ const AppVersion = {
                 <p>Uma atualização está disponível${novaVersao ? ` (v${novaVersao})` : ''}.</p>
                 <p class="update-modal-sub">Clique em atualizar para carregar a versão mais recente.</p>
                 <div class="update-modal-buttons">
-                    <button class="update-btn-later" onclick="AppVersion.fecharModal()">Depois</button>
                     <button class="update-btn-now" onclick="AppVersion.atualizarAgora()">Atualizar</button>
                 </div>
             </div>
@@ -242,21 +243,9 @@ const AppVersion = {
             justify-content: center;
         `;
 
-        const laterBtn = overlay.querySelector('.update-btn-later');
-        laterBtn.style.cssText = `
-            padding: 12px 24px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            background: transparent;
-            color: #888;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        `;
-
         const nowBtn = overlay.querySelector('.update-btn-now');
         nowBtn.style.cssText = `
-            padding: 12px 24px;
+            padding: 12px 32px;
             border-radius: 8px;
             border: none;
             background: linear-gradient(135deg, #ff4500, #ff6b35);
@@ -268,14 +257,6 @@ const AppVersion = {
         `;
 
         document.body.appendChild(overlay);
-    },
-
-    // ✅ Fechar modal
-    fecharModal() {
-        const overlay = document.getElementById('update-modal-overlay');
-        if (overlay) {
-            overlay.remove();
-        }
     },
 
     // ✅ Atualizar agora
@@ -312,4 +293,4 @@ if (document.readyState === "loading") {
     AppVersion.init();
 }
 
-if (window.Log) Log.info('APP-VERSION', '✅ Sistema de versionamento v5.0 carregado');
+if (window.Log) Log.info('APP-VERSION', '✅ Sistema de versionamento v5.1 carregado (modal obrigatório)');

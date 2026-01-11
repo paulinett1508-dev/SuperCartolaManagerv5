@@ -1,7 +1,16 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v4.1 (FIX TAXA INSCRICAO 2026)
+// PARTICIPANTE-EXTRATO.JS - v4.4 (FIX TEMPORADA ENDPOINT CALCULO)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v4.4: FIX CRÍTICO - Endpoint de cálculo agora inclui ?temporada=
+//          - Corrige problema de renovados recebendo dados de 2025
+//          - URL /api/fluxo-financeiro/{ligaId}/extrato/{timeId}?temporada={temporada}
+// ✅ v4.3: FIX RENOVADOS - Cache IndexedDB ignorado para participantes renovados
+//          - Renovados buscam direto do backend (evita dados de 2025)
+//          - Resolve problema de extrato mostrando dados antigos
+// ✅ v4.2: FORCE UPDATE - Limpa cache IndexedDB desatualizado
+//          - Garante dados corretos para temporada 2026
+//          - Resolve problema de dados de 2025 aparecendo em 2026
 // ✅ v4.1: FIX CRÍTICO - Taxa de inscrição 2026 exibida corretamente no extrato
 //          - Processa INSCRICAO_TEMPORADA e SALDO_TEMPORADA_ANTERIOR
 //          - Inclui taxaInscricao no resumo para exibição no modal de débitos
@@ -31,7 +40,7 @@ const CAMPEONATO_ENCERRADO = CONFIG.isPreparando?.() || false; // Durante pré-t
 let statusRenovacaoCache = null;
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.0 RENOVACAO-DINAMICA (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.4 FIX-TEMPORADA-ENDPOINT (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -291,10 +300,17 @@ async function carregarExtrato(ligaId, timeId) {
     let usouCache = false;
     let extratoDataCache = null;
 
+    // ✅ v4.1: Verificar status de renovação ANTES de usar cache local
+    const statusRenovacao = await verificarRenovacao(ligaId, timeId);
+    const participanteRenovado = statusRenovacao?.renovado === true;
+
     // =========================================================================
     // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
+    // ✅ v4.1: RENOVADOS ignoram cache local (pode ter dados de 2025)
     // =========================================================================
-    if (cache) {
+    const deveBuscarDoCacheLocal = !participanteRenovado;
+    
+    if (cache && deveBuscarDoCacheLocal) {
         extratoDataCache = await (cache.getExtratoAsync ? cache.getExtratoAsync(ligaId, timeId) : cache.getExtrato(ligaId, timeId));
 
         if (extratoDataCache && extratoDataCache.rodadas && extratoDataCache.rodadas.length > 0) {
@@ -307,6 +323,8 @@ async function carregarExtrato(ligaId, timeId) {
             );
             renderizarExtratoParticipante(extratoDataCache, timeId);
         }
+    } else if (participanteRenovado) {
+        if (window.Log) Log.info("EXTRATO-PARTICIPANTE", "🔄 Renovado - ignorando cache local para buscar dados 2026");
     }
 
     // Se não tem cache, mostrar loading
@@ -376,7 +394,32 @@ async function carregarExtrato(ligaId, timeId) {
                     extratoTravado: cacheData.extratoTravado,
                 });
 
-            if (
+            // ✅ v4.4: NOVA TEMPORADA - Se retornou dados de inscrição (rodadas vazias mas fonte válida)
+            if (cacheData.fonte === 'inscricao-nova-temporada' || 
+                (cacheData.cached && cacheData.resumo && cacheData.rodadas?.length === 0)) {
+                if (window.Log)
+                    Log.info("EXTRATO-PARTICIPANTE", "🆕 Nova temporada detectada - usando dados de inscrição");
+                
+                extratoData = {
+                    ligaId: ligaId,
+                    rodadas: [],
+                    resumo: cacheData.resumo || {
+                        saldo: 0,
+                        totalGanhos: 0,
+                        totalPerdas: 0,
+                    },
+                    camposManuais: cacheData.camposManuais || [],
+                    acertos: cacheData.acertos || { lista: [], resumo: {} },
+                    inativo: cacheData.inativo || false,
+                    extratoTravado: false,
+                    rodadaTravada: null,
+                    rodadaDesistencia: null,
+                    inscricao: cacheData.inscricao || null,
+                    fonte: cacheData.fonte,
+                    temporada: temporada,
+                };
+                usouCacheBackend = true;
+            } else if (
                 cacheData.cached &&
                 cacheData.rodadas &&
                 cacheData.rodadas.length > 0
@@ -453,7 +496,7 @@ async function carregarExtrato(ligaId, timeId) {
                 }
             }
 
-            const urlCalculo = `/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`;
+            const urlCalculo = `/api/fluxo-financeiro/${ligaId}/extrato/${timeId}?temporada=${temporada}`;
             const resCalculo = await fetch(urlCalculo);
 
             if (resCalculo.ok) {
@@ -472,13 +515,20 @@ async function carregarExtrato(ligaId, timeId) {
             }
         }
 
-        if (
-            !extratoData ||
-            !extratoData.rodadas ||
-            extratoData.rodadas.length === 0
-        ) {
+        // ✅ v4.4: Para nova temporada (fonte 'inscricao-nova-temporada'), não ir buscar cálculo antigo
+        // Dados de nova temporada podem ter rodadas vazias - isso é esperado
+        const eNovaTemporada = extratoData?.fonte === 'inscricao-nova-temporada' || 
+                               (extratoData?.temporada >= 2026 && extratoData?.rodadas?.length === 0);
+
+        if (!extratoData && !eNovaTemporada) {
             if (!usouCache) mostrarVazio();
             return;
+        }
+
+        // ✅ v4.4: Nova temporada com rodadas vazias deve renderizar layout de pré-temporada
+        if (eNovaTemporada) {
+            if (window.Log)
+                Log.info("EXTRATO-PARTICIPANTE", "🆕 Renderizando layout de nova temporada");
         }
 
         // ✅ v4.1: Buscar campos editáveis do endpoint específico (com temporada correta)
@@ -1000,7 +1050,9 @@ window.forcarRefreshExtratoParticipante = async function () {
         }
 
         // ✅ PASSO 2: Chamar endpoint DIRETO que calcula do zero
-        const urlCalculo = `/api/fluxo-financeiro/${PARTICIPANTE_IDS.ligaId}/extrato/${PARTICIPANTE_IDS.timeId}`;
+        // ✅ v4.4: Incluir temporada para garantir dados corretos
+        const temporadaAtual = CONFIG.CURRENT_SEASON || 2026;
+        const urlCalculo = `/api/fluxo-financeiro/${PARTICIPANTE_IDS.ligaId}/extrato/${PARTICIPANTE_IDS.timeId}?temporada=${temporadaAtual}`;
         if (window.Log)
             Log.debug("EXTRATO-PARTICIPANTE", "🔄 Recalculando:", urlCalculo);
 
