@@ -232,17 +232,14 @@ function renderizarAlertasInscricao(inscricao, temporada, creditoComprometido = 
     const container = document.getElementById('quitacao-alertas-inscricao');
     if (!container) return;
 
-    // Limpar alertas anteriores
     container.innerHTML = '';
     container.style.display = 'none';
 
     if (!inscricao) {
-        // Sem inscrição ainda - mostrar info neutra
         container.innerHTML = `
             <div class="alerta-info">
                 <span class="material-icons">info</span>
-                <p>Participante ainda <strong>não foi renovado</strong> para ${temporada}.
-                   O legado definido aqui será usado quando a renovação for processada.</p>
+                <p>Ainda não renovado para ${temporada}</p>
             </div>
         `;
         container.style.display = 'block';
@@ -251,60 +248,39 @@ function renderizarAlertasInscricao(inscricao, temporada, creditoComprometido = 
 
     let alertas = [];
 
-    // ✅ v1.2: Alerta especial para crédito comprometido
+    // Crédito já usado na renovação
     if (creditoComprometido > 0) {
         alertas.push({
             tipo: 'highlight',
             icone: 'account_balance_wallet',
-            texto: `<strong>${formatarMoeda(creditoComprometido)}</strong> do saldo já foi <strong>utilizado</strong> para abater a taxa de inscrição de ${temporada}.
-                    O valor remanescente é o que será considerado nesta quitação.`
+            texto: `${formatarMoeda(creditoComprometido)} usado na taxa de ${temporada}`
         });
     }
 
-    // Caso 1: Já renovou e processou
+    // Já renovou
     if (inscricao.ja_renovou && inscricao.processado) {
         alertas.push({
             tipo: 'warning',
             icone: 'sync_alt',
-            texto: `Participante já foi <strong>renovado para ${temporada}</strong> via modal de Renovação.
-                    O legado definido aqui será <strong>sobrescrito</strong> na inscrição existente.`
+            texto: `Já renovado para ${temporada}`
         });
     }
 
-    // Caso 2: Já tem legado_manual definido (por renovação anterior)
-    if (inscricao.legado_manual_existente) {
-        const legadoAnterior = inscricao.legado_manual;
-        alertas.push({
-            tipo: 'warning',
-            icone: 'history',
-            texto: `Já existe um <strong>legado manual</strong> definido:
-                    ${formatarMoeda(legadoAnterior.valor_definido)}
-                    (origem: ${legadoAnterior.origem === 'quitacao_admin' ? 'Quitação' : 'Renovação'}).
-                    Esta ação vai <strong>substituir</strong> o valor anterior.`
-        });
-    }
-
-    // Caso 3: Já pagou inscrição
+    // Já pagou inscrição
     if (inscricao.pagou_inscricao) {
         alertas.push({
             tipo: 'success',
             icone: 'paid',
-            texto: `Participante já <strong>pagou a inscrição</strong> de ${temporada}
-                    (${formatarMoeda(inscricao.taxa_inscricao || 0)}).
-                    Não há débito de inscrição no extrato.`
+            texto: `Inscrição ${temporada} paga`
         });
     } else if (inscricao.taxa_inscricao > 0) {
-        // Caso 4: Não pagou inscrição
         alertas.push({
             tipo: 'info',
             icone: 'pending',
-            texto: `Inscrição ${temporada} <strong>não paga</strong>.
-                    Taxa de ${formatarMoeda(inscricao.taxa_inscricao)}
-                    será adicionada como débito no extrato ${temporada}.`
+            texto: `Taxa ${formatarMoeda(inscricao.taxa_inscricao)} pendente`
         });
     }
 
-    // Renderizar alertas
     if (alertas.length > 0) {
         alertas.forEach(alerta => {
             container.innerHTML += `
@@ -494,16 +470,14 @@ function injetarModalQuitacao() {
                 </div>
 
                 <div class="quitacao-opcoes">
-                    <h3>Como tratar na renovação <span class="temporada-destino">2026</span>?</h3>
+                    <h3>Legado para <span class="temporada-destino">2026</span></h3>
 
                     <label class="opcao-radio">
                         <input type="radio" name="tipo-quitacao" id="opcao-zerado"
                                value="zerado" checked onchange="onOpcaoQuitacaoChange()">
                         <div class="opcao-content">
-                            <span class="opcao-titulo">Zerar tudo (perdoar)</span>
-                            <span class="opcao-descricao">
-                                Participante inicia <span class="temporada-destino">2026</span> sem pendências
-                            </span>
+                            <span class="opcao-titulo">Zerar</span>
+                            <span class="opcao-descricao">Inicia zerado</span>
                         </div>
                     </label>
 
@@ -511,10 +485,8 @@ function injetarModalQuitacao() {
                         <input type="radio" name="tipo-quitacao" id="opcao-integral"
                                value="integral" onchange="onOpcaoQuitacaoChange()">
                         <div class="opcao-content">
-                            <span class="opcao-titulo" id="label-integral">Carregar saldo integral</span>
-                            <span class="opcao-descricao">
-                                Saldo vira "Legado <span class="temporada-destino">2025</span>" no extrato
-                            </span>
+                            <span class="opcao-titulo" id="label-integral">Carregar saldo</span>
+                            <span class="opcao-descricao">Transfere para <span class="temporada-destino">2026</span></span>
                         </div>
                     </label>
 
@@ -522,15 +494,12 @@ function injetarModalQuitacao() {
                         <input type="radio" name="tipo-quitacao" id="opcao-customizado"
                                value="customizado" onchange="onOpcaoQuitacaoChange()">
                         <div class="opcao-content">
-                            <span class="opcao-titulo">Carregar valor customizado</span>
+                            <span class="opcao-titulo">Valor customizado</span>
                             <div class="input-customizado">
                                 <span>R$</span>
                                 <input type="number" id="quitacao-valor-customizado"
                                        step="0.01" disabled placeholder="0.00">
                             </div>
-                            <span class="opcao-descricao">
-                                Positivo = crédito, Negativo = débito
-                            </span>
                         </div>
                     </label>
                 </div>
@@ -546,11 +515,7 @@ function injetarModalQuitacao() {
 
                 <div class="quitacao-aviso">
                     <span class="material-icons">warning</span>
-                    <p>
-                        <strong>Atenção:</strong> Participantes com dívida precisam quitar o saldo antes de renovar para a próxima temporada.<br>
-                        Esta ação marcará o extrato como <strong>QUITADO</strong> e registrará o valor escolhido como legado para a temporada seguinte.<br>
-                        Após confirmar, não será possível desfazer.
-                    </p>
+                    <p>Ação irreversível. O extrato será marcado como <strong>QUITADO</strong>.</p>
                 </div>
             </div>
 

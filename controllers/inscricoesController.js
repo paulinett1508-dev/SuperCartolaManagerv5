@@ -372,9 +372,10 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
         // Se pagou, o crédito fica intacto para uso futuro
         if (saldo.status === 'credor') {
             if (!pagouInscricao && rules.inscricao.aproveitar_saldo_positivo && opcoes.aproveitarCredito !== false) {
-                // Aproveitar crédito para abater taxa (máximo = taxa)
-                creditoUsado = Math.min(saldo.saldoFinal, taxa);
-                saldoTransferido = creditoUsado; // Positivo = crédito transferido
+                // Transferir TODO o crédito para nova temporada
+                // Se crédito > taxa, o excedente vira saldo positivo em 2026
+                creditoUsado = saldo.saldoFinal;  // Crédito total (ex: 354)
+                saldoTransferido = creditoUsado;   // Positivo = crédito transferido
             }
             // Se pagou OU não quer aproveitar: crédito permanece na temporada anterior
         } else if (saldo.status === 'devedor') {
