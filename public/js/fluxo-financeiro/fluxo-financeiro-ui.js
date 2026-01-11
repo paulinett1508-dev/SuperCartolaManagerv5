@@ -2754,7 +2754,7 @@ export class FluxoFinanceiroUI {
             }
         };
 
-        // ✅ v7.9: Mudar temporada e recarregar dados
+        // ✅ v8.0: Mudar temporada SEM reload - recarga dinâmica
         window.mudarTemporada = async (novaTemporada) => {
             const temporadaNum = parseInt(novaTemporada);
             const temporadaAnterior = window.temporadaAtual;
@@ -2766,19 +2766,48 @@ export class FluxoFinanceiroUI {
 
             console.log(`[FLUXO-UI] 🔄 Mudando temporada: ${temporadaAnterior} → ${temporadaNum}`);
 
-            // Atualizar variável global
+            // Mostrar loading visual na tabela
+            const container = document.getElementById('fluxo-financeiro-container');
+            if (container) {
+                container.innerHTML = `
+                    <div class="loading-container" style="padding: 60px; text-align: center;">
+                        <div class="loading-spinner"></div>
+                        <p style="margin-top: 16px; color: #a0a0a0;">Carregando dados de ${temporadaNum}...</p>
+                    </div>`;
+            }
+
+            // Atualizar variável global ANTES de qualquer operação
             window.temporadaAtual = temporadaNum;
 
             // Salvar preferência no localStorage
             localStorage.setItem('temporadaSelecionada', temporadaNum);
 
-            // Limpar cache atual (async)
-            if (window.fluxoFinanceiroCache) {
-                await window.fluxoFinanceiroCache.limparCache();
-            }
+            try {
+                // Limpar cache atual (async)
+                if (window.fluxoFinanceiroCache) {
+                    await window.fluxoFinanceiroCache.limparCache();
+                }
 
-            // Forçar reload para garantir dados frescos da nova temporada
-            location.reload();
+                // Recarregar dados usando o orquestrador (SEM reload da página)
+                if (window.fluxoFinanceiroOrquestrador?.recarregar) {
+                    console.log('[FLUXO-UI] ✅ Recarregando via orquestrador...');
+                    await window.fluxoFinanceiroOrquestrador.recarregar();
+                } else if (window.inicializarFluxoFinanceiro) {
+                    console.log('[FLUXO-UI] ✅ Recarregando via inicializarFluxoFinanceiro...');
+                    await window.inicializarFluxoFinanceiro();
+                } else {
+                    // Fallback: reload apenas se não houver alternativa
+                    console.warn('[FLUXO-UI] ⚠️ Nenhum método de recarga disponível, fazendo reload...');
+                    location.reload();
+                    return;
+                }
+
+                console.log(`[FLUXO-UI] ✅ Temporada ${temporadaNum} carregada com sucesso`);
+            } catch (error) {
+                console.error('[FLUXO-UI] ❌ Erro ao trocar temporada:', error);
+                // Em caso de erro, tentar reload como último recurso
+                location.reload();
+            }
         };
     }
 

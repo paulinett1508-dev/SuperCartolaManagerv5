@@ -19,42 +19,32 @@
 
 ---
 
-## PENDENTE: Seletor de Temporada - UX Quebrada
+## CONCLUIDO: Seletor de Temporada - UX Corrigida
 
 **Prioridade:** ALTA
-**Data:** 2026-01-06
+**Data Conclusao:** 2026-01-11
+**Status:** RESOLVIDO
 
-### Problema Reportado
-O seletor de temporada (2025/2026) no Fluxo Financeiro tem UX muito ruim:
+### Problema Original
+O seletor de temporada (2025/2026) no Fluxo Financeiro fazia `location.reload()` que:
+- Saia da tela atual e voltava para os cards principais
+- Usuario precisava navegar de novo ate Fluxo Financeiro
 
-1. **Navegacao quebrada:** Ao clicar no seletor e escolher um ano, o sistema faz `location.reload()` que:
-   - Sai da tela atual
-   - Volta para os cards principais
-   - Usuario precisa navegar de novo ate Fluxo Financeiro
-   - Muito exaustivo e nada funcional
+### Solucao Implementada (v8.0)
+**Arquivo:** `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` - funcao `mudarTemporada()`
 
-2. **Dados nao atualizam:** Os participantes na tabela nao mudam quando troca o seletor
-   - Possivelmente o reload nao esta preservando a temporada selecionada
-   - Ou a API nao esta filtrando corretamente
+Alteracoes:
+1. Removido `location.reload()` da funcao `mudarTemporada()`
+2. Implementado recarga dinamica via `fluxoFinanceiroOrquestrador.recarregar()`
+3. Adicionado loading visual durante a troca ("Carregando dados de XXXX...")
+4. Mantido fallback para reload apenas se orquestrador nao estiver disponivel
+5. Error handling com try/catch para robustez
 
-### Arquivos Envolvidos
-- `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` - funcao `mudarTemporada()`
-- `public/js/fluxo-financeiro/fluxo-financeiro-cache.js` - funcao `limparCache()`
-- `public/js/fluxo-financeiro.js` - inicializacao
-
-### Solucao Esperada
-- Trocar temporada SEM fazer reload da pagina
-- Limpar cache e recarregar apenas os dados do Fluxo Financeiro
-- Manter usuario na mesma tela
-- Atualizar tabela de participantes com dados da temporada selecionada
-
-### Commits Relacionados
-- `ed00153` - fix(fluxo): corrigir bug cacheManager.clear() no seletor de temporada
-- `6d06b33` - fix(fluxo): passar temporada em todas as chamadas de API de extrato
-- `3a6e16a` - feat(fluxo): seletor de temporada 2025/2026
-
-### Bug Extra Corrigido (banco)
-- Felipe Barbosa tinha cache duplicado/corrompido de 2026 com dados de 2025
-- Deletado documento `695c6855d35f7c2b6ff3ae1e` (cache corrompido)
-- Agora 2025 mostra R$0 (quitado) e 2026 mostra -R$180 (taxa inscricao)
+Fluxo:
+1. Usuario seleciona temporada no dropdown
+2. `window.temporadaAtual` e atualizado
+3. localStorage salva preferencia
+4. Cache e limpo via `fluxoFinanceiroCache.limparCache()`
+5. Dados recarregados via orquestrador (SEM sair da tela)
+6. Tabela atualizada com dados da nova temporada
 
