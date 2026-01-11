@@ -42,8 +42,8 @@
     --hall-text-white: var(--app-text-white, #fff);
     --hall-text-muted: var(--app-text-muted, #999);
     --hall-text-dim: var(--app-text-dim, #666);
-    --hall-text-disabled: #555;
-    --hall-text-secondary: #888;
+    --hall-text-disabled: var(--app-text-disabled, #555);
+    --hall-text-secondary: var(--app-text-secondary, #888);
 }
 
 .hall-premium {
@@ -129,8 +129,8 @@
 }
 
 .season-select option {
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--hall-surface);
+    color: var(--hall-text-white);
     padding: 8px;
 }
 
