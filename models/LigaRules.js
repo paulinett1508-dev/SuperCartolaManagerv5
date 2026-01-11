@@ -216,13 +216,14 @@ LigaRulesSchema.methods.permiteAproveitarCredito = function() {
  * Calcula valor a pagar considerando crédito/débito anterior
  * @param {number} saldoAnterior - Saldo da temporada anterior (positivo = crédito)
  * @param {Object} opcoes - Opções de cálculo
- * @param {boolean} opcoes.pagouInscricao - Se true, taxa não vira débito (default: true)
+ * @param {boolean} opcoes.pagouInscricao - Se true, taxa não vira débito (default: false)
  * @param {boolean} opcoes.aproveitarCredito - Se false, não usa crédito mesmo se permitido
  * @returns {Object} { taxa, credito, divida, total, taxaComoDivida }
  */
 LigaRulesSchema.methods.calcularValorInscricao = function(saldoAnterior = 0, opcoes = {}) {
     const taxa = this.inscricao.taxa || 0;
-    const pagouInscricao = opcoes.pagouInscricao !== false; // default true
+    // ✅ v1.3 FIX: Default é FALSE (não pagou) - taxa vira débito
+    const pagouInscricao = opcoes.pagouInscricao === true;
     const querAproveitarCredito = opcoes.aproveitarCredito !== false; // default true
 
     let credito = 0;

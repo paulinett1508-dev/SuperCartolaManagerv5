@@ -345,9 +345,9 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
     // 5. Calcular valores
     const taxa = rules.inscricao.taxa || 0;
 
-    // pagouInscricao: default true (presume que pagou, não cria débito)
-    // Se false: taxa vira débito no extrato
-    const pagouInscricao = opcoes.pagouInscricao !== false;
+    // ✅ v1.3 FIX: Default é FALSE (não pagou) - taxa vira débito no extrato
+    // Só marca como pago se explicitamente opcoes.pagouInscricao === true
+    const pagouInscricao = opcoes.pagouInscricao === true;
 
     let saldoTransferido = 0;
     let dividaAnterior = 0;
@@ -588,8 +588,8 @@ export async function processarNovoParticipante(ligaId, temporada, dadosCartola,
 
     const taxa = rules.inscricao.taxa || 0;
 
-    // pagouInscricao: default true (presume que pagou, não cria débito)
-    const pagouInscricao = opcoes.pagouInscricao !== false;
+    // ✅ v1.3 FIX: Default é FALSE (não pagou) - taxa vira débito
+    const pagouInscricao = opcoes.pagouInscricao === true;
     const taxaComoDebito = pagouInscricao ? 0 : taxa;
     const saldoInicialTemporada = taxaComoDebito;
 
