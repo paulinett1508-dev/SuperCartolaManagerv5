@@ -170,14 +170,19 @@ function filtrarRodadasParaInativo(rodadas, rodadaDesistencia) {
 }
 
 // ✅ v5.0: BUSCAR EXTRATO DIRETAMENTE DOS SNAPSHOTS (fallback quando não há cache)
-async function buscarExtratoDeSnapshots(ligaId, timeId) {
+// ✅ v6.1 FIX: Adicionar filtro de temporada para evitar retornar dados de temporada errada
+async function buscarExtratoDeSnapshots(ligaId, timeId, temporada = null) {
     try {
-        console.log(`[CACHE-CONTROLLER] 📸 Buscando extrato de snapshots para time ${timeId}`);
+        console.log(`[CACHE-CONTROLLER] 📸 Buscando extrato de snapshots para time ${timeId} | temporada ${temporada}`);
+
+        // ✅ v6.1 FIX: Filtrar por temporada se informada
+        const filtro = { liga_id: String(ligaId) };
+        if (temporada) {
+            filtro.temporada = temporada;
+        }
 
         // Buscar o último snapshot com dados do time
-        const snapshots = await RodadaSnapshot.find({
-            liga_id: String(ligaId)
-        }).sort({ rodada: -1 }).limit(1).lean();
+        const snapshots = await RodadaSnapshot.find(filtro).sort({ rodada: -1 }).limit(1).lean();
 
         if (!snapshots || snapshots.length === 0) {
             console.log(`[CACHE-CONTROLLER] ⚠️ Nenhum snapshot encontrado para liga ${ligaId}`);
@@ -607,10 +612,11 @@ export const getExtratoCache = async (req, res) => {
         const acertos = await acertosPromise;
 
         // ✅ v5.0: Se não tem cache, tentar buscar dos snapshots
+        // ✅ v6.1 FIX: Passar temporada para evitar retornar snapshot de temporada errada
         if (!cache) {
-            console.log(`[CACHE-CONTROLLER] Cache não encontrado para time ${timeId}, tentando snapshots...`);
+            console.log(`[CACHE-CONTROLLER] Cache não encontrado para time ${timeId}, tentando snapshots temporada ${temporadaNum}...`);
 
-            const dadosSnapshot = await buscarExtratoDeSnapshots(ligaId, timeId);
+            const dadosSnapshot = await buscarExtratoDeSnapshots(ligaId, timeId, temporadaNum);
 
             if (dadosSnapshot) {
                 const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
@@ -662,16 +668,22 @@ export const getExtratoCache = async (req, res) => {
                 if (inscricao) {
                     const taxaInscricao = inscricao.taxa_inscricao || 0;
                     const statusInscricao = inscricao.status;
+                    const pagouInscricao = inscricao.pagou_inscricao === true;
+                    
+                    // ✅ v6.2 FIX: Se pagou inscrição, saldo = 0 (não -taxa)
+                    // Só cobra taxa se: é renovado E não pagou
+                    const deveCobraTaxa = statusInscricao === 'renovado' && !pagouInscricao;
+                    const saldoInicial = deveCobraTaxa ? -taxaInscricao : 0;
                     
                     // Extrato inicial zerado, apenas com informação da inscrição
                     const resumoInicial = {
-                        saldo: statusInscricao === 'renovado' ? -taxaInscricao : 0,
-                        saldo_final: statusInscricao === 'renovado' ? -taxaInscricao : 0,
-                        saldo_temporada: statusInscricao === 'renovado' ? -taxaInscricao : 0,
+                        saldo: saldoInicial,
+                        saldo_final: saldoInicial,
+                        saldo_temporada: saldoInicial,
                         saldo_acertos: 0,
-                        saldo_atual: statusInscricao === 'renovado' ? -taxaInscricao : 0,
+                        saldo_atual: saldoInicial,
                         totalGanhos: 0,
-                        totalPerdas: statusInscricao === 'renovado' ? -taxaInscricao : 0,
+                        totalPerdas: saldoInicial < 0 ? saldoInicial : 0,
                         bonus: 0,
                         onus: 0,
                         pontosCorridos: 0,
@@ -679,9 +691,10 @@ export const getExtratoCache = async (req, res) => {
                         top10: 0,
                         camposManuais: 0,
                         taxaInscricao: taxaInscricao,
+                        pagouInscricao: pagouInscricao,
                     };
                     
-                    console.log(`[CACHE-CONTROLLER] ✅ Extrato inicial criado: taxa=${taxaInscricao}, status=${statusInscricao}`);
+                    console.log(`[CACHE-CONTROLLER] ✅ Extrato inicial criado: taxa=${taxaInscricao}, status=${statusInscricao}, pagou=${pagouInscricao}, saldo=${saldoInicial}`);
                     
                     return res.json({
                         cached: false,

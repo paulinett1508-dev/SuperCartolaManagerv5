@@ -370,6 +370,22 @@ const RenovacaoUI = (function() {
         const aproveitarCredito = document.getElementById('checkAproveitarCredito').checked;
         const observacoes = document.getElementById('txtObservacoesRenovar').value;
 
+        // ✅ v1.1: Confirmação extra se NÃO pagou inscrição
+        if (!pagouInscricao) {
+            const taxa = document.getElementById('cardCalculo2026')?.dataset?.taxa || 180;
+            const confirmar = confirm(
+                `⚠️ ATENÇÃO: "Pagou a inscrição" está DESMARCADO!\n\n` +
+                `Isso criará um DÉBITO de R$ ${taxa} no extrato do participante.\n\n` +
+                `Tem certeza que o participante NÃO PAGOU a inscrição?\n\n` +
+                `Clique OK para confirmar a renovação COM DÉBITO.\n` +
+                `Clique Cancelar para voltar e marcar como pago.`
+            );
+            
+            if (!confirmar) {
+                return; // Usuário cancelou, volta para o modal
+            }
+        }
+
         setLoading(btn, true);
 
         try {

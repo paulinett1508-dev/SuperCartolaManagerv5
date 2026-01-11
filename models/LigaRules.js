@@ -70,6 +70,15 @@ const LigaRulesSchema = new mongoose.Schema({
             default: 1,
             min: 1,
             max: 12
+        },
+
+        // === REGRA ESTRUTURADA: Débito de inscrição na renovação ===
+        // Se true, sempre gera débito no extrato ao renovar sem pagar (saldo negativo)
+        // Se false, nunca gera débito automático (admin controla manualmente)
+        gerar_debito_inscricao_renovacao: {
+            type: Boolean,
+            default: true,
+            description: 'Se true, renovação sem pagamento gera débito automático no extrato.'
         }
     },
 

@@ -4,6 +4,14 @@
  * Lógica de negócio para renovação e inscrição de participantes.
  * Gerencia transferência de saldos entre temporadas.
  *
+ * REGRA ESTRUTURADA: Débito de inscrição na renovação
+ * - Controlada por LigaRules.inscricao.gerar_debito_inscricao_renovacao (default: true)
+ * - Se TRUE: ao renovar sem pagar, gera débito automático no extrato (saldo negativo)
+ * - Se FALSE: não gera débito automático, admin controla manualmente
+ * - Nunca hardcode: sempre seguir a configuração da liga/temporada
+ *
+ * Veja models/LigaRules.js para schema e documentação da regra.
+ *
  * @version 1.2.0 (Fix: liga_id como ObjectId para compatibilidade com schema Mongoose)
  * @since 2026-01-04
  */
@@ -99,9 +107,11 @@ export async function criarTransacoesIniciais(ligaId, timeId, temporada, valores
     const agora = new Date();
 
     // 1. Transação de Taxa de Inscrição
-    // IMPORTANTE: Se pagouInscricao = true, NÃO cria débito (apenas registro na InscricaoTemporada)
-    // Se pagouInscricao = false, cria débito no extrato (participante deve a taxa)
-    if (valores.taxa > 0 && valores.pagouInscricao === false) {
+    // REGRA ESTRUTURADA: só gera débito se regra da liga permitir
+    // Se pagouInscricao = false e gerar_debito_inscricao_renovacao = true, cria débito no extrato
+    const ligaRules = await LigaRules.buscarPorLiga(ligaId, temporada);
+    const gerarDebitoInscricao = ligaRules?.inscricao?.gerar_debito_inscricao_renovacao !== false;
+    if (valores.taxa > 0 && valores.pagouInscricao === false && gerarDebitoInscricao) {
         // ✅ v1.2: Usar ObjectId para liga_id (compatível com schema Mongoose)
         const ligaObjId = new mongoose.Types.ObjectId(ligaId);
 

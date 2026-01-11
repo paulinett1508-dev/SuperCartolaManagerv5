@@ -309,8 +309,33 @@ router.patch("/:ligaId/:temporada/:timeId/marcar-pago", verificarAdmin, async (r
         inscricao.data_pagamento_inscricao = new Date();
         await inscricao.save();
 
-        // TODO: Remover/estornar o débito da taxa de inscrição do extrato
-        // Por agora, apenas atualiza o flag - o recálculo de saldo considera isso
+        // ✅ v1.1: Remover/estornar o débito da taxa de inscrição do extrato
+        const mongoose = (await import('mongoose')).default;
+        const db = mongoose.connection.db;
+        const ligaObjId = new mongoose.Types.ObjectId(ligaId);
+        
+        // Remover transação de INSCRICAO_TEMPORADA do extrato cache
+        const updateResult = await db.collection('extratofinanceirocaches').updateOne(
+            {
+                liga_id: ligaObjId,
+                time_id: Number(timeId),
+                temporada: Number(temporada)
+            },
+            {
+                $pull: {
+                    historico_transacoes: { tipo: 'INSCRICAO_TEMPORADA' }
+                },
+                $inc: {
+                    saldo_consolidado: inscricao.taxa_inscricao || 0  // Estorna o valor (positivo)
+                }
+            }
+        );
+        
+        console.log(`[INSCRICOES] Extrato atualizado:`, {
+            matched: updateResult.matchedCount,
+            modified: updateResult.modifiedCount,
+            valorEstornado: inscricao.taxa_inscricao
+        });
 
         console.log(`[INSCRICOES] Inscrição marcada como PAGA: liga=${ligaId} time=${timeId}`);
 
