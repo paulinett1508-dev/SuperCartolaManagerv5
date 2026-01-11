@@ -1,5 +1,6 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v8.4.0 (SaaS DINÂMICO)
+ * FLUXO-FINANCEIRO-CONTROLLER v8.5.0 (SaaS DINÂMICO)
+ * ✅ v8.5.0: PROTEÇÃO DADOS HISTÓRICOS - resetarCampos/deletarCampos só permite temporada atual
  * ✅ v8.4.0: FIX CRÍTICO - Extrato 2026 não calcula rodadas (pré-temporada)
  *   - Temporadas futuras mostram apenas: inscrição + legado + ajustes
  *   - Integração com sistema de Ajustes (substitui campos manuais em 2026+)
@@ -865,12 +866,29 @@ export const salvarCampos = async (req, res) => {
     res.json({ message: "Use a rota patch individual para maior precisão" });
 };
 
+/**
+ * ✅ v8.5.0: PROTEÇÃO DE DADOS HISTÓRICOS
+ * Só permite resetar/deletar campos da temporada ATUAL (CURRENT_SEASON)
+ * Temporadas anteriores são IMUTÁVEIS (dados históricos congelados)
+ */
 export const resetarCampos = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-        await FluxoFinanceiroCampos.deleteOne({ ligaId, timeId });
-        res.json({ message: "Campos resetados com sucesso" });
+        const temporada = Number(req.query.temporada) || CURRENT_SEASON;
+
+        // 🔒 PROTEÇÃO: Só permite operações na temporada atual ou futura
+        if (temporada < CURRENT_SEASON) {
+            return res.status(403).json({
+                error: `Operação bloqueada: temporada ${temporada} é histórica e imutável`,
+                temporada_atual: CURRENT_SEASON
+            });
+        }
+
+        await FluxoFinanceiroCampos.deleteOne({ ligaId, timeId, temporada });
+        console.log(`[FLUXO] Campos resetados: liga=${ligaId}, time=${timeId}, temporada=${temporada}`);
+        res.json({ message: "Campos resetados com sucesso", temporada });
     } catch (error) {
+        console.error('[FLUXO] Erro ao resetar campos:', error);
         res.status(500).json({ error: "Erro ao resetar campos" });
     }
 };

@@ -977,18 +977,18 @@ export class FluxoFinanceiroUI {
             ? window.getStatusInscricao2026(timeId)
             : { status: 'pendente', badgeClass: 'badge-2026-pendente', badgeIcon: 'schedule', badgeText: 'Pendente' };
 
-        // Tooltip dinâmico
+        // Tooltip dinâmico - usa inscricaoQuitada (considera pagamento direto OU abatimento de saldo)
         let tooltip = 'Clique para gerenciar renovação';
         if (status.status === 'renovado') {
-            tooltip = status.pagouInscricao ? 'Renovado - Inscrição paga' : 'Renovado - Deve inscrição';
+            tooltip = status.inscricaoQuitada ? 'Renovado - Inscrição quitada' : 'Renovado - Deve inscrição';
         } else if (status.status === 'novo') {
-            tooltip = status.pagouInscricao ? 'Novo participante - Inscrição paga' : 'Novo participante - Deve inscrição';
+            tooltip = status.inscricaoQuitada ? 'Novo participante - Inscrição quitada' : 'Novo participante - Deve inscrição';
         } else if (status.status === 'nao_participa') {
             tooltip = 'Não participa em 2026';
         }
 
-        // Ícone de alerta para quem deve inscrição
-        const alertaDevendo = (status.status === 'renovado' || status.status === 'novo') && status.pagouInscricao === false
+        // Ícone de alerta para quem deve inscrição (usa inscricaoQuitada, não pagouInscricao)
+        const alertaDevendo = (status.status === 'renovado' || status.status === 'novo') && status.inscricaoQuitada === false
             ? '<span class="material-icons" style="font-size: 12px; color: #ffc107; vertical-align: middle; margin-left: 2px;" title="Deve inscrição">warning</span>'
             : '';
 

@@ -436,11 +436,12 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
             }).toArray(),
 
             // 2. Todos os campos manuais da liga
-            // ✅ v2.16 FIX: Incluir temporada na query (segregação de dados entre temporadas)
+            // ✅ v2.18 FIX: Buscar temporada atual E anterior (dados históricos durante renovação)
+            // Bug v2.16: Filtrava só temporadaNum, perdendo histórico 2025 ao visualizar 2026
             FluxoFinanceiroCampos.find({
                 ligaId: ligaIdStr,
                 timeId: { $in: timeIds.map(String) },
-                temporada: temporadaNum
+                temporada: { $in: [temporadaNum, temporadaNum - 1] }
             }).lean(),
 
             // 3. Todos os acertos da liga na temporada
@@ -454,15 +455,38 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
         ]);
 
         // Criar mapas para acesso O(1)
-        // ✅ v2.11: Priorizar temporada atual sobre anterior
+        // ✅ v2.17 FIX: Priorizar temporada SOLICITADA sobre anterior
+        // Bug anterior: sort crescente + forEach sobrescrevia com temporada maior (ex: 2026)
+        // Correção: primeiro adiciona temporadas anteriores, depois a solicitada (que sobrescreve)
         const extratoMap = new Map();
-        // Ordenar: temporada atual primeiro (se existir, sobrescreve a anterior)
-        const extratosOrdenados = [...todosExtratos].sort((a, b) => (a.temporada || 0) - (b.temporada || 0));
+        // Ordenar: temporadas menores primeiro, temporada solicitada por último (para sobrescrever)
+        const extratosOrdenados = [...todosExtratos].sort((a, b) => {
+            // Prioridade: temporada solicitada = maior prioridade (vem por último para sobrescrever)
+            const aIsSolicitada = a.temporada === temporadaNum;
+            const bIsSolicitada = b.temporada === temporadaNum;
+            if (aIsSolicitada && !bIsSolicitada) return 1;  // a vem depois
+            if (!aIsSolicitada && bIsSolicitada) return -1; // b vem depois
+            return (a.temporada || 0) - (b.temporada || 0); // ordem crescente para o resto
+        });
         extratosOrdenados.forEach(e => extratoMap.set(String(e.time_id), e));
-        console.log(`[TESOURARIA] Extratos carregados: ${todosExtratos.length} (temporadas: ${[...new Set(todosExtratos.map(e => e.temporada))].join(', ')})`);
+        console.log(`[TESOURARIA] Extratos carregados: ${todosExtratos.length} (temporadas: ${[...new Set(todosExtratos.map(e => e.temporada))].join(', ')}) | Prioridade: ${temporadaNum}`);
 
+        // ✅ v2.18 FIX: Priorizar temporada ANTERIOR para dados históricos (prêmios 2025)
+        // Bug: forEach simples sobrescrevia 2025 com 2026 (vazio)
+        // Correção: ordenar para que temporada anterior venha por último (sobrescreve vazio)
         const camposMap = new Map();
-        todosCampos.forEach(c => camposMap.set(String(c.timeId), c));
+        const camposOrdenados = [...todosCampos].sort((a, b) => {
+            // Temporada ANTERIOR tem prioridade (vem por último para sobrescrever)
+            // Se temporadaNum=2026, queremos que 2025 sobrescreva 2026
+            const temporadaAnterior = temporadaNum - 1;
+            const aIsAnterior = a.temporada === temporadaAnterior;
+            const bIsAnterior = b.temporada === temporadaAnterior;
+            if (aIsAnterior && !bIsAnterior) return 1;  // a vem depois
+            if (!aIsAnterior && bIsAnterior) return -1; // b vem depois
+            return (a.temporada || 0) - (b.temporada || 0);
+        });
+        camposOrdenados.forEach(c => camposMap.set(String(c.timeId), c));
+        console.log(`[TESOURARIA] Campos históricos: ${todosCampos.length} (temporadas: ${[...new Set(todosCampos.map(c => c.temporada))].join(', ')}) | Prioridade histórico: ${temporadaNum - 1}`);
 
         // Agrupar acertos por timeId
         const acertosMap = new Map();

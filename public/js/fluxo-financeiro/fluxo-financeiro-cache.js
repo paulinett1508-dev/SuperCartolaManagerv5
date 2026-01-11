@@ -487,7 +487,7 @@ export class FluxoFinanceiroCache {
     /**
      * Retorna o status de inscrição de um participante
      * @param {string|number} timeId
-     * @returns {object} { status, pagouInscricao, badgeClass, badgeIcon, badgeText }
+     * @returns {object} { status, pagouInscricao, inscricaoQuitada, badgeClass, badgeIcon, badgeText }
      */
     getStatusInscricao2026(timeId) {
         const inscricao = this.inscricoes2026.get(String(timeId));
@@ -496,30 +496,43 @@ export class FluxoFinanceiroCache {
             return {
                 status: 'pendente',
                 pagouInscricao: null,
+                inscricaoQuitada: false,
                 badgeClass: 'badge-2026-pendente',
                 badgeIcon: 'schedule',
                 badgeText: 'Pendente'
             };
         }
 
+        // ✅ v2.1 FIX: Considerar inscrição quitada se:
+        // 1. pagou_inscricao === true (pagou diretamente) OU
+        // 2. Tem legado_manual (quitação via admin/abatimento) OU
+        // 3. Saldo transferido >= taxa (crédito cobriu a inscrição)
+        const pagouDiretamente = inscricao.pagou_inscricao === true;
+        const quitadoViaLegado = inscricao.legado_manual?.tipo_quitacao != null;
+        const saldoCobriuTaxa = (inscricao.saldo_transferido || 0) >= (inscricao.taxa_inscricao || 0) && (inscricao.taxa_inscricao || 0) > 0;
+        const inscricaoQuitada = pagouDiretamente || quitadoViaLegado || saldoCobriuTaxa;
+
         const statusMap = {
             'renovado': {
                 status: 'renovado',
                 pagouInscricao: inscricao.pagou_inscricao,
-                badgeClass: inscricao.pagou_inscricao ? 'badge-2026-renovado' : 'badge-2026-renovado-devendo',
+                inscricaoQuitada,
+                badgeClass: inscricaoQuitada ? 'badge-2026-renovado' : 'badge-2026-renovado-devendo',
                 badgeIcon: 'check_circle',
-                badgeText: inscricao.pagou_inscricao ? 'Renovado' : 'Renovado'
+                badgeText: 'Renovado'
             },
             'novo': {
                 status: 'novo',
                 pagouInscricao: inscricao.pagou_inscricao,
-                badgeClass: 'badge-2026-novo',
+                inscricaoQuitada,
+                badgeClass: inscricaoQuitada ? 'badge-2026-novo' : 'badge-2026-novo-devendo',
                 badgeIcon: 'person_add',
                 badgeText: 'Novo'
             },
             'nao_participa': {
                 status: 'nao_participa',
                 pagouInscricao: null,
+                inscricaoQuitada: true, // Não deve se não participa
                 badgeClass: 'badge-2026-nao-participa',
                 badgeIcon: 'cancel',
                 badgeText: 'Saiu'
@@ -529,6 +542,7 @@ export class FluxoFinanceiroCache {
         return statusMap[inscricao.status] || {
             status: inscricao.status || 'pendente',
             pagouInscricao: null,
+            inscricaoQuitada: false,
             badgeClass: 'badge-2026-pendente',
             badgeIcon: 'schedule',
             badgeText: 'Pendente'

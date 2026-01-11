@@ -4,10 +4,11 @@
  * Gerencia a quitação de saldos de uma temporada e definição de legado
  * para a próxima temporada.
  *
- * @version 1.1.0
+ * @version 1.2.0
  * @since 2026-01-10
  *
  * Changelog:
+ * - v1.2.0 (2026-01-11): FIX - creditoComprometido agora = taxa abatida (não saldo total)
  * - v1.1.0 (2026-01-11): Suporte a participantes sem cache (calcula direto das rodadas)
  * - v1.0.0 (2026-01-10): Versão inicial
  */
@@ -118,23 +119,34 @@ export async function buscarDadosParaQuitacao(req, res) {
         const jaRenovou = inscricao2026?.status === 'renovado' || inscricao2026?.status === 'novo';
         const jaProcessado = inscricao2026?.processado === true;
 
-        // ✅ v1.2: Calcular saldo comprometido com a próxima temporada
+        // ✅ v1.3: Calcular saldo comprometido com a próxima temporada
+        // FIX: creditoComprometido = taxa abatida (não o saldo total transferido)
         let creditoComprometido = 0;
         let saldoRemanescente = saldoFinal;
 
         if (inscricao2026 && jaProcessado && !inscricao2026.legado_manual?.origem) {
             // Se renovou E processou E não tem quitação manual ainda
-            // O saldo_transferido representa o crédito usado para abater taxa
-            creditoComprometido = inscricao2026.saldo_transferido || 0;
+            const saldoTransferido = inscricao2026.saldo_transferido || 0;
+            const taxaInscricao = inscricao2026.taxa_inscricao || 0;
+            const pagouInscricao = inscricao2026.pagou_inscricao === true;
 
-            // Saldo remanescente = saldo original - crédito já comprometido
-            if (creditoComprometido > 0 && saldoFinal > 0) {
+            // Se tinha crédito e NÃO pagou inscrição, a taxa foi abatida do crédito
+            if (saldoTransferido > 0 && !pagouInscricao && taxaInscricao > 0) {
+                // Crédito comprometido = apenas a taxa (o que foi "consumido" do crédito)
+                creditoComprometido = Math.min(taxaInscricao, saldoTransferido);
+                // Saldo remanescente = crédito que sobrou após pagar a taxa
+                saldoRemanescente = saldoFinal - creditoComprometido;
+            } else if (saldoTransferido > 0 && pagouInscricao) {
+                // Se pagou inscrição à parte, todo o crédito foi transferido intacto
+                creditoComprometido = saldoTransferido;
                 saldoRemanescente = saldoFinal - creditoComprometido;
             }
 
             console.log(`[QUITACAO] Participante ${timeId} já renovou para ${proximaTemporada}:
                 - Saldo 2025: ${saldoFinal}
-                - Crédito comprometido: ${creditoComprometido}
+                - Taxa inscrição: ${taxaInscricao}
+                - Pagou inscrição: ${pagouInscricao}
+                - Crédito comprometido (taxa abatida): ${creditoComprometido}
                 - Saldo remanescente: ${saldoRemanescente}`);
         }
 

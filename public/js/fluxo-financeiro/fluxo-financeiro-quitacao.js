@@ -4,10 +4,11 @@
  * Gerencia o modal e lógica de quitação de temporada,
  * permitindo ao admin definir legado para próxima temporada.
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @since 2026-01-10
  *
  * Changelog:
+ * - v1.3.0 (2026-01-11): FIX - Label "Taxa 2026 abatida" mais claro (era "Deduzido para 2026")
  * - v1.2.0 (2026-01-11): Sincronização com renovação - exibe crédito comprometido e saldo remanescente
  * - v1.1.0 (2026-01-10): Alertas de integração com modal de Renovação
  * - v1.0.0 (2026-01-10): Versão inicial
@@ -458,7 +459,7 @@ function injetarModalQuitacao() {
                         <tr id="quitacao-linha-comprometido" class="linha-comprometido" style="display: none;">
                             <td>
                                 <span class="material-icons" style="font-size: 14px; vertical-align: middle; color: #eab308;">sync_alt</span>
-                                Deduzido para 2026:
+                                Taxa 2026 abatida:
                             </td>
                             <td id="quitacao-credito-comprometido">- R$ 0,00</td>
                         </tr>
