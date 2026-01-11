@@ -4,7 +4,11 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.16.0
+ * @version 2.19.0
+ * ✅ v2.19.0: Filtrar participantes por inscrição para temporadas >= 2026
+ *   - Para 2026+, exibe apenas participantes com status 'renovado' ou 'novo'
+ *   - Temporadas anteriores (2025) mantêm comportamento histórico (todos)
+ * ✅ v2.18.0: Dados históricos de 2025 preservados (campos + extratos)
  * ✅ v2.16.0: FIX CRÍTICO - Campos manuais com filtro de temporada
  *   - calcularSaldoCompleto() agora filtra por temporada
  *   - Bulk query de campos na rota /liga/:ligaId também filtra
@@ -412,12 +416,32 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
             return res.status(404).json({ success: false, error: "Liga não encontrada" });
         }
 
-        const timeIds = (liga.participantes || []).map(p => p.time_id);
-
-        // ✅ BULK QUERIES - Buscar todos os dados de uma vez (4 queries em vez de ~96)
         const temporadaNum = Number(temporada);
         const ligaIdStr = String(ligaId);
 
+        // ✅ v2.19 FIX: Para temporadas >= 2026, filtrar apenas participantes RENOVADOS ou NOVOS
+        // Temporadas anteriores (2025) mostram todos os participantes (comportamento histórico)
+        let participantesFiltrados = liga.participantes || [];
+        let totalParticipantesLiga = participantesFiltrados.length;
+
+        if (temporadaNum >= 2026) {
+            const inscricoesAtivas = await InscricaoTemporada.find({
+                liga_id: new mongoose.Types.ObjectId(ligaId),
+                temporada: temporadaNum,
+                status: { $in: ['renovado', 'novo'] }
+            }).lean();
+
+            const timeIdsRenovados = new Set(inscricoesAtivas.map(i => Number(i.time_id)));
+            participantesFiltrados = participantesFiltrados.filter(p =>
+                timeIdsRenovados.has(Number(p.time_id))
+            );
+
+            console.log(`[TESOURARIA] Temporada ${temporadaNum}: ${participantesFiltrados.length}/${totalParticipantesLiga} participantes renovados/novos`);
+        }
+
+        const timeIds = participantesFiltrados.map(p => p.time_id);
+
+        // ✅ BULK QUERIES - Buscar todos os dados de uma vez (4 queries em vez de ~96)
         console.log(`[TESOURARIA] Buscando dados para temporada ${temporadaNum}`);
 
         const [todosExtratos, todosCampos, todosAcertos] = await Promise.all([
@@ -517,7 +541,8 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
         let quantidadeDevedores = 0;
         let quantidadeQuitados = 0;
 
-        for (const participante of liga.participantes || []) {
+        // ✅ v2.19: Usar participantesFiltrados (renovados/novos para 2026+)
+        for (const participante of participantesFiltrados) {
             const timeId = String(participante.time_id);
 
             // Calcular saldo do extrato

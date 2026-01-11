@@ -833,7 +833,19 @@ export class FluxoFinanceiroUI {
                         </tr>
                     </thead>
                     <tbody id="participantesTableBody">
-                        ${participantesOrdenados.map((p, idx) => this._renderizarLinhaTabela(p, idx, ligaId)).join('')}
+                        ${participantesOrdenados.length > 0
+                            ? participantesOrdenados.map((p, idx) => this._renderizarLinhaTabela(p, idx, ligaId)).join('')
+                            : `<tr class="linha-vazia">
+                                <td colspan="15" style="text-align: center; padding: 40px; color: var(--texto-secundario);">
+                                    <span class="material-icons" style="font-size: 48px; color: var(--laranja); opacity: 0.5;">group_off</span>
+                                    <p style="margin-top: 16px; font-size: 14px;">
+                                        ${(window.temporadaAtual || 2026) >= 2026
+                                            ? 'Nenhum participante renovado para ' + (window.temporadaAtual || 2026) + '.<br><small>Acesse a tela de Renovação para adicionar participantes.</small>'
+                                            : 'Nenhum participante encontrado.'}
+                                    </p>
+                                </td>
+                            </tr>`
+                        }
                     </tbody>
                 </table>
             </div>
