@@ -29,9 +29,20 @@
        2. CORES DE SUPERFÍCIE (Dark Theme Mobile)
        ======================================== */
     --app-bg: #0a0a0a;                   /* Background principal (mais escuro para OLED) */
+    --app-bg-dark: #000000;              /* Background mais escuro */
     --app-surface: #1a1a1a;              /* Cards e containers */
     --app-surface-elevated: #1c1c1c;     /* Cards com leve elevação */
+    --app-surface-hover: #333333;        /* Estado hover de cards */
     --app-surface-overlay: rgba(10, 10, 10, 0.95); /* Overlays com blur */
+    --app-border: #333333;               /* Cor padrão de bordas */
+
+    /* Backgrounds Semânticos (Módulos Rodadas, Top10) */
+    --app-bg-success: #0D1F18;           /* Fundo verde escuro (ganhou) */
+    --app-bg-danger: #1F0D0D;            /* Fundo vermelho escuro (perdeu) */
+
+    /* Toast (Notificações) */
+    --app-toast-bg: #1e293b;
+    --app-toast-border: #334155;
 
     /* Gradiente de superfície (cards) */
     --app-gradient-card: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(42, 42, 42, 0.9) 100%);
@@ -53,11 +64,18 @@
 
     /* Alerta (Amarelo) */
     --app-warning: #eab308;
+    --app-warning-dark: #ca8a04;
     --app-warning-muted: rgba(234, 179, 8, 0.15);
 
     /* Info (Azul) */
     --app-info: #3b82f6;
     --app-info-muted: rgba(59, 130, 246, 0.15);
+
+    /* Cores Especiais (Módulos) */
+    --app-purple: #8b5cf6;
+    --app-purple-muted: rgba(139, 92, 246, 0.15);
+    --app-pink: #ec4899;
+    --app-pink-muted: rgba(236, 72, 153, 0.15);
 
     /* ========================================
        4. CORES DE RANKING (Posições)
@@ -79,8 +97,11 @@
        5. CORES DE TEXTO (Mobile)
        ======================================== */
     --app-text-primary: #ffffff;
+    --app-text-white: #ffffff;              /* Alias direto para branco */
+    --app-text-light: rgba(255, 255, 255, 0.9);
     --app-text-secondary: rgba(255, 255, 255, 0.85);
     --app-text-muted: rgba(255, 255, 255, 0.6);
+    --app-text-dim: rgba(255, 255, 255, 0.45);
     --app-text-disabled: rgba(255, 255, 255, 0.4);
     --app-text-inverse: #000000;
 
