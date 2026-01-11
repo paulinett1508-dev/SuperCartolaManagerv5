@@ -4,8 +4,12 @@
  * Gerencia a quitação de saldos de uma temporada e definição de legado
  * para a próxima temporada.
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @since 2026-01-10
+ *
+ * Changelog:
+ * - v1.1.0 (2026-01-11): Suporte a participantes sem cache (calcula direto das rodadas)
+ * - v1.0.0 (2026-01-10): Versão inicial
  */
 
 import mongoose from "mongoose";
@@ -29,15 +33,8 @@ export async function buscarDadosParaQuitacao(req, res) {
             temporada: temporada
         }).lean();
 
-        if (!cache) {
-            return res.status(404).json({
-                success: false,
-                error: 'Cache não encontrado para este participante/temporada'
-            });
-        }
-
-        // Verificar se já foi quitado
-        if (cache.quitacao?.quitado) {
+        // Verificar se já foi quitado (só se tiver cache)
+        if (cache?.quitacao?.quitado) {
             return res.status(400).json({
                 success: false,
                 error: 'Este extrato já foi quitado',
@@ -78,8 +75,31 @@ export async function buscarDadosParaQuitacao(req, res) {
             });
         }
 
+        // v1.1: Se não há cache, calcular saldo das rodadas diretamente
+        let saldoRodadas = 0;
+        let semCache = false;
+
+        if (cache) {
+            saldoRodadas = cache.saldo_consolidado || 0;
+        } else {
+            // Calcular diretamente da collection rodadas
+            semCache = true;
+            const Rodada = mongoose.model('Rodada');
+            const rodadas = await Rodada.find({
+                liga_id: new mongoose.Types.ObjectId(ligaId),
+                time_id: Number(timeId),
+                temporada: temporada,
+                consolidada: true
+            }).lean();
+
+            rodadas.forEach(r => {
+                saldoRodadas += (r.bonus || 0) - (r.onus || 0);
+            });
+
+            console.log(`[QUITACAO] Cache não encontrado para time ${timeId}/temporada ${temporada}. Calculado diretamente: saldoRodadas=${saldoRodadas}`);
+        }
+
         // Calcular saldo final
-        const saldoRodadas = cache.saldo_consolidado || 0;
         const saldoFinal = saldoRodadas + totalCamposManuais + saldoAcertos;
 
         // Buscar nome do participante
@@ -105,6 +125,7 @@ export async function buscarDadosParaQuitacao(req, res) {
                 nome_cartoleiro: time?.nome_cartoleiro || time?.nome_cartola || 'Desconhecido',
                 nome_time: time?.nome_time || 'Desconhecido',
                 temporada: temporada,
+                sem_cache: semCache, // v1.1: Flag indicando se dados foram calculados sem cache
                 detalhes: {
                     saldo_rodadas: saldoRodadas,
                     campos_manuais: totalCamposManuais,
@@ -172,21 +193,15 @@ export async function quitarTemporada(req, res) {
 
         const admin = req.session?.admin?.email || req.session?.admin?.nome || 'admin';
 
-        // Buscar cache da temporada origem
+        // Buscar cache da temporada origem (pode não existir)
         const cacheOrigem = await ExtratoFinanceiroCache.findOne({
             liga_id: new mongoose.Types.ObjectId(ligaId),
             time_id: Number(timeId),
             temporada: Number(temporada_origem)
         });
 
-        if (!cacheOrigem) {
-            return res.status(404).json({
-                success: false,
-                error: `Cache não encontrado para temporada ${temporada_origem}`
-            });
-        }
-
-        if (cacheOrigem.quitacao?.quitado) {
+        // Se existe cache, verificar se já foi quitado
+        if (cacheOrigem?.quitacao?.quitado) {
             return res.status(400).json({
                 success: false,
                 error: 'Este extrato já foi quitado anteriormente',
@@ -194,19 +209,39 @@ export async function quitarTemporada(req, res) {
             });
         }
 
-        // 1. Marcar extrato da temporada origem como quitado
-        cacheOrigem.quitacao = {
-            quitado: true,
-            data_quitacao: new Date(),
-            admin_responsavel: admin,
-            saldo_no_momento: saldo_original,
-            tipo: tipo_quitacao,
-            valor_legado: tipo_quitacao === 'zerado' ? 0 : (tipo_quitacao === 'integral' ? saldo_original : valor_legado),
-            observacao: observacao.trim()
-        };
-
-        await cacheOrigem.save();
-        console.log(`[QUITACAO] Extrato ${temporada_origem} marcado como quitado para time ${timeId}`);
+        // 1. Marcar extrato da temporada origem como quitado (se existir cache)
+        if (cacheOrigem) {
+            cacheOrigem.quitacao = {
+                quitado: true,
+                data_quitacao: new Date(),
+                admin_responsavel: admin,
+                saldo_no_momento: saldo_original,
+                tipo: tipo_quitacao,
+                valor_legado: tipo_quitacao === 'zerado' ? 0 : (tipo_quitacao === 'integral' ? saldo_original : valor_legado),
+                observacao: observacao.trim()
+            };
+            await cacheOrigem.save();
+            console.log(`[QUITACAO] Extrato ${temporada_origem} marcado como quitado para time ${timeId}`);
+        } else {
+            // v1.1: Se não há cache, criar um registro mínimo de quitação
+            await ExtratoFinanceiroCache.create({
+                liga_id: new mongoose.Types.ObjectId(ligaId),
+                time_id: Number(timeId),
+                temporada: Number(temporada_origem),
+                saldo_consolidado: saldo_original,
+                quitacao: {
+                    quitado: true,
+                    data_quitacao: new Date(),
+                    admin_responsavel: admin,
+                    saldo_no_momento: saldo_original,
+                    tipo: tipo_quitacao,
+                    valor_legado: tipo_quitacao === 'zerado' ? 0 : (tipo_quitacao === 'integral' ? saldo_original : valor_legado),
+                    observacao: observacao.trim(),
+                    criado_sem_cache: true // Flag para auditoria
+                }
+            });
+            console.log(`[QUITACAO] Cache criado e marcado como quitado para time ${timeId}/temporada ${temporada_origem} (sem cache anterior)`);
+        }
 
         // 2. Criar/atualizar inscrição na temporada destino com legado manual
         const valorLegadoFinal = tipo_quitacao === 'zerado' ? 0 :
