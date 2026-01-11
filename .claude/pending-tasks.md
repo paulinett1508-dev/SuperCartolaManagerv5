@@ -19,32 +19,81 @@
 
 ---
 
-## CONCLUIDO: Seletor de Temporada - UX Corrigida
+## Tarefas Pendentes
 
-**Prioridade:** ALTA
-**Data Conclusao:** 2026-01-11
-**Status:** RESOLVIDO
+### PRÓXIMA SESSÃO - Testes Pendentes
 
-### Problema Original
-O seletor de temporada (2025/2026) no Fluxo Financeiro fazia `location.reload()` que:
-- Saia da tela atual e voltava para os cards principais
-- Usuario precisava navegar de novo ate Fluxo Financeiro
+#### 1. Extrato 2026 - Ainda mostra dados de 2025
+**Status:** PENDENTE - Usuário reporta que extrato 2026 continua mostrando dados antigos
+**Provável causa:** Cache do browser (IndexedDB) não invalidado
 
-### Solucao Implementada (v8.0)
-**Arquivo:** `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` - funcao `mudarTemporada()`
+**Ação necessária:**
+- [ ] Usuário fazer hard refresh (Ctrl+Shift+R) no admin
+- [ ] Limpar IndexedDB do browser manualmente se necessário
+- [ ] Verificar se após limpar cache aparece corretamente
 
-Alteracoes:
-1. Removido `location.reload()` da funcao `mudarTemporada()`
-2. Implementado recarga dinamica via `fluxoFinanceiroOrquestrador.recarregar()`
-3. Adicionado loading visual durante a troca ("Carregando dados de XXXX...")
-4. Mantido fallback para reload apenas se orquestrador nao estiver disponivel
-5. Error handling com try/catch para robustez
+**O que deveria aparecer no extrato 2026:**
+- Apenas 2 transações especiais (Inscrição -R$180, Crédito se houver)
+- SEM banner "Legado 2025"
+- SEM cards de módulos zerados
+- SEM 38 rodadas de 2025
 
-Fluxo:
-1. Usuario seleciona temporada no dropdown
-2. `window.temporadaAtual` e atualizado
-3. localStorage salva preferencia
-4. Cache e limpo via `fluxoFinanceiroCache.limparCache()`
-5. Dados recarregados via orquestrador (SEM sair da tela)
-6. Tabela atualizada com dados da nova temporada
+#### 2. Reteste Fluxo Financeiro 2026
+- [ ] Acessar Fluxo Financeiro > aba 2026
+- [ ] Verificar coluna Status (PAGO ou DEVE, não ABATIDO)
+- [ ] Testar extrato de Diogo Monte (saldo +R$174)
+- [ ] Testar extrato de Paulinett Miranda (saldo R$0)
+- [ ] Testar extrato de Felipe Barbosa (saldo -R$180)
 
+#### 3. Testes de Engajamento no App (Participante Premium)
+**Usar:** Paulinett Miranda (time_id: 13935277)
+
+- [ ] **Jogos do Dia** - Card deve aparecer na tela inicial com 3 jogos mock
+- [ ] **Badge "Preview"** - Deve aparecer indicando que são dados de teste
+- [ ] **Layout** - Card deve estar após "Inscrição Confirmada"
+- [ ] **Outros participantes** - Não devem ver o card de jogos (não são premium)
+
+---
+
+### Referência - Dados no MongoDB (2026)
+| Participante | time_id | Saldo 2026 | Status |
+|--------------|---------|------------|--------|
+| Lúcio | -1767569480236 | -R$180 | Deve |
+| Felipe Barbosa | 8098497 | -R$180 | Deve |
+| Antonio Luis | 645089 | -R$180 | Deve |
+| Paulinett Miranda | 13935277 | R$0 | Pago |
+| Diogo Monte | 25371297 | +R$174 | Pago (crédito) |
+
+---
+
+## Histórico da Sessão 2026-01-11
+
+### Jogos do Dia (Premium) - IMPLEMENTADO
+
+**Feature:** Exibir jogos do Brasileirão na tela inicial do app do participante.
+
+**Arquivos modificados:**
+- `routes/jogos-hoje-routes.js` v1.1 - API com mock para pré-temporada
+- `public/participante/js/modules/participante-jogos.js` v1.1 - Módulo de jogos
+- `public/participante/js/modules/participante-boas-vindas.js` v10.7 - Integração
+
+**Como funciona:**
+- API consulta football-data.org para jogos do Brasileirão
+- Em pré-temporada (sem jogos reais), retorna mock para premium
+- Premium = time_id 13935277 (Paulinett Miranda)
+- Card exibe: mandante vs visitante, horário, status (Em breve/Ao vivo/Encerrado)
+- Badge "Preview" aparece quando usa dados mock
+
+**API:**
+```
+GET /api/jogos-hoje?timeId=13935277
+Response: { jogos: [...], premium: true, fonte: "mock"|"api", data: "2026-01-11" }
+```
+
+---
+
+## Historico Arquivado
+
+### 2026-01-11 - Seletor de Temporada UX
+- **Status:** CONCLUIDO
+- **Resumo:** Removido reload que saia da tela, implementada recarga dinamica

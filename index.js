@@ -60,6 +60,7 @@ const __dirname = dirname(__filename);
 const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
 
 // Importar rotas do sistema
+import jogosHojeRoutes from "./routes/jogos-hoje-routes.js";
 import ligaRoutes from "./routes/ligas.js";
 import cartolaRoutes from "./routes/cartola.js";
 import cartolaProxyRoutes from "./routes/cartola-proxy.js";
@@ -303,6 +304,7 @@ app.use(activityTrackerMiddleware);
 app.use(express.static("public"));
 
 // Rotas da API
+app.use("/api/jogos-hoje", jogosHojeRoutes);
 app.use("/api/ligas", ligaRoutes);
 app.use("/api/cartola", cartolaRoutes);
 app.use("/api/cartola", cartolaProxyRoutes);

@@ -1,6 +1,9 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.6 (FIX CACHE TEMPORADA)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.7 (JOGOS DO DIA PREMIUM)
 // =====================================================================
+// ✅ v10.7: Integração do módulo Jogos do Dia para participantes premium
+//          - Exibe jogos do Brasileirão (ou mock em pré-temporada)
+//          - Apenas para participantes premium (ex: Paulinett Miranda)
 // ✅ v10.6: FIX - Participantes renovados ignoram cache IndexedDB de extrato
 //          - Evita mostrar saldo de 2025 em vez de 2026
 //          - Cache local pode ter dados antigos após renovação
@@ -21,7 +24,7 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.6...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.7...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -155,6 +158,16 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         // O cache pode ter dados de 2025 (saldo antigo) que não se aplica mais em 2026
         const deveBuscarExtratoDoCacheLocal = !participanteRenovado;
         
+        // Buscar regras da liga para a temporada
+        let ligaRules = null;
+        try {
+            const resRules = await fetch(`/api/liga-rules/${ligaId}/${TEMPORADA_ATUAL}`);
+            if (resRules.ok) {
+                ligaRules = await resRules.json();
+            }
+        } catch (e) {
+            ligaRules = null;
+        }
         // Buscar do cache persistente (IndexedDB) - INSTANTÂNEO
         [liga, ranking, rodadas, extratoData] = await Promise.all([
             cache.getLigaAsync ? cache.getLigaAsync(ligaId) : cache.getLiga(ligaId),
@@ -171,14 +184,12 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         }
 
         if (liga && ranking?.length && rodadas?.length) {
-            usouCache = true;
-            if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "⚡ INSTANT LOAD - dados do cache!");
-
-            // Renderizar IMEDIATAMENTE com dados do cache
-            const dadosRenderizados = processarDadosParaRender(
+            // Inicializar dadosRenderizados antes de usar
+            let dadosRenderizados = processarDadosParaRender(
                 liga, ranking, rodadas, extratoData, meuTimeIdNum, participante
             );
-            renderizarBoasVindas(container, dadosRenderizados);
+            renderizarBoasVindas(container, dadosRenderizados, ligaRules);
+            if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "⚡ INSTANT LOAD - dados do cache!");
         }
     }
 
@@ -186,7 +197,7 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     if (!usouCache) {
         container.innerHTML = `
             <div class="flex justify-center items-center min-h-[300px]">
-                <div class="text-center">
+                    renderizarBoasVindas(container, dadosFresh, ligaRules);
                     <div class="w-10 h-10 border-4 border-zinc-700 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
                     <p class="text-sm text-white/70">Carregando...</p>
                 </div>
@@ -512,7 +523,7 @@ function getZonaInfo(posicao, total) {
 // =====================================================================
 // RENDERIZAÇÃO - TAILWIND CLASSES
 // =====================================================================
-function renderizarBoasVindas(container, data) {
+function renderizarBoasVindas(container, data, ligaRules) {
     const {
         posicao,
         totalParticipantes,
@@ -525,6 +536,7 @@ function renderizarBoasVindas(container, data) {
         saldoFinanceiro,
         posicaoAnterior,
         minhasRodadas,
+        temporada // Adiciona temporada ao destructuring
     } = data;
 
     const zona = getZonaInfo(posicao, totalParticipantes);
@@ -650,18 +662,18 @@ function renderizarBoasVindas(container, data) {
 
                 <!-- Grid de Estatísticas - Zerado -->
                 <div class="mx-4 mb-4 grid grid-cols-3 gap-3">
-                    <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
-                        <p class="text-xs font-medium uppercase text-white/70">Rodadas</p>
-                        <p class="text-2xl font-bold text-white/30">0</p>
-                    </div>
-                    <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
-                        <p class="text-xs font-medium uppercase text-white/70">Participantes</p>
-                        <p class="text-2xl font-bold text-white">${totalParticipantes}</p>
-                    </div>
-                    <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
-                        <p class="text-xs font-medium uppercase text-white/70">Faltam</p>
-                        <p class="text-2xl font-bold text-primary">38</p>
-                    </div>
+                        <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
+                            <p class="text-xs font-medium uppercase text-white/70">Rodadas</p>
+                            <p class="text-2xl font-bold text-white/30">0</p>
+                        </div>
+                        <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
+                            <p class="text-xs font-medium uppercase text-white/70">Participantes</p>
+                            <p class="text-2xl font-bold text-white">
+                                ${typeof totalParticipantes === 'number' && totalParticipantes > 0 && temporada === TEMPORADA_ATUAL ? totalParticipantes : '--'}
+                            </p>
+                            ${(typeof totalParticipantes !== 'number' || totalParticipantes === 0 || temporada !== TEMPORADA_ATUAL) ? `<span class="flex items-center gap-1 text-xs text-yellow-400 mt-1"><span class="material-icons text-base align-middle">hourglass_empty</span> Aguardando definição</span>` : ''}
+                        </div>
+                            <!-- Mini-card FALTAM removido -->
                 </div>
 
                 <!-- Card de Desempenho - Aguardando -->
@@ -696,15 +708,30 @@ function renderizarBoasVindas(container, data) {
                 </div>
 
                 <!-- Card de Boas-vindas 2026 -->
-                <div class="mx-4 mb-4 flex items-start gap-3 rounded-xl bg-green-500/10 border border-green-500/20 p-4">
-                    <span class="material-icons mt-0.5 text-green-400">check_circle</span>
-                    <div>
-                        <p class="text-sm font-bold uppercase text-green-400">Inscrição Confirmada!</p>
-                        <p class="text-sm font-normal text-white/70">Sua vaga na temporada ${TEMPORADA_ATUAL} está garantida. O Brasileirão começa em 28/01!</p>
+                    <div class="mx-4 mb-4 flex items-start gap-3 rounded-xl bg-green-500/10 border border-green-500/20 p-4">
+                        <span class="material-icons mt-0.5 text-green-400">check_circle</span>
+                        <div>
+                            <p class="text-sm font-bold uppercase text-green-400">Inscrição Confirmada!</p>
+                            <p class="text-sm font-normal text-white/70">${ligaRules && ligaRules.mensagens && ligaRules.mensagens.confirmacao ? ligaRules.mensagens.confirmacao : `Sua inscrição para a temporada ${TEMPORADA_ATUAL} está ativa.`}</p>
+                        </div>
                     </div>
-                </div>
+                    <div id="jogos-do-dia-placeholder"></div>
             </div>
         `;
+        // ✅ v10.7: Carregar e renderizar jogos do dia para premium
+        import('./participante-jogos.js').then(async mod => {
+            const timeIdNum = Number(timeId);
+            const result = await mod.obterJogosDoDia(timeIdNum);
+            // Só renderiza se tem jogos (API real ou mock para premium)
+            if (result.jogos && result.jogos.length > 0) {
+                const isMock = result.fonte === 'mock';
+                const html = mod.renderizarJogosDoDia(result.jogos, isMock);
+                const el = document.getElementById('jogos-do-dia-placeholder');
+                if (el) el.innerHTML = html;
+            }
+        }).catch(err => {
+            if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "Jogos do dia não disponível:", err);
+        });
     } else {
         // ✅ PARTICIPANTE NÃO RENOVOU - Mostrar dados da temporada anterior normalmente
         container.innerHTML = `
@@ -768,10 +795,7 @@ function renderizarBoasVindas(container, data) {
                         <p class="text-xs font-medium uppercase text-white/70">Participantes</p>
                         <p class="text-2xl font-bold text-white">${totalParticipantes}</p>
                     </div>
-                    <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
-                        <p class="text-xs font-medium uppercase text-white/70">Faltam</p>
-                        <p class="text-2xl font-bold text-primary">${rodadasRestantes}</p>
-                    </div>
+                        <!-- Mini-card FALTAM removido -->
                 </div>
 
                 <!-- Card de Desempenho -->
@@ -819,4 +843,4 @@ function renderizarBoasVindas(container, data) {
 }
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Módulo v10.6 carregado (Fix cache temporada para renovados)");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Módulo v10.7 carregado (Jogos do dia premium)");
