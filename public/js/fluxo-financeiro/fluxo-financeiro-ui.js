@@ -688,8 +688,30 @@ export class FluxoFinanceiroUI {
             luvaOuro: false,        // Precisa habilitar
         };
 
+        // ✅ v6.5 FIX: Para temporadas >= 2026, usar lista da API de tesouraria (já filtrada por renovados)
+        // Temporadas anteriores (2025) usam lista do cache (todos os participantes)
+        const temporadaNum = window.temporadaAtual || 2026;
+        const usarListaTesouraria = temporadaNum >= 2026 && dadosSaldo?.participantes?.length > 0;
+
+        // Determinar lista base de participantes
+        const listaBase = usarListaTesouraria
+            ? dadosSaldo.participantes.map(s => ({
+                time_id: s.timeId,
+                id: s.timeId,
+                nome_cartola: s.nomeCartola || s.nomeTime || 'Participante',
+                nome_time: s.nomeTime || 'Time',
+                clube_id: s.clube_id,
+                url_escudo_png: s.escudo,
+                contato: s.contato
+            }))
+            : participantes;
+
+        if (usarListaTesouraria) {
+            console.log(`[FLUXO-UI] Temporada ${temporadaNum}: Usando lista da API (${listaBase.length} renovados)`);
+        }
+
         // Mesclar dados de participantes com dados de saldo
-        const participantesComSaldo = participantes.map(p => {
+        const participantesComSaldo = listaBase.map(p => {
             const timeId = String(p.time_id || p.id);
             const saldoInfo = dadosSaldo?.participantes?.find(s => String(s.timeId) === timeId);
             return {
@@ -5497,7 +5519,7 @@ function gerarPDFAuditoria() {
     doc.save(nomeArquivo);
 };
 
-console.log("[FLUXO-UI] ✅ v6.4 Cards clicáveis + Modal de Auditoria + Ajustes Dinâmicos 2026+");
+console.log("[FLUXO-UI] ✅ v6.5 FIX: Temporada 2026 usa lista da API (apenas renovados)");
 
 // =============================================================================
 // AJUSTES DINÂMICOS (Temporada 2026+)
