@@ -4,8 +4,13 @@
  * Gerencia o modal e lógica de quitação de temporada,
  * permitindo ao admin definir legado para próxima temporada.
  *
- * @version 1.0.0
+ * @version 1.2.0
  * @since 2026-01-10
+ *
+ * Changelog:
+ * - v1.2.0 (2026-01-11): Sincronização com renovação - exibe crédito comprometido e saldo remanescente
+ * - v1.1.0 (2026-01-10): Alertas de integração com modal de Renovação
+ * - v1.0.0 (2026-01-10): Versão inicial
  */
 
 // =============================================================================
@@ -161,13 +166,44 @@ function renderizarModalQuitacao(dados) {
     const saldoFinalEl = document.getElementById('quitacao-saldo-final');
     saldoFinalEl.className = dados.saldo_final >= 0 ? 'valor-positivo' : 'valor-negativo';
 
-    // Atualizar labels das opções
-    document.getElementById('label-integral').textContent =
-        `Carregar saldo integral (${formatarMoeda(dados.saldo_final)})`;
+    // ✅ v1.2: Mostrar crédito comprometido e saldo remanescente (se aplicável)
+    const linhaComprometido = document.getElementById('quitacao-linha-comprometido');
+    const linhaRemanescente = document.getElementById('quitacao-linha-remanescente');
 
-    // Definir valor no campo customizado
-    document.getElementById('quitacao-valor-customizado').value =
-        dados.saldo_final.toFixed(2);
+    if (dados.credito_comprometido > 0) {
+        // Mostrar linhas de comprometimento
+        if (linhaComprometido) {
+            linhaComprometido.style.display = '';
+            document.getElementById('quitacao-credito-comprometido').textContent =
+                `- ${formatarMoeda(dados.credito_comprometido)}`;
+        }
+        if (linhaRemanescente) {
+            linhaRemanescente.style.display = '';
+            document.getElementById('quitacao-saldo-remanescente').textContent =
+                formatarMoeda(dados.saldo_remanescente);
+            const remanescenteEl = document.getElementById('quitacao-saldo-remanescente');
+            remanescenteEl.className = dados.saldo_remanescente >= 0 ? 'valor-positivo' : 'valor-negativo';
+        }
+
+        // ✅ v1.2: Usar saldo REMANESCENTE como valor padrão (não o saldo total)
+        document.getElementById('label-integral').textContent =
+            `Carregar saldo remanescente (${formatarMoeda(dados.saldo_remanescente)})`;
+        document.getElementById('quitacao-valor-customizado').value =
+            dados.saldo_remanescente.toFixed(2);
+
+        // Atualizar quitacaoAtual com saldo remanescente
+        quitacaoAtual.saldoOriginal = dados.saldo_remanescente;
+    } else {
+        // Esconder linhas de comprometimento
+        if (linhaComprometido) linhaComprometido.style.display = 'none';
+        if (linhaRemanescente) linhaRemanescente.style.display = 'none';
+
+        // Atualizar labels das opções com saldo total
+        document.getElementById('label-integral').textContent =
+            `Carregar saldo integral (${formatarMoeda(dados.saldo_final)})`;
+        document.getElementById('quitacao-valor-customizado').value =
+            dados.saldo_final.toFixed(2);
+    }
 
     // Atualizar temporada destino nas labels
     document.querySelectorAll('.temporada-destino').forEach(el => {
@@ -182,14 +218,17 @@ function renderizarModalQuitacao(dados) {
     document.getElementById('quitacao-valor-customizado').disabled = true;
 
     // ✅ v1.1: Mostrar alertas sobre inscrição na próxima temporada
-    renderizarAlertasInscricao(dados.inscricao_proxima_temporada, proximaTemporada);
+    renderizarAlertasInscricao(dados.inscricao_proxima_temporada, proximaTemporada, dados.credito_comprometido);
 }
 
 /**
  * Renderiza alertas sobre a situação de inscrição na próxima temporada
  * Integração com o modal de Renovação para evitar inconsistências
+ * @param {Object} inscricao - Dados da inscrição na próxima temporada
+ * @param {number} temporada - Temporada destino (ex: 2026)
+ * @param {number} creditoComprometido - Valor já deduzido para próxima temporada
  */
-function renderizarAlertasInscricao(inscricao, temporada) {
+function renderizarAlertasInscricao(inscricao, temporada, creditoComprometido = 0) {
     const container = document.getElementById('quitacao-alertas-inscricao');
     if (!container) return;
 
@@ -211,6 +250,16 @@ function renderizarAlertasInscricao(inscricao, temporada) {
     }
 
     let alertas = [];
+
+    // ✅ v1.2: Alerta especial para crédito comprometido
+    if (creditoComprometido > 0) {
+        alertas.push({
+            tipo: 'highlight',
+            icone: 'account_balance_wallet',
+            texto: `<strong>${formatarMoeda(creditoComprometido)}</strong> do saldo já foi <strong>utilizado</strong> para abater a taxa de inscrição de ${temporada}.
+                    O valor remanescente é o que será considerado nesta quitação.`
+        });
+    }
 
     // Caso 1: Já renovou e processou
     if (inscricao.ja_renovou && inscricao.processado) {
@@ -430,6 +479,17 @@ function injetarModalQuitacao() {
                             <td><strong>SALDO FINAL:</strong></td>
                             <td id="quitacao-saldo-final"><strong>R$ 0,00</strong></td>
                         </tr>
+                        <tr id="quitacao-linha-comprometido" class="linha-comprometido" style="display: none;">
+                            <td>
+                                <span class="material-icons" style="font-size: 14px; vertical-align: middle; color: #eab308;">sync_alt</span>
+                                Deduzido para 2026:
+                            </td>
+                            <td id="quitacao-credito-comprometido">- R$ 0,00</td>
+                        </tr>
+                        <tr id="quitacao-linha-remanescente" class="linha-remanescente" style="display: none;">
+                            <td><strong>SALDO REMANESCENTE:</strong></td>
+                            <td id="quitacao-saldo-remanescente"><strong>R$ 0,00</strong></td>
+                        </tr>
                     </table>
                 </div>
 
@@ -487,8 +547,9 @@ function injetarModalQuitacao() {
                 <div class="quitacao-aviso">
                     <span class="material-icons">warning</span>
                     <p>
-                        Esta ação marca o extrato como <strong>QUITADO</strong> e não pode ser desfeita.
-                        O valor escolhido será registrado como legado na próxima temporada.
+                        <strong>Atenção:</strong> Participantes com dívida precisam quitar o saldo antes de renovar para a próxima temporada.<br>
+                        Esta ação marcará o extrato como <strong>QUITADO</strong> e registrará o valor escolhido como legado para a temporada seguinte.<br>
+                        Após confirmar, não será possível desfazer.
                     </p>
                 </div>
             </div>
@@ -676,6 +737,21 @@ function injetarModalQuitacao() {
 
         #modal-quitacao-temporada .valor-positivo { color: #10b981 !important; }
         #modal-quitacao-temporada .valor-negativo { color: #ef4444 !important; }
+
+        /* ✅ v1.2: Linhas de crédito comprometido e saldo remanescente */
+        #modal-quitacao-temporada .tabela-resumo .linha-comprometido td {
+            background: rgba(234, 179, 8, 0.08);
+            border-bottom: 1px solid rgba(234, 179, 8, 0.2);
+            color: #eab308;
+            font-size: 0.9rem;
+        }
+
+        #modal-quitacao-temporada .tabela-resumo .linha-remanescente td {
+            background: rgba(59, 130, 246, 0.1);
+            border-bottom: none;
+            color: #60a5fa;
+            font-weight: 700;
+        }
 
         /* =============================================================================
            OPÇÕES DE QUITAÇÃO
@@ -871,6 +947,17 @@ function injetarModalQuitacao() {
 
         #modal-quitacao-temporada .alerta-success .material-icons {
             color: #10b981;
+        }
+
+        /* ✅ v1.2: Alerta Highlight - Laranja (crédito comprometido) */
+        #modal-quitacao-temporada .alerta-highlight {
+            background: rgba(255, 85, 0, 0.12);
+            border: 1px solid rgba(255, 85, 0, 0.4);
+            color: #ffb380;
+        }
+
+        #modal-quitacao-temporada .alerta-highlight .material-icons {
+            color: #ff5500;
         }
 
         /* =============================================================================

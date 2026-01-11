@@ -118,6 +118,26 @@ export async function buscarDadosParaQuitacao(req, res) {
         const jaRenovou = inscricao2026?.status === 'renovado' || inscricao2026?.status === 'novo';
         const jaProcessado = inscricao2026?.processado === true;
 
+        // ✅ v1.2: Calcular saldo comprometido com a próxima temporada
+        let creditoComprometido = 0;
+        let saldoRemanescente = saldoFinal;
+
+        if (inscricao2026 && jaProcessado && !inscricao2026.legado_manual?.origem) {
+            // Se renovou E processou E não tem quitação manual ainda
+            // O saldo_transferido representa o crédito usado para abater taxa
+            creditoComprometido = inscricao2026.saldo_transferido || 0;
+
+            // Saldo remanescente = saldo original - crédito já comprometido
+            if (creditoComprometido > 0 && saldoFinal > 0) {
+                saldoRemanescente = saldoFinal - creditoComprometido;
+            }
+
+            console.log(`[QUITACAO] Participante ${timeId} já renovou para ${proximaTemporada}:
+                - Saldo 2025: ${saldoFinal}
+                - Crédito comprometido: ${creditoComprometido}
+                - Saldo remanescente: ${saldoRemanescente}`);
+        }
+
         return res.json({
             success: true,
             dados: {
@@ -134,6 +154,9 @@ export async function buscarDadosParaQuitacao(req, res) {
                     total_recebido: totalRecebido
                 },
                 saldo_final: saldoFinal,
+                // ✅ v1.2: Novo - saldo após considerar comprometimento com próxima temporada
+                credito_comprometido: creditoComprometido,
+                saldo_remanescente: saldoRemanescente,
                 status: saldoFinal < -0.01 ? 'devedor' : (saldoFinal > 0.01 ? 'credor' : 'quitado'),
                 // ✅ v1.1: Dados da inscrição na próxima temporada
                 inscricao_proxima_temporada: inscricao2026 ? {
@@ -143,6 +166,8 @@ export async function buscarDadosParaQuitacao(req, res) {
                     ja_renovou: jaRenovou,
                     pagou_inscricao: inscricao2026.pagou_inscricao,
                     taxa_inscricao: inscricao2026.taxa_inscricao,
+                    saldo_transferido: inscricao2026.saldo_transferido || 0, // v1.2: Crédito usado
+                    divida_anterior: inscricao2026.divida_anterior || 0, // v1.2: Dívida carregada
                     // Se já tem legado_manual definido, avisar
                     legado_manual_existente: inscricao2026.legado_manual?.origem ? true : false,
                     legado_manual: inscricao2026.legado_manual
