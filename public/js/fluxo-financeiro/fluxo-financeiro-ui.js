@@ -826,10 +826,30 @@ export class FluxoFinanceiroUI {
                 </div>
             </div>
 
-            <!-- Tabela Financeira v3.1 - Layout Expandido -->
+            <!-- Tabela Financeira v4.0 - Layout Condicional por Temporada -->
             <div class="fluxo-tabela-container">
                 <table class="fluxo-participantes-tabela tabela-financeira">
                     <thead>
+                        ${temporadaNum >= 2026 ? `
+                        <!-- Header Pré-Temporada 2026: Colunas simplificadas de inscrição -->
+                        <tr>
+                            <th class="col-num">#</th>
+                            <th class="col-participante sortable" onclick="window.ordenarTabelaFinanceiro('nome')" data-sort="nome">
+                                <span class="th-sort">Participante <span class="material-icons sort-icon">unfold_more</span></span>
+                            </th>
+                            <th class="col-time-coracao" title="Time do Coração">
+                                <span class="material-icons" style="font-size: 16px;">favorite</span>
+                            </th>
+                            <th class="col-modulo" title="Crédito transferido de ${temporadaNum - 1}">Saldo ${temporadaNum - 1}</th>
+                            <th class="col-modulo" title="Taxa de inscrição ${temporadaNum}">Taxa ${temporadaNum}</th>
+                            <th class="col-modulo" title="Status da inscrição">Status</th>
+                            <th class="col-saldo sortable" onclick="window.ordenarTabelaFinanceiro('saldo')" data-sort="saldo">
+                                <span class="th-sort">Saldo Final <span class="material-icons sort-icon">unfold_more</span></span>
+                            </th>
+                            <th class="col-acoes">Ações</th>
+                        </tr>
+                        ` : `
+                        <!-- Header Histórico 2025: Colunas de módulos -->
                         <tr>
                             <th class="col-num">#</th>
                             <th class="col-participante sortable" onclick="window.ordenarTabelaFinanceiro('nome')" data-sort="nome">
@@ -853,10 +873,15 @@ export class FluxoFinanceiroUI {
                             <th class="col-2026" title="Status Renovação 2026">2026</th>
                             <th class="col-acoes">Ações</th>
                         </tr>
+                        `}
                     </thead>
                     <tbody id="participantesTableBody">
                         ${participantesOrdenados.length > 0
-                            ? participantesOrdenados.map((p, idx) => this._renderizarLinhaTabela(p, idx, ligaId)).join('')
+                            ? participantesOrdenados.map((p, idx) =>
+                                temporadaNum >= 2026
+                                    ? this._renderizarLinhaTabela2026(p, idx, ligaId, temporadaNum)
+                                    : this._renderizarLinhaTabela(p, idx, ligaId)
+                            ).join('')
                             : `<tr class="linha-vazia">
                                 <td colspan="15" style="text-align: center; padding: 40px; color: var(--texto-secundario);">
                                     <span class="material-icons" style="font-size: 48px; color: var(--laranja); opacity: 0.5;">group_off</span>
@@ -988,6 +1013,123 @@ export class FluxoFinanceiroUI {
                             <span class="material-icons">lock</span>
                         </button>
                         ` : ''}
+                        ${p.contato ? `
+                        <button onclick="window.abrirWhatsApp('${p.contato.replace(/'/g, "\\'")}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
+                                class="btn-acao btn-whatsapp" title="Enviar WhatsApp para ${p.nome_cartola || 'participante'}">
+                            <span class="material-icons">chat</span>
+                        </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    /**
+     * Renderiza uma linha da tabela para pré-temporada 2026+
+     * v4.0: Layout simplificado com dados de inscrição
+     * Colunas: #, Participante, Escudo, Saldo Anterior, Taxa, Status, Saldo Final, Ações
+     */
+    _renderizarLinhaTabela2026(p, idx, ligaId, temporadaNum) {
+        const timeId = p.time_id || p.id;
+
+        // Buscar dados de inscrição do cache
+        const inscricao = window.fluxoFinanceiroCache?.inscricoes2026?.get(String(timeId)) || {};
+
+        // Dados financeiros de inscrição
+        const saldoAnterior = inscricao.saldo_transferido || 0;
+        const taxaInscricao = inscricao.taxa_inscricao || 180;
+        const pagouDiretamente = inscricao.pagou_inscricao === true;
+        const quitadoViaLegado = inscricao.legado_manual?.tipo_quitacao != null;
+        const saldoCobriuTaxa = saldoAnterior >= taxaInscricao && taxaInscricao > 0;
+        const inscricaoQuitada = pagouDiretamente || quitadoViaLegado || saldoCobriuTaxa;
+
+        // Calcular saldo final
+        let saldoFinal = inscricao.saldo_inicial_temporada;
+        if (saldoFinal === undefined || saldoFinal === null) {
+            // Calcular: saldo anterior - taxa (se não pagou diretamente)
+            saldoFinal = pagouDiretamente ? saldoAnterior : (saldoAnterior - taxaInscricao);
+        }
+
+        // Status visual
+        let statusText, statusClass;
+        if (pagouDiretamente) {
+            statusText = 'Pago';
+            statusClass = 'status-pago';
+        } else if (saldoCobriuTaxa) {
+            statusText = 'Abatido';
+            statusClass = 'status-abatido';
+        } else if (quitadoViaLegado) {
+            statusText = 'Quitado';
+            statusClass = 'status-quitado';
+        } else {
+            statusText = 'Deve';
+            statusClass = 'status-deve';
+        }
+
+        // Time do coração
+        const timeCoracaoId = p.time_coracao || p.clube_id;
+        const escudoTimeCoracao = timeCoracaoId
+            ? `<img src="/escudos/${timeCoracaoId}.png"
+                   alt="" class="escudo-coracao"
+                   onerror="this.src='/escudos/default.png'"
+                   title="Time do Coração">`
+            : '<span class="material-icons" style="font-size: 16px; color: #666;">favorite_border</span>';
+
+        // Formatação de valores
+        const fmtValor = (val) => {
+            if (Math.abs(val) < 0.01) return '<span class="val-zero">R$ 0,00</span>';
+            const cls = val > 0 ? 'val-positivo' : 'val-negativo';
+            const sinal = val > 0 ? '+' : '';
+            const formatted = Math.abs(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return `<span class="${cls}">${sinal}R$ ${formatted}</span>`;
+        };
+
+        // Classe da linha baseada no saldo
+        const classeLinha = saldoFinal > 0 ? '' : saldoFinal < 0 ? 'row-devedor' : '';
+
+        return `
+            <tr class="linha-participante ${classeLinha}"
+                data-nome="${(p.nome_cartola || '').toLowerCase()}"
+                data-time="${(p.nome_time || '').toLowerCase()}"
+                data-time-id="${timeId}"
+                data-situacao="${statusClass}">
+                <td class="col-num">${idx + 1}</td>
+                <td class="col-participante">
+                    <div class="participante-cell" onclick="window.selecionarParticipante('${timeId}')">
+                        <div class="avatar-mini">
+                            ${p.url_escudo_png
+                                ? `<img src="${p.url_escudo_png}" alt="" onerror="this.style.display='none'">`
+                                : `<span class="material-icons">person</span>`
+                            }
+                        </div>
+                        <div class="info-participante">
+                            <span class="nome">${p.nome_cartola || 'N/D'}</span>
+                            <span class="time">${p.nome_time || '-'}</span>
+                        </div>
+                    </div>
+                </td>
+                <td class="col-time-coracao">${escudoTimeCoracao}</td>
+                <td class="col-modulo">${fmtValor(saldoAnterior)}</td>
+                <td class="col-modulo">
+                    <span class="val-negativo">-R$ ${taxaInscricao.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                </td>
+                <td class="col-modulo">
+                    <span class="badge-status ${statusClass}">${statusText}</span>
+                </td>
+                <td class="col-saldo ${saldoFinal > 0 ? 'val-positivo' : saldoFinal < 0 ? 'val-negativo' : ''}">
+                    <strong>${fmtValor(saldoFinal)}</strong>
+                </td>
+                <td class="col-acoes">
+                    <div class="acoes-row">
+                        <button onclick="window.selecionarParticipante('${timeId}')"
+                                class="btn-acao btn-extrato" title="Ver Extrato ${temporadaNum}">
+                            <span class="material-icons">receipt_long</span>
+                        </button>
+                        <button onclick="window.abrirModalAjusteFinanceiro && window.abrirModalAjusteFinanceiro('${ligaId}', '${timeId}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
+                                class="btn-acao btn-ajuste" title="Adicionar Ajuste">
+                            <span class="material-icons">add_circle</span>
+                        </button>
                         ${p.contato ? `
                         <button onclick="window.abrirWhatsApp('${p.contato.replace(/'/g, "\\'")}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
                                 class="btn-acao btn-whatsapp" title="Enviar WhatsApp para ${p.nome_cartola || 'participante'}">
@@ -1828,6 +1970,56 @@ export class FluxoFinanceiroUI {
             .situacao-badge.quitado {
                 background: rgba(156, 163, 175, 0.15);
                 color: #9ca3af;
+            }
+
+            /* ========================================
+               BADGES DE STATUS - TABELA 2026
+               v4.0 - Layout Pré-Temporada
+               ======================================== */
+            .badge-status {
+                display: inline-flex;
+                align-items: center;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 0.7rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .badge-status.status-pago {
+                background: rgba(16, 185, 129, 0.2);
+                color: #10b981;
+                border: 1px solid rgba(16, 185, 129, 0.3);
+            }
+
+            .badge-status.status-abatido {
+                background: rgba(59, 130, 246, 0.2);
+                color: #60a5fa;
+                border: 1px solid rgba(59, 130, 246, 0.3);
+            }
+
+            .badge-status.status-quitado {
+                background: rgba(156, 163, 175, 0.2);
+                color: #9ca3af;
+                border: 1px solid rgba(156, 163, 175, 0.3);
+            }
+
+            .badge-status.status-deve {
+                background: rgba(239, 68, 68, 0.2);
+                color: #ef4444;
+                border: 1px solid rgba(239, 68, 68, 0.3);
+            }
+
+            /* Botão Ajuste - Laranja */
+            .btn-ajuste {
+                background: linear-gradient(135deg, #FF5500 0%, #e04d00 100%);
+                border: none;
+                color: #fff;
+            }
+            .btn-ajuste:hover {
+                background: linear-gradient(135deg, #ff7733 0%, #FF5500 100%);
+                transform: scale(1.05);
             }
 
             /* Info do participante na célula */
@@ -5519,7 +5711,7 @@ function gerarPDFAuditoria() {
     doc.save(nomeArquivo);
 };
 
-console.log("[FLUXO-UI] ✅ v6.5 FIX: Temporada 2026 usa lista da API (apenas renovados)");
+console.log("[FLUXO-UI] ✅ v7.0 - Tabela condicional 2026 (layout pré-temporada com Saldo/Taxa/Status)");
 
 // =============================================================================
 // AJUSTES DINÂMICOS (Temporada 2026+)
@@ -5574,6 +5766,137 @@ window.abrirModalAjuste = function() {
     document.body.appendChild(modal);
     setTimeout(() => modal.classList.add('active'), 10);
     document.getElementById('ajusteDescricao').focus();
+};
+
+/**
+ * Abre modal de ajuste financeiro para um participante específico
+ * v4.0: Usado na tabela 2026 para adicionar ajustes diretamente
+ * @param {string} ligaId - ID da liga
+ * @param {string} timeId - ID do time/participante
+ * @param {string} nomeCartola - Nome do participante
+ */
+window.abrirModalAjusteFinanceiro = function(ligaId, timeId, nomeCartola) {
+    // Remover modal existente se houver
+    const existente = document.getElementById('modalAjusteFinanceiro');
+    if (existente) existente.remove();
+
+    const temporada = window.temporadaAtual || 2026;
+
+    const modal = document.createElement('div');
+    modal.id = 'modalAjusteFinanceiro';
+    modal.className = 'modal-ajuste-overlay';
+    modal.innerHTML = `
+        <div class="modal-ajuste-container">
+            <div class="modal-ajuste-header">
+                <h3>
+                    <span class="material-icons" style="vertical-align: middle; margin-right: 8px;">add_circle</span>
+                    Novo Ajuste - ${nomeCartola || 'Participante'}
+                </h3>
+                <button class="modal-ajuste-close" onclick="window.fecharModalAjuste()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-ajuste-body">
+                <div class="ajuste-info" style="background: #1a1a1a; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem; color: #888;">
+                    <span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">info</span>
+                    Temporada ${temporada}
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <input type="text" id="ajusteDescricao" class="input-ajuste"
+                           placeholder="Ex: Bônus premiação, Taxa extra, Correção..." maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label>Valor (R$)</label>
+                    <input type="number" id="ajusteValor" class="input-ajuste" placeholder="0.00" step="0.01" min="0.01">
+                </div>
+                <div class="form-group tipo-ajuste">
+                    <label>
+                        <input type="radio" name="tipoAjuste" value="credito">
+                        <span class="tipo-label credito">Crédito (+)</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="tipoAjuste" value="debito" checked>
+                        <span class="tipo-label debito">Débito (-)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-ajuste-footer">
+                <button class="btn-cancelar" onclick="window.fecharModalAjuste()">Cancelar</button>
+                <button class="btn-salvar" onclick="window.salvarAjusteFinanceiro('${ligaId}', '${timeId}', ${temporada})">
+                    <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">save</span>
+                    Salvar Ajuste
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('active'), 10);
+    document.getElementById('ajusteDescricao').focus();
+};
+
+/**
+ * Salva ajuste financeiro para participante específico
+ * v4.0: Usa os parâmetros passados ao invés de buscar do contexto
+ */
+window.salvarAjusteFinanceiro = async function(ligaId, timeId, temporada) {
+    const descricao = document.getElementById('ajusteDescricao')?.value?.trim();
+    const valorInput = parseFloat(document.getElementById('ajusteValor')?.value) || 0;
+    const tipoAjuste = document.querySelector('input[name="tipoAjuste"]:checked')?.value || 'debito';
+
+    // Validações
+    if (!descricao) {
+        alert('Descrição é obrigatória');
+        return;
+    }
+    if (valorInput === 0) {
+        alert('Valor não pode ser zero');
+        return;
+    }
+
+    // Aplicar sinal baseado no tipo
+    const valor = tipoAjuste === 'credito' ? Math.abs(valorInput) : -Math.abs(valorInput);
+
+    try {
+        console.log('[AJUSTE] Salvando:', { ligaId, timeId, temporada, descricao, valor, tipoAjuste });
+
+        const response = await fetch(`/api/fluxo-financeiro/${ligaId}/campos/${timeId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                campo: 'ajuste_manual',
+                valor: valor,
+                descricao: descricao,
+                temporada: temporada
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.message || 'Erro ao salvar ajuste');
+        }
+
+        const resultado = await response.json();
+        console.log('[AJUSTE] ✅ Salvo:', resultado);
+
+        // Fechar modal e recarregar
+        window.fecharModalAjuste();
+
+        // Recarregar tabela
+        if (window.recarregarFluxoFinanceiro) {
+            window.recarregarFluxoFinanceiro();
+        }
+
+        // Feedback visual
+        if (window.mostrarToast) {
+            window.mostrarToast('Ajuste salvo com sucesso!', 'success');
+        }
+
+    } catch (error) {
+        console.error('[AJUSTE] ❌ Erro:', error);
+        alert('Erro ao salvar ajuste: ' + error.message);
+    }
 };
 
 /**
