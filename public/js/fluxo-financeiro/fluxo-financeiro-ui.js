@@ -387,62 +387,47 @@ export class FluxoFinanceiroUI {
             `;
         }
 
-        // Banner de Legado (se tem legado manual na temporada 2026 vindo de 2025)
-        if (temporada === 2026 && data.legado_manual?.origem) {
-            const valorLegado = data.legado_manual.valor_definido || 0;
+        // v7.1: Banner de Legado REMOVIDO do extrato 2026
+        // Legado é sobre quitação de 2025, não deve aparecer no extrato da nova temporada
+        // Histórico de 2025 fica preservado no extrato de 2025
+
+        // ✅ v7.1: Definir rodadas ANTES dos cards para poder condicionar exibição
+        const historicoRodadas = data.rodadas || data.historico || [];
+        const transacoesEspeciais = historicoRodadas.filter(t => t.isTransacaoEspecial || t.tipo);
+        const rodadasNormais = historicoRodadas.filter(t => !t.isTransacaoEspecial && !t.tipo);
+        const temRodadas = rodadasNormais.length > 0;
+
+        // Cards de Resumo - v7.1: Só mostra se TEM RODADAS (não é pré-temporada)
+        if (temRodadas) {
             html += `
-                <div class="extrato-legado-banner">
-                    <div class="extrato-legado-banner-header">
-                        <span class="material-icons">history</span>
-                        <h4>Legado da Temporada 2025</h4>
+                <div class="extrato-resumo-cards">
+                    <div class="extrato-resumo-card">
+                        <span class="card-label">Bônus</span>
+                        <span class="card-value ${getValorClass(resumo.bonus)}">${formatarMoeda(resumo.bonus || 0)}</span>
                     </div>
-                    <div class="extrato-quitado-banner-content">
-                        <div class="extrato-quitado-item">
-                            <label>Origem</label>
-                            <span>${data.legado_manual.origem === 'quitacao_admin' ? 'Quitação Admin' : 'Acordo'}</span>
-                        </div>
-                        <div class="extrato-quitado-item">
-                            <label>Valor Original</label>
-                            <span class="${getValorClass(data.legado_manual.valor_original)}">${formatarMoeda(data.legado_manual.valor_original || 0)}</span>
-                        </div>
-                        <div class="extrato-quitado-item">
-                            <label>Valor Definido</label>
-                            <span class="${getValorClass(valorLegado)}">${formatarMoeda(valorLegado)}</span>
-                        </div>
+                    <div class="extrato-resumo-card">
+                        <span class="card-label">Ônus</span>
+                        <span class="card-value ${getValorClass(resumo.onus)}">${formatarMoeda(resumo.onus || 0)}</span>
+                    </div>
+                    <div class="extrato-resumo-card">
+                        <span class="card-label">Pts Corridos</span>
+                        <span class="card-value ${getValorClass(resumo.pontosCorridos)}">${formatarMoeda(resumo.pontosCorridos || 0)}</span>
+                    </div>
+                    <div class="extrato-resumo-card">
+                        <span class="card-label">Mata-Mata</span>
+                        <span class="card-value ${getValorClass(resumo.mataMata)}">${formatarMoeda(resumo.mataMata || 0)}</span>
+                    </div>
+                    <div class="extrato-resumo-card">
+                        <span class="card-label">Top 10</span>
+                        <span class="card-value ${getValorClass(resumo.top10)}">${formatarMoeda(resumo.top10 || 0)}</span>
+                    </div>
+                    <div class="extrato-resumo-card">
+                        <span class="card-label">Manuais</span>
+                        <span class="card-value ${getValorClass(resumo.camposManuais)}">${formatarMoeda(resumo.camposManuais || 0)}</span>
                     </div>
                 </div>
             `;
         }
-
-        // Cards de Resumo
-        html += `
-            <div class="extrato-resumo-cards">
-                <div class="extrato-resumo-card">
-                    <span class="card-label">Bônus</span>
-                    <span class="card-value ${getValorClass(resumo.bonus)}">${formatarMoeda(resumo.bonus || 0)}</span>
-                </div>
-                <div class="extrato-resumo-card">
-                    <span class="card-label">Ônus</span>
-                    <span class="card-value ${getValorClass(resumo.onus)}">${formatarMoeda(resumo.onus || 0)}</span>
-                </div>
-                <div class="extrato-resumo-card">
-                    <span class="card-label">Pts Corridos</span>
-                    <span class="card-value ${getValorClass(resumo.pontosCorridos)}">${formatarMoeda(resumo.pontosCorridos || 0)}</span>
-                </div>
-                <div class="extrato-resumo-card">
-                    <span class="card-label">Mata-Mata</span>
-                    <span class="card-value ${getValorClass(resumo.mataMata)}">${formatarMoeda(resumo.mataMata || 0)}</span>
-                </div>
-                <div class="extrato-resumo-card">
-                    <span class="card-label">Top 10</span>
-                    <span class="card-value ${getValorClass(resumo.top10)}">${formatarMoeda(resumo.top10 || 0)}</span>
-                </div>
-                <div class="extrato-resumo-card">
-                    <span class="card-label">Manuais</span>
-                    <span class="card-value ${getValorClass(resumo.camposManuais)}">${formatarMoeda(resumo.camposManuais || 0)}</span>
-                </div>
-            </div>
-        `;
 
         // Saldo Final
         html += `
@@ -452,14 +437,6 @@ export class FluxoFinanceiroUI {
                 ${isQuitado ? '<span class="performance-badge excelente">QUITADO</span>' : ''}
             </div>
         `;
-
-        // Se tem histórico de transações, mostrar tabela resumida
-        // ✅ FIX: API retorna "rodadas", não "historico"
-        const historicoRodadas = data.rodadas || data.historico || [];
-
-        // ✅ v2.16: Separar transações especiais (inscrição, legado) das rodadas normais
-        const transacoesEspeciais = historicoRodadas.filter(t => t.isTransacaoEspecial || t.tipo);
-        const rodadasNormais = historicoRodadas.filter(t => !t.isTransacaoEspecial && !t.tipo);
 
         // Mostrar transações especiais primeiro (inscrição 2026, legado, etc.)
         if (transacoesEspeciais.length > 0) {
@@ -1051,17 +1028,13 @@ export class FluxoFinanceiroUI {
             saldoFinal = pagouDiretamente ? saldoAnterior : (saldoAnterior - taxaInscricao);
         }
 
-        // Status visual
+        // Status visual - v7.1: Simplificado (PAGO ou DEVE)
+        // PAGO = pagou diretamente OU crédito cobriu a taxa
+        // DEVE = não pagou e crédito não cobriu
         let statusText, statusClass;
-        if (pagouDiretamente) {
+        if (pagouDiretamente || saldoCobriuTaxa) {
             statusText = 'Pago';
             statusClass = 'status-pago';
-        } else if (saldoCobriuTaxa) {
-            statusText = 'Abatido';
-            statusClass = 'status-abatido';
-        } else if (false) { // Removido: quitadoViaLegado não se aplica a inscrição 2026
-            statusText = 'Quitado';
-            statusClass = 'status-quitado';
         } else {
             statusText = 'Deve';
             statusClass = 'status-deve';
