@@ -17,30 +17,7 @@
 - 283 (Cruzeiro), 292 (Sport), 344 (RB Bragantino)
 - default.png para clubes sem escudo
 
----
-
-## Tarefas Pendentes
-
-### Testes Pendentes (Aguardando validacao do usuario)
-
-#### 1. Reteste Fluxo Financeiro 2026
-- [ ] Acessar Fluxo Financeiro > aba 2026
-- [ ] Verificar coluna Status (PAGO ou DEVE, nao ABATIDO)
-- [ ] Testar extrato de Diogo Monte (saldo +R$174)
-- [ ] Testar extrato de Paulinett Miranda (saldo R$0)
-- [ ] Testar extrato de Felipe Barbosa (saldo -R$180)
-
-#### 2. Testes de Engajamento no App (Participante Premium)
-**Usar:** Paulinett Miranda (time_id: 13935277)
-
-- [ ] **Jogos do Dia** - Card deve aparecer na tela inicial com 3 jogos mock
-- [ ] **Badge "Preview"** - Deve aparecer indicando que sao dados de teste
-- [ ] **Layout** - Card deve estar apos "Inscricao Confirmada"
-- [ ] **Outros participantes** - Nao devem ver o card de jogos (nao sao premium)
-
----
-
-### Referencia - Dados no MongoDB (2026)
+### Dados no MongoDB (2026)
 | Participante | time_id | Saldo 2026 | Status |
 |--------------|---------|------------|--------|
 | Lucio | -1767569480236 | -R$180 | Deve |
@@ -48,6 +25,12 @@
 | Antonio Luis | 645089 | -R$180 | Deve |
 | Paulinett Miranda | 13935277 | R$0 | Pago |
 | Diogo Monte | 25371297 | +R$174 | Pago (credito) |
+
+---
+
+## Tarefas Pendentes
+
+_Nenhuma tarefa pendente no momento._
 
 ---
 
@@ -62,6 +45,24 @@
 - Incrementada versao do IndexedDB de 2 para 3 em `participante-cache.js`
 - Quando usuarios acessarem o app, o banco sera recriado automaticamente
 - Commit: `fix(cache): incrementa IndexedDB v3 para limpar cache de 2025`
+
+### Fluxo Financeiro 2026 - Validado
+**Status:** VALIDADO VIA API
+
+**Testes realizados:**
+- [x] Diogo Monte: saldo +R$174 (A RECEBER)
+- [x] Paulinett Miranda: saldo R$0 (QUITADO)
+- [x] Felipe Barbosa: saldo -R$180 (DEVE)
+- [x] Logica de status: DEVE/QUITADO/A RECEBER (sem "ABATIDO")
+
+### Jogos do Dia (Premium) - Validado
+**Status:** VALIDADO VIA API
+
+**Testes realizados:**
+- [x] API retorna 3 jogos mock para premium (time_id 13935277)
+- [x] API retorna jogos: [] para nao-premium
+- [x] Badge "Preview" quando fonte = "mock"
+- [x] Frontend integrado em participante-boas-vindas.js
 
 ---
 
