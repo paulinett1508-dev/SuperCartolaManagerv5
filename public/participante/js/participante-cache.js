@@ -6,7 +6,7 @@ class ParticipanteCache {
     constructor() {
         this.db = null;
         this.dbName = 'ParticipanteCacheDB';
-        this.version = 2; // Atualizado para incluir melhorias
+        this.version = 3; // v3: Força limpeza de cache 2025 para nova temporada 2026
         this.RODADA_MAXIMA = 38;
         this.RODADA_FECHADA_LIMITE = 35; // Rodadas até 35 são permanentes
         this.rodadaAtual = null;
