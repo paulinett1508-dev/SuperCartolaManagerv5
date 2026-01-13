@@ -149,8 +149,10 @@ export class FluxoFinanceiroUI {
             if (this.participanteAtual) {
                 const timeId = this.participanteAtual.time_id || this.participanteAtual.id;
                 const nome = (this.participanteAtual.nome || this.participanteAtual.nomeTime || 'Participante').replace(/'/g, "\\'");
-                if (window.abrirModalAcerto) {
-                    window.abrirModalAcerto(timeId, nome);
+                const saldo = this.participanteAtual.saldoFinal || this.participanteAtual.saldo || 0;
+                // ✅ FIX: Chamar função correta com saldo para habilitar botão "Zerar"
+                if (window.abrirModalAcertoFluxo) {
+                    window.abrirModalAcertoFluxo(timeId, nome, saldo);
                 }
             }
         };
