@@ -3289,10 +3289,7 @@ export class FluxoFinanceiroUI {
         const saldoAcertos = extrato.resumo?.saldo_acertos ?? 0;
         const saldoFinal = extrato.resumo?.saldo ?? 0;
 
-        // Se não tem acertos, não mostrar seção
-        if (acertos.length === 0 && saldoAcertos === 0) {
-            return '';
-        }
+        // ✅ v6.3: Sempre mostrar seção de acertos (mesmo vazia)
 
         const formatarValor = (v) => Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
         const corSaldoTemp = saldoTemporada >= 0 ? 'text-success' : 'text-danger';
