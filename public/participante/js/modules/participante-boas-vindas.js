@@ -1,5 +1,5 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.7 (JOGOS DO DIA PREMIUM)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.8 (JOGOS DO DIA DEBUG)
 // =====================================================================
 // ✅ v10.7: Integração do módulo Jogos do Dia para participantes premium
 //          - Exibe jogos do Brasileirão (ou mock em pré-temporada)
@@ -718,19 +718,28 @@ function renderizarBoasVindas(container, data, ligaRules) {
                     <div id="jogos-do-dia-placeholder"></div>
             </div>
         `;
-        // ✅ v10.7: Carregar e renderizar jogos do dia para premium
+        // ✅ v10.8: Carregar e renderizar jogos do dia para premium (com debug)
+        if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "🎮 Iniciando carregamento de Jogos do Dia...");
         import('./participante-jogos.js').then(async mod => {
             const timeIdNum = Number(timeId);
+            if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", `🎮 Buscando jogos para timeId=${timeIdNum}...`);
             const result = await mod.obterJogosDoDia(timeIdNum);
+            if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "🎮 Resultado jogos:", result);
             // Só renderiza se tem jogos (API real ou mock para premium)
             if (result.jogos && result.jogos.length > 0) {
                 const isMock = result.fonte === 'mock';
                 const html = mod.renderizarJogosDoDia(result.jogos, isMock);
                 const el = document.getElementById('jogos-do-dia-placeholder');
-                if (el) el.innerHTML = html;
+                if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", `🎮 Placeholder encontrado: ${!!el}`);
+                if (el) {
+                    el.innerHTML = html;
+                    if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Card de jogos renderizado!");
+                }
+            } else {
+                if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "⚠️ Nenhum jogo retornado pela API");
             }
         }).catch(err => {
-            if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "Jogos do dia não disponível:", err);
+            if (window.Log) Log.error("PARTICIPANTE-BOAS-VINDAS", "❌ Erro ao carregar jogos:", err);
         });
     } else {
         // ✅ PARTICIPANTE NÃO RENOVOU - Mostrar dados da temporada anterior normalmente
