@@ -351,20 +351,20 @@
   flex-shrink: 0;
 }
 
-/* === GRID DE PARTICIPANTES (COMPACTO) === */
+/* === GRID DE PARTICIPANTES (ULTRA COMPACTO) === */
 .participantes-grid {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: var(--spacing-sm) 0;
+  gap: 4px;
+  padding: 8px 0;
 }
 
-/* === CARDS DE PARTICIPANTE (LAYOUT COMPACTO HORIZONTAL) === */
+/* === CARDS DE PARTICIPANTE (LAYOUT ULTRA COMPACTO) === */
 .participante-card {
   background: var(--bg-card);
   border: 1px solid rgba(255, 69, 0, 0.08);
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: 6px;
+  padding: 6px 10px;
   transition: border-color 0.15s ease, background-color 0.15s ease;
   position: relative;
 }
@@ -383,18 +383,18 @@
     opacity: 0.7;
 }
 
-/* === ROW LAYOUT === */
+/* === ROW LAYOUT (MAIS COMPACTO) === */
 .participante-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
-/* === AVATAR MINI === */
+/* === AVATAR MINI (MENOR) === */
 .participante-avatar-mini {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
 
@@ -409,10 +409,10 @@
 
 .participante-avatar-mini .status-dot {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 10px;
-  height: 10px;
+  bottom: -1px;
+  right: -1px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   border: 2px solid var(--bg-card);
 }
@@ -425,35 +425,37 @@
   background: #ef4444;
 }
 
-/* === INFO COMPACTO === */
+/* === INFO COMPACTO (SEM FLEX-GROW) === */
 .participante-info-compact {
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
+  min-width: 100px;
+  max-width: 180px;  /* Limitar largura para não empurrar botões */
 }
 
 .participante-nome-compact {
-  font: 600 0.9rem "Inter", -apple-system, sans-serif;
+  font: 600 0.85rem "Inter", -apple-system, sans-serif;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
 .participante-time-compact {
-  font: 400 0.75rem "Inter", -apple-system, sans-serif;
+  font: 400 0.7rem "Inter", -apple-system, sans-serif;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
-/* === CLUBE MINI === */
+/* === CLUBE MINI (COLADO NO NOME) === */
 .participante-clube-mini {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
 }
 
@@ -463,17 +465,17 @@
   object-fit: contain;
 }
 
-/* === AÇÕES COMPACTAS === */
+/* === AÇÕES COMPACTAS (COLADAS NO CLUBE) === */
 .participante-actions-compact {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   flex-shrink: 0;
 }
 
 .btn-compact {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
   color: var(--text-muted);
@@ -485,7 +487,7 @@
 }
 
 .btn-compact .material-symbols-outlined {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .btn-compact:hover {
@@ -515,29 +517,34 @@
 /* === RESPONSIVO === */
 @media (max-width: 600px) {
   .participante-row {
-    flex-wrap: wrap;
-  }
-
-  .participante-info-compact {
-    flex: 1 1 calc(100% - 60px);
-    order: 1;
+    gap: 6px;
   }
 
   .participante-avatar-mini {
-    order: 0;
+    width: 28px;
+    height: 28px;
+  }
+
+  .participante-nome-compact {
+    font-size: 0.8rem;
+  }
+
+  .participante-time-compact {
+    font-size: 0.65rem;
   }
 
   .participante-clube-mini {
-    display: none;
+    width: 18px;
+    height: 18px;
   }
 
-  .participante-actions-compact {
-    order: 2;
-    width: 100%;
-    justify-content: flex-end;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  .btn-compact {
+    width: 26px;
+    height: 26px;
+  }
+
+  .btn-compact .material-symbols-outlined {
+    font-size: 14px;
   }
 }
 
@@ -996,11 +1003,47 @@
   }
 
   .participantes-grid {
-    grid-template-columns: 1fr;
+    gap: 3px;
   }
 
   .participante-card {
-    padding: var(--spacing-sm);
+    padding: 5px 8px;
+  }
+
+  .participante-row {
+    gap: 5px;
+  }
+
+  .participante-avatar-mini {
+    width: 26px;
+    height: 26px;
+  }
+
+  .participante-nome-compact {
+    font-size: 0.78rem;
+  }
+
+  .participante-time-compact {
+    font-size: 0.62rem;
+  }
+
+  .participante-clube-mini {
+    width: 16px;
+    height: 16px;
+    margin-left: -2px;
+  }
+
+  .participante-actions-compact {
+    gap: 2px;
+  }
+
+  .btn-compact {
+    width: 24px;
+    height: 24px;
+  }
+
+  .btn-compact .material-symbols-outlined {
+    font-size: 13px;
   }
 
   .stat-icon {

@@ -30,7 +30,70 @@
 
 ## Tarefas Pendentes
 
-_Nenhuma tarefa pendente no momento._
+### Validação de IDs Cartola - Temporada 2026
+**Status:** CONCLUÍDO
+
+**Contexto:** Antes da temporada 2026 começar, precisamos validar se os IDs dos times no Cartola FC ainda são válidos (mesmo dono).
+
+**Implementado:**
+
+1. **Rota API** (FEITO)
+   - `GET /api/ligas/:id/validar-participantes/:temporada`
+   - `PUT /api/ligas/:id/participantes/:timeId/sincronizar`
+   - Controller: `controllers/validacaoParticipantesController.js`
+
+2. **Script CLI** (FEITO)
+   ```bash
+   node scripts/validar-ids-temporada.js --temporada=2026
+   node scripts/validar-ids-temporada.js --temporada=2026 --fix
+   ```
+
+3. **Botão na UI** (FEITO)
+   - Botão "Validar" no toolbar de Participantes
+   - Modal com resultados (válidos/dono diferente/inexistentes)
+   - Botão "Atualizar" para sincronizar dados divergentes
+
+**Resultado da Validação 2026:**
+```
+✅ VÁLIDOS (4/4)
+   8098497 - Felipe Barbosa (Cangalexeu FC)
+   645089 - Antonio Luis (FloriMengo FC)
+   13935277 - Paulinett Miranda (Urubu Play F.C.)
+   25371297 - Diogo Monte (Tabaca Neon)
+```
+
+**Arquivos criados/modificados:**
+- `controllers/validacaoParticipantesController.js` (NOVO)
+- `scripts/validar-ids-temporada.js` (NOVO)
+- `routes/ligas.js` (rotas adicionadas)
+- `public/fronts/participantes.html` (botão Validar)
+- `public/js/participantes.js` (lógica + modal)
+
+---
+
+### Compactação UI Participantes
+**Status:** CONCLUÍDO
+
+**Problema:** Layout muito espaçado, botões longe do nome.
+
+**Solução aplicada em `public/css/modules/participantes.css`:**
+- Gap entre cards: 6px → 4px
+- Padding card: 8px 12px → 6px 10px
+- Gap interno row: 12px → 8px
+- Avatar: 36px → 30px
+- Botões: 32px → 28px
+- Removido `flex: 1` do info (não empurra mais botões)
+- Max-width: 180px no info
+
+---
+
+### Correção Aba 2026
+**Status:** CONCLUÍDO
+
+**Mudanças:**
+- Mesmo layout de 2025 (sem badge de status)
+- Quem saiu (`nao_participa`) não aparece mais
+- Botão "Dados do Globo" restaurado
 
 ---
 

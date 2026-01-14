@@ -1,6 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
 import { verificarAdmin } from "../middleware/auth.js";
+import { CURRENT_SEASON } from "../config/seasons.js";
+import InscricaoTemporada from "../models/InscricaoTemporada.js";
 import {
   listarLigas,
   buscarLigaPorId,
@@ -23,6 +25,10 @@ import {
 } from "../controllers/ligaController.js";
 
 import { popularRodadas } from "../controllers/rodadaController.js";
+import {
+  validarParticipantesTemporada,
+  sincronizarParticipanteCartola
+} from "../controllers/validacaoParticipantesController.js";
 import Liga from "../models/Liga.js";
 import { tenantFilter } from "../middleware/tenant.js";
 
@@ -697,5 +703,135 @@ router.get("/:id/melhor-mes/status", async (req, res) => {
     res.status(500).json({ erro: "Erro ao buscar status" });
   }
 });
+
+// =====================================================================
+// ROTAS DE PARTICIPANTES POR TEMPORADA
+// =====================================================================
+
+// GET /api/ligas/:id/temporadas - Lista temporadas disponíveis
+router.get("/:id/temporadas", async (req, res) => {
+  const { id: ligaId } = req.params;
+
+  try {
+    const liga = await Liga.findById(ligaId).select("temporada").lean();
+    if (!liga) {
+      return res.status(404).json({ erro: "Liga não encontrada" });
+    }
+
+    const temporadaBase = liga.temporada || 2025;
+
+    // Buscar temporadas com inscrições
+    const temporadasInscricoes = await InscricaoTemporada.distinct("temporada", {
+      liga_id: new mongoose.Types.ObjectId(ligaId),
+    });
+
+    // Combinar e ordenar (mais recente primeiro)
+    const disponiveis = [...new Set([temporadaBase, ...temporadasInscricoes])]
+      .sort((a, b) => b - a);
+
+    res.json({
+      temporada_atual: CURRENT_SEASON,
+      temporada_liga: temporadaBase,
+      disponiveis,
+    });
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar temporadas:`, error);
+    res.status(500).json({ erro: "Erro ao buscar temporadas" });
+  }
+});
+
+// GET /api/ligas/:id/participantes?temporada=2026 - Lista participantes por temporada
+router.get("/:id/participantes", async (req, res) => {
+  const { id: ligaId } = req.params;
+  const { temporada } = req.query;
+
+  try {
+    const liga = await Liga.findById(ligaId).lean();
+    if (!liga) {
+      return res.status(404).json({ erro: "Liga não encontrada" });
+    }
+
+    const temporadaLiga = liga.temporada || 2025;
+    const temporadaFiltro = temporada ? parseInt(temporada) : temporadaLiga;
+
+    let participantes = [];
+    let fonte = "";
+    let stats = { total: 0, ativos: 0, renovados: 0, pendentes: 0, nao_participa: 0, novos: 0 };
+
+    // Temporada base da liga: usar participantes embutidos
+    if (temporadaFiltro === temporadaLiga) {
+      fonte = "liga.participantes";
+
+      // Buscar status de inativos
+      const inativos = await getParticipantesInativos(ligaId);
+
+      participantes = (liga.participantes || []).map((p) => {
+        const inativoData = inativos.get(String(p.time_id));
+        const ativo = !inativoData;
+
+        return {
+          time_id: p.time_id,
+          nome_cartoleiro: p.nome_cartola || p.nome_cartoleiro || "N/D",
+          nome_time: p.nome_time || "N/D",
+          escudo: p.foto_time || p.escudo || "",
+          clube_id: p.clube_id || null,
+          status: ativo ? "ativo" : "inativo",
+          ativo,
+          rodada_desistencia: inativoData?.rodada_inativo || null,
+        };
+      });
+
+      stats.total = participantes.length;
+      stats.ativos = participantes.filter((p) => p.ativo).length;
+    } else {
+      // Temporada diferente: consultar inscricoestemporada
+      fonte = "inscricoestemporada";
+
+      const inscricoes = await InscricaoTemporada.find({
+        liga_id: new mongoose.Types.ObjectId(ligaId),
+        temporada: temporadaFiltro,
+      }).lean();
+
+      participantes = inscricoes.map((insc) => ({
+        time_id: insc.time_id,
+        nome_cartoleiro: insc.dados_participante?.nome_cartoleiro || "N/D",
+        nome_time: insc.dados_participante?.nome_time || "N/D",
+        escudo: insc.dados_participante?.escudo || "",
+        clube_id: insc.dados_participante?.clube_id || null,
+        status: insc.status,
+        ativo: insc.status === "renovado" || insc.status === "novo",
+        pagou_inscricao: insc.pagou_inscricao || false,
+        saldo_transferido: insc.saldo_transferido || 0,
+      }));
+
+      stats.total = participantes.length;
+      stats.renovados = participantes.filter((p) => p.status === "renovado").length;
+      stats.pendentes = participantes.filter((p) => p.status === "pendente").length;
+      stats.nao_participa = participantes.filter((p) => p.status === "nao_participa").length;
+      stats.novos = participantes.filter((p) => p.status === "novo").length;
+      stats.ativos = stats.renovados + stats.novos;
+    }
+
+    res.json({
+      temporada: temporadaFiltro,
+      fonte,
+      participantes,
+      stats,
+    });
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar participantes:`, error);
+    res.status(500).json({ erro: "Erro ao buscar participantes" });
+  }
+});
+
+// =====================================================================
+// ROTAS DE VALIDAÇÃO DE PARTICIPANTES (IDs Cartola)
+// =====================================================================
+
+// GET /api/ligas/:id/validar-participantes/:temporada - Valida IDs na API do Cartola
+router.get("/:id/validar-participantes/:temporada", verificarAdmin, validarParticipantesTemporada);
+
+// PUT /api/ligas/:id/participantes/:timeId/sincronizar - Atualiza dados do Cartola
+router.put("/:id/participantes/:timeId/sincronizar", verificarAdmin, sincronizarParticipanteCartola);
 
 export default router;

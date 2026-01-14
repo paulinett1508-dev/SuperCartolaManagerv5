@@ -6,6 +6,74 @@ const ligaId = urlParams.get("id");
 // ✅ DEBOUNCE: Evitar cliques duplicados
 let operacaoEmAndamento = false;
 
+// =====================================================================
+// SISTEMA DE TEMPORADAS
+// =====================================================================
+let temporadaSelecionada = null;
+let temporadasDisponiveis = [];
+let temporadaLiga = null;
+
+// Inicializa as temporadas disponíveis
+async function inicializarTemporadas() {
+    const tabsContainer = document.getElementById("temporada-tabs");
+    if (!tabsContainer) return;
+
+    try {
+        const res = await fetch(`/api/ligas/${ligaId}/temporadas`);
+        if (!res.ok) throw new Error("Erro ao buscar temporadas");
+
+        const data = await res.json();
+        temporadasDisponiveis = data.disponiveis || [];
+        temporadaLiga = data.temporada_liga;
+        temporadaSelecionada = temporadaSelecionada || temporadaLiga;
+
+        renderizarAbas();
+        console.log(`[TEMPORADAS] Disponíveis: ${temporadasDisponiveis.join(", ")}`);
+    } catch (error) {
+        console.warn("[TEMPORADAS] Erro ao inicializar:", error);
+        tabsContainer.style.display = "none";
+    }
+}
+
+// Renderiza as abas de temporada
+function renderizarAbas() {
+    const container = document.getElementById("temporada-tabs");
+    if (!container || temporadasDisponiveis.length === 0) return;
+
+    // Se só tem uma temporada, não mostra abas
+    if (temporadasDisponiveis.length === 1) {
+        container.style.display = "none";
+        return;
+    }
+
+    container.innerHTML = temporadasDisponiveis.map(temp => `
+        <button class="tab-btn ${temp === temporadaSelecionada ? "active" : ""}"
+                data-temporada="${temp}"
+                onclick="selecionarTemporada(${temp})">
+            <span class="material-icons">calendar_today</span>
+            ${temp}
+        </button>
+    `).join("");
+}
+
+// Seleciona uma temporada e recarrega participantes
+async function selecionarTemporada(temporada) {
+    if (temporada === temporadaSelecionada) return;
+
+    temporadaSelecionada = temporada;
+
+    // Atualizar UI das abas
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", parseInt(btn.dataset.temporada) === temporada);
+    });
+
+    // Recarregar participantes
+    await carregarParticipantesPorTemporada(temporada);
+}
+
+// Torna função global para onclick
+window.selecionarTemporada = selecionarTemporada;
+
 // CONFIGURAÇÃO DOS BRASÕES
 const CLUBES_CONFIG = {
     MAPEAMENTO: {
@@ -49,6 +117,159 @@ const BrasoesHelper = {
         return clube ? clube.nome : "Não definido";
     },
 };
+
+// =====================================================================
+// CARREGAMENTO POR TEMPORADA (Novo endpoint)
+// =====================================================================
+async function carregarParticipantesPorTemporada(temporada) {
+    const container = document.getElementById("participantes-grid");
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="loading-state-full">
+            <div class="loading-spinner"></div>
+            <div class="loading-message">Carregando participantes ${temporada}...</div>
+        </div>
+    `;
+
+    try {
+        const res = await fetch(`/api/ligas/${ligaId}/participantes?temporada=${temporada}`);
+        if (!res.ok) throw new Error("Erro ao buscar participantes");
+
+        const data = await res.json();
+        const participantes = data.participantes || [];
+        const stats = data.stats || {};
+        const isTemporadaBase = data.fonte === "liga.participantes";
+
+        // Atualizar contadores
+        document.getElementById("total-participantes").textContent = stats.total || 0;
+        document.getElementById("participantes-ativos").textContent = stats.ativos || 0;
+
+        if (participantes.length === 0) {
+            container.innerHTML = `
+                <div class="participantes-empty-state">
+                    <span class="material-icons" style="font-size: 48px;">group</span>
+                    <div class="empty-title">Nenhum participante em ${temporada}</div>
+                </div>
+            `;
+            return;
+        }
+
+        // Ordenar por nome
+        participantes.sort((a, b) =>
+            (a.nome_cartoleiro || "").localeCompare(b.nome_cartoleiro || "")
+        );
+
+        container.innerHTML = "";
+
+        // Filtrar: quem saiu (nao_participa) não aparece em temporadas futuras
+        const participantesFiltrados = isTemporadaBase
+            ? participantes
+            : participantes.filter(p => p.status !== "nao_participa");
+
+        participantesFiltrados.forEach((p, index) => {
+            const estaAtivo = p.ativo !== false;
+            const card = document.createElement("div");
+            card.className = `participante-card ${!estaAtivo ? "card-inativo" : ""}`;
+            card.id = `card-time-${p.time_id}`;
+            card.setAttribute("data-time-id", p.time_id);
+            card.setAttribute("data-ativo", estaAtivo);
+            card.setAttribute("data-nome", (p.nome_cartoleiro || "").toLowerCase());
+            card.setAttribute("data-time", (p.nome_time || "").toLowerCase());
+
+            const temClubeCoracao = p.clube_id && CLUBES_CONFIG.MAPEAMENTO[p.clube_id];
+
+            card.innerHTML = `
+                <div class="participante-row">
+                    <div class="participante-avatar-mini">
+                        <img src="${p.escudo || CLUBES_CONFIG.PATHS.defaultImage}"
+                             alt="${p.nome_cartoleiro}"
+                             onerror="this.src='${CLUBES_CONFIG.PATHS.defaultImage}'">
+                        <span class="status-dot ${estaAtivo ? "status-ativo" : "status-inativo"}"></span>
+                    </div>
+
+                    <div class="participante-info-compact">
+                        <span class="participante-nome-compact">${p.nome_cartoleiro || "N/D"}</span>
+                        <span class="participante-time-compact">${p.nome_time || "Time N/A"}</span>
+                    </div>
+
+                    ${temClubeCoracao ? `
+                    <div class="participante-clube-mini" title="${BrasoesHelper.getNomeClube(p.clube_id)}">
+                        <img src="${BrasoesHelper.getClubeBrasao(p.clube_id)}"
+                             alt="${BrasoesHelper.getNomeClube(p.clube_id)}"
+                             onerror="this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
+                    </div>
+                    ` : ""}
+
+                    ${isTemporadaBase ? `
+                    <div class="participante-actions-compact">
+                        <button class="btn-compact btn-compact-status"
+                                data-action="toggle-status"
+                                data-time-id="${p.time_id}"
+                                data-ativo="${estaAtivo}"
+                                title="${estaAtivo ? "Inativar" : "Reativar"}">
+                            <span class="material-symbols-outlined">${estaAtivo ? "pause_circle" : "play_circle"}</span>
+                        </button>
+                        <button class="btn-compact btn-compact-senha"
+                                data-action="gerenciar-senha"
+                                data-time-id="${p.time_id}"
+                                data-nome="${(p.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
+                                title="Senha">
+                            <span class="material-symbols-outlined">key</span>
+                        </button>
+                        <button class="btn-compact btn-compact-dados"
+                                data-action="ver-dados-globo"
+                                data-time-id="${p.time_id}"
+                                data-nome="${(p.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
+                                data-time-nome="${(p.nome_time || "").replace(/"/g, "&quot;")}"
+                                title="Dados do Globo">
+                            <span class="material-symbols-outlined">database</span>
+                        </button>
+                    </div>
+                    ` : ""}
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+
+        // Adicionar event listeners (via delegation)
+        if (isTemporadaBase) {
+            container.removeEventListener("click", handleCardClick);
+            container.addEventListener("click", handleCardClick);
+        }
+
+        console.log(`[PARTICIPANTES] ${participantesFiltrados.length} participantes de ${temporada}`);
+    } catch (error) {
+        console.error("[PARTICIPANTES] Erro:", error);
+        container.innerHTML = `
+            <div class="participantes-empty-state">
+                <span class="material-icons" style="font-size: 48px; color: #ef4444;">error</span>
+                <div class="empty-title">Erro ao carregar participantes</div>
+            </div>
+        `;
+    }
+}
+
+// Helper: Badge de status para temporadas futuras
+function getStatusBadgeHTML(status) {
+    const badges = {
+        renovado: { label: "Renovado", class: "badge-success", icon: "check_circle" },
+        novo: { label: "Novo", class: "badge-info", icon: "person_add" },
+        pendente: { label: "Pendente", class: "badge-warning", icon: "schedule" },
+        nao_participa: { label: "Saiu", class: "badge-danger", icon: "cancel" },
+    };
+
+    const badge = badges[status];
+    if (!badge) return "";
+
+    return `
+        <span class="participante-status-badge ${badge.class}">
+            <span class="material-icons">${badge.icon}</span>
+            ${badge.label}
+        </span>
+    `;
+}
 
 // ==============================
 // ✅ MODAL NÃO-BLOQUEANTE
@@ -227,6 +448,18 @@ async function carregarParticipantesComBrasoes() {
 
     try {
         console.log(`Carregando participantes da liga: ${ligaId}`);
+
+        // ✅ Inicializar sistema de temporadas
+        await inicializarTemporadas();
+
+        // ✅ Usar novo endpoint com temporada selecionada
+        if (temporadaSelecionada) {
+            container.dataset.loading = "false";
+            await carregarParticipantesPorTemporada(temporadaSelecionada);
+            return;
+        }
+
+        // Fallback: carregamento antigo (se temporadas não disponíveis)
 
         const resLiga = await fetch(`/api/ligas/${ligaId}`);
         if (!resLiga.ok) throw new Error("Erro ao buscar liga");
@@ -1630,6 +1863,269 @@ function copiarJsonGlobo() {
     }
 }
 
+// ==============================
+// VALIDAÇÃO DE IDs CARTOLA
+// ==============================
+
+/**
+ * Valida IDs dos participantes na API do Cartola
+ */
+async function validarIdsCartola() {
+    const ligaId = window.SUPER_CARTOLA?.ligaAtual;
+    if (!ligaId) {
+        mostrarToast("Liga não identificada", "error");
+        return;
+    }
+
+    const temporada = temporadaSelecionada || new Date().getFullYear();
+    const btn = document.getElementById("btn-validar-ids");
+
+    try {
+        // Feedback visual
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<span class="material-icons" style="animation: spin 1s linear infinite;">sync</span><span class="btn-text">Validando...</span>`;
+        }
+
+        mostrarToast("Validando IDs na API do Cartola...", "info");
+
+        const response = await fetch(`/api/ligas/${ligaId}/validar-participantes/${temporada}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.erro || "Erro na validação");
+        }
+
+        // Mostrar modal com resultados
+        mostrarModalValidacao(data);
+
+    } catch (error) {
+        console.error("[VALIDACAO] Erro:", error);
+        mostrarToast("Erro ao validar: " + error.message, "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-icons">verified</span><span class="btn-text">Validar</span>`;
+        }
+    }
+}
+
+/**
+ * Exibe modal com resultados da validação
+ */
+function mostrarModalValidacao(data) {
+    const existente = document.getElementById("modal-validacao");
+    if (existente) existente.remove();
+
+    const { stats, resultados, temporada } = data;
+
+    // Agrupar por status
+    const validos = resultados.filter(r => r.status === "valido");
+    const donoDiferente = resultados.filter(r => r.status === "dono_diferente");
+    const inexistentes = resultados.filter(r => r.status === "inexistente");
+    const erros = resultados.filter(r => r.status === "erro");
+
+    const modal = document.createElement("div");
+    modal.id = "modal-validacao";
+    modal.className = "modal-dados-globo";
+    modal.innerHTML = `
+        <div class="modal-dados-overlay" onclick="fecharModalValidacao()"></div>
+        <div class="modal-dados-content" style="max-width: 700px;">
+            <div class="modal-dados-header">
+                <div class="header-info">
+                    <h3><span class="material-icons" style="color: #22c55e;">verified</span> Validação de IDs - ${temporada}</h3>
+                    <span class="header-subtitle">Verificação na API do Cartola FC</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-fechar" onclick="fecharModalValidacao()">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-dados-body">
+                <!-- Stats -->
+                <div class="dados-resumo" style="margin-bottom: 20px;">
+                    <div class="resumo-item">
+                        <span class="resumo-icon" style="background: rgba(34, 197, 94, 0.2); color: #22c55e;">
+                            <span class="material-icons">check_circle</span>
+                        </span>
+                        <div class="resumo-info">
+                            <span class="resumo-label">Válidos</span>
+                            <span class="resumo-value" style="color: #22c55e;">${stats.validos}</span>
+                        </div>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-icon" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">
+                            <span class="material-icons">swap_horiz</span>
+                        </span>
+                        <div class="resumo-info">
+                            <span class="resumo-label">Dono Diferente</span>
+                            <span class="resumo-value" style="color: #fbbf24;">${stats.dono_diferente}</span>
+                        </div>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-icon" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">
+                            <span class="material-icons">cancel</span>
+                        </span>
+                        <div class="resumo-info">
+                            <span class="resumo-label">Inexistentes</span>
+                            <span class="resumo-value" style="color: #ef4444;">${stats.inexistentes}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Resultados -->
+                <div class="historico-lista" style="max-height: 400px; overflow-y: auto;">
+                    ${validos.length > 0 ? `
+                        <div style="margin-bottom: 16px;">
+                            <h4 style="color: #22c55e; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <span class="material-icons">check_circle</span> Válidos (${validos.length})
+                            </h4>
+                            ${validos.map(r => `
+                                <div class="historico-item" style="border-left: 3px solid #22c55e;">
+                                    <span class="material-icons" style="color: #22c55e;">person</span>
+                                    <div class="historico-info">
+                                        <span class="historico-data">${r.nome_registrado}</span>
+                                        <span class="historico-tipo">${r.nome_time_registrado}${r.nome_time_atual !== r.nome_time_registrado ? ` → ${r.nome_time_atual}` : ""}</span>
+                                    </div>
+                                    <span style="font-size: 0.75rem; color: #666;">#${r.time_id}</span>
+                                </div>
+                            `).join("")}
+                        </div>
+                    ` : ""}
+
+                    ${donoDiferente.length > 0 ? `
+                        <div style="margin-bottom: 16px;">
+                            <h4 style="color: #fbbf24; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <span class="material-icons">warning</span> Dono Diferente (${donoDiferente.length})
+                            </h4>
+                            ${donoDiferente.map(r => `
+                                <div class="historico-item" style="border-left: 3px solid #fbbf24;">
+                                    <span class="material-icons" style="color: #fbbf24;">swap_horiz</span>
+                                    <div class="historico-info" style="flex: 1;">
+                                        <span class="historico-data" style="color: #fbbf24;">${r.nome_registrado} → ${r.nome_atual}</span>
+                                        <span class="historico-tipo">${r.nome_time_registrado} → ${r.nome_time_atual}</span>
+                                    </div>
+                                    <button class="toolbar-btn btn-primary" style="padding: 4px 8px; font-size: 0.7rem;"
+                                            onclick="sincronizarParticipanteValidacao('${r.time_id}', ${temporada})">
+                                        <span class="material-icons" style="font-size: 14px;">sync</span>
+                                        Atualizar
+                                    </button>
+                                </div>
+                            `).join("")}
+                        </div>
+                    ` : ""}
+
+                    ${inexistentes.length > 0 ? `
+                        <div style="margin-bottom: 16px;">
+                            <h4 style="color: #ef4444; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <span class="material-icons">error</span> Inexistentes na API (${inexistentes.length})
+                            </h4>
+                            ${inexistentes.map(r => `
+                                <div class="historico-item" style="border-left: 3px solid #ef4444;">
+                                    <span class="material-icons" style="color: #ef4444;">cancel</span>
+                                    <div class="historico-info">
+                                        <span class="historico-data" style="color: #ef4444;">${r.nome_registrado}</span>
+                                        <span class="historico-tipo">ID ${r.time_id} não existe mais</span>
+                                    </div>
+                                </div>
+                            `).join("")}
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 8px; padding: 8px; background: rgba(239,68,68,0.1); border-radius: 6px;">
+                                <span class="material-icons" style="font-size: 14px; vertical-align: middle;">info</span>
+                                Estes participantes precisam informar o novo ID do Cartola
+                            </p>
+                        </div>
+                    ` : ""}
+
+                    ${erros.length > 0 ? `
+                        <div>
+                            <h4 style="color: #888; margin-bottom: 8px;">Erros (${erros.length})</h4>
+                            ${erros.map(r => `
+                                <div class="historico-item" style="opacity: 0.6;">
+                                    <span class="material-icons">error_outline</span>
+                                    <div class="historico-info">
+                                        <span class="historico-data">${r.nome_registrado}</span>
+                                        <span class="historico-tipo">${r.mensagem}</span>
+                                    </div>
+                                </div>
+                            `).join("")}
+                        </div>
+                    ` : ""}
+
+                    ${resultados.length === 0 ? `
+                        <div style="text-align: center; padding: 40px; color: #888;">
+                            <span class="material-icons" style="font-size: 48px; opacity: 0.5;">fact_check</span>
+                            <p>Nenhum participante com ID real para validar</p>
+                        </div>
+                    ` : ""}
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add("modal-visible"), 10);
+
+    // Fechar com ESC
+    document.addEventListener("keydown", fecharModalValidacaoEsc);
+}
+
+function fecharModalValidacao() {
+    const modal = document.getElementById("modal-validacao");
+    if (modal) {
+        modal.classList.remove("modal-visible");
+        setTimeout(() => modal.remove(), 300);
+    }
+    document.removeEventListener("keydown", fecharModalValidacaoEsc);
+}
+
+function fecharModalValidacaoEsc(e) {
+    if (e.key === "Escape") fecharModalValidacao();
+}
+
+/**
+ * Sincroniza dados de um participante específico
+ */
+async function sincronizarParticipanteValidacao(timeId, temporada) {
+    const ligaId = window.SUPER_CARTOLA?.ligaAtual;
+    if (!ligaId) return;
+
+    try {
+        mostrarToast("Sincronizando...", "info");
+
+        const response = await fetch(`/api/ligas/${ligaId}/participantes/${timeId}/sincronizar`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ temporada })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.erro || "Erro ao sincronizar");
+        }
+
+        mostrarToast("Dados atualizados com sucesso!", "success");
+
+        // Revalidar para atualizar modal
+        fecharModalValidacao();
+        await validarIdsCartola();
+
+    } catch (error) {
+        console.error("[SINCRONIZAR] Erro:", error);
+        mostrarToast("Erro: " + error.message, "error");
+    }
+}
+
+// Inicializar botão
+setTimeout(() => {
+    const btnValidar = document.getElementById("btn-validar-ids");
+    if (btnValidar) {
+        btnValidar.addEventListener("click", validarIdsCartola);
+    }
+}, 200);
+
 // Exportar globalmente
 window.carregarParticipantesComBrasoes = carregarParticipantesComBrasoes;
 window.toggleStatusParticipante = toggleStatusParticipante;
@@ -1639,6 +2135,9 @@ window.salvarSenhaParticipante = salvarSenhaParticipante;
 window.verDadosGlobo = verDadosGlobo;
 window.sincronizarComGlobo = sincronizarComGlobo;
 window.copiarJsonGlobo = copiarJsonGlobo;
+window.validarIdsCartola = validarIdsCartola;
+window.fecharModalValidacao = fecharModalValidacao;
+window.sincronizarParticipanteValidacao = sincronizarParticipanteValidacao;
 
 // ==============================
 // CONTROLE DE INICIALIZAÇÃO
