@@ -2699,3 +2699,56 @@ table.fluxo-participantes-tabela {
         flex: 1;
     }
 }
+
+/* ============================================================
+   RESPONSIVIDADE TABLET: Garantir scroll horizontal em tabelas
+   v1.0 - Fallback para telas medias (769px-1199px)
+   ============================================================ */
+@media (max-width: 1199px) {
+    /* Container da tabela com scroll horizontal garantido */
+    .fluxo-tabela-container {
+        max-width: 100%;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Page content permite overflow */
+    .page-content {
+        overflow-x: auto;
+    }
+
+    /* Tabela wrapper */
+    .tabela-wrapper {
+        max-width: 100%;
+        overflow-x: auto !important;
+    }
+
+    /* Indicador visual de scroll (sombra no lado direito) */
+    .fluxo-tabela-container {
+        position: relative;
+    }
+
+    .fluxo-tabela-container::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 20px;
+        background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.2));
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    /* Mostrar indicador quando hover */
+    .fluxo-tabela-container:hover::after {
+        opacity: 1;
+    }
+
+    /* Garantir que tabelas internas nao comprimam */
+    .fluxo-participantes-tabela,
+    .detalhamento-tabela {
+        min-width: 600px;
+    }
+}
