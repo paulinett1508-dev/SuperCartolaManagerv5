@@ -34,6 +34,52 @@ _Nenhuma tarefa pendente no momento._
 
 ---
 
+## Historico da Sessao 2026-01-14
+
+### Auditoria e Correcao Caches 2025
+**Status:** CONCLUIDO
+
+**Problema identificado:**
+- Caches de extrato financeiro 2025 estavam incompletos
+- Top10 (MITO/MICO) nao estava sendo calculado
+- 23 de 28 caches tinham valores errados
+- Impacto financeiro: R$6.436 nao contabilizados
+
+**Solucoes aplicadas:**
+
+1. **Reconstrucao cache fucim (45004009):**
+   - Cache tinha apenas 1 rodada, reconstruido com 38
+   - Top10 calculado: 4 MITOs (+R$120), 1 MICO (-R$30)
+   - Acerto corrigido: R$234 → R$261 para zerar saldo
+   - Status: QUITADO
+
+2. **Correcao de todos os 32 caches:**
+   - Script: `scripts/corrigir-caches-2025.js`
+   - Recalculado bonusOnus + Top10 para todos
+   - Re-auditoria: 32/32 caches OK
+
+3. **Auto-quitacao implementada:**
+   - Arquivo: `routes/tesouraria-routes.js` v2.20
+   - Quando acerto zera saldo de temporada anterior, marca quitado automaticamente
+
+4. **Quitacao em lote (saldo < R$50):**
+   - 8 participantes quitados automaticamente
+   - Credores perdoados: R$90,59
+   - Devedores perdoados: R$66,82
+
+**Balanco Final 2025:**
+| Metrica | Valor |
+|---------|-------|
+| Credores | 15 participantes (R$6.469,20) |
+| Devedores | 8 participantes (R$1.937,92) |
+| Quitados | 9 participantes |
+| **Saldo Liga** | **-R$4.531,28** (admin deve) |
+
+**Scripts criados:**
+- `scripts/corrigir-caches-2025.js` - Recalcula todos os caches com Top10
+
+---
+
 ## Historico da Sessao 2026-01-13
 
 ### Extrato 2026 - Cache Fix
