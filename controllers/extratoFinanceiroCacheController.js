@@ -120,11 +120,11 @@ async function verificarTemporadaFinalizada(ligaId) {
     }
 }
 
+// ✅ FIX: Sempre retornar String para manter consistência com dados existentes
+// A conversão para ObjectId causava duplicação de documentos quando o documento
+// existente tinha liga_id como String mas a query usava ObjectId
 function toLigaId(ligaId) {
-    if (mongoose.Types.ObjectId.isValid(ligaId)) {
-        return new mongoose.Types.ObjectId(ligaId);
-    }
-    return ligaId;
+    return String(ligaId);
 }
 
 // ✅ v4.1: BUSCAR STATUS DO TIME (ativo/rodada_desistencia) - busca da coleção Time
