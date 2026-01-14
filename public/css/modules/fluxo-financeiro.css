@@ -717,6 +717,25 @@ body {
     background: rgba(255, 69, 0, 0.05);
 }
 
+/* ✅ v6.6: Destaque visual para linhas MITO (melhor da rodada) e MICO (pior da rodada) */
+.detalhamento-tabela tbody tr.row-mito {
+    background: rgba(34, 197, 94, 0.15) !important;
+    border-left: 3px solid var(--success);
+}
+
+.detalhamento-tabela tbody tr.row-mito:hover {
+    background: rgba(34, 197, 94, 0.25) !important;
+}
+
+.detalhamento-tabela tbody tr.row-mico {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-left: 3px solid var(--danger);
+}
+
+.detalhamento-tabela tbody tr.row-mico:hover {
+    background: rgba(239, 68, 68, 0.25) !important;
+}
+
 .detalhamento-tabela td {
     padding: 6px 4px; /* REDUZIDO de 12px 10px */
     text-align: center;
