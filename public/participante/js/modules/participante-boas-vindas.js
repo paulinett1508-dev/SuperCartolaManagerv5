@@ -195,14 +195,12 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 
     // Se não tem cache, mostrar loading
     if (!usouCache) {
-        container.innerHTML = `
-            <div class="flex justify-center items-center min-h-[300px]">
-                    renderizarBoasVindas(container, dadosFresh, ligaRules);
-                    <div class="w-10 h-10 border-4 border-zinc-700 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-                    <p class="text-sm text-white/70">Carregando...</p>
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-[300px] py-16">
+                    <div class="w-10 h-10 border-4 border-zinc-700 border-t-orange-500 rounded-full animate-spin mb-4"></div>
+                    <p class="text-sm text-gray-400">Carregando...</p>
                 </div>
-            </div>
-        `;
+            `;
     }
 
     // =========================================================================

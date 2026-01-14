@@ -5,7 +5,7 @@
 
 ---
 
-## AUDITORIA MÓDULOS FRONTEND 2025 - EM ANDAMENTO
+## AUDITORIA MÓDULOS FRONTEND 2025 - CONCLUÍDA ✅
 
 ### Status Geral
 | Módulo | Auditado | Corrigido | Testado | Commit |
@@ -13,7 +13,7 @@
 | Ranking por Rodada | ✅ | ✅ | ✅ | - |
 | Melhor do Mês | ✅ | ✅ | ✅ | `46eb593` |
 | Mata-Mata | ✅ | ✅ | ✅ | `9130e8c` |
-| Pontos Corridos | ✅ | ✅ | ⏳ | `5a58bfc` |
+| Pontos Corridos | ✅ | ✅ | ✅ | `5a58bfc` |
 | Top 10 | ✅ | ✅ | ✅ | - |
 | Ranking Geral | ✅ | ✅ | ✅ | - |
 | Fluxo Financeiro | ✅ | ✅ | ✅ | sessões anteriores |
@@ -55,25 +55,42 @@ if (rodadaAtual === 1 && mercadoAberto) {
 - Depois: Carrega diretamente de `/api/pontos-corridos/:ligaId`
 - 32 times fixos, 31 rodadas consolidadas
 
-### Próximas Etapas (Sessão Futura)
+### Validação Realizada (Sessão 2026-01-14)
 
-1. **Testar Pontos Corridos v3.0 no browser**
-   - Verificar se carrega as 31 rodadas do cache
-   - Verificar se classificação mostra 32 times corretos
-   - Verificar navegação entre rodadas
+1. **Pontos Corridos v3.0** ✅
+   - Cache: 31 rodadas consolidadas
+   - Classificação: 32 times corretos
+   - API `/api/pontos-corridos/:ligaId` funcionando
 
-2. **Verificar consistência entre módulos**
-   - Dados do Mata-Mata batem com cache?
-   - Dados do Pontos Corridos batem com cache?
-   - Melhor do Mês mostra os 12 meses?
+2. **Consistência entre módulos** ✅
+   - Mata-Mata: 5 edições, 16 jogos/fase, campeões definidos
+   - Melhor do Mês: 7 edições (R1-R38), 32 times
+   - Top10: 38 MITOs, 38 MICOs
+   - Pontos Corridos: 31 rodadas, 32 times
 
-3. **Validar isolamento de temporada**
-   - Nenhum módulo deve misturar dados 2025/2026
-   - Quando 2026 começar, módulos devem detectar automaticamente
+3. **Isolamento de temporada** ✅
+   - API Cartola: `rodada_atual=1`, `status_mercado=1`, `temporada=2026`
+   - Detecção automática funcionando em todos os módulos
+   - Extratos separados: 38 docs 2025, 9 docs 2026
 
-4. **Documentar comportamento esperado**
-   - O que cada módulo deve mostrar na pré-temporada
-   - Como será a transição para 2026
+### Comportamento Esperado na Pré-Temporada
+
+| Módulo | Comportamento |
+|--------|---------------|
+| **Pontos Corridos** | Modo somente leitura, carrega 31 rodadas do cache 2025 |
+| **Mata-Mata** | Mostra 5 edições completas com campeões 2025 |
+| **Melhor do Mês** | Mostra 7 edições completas 2025 |
+| **Top10** | Mostra 38 MITOs e 38 MICOs da temporada 2025 |
+| **Fluxo Financeiro** | Seletor de temporada (2025/2026), extratos independentes |
+
+### Transição para 2026
+
+Quando a API Cartola retornar `rodada_atual >= 2` OU `status_mercado = 2`:
+- Módulos detectam automaticamente nova temporada
+- Começam a calcular/exibir dados 2026
+- Dados 2025 permanecem acessíveis via seletor de temporada
+
+**Primeira rodada 2026:** Fechamento 28/01/2026 18:59
 
 ---
 
