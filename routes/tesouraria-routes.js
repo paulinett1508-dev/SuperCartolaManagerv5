@@ -4,7 +4,10 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.19.0
+ * @version 2.20.0
+ * ✅ v2.20.0: AUTO-QUITAÇÃO para temporadas anteriores
+ *   - Quando saldo zera após acerto em temporada < CURRENT_SEASON, marca como quitado
+ *   - Resposta inclui flag autoQuitacao com mensagem para o admin
  * ✅ v2.19.0: Filtrar participantes por inscrição para temporadas >= 2026
  *   - Para 2026+, exibe apenas participantes com status 'renovado' ou 'novo'
  *   - Temporadas anteriores (2025) mantêm comportamento histórico (todos)
@@ -1056,6 +1059,44 @@ router.post("/acerto", verificarAdmin, async (req, res) => {
         // que considera: temporada + campos + acertos
         // =====================================================================
 
+        // =====================================================================
+        // ✅ v2.20: AUTO-QUITAÇÃO para temporadas anteriores
+        // Se saldo zerou após o acerto, marcar automaticamente como quitado
+        // =====================================================================
+        const temporadaNum = Number(temporada);
+        let autoQuitacaoInfo = null;
+
+        if (Math.abs(novoSaldo.saldoFinal) < 0.01 && temporadaNum < CURRENT_SEASON) {
+            try {
+                await ExtratoFinanceiroCache.updateOne(
+                    {
+                        liga_id: String(ligaId),
+                        time_id: Number(timeId),
+                        temporada: temporadaNum
+                    },
+                    {
+                        $set: {
+                            'quitacao.quitado': true,
+                            'quitacao.data_quitacao': new Date(),
+                            'quitacao.admin_responsavel': 'auto_quitacao',
+                            'quitacao.tipo': 'zerado',
+                            'quitacao.saldo_no_momento': 0,
+                            'quitacao.observacao': 'Quitação automática - saldo zerado via acerto'
+                        }
+                    }
+                );
+                console.log(`[TESOURARIA] ✅ AUTO-QUITAÇÃO: ${nomeTimeFinal} - Temporada ${temporadaNum} marcada como quitada`);
+
+                autoQuitacaoInfo = {
+                    ativada: true,
+                    temporada: temporadaNum,
+                    mensagem: `Temporada ${temporadaNum} marcada como QUITADA automaticamente!`
+                };
+            } catch (quitError) {
+                console.warn(`[TESOURARIA] ⚠️ Falha na auto-quitação:`, quitError.message);
+            }
+        }
+
         // Resposta
         const response = {
             success: true,
@@ -1081,6 +1122,11 @@ router.post("/acerto", verificarAdmin, async (req, res) => {
                 valor: valorTroco,
                 mensagem: `Pagamento excedeu a dívida. R$ ${valorTroco.toFixed(2)} creditados.`,
             };
+        }
+
+        // ✅ v2.20: Incluir info de auto-quitação na resposta
+        if (autoQuitacaoInfo) {
+            response.autoQuitacao = autoQuitacaoInfo;
         }
 
         res.status(201).json(response);
@@ -1221,6 +1267,6 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v2.16 Rotas carregadas (FIX: campos manuais com temporada)");
+console.log("[TESOURARIA] ✅ v2.20 Rotas carregadas (AUTO-QUITAÇÃO quando saldo zera)");
 
 export default router;

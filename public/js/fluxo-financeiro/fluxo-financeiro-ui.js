@@ -2801,6 +2801,10 @@ export class FluxoFinanceiroUI {
                 if (data.troco) {
                     msg += `\n\n${data.troco.mensagem}`;
                 }
+                // ✅ v6.2: Mostrar mensagem de auto-quitação
+                if (data.autoQuitacao?.ativada) {
+                    msg += `\n\n${data.autoQuitacao.mensagem}`;
+                }
                 alert(msg);
 
                 // ✅ v6.1 FIX: INVALIDAR CACHE DO EXTRATO APÓS O ACERTO
