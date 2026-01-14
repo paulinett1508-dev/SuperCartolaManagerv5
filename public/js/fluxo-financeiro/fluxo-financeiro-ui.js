@@ -349,7 +349,9 @@ export class FluxoFinanceiroUI {
 
         // Preparar resumo
         const resumo = data.resumo || {};
-        const saldoFinal = isQuitado ? 0 : (resumo.saldo_final || resumo.saldo || 0);
+        // ✅ v6.6: Mostrar saldo real do cache, não forçar 0 quando quitado
+        // O saldo original fica visível para referência histórica
+        const saldoFinal = resumo.saldo_final || resumo.saldo || data.financeiro?.saldoFinal || 0;
 
         // HTML do extrato
         let html = '';
@@ -471,13 +473,15 @@ export class FluxoFinanceiroUI {
 
         // Mostrar tabela de rodadas se existirem
         if (rodadasNormais.length > 0) {
-            const ultimasTransacoes = rodadasNormais.slice(-10).reverse();
+            // ✅ v6.6: Mostrar TODAS as rodadas (não apenas últimas 10)
+            // Ordenar da mais recente para mais antiga para melhor visualização
+            const todasRodadas = [...rodadasNormais].sort((a, b) => b.rodada - a.rodada);
             html += `
                 <div class="detalhamento-container" style="margin-top: 20px;">
                     <div class="detalhamento-header">
-                        <h3 class="detalhamento-titulo">Últimas Rodadas</h3>
+                        <h3 class="detalhamento-titulo">Histórico de Rodadas (${rodadasNormais.length})</h3>
                     </div>
-                    <div class="tabela-wrapper" style="max-height: 300px;">
+                    <div class="tabela-wrapper" style="max-height: 400px; overflow-y: auto;">
                         <table class="detalhamento-tabela">
                             <thead>
                                 <tr>
@@ -491,14 +495,14 @@ export class FluxoFinanceiroUI {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${ultimasTransacoes.map(t => `
-                                    <tr>
+                                ${todasRodadas.map(t => `
+                                    <tr class="${t.isMito ? 'row-mito' : ''} ${t.isMico ? 'row-mico' : ''}">
                                         <td class="rodada-col">${t.rodada}</td>
                                         <td>${t.posicao || '-'}</td>
                                         <td class="${getValorClass(t.bonusOnus)}">${formatarMoeda(t.bonusOnus || 0)}</td>
-                                        <td class="${getValorClass(t.pontosCorridos)}">${t.pontosCorridos != null ? formatarMoeda(t.pontosCorridos) : '-'}</td>
-                                        <td class="${getValorClass(t.mataMata)}">${t.mataMata != null ? formatarMoeda(t.mataMata) : '-'}</td>
-                                        <td class="${getValorClass(t.top10)}">${t.top10 ? formatarMoeda(t.top10) : '-'}</td>
+                                        <td class="${getValorClass(t.pontosCorridos)}">${t.pontosCorridos != null && t.pontosCorridos !== 0 ? formatarMoeda(t.pontosCorridos) : '-'}</td>
+                                        <td class="${getValorClass(t.mataMata)}">${t.mataMata != null && t.mataMata !== 0 ? formatarMoeda(t.mataMata) : '-'}</td>
+                                        <td class="${getValorClass(t.top10)}">${t.top10 && t.top10 !== 0 ? formatarMoeda(t.top10) : '-'}${t.top10Status ? ` <small>(${t.top10Status})</small>` : ''}</td>
                                         <td class="saldo-col ${getValorClass(t.saldoAcumulado)}">${formatarMoeda(t.saldoAcumulado || 0)}</td>
                                     </tr>
                                 `).join('')}
