@@ -3,9 +3,10 @@ import { CURRENT_SEASON } from "../config/seasons.js";
 
 const ExtratoFinanceiroCacheSchema = new mongoose.Schema(
     {
+        // ✅ v6.0 FIX: Aceitar String ou ObjectId para compatibilidade
+        // Dados históricos armazenados como String, novos podem ser ObjectId
         liga_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Liga",
+            type: mongoose.Schema.Types.Mixed,
             required: true,
             index: true,
         },
