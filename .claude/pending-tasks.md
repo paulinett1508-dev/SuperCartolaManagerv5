@@ -5,6 +5,78 @@
 
 ---
 
+## AUDITORIA MÓDULOS FRONTEND 2025 - EM ANDAMENTO
+
+### Status Geral
+| Módulo | Auditado | Corrigido | Testado | Commit |
+|--------|----------|-----------|---------|--------|
+| Ranking por Rodada | ✅ | ✅ | ✅ | - |
+| Melhor do Mês | ✅ | ✅ | ✅ | `46eb593` |
+| Mata-Mata | ✅ | ✅ | ✅ | `9130e8c` |
+| Pontos Corridos | ✅ | ✅ | ⏳ | `5a58bfc` |
+| Top 10 | ✅ | ✅ | ✅ | - |
+| Ranking Geral | ✅ | ✅ | ✅ | - |
+| Fluxo Financeiro | ✅ | ✅ | ✅ | sessões anteriores |
+
+### Padrão de Correção Aplicado
+
+**Problema comum:** Quando `rodada_atual === 1` e `status_mercado === 1` (mercado aberto), todos os módulos calculavam `ultimaRodadaCompleta = 0`, fazendo parecer que não havia dados.
+
+**Solução aplicada (v1.2+):**
+```javascript
+// Detecção dinâmica de temporada
+const rodadaAtual = status.rodada_atual || 1;
+const mercadoAberto = status.status_mercado === 1;
+const RODADA_FINAL = status.rodada_final || 38;
+
+if (rodadaAtual === 1 && mercadoAberto) {
+  // Nova temporada não começou - usar dados da temporada anterior
+  ultimaRodadaCompleta = RODADA_FINAL; // 38
+  temporadaAnterior = true;
+}
+```
+
+### Correções Específicas por Módulo
+
+#### Melhor do Mês (v1.2)
+- Arquivo: `public/js/melhor-mes/melhor-mes-core.js`
+- Antes: `ultimaRodadaCompleta = rodadaAtual - 1` → resultava em 0
+- Depois: Usa 38 rodadas quando temporada anterior
+
+#### Mata-Mata (v1.3)
+- Arquivo: `public/js/mata-mata/mata-mata-orquestrador.js`
+- Antes: `edicao.ativo = rodadaAtual >= edicao.rodadaDefinicao` → nenhuma ativa
+- Depois: Todas as 5 edições ativas quando temporada anterior
+
+#### Pontos Corridos (v3.0) - MODO SOMENTE LEITURA
+- Arquivo: `public/js/pontos-corridos/pontos-corridos-orquestrador.js`
+- **MUDANÇA ESTRUTURAL:** Não recalcula mais, só lê do cache
+- Antes: `buscarTimesLiga()` + `gerarConfrontos()` → trazia times 2026
+- Depois: Carrega diretamente de `/api/pontos-corridos/:ligaId`
+- 32 times fixos, 31 rodadas consolidadas
+
+### Próximas Etapas (Sessão Futura)
+
+1. **Testar Pontos Corridos v3.0 no browser**
+   - Verificar se carrega as 31 rodadas do cache
+   - Verificar se classificação mostra 32 times corretos
+   - Verificar navegação entre rodadas
+
+2. **Verificar consistência entre módulos**
+   - Dados do Mata-Mata batem com cache?
+   - Dados do Pontos Corridos batem com cache?
+   - Melhor do Mês mostra os 12 meses?
+
+3. **Validar isolamento de temporada**
+   - Nenhum módulo deve misturar dados 2025/2026
+   - Quando 2026 começar, módulos devem detectar automaticamente
+
+4. **Documentar comportamento esperado**
+   - O que cada módulo deve mostrar na pré-temporada
+   - Como será a transição para 2026
+
+---
+
 ## Referencia Rapida
 
 ### IDs das Ligas
