@@ -1,5 +1,6 @@
-// MATA-MATA ORQUESTRADOR - Coordenador Principal v1.2
+// MATA-MATA ORQUESTRADOR - Coordenador Principal v1.3
 // Responsável por: coordenação de módulos, carregamento dinâmico, cache
+// ✅ v1.3: Detecção dinâmica de temporada (R1 + mercado aberto = temporada anterior)
 // ✅ v1.2: Adiciona persistência no MongoDB ao calcular fases
 
 import {
@@ -252,7 +253,17 @@ export async function carregarMataMata() {
 
     if (response.ok) {
       const data = await response.json();
-      const rodadaAtual = data.rodada_atual || 1;
+      let rodadaAtual = data.rodada_atual || 1;
+      const mercadoAberto = data.status_mercado === 1;
+      const RODADA_FINAL_CAMPEONATO = data.rodada_final || 38;
+
+      // v1.3: Detecção dinâmica de temporada
+      // Se rodada 1 e mercado aberto, nova temporada não iniciou - usar dados da anterior
+      if (rodadaAtual === 1 && mercadoAberto) {
+        console.log("[MATA-ORQUESTRADOR] Nova temporada não iniciou - usando rodada 38 da temporada anterior");
+        rodadaAtual = RODADA_FINAL_CAMPEONATO;
+      }
+
       edicoes.forEach((edicao) => {
         edicao.ativo = rodadaAtual >= edicao.rodadaDefinicao;
       });
@@ -262,6 +273,10 @@ export async function carregarMataMata() {
       "[MATA-ORQUESTRADOR] Erro ao verificar status do mercado:",
       error.message,
     );
+    // Fallback: ativar todas as edições para temporada anterior
+    edicoes.forEach((edicao) => {
+      edicao.ativo = true;
+    });
   }
 
   renderizarInterface(container, ligaId, handleEdicaoChange, handleFaseClick);
@@ -336,6 +351,7 @@ async function carregarFase(fase, ligaId) {
     }
 
     let rodada_atual = 1;
+    let isTemporadaAnterior = false;
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 2000);
@@ -347,9 +363,20 @@ async function carregarFase(fase, ligaId) {
       if (resMercado.ok) {
         const data = await resMercado.json();
         rodada_atual = data.rodada_atual || 1;
+        const mercadoAberto = data.status_mercado === 1;
+        const RODADA_FINAL_CAMPEONATO = data.rodada_final || 38;
+
+        // v1.3: Detecção dinâmica de temporada
+        if (rodada_atual === 1 && mercadoAberto) {
+          console.log("[MATA-ORQUESTRADOR] Usando rodada 38 da temporada anterior para cálculo de fases");
+          rodada_atual = RODADA_FINAL_CAMPEONATO;
+          isTemporadaAnterior = true;
+        }
       }
     } catch (err) {
-      console.warn("[MATA-ORQUESTRADOR] Usando rodada padrão");
+      console.warn("[MATA-ORQUESTRADOR] Usando rodada 38 (fallback)");
+      rodada_atual = 38;
+      isTemporadaAnterior = true;
     }
 
     const edicaoSelecionada = edicoes.find((e) => e.id === edicaoAtual);
@@ -551,4 +578,4 @@ function setupCleanup() {
 // Inicialização do módulo
 setupCleanup();
 
-console.log("[MATA-ORQUESTRADOR] Módulo v1.2 carregado - MongoDB sync ativado");
+console.log("[MATA-ORQUESTRADOR] Módulo v1.3 carregado - Detecção dinâmica de temporada");
