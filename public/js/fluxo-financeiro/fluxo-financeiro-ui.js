@@ -2713,6 +2713,7 @@ export class FluxoFinanceiroUI {
         let tipoAcertoAtual = 'pagamento';
 
         // Abrir modal
+        // ✅ v6.4: Auto-seleção inteligente baseada no saldo
         window.abrirModalAcertoFluxo = (timeId, nome, saldo) => {
             timeIdAtual = timeId;
             saldoAtual = saldo;
@@ -2729,11 +2730,27 @@ export class FluxoFinanceiroUI {
             const btnZerar = document.getElementById('btnZerarSaldoFluxo');
             btnZerar.style.display = Math.abs(saldo) > 0.01 ? 'flex' : 'none';
 
-            // Reset form
-            document.getElementById('acertoValor').value = '';
-            document.getElementById('acertoDescricao').value = '';
+            // ✅ v6.4: AUTO-PREENCHER baseado no saldo do participante
             document.getElementById('acertoMetodo').value = 'pix';
-            window.selecionarTipoAcerto('pagamento');
+
+            if (Math.abs(saldo) > 0.01) {
+                if (saldo < 0) {
+                    // DEVEDOR: precisa PAGAR para quitar a dívida
+                    window.selecionarTipoAcerto('pagamento');
+                    document.getElementById('acertoValor').value = Math.abs(saldo).toFixed(2);
+                    document.getElementById('acertoDescricao').value = 'Quitação de dívida';
+                } else {
+                    // CREDOR: precisa RECEBER o que tem de crédito
+                    window.selecionarTipoAcerto('recebimento');
+                    document.getElementById('acertoValor').value = saldo.toFixed(2);
+                    document.getElementById('acertoDescricao').value = 'Resgate de crédito';
+                }
+            } else {
+                // Saldo zerado: reset padrão
+                document.getElementById('acertoValor').value = '';
+                document.getElementById('acertoDescricao').value = '';
+                window.selecionarTipoAcerto('pagamento');
+            }
 
             document.getElementById('modal-acerto-fluxo').classList.add('active');
         };
