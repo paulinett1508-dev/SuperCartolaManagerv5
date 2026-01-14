@@ -251,7 +251,10 @@ export class FluxoFinanceiroUI {
             return;
         }
 
+        // ✅ v6.5 FIX: CRÍTICO - Atualizar AMBAS as variáveis de temporada
+        // para garantir sincronização entre modal e sistema de cache
         this.temporadaModalExtrato = temporada;
+        window.temporadaAtual = temporada;
 
         // Atualizar botões visuais
         const btn2025 = document.getElementById('btnTemp2025');

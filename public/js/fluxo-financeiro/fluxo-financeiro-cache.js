@@ -43,8 +43,9 @@ export class FluxoFinanceiroCache {
         this.ultimaRodadaCompleta = 0;
         this.cacheManager = cacheManager;
 
-        // ✅ NOVO: Controle de cache MongoDB
-        this.extratosCacheados = new Map(); // timeId -> extrato
+        // ✅ v6.0 FIX: Controle de cache MongoDB COM TEMPORADA
+        // CRÍTICO: Chave deve incluir temporada para evitar mistura de dados
+        this.extratosCacheados = new Map(); // `${timeId}_${temporada}` -> extrato
         this.statusMercado = null;
 
         // ✅ v5.2: Cache de inscrições 2026
@@ -147,8 +148,9 @@ export class FluxoFinanceiroCache {
                     saldo: cacheData.resumo?.saldo,
                 });
 
-                // Armazenar em memória para acesso rápido
-                this.extratosCacheados.set(String(timeId), cacheData);
+                // ✅ v6.0 FIX: Armazenar com chave composta timeId_temporada
+                const cacheKey = `${timeId}_${temporada}`;
+                this.extratosCacheados.set(cacheKey, cacheData);
 
                 return cacheData;
             }
@@ -219,13 +221,15 @@ export class FluxoFinanceiroCache {
             if (response.ok) {
                 console.log(`[FLUXO-CACHE] ✅ Cache MongoDB salvo com sucesso`);
 
-                // Atualizar cache em memória
-                this.extratosCacheados.set(String(timeId), {
+                // ✅ v6.0 FIX: Atualizar cache em memória com chave composta
+                const cacheKey = `${timeId}_${temporada}`;
+                this.extratosCacheados.set(cacheKey, {
                     valido: true,
                     cached: true,
                     rodadas: extrato.rodadas,
                     resumo: extrato.resumo,
                     ultimaRodadaCalculada: rodadaCalculada,
+                    temporada: temporada,
                 });
 
                 return true;
@@ -260,8 +264,9 @@ export class FluxoFinanceiroCache {
                 { method: "DELETE" },
             );
 
-            // Limpar cache em memória
-            this.extratosCacheados.delete(String(timeId));
+            // ✅ v6.0 FIX: Limpar cache em memória com chave composta
+            const cacheKey = `${timeId}_${temporada}`;
+            this.extratosCacheados.delete(cacheKey);
 
             if (response.ok) {
                 console.log(`[FLUXO-CACHE] ✅ Cache invalidado com sucesso`);
@@ -993,9 +998,11 @@ export class FluxoFinanceiroCache {
         return this.participantes;
     }
 
-    // ✅ NOVO: Getter para extrato cacheado
-    getExtratoCacheado(timeId) {
-        return this.extratosCacheados.get(String(timeId)) || null;
+    // ✅ v6.0 FIX: Getter para extrato cacheado COM TEMPORADA
+    getExtratoCacheado(timeId, temporada = null) {
+        const temp = temporada || window.temporadaAtual || 2026;
+        const cacheKey = `${timeId}_${temp}`;
+        return this.extratosCacheados.get(cacheKey) || null;
     }
 
     // ✅ NOVO: Getter para status do mercado
