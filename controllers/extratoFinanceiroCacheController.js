@@ -1,5 +1,6 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v6.1 - FIX LANÇAMENTOS INICIAIS
+// extratoFinanceiroCacheController.js v6.2 - PROTEÇÃO CACHE HISTÓRICO
+// ✅ v6.2: Proteção contra sobrescrita de caches históricos com dados vazios
 // ✅ v6.1: FIX - Lançamentos iniciais (rodada=0) agora são contabilizados no saldo
 //   - Transações com rodada=0, INSCRICAO_TEMPORADA ou TRANSFERENCIA_SALDO são extraídas
 //   - Saldo agora inclui: rodadas + campos + acertos + lançamentos iniciais
@@ -820,6 +821,7 @@ export const getExtratoCache = async (req, res) => {
 };
 
 // ✅ v3.3: SALVAR CACHE COM VALIDAÇÃO DE INATIVO
+// ✅ v6.2: Proteção contra caches vazios/corrompidos para temporadas históricas
 export const salvarExtratoCache = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
@@ -832,6 +834,31 @@ export const salvarExtratoCache = async (req, res) => {
         } = req.body;
         // ✅ v5.9 FIX: Temporada usa getFinancialSeason() como default
         const temporadaNum = parseInt(temporada) || getFinancialSeason();
+
+        // ✅ v6.2: PROTEÇÃO - Não sobrescrever caches de temporadas históricas com dados vazios
+        const anoAtual = new Date().getFullYear();
+        const isTemporadaHistorica = temporadaNum < anoAtual;
+        const rodadasEnviadas = historico_transacoes || extrato || [];
+        const temDadosValidos = Array.isArray(rodadasEnviadas) && rodadasEnviadas.length > 0 &&
+            rodadasEnviadas.some(r => (r.bonusOnus || 0) !== 0 || (r.top10 || 0) !== 0 || (r.posicao && r.posicao !== null));
+
+        if (isTemporadaHistorica && !temDadosValidos) {
+            // Verificar se já existe cache com dados
+            const cacheExistente = await ExtratoFinanceiroCache.findOne({
+                liga_id: toLigaId(ligaId),
+                time_id: Number(timeId),
+                temporada: temporadaNum
+            }).lean();
+
+            if (cacheExistente && cacheExistente.historico_transacoes?.length > 0) {
+                console.warn(`[CACHE-CONTROLLER] ⚠️ BLOQUEADO: Tentativa de sobrescrever cache ${temporadaNum} do time ${timeId} com dados vazios`);
+                return res.status(400).json({
+                    success: false,
+                    error: "Não é permitido sobrescrever cache de temporada histórica com dados vazios",
+                    temporada: temporadaNum
+                });
+            }
+        }
 
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
