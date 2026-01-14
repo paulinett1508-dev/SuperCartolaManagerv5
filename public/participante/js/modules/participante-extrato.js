@@ -1,7 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v4.4 (FIX TEMPORADA ENDPOINT CALCULO)
+// PARTICIPANTE-EXTRATO.JS - v4.5 (FIX SELETOR TEMPORADA)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v4.5: FIX SELETOR TEMPORADA - Extrato respeita seleção do usuário
+//          - Ouve evento "temporada-alterada" do seletor de temporada
+//          - Quando usuário seleciona 2026, mostra dados de 2026 (zerados)
+//          - Quando usuário seleciona 2025, mostra histórico de 2025
+//          - Ignora cache IndexedDB quando temporada é selecionada manualmente
 // ✅ v4.4: FIX CRÍTICO - Endpoint de cálculo agora inclui ?temporada=
 //          - Corrige problema de renovados recebendo dados de 2025
 //          - URL /api/fluxo-financeiro/{ligaId}/extrato/{timeId}?temporada={temporada}
@@ -39,8 +44,34 @@ const CAMPEONATO_ENCERRADO = CONFIG.isPreparando?.() || false; // Durante pré-t
 // ✅ v4.0: Cache de status de renovação
 let statusRenovacaoCache = null;
 
+// ✅ v4.5: Temporada selecionada pelo usuário (via seletor)
+let temporadaSelecionadaPeloUsuario = null;
+
+// ✅ v4.5: Ouvir mudanças do seletor de temporada
+window.addEventListener("temporada-alterada", (event) => {
+    const { ano, isHistorico } = event.detail || {};
+    if (ano) {
+        temporadaSelecionadaPeloUsuario = ano;
+        statusRenovacaoCache = null; // Limpar cache de renovação
+        if (window.Log)
+            Log.info("EXTRATO-PARTICIPANTE", `🔄 Temporada alterada via seletor: ${ano}`);
+
+        // Recarregar extrato se já foi inicializado
+        if (PARTICIPANTE_IDS.ligaId && PARTICIPANTE_IDS.timeId) {
+            carregarExtrato(PARTICIPANTE_IDS.ligaId, PARTICIPANTE_IDS.timeId);
+        }
+    }
+});
+
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.4 FIX-TEMPORADA-ENDPOINT (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.5 FIX-SELETOR-TEMPORADA (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
+
+// ✅ v4.5: Inicializar temporada selecionada do seletor (se já existir)
+if (window.seasonSelector) {
+    temporadaSelecionadaPeloUsuario = window.seasonSelector.getTemporadaSelecionada();
+    if (window.Log)
+        Log.debug("EXTRATO-PARTICIPANTE", `🎯 Temporada inicial do seletor: ${temporadaSelecionadaPeloUsuario}`);
+}
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -306,10 +337,11 @@ async function carregarExtrato(ligaId, timeId) {
 
     // =========================================================================
     // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
-    // ✅ v4.1: RENOVADOS ignoram cache local (pode ter dados de 2025)
+    // ✅ v4.5: Ignorar cache local se temporada foi selecionada pelo usuário OU se renovado
     // =========================================================================
-    const deveBuscarDoCacheLocal = !participanteRenovado;
-    
+    const usuarioSelecionouTemporada = temporadaSelecionadaPeloUsuario !== null;
+    const deveBuscarDoCacheLocal = !participanteRenovado && !usuarioSelecionouTemporada;
+
     if (cache && deveBuscarDoCacheLocal) {
         extratoDataCache = await (cache.getExtratoAsync ? cache.getExtratoAsync(ligaId, timeId) : cache.getExtrato(ligaId, timeId));
 
@@ -325,6 +357,8 @@ async function carregarExtrato(ligaId, timeId) {
         }
     } else if (participanteRenovado) {
         if (window.Log) Log.info("EXTRATO-PARTICIPANTE", "🔄 Renovado - ignorando cache local para buscar dados 2026");
+    } else if (usuarioSelecionouTemporada) {
+        if (window.Log) Log.info("EXTRATO-PARTICIPANTE", `🎯 Temporada selecionada (${temporadaSelecionadaPeloUsuario}) - ignorando cache local`);
     }
 
     // Se não tem cache, mostrar loading
@@ -361,11 +395,17 @@ async function carregarExtrato(ligaId, timeId) {
         let usouCacheBackend = false;
         let precisaRecalculo = false;
 
-        // ✅ v4.0: Verificar status de renovação para determinar temporada
+        // ✅ v4.5: Verificar se há temporada selecionada pelo usuário (via seletor)
+        // Se o usuário selecionou explicitamente uma temporada, respeitar essa escolha
         const statusRenovacao = await verificarRenovacao(ligaId, timeId);
         let temporada;
 
-        if (statusRenovacao.renovado) {
+        if (temporadaSelecionadaPeloUsuario) {
+            // Usuário selecionou temporada explicitamente
+            temporada = temporadaSelecionadaPeloUsuario;
+            if (window.Log)
+                Log.info("EXTRATO-PARTICIPANTE", `🎯 Usando temporada selecionada pelo usuário: ${temporada}`);
+        } else if (statusRenovacao.renovado) {
             // Participante RENOVOU → mostrar extrato 2026 (nova temporada)
             temporada = CONFIG.CURRENT_SEASON || 2026;
             if (window.Log)
@@ -1104,11 +1144,16 @@ window.forcarRefreshExtratoParticipante = async function () {
             return;
         }
 
-        // ✅ v4.1: Buscar campos editáveis após recálculo (com temporada correta)
-        // Usar temporada baseada no status de renovação cacheado
-        const temporadaRefresh = statusRenovacaoCache?.renovado
-            ? (CONFIG.CURRENT_SEASON || 2026)
-            : (CONFIG.getFinancialSeason ? CONFIG.getFinancialSeason() : (CONFIG.PREVIOUS_SEASON || 2025));
+        // ✅ v4.5: Buscar campos editáveis após recálculo (com temporada correta)
+        // Prioriza temporada selecionada pelo usuário, senão usa lógica de renovação
+        let temporadaRefresh;
+        if (temporadaSelecionadaPeloUsuario) {
+            temporadaRefresh = temporadaSelecionadaPeloUsuario;
+        } else if (statusRenovacaoCache?.renovado) {
+            temporadaRefresh = CONFIG.CURRENT_SEASON || 2026;
+        } else {
+            temporadaRefresh = CONFIG.getFinancialSeason ? CONFIG.getFinancialSeason() : (CONFIG.PREVIOUS_SEASON || 2025);
+        }
         const camposEditaveis = await buscarCamposEditaveis(
             PARTICIPANTE_IDS.ligaId,
             PARTICIPANTE_IDS.timeId,
@@ -1173,5 +1218,5 @@ export function initExtratoParticipante() {
 if (window.Log)
     Log.info(
         "EXTRATO-PARTICIPANTE",
-        "✅ Módulo v4.1 carregado (FIX TAXA INSCRICAO 2026)",
+        "✅ Módulo v4.5 carregado (FIX SELETOR TEMPORADA)",
     );

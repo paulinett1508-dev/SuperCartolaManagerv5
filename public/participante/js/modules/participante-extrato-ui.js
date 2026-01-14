@@ -1,6 +1,10 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.14 RENOVADOS 2026
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.15 FIX SELETOR TEMPORADA
 // =====================================================
+// ✅ v10.15: FIX SELETOR TEMPORADA - Considera temporada selecionada pelo usuário
+//          - Se usuário selecionou 2025 (histórico), mostra layout completo
+//          - Se usuário selecionou 2026 (atual), mostra layout de pré-temporada
+//          - Previne dados de 2025 aparecerem quando 2026 é selecionado
 // ✅ v10.14: RENOVADOS - Layout específico para temporada 2026
 //          - Créditos/Débitos mostram apenas realidade 2026
 //          - Gráfico com curvas suaves prevendo 38 rodadas
@@ -40,7 +44,7 @@
 // ✅ v9.0: Redesign - Badge BANCO unificado com valor
 // ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
 
-if (window.Log) Log.info("[EXTRATO-UI] v10.14 RENOVADOS 2026 (layout pré-temporada)");
+if (window.Log) Log.info("[EXTRATO-UI] v10.15 FIX SELETOR TEMPORADA (respeita escolha do usuário)");
 
 // ===== v10.8: CACHE DE CONFIG DA LIGA =====
 let ligaConfigCache = null;
@@ -259,20 +263,35 @@ export async function renderizarExtratoParticipante(extrato, participanteId) {
     const renovado = statusRenovacaoParticipante?.renovado || false;
     const preTemporada = isPreTemporada(extrato.rodadas);
 
-    if (window.Log) Log.info("[EXTRATO-UI] 📊 Status:", { renovado, preTemporada, rodadas: extrato.rodadas.length });
+    // ✅ v10.15: Verificar temporada selecionada pelo usuário
+    // Se usuário selecionou 2025 (histórico), não é pré-temporada
+    const temporadaSelecionada = window.seasonSelector?.getTemporadaSelecionada?.();
+    const CONFIG = window.ParticipanteConfig || {};
+    const temporadaAtual = CONFIG.CURRENT_SEASON || 2026;
+    const visualizandoHistorico = temporadaSelecionada && temporadaSelecionada < temporadaAtual;
+
+    if (window.Log) Log.info("[EXTRATO-UI] 📊 Status:", {
+        renovado,
+        preTemporada,
+        rodadas: extrato.rodadas.length,
+        temporadaSelecionada,
+        visualizandoHistorico
+    });
 
     window.extratoAtual = extrato;
-    
-    // ✅ v10.14: Renderização condicional para renovados em pré-temporada
-    if (renovado && preTemporada) {
+
+    // ✅ v10.15: Renderização condicional
+    // - Se visualizando histórico (2025), sempre usa layout completo
+    // - Se renovado E pré-temporada E temporada atual, usa layout de pré-temporada
+    if (!visualizandoHistorico && renovado && preTemporada) {
         renderizarConteudoRenovadoPreTemporada(container, extrato);
     } else {
         renderizarConteudoCompleto(container, extrato);
     }
 
     setTimeout(() => {
-        // ✅ v10.14: Gráfico diferente para pré-temporada
-        if (renovado && preTemporada) {
+        // ✅ v10.15: Gráfico diferente para pré-temporada (apenas se não estiver vendo histórico)
+        if (!visualizandoHistorico && renovado && preTemporada) {
             renderizarGraficoPreTemporada();
         } else {
             renderizarGraficoEvolucao(extrato.rodadas);
