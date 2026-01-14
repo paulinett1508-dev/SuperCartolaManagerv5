@@ -264,6 +264,46 @@ const ModuleConfigSchema = new mongoose.Schema({
 
 ## Checklist para Novo Modulo
 
+
+---
+
+## TEMPLATE PARA DESCRIÇÃO DE REGRAS DE MÓDULO (ADMIN)
+
+> Use este modelo para documentar regras de qualquer módulo novo ou existente.
+
+### 1. Nome do Módulo
+Exemplo: Mata-Mata, Top 10, Pontos Corridos
+
+### 2. Descrição Geral
+Breve explicação do objetivo e funcionamento do módulo.
+
+### 3. Regras Estáticas (Estrutura)
+- Formato: (ex: 32 times, eliminatória direta)
+- Fases: (ex: oitavas, quartas, semi, final)
+- Calendário: (ex: rodadas de início/fim)
+- Valores Default: (ex: vitória = +10, derrota = -10)
+- Critérios de desempate: (ex: ranking, saldo de gols)
+
+### 4. Regras Dinâmicas (Configuração por Liga)
+- Ativação: (ex: Liga X tem módulo ativo?)
+- Valores customizados: (ex: Liga X paga R$20 por vitória)
+- Datas customizadas: (ex: Liga X começa rodada 5)
+- Permissões: (ex: Liga X permite devedor?)
+- Taxa de inscrição: (ex: Liga X cobra R$150)
+
+### 5. Backend
+- Controllers envolvidos
+- Rotas principais
+
+### 6. Frontend
+- Telas/funcionalidades JS
+- Componentes visuais
+
+### 7. Observações
+Informações extras, restrições, particularidades do módulo.
+
+---
+
 Ao criar um novo modulo (ex: "Resta Um"):
 
 1. [ ] Criar `config/rules/resta_um.json` com estrutura
@@ -272,7 +312,7 @@ Ao criar um novo modulo (ex: "Resta Um"):
 4. [ ] Criar routes em `routes/resta-um-routes.js`
 5. [ ] Registrar routes no `index.js`
 6. [ ] Criar frontend em `public/js/resta-um/`
-7. [ ] Documentar em `docs/MODULO-RESTA-UM.md`
+7. [ ] Documentar em `docs/MODULO-RESTA-UM.md` usando o template acima
 8. [ ] Se tiver config por liga, adicionar em `ModuleConfig`
 
 ---

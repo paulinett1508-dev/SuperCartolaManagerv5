@@ -119,6 +119,9 @@ export async function renderizarMiniCardsRodadas() {
     temporadaMercado,
   });
 
+  // ✅ v2.6: Variáveis de status
+  const mercadoAberto = status_mercado === 1;
+
   // ✅ v2.5: Detectar se está visualizando temporada passada
   const urlParams = new URLSearchParams(window.location.search);
   const temporadaParam = urlParams.get("temporada");
@@ -137,8 +140,6 @@ export async function renderizarMiniCardsRodadas() {
   }
 
   console.log("[RODADAS-UI] Temporada visualizando:", temporadaVisualizando || (isTemporadaPassada ? temporadaMercado - 1 : temporadaMercado), "Passada:", isTemporadaPassada);
-
-  const mercadoAberto = status_mercado === 1;
   const temporadaEncerrada = isTemporadaEncerrada(rodada_atual, status_mercado);
 
   console.log("[RODADAS-UI] Temporada encerrada:", temporadaEncerrada);
