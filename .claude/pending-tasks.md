@@ -78,6 +78,26 @@ _Nenhuma tarefa pendente no momento._
 **Scripts criados:**
 - `scripts/corrigir-caches-2025.js` - Recalcula todos os caches com Top10
 
+### Auditoria Liga Sobral
+**Status:** CONCLUIDO
+
+**Problema:** 6 caches com Top10 incorreto
+
+**Solucao:**
+- Scripts: `scripts/auditar-caches-sobral.js`, `scripts/corrigir-caches-sobral.js`
+- 6 caches corrigidos
+
+**Balanco Sobral 2025:**
+| Metrica | Valor |
+|---------|-------|
+| Credores | 2 (R$500) |
+| Devedores | 4 (R$240) |
+| Saldo Liga | -R$260 (admin deve) |
+
+**Observacoes:**
+- Liga Sobral nao tem bonusOnus (valores do banco = 0)
+- Apenas Top10: MITO=+R$10, MICO=-R$10
+
 ---
 
 ## Historico da Sessao 2026-01-13
