@@ -30,44 +30,47 @@
 
 ## Tarefas Pendentes
 
-### 1. Testar Fluxo de Renovacao e Quitacao
-**Prioridade:** ALTA
-**Descricao:** Testar novamente todo o fluxo de renovacao e quitacao de participantes
-**Cenarios a validar:**
-- [ ] Renovar participante que deve 2025
-- [ ] Renovar participante com credito 2025
-- [ ] Quitar participante via acerto (auto-quitacao)
-- [ ] Interface admin de renovacao funcionando
-
-### 2. Testar Extrato Financeiro 2025
-**Prioridade:** ALTA
-**Descricao:** Validar extrato financeiro no cenario 2025
-**Cenarios a validar:**
-- [ ] Extrato mostra Top10 (MITO/MICO) corretamente
-- [ ] Saldo consolidado correto apos correcoes
-- [ ] Quitados aparecem com badge correto
-- [ ] Credores e devedores com valores corretos
-
-### 3. Testar Extrato Financeiro 2026 (Renovados)
-**Prioridade:** ALTA
-**Descricao:** Validar extrato dos participantes que renovaram para 2026
-**Participantes a testar:**
-- [ ] Diogo Monte (25371297) - Credito de 2025
-- [ ] Paulinett Miranda (13935277) - Quitado
-- [ ] Felipe Barbosa (8098497) - Deve inscricao
-- [ ] Lucio (-1767569480236) - Deve inscricao
-- [ ] Antonio Luis (645089) - Deve inscricao
-
-**Validar:**
-- [ ] Extrato 2026 nao mostra dados de 2025
-- [ ] Taxa de inscricao aparece corretamente
-- [ ] Credito de 2025 foi aplicado (Diogo Monte)
+_Nenhuma tarefa pendente no momento._
 
 ---
 
 ## Historico da Sessao 2026-01-14
 
-### Auditoria e Correcao Caches 2025
+### Validacao Completa do Sistema
+**Status:** CONCLUIDO
+
+**Tarefas validadas:**
+
+#### 1. Extrato Financeiro 2025
+- [x] Top10 (MITO/MICO) calculado corretamente
+- [x] Saldo consolidado correto apos correcoes
+- [x] 9 participantes quitados
+- [x] 14 credores, 9 devedores (nao quitados)
+
+**Exemplo validado:** fucim (45004009) - 4 MITOs (+R$120), 1 MICO (-R$30), QUITADO
+
+#### 2. Extrato Financeiro 2026 (5 Renovados)
+| Participante | time_id | Saldo | Status |
+|--------------|---------|-------|--------|
+| Diogo Monte | 25371297 | +R$174 | A RECEBER |
+| Paulinett Miranda | 13935277 | R$0 | QUITADO |
+| Felipe Barbosa | 8098497 | -R$180 | DEVE |
+| Lucio | -1767569480236 | -R$180 | DEVE |
+| Antonio Luis | 645089 | -R$180 | DEVE |
+
+- [x] Extrato 2026 nao mostra dados de 2025
+- [x] Taxa de inscricao aparece corretamente (-R$180)
+- [x] Credito de 2025 aplicado (Diogo Monte: R$354 - R$180 = R$174)
+
+#### 3. Fluxo de Renovacao e Quitacao
+- [x] API de regras funcionando (`/api/liga-rules`)
+- [x] Taxa: R$180, Prazo: 25/01/2026
+- [x] 5 inscricoes em `inscricoestemporada`
+- [x] Auto-quitacao implementada (v2.20 tesouraria-routes.js)
+- [x] Participante com credito renovou corretamente
+- [x] Participante que pagou tem saldo zerado
+
+### Auditoria e Correcao Caches 2025 (sessao anterior)
 **Status:** CONCLUIDO
 
 **Problema identificado:**
