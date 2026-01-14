@@ -30,8 +30,85 @@
 
 ## Tarefas Pendentes
 
+### Sincronizar Participantes 2026 com MongoDB
+**Status:** CONCLUIDO (principal) / OPCIONAL (melhorias)
+
+**Contexto:** O fluxo de renovacao ja sincroniza participantes na collection `times` automaticamente via `inscricoesController.js:274-293`.
+
+---
+
+### Arquitetura Atual (Verificada 2026-01-14)
+
+**Collection `times`:**
+- Campo `id` e UNIQUE (nao permite duplicatas)
+- Campo `temporada` indica temporada ATIVA (nao historico)
+- Fluxo de renovacao faz `Time.findOneAndUpdate` com upsert
+
+**Historico por temporada em outras collections:**
+- `inscricoestemporada` - Registro de cada inscricao
+- `rodadas` - Historico de rodadas
+- `extratofinanceirocaches` - Caches financeiros
+
+**Participantes 2026 ja sincronizados:**
+| Participante | time_id | Em `times`? |
+|--------------|---------|-------------|
+| Felipe Barbosa | 8098497 | SIM |
+| Antonio Luis | 645089 | SIM |
+| Paulinett Miranda | 13935277 | SIM |
+| Diogo Monte | 25371297 | SIM |
+| Lucio | -1767569480236 | N/A (manual) |
+
+---
+
+### Checklist de Implementacao
+
+1. **Schema `times` com campo `temporada`:** CONCLUIDO
+   - `models/Time.js:112-118`
+   - `temporada: { type: Number, required: true, default: CURRENT_SEASON }`
+
+2. **Sincronizacao no fluxo de renovacao:** CONCLUIDO
+   - `inscricoesController.js:274-293`
+   - `Time.findOneAndUpdate` com upsert
+
+3. **Botao Validar + Modal:** CONCLUIDO
+   - `validacaoParticipantesController.js`
+   - `public/js/participantes.js:1892-2011`
+
+4. **Esconder botao Validar em 2025:** CONCLUIDO (2026-01-14)
+   - `public/js/participantes.js:82-93`
+   - Funcao `atualizarVisibilidadeBotaoValidar()`
+   - Logica: so mostra se `temporadaSelecionada >= temporadaLiga`
+
+5. **Botao "Sincronizar Todos":** OPCIONAL
+   - Util para inicio de temporada
+   - Baixa prioridade (renovacao ja sincroniza)
+
+6. **Botao Atualizar sincronizar `times`:** OPCIONAL
+   - Atualmente so atualiza `InscricaoTemporada`
+   - Baixa prioridade (renovacao ja sincroniza)
+
+---
+
+### Regra de Isolamento por Temporada
+
+**Arquitetura escolhida:** `times` como cadastro vivo (nao historico)
+
+```
+times (cadastro unico)          vs    inscricoestemporada (historico)
++-- id: 8098497 (unique)              +-- temporada: 2025, time_id: 8098497
++-- temporada: 2026 (atual)           +-- temporada: 2026, time_id: 8098497
++-- nome_time: "Cangalexeu FC"
+```
+
+**Vantagens:**
+- Simples de consultar participante ativo
+- Nao duplica dados basicos entre temporadas
+- Historico completo em collections especificas
+
+---
+
 ### Validação de IDs Cartola - Temporada 2026
-**Status:** CONCLUÍDO
+**Status:** CONCLUIDO
 
 **Contexto:** Antes da temporada 2026 começar, precisamos validar se os IDs dos times no Cartola FC ainda são válidos (mesmo dono).
 
@@ -98,6 +175,23 @@
 ---
 
 ## Historico da Sessao 2026-01-14
+
+### Esconder Botao Validar em 2025
+**Status:** CONCLUIDO
+
+**Implementado:**
+- Funcao `atualizarVisibilidadeBotaoValidar()` em `public/js/participantes.js:82-93`
+- Chamada em `inicializarTemporadas()` e `selecionarTemporada()`
+- Logica: `temporadaSelecionada >= temporadaLiga` → mostra, senao oculta
+- Aba 2025 (passada): botao oculto
+- Aba 2026 (atual): botao visivel
+
+**Analise realizada:**
+- Schema `times` ja tem campo `temporada` (linha 112-118)
+- Fluxo de renovacao ja sincroniza `times` automaticamente (inscricoesController.js:274-293)
+- 4/4 participantes 2026 ja estao em `times` com temporada correta
+
+---
 
 ### Validacao Completa do Sistema
 **Status:** CONCLUIDO

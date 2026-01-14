@@ -28,6 +28,7 @@ async function inicializarTemporadas() {
         temporadaSelecionada = temporadaSelecionada || temporadaLiga;
 
         renderizarAbas();
+        atualizarVisibilidadeBotaoValidar();
         console.log(`[TEMPORADAS] Disponíveis: ${temporadasDisponiveis.join(", ")}`);
     } catch (error) {
         console.warn("[TEMPORADAS] Erro ao inicializar:", error);
@@ -67,8 +68,28 @@ async function selecionarTemporada(temporada) {
         btn.classList.toggle("active", parseInt(btn.dataset.temporada) === temporada);
     });
 
+    // Atualizar visibilidade do botão Validar
+    atualizarVisibilidadeBotaoValidar();
+
     // Recarregar participantes
     await carregarParticipantesPorTemporada(temporada);
+}
+
+/**
+ * Controla visibilidade do botão Validar
+ * Só mostra para temporada atual ou futura (2025 já consolidado não precisa validar)
+ */
+function atualizarVisibilidadeBotaoValidar() {
+    const btnValidar = document.getElementById("btn-validar-ids");
+    if (!btnValidar) return;
+
+    // Só mostra se temporada selecionada >= temporada da liga (atual)
+    const mostrar = temporadaSelecionada >= temporadaLiga;
+    btnValidar.style.display = mostrar ? "" : "none";
+
+    if (!mostrar) {
+        console.log(`[VALIDAR] Botão oculto para temporada ${temporadaSelecionada} (consolidada)`);
+    }
 }
 
 // Torna função global para onclick
