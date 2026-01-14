@@ -1,4 +1,5 @@
-// PONTOS CORRIDOS ORQUESTRADOR - v2.4 Coordenador Principal
+// PONTOS CORRIDOS ORQUESTRADOR - v2.5 Coordenador Principal
+// ✅ v2.5: Detecção dinâmica de temporada (R1 + mercado aberto = temporada anterior)
 // ✅ v2.4: FIX - Container IDs múltiplos + caminho absoluto rodadas.js
 // ✅ v2.3: CORREÇÃO - Usar buscarTimesLiga (enriquecido) ao invés de cache
 // Responsável por: coordenação de módulos, carregamento dinâmico, inicialização
@@ -176,7 +177,17 @@ export async function carregarPontosCorridos() {
       buscarTimesLiga(estadoOrquestrador.ligaId), // ✅ Enriquecido com nome_cartola
     ]);
 
-    estadoOrquestrador.rodadaAtualBrasileirao = status.rodada_atual || 1;
+    // v2.5: Detecção dinâmica de temporada
+    let rodadaAtual = status.rodada_atual || 1;
+    const mercadoAberto = status.status_mercado === 1;
+    const RODADA_FINAL_CAMPEONATO = status.rodada_final || 38;
+
+    if (rodadaAtual === 1 && mercadoAberto) {
+      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Nova temporada não iniciou - usando rodada 38 da temporada anterior");
+      rodadaAtual = RODADA_FINAL_CAMPEONATO;
+    }
+
+    estadoOrquestrador.rodadaAtualBrasileirao = rodadaAtual;
 
     // ✅ VALIDAR APENAS TIMES PRIMEIRO (sem confrontos)
     if (!Array.isArray(timesData) || timesData.length === 0) {
@@ -426,7 +437,7 @@ function setupCleanup() {
 setupCleanup();
 
 console.log(
-  "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo v2.4 carregado (fix container + rodadas path)",
+  "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo v2.5 carregado (detecção dinâmica de temporada)",
 );
 
 // --- Funções de UI e Navegação ---
