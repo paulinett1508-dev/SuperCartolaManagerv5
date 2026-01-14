@@ -332,6 +332,47 @@ router.get("/buscar-time", async (req, res) => {
 });
 
 // =============================================================================
+// 🌐 BUSCA DE TIME NA API DA GLOBO
+// Busca times diretamente na API publica do Cartola (Globo)
+// Usado para encontrar novos participantes que ainda nao estao no banco local
+// =============================================================================
+router.get("/buscar-time-globo", async (req, res) => {
+    try {
+        const { q, limit = 10 } = req.query;
+
+        if (!q || q.trim().length < 3) {
+            return res.status(400).json({
+                success: false,
+                error: "Informe pelo menos 3 caracteres para buscar"
+            });
+        }
+
+        console.log(`🌐 [CARTOLA-PROXY] Buscando times na API Globo: "${q}"`);
+
+        // Usar o servico que busca diretamente na API da Globo
+        const times = await cartolaApiService.buscarTimePorNome(q.trim(), parseInt(limit));
+
+        console.log(`✅ [CARTOLA-PROXY] ${times.length} times encontrados na API Globo para "${q}"`);
+
+        res.json({
+            success: true,
+            query: q,
+            total: times.length,
+            times,
+            fonte: 'api_globo'
+        });
+
+    } catch (error) {
+        console.error(`❌ [CARTOLA-PROXY] Erro na busca Globo por "${req.query.q}":`, error.message);
+        res.status(500).json({
+            success: false,
+            error: "Erro ao buscar times na API da Globo",
+            details: error.message
+        });
+    }
+});
+
+// =============================================================================
 // 🏠 BUSCA DE TIME POR ID
 // Retorna dados completos de um time específico
 // =============================================================================
