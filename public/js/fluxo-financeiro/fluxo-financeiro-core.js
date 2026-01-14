@@ -405,6 +405,34 @@ export class FluxoFinanceiroCore {
         // =====================================================================
         // CALCULAR DO ZERO
         // =====================================================================
+
+        // ✅ v6.5: PROTEÇÃO - Temporadas históricas NÃO devem ser recalculadas
+        // O frontend não tem dados de ranking de temporadas anteriores
+        // Recalcular criaria caches corrompidos (tudo zerado)
+        if (isTemporadaHistorica) {
+            console.warn(`[FLUXO-CORE] ⚠️ Temporada histórica ${temporadaSelecionada} sem cache válido. Retornando extrato vazio.`);
+            console.warn(`[FLUXO-CORE] ⚠️ Execute o script de correção de caches para reconstruir.`);
+
+            // Retornar extrato vazio em vez de calcular com dados incorretos
+            return {
+                rodadas: [],
+                resumo: {
+                    totalGanhos: 0, totalPerdas: 0, bonus: 0, onus: 0,
+                    pontosCorridos: 0, mataMata: 0, top10: 0, saldo: 0,
+                    campo1: 0, campo2: 0, campo3: 0, campo4: 0,
+                    saldo_acertos: 0
+                },
+                totalTimes: 0,
+                camposEditaveis: {},
+                acertos: { lista: [], resumo: { totalPago: 0, totalRecebido: 0, saldo: 0 } },
+                inativo: isInativo,
+                rodadaDesistencia: rodadaDesistencia,
+                extratoTravado: false,
+                temporadaHistorica: true,
+                avisoSemCache: `Extrato de ${temporadaSelecionada} não disponível. Cache não encontrado.`
+            };
+        }
+
         console.log(`[FLUXO-CORE] 🔄 Calculando extrato completo...`);
 
         // ✅ v6.0: Carregar config da liga e verificar modulos
