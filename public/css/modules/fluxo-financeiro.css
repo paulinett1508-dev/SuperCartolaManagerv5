@@ -2701,54 +2701,87 @@ table.fluxo-participantes-tabela {
 }
 
 /* ============================================================
-   RESPONSIVIDADE TABLET: Garantir scroll horizontal em tabelas
-   v1.0 - Fallback para telas medias (769px-1199px)
+   SCROLL HORIZONTAL: Tabela Fluxo Financeiro
+   v1.1 - Barra de rolagem sempre visivel e estilizada
    ============================================================ */
-@media (max-width: 1199px) {
-    /* Container da tabela com scroll horizontal garantido */
-    .fluxo-tabela-container {
-        max-width: 100%;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-    }
 
-    /* Page content permite overflow */
-    .page-content {
-        overflow-x: auto;
-    }
+/* Container da tabela com scroll horizontal */
+.fluxo-tabela-container {
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+}
 
-    /* Tabela wrapper */
-    .tabela-wrapper {
-        max-width: 100%;
-        overflow-x: auto !important;
-    }
+/* Scrollbar horizontal estilizada - SEMPRE VISIVEL */
+.fluxo-tabela-container::-webkit-scrollbar {
+    height: 10px;
+    width: 8px;
+}
 
-    /* Indicador visual de scroll (sombra no lado direito) */
-    .fluxo-tabela-container {
-        position: relative;
-    }
+.fluxo-tabela-container::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 5px;
+}
 
-    .fluxo-tabela-container::after {
-        content: '';
-        position: absolute;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        width: 20px;
-        background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.2));
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
+.fluxo-tabela-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #FF5500, #ff6b1a);
+    border-radius: 5px;
+    border: 2px solid #1a1a1a;
+}
 
-    /* Mostrar indicador quando hover */
-    .fluxo-tabela-container:hover::after {
-        opacity: 1;
-    }
+.fluxo-tabela-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(90deg, #ff6b1a, #FF5500);
+}
 
-    /* Garantir que tabelas internas nao comprimam */
-    .fluxo-participantes-tabela,
-    .detalhamento-tabela {
-        min-width: 600px;
-    }
+/* Firefox scrollbar */
+.fluxo-tabela-container {
+    scrollbar-width: thin;
+    scrollbar-color: #FF5500 #1a1a1a;
+}
+
+/* Tabela wrapper tambem com scroll */
+.tabela-wrapper {
+    max-width: 100%;
+    overflow-x: auto !important;
+}
+
+.tabela-wrapper::-webkit-scrollbar {
+    height: 10px;
+}
+
+.tabela-wrapper::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 5px;
+}
+
+.tabela-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #FF5500, #ff6b1a);
+    border-radius: 5px;
+}
+
+/* Garantir que tabelas internas NAO comprimam - forcam scroll */
+.fluxo-participantes-tabela,
+.detalhamento-tabela {
+    min-width: 800px;
+}
+
+/* Indicador visual: sombra no lado direito quando tem mais conteudo */
+.fluxo-tabela-container::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 10px; /* Nao cobrir scrollbar */
+    width: 30px;
+    background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.4));
+    pointer-events: none;
+    opacity: 1;
+    z-index: 10;
+}
+
+/* Esconder sombra quando scrollado ate o final (via JS se necessario) */
+.fluxo-tabela-container.scroll-end::after {
+    opacity: 0;
 }

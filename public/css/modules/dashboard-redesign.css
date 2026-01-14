@@ -1684,58 +1684,6 @@ body.sidebar-collapsed .main-content {
     }
 }
 
-/* ============================================================
-   TABLET: Auto-colapsar sidebar em telas medias (769px-1199px)
-   Libera espaco para tabelas e conteudo extenso
-   v1.0 - Responsividade para tablets
-   ============================================================ */
-@media (min-width: 769px) and (max-width: 1199px) {
-    /* Sidebar auto-colapsado em tablets */
-    .app-sidebar.sidebar-redesign {
-        width: 80px;
-    }
-
-    /* Ajustar margin do conteudo principal */
-    .main-content {
-        margin-left: 80px;
-    }
-
-    /* Esconder textos do sidebar (manter apenas icones) */
-    .sidebar-logo-text,
-    .sidebar-menu-item span:not(.material-icons),
-    .sidebar-accordion-title span:not(.material-icons),
-    .sidebar-accordion-arrow,
-    .sidebar-liga-name,
-    .sidebar-liga-count,
-    .sidebar-user-info {
-        display: none !important;
-    }
-
-    /* Centralizar itens do menu */
-    .sidebar-menu-item,
-    .sidebar-accordion-header,
-    .sidebar-liga-item,
-    .sidebar-user-inner {
-        justify-content: center;
-        padding: 12px;
-    }
-
-    /* Ajustar logo */
-    .sidebar-logo-new {
-        padding: 16px 8px;
-    }
-
-    /* Esconder toggle button em tablet (ja esta colapsado) */
-    .sidebar-toggle-btn {
-        display: none;
-    }
-
-    /* Ajustar padding do conteudo */
-    .dashboard-redesign .page-content {
-        padding: 20px 16px !important;
-    }
-}
-
 /* ===================================================
    CARD USUÁRIOS ONLINE v1.0
    =================================================== */
