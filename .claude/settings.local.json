@@ -170,7 +170,9 @@
       "Bash(fuser:*)",
       "Skill(feature-scout)",
       "mcp__ide__getDiagnostics",
-      "Bash(printf:*)"
+      "Bash(printf:*)",
+      "Bash(sort:*)",
+      "Bash(do echo -n \"Rodada $i: \")"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -1,4 +1,5 @@
-// PONTOS CORRIDOS ORQUESTRADOR - v2.5 Coordenador Principal
+// PONTOS CORRIDOS ORQUESTRADOR - v3.0 Coordenador Principal
+// ✅ v3.0: MODO SOMENTE LEITURA - Temporada 2025 encerrada, dados consolidados do cache
 // ✅ v2.5: Detecção dinâmica de temporada (R1 + mercado aberto = temporada anterior)
 // ✅ v2.4: FIX - Container IDs múltiplos + caminho absoluto rodadas.js
 // ✅ v2.3: CORREÇÃO - Usar buscarTimesLiga (enriquecido) ao invés de cache
@@ -62,6 +63,9 @@ let estadoOrquestrador = {
   carregando: false,
   visualizacaoAtual: "rodadas", // 'rodadas' ou 'classificacao'
   rodadaSelecionada: 1,
+  // v3.0: Modo somente leitura para temporada encerrada
+  temporadaEncerrada: false,
+  dadosConsolidados: null, // Dados do cache quando temporada encerrada
 };
 
 // Função de carregamento dinâmico das rodadas
@@ -158,70 +162,96 @@ export async function carregarPontosCorridos() {
     const config = validarConfiguracao();
     estadoOrquestrador.ligaId = config.ligaId;
 
-    // Pré-carregar dependências
-    console.log(
-      "[PONTOS-CORRIDOS-ORQUESTRADOR] Pré-carregando dependências...",
-    );
-    const rodadasOk = await carregarRodadas();
-
-    if (!rodadasOk) {
-      console.warn(
-        "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo rodadas não carregou",
-      );
-    }
-
-    // Buscar dados iniciais
-    // ✅ v2.3: Usar buscarTimesLiga do core (já enriquece com nome_cartola)
-    const [status, timesData] = await Promise.all([
-      getStatusMercadoCache(),
-      buscarTimesLiga(estadoOrquestrador.ligaId), // ✅ Enriquecido com nome_cartola
-    ]);
-
-    // v2.5: Detecção dinâmica de temporada
+    // Buscar status do mercado primeiro
+    const status = await getStatusMercadoCache();
     let rodadaAtual = status.rodada_atual || 1;
     const mercadoAberto = status.status_mercado === 1;
     const RODADA_FINAL_CAMPEONATO = status.rodada_final || 38;
 
+    // ✅ v3.0: DETECÇÃO DE TEMPORADA ENCERRADA
+    // Quando rodada_atual = 1 e mercado aberto = nova temporada não começou
+    // Isso significa que a temporada 2025 está ENCERRADA e consolidada
     if (rodadaAtual === 1 && mercadoAberto) {
-      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Nova temporada não iniciou - usando rodada 38 da temporada anterior");
-      rodadaAtual = RODADA_FINAL_CAMPEONATO;
-    }
+      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] 🔒 MODO SOMENTE LEITURA - Temporada 2025 encerrada");
+      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Carregando dados consolidados do cache...");
 
-    estadoOrquestrador.rodadaAtualBrasileirao = rodadaAtual;
+      estadoOrquestrador.temporadaEncerrada = true;
+      estadoOrquestrador.rodadaAtualBrasileirao = RODADA_FINAL_CAMPEONATO;
 
-    // ✅ VALIDAR APENAS TIMES PRIMEIRO (sem confrontos)
-    if (!Array.isArray(timesData) || timesData.length === 0) {
-      throw new Error("Lista de times inválida ou vazia");
-    }
+      // ✅ CARREGAR TUDO DO CACHE - SEM RECALCULAR
+      const dadosConsolidados = await carregarDadosConsolidados(estadoOrquestrador.ligaId);
 
-    const timesValidos = timesData.filter((t) => t && typeof t.id === "number");
-    if (timesValidos.length === 0) {
-      throw new Error("Nenhum time com ID numérico válido encontrado");
-    }
+      if (!dadosConsolidados || dadosConsolidados.length === 0) {
+        throw new Error("Dados consolidados não encontrados no cache");
+      }
 
-    estadoOrquestrador.times = timesValidos;
+      estadoOrquestrador.dadosConsolidados = dadosConsolidados;
 
-    // ✅ GERAR CONFRONTOS APÓS VALIDAR TIMES
-    estadoOrquestrador.confrontos = gerarConfrontos(estadoOrquestrador.times);
+      // Extrair times da última rodada consolidada
+      const ultimaRodada = dadosConsolidados[dadosConsolidados.length - 1];
+      estadoOrquestrador.times = (ultimaRodada.classificacao || []).map(t => ({
+        id: Number(t.timeId) || Number(t.time_id),
+        nome: t.nome || t.nome_time,
+        nome_cartola: t.nome_cartola,
+        escudo: t.escudo,
+      }));
 
-    // ✅ AGORA VALIDAR COM CONFRONTOS GERADOS
-    try {
-      validarDadosEntrada(
-        estadoOrquestrador.times,
-        estadoOrquestrador.confrontos,
-      );
-      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Dados validados com sucesso");
-    } catch (validationError) {
-      console.warn(
-        "[PONTOS-CORRIDOS-ORQUESTRADOR] Aviso de validação:",
-        validationError.message,
-      );
-      // Continuar execução mesmo com warning de validação
-    }
+      // Extrair confrontos de todas as rodadas
+      estadoOrquestrador.confrontos = dadosConsolidados.map(r => r.confrontos || []);
+      estadoOrquestrador.ultimaRodadaComDados = dadosConsolidados.length;
 
-    // Verificar se há confrontos suficientes
-    if (estadoOrquestrador.confrontos.length === 0) {
-      throw new Error("Não foi possível gerar confrontos para esta liga");
+      console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ ${estadoOrquestrador.times.length} times carregados do cache`);
+      console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ ${estadoOrquestrador.confrontos.length} rodadas consolidadas`);
+
+    } else {
+      // ✅ MODO NORMAL - Temporada em andamento
+      estadoOrquestrador.temporadaEncerrada = false;
+      estadoOrquestrador.rodadaAtualBrasileirao = rodadaAtual;
+
+      // Pré-carregar dependências
+      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Pré-carregando dependências...");
+      const rodadasOk = await carregarRodadas();
+
+      if (!rodadasOk) {
+        console.warn("[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo rodadas não carregou");
+      }
+
+      // Buscar times da liga
+      const timesData = await buscarTimesLiga(estadoOrquestrador.ligaId);
+
+      // ✅ VALIDAR APENAS TIMES PRIMEIRO (sem confrontos)
+      if (!Array.isArray(timesData) || timesData.length === 0) {
+        throw new Error("Lista de times inválida ou vazia");
+      }
+
+      const timesValidos = timesData.filter((t) => t && typeof t.id === "number");
+      if (timesValidos.length === 0) {
+        throw new Error("Nenhum time com ID numérico válido encontrado");
+      }
+
+      estadoOrquestrador.times = timesValidos;
+
+      // ✅ GERAR CONFRONTOS APÓS VALIDAR TIMES
+      estadoOrquestrador.confrontos = gerarConfrontos(estadoOrquestrador.times);
+
+      // ✅ AGORA VALIDAR COM CONFRONTOS GERADOS
+      try {
+        validarDadosEntrada(
+          estadoOrquestrador.times,
+          estadoOrquestrador.confrontos,
+        );
+        console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Dados validados com sucesso");
+      } catch (validationError) {
+        console.warn(
+          "[PONTOS-CORRIDOS-ORQUESTRADOR] Aviso de validação:",
+          validationError.message,
+        );
+      }
+
+      // Verificar se há confrontos suficientes
+      if (estadoOrquestrador.confrontos.length === 0) {
+        throw new Error("Não foi possível gerar confrontos para esta liga");
+      }
     }
 
     console.log(
@@ -259,6 +289,32 @@ export async function carregarPontosCorridos() {
   }
 }
 
+// ✅ v3.0: CARREGAR DADOS CONSOLIDADOS DO CACHE
+async function carregarDadosConsolidados(ligaId) {
+  try {
+    console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] Buscando dados consolidados: /api/pontos-corridos/${ligaId}`);
+
+    const response = await fetch(`/api/pontos-corridos/${ligaId}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const dados = await response.json();
+
+    if (!Array.isArray(dados) || dados.length === 0) {
+      console.warn("[PONTOS-CORRIDOS-ORQUESTRADOR] Cache vazio ou inválido");
+      return null;
+    }
+
+    console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ ${dados.length} rodadas carregadas do cache`);
+    return dados;
+
+  } catch (error) {
+    console.error("[PONTOS-CORRIDOS-ORQUESTRADOR] ❌ Erro ao carregar cache:", error);
+    return null;
+  }
+}
+
 // Handler para mudança de rodada
 async function handleRodadaChange(idxRodada) {
   await renderRodada(idxRodada);
@@ -286,7 +342,7 @@ async function renderRodada(rodadaNum) {
     return;
   }
 
-  const rodadaCartola = PONTOS_CORRIDOS_CONFIG.rodadaInicial + rodadaNum - 1; // Ajuste para índice 0
+  const rodadaCartola = PONTOS_CORRIDOS_CONFIG.rodadaInicial + rodadaNum - 1;
 
   renderLoadingState(containerId, `Carregando dados da rodada ${rodadaNum}`);
 
@@ -299,6 +355,50 @@ async function renderRodada(rodadaNum) {
   }
 
   try {
+    // ✅ v3.0: MODO SOMENTE LEITURA - Usar dados do cache diretamente
+    if (estadoOrquestrador.temporadaEncerrada && estadoOrquestrador.dadosConsolidados) {
+      console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] 🔒 Rodada ${rodadaNum} do cache consolidado`);
+
+      const dadosRodada = estadoOrquestrador.dadosConsolidados.find(r => r.rodada === rodadaNum);
+
+      if (!dadosRodada || !dadosRodada.confrontos) {
+        throw new Error(`Rodada ${rodadaNum} não encontrada no cache consolidado`);
+      }
+
+      // Usar confrontos diretamente do cache (já tem pontuações)
+      const jogos = dadosRodada.confrontos;
+
+      // Criar pontuacoesMap a partir dos dados já consolidados
+      const pontuacoesMap = {};
+      jogos.forEach(jogo => {
+        if (jogo.time1?.id) {
+          pontuacoesMap[String(jogo.time1.id)] = {
+            pontuacao: jogo.time1.pontos || 0,
+            pontos: jogo.pontos1 ?? (jogo.time1.pontos > jogo.time2.pontos ? 3 : jogo.time1.pontos < jogo.time2.pontos ? 0 : 1),
+          };
+        }
+        if (jogo.time2?.id) {
+          pontuacoesMap[String(jogo.time2.id)] = {
+            pontuacao: jogo.time2.pontos || 0,
+            pontos: jogo.pontos2 ?? (jogo.time2.pontos > jogo.time1.pontos ? 3 : jogo.time2.pontos < jogo.time1.pontos ? 0 : 1),
+          };
+        }
+      });
+
+      // Renderizar tabela com dados do cache
+      const tabelaHtml = renderTabelaRodada(
+        jogos,
+        rodadaNum,
+        pontuacoesMap,
+        estadoOrquestrador.rodadaAtualBrasileirao,
+      );
+      atualizarContainer(containerId, tabelaHtml);
+
+      console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ Rodada ${rodadaNum} renderizada do cache`);
+      return;
+    }
+
+    // ✅ MODO NORMAL - Temporada em andamento
     // Verificar dependências
     if (!getRankingRodadaEspecifica) {
       throw new Error("Módulo rodadas não disponível");
@@ -306,7 +406,7 @@ async function renderRodada(rodadaNum) {
 
     const jogos = estadoOrquestrador.confrontos[rodadaNum - 1]; // Ajuste para índice 0
 
-    // CORREt�ÃO: Validar se jogos existe
+    // CORREÇÃO: Validar se jogos existe
     if (!jogos || jogos.length === 0) {
       throw new Error(`Confrontos não encontrados para rodada ${rodadaNum}`);
     }
@@ -347,33 +447,57 @@ async function renderRodada(rodadaNum) {
 async function renderClassificacao() {
   const containerId = "pontosCorridosRodada"; // O container principal será reutilizado
 
-  renderLoadingState(containerId, "Calculando classificação");
+  renderLoadingState(containerId, "Carregando classificação");
 
   try {
-    // Verificar cache primeiro
-    let resultado = getClassificacaoCache(
-      estadoOrquestrador.ligaId,
-      estadoOrquestrador.rodadaAtualBrasileirao,
-    );
+    let classificacao, ultimaRodadaComDados, houveErro;
 
-    if (!resultado) {
-      // Calcular classificação
-      resultado = await calcularClassificacao(
+    // ✅ v3.0: MODO SOMENTE LEITURA - Usar classificação do cache
+    if (estadoOrquestrador.temporadaEncerrada && estadoOrquestrador.dadosConsolidados) {
+      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] 🔒 Classificação do cache consolidado");
+
+      // Pegar classificação da última rodada consolidada
+      const ultimaRodada = estadoOrquestrador.dadosConsolidados[estadoOrquestrador.dadosConsolidados.length - 1];
+
+      if (!ultimaRodada || !ultimaRodada.classificacao) {
+        throw new Error("Classificação não encontrada no cache consolidado");
+      }
+
+      classificacao = ultimaRodada.classificacao;
+      ultimaRodadaComDados = ultimaRodada.rodada;
+      houveErro = false;
+
+      console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ Classificação final da Rodada ${ultimaRodadaComDados}`);
+
+    } else {
+      // ✅ MODO NORMAL - Temporada em andamento
+      // Verificar cache primeiro
+      let resultado = getClassificacaoCache(
         estadoOrquestrador.ligaId,
-        estadoOrquestrador.times,
-        estadoOrquestrador.confrontos,
         estadoOrquestrador.rodadaAtualBrasileirao,
       );
 
-      // Armazenar no cache
-      setClassificacaoCache(
-        resultado,
-        estadoOrquestrador.ligaId,
-        estadoOrquestrador.rodadaAtualBrasileirao,
-      );
+      if (!resultado) {
+        // Calcular classificação
+        resultado = await calcularClassificacao(
+          estadoOrquestrador.ligaId,
+          estadoOrquestrador.times,
+          estadoOrquestrador.confrontos,
+          estadoOrquestrador.rodadaAtualBrasileirao,
+        );
+
+        // Armazenar no cache
+        setClassificacaoCache(
+          resultado,
+          estadoOrquestrador.ligaId,
+          estadoOrquestrador.rodadaAtualBrasileirao,
+        );
+      }
+
+      classificacao = resultado.classificacao;
+      ultimaRodadaComDados = resultado.ultimaRodadaComDados;
+      houveErro = resultado.houveErro;
     }
-
-    const { classificacao, ultimaRodadaComDados, houveErro } = resultado;
 
     // Renderizar tabela
     const tabelaHtml = renderTabelaClassificacao(
@@ -437,7 +561,7 @@ function setupCleanup() {
 setupCleanup();
 
 console.log(
-  "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo v2.5 carregado (detecção dinâmica de temporada)",
+  "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo v3.0 carregado (modo somente leitura para temporada encerrada)",
 );
 
 // --- Funções de UI e Navegação ---
