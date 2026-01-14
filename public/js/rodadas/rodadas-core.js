@@ -46,7 +46,9 @@ export async function atualizarStatusMercado() {
       statusMercadoGlobal = {
         rodada_atual: mercadoData.rodada_atual,
         status_mercado: mercadoData.status_mercado,
+        temporada: mercadoData.temporada || new Date().getFullYear(),
       };
+      console.log(`[RODADAS-CORE] Status mercado: R${mercadoData.rodada_atual} T${statusMercadoGlobal.temporada}`);
     } else {
       console.warn("[RODADAS-CORE] Não foi possível buscar status do mercado.");
     }

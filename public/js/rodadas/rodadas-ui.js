@@ -61,9 +61,27 @@ function isTemporadaEncerrada(rodada_atual, status_mercado) {
  * @param {number} rodada - Número da rodada
  * @param {number} rodada_atual - Rodada atual da API
  * @param {number} status_mercado - Status do mercado
+ * @param {number} temporadaMercado - Temporada do mercado (opcional)
  * @returns {boolean} - True se rodada está consolidada
  */
-export function isRodadaConsolidada(rodada, rodada_atual, status_mercado) {
+export function isRodadaConsolidada(rodada, rodada_atual, status_mercado, temporadaMercado = null) {
+  // ✅ v2.5: Se visualizando temporada passada, todas rodadas estão consolidadas
+  if (temporadaMercado) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const temporadaParam = urlParams.get("temporada");
+
+    // Param explícito de temporada passada
+    if (temporadaParam && parseInt(temporadaParam) < temporadaMercado) {
+      return true;
+    }
+
+    // ✅ v2.6: Detecção automática - mercado R1 aberto = temporada anterior
+    const mercadoAberto = status_mercado === 1;
+    if (!temporadaParam && rodada_atual === 1 && mercadoAberto) {
+      return true;
+    }
+  }
+
   // Rodadas anteriores à atual sempre estão consolidadas
   if (rodada < rodada_atual) return true;
 
@@ -94,11 +112,31 @@ export async function renderizarMiniCardsRodadas() {
     return;
   }
 
-  const { rodada_atual, status_mercado } = getStatusMercado();
+  const { rodada_atual, status_mercado, temporada: temporadaMercado } = getStatusMercado();
   console.log("[RODADAS-UI] Status do mercado:", {
     rodada_atual,
     status_mercado,
+    temporadaMercado,
   });
+
+  // ✅ v2.5: Detectar se está visualizando temporada passada
+  const urlParams = new URLSearchParams(window.location.search);
+  const temporadaParam = urlParams.get("temporada");
+  const temporadaVisualizando = temporadaParam ? parseInt(temporadaParam) : null;
+
+  // Se temporada na URL é menor que temporada do mercado, é temporada passada
+  // ✅ v2.6: Se não tem param mas mercado está na rodada 1 com mercado ABERTO,
+  // a nova temporada ainda não começou - mostrar dados da temporada anterior
+  let isTemporadaPassada = false;
+  if (temporadaVisualizando) {
+    isTemporadaPassada = temporadaVisualizando < temporadaMercado;
+  } else if (temporadaMercado && rodada_atual === 1 && mercadoAberto) {
+    // Nova temporada ainda não começou - dados existentes são da anterior
+    isTemporadaPassada = true;
+    console.log("[RODADAS-UI] Detecção automática: T" + temporadaMercado + " R1 mercado aberto - exibindo temporada " + (temporadaMercado - 1));
+  }
+
+  console.log("[RODADAS-UI] Temporada visualizando:", temporadaVisualizando || (isTemporadaPassada ? temporadaMercado - 1 : temporadaMercado), "Passada:", isTemporadaPassada);
 
   const mercadoAberto = status_mercado === 1;
   const temporadaEncerrada = isTemporadaEncerrada(rodada_atual, status_mercado);
@@ -112,8 +150,14 @@ export async function renderizarMiniCardsRodadas() {
     let statusText = "";
     let isDisabled = false;
 
-    // ✅ v2.4: Lógica corrigida para última rodada
-    if (i < rodada_atual) {
+    // ✅ v2.5: Se visualizando temporada passada, todas rodadas são encerradas
+    if (isTemporadaPassada) {
+      statusClass = "encerrada";
+      statusText = "Encerrada";
+      isDisabled = false;
+    }
+    // ✅ v2.4: Lógica para temporada atual
+    else if (i < rodada_atual) {
       // Rodadas anteriores sempre encerradas
       statusClass = "encerrada";
       statusText = "Encerrada";

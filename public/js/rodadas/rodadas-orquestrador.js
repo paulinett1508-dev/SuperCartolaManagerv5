@@ -174,18 +174,19 @@ export async function carregarDadosRodada(rodadaSelecionada) {
     return;
   }
 
-  const { rodada_atual, status_mercado } = getStatusMercado();
+  const { rodada_atual, status_mercado, temporada: temporadaMercado } = getStatusMercado();
   const mercadoAberto = status_mercado === 1;
 
-  // ✅ v2.1: Usar função de verificação de consolidação
+  // ✅ v2.5: Usar função de verificação de consolidação com temporada
   const rodadaConsolidada = isRodadaConsolidada(
     rodadaSelecionada,
     rodada_atual,
     status_mercado,
+    temporadaMercado,
   );
 
   console.log(
-    `[RODADAS-ORQUESTRADOR] Rodada ${rodadaSelecionada}: consolidada=${rodadaConsolidada}, rodada_atual=${rodada_atual}, status=${status_mercado}`,
+    `[RODADAS-ORQUESTRADOR] Rodada ${rodadaSelecionada}: consolidada=${rodadaConsolidada}, rodada_atual=${rodada_atual}, status=${status_mercado}, temporada=${temporadaMercado}`,
   );
 
   try {
