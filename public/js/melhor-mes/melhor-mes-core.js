@@ -1,5 +1,6 @@
-// MELHOR DO MÊS - CORE BUSINESS LOGIC v1.1
+// MELHOR DO MÊS - CORE BUSINESS LOGIC v1.2
 // public/js/melhor-mes/melhor-mes-core.js
+// v1.2: Detecção dinâmica de temporada (R1 + mercado aberto = temporada anterior)
 
 import { getRankingRodadaEspecifica } from "../rodadas.js";
 import {
@@ -120,14 +121,27 @@ export class MelhorMesCore {
       }
 
       const mercadoStatus = await response.json();
-      this.ultimaRodadaCompleta =
-        mercadoStatus.rodada_atual > 0 ? mercadoStatus.rodada_atual - 1 : 0;
+
+      // v1.2: Detecção dinâmica de temporada
+      // Se rodada 1 e mercado aberto, nova temporada não iniciou - usar dados da anterior
+      const rodadaAtual = mercadoStatus.rodada_atual || 1;
+      const mercadoAberto = mercadoStatus.status_mercado === 1;
+      const RODADA_FINAL_CAMPEONATO = mercadoStatus.rodada_final || 38;
+
+      if (rodadaAtual === 1 && mercadoAberto) {
+        console.log("[MELHOR-MES-CORE] Nova temporada não iniciou - usando dados da temporada anterior (38 rodadas)");
+        this.ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO;
+        this.temporadaAnterior = true;
+      } else {
+        this.ultimaRodadaCompleta = rodadaAtual > 0 ? rodadaAtual - 1 : 0;
+        this.temporadaAnterior = false;
+      }
     } catch (error) {
       console.warn(
-        "[MELHOR-MES-CORE] Erro ao buscar mercado, usando rodada 35:",
+        "[MELHOR-MES-CORE] Erro ao buscar mercado, usando rodada 38:",
         error,
       );
-      this.ultimaRodadaCompleta = 35;
+      this.ultimaRodadaCompleta = 38;
     }
 
     dadosBasicos = {
