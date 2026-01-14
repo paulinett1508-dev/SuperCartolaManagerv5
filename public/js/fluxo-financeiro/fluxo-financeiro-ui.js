@@ -1373,10 +1373,10 @@ export class FluxoFinanceiroUI {
         style.textContent = `
             /* ========================================
                TABELA COMPACTA DE PARTICIPANTES
-               v2.1 - Cores Vivas + Colunas Compactas
+               v2.2 - Scroll Horizontal Visível
                ======================================== */
 
-            /* ✅ v2.1: Container com scroll OBRIGATÓRIO para sticky header */
+            /* ✅ v2.2: Container com scroll HORIZONTAL + VERTICAL visível */
             .fluxo-tabela-container {
                 background: #1a1a1a;
                 border: 1px solid rgba(255, 85, 0, 0.25);
@@ -1385,31 +1385,37 @@ export class FluxoFinanceiroUI {
                 height: calc(100vh - 320px);  /* Altura FIXA baseada na viewport */
                 min-height: 300px;
                 max-height: 600px;
-                overflow-y: scroll !important;  /* SCROLL forçado, não auto */
-                overflow-x: auto;
+                overflow-y: scroll !important;  /* SCROLL forçado vertical */
+                overflow-x: auto !important;    /* SCROLL horizontal quando necessário */
             }
 
-            /* Scrollbar elegante */
+            /* Scrollbar elegante - VERTICAL */
             .fluxo-tabela-container::-webkit-scrollbar {
-                width: 6px;
+                width: 8px;   /* Barra vertical */
+                height: 10px; /* Barra horizontal */
             }
             .fluxo-tabela-container::-webkit-scrollbar-track {
                 background: #1a1a1a;
+                border-radius: 5px;
             }
             .fluxo-tabela-container::-webkit-scrollbar-thumb {
-                background: rgba(255, 85, 0, 0.4);
-                border-radius: 3px;
+                background: linear-gradient(90deg, #FF5500, #ff6b1a);
+                border-radius: 5px;
             }
             .fluxo-tabela-container::-webkit-scrollbar-thumb:hover {
-                background: rgba(255, 85, 0, 0.6);
+                background: linear-gradient(90deg, #ff6b1a, #FF5500);
+            }
+            /* Scrollbar Firefox */
+            .fluxo-tabela-container {
+                scrollbar-width: thin;
+                scrollbar-color: #FF5500 #1a1a1a;
             }
 
             .fluxo-participantes-tabela {
-                width: 100%;
+                min-width: 900px;  /* ✅ v2.2: Força scroll horizontal em telas pequenas */
                 border-collapse: separate;  /* ✅ CRITICAL: separate é OBRIGATÓRIO para sticky funcionar */
                 border-spacing: 0;
                 font-size: 0.9rem;
-                table-layout: fixed;
             }
 
             .fluxo-participantes-tabela thead {

@@ -60,10 +60,15 @@ export class LayoutManager {
 
     _injectSidebar(doc) {
         const sidebar = doc.querySelector(".app-sidebar");
+        const toggleBtn = doc.querySelector(".sidebar-toggle-btn");
         const placeholder = document.getElementById("sidebar-placeholder");
 
         if (sidebar && placeholder) {
-            placeholder.replaceWith(sidebar);
+            // ✅ v1.1: Incluir botão toggle junto com sidebar
+            const fragment = document.createDocumentFragment();
+            if (toggleBtn) fragment.appendChild(toggleBtn);
+            fragment.appendChild(sidebar);
+            placeholder.replaceWith(fragment);
         }
     }
 

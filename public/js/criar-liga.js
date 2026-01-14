@@ -14,12 +14,15 @@ async function loadLayout() {
         const parser = new DOMParser();
         const doc = parser.parseFromString(layoutHtml, "text/html");
 
-        // Injetar sidebar
+        // Injetar sidebar + botão toggle
         const sidebar = doc.querySelector(".app-sidebar");
-        if (sidebar) {
-            document
-                .getElementById("sidebar-placeholder")
-                ?.replaceWith(sidebar);
+        const toggleBtn = doc.querySelector(".sidebar-toggle-btn");
+        const placeholder = document.getElementById("sidebar-placeholder");
+        if (sidebar && placeholder) {
+            const fragment = document.createDocumentFragment();
+            if (toggleBtn) fragment.appendChild(toggleBtn);
+            fragment.appendChild(sidebar);
+            placeholder.replaceWith(fragment);
         }
 
         // Executar scripts do layout
