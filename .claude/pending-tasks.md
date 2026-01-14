@@ -30,7 +30,38 @@
 
 ## Tarefas Pendentes
 
-_Nenhuma tarefa pendente no momento._
+### 1. Testar Fluxo de Renovacao e Quitacao
+**Prioridade:** ALTA
+**Descricao:** Testar novamente todo o fluxo de renovacao e quitacao de participantes
+**Cenarios a validar:**
+- [ ] Renovar participante que deve 2025
+- [ ] Renovar participante com credito 2025
+- [ ] Quitar participante via acerto (auto-quitacao)
+- [ ] Interface admin de renovacao funcionando
+
+### 2. Testar Extrato Financeiro 2025
+**Prioridade:** ALTA
+**Descricao:** Validar extrato financeiro no cenario 2025
+**Cenarios a validar:**
+- [ ] Extrato mostra Top10 (MITO/MICO) corretamente
+- [ ] Saldo consolidado correto apos correcoes
+- [ ] Quitados aparecem com badge correto
+- [ ] Credores e devedores com valores corretos
+
+### 3. Testar Extrato Financeiro 2026 (Renovados)
+**Prioridade:** ALTA
+**Descricao:** Validar extrato dos participantes que renovaram para 2026
+**Participantes a testar:**
+- [ ] Diogo Monte (25371297) - Credito de 2025
+- [ ] Paulinett Miranda (13935277) - Quitado
+- [ ] Felipe Barbosa (8098497) - Deve inscricao
+- [ ] Lucio (-1767569480236) - Deve inscricao
+- [ ] Antonio Luis (645089) - Deve inscricao
+
+**Validar:**
+- [ ] Extrato 2026 nao mostra dados de 2025
+- [ ] Taxa de inscricao aparece corretamente
+- [ ] Credito de 2025 foi aplicado (Diogo Monte)
 
 ---
 
