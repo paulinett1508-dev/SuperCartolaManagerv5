@@ -532,7 +532,7 @@ async function buscarTimes(query) {
 
     try {
         // Buscar na API da Globo (nao no banco local)
-        const response = await fetch(`/api/cartola-proxy/buscar-time-globo?q=${encodeURIComponent(query)}&limit=10`);
+        const response = await fetch(`/api/cartola/buscar-time-globo?q=${encodeURIComponent(query)}&limit=10`);
         const data = await response.json();
 
         spinner.classList.remove('ativo');
