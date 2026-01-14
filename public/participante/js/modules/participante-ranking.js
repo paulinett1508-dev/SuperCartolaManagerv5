@@ -549,7 +549,7 @@ function criarCardSeuDesempenho(ranking, turnoLabel) {
     let footerHTML = "";
     if (posicao === 1) {
         const textoFooter = isCampeao
-            ? "🏆 Você é o CAMPEÃO do Super Cartola!"
+            ? "Você é o CAMPEÃO do Super Cartola!"
             : "Você está liderando o Super Cartola";
         footerHTML =
             '<div class="seu-footer lider">' +
