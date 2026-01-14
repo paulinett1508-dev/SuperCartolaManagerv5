@@ -1,19 +1,59 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v5.0 (SaaS Dinamico)
+// PARTICIPANTE-TOP10.JS - v5.1 (Detecção Dinâmica de Temporada)
 // =====================================================================
+// ✅ v5.1: Detecção automática de temporada passada (remove hardcode 2025)
 // ✅ v5.0: SaaS Dinamico - configs via endpoint /api/ligas/:id/configuracoes
 // ✅ v4.8: Padronização de escudos - sempre usa brasão do time do cartoleiro
 // ✅ v4.7: Cache-first com IndexedDB para carregamento instantâneo
-// ✅ v4.6: Fix rodada 38 (CAMPEONATO_ENCERRADO)
 // ✅ v4.5: Destaque visual para os 10 primeiros (verdadeiro TOP 10)
 
-if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v5.0...");
+if (window.Log) Log.info("[PARTICIPANTE-TOP10] Carregando módulo v5.1...");
 
 // =====================================================================
-// CONFIGURAÇÃO DO CAMPEONATO 2025
+// CONFIGURAÇÃO DINÂMICA DO CAMPEONATO
 // =====================================================================
-const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2025
-const CAMPEONATO_ENCERRADO = true; // Flag: temporada finalizada
+const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão (constante)
+
+/**
+ * v5.1: Detecta se estamos visualizando temporada passada
+ * Retorna { isTemporadaPassada, ultimaRodadaCompleta }
+ */
+function detectarTemporadaStatus(status) {
+    const rodadaAtual = status.rodada_atual || 1;
+    const statusMercado = status.status_mercado;
+    const mercadoAberto = statusMercado === 1;
+
+    // Se mercado está na rodada 1 com status "aberto", nova temporada ainda não começou
+    if (rodadaAtual === 1 && mercadoAberto) {
+        if (window.Log) Log.info("[PARTICIPANTE-TOP10] Detecção automática: nova temporada não iniciou - usando 38 rodadas da anterior");
+        return {
+            isTemporadaPassada: true,
+            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO
+        };
+    }
+
+    // Se estamos na rodada 38 com mercado fechado, temporada atual encerrou
+    if (rodadaAtual === RODADA_FINAL_CAMPEONATO && !mercadoAberto) {
+        if (window.Log) Log.info("[PARTICIPANTE-TOP10] Temporada atual encerrada - usando rodada 38");
+        return {
+            isTemporadaPassada: false,
+            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO
+        };
+    }
+
+    // Temporada em andamento
+    let ultimaRodadaCompleta;
+    if (mercadoAberto) {
+        ultimaRodadaCompleta = Math.max(1, rodadaAtual - 1);
+    } else {
+        ultimaRodadaCompleta = rodadaAtual;
+    }
+
+    return {
+        isTemporadaPassada: false,
+        ultimaRodadaCompleta
+    };
+}
 
 // =====================================================================
 // CONFIGURAÇÃO DE VALORES BÔNUS/ÔNUS - v5.0: Dinamicos via API
@@ -112,38 +152,19 @@ export async function inicializarTop10Participante({
     }
 
     try {
-        // ✅ v4.6: Determinar rodada correta considerando fim do campeonato
-        let ultimaRodadaCompleta = 1;
+        // ✅ v5.1: Detecção dinâmica de temporada
+        let ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO; // fallback
 
-        if (CAMPEONATO_ENCERRADO) {
-            // Campeonato encerrado: última rodada = RODADA_FINAL_CAMPEONATO (38)
-            ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO;
-            if (window.Log)
-                Log.info(
-                    `[PARTICIPANTE-TOP10] 🏁 Campeonato ENCERRADO - usando rodada ${RODADA_FINAL_CAMPEONATO}`,
-                );
-        } else {
-            // Campeonato em andamento: verificar mercado
-            try {
-                const resStatus = await fetch("/api/cartola/mercado/status");
-                if (resStatus.ok) {
-                    const status = await resStatus.json();
-                    const rodadaAtual = status.rodada_atual || 1;
-                    const mercadoAberto =
-                        status.mercado_aberto || status.status_mercado === 1;
-
-                    if (mercadoAberto) {
-                        ultimaRodadaCompleta = Math.max(1, rodadaAtual - 1);
-                    } else {
-                        ultimaRodadaCompleta = rodadaAtual;
-                    }
-                }
-            } catch (e) {
-                if (window.Log)
-                    Log.warn(
-                        "[PARTICIPANTE-TOP10] ⚠️ Falha ao buscar rodada atual",
-                    );
+        try {
+            const resStatus = await fetch("/api/cartola/mercado/status");
+            if (resStatus.ok) {
+                const status = await resStatus.json();
+                const resultado = detectarTemporadaStatus(status);
+                ultimaRodadaCompleta = resultado.ultimaRodadaCompleta;
             }
+        } catch (e) {
+            if (window.Log)
+                Log.warn("[PARTICIPANTE-TOP10] Falha ao buscar mercado, usando fallback rodada 38");
         }
 
         // FASE 2: ATUALIZAÇÃO EM BACKGROUND (Fetch API)
@@ -606,5 +627,5 @@ function mostrarEstadoVazio(show) {
 
 if (window.Log)
     Log.info(
-        "[PARTICIPANTE-TOP10] ✅ Módulo v5.0 SaaS Dinamico carregado",
+        "[PARTICIPANTE-TOP10] Módulo v5.1 carregado (detecção dinâmica de temporada)",
     );

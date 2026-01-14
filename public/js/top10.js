@@ -1,15 +1,15 @@
-// TOP10.JS - MÓDULO DE MITOS E MICOS v3.0
+// TOP10.JS - MÓDULO DE MITOS E MICOS v3.1
 // ✅ v2.0: Fix rodada 38 (CAMPEONATO_ENCERRADO)
 // ✅ v3.0: SaaS Dinamico - usa configs do endpoint /api/ligas/:id/configuracoes
+// ✅ v3.1: Detecção automática de temporada passada (remove hardcode 2025)
 // ✅ Usando imports dinâmicos para compatibilidade com rodadas.js
 
 import { fetchLigaConfig } from "./rodadas/rodadas-config.js";
 
 // ============================================================================
-// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
+// CONFIGURAÇÃO DINÂMICA DO CAMPEONATO
 // ============================================================================
-const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2025
-const CAMPEONATO_ENCERRADO = true; // Flag: temporada finalizada
+const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão (constante)
 
 // ==============================
 // VARIÁVEIS GLOBAIS E DE ESTADO
@@ -75,8 +75,52 @@ async function getMercadoStatus() {
         return await res.json();
     } catch (err) {
         console.error("[TOP10] Erro ao buscar status do mercado:", err);
-        return { rodada_atual: RODADA_FINAL_CAMPEONATO, status_mercado: 2 };
+        return { rodada_atual: 1, status_mercado: 1, temporada: new Date().getFullYear() };
     }
+}
+
+/**
+ * v3.1: Detecta se estamos visualizando temporada passada
+ * Retorna { isTemporadaPassada, ultimaRodadaCompleta }
+ */
+function detectarTemporadaStatus(status) {
+    const rodadaAtual = status.rodada_atual || 1;
+    const statusMercado = status.status_mercado;
+    const mercadoAberto = statusMercado === 1;
+
+    // Se mercado está na rodada 1 com status "aberto", nova temporada ainda não começou
+    // Usar dados da temporada anterior (todas as 38 rodadas)
+    if (rodadaAtual === 1 && mercadoAberto) {
+        console.log("[TOP10] Detecção automática: nova temporada não iniciou - usando 38 rodadas da anterior");
+        return {
+            isTemporadaPassada: true,
+            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO
+        };
+    }
+
+    // Se estamos na rodada 38 com mercado fechado, temporada atual encerrou
+    if (rodadaAtual === RODADA_FINAL_CAMPEONATO && !mercadoAberto) {
+        console.log("[TOP10] Temporada atual encerrada - usando rodada 38");
+        return {
+            isTemporadaPassada: false,
+            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO
+        };
+    }
+
+    // Temporada em andamento: calcular última rodada completa
+    let ultimaRodadaCompleta;
+    if (mercadoAberto) {
+        // Mercado aberto = rodada atual ainda não começou
+        ultimaRodadaCompleta = Math.max(1, rodadaAtual - 1);
+    } else {
+        // Mercado fechado = rodada atual em andamento ou finalizada
+        ultimaRodadaCompleta = rodadaAtual;
+    }
+
+    return {
+        isTemporadaPassada: false,
+        ultimaRodadaCompleta
+    };
 }
 
 /**
@@ -279,25 +323,8 @@ async function carregarDadosTop10() {
         if (!status || !status.rodada_atual)
             throw new Error("Não foi possível obter a rodada atual");
 
-        // ✅ v2.0: FIX - Considerar CAMPEONATO_ENCERRADO
-        let ultimaRodadaCompleta;
-
-        if (CAMPEONATO_ENCERRADO) {
-            // Campeonato encerrado: última rodada = RODADA_FINAL_CAMPEONATO
-            ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO;
-            console.log(
-                `[TOP10] 🏁 Campeonato ENCERRADO - usando rodada ${RODADA_FINAL_CAMPEONATO}`,
-            );
-        } else {
-            // Campeonato em andamento: verificar mercado
-            const mercadoAberto =
-                status.mercado_aberto || status.status_mercado === 1;
-            if (mercadoAberto) {
-                ultimaRodadaCompleta = Math.max(1, status.rodada_atual - 1);
-            } else {
-                ultimaRodadaCompleta = status.rodada_atual;
-            }
-        }
+        // ✅ v3.1: Detecção dinâmica de temporada
+        const { isTemporadaPassada, ultimaRodadaCompleta } = detectarTemporadaStatus(status);
 
         if (ultimaRodadaCompleta === 0) {
             console.log("[TOP10] Nenhuma rodada completa ainda.");
@@ -533,4 +560,4 @@ if (typeof window !== "undefined") {
     window.getTop10Data = getTop10Data;
 }
 
-console.log("[TOP10] ✅ Módulo v3.0 SaaS Dinamico carregado");
+console.log("[TOP10] Módulo v3.1 carregado (detecção dinâmica de temporada)");

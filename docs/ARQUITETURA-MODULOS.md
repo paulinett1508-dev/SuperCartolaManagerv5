@@ -1,4 +1,25 @@
 # Arquitetura de Modulos - Super Cartola SaaS
+# RECOMENDAÇÃO OFICIAL: SISTEMA HÍBRIDO
+
+> **O sistema híbrido é o padrão recomendado para toda a arquitetura de módulos do Super Cartola.**
+
+**Princípios do sistema híbrido:**
+- **Regras Estáticas**: Toda a estrutura, formato, fases e padrões de cada módulo devem estar em arquivos JSON centralizados em `config/rules/`. Isso garante fácil auditoria, versionamento e padronização.
+- **Regras Dinâmicas**: Configurações específicas de cada liga (ex: valores customizados, datas, permissões) devem ser armazenadas em modelos MongoDB (`models/ModuleConfig.js` e `models/LigaRules.js`).
+- **Código Agrupado**: Controllers, rotas e serviços de cada módulo devem ser organizados em pastas próprias dentro de `modules/`, facilitando manutenção e evolução.
+- **Frontend Modular**: JS/CSS/HTML de cada módulo deve ser separado, permitindo customização e ativação/desativação por liga.
+- **White Label**: Toda parametrização deve ser flexível, sem hardcode, permitindo que cada liga tenha regras próprias e imutáveis após criação.
+
+**Vantagens:**
+- Permite evolução gradual sem quebrar o legado
+- Centraliza regras para fácil auditoria
+- Facilita ativação/desativação de módulos por liga
+- Prepara o sistema para SaaS multi-tenant e venda de módulos
+
+**Diretriz:**
+> Todo novo módulo, refatoração ou ajuste deve seguir o padrão híbrido, separando regras estáticas (JSON) e dinâmicas (MongoDB), e agrupando código por domínio.
+
+---
 
 > Documento de decisao arquitetural para organizacao de modulos e regras.
 
