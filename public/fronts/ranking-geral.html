@@ -1,9 +1,9 @@
-<!-- 🏅 MÓDULO RANKING GERAL - v2.0 COM FILTROS DE TURNO -->
+<!-- MÓDULO RANKING GERAL - v2.1 (Material Icons) -->
 <div id="ranking-geral">
     <!-- Header do Ranking -->
     <div class="ranking-header">
         <div class="ranking-title">
-            <div class="ranking-icon">🏅</div>
+            <div class="ranking-icon"><span class="material-icons" style="font-size: 28px; color: #ffd700;">emoji_events</span></div>
             <h2>Classificação Geral</h2>
         </div>
         <div class="ranking-subtitle">
@@ -26,13 +26,13 @@
 
     <!-- Controles do Ranking -->
     <div class="ranking-controls">
-        <div class="ranking-info">📈 Carregando participantes...</div>
+        <div class="ranking-info"><span class="material-icons" style="font-size: 16px; vertical-align: middle;">trending_up</span> Carregando participantes...</div>
         <button
             id="btnConsolidar"
             class="btn-consolidar"
             title="Forçar reconsolidação"
         >
-            🔄 Reconsolidar
+            <span class="material-icons" style="font-size: 16px; vertical-align: middle;">refresh</span> Reconsolidar
         </button>
     </div>
 
@@ -42,7 +42,7 @@
             <thead>
                 <tr>
                     <th style="width: 60px; text-align: center">Posição</th>
-                    <th style="width: 50px; text-align: center">❤️</th>
+                    <th style="width: 50px; text-align: center"><span class="material-icons" style="font-size: 16px; color: #e74c3c;">favorite</span></th>
                     <th style="min-width: 180px; text-align: left">
                         Cartoleiro
                     </th>
@@ -215,12 +215,18 @@
         background: #d97706;
         color: #fff;
     }
+
+    /* ===== ANIMAÇÃO DE LOADING ===== */
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
 </style>
 
 <script>
     // ===== RANKING ADMIN COM FILTROS DE TURNO =====
     (function () {
-        console.log("📊 Módulo Ranking Geral v2.0 carregado");
+        console.log("[RANKING-GERAL] Módulo v2.1 carregado (Material Icons)");
 
         let turnoAtivo = "geral";
         let ligaId = null;
@@ -241,7 +247,7 @@
             ligaId = obterLigaId();
 
             if (!ligaId) {
-                console.error("[RANKING] ❌ Liga ID não encontrado");
+                console.error("[RANKING] Liga ID não encontrado");
                 return;
             }
 
@@ -273,7 +279,7 @@
                 if (!confirm("Deseja reconsolidar todos os turnos?")) return;
 
                 btn.disabled = true;
-                btn.textContent = "⏳ Consolidando...";
+                btn.innerHTML = '<span class="material-icons" style="font-size: 16px; vertical-align: middle; animation: spin 1s linear infinite;">refresh</span> Consolidando...';
 
                 try {
                     const response = await fetch(
@@ -286,17 +292,17 @@
                     const data = await response.json();
 
                     if (data.success) {
-                        alert("✅ Turnos reconsolidados com sucesso!");
+                        alert("Turnos reconsolidados com sucesso!");
                         await carregarRanking(turnoAtivo);
                     } else {
-                        alert("❌ Erro: " + data.error);
+                        alert("Erro: " + data.error);
                     }
                 } catch (error) {
                     console.error(error);
-                    alert("❌ Erro ao consolidar");
+                    alert("Erro ao consolidar");
                 } finally {
                     btn.disabled = false;
-                    btn.textContent = "🔄 Reconsolidar";
+                    btn.innerHTML = '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">refresh</span> Reconsolidar';
                 }
             });
         }
@@ -339,14 +345,14 @@
                 // Atualizar info do turno
                 const turnoLabel =
                     turno === "geral" ? "Geral" : turno + "º Turno";
-                statusEl.textContent =
+                statusEl.innerHTML =
                     data.status === "consolidado"
-                        ? "✅ Consolidado"
-                        : "⏳ Em andamento";
+                        ? '<span class="material-icons" style="font-size: 14px; vertical-align: middle;">check_circle</span> Consolidado'
+                        : '<span class="material-icons" style="font-size: 14px; vertical-align: middle;">schedule</span> Em andamento';
                 statusEl.className = `turno-status ${data.status}`;
                 rodadasEl.textContent = `Rodadas ${data.rodada_inicio}-${data.rodada_fim} (atual: ${data.rodada_atual})`;
 
-                info.textContent = `📈 ${data.total_times} participantes - ${turnoLabel}`;
+                info.innerHTML = `<span class="material-icons" style="font-size: 16px; vertical-align: middle;">trending_up</span> ${data.total_times} participantes - ${turnoLabel}`;
 
                 // Renderizar tabela
                 const totalTimes = data.ranking.length;
@@ -374,7 +380,7 @@
 
                         const escudoHtml = time.escudo
                             ? `<img src="${time.escudo}" alt="" style="width: 30px; height: 30px; border-radius: 50%;">`
-                            : `<span style="font-size: 24px;">⚽</span>`;
+                            : `<span class="material-icons" style="font-size: 24px; color: #e74c3c;">favorite</span>`;
 
                         return `
                         <tr class="${rowClass}">
@@ -396,7 +402,7 @@
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="5" style="text-align: center; padding: 40px; color: #ef4444;">
-                            ❌ Erro ao carregar ranking
+                            <span class="material-icons" style="font-size: 18px; vertical-align: middle;">error</span> Erro ao carregar ranking
                         </td>
                     </tr>
                 `;
