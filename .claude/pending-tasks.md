@@ -174,7 +174,34 @@ times (cadastro unico)          vs    inscricoestemporada (historico)
 
 ---
 
-## Historico da Sessao 2026-01-14
+## Historico da Sessao 2026-01-14 (Tarde)
+
+### Modal Pesquisar Time na API Globo
+**Status:** CONCLUIDO
+
+**Feature implementada:**
+- Novo card "Pesquisar Time" em Ferramentas (`public/ferramentas.html`)
+- Modal com busca na API publica do Cartola (Globo)
+- Fluxo: buscar → selecionar → confirmar → escolher liga → adicionar
+- Adiciona participante na temporada vigente (2026)
+
+**Arquivos criados/modificados:**
+- `public/js/ferramentas/ferramentas-pesquisar-time.js` (NOVO)
+- `public/ferramentas.html` (card + import)
+- `routes/cartola-proxy.js` (nova rota `/buscar-time-globo`)
+
+**API utilizada:**
+- `GET /api/cartola/buscar-time-globo?q={nome}&limit=10`
+- Usa `cartolaApiService.buscarTimePorNome()` para busca real na Globo
+
+**Commits:**
+- `e59b3df` fix(ferramentas): corrigir URL da rota buscar-time-globo
+- `7dc6ea6` feat(ferramentas): modal para pesquisar time na API Globo
+- `6c32d84` feat(participantes): ocultar botao Validar em temporadas passadas
+
+---
+
+## Historico da Sessao 2026-01-14 (Manha)
 
 ### Esconder Botao Validar em 2025
 **Status:** CONCLUIDO
