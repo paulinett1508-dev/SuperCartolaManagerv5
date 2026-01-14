@@ -28,6 +28,86 @@
 
 ---
 
+## Historico da Sessao 2026-01-14 (Noite)
+
+### Migracao Modulos ao Extrato 2025 - GRAVISSIMO
+**Status:** CONCLUIDO
+
+**Problema reportado:** Modulos PC, MM, Top10 zerados em TODAS as rodadas 2025.
+
+**Causa raiz REAL identificada:**
+Os caches de `extratofinanceirocaches` foram criados em **formato legado** que:
+- Apenas preencheu `bonusOnus` (BANCO)
+- Deixou `pontosCorridos`, `mataMata` e `top10` como **ZERO**
+- Os dados dos modulos **EXISTIAM** nas collections especificas, mas **NUNCA foram integrados**
+
+**Dados encontrados nos caches de modulos:**
+| Modulo | Collection | Dados |
+|--------|------------|-------|
+| Pontos Corridos | `pontoscorridoscaches` | 31 rodadas, 992 entradas |
+| Mata-Mata | `matamatacaches` | 5 edicoes, 310 resultados |
+| Top10 | `top10caches` | 22 mitos, 19 micos |
+
+**Script de migracao criado:**
+- `scripts/migrar-modulos-extrato-2025.js`
+- Le dos caches de modulos e integra ao extrato
+- Preserva dados historicos (temporada 2025 e IMUTAVEL)
+
+**Resultado da migracao:**
+- 32 extratos atualizados
+- Cada extrato recebeu ~30 entradas PC, ~10 MM, ~2 Top10
+
+**Exemplo - Antonio Luis (FloriMengo FC):**
+| Modulo | Antes | Depois |
+|--------|-------|--------|
+| BANCO | -128 | -128 |
+| PC | 0 | **-50** |
+| MM | 0 | **-10** |
+| Top10 | 0 | 0 |
+| **TOTAL** | -158 | **-188** |
+
+**TOP 5 CREDORES (apos migracao):**
+1. fc.catumbi: R$ 1281
+2. AltosShow: R$ 1131
+3. WorldTreta FC: R$ 1104
+4. Tabaca Neon: R$ 959
+5. Quase Nada Palace: R$ 887
+
+**TOP 5 DEVEDORES (apos migracao):**
+1. 51 Sportclub: R$ -1314
+2. Invictus Patamar S.A.F.: R$ -1209
+3. FIASCO VET FC: R$ -879
+4. adv.DBarbosa.FC: R$ -764
+5. Randim: R$ -660
+
+---
+
+### Auditoria Extrato Financeiro 2025 - Antonio Luis (Anterior)
+**Status:** PARCIALMENTE CONCLUIDO (continuado acima)
+
+**Problema reportado:** Extrato 2025 nao carregava, mostrava dados misturados com 2026, PC/MM/Top10 em branco.
+
+**Causa raiz inicial identificada:**
+1. Cache frontend usava apenas `timeId` como chave (sem temporada) - misturava dados
+2. `trocarTemporadaExtrato()` nao atualizava `window.temporadaAtual`
+3. Schema `ExtratoFinanceiroCache.liga_id` era ObjectId mas dados historicos eram String
+
+**Correcoes aplicadas:**
+| Arquivo | Mudanca |
+|---------|---------|
+| `fluxo-financeiro-cache.js` | Chave cache: `${timeId}_${temporada}` |
+| `fluxo-financeiro-ui.js` | Sync `window.temporadaAtual` + mostrar 38 rodadas |
+| `ExtratoFinanceiroCache.js` | `liga_id: Mixed` (aceita String ou ObjectId) |
+| `fluxo-financeiro.css` | CSS para destacar linhas MITO/MICO |
+
+**Commits:**
+- `fd9dc30` fix(cache): isolamento de temporada no cache de extratos
+- `0f339fa` fix(model): aceitar String ou ObjectId em ExtratoFinanceiroCache.liga_id
+- `d77b0da` fix(ui): mostrar todas rodadas no extrato individual
+- `417826b` feat(ui): destacar linhas MITO/MICO na tabela de extrato
+
+---
+
 ## Tarefas Pendentes
 
 ### Sincronizar Participantes 2026 com MongoDB
