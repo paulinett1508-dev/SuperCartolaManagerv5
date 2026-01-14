@@ -75,20 +75,8 @@ export const MELHOR_MES_CONFIG = {
       textoMuted: "#999",
     },
 
-    icones: {
-      concluida: "✅",
-      andamento: "🔄",
-      aguardando: "⏳",
-      erro: "❌",
-      vencedor: "🏆",
-      medalhaOuro: "🥇",
-      medalhaPrata: "🥈",
-      medalhaBronze: "🥉",
-      clube: "⚽",
-      pontos: "📊",
-      calendario: "📅",
-      participantes: "👥",
-    },
+    // Ícones agora usam Material Icons diretamente no código
+    // Removido: objeto 'icones' com emojis (código morto)
 
     animacoes: {
       hover: "translateY(-6px) scale(1.03)",
