@@ -1,4 +1,5 @@
-// FLUXO-FINANCEIRO-CORE.JS v6.2 - FIX TIMELINE ZERADO
+// FLUXO-FINANCEIRO-CORE.JS v6.5 - FIX TEMPORADA HISTORICA
+// ✅ v6.5: FIX - Temporada histórica (2025) usa rodada 38, não rodada atual do mercado (2026)
 // ✅ v6.2: FIX - Detecta cache com Timeline (bonusOnus) zerado anormalmente e força recálculo
 // ✅ v6.1: FIX - Inclui acertos financeiros no cálculo do saldo final
 // ✅ v4.1: Trava extrato para inativos na rodada_desistencia
@@ -232,6 +233,19 @@ export class FluxoFinanceiroCore {
         let rodadaParaCalculo = ultimaRodadaCompleta;
         let mercadoAberto = false;
 
+        // ✅ v6.5: Verificar temporada selecionada
+        const temporadaSelecionada = window.temporadaAtual || 2026;
+        const temporadaAtualReal = new Date().getFullYear(); // 2026
+        const isTemporadaHistorica = temporadaSelecionada < temporadaAtualReal;
+
+        // ✅ v6.5: Temporada histórica (2025) sempre usa rodada final
+        if (isTemporadaHistorica) {
+            rodadaParaCalculo = RODADA_FINAL_CAMPEONATO; // 38
+            console.log(
+                `[FLUXO-CORE] 📅 Temporada histórica ${temporadaSelecionada}: usando R${rodadaParaCalculo}`,
+            );
+        }
+
         // ✅ v4.1: Buscar status do participante
         const statusParticipante = await this._buscarStatusParticipante(timeId);
         const isInativo = statusParticipante.ativo === false;
@@ -246,32 +260,35 @@ export class FluxoFinanceiroCore {
             );
         }
 
-        // Verificar status do mercado
-        try {
-            const mercadoResponse = await fetch("/api/cartola/mercado/status");
-            if (mercadoResponse.ok) {
-                const mercadoData = await mercadoResponse.json();
-                mercadoAberto =
-                    mercadoData.mercado_aberto ||
-                    mercadoData.status_mercado === 1;
-                const rodadaAtualMercado = mercadoData.rodada_atual;
-                const temporadaEncerrada = mercadoData.game_over === true;
-                const rodadaFinal = mercadoData.rodada_final || 38;
+        // ✅ v6.5: Só verificar mercado para temporada ATUAL (não histórica)
+        if (!isTemporadaHistorica) {
+            // Verificar status do mercado
+            try {
+                const mercadoResponse = await fetch("/api/cartola/mercado/status");
+                if (mercadoResponse.ok) {
+                    const mercadoData = await mercadoResponse.json();
+                    mercadoAberto =
+                        mercadoData.mercado_aberto ||
+                        mercadoData.status_mercado === 1;
+                    const rodadaAtualMercado = mercadoData.rodada_atual;
+                    const temporadaEncerrada = mercadoData.game_over === true;
+                    const rodadaFinal = mercadoData.rodada_final || 38;
 
-                // ✅ FIX: Só usar rodada-1 se mercado aberto E temporada NÃO encerrada
-                if (mercadoAberto && !isInativo && !temporadaEncerrada) {
-                    rodadaParaCalculo = Math.max(1, rodadaAtualMercado - 1);
-                } else if (temporadaEncerrada || rodadaAtualMercado >= rodadaFinal) {
-                    // Temporada encerrada: usar rodada final
-                    rodadaParaCalculo = rodadaFinal;
+                    // ✅ FIX: Só usar rodada-1 se mercado aberto E temporada NÃO encerrada
+                    if (mercadoAberto && !isInativo && !temporadaEncerrada) {
+                        rodadaParaCalculo = Math.max(1, rodadaAtualMercado - 1);
+                    } else if (temporadaEncerrada || rodadaAtualMercado >= rodadaFinal) {
+                        // Temporada encerrada: usar rodada final
+                        rodadaParaCalculo = rodadaFinal;
+                    }
                 }
+            } catch (error) {
+                console.warn("[FLUXO-CORE] Erro ao verificar mercado:", error);
             }
-        } catch (error) {
-            console.warn("[FLUXO-CORE] Erro ao verificar mercado:", error);
         }
 
         console.log(
-            `[FLUXO-CORE] 🎯 Extrato time ${timeId} até R${rodadaParaCalculo} | Inativo: ${isInativo}`,
+            `[FLUXO-CORE] 🎯 Extrato time ${timeId} até R${rodadaParaCalculo} | Temporada: ${temporadaSelecionada} | Inativo: ${isInativo}`,
         );
 
         // =====================================================================
@@ -1051,4 +1068,4 @@ window.forcarRefreshExtrato = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-CORE] ✅ v6.2 FIX Temporada em requisições carregado");
+console.log("[FLUXO-CORE] ✅ v6.5 FIX Temporada histórica carregado");
