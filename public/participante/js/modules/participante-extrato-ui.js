@@ -1,3 +1,7 @@
+    // Detectar se é pré-temporada 2026
+    const temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
+    const temporadaSelecionada = window.seasonSelector?.getTemporadaSelecionada?.();
+    const isPreTemporada2026 = (temporadaSelecionada || temporadaAtual) >= 2026 && isPreTemporada(extrato.rodadas);
 // =====================================================
 // MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.15 FIX SELETOR TEMPORADA
 // =====================================================
@@ -328,7 +332,10 @@ function renderizarConteudoRenovadoPreTemporada(container, extrato) {
     const listaAcertos = acertos.lista || [];
     const saldoAcertos = acertos.resumo?.saldo || 0;
 
-    container.innerHTML = `
+    let html = ``;
+    // Cards e campos manuais só se não for pré-temporada 2026
+    if (!isPreTemporada2026) {
+        html += `
         <!-- Card Saldo Principal -->
         <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
             <div class="flex items-center justify-between">
@@ -512,21 +519,21 @@ function renderizarConteudoCompleto(container, extrato) {
         totalGanhos: 0,
         totalPerdas: 0,
     };
-    const camposManuais =
-        extrato.camposManuais || extrato.camposEditaveis || [];
+    // Detectar se é pré-temporada 2026
+    const temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
+    const temporadaSelecionada = window.seasonSelector?.getTemporadaSelecionada?.();
+    const isPreTemporada2026 = (temporadaSelecionada || temporadaAtual) >= 2026 && isPreTemporada(extrato.rodadas);
 
-    // ✅ v8.7: CORREÇÃO CRÍTICA - Backend já inclui campos manuais no resumo!
-    // NÃO somar campos manuais novamente (estava causando duplicação)
-    let totalCamposManuaisPositivos = 0;
-    let totalCamposManuaisNegativos = 0;
+    // Para 2026 pré-temporada, não processa campos manuais/editáveis
+    let camposManuais = [];
+    if (!isPreTemporada2026) {
+        camposManuais = extrato.camposManuais || extrato.camposEditaveis || [];
+    }
 
-    // Calcular totais apenas para exibição separada (se necessário)
-    if (Array.isArray(camposManuais)) {
-        camposManuais.forEach((campo) => {
-            const valor = parseFloat(campo.valor) || 0;
-            if (valor > 0) totalCamposManuaisPositivos += valor;
-            if (valor < 0) totalCamposManuaisNegativos += valor;
-        });
+    // Para 2026 pré-temporada, não processa POS
+    let rodadasSemPos = extrato.rodadas;
+    if (isPreTemporada2026) {
+        rodadasSemPos = extrato.rodadas.map(r => ({ ...r, posicao: null }));
     }
 
     // ✅ v8.7: resumo.saldo/totalGanhos/totalPerdas JÁ incluem campos manuais
@@ -593,7 +600,7 @@ function renderizarConteudoCompleto(container, extrato) {
     window.ligaIdAtual = ligaId;
 
     // v8.8: Preencher todas as 38 rodadas (mesmo neutras) e ordenar decrescente
-    const rodadasCompletas = preencherTodasRodadas(extrato.rodadas, 38);
+    const rodadasCompletas = preencherTodasRodadas(rodadasSemPos, 38);
     const rodadasOrdenadas = rodadasCompletas.sort(
         (a, b) => b.rodada - a.rodada,
     );
@@ -705,7 +712,9 @@ function renderizarConteudoCompleto(container, extrato) {
 
         <!-- ✅ v10.2: Bottom Sheet MEUS ACERTOS -->
         ${renderizarBottomSheetAcertos(listaAcertos, resumoAcertos, saldoTemporada, saldoAcertos)}
-    `;
+        `;
+    }
+    container.innerHTML = html;
 }
 
 // ===== v10.0: CARDS DE RODADAS - NOVO DESIGN COM BARRA LATERAL =====
@@ -718,6 +727,11 @@ function renderizarCardsRodadas(rodadas, ligaId) {
             </div>
         `;
     }
+
+    // Detectar se é pré-temporada 2026
+    const temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
+    const temporadaSelecionada = window.seasonSelector?.getTemporadaSelecionada?.();
+    const isPreTemporada2026 = (temporadaSelecionada || temporadaAtual) >= 2026 && isPreTemporada(rodadas);
 
     return rodadas
         .map((r) => {
@@ -745,52 +759,34 @@ function renderizarCardsRodadas(rodadas, ligaId) {
             let cardBg, cardBorder, barraLateral;
 
             if (tipoZona === "ganho" || saldo > 0) {
-                // Card positivo - fundo verde escuro
                 cardBg = "bg-[#0D1F18]";
                 cardBorder = "border-green-900/30";
-                // Barra: sólida para MITO, semi-transparente para G2+
                 barraLateral = isMito ? "bg-green-500" : "bg-green-500/50";
             } else if (tipoZona === "perda" || saldo < 0) {
-                // Card negativo - fundo vermelho escuro
                 cardBg = "bg-[#1F0D0D]";
                 cardBorder = "border-red-900/30";
-                // Barra: sólida para MICO, semi-transparente para Z2+
                 barraLateral = isMico ? "bg-red-600" : "bg-red-800/50";
             } else {
-                // Card neutro
                 cardBg = "bg-[#1c1c1e]";
                 cardBorder = "border-zinc-800";
-                barraLateral = null; // Sem barra
+                barraLateral = null;
             }
 
-            // ===== v10.0: BADGES COM NOVO ESTILO =====
-            const bonusFormatado = Math.abs(bonusOnus).toFixed(2).replace(".", ",");
-            const sinalBonus = bonusOnus > 0 ? "+" : "-";
-
-            // Badge BANCO: MITO/MICO ou G/Z
+            // BADGES: ocultar para pré-temporada 2026
             let badgeBanco = "";
-            if (isMito && bonusOnus !== 0) {
-                // MITO - amarelo/dourado
-                badgeBanco = `<span class="inline-flex items-center gap-1 text-[10px] bg-yellow-900/40 text-yellow-400 border border-yellow-700/30 px-2 py-1 rounded font-bold">
-                    <span class="material-symbols-outlined text-[12px]">emoji_events</span>
-                    MITO ${sinalBonus}${bonusFormatado}
-                </span>`;
-            } else if (isMico && bonusOnus !== 0) {
-                // MICO - vermelho
-                badgeBanco = `<span class="inline-flex items-center gap-1 text-[10px] bg-red-900/40 text-red-400 border border-red-700/30 px-2 py-1 rounded font-bold">
-                    <span class="material-symbols-outlined text-[12px]">thumb_down</span>
-                    MICO ${sinalBonus}${bonusFormatado}
-                </span>`;
-            } else if (zonaLabel && bonusOnus !== 0) {
-                // Zona G/Z
-                if (tipoZona === "ganho") {
-                    badgeBanco = `<span class="inline-flex items-center text-[10px] bg-green-900/40 text-green-400 border border-green-700/30 px-2 py-1 rounded font-bold">
-                        ${zonaLabel} ${sinalBonus}${bonusFormatado}
-                    </span>`;
-                } else {
-                    badgeBanco = `<span class="inline-flex items-center text-[10px] bg-red-900/30 text-red-300 border border-red-800/30 px-2 py-1 rounded font-bold">
-                        ${zonaLabel} ${sinalBonus}${bonusFormatado}
-                    </span>`;
+            if (!isPreTemporada2026) {
+                const bonusFormatado = Math.abs(bonusOnus).toFixed(2).replace(".", ",");
+                const sinalBonus = bonusOnus > 0 ? "+" : "-";
+                if (isMito && bonusOnus !== 0) {
+                    badgeBanco = `<span class=\"inline-flex items-center gap-1 text-[10px] bg-yellow-900/40 text-yellow-400 border border-yellow-700/30 px-2 py-1 rounded font-bold\">\n                        <span class=\"material-symbols-outlined text-[12px]\">emoji_events</span>\n                        MITO ${sinalBonus}${bonusFormatado}\n                    </span>`;
+                } else if (isMico && bonusOnus !== 0) {
+                    badgeBanco = `<span class=\"inline-flex items-center gap-1 text-[10px] bg-red-900/40 text-red-400 border border-red-700/30 px-2 py-1 rounded font-bold\">\n                        <span class=\"material-symbols-outlined text-[12px]\">thumb_down</span>\n                        MICO ${sinalBonus}${bonusFormatado}\n                    </span>`;
+                } else if (zonaLabel && bonusOnus !== 0) {
+                    if (tipoZona === "ganho") {
+                        badgeBanco = `<span class=\"inline-flex items-center text-[10px] bg-green-900/40 text-green-400 border border-green-700/30 px-2 py-1 rounded font-bold\">\n                            ${zonaLabel} ${sinalBonus}${bonusFormatado}\n                        </span>`;
+                    } else {
+                        badgeBanco = `<span class=\"inline-flex items-center text-[10px] bg-red-900/30 text-red-300 border border-red-800/30 px-2 py-1 rounded font-bold\">\n                            ${zonaLabel} ${sinalBonus}${bonusFormatado}\n                        </span>`;
+                    }
                 }
             }
 

@@ -283,13 +283,29 @@ Exibir no app do participante:
 }
 ```
 
+#### DECISAO: Usar API-Football (api-sports.io)
+
+**Motivo:** Unica opcao com dados REAIS no plano gratuito que cobre estaduais.
+
+| Caracteristica | API-Football | football-data.org |
+|----------------|--------------|-------------------|
+| Plano Free | 100 req/dia | 10 req/min |
+| Dados | REAIS | REAIS |
+| Carioca/Paulista | SIM | NAO |
+| Brasileirao | SIM | SIM |
+| Atualizacao | 15 segundos | ~1 minuto |
+
+**Conta:** Criar em https://dashboard.api-football.com (gratis, sem cartao)
+
 #### Proximos Passos
 
-1. [ ] Decidir: API paga vs scraping melhorado
-2. [ ] Testar football-data.org para Brasileirao 2026
-3. [ ] Criar endpoint `/api/jogos-ao-vivo`
-4. [ ] UI: Card de jogos na tela inicial do participante
-5. [ ] WebSocket para atualizacao em tempo real (opcional)
+1. [ ] Criar conta free na API-Football (dashboard.api-football.com)
+2. [ ] Obter API key e adicionar em `.env` como `API_FOOTBALL_KEY`
+3. [ ] Testar endpoints para Carioca/Paulista 2026 (ja em andamento)
+4. [ ] Criar `/api/jogos-ao-vivo` usando API-Football
+5. [ ] Manter scraper Globo como fallback (agenda)
+6. [ ] UI: Card de jogos na tela inicial do participante
+7. [ ] Cache inteligente: so consulta API quando tem jogo (economiza requests)
 
 ---
 
