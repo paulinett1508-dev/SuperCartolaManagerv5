@@ -1021,9 +1021,13 @@ export class FluxoFinanceiroUI {
                                 class="btn-acao btn-extrato" title="Ver Extrato ${temporadaNum}">
                             <span class="material-icons">receipt_long</span>
                         </button>
-                        <button onclick="window.abrirModalAjusteFinanceiro && window.abrirModalAjusteFinanceiro('${ligaId}', '${timeId}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
-                                class="btn-acao btn-ajuste" title="Adicionar Ajuste">
-                            <span class="material-icons">add_circle</span>
+                        <button onclick="window.abrirModalAcertoFinanceiro && window.abrirModalAcertoFinanceiro('${ligaId}', '${timeId}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}', ${temporadaNum})"
+                                class="btn-acao btn-acerto" title="Registrar Acerto">
+                            <span class="material-icons">payments</span>
+                        </button>
+                        <button onclick="window.abrirAuditoriaFinanceira('${timeId}', '${ligaId}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
+                                class="btn-acao btn-auditoria" title="Auditoria Financeira">
+                            <span class="material-icons">fact_check</span>
                         </button>
                         ${p.contato ? `
                         <button onclick="window.abrirWhatsApp('${p.contato.replace(/'/g, "\\'")}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
@@ -1367,7 +1371,7 @@ export class FluxoFinanceiroUI {
             }
 
             .fluxo-participantes-tabela th.col-acoes {
-                width: 80px;
+                width: 150px;
                 text-align: center;
             }
 
@@ -2080,7 +2084,7 @@ export class FluxoFinanceiroUI {
             }
 
             .tabela-financeira .col-acoes {
-                width: 110px;
+                width: 150px;
                 text-align: center;
                 white-space: nowrap;
             }
