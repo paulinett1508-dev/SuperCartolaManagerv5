@@ -126,6 +126,173 @@ Considerar simplificar ou documentar melhor cada cenario.
 
 ---
 
+## FEATURE: JOGOS DO DIA - SCRAPER GLOBO ESPORTE
+
+### Implementacao Atual
+
+#### Arquitetura
+```
+[index.js] ──> [scripts/save-jogos-globo.js] ──> [scripts/scraper-jogos-globo.js]
+     │                     │
+     │                     └──> Salva em: data/jogos-globo.json
+     │
+     └──> [routes/jogos-hoje-globo.js] ──> GET /api/jogos-hoje-globo
+                                                │
+                                                └──> Le de: data/jogos-globo.json
+```
+
+#### Arquivos Envolvidos
+
+| Arquivo | Funcao |
+|---------|--------|
+| `scripts/scraper-jogos-globo.js` | Faz scraping de `https://ge.globo.com/futebol/agenda/` usando Cheerio |
+| `scripts/save-jogos-globo.js` | Executa scraper e salva JSON em `data/jogos-globo.json` |
+| `routes/jogos-hoje-globo.js` | Rota API que serve o JSON salvo |
+| `index.js` (linhas 1-23) | Configura execucao automatica |
+
+#### Execucao Automatica (index.js)
+
+```javascript
+// CRON: Todo dia as 6h da manha
+cron.schedule("0 6 * * *", () => {
+  exec("node scripts/save-jogos-globo.js", ...);
+});
+
+// INIT: Executa ao iniciar o servidor
+exec("node scripts/save-jogos-globo.js", ...);
+```
+
+**Comportamento:**
+1. Servidor inicia → executa scraper → salva JSON
+2. Todo dia 6h → executa scraper → atualiza JSON
+3. API `/api/jogos-hoje-globo` → le JSON do disco
+
+#### Dados Extraidos (Estrutura)
+
+```json
+{
+  "jogos": [
+    {
+      "campeonato": "Brasileirão Série A",
+      "horario": "16:00",
+      "times": "Flamengo x Palmeiras",
+      "local": "Maracanã"
+    }
+  ],
+  "fonte": "globo"
+}
+```
+
+#### Limitacoes Atuais
+- **Sem placares em tempo real** - So pega agenda (horarios)
+- **Executa 1x ao iniciar** - Se servidor reinicia muito, pode sobrecarregar
+- **Sem fallback** - Se Globo mudar HTML, scraper quebra
+- **Depende de estrutura CSS** - Seletores: `.jogos-dia .jogo__informacoes`
+
+---
+
+### IDEIA: Placares ao Vivo (Google ou Alternativas)
+
+#### Objetivo
+Exibir no app do participante:
+- Jogos do dia com **placares em andamento**
+- Jogos **encerrados** com resultado final
+- Atualizacao em tempo real (ou quase)
+
+#### Opcao 1: Scraping do Google (NAO RECOMENDADO)
+
+**Vantagens:**
+- Google agrega dados de todas as ligas
+- Interface rica com placares ao vivo
+
+**Desvantagens:**
+- **Viola ToS do Google** - Risco de bloqueio
+- Requer rotacao de proxies e User-Agents
+- HTML muda frequentemente (manutencao alta)
+- Rate limiting agressivo
+- Pode resultar em ban do IP do servidor
+
+**Veredicto:** Evitar para producao. Risco legal e tecnico.
+
+#### Opcao 2: APIs Oficiais de Futebol (RECOMENDADO)
+
+| API | Plano Gratuito | Cobertura | Tempo Real |
+|-----|----------------|-----------|------------|
+| **football-data.org** | 10 req/min | Brasileirao, Champions, etc | Sim (delay 1min) |
+| **API-Football** | 100 req/dia | 800+ ligas | Sim |
+| **SportMonks** | Trial 14 dias | Completo | Sim |
+| **Sofascore API** | Nao-oficial | Muito completo | Sim |
+
+**Recomendacao:** `football-data.org` - Ja usado no projeto (`routes/jogos-hoje-routes.js`)
+
+#### Opcao 3: Scraping de Fontes Alternativas (POSSIVEL)
+
+| Fonte | Legalidade | Dificuldade | Dados |
+|-------|------------|-------------|-------|
+| **ge.globo.com** | OK (ja usado) | Media | Agenda + alguns placares |
+| **FlashScore** | Cinza | Alta (JS pesado) | Tempo real |
+| **ESPN Brasil** | Cinza | Media | Placares |
+| **Sofascore** | Cinza | Alta | Muito completo |
+
+**Nota:** "Cinza" = ToS nao proibe explicitamente, mas nao incentiva
+
+#### Proposta de Implementacao
+
+**Fase 1: Melhorar scraper Globo atual**
+- Extrair placares quando disponiveis (jogos em andamento)
+- Adicionar campo `status`: "agendado", "ao_vivo", "encerrado"
+- CRON mais frequente durante jogos (a cada 5min)
+
+**Fase 2: Integrar API oficial**
+- Usar `football-data.org` para placares em tempo real
+- Manter Globo como fallback/complemento
+- Cache inteligente: atualiza so quando tem jogo
+
+**Fase 3: UI no App do Participante**
+- Card "Jogos de Hoje" na tela inicial
+- Badge ao vivo com animacao
+- Placar atualizado automaticamente
+
+#### Estrutura de Dados Proposta (v2)
+
+```json
+{
+  "jogos": [
+    {
+      "id": "bra-2026-01-15-fla-pal",
+      "campeonato": "Brasileirão Série A",
+      "rodada": 1,
+      "dataHora": "2026-01-15T19:00:00-03:00",
+      "mandante": {
+        "nome": "Flamengo",
+        "escudo": "/escudos/262.png",
+        "gols": 2
+      },
+      "visitante": {
+        "nome": "Palmeiras",
+        "escudo": "/escudos/275.png",
+        "gols": 1
+      },
+      "status": "ao_vivo",
+      "minuto": "67'",
+      "local": "Maracanã",
+      "fonte": "football-data.org"
+    }
+  ],
+  "atualizadoEm": "2026-01-15T19:45:00Z"
+}
+```
+
+#### Proximos Passos
+
+1. [ ] Decidir: API paga vs scraping melhorado
+2. [ ] Testar football-data.org para Brasileirao 2026
+3. [ ] Criar endpoint `/api/jogos-ao-vivo`
+4. [ ] UI: Card de jogos na tela inicial do participante
+5. [ ] WebSocket para atualizacao em tempo real (opcional)
+
+---
+
 ## Historico Arquivado
 
 > Conteudo anterior movido para manter arquivo limpo.
