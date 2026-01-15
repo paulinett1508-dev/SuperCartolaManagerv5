@@ -8,7 +8,7 @@ import {
 import "./fluxo-financeiro/fluxo-financeiro-quitacao.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v8.2"; // v8.2: FIX saldo histórico (imutável) separado de saldo pendente
+const CACHE_BUSTER = "v8.3"; // v8.3: Removido seletor temporada no extrato individual
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;

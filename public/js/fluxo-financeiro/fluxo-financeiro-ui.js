@@ -88,11 +88,7 @@ export class FluxoFinanceiroUI {
                             <h3 id="modalExtratoNome">-</h3>
                             <div class="modal-extrato-subtitulo-row">
                                 <span id="modalExtratoSubtitulo">Extrato Financeiro</span>
-                                <!-- Seletor de Temporada -->
-                                <div class="modal-extrato-temporada-selector" id="modalExtratoTemporadaSelector">
-                                    <button class="btn-temporada" data-temporada="2025" id="btnTemp2025">2025</button>
-                                    <button class="btn-temporada active" data-temporada="2026" id="btnTemp2026">2026</button>
-                                </div>
+                                <!-- ✅ v7.3: Removido seletor de temporada - extrato segue temporada da aba -->
                                 <!-- Badge de Quitação -->
                                 <span id="modalExtratoBadgeQuitacao" class="badge-quitacao-extrato" style="display: none;">
                                     <span class="material-icons">verified</span> QUITADO
@@ -175,24 +171,8 @@ export class FluxoFinanceiroUI {
             }
         };
 
-        // ✅ v6.4: Seletor de temporadas
-        window.trocarTemporadaExtrato = async (temporada) => {
-            await this.trocarTemporadaExtrato(temporada);
-        };
-
-        // Event listeners para botões de temporada
-        const btnTemp2025 = modal.querySelector('#btnTemp2025');
-        const btnTemp2026 = modal.querySelector('#btnTemp2026');
-
-        if (btnTemp2025) {
-            btnTemp2025.addEventListener('click', () => window.trocarTemporadaExtrato(2025));
-        }
-        if (btnTemp2026) {
-            btnTemp2026.addEventListener('click', () => window.trocarTemporadaExtrato(2026));
-        }
-
-        // Inicializar temporada do modal
-        this.temporadaModalExtrato = window.temporadaAtual || 2025;
+        // ✅ v7.3: Removido seletor de temporadas - extrato segue temporada da aba atual
+        // A temporada do modal é sempre window.temporadaAtual (definida pela aba selecionada)
 
         console.log('[FLUXO-UI] Modal de extrato criado');
     }
@@ -243,84 +223,9 @@ export class FluxoFinanceiroUI {
      * ✅ v6.4: Troca a temporada do extrato individual
      * @param {number} temporada - 2025 ou 2026
      */
-    async trocarTemporadaExtrato(temporada) {
-        console.log('[FLUXO-UI] Trocando temporada do extrato para:', temporada);
-
-        if (!this.participanteAtual) {
-            console.error('[FLUXO-UI] Nenhum participante ativo');
-            return;
-        }
-
-        // ✅ v6.5 FIX: CRÍTICO - Atualizar AMBAS as variáveis de temporada
-        // para garantir sincronização entre modal e sistema de cache
-        this.temporadaModalExtrato = temporada;
-        window.temporadaAtual = temporada;
-
-        // Atualizar botões visuais
-        const btn2025 = document.getElementById('btnTemp2025');
-        const btn2026 = document.getElementById('btnTemp2026');
-
-        if (btn2025) btn2025.classList.toggle('active', temporada === 2025);
-        if (btn2026) btn2026.classList.toggle('active', temporada === 2026);
-
-        // Mostrar loading
-        const modalBody = document.getElementById('modalExtratoBody');
-        if (modalBody) {
-            modalBody.innerHTML = `
-                <div class="extrato-loading" style="text-align: center; padding: 40px;">
-                    <div class="spinner-border text-warning" role="status">
-                        <span class="visually-hidden">Carregando...</span>
-                    </div>
-                    <p style="margin-top: 10px; color: #888;">Carregando extrato ${temporada}...</p>
-                </div>
-            `;
-        }
-
-        try {
-            const timeId = this.participanteAtual.time_id || this.participanteAtual.id;
-            const ligaId = window.ligaId || this.participanteAtual.liga_id;
-
-            // Buscar extrato da temporada selecionada
-            const response = await fetch(`/api/tesouraria/participante/${ligaId}/${timeId}?temporada=${temporada}`, {
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro ao buscar extrato: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            // Verificar se tem quitação
-            const badgeQuitacao = document.getElementById('modalExtratoBadgeQuitacao');
-            if (badgeQuitacao) {
-                if (data.quitacao?.quitado) {
-                    badgeQuitacao.style.display = 'inline-flex';
-                    badgeQuitacao.title = `Quitado em ${new Date(data.quitacao.data_quitacao).toLocaleDateString('pt-BR')} - ${data.quitacao.tipo}`;
-                } else {
-                    badgeQuitacao.style.display = 'none';
-                }
-            }
-
-            // Renderizar extrato
-            await this.renderizarExtratoTemporada(data, temporada);
-
-        } catch (error) {
-            console.error('[FLUXO-UI] Erro ao trocar temporada:', error);
-            if (modalBody) {
-                modalBody.innerHTML = `
-                    <div class="extrato-erro" style="text-align: center; padding: 40px; color: #ef4444;">
-                        <span class="material-icons" style="font-size: 48px;">error_outline</span>
-                        <p style="margin-top: 10px;">Erro ao carregar extrato ${temporada}</p>
-                        <p style="font-size: 12px; color: #888;">${error.message}</p>
-                        <p style="font-size: 11px; color: #666; margin-top: 10px;">
-                            ${temporada === 2026 ? 'Participante pode não ter sido renovado para 2026.' : ''}
-                        </p>
-                    </div>
-                `;
-            }
-        }
-    }
+    // ✅ v7.3: REMOVIDO - trocarTemporadaExtrato()
+    // Extrato individual agora segue a temporada da aba selecionada (window.temporadaAtual)
+    // Não há mais seletor de temporada dentro do modal de extrato
 
     /**
      * ✅ v6.4: Renderiza extrato de uma temporada específica
@@ -5731,7 +5636,7 @@ function gerarPDFAuditoria() {
     doc.save(nomeArquivo);
 };
 
-console.log("[FLUXO-UI] ✅ v7.2 - FIX saldo histórico separado de saldo pendente");
+console.log("[FLUXO-UI] ✅ v7.3 - Removido seletor temporada no extrato individual");
 
 // =============================================================================
 // AJUSTES DINÂMICOS (Temporada 2026+)
@@ -5979,9 +5884,9 @@ window.salvarAjuste = async function() {
 
         if (result.success) {
             window.fecharModalAjuste();
-            // Recarregar extrato MANTENDO a temporada atual do modal
-            if (window.fluxoFinanceiroUI?.trocarTemporadaExtrato) {
-                window.fluxoFinanceiroUI.trocarTemporadaExtrato(temporadaModal);
+            // ✅ v7.3: Recarregar extrato usando a função de atualização
+            if (window.atualizarExtratoModal) {
+                await window.atualizarExtratoModal();
             }
         } else {
             alert('Erro ao salvar: ' + (result.error || 'Erro desconhecido'));
@@ -6009,9 +5914,9 @@ window.removerAjuste = async function(ajusteId) {
         const result = await response.json();
 
         if (result.success) {
-            // Recarregar extrato MANTENDO a temporada atual do modal
-            if (window.fluxoFinanceiroUI?.trocarTemporadaExtrato) {
-                window.fluxoFinanceiroUI.trocarTemporadaExtrato(temporadaModal);
+            // ✅ v7.3: Recarregar extrato usando a função de atualização
+            if (window.atualizarExtratoModal) {
+                await window.atualizarExtratoModal();
             }
         } else {
             alert('Erro ao remover: ' + (result.error || 'Erro desconhecido'));
