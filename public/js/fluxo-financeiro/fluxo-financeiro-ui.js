@@ -6,7 +6,12 @@ import {
 import { formatarMoedaBR, parseMoedaBR } from "./fluxo-financeiro-utils.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v6.4 (Seletor de Temporadas no Modal)
+ * FLUXO-FINANCEIRO-UI.JS - v6.7 (Pré-Temporada 2026)
+ * ✅ v6.7: UI adaptada para pré-temporada 2026
+ *   - Remove tabela de rodadas ROD/POS para temporadas futuras
+ *   - Esconde botões GANHOS/PERDAS e campos editáveis em pré-temporada
+ *   - Foca apenas na seção de Acertos para 2026
+ *   - Banner informativo de pré-temporada
  * ✅ v6.4: Seletor de temporadas (2025/2026) no modal de extrato individual
  *   - Permite ver histórico e quitação de temporadas anteriores
  *   - Mostra badge QUITADO e banner com detalhes da quitação
@@ -3150,14 +3155,20 @@ export class FluxoFinanceiroUI {
 
                 ${extrato.updatedAt ? `<div class="text-muted" style="font-size: 9px; margin-top: 8px;">Atualizado: ${new Date(extrato.updatedAt).toLocaleString()}</div>` : ""}
 
+                ${/* ✅ v6.7: Botões GANHOS/PERDAS só aparecem se tem rodadas (não pré-temporada) */
+                  !extrato.preTemporada && extrato.rodadas && extrato.rodadas.length > 0 ? `
                 <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
                     <button onclick="window.mostrarDetalhamentoGanhos()" class="btn-modern btn-success-gradient"><span class="material-icons" style="font-size: 14px;">trending_up</span> GANHOS</button>
                     <button onclick="window.mostrarDetalhamentoPerdas()" class="btn-modern btn-danger-gradient"><span class="material-icons" style="font-size: 14px;">trending_down</span> PERDAS</button>
                 </div>
+                ` : ''}
             </div>
 
-            ${camposEditaveisHTML}
+            ${/* ✅ v6.7: Campos editáveis (Ajustes Manuais) SEMPRE disponíveis - inclusive pré-temporada */
+              camposEditaveisHTML}
 
+            ${/* ✅ v6.7: Só mostrar tabela de rodadas se existirem (não pré-temporada) */
+              extrato.rodadas && extrato.rodadas.length > 0 && !extrato.preTemporada ? `
             <div class="card-padrao">
                 <h3 class="card-titulo"><span class="material-icons" style="font-size: 16px;">receipt_long</span> Detalhamento por Rodada</h3>
                 <div class="table-responsive">
@@ -3204,6 +3215,13 @@ export class FluxoFinanceiroUI {
                     </table>
                 </div>
             </div>
+            ` : extrato.preTemporada ? `
+            <div class="card-padrao" style="text-align: center; padding: 24px;">
+                <span class="material-icons" style="font-size: 48px; color: var(--laranja);">hourglass_empty</span>
+                <h3 style="margin: 12px 0 8px; color: var(--texto-primario);">Pré-Temporada ${window.temporadaAtual || 2026}</h3>
+                <p style="color: var(--texto-secundario); margin: 0;">O campeonato ainda não começou. Apenas acertos financeiros estão disponíveis.</p>
+            </div>
+            ` : ''}
 
             ${this._renderizarSecaoAcertos(extrato)}
         </div>
