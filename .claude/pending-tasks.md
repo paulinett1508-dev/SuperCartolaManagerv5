@@ -474,6 +474,57 @@ Exibir no app do participante:
 
 ---
 
+---
+
+## FEATURE: LIGA VAZIA + CADASTRO PARTICIPANTES (2026-01-15)
+
+### Contexto
+Usuario solicitou:
+1. Criar liga sem participantes (em branco)
+2. Nova ferramenta para cadastro de participantes independente de liga
+3. Participante pode ser vinculado a multiplas ligas
+
+### Decisoes do Usuario
+- **Participante sem liga**: Pool global + temporada (ambos)
+- **Vinculacao**: Ambas opcoes (no cadastro OU depois)
+- **Localizacao**: Hub de Ferramentas
+
+### Plano Completo
+Ver: `/home/runner/.claude/plans/streamed-hugging-wren.md`
+
+### Tarefas Pendentes
+
+#### PARTE 1: Liga Vazia
+- [ ] Modificar `public/preencher-liga.html` - remover validacao linha 883-886
+- [ ] Modificar `public/js/criar-liga.js` - remover validacao linhas 269-271
+- [ ] Testar criacao de liga sem times
+
+#### PARTE 2: Cadastro de Participantes (Nova Ferramenta)
+
+**Arquivos a Criar:**
+- [ ] `public/cadastro-participantes.html` - Pagina principal
+- [ ] `public/js/cadastro/cadastro-participantes.js` - Logica
+
+**Arquivos a Modificar:**
+- [ ] `public/ferramentas.html` - Adicionar card da ferramenta
+- [ ] `public/layout.html` - Mapear pagina no accordion/titles
+
+**Funcionalidades:**
+1. Buscar participante por nome/ID (API Cartola)
+2. Cadastrar com seletor de temporada
+3. Vincular a multiplas ligas (checkbox)
+4. Lista de participantes cadastrados
+5. Filtros: Sem Liga / Todos / Por Liga
+6. Modal "Vincular a Liga" para acao posterior
+
+### Commit Anterior Relacionado
+- `7fd9a81` - feat(fluxo-financeiro): implementar modal de novo participante independente
+
+### Para Retomar
+Use `/retomar-tarefas` ou leia este arquivo e o plano em `.claude/plans/`
+
+---
+
 ## Historico Arquivado
 
 > Conteudo anterior movido para manter arquivo limpo.
