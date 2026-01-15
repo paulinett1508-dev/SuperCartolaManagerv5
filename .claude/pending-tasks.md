@@ -72,6 +72,115 @@ node scripts/fix-extrato-2026-rodada-fantasma.js --force
 
 ---
 
+## BUG CRITICO - MODULO TOP10 (Sessao 2026-01-15)
+
+### Problema Identificado
+
+O sistema **confunde dois modulos diferentes**:
+
+| Modulo | Regra CORRETA | O que o sistema faz ERRADO |
+|--------|---------------|---------------------------|
+| **Ranking Rodada** | 1o lugar = bonus, ultimo = onus | ✓ Correto (campo `bonusOnus`) |
+| **TOP10** | 10 maiores/menores pontuacoes da TEMPORADA | ✗ Marca TODOS que foram 1o/ultimo |
+
+### Regra Correta do TOP10
+
+- **TOP 10 MITOS:** As 10 MAIORES pontuacoes absolutas de toda a temporada (38 rodadas)
+- **TOP 10 MICOS:** As 10 MENORES pontuacoes absolutas de toda a temporada
+- **Mesmo participante pode aparecer varias vezes** se teve multiplas pontuacoes no ranking
+
+### O que o Sistema Faz Errado
+
+O sistema atual marca como MITO/MICO baseado em **ser 1o/ultimo da rodada**, nao baseado no **ranking global TOP10**.
+
+Exemplo: Daniel Barbosa foi 1o lugar em **18 rodadas**, mas apenas **7 dessas** estao no TOP10 MITOS global. As outras 11 rodadas estao recebendo bonus indevidamente.
+
+### Auditoria - Liga Cartoleiros do Sobral (2025)
+
+**TOP 10 MITOS GLOBAL (correto):**
+```
+1o  Paulinett    R21  189.15 pts
+2o  Daniel       R8   126.54 pts
+3o  Daniel       R35  122.24 pts
+4o  Daniel       R4   119.90 pts
+5o  Daniel       R28  115.64 pts
+6o  Paulinett    R29  115.51 pts
+7o  Daniel       R34  110.57 pts
+8o  Carlos H.    R7   109.65 pts
+9o  Paulinett    R13  109.47 pts
+10o Paulinett    R36  108.43 pts
+```
+
+**TOP 10 MICOS GLOBAL (correto):**
+```
+1o  Hivisson     R34   6.47 pts
+2o  Paulinett    R38   7.10 pts
+3o  Hivisson     R16  11.55 pts
+4o  Jr.Brasilino R30  17.52 pts
+5o  Hivisson     R12  22.00 pts
+6o  Matheus      R32  24.19 pts
+7o  Matheus      R33  24.19 pts
+8o  Jr.Brasilino R31  24.90 pts
+9o  Jr.Brasilino R24  25.64 pts
+10o Carlos H.    R10  26.75 pts
+```
+
+### Discrepancias Encontradas
+
+**Rodadas recebendo bonus TOP10 INDEVIDAMENTE:**
+
+| Participante | Rodadas INCORRETAS | Impacto |
+|--------------|---------------------|---------|
+| Daniel Barbosa | R2,R3,R5,R9,R12,R18,R23,R24,R30,R31,R32,R33,R38 | +R$130 |
+| Paulinett | R6,R16,R20,R22,R25,R27 | +R$60 |
+| Carlos Henrique | R1,R15,R26 | +R$30 |
+| Matheus Coutinho | R10,R11,R17,R37 | +R$40 |
+| Junior Brasilino | R19 | +R$10 |
+| Hivisson | R14 | +R$10 |
+
+**Rodadas pagando onus TOP10 INDEVIDAMENTE:**
+
+| Participante | Rodadas INCORRETAS | Impacto |
+|--------------|---------------------|---------|
+| Junior Brasilino | R1,R2,R4,R8,R13,R15,R21,R28,R35 | -R$90 |
+| Matheus Coutinho | R3,R6,R19,R20,R23,R25,R27 | -R$70 |
+| Carlos Henrique | R11,R14,R29,R36,R37 | -R$50 |
+| Hivisson | R9,R17,R18,R22 | -R$40 |
+| Paulinett | R5,R7,R26 | -R$30 |
+
+### Proposta de Correcao
+
+**Opcao 1: Recalcular valores TOP10 nos extratos**
+- Criar script que:
+  1. Le o `top10caches` da liga (ranking global)
+  2. Para cada extrato, verifica se a rodada esta no TOP10 global
+  3. Se NAO esta: zera o valor `top10`, `isMito`, `isMico`
+  4. Se ESTA: aplica o valor correto baseado na posicao global (1o=R$50, 2o=R$40, etc)
+
+**Opcao 2: Corrigir a logica no fluxo de calculo**
+- Modificar `fluxo-financeiro-core.js` para:
+  1. Buscar o ranking global TOP10 da temporada
+  2. Aplicar valores TOP10 APENAS para rodadas que estao no ranking global
+  3. Nao confundir com "ser 1o da rodada" (isso e bonusOnus, nao TOP10)
+
+### Arquivos a Modificar
+
+| Arquivo | Mudanca |
+|---------|---------|
+| `fluxo-financeiro-core.js` | Logica de calculo TOP10 |
+| `extratoFinanceiroCacheController.js` | Nao marcar MITO/MICO por posicao |
+| Script de correcao | Recalcular caches existentes |
+
+### Script de Correcao (a criar)
+
+```bash
+# Corrigir valores TOP10 nos extratos da Liga Sobral
+node scripts/fix-top10-extratos-sobral.js --dry-run
+node scripts/fix-top10-extratos-sobral.js --force
+```
+
+---
+
 ## PROXIMOS PASSOS RECOMENDADOS
 
 ### 1. Sessao de Clarificacao Conceitual
