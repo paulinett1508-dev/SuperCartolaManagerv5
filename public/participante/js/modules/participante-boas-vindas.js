@@ -372,6 +372,7 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
         saldoFinanceiro,
         posicaoAnterior,
         minhasRodadas: rodadasOrdenadas,
+        timeId: meuTimeIdNum,
     };
 }
 
@@ -539,6 +540,9 @@ function renderizarBoasVindas(container, data, ligaRules) {
 
     const zona = getZonaInfo(posicao, totalParticipantes);
     const primeiroNome = nomeCartola.split(" ")[0];
+    // Selo premium para Paulinett Miranda (timeId 13935277)
+    const isPremium = String(data?.timeId || '') === '13935277';
+    const seloPremium = isPremium ? `<span title="Participante Premium" class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full border border-yellow-400/40 bg-yellow-400/10 text-xs font-semibold text-yellow-300 shadow-sm" style="vertical-align:middle;">Premium <span class="material-icons text-yellow-300 text-base ml-1" style="font-size:14px;">star</span></span>` : '';
     const rodadasRestantes = Math.max(0, 38 - rodadaAtual);
     const pontosUltimaRodada = ultimaRodada
         ? parseFloat(ultimaRodada.pontos).toFixed(2)
@@ -613,7 +617,10 @@ function renderizarBoasVindas(container, data, ligaRules) {
                 <!-- Saudação com indicador de temporada -->
                 <div class="px-4 py-4">
                     <div class="flex items-center justify-between mb-1">
-                        <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
+                            ${seloPremium}
+                        </div>
                         <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide" style="background: linear-gradient(135deg, #ff4500, #e63e00); color: white;">
                             ${TEMPORADA_ATUAL}
                         </span>
@@ -747,7 +754,10 @@ function renderizarBoasVindas(container, data, ligaRules) {
                 <!-- Saudação com indicador de temporada -->
                 <div class="px-4 py-4">
                     <div class="flex items-center justify-between mb-1">
-                        <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
+                            ${seloPremium}
+                        </div>
                         <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide" style="background: linear-gradient(135deg, #ff4500, #e63e00); color: white;">
                             ${TEMPORADA_ATUAL}
                         </span>

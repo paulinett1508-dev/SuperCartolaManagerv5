@@ -1,3 +1,26 @@
+import cron from "node-cron";
+// Executar scraper de jogos Globo Esporte diariamente às 6h (horário do servidor)
+import { exec } from "child_process";
+cron.schedule("0 6 * * *", () => {
+  console.log("[CRON] Executando atualização de jogos do Globo Esporte...");
+  exec("node scripts/save-jogos-globo.js", (err, stdout, stderr) => {
+    if (err) {
+      console.error("[CRON] Erro ao rodar save-jogos-globo.js:", err.message);
+      return;
+    }
+    if (stdout) console.log("[CRON] save-jogos-globo.js:", stdout.trim());
+    if (stderr) console.error("[CRON] save-jogos-globo.js (stderr):", stderr.trim());
+  });
+});
+// Também executa na inicialização para garantir cache atualizado
+exec("node scripts/save-jogos-globo.js", (err, stdout, stderr) => {
+  if (err) {
+    console.error("[INIT] Erro ao rodar save-jogos-globo.js:", err.message);
+    return;
+  }
+  if (stdout) console.log("[INIT] save-jogos-globo.js:", stdout.trim());
+  if (stderr) console.error("[INIT] save-jogos-globo.js (stderr):", stderr.trim());
+});
 // index.js - Super Cartola Manager OTIMIZADO (Sessões Persistentes + Auth Admin + Segurança)
 // v2.0: Hardening de Produção - Logs e Erros por ambiente
 import mongoose from "mongoose";
@@ -61,6 +84,7 @@ const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
 
 // Importar rotas do sistema
 import jogosHojeRoutes from "./routes/jogos-hoje-routes.js";
+import jogosHojeGloboRoutes from "./routes/jogos-hoje-globo.js"; // NOVA ROTA
 import ligaRoutes from "./routes/ligas.js";
 import cartolaRoutes from "./routes/cartola.js";
 import cartolaProxyRoutes from "./routes/cartola-proxy.js";
@@ -305,6 +329,7 @@ app.use(express.static("public"));
 
 // Rotas da API
 app.use("/api/jogos-hoje", jogosHojeRoutes);
+app.use("/api/jogos-hoje-globo", jogosHojeGloboRoutes); // NOVA ROTA
 app.use("/api/ligas", ligaRoutes);
 app.use("/api/cartola", cartolaRoutes);
 app.use("/api/cartola", cartolaProxyRoutes);

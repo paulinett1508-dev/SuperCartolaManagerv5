@@ -43,6 +43,7 @@
     "mongodb": "^6.19.0",
     "mongoose": "^7.6.1",
     "node-cache": "^5.1.2",
+    "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
     "openid-client": "^6.8.1",
     "passport": "^0.7.0",

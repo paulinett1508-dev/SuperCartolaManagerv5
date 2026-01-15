@@ -10,10 +10,20 @@ export async function obterJogosDoDia(timeId) {
     try {
         const res = await fetch(`/api/jogos-hoje?timeId=${timeId}`);
         const data = await res.json();
+        if (data.jogos && data.jogos.length > 0) {
+            return {
+                jogos: data.jogos,
+                premium: data.premium || false,
+                fonte: data.fonte || 'api'
+            };
+        }
+        // Fallback: tentar rota Globo Esporte
+        const resGlobo = await fetch('/api/jogos-hoje-globo');
+        const dataGlobo = await resGlobo.json();
         return {
-            jogos: data.jogos || [],
-            premium: data.premium || false,
-            fonte: data.fonte || 'api'
+            jogos: dataGlobo.jogos || [],
+            premium: false,
+            fonte: 'globo'
         };
     } catch (err) {
         console.error('[JOGOS] Erro ao buscar jogos:', err);
