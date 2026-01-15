@@ -2071,13 +2071,7 @@ function copiarJsonGlobo() {
  * @param {HTMLElement} btn - Botão que disparou a ação
  */
 async function validarIdParticipante(timeId, nome, btn) {
-    const ligaId = window.SUPER_CARTOLA?.ligaAtual;
-    if (!ligaId) {
-        mostrarToast("Liga não identificada", "error");
-        return;
-    }
-
-    const temporada = temporadaSelecionada || new Date().getFullYear();
+    // ✅ v2.3: Não precisa de ligaId - validação é direta na API Cartola
     const iconOriginal = btn.innerHTML;
 
     try {
