@@ -5970,3 +5970,519 @@ window.removerAjuste = async function(ajusteId) {
         alert('Erro de conexao ao remover ajuste');
     }
 };
+
+// =============================================================================
+// MODAL: NOVO PARTICIPANTE (Implementação Direta no Fluxo Financeiro)
+// =============================================================================
+
+/**
+ * Abre modal para cadastrar novo participante na temporada
+ * ✅ v8.2: Implementação direta sem dependência de renovacao-core.js
+ */
+window.abrirNovoParticipante = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ligaId = urlParams.get('id');
+    const temporada = window.temporadaAtual || 2026;
+
+    if (!ligaId) {
+        alert('Liga não identificada');
+        return;
+    }
+
+    // Remover modal existente se houver
+    const existente = document.getElementById('modalNovoParticipanteFluxo');
+    if (existente) existente.remove();
+
+    // Estado interno do modal
+    const state = {
+        timeSelecionado: null,
+        modoAtual: 'busca-nome',
+        buscando: false
+    };
+
+    // Helper para escapar HTML
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // Criar modal HTML
+    const modalHtml = `
+    <div class="modal-overlay-fluxo" id="modalNovoParticipanteFluxo" style="z-index: 10000;">
+        <div class="modal-content-fluxo" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header-fluxo">
+                <h3>
+                    <span class="material-icons" style="color: #3b82f6;">person_add</span>
+                    Novo Participante ${temporada}
+                </h3>
+                <button class="modal-close-fluxo" onclick="window.fecharModalNovoParticipante()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body-fluxo">
+                <!-- TABS -->
+                <div class="novo-participante-tabs">
+                    <button class="tab-novo-participante active" data-tab="busca-nome" onclick="window.trocarTabNovoParticipante('busca-nome')">
+                        <span class="material-icons">search</span> Buscar Nome
+                    </button>
+                    <button class="tab-novo-participante" data-tab="busca-id" onclick="window.trocarTabNovoParticipante('busca-id')">
+                        <span class="material-icons">tag</span> Buscar ID
+                    </button>
+                    <button class="tab-novo-participante" data-tab="manual" onclick="window.trocarTabNovoParticipante('manual')">
+                        <span class="material-icons">edit</span> Manual
+                    </button>
+                </div>
+
+                <!-- TAB 1: BUSCA POR NOME -->
+                <div id="panelBuscaNome" class="panel-novo-participante active">
+                    <p style="color: #888; font-size: 0.85rem; margin-bottom: 12px;">
+                        Busque o time pelo nome no banco de participantes existentes.
+                    </p>
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <input type="text"
+                               id="inputBuscaTimeNome"
+                               placeholder="Digite o nome do time ou cartoleiro (min 3 letras)..."
+                               style="flex: 1; background: #252525; border: 1px solid #333; border-radius: 6px; padding: 10px 12px; color: #fff;">
+                        <button onclick="window.buscarTimeNovoParticipante('nome')" class="btn-buscar-novo"
+                                style="background: #3b82f6; color: #fff; border: none; border-radius: 6px; padding: 10px 16px; cursor: pointer;">
+                            <span class="material-icons" style="font-size: 18px; vertical-align: middle;">search</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB 2: BUSCA POR ID -->
+                <div id="panelBuscaId" class="panel-novo-participante" style="display: none;">
+                    <p style="color: #888; font-size: 0.85rem; margin-bottom: 12px;">
+                        Informe o ID do Cartola FC enviado pelo participante.
+                    </p>
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <input type="number"
+                               id="inputBuscaTimeId"
+                               placeholder="Ex: 12345678"
+                               style="flex: 1; background: #252525; border: 1px solid #333; border-radius: 6px; padding: 10px 12px; color: #fff;">
+                        <button onclick="window.buscarTimeNovoParticipante('id')" class="btn-buscar-novo"
+                                style="background: #3b82f6; color: #fff; border: none; border-radius: 6px; padding: 10px 16px; cursor: pointer;">
+                            <span class="material-icons" style="font-size: 18px; vertical-align: middle;">search</span>
+                        </button>
+                    </div>
+                    <div style="background: #1e293b; border-radius: 6px; padding: 10px; font-size: 0.8rem; color: #94a3b8;">
+                        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">info</span>
+                        O participante encontra seu ID no app Cartola FC > Perfil > "ID do Time"
+                    </div>
+                </div>
+
+                <!-- TAB 3: CADASTRO MANUAL -->
+                <div id="panelManual" class="panel-novo-participante" style="display: none;">
+                    <div style="background: #422006; border: 1px solid #854d0e; border-radius: 6px; padding: 10px; font-size: 0.8rem; color: #fbbf24; margin-bottom: 16px;">
+                        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">warning</span>
+                        <strong>Cadastro com pendencia</strong> - Os dados do Cartola FC serao vinculados posteriormente.
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 4px;">Nome do Participante *</label>
+                            <input type="text" id="inputNomeManual" placeholder="Ex: Joao Silva"
+                                   style="width: 100%; background: #252525; border: 1px solid #333; border-radius: 6px; padding: 10px; color: #fff; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 4px;">Apelido/Time</label>
+                            <input type="text" id="inputApelidoManual" placeholder="Ex: Mengao FC"
+                                   style="width: 100%; background: #252525; border: 1px solid #333; border-radius: 6px; padding: 10px; color: #fff; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 4px;">Time do Coracao</label>
+                            <select id="selectTimeCor" style="width: 100%; background: #252525; border: 1px solid #333; border-radius: 6px; padding: 10px; color: #fff; box-sizing: border-box;">
+                                <option value="">Selecione...</option>
+                                <option value="262">Flamengo</option>
+                                <option value="275">Palmeiras</option>
+                                <option value="264">Corinthians</option>
+                                <option value="276">Sao Paulo</option>
+                                <option value="277">Santos</option>
+                                <option value="266">Fluminense</option>
+                                <option value="267">Vasco</option>
+                                <option value="263">Botafogo</option>
+                                <option value="284">Gremio</option>
+                                <option value="285">Internacional</option>
+                                <option value="283">Cruzeiro</option>
+                                <option value="282">Atletico-MG</option>
+                                <option value="293">Athletico-PR</option>
+                                <option value="265">Bahia</option>
+                                <option value="356">Fortaleza</option>
+                                <option value="354">Ceara</option>
+                                <option value="0">Outro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 4px;">ID Cartola (se tiver)</label>
+                            <input type="number" id="inputIdManual" placeholder="Preencher depois..."
+                                   style="width: 100%; background: #252525; border: 1px solid #333; border-radius: 6px; padding: 10px; color: #fff; box-sizing: border-box;">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 4px;">Contato (WhatsApp/Email)</label>
+                            <input type="text" id="inputContatoManual" placeholder="Ex: (11) 99999-9999"
+                                   style="width: 100%; background: #252525; border: 1px solid #333; border-radius: 6px; padding: 10px; color: #fff; box-sizing: border-box;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <div id="loadingBuscaNovo" style="display: none; text-align: center; padding: 20px;">
+                    <div class="loading-spinner" style="margin: 0 auto;"></div>
+                    <p style="margin-top: 10px; color: #888;">Buscando...</p>
+                </div>
+
+                <!-- Resultados Busca -->
+                <div id="resultadosBuscaNovo" style="max-height: 200px; overflow-y: auto; margin-bottom: 16px;"></div>
+
+                <!-- Time Selecionado -->
+                <div id="timeSelecionadoNovo" style="display: none;">
+                    <hr style="border-color: #333; margin: 16px 0;">
+                    <h6 style="margin-bottom: 12px; color: #fff;">Time Selecionado</h6>
+                    <div style="display: flex; align-items: center; padding: 12px; background: #1a1a1a; border-radius: 8px; margin-bottom: 16px;">
+                        <img id="escudoSelecionadoNovo" src="" alt="Escudo" style="width: 48px; height: 48px; border-radius: 6px; margin-right: 12px;">
+                        <div style="flex: 1;">
+                            <h6 id="nomeTimeSelecionadoNovo" style="margin: 0; color: #fff;"></h6>
+                            <small id="nomeCartoleiroSelecionadoNovo" style="color: #888;"></small>
+                        </div>
+                        <button onclick="window.limparSelecaoNovoParticipante()" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 6px; padding: 6px 10px; cursor: pointer;">
+                            <span class="material-icons" style="font-size: 18px; vertical-align: middle;">close</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Secao Confirmacao -->
+                <div id="secaoConfirmacaoNovo" style="display: none;">
+                    <hr style="border-color: #333; margin: 16px 0;">
+
+                    <!-- Opcao Pagamento -->
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="checkPagouInscricaoNovo" checked
+                                   style="width: 18px; height: 18px; margin-right: 10px;">
+                            <span style="color: #fff; font-weight: 600;">Pagou a inscricao</span>
+                        </label>
+                        <small style="display: block; color: #888; margin-top: 4px; margin-left: 28px;">
+                            Se marcado, taxa NAO vira debito. Se desmarcado, participante entra devendo a taxa.
+                        </small>
+                    </div>
+
+                    <!-- Observacoes -->
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 4px;">Observacoes (opcional)</label>
+                        <textarea id="txtObservacoesNovo" rows="2" placeholder="Indicado por, motivo da entrada..."
+                                  style="width: 100%; background: #252525; border: 1px solid #333; border-radius: 6px; padding: 10px; color: #fff; resize: none; box-sizing: border-box;"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer-fluxo">
+                <button class="btn-cancelar-fluxo" onclick="window.fecharModalNovoParticipante()">Cancelar</button>
+                <button id="btnCadastrarNovoParticipante" class="btn-confirmar-fluxo" onclick="window.confirmarNovoParticipante()" disabled
+                        style="background: #10b981;">
+                    <span class="material-icons">person_add</span>
+                    Cadastrar
+                </button>
+            </div>
+        </div>
+    </div>
+    <style>
+        .novo-participante-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .tab-novo-participante {
+            flex: 1;
+            padding: 10px;
+            background: #252525;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .tab-novo-participante:hover {
+            border-color: #555;
+        }
+        .tab-novo-participante.active {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+        .tab-novo-participante .material-icons {
+            font-size: 18px;
+        }
+        .panel-novo-participante {
+            display: none;
+        }
+        .panel-novo-participante.active {
+            display: block;
+        }
+        .resultado-busca-item-novo {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .resultado-busca-item-novo:hover {
+            background: #252525;
+        }
+    </style>`;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Event listeners para Enter nos inputs de busca
+    document.getElementById('inputBuscaTimeNome')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') window.buscarTimeNovoParticipante('nome');
+    });
+    document.getElementById('inputBuscaTimeId')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') window.buscarTimeNovoParticipante('id');
+    });
+
+    // Event listener para campos manuais - habilitar botão
+    ['inputNomeManual', 'inputApelidoManual'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', () => {
+            const nome = document.getElementById('inputNomeManual')?.value.trim();
+            if (state.modoAtual === 'manual' && nome && nome.length >= 2) {
+                document.getElementById('btnCadastrarNovoParticipante').disabled = false;
+                document.getElementById('secaoConfirmacaoNovo').style.display = 'block';
+            }
+        });
+    });
+
+    // Funções do modal
+    window.fecharModalNovoParticipante = function() {
+        const modal = document.getElementById('modalNovoParticipanteFluxo');
+        if (modal) modal.remove();
+    };
+
+    window.trocarTabNovoParticipante = function(tab) {
+        state.modoAtual = tab;
+        state.timeSelecionado = null;
+
+        // Atualizar tabs
+        document.querySelectorAll('.tab-novo-participante').forEach(t => {
+            t.classList.toggle('active', t.dataset.tab === tab);
+        });
+
+        // Atualizar panels
+        document.getElementById('panelBuscaNome').style.display = tab === 'busca-nome' ? 'block' : 'none';
+        document.getElementById('panelBuscaId').style.display = tab === 'busca-id' ? 'block' : 'none';
+        document.getElementById('panelManual').style.display = tab === 'manual' ? 'block' : 'none';
+
+        // Reset UI
+        document.getElementById('resultadosBuscaNovo').innerHTML = '';
+        document.getElementById('timeSelecionadoNovo').style.display = 'none';
+        document.getElementById('secaoConfirmacaoNovo').style.display = tab === 'manual' ? 'block' : 'none';
+        document.getElementById('btnCadastrarNovoParticipante').disabled = tab !== 'manual';
+    };
+
+    window.buscarTimeNovoParticipante = async function(tipo) {
+        if (state.buscando) return;
+
+        const input = tipo === 'nome'
+            ? document.getElementById('inputBuscaTimeNome')
+            : document.getElementById('inputBuscaTimeId');
+
+        const query = input?.value.trim();
+
+        if (tipo === 'nome' && (!query || query.length < 3)) {
+            alert('Digite pelo menos 3 caracteres para buscar');
+            return;
+        }
+
+        if (tipo === 'id' && (!query || isNaN(query))) {
+            alert('Digite um ID válido');
+            return;
+        }
+
+        state.buscando = true;
+        const loading = document.getElementById('loadingBuscaNovo');
+        const resultados = document.getElementById('resultadosBuscaNovo');
+
+        loading.style.display = 'block';
+        resultados.innerHTML = '';
+
+        try {
+            let url, data;
+
+            if (tipo === 'nome') {
+                url = `/api/cartola/buscar-time?q=${encodeURIComponent(query)}&limit=20`;
+                const response = await fetch(url);
+                data = await response.json();
+            } else {
+                url = `/api/cartola/time/${query}`;
+                const response = await fetch(url);
+                const timeData = await response.json();
+                data = timeData.success ? { success: true, times: [timeData.time || timeData] } : { success: false };
+            }
+
+            if (!data.success && !data.times) {
+                resultados.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #888;">
+                        <span class="material-icons" style="font-size: 36px; color: #ef4444;">search_off</span>
+                        <p style="margin-top: 8px;">Nenhum resultado encontrado</p>
+                    </div>`;
+                return;
+            }
+
+            const times = data.times || [data];
+
+            if (times.length === 0) {
+                resultados.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #888;">
+                        <span class="material-icons" style="font-size: 36px; color: #ef4444;">search_off</span>
+                        <p style="margin-top: 8px;">Nenhum resultado encontrado</p>
+                    </div>`;
+                return;
+            }
+
+            resultados.innerHTML = times.map(time => `
+                <div class="resultado-busca-item-novo"
+                     onclick="window.selecionarTimeNovoParticipante(${time.time_id || time.id}, '${escapeHtml(time.nome_time || time.nome || '')}', '${escapeHtml(time.nome_cartoleiro || time.nome_cartola || '')}', '${escapeHtml(time.escudo_url || time.url_escudo_png || time.escudo || '')}')">
+                    <img src="${escapeHtml(time.escudo_url || time.url_escudo_png || time.escudo || '/img/default-escudo.png')}"
+                         alt="Escudo"
+                         style="width: 36px; height: 36px; border-radius: 4px; margin-right: 12px;"
+                         onerror="this.src='/img/default-escudo.png'">
+                    <div style="flex: 1;">
+                        <div style="color: #fff; font-weight: 600;">${escapeHtml(time.nome_time || time.nome || 'Time sem nome')}</div>
+                        <small style="color: #888;">${escapeHtml(time.nome_cartoleiro || time.nome_cartola || '')}</small>
+                    </div>
+                    <small style="color: #555;">ID: ${time.time_id || time.id}</small>
+                </div>
+            `).join('');
+
+        } catch (error) {
+            console.error('[NOVO-PARTICIPANTE] Erro na busca:', error);
+            resultados.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #ef4444;">
+                    <span class="material-icons" style="font-size: 36px;">error</span>
+                    <p style="margin-top: 8px;">Erro ao buscar: ${error.message}</p>
+                </div>`;
+        } finally {
+            state.buscando = false;
+            loading.style.display = 'none';
+        }
+    };
+
+    window.selecionarTimeNovoParticipante = function(timeId, nomeTime, nomeCartoleiro, escudo) {
+        state.timeSelecionado = {
+            time_id: timeId,
+            nome_time: nomeTime,
+            nome_cartoleiro: nomeCartoleiro,
+            escudo: escudo
+        };
+
+        // Mostrar time selecionado
+        document.getElementById('timeSelecionadoNovo').style.display = 'block';
+        document.getElementById('escudoSelecionadoNovo').src = escudo || '/img/default-escudo.png';
+        document.getElementById('nomeTimeSelecionadoNovo').textContent = nomeTime || 'Time';
+        document.getElementById('nomeCartoleiroSelecionadoNovo').textContent = nomeCartoleiro || '';
+
+        // Esconder resultados e mostrar confirmação
+        document.getElementById('resultadosBuscaNovo').innerHTML = '';
+        document.getElementById('secaoConfirmacaoNovo').style.display = 'block';
+        document.getElementById('btnCadastrarNovoParticipante').disabled = false;
+    };
+
+    window.limparSelecaoNovoParticipante = function() {
+        state.timeSelecionado = null;
+        document.getElementById('timeSelecionadoNovo').style.display = 'none';
+        document.getElementById('secaoConfirmacaoNovo').style.display = 'none';
+        document.getElementById('btnCadastrarNovoParticipante').disabled = true;
+    };
+
+    window.confirmarNovoParticipante = async function() {
+        const btn = document.getElementById('btnCadastrarNovoParticipante');
+        const pagouInscricao = document.getElementById('checkPagouInscricaoNovo')?.checked ?? true;
+        const observacoes = document.getElementById('txtObservacoesNovo')?.value || '';
+
+        let dadosTime = null;
+
+        if (state.modoAtual === 'manual') {
+            // Cadastro manual
+            const nome = document.getElementById('inputNomeManual')?.value.trim();
+            const apelido = document.getElementById('inputApelidoManual')?.value.trim();
+            const timeCoracao = document.getElementById('selectTimeCor')?.value;
+            const idCartola = document.getElementById('inputIdManual')?.value.trim();
+            const contato = document.getElementById('inputContatoManual')?.value.trim();
+
+            if (!nome || nome.length < 2) {
+                alert('Informe o nome do participante');
+                return;
+            }
+
+            dadosTime = {
+                nome_cartoleiro: nome,
+                nome_time: apelido || nome,
+                time_id: idCartola ? parseInt(idCartola) : null,
+                time_coracao: timeCoracao,
+                contato: contato,
+                pendente_sincronizacao: !idCartola,
+                cadastro_manual: true
+            };
+        } else {
+            // Busca - usar time selecionado
+            if (!state.timeSelecionado) {
+                alert('Selecione um time primeiro');
+                return;
+            }
+            dadosTime = state.timeSelecionado;
+        }
+
+        // Desabilitar botão e mostrar loading
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons" style="animation: spin 1s linear infinite;">sync</span> Cadastrando...';
+
+        try {
+            const response = await fetch(`/api/inscricoes/${ligaId}/${temporada}/novo`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...dadosTime,
+                    pagouInscricao,
+                    observacoes
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                const msg = dadosTime.pendente_sincronizacao
+                    ? 'Participante cadastrado! Pendente vincular ID do Cartola.'
+                    : 'Novo participante cadastrado com sucesso!';
+                alert(msg);
+                window.fecharModalNovoParticipante();
+
+                // Recarregar fluxo financeiro
+                if (window.fluxoFinanceiroOrquestrador?.recarregar) {
+                    window.fluxoFinanceiroOrquestrador.recarregar();
+                } else if (window.recarregarFluxoFinanceiro) {
+                    window.recarregarFluxoFinanceiro();
+                }
+            } else {
+                throw new Error(result.error || 'Erro ao cadastrar');
+            }
+        } catch (error) {
+            console.error('[NOVO-PARTICIPANTE] Erro ao cadastrar:', error);
+            alert('Erro: ' + error.message);
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons">person_add</span> Cadastrar';
+        }
+    };
+
+    // Focar no input de busca
+    setTimeout(() => {
+        document.getElementById('inputBuscaTimeNome')?.focus();
+    }, 100);
+};
