@@ -224,6 +224,13 @@ async function carregarParticipantesPorTemporada(temporada) {
 
                     ${isTemporadaBase ? `
                     <div class="participante-actions-compact">
+                        <button class="btn-compact btn-compact-validar"
+                                data-action="validar-id"
+                                data-time-id="${p.time_id}"
+                                data-nome="${(p.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
+                                title="Validar ID na API Cartola">
+                            <span class="material-symbols-outlined">verified</span>
+                        </button>
                         <button class="btn-compact btn-compact-status"
                                 data-action="toggle-status"
                                 data-time-id="${p.time_id}"
@@ -696,6 +703,9 @@ async function handleCardClick(e) {
         const nome = btn.dataset.nome;
         const timeNome = btn.dataset.timeNome;
         await verDadosGlobo(timeId, nome, timeNome, btn);
+    } else if (action === "validar-id") {
+        const nome = btn.dataset.nome;
+        await validarIdParticipante(timeId, nome, btn);
     }
 }
 
@@ -1889,7 +1899,71 @@ function copiarJsonGlobo() {
 // ==============================
 
 /**
- * Valida IDs dos participantes na API do Cartola
+ * Valida ID de um único participante na API do Cartola
+ * @param {string} timeId - ID do time
+ * @param {string} nome - Nome do participante
+ * @param {HTMLElement} btn - Botão que disparou a ação
+ */
+async function validarIdParticipante(timeId, nome, btn) {
+    const ligaId = window.SUPER_CARTOLA?.ligaAtual;
+    if (!ligaId) {
+        mostrarToast("Liga não identificada", "error");
+        return;
+    }
+
+    const temporada = temporadaSelecionada || new Date().getFullYear();
+    const iconOriginal = btn.innerHTML;
+
+    try {
+        // Feedback visual
+        btn.disabled = true;
+        btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span>`;
+
+        const response = await fetch(`/api/cartola/time/${timeId}`);
+        const data = await response.json();
+
+        if (!response.ok || data.erro) {
+            // Time não existe ou erro
+            btn.innerHTML = `<span class="material-symbols-outlined" style="color: #ef4444;">error</span>`;
+            btn.title = `Erro: ${data.erro || 'Time não encontrado'}`;
+            mostrarToast(`${nome}: Time não encontrado na API do Cartola`, "error");
+            return;
+        }
+
+        // Verificar se o nome do dono confere
+        const nomeDono = data.time?.nome_cartola || data.nome_cartola || '';
+        const nomeLocal = nome || '';
+        const nomeConfere = nomeDono.toLowerCase().trim() === nomeLocal.toLowerCase().trim();
+
+        if (nomeConfere) {
+            // Válido
+            btn.innerHTML = `<span class="material-symbols-outlined" style="color: #22c55e;">check_circle</span>`;
+            btn.title = `Válido: ${nomeDono}`;
+            mostrarToast(`${nome}: ID válido na API do Cartola`, "success");
+        } else {
+            // Dono diferente
+            btn.innerHTML = `<span class="material-symbols-outlined" style="color: #f59e0b;">warning</span>`;
+            btn.title = `Atenção: Dono atual é "${nomeDono}"`;
+            mostrarToast(`${nome}: Dono diferente na API (${nomeDono})`, "warning");
+        }
+
+    } catch (error) {
+        console.error("[VALIDACAO] Erro:", error);
+        btn.innerHTML = `<span class="material-symbols-outlined" style="color: #ef4444;">error</span>`;
+        btn.title = `Erro: ${error.message}`;
+        mostrarToast(`Erro ao validar ${nome}: ${error.message}`, "error");
+    } finally {
+        btn.disabled = false;
+        // Resetar após 5 segundos
+        setTimeout(() => {
+            btn.innerHTML = iconOriginal;
+            btn.title = "Validar ID na API Cartola";
+        }, 5000);
+    }
+}
+
+/**
+ * Valida IDs de TODOS os participantes na API do Cartola
  */
 async function validarIdsCartola() {
     const ligaId = window.SUPER_CARTOLA?.ligaAtual;
