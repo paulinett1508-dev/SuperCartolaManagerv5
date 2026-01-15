@@ -158,7 +158,8 @@ function atualizarListaTimes() {
     const btnProxima = document.getElementById("btnProxima");
 
     if (count) count.textContent = `${timesSelecionados.length} times`;
-    if (btnProxima) btnProxima.disabled = timesSelecionados.length === 0;
+    // Botão sempre habilitado - liga pode ser criada vazia
+    if (btnProxima) btnProxima.disabled = false;
 
     if (timesSelecionados.length === 0) {
         if (lista) lista.style.display = "none";
@@ -196,10 +197,7 @@ function atualizarListaTimes() {
 
 // === NAVEGAÇÃO ENTRE ETAPAS ===
 function proximaEtapa() {
-    if (timesSelecionados.length === 0) {
-        showAlert("Adicione pelo menos um time!", "error");
-        return;
-    }
+    // Liga pode ser criada sem participantes (serão adicionados depois)
 
     // Mudar para etapa 2
     const etapa1 = document.getElementById("etapa1");
@@ -266,10 +264,7 @@ async function salvarLiga() {
         return;
     }
 
-    if (timesSelecionados.length === 0) {
-        showAlert("Adicione pelo menos um time!", "error");
-        return;
-    }
+    // Liga pode ser criada sem participantes (serão adicionados depois via Fluxo Financeiro)
 
     try {
         if (salvarBtn) salvarBtn.disabled = true;

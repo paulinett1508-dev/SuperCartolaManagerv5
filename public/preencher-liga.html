@@ -871,7 +871,8 @@
             function atualizarBotaoCriar() {
                 const btn = document.getElementById('btnCriar');
                 const nomeLiga = document.getElementById('nomeLiga').value.trim();
-                btn.disabled = !nomeLiga || times.length === 0;
+                // Liga pode ser criada vazia - apenas nome é obrigatório
+                btn.disabled = !nomeLiga;
             }
 
             // Listener para o nome da liga
@@ -880,10 +881,11 @@
             async function criarLiga() {
                 const nome = document.getElementById('nomeLiga').value.trim();
 
-                if (!nome || times.length === 0) {
-                    showToast('Preencha o nome e adicione ao menos 1 time', 'error');
+                if (!nome) {
+                    showToast('Preencha o nome da liga', 'error');
                     return;
                 }
+                // Liga pode ser criada sem participantes (adicionados depois via Fluxo Financeiro)
 
                 const btn = document.getElementById('btnCriar');
                 btn.disabled = true;
