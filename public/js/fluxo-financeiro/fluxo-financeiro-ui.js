@@ -4436,15 +4436,13 @@ window.exportarExtratoPDF = async function (timeId) {
                 perdas.push({ modulo: "MATA-MATA", desc: `${rod} - Derrota na fase`, valor: r.mataMata });
             }
 
-            // TOP 10 - Detalhamento completo
+            // TOP 10 - Detalhamento completo (posicao = posição na rodada, não global)
             if (r.top10 > 0) {
-                const pos = r.top10Posicao || "?";
                 const ptsTop = r.pontos ? ` com ${r.pontos.toFixed(2)} pts` : "";
-                ganhos.push({ modulo: "TOP 10 MITOS", desc: `${pos}º melhor pontuação do campeonato${ptsTop}`, valor: r.top10 });
+                ganhos.push({ modulo: "TOP 10 MITOS", desc: `${rod} - Melhor da rodada${ptsTop}`, valor: r.top10 });
             } else if (r.top10 < 0) {
-                const pos = r.top10Posicao || "?";
                 const ptsTop = r.pontos ? ` com ${r.pontos.toFixed(2)} pts` : "";
-                perdas.push({ modulo: "TOP 10 MICOS", desc: `${pos}º pior pontuação do campeonato${ptsTop}`, valor: r.top10 });
+                perdas.push({ modulo: "TOP 10 MICOS", desc: `${rod} - Pior da rodada${ptsTop}`, valor: r.top10 });
             }
         });
 
