@@ -15,7 +15,8 @@ const LIGAS_BRASIL = {
   475: 'Carioca',
   76: 'Paulista',
   629: 'Copa Verde',
-  630: 'Copa do Nordeste'
+  630: 'Copa do Nordeste',
+  618: 'Copinha'
 };
 
 // Cache em memória (5 minutos)
