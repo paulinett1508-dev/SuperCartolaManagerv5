@@ -349,9 +349,11 @@ export class FluxoFinanceiroUI {
 
         // Preparar resumo
         const resumo = data.resumo || {};
-        // ✅ v6.6: Mostrar saldo real do cache, não forçar 0 quando quitado
-        // O saldo original fica visível para referência histórica
-        const saldoFinal = resumo.saldo_final || resumo.saldo || data.financeiro?.saldoFinal || 0;
+        // ✅ v6.6: RESULTADO DA TEMPORADA (histórico, imutável) - o que ganhou/perdeu
+        // Usar saldo_temporada se disponível, senão fallback para saldo
+        const resultadoTemporada = resumo.saldo_temporada ?? resumo.saldo ?? data.financeiro?.saldoFinal ?? 0;
+        // ✅ v6.6: SALDO PENDENTE (operacional) - inclui acertos
+        const saldoPendente = resumo.saldo ?? 0;
 
         // HTML do extrato
         let html = '';
@@ -436,12 +438,13 @@ export class FluxoFinanceiroUI {
             `;
         }
 
-        // Saldo Final
+        // ✅ v6.6: Card de RESULTADO DA TEMPORADA (histórico, imutável)
+        // Mostra o que o participante ganhou/perdeu, independente de ter quitado
         html += `
-            <div class="saldo-final-card ${saldoFinal >= 0 ? 'saldo-final-positivo' : 'saldo-final-negativo'}">
-                <div class="saldo-final-titulo">Saldo Final ${temporada}</div>
-                <div class="saldo-final-valor">${formatarMoeda(saldoFinal)}</div>
-                ${isQuitado ? '<span class="performance-badge excelente">QUITADO</span>' : ''}
+            <div class="saldo-final-card ${resultadoTemporada >= 0 ? 'saldo-final-positivo' : 'saldo-final-negativo'}">
+                <div class="saldo-final-titulo">Resultado ${temporada}</div>
+                <div class="saldo-final-valor">${formatarMoeda(resultadoTemporada)}</div>
+                ${isQuitado ? '<span class="performance-badge excelente">QUITADO</span>' : saldoPendente === 0 && Math.abs(resultadoTemporada) > 0 ? '<span class="performance-badge excelente">QUITADO</span>' : ''}
             </div>
         `;
 
@@ -3314,21 +3317,24 @@ export class FluxoFinanceiroUI {
     }
 
     /**
-     * ✅ v6.2: Renderiza seção de Acertos Financeiros no extrato
-     * Mostra a composição do saldo: Rodadas + Acertos = Saldo Final
+     * ✅ v6.6: Renderiza seção de Acertos Financeiros no extrato
+     * CONCEITO IMPORTANTE:
+     * - RESULTADO TEMPORADA: histórico imutável (o que ganhou/perdeu)
+     * - ACERTOS: pagamentos/recebimentos que quitam dívida
+     * - SALDO PENDENTE: o que ainda deve/tem a receber
      */
     _renderizarSecaoAcertos(extrato) {
         const acertos = extrato.acertos?.lista || [];
-        const saldoTemporada = extrato.resumo?.saldo_temporada ?? extrato.resumo?.saldo ?? 0;
+        // ✅ v6.6: saldo_temporada é o histórico (sem acertos)
+        const saldoTemporada = extrato.resumo?.saldo_temporada ?? 0;
         const saldoAcertos = extrato.resumo?.saldo_acertos ?? 0;
-        const saldoFinal = extrato.resumo?.saldo ?? 0;
-
-        // ✅ v6.3: Sempre mostrar seção de acertos (mesmo vazia)
+        // ✅ v6.6: saldo é o pendente (com acertos)
+        const saldoPendente = extrato.resumo?.saldo ?? 0;
 
         const formatarValor = (v) => Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
         const corSaldoTemp = saldoTemporada >= 0 ? 'text-success' : 'text-danger';
         const corSaldoAcertos = saldoAcertos >= 0 ? 'text-success' : 'text-danger';
-        const corSaldoFinal = saldoFinal >= 0 ? 'text-success' : 'text-danger';
+        const corSaldoPendente = saldoPendente >= 0 ? 'text-success' : 'text-danger';
 
         // Lista de acertos
         const acertosHTML = acertos.map(a => {
@@ -3361,19 +3367,27 @@ export class FluxoFinanceiroUI {
                 <!-- Lista de acertos -->
                 ${acertosHTML || '<div style="padding: 12px; text-align: center; color: rgba(255,255,255,0.4); font-size: 12px;">Nenhum acerto registrado</div>'}
 
-                <!-- Resumo da composição -->
+                <!-- ✅ v6.6: Resumo separando HISTÓRICO de PENDENTE -->
                 <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 13px;">
-                        <span style="color: rgba(255,255,255,0.7);">Saldo Financeiro:</span>
-                        <span class="${corSaldoTemp}" style="font-weight: 600;">${saldoTemporada >= 0 ? '+' : '-'}R$ ${formatarValor(saldoTemporada)}</span>
+                    <!-- RESULTADO DA TEMPORADA (histórico, imutável) -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 8px;">
+                        <span style="color: rgba(255,255,255,0.9); font-weight: 600;">
+                            <span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px; color: var(--laranja);">history</span>
+                            Resultado Temporada:
+                        </span>
+                        <span class="${corSaldoTemp}" style="font-weight: 700; font-size: 15px;">${saldoTemporada >= 0 ? '+' : '-'}R$ ${formatarValor(saldoTemporada)}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 13px;">
-                        <span style="color: rgba(255,255,255,0.7);">Acertos Manuais:</span>
+                    <!-- ACERTOS (pagamentos/recebimentos) -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; font-size: 13px;">
+                        <span style="color: rgba(255,255,255,0.6);">Acertos Financeiros:</span>
                         <span class="${corSaldoAcertos}" style="font-weight: 600;">${saldoAcertos >= 0 ? '+' : '-'}R$ ${formatarValor(saldoAcertos)}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-top: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 14px;">
-                        <span style="color: #fff; font-weight: 700;">SALDO FINAL:</span>
-                        <span class="${corSaldoFinal}" style="font-weight: 700; font-size: 16px;">${saldoFinal >= 0 ? '+' : '-'}R$ ${formatarValor(saldoFinal)}</span>
+                    <!-- SALDO PENDENTE (operacional) -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-top: 8px; background: ${saldoPendente === 0 ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.05)'}; border-radius: 8px; font-size: 14px; border: 1px solid ${saldoPendente === 0 ? 'rgba(52,211,153,0.3)' : 'transparent'};">
+                        <span style="color: #fff; font-weight: 700;">
+                            ${saldoPendente === 0 ? '✓ QUITADO' : 'SALDO PENDENTE:'}
+                        </span>
+                        <span class="${corSaldoPendente}" style="font-weight: 700; font-size: 16px;">${saldoPendente === 0 ? 'R$ 0,00' : (saldoPendente >= 0 ? '+' : '-') + 'R$ ' + formatarValor(saldoPendente)}</span>
                     </div>
                 </div>
             </div>
@@ -5717,7 +5731,7 @@ function gerarPDFAuditoria() {
     doc.save(nomeArquivo);
 };
 
-console.log("[FLUXO-UI] ✅ v7.0 - Tabela condicional 2026 (layout pré-temporada com Saldo/Taxa/Status)");
+console.log("[FLUXO-UI] ✅ v7.2 - FIX saldo histórico separado de saldo pendente");
 
 // =============================================================================
 // AJUSTES DINÂMICOS (Temporada 2026+)
@@ -5867,20 +5881,20 @@ window.salvarAjusteFinanceiro = async function(ligaId, timeId, temporada) {
     try {
         console.log('[AJUSTE] Salvando:', { ligaId, timeId, temporada, descricao, valor, tipoAjuste });
 
-        const response = await fetch(`/api/fluxo-financeiro/${ligaId}/campos/${timeId}`, {
+        // ✅ v5.0: Usar rota de ajustes financeiros (collection ajustesfinanceiros)
+        const response = await fetch(`/api/ajustes/${ligaId}/${timeId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                campo: 'ajuste_manual',
-                valor: valor,
                 descricao: descricao,
+                valor: valor,
                 temporada: temporada
             })
         });
 
         if (!response.ok) {
             const err = await response.json();
-            throw new Error(err.message || 'Erro ao salvar ajuste');
+            throw new Error(err.error || err.message || 'Erro ao salvar ajuste');
         }
 
         const resultado = await response.json();

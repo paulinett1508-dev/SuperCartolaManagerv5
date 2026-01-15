@@ -1,4 +1,6 @@
-// FLUXO-FINANCEIRO-CORE.JS v6.5 - FIX TEMPORADA HISTORICA
+// FLUXO-FINANCEIRO-CORE.JS v6.6 - FIX SALDO HISTÓRICO vs PENDENTE
+// ✅ v6.6: FIX CRÍTICO - Separar saldo_temporada (histórico) de saldo (pendente)
+//          Resultado da temporada é IMUTÁVEL, acertos apenas quitam dívida
 // ✅ v6.5: FIX - Temporada histórica (2025) usa rodada 38, não rodada atual do mercado (2026)
 // ✅ v6.2: FIX - Detecta cache com Timeline (bonusOnus) zerado anormalmente e força recálculo
 // ✅ v6.1: FIX - Inclui acertos financeiros no cálculo do saldo final
@@ -371,9 +373,11 @@ export class FluxoFinanceiroCore {
                             saldo_acertos: acertos?.resumo?.saldo ?? 0,
                         };
 
-                        // ✅ v4.2: CALCULAR SALDO FINAL (agora inclui acertos!)
+                        // ✅ v6.6: CALCULAR AMBOS OS SALDOS (histórico e pendente)
+                        resumoCompleto.saldo_temporada =
+                            this._calcularSaldoTemporada(resumoCompleto); // Histórico (imutável)
                         resumoCompleto.saldo =
-                            this._calcularSaldoFinal(resumoCompleto);
+                            this._calcularSaldoFinal(resumoCompleto); // Pendente (com acertos)
 
                         const extratoDoCache = {
                             rodadas: rodadasFiltradas,
@@ -392,8 +396,9 @@ export class FluxoFinanceiroCore {
                         };
 
                         const saldoAcertosLog = acertos?.resumo?.saldo ?? 0;
+                        // ✅ v6.6: Log mostra ambos os saldos
                         console.log(
-                            `[FLUXO-CORE] ✅ Extrato do cache: ${rodadasFiltradas.length} rodadas | Saldo: R$ ${extratoDoCache.resumo.saldo.toFixed(2)} (inclui acertos: R$ ${saldoAcertosLog.toFixed(2)})${isInativo ? " | TRAVADO" : ""}`,
+                            `[FLUXO-CORE] ✅ Extrato do cache: ${rodadasFiltradas.length} rodadas | RESULTADO TEMPORADA: R$ ${extratoDoCache.resumo.saldo_temporada.toFixed(2)} | SALDO PENDENTE: R$ ${extratoDoCache.resumo.saldo.toFixed(2)} (acertos: R$ ${saldoAcertosLog.toFixed(2)})${isInativo ? " | TRAVADO" : ""}`,
                         );
 
                         return extratoDoCache;
@@ -531,7 +536,9 @@ export class FluxoFinanceiroCore {
 
         extrato.rodadas = rodadasProcessadas;
         this._calcularSaldoAcumulado(extrato.rodadas, camposEditaveis);
-        extrato.resumo.saldo = this._calcularSaldoFinal(extrato.resumo);
+        // ✅ v6.6: Calcular AMBOS os saldos separadamente
+        extrato.resumo.saldo_temporada = this._calcularSaldoTemporada(extrato.resumo); // Histórico (imutável)
+        extrato.resumo.saldo = this._calcularSaldoFinal(extrato.resumo); // Pendente (com acertos)
         this._calcularTotaisConsolidados(extrato.resumo, extrato.rodadas);
 
         // ✅ v4.3: Log de debug para verificar valores de Mata-Mata
@@ -553,8 +560,9 @@ export class FluxoFinanceiroCore {
         );
 
         const saldoAcertosLogFinal = acertos?.resumo?.saldo ?? 0;
+        // ✅ v6.6: Log mostra ambos os saldos (histórico vs pendente)
         console.log(
-            `[FLUXO-CORE] ✅ Extrato: ${extrato.rodadas.length} rodadas | Saldo: R$ ${extrato.resumo.saldo.toFixed(2)} (inclui acertos: R$ ${saldoAcertosLogFinal.toFixed(2)})${isInativo ? " | TRAVADO" : ""}`,
+            `[FLUXO-CORE] ✅ Extrato: ${extrato.rodadas.length} rodadas | RESULTADO TEMPORADA: R$ ${extrato.resumo.saldo_temporada.toFixed(2)} | SALDO PENDENTE: R$ ${extrato.resumo.saldo.toFixed(2)} (acertos: R$ ${saldoAcertosLogFinal.toFixed(2)})${isInativo ? " | TRAVADO" : ""}`,
         );
 
         return extrato;
@@ -972,11 +980,13 @@ export class FluxoFinanceiroCore {
         });
     }
 
-    _calcularSaldoFinal(resumo) {
+    /**
+     * ✅ v6.6: Calcula RESULTADO DA TEMPORADA (histórico, imutável)
+     * NÃO inclui acertos - representa o que o participante ganhou/perdeu
+     */
+    _calcularSaldoTemporada(resumo) {
         const pontosCorridos =
             resumo.pontosCorridos === null ? 0 : resumo.pontosCorridos;
-        // ✅ v6.1: Incluir saldo de acertos financeiros no cálculo
-        const saldoAcertos = resumo.saldo_acertos || 0;
         return (
             resumo.bonus +
             resumo.onus +
@@ -986,9 +996,19 @@ export class FluxoFinanceiroCore {
             resumo.campo1 +
             resumo.campo2 +
             resumo.campo3 +
-            resumo.campo4 +
-            saldoAcertos // ✅ v6.1: Somar acertos (positivo = recebimento, negativo = pagamento)
+            resumo.campo4
         );
+    }
+
+    /**
+     * ✅ v6.6: Calcula SALDO PENDENTE (operacional)
+     * Inclui acertos - representa o que ainda deve/tem a receber
+     */
+    _calcularSaldoFinal(resumo) {
+        // ✅ v6.6: Saldo temporada (histórico) + acertos = saldo pendente
+        const saldoTemporada = this._calcularSaldoTemporada(resumo);
+        const saldoAcertos = resumo.saldo_acertos || 0;
+        return saldoTemporada + saldoAcertos;
     }
 
     _calcularTotaisConsolidados(resumo, rodadas) {
