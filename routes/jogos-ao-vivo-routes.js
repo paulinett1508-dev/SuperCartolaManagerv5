@@ -19,10 +19,10 @@ const LIGAS_BRASIL = {
   618: 'Copinha'
 };
 
-// Cache em memória (5 minutos)
+// Cache em memória (10 minutos)
 let cacheJogosAoVivo = null;
 let cacheTimestamp = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutos
 
 // Path do scraper Globo (fallback)
 const GLOBO_CACHE_PATH = path.join(process.cwd(), 'data', 'jogos-globo.json');
