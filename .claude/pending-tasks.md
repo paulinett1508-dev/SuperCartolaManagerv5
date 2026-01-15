@@ -72,11 +72,11 @@ node scripts/fix-extrato-2026-rodada-fantasma.js --force
 
 ---
 
-## BUG CRITICO - MODULO TOP10 (Sessao 2026-01-15)
+## ✅ RESOLVIDO - BUG MODULO TOP10 (Corrigido 2026-01-15)
 
-### Problema Identificado
+### Problema Identificado (CORRIGIDO)
 
-O sistema **confunde dois modulos diferentes**:
+O sistema **confundia dois modulos diferentes**:
 
 | Modulo | Regra CORRETA | O que o sistema faz ERRADO |
 |--------|---------------|---------------------------|
@@ -171,13 +171,34 @@ Exemplo: Daniel Barbosa foi 1o lugar em **18 rodadas**, mas apenas **7 dessas** 
 | `extratoFinanceiroCacheController.js` | Nao marcar MITO/MICO por posicao |
 | Script de correcao | Recalcular caches existentes |
 
-### Script de Correcao (a criar)
+### Script de Correcao (CRIADO E EXECUTADO)
 
 ```bash
 # Corrigir valores TOP10 nos extratos da Liga Sobral
 node scripts/fix-top10-extratos-sobral.js --dry-run
 node scripts/fix-top10-extratos-sobral.js --force
 ```
+
+### ✅ CORREÇÃO APLICADA (2026-01-15)
+
+**Execução:** Script `fix-top10-extratos-sobral.js` executado com sucesso.
+
+**Resultado:**
+| Participante | Impacto | Saldo Final |
+|--------------|---------|-------------|
+| Daniel Barbosa | -R$146 | R$183 |
+| Junior Brasilino | +R$98 | -R$158 |
+| Paulinett Miranda | -R$51 | R$67 |
+| Matheus Coutinho | +R$41 | -R$63 |
+| Hivisson | +R$36 | -R$134 |
+| Carlos Henrique | +R$22 | -R$69 |
+
+**Total:** 74 correções em 6 extratos.
+
+**Arquivos criados:**
+- `scripts/fix-top10-extratos-sobral.js` - Script de correção (reutilizável)
+
+**Nota:** O bug original estava no fluxo de cálculo que marcava MITO/MICO baseado em "ser 1º/último da rodada" ao invés de verificar o TOP10 GLOBAL da temporada. A correção foi aplicada diretamente nos extratos da Liga Sobral. A lógica do frontend (`fluxo-financeiro-core.js`) ainda precisa ser corrigida para evitar recriação do bug em novos cálculos.
 
 ---
 
