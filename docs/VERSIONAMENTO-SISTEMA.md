@@ -289,7 +289,7 @@ const notas = "Nova versão com melhorias e correções!";
 
 ---
 
-**Última atualização:** 19 de Dezembro de 2024  
-**Versão da Documentação:** 1.0
+**Última atualização:** 15 de Janeiro de 2026  
+**Versão da Documentação:** 1.1
 
 

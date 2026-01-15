@@ -610,7 +610,13 @@ export async function processarNovoParticipante(ligaId, temporada, dadosCartola,
             id_cartola_oficial: timeId > 0 ? timeId : null,
             time_coracao: dadosCartola.time_coracao || null,
             contato: dadosCartola.contato || null,
-            pendente_sincronizacao: isCadastroManual && timeId < 0
+            pendente_sincronizacao: isCadastroManual && timeId < 0,
+            // Dados completos da API Cartola
+            slug: dadosCartola.slug || null,
+            assinante: dadosCartola.assinante || false,
+            patrimonio: dadosCartola.patrimonio || 0,
+            pontos_campeonato: dadosCartola.pontos_campeonato || 0,
+            dados_cartola: dadosCartola.dados_cartola || null
         },
         temporada_anterior: {
             temporada: null,

@@ -1,12 +1,14 @@
 /**
  * Ferramentas - Pesquisar Time na API do Cartola
  * Permite buscar times e adicionar a ligas existentes
- * @version 1.0.0
+ * @version 2.0.0 - Modal com abas
  */
 
 // Estado do modal
 let timeSelecionado = null;
+let dadosCompletosAPI = null; // Dados brutos da API Cartola
 let ligasDisponiveis = [];
+let abaAtiva = 'nome'; // 'nome' ou 'id'
 const TEMPORADA_ATUAL = new Date().getFullYear();
 
 // Debounce para busca
@@ -46,8 +48,8 @@ function injetarEstilos() {
             background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
             border-radius: 16px;
             width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
+            max-width: 520px;
+            max-height: 85vh;
             overflow: hidden;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             animation: ptSlideIn 0.3s ease;
@@ -98,9 +100,43 @@ function injetarEstilos() {
             color: #e74c3c;
         }
 
+        /* Sistema de Abas */
+        .pt-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0 20px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .pt-tab {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 16px;
+            font: 500 13px "Inter", sans-serif;
+            color: #888;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            margin-bottom: -1px;
+        }
+
+        .pt-tab:hover {
+            color: #ccc;
+        }
+
+        .pt-tab.ativa {
+            color: #FF5500;
+            border-bottom-color: #FF5500;
+        }
+
+        .pt-tab .material-icons {
+            font-size: 18px;
+        }
+
         .pt-modal-body {
             padding: 20px;
-            max-height: calc(80vh - 70px);
+            max-height: calc(85vh - 120px);
             overflow-y: auto;
         }
 
@@ -158,6 +194,57 @@ function injetarEstilos() {
 
         @keyframes ptSpin {
             to { transform: translateY(-50%) rotate(360deg); }
+        }
+
+        /* Busca por ID */
+        .pt-id-form {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .pt-id-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font: 400 14px "Inter", sans-serif;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .pt-id-input:focus {
+            border-color: #FF5500;
+            box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.2);
+        }
+
+        .pt-id-input::placeholder {
+            color: #666;
+        }
+
+        .pt-id-btn {
+            padding: 12px 20px;
+            background: #FF5500;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font: 600 14px "Inter", sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .pt-id-btn:hover {
+            background: #ff6b1a;
+        }
+
+        .pt-id-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* Resultados */
@@ -404,6 +491,153 @@ function injetarEstilos() {
             color: #888;
             margin: 0;
         }
+
+        /* JSON Viewer / Dados Completos */
+        .pt-dados-completos {
+            margin-top: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .pt-dados-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(255, 85, 0, 0.1);
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .pt-dados-header:hover {
+            background: rgba(255, 85, 0, 0.15);
+        }
+
+        .pt-dados-header h4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font: 600 13px "Inter", sans-serif;
+            color: #FF5500;
+            margin: 0;
+        }
+
+        .pt-dados-header .material-icons {
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .pt-dados-header.expandido .material-icons {
+            transform: rotate(180deg);
+        }
+
+        .pt-dados-body {
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .pt-dados-body.visivel {
+            display: block;
+        }
+
+        .pt-json-viewer {
+            font: 400 12px "JetBrains Mono", "Fira Code", monospace;
+            color: #e0e0e0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+
+        .pt-json-key {
+            color: #FF5500;
+        }
+
+        .pt-json-string {
+            color: #98c379;
+        }
+
+        .pt-json-number {
+            color: #d19a66;
+        }
+
+        .pt-json-boolean {
+            color: #56b6c2;
+        }
+
+        .pt-json-null {
+            color: #666;
+        }
+
+        /* Detalhes do Time */
+        .pt-time-detalhes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .pt-detalhe-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .pt-detalhe-label {
+            font: 500 10px "Inter", sans-serif;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .pt-detalhe-valor {
+            font: 600 13px "Inter", sans-serif;
+            color: #fff;
+            word-break: break-all;
+        }
+
+        .pt-detalhe-valor.positivo {
+            color: #10b981;
+        }
+
+        .pt-detalhe-valor.assinante {
+            color: #FFD700;
+        }
+
+        /* Botao copiar JSON */
+        .pt-btn-copiar {
+            padding: 6px 12px;
+            font: 500 11px "Inter", sans-serif;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .pt-btn-copiar:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .pt-btn-copiar .material-icons {
+            font-size: 14px;
+        }
+
+        /* Loading dados */
+        .pt-loading-dados {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
     `;
     document.head.appendChild(styles);
 }
@@ -417,6 +651,7 @@ function abrirModalPesquisarTime() {
     // Reset estado
     timeSelecionado = null;
     ligasDisponiveis = [];
+    abaAtiva = 'nome';
 
     const overlay = document.createElement('div');
     overlay.className = 'pesquisar-time-overlay';
@@ -425,33 +660,71 @@ function abrirModalPesquisarTime() {
         <div class="pesquisar-time-modal">
             <div class="pt-modal-header">
                 <h3>
-                    <span class="material-icons">person_search</span>
-                    Pesquisar Time
+                    <span class="material-icons">group_add</span>
+                    Adicionar Participante
                 </h3>
                 <button class="pt-modal-close" onclick="fecharModalPesquisarTime()">
                     <span class="material-icons">close</span>
                 </button>
             </div>
+            <div class="pt-tabs">
+                <div class="pt-tab ativa" data-aba="nome" onclick="trocarAba('nome')">
+                    <span class="material-icons">person_search</span>
+                    Pesquisar por Nome
+                </div>
+                <div class="pt-tab" data-aba="id" onclick="trocarAba('id')">
+                    <span class="material-icons">tag</span>
+                    Buscar por ID
+                </div>
+            </div>
             <div class="pt-modal-body">
-                <div id="pt-fase-busca">
-                    <div class="pt-search-container">
-                        <span class="material-icons pt-search-icon">search</span>
-                        <input
-                            type="text"
-                            class="pt-search-input"
-                            id="pt-input-busca"
-                            placeholder="Digite o nome do time (min. 3 caracteres)..."
-                            autocomplete="off"
-                        />
-                        <div class="pt-search-spinner" id="pt-spinner"></div>
-                    </div>
-                    <div id="pt-resultados" class="pt-resultados">
-                        <div class="pt-estado-vazio">
-                            <span class="material-icons">sports_soccer</span>
-                            <p>Digite o nome do time para buscar na API do Cartola</p>
+                <!-- Aba: Pesquisar por Nome -->
+                <div id="pt-aba-nome">
+                    <div id="pt-fase-busca">
+                        <div class="pt-search-container">
+                            <span class="material-icons pt-search-icon">search</span>
+                            <input
+                                type="text"
+                                class="pt-search-input"
+                                id="pt-input-busca"
+                                placeholder="Digite o nome do time (min. 3 caracteres)..."
+                                autocomplete="off"
+                            />
+                            <div class="pt-search-spinner" id="pt-spinner"></div>
+                        </div>
+                        <div id="pt-resultados" class="pt-resultados">
+                            <div class="pt-estado-vazio">
+                                <span class="material-icons">sports_soccer</span>
+                                <p>Digite o nome do time para buscar na API do Cartola</p>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Aba: Buscar por ID -->
+                <div id="pt-aba-id" style="display: none;">
+                    <div class="pt-id-form">
+                        <input
+                            type="number"
+                            class="pt-id-input"
+                            id="pt-input-id"
+                            placeholder="Digite o ID do time (ex: 12345678)"
+                            autocomplete="off"
+                        />
+                        <button class="pt-id-btn" onclick="buscarPorId()">
+                            <span class="material-icons">search</span>
+                            Buscar
+                        </button>
+                    </div>
+                    <div id="pt-resultados-id" class="pt-resultados">
+                        <div class="pt-estado-vazio">
+                            <span class="material-icons">tag</span>
+                            <p>Informe o ID numerico do time no Cartola FC</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fases compartilhadas -->
                 <div id="pt-fase-confirmar" style="display: none;"></div>
                 <div id="pt-fase-ligas" style="display: none;"></div>
                 <div id="pt-fase-sucesso" style="display: none;"></div>
@@ -473,12 +746,114 @@ function abrirModalPesquisarTime() {
             input.focus();
             input.addEventListener('input', onInputBusca);
         }
+        // Handler para busca por ID com Enter
+        const inputId = document.getElementById('pt-input-id');
+        if (inputId) {
+            inputId.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') buscarPorId();
+            });
+        }
     }, 100);
 
     // Fechar com ESC
     document.addEventListener('keydown', onEscPress);
 
-    console.log('[PESQUISAR-TIME] Modal aberto');
+    console.log('[PESQUISAR-TIME] Modal aberto v2.0');
+}
+
+/**
+ * Troca entre as abas do modal
+ */
+function trocarAba(aba) {
+    abaAtiva = aba;
+
+    // Atualizar visual das abas
+    document.querySelectorAll('.pt-tab').forEach(tab => {
+        tab.classList.toggle('ativa', tab.dataset.aba === aba);
+    });
+
+    // Mostrar/ocultar conteudo
+    document.getElementById('pt-aba-nome').style.display = aba === 'nome' ? 'block' : 'none';
+    document.getElementById('pt-aba-id').style.display = aba === 'id' ? 'block' : 'none';
+
+    // Esconder fases de confirmacao se estiverem visiveis
+    document.getElementById('pt-fase-confirmar').style.display = 'none';
+    document.getElementById('pt-fase-ligas').style.display = 'none';
+    document.getElementById('pt-fase-sucesso').style.display = 'none';
+
+    // Focar no input da aba ativa
+    setTimeout(() => {
+        if (aba === 'nome') {
+            document.getElementById('pt-input-busca')?.focus();
+        } else {
+            document.getElementById('pt-input-id')?.focus();
+        }
+    }, 100);
+
+    console.log(`[PESQUISAR-TIME] Aba trocada para: ${aba}`);
+}
+
+/**
+ * Busca time por ID numerico
+ */
+async function buscarPorId() {
+    const input = document.getElementById('pt-input-id');
+    const container = document.getElementById('pt-resultados-id');
+    const timeId = input?.value?.trim();
+
+    if (!timeId || isNaN(timeId)) {
+        container.innerHTML = `
+            <div class="pt-estado-vazio">
+                <span class="material-icons">error_outline</span>
+                <p>Digite um ID numerico valido</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="pt-estado-vazio">
+            <div class="pt-search-spinner ativo" style="position: static; transform: none;"></div>
+            <p>Buscando time #${timeId}...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`/api/cartola/time/${timeId}`);
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.erro || data.message || 'Time nao encontrado');
+        }
+
+        const time = data.time;
+        container.innerHTML = `
+            <div class="pt-resultado-item" onclick="selecionarTime(${JSON.stringify(time).replace(/"/g, '&quot;')})">
+                <img
+                    class="pt-resultado-escudo"
+                    src="${time.escudo || '/escudos/default.png'}"
+                    onerror="this.src='/escudos/default.png'"
+                    alt="Escudo"
+                />
+                <div class="pt-resultado-info">
+                    <p class="pt-resultado-nome">${time.nome_time || 'Time sem nome'}</p>
+                    <p class="pt-resultado-cartoleiro">${time.nome_cartoleiro || 'Cartoleiro'}</p>
+                </div>
+                <span class="pt-resultado-id">#${time.time_id}</span>
+            </div>
+        `;
+
+        console.log(`[PESQUISAR-TIME] Time encontrado por ID: ${time.nome_time}`);
+
+    } catch (error) {
+        container.innerHTML = `
+            <div class="pt-estado-vazio">
+                <span class="material-icons">search_off</span>
+                <p>${error.message}</p>
+            </div>
+        `;
+        console.error('[PESQUISAR-TIME] Erro ao buscar por ID:', error);
+    }
 }
 
 /**
@@ -578,15 +953,23 @@ async function buscarTimes(query) {
 }
 
 /**
- * Seleciona um time e mostra confirmacao
+ * Seleciona um time e mostra confirmacao com dados completos
  */
-function selecionarTime(time) {
+async function selecionarTime(time) {
     timeSelecionado = time;
+    dadosCompletosAPI = null;
 
-    document.getElementById('pt-fase-busca').style.display = 'none';
+    // Esconder ambas as abas
+    document.getElementById('pt-aba-nome').style.display = 'none';
+    document.getElementById('pt-aba-id').style.display = 'none';
     document.getElementById('pt-fase-confirmar').style.display = 'block';
 
+    // Mostrar loading inicial
     document.getElementById('pt-fase-confirmar').innerHTML = `
+        <div class="pt-voltar" onclick="voltarParaBusca()">
+            <span class="material-icons">arrow_back</span>
+            Voltar
+        </div>
         <div class="pt-confirmacao">
             <div class="pt-time-selecionado">
                 <img
@@ -597,21 +980,196 @@ function selecionarTime(time) {
                 <h4>${time.nome_time}</h4>
                 <p>${time.nome_cartoleiro} - ID #${time.time_id}</p>
             </div>
-            <p class="pt-confirmacao-texto">Adicionar a uma liga existente?</p>
+            <div class="pt-loading-dados">
+                <div class="pt-search-spinner ativo" style="position: static; transform: none;"></div>
+                <p style="margin-top: 8px;">Carregando dados completos da API...</p>
+            </div>
+        </div>
+    `;
+
+    console.log('[PESQUISAR-TIME] Buscando dados completos para:', time.nome_time);
+
+    // Buscar dados completos da API
+    try {
+        const response = await fetch(`/api/cartola/time/${time.time_id}/completo`);
+        const data = await response.json();
+
+        if (data.success && data.time) {
+            dadosCompletosAPI = data.time;
+            console.log('[PESQUISAR-TIME] Dados completos obtidos:', dadosCompletosAPI);
+        }
+    } catch (error) {
+        console.warn('[PESQUISAR-TIME] Erro ao buscar dados completos:', error);
+    }
+
+    // Renderizar confirmacao com dados
+    renderizarConfirmacao(time);
+}
+
+/**
+ * Renderiza a tela de confirmacao com dados completos
+ */
+function renderizarConfirmacao(time) {
+    const timeData = dadosCompletosAPI?.time || dadosCompletosAPI || {};
+
+    // Extrair dados relevantes
+    const patrimonio = timeData.patrimonio || 0;
+    const pontosCampeonato = timeData.pontos_campeonato || 0;
+    const assinante = timeData.assinante || false;
+    const slug = timeData.slug || time.slug || '';
+    const fotoUrl = timeData.url_escudo_png || timeData.foto_perfil || time.escudo || '';
+
+    document.getElementById('pt-fase-confirmar').innerHTML = `
+        <div class="pt-voltar" onclick="voltarParaBusca()">
+            <span class="material-icons">arrow_back</span>
+            Voltar
+        </div>
+        <div class="pt-confirmacao">
+            <div class="pt-time-selecionado">
+                <img
+                    src="${fotoUrl || '/escudos/default.png'}"
+                    onerror="this.src='/escudos/default.png'"
+                    alt="Escudo"
+                />
+                <h4>${timeData.nome || time.nome_time}</h4>
+                <p>${timeData.nome_cartola || time.nome_cartoleiro} - ID #${time.time_id}</p>
+            </div>
+
+            ${dadosCompletosAPI ? `
+            <div class="pt-time-detalhes">
+                <div class="pt-detalhe-item">
+                    <div class="pt-detalhe-label">Patrimonio</div>
+                    <div class="pt-detalhe-valor positivo">C$ ${patrimonio.toFixed(2)}</div>
+                </div>
+                <div class="pt-detalhe-item">
+                    <div class="pt-detalhe-label">Pontos Campeonato</div>
+                    <div class="pt-detalhe-valor">${pontosCampeonato.toFixed(2)}</div>
+                </div>
+                <div class="pt-detalhe-item">
+                    <div class="pt-detalhe-label">Assinante PRO</div>
+                    <div class="pt-detalhe-valor ${assinante ? 'assinante' : ''}">${assinante ? 'Sim' : 'Nao'}</div>
+                </div>
+                <div class="pt-detalhe-item">
+                    <div class="pt-detalhe-label">Slug</div>
+                    <div class="pt-detalhe-valor">${slug || '-'}</div>
+                </div>
+            </div>
+
+            <div class="pt-dados-completos">
+                <div class="pt-dados-header" onclick="toggleDadosCompletos()">
+                    <h4>
+                        <span class="material-icons">code</span>
+                        Dados Completos da API
+                    </h4>
+                    <span class="material-icons">expand_more</span>
+                </div>
+                <div class="pt-dados-body" id="pt-json-container">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                        <button class="pt-btn-copiar" onclick="copiarJSON()">
+                            <span class="material-icons">content_copy</span>
+                            Copiar JSON
+                        </button>
+                    </div>
+                    <div class="pt-json-viewer">${formatarJSON(dadosCompletosAPI)}</div>
+                </div>
+            </div>
+            ` : `
+            <div class="pt-estado-vazio" style="padding: 16px;">
+                <span class="material-icons" style="font-size: 24px;">info</span>
+                <p style="font-size: 12px;">Dados completos nao disponiveis</p>
+            </div>
+            `}
+
+            <p class="pt-confirmacao-texto" style="margin-top: 20px;">Adicionar a uma liga existente?</p>
             <div class="pt-botoes">
                 <button class="pt-btn pt-btn-primary" onclick="mostrarListaLigas()">
                     <span class="material-icons">check</span>
-                    Sim
+                    Sim, escolher liga
                 </button>
                 <button class="pt-btn pt-btn-secondary" onclick="fecharModalPesquisarTime()">
                     <span class="material-icons">close</span>
-                    Nao
+                    Fechar
                 </button>
             </div>
         </div>
     `;
 
     console.log('[PESQUISAR-TIME] Time selecionado:', time.nome_time);
+}
+
+/**
+ * Toggle para expandir/colapsar dados completos
+ */
+function toggleDadosCompletos() {
+    const header = document.querySelector('.pt-dados-header');
+    const body = document.getElementById('pt-json-container');
+
+    header.classList.toggle('expandido');
+    body.classList.toggle('visivel');
+}
+
+/**
+ * Formata JSON com syntax highlighting
+ */
+function formatarJSON(obj) {
+    if (!obj) return 'null';
+
+    const json = JSON.stringify(obj, null, 2);
+
+    return json
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"([^"]+)":/g, '<span class="pt-json-key">"$1"</span>:')
+        .replace(/: "([^"]*)"/g, ': <span class="pt-json-string">"$1"</span>')
+        .replace(/: (\d+\.?\d*)/g, ': <span class="pt-json-number">$1</span>')
+        .replace(/: (true|false)/g, ': <span class="pt-json-boolean">$1</span>')
+        .replace(/: (null)/g, ': <span class="pt-json-null">$1</span>');
+}
+
+/**
+ * Copia o JSON para a area de transferencia
+ */
+async function copiarJSON() {
+    if (!dadosCompletosAPI) return;
+
+    try {
+        await navigator.clipboard.writeText(JSON.stringify(dadosCompletosAPI, null, 2));
+
+        const btn = document.querySelector('.pt-btn-copiar');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<span class="material-icons">check</span> Copiado!';
+        btn.style.background = 'rgba(16, 185, 129, 0.2)';
+        btn.style.color = '#10b981';
+
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.style.background = '';
+            btn.style.color = '';
+        }, 2000);
+
+        console.log('[PESQUISAR-TIME] JSON copiado para clipboard');
+    } catch (error) {
+        console.error('[PESQUISAR-TIME] Erro ao copiar:', error);
+    }
+}
+
+/**
+ * Volta para a busca (aba ativa)
+ */
+function voltarParaBusca() {
+    document.getElementById('pt-fase-confirmar').style.display = 'none';
+    document.getElementById('pt-fase-ligas').style.display = 'none';
+    document.getElementById('pt-fase-sucesso').style.display = 'none';
+
+    // Mostrar aba que estava ativa
+    if (abaAtiva === 'id') {
+        document.getElementById('pt-aba-id').style.display = 'block';
+        document.getElementById('pt-input-id')?.focus();
+    } else {
+        document.getElementById('pt-aba-nome').style.display = 'block';
+        document.getElementById('pt-input-busca')?.focus();
+    }
 }
 
 /**
@@ -713,17 +1271,25 @@ async function adicionarTimeLiga(ligaId) {
         </div>
     `;
 
+    // Extrair dados completos da API (se disponivel)
+    const timeData = dadosCompletosAPI?.time || dadosCompletosAPI || {};
+
     try {
         const response = await fetch(`/api/inscricoes/${ligaId}/${TEMPORADA_ATUAL}/novo`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 time_id: timeSelecionado.time_id,
-                nome_time: timeSelecionado.nome_time,
-                nome_cartoleiro: timeSelecionado.nome_cartoleiro,
-                escudo: timeSelecionado.escudo,
+                nome_time: timeData.nome || timeSelecionado.nome_time,
+                nome_cartoleiro: timeData.nome_cartola || timeSelecionado.nome_cartoleiro,
+                escudo: timeData.url_escudo_png || timeSelecionado.escudo,
+                slug: timeData.slug || '',
+                assinante: timeData.assinante || false,
+                patrimonio: timeData.patrimonio || 0,
+                pontos_campeonato: timeData.pontos_campeonato || 0,
+                dados_cartola: dadosCompletosAPI || null, // Dados completos da API
                 pagouInscricao: false,
-                observacoes: 'Adicionado via Ferramentas > Pesquisar Time'
+                observacoes: 'Adicionado via Ferramentas > Adicionar Participante'
             })
         });
 
@@ -772,6 +1338,11 @@ window.fecharModalPesquisarTime = fecharModalPesquisarTime;
 window.selecionarTime = selecionarTime;
 window.mostrarListaLigas = mostrarListaLigas;
 window.voltarParaConfirmacao = voltarParaConfirmacao;
+window.voltarParaBusca = voltarParaBusca;
 window.adicionarTimeLiga = adicionarTimeLiga;
+window.trocarAba = trocarAba;
+window.buscarPorId = buscarPorId;
+window.toggleDadosCompletos = toggleDadosCompletos;
+window.copiarJSON = copiarJSON;
 
-console.log('[FERRAMENTAS] Modulo Pesquisar Time carregado v1.0.0');
+console.log('[FERRAMENTAS] Modulo Adicionar Participante carregado v2.1.0');

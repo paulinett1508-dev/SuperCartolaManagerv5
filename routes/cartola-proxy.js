@@ -415,4 +415,50 @@ router.get("/buscar-time/:timeId", async (req, res) => {
     }
 });
 
+// =============================================================================
+// 🔬 BUSCA COMPLETA DE TIME POR ID (DADOS BRUTOS DA API)
+// Retorna todos os dados da API Cartola sem normalização
+// =============================================================================
+router.get("/time/:timeId/completo", async (req, res) => {
+    try {
+        const { timeId } = req.params;
+
+        if (!timeId || isNaN(parseInt(timeId))) {
+            return res.status(400).json({
+                success: false,
+                error: "ID do time inválido"
+            });
+        }
+
+        console.log(`🔬 [CARTOLA-PROXY] Buscando dados COMPLETOS do time ID: ${timeId}`);
+
+        // Buscar dados brutos da API Cartola
+        const dadosCompletos = await cartolaApiService.buscarTimePorIdCompleto(parseInt(timeId));
+
+        if (!dadosCompletos) {
+            return res.status(404).json({
+                success: false,
+                error: "Time não encontrado na API Cartola"
+            });
+        }
+
+        console.log(`✅ [CARTOLA-PROXY] Dados completos obtidos para time ${timeId}`);
+
+        res.json({
+            success: true,
+            time: dadosCompletos,
+            fonte: 'api_cartola_raw',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error(`❌ [CARTOLA-PROXY] Erro ao buscar dados completos do time ${req.params.timeId}:`, error.message);
+        res.status(500).json({
+            success: false,
+            error: "Erro ao buscar dados completos",
+            details: error.message
+        });
+    }
+});
+
 export default router;

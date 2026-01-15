@@ -221,7 +221,13 @@ router.post("/:ligaId/:temporada/novo", verificarAdmin, async (req, res) => {
             cadastro_manual,
             pagouInscricao,
             observacoes,
-            aprovadoPor
+            aprovadoPor,
+            // Campos adicionais da API Cartola (dados completos)
+            slug,
+            assinante,
+            patrimonio,
+            pontos_campeonato,
+            dados_cartola
         } = req.body;
 
         const isCadastroManual = cadastro_manual === true || pendente_sincronizacao === true;
@@ -255,7 +261,13 @@ router.post("/:ligaId/:temporada/novo", verificarAdmin, async (req, res) => {
                 time_coracao,
                 contato,
                 pendente_sincronizacao: isCadastroManual && !time_id,
-                cadastro_manual: isCadastroManual
+                cadastro_manual: isCadastroManual,
+                // Dados completos da API Cartola
+                slug,
+                assinante,
+                patrimonio,
+                pontos_campeonato,
+                dados_cartola
             },
             { pagouInscricao, observacoes, aprovadoPor }
         );

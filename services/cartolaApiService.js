@@ -805,6 +805,64 @@ class CartolaApiService {
     }
   }
 
+  /**
+   * Busca dados COMPLETOS de um time por ID (sem normalização)
+   * Retorna todos os campos da API Cartola para exibição ao admin
+   * @param {number} timeId - ID do time
+   * @returns {Object|null} Dados completos do time ou null se não encontrado
+   */
+  async buscarTimePorIdCompleto(timeId) {
+    if (!timeId) {
+      throw new Error('Time ID é obrigatório');
+    }
+
+    const cacheKey = `time_raw_${timeId}`;
+    const cached = cache.get(cacheKey);
+
+    if (cached) {
+      CartolaLogger.debug(`Dados RAW do time ${timeId} obtidos do cache`);
+      return cached;
+    }
+
+    try {
+      CartolaLogger.info(`Buscando dados COMPLETOS (raw) do time ${timeId}`);
+
+      const response = await retryRequest(async () => {
+        return await this.httpClient.get(`${this.baseUrl}/time/id/${timeId}`);
+      });
+
+      if (response.status === 404) {
+        CartolaLogger.warn(`Time ${timeId} não encontrado (busca completa)`);
+        return null;
+      }
+
+      if (response.status !== 200) {
+        throw new Error(`API retornou status ${response.status}`);
+      }
+
+      // Retornar dados COMPLETOS sem normalização
+      const dadosCompletos = response.data;
+
+      // Cache por 30 minutos (dados completos)
+      cache.set(cacheKey, dadosCompletos, 1800);
+
+      CartolaLogger.info(`Dados COMPLETOS do time ${timeId} obtidos com sucesso`);
+      return dadosCompletos;
+
+    } catch (error) {
+      CartolaLogger.error(`Erro ao buscar dados completos do time ${timeId}`, {
+        error: error.message,
+        status: error.response?.status
+      });
+
+      if (error.response?.status === 404) {
+        return null;
+      }
+
+      throw error;
+    }
+  }
+
   // Limpar cache
   limparCache() {
     cache.flushAll();
