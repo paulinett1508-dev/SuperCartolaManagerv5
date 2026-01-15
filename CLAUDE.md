@@ -318,6 +318,47 @@ Ver: [`docs/SISTEMA-RENOVACAO-TEMPORADA.md`](docs/SISTEMA-RENOVACAO-TEMPORADA.md
 - Fluxo Financeiro > Botao [+ Participante]
 - Coluna "2026" na tabela de participantes
 
+## 🕐 Pre-Temporada (Conceito Critico)
+
+### O que e Pre-Temporada?
+Periodo entre o fim de uma temporada e o inicio da proxima. Durante este periodo:
+- **API Cartola** ainda retorna `temporada: [ano anterior]`
+- **Brasileirao** nao comecou (sem rodadas reais)
+- **Participantes** podem renovar/inscrever para nova temporada
+
+### Deteccao no Codigo
+```javascript
+// Frontend (fluxo-financeiro-core.js)
+const isPreTemporada = temporadaSelecionada > mercadoData.temporada;
+
+// Backend (extratoFinanceiroCacheController.js)
+const preTemporada = temporada > statusMercado.temporada;
+```
+
+### O que Aparece no Extrato Pre-Temporada?
+
+| Elemento | Aparece? | Motivo |
+|----------|----------|--------|
+| Tabela ROD/POS | NAO | Nao existem rodadas ainda |
+| Botoes GANHOS/PERDAS | NAO | Sem dados de desempenho |
+| Campos Editaveis (Ajustes) | SIM | Valores de limbo/extraordinarios |
+| Acertos Financeiros | SIM | Pagamentos/recebimentos |
+| Banner Pre-Temporada | SIM | Indica que campeonato nao comecou |
+
+### Terminologia Financeira
+
+| Termo | Descricao | Quando Usar |
+|-------|-----------|-------------|
+| **Ajustes** | Campos editaveis (campo1-4) para valores extras | Premios de meses, pontos corridos, etc. |
+| **Acertos** | Pagamentos/recebimentos que movimentam saldo | Participante paga inscricao, admin paga premio |
+| **Legado** | Saldo transferido da temporada anterior | Calculado automaticamente na renovacao |
+| **Inscricao** | Taxa para participar da nova temporada | Vira debito se `pagouInscricao: false` |
+
+### Arquivos Relacionados
+- `public/js/fluxo-financeiro/fluxo-financeiro-core.js` - Deteccao pre-temporada
+- `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` - UI condicional
+- `controllers/extratoFinanceiroCacheController.js` - Protecao contra dados fantasmas
+
 ## ⚠️ Critical Rules
 1. NEVER remove the `gemini_audit.py` file.
 2. NEVER break the "Follow the Money" audit trail in financial controllers.
@@ -481,6 +522,46 @@ Nestes casos, reconfigurar `MONGO_URI_DEV` nos Secrets.
   ```bash
   node scripts/gerar-snapshot-temporada.js 2025
   ```
+- `scripts/fix-extrato-2026-rodada-fantasma.js` - Corrige caches com rodadas inexistentes
+  ```bash
+  node scripts/fix-extrato-2026-rodada-fantasma.js --dry-run  # Simula
+  node scripts/fix-extrato-2026-rodada-fantasma.js --force    # Executa
+  ```
+
+## ⚽ Scraper Jogos do Dia (Globo Esporte)
+
+### Arquitetura
+```
+[index.js] ──> [scripts/save-jogos-globo.js] ──> [scripts/scraper-jogos-globo.js]
+     │                     │
+     │                     └──> Salva em: data/jogos-globo.json
+     │
+     └──> [routes/jogos-hoje-globo.js] ──> GET /api/jogos-hoje-globo
+```
+
+### Execucao Automatica
+- **Ao iniciar servidor:** Executa scraper imediatamente
+- **CRON diario:** Todo dia as 6h da manha (`0 6 * * *`)
+- **Fonte:** https://ge.globo.com/futebol/agenda/
+
+### Arquivos Envolvidos
+
+| Arquivo | Funcao |
+|---------|--------|
+| `scripts/scraper-jogos-globo.js` | Faz scraping usando Cheerio |
+| `scripts/save-jogos-globo.js` | Executa scraper e salva JSON |
+| `routes/jogos-hoje-globo.js` | API que serve o JSON salvo |
+| `data/jogos-globo.json` | Cache dos jogos extraidos |
+
+### Limitacoes Atuais
+- So extrai **agenda** (horarios), nao placares ao vivo
+- Depende da estrutura HTML do Globo Esporte
+- Sem fallback se site mudar seletores CSS
+
+### Evolucao Futura (Documentada)
+- **API-Football** (api-sports.io) para placares em tempo real
+- Cobertura de estaduais (Carioca, Paulista)
+- Ver `.claude/pending-tasks.md` para detalhes
 
 ## 📦 Sistema de Versionamento
 
