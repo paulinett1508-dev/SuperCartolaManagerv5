@@ -655,8 +655,8 @@ export class FluxoFinanceiroUI {
                     </h2>
                     <!-- ✅ v7.9: Seletor de Temporada -->
                     <select id="seletorTemporada" class="temporada-selector" onchange="window.mudarTemporada(this.value)">
-                        <option value="2026" ${(window.temporadaAtual || 2026) === 2026 ? 'selected' : ''}>2026</option>
-                        <option value="2025" ${(window.temporadaAtual || 2026) === 2025 ? 'selected' : ''}>2025</option>
+                        <option value="2026" ${(window.temporadaAtual || 2025) === 2026 ? 'selected' : ''}>2026</option>
+                        <option value="2025" ${(window.temporadaAtual || 2025) === 2025 ? 'selected' : ''}>2025</option>
                     </select>
                     <div class="toolbar-stats">
                         <span class="stat-badge">
@@ -785,8 +785,8 @@ export class FluxoFinanceiroUI {
                                 <td colspan="15" style="text-align: center; padding: 40px; color: var(--texto-secundario);">
                                     <span class="material-icons" style="font-size: 48px; color: var(--laranja); opacity: 0.5;">group_off</span>
                                     <p style="margin-top: 16px; font-size: 14px;">
-                                        ${(window.temporadaAtual || 2026) >= 2026
-                                            ? 'Nenhum participante renovado para ' + (window.temporadaAtual || 2026) + '.<br><small>Acesse a tela de Renovação para adicionar participantes.</small>'
+                                        ${(window.temporadaAtual || 2025) >= 2026
+                                            ? 'Nenhum participante renovado para ' + (window.temporadaAtual || 2025) + '.<br><small>Acesse a tela de Renovação para adicionar participantes.</small>'
                                             : 'Nenhum participante encontrado.'}
                                     </p>
                                 </td>
@@ -3819,8 +3819,8 @@ window.voltarParaLista = function() {
 window.recalcularCacheParticipante = async function (timeId) {
     const btn = document.getElementById(`btnRecalcCache-${timeId}`);
     const ligaId = window.obterLigaId?.();
-    const temporadaAtual = window.temporadaAtual || 2026;
-    const TEMPORADA_CARTOLA = 2026; // Temporada atual da API Cartola
+    const temporadaAtual = window.temporadaAtual || 2025;
+    const TEMPORADA_CARTOLA = 2025; // Temporada atual da API Cartola (2026 inicia 28/01)
 
     if (!ligaId) {
         alert("Liga não identificada. Recarregue a página.");

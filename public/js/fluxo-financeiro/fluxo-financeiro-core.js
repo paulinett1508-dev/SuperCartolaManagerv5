@@ -49,8 +49,8 @@ export class FluxoFinanceiroCore {
     // ✅ v6.2 FIX: Passar temporada para sincronização
     async _buscarAcertosFinanceiros(ligaId, timeId) {
         try {
-            // ✅ FIX: Padronizar default para 2026 (igual outras funções)
-            const temporada = window.temporadaAtual || 2026;
+            // ✅ FIX: Default 2025 (temporada com dados) até Brasileirão 2026 iniciar
+            const temporada = window.temporadaAtual || 2025;
             const response = await fetch(`${API_BASE_URL}/api/acertos/${ligaId}/${timeId}?temporada=${temporada}`);
             const result = await response.json();
 
@@ -238,7 +238,8 @@ export class FluxoFinanceiroCore {
         let mercadoAberto = false;
 
         // ✅ v6.5: Verificar temporada selecionada
-        const temporadaSelecionada = window.temporadaAtual || 2026;
+        // FIX: Default 2025 (temporada com dados) até Brasileirão 2026 iniciar
+        const temporadaSelecionada = window.temporadaAtual || 2025;
         const temporadaAtualReal = new Date().getFullYear(); // 2026
         const isTemporadaHistorica = temporadaSelecionada < temporadaAtualReal;
 
@@ -632,7 +633,7 @@ export class FluxoFinanceiroCore {
     async _verificarCacheMongoDB(ligaId, timeId, rodadaAtual, mercadoAberto) {
         try {
             const timestamp = Date.now();
-            const temporada = window.temporadaAtual || 2026;
+            const temporada = window.temporadaAtual || 2025;
             const url = `${API_BASE_URL}/api/extrato-cache/${ligaId}/times/${timeId}/cache/valido?rodadaAtual=${rodadaAtual}&mercadoAberto=${mercadoAberto}&temporada=${temporada}&_=${timestamp}`;
 
             const response = await fetch(url);
@@ -695,7 +696,7 @@ export class FluxoFinanceiroCore {
             }
 
             // ✅ v6.4: Incluir temporada selecionada no payload
-            const temporada = window.temporadaAtual || 2026;
+            const temporada = window.temporadaAtual || 2025;
 
             const payload = {
                 historico_transacoes: extrato.rodadas,
@@ -1149,8 +1150,8 @@ export class FluxoFinanceiroCore {
 
 window.forcarRefreshExtrato = async function (timeId) {
     const ligaId = window.obterLigaId();
-    const temporadaAtual = window.temporadaAtual || 2026;
-    const TEMPORADA_CARTOLA = 2026; // Temporada atual da API Cartola
+    const temporadaAtual = window.temporadaAtual || 2025;
+    const TEMPORADA_CARTOLA = 2025; // Temporada atual da API Cartola (2026 inicia 28/01)
 
     console.log(
         `[FLUXO-CORE] 🔄 Forçando refresh do extrato para time ${timeId} (temporada ${temporadaAtual})...`,
