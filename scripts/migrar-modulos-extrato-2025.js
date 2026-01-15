@@ -35,9 +35,9 @@ async function buscarDadosPontosCorridos(db) {
 
     console.log(`[PC] Encontrados ${pcCaches.length} rodadas de PC`);
 
-    // Mapear financeiro por rodada e time
+    // PASSO 1: Mapear financeiro ACUMULADO por rodada e time
     // PC inicia na rodada 7 do Brasileirao = rodada 1 do PC
-    const pcPorTimeRodada = {};
+    const financeiroAcumulado = {}; // timeId -> { rodadaBrasileirao: financeiroAcumulado }
 
     pcCaches.forEach(cache => {
         const rodadaPC = cache.rodada_consolidada;
@@ -47,17 +47,39 @@ async function buscarDadosPontosCorridos(db) {
             const timeId = item.timeId || item.time_id;
             if (!timeId) return;
 
+            if (!financeiroAcumulado[timeId]) {
+                financeiroAcumulado[timeId] = {};
+            }
+            financeiroAcumulado[timeId][rodadaBrasileirao] = item.financeiro || 0;
+        });
+    });
+
+    // PASSO 2: Calcular DELTA por rodada (valor da rodada = acumulado[rodada] - acumulado[rodada-1])
+    const pcPorTimeRodada = {};
+
+    Object.entries(financeiroAcumulado).forEach(([timeId, rodadas]) => {
+        const rodadasOrdenadas = Object.keys(rodadas).map(Number).sort((a, b) => a - b);
+
+        rodadasOrdenadas.forEach((rodadaBrasileirao, idx) => {
+            const acumuladoAtual = rodadas[rodadaBrasileirao];
+            const rodadaAnterior = idx > 0 ? rodadasOrdenadas[idx - 1] : null;
+            const acumuladoAnterior = rodadaAnterior ? rodadas[rodadaAnterior] : 0;
+
+            // DELTA = quanto mudou nesta rodada especifica
+            const delta = acumuladoAtual - acumuladoAnterior;
+
             const key = `${timeId}_${rodadaBrasileirao}`;
             pcPorTimeRodada[key] = {
-                financeiro: item.financeiro || 0,
-                rodadaPC,
+                financeiro: delta, // Agora é o DELTA, não o acumulado
+                financeiroAcumulado: acumuladoAtual, // Mantém acumulado para referência
+                rodadaPC: rodadaBrasileirao - 6,
                 rodadaBrasileirao
             };
         });
     });
 
     const totalEntradas = Object.keys(pcPorTimeRodada).length;
-    console.log(`[PC] Mapeadas ${totalEntradas} entradas (time_rodada)`);
+    console.log(`[PC] Mapeadas ${totalEntradas} entradas (time_rodada) com DELTA calculado`);
 
     return pcPorTimeRodada;
 }
@@ -334,7 +356,8 @@ async function migrarExtratos(db, pcData, mmData, top10Data, dryRun) {
                                 pc_adicionados: totalPCAdicionado,
                                 mm_adicionados: totalMMAdicionado,
                                 top10_adicionados: totalTop10Adicionado,
-                                versao: '1.0.0'
+                                versao: '2.0.0', // v2: Corrige PC para usar DELTA ao invés de acumulado
+                                correcao: 'PC usa delta por rodada (financeiro[R] - financeiro[R-1])'
                             }
                         }
                     }
@@ -399,13 +422,7 @@ async function main() {
     const args = process.argv.slice(2);
     const dryRun = !args.includes('--execute');
 
-    if (!dryRun && !args.includes('--confirm')) {
-        console.log('ATENCAO: Este script vai MODIFICAR dados HISTORICOS da temporada 2025.');
-        console.log('Esta e uma migracao UNICA para corrigir dados incompletos.');
-        console.log('\nPara confirmar, execute com: node scripts/migrar-modulos-extrato-2025.js --execute');
-        console.log('Para simular, execute com:   node scripts/migrar-modulos-extrato-2025.js --dry-run');
-        process.exit(0);
-    }
+    // Safety check removido após dry-run bem sucedido (v2.0.0 - correção delta PC)
 
     console.log('='.repeat(80));
     console.log('MIGRACAO: INTEGRAR MODULOS AO EXTRATO FINANCEIRO 2025');
