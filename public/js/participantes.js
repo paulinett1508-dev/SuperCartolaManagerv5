@@ -25,7 +25,9 @@ async function inicializarTemporadas() {
         const data = await res.json();
         temporadasDisponiveis = data.disponiveis || [];
         temporadaLiga = data.temporada_liga;
-        temporadaSelecionada = temporadaSelecionada || temporadaLiga;
+        // ✅ v2.1: Default para a temporada mais recente (2026) ao invés de temporadaLiga
+        const temporadaMaisRecente = Math.max(...temporadasDisponiveis);
+        temporadaSelecionada = temporadaSelecionada || temporadaMaisRecente;
 
         renderizarAbas();
         atualizarVisibilidadeBotaoValidar();

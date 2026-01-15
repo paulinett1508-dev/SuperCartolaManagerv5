@@ -110,10 +110,9 @@ async function inicializarFluxoFinanceiro() {
         window.temporadaAtual = parseInt(temporadaSalva, 10);
         console.log("[FLUXO-ADMIN] 📅 Temporada do localStorage:", window.temporadaAtual);
     } else {
-        // Default para 2025 (temporada com dados - API Cartola ainda em 2025)
-        // TODO: Alterar para 2026 quando Brasileirão 2026 iniciar (após 28/01/2026)
-        window.temporadaAtual = 2025;
-        console.log("[FLUXO-ADMIN] 📅 Temporada padrão: 2025");
+        // ✅ v8.1: Default para 2026 (temporada atual)
+        window.temporadaAtual = 2026;
+        console.log("[FLUXO-ADMIN] 📅 Temporada padrão: 2026");
     }
 
     try {

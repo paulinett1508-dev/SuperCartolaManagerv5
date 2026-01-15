@@ -46,6 +46,56 @@
   font-style: italic;
 }
 
+/* === TABS INLINE DE TEMPORADA (v8.1) === */
+.temporada-tabs-inline {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.tab-btn-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-muted, #888);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 52px;
+}
+
+.tab-btn-inline:hover {
+  background: rgba(255, 85, 0, 0.1);
+  color: var(--laranja, #FF5500);
+}
+
+.tab-btn-inline.active {
+  background: linear-gradient(135deg, #FF5500 0%, #cc4400 100%);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(255, 85, 0, 0.3);
+}
+
+/* Responsivo - tabs inline */
+@media (max-width: 480px) {
+  .temporada-tabs-inline {
+    margin-left: 8px;
+  }
+
+  .tab-btn-inline {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    min-width: 44px;
+  }
+}
+
 /* === TEMA ESCURO PROFISSIONAL === */
 body {
   background: var(--bg-primary) !important;

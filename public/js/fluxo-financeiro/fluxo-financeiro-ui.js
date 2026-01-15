@@ -653,11 +653,19 @@ export class FluxoFinanceiroUI {
                         <span class="material-icons">account_balance_wallet</span>
                         Financeiro
                     </h2>
-                    <!-- ✅ v7.9: Seletor de Temporada -->
-                    <select id="seletorTemporada" class="temporada-selector" onchange="window.mudarTemporada(this.value)">
-                        <option value="2026" ${(window.temporadaAtual || 2025) === 2026 ? 'selected' : ''}>2026</option>
-                        <option value="2025" ${(window.temporadaAtual || 2025) === 2025 ? 'selected' : ''}>2025</option>
-                    </select>
+                    <!-- ✅ v8.1: Seletor de Temporada em TABS (mesmo estilo de participantes.js) -->
+                    <div id="temporada-tabs-fluxo" class="temporada-tabs-inline">
+                        <button class="tab-btn-inline ${(window.temporadaAtual || 2026) === 2026 ? 'active' : ''}"
+                                data-temporada="2026"
+                                onclick="window.mudarTemporada(2026)">
+                            2026
+                        </button>
+                        <button class="tab-btn-inline ${(window.temporadaAtual || 2026) === 2025 ? 'active' : ''}"
+                                data-temporada="2025"
+                                onclick="window.mudarTemporada(2025)">
+                            2025
+                        </button>
+                    </div>
                     <div class="toolbar-stats">
                         <span class="stat-badge">
                             <span class="material-icons">people</span>
@@ -2906,7 +2914,7 @@ export class FluxoFinanceiroUI {
             }
         };
 
-        // ✅ v8.0: Mudar temporada SEM reload - recarga dinâmica
+        // ✅ v8.1: Mudar temporada SEM reload - recarga dinâmica (com tabs)
         window.mudarTemporada = async (novaTemporada) => {
             const temporadaNum = parseInt(novaTemporada);
             const temporadaAnterior = window.temporadaAtual;
@@ -2915,6 +2923,12 @@ export class FluxoFinanceiroUI {
                 console.log('[FLUXO-UI] Temporada já selecionada:', temporadaNum);
                 return;
             }
+
+            // ✅ v8.1: Atualizar UI das abas imediatamente
+            document.querySelectorAll('#temporada-tabs-fluxo .tab-btn-inline').forEach(btn => {
+                const btnTemporada = parseInt(btn.dataset.temporada);
+                btn.classList.toggle('active', btnTemporada === temporadaNum);
+            });
 
             console.log(`[FLUXO-UI] 🔄 Mudando temporada: ${temporadaAnterior} → ${temporadaNum}`);
 
