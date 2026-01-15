@@ -1290,6 +1290,59 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* ✅ v2.2: Banner de Pré-Temporada */
+.pre-temporada-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.pre-temporada-banner > .material-symbols-outlined {
+    font-size: 28px;
+    color: #3b82f6;
+    flex-shrink: 0;
+}
+
+.pre-temporada-banner strong {
+    color: #3b82f6;
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.pre-temporada-banner p {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.pre-temporada-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    margin-top: 16px;
+}
+
+.pre-temporada-info .material-symbols-outlined {
+    font-size: 20px;
+    color: #6b7280;
+}
+
+.pre-temporada-info p {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
 /* Resumo dos dados */
 .dados-resumo {
     display: grid;

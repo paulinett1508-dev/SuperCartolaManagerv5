@@ -224,7 +224,6 @@ async function carregarParticipantesPorTemporada(temporada) {
                     </div>
                     ` : ""}
 
-                    ${isTemporadaBase ? `
                     <div class="participante-actions-compact">
                         <button class="btn-compact btn-compact-validar"
                                 data-action="validar-id"
@@ -248,26 +247,23 @@ async function carregarParticipantesPorTemporada(temporada) {
                             <span class="material-symbols-outlined">key</span>
                         </button>
                         <button class="btn-compact btn-compact-dados"
-                                data-action="ver-dados-globo"
+                                data-action="ver-api-cartola"
                                 data-time-id="${p.time_id}"
                                 data-nome="${(p.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
                                 data-time-nome="${(p.nome_time || "").replace(/"/g, "&quot;")}"
-                                title="Dados do Globo">
-                            <span class="material-symbols-outlined">database</span>
+                                title="API Cartola">
+                            <span class="material-symbols-outlined">cloud_sync</span>
                         </button>
                     </div>
-                    ` : ""}
                 </div>
             `;
 
             container.appendChild(card);
         });
 
-        // Adicionar event listeners (via delegation)
-        if (isTemporadaBase) {
-            container.removeEventListener("click", handleCardClick);
-            container.addEventListener("click", handleCardClick);
-        }
+        // Adicionar event listeners (via delegation) - ✅ v2.2: Para todas as temporadas
+        container.removeEventListener("click", handleCardClick);
+        container.addEventListener("click", handleCardClick);
 
         console.log(`[PARTICIPANTES] ${participantesFiltrados.length} participantes de ${temporada}`);
     } catch (error) {
@@ -627,12 +623,12 @@ async function carregarParticipantesComBrasoes() {
                             <span class="material-symbols-outlined">key</span>
                         </button>
                         <button class="btn-compact btn-compact-dados"
-                                data-action="ver-dados-globo"
+                                data-action="ver-api-cartola"
                                 data-time-id="${timeData.id}"
                                 data-nome="${(timeData.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
                                 data-time-nome="${(timeData.nome_time || "").replace(/"/g, "&quot;")}"
-                                title="Dados do Time">
-                            <span class="material-symbols-outlined">person_search</span>
+                                title="API Cartola">
+                            <span class="material-symbols-outlined">cloud_sync</span>
                         </button>
                     </div>
                 </div>
@@ -701,10 +697,10 @@ async function handleCardClick(e) {
     } else if (action === "gerenciar-senha") {
         const nome = btn.dataset.nome;
         await gerenciarSenhaParticipante(timeId, nome);
-    } else if (action === "ver-dados-globo") {
+    } else if (action === "ver-api-cartola") {
         const nome = btn.dataset.nome;
         const timeNome = btn.dataset.timeNome;
-        await verDadosGlobo(timeId, nome, timeNome, btn);
+        await verDadosApiCartola(timeId, nome, timeNome, btn);
     } else if (action === "validar-id") {
         const nome = btn.dataset.nome;
         await validarIdParticipante(timeId, nome, btn);
@@ -1332,34 +1328,69 @@ window.toggleModoRaw = function() {
 };
 
 /**
- * Abre modal com dados completos do participante da API Globo
+ * ✅ v2.2: Abre modal com dados da API Cartola (adaptado para pré-temporada)
  */
-async function verDadosGlobo(timeId, nomeCartoleiro, nomeTime, btnElement) {
+async function verDadosApiCartola(timeId, nomeCartoleiro, nomeTime, btnElement) {
     // Feedback visual no botão
     const textoOriginal = btnElement.innerHTML;
-    btnElement.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;animation:spin 1s linear infinite">sync</span> Carregando...';
+    btnElement.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;animation:spin 1s linear infinite">sync</span>';
     btnElement.disabled = true;
 
     try {
-        // Buscar dados do Data Lake com histórico completo
-        // Temporada 2025 (histórico) - TODO: tornar dinâmico via seletor de temporada
-        const response = await fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50&temporada=2025`);
-        const data = await response.json();
+        const temporada = temporadaSelecionada || new Date().getFullYear();
+        const anoAtual = new Date().getFullYear();
+        const isPreTemporada = temporada >= anoAtual; // 2026 é pré-temporada enquanto API retorna 2025
+
+        let data;
+
+        if (isPreTemporada) {
+            // Pré-temporada: buscar direto da API Cartola (dados básicos do time)
+            console.log(`[API-CARTOLA] Buscando dados em tempo real para time ${timeId} (pré-temporada ${temporada})`);
+            const response = await fetch(`/api/cartola/time/${timeId}`);
+            const apiData = await response.json();
+
+            if (apiData.erro) {
+                throw new Error(apiData.erro);
+            }
+
+            // Adaptar formato para o modal
+            data = {
+                success: true,
+                preTemporada: true,
+                temporada: temporada,
+                dump_atual: {
+                    raw_json: apiData.time ? apiData : { time: apiData },
+                    rodada: 0
+                },
+                rodadas_disponiveis: [],
+                historico: []
+            };
+        } else {
+            // Temporada histórica: buscar do Data Lake
+            console.log(`[API-CARTOLA] Buscando histórico do Data Lake para time ${timeId} (temporada ${temporada})`);
+            const response = await fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50&temporada=${temporada}`);
+            data = await response.json();
+        }
 
         // Criar modal
-        const modal = criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data);
+        const modal = criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data);
         document.body.appendChild(modal);
 
         // Animar entrada
         requestAnimationFrame(() => modal.classList.add("modal-visible"));
 
     } catch (error) {
-        console.error("[DATA-LAKE] Erro ao buscar dados:", error);
+        console.error("[API-CARTOLA] Erro ao buscar dados:", error);
         mostrarToast(`Erro ao buscar dados: ${error.message}`, "error");
     } finally {
         btnElement.innerHTML = textoOriginal;
         btnElement.disabled = false;
     }
+}
+
+// Manter compatibilidade com código antigo
+async function verDadosGlobo(timeId, nomeCartoleiro, nomeTime, btnElement) {
+    return verDadosApiCartola(timeId, nomeCartoleiro, nomeTime, btnElement);
 }
 
 /**
@@ -1542,7 +1573,140 @@ function verificarDadosValidos(rawJson) {
 }
 
 /**
- * Cria o modal de exibição dos dados da Globo
+ * ✅ v2.2: Cria modal de dados da API Cartola (adaptado para pré-temporada)
+ */
+function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
+    // Remover modal existente
+    document.querySelector(".modal-dados-globo")?.remove();
+
+    const modal = document.createElement("div");
+    modal.className = "modal-dados-globo";
+
+    const isPreTemporada = data.preTemporada === true;
+    const temporada = data.temporada || temporadaSelecionada || new Date().getFullYear();
+    const temDados = data.success && data.dump_atual;
+    const rawJson = temDados ? data.dump_atual.raw_json : null;
+
+    // Para pré-temporada, mostrar dados básicos do time
+    let resumoDados = "";
+
+    if (isPreTemporada && rawJson) {
+        const time = rawJson.time || rawJson;
+        const patrimonio = time.patrimonio || rawJson.patrimonio;
+        const pontosCampeonato = time.pontos_campeonato || rawJson.pontos_campeonato;
+        const rodadaAtual = time.rodada_atual || rawJson.rodada_atual || 0;
+
+        resumoDados = `
+            <div class="pre-temporada-banner">
+                <span class="material-symbols-outlined">schedule</span>
+                <div>
+                    <strong>Pré-Temporada ${temporada}</strong>
+                    <p>O Brasileirão ${temporada} ainda não iniciou. Exibindo dados cadastrais do time.</p>
+                </div>
+            </div>
+
+            <div class="dados-resumo">
+                <div class="resumo-item">
+                    <span class="resumo-icon material-symbols-outlined">person</span>
+                    <div class="resumo-info">
+                        <span class="resumo-label">Cartoleiro</span>
+                        <span class="resumo-value">${time.nome_cartola || nomeCartoleiro}</span>
+                    </div>
+                </div>
+                <div class="resumo-item">
+                    <span class="resumo-icon material-symbols-outlined">sports_soccer</span>
+                    <div class="resumo-info">
+                        <span class="resumo-label">Time</span>
+                        <span class="resumo-value">${time.nome || nomeTime}</span>
+                    </div>
+                </div>
+                <div class="resumo-item">
+                    <span class="resumo-icon material-symbols-outlined">tag</span>
+                    <div class="resumo-info">
+                        <span class="resumo-label">ID Cartola</span>
+                        <span class="resumo-value">${time.time_id || timeId}</span>
+                    </div>
+                </div>
+                ${patrimonio !== undefined ? `
+                <div class="resumo-item">
+                    <span class="resumo-icon material-symbols-outlined">account_balance</span>
+                    <div class="resumo-info">
+                        <span class="resumo-label">Patrimônio</span>
+                        <span class="resumo-value">C$ ${patrimonio.toFixed(2)}</span>
+                    </div>
+                </div>
+                ` : ""}
+                ${pontosCampeonato !== undefined && pontosCampeonato > 0 ? `
+                <div class="resumo-item resumo-item-destaque">
+                    <span class="resumo-icon material-symbols-outlined">emoji_events</span>
+                    <div class="resumo-info">
+                        <span class="resumo-label">Pontos (Campeonato)</span>
+                        <span class="resumo-value">${pontosCampeonato.toFixed(2)}</span>
+                    </div>
+                </div>
+                ` : ""}
+                ${time.url_escudo_png || time.url_escudo_svg ? `
+                <div class="resumo-item">
+                    <span class="resumo-icon material-symbols-outlined">image</span>
+                    <div class="resumo-info">
+                        <span class="resumo-label">Escudo do Time</span>
+                        <img src="${time.url_escudo_png || time.url_escudo_svg}"
+                             alt="Escudo"
+                             style="width: 48px; height: 48px; object-fit: contain; margin-top: 4px;"
+                             onerror="this.style.display='none'">
+                    </div>
+                </div>
+                ` : ""}
+            </div>
+
+            <div class="pre-temporada-info">
+                <span class="material-symbols-outlined">info</span>
+                <p>Scouts e estatísticas de rodadas estarão disponíveis após o início do campeonato.</p>
+            </div>
+        `;
+    } else {
+        // Usar função existente para temporada histórica
+        return criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data);
+    }
+
+    modal.innerHTML = `
+        <div class="modal-dados-overlay" onclick="this.parentElement.remove()"></div>
+        <div class="modal-dados-content">
+            <div class="modal-dados-header">
+                <div class="header-info">
+                    <h3>
+                        <span class="material-symbols-outlined" style="color:#FF5500">cloud_sync</span>
+                        API Cartola
+                    </h3>
+                    <span class="header-subtitle">Temporada ${temporada} • ID: ${timeId}</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-fechar" onclick="this.closest('.modal-dados-globo').remove()">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-dados-body">
+                ${resumoDados}
+            </div>
+        </div>
+    `;
+
+    // Fechar com ESC
+    const handleEsc = (e) => {
+        if (e.key === "Escape") {
+            document.removeEventListener("keydown", handleEsc);
+            modal.remove();
+        }
+    };
+    document.addEventListener("keydown", handleEsc);
+
+    return modal;
+}
+
+/**
+ * Cria o modal de exibição dos dados da Globo (histórico)
  */
 function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
     // Remover modal existente
@@ -1865,10 +2029,10 @@ async function sincronizarComGlobo(timeId) {
         const card = document.querySelector(`[data-time-id="${timeId}"]`);
         const nome = card?.dataset.nome || "";
         const timeNome = card?.dataset.time || "";
-        const btn = card?.querySelector('[data-action="ver-dados-globo"]');
+        const btn = card?.querySelector('[data-action="ver-api-cartola"]');
 
         if (btn) {
-            await verDadosGlobo(timeId, nome, timeNome, btn);
+            await verDadosApiCartola(timeId, nome, timeNome, btn);
         }
 
     } catch (error) {
@@ -2230,6 +2394,7 @@ window.gerenciarSenhaParticipante = gerenciarSenhaParticipante;
 window.gerarSenhaAleatoria = gerarSenhaAleatoria;
 window.salvarSenhaParticipante = salvarSenhaParticipante;
 window.verDadosGlobo = verDadosGlobo;
+window.verDadosApiCartola = verDadosApiCartola;
 window.sincronizarComGlobo = sincronizarComGlobo;
 window.copiarJsonGlobo = copiarJsonGlobo;
 window.validarIdsCartola = validarIdsCartola;
