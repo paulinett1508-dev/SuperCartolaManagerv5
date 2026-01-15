@@ -1,4 +1,6 @@
-// FLUXO-FINANCEIRO-CORE.JS v6.6 - FIX SALDO HISTÓRICO vs PENDENTE
+// FLUXO-FINANCEIRO-CORE.JS v6.7 - FIX PRÉ-TEMPORADA (RODADA FANTASMA)
+// ✅ v6.7: FIX CRÍTICO - Detectar pré-temporada e NÃO calcular rodadas inexistentes
+//          Temporada 2026 não começou → retorna apenas inscrições, sem rodada fantasma
 // ✅ v6.6: FIX CRÍTICO - Separar saldo_temporada (histórico) de saldo (pendente)
 //          Resultado da temporada é IMUTÁVEL, acertos apenas quitam dívida
 // ✅ v6.5: FIX - Temporada histórica (2025) usa rodada 38, não rodada atual do mercado (2026)
@@ -262,6 +264,10 @@ export class FluxoFinanceiroCore {
             );
         }
 
+        // ✅ v6.7: Flag de pré-temporada (temporada selecionada ainda não começou)
+        let isPreTemporada = false;
+        let temporadaMercado = null;
+
         // ✅ v6.5: Só verificar mercado para temporada ATUAL (não histórica)
         if (!isTemporadaHistorica) {
             // Verificar status do mercado
@@ -275,9 +281,19 @@ export class FluxoFinanceiroCore {
                     const rodadaAtualMercado = mercadoData.rodada_atual;
                     const temporadaEncerrada = mercadoData.game_over === true;
                     const rodadaFinal = mercadoData.rodada_final || 38;
+                    temporadaMercado = mercadoData.temporada; // Ex: 2025
 
-                    // ✅ FIX: Só usar rodada-1 se mercado aberto E temporada NÃO encerrada
-                    if (mercadoAberto && !isInativo && !temporadaEncerrada) {
+                    // ✅ v6.7: DETECTAR PRÉ-TEMPORADA
+                    // Se temporada selecionada (2026) > temporada do mercado (2025), é pré-temporada
+                    if (temporadaMercado && temporadaSelecionada > temporadaMercado) {
+                        isPreTemporada = true;
+                        rodadaParaCalculo = 0; // Nenhuma rodada existe ainda
+                        console.log(
+                            `[FLUXO-CORE] ⏳ PRÉ-TEMPORADA ${temporadaSelecionada}: mercado ainda em ${temporadaMercado}. NÃO calcular rodadas.`,
+                        );
+                    }
+                    // ✅ FIX: Só usar rodada-1 se mercado aberto E temporada NÃO encerrada E NÃO pré-temporada
+                    else if (mercadoAberto && !isInativo && !temporadaEncerrada) {
                         rodadaParaCalculo = Math.max(1, rodadaAtualMercado - 1);
                     } else if (temporadaEncerrada || rodadaAtualMercado >= rodadaFinal) {
                         // Temporada encerrada: usar rodada final
@@ -435,6 +451,47 @@ export class FluxoFinanceiroCore {
                 extratoTravado: false,
                 temporadaHistorica: true,
                 avisoSemCache: `Extrato de ${temporadaSelecionada} não disponível. Cache não encontrado.`
+            };
+        }
+
+        // ✅ v6.7: PROTEÇÃO PRÉ-TEMPORADA - Não calcular rodadas inexistentes
+        // Temporada 2026 ainda não começou, retornar apenas dados de inscrição
+        if (isPreTemporada) {
+            console.log(`[FLUXO-CORE] ⏳ PRÉ-TEMPORADA ${temporadaSelecionada}: retornando extrato sem rodadas.`);
+            console.log(`[FLUXO-CORE] ⏳ Apenas inscrições e campos manuais serão exibidos.`);
+
+            // Buscar campos editáveis e acertos (únicos dados válidos na pré-temporada)
+            const camposEditaveis = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+            const acertos = await this._buscarAcertosFinanceiros(ligaId, timeId);
+
+            // Calcular saldo inicial (da inscrição)
+            const saldoInscricao = (parseFloat(camposEditaveis.campo1?.valor) || 0) +
+                                   (parseFloat(camposEditaveis.campo2?.valor) || 0) +
+                                   (parseFloat(camposEditaveis.campo3?.valor) || 0) +
+                                   (parseFloat(camposEditaveis.campo4?.valor) || 0);
+
+            return {
+                rodadas: [],
+                resumo: {
+                    totalGanhos: 0, totalPerdas: 0, bonus: 0, onus: 0,
+                    pontosCorridos: 0, mataMata: 0, top10: 0,
+                    campo1: parseFloat(camposEditaveis.campo1?.valor) || 0,
+                    campo2: parseFloat(camposEditaveis.campo2?.valor) || 0,
+                    campo3: parseFloat(camposEditaveis.campo3?.valor) || 0,
+                    campo4: parseFloat(camposEditaveis.campo4?.valor) || 0,
+                    saldo_acertos: acertos?.resumo?.saldo ?? 0,
+                    saldo_temporada: saldoInscricao,
+                    saldo: saldoInscricao + (acertos?.resumo?.saldo ?? 0)
+                },
+                totalTimes: 0,
+                camposEditaveis: camposEditaveis,
+                acertos: acertos,
+                inativo: isInativo,
+                rodadaDesistencia: rodadaDesistencia,
+                extratoTravado: false,
+                preTemporada: true,
+                temporadaMercado: temporadaMercado,
+                avisoPreTemporada: `Temporada ${temporadaSelecionada} ainda não iniciou. Exibindo apenas inscrições.`
             };
         }
 

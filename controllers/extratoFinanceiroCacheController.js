@@ -1,5 +1,6 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v6.2 - PROTEÇÃO CACHE HISTÓRICO
+// extratoFinanceiroCacheController.js v6.3 - PROTEÇÃO PRÉ-TEMPORADA
+// ✅ v6.3: Proteção contra salvar rodadas fantasmas em pré-temporada (2026)
 // ✅ v6.2: Proteção contra sobrescrita de caches históricos com dados vazios
 // ✅ v6.1: FIX - Lançamentos iniciais (rodada=0) agora são contabilizados no saldo
 //   - Transações com rodada=0, INSCRICAO_TEMPORADA ou TRANSFERENCIA_SALDO são extraídas
@@ -856,6 +857,30 @@ export const salvarExtratoCache = async (req, res) => {
                     success: false,
                     error: "Não é permitido sobrescrever cache de temporada histórica com dados vazios",
                     temporada: temporadaNum
+                });
+            }
+        }
+
+        // ✅ v6.3: PROTEÇÃO PRÉ-TEMPORADA - Não salvar rodadas fantasmas
+        // Se tentando salvar rodadas > 0 para uma temporada que ainda não tem rodadas no banco
+        const temRodadasNoEnvio = Array.isArray(rodadasEnviadas) &&
+            rodadasEnviadas.some(r => r.rodada > 0);
+
+        if (temRodadasNoEnvio && temporadaNum >= anoAtual) {
+            // Verificar se existem rodadas REAIS para esta temporada
+            const rodadasDb = mongoose.connection.db.collection('rodadas');
+            const rodadaExiste = await rodadasDb.findOne({
+                temporada: temporadaNum,
+                numero: { $gt: 0 }
+            });
+
+            if (!rodadaExiste) {
+                console.warn(`[CACHE-CONTROLLER] ⚠️ BLOQUEADO: Tentativa de salvar rodadas fantasmas para temporada ${temporadaNum} (pré-temporada)`);
+                return res.status(400).json({
+                    success: false,
+                    error: `Temporada ${temporadaNum} ainda não iniciou. Não é possível salvar rodadas.`,
+                    temporada: temporadaNum,
+                    preTemporada: true
                 });
             }
         }
