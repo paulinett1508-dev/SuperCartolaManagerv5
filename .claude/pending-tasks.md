@@ -429,13 +429,48 @@ Exibir no app do participante:
 
 #### Proximos Passos
 
-1. [ ] Criar conta free na API-Football (dashboard.api-football.com)
-2. [ ] Obter API key e adicionar em `.env` como `API_FOOTBALL_KEY`
-3. [ ] Testar endpoints para Carioca/Paulista 2026 (ja em andamento)
-4. [ ] Criar `/api/jogos-ao-vivo` usando API-Football
-5. [ ] Manter scraper Globo como fallback (agenda)
-6. [ ] UI: Card de jogos na tela inicial do participante
-7. [ ] Cache inteligente: so consulta API quando tem jogo (economiza requests)
+1. [x] Criar conta free na API-Football (dashboard.api-football.com) ✅ 2026-01-15
+2. [x] Obter API key e adicionar em `.env` como `API_FOOTBALL_KEY` ✅ 2026-01-15
+3. [x] Testar endpoints para Carioca/Paulista 2026 ✅ 2026-01-15
+4. [x] Criar `/api/jogos-ao-vivo` usando API-Football ✅ 2026-01-15
+5. [x] Manter scraper Globo como fallback (agenda) ✅ 2026-01-15
+6. [x] UI: Card de jogos na tela inicial do participante ✅ 2026-01-15
+7. [x] Cache inteligente: so consulta API quando tem jogo (economiza requests) ✅ 2026-01-15
+
+#### ✅ FEATURE IMPLEMENTADA (2026-01-15)
+
+**Arquivos criados/modificados:**
+
+| Arquivo | Acao | Descricao |
+|---------|------|-----------|
+| `routes/jogos-ao-vivo-routes.js` | CRIADO | Rota API-Football + fallback Globo |
+| `public/participante/js/modules/participante-jogos.js` | v2.0 | Modulo frontend atualizado |
+| `public/participante/js/modules/participante-boas-vindas.js` | v10.9 | Integracao jogos ao vivo |
+| `index.js` | MODIFICADO | Registro da nova rota |
+
+**Endpoints:**
+- `GET /api/jogos-ao-vivo` - Retorna jogos ao vivo (Brasil) ou agenda do Globo
+- `GET /api/jogos-ao-vivo/status` - Status da conexao com API-Football
+
+**Comportamento:**
+1. Busca jogos ao vivo na API-Football (filtro: ligas brasileiras)
+2. Se ha jogos ao vivo: exibe com placares em tempo real + escudos
+3. Se nao ha jogos ao vivo: fallback para agenda do Globo Esporte
+4. Cache de 5 minutos para economizar requests (limite: 100/dia)
+
+**Ligas suportadas:**
+- Brasileirao Serie A (71)
+- Brasileirao Serie B (72)
+- Copa do Brasil (73)
+- Campeonato Carioca (475)
+- Campeonato Paulista (76)
+- Copa Verde (629)
+- Copa do Nordeste (630)
+
+**Conta API-Football:**
+- Titular: Miranda
+- Plano: Free (100 req/dia)
+- Validade: 2027
 
 ---
 

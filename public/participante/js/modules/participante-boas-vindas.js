@@ -1,6 +1,9 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.8 (JOGOS DO DIA DEBUG)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.9 (JOGOS AO VIVO API-FOOTBALL)
 // =====================================================================
+// ✅ v10.9: Jogos ao vivo com API-Football para TODOS os participantes
+//          - Usa /api/jogos-ao-vivo (API-Football + Globo fallback)
+//          - Exibe placares em tempo real quando há jogos brasileiros
 // ✅ v10.7: Integração do módulo Jogos do Dia para participantes premium
 //          - Exibe jogos do Brasileirão (ou mock em pré-temporada)
 //          - Apenas para participantes premium (ex: Paulinett Miranda)
@@ -723,29 +726,8 @@ function renderizarBoasVindas(container, data, ligaRules) {
                     <div id="jogos-do-dia-placeholder"></div>
             </div>
         `;
-        // ✅ v10.8: Carregar e renderizar jogos do dia para premium (com debug)
-        if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "🎮 Iniciando carregamento de Jogos do Dia...");
-        import('./participante-jogos.js').then(async mod => {
-            const timeIdNum = Number(timeId);
-            if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", `🎮 Buscando jogos para timeId=${timeIdNum}...`);
-            const result = await mod.obterJogosDoDia(timeIdNum);
-            if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "🎮 Resultado jogos:", result);
-            // Só renderiza se tem jogos (API real ou mock para premium)
-            if (result.jogos && result.jogos.length > 0) {
-                const isMock = result.fonte === 'mock';
-                const html = mod.renderizarJogosDoDia(result.jogos, isMock);
-                const el = document.getElementById('jogos-do-dia-placeholder');
-                if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", `🎮 Placeholder encontrado: ${!!el}`);
-                if (el) {
-                    el.innerHTML = html;
-                    if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Card de jogos renderizado!");
-                }
-            } else {
-                if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "⚠️ Nenhum jogo retornado pela API");
-            }
-        }).catch(err => {
-            if (window.Log) Log.error("PARTICIPANTE-BOAS-VINDAS", "❌ Erro ao carregar jogos:", err);
-        });
+        // ✅ v10.9: Carregar e renderizar jogos ao vivo (API-Football) para todos
+        carregarEExibirJogos();
     } else {
         // ✅ PARTICIPANTE NÃO RENOVOU - Mostrar dados da temporada anterior normalmente
         container.innerHTML = `
@@ -854,10 +836,46 @@ function renderizarBoasVindas(container, data, ligaRules) {
                         <p class="text-sm font-normal text-white/70">Acompanhe seu extrato financeiro para entender sua evolução na liga!</p>
                     </div>
                 </div>
+
+                <!-- Jogos ao Vivo -->
+                <div id="jogos-do-dia-placeholder"></div>
             </div>
         `;
+        // ✅ v10.9: Carregar e renderizar jogos ao vivo (API-Football) para todos
+        carregarEExibirJogos();
+    }
+}
+
+// =====================================================================
+// ✅ v10.9: FUNÇÃO PARA CARREGAR E EXIBIR JOGOS AO VIVO
+// =====================================================================
+async function carregarEExibirJogos() {
+    try {
+        if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "⚽ Carregando jogos ao vivo...");
+
+        const mod = await import('./participante-jogos.js');
+        const result = await mod.obterJogosAoVivo();
+
+        if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "⚽ Resultado jogos:", {
+            quantidade: result.jogos?.length || 0,
+            fonte: result.fonte,
+            aoVivo: result.aoVivo
+        });
+
+        if (result.jogos && result.jogos.length > 0) {
+            const html = mod.renderizarJogosAoVivo(result.jogos, result.fonte, result.aoVivo);
+            const el = document.getElementById('jogos-do-dia-placeholder');
+            if (el) {
+                el.innerHTML = html;
+                if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Card de jogos renderizado!");
+            }
+        } else {
+            if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "📭 Sem jogos para exibir no momento");
+        }
+    } catch (err) {
+        if (window.Log) Log.error("PARTICIPANTE-BOAS-VINDAS", "❌ Erro ao carregar jogos:", err);
     }
 }
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Módulo v10.7 carregado (Jogos do dia premium)");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Módulo v10.9 carregado (Jogos ao vivo API-Football)");
