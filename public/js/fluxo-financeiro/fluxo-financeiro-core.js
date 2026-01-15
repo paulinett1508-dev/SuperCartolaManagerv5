@@ -1092,9 +1092,20 @@ export class FluxoFinanceiroCore {
 
 window.forcarRefreshExtrato = async function (timeId) {
     const ligaId = window.obterLigaId();
+    const temporadaAtual = window.temporadaAtual || 2026;
+    const TEMPORADA_CARTOLA = 2026; // Temporada atual da API Cartola
+
     console.log(
-        `[FLUXO-CORE] 🔄 Forçando refresh do extrato para time ${timeId}...`,
+        `[FLUXO-CORE] 🔄 Forçando refresh do extrato para time ${timeId} (temporada ${temporadaAtual})...`,
     );
+
+    // ✅ v6.6: BLOQUEAR invalidação de cache para temporadas históricas
+    // Temporadas anteriores são IMUTÁVEIS - dados congelados permanentemente
+    if (temporadaAtual < TEMPORADA_CARTOLA) {
+        console.warn(`[FLUXO-CORE] 🔒 Temporada ${temporadaAtual} é histórica - cache protegido (imutável)`);
+        alert(`Temporada ${temporadaAtual} está encerrada.\nOs dados são históricos e não podem ser recalculados.`);
+        return;
+    }
 
     try {
         await fetch(
@@ -1116,4 +1127,4 @@ window.forcarRefreshExtrato = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-CORE] ✅ v6.5 FIX Temporada histórica carregado");
+console.log("[FLUXO-CORE] ✅ v6.6 - Proteção cache temporadas históricas");

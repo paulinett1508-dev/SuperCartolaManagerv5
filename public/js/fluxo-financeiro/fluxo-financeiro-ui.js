@@ -3801,9 +3801,19 @@ window.voltarParaLista = function() {
 window.recalcularCacheParticipante = async function (timeId) {
     const btn = document.getElementById(`btnRecalcCache-${timeId}`);
     const ligaId = window.obterLigaId?.();
+    const temporadaAtual = window.temporadaAtual || 2026;
+    const TEMPORADA_CARTOLA = 2026; // Temporada atual da API Cartola
 
     if (!ligaId) {
         alert("Liga não identificada. Recarregue a página.");
+        return;
+    }
+
+    // ✅ v7.3: BLOQUEAR limpeza de cache para temporadas históricas
+    // Temporadas anteriores são IMUTÁVEIS - dados congelados permanentemente
+    if (temporadaAtual < TEMPORADA_CARTOLA) {
+        console.warn(`[FLUXO-UI] 🔒 Temporada ${temporadaAtual} é histórica - cache protegido`);
+        alert(`Temporada ${temporadaAtual} está encerrada.\n\nOs dados são históricos e não podem ser limpos ou recalculados.`);
         return;
     }
 
