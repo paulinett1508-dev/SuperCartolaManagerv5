@@ -127,17 +127,10 @@ async function carregarLigas() {
 }
 
 async function carregarParticipantes() {
-    try {
-        const response = await fetch('/api/times?ativo=true');
-        if (!response.ok) throw new Error('Erro ao carregar participantes');
-
-        const data = await response.json();
-        participantesCadastrados = data.times || data || [];
-
-        renderizarParticipantes();
-    } catch (error) {
-        console.error('Erro ao carregar participantes:', error);
-    }
+    // Lista de participantes desabilitada - foco na busca/cadastro
+    // Para ver participantes cadastrados, usar o módulo Participantes da liga
+    participantesCadastrados = [];
+    renderizarParticipantes();
 }
 
 // ============================================================================

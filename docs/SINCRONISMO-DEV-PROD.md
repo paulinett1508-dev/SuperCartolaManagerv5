@@ -1,45 +1,43 @@
+
 # Estratégia de Sincronismo DEV/PROD - Super Cartola
 
 ## Visão Geral
 
-O sistema usa **dois bancos MongoDB separados**:
-- **PROD** (`MONGO_URI`): `cartola-manager` - Banco de produção com dados reais
-- **DEV** (`MONGO_URI_DEV`): `cartola-manager-dev` - Banco de desenvolvimento para testes
+O sistema agora utiliza **um único banco MongoDB** para DEV e PROD:
+- **Banco Único** (`MONGO_URI`): `cartola-manager` - Todos os dados reais e de desenvolvimento estão no mesmo banco.
+- A diferenciação de ambiente é feita apenas via variável `NODE_ENV` e logs, não há mais separação física de bancos.
+- Recomenda-se que operações destrutivas ou de teste sejam feitas com cautela, sempre validando o ambiente.
 
-A seleção automática é feita em `config/database.js`:
+Configuração em `config/database.js`:
 ```javascript
-const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-// Development usa MONGO_URI_DEV, Production usa MONGO_URI
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const IS_PRODUCTION = NODE_ENV === 'production';
+// Banco único para ambos ambientes
 ```
 
-## Problema Identificado (Temporada 2025)
 
-Durante a temporada 2025, foi detectado que:
-1. Os caches de extrato financeiro (`extratofinanceirocaches`) ficaram dessincronizados
-2. DEV estava com rodadas faltando em relação ao PROD
-3. Participantes não viam a rodada 38 no ambiente de desenvolvimento
+## Histórico de Problemas (Temporada 2025)
 
-### Causa Raiz
-- Recálculos e consolidações eram executados apenas em um ambiente
-- Não havia processo automático de sincronização
-- Scripts de manutenção eram rodados sem garantir replicação
+No modelo antigo (dois bancos), ocorreram problemas como:
+1. Caches de extrato financeiro dessincronizados
+2. Rodadas faltando em DEV
+3. Participantes sem dados atualizados em ambientes diferentes
 
-## Estratégia para 2026
+Com o banco único, esses problemas foram mitigados, mas é fundamental manter boas práticas de consolidação e backup.
 
-### 1. Sincronização Automática de Caches
 
-**Opção A: Webhook após consolidação (Recomendado)**
-Após cada consolidação de rodada no PROD, disparar sincronização para DEV.
+## Estratégia Atual
 
-**Opção B: Banco único com flags de ambiente**
-Usar um único banco com campo `ambiente` para isolar dados de teste.
+### 1. Consolidação e Sincronismo
 
-**Opção C: Sincronização periódica**
-Job agendado para sincronizar caches a cada rodada finalizada.
+- Após cada consolidação de rodada, todos os dados já ficam disponíveis para ambos ambientes.
+- Recomenda-se rodar scripts de verificação para garantir que não há inconsistências.
+- Para testes destrutivos, utilize flags ou coleções de teste, nunca altere dados reais em produção.
 
 ### 2. Scripts de Verificação
 
-Usar os scripts criados para monitorar sincronismo:
+
+Usar os scripts criados para monitorar sincronismo e integridade:
 
 ```bash
 # Verificar estado de sincronismo
@@ -49,31 +47,34 @@ node scripts/sync-check-dev-prod.js
 node scripts/fix-sync-dev-prod.js
 ```
 
+
 ### 3. Regras de Operação
 
-1. **Consolidações**: Sempre executar em PROD primeiro, depois sincronizar DEV
-2. **Recálculos**: Executar em ambos os bancos ou sincronizar após
-3. **Testes destrutivos**: Apenas em DEV, nunca em PROD
-4. **Virada de temporada**: Sincronizar bancos antes de iniciar
+1. **Consolidações**: Sempre execute scripts de consolidação com atenção ao ambiente (`NODE_ENV`).
+2. **Recálculos**: Execute recálculos apenas quando necessário e sempre faça backup antes.
+3. **Testes destrutivos**: Use flags de ambiente e nunca altere dados reais sem validação.
+4. **Virada de temporada**: Faça backup completo antes de qualquer alteração em massa.
+
 
 ### 4. Checklist de Virada de Temporada
 
 ```
-[ ] Exportar backup completo do PROD
-[ ] Sincronizar todos os caches DEV ← PROD
-[ ] Verificar paridade: node scripts/sync-check-dev-prod.js
+[ ] Exportar backup completo do banco
+[ ] Verificar integridade dos caches: node scripts/sync-check-dev-prod.js
 [ ] Arquivar dados da temporada anterior
 [ ] Limpar caches temporários
 [ ] Resetar contadores de rodada
 [ ] Validar configurações das ligas
 ```
 
+
 ## Scripts Disponíveis
 
 | Script | Descrição |
 |--------|-----------|
-| `scripts/sync-check-dev-prod.js` | Compara caches entre DEV e PROD |
-| `scripts/fix-sync-dev-prod.js` | Sincroniza caches desatualizados |
+| `scripts/sync-check-dev-prod.js` | Verifica integridade dos caches |
+| `scripts/fix-sync-dev-prod.js` | Corrige caches desatualizados |
+
 
 ## Estrutura de Cache
 
@@ -84,12 +85,13 @@ Os caches de extrato financeiro usam chave composta:
 
 **Importante**: Um participante pode estar em múltiplas ligas. Cada liga tem seu próprio cache.
 
+
 ## Métricas de Sucesso
 
 Ao final de cada rodada:
 - 0 participantes desatualizados
-- 0 participantes sem cache em DEV
-- Todos com `ultima_rodada_consolidada` igual entre DEV e PROD
+- Todos com `ultima_rodada_consolidada` igual
+
 
 ## Contato
 
@@ -98,6 +100,7 @@ Em caso de problemas de sincronismo:
 2. Executar script de verificação
 3. Corrigir manualmente se necessário
 
+
 ---
 *Documento criado em: 21/12/2025*
-*Última atualização: 21/12/2025*
+*Última atualização: 15/01/2026*

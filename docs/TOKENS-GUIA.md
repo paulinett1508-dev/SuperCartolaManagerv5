@@ -1,3 +1,10 @@
+# Reforço Importante
+
+Todos os novos módulos, componentes e ajustes de CSS devem usar **apenas tokens e utilitários padronizados**. Nunca utilize valores hardcoded de cor, espaçamento, raio, sombra ou animação. Isso garante consistência visual, facilidade de manutenção e suporte a temas.
+
+---
+
+**Última atualização:** Janeiro 2026
 # Guia de Design Tokens - Super Cartola Manager
 
 ## Arquivos Criados

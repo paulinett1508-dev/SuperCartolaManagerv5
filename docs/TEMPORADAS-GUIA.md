@@ -9,7 +9,7 @@
 export const CURRENT_SEASON = 2026;  // Mude de 2025 para 2026
 ```
 
-**Pronto.** O sistema começa uma temporada nova e os dados de 2025 ficam preservados.
+**Pronto.** O sistema começa uma temporada nova e os dados antigos ficam preservados, separados pelo campo `temporada`.
 
 ---
 
@@ -55,11 +55,12 @@ Cada documento no MongoDB agora tem um campo `temporada`:
    export const CURRENT_SEASON = 2026;
    ```
 
-2. **Atualizar o histórico (opcional):**
-   ```javascript
-   // config/seasons.js
-   historico: [2025, 2026],
-   ```
+2. **(Opcional) Manter histórico de temporadas:**
+  Caso deseje, adicione um campo `historico` em config/seasons.js para referência, mas não é obrigatório para funcionamento:
+  ```javascript
+  // config/seasons.js
+  // historico: [2025, 2026],
+  ```
 
 3. **Reiniciar o servidor**
 
@@ -76,11 +77,11 @@ Cada documento no MongoDB agora tem um campo `temporada`:
 ```javascript
 import { CURRENT_SEASON, getSeasonFilter } from '../config/seasons.js';
 
-// Opção 1: Direto
-const rodadas = await Rodada.find({ temporada: CURRENT_SEASON });
-
-// Opção 2: Usando helper
+// Recomendado: sempre use o helper para garantir filtro correto
 const rodadas = await Rodada.find(getSeasonFilter());
+
+// Ou, se necessário, direto:
+const rodadas = await Rodada.find({ temporada: CURRENT_SEASON });
 ```
 
 ### Buscar Dados Históricos (2025)
@@ -183,5 +184,5 @@ docs/
 
 ---
 
-**Última atualização:** Dezembro 2025
-**Versão:** 1.0.0
+**Última atualização:** Janeiro 2026
+**Versão:** 1.1.0

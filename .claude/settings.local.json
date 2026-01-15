@@ -172,7 +172,9 @@
       "mcp__ide__getDiagnostics",
       "Bash(printf:*)",
       "Bash(sort:*)",
-      "Bash(do echo -n \"Rodada $i: \")"
+      "Bash(do echo -n \"Rodada $i: \")",
+      "WebFetch(domain:dashboard.api-football.com)",
+      "WebFetch(domain:www.api-football.com)"
     ]
   },
   "enableAllProjectMcpServers": true,

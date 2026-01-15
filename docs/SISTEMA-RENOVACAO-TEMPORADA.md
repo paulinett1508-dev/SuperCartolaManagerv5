@@ -142,16 +142,18 @@ Cada liga pode ter regras DIFERENTES para cada temporada. Nenhum valor eh hardco
 }
 ```
 
+
 ### Tabela de Regras
 
 | Regra | Campo | Tipo | Default | Descricao |
 |-------|-------|------|---------|-----------|
-| Taxa | `inscricao.taxa` | Number | 0 | Valor da inscricao em R$ |
+| Taxa | `inscricao.taxa` | Number | 0 | Valor da inscrição em R$ |
 | Prazo | `inscricao.prazo_renovacao` | Date | 27/01/YYYY | Data limite |
 | Devedor Renova | `inscricao.permitir_devedor_renovar` | Boolean | true | Permite devedor renovar |
-| Aproveitar Credito | `inscricao.aproveitar_saldo_positivo` | Boolean | true | Credito abate taxa |
+| Aproveitar Crédito | `inscricao.aproveitar_saldo_positivo` | Boolean | true | Crédito abate taxa |
 | Parcelamento | `inscricao.permitir_parcelamento` | Boolean | false | Permite parcelar |
 | Max Parcelas | `inscricao.max_parcelas` | Number | 1 | Limite de parcelas |
+| Débito Automático | `inscricao.gerar_debito_inscricao_renovacao` | Boolean | true | Gera débito automático ao renovar sem pagar |
 
 ### Estados do Processo
 
@@ -369,7 +371,8 @@ Resultado:
     "permitir_devedor_renovar": true,
     "aproveitar_saldo_positivo": true,
     "permitir_parcelamento": false,
-    "max_parcelas": 1
+    "max_parcelas": 1,
+    "gerar_debito_inscricao_renovacao": true
   },
   "status": "aberto",
   "mensagens": {
@@ -537,9 +540,14 @@ Cadastro SEM pagamento:
 
 ## Changelog
 
+
+### v1.1.0 (2026-01-15)
+- Adicionada regra `gerar_debito_inscricao_renovacao` para controle automático de débito na renovação sem pagamento
+- Atualização da documentação de exemplos e tabela de regras
+
 ### v1.0.0 (2026-01-04)
-- Implementacao inicial do sistema
-- Regras configuraveis por liga/temporada
-- Fluxos: renovar, nao participar, novo participante
-- Flag `pagouInscricao` para controle de debito
-- Integracao com Fluxo Financeiro (coluna 2026)
+- Implementação inicial do sistema
+- Regras configuráveis por liga/temporada
+- Fluxos: renovar, não participar, novo participante
+- Flag `pagouInscricao` para controle de débito
+- Integração com Fluxo Financeiro (coluna 2026)
