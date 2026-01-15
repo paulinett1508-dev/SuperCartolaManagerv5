@@ -8,11 +8,22 @@ import {
   getMercadoStatus,
   getParciais,
   getClubes,
+  sincronizarDadosCartola,
+  obterDadosCompletosCartola,
 } from "../controllers/cartolaController.js";
 
 const router = express.Router();
 
 router.get("/clubes", listarClubes);
+
+// ===== DADOS COMPLETOS DO TIME (PARA MODAL) =====
+// IMPORTANTE: Esta rota DEVE vir ANTES de /time/:id para não ser interceptada
+router.get("/time/:id/completo", obterDadosCompletosCartola);
+
+// ===== SINCRONIZAR DADOS DO PARTICIPANTE =====
+router.post("/time/:id/sincronizar", sincronizarDadosCartola);
+
+// Rotas básicas de time
 router.get("/time/:id", obterTimePorId);
 router.get("/time/:id/:rodada", obterPontuacao);
 router.get("/time/:id/:rodada/escalacao", obterEscalacao);

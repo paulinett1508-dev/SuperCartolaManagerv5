@@ -1344,24 +1344,25 @@ async function verDadosApiCartola(timeId, nomeCartoleiro, nomeTime, btnElement) 
         let data;
 
         if (isPreTemporada) {
-            // Pré-temporada: buscar direto da API Cartola (dados básicos do time)
-            console.log(`[API-CARTOLA] Buscando dados em tempo real para time ${timeId} (pré-temporada ${temporada})`);
-            const response = await fetch(`/api/cartola/time/${timeId}`);
+            // Pré-temporada: buscar dados COMPLETOS da API Cartola + dados locais
+            console.log(`[API-CARTOLA] Buscando dados completos para time ${timeId} (pré-temporada ${temporada})`);
+            const response = await fetch(`/api/cartola/time/${timeId}/completo`);
             const apiData = await response.json();
 
-            if (apiData.erro) {
-                throw new Error(apiData.erro);
+            if (!apiData.success) {
+                throw new Error(apiData.erro || "Erro ao buscar dados");
             }
 
-            // Adaptar formato para o modal
+            // Adaptar formato para o modal com dados locais incluídos
             data = {
                 success: true,
                 preTemporada: true,
                 temporada: temporada,
                 dump_atual: {
-                    raw_json: apiData.time ? apiData : { time: apiData },
+                    raw_json: apiData.dados_api,
                     rodada: 0
                 },
+                dados_local: apiData.dados_local,
                 rodadas_disponiveis: [],
                 historico: []
             };
@@ -1573,7 +1574,11 @@ function verificarDadosValidos(rawJson) {
 }
 
 /**
- * ✅ v2.2: Cria modal de dados da API Cartola (adaptado para pré-temporada)
+ * ✅ v3.0: Cria modal COMPLETO de dados da API Cartola
+ * - Exibe TODOS os dados disponíveis da API Globo
+ * - Botão Refresh para atualizar dados
+ * - Botão Salvar para persistir no banco
+ * - Indicador de última sincronização
  */
 function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
     // Remover modal existente
@@ -1587,91 +1592,29 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
     const temDados = data.success && data.dump_atual;
     const rawJson = temDados ? data.dump_atual.raw_json : null;
 
-    // Para pré-temporada, mostrar dados básicos do time
-    let resumoDados = "";
-
-    if (isPreTemporada && rawJson) {
-        const time = rawJson.time || rawJson;
-        const patrimonio = time.patrimonio || rawJson.patrimonio;
-        const pontosCampeonato = time.pontos_campeonato || rawJson.pontos_campeonato;
-        const rodadaAtual = time.rodada_atual || rawJson.rodada_atual || 0;
-
-        resumoDados = `
-            <div class="pre-temporada-banner">
-                <span class="material-symbols-outlined">schedule</span>
-                <div>
-                    <strong>Pré-Temporada ${temporada}</strong>
-                    <p>O Brasileirão ${temporada} ainda não iniciou. Exibindo dados cadastrais do time.</p>
-                </div>
-            </div>
-
-            <div class="dados-resumo">
-                <div class="resumo-item">
-                    <span class="resumo-icon material-symbols-outlined">person</span>
-                    <div class="resumo-info">
-                        <span class="resumo-label">Cartoleiro</span>
-                        <span class="resumo-value">${time.nome_cartola || nomeCartoleiro}</span>
-                    </div>
-                </div>
-                <div class="resumo-item">
-                    <span class="resumo-icon material-symbols-outlined">sports_soccer</span>
-                    <div class="resumo-info">
-                        <span class="resumo-label">Time</span>
-                        <span class="resumo-value">${time.nome || nomeTime}</span>
-                    </div>
-                </div>
-                <div class="resumo-item">
-                    <span class="resumo-icon material-symbols-outlined">tag</span>
-                    <div class="resumo-info">
-                        <span class="resumo-label">ID Cartola</span>
-                        <span class="resumo-value">${time.time_id || timeId}</span>
-                    </div>
-                </div>
-                ${patrimonio !== undefined ? `
-                <div class="resumo-item">
-                    <span class="resumo-icon material-symbols-outlined">account_balance</span>
-                    <div class="resumo-info">
-                        <span class="resumo-label">Patrimônio</span>
-                        <span class="resumo-value">C$ ${patrimonio.toFixed(2)}</span>
-                    </div>
-                </div>
-                ` : ""}
-                ${pontosCampeonato !== undefined && pontosCampeonato > 0 ? `
-                <div class="resumo-item resumo-item-destaque">
-                    <span class="resumo-icon material-symbols-outlined">emoji_events</span>
-                    <div class="resumo-info">
-                        <span class="resumo-label">Pontos (Campeonato)</span>
-                        <span class="resumo-value">${pontosCampeonato.toFixed(2)}</span>
-                    </div>
-                </div>
-                ` : ""}
-                ${time.url_escudo_png || time.url_escudo_svg ? `
-                <div class="resumo-item">
-                    <span class="resumo-icon material-symbols-outlined">image</span>
-                    <div class="resumo-info">
-                        <span class="resumo-label">Escudo do Time</span>
-                        <img src="${time.url_escudo_png || time.url_escudo_svg}"
-                             alt="Escudo"
-                             style="width: 48px; height: 48px; object-fit: contain; margin-top: 4px;"
-                             onerror="this.style.display='none'">
-                    </div>
-                </div>
-                ` : ""}
-            </div>
-
-            <div class="pre-temporada-info">
-                <span class="material-symbols-outlined">info</span>
-                <p>Scouts e estatísticas de rodadas estarão disponíveis após o início do campeonato.</p>
-            </div>
-        `;
-    } else {
-        // Usar função existente para temporada histórica
+    // Se não é pré-temporada, usar modal histórico
+    if (!isPreTemporada) {
         return criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data);
     }
 
+    // Extrair dados do time
+    const time = rawJson?.time || rawJson || {};
+    const patrimonio = time.patrimonio ?? rawJson?.patrimonio;
+    const pontosCampeonato = time.pontos_campeonato ?? rawJson?.pontos_campeonato ?? 0;
+
+    // Dados do clube do coração
+    const clube = time.clube || {};
+    const clubeEscudo = clube.escudos?.["60x60"] || clube.escudos?.["45x45"] || "";
+
+    // Última sincronização (do banco local, se disponível)
+    const ultimaSync = data.dados_local?.ultima_sincronizacao;
+    const ultimaSyncFormatada = ultimaSync
+        ? new Date(ultimaSync).toLocaleString("pt-BR")
+        : "Nunca sincronizado";
+
     modal.innerHTML = `
         <div class="modal-dados-overlay" onclick="this.parentElement.remove()"></div>
-        <div class="modal-dados-content">
+        <div class="modal-dados-content modal-api-cartola-completo">
             <div class="modal-dados-header">
                 <div class="header-info">
                     <h3>
@@ -1681,6 +1624,9 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
                     <span class="header-subtitle">Temporada ${temporada} • ID: ${timeId}</span>
                 </div>
                 <div class="header-actions">
+                    <button class="btn-refresh-api" id="btn-refresh-api" title="Atualizar dados da API">
+                        <span class="material-symbols-outlined">refresh</span>
+                    </button>
                     <button class="btn-fechar" onclick="this.closest('.modal-dados-globo').remove()">
                         <span class="material-symbols-outlined">close</span>
                     </button>
@@ -1688,10 +1634,240 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
             </div>
 
             <div class="modal-dados-body">
-                ${resumoDados}
+                <!-- Banner Pré-Temporada -->
+                <div class="pre-temporada-banner">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <div>
+                        <strong>Pré-Temporada ${temporada}</strong>
+                        <p>Dados cadastrais do participante na API Globo</p>
+                    </div>
+                </div>
+
+                <!-- Última Sincronização -->
+                <div class="sync-status-bar" id="sync-status-bar">
+                    <span class="material-symbols-outlined">update</span>
+                    <span>Última sincronização: <strong id="ultima-sync-label">${ultimaSyncFormatada}</strong></span>
+                </div>
+
+                <!-- Seção: Dados do Time -->
+                <div class="api-section">
+                    <div class="api-section-header">
+                        <span class="material-symbols-outlined">sports_soccer</span>
+                        <h4>Dados do Time</h4>
+                    </div>
+                    <div class="api-grid">
+                        <div class="api-card api-card-escudo">
+                            ${time.url_escudo_png || time.url_escudo_svg ? `
+                                <img src="${time.url_escudo_png || time.url_escudo_svg}"
+                                     alt="Escudo do Time"
+                                     class="escudo-grande"
+                                     onerror="this.src='/escudos/default.png'">
+                            ` : `
+                                <div class="escudo-placeholder">
+                                    <span class="material-symbols-outlined">shield</span>
+                                </div>
+                            `}
+                            <span class="api-card-label">Escudo</span>
+                        </div>
+                        <div class="api-card">
+                            <span class="api-card-value">${time.nome || nomeTime || "N/D"}</span>
+                            <span class="api-card-label">Nome do Time</span>
+                        </div>
+                        <div class="api-card">
+                            <span class="api-card-value">${time.nome_cartola || nomeCartoleiro || "N/D"}</span>
+                            <span class="api-card-label">Cartoleiro</span>
+                        </div>
+                        <div class="api-card">
+                            <span class="api-card-value">${time.time_id || timeId}</span>
+                            <span class="api-card-label">ID Cartola</span>
+                        </div>
+                        <div class="api-card">
+                            <span class="api-card-value">${time.slug || "N/D"}</span>
+                            <span class="api-card-label">Slug</span>
+                        </div>
+                        <div class="api-card">
+                            <span class="api-card-value ${time.assinante ? 'valor-positivo' : ''}">${time.assinante ? "PRO" : "Free"}</span>
+                            <span class="api-card-label">Assinatura</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção: Dados Financeiros -->
+                <div class="api-section">
+                    <div class="api-section-header">
+                        <span class="material-symbols-outlined">account_balance</span>
+                        <h4>Patrimônio e Pontuação</h4>
+                    </div>
+                    <div class="api-grid api-grid-2">
+                        <div class="api-card api-card-destaque">
+                            <span class="api-card-value">C$ ${patrimonio !== undefined ? patrimonio.toFixed(2) : "N/D"}</span>
+                            <span class="api-card-label">Patrimônio</span>
+                        </div>
+                        <div class="api-card ${pontosCampeonato > 0 ? 'api-card-destaque' : ''}">
+                            <span class="api-card-value">${pontosCampeonato > 0 ? pontosCampeonato.toFixed(2) : "0.00"}</span>
+                            <span class="api-card-label">Pontos Campeonato</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção: Clube do Coração -->
+                ${clube.id ? `
+                <div class="api-section">
+                    <div class="api-section-header">
+                        <span class="material-symbols-outlined">favorite</span>
+                        <h4>Clube do Coração</h4>
+                    </div>
+                    <div class="api-grid api-grid-clube">
+                        ${clubeEscudo ? `
+                            <div class="api-card api-card-escudo-clube">
+                                <img src="${clubeEscudo}"
+                                     alt="${clube.nome || 'Clube'}"
+                                     class="escudo-clube"
+                                     onerror="this.style.display='none'">
+                            </div>
+                        ` : ""}
+                        <div class="api-card">
+                            <span class="api-card-value">${clube.nome || "N/D"}</span>
+                            <span class="api-card-label">Nome</span>
+                        </div>
+                        <div class="api-card">
+                            <span class="api-card-value">${clube.abreviacao || "N/D"}</span>
+                            <span class="api-card-label">Abreviação</span>
+                        </div>
+                        <div class="api-card">
+                            <span class="api-card-value">${clube.id || "N/D"}</span>
+                            <span class="api-card-label">ID Clube</span>
+                        </div>
+                    </div>
+                </div>
+                ` : ""}
+
+                <!-- Seção: IDs e Metadados -->
+                <div class="api-section api-section-meta">
+                    <div class="api-section-header">
+                        <span class="material-symbols-outlined">info</span>
+                        <h4>Metadados</h4>
+                    </div>
+                    <div class="api-grid api-grid-4">
+                        <div class="api-card api-card-mini">
+                            <span class="api-card-value">${time.globo_id || "N/D"}</span>
+                            <span class="api-card-label">Globo ID</span>
+                        </div>
+                        <div class="api-card api-card-mini">
+                            <span class="api-card-value">${time.facebook_id || "N/D"}</span>
+                            <span class="api-card-label">Facebook ID</span>
+                        </div>
+                        <div class="api-card api-card-mini">
+                            <span class="api-card-value">${time.rodada_time_id || "N/D"}</span>
+                            <span class="api-card-label">Rodada Time ID</span>
+                        </div>
+                        <div class="api-card api-card-mini">
+                            <span class="api-card-value">${time.cadastro_completo ? "Sim" : "Não"}</span>
+                            <span class="api-card-label">Cadastro Completo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="api-actions">
+                    <button class="btn-salvar-dados" id="btn-salvar-dados">
+                        <span class="material-symbols-outlined">save</span>
+                        Salvar no Banco
+                    </button>
+                    <p class="api-actions-hint">Salva os dados atuais no cadastro do participante</p>
+                </div>
             </div>
         </div>
     `;
+
+    // Event Listeners
+    const btnRefresh = modal.querySelector("#btn-refresh-api");
+    const btnSalvar = modal.querySelector("#btn-salvar-dados");
+
+    // Refresh: Busca novamente da API
+    btnRefresh?.addEventListener("click", async () => {
+        btnRefresh.disabled = true;
+        btnRefresh.innerHTML = `<span class="material-symbols-outlined spin">sync</span>`;
+
+        try {
+            // Buscar dados atualizados
+            const response = await fetch(`/api/cartola/time/${timeId}/completo`);
+            const novosDados = await response.json();
+
+            if (novosDados.success) {
+                // Fechar modal atual e reabrir com novos dados
+                modal.remove();
+                const novoData = {
+                    success: true,
+                    preTemporada: true,
+                    temporada: temporada,
+                    dump_atual: {
+                        raw_json: novosDados.dados_api,
+                        rodada: 0
+                    },
+                    dados_local: novosDados.dados_local
+                };
+                const novoModal = criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, novoData);
+                document.body.appendChild(novoModal);
+                requestAnimationFrame(() => novoModal.classList.add("modal-visible"));
+                mostrarToast("Dados atualizados com sucesso!", "success");
+            } else {
+                throw new Error(novosDados.erro || "Erro ao atualizar");
+            }
+        } catch (error) {
+            console.error("[API-CARTOLA] Erro no refresh:", error);
+            mostrarToast(`Erro ao atualizar: ${error.message}`, "error");
+            btnRefresh.disabled = false;
+            btnRefresh.innerHTML = `<span class="material-symbols-outlined">refresh</span>`;
+        }
+    });
+
+    // Salvar: Persiste no banco de dados
+    btnSalvar?.addEventListener("click", async () => {
+        btnSalvar.disabled = true;
+        btnSalvar.innerHTML = `
+            <span class="material-symbols-outlined spin">sync</span>
+            Salvando...
+        `;
+
+        try {
+            const response = await fetch(`/api/cartola/time/${timeId}/sincronizar?salvar=true`, {
+                method: "POST"
+            });
+            const resultado = await response.json();
+
+            if (resultado.success && resultado.salvo_no_banco) {
+                // Atualizar label de última sincronização
+                const syncLabel = modal.querySelector("#ultima-sync-label");
+                if (syncLabel) {
+                    syncLabel.textContent = new Date().toLocaleString("pt-BR");
+                }
+
+                // Adicionar classe de sucesso temporária
+                const syncBar = modal.querySelector("#sync-status-bar");
+                syncBar?.classList.add("sync-success");
+                setTimeout(() => syncBar?.classList.remove("sync-success"), 3000);
+
+                mostrarToast("Dados salvos com sucesso!", "success");
+
+                // Recarregar lista de participantes para refletir mudanças
+                if (typeof carregarParticipantes === "function") {
+                    carregarParticipantes();
+                }
+            } else {
+                throw new Error(resultado.mensagem || resultado.erro || "Erro ao salvar");
+            }
+        } catch (error) {
+            console.error("[API-CARTOLA] Erro ao salvar:", error);
+            mostrarToast(`Erro ao salvar: ${error.message}`, "error");
+        } finally {
+            btnSalvar.disabled = false;
+            btnSalvar.innerHTML = `
+                <span class="material-symbols-outlined">save</span>
+                Salvar no Banco
+            `;
+        }
+    });
 
     // Fechar com ESC
     const handleEsc = (e) => {

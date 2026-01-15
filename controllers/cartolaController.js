@@ -5,6 +5,8 @@ import {
   buscarPontuacaoPorRodada,
 } from "../services/cartolaService.js";
 import { isSeasonFinished, getSeasonStatus, logBlockedOperation, SEASON_CONFIG } from "../utils/seasonGuard.js";
+import cartolaApiService from "../services/cartolaApiService.js";
+import Time from "../models/Time.js";
 
 // Retorna todos os clubes disponíveis
 export async function listarClubes(req, res) {
@@ -196,5 +198,170 @@ export async function getClubes(req, res) {
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: "Erro ao buscar clubes do Cartola" });
+  }
+}
+
+/**
+ * Busca dados COMPLETOS da API Cartola e sincroniza com o banco de dados
+ * - Atualiza campos básicos (nome_time, nome_cartoleiro, url_escudo_png, slug, assinante)
+ * - Salva JSON completo em dados_cartola
+ * - Atualiza ultima_sincronizacao_globo
+ */
+export async function sincronizarDadosCartola(req, res) {
+  const { id } = req.params;
+  const { salvar } = req.query; // ?salvar=true para persistir no banco
+
+  try {
+    console.log(`[CARTOLA-SYNC] Buscando dados completos do time ${id}...`);
+
+    // Buscar dados COMPLETOS da API Cartola (sem normalização)
+    const dadosCompletos = await cartolaApiService.buscarTimePorIdCompleto(id);
+
+    if (!dadosCompletos) {
+      return res.status(404).json({
+        success: false,
+        erro: `Time ${id} não encontrado na API do Cartola`
+      });
+    }
+
+    const time = dadosCompletos.time || dadosCompletos;
+    const agora = new Date();
+
+    // Preparar resposta com todos os dados
+    const resposta = {
+      success: true,
+      time_id: parseInt(id),
+      sincronizado_em: agora.toISOString(),
+      dados_api: {
+        // Dados básicos
+        time_id: time.time_id,
+        nome: time.nome,
+        nome_cartola: time.nome_cartola,
+        slug: time.slug,
+        url_escudo_png: time.url_escudo_png,
+        url_escudo_svg: time.url_escudo_svg,
+        foto_perfil: time.foto_perfil,
+        assinante: time.assinante,
+        // Dados financeiros/pontuação
+        patrimonio: time.patrimonio,
+        pontos_campeonato: time.pontos_campeonato,
+        rodada_atual: time.rodada_atual,
+        rodada_time_id: time.rodada_time_id,
+        // Dados do clube do coração
+        clube_id: time.clube?.id || null,
+        clube_nome: time.clube?.nome || null,
+        clube_abreviacao: time.clube?.abreviacao || null,
+        clube_escudo: time.clube?.escudos?.["60x60"] || time.clube?.escudos?.["45x45"] || null,
+        // Dados extras
+        facebook_id: time.facebook_id,
+        globo_id: time.globo_id,
+        cadastro_completo: time.cadastro_completo,
+        // Raw completo para referência
+        _raw: dadosCompletos
+      },
+      salvo_no_banco: false
+    };
+
+    // Se solicitado, salvar no banco de dados
+    if (salvar === "true") {
+      console.log(`[CARTOLA-SYNC] Salvando dados do time ${id} no banco...`);
+
+      const timeDoc = await Time.findOne({ id: parseInt(id) });
+
+      if (timeDoc) {
+        // Atualizar campos básicos
+        timeDoc.nome_time = time.nome || timeDoc.nome_time;
+        timeDoc.nome = time.nome || timeDoc.nome;
+        timeDoc.nome_cartoleiro = time.nome_cartola || timeDoc.nome_cartoleiro;
+        timeDoc.nome_cartola = time.nome_cartola || timeDoc.nome_cartola;
+        timeDoc.url_escudo_png = time.url_escudo_png || timeDoc.url_escudo_png;
+        timeDoc.escudo = time.url_escudo_png || timeDoc.escudo;
+        timeDoc.slug = time.slug || timeDoc.slug;
+        timeDoc.assinante = time.assinante ?? timeDoc.assinante;
+        timeDoc.foto_perfil = time.foto_perfil || timeDoc.foto_perfil;
+
+        // Salvar dados completos no container
+        timeDoc.dados_cartola = {
+          patrimonio: time.patrimonio,
+          pontos_campeonato: time.pontos_campeonato,
+          rodada_atual: time.rodada_atual,
+          rodada_time_id: time.rodada_time_id,
+          clube_id: time.clube?.id || null,
+          clube_nome: time.clube?.nome || null,
+          clube_abreviacao: time.clube?.abreviacao || null,
+          clube_escudo: time.clube?.escudos?.["60x60"] || null,
+          facebook_id: time.facebook_id,
+          globo_id: time.globo_id,
+          url_escudo_svg: time.url_escudo_svg,
+          cadastro_completo: time.cadastro_completo,
+          _ultima_atualizacao: agora
+        };
+
+        // Atualizar timestamp de sincronização
+        timeDoc.ultima_sincronizacao_globo = agora;
+
+        await timeDoc.save();
+
+        resposta.salvo_no_banco = true;
+        resposta.mensagem = "Dados sincronizados e salvos com sucesso";
+        console.log(`[CARTOLA-SYNC] Time ${id} atualizado com sucesso`);
+      } else {
+        resposta.salvo_no_banco = false;
+        resposta.mensagem = `Time ${id} não encontrado no banco local. Use o cadastro de participantes para adicioná-lo primeiro.`;
+        console.log(`[CARTOLA-SYNC] Time ${id} não existe no banco local`);
+      }
+    }
+
+    res.status(200).json(resposta);
+
+  } catch (error) {
+    console.error(`[CARTOLA-SYNC] Erro ao sincronizar time ${id}:`, error.message);
+    res.status(500).json({
+      success: false,
+      erro: `Erro ao sincronizar dados: ${error.message}`
+    });
+  }
+}
+
+/**
+ * Retorna dados completos da API Cartola (sem salvar)
+ * Útil para visualização no modal
+ */
+export async function obterDadosCompletosCartola(req, res) {
+  const { id } = req.params;
+
+  try {
+    console.log(`[CARTOLA-API] Buscando dados completos do time ${id}...`);
+
+    const dadosCompletos = await cartolaApiService.buscarTimePorIdCompleto(id);
+
+    if (!dadosCompletos) {
+      return res.status(404).json({
+        success: false,
+        erro: `Time ${id} não encontrado na API do Cartola`
+      });
+    }
+
+    // Buscar também dados do banco local para comparar
+    const timeLocal = await Time.findOne({ id: parseInt(id) });
+
+    res.status(200).json({
+      success: true,
+      time_id: parseInt(id),
+      dados_api: dadosCompletos,
+      dados_local: timeLocal ? {
+        ultima_sincronizacao: timeLocal.ultima_sincronizacao_globo,
+        dados_cartola: timeLocal.dados_cartola,
+        nome_time: timeLocal.nome_time,
+        nome_cartoleiro: timeLocal.nome_cartoleiro
+      } : null
+    });
+
+  } catch (error) {
+    console.error(`[CARTOLA-API] Erro ao buscar time ${id}:`, error.message);
+    res.status(500).json({
+      success: false,
+      erro: `Erro ao buscar dados: ${error.message}`
+    });
   }
 }
