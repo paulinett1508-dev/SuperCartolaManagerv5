@@ -7,31 +7,26 @@
 
 ## Status Atual (2026-01-16)
 
-### ⚠️ Bug Potencial - TOP10 sem filtro de temporada
-
-**Arquivo:** `controllers/fluxoFinanceiroController.js` linha 213
-
-**Problema:** Query do TOP10 nao filtra por temporada:
-```javascript
-// ATUAL (potencial bug)
-const cache = await Top10Cache.findOne({ liga_id: String(ligaId) })
-
-// CORRETO (deveria ter filtro)
-const cache = await Top10Cache.findOne({
-    liga_id: String(ligaId),
-    temporada: temporada
-})
-```
-
-**Impacto:** Se existir mais de um cache TOP10 para a mesma liga (ex: 2024 e 2025), pode retornar o cache errado.
-
-**Status:** NAO AFETA SUPERCARTOLA 2025 (so existe um cache). Corrigir para prevenir problemas futuros.
-
-**Prioridade:** BAIXA (preventivo)
+**Nenhuma tarefa pendente.**
 
 ---
 
 ## Historico de Correcoes Recentes
+
+### ✅ TOP10 - Filtro por Temporada (2026-01-16)
+
+**Arquivo:** `controllers/fluxoFinanceiroController.js` v8.6.0
+
+**Problema:** Query do TOP10 nao filtrava por temporada, podendo retornar cache errado em cenarios com multiplos anos.
+
+**Correcao:**
+- Adicionado parametro `temporada` na funcao `calcularTop10Historico()`
+- Query agora filtra: `Top10Cache.findOne({ liga_id, temporada })`
+- Atualizadas 2 chamadas para passar `temporadaAtual`
+
+**Impacto:** Preventivo - evita bugs quando existirem caches TOP10 de multiplas temporadas.
+
+---
 
 ### ✅ Mega-Auditoria Financeira 2025 (2026-01-16)
 

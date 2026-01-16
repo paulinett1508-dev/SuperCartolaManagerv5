@@ -233,58 +233,13 @@ const RenovacaoCore = (function() {
     }
 
     /**
-     * Mostra opcoes para participante pendente
+     * Mostra modal de decisao unificada para participante pendente
+     * v2.0: Usa modal unificado que combina quitacao + renovacao/nao-participar
      */
     function mostrarOpcoesParticipante(participante) {
-        // Modal simples com 2 opcoes: Renovar ou Nao Participar
-        const html = `
-        <div class="modal fade" id="modalOpcoes" tabindex="-1">
-            <div class="modal-dialog modal-sm">
-                <div class="modal-content bg-gray-800 text-white">
-                    <div class="modal-header border-gray-700">
-                        <h6 class="modal-title">
-                            ${RenovacaoModals.escapeHtml(participante.nome_time || participante.nome_cartoleiro) || 'Participante'}
-                        </h6>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-success" id="btnOpRenovar">
-                                <span class="material-icons" style="vertical-align: middle;">check_circle</span>
-                                Renovar
-                            </button>
-                            <button type="button" class="btn btn-danger" id="btnOpNaoParticipa">
-                                <span class="material-icons" style="vertical-align: middle;">cancel</span>
-                                Nao Participa
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-
-        // Remover existente
-        const existing = document.getElementById('modalOpcoes');
-        if (existing) existing.remove();
-
-        document.body.insertAdjacentHTML('beforeend', html);
-
-        const modalEl = document.getElementById('modalOpcoes');
-        const modal = new bootstrap.Modal(modalEl);
-
-        document.getElementById('btnOpRenovar').addEventListener('click', () => {
-            modal.hide();
-            abrirRenovacao(participante);
-        });
-
-        document.getElementById('btnOpNaoParticipa').addEventListener('click', () => {
-            modal.hide();
-            abrirNaoParticipar(participante);
-        });
-
-        modalEl.addEventListener('hidden.bs.modal', () => modalEl.remove());
-
-        modal.show();
+        // v2.0: Abrir modal de decisao unificada diretamente
+        // Combina quitacao da temporada anterior com decisao para nova temporada
+        RenovacaoUI.abrirModalDecisaoUnificada(state.ligaId, participante);
     }
 
     /**

@@ -1,6 +1,9 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.9 (JOGOS AO VIVO API-FOOTBALL)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.11 (BADGE AMBIENTE NO HEADER)
 // =====================================================================
+// ✅ v10.11: Badge de ambiente movido para o header (próximo à versão)
+//           - Removido do card de boas-vindas
+//           - Agora aparece no topo, ao lado do badge de versão
 // ✅ v10.9: Jogos ao vivo com API-Football para TODOS os participantes
 //          - Usa /api/jogos-ao-vivo (API-Football + Globo fallback)
 //          - Exibe placares em tempo real quando há jogos brasileiros
@@ -27,7 +30,7 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.7...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.10...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -546,6 +549,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
     // Selo premium para Paulinett Miranda (timeId 13935277)
     const isPremium = String(data?.timeId || '') === '13935277';
     const seloPremium = isPremium ? `<span title="Participante Premium" class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full border border-yellow-400/40 bg-yellow-400/10 text-xs font-semibold text-yellow-300 shadow-sm" style="vertical-align:middle;">Premium <span class="material-icons text-yellow-300 text-base ml-1" style="font-size:14px;">star</span></span>` : '';
+    // ✅ v10.11: Badge de ambiente movido para o header (próximo à versão)
     const rodadasRestantes = Math.max(0, 38 - rodadaAtual);
     const pontosUltimaRodada = ultimaRodada
         ? parseFloat(ultimaRodada.pontos).toFixed(2)

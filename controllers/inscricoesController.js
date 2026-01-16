@@ -388,8 +388,9 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
     // Taxa só vira dívida se NÃO pagou
     const taxaComoDebito = pagouInscricao ? 0 : taxa;
 
-    // Saldo inicial = taxa (se não pagou) + dívida anterior - crédito usado
-    const saldoInicialTemporada = taxaComoDebito + dividaAnterior - creditoUsado;
+    // ✅ FIX: Saldo inicial = crédito - taxa - dívida (negativo = deve, positivo = credor)
+    // Exemplo: crédito 111.54 - taxa 180 = -68.46 (deve 68.46)
+    const saldoInicialTemporada = creditoUsado - taxaComoDebito - dividaAnterior;
 
     // 6. Buscar dados do participante
     const liga = await Liga.findById(ligaId).lean();
@@ -591,7 +592,8 @@ export async function processarNovoParticipante(ligaId, temporada, dadosCartola,
     // ✅ v1.3 FIX: Default é FALSE (não pagou) - taxa vira débito
     const pagouInscricao = opcoes.pagouInscricao === true;
     const taxaComoDebito = pagouInscricao ? 0 : taxa;
-    const saldoInicialTemporada = taxaComoDebito;
+    // ✅ FIX: Saldo negativo = deve (novo participante só tem taxa, sem crédito)
+    const saldoInicialTemporada = -taxaComoDebito;
 
     // 3. Criar inscrição
     const nomeTime = dadosCartola.nome_time || dadosCartola.nome || dadosCartola.nome_cartoleiro;
@@ -679,11 +681,333 @@ export async function processarNovoParticipante(ligaId, temporada, dadosCartola,
     };
 }
 
+// =============================================================================
+// DECISAO UNIFICADA - QUITACAO + RENOVACAO/NAO_PARTICIPAR
+// =============================================================================
+
+/**
+ * Busca dados completos para o modal de decisao unificada
+ * @param {string} ligaId - ID da liga
+ * @param {number} timeId - ID do time
+ * @param {number} temporada - Temporada destino (ex: 2026)
+ * @returns {Promise<Object>} Dados para o modal
+ */
+export async function buscarDadosDecisao(ligaId, timeId, temporada) {
+    const temporadaAnterior = temporada - 1;
+    const db = mongoose.connection.db;
+
+    // 1. Buscar dados do participante
+    const liga = await Liga.findById(ligaId).lean();
+    const participante = liga?.participantes?.find(p => Number(p.time_id) === Number(timeId));
+
+    if (!participante) {
+        throw new Error("Participante nao encontrado na liga");
+    }
+
+    // 2. Buscar saldo da temporada anterior
+    const saldo = await buscarSaldoTemporada(ligaId, timeId, temporadaAnterior);
+
+    // 3. Buscar regras da liga
+    const rules = await LigaRules.buscarPorLiga(ligaId, temporada);
+    if (!rules) {
+        throw new Error("Regras nao configuradas para esta temporada");
+    }
+
+    // 4. Verificar se ja existe inscricao
+    const inscricaoExistente = await InscricaoTemporada.findOne({
+        liga_id: new mongoose.Types.ObjectId(ligaId),
+        time_id: Number(timeId),
+        temporada: Number(temporada)
+    }).lean();
+
+    // 5. Verificar se temporada anterior foi quitada
+    const extratoAnterior = await db.collection('extratofinanceirocaches').findOne({
+        $or: [
+            { liga_id: String(ligaId) },
+            { liga_id: new mongoose.Types.ObjectId(ligaId) }
+        ],
+        time_id: Number(timeId),
+        temporada: Number(temporadaAnterior)
+    });
+    const quitado = extratoAnterior?.quitacao?.quitado === true;
+    const tipoQuitacao = extratoAnterior?.quitacao?.tipo || null;
+
+    // 6. Determinar cenario
+    let cenario = 'quitado';
+    if (saldo.saldoFinal > 0.01) cenario = 'credor';
+    else if (saldo.saldoFinal < -0.01) cenario = 'devedor';
+
+    // 7. Montar preview de cenarios
+    const taxa = rules.inscricao?.taxa || 0;
+    const cenarios = {
+        renovar: {
+            aproveitarCredito: cenario === 'credor' ? {
+                saldoTransferido: saldo.saldoFinal,
+                taxa,
+                saldoInicial: saldo.saldoFinal - taxa
+            } : null,
+            naoAproveitarCredito: cenario === 'credor' ? {
+                saldoTransferido: 0,
+                taxa,
+                saldoInicial: -taxa
+            } : null,
+            carregarDivida: cenario === 'devedor' ? {
+                saldoTransferido: saldo.saldoFinal,
+                taxa,
+                saldoInicial: saldo.saldoFinal - taxa
+            } : null,
+            quitarDivida: cenario === 'devedor' ? {
+                saldoTransferido: 0,
+                taxa,
+                saldoInicial: -taxa
+            } : null,
+            quitado: cenario === 'quitado' ? {
+                saldoTransferido: 0,
+                taxa,
+                saldoInicial: -taxa
+            } : null
+        },
+        naoParticipar: {
+            pagarCredito: cenario === 'credor' ? { valor: saldo.saldoFinal } : null,
+            congelarCredito: cenario === 'credor' ? { valor: saldo.saldoFinal } : null,
+            cobrarDivida: cenario === 'devedor' ? { valor: Math.abs(saldo.saldoFinal) } : null,
+            perdoar: { valor: 0 }
+        }
+    };
+
+    return {
+        participante: {
+            time_id: participante.time_id,
+            nome_time: participante.nome_time,
+            nome_cartola: participante.nome_cartola || participante.nome_cartoleiro,
+            escudo: participante.escudo_url || participante.foto_time,
+            clube_id: participante.clube_id || participante.time_coracao
+        },
+        saldo2025: {
+            saldoExtrato: saldo.saldoExtrato,
+            camposManuais: saldo.camposManuais,
+            saldoAcertos: saldo.saldoAcertos,
+            saldoFinal: saldo.saldoFinal,
+            status: saldo.status
+        },
+        quitacao2025: {
+            quitado,
+            tipo: tipoQuitacao
+        },
+        regras: {
+            taxa,
+            permitir_devedor_renovar: rules.inscricao?.permitir_devedor_renovar !== false,
+            aproveitar_saldo_positivo: rules.inscricao?.aproveitar_saldo_positivo !== false,
+            prazo_renovacao: rules.inscricao?.prazo_renovacao,
+            status: rules.status
+        },
+        inscricaoExistente: inscricaoExistente ? {
+            status: inscricaoExistente.status,
+            processado: inscricaoExistente.processado,
+            pagou_inscricao: inscricaoExistente.pagou_inscricao,
+            data_decisao: inscricaoExistente.data_decisao
+        } : null,
+        cenario,
+        cenarios,
+        temporadaAnterior,
+        temporadaDestino: temporada
+    };
+}
+
+/**
+ * Processa decisao unificada (quitacao + renovacao/nao-participar)
+ * @param {string} ligaId - ID da liga
+ * @param {number} timeId - ID do time
+ * @param {number} temporada - Temporada destino (ex: 2026)
+ * @param {Object} decisao - Dados da decisao
+ * @returns {Promise<Object>} Resultado
+ */
+export async function processarDecisaoUnificada(ligaId, timeId, temporada, decisao) {
+    const temporadaAnterior = temporada - 1;
+    const db = mongoose.connection.db;
+
+    console.log(`[INSCRICOES] Processando decisao unificada: liga=${ligaId} time=${timeId} temporada=${temporada}`);
+    console.log(`[INSCRICOES] Decisao:`, JSON.stringify(decisao, null, 2));
+
+    // 1. Buscar saldo atual
+    const saldo = await buscarSaldoTemporada(ligaId, timeId, temporadaAnterior);
+    const cenario = saldo.status; // credor, devedor, quitado
+
+    // 2. Determinar tipo de quitacao e valor legado baseado na decisao
+    let tipoQuitacao = 'integral';
+    let valorLegado = 0;
+
+    if (decisao.decisao === 'renovar') {
+        if (cenario === 'credor') {
+            if (decisao.aproveitarCredito) {
+                // Credito sera transferido para 2026
+                tipoQuitacao = 'integral';
+                valorLegado = saldo.saldoFinal;
+            } else {
+                // Credito fica congelado em 2025 (participante escolheu nao usar)
+                tipoQuitacao = 'zerado';
+                valorLegado = 0;
+            }
+        } else if (cenario === 'devedor') {
+            if (decisao.carregarDivida) {
+                // Divida sera carregada para 2026
+                tipoQuitacao = 'integral';
+                valorLegado = saldo.saldoFinal; // Negativo
+            } else {
+                // Participante ja quitou a divida (pagou fora do sistema)
+                tipoQuitacao = 'zerado';
+                valorLegado = 0;
+            }
+        } else {
+            // Quitado - nada a transferir
+            tipoQuitacao = 'zerado';
+            valorLegado = 0;
+        }
+    } else if (decisao.decisao === 'nao_participar') {
+        if (cenario === 'credor') {
+            if (decisao.acaoCredito === 'pagar') {
+                // Admin vai pagar o credito ao participante - zera
+                tipoQuitacao = 'zerado';
+                valorLegado = 0;
+            } else if (decisao.acaoCredito === 'congelar') {
+                // Credito fica congelado (futuro uso se voltar)
+                tipoQuitacao = 'integral';
+                valorLegado = saldo.saldoFinal;
+            } else {
+                // Perdoar
+                tipoQuitacao = 'zerado';
+                valorLegado = 0;
+            }
+        } else if (cenario === 'devedor') {
+            if (decisao.acaoDivida === 'cobrar') {
+                // Divida fica pendente para cobranca externa
+                tipoQuitacao = 'integral';
+                valorLegado = saldo.saldoFinal; // Negativo
+            } else {
+                // Perdoar divida
+                tipoQuitacao = 'zerado';
+                valorLegado = 0;
+            }
+        } else {
+            tipoQuitacao = 'zerado';
+            valorLegado = 0;
+        }
+    }
+
+    // 3. Registrar quitacao da temporada anterior
+    const agora = new Date();
+    const ligaObjId = new mongoose.Types.ObjectId(ligaId);
+
+    await db.collection('extratofinanceirocaches').updateOne(
+        {
+            liga_id: ligaObjId,
+            time_id: Number(timeId),
+            temporada: Number(temporadaAnterior)
+        },
+        {
+            $set: {
+                quitacao: {
+                    quitado: true,
+                    tipo: tipoQuitacao,
+                    saldo_no_momento: saldo.saldoFinal,
+                    valor_legado: valorLegado,
+                    data_quitacao: agora,
+                    admin_responsavel: decisao.aprovadoPor || 'admin',
+                    observacao: decisao.observacoes || `Quitacao via modal unificado - ${decisao.decisao}`
+                }
+            }
+        },
+        { upsert: true }
+    );
+
+    console.log(`[INSCRICOES] Quitacao ${temporadaAnterior} registrada: tipo=${tipoQuitacao} legado=${valorLegado}`);
+
+    // 4. Processar renovacao ou nao-participar
+    let resultado;
+
+    if (decisao.decisao === 'renovar') {
+        // Criar inscricao com legado_manual se aplicavel
+        if (valorLegado !== saldo.saldoFinal || tipoQuitacao === 'zerado') {
+            // Definir legado manual na inscricao
+            const inscricaoPrevia = await InscricaoTemporada.findOne({
+                liga_id: ligaObjId,
+                time_id: Number(timeId),
+                temporada: Number(temporada)
+            });
+
+            if (!inscricaoPrevia) {
+                await InscricaoTemporada.create({
+                    liga_id: ligaObjId,
+                    time_id: Number(timeId),
+                    temporada: Number(temporada),
+                    status: 'pendente',
+                    legado_manual: {
+                        origem: 'decisao_unificada',
+                        tipo_quitacao: tipoQuitacao,
+                        valor_original: saldo.saldoFinal,
+                        valor_definido: valorLegado,
+                        definido_por: decisao.aprovadoPor || 'admin',
+                        data: agora
+                    }
+                });
+            } else {
+                await InscricaoTemporada.updateOne(
+                    { _id: inscricaoPrevia._id },
+                    {
+                        $set: {
+                            legado_manual: {
+                                origem: 'decisao_unificada',
+                                tipo_quitacao: tipoQuitacao,
+                                valor_original: saldo.saldoFinal,
+                                valor_definido: valorLegado,
+                                definido_por: decisao.aprovadoPor || 'admin',
+                                data: agora
+                            }
+                        }
+                    }
+                );
+            }
+        }
+
+        // Chamar processarRenovacao
+        resultado = await processarRenovacao(ligaId, Number(timeId), temporada, {
+            pagouInscricao: decisao.pagouInscricao === true,
+            aproveitarCredito: decisao.aproveitarCredito === true,
+            observacoes: decisao.observacoes,
+            aprovadoPor: decisao.aprovadoPor
+        });
+
+    } else if (decisao.decisao === 'nao_participar') {
+        resultado = await processarNaoParticipar(ligaId, Number(timeId), temporada, {
+            observacoes: decisao.observacoes,
+            aprovadoPor: decisao.aprovadoPor
+        });
+    } else {
+        throw new Error("Decisao invalida. Use 'renovar' ou 'nao_participar'");
+    }
+
+    return {
+        success: true,
+        quitacao: {
+            temporada: temporadaAnterior,
+            tipo: tipoQuitacao,
+            saldoOriginal: saldo.saldoFinal,
+            valorLegado
+        },
+        resultado,
+        mensagem: decisao.decisao === 'renovar'
+            ? `Participante renovado para ${temporada}`
+            : `Participante marcado como nao participa em ${temporada}`
+    };
+}
+
 export default {
     buscarSaldoTemporada,
     criarTransacoesIniciais,
     adicionarParticipanteNaLiga,
     processarRenovacao,
     processarNaoParticipar,
-    processarNovoParticipante
+    processarNovoParticipante,
+    buscarDadosDecisao,
+    processarDecisaoUnificada
 };

@@ -175,7 +175,8 @@
       "Bash(do echo -n \"Rodada $i: \")",
       "WebFetch(domain:dashboard.api-football.com)",
       "WebFetch(domain:www.api-football.com)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(awk:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

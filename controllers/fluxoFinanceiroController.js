@@ -1,5 +1,6 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v8.5.0 (SaaS DINÂMICO)
+ * FLUXO-FINANCEIRO-CONTROLLER v8.6.0 (SaaS DINÂMICO)
+ * ✅ v8.6.0: FIX PREVENTIVO - Query TOP10 agora filtra por temporada (evita cache errado)
  * ✅ v8.5.0: PROTEÇÃO DADOS HISTÓRICOS - resetarCampos/deletarCampos só permite temporada atual
  * ✅ v8.4.0: FIX CRÍTICO - Extrato 2026 não calcula rodadas (pré-temporada)
  *   - Temporadas futuras mostram apenas: inscrição + legado + ajustes
@@ -200,17 +201,22 @@ function calcularBanco(liga, timeId, rodadaNumero, pontuacoes) {
 // ============================================================================
 
 /**
- * ✅ v8.0: Calcula TOP10 baseado no ranking HISTÓRICO (cache de Top10)
+ * ✅ v8.6: Calcula TOP10 baseado no ranking HISTÓRICO (cache de Top10)
  * - Busca o cache de Top10 que contém os 10 maiores mitos e 10 menores micos
  * - Verifica se o time aparece nesse ranking histórico
  * - Retorna array de transações de TOP10 (pode ter múltiplas aparições)
  * @param {Object} liga - Documento da liga (com configuracoes)
  * @param {number} timeId - ID do time
+ * @param {number} temporada - Temporada para filtrar o cache
  */
-async function calcularTop10Historico(liga, timeId) {
+async function calcularTop10Historico(liga, timeId, temporada) {
     try {
         const ligaId = liga._id;
-        const cache = await Top10Cache.findOne({ liga_id: String(ligaId) })
+        // ✅ v8.6: FIX - Filtrar TOP10 por temporada (evita retornar cache errado)
+        const cache = await Top10Cache.findOne({
+            liga_id: String(ligaId),
+            temporada: temporada
+        })
             .sort({ rodada_consolidada: -1 })
             .lean();
 
@@ -560,8 +566,8 @@ export const getExtratoFinanceiro = async (req, res) => {
                     (t) => t.tipo !== "MITO" && t.tipo !== "MICO"
                 );
 
-                // ✅ v8.0: Passa liga ao invés de ligaId
-                const transacoesTop10 = await calcularTop10Historico(liga, timeId);
+                // ✅ v8.6: Passa temporada para filtrar cache correto
+                const transacoesTop10 = await calcularTop10Historico(liga, timeId, temporadaAtual);
                 if (transacoesTop10.length > 0) {
                     novasTransacoes.push(...transacoesTop10);
                     transacoesTop10.forEach((t) => (novoSaldo += t.valor));
@@ -971,8 +977,8 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                         (t) => t.tipo !== "MITO" && t.tipo !== "MICO"
                     );
 
-                    // ✅ v8.0: Passa liga ao invés de ligaId
-                    const transacoesTop10 = await calcularTop10Historico(liga, timeId);
+                    // ✅ v8.6: Passa temporada para filtrar cache correto
+                    const transacoesTop10 = await calcularTop10Historico(liga, timeId, temporadaAtual);
                     if (transacoesTop10.length > 0) {
                         cache.historico_transacoes.push(...transacoesTop10);
                         transacoesTop10.forEach((t) => (cache.saldo_consolidado += t.valor));

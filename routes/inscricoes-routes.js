@@ -18,7 +18,9 @@ import {
     processarRenovacao,
     processarNaoParticipar,
     processarNovoParticipante,
-    buscarSaldoTemporada
+    buscarSaldoTemporada,
+    buscarDadosDecisao,
+    processarDecisaoUnificada
 } from "../controllers/inscricoesController.js";
 
 const router = express.Router();
@@ -459,6 +461,70 @@ router.delete("/:ligaId/:temporada/:timeId", verificarAdmin, async (req, res) =>
         res.status(500).json({
             success: false,
             error: "Erro ao reverter inscrição"
+        });
+    }
+});
+
+// =============================================================================
+// GET /api/inscricoes/:ligaId/:temporada/decisao-preview/:timeId
+// Busca dados completos para o modal de decisao unificada
+// =============================================================================
+router.get("/:ligaId/:temporada/decisao-preview/:timeId", async (req, res) => {
+    try {
+        const { ligaId, temporada, timeId } = req.params;
+
+        console.log(`[INSCRICOES] GET decisao-preview liga=${ligaId} time=${timeId} temporada=${temporada}`);
+
+        const dados = await buscarDadosDecisao(ligaId, Number(timeId), Number(temporada));
+
+        res.json({
+            success: true,
+            ...dados
+        });
+
+    } catch (error) {
+        console.error("[INSCRICOES] Erro ao buscar dados decisao:", error);
+        res.status(400).json({
+            success: false,
+            error: error.message || "Erro ao buscar dados para decisao"
+        });
+    }
+});
+
+// =============================================================================
+// POST /api/inscricoes/:ligaId/:temporada/decisao/:timeId
+// Processa decisao unificada (quitacao + renovacao/nao-participar)
+// =============================================================================
+router.post("/:ligaId/:temporada/decisao/:timeId", verificarAdmin, async (req, res) => {
+    try {
+        const { ligaId, temporada, timeId } = req.params;
+        const decisao = req.body;
+
+        console.log(`[INSCRICOES] POST decisao liga=${ligaId} time=${timeId} temporada=${temporada}`);
+        console.log(`[INSCRICOES] Payload:`, JSON.stringify(decisao, null, 2));
+
+        // Validar payload
+        if (!decisao.decisao || !['renovar', 'nao_participar'].includes(decisao.decisao)) {
+            return res.status(400).json({
+                success: false,
+                error: "Campo 'decisao' obrigatorio. Use 'renovar' ou 'nao_participar'"
+            });
+        }
+
+        const resultado = await processarDecisaoUnificada(
+            ligaId,
+            Number(timeId),
+            Number(temporada),
+            decisao
+        );
+
+        res.json(resultado);
+
+    } catch (error) {
+        console.error("[INSCRICOES] Erro ao processar decisao:", error);
+        res.status(400).json({
+            success: false,
+            error: error.message || "Erro ao processar decisao"
         });
     }
 });

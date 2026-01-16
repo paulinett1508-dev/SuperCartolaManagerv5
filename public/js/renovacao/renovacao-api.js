@@ -304,6 +304,38 @@ const RenovacaoAPI = (function() {
     }
 
     // =========================================================================
+    // DECISAO UNIFICADA
+    // =========================================================================
+
+    /**
+     * Busca dados completos para o modal de decisao unificada
+     * @param {string} ligaId - ID da liga
+     * @param {number} temporada - Temporada destino (ex: 2026)
+     * @param {number} timeId - ID do time
+     * @returns {Promise<Object>}
+     */
+    async function buscarDadosDecisao(ligaId, temporada, timeId) {
+        log(`Buscando dados decisao time=${timeId} temporada=${temporada}`);
+        return fetchJSON(`${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}/decisao-preview/${timeId}`);
+    }
+
+    /**
+     * Processa decisao unificada (quitacao + renovacao/nao-participar)
+     * @param {string} ligaId - ID da liga
+     * @param {number} temporada - Temporada destino (ex: 2026)
+     * @param {number} timeId - ID do time
+     * @param {Object} decisao - Dados da decisao
+     * @returns {Promise<Object>}
+     */
+    async function enviarDecisao(ligaId, temporada, timeId, decisao) {
+        log(`Enviando decisao time=${timeId}`, decisao);
+        return fetchJSON(`${CONFIG.ENDPOINTS.INSCRICOES}/${ligaId}/${temporada}/decisao/${timeId}`, {
+            method: 'POST',
+            body: JSON.stringify(decisao)
+        });
+    }
+
+    // =========================================================================
     // PUBLIC API
     // =========================================================================
 
@@ -327,6 +359,10 @@ const RenovacaoAPI = (function() {
         inicializarInscricoes,
         reverterInscricao,
         marcarInscricaoPaga,
+
+        // Decisao Unificada
+        buscarDadosDecisao,
+        enviarDecisao,
 
         // Cartola
         buscarTimeCartola,

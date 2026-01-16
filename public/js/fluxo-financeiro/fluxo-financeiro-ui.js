@@ -914,12 +914,21 @@ export class FluxoFinanceiroUI {
                                 class="btn-acao btn-auditoria" title="Auditoria Financeira">
                             <span class="material-icons">fact_check</span>
                         </button>
-                        ${!isQuitado && Math.abs(saldoFinal) >= 0.01 ? `
-                        <button onclick="window.abrirModalQuitacao('${ligaId}', '${timeId}', ${saldoFinal}, ${window.temporadaAtual || 2025}, '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
-                                class="btn-acao btn-quitar" title="Quitar ${window.temporadaAtual || 2025}">
-                            <span class="material-icons">lock</span>
-                        </button>
-                        ` : ''}
+                        ${(() => {
+                            // v2.14: Botao de quitar removido para temporada 2025+ (coberta pelo modal unificado de renovacao)
+                            // Quitacao de 2025 e feita automaticamente no modal de decisao ao renovar para 2026
+                            // Manter botao apenas para temporadas retroativas antigas (2024, etc)
+                            const tempAtual = window.temporadaAtual || 2025;
+                            const tempRenovacao = window.temporadaRenovacao || 2026;
+                            const isTemporadaRenovacao = tempAtual >= (tempRenovacao - 1);
+                            const mostrarBotaoQuitar = !isQuitado && Math.abs(saldoFinal) >= 0.01 && !isTemporadaRenovacao;
+                            return mostrarBotaoQuitar ? `
+                            <button onclick="window.abrirModalQuitacao('${ligaId}', '${timeId}', ${saldoFinal}, ${tempAtual}, '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
+                                    class="btn-acao btn-quitar" title="Quitar ${tempAtual}">
+                                <span class="material-icons">lock</span>
+                            </button>
+                            ` : '';
+                        })()}
                         ${p.contato ? `
                         <button onclick="window.abrirWhatsApp('${p.contato.replace(/'/g, "\\'")}', '${(p.nome_cartola || '').replace(/'/g, "\\'")}')"
                                 class="btn-acao btn-whatsapp" title="Enviar WhatsApp para ${p.nome_cartola || 'participante'}">

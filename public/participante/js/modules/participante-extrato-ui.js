@@ -1,6 +1,10 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.20 FIX GRAFICO
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.21 FIX SALDO INICIAL
 // =====================================================
+// ✅ v10.21: FIX SALDO INICIAL - Considera saldo anterior transferido
+//          - Saldo = crédito anterior - taxa (não apenas -taxa)
+//          - Créditos mostra valor do saldo transferido (não hardcoded 0)
+//          - Exemplo: crédito 111.54 - taxa 180 = saldo -68.46
 // ✅ v10.20: FIX GRAFICO - renderizarGraficoPreTemporada exposto no window
 //          - Função era local e não acessível dentro do setTimeout
 //          - Agora usa window.renderizarGraficoPreTemporada para escopo correto
@@ -317,21 +321,27 @@ export async function renderizarExtratoParticipante(extrato, participanteId) {
 function renderizarConteudoRenovadoPreTemporada(container, extrato) {
     const resumoBase = extrato.resumo || {};
     const inscricaoInfo = statusRenovacaoParticipante || {};
-    
+
     // Taxa de inscrição (débito se não pagou)
     const taxaInscricao = inscricaoInfo.taxaInscricao || resumoBase.taxaInscricao || 180;
     // ✅ v10.15: Verificar pagamento tanto do status de renovação quanto do resumo do backend
     const pagouInscricao = inscricaoInfo.pagouInscricao === true || resumoBase.pagouInscricao === true;
-    
-    // Saldo = -taxa se não pagou, 0 se pagou
-    const saldo = resumoBase.saldo_atual ?? resumoBase.saldo ?? (pagouInscricao ? 0 : -taxaInscricao);
+
+    // ✅ v10.21 FIX: Considerar saldo anterior transferido (crédito da temporada anterior)
+    // Exemplo: crédito 111.54 - taxa 180 = saldo -68.46 (deve)
+    const saldoAnteriorTransferido = resumoBase.saldoAnteriorTransferido || 0;
+    const debitoTaxa = pagouInscricao ? 0 : taxaInscricao;
+
+    // Saldo: usar do backend se disponível, senão calcular (crédito - taxa)
+    const saldoCalculado = saldoAnteriorTransferido - debitoTaxa;
+    const saldo = resumoBase.saldo_atual ?? resumoBase.saldo ?? saldoCalculado;
     const saldoPositivo = saldo >= 0;
     const saldoFormatado = `R$ ${Math.abs(saldo).toFixed(2).replace(".", ",")}`;
     const statusTexto = saldoPositivo ? (saldo === 0 ? "QUITADO" : "A RECEBER") : "A PAGAR";
-    
-    // ✅ Créditos e Débitos apenas 2026
-    const totalGanhos = 0; // Nenhum crédito ainda
-    const totalPerdas = pagouInscricao ? 0 : taxaInscricao;
+
+    // ✅ v10.21 FIX: Créditos inclui saldo anterior transferido, Débitos inclui taxa
+    const totalGanhos = saldoAnteriorTransferido > 0 ? saldoAnteriorTransferido : 0;
+    const totalPerdas = debitoTaxa;
     
     // Acertos
     const acertos = extrato.acertos || { lista: [], resumo: {} };
@@ -374,7 +384,7 @@ function renderizarConteudoRenovadoPreTemporada(container, extrato) {
                     <span class="material-icons text-emerald-400 text-base flex-shrink-0">arrow_upward</span>
                     <p class="text-xs text-white/70 uppercase truncate">Créditos</p>
                 </div>
-                <span class="text-sm font-bold text-emerald-400 whitespace-nowrap ml-1">+0,00</span>
+                <span class="text-sm font-bold text-emerald-400 whitespace-nowrap ml-1">+${totalGanhos.toFixed(2).replace(".", ",")}</span>
             </div>
             <div onclick="window.mostrarDetalhamentoPerdas(event)" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
                 <div class="flex items-center gap-2 min-w-0">
@@ -1696,4 +1706,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     }
 }
 
-if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.19 carregado (FIX TELA BRANCA - condição sempre true)");
+if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.21 carregado (FIX SALDO INICIAL - considera crédito anterior)");

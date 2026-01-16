@@ -871,6 +871,196 @@ const RenovacaoUI = (function() {
     }
 
     // =========================================================================
+    // MODAL: DECISAO UNIFICADA
+    // =========================================================================
+
+    /**
+     * Abre o modal de decisao unificada (quitacao + renovacao/nao-participar)
+     * @param {string} ligaId - ID da liga
+     * @param {Object} participante - Dados do participante
+     */
+    async function abrirModalDecisaoUnificada(ligaId, participante) {
+        state.ligaId = ligaId;
+
+        console.log('[RENOVACAO-UI] Abrindo modal decisao unificada para:', participante);
+
+        try {
+            // Buscar dados completos do backend
+            const dados = await RenovacaoAPI.buscarDadosDecisao(
+                ligaId,
+                state.temporada,
+                participante.time_id
+            );
+
+            console.log('[RENOVACAO-UI] Dados decisao recebidos:', dados);
+
+            // Gerar e exibir modal
+            const html = RenovacaoModals.modalDecisaoUnificada(dados);
+            showModal(html, 'modalDecisaoUnificada');
+
+            // Event listener - Confirmar
+            const btnConfirmar = document.getElementById('btnConfirmarDecisao');
+            if (btnConfirmar) {
+                btnConfirmar.addEventListener('click', () => confirmarDecisaoUnificada());
+            }
+
+            // Event listeners para alternar entre opcoes
+            const decisaoRenovar = document.getElementById('decisaoRenovar');
+            const decisaoNaoParticipar = document.getElementById('decisaoNaoParticipar');
+
+            if (decisaoRenovar) {
+                decisaoRenovar.addEventListener('change', () => atualizarUIDecisao());
+            }
+            if (decisaoNaoParticipar) {
+                decisaoNaoParticipar.addEventListener('change', () => atualizarUIDecisao());
+            }
+
+        } catch (error) {
+            console.error('[RENOVACAO-UI] Erro ao abrir modal decisao:', error);
+            showToast('Erro ao carregar dados: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * Atualiza UI baseado na decisao selecionada
+     */
+    function atualizarUIDecisao() {
+        const isRenovar = document.getElementById('decisaoRenovar')?.checked;
+
+        // Habilitar/desabilitar secoes baseado na decisao
+        const cardRenovar = document.getElementById('cardRenovar');
+        const cardNaoParticipar = document.getElementById('cardNaoParticipar');
+
+        if (cardRenovar && cardNaoParticipar) {
+            if (isRenovar) {
+                cardRenovar.style.opacity = '1';
+                cardNaoParticipar.style.opacity = '0.5';
+            } else {
+                cardRenovar.style.opacity = '0.5';
+                cardNaoParticipar.style.opacity = '1';
+            }
+        }
+    }
+
+    /**
+     * Confirma a decisao unificada
+     */
+    async function confirmarDecisaoUnificada() {
+        const btn = document.getElementById('btnConfirmarDecisao');
+        const timeId = document.getElementById('hdnTimeIdDecisao')?.value;
+        const cenario = document.getElementById('hdnCenarioDecisao')?.value;
+        const temporada = parseInt(document.getElementById('hdnTemporadaDestino')?.value) || state.temporada;
+        const observacoes = document.getElementById('txtObservacoesDecisao')?.value || '';
+
+        // Decisao principal
+        const isRenovar = document.getElementById('decisaoRenovar')?.checked;
+        const decisao = isRenovar ? 'renovar' : 'nao_participar';
+
+        // Construir payload
+        const payload = {
+            decisao,
+            observacoes
+        };
+
+        if (decisao === 'renovar') {
+            // Opcoes de renovacao
+            payload.pagouInscricao = document.getElementById('checkPagouInscricaoUnif')?.checked ?? true;
+
+            if (cenario === 'credor') {
+                const opcaoCredito = document.querySelector('input[name="opcaoCredito"]:checked')?.value;
+                payload.aproveitarCredito = opcaoCredito === 'usar';
+            } else if (cenario === 'devedor') {
+                const opcaoDivida = document.querySelector('input[name="opcaoDivida"]:checked')?.value;
+                payload.carregarDivida = opcaoDivida === 'carregar';
+            }
+
+            // Confirmacao extra se NAO pagou inscricao
+            if (!payload.pagouInscricao) {
+                const confirmar = confirm(
+                    `ATENCAO: "Pagou a inscricao" esta DESMARCADO!\n\n` +
+                    `Isso criara um DEBITO no extrato do participante.\n\n` +
+                    `Confirma que o participante NAO PAGOU?`
+                );
+                if (!confirmar) return;
+            }
+
+        } else {
+            // Opcoes de nao-participar
+            const opcaoSaida = document.querySelector('input[name="opcaoSaida"]:checked')?.value;
+
+            if (cenario === 'credor') {
+                payload.acaoCredito = opcaoSaida; // pagar, congelar, perdoar
+            } else if (cenario === 'devedor') {
+                payload.acaoDivida = opcaoSaida; // cobrar, perdoar
+            }
+        }
+
+        console.log('[RENOVACAO-UI] Confirmando decisao:', payload);
+
+        setLoading(btn, true);
+
+        try {
+            const resultado = await RenovacaoAPI.enviarDecisao(
+                state.ligaId,
+                temporada,
+                timeId,
+                payload
+            );
+
+            console.log('[RENOVACAO-UI] Resultado:', resultado);
+
+            // Mensagem de sucesso
+            const msg = decisao === 'renovar'
+                ? `Participante renovado para ${temporada}!`
+                : `Participante marcado como NAO PARTICIPA em ${temporada}`;
+            showToast(msg, 'success');
+
+            // Atualizar badge na tabela
+            const badgeClass = decisao === 'renovar'
+                ? (payload.pagouInscricao ? 'badge-2026-renovado' : 'badge-2026-renovado-devendo')
+                : 'badge-2026-nao-participa';
+            const statusText = decisao === 'renovar' ? 'Renovado' : 'Saiu';
+            const statusIcon = decisao === 'renovar' ? 'check_circle' : 'cancel';
+            const alertaDevendo = (decisao === 'renovar' && !payload.pagouInscricao)
+                ? '<span class="material-icons" style="font-size: 12px; color: #ffc107; vertical-align: middle; margin-left: 2px;" title="Deve inscricao">warning</span>'
+                : '';
+
+            const novoBadge = `
+                <span class="renovacao-badge ${badgeClass}"
+                      data-time-id="${timeId}"
+                      data-status="${decisao === 'renovar' ? 'renovado' : 'nao_participa'}"
+                      style="cursor: pointer;"
+                      title="${statusText}">
+                    <span class="material-icons" style="font-size: 14px; vertical-align: middle;">${statusIcon}</span>
+                    ${statusText}${alertaDevendo}
+                </span>
+            `;
+
+            // Atualizar linha da tabela
+            const row = document.querySelector(`tr[data-time-id="${timeId}"]`);
+            if (row) {
+                const col2026 = row.querySelector('.col-2026');
+                if (col2026) {
+                    col2026.innerHTML = novoBadge;
+                }
+            }
+
+            fecharModal();
+
+            // Callback para atualizar UI
+            if (typeof window.onRenovacaoAtualizada === 'function') {
+                window.onRenovacaoAtualizada();
+            }
+
+        } catch (error) {
+            console.error('[RENOVACAO-UI] Erro na decisao:', error);
+            showToast('Erro: ' + error.message, 'error');
+        } finally {
+            setLoading(btn, false);
+        }
+    }
+
+    // =========================================================================
     // PUBLIC API
     // =========================================================================
 
@@ -884,6 +1074,7 @@ const RenovacaoUI = (function() {
         abrirModalRenovar,
         abrirModalNaoParticipar,
         abrirModalNovoParticipante,
+        abrirModalDecisaoUnificada,
         fecharModal,
 
         // Helpers

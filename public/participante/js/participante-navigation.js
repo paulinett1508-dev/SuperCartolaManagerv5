@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION v4.0 - Sistema de Navegação entre Módulos
+// PARTICIPANTE NAVIGATION v4.1 - Sistema de Navegação entre Módulos
 // =====================================================================
+// v4.1: Cache-busting nos imports dinâmicos (evita erros por cache antigo)
 // v4.0: Bloqueio de modulos em pre-temporada com modal amigavel
 // v3.1: Feedback visual imediato durante navegação (opacity transition)
 // v3.0: REFATORAÇÃO COMPLETA - Remove flag _navegando que travava
@@ -673,7 +674,8 @@ class ParticipanteNavigation {
         const jsPath = modulosPaths[modulo];
         if (jsPath) {
             try {
-                const moduloJS = await import(jsPath);
+                // ✅ v4.1: Cache-busting para evitar erros por versão cacheada
+                const moduloJS = await import(`${jsPath}?v=${Date.now()}`);
 
                 const moduloCamelCase = modulo
                     .split("-")

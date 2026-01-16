@@ -671,12 +671,17 @@ export const getExtratoCache = async (req, res) => {
                     const taxaInscricao = inscricao.taxa_inscricao || 0;
                     const statusInscricao = inscricao.status;
                     const pagouInscricao = inscricao.pagou_inscricao === true;
-                    
-                    // ✅ v6.2 FIX: Se pagou inscrição, saldo = 0 (não -taxa)
-                    // Só cobra taxa se: é renovado E não pagou
-                    const deveCobraTaxa = statusInscricao === 'renovado' && !pagouInscricao;
-                    const saldoInicial = deveCobraTaxa ? -taxaInscricao : 0;
-                    
+                    // ✅ v6.3 FIX: Usar saldo_inicial_temporada que já considera crédito anterior
+                    const saldoTransferido = inscricao.saldo_transferido || 0;
+
+                    // ✅ v6.3 FIX: Usar saldo já calculado na inscrição (crédito - taxa)
+                    // Se pagou, saldo = 0. Se não pagou, usar saldo_inicial_temporada
+                    const saldoInicial = pagouInscricao ? 0 : (inscricao.saldo_inicial_temporada || -taxaInscricao);
+
+                    // ✅ v6.3 FIX: Calcular ganhos/perdas considerando crédito transferido
+                    const totalGanhos = saldoTransferido > 0 ? saldoTransferido : 0;
+                    const totalPerdas = pagouInscricao ? 0 : -taxaInscricao;
+
                     // Extrato inicial zerado, apenas com informação da inscrição
                     const resumoInicial = {
                         saldo: saldoInicial,
@@ -684,8 +689,8 @@ export const getExtratoCache = async (req, res) => {
                         saldo_temporada: saldoInicial,
                         saldo_acertos: 0,
                         saldo_atual: saldoInicial,
-                        totalGanhos: 0,
-                        totalPerdas: saldoInicial < 0 ? saldoInicial : 0,
+                        totalGanhos: totalGanhos,
+                        totalPerdas: totalPerdas,
                         bonus: 0,
                         onus: 0,
                         pontosCorridos: 0,
@@ -694,9 +699,11 @@ export const getExtratoCache = async (req, res) => {
                         camposManuais: 0,
                         taxaInscricao: taxaInscricao,
                         pagouInscricao: pagouInscricao,
+                        // ✅ v6.3 FIX: Incluir saldo anterior para UI
+                        saldoAnteriorTransferido: saldoTransferido,
                     };
-                    
-                    console.log(`[CACHE-CONTROLLER] ✅ Extrato inicial criado: taxa=${taxaInscricao}, status=${statusInscricao}, pagou=${pagouInscricao}, saldo=${saldoInicial}`);
+
+                    console.log(`[CACHE-CONTROLLER] ✅ Extrato inicial: taxa=${taxaInscricao}, saldoTransferido=${saldoTransferido}, saldo=${saldoInicial}, status=${statusInscricao}`);
                     
                     return res.json({
                         cached: false,
@@ -740,12 +747,27 @@ export const getExtratoCache = async (req, res) => {
         const lancamentosIniciais = transacoesRaw.filter(t =>
             t.rodada === 0 ||
             t.tipo === 'INSCRICAO_TEMPORADA' ||
-            t.tipo === 'TRANSFERENCIA_SALDO'
+            t.tipo === 'TRANSFERENCIA_SALDO' ||
+            t.tipo === 'SALDO_TEMPORADA_ANTERIOR' ||
+            t.tipo === 'LEGADO_ANTERIOR'
         );
+
+        // ✅ v6.3 FIX: Extrair taxa e saldo anterior SEPARADAMENTE para UI
+        let taxaInscricaoValor = 0;
+        let saldoAnteriorTransferidoValor = 0;
+        lancamentosIniciais.forEach(t => {
+            const valor = parseFloat(t.valor) || 0;
+            if (t.tipo === 'INSCRICAO_TEMPORADA') {
+                taxaInscricaoValor += Math.abs(valor); // Taxa é sempre positiva para exibição
+            } else if (t.tipo === 'SALDO_TEMPORADA_ANTERIOR' || t.tipo === 'LEGADO_ANTERIOR' || t.tipo === 'TRANSFERENCIA_SALDO') {
+                saldoAnteriorTransferidoValor += valor; // Pode ser + ou -
+            }
+        });
+
         const saldoLancamentosIniciais = lancamentosIniciais.reduce((acc, t) =>
             acc + (parseFloat(t.valor) || 0), 0
         );
-        console.log(`[CACHE-CONTROLLER] 📋 Lançamentos iniciais: ${lancamentosIniciais.length}, valor: ${saldoLancamentosIniciais}`);
+        console.log(`[CACHE-CONTROLLER] 📋 Lançamentos iniciais: ${lancamentosIniciais.length}, taxa=${taxaInscricaoValor}, saldoAnterior=${saldoAnteriorTransferidoValor}, total=${saldoLancamentosIniciais}`);
 
         let rodadasConsolidadas = transformarTransacoesEmRodadas(
             transacoesRaw,
@@ -768,12 +790,18 @@ export const getExtratoCache = async (req, res) => {
         // Isso garante que taxa de inscrição (rodada=0) seja contabilizada
         resumoCalculado.saldo += saldoLancamentosIniciais;
         resumoCalculado.saldo_final += saldoLancamentosIniciais;
-        if (saldoLancamentosIniciais < 0) {
-            resumoCalculado.totalPerdas += saldoLancamentosIniciais;
-        } else if (saldoLancamentosIniciais > 0) {
-            resumoCalculado.totalGanhos += saldoLancamentosIniciais;
+        // ✅ v6.3 FIX: Separar ganhos (crédito anterior) e perdas (taxa) corretamente
+        if (saldoAnteriorTransferidoValor > 0) {
+            resumoCalculado.totalGanhos += saldoAnteriorTransferidoValor;
+        } else if (saldoAnteriorTransferidoValor < 0) {
+            resumoCalculado.totalPerdas += saldoAnteriorTransferidoValor;
         }
-        resumoCalculado.taxaInscricao = Math.abs(saldoLancamentosIniciais);
+        if (taxaInscricaoValor > 0) {
+            resumoCalculado.totalPerdas -= taxaInscricaoValor; // Taxa é débito (negativo)
+        }
+        // ✅ v6.3 FIX: Incluir valores separados para UI
+        resumoCalculado.taxaInscricao = taxaInscricaoValor;
+        resumoCalculado.saldoAnteriorTransferido = saldoAnteriorTransferidoValor;
 
         // ✅ v5.2 FIX: Incluir saldo de acertos no cálculo do saldo final
         const saldoAcertosCc = acertos?.resumo?.saldo ?? 0;

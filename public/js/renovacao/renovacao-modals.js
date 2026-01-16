@@ -877,6 +877,294 @@ const RenovacaoModals = (function() {
     }
 
     // =========================================================================
+    // MODAL: DECISAO UNIFICADA (QUITACAO + RENOVACAO)
+    // =========================================================================
+
+    /**
+     * Modal unificado para decidir sobre participante pendente
+     * Combina quitacao da temporada anterior + renovacao/nao-participar
+     * @param {Object} dados - Dados retornados por buscarDadosDecisao
+     */
+    function modalDecisaoUnificada(dados) {
+        const { participante, saldo2025, quitacao2025, regras, cenario, cenarios, temporadaAnterior, temporadaDestino, inscricaoExistente } = dados;
+
+        // Badge de cenario
+        const cenarioBadge = {
+            credor: '<span class="badge bg-success">A RECEBER</span>',
+            devedor: '<span class="badge bg-danger">DEVEDOR</span>',
+            quitado: '<span class="badge bg-secondary">QUITADO</span>'
+        }[cenario] || '<span class="badge bg-secondary">-</span>';
+
+        // Ja foi quitado?
+        const jaQuitado = quitacao2025?.quitado === true;
+
+        // Opcoes especificas por cenario
+        let opcoesRenovar = '';
+        let opcoesNaoParticipar = '';
+
+        if (cenario === 'credor') {
+            opcoesRenovar = `
+                <div class="opcoes-cenario opcoes-credor">
+                    <div class="form-check mb-2">
+                        <input type="radio" class="form-check-input" name="opcaoCredito" id="opCredUsarCredito" value="usar" checked>
+                        <label class="form-check-label" for="opCredUsarCredito">
+                            <strong>Usar credito para abater taxa</strong>
+                            <br><small class="text-muted">Credito ${formatarMoeda(saldo2025.saldoFinal)} - Taxa ${formatarMoeda(regras.taxa)} = Saldo inicial ${formatarMoeda(cenarios.renovar.aproveitarCredito?.saldoInicial || 0)}</small>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" class="form-check-input" name="opcaoCredito" id="opCredPagarSeparado" value="separado">
+                        <label class="form-check-label" for="opCredPagarSeparado">
+                            <strong>Pagar taxa separadamente</strong>
+                            <br><small class="text-muted">Credito fica intacto. Saldo inicial: ${formatarMoeda(cenarios.renovar.naoAproveitarCredito?.saldoInicial || 0)}</small>
+                        </label>
+                    </div>
+                </div>
+            `;
+            opcoesNaoParticipar = `
+                <div class="opcoes-cenario opcoes-nao-participa-credor">
+                    <div class="form-check mb-2">
+                        <input type="radio" class="form-check-input" name="opcaoSaida" id="opSaidaPagar" value="pagar" checked>
+                        <label class="form-check-label" for="opSaidaPagar">
+                            <strong>Pagar credito ao participante</strong>
+                            <br><small class="text-muted">Admin paga ${formatarMoeda(saldo2025.saldoFinal)} ao participante</small>
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input type="radio" class="form-check-input" name="opcaoSaida" id="opSaidaCongelar" value="congelar">
+                        <label class="form-check-label" for="opSaidaCongelar">
+                            <strong>Congelar credito</strong>
+                            <br><small class="text-muted">Fica disponivel se participante voltar</small>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" class="form-check-input" name="opcaoSaida" id="opSaidaPerdoarCred" value="perdoar">
+                        <label class="form-check-label" for="opSaidaPerdoarCred">
+                            <strong>Zerar/Perdoar</strong>
+                            <br><small class="text-muted">Credito zerado (raro, mas possivel)</small>
+                        </label>
+                    </div>
+                </div>
+            `;
+        } else if (cenario === 'devedor') {
+            const podeRenovar = regras.permitir_devedor_renovar;
+            opcoesRenovar = `
+                <div class="opcoes-cenario opcoes-devedor">
+                    ${!podeRenovar ? '<div class="alert alert-danger py-2 mb-2"><small>Devedores nao podem renovar (regra da liga). Quite a divida primeiro.</small></div>' : ''}
+                    <div class="form-check mb-2">
+                        <input type="radio" class="form-check-input" name="opcaoDivida" id="opDivCarregar" value="carregar" ${podeRenovar ? 'checked' : 'disabled'}>
+                        <label class="form-check-label" for="opDivCarregar">
+                            <strong>Carregar divida para ${temporadaDestino}</strong>
+                            <br><small class="text-muted">Divida ${formatarMoeda(Math.abs(saldo2025.saldoFinal))} + Taxa ${formatarMoeda(regras.taxa)} = Saldo inicial ${formatarMoeda(cenarios.renovar.carregarDivida?.saldoInicial || 0)}</small>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" class="form-check-input" name="opcaoDivida" id="opDivQuitar" value="quitar" ${!podeRenovar ? 'checked' : ''}>
+                        <label class="form-check-label" for="opDivQuitar">
+                            <strong>Participante ja quitou a divida</strong>
+                            <br><small class="text-muted">Zera saldo ${temporadaAnterior}. Saldo inicial: ${formatarMoeda(cenarios.renovar.quitarDivida?.saldoInicial || 0)}</small>
+                        </label>
+                    </div>
+                </div>
+            `;
+            opcoesNaoParticipar = `
+                <div class="opcoes-cenario opcoes-nao-participa-devedor">
+                    <div class="form-check mb-2">
+                        <input type="radio" class="form-check-input" name="opcaoSaida" id="opSaidaCobrar" value="cobrar" checked>
+                        <label class="form-check-label" for="opSaidaCobrar">
+                            <strong>Cobrar divida</strong>
+                            <br><small class="text-muted">Divida de ${formatarMoeda(Math.abs(saldo2025.saldoFinal))} fica pendente</small>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" class="form-check-input" name="opcaoSaida" id="opSaidaPerdoarDiv" value="perdoar">
+                        <label class="form-check-label" for="opSaidaPerdoarDiv">
+                            <strong>Perdoar divida</strong>
+                            <br><small class="text-muted">Zera a divida (deixar ir sem cobrar)</small>
+                        </label>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Quitado - sem opcoes especificas
+            opcoesRenovar = `
+                <div class="opcoes-cenario opcoes-quitado">
+                    <div class="alert alert-success py-2">
+                        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">check_circle</span>
+                        Participante quitado. Saldo inicial sera: ${formatarMoeda(cenarios.renovar.quitado?.saldoInicial || 0)}
+                    </div>
+                </div>
+            `;
+            opcoesNaoParticipar = `
+                <div class="opcoes-cenario opcoes-quitado">
+                    <div class="alert alert-secondary py-2">
+                        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">info</span>
+                        Participante quitado. Nenhuma pendencia.
+                    </div>
+                </div>
+            `;
+        }
+
+        // Alerta se ja quitado
+        const alertaQuitado = jaQuitado ? `
+            <div class="alert alert-info py-2 mb-3">
+                <span class="material-icons" style="font-size: 16px; vertical-align: middle;">verified</span>
+                Temporada ${temporadaAnterior} ja foi quitada (tipo: ${quitacao2025.tipo || 'N/A'})
+            </div>
+        ` : '';
+
+        // Alerta se ja tem inscricao
+        const alertaInscricao = inscricaoExistente ? `
+            <div class="alert alert-warning py-2 mb-3">
+                <span class="material-icons" style="font-size: 16px; vertical-align: middle;">history</span>
+                Ja existe inscricao: <strong>${inscricaoExistente.status}</strong>
+                ${inscricaoExistente.processado ? ' (processada)' : ' (pendente)'}
+            </div>
+        ` : '';
+
+        return `
+        <div class="modal fade" id="modalDecisaoUnificada" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content bg-gray-800 text-white">
+                    <div class="modal-header border-gray-700">
+                        <h5 class="modal-title">
+                            <span class="material-icons" style="vertical-align: middle;">how_to_reg</span>
+                            Decisao ${temporadaDestino}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Header do Participante -->
+                        <div class="d-flex align-items-center mb-3 p-3 bg-gray-900 rounded">
+                            <img src="${escapeHtml(participante.escudo) || '/img/default-escudo.png'}"
+                                 alt="Escudo"
+                                 class="rounded me-3"
+                                 style="width: 56px; height: 56px; object-fit: contain;"
+                                 onerror="this.src='/img/default-escudo.png'">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-0">${escapeHtml(participante.nome_time) || 'Time'}</h5>
+                                <small class="text-muted">${escapeHtml(participante.nome_cartola) || ''}</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="mb-1">${cenarioBadge}</div>
+                                <h4 class="${saldo2025.saldoFinal >= 0 ? 'text-success' : 'text-danger'} mb-0">
+                                    ${formatarMoeda(saldo2025.saldoFinal)}
+                                </h4>
+                                <small class="text-muted">Saldo ${temporadaAnterior}</small>
+                            </div>
+                        </div>
+
+                        ${alertaQuitado}
+                        ${alertaInscricao}
+
+                        <!-- DECISAO -->
+                        <div class="row">
+                            <!-- Coluna RENOVAR -->
+                            <div class="col-md-6">
+                                <div class="card bg-gray-900 border-gray-700 h-100" id="cardRenovar">
+                                    <div class="card-header border-gray-700 bg-success bg-opacity-10">
+                                        <div class="form-check mb-0">
+                                            <input type="radio" class="form-check-input" name="decisaoPrincipal" id="decisaoRenovar" value="renovar" checked>
+                                            <label class="form-check-label fw-bold" for="decisaoRenovar">
+                                                <span class="material-icons text-success" style="font-size: 18px; vertical-align: middle;">check_circle</span>
+                                                RENOVAR para ${temporadaDestino}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        ${opcoesRenovar}
+
+                                        <hr class="border-gray-700 my-3">
+
+                                        <!-- Checkbox Pagou Inscricao -->
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="checkPagouInscricaoUnif" checked>
+                                            <label class="form-check-label" for="checkPagouInscricaoUnif">
+                                                <strong>Pagou a inscricao</strong>
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Se desmarcado, taxa de ${formatarMoeda(regras.taxa)} vira debito</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Coluna NAO PARTICIPAR -->
+                            <div class="col-md-6">
+                                <div class="card bg-gray-900 border-gray-700 h-100" id="cardNaoParticipar">
+                                    <div class="card-header border-gray-700 bg-danger bg-opacity-10">
+                                        <div class="form-check mb-0">
+                                            <input type="radio" class="form-check-input" name="decisaoPrincipal" id="decisaoNaoParticipar" value="nao_participar">
+                                            <label class="form-check-label fw-bold" for="decisaoNaoParticipar">
+                                                <span class="material-icons text-danger" style="font-size: 18px; vertical-align: middle;">cancel</span>
+                                                NAO PARTICIPAR em ${temporadaDestino}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        ${opcoesNaoParticipar}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Observacoes -->
+                        <div class="mt-3">
+                            <label class="form-label">Observacoes (opcional)</label>
+                            <textarea class="form-control bg-gray-700 text-white border-gray-600"
+                                      id="txtObservacoesDecisao"
+                                      rows="2"
+                                      placeholder="Observacoes para o historico..."></textarea>
+                        </div>
+
+                        <!-- Dados ocultos -->
+                        <input type="hidden" id="hdnTimeIdDecisao" value="${participante.time_id}">
+                        <input type="hidden" id="hdnCenarioDecisao" value="${cenario}">
+                        <input type="hidden" id="hdnTemporadaDestino" value="${temporadaDestino}">
+                    </div>
+                    <div class="modal-footer border-gray-700">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="button" class="btn btn-primary" id="btnConfirmarDecisao">
+                            <span class="material-icons" style="vertical-align: middle;">check</span>
+                            Confirmar Decisao
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            #modalDecisaoUnificada .card {
+                transition: all 0.2s;
+            }
+            #modalDecisaoUnificada .card:has(input[name="decisaoPrincipal"]:checked) {
+                border-color: #ff5500 !important;
+                box-shadow: 0 0 0 2px rgba(255, 85, 0, 0.3);
+            }
+            #modalDecisaoUnificada .card:has(input[name="decisaoPrincipal"]:not(:checked)) {
+                opacity: 0.6;
+            }
+            #modalDecisaoUnificada .opcoes-cenario {
+                transition: all 0.2s;
+            }
+            #modalDecisaoUnificada #cardNaoParticipar .opcoes-cenario {
+                display: none;
+            }
+            #modalDecisaoUnificada:has(#decisaoNaoParticipar:checked) #cardRenovar .opcoes-cenario {
+                display: none;
+            }
+            #modalDecisaoUnificada:has(#decisaoNaoParticipar:checked) #cardNaoParticipar .opcoes-cenario {
+                display: block;
+            }
+            #modalDecisaoUnificada:has(#decisaoRenovar:checked) #cardRenovar .opcoes-cenario {
+                display: block;
+            }
+        </style>
+        `;
+    }
+
+    // =========================================================================
     // PUBLIC API
     // =========================================================================
 
@@ -886,6 +1174,7 @@ const RenovacaoModals = (function() {
         modalRenovar,
         modalNaoParticipar,
         modalNovoParticipante,
+        modalDecisaoUnificada,
 
         // Templates
         itemResultadoBusca,

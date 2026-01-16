@@ -299,6 +299,25 @@ class ParticipanteAuth {
                 nomeCartolaTextEl.textContent = nomeCartolaTextoFinal;
             }
 
+            // ✅ Badge de ambiente (DEV/PROD) - apenas para participante premium (Paulinett Miranda)
+            const envBadge = document.getElementById("app-env-badge");
+            if (envBadge) {
+                const isPremium = String(this.timeId) === '13935277';
+                const isProduction = window.Log?.isProduction ?? !window.location.hostname.includes('replit');
+                if (isPremium) {
+                    envBadge.classList.remove('hidden');
+                    if (isProduction) {
+                        envBadge.textContent = 'PROD';
+                        envBadge.className = 'text-[9px] bg-green-500/20 border border-green-500/50 text-green-400 px-1.5 py-0.5 rounded ml-1 font-bold uppercase';
+                    } else {
+                        envBadge.textContent = 'DEV';
+                        envBadge.className = 'text-[9px] bg-red-500/20 border border-red-500/50 text-red-400 px-1.5 py-0.5 rounded ml-1 font-bold uppercase';
+                    }
+                } else {
+                    envBadge.classList.add('hidden');
+                }
+            }
+
             // Escudo do clube (coração)
             if (escudoCoracao) {
                 if (clubeIdFinal) {
