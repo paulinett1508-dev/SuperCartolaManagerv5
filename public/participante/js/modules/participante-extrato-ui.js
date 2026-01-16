@@ -1,6 +1,12 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.16 FIX CODIGO ORFAO
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.20 FIX GRAFICO
 // =====================================================
+// ✅ v10.20: FIX GRAFICO - renderizarGraficoPreTemporada exposto no window
+//          - Função era local e não acessível dentro do setTimeout
+//          - Agora usa window.renderizarGraficoPreTemporada para escopo correto
+// ✅ v10.19: FIX TELA BRANCA - Condição if(!isPreTemporada2026) mudada para if(true)
+//          - A função renderizarConteudoRenovadoPreTemporada só é chamada em pré-temporada
+//          - A condição nunca era verdadeira, deixando html vazio
 // ✅ v10.16: FIX CRÍTICO - Removido código órfão no topo do arquivo
 //          - Variáveis isPreTemporada2026 estavam fora de escopo
 //          - Causava "extrato is not defined" ao carregar módulo
@@ -48,7 +54,7 @@
 // ✅ v9.0: Redesign - Badge BANCO unificado com valor
 // ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
 
-if (window.Log) Log.info("[EXTRATO-UI] v10.15 FIX SELETOR TEMPORADA (respeita escolha do usuário)");
+if (window.Log) Log.info("[EXTRATO-UI] v10.19 FIX TELA BRANCA (condição sempre true)");
 
 // ===== v10.8: CACHE DE CONFIG DA LIGA =====
 let ligaConfigCache = null;
@@ -296,7 +302,7 @@ export async function renderizarExtratoParticipante(extrato, participanteId) {
     setTimeout(() => {
         // ✅ v10.15: Gráfico diferente para pré-temporada (apenas se não estiver vendo histórico)
         if (!visualizandoHistorico && renovado && preTemporada) {
-            renderizarGraficoPreTemporada();
+            window.renderizarGraficoPreTemporada();
         } else {
             renderizarGraficoEvolucao(extrato.rodadas);
         }
@@ -338,8 +344,9 @@ function renderizarConteudoRenovadoPreTemporada(container, extrato) {
     const isPreTemporada2026 = temporadaSelecionada >= 2026 && isPreTemporada(extrato.rodadas);
 
     let html = ``;
-    // Cards e campos manuais só se não for pré-temporada 2026
-    if (!isPreTemporada2026) {
+    // ✅ v10.19 FIX: Condição SEMPRE TRUE - a função só é chamada em pré-temporada de renovados
+    // A condição original (!isPreTemporada2026) nunca era true, deixando html vazio
+    if (true) { // Era: if (!isPreTemporada2026)
         html += `
         <!-- Card Saldo Principal -->
         <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
@@ -482,8 +489,9 @@ function renderizarConteudoRenovadoPreTemporada(container, extrato) {
 
 // =====================================================================
 // ✅ v10.14: GRÁFICO PRÉ-TEMPORADA - Curvas suaves prevendo 38 rodadas
+// ✅ v10.20: Exposto no window para ser acessível dentro do setTimeout
 // =====================================================================
-function renderizarGraficoPreTemporada() {
+window.renderizarGraficoPreTemporada = function renderizarGraficoPreTemporada() {
     const path = document.getElementById("graficoPath");
     const area = document.getElementById("graficoArea");
     const labels = document.getElementById("graficoLabels");
@@ -1688,4 +1696,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     }
 }
 
-if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.11 carregado (FIX pré-temporada: rodadas dinâmicas + inscrição no débitos)");
+if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.19 carregado (FIX TELA BRANCA - condição sempre true)");

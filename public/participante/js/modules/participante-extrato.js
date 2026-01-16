@@ -1,7 +1,13 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v4.5 (FIX SELETOR TEMPORADA)
+// PARTICIPANTE-EXTRATO.JS - v4.7 (CACHE-BUSTING)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v4.7: CACHE-BUSTING - Força recarga do módulo UI após atualizações
+//          - Adiciona ?v=timestamp nos imports dinâmicos
+//          - Evita erro "function is not defined" por cache do browser
+// ✅ v4.6: TIMEOUT DE SEGURANÇA - Evita loading infinito
+//          - Timeout de 15s mostra botão "Tentar Novamente"
+//          - Timeout de 5s na verificação de renovação
 // ✅ v4.5: FIX SELETOR TEMPORADA - Extrato respeita seleção do usuário
 //          - Ouve evento "temporada-alterada" do seletor de temporada
 //          - Quando usuário seleciona 2026, mostra dados de 2026 (zerados)
@@ -64,7 +70,7 @@ window.addEventListener("temporada-alterada", (event) => {
 });
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.5 FIX-SELETOR-TEMPORADA (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.7 CACHE-BUSTING (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
 
 // ✅ v4.5: Inicializar temporada selecionada do seletor (se já existir)
 if (window.seasonSelector) {
@@ -316,7 +322,7 @@ async function buscarCamposEditaveis(ligaId, timeId, temporada = null) {
 }
 
 // =====================================================================
-// CARREGAR EXTRATO (v3.1 CACHE-FIRST)
+// CARREGAR EXTRATO (v4.6 TIMEOUT DE SEGURANÇA)
 // =====================================================================
 async function carregarExtrato(ligaId, timeId) {
 
@@ -327,12 +333,38 @@ async function carregarExtrato(ligaId, timeId) {
         return;
     }
 
+    // ✅ v4.6: Timeout de segurança para evitar loading infinito
+    const TIMEOUT_MS = 15000;
+    let timeoutId = null;
+    const mostrarTimeoutError = () => {
+        if (window.Log) Log.error("EXTRATO-PARTICIPANTE", "⏱️ Timeout - requisição demorou demais");
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">⏱️</div>
+                <h3 style="color: #f59e0b; margin-bottom: 12px;">Carregamento lento</h3>
+                <p style="color: #9ca3af; margin-bottom: 20px;">O servidor está demorando para responder.</p>
+                <button onclick="window.location.reload()"
+                    style="background: #ff5500; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    Tentar Novamente
+                </button>
+            </div>
+        `;
+    };
+
     const cache = window.ParticipanteCache;
     let usouCache = false;
     let extratoDataCache = null;
 
     // ✅ v4.1: Verificar status de renovação ANTES de usar cache local
-    const statusRenovacao = await verificarRenovacao(ligaId, timeId);
+    let statusRenovacao = { renovado: false };
+    try {
+        statusRenovacao = await Promise.race([
+            verificarRenovacao(ligaId, timeId),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+        ]);
+    } catch (e) {
+        if (window.Log) Log.warn("EXTRATO-PARTICIPANTE", "⚠️ Timeout ao verificar renovação, assumindo não renovado");
+    }
     const participanteRenovado = statusRenovacao?.renovado === true;
 
     // =========================================================================
@@ -350,10 +382,11 @@ async function carregarExtrato(ligaId, timeId) {
             if (window.Log) Log.info("EXTRATO-PARTICIPANTE", "⚡ INSTANT LOAD - dados do cache!");
 
             // Renderizar IMEDIATAMENTE com dados do cache
-            const { renderizarExtratoParticipante } = await import(
-                "./participante-extrato-ui.js"
+            // ✅ v4.7: Cache-busting para forçar recarga após atualizações
+            const uiModule = await import(
+                `./participante-extrato-ui.js?v=${Date.now()}`
             );
-            renderizarExtratoParticipante(extratoDataCache, timeId);
+            uiModule.renderizarExtratoParticipante(extratoDataCache, timeId);
         }
     } else if (participanteRenovado) {
         if (window.Log) Log.info("EXTRATO-PARTICIPANTE", "🔄 Renovado - ignorando cache local para buscar dados 2026");
@@ -369,6 +402,8 @@ async function carregarExtrato(ligaId, timeId) {
                 <p>Carregando extrato...</p>
             </div>
         `;
+        // ✅ v4.6: Iniciar timeout de segurança (só se não usou cache)
+        timeoutId = setTimeout(mostrarTimeoutError, TIMEOUT_MS);
     }
 
     // =========================================================================
@@ -422,7 +457,15 @@ async function carregarExtrato(ligaId, timeId) {
         if (window.Log)
             Log.debug("EXTRATO-PARTICIPANTE", "📡 Buscando cache:", urlCache);
 
-        const responseCache = await fetch(urlCache);
+        // ✅ v4.6: Fetch com timeout de 10s
+        const controller = new AbortController();
+        const fetchTimeout = setTimeout(() => controller.abort(), 10000);
+        let responseCache;
+        try {
+            responseCache = await fetch(urlCache, { signal: controller.signal });
+        } finally {
+            clearTimeout(fetchTimeout);
+        }
 
         if (responseCache.ok) {
             const cacheData = await responseCache.json();
@@ -661,11 +704,15 @@ async function carregarExtrato(ligaId, timeId) {
                     usouCacheBackend ? "| (cache backend)" : "| (calculado)",
                 );
 
-            const { renderizarExtratoParticipante } = await import(
-                "./participante-extrato-ui.js"
+            // ✅ v4.7: Cache-busting
+            const uiMod = await import(
+                `./participante-extrato-ui.js?v=${Date.now()}`
             );
-            renderizarExtratoParticipante(extratoData, timeId);
+            uiMod.renderizarExtratoParticipante(extratoData, timeId);
         }
+
+        // ✅ v4.6: Limpar timeout de segurança
+        if (timeoutId) clearTimeout(timeoutId);
 
         if (window.Log)
             Log.info(
@@ -673,6 +720,9 @@ async function carregarExtrato(ligaId, timeId) {
                 "✅ Extrato carregado com sucesso",
             );
     } catch (error) {
+        // ✅ v4.6: Limpar timeout de segurança
+        if (timeoutId) clearTimeout(timeoutId);
+
         if (window.Log) Log.error("EXTRATO-PARTICIPANTE", "❌ Erro:", error);
         if (!usouCache) mostrarErro(error.message);
     }
@@ -1175,10 +1225,11 @@ window.forcarRefreshExtratoParticipante = async function () {
                 "campos manuais",
             );
 
-        const { renderizarExtratoParticipante } = await import(
-            "./participante-extrato-ui.js"
+        // ✅ v4.7: Cache-busting
+        const uiModule = await import(
+            `./participante-extrato-ui.js?v=${Date.now()}`
         );
-        renderizarExtratoParticipante(extratoData, PARTICIPANTE_IDS.timeId);
+        uiModule.renderizarExtratoParticipante(extratoData, PARTICIPANTE_IDS.timeId);
 
         if (window.Log)
             Log.info("EXTRATO-PARTICIPANTE", "✅ Refresh completo!");
@@ -1218,5 +1269,5 @@ export function initExtratoParticipante() {
 if (window.Log)
     Log.info(
         "EXTRATO-PARTICIPANTE",
-        "✅ Módulo v4.5 carregado (FIX SELETOR TEMPORADA)",
+        "✅ Módulo v4.7 carregado (CACHE-BUSTING)",
     );

@@ -1,12 +1,13 @@
 // =====================================================================
-// service-worker.js - Service Worker do PWA v3.1 (NETWORK-FIRST)
+// service-worker.js - Service Worker do PWA v3.2 (FORCE CACHE CLEAR)
 // Destino: /participante/service-worker.js
+// ✅ v3.2: FORCE CACHE CLEAR - Limpar cache antigo que causava erros
 // ✅ v3.1: Network-First com cache fallback (FIX fetch failures)
 // ✅ v3.0: Força limpeza de caches antigos
-// BUILD: 2025-12-20T14:10:00Z
+// BUILD: 2026-01-16T18:36:00Z
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v8-fixed";
+const CACHE_NAME = "super-cartola-v9-clear";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
