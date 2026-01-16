@@ -1,5 +1,5 @@
 // =====================================================================
-// install-prompt.js - PWA Install Prompt v1.0
+// install-prompt.js - PWA Install Prompt v1.1
 // =====================================================================
 // Sistema de prompt de instalacao PWA persistente
 // - Captura evento beforeinstallprompt (Android/Chrome)
@@ -7,6 +7,11 @@
 // - Controle de exibicao: 24h entre lembretes
 // - Respeita se ja instalado ou se usuario marcou "nao mostrar"
 // - Segue design system do projeto (Material Icons, CSS tokens)
+//
+// DEBUG via URL:
+//   ?debug=install      -> Forca banner Android
+//   ?debug=install-ios  -> Forca banner iOS
+//   ?debug=install-reset -> Limpa dados e forca banner
 // =====================================================================
 
 const InstallPrompt = {
@@ -14,6 +19,7 @@ const InstallPrompt = {
     COOLDOWN_HOURS: 24,
     DELAY_MS: 3000, // Aguardar 3s apos carregamento para mostrar
     deferredPrompt: null,
+    debugMode: null, // 'android', 'ios', ou null
 
     // =====================================================================
     // DETECCAO DE AMBIENTE
@@ -31,9 +37,12 @@ const InstallPrompt = {
     },
 
     /**
-     * Detecta se e dispositivo iOS
+     * Detecta se e dispositivo iOS (ou modo debug iOS)
      */
     isIOS() {
+        // Modo debug forca iOS
+        if (this.debugMode === 'ios') return true;
+        if (this.debugMode === 'android') return false;
         return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     },
 
@@ -331,9 +340,43 @@ const InstallPrompt = {
     // =====================================================================
 
     /**
+     * Verifica parametros de debug na URL
+     */
+    checkDebugMode() {
+        const params = new URLSearchParams(window.location.search);
+        const debug = params.get('debug');
+
+        if (debug === 'install') {
+            this.debugMode = 'android';
+            return true;
+        }
+        if (debug === 'install-ios') {
+            this.debugMode = 'ios';
+            return true;
+        }
+        if (debug === 'install-reset') {
+            // Limpa dados e detecta automaticamente
+            localStorage.removeItem(this.STORAGE_KEY);
+            if (window.Log) Log.info('INSTALL-PROMPT', 'Dados resetados via debug');
+            return true;
+        }
+        return false;
+    },
+
+    /**
      * Inicializar o sistema de install prompt
      */
     init() {
+        // Verificar modo debug via URL
+        const isDebug = this.checkDebugMode();
+
+        if (isDebug) {
+            // Modo debug: mostrar banner imediatamente
+            if (window.Log) Log.info('INSTALL-PROMPT', 'Modo DEBUG ativo:', this.debugMode || 'auto');
+            setTimeout(() => this.mostrarBanner(), 500);
+            return; // Nao registrar listeners normais em modo debug
+        }
+
         // Capturar evento beforeinstallprompt (Android/Chrome)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -361,7 +404,7 @@ const InstallPrompt = {
             if (window.Log) Log.info('INSTALL-PROMPT', 'App instalado com sucesso!');
         });
 
-        if (window.Log) Log.info('INSTALL-PROMPT', 'Sistema inicializado v1.0');
+        if (window.Log) Log.info('INSTALL-PROMPT', 'Sistema inicializado v1.1');
     }
 };
 
