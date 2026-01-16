@@ -766,6 +766,11 @@
                                     class="text-[9px] bg-white/10 px-1.5 py-0.5 rounded ml-1"
                                     ></span
                                 >
+                                <span
+                                    id="app-env-badge"
+                                    class="text-[9px] bg-red-500/20 border border-red-500/50 text-red-400 px-1.5 py-0.5 rounded ml-1 font-bold uppercase hidden"
+                                    >DEV</span
+                                >
                             </p>
                             <!-- Badge de Liga Clicável -->
                             <div id="ligaBadgeContainer" class="liga-badge-container" style="display: none;">
@@ -919,6 +924,9 @@
 
         <!-- ✅ Sistema de Versionamento (com PWA) -->
         <script src="/js/app/app-version.js"></script>
+
+        <!-- ✅ PWA Install Prompt (v1.0) -->
+        <script src="js/install-prompt.js"></script>
 
         <!-- ✅ Quick Access Bar -->
         <script src="js/participante-quick-bar.js"></script>
@@ -1297,66 +1305,223 @@
             window.abrirBoasVindas2026 = abrirBoasVindas;
             window.fecharBoasVindas = fecharBoasVindas;
 
-            // Criar botao flutuante para reabrir o roadmap (apenas em pre-temporada)
+            // =====================================================================
+            // ✅ FAB MERCADO CARTOLA - v2.0 (Countdown em Tempo Real)
+            // =====================================================================
             window.addEventListener('load', () => {
                 const config = window.ParticipanteConfig;
-                if (config && config.isPreparando()) {
-                    // Injetar estilos do FAB
-                    const fabStyles = document.createElement('style');
-                    fabStyles.textContent = `
-                        @keyframes fabGlow {
-                            0%, 100% { box-shadow: 0 4px 20px rgba(255, 107, 0, 0.4), 0 0 40px rgba(255, 107, 0, 0.1); }
-                            50% { box-shadow: 0 4px 30px rgba(255, 107, 0, 0.6), 0 0 60px rgba(255, 107, 0, 0.2); }
-                        }
-                        @keyframes iconBounce {
-                            0%, 100% { transform: scale(1); }
-                            50% { transform: scale(1.1); }
-                        }
-                        #fab-roadmap-2026 {
-                            animation: fabGlow 2s ease-in-out infinite;
-                        }
-                        #fab-roadmap-2026 .fab-icon {
-                            animation: iconBounce 1.5s ease-in-out infinite;
-                        }
-                        #fab-roadmap-2026:hover {
-                            animation: none;
-                            box-shadow: 0 6px 35px rgba(255, 107, 0, 0.7);
-                        }
-                    `;
-                    document.head.appendChild(fabStyles);
 
-                    // Criar botao flutuante com contagem regressiva do mercado
-                    const fab = document.createElement('button');
-                    fab.id = 'fab-roadmap-2026';
-                    fab.className = 'fixed bottom-24 right-4 z-40 px-5 py-3 rounded-2xl bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 text-white flex items-center justify-center gap-3 hover:scale-105 transition-all duration-300 border border-orange-400/30';
+                // Injetar estilos do FAB
+                const fabStyles = document.createElement('style');
+                fabStyles.textContent = `
+                    @keyframes fabGlow {
+                        0%, 100% { box-shadow: 0 4px 20px rgba(255, 107, 0, 0.4), 0 0 40px rgba(255, 107, 0, 0.1); }
+                        50% { box-shadow: 0 4px 30px rgba(255, 107, 0, 0.6), 0 0 60px rgba(255, 107, 0, 0.2); }
+                    }
+                    @keyframes fabGlowGreen {
+                        0%, 100% { box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4), 0 0 40px rgba(34, 197, 94, 0.1); }
+                        50% { box-shadow: 0 4px 30px rgba(34, 197, 94, 0.6), 0 0 60px rgba(34, 197, 94, 0.2); }
+                    }
+                    @keyframes fabGlowRed {
+                        0%, 100% { box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.1); }
+                        50% { box-shadow: 0 4px 30px rgba(239, 68, 68, 0.6), 0 0 60px rgba(239, 68, 68, 0.2); }
+                    }
+                    @keyframes iconBounce {
+                        0%, 100% { transform: scale(1); }
+                        50% { transform: scale(1.1); }
+                    }
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.7; }
+                    }
+                    #fab-mercado-status {
+                        animation: fabGlow 2s ease-in-out infinite;
+                    }
+                    #fab-mercado-status.mercado-aberto {
+                        animation: fabGlowGreen 2s ease-in-out infinite;
+                    }
+                    #fab-mercado-status.mercado-fechando {
+                        animation: fabGlowRed 1.5s ease-in-out infinite;
+                    }
+                    #fab-mercado-status .fab-icon {
+                        animation: iconBounce 1.5s ease-in-out infinite;
+                    }
+                    #fab-mercado-status:hover {
+                        animation: none;
+                        box-shadow: 0 6px 35px rgba(255, 107, 0, 0.7);
+                        transform: scale(1.05);
+                    }
+                    #fab-mercado-status .countdown-live {
+                        animation: pulse 1s ease-in-out infinite;
+                    }
+                `;
+                document.head.appendChild(fabStyles);
 
-                    // Calcular dias ate o mercado
-                    const diasMercado = config.getMarketCountdown ? config.getMarketCountdown() : 0;
-                    const textoContagem = diasMercado > 0 ? `${diasMercado} dias` : 'Aberto!';
-                    const subtitulo = diasMercado > 0 ? 'Mercado abre em' : 'Mercado Cartola';
+                // Criar botao flutuante
+                const fab = document.createElement('button');
+                fab.id = 'fab-mercado-status';
+                fab.className = 'fixed bottom-24 right-4 z-40 px-4 py-3 rounded-2xl bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 text-white flex items-center justify-center gap-3 transition-all duration-300 border border-orange-400/30';
+                fab.innerHTML = `
+                    <span class="material-icons text-2xl fab-icon">storefront</span>
+                    <div class="flex flex-col items-start leading-tight">
+                        <span id="fab-mercado-label" class="text-[10px] uppercase tracking-wider opacity-80">Mercado</span>
+                        <span id="fab-mercado-countdown" class="text-sm font-bold">Carregando...</span>
+                    </div>
+                `;
+                fab.title = 'Status do Mercado Cartola';
 
-                    fab.innerHTML = `
-                        <span class="material-icons text-2xl fab-icon">storefront</span>
-                        <div class="flex flex-col items-start leading-tight">
-                            <span class="text-[10px] uppercase tracking-wider opacity-80">${subtitulo}</span>
-                            <span class="text-sm font-bold">${textoContagem}</span>
-                        </div>
-                        <span class="material-icons text-lg opacity-60">arrow_forward</span>
-                    `;
-                    fab.title = 'Ver Roadmap 2026';
-                    fab.onclick = () => {
+                // Click abre teaser em pre-temporada ou mostra info
+                fab.onclick = () => {
+                    if (config && config.isPreparando()) {
                         fab.style.animation = 'none';
                         abrirTeaser();
-                    };
-                    document.body.appendChild(fab);
+                    }
+                };
+                document.body.appendChild(fab);
 
-                    // Esconder o botao quando o modal estiver aberto
+                // Estado do mercado
+                let statusMercado = null;
+                let intervaloAtualizacao = null;
+
+                // Buscar status do mercado da API
+                async function buscarStatusMercado() {
+                    try {
+                        const response = await fetch('/api/cartola/mercado/status');
+                        if (response.ok) {
+                            statusMercado = await response.json();
+                            atualizarFAB();
+                        }
+                    } catch (error) {
+                        console.warn('[FAB-MERCADO] Erro ao buscar status:', error);
+                        // Usar config local como fallback
+                        atualizarFABFallback();
+                    }
+                }
+
+                // Atualizar FAB com dados da API
+                function atualizarFAB() {
+                    const labelEl = document.getElementById('fab-mercado-label');
+                    const countdownEl = document.getElementById('fab-mercado-countdown');
+
+                    if (!statusMercado || !labelEl || !countdownEl) return;
+
+                    const { status_mercado, fechamento, rodada_atual } = statusMercado;
+
+                    // status_mercado: 1 = Aberto, 2 = Fechado (jogos), 6 = Encerrado
+                    if (status_mercado === 1 && fechamento) {
+                        // Mercado ABERTO - mostrar countdown para fechamento
+                        // fechamento pode ser objeto {dia, mes, ano, hora, minuto} ou timestamp
+                        let fechamentoDate;
+                        if (typeof fechamento === 'object' && fechamento.ano) {
+                            fechamentoDate = new Date(fechamento.ano, fechamento.mes - 1, fechamento.dia, fechamento.hora, fechamento.minuto);
+                        } else if (fechamento.timestamp) {
+                            fechamentoDate = new Date(fechamento.timestamp * 1000);
+                        } else {
+                            fechamentoDate = new Date(fechamento);
+                        }
+                        const agora = new Date();
+                        const diff = fechamentoDate - agora;
+
+                        if (diff > 0) {
+                            const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+                            const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                            const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+                            fab.className = fab.className.replace(/mercado-\w+/g, '').trim();
+
+                            if (dias > 0) {
+                                labelEl.textContent = `Fecha em ${dias}d ${horas}h`;
+                                countdownEl.innerHTML = `<span class="text-green-300">ABERTO</span> <span class="text-xs opacity-70">R${rodada_atual}</span>`;
+                                fab.classList.add('mercado-aberto');
+                                fab.style.background = 'linear-gradient(to bottom right, #16a34a, #15803d, #166534)';
+                                fab.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+                            } else if (horas > 0) {
+                                labelEl.textContent = `Fecha em ${horas}h ${minutos}m`;
+                                countdownEl.innerHTML = `<span class="text-yellow-300 countdown-live">ABERTO</span> <span class="text-xs opacity-70">R${rodada_atual}</span>`;
+                                fab.classList.add('mercado-fechando');
+                                fab.style.background = 'linear-gradient(to bottom right, #f59e0b, #d97706, #b45309)';
+                                fab.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+                            } else {
+                                labelEl.textContent = `Fecha em ${minutos}min!`;
+                                countdownEl.innerHTML = `<span class="text-red-300 countdown-live">CORRE!</span> <span class="text-xs opacity-70">R${rodada_atual}</span>`;
+                                fab.classList.add('mercado-fechando');
+                                fab.style.background = 'linear-gradient(to bottom right, #ef4444, #dc2626, #b91c1c)';
+                                fab.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                            }
+                        } else {
+                            // Fechamento passou mas status ainda é 1 (delay da API)
+                            labelEl.textContent = 'Fechando...';
+                            countdownEl.innerHTML = `<span class="text-yellow-300 countdown-live">Aguarde</span>`;
+                        }
+                    } else if (status_mercado === 2 || status_mercado === 3) {
+                        // Mercado FECHADO - jogos em andamento
+                        labelEl.textContent = `Rodada ${rodada_atual}`;
+                        countdownEl.innerHTML = `<span class="text-red-300">FECHADO</span> <span class="text-[10px] opacity-60">⚽ Jogos</span>`;
+                        fab.className = fab.className.replace(/mercado-\w+/g, '').trim();
+                        fab.style.background = 'linear-gradient(to bottom right, #6b7280, #4b5563, #374151)';
+                        fab.style.borderColor = 'rgba(107, 114, 128, 0.3)';
+                    } else if (status_mercado === 6) {
+                        // Temporada encerrada
+                        labelEl.textContent = 'Temporada';
+                        countdownEl.innerHTML = `<span class="text-gray-400">Encerrada</span>`;
+                        fab.style.background = 'linear-gradient(to bottom right, #374151, #1f2937, #111827)';
+                        fab.style.borderColor = 'rgba(55, 65, 81, 0.3)';
+                    } else {
+                        // Outros estados
+                        atualizarFABFallback();
+                    }
+                }
+
+                // Fallback usando config local
+                function atualizarFABFallback() {
+                    const labelEl = document.getElementById('fab-mercado-label');
+                    const countdownEl = document.getElementById('fab-mercado-countdown');
+
+                    if (!config || !labelEl || !countdownEl) return;
+
+                    const diasMercado = config.getMarketCountdown ? config.getMarketCountdown() : 0;
+
+                    if (diasMercado > 0) {
+                        labelEl.textContent = 'Mercado abre em';
+                        countdownEl.textContent = `${diasMercado} dias`;
+                        fab.style.background = 'linear-gradient(to bottom right, #f97316, #ea580c, #dc2626)';
+                    } else if (config.isMarketOpen && config.isMarketOpen()) {
+                        labelEl.textContent = 'Mercado Cartola';
+                        countdownEl.innerHTML = `<span class="text-green-300">ABERTO</span>`;
+                        fab.style.background = 'linear-gradient(to bottom right, #16a34a, #15803d, #166534)';
+                    } else {
+                        labelEl.textContent = 'Mercado';
+                        countdownEl.textContent = 'Aguardando...';
+                    }
+                }
+
+                // Atualizar countdown a cada minuto
+                function iniciarAtualizacaoAutomatica() {
+                    // Primeira busca imediata
+                    buscarStatusMercado();
+
+                    // Atualizar a cada 60 segundos
+                    intervaloAtualizacao = setInterval(() => {
+                        buscarStatusMercado();
+                    }, 60000);
+
+                    // Atualizar display a cada 10 segundos (sem nova requisição)
+                    setInterval(() => {
+                        if (statusMercado) atualizarFAB();
+                    }, 10000);
+                }
+
+                // Esconder o botao quando o modal estiver aberto (se existir)
+                if (typeof overlay !== 'undefined' && overlay) {
                     const observer = new MutationObserver(() => {
                         const isModalOpen = !overlay.classList.contains('hidden');
                         fab.style.display = isModalOpen ? 'none' : 'flex';
                     });
                     observer.observe(overlay, { attributes: true, attributeFilter: ['class'] });
                 }
+
+                // Iniciar
+                iniciarAtualizacaoAutomatica();
             });
         </script>
     </body>
