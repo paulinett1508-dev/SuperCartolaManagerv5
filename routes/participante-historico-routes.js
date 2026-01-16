@@ -136,87 +136,100 @@ router.get("/:timeId", async (req, res) => {
 
         console.log(`[HISTORICO] ✅ Histórico encontrado: ${response.historico.length} temporada(s)`);
 
-        // ✅ v2.5: Buscar saldo ATUAL de TODAS as ligas do participante
-        // ✅ FIX: Usa getFinancialSeason() para pegar temporada correta (2025 durante pré-temporada)
+        // ✅ v3.0: Buscar saldo ATUAL POR LIGA (NÃO mais agregado)
+        // FIX CRÍTICO: Participantes com múltiplas ligas precisam de dados separados
         const temporadaFinanceira = getFinancialSeason();
         try {
+            // Buscar todos os caches do participante
             const extratosCaches = await ExtratoFinanceiroCache.find({
                 time_id: Number(timeId),
                 temporada: temporadaFinanceira
             });
 
-            if (extratosCaches && extratosCaches.length > 0) {
-                // Somar saldos de todas as ligas
-                let saldoTemporada = 0;
-                let totalGanhos = 0;
-                let totalPerdas = 0;
+            // Buscar todos os acertos do participante
+            const todosAcertos = await AcertoFinanceiro.find({
+                timeId: String(timeId),
+                temporada: temporadaFinanceira
+            });
 
-                extratosCaches.forEach(extratoCache => {
-                    const resumo = extratoCache.resumo || {};
-                    const saldoLiga = resumo.saldo_final ?? resumo.saldo ?? extratoCache.saldo_consolidado ?? 0;
-                    const ganhosLiga = resumo.totalGanhos ?? extratoCache.ganhos_consolidados ?? 0;
-                    const perdasLiga = resumo.totalPerdas ?? extratoCache.perdas_consolidadas ?? 0;
-                    
-                    saldoTemporada += saldoLiga;
-                    totalGanhos += ganhosLiga;
-                    totalPerdas += perdasLiga;
+            // Criar mapas por liga_id para lookup rápido
+            const cachesPorLiga = new Map();
+            extratosCaches.forEach(cache => {
+                const ligaId = String(cache.liga_id);
+                cachesPorLiga.set(ligaId, cache);
+            });
+
+            const acertosPorLiga = new Map();
+            todosAcertos.forEach(acerto => {
+                const ligaId = String(acerto.ligaId);
+                if (!acertosPorLiga.has(ligaId)) {
+                    acertosPorLiga.set(ligaId, []);
+                }
+                acertosPorLiga.get(ligaId).push(acerto);
+            });
+
+            console.log(`[HISTORICO] 💰 Caches encontrados: ${extratosCaches.length} ligas, Acertos: ${todosAcertos.length} registros`);
+
+            // ✅ v3.0: Atualizar CADA entrada do histórico com dados da SUA liga
+            // IMPORTANTE: Só sobrescreve o JSON se existe cache no MongoDB
+            // Se não existe cache, mantém o valor histórico do JSON (temporada consolidada)
+            let saldoGeralConsolidado = 0;
+
+            response.historico.forEach(h => {
+                if (h.ano !== temporadaFinanceira) return;
+
+                const ligaId = String(h.liga_id);
+                const cache = cachesPorLiga.get(ligaId);
+                const acertosLiga = acertosPorLiga.get(ligaId) || [];
+
+                // Calcular acertos da liga (sempre incluir)
+                let saldoAcertos = 0;
+                acertosLiga.forEach(a => {
+                    saldoAcertos += a.tipo === 'pagamento' ? a.valor : -a.valor;
                 });
 
-                // ✅ v2.5: Buscar acertos financeiros da temporada FINANCEIRA
-                // Usa mesma temporada que os caches (2025 durante pré-temporada)
-                let saldoAcertos = 0;
-                try {
-                    const acertos = await AcertoFinanceiro.find({
-                        timeId: String(timeId),
-                        temporada: temporadaFinanceira
-                    });
-                    if (acertos.length > 0) {
-                        acertos.forEach(a => {
-                            // pagamento = participante PAGOU à liga (POSITIVO, quita dívida)
-                            // recebimento = participante RECEBEU da liga (NEGATIVO, usa crédito)
-                            saldoAcertos += a.tipo === 'pagamento' ? a.valor : -a.valor;
-                        });
-                        console.log(`[HISTORICO] 💳 Acertos: ${acertos.length} registros, saldo: ${saldoAcertos}`);
-                    }
-                } catch (acertosError) {
-                    console.warn(`[HISTORICO] ⚠️ Erro ao buscar acertos:`, acertosError.message);
-                }
+                // ✅ LÓGICA CORRETA:
+                // - Se existe cache: usar dados do MongoDB (temporada em andamento)
+                // - Se NÃO existe cache: manter dados do JSON (temporada consolidada)
+                if (cache) {
+                    const resumo = cache.resumo || {};
+                    const saldoCache = resumo.saldo_final ?? resumo.saldo ?? cache.saldo_consolidado ?? 0;
+                    const ganhosLiga = resumo.totalGanhos ?? cache.ganhos_consolidados ?? 0;
+                    const perdasLiga = resumo.totalPerdas ?? cache.perdas_consolidadas ?? 0;
 
-                // Saldo final = soma de todas ligas + acertos
-                const saldoAtual = saldoTemporada + saldoAcertos;
-
-                // #region agent log
-                fetch('http://localhost:7242/ingest/e93c8ea9-7a4c-4434-afdb-ce7f64009673',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'participante-historico-routes.js:175',message:'[FIX] Cálculo final com TODAS as ligas',data:{saldoTemporada,saldoAcertos,saldoAtual,saldoDoJSON:response.situacao_financeira.saldo_atual,diferenca:saldoAtual-response.situacao_financeira.saldo_atual,totalLigas:extratosCaches.length},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'FIX'})}).catch(()=>{});
-                // #endregion
-                console.log(`[HISTORICO] 💰 Saldo CONSOLIDADO (${extratosCaches.length} ligas): temporada=${saldoTemporada}, acertos=${saldoAcertos}, TOTAL=${saldoAtual} (JSON tinha: ${response.situacao_financeira.saldo_atual})`);
-
-                // Atualizar situacao_financeira com dados reais
-                response.situacao_financeira.saldo_atual = saldoAtual;
-                response.situacao_financeira.tipo = saldoAtual > 0 ? "credor" : saldoAtual < 0 ? "devedor" : "zerado";
-
-                // ✅ v2.5: Atualizar a temporada FINANCEIRA com dados do MongoDB
-                // Durante pré-temporada, atualiza 2025 (temporadaFinanceira)
-                const temporadaAtualData = response.historico.find(h => h.ano === temporadaFinanceira);
-                if (temporadaAtualData) {
-                    temporadaAtualData.financeiro = {
-                        saldo_final: saldoAtual,
-                        total_bonus: totalGanhos,
-                        total_onus: totalPerdas
+                    // Atualizar com dados do MongoDB
+                    h.financeiro = {
+                        saldo_final: saldoCache,  // Saldo da temporada (SEM acertos)
+                        total_bonus: ganhosLiga,
+                        total_onus: perdasLiga,
+                        saldo_cache: saldoCache,
+                        saldo_acertos: saldoAcertos,
+                        fonte: 'mongodb'
                     };
-                    console.log(`[HISTORICO] 💰 Atualizando dados da temporada ${temporadaFinanceira} com MongoDB`);
-                }
 
-                // Atualizar detalhamento da temporada financeira
-                const chaveTemporada = `temporada_${temporadaFinanceira}`;
-                if (response.situacao_financeira.detalhamento?.[chaveTemporada]) {
-                    response.situacao_financeira.detalhamento[chaveTemporada].saldo_final = saldoAtual;
-                    response.situacao_financeira.detalhamento[chaveTemporada].saldo_extrato = saldoAtual;
-                    response.situacao_financeira.detalhamento[chaveTemporada].total_bonus = totalGanhos;
-                    response.situacao_financeira.detalhamento[chaveTemporada].total_onus = totalPerdas;
+                    saldoGeralConsolidado += saldoCache + saldoAcertos;
+                    console.log(`[HISTORICO] 💰 Liga ${h.liga_nome}: cache=${saldoCache}, acertos=${saldoAcertos} [MongoDB]`);
+                } else {
+                    // Manter dados do JSON (histórico consolidado)
+                    const saldoJSON = h.financeiro?.saldo_final ?? 0;
+                    h.financeiro = {
+                        ...h.financeiro,
+                        saldo_cache: 0,
+                        saldo_acertos: saldoAcertos,
+                        fonte: 'json'
+                    };
+
+                    saldoGeralConsolidado += saldoJSON + saldoAcertos;
+                    console.log(`[HISTORICO] 💰 Liga ${h.liga_nome}: json=${saldoJSON}, acertos=${saldoAcertos} [JSON]`);
                 }
-            } else {
-                console.log(`[HISTORICO] ⚠️ Cache MongoDB não encontrado para time ${timeId}, usando dados do JSON`);
-            }
+            });
+
+            // Atualizar situacao_financeira com saldo CONSOLIDADO (soma de todas ligas)
+            response.situacao_financeira.saldo_atual = saldoGeralConsolidado;
+            response.situacao_financeira.tipo = saldoGeralConsolidado > 0 ? "credor" : saldoGeralConsolidado < 0 ? "devedor" : "zerado";
+
+            console.log(`[HISTORICO] 💰 Saldo GERAL consolidado: ${saldoGeralConsolidado}`);
+
         } catch (mongoError) {
             console.warn(`[HISTORICO] ⚠️ Erro ao buscar MongoDB:`, mongoError.message);
             // Continua com dados do JSON em caso de erro

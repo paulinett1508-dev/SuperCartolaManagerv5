@@ -35,7 +35,7 @@
 // v9.0+: Filtros por liga, dados reais das APIs
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.5 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.11 carregando...");
 
 // Estado do modulo
 let historicoData = null;
@@ -1069,13 +1069,20 @@ async function buscarExtrato(tempLigaId, temporada = null) {
         const data = await res.json();
         if (!data) return null;
 
+        // ✅ v12.11: Se não existe cache real, retornar null para usar fallback do JSON
+        // A API retorna { cached: false } quando não encontra cache no MongoDB
+        if (data.cached === false) {
+            console.log(`[HISTORICO-DEBUG] Cache não encontrado para liga ${tempLigaId}, usando fallback JSON`);
+            return null;
+        }
+
         const resumo = data.resumo || {};
-        
+
         // ✅ v12.7: Para Hall da Fama, usar saldo_temporada (congelado)
         // saldo_temporada = cache + campos manuais (SEM acertos)
         // Isso garante que o histórico financeiro fique "congelado" como terminou a temporada
         const saldoHistorico = resumo.saldo_temporada ?? resumo.saldo_final ?? resumo.saldo ?? 0;
-        
+
         return {
             creditos: resumo.totalGanhos || 0,
             debitos: Math.abs(resumo.totalPerdas || 0),
@@ -1876,4 +1883,4 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
     }
 };
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.8 pronto (modal detalhes)");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.11 pronto (fix multi-liga)");
