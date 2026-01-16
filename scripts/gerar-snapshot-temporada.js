@@ -163,10 +163,7 @@ async function main() {
             process.exit(1);
         }
 
-        await mongoose.connect(MONGO_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
+        await mongoose.connect(MONGO_URI);
 
         const db = mongoose.connection.db;
         console.log('✅ MongoDB conectado\n');

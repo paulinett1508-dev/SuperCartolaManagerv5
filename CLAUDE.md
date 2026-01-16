@@ -359,6 +359,21 @@ const preTemporada = temporada > statusMercado.temporada;
 - `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` - UI condicional
 - `controllers/extratoFinanceiroCacheController.js` - Protecao contra dados fantasmas
 
+### Flags Hardcoded (Atualizar quando campeonato iniciar)
+
+Quando a temporada 2026 do Brasileirao comecar, atualizar:
+
+```javascript
+// public/js/fluxo-financeiro/fluxo-financeiro-core.js
+const CAMPEONATO_ENCERRADO = false; // Mudar para false
+const TEMPORADA_CARTOLA = 2026;     // Atualizar para 2026
+
+// public/participante/js/modules/participante-extrato.js
+// Verificar se usa CONFIG.isPreparando() corretamente
+```
+
+**Quando atualizar:** Quando API Cartola retornar `temporada: 2026` (geralmente final de marco).
+
 ## ⚠️ Critical Rules
 1. NEVER remove the `gemini_audit.py` file.
 2. NEVER break the "Follow the Money" audit trail in financial controllers.
@@ -396,6 +411,28 @@ Os escudos estão em `/public/escudos/{clube_id}.png`. IDs disponíveis:
 ```javascript
 const escudoUrl = `/escudos/${clube_id}.png`;
 // Fallback: onerror="this.src='/escudos/default.png'"
+```
+
+### Tipos de ID por Collection (ATENÇÃO)
+
+Os models usam tipos diferentes para identificar times. Isso é **intencional** por razões históricas:
+
+| Collection | Campo | Tipo | Motivo |
+|------------|-------|------|--------|
+| `extratofinanceirocaches` | `time_id` | **Number** | Schema original, performance em queries numéricas |
+| `fluxofinanceirocampos` | `timeId` | **String** | Flexibilidade para IDs grandes/negativos |
+| `acertofinanceiros` | `timeId` | **String** | Consistência com fluxofinanceirocampos |
+
+**Por que funciona:** Mongoose faz coerção automática. `String("13935277") == 13935277` nas queries.
+
+**Ao fazer queries manuais:**
+```javascript
+// ✅ CORRETO - Converter para o tipo esperado
+ExtratoFinanceiroCache.find({ time_id: Number(timeId) })
+AcertoFinanceiro.find({ timeId: String(timeId) })
+
+// ❌ ERRADO - Assumir mesmo tipo
+ExtratoFinanceiroCache.find({ time_id: timeId }) // Pode falhar se timeId for string
 ```
 
 ## 🔐 Sistema de Autenticação Admin

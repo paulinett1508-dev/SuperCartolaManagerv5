@@ -67,8 +67,6 @@ if (!ligaId || !rodadaInicial || !rodadaFinal) {
   try {
     await mongoose.connect(MONGODB_URI, {
       dbName: "cartola-manager",
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
     });
     console.log("Conectado ao MongoDB com sucesso!");
     await popularRodadas(ligaId, Number(rodadaInicial), Number(rodadaFinal));
