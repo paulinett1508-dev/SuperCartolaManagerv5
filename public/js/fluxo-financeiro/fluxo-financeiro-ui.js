@@ -3335,7 +3335,27 @@ export class FluxoFinanceiroUI {
         `;
     }
 
+    /**
+     * ✅ v8.0: Renderiza campos editáveis - agora com lógica condicional por temporada
+     * - Temporada <= 2025: Campos fixos (legado)
+     * - Temporada >= 2026: Ajustes dinâmicos (novo sistema)
+     */
     async renderizarCamposEditaveis(timeId) {
+        const temporada = this.temporadaModalExtrato || window.temporadaAtual || 2025;
+
+        if (temporada >= 2026) {
+            // ✅ v8.0: Novo sistema - ajustes dinâmicos ilimitados
+            return await this.renderizarAjustesDinamicos(timeId, temporada);
+        } else {
+            // ✅ v8.0: Sistema legado - 4 campos fixos (mantém compatibilidade 2025)
+            return await this.renderizarCamposFixos(timeId);
+        }
+    }
+
+    /**
+     * ✅ v8.0: Renderiza campos fixos (sistema legado para temporada <= 2025)
+     */
+    async renderizarCamposFixos(timeId) {
         const campos =
             await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
         const lista = [
@@ -3421,6 +3441,99 @@ export class FluxoFinanceiroUI {
                         .join("")}
                 </div>
 
+            </div>
+        `;
+    }
+
+    /**
+     * ✅ v8.0: Renderiza ajustes dinâmicos (novo sistema para temporada >= 2026)
+     */
+    async renderizarAjustesDinamicos(timeId, temporada) {
+        const ligaId = window.obterLigaId?.() || '';
+
+        // Verificar se é admin
+        const isAdmin =
+            window.adminLogado === true ||
+            window.isAdminMode === true ||
+            document.querySelector('[data-admin-mode="true"]') !== null;
+
+        // Buscar ajustes via API
+        let ajustes = [];
+        try {
+            if (window.FluxoFinanceiroAjustesAPI) {
+                ajustes = await window.FluxoFinanceiroAjustesAPI.listarAjustes(ligaId, timeId, temporada);
+            }
+        } catch (error) {
+            console.error('[FLUXO-UI] Erro ao carregar ajustes:', error);
+        }
+
+        // Calcular totais
+        const totais = window.FluxoFinanceiroAjustesAPI?.calcularTotal(ajustes) || { total: 0, creditos: 0, debitos: 0 };
+        const formatarValor = (v) => Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+        // Se não é admin e não tem ajustes, não mostrar seção
+        if (!isAdmin && ajustes.length === 0) return "";
+
+        // Lista de ajustes HTML
+        const ajustesHTML = ajustes.length > 0 ? ajustes.map(a => {
+            const isCredito = a.valor > 0;
+            const cor = isCredito ? '#34d399' : '#f87171';
+            const sinal = isCredito ? '+' : '-';
+
+            return `
+                <div class="ajuste-item" data-ajuste-id="${a._id}" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border-left: 3px solid ${cor}; margin-bottom: 6px;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 12px; color: #fff; font-weight: 500;">${a.descricao}</div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.5);">${a.criado_em ? new Date(a.criado_em).toLocaleDateString('pt-BR') : ''}</div>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 700; color: ${cor};">${sinal}R$ ${formatarValor(a.valor)}</div>
+                    ${isAdmin ? `
+                    <div class="ajuste-actions" style="display: flex; gap: 4px;">
+                        <button onclick="window.editarAjusteFinanceiro('${a._id}', '${a.descricao.replace(/'/g, "\\'")}', ${a.valor})" class="btn-ajuste-action" style="background: rgba(255,255,255,0.1); border: none; border-radius: 4px; padding: 4px; cursor: pointer;" title="Editar">
+                            <span class="material-icons" style="font-size: 16px; color: #888;">edit</span>
+                        </button>
+                        <button onclick="window.removerAjusteFinanceiro('${a._id}', '${a.descricao.replace(/'/g, "\\'")}')" class="btn-ajuste-action" style="background: rgba(255,255,255,0.1); border: none; border-radius: 4px; padding: 4px; cursor: pointer;" title="Remover">
+                            <span class="material-icons" style="font-size: 16px; color: #888;">delete</span>
+                        </button>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('') : `
+            <div style="padding: 16px; text-align: center; color: rgba(255,255,255,0.4); font-size: 12px;">
+                <span class="material-icons" style="font-size: 32px; display: block; margin-bottom: 8px;">receipt_long</span>
+                Nenhum ajuste registrado
+            </div>
+        `;
+
+        // Total
+        const corTotal = totais.total >= 0 ? 'text-success' : 'text-danger';
+        const sinalTotal = totais.total >= 0 ? '+' : '-';
+
+        return `
+            <div class="card-padrao mb-20 ajustes-section">
+                <h4 class="card-titulo" style="font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <span class="material-icons" style="font-size: 16px; color: var(--laranja);">tune</span>
+                        Ajustes Financeiros
+                    </span>
+                    ${isAdmin ? `
+                    <button onclick="window.abrirModalNovoAjuste(${timeId}, ${temporada})" class="btn-add-ajuste" style="display: flex; align-items: center; gap: 4px; background: linear-gradient(135deg, var(--laranja) 0%, #ff6b00 100%); border: none; border-radius: 6px; padding: 6px 12px; color: #fff; font-size: 11px; font-weight: 600; cursor: pointer;">
+                        <span class="material-icons" style="font-size: 14px;">add</span> Adicionar
+                    </button>
+                    ` : ''}
+                </h4>
+
+                <div class="ajustes-lista">
+                    ${ajustesHTML}
+                </div>
+
+                ${ajustes.length > 0 ? `
+                <div class="ajustes-total" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: rgba(255,255,255,0.7); font-weight: 600;">Total Ajustes:</span>
+                    <span class="${corTotal}" style="font-weight: 700; font-size: 15px;">${sinalTotal}R$ ${formatarValor(totais.total)}</span>
+                </div>
+                ` : ''}
             </div>
         `;
     }
@@ -6486,3 +6599,344 @@ window.abrirNovoParticipante = function() {
         document.getElementById('inputBuscaTimeNome')?.focus();
     }, 100);
 };
+
+// =============================================================================
+// ✅ v8.0: MODAL DE AJUSTES FINANCEIROS (2026+)
+// =============================================================================
+
+/**
+ * Estado global para o modal de ajuste
+ */
+window._ajusteModalState = {
+    timeId: null,
+    temporada: 2026,
+    ajusteId: null,      // Se editando
+    modo: 'criar'        // 'criar' ou 'editar'
+};
+
+/**
+ * Cria a estrutura do modal de ajuste no DOM
+ */
+window._criarModalAjuste = function() {
+    if (document.getElementById('modalAjusteFinanceiro')) return;
+
+    const modal = document.createElement('div');
+    modal.id = 'modalAjusteFinanceiro';
+    modal.className = 'modal-ajuste-overlay';
+    modal.style.cssText = `
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 10001;
+        justify-content: center;
+        align-items: center;
+    `;
+
+    modal.innerHTML = `
+        <div class="modal-ajuste-container" style="
+            background: #1a1a1a;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        ">
+            <div class="modal-ajuste-header" style="
+                padding: 20px;
+                background: linear-gradient(135deg, var(--laranja) 0%, #ff6b00 100%);
+                color: #fff;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            ">
+                <h3 id="tituloModalAjuste" style="margin: 0; font-size: 16px; font-weight: 600;">
+                    <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">tune</span>
+                    Novo Ajuste
+                </h3>
+                <button onclick="window.fecharModalAjuste()" style="
+                    background: rgba(255,255,255,0.2);
+                    border: none;
+                    border-radius: 8px;
+                    padding: 6px;
+                    cursor: pointer;
+                    display: flex;
+                ">
+                    <span class="material-icons" style="font-size: 20px; color: #fff;">close</span>
+                </button>
+            </div>
+
+            <div class="modal-ajuste-body" style="padding: 24px;">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Descricao do Ajuste
+                    </label>
+                    <input type="text" id="inputDescricaoAjuste"
+                           maxlength="100"
+                           placeholder="Ex: Premio Melhor Mes, Multa atraso..."
+                           style="
+                               width: 100%;
+                               background: rgba(255,255,255,0.05);
+                               border: 1px solid rgba(255,255,255,0.1);
+                               border-radius: 8px;
+                               padding: 14px 16px;
+                               color: #fff;
+                               font-size: 14px;
+                               box-sizing: border-box;
+                           ">
+                    <div style="font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 4px; text-align: right;">
+                        <span id="contadorDescricao">0</span>/100 caracteres
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Valor (R$)
+                    </label>
+                    <input type="number" id="inputValorAjuste"
+                           step="0.01"
+                           placeholder="Ex: 50.00 ou -20.00"
+                           style="
+                               width: 100%;
+                               background: rgba(255,255,255,0.05);
+                               border: 1px solid rgba(255,255,255,0.1);
+                               border-radius: 8px;
+                               padding: 14px 16px;
+                               color: #fff;
+                               font-size: 14px;
+                               box-sizing: border-box;
+                           ">
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 6px;">
+                        <span class="material-icons" style="font-size: 12px; vertical-align: middle;">info</span>
+                        Use valor positivo para credito, negativo para debito
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button onclick="window.fecharModalAjuste()" style="
+                        flex: 1;
+                        padding: 14px;
+                        background: rgba(255,255,255,0.05);
+                        border: 1px solid rgba(255,255,255,0.1);
+                        border-radius: 8px;
+                        color: rgba(255,255,255,0.7);
+                        font-size: 14px;
+                        font-weight: 500;
+                        cursor: pointer;
+                    ">
+                        Cancelar
+                    </button>
+                    <button id="btnSalvarAjuste" onclick="window.salvarAjuste()" style="
+                        flex: 1;
+                        padding: 14px;
+                        background: linear-gradient(135deg, var(--laranja) 0%, #ff6b00 100%);
+                        border: none;
+                        border-radius: 8px;
+                        color: #fff;
+                        font-size: 14px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 6px;
+                    ">
+                        <span class="material-icons" style="font-size: 16px;">save</span>
+                        Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Fechar ao clicar fora
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            window.fecharModalAjuste();
+        }
+    });
+
+    // Contador de caracteres
+    document.getElementById('inputDescricaoAjuste').addEventListener('input', (e) => {
+        document.getElementById('contadorDescricao').textContent = e.target.value.length;
+    });
+
+    console.log('[AJUSTES] Modal de ajuste criado');
+};
+
+/**
+ * Abre modal para novo ajuste
+ */
+window.abrirModalNovoAjuste = function(timeId, temporada) {
+    window._criarModalAjuste();
+
+    window._ajusteModalState = {
+        timeId: timeId,
+        temporada: temporada || 2026,
+        ajusteId: null,
+        modo: 'criar'
+    };
+
+    // Limpar campos
+    document.getElementById('inputDescricaoAjuste').value = '';
+    document.getElementById('inputValorAjuste').value = '';
+    document.getElementById('contadorDescricao').textContent = '0';
+    document.getElementById('tituloModalAjuste').innerHTML = `
+        <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">add_circle</span>
+        Novo Ajuste
+    `;
+
+    // Mostrar modal
+    const modal = document.getElementById('modalAjusteFinanceiro');
+    modal.style.display = 'flex';
+
+    // Focar no input
+    setTimeout(() => {
+        document.getElementById('inputDescricaoAjuste').focus();
+    }, 100);
+};
+
+/**
+ * Abre modal para editar ajuste existente
+ */
+window.editarAjusteFinanceiro = function(ajusteId, descricao, valor) {
+    window._criarModalAjuste();
+
+    // Pegar timeId e temporada do estado atual do modal de extrato
+    const timeId = window.fluxoFinanceiroUI?.participanteAtual?.time_id ||
+                   window.fluxoFinanceiroUI?.participanteAtual?.id;
+    const temporada = window.fluxoFinanceiroUI?.temporadaModalExtrato || window.temporadaAtual || 2026;
+
+    window._ajusteModalState = {
+        timeId: timeId,
+        temporada: temporada,
+        ajusteId: ajusteId,
+        modo: 'editar'
+    };
+
+    // Preencher campos
+    document.getElementById('inputDescricaoAjuste').value = descricao;
+    document.getElementById('inputValorAjuste').value = valor;
+    document.getElementById('contadorDescricao').textContent = descricao.length;
+    document.getElementById('tituloModalAjuste').innerHTML = `
+        <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">edit</span>
+        Editar Ajuste
+    `;
+
+    // Mostrar modal
+    const modal = document.getElementById('modalAjusteFinanceiro');
+    modal.style.display = 'flex';
+
+    // Focar no input
+    setTimeout(() => {
+        document.getElementById('inputDescricaoAjuste').focus();
+    }, 100);
+};
+
+/**
+ * Fecha modal de ajuste
+ */
+window.fecharModalAjuste = function() {
+    const modal = document.getElementById('modalAjusteFinanceiro');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+};
+
+/**
+ * Salva ajuste (criar ou atualizar)
+ */
+window.salvarAjuste = async function() {
+    const state = window._ajusteModalState;
+    const descricao = document.getElementById('inputDescricaoAjuste').value.trim();
+    const valor = parseFloat(document.getElementById('inputValorAjuste').value);
+
+    // Validacoes
+    if (!descricao || descricao.length < 3) {
+        alert('Informe uma descricao valida (minimo 3 caracteres)');
+        return;
+    }
+    if (isNaN(valor) || valor === 0) {
+        alert('Informe um valor valido (diferente de zero)');
+        return;
+    }
+
+    const btn = document.getElementById('btnSalvarAjuste');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-icons" style="animation: spin 1s linear infinite;">sync</span> Salvando...';
+
+    try {
+        const ligaId = window.obterLigaId?.() || '';
+
+        if (state.modo === 'criar') {
+            // Criar novo ajuste
+            await window.FluxoFinanceiroAjustesAPI.criarAjuste(ligaId, state.timeId, {
+                descricao,
+                valor,
+                temporada: state.temporada
+            });
+            console.log('[AJUSTES] Ajuste criado com sucesso');
+        } else {
+            // Atualizar ajuste existente
+            await window.FluxoFinanceiroAjustesAPI.atualizarAjuste(state.ajusteId, {
+                descricao,
+                valor
+            });
+            console.log('[AJUSTES] Ajuste atualizado com sucesso');
+        }
+
+        // Fechar modal
+        window.fecharModalAjuste();
+
+        // Atualizar extrato
+        if (window.atualizarExtratoModal) {
+            await window.atualizarExtratoModal();
+        } else if (window.forcarRefreshExtrato && state.timeId) {
+            await window.forcarRefreshExtrato(state.timeId);
+        }
+
+    } catch (error) {
+        console.error('[AJUSTES] Erro ao salvar:', error);
+        alert('Erro ao salvar ajuste: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons" style="font-size: 16px;">save</span> Salvar';
+    }
+};
+
+/**
+ * Remove ajuste com confirmacao
+ */
+window.removerAjusteFinanceiro = async function(ajusteId, descricao) {
+    if (!confirm(`Remover ajuste "${descricao}"?`)) {
+        return;
+    }
+
+    try {
+        await window.FluxoFinanceiroAjustesAPI.removerAjuste(ajusteId);
+        console.log('[AJUSTES] Ajuste removido com sucesso');
+
+        // Atualizar extrato
+        if (window.atualizarExtratoModal) {
+            await window.atualizarExtratoModal();
+        } else {
+            const timeId = window.fluxoFinanceiroUI?.participanteAtual?.time_id ||
+                           window.fluxoFinanceiroUI?.participanteAtual?.id;
+            if (window.forcarRefreshExtrato && timeId) {
+                await window.forcarRefreshExtrato(timeId);
+            }
+        }
+
+    } catch (error) {
+        console.error('[AJUSTES] Erro ao remover:', error);
+        alert('Erro ao remover ajuste: ' + error.message);
+    }
+};
+
+console.log('[FLUXO-UI] Funcoes de ajuste financeiro carregadas v8.0');

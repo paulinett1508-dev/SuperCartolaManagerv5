@@ -1,10 +1,10 @@
-    // Detectar se é pré-temporada 2026
-    const temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
-    const temporadaSelecionada = window.seasonSelector?.getTemporadaSelecionada?.();
-    const isPreTemporada2026 = (temporadaSelecionada || temporadaAtual) >= 2026 && isPreTemporada(extrato.rodadas);
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.15 FIX SELETOR TEMPORADA
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.16 FIX CODIGO ORFAO
 // =====================================================
+// ✅ v10.16: FIX CRÍTICO - Removido código órfão no topo do arquivo
+//          - Variáveis isPreTemporada2026 estavam fora de escopo
+//          - Causava "extrato is not defined" ao carregar módulo
+//          - Adicionado definições em renderizarConteudoRenovadoPreTemporada
 // ✅ v10.15: FIX SELETOR TEMPORADA - Considera temporada selecionada pelo usuário
 //          - Se usuário selecionou 2025 (histórico), mostra layout completo
 //          - Se usuário selecionou 2026 (atual), mostra layout de pré-temporada
@@ -331,6 +331,11 @@ function renderizarConteudoRenovadoPreTemporada(container, extrato) {
     const acertos = extrato.acertos || { lista: [], resumo: {} };
     const listaAcertos = acertos.lista || [];
     const saldoAcertos = acertos.resumo?.saldo || 0;
+
+    // ✅ v10.16 FIX: Definir variáveis de temporada dentro do escopo da função
+    const temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
+    const temporadaSelecionada = window.seasonSelector?.getTemporadaSelecionada?.() || temporadaAtual;
+    const isPreTemporada2026 = temporadaSelecionada >= 2026 && isPreTemporada(extrato.rodadas);
 
     let html = ``;
     // Cards e campos manuais só se não for pré-temporada 2026

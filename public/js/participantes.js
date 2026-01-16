@@ -97,20 +97,36 @@ function atualizarVisibilidadeBotaoValidar() {
 // Torna função global para onclick
 window.selecionarTemporada = selecionarTemporada;
 
-// CONFIGURAÇÃO DOS BRASÕES
+// CONFIGURAÇÃO DOS BRASÕES (IDs oficiais da API Cartola)
+// Série A 2025 + principais times de outras séries
 const CLUBES_CONFIG = {
     MAPEAMENTO: {
+        // Série A 2025
         262: { nome: "Flamengo", arquivo: "262.png" },
         263: { nome: "Botafogo", arquivo: "263.png" },
         264: { nome: "Corinthians", arquivo: "264.png" },
+        265: { nome: "Bahia", arquivo: "265.png" },
         266: { nome: "Fluminense", arquivo: "266.png" },
         267: { nome: "Vasco", arquivo: "267.png" },
         275: { nome: "Palmeiras", arquivo: "275.png" },
         276: { nome: "São Paulo", arquivo: "276.png" },
         277: { nome: "Santos", arquivo: "277.png" },
+        280: { nome: "Bragantino", arquivo: "280.png" },
+        282: { nome: "Atlético-MG", arquivo: "282.png" },
         283: { nome: "Cruzeiro", arquivo: "283.png" },
-        292: { nome: "Atlético-MG", arquivo: "292.png" },
-        344: { nome: "Atlético-GO", arquivo: "344.png" },
+        284: { nome: "Grêmio", arquivo: "284.png" },
+        285: { nome: "Internacional", arquivo: "285.png" },
+        286: { nome: "Juventude", arquivo: "286.png" },
+        287: { nome: "Vitória", arquivo: "287.png" },
+        290: { nome: "Goiás", arquivo: "290.png" },
+        292: { nome: "Sport", arquivo: "292.png" },
+        293: { nome: "Athletico-PR", arquivo: "293.png" },
+        354: { nome: "Ceará", arquivo: "354.png" },
+        356: { nome: "Fortaleza", arquivo: "356.png" },
+        1371: { nome: "Cuiabá", arquivo: "1371.png" },
+        2305: { nome: "Mirassol", arquivo: "2305.png" },
+        // Outros times populares
+        344: { nome: "Santa Cruz", arquivo: "344.png" },
     },
     PATHS: {
         escudosLocal: "/escudos/",
@@ -225,13 +241,19 @@ async function carregarParticipantesPorTemporada(temporada) {
                     ` : ""}
 
                     <div class="participante-actions-compact">
-                        <button class="btn-compact btn-compact-validar"
+                        ${(() => {
+                            // ✅ v2.8: Mostrar check verde se já foi sincronizado (tem escudo)
+                            const jaSincronizado = p.escudo && p.escudo.length > 10;
+                            return `
+                        <button class="btn-compact btn-compact-validar ${jaSincronizado ? 'ja-validado' : ''}"
                                 data-action="validar-id"
                                 data-time-id="${p.time_id}"
                                 data-nome="${(p.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
-                                title="Validar ID na API Cartola">
-                            <span class="material-symbols-outlined">verified</span>
-                        </button>
+                                data-sincronizado="${jaSincronizado}"
+                                title="${jaSincronizado ? 'Já sincronizado - clique para atualizar' : 'Validar ID na API Cartola'}">
+                            <span class="material-symbols-outlined" style="${jaSincronizado ? 'color: #22c55e;' : ''}">${jaSincronizado ? 'check_circle' : 'verified'}</span>
+                        </button>`;
+                        })()}
                         <button class="btn-compact btn-compact-status"
                                 data-action="toggle-status"
                                 data-time-id="${p.time_id}"
@@ -704,6 +726,69 @@ async function handleCardClick(e) {
     } else if (action === "validar-id") {
         const nome = btn.dataset.nome;
         await validarIdParticipante(timeId, nome, btn);
+        } else if (action === "financeiro" || action === "ver-financeiro") {
+            const nome = btn.dataset.nome;
+            await verExtratoFinanceiroParticipante(timeId, nome, btn);
+    }
+}
+// Exibe o extrato financeiro do participante
+async function verExtratoFinanceiroParticipante(timeId, nomeCartoleiro, btn) {
+    try {
+        const temporada = temporadaSelecionada || new Date().getFullYear();
+        const response = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?temporada=${temporada}`);
+        if (!response.ok) throw new Error("Erro ao buscar extrato financeiro");
+        const data = await response.json();
+
+        // Renderizar modal simples com resumo financeiro
+        const resumo = data.resumo || {};
+        const rodadas = data.rodadas || [];
+        const saldo = resumo.saldo !== undefined ? resumo.saldo.toFixed(2) : "N/D";
+        const ganhos = resumo.totalGanhos !== undefined ? resumo.totalGanhos.toFixed(2) : "0.00";
+        const perdas = resumo.totalPerdas !== undefined ? resumo.totalPerdas.toFixed(2) : "0.00";
+
+        const modal = document.createElement("div");
+        modal.className = "modal-custom";
+        modal.innerHTML = `
+            <div class="modal-custom-overlay"></div>
+            <div class="modal-custom-content">
+                <div class="modal-custom-header">
+                    <h3>Extrato Financeiro - ${nomeCartoleiro}</h3>
+                </div>
+                <div class="modal-custom-body">
+                    <div><strong>Saldo Atual:</strong> R$ ${saldo}</div>
+                    <div><strong>Ganhos:</strong> R$ ${ganhos}</div>
+                    <div><strong>Perdas:</strong> R$ ${perdas}</div>
+                    <div style="margin-top:10px;"><strong>Rodadas:</strong> ${rodadas.length}</div>
+                </div>
+                <div class="modal-custom-footer">
+                    <button class="btn-modal-cancel">Fechar</button>
+                </div>
+            </div>
+        `;
+        modal.querySelector(".modal-custom-overlay").onclick = () => modal.remove();
+        modal.querySelector(".btn-modal-cancel").onclick = () => modal.remove();
+        document.body.appendChild(modal);
+    } catch (error) {
+        const modal = document.createElement("div");
+        modal.className = "modal-custom";
+        modal.innerHTML = `
+            <div class="modal-custom-overlay"></div>
+            <div class="modal-custom-content">
+                <div class="modal-custom-header">
+                    <h3>Erro ao Carregar</h3>
+                </div>
+                <div class="modal-custom-body">
+                    <div style="color:#ef4444; font-weight:bold; margin-bottom:10px;">extrato financeiro não disponível</div>
+                    <div>${error.message}</div>
+                </div>
+                <div class="modal-custom-footer">
+                    <button class="btn-modal-cancel">Fechar</button>
+                </div>
+            </div>
+        `;
+        modal.querySelector(".modal-custom-overlay").onclick = () => modal.remove();
+        modal.querySelector(".btn-modal-cancel").onclick = () => modal.remove();
+        document.body.appendChild(modal);
     }
 }
 
@@ -1444,7 +1529,7 @@ async function carregarRodadaEspecifica(timeId, rodada) {
         console.error('[DATA-LAKE] Erro ao carregar rodada:', error);
         contentArea.innerHTML = `
             <div class="erro-rodada">
-                <span class="material-symbols-outlined" style="font-size:48px;color:#ef4444">wifi_off</span>
+                <span class="material-icons" style="font-size:48px;color:#ef4444">wifi_off</span>
                 <p>Erro ao carregar rodada: ${error.message}</p>
             </div>
         `;
@@ -1750,16 +1835,16 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
                     </div>
                     <div class="api-grid api-grid-4">
                         <div class="api-card api-card-mini">
-                            <span class="api-card-value">${time.globo_id || "N/D"}</span>
-                            <span class="api-card-label">Globo ID</span>
+                            <span class="api-card-value">${time.cadun_id || "N/D"}</span>
+                            <span class="api-card-label">Cadun ID</span>
                         </div>
                         <div class="api-card api-card-mini">
-                            <span class="api-card-value">${time.facebook_id || "N/D"}</span>
-                            <span class="api-card-label">Facebook ID</span>
+                            <span class="api-card-value">${time.temporada_inicial || "N/D"}</span>
+                            <span class="api-card-label">Temporada Inicial</span>
                         </div>
                         <div class="api-card api-card-mini">
-                            <span class="api-card-value">${time.rodada_time_id || "N/D"}</span>
-                            <span class="api-card-label">Rodada Time ID</span>
+                            <span class="api-card-value">${time.assinante ? "PRO" : "Free"}</span>
+                            <span class="api-card-label">Tipo Conta</span>
                         </div>
                         <div class="api-card api-card-mini">
                             <span class="api-card-value">${time.cadastro_completo ? "Sim" : "Não"}</span>
@@ -1858,7 +1943,7 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
                 throw new Error(resultado.mensagem || resultado.erro || "Erro ao salvar");
             }
         } catch (error) {
-            console.error("[API-CARTOLA] Erro ao salvar:", error);
+            console.error("Erro ao salvar:", error);
             mostrarToast(`Erro ao salvar: ${error.message}`, "error");
         } finally {
             btnSalvar.disabled = false;
@@ -2196,7 +2281,7 @@ async function sincronizarComGlobo(timeId) {
             throw new Error(data.message || "Erro ao sincronizar");
         }
 
-        mostrarToast(`Sincronizado! ${data.dump.payload_size} bytes salvos.`, "success");
+        mostrarToast("Sincronizado! " + data.dump.payload_size + " bytes salvos.", "success");
 
         // Recarregar modal com novos dados
         document.querySelector(".modal-dados-globo")?.remove();
@@ -2213,7 +2298,7 @@ async function sincronizarComGlobo(timeId) {
 
     } catch (error) {
         console.error("[DATA-LAKE] Erro ao sincronizar:", error);
-        mostrarToast(`Erro: ${error.message}`, "error");
+        mostrarToast("Erro: " + error.message, "error");
 
         if (btnSync) {
             btnSync.disabled = false;
@@ -2247,8 +2332,10 @@ function copiarJsonGlobo() {
  * @param {HTMLElement} btn - Botão que disparou a ação
  */
 async function validarIdParticipante(timeId, nome, btn) {
-    // ✅ v2.3: Não precisa de ligaId - validação é direta na API Cartola
+    // ✅ v2.5: Validar E sincronizar dados (escudo, nome, clube_id)
     const iconOriginal = btn.innerHTML;
+    const ligaId = window.SUPER_CARTOLA?.ligaAtual;
+    const temporada = temporadaSelecionada || new Date().getFullYear();
 
     try {
         // Feedback visual
@@ -2267,20 +2354,125 @@ async function validarIdParticipante(timeId, nome, btn) {
         }
 
         // Verificar se o nome do dono confere
-        const nomeDono = data.time?.nome_cartola || data.nome_cartola || '';
+        // ✅ v2.4 FIX: API retorna nome_cartoleiro (não nome_cartola)
+        const nomeDono = data.time?.nome_cartoleiro || data.nome_cartoleiro || data.time?.nome_cartola || data.nome_cartola || '';
         const nomeLocal = nome || '';
         const nomeConfere = nomeDono.toLowerCase().trim() === nomeLocal.toLowerCase().trim();
 
+        // ✅ v2.5: Sincronizar dados automaticamente se ID válido
+        if (ligaId && timeId > 0) {
+            try {
+                const syncResponse = await fetch(`/api/ligas/${ligaId}/participantes/${timeId}/sincronizar`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ temporada })
+                });
+                const syncData = await syncResponse.json();
+
+                if (syncData.success) {
+                    console.log(`[VALIDACAO] Dados sincronizados:`, syncData.dados_atualizados);
+
+                    // ✅ v2.7: Atualizar TODOS os dados visuais no card
+                    const cardId = `card-time-${timeId}`;
+                    const card = document.getElementById(cardId);
+                    console.log(`[VALIDACAO] Buscando card: ${cardId}, encontrado:`, !!card);
+
+                    if (card) {
+                        const dados = syncData.dados_atualizados;
+
+                        // 1. Atualizar escudo do time Cartola
+                        const imgEscudo = card.querySelector('.participante-avatar-mini img');
+                        console.log(`[VALIDACAO] Escudo recebido: "${dados.escudo}", img encontrada:`, !!imgEscudo);
+                        if (dados.escudo && imgEscudo) {
+                            // ✅ Cache busting para forçar reload da imagem
+                            const escudoUrl = dados.escudo.includes('?')
+                                ? `${dados.escudo}&_t=${Date.now()}`
+                                : `${dados.escudo}?_t=${Date.now()}`;
+                            imgEscudo.src = escudoUrl;
+                            console.log(`[VALIDACAO] Escudo atualizado para:`, escudoUrl);
+                        }
+
+                        // 2. Atualizar nome do cartoleiro
+                        if (dados.nome_cartoleiro) {
+                            const nomeSpan = card.querySelector('.participante-nome-compact');
+                            if (nomeSpan) {
+                                nomeSpan.textContent = dados.nome_cartoleiro;
+                            }
+                        }
+
+                        // 3. Atualizar nome do time
+                        if (dados.nome_time) {
+                            const timeSpan = card.querySelector('.participante-time-compact');
+                            if (timeSpan) {
+                                timeSpan.textContent = dados.nome_time;
+                            }
+                        }
+
+                        // 4. Atualizar/Adicionar time do coração (clube_id)
+                        console.log(`[VALIDACAO] clube_id recebido: ${dados.clube_id}, mapeado:`, !!CLUBES_CONFIG.MAPEAMENTO[dados.clube_id]);
+                        const actionsDiv = card.querySelector('.participante-actions-compact');
+                        let clubeDiv = card.querySelector('.participante-clube-mini');
+
+                        if (dados.clube_id && CLUBES_CONFIG.MAPEAMENTO[dados.clube_id]) {
+                            const clubeNome = BrasoesHelper.getNomeClube(dados.clube_id);
+                            const clubeImg = BrasoesHelper.getClubeBrasao(dados.clube_id);
+
+                            if (clubeDiv) {
+                                // Atualizar existente
+                                clubeDiv.title = clubeNome;
+                                const img = clubeDiv.querySelector('img');
+                                if (img) img.src = clubeImg;
+                            } else {
+                                // Criar novo elemento (time do coração)
+                                clubeDiv = document.createElement('div');
+                                clubeDiv.className = 'participante-clube-mini';
+                                clubeDiv.title = clubeNome;
+                                clubeDiv.innerHTML = `
+                                    <img src="${clubeImg}"
+                                         alt="${clubeNome}"
+                                         onerror="this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
+                                `;
+                                // Inserir antes das ações
+                                if (actionsDiv) {
+                                    actionsDiv.parentNode.insertBefore(clubeDiv, actionsDiv);
+                                }
+                            }
+                        }
+                    } else {
+                        console.warn(`[VALIDACAO] Card não encontrado: ${cardId}`);
+                    }
+                } else {
+                    console.warn(`[VALIDACAO] Sincronização falhou:`, syncData);
+                }
+            } catch (syncError) {
+                console.warn(`[VALIDACAO] Erro ao sincronizar (não crítico):`, syncError);
+            }
+        }
+
         if (nomeConfere) {
-            // Válido
+            // ✅ v2.8: Válido e sincronizado - manter check verde permanente
             btn.innerHTML = `<span class="material-symbols-outlined" style="color: #22c55e;">check_circle</span>`;
-            btn.title = `Válido: ${nomeDono}`;
-            mostrarToast(`${nome}: ID válido na API do Cartola`, "success");
+            btn.title = `Sincronizado: ${nomeDono}`;
+            btn.classList.add('ja-validado');
+            btn.dataset.sincronizado = "true";
+            mostrarToast(`${nome}: Validado e sincronizado`, "success");
+            // NÃO resetar - manter verde
+            btn.disabled = false;
+            return;
         } else {
-            // Dono diferente
+            // Dono diferente mas dados sincronizados - manter warning por 10s
             btn.innerHTML = `<span class="material-symbols-outlined" style="color: #f59e0b;">warning</span>`;
-            btn.title = `Atenção: Dono atual é "${nomeDono}"`;
-            mostrarToast(`${nome}: Dono diferente na API (${nomeDono})`, "warning");
+            btn.title = `Atenção: Dono atual é "${nomeDono}" (dados sincronizados)`;
+            mostrarToast(`${nome}: Dono diferente (${nomeDono}) - dados sincronizados`, "warning");
+            btn.disabled = false;
+            // Resetar para check verde após 10s (pois dados foram sincronizados)
+            setTimeout(() => {
+                btn.innerHTML = `<span class="material-symbols-outlined" style="color: #22c55e;">check_circle</span>`;
+                btn.title = `Sincronizado (dono diferente: ${nomeDono})`;
+                btn.classList.add('ja-validado');
+                btn.dataset.sincronizado = "true";
+            }, 10000);
+            return;
         }
 
     } catch (error) {
@@ -2288,9 +2480,8 @@ async function validarIdParticipante(timeId, nome, btn) {
         btn.innerHTML = `<span class="material-symbols-outlined" style="color: #ef4444;">error</span>`;
         btn.title = `Erro: ${error.message}`;
         mostrarToast(`Erro ao validar ${nome}: ${error.message}`, "error");
-    } finally {
         btn.disabled = false;
-        // Resetar após 5 segundos
+        // Resetar para original após 5 segundos apenas em caso de ERRO
         setTimeout(() => {
             btn.innerHTML = iconOriginal;
             btn.title = "Validar ID na API Cartola";
@@ -2549,27 +2740,81 @@ async function sincronizarParticipanteValidacao(timeId, temporada) {
     }
 }
 
-// Inicializar botão
-setTimeout(() => {
-    const btnValidar = document.getElementById("btn-validar-ids");
-    if (btnValidar) {
-        btnValidar.addEventListener("click", validarIdsCartola);
+// Botão flutuante Mercado Aberto
+function criarBotaoMercadoAberto() {
+    let btn = document.getElementById('btn-mercado-aberto');
+    if (!btn) {
+        btn = document.createElement('div');
+        btn.id = 'btn-mercado-aberto';
+        btn.style.position = 'fixed';
+        btn.style.bottom = '32px';
+        btn.style.right = '32px';
+        btn.style.zIndex = '9999';
+        btn.style.background = '#22c55e';
+        btn.style.color = '#fff';
+        btn.style.padding = '16px 24px';
+        btn.style.borderRadius = '32px';
+        btn.style.boxShadow = '0 2px 12px #0003';
+        btn.style.fontWeight = 'bold';
+        btn.style.fontSize = '1.1rem';
+        btn.style.display = 'flex';
+        btn.style.alignItems = 'center';
+        btn.style.gap = '12px';
+        btn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.5em;">storefront</span><span id="mercado-status-label">Carregando...</span><span id="mercado-countdown" style="margin-left:8px;font-size:0.95em;"></span>`;
+        document.body.appendChild(btn);
     }
-}, 200);
+    atualizarBotaoMercadoAberto();
+}
 
-// Exportar globalmente
-window.carregarParticipantesComBrasoes = carregarParticipantesComBrasoes;
-window.toggleStatusParticipante = toggleStatusParticipante;
-window.gerenciarSenhaParticipante = gerenciarSenhaParticipante;
-window.gerarSenhaAleatoria = gerarSenhaAleatoria;
-window.salvarSenhaParticipante = salvarSenhaParticipante;
-window.verDadosGlobo = verDadosGlobo;
-window.verDadosApiCartola = verDadosApiCartola;
-window.sincronizarComGlobo = sincronizarComGlobo;
-window.copiarJsonGlobo = copiarJsonGlobo;
-window.validarIdsCartola = validarIdsCartola;
-window.fecharModalValidacao = fecharModalValidacao;
-window.sincronizarParticipanteValidacao = sincronizarParticipanteValidacao;
+async function atualizarBotaoMercadoAberto() {
+    try {
+        const res = await fetch('/api/cartola/mercado/status');
+        if (!res.ok) throw new Error('Erro ao buscar status do mercado');
+        const data = await res.json();
+        const aberto = data.mercado_aberto || data.status_mercado === 1;
+        const label = document.getElementById('mercado-status-label');
+        const countdown = document.getElementById('mercado-countdown');
+        let texto = aberto ? 'Mercado Aberto' : 'Mercado Fechado';
+        label.textContent = texto;
+        if (aberto && data.fechamento) {
+            let fechamento = typeof data.fechamento === 'string' ? new Date(data.fechamento) : new Date(data.fechamento * 1000);
+            atualizarCountdownMercado(fechamento);
+        } else {
+            countdown.textContent = '';
+        }
+        // Cor do botão
+        const btn = document.getElementById('btn-mercado-aberto');
+        btn.style.background = aberto ? '#22c55e' : '#ef4444';
+    } catch (err) {
+        const label = document.getElementById('mercado-status-label');
+        if (label) label.textContent = 'Erro ao buscar mercado';
+    }
+}
+
+function atualizarCountdownMercado(fechamento) {
+    const countdown = document.getElementById('mercado-countdown');
+    function update() {
+        const agora = new Date();
+        const diff = fechamento - agora;
+        if (diff <= 0) {
+            countdown.textContent = 'Fechou';
+            return;
+        }
+        const horas = Math.floor(diff / 1000 / 60 / 60);
+        const minutos = Math.floor((diff / 1000 / 60) % 60);
+        const segundos = Math.floor((diff / 1000) % 60);
+        countdown.textContent = `Fecha em ${horas}h ${minutos}m ${segundos}s`;
+    }
+    update();
+    // Atualiza a cada segundo
+    if (countdown._interval) clearInterval(countdown._interval);
+    countdown._interval = setInterval(update, 1000);
+}
+
+// Inicializar botão ao carregar página
+window.addEventListener('DOMContentLoaded', criarBotaoMercadoAberto);
+// Atualizar status do mercado a cada 2 minutos
+setInterval(atualizarBotaoMercadoAberto, 120000);
 
 // ==============================
 // CONTROLE DE INICIALIZAÇÃO

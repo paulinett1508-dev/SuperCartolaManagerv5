@@ -5,6 +5,78 @@
 
 ---
 
+## BUG CRITICO - HALL DA FAMA SALDO INCORRETO (Sessao 2026-01-16)
+
+### Problema
+O card **SALDO FINAL** no Hall da Fama mostra valor incorreto para participantes de **multiplas ligas**.
+
+**Caso concreto:** Paulinett Miranda (ID: 13935277)
+- Deveria mostrar: **-R$ 193** (SUPERCARTOLA)
+- Mostra: **R$ 296** (valor incorreto)
+- Modal de detalhes: abre **todo zerado**
+
+### Causa Raiz Identificada
+O sistema **mistura dados de diferentes ligas**:
+```
+Cache SOBRAL (67) + Acertos SUPERCARTOLA (229) = 296
+```
+
+### Dados do Participante
+
+| Liga | Saldo JSON | Cache 2025 | Acertos |
+|------|------------|------------|---------|
+| SUPERCARTOLA | -193 | **NAO EXISTE** | +229 |
+| SOBRAL | +190 | 67 | 0 |
+
+### IDs das Ligas
+- SUPERCARTOLA: `684cb1c8af923da7c7df51de`
+- SOBRAL: `684d821cf1a7ae16d1f89572`
+
+### Correcao Aplicada (Parcial)
+**Arquivo:** `public/participante/js/modules/participante-historico.js`
+**Versao:** v12.9 → v12.10
+
+**Bug corrigido:** Escopo da variavel `ligaData` em `renderizarDadosTempoReal()`:
+- `ligaData` era declarada dentro do try interno mas usada fora
+- Causava fallback incorreto para `CURRENT_SEASON = 2026`
+- Criada variavel `ligaAno` no escopo correto
+
+**Nota:** Essa correcao resolve casos onde `renderizarDadosTempoReal` e chamada, mas NAO resolve o caso de Paulinett Miranda que tem historico no JSON.
+
+### Informacoes do Usuario (Testes)
+1. Liga selecionada no header: **Super Cartola**
+2. Liga exibida no Hall da Fama: **SuperCartola**
+3. Teste de troca de liga: **nao realizado**
+
+### Tarefas Pendentes
+- [ ] Adicionar logs de debug em `renderizarTodasLigas()` para rastrear qual `ligaId` e usado
+- [ ] Verificar se `ligaIdSelecionada` esta correta quando modulo inicia
+- [ ] Testar trocar a liga no header e observar se valor muda
+- [ ] Identificar ONDE exatamente ocorre a mistura de dados entre ligas
+- [ ] Considerar criar cache SUPERCARTOLA 2025 para Paulinett Miranda
+
+### Comandos Uteis
+```bash
+# Testar API SUPERCARTOLA (retorna 404 + acertos)
+curl -s "http://localhost:5000/api/extrato-cache/684cb1c8af923da7c7df51de/times/13935277/cache?temporada=2025"
+
+# Testar API SOBRAL (retorna saldo 147)
+curl -s "http://localhost:5000/api/extrato-cache/684d821cf1a7ae16d1f89572/times/13935277/cache?temporada=2025"
+
+# Buscar caches do participante
+node -e "require('mongoose').connect(process.env.MONGO_URI).then(m => m.connection.db.collection('extratofinanceirocaches').find({time_id: 13935277}).toArray().then(r => { console.log(r); process.exit(); }))"
+```
+
+### Hipotese para Investigar
+Quando `ligaIdSelecionada = SUPERCARTOLA`:
+1. `buscarExtrato(SUPERCARTOLA, 2025)` retorna null (404)
+2. Fallback deveria usar JSON: `tempRecente.financeiro.saldo_final = -193`
+3. Mas algo esta usando cache da SOBRAL (67) + acertos da SUPERCARTOLA (229)
+
+Possivel bug: O modulo pode estar iterando por TODAS as ligas mesmo quando uma esta selecionada, ou ha vazamento de dados entre iteracoes do loop.
+
+---
+
 ## PROBLEMAS CRITICOS - EXTRATO 2026 (Sessao 2026-01-15)
 
 ### Contexto Geral

@@ -2854,3 +2854,141 @@ table.fluxo-participantes-tabela {
 .fluxo-tabela-container.scroll-end::after {
     opacity: 0;
 }
+
+/* =============================================================================
+   AJUSTES FINANCEIROS DINAMICOS (v8.0 - 2026+)
+   ============================================================================= */
+
+/* Animacao de spin para loading */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Secao de ajustes */
+.ajustes-section {
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Lista de ajustes */
+.ajustes-lista {
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #FF5500 #1a1a1a;
+}
+
+.ajustes-lista::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ajustes-lista::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 3px;
+}
+
+.ajustes-lista::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #FF5500, #ff6b1a);
+    border-radius: 3px;
+}
+
+/* Item de ajuste */
+.ajuste-item {
+    transition: all 0.2s ease;
+}
+
+.ajuste-item:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.ajuste-item:hover .ajuste-actions button {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.ajuste-item:hover .ajuste-actions button .material-icons {
+    color: #fff;
+}
+
+/* Botoes de acao do ajuste */
+.btn-ajuste-action {
+    transition: all 0.2s ease;
+}
+
+.btn-ajuste-action:hover {
+    transform: scale(1.1);
+}
+
+/* Botao adicionar ajuste */
+.btn-add-ajuste {
+    transition: all 0.2s ease;
+}
+
+.btn-add-ajuste:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.3);
+}
+
+/* Total de ajustes */
+.ajustes-total {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    padding: 12px !important;
+    margin-top: 12px;
+}
+
+/* Modal de ajuste */
+.modal-ajuste-overlay {
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-ajuste-container {
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Inputs do modal de ajuste */
+.modal-ajuste-body input:focus {
+    border-color: var(--laranja) !important;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.2);
+}
+
+/* Banner pre-temporada */
+.banner-pre-temporada {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.banner-pre-temporada .material-icons {
+    font-size: 48px;
+    color: #f59e0b;
+    margin-bottom: 12px;
+}
+
+.banner-pre-temporada h3 {
+    color: #fff;
+    margin: 0 0 8px;
+    font-size: 16px;
+}
+
+.banner-pre-temporada p {
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+    font-size: 13px;
+}

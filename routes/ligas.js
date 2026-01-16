@@ -792,17 +792,30 @@ router.get("/:id/participantes", async (req, res) => {
         temporada: temporadaFiltro,
       }).lean();
 
-      participantes = inscricoes.map((insc) => ({
-        time_id: insc.time_id,
-        nome_cartoleiro: insc.dados_participante?.nome_cartoleiro || "N/D",
-        nome_time: insc.dados_participante?.nome_time || "N/D",
-        escudo: insc.dados_participante?.escudo || "",
-        clube_id: insc.dados_participante?.clube_id || null,
-        status: insc.status,
-        ativo: insc.status === "renovado" || insc.status === "novo",
-        pagou_inscricao: insc.pagou_inscricao || false,
-        saldo_transferido: insc.saldo_transferido || 0,
-      }));
+      // ✅ v2.3: Criar mapa de liga.participantes para obter dados faltantes (escudo, clube_id)
+      const ligaParticipantesMap = new Map();
+      (liga.participantes || []).forEach(p => {
+        ligaParticipantesMap.set(String(p.time_id), p);
+      });
+
+      participantes = inscricoes.map((insc) => {
+        const participanteLiga = ligaParticipantesMap.get(String(insc.time_id));
+        const dadosInsc = insc.dados_participante || {};
+
+        return {
+          time_id: insc.time_id,
+          nome_cartoleiro: dadosInsc.nome_cartoleiro || participanteLiga?.nome_cartola || "N/D",
+          nome_time: dadosInsc.nome_time || participanteLiga?.nome_time || "N/D",
+          // ✅ Escudo: prioridade para inscricao, fallback para liga.participantes
+          escudo: dadosInsc.escudo || participanteLiga?.foto_time || "",
+          // ✅ Clube do coração: prioridade para inscricao, fallback para liga.participantes
+          clube_id: dadosInsc.clube_id || participanteLiga?.clube_id || null,
+          status: insc.status,
+          ativo: insc.status === "renovado" || insc.status === "novo",
+          pagou_inscricao: insc.pagou_inscricao || false,
+          saldo_transferido: insc.saldo_transferido || 0,
+        };
+      });
 
       stats.total = participantes.length;
       stats.renovados = participantes.filter((p) => p.status === "renovado").length;

@@ -7,6 +7,7 @@
 
 import mongoose from "mongoose";
 import InscricaoTemporada from "../models/InscricaoTemporada.js";
+import Liga from "../models/Liga.js";
 import cartolaApi from "../services/cartolaApiService.js";
 
 /**
@@ -168,12 +169,28 @@ export async function sincronizarParticipanteCartola(req, res) {
             return res.status(404).json({ erro: "Time não encontrado na API do Cartola" });
         }
 
-        const nomeAtual = dadosCartola.time?.nome_cartoleiro || dadosCartola.nome_cartoleiro;
-        const nomeTimeAtual = dadosCartola.time?.nome || dadosCartola.nome;
-        const escudoAtual = dadosCartola.time?.url_escudo_png || dadosCartola.url_escudo_png || "";
+        // ✅ v1.4: buscarTimePorId retorna dados normalizados (flat, sem wrapper 'time')
+        const nomeAtual = dadosCartola.nome_cartoleiro || "";
+        const nomeTimeAtual = dadosCartola.nome_time || "";
+        const escudoAtual = dadosCartola.escudo || "";
+        const clubeIdAtual = dadosCartola.clube_id || null;
 
-        // Atualizar inscrição
-        const resultado = await InscricaoTemporada.findOneAndUpdate(
+        // ✅ v1.3: Primeiro atualiza liga.participantes (sempre funciona)
+        const updateFieldsLiga = {
+            "participantes.$.nome_cartola": nomeAtual,
+            "participantes.$.nome_time": nomeTimeAtual,
+            "participantes.$.foto_time": escudoAtual
+        };
+        if (clubeIdAtual) {
+            updateFieldsLiga["participantes.$.clube_id"] = clubeIdAtual;
+        }
+        const ligaUpdate = await Liga.updateOne(
+            { _id: ligaId, "participantes.time_id": timeIdNum },
+            { $set: updateFieldsLiga }
+        );
+
+        // Tentar atualizar inscrição (pode não existir para temporada base)
+        const inscricaoUpdate = await InscricaoTemporada.findOneAndUpdate(
             {
                 liga_id: new mongoose.Types.ObjectId(ligaId),
                 temporada: temporadaNum,
@@ -185,14 +202,16 @@ export async function sincronizarParticipanteCartola(req, res) {
                     "dados_participante.nome_time": nomeTimeAtual,
                     "dados_participante.escudo": escudoAtual,
                     "dados_participante.id_cartola_oficial": timeIdNum,
+                    "dados_participante.clube_id": clubeIdAtual,
                     atualizado_em: new Date()
                 }
             },
             { new: true }
         );
 
-        if (!resultado) {
-            return res.status(404).json({ erro: "Inscrição não encontrada" });
+        // Verificar se ao menos um update funcionou
+        if (ligaUpdate.matchedCount === 0 && !inscricaoUpdate) {
+            return res.status(404).json({ erro: "Participante não encontrado" });
         }
 
         res.json({
@@ -201,7 +220,8 @@ export async function sincronizarParticipanteCartola(req, res) {
             dados_atualizados: {
                 nome_cartoleiro: nomeAtual,
                 nome_time: nomeTimeAtual,
-                escudo: escudoAtual
+                escudo: escudoAtual,
+                clube_id: clubeIdAtual
             }
         });
 

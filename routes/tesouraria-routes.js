@@ -422,10 +422,12 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
         const temporadaNum = Number(temporada);
         const ligaIdStr = String(ligaId);
 
-        // ✅ v2.19 FIX: Para temporadas >= 2026, filtrar apenas participantes RENOVADOS ou NOVOS
-        // Temporadas anteriores (2025) mostram todos os participantes (comportamento histórico)
+        // ✅ v2.20 FIX: Para temporadas >= 2026, usar dados de inscricoestemporada como fonte OFICIAL
+        // Isso sincroniza com o módulo Participantes (que também usa inscricoestemporada)
+        // Temporadas anteriores (2025) usam liga.participantes (comportamento histórico)
         let participantesFiltrados = liga.participantes || [];
         let totalParticipantesLiga = participantesFiltrados.length;
+        let inscricoesMap = new Map(); // Mapa para acessar dados completos das inscrições
 
         if (temporadaNum >= 2026) {
             const inscricoesAtivas = await InscricaoTemporada.find({
@@ -434,12 +436,37 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
                 status: { $in: ['renovado', 'novo'] }
             }).lean();
 
-            const timeIdsRenovados = new Set(inscricoesAtivas.map(i => Number(i.time_id)));
-            participantesFiltrados = participantesFiltrados.filter(p =>
-                timeIdsRenovados.has(Number(p.time_id))
-            );
+            // ✅ v2.20: Criar mapa de inscrições para acessar dados_participante
+            inscricoesAtivas.forEach(i => inscricoesMap.set(String(i.time_id), i));
 
-            console.log(`[TESOURARIA] Temporada ${temporadaNum}: ${participantesFiltrados.length}/${totalParticipantesLiga} participantes renovados/novos`);
+            // ✅ v2.21: Criar mapa de liga.participantes para obter clube_id (time do coração)
+            // O clube_id está em liga.participantes, não em inscricoestemporada
+            const ligaParticipantesMap = new Map();
+            (liga.participantes || []).forEach(p => ligaParticipantesMap.set(String(p.time_id), p));
+
+            // ✅ v2.20: Usar dados de inscricoestemporada.dados_participante como fonte oficial
+            // ✅ v2.21: Merge com liga.participantes para obter clube_id
+            participantesFiltrados = inscricoesAtivas.map(insc => {
+                const timeIdStr = String(insc.time_id);
+                const participanteLiga = ligaParticipantesMap.get(timeIdStr);
+
+                return {
+                    time_id: insc.time_id,
+                    nome_time: insc.dados_participante?.nome_time || participanteLiga?.nome_time || "N/D",
+                    nome_cartola: insc.dados_participante?.nome_cartoleiro || participanteLiga?.nome_cartola || "N/D",
+                    escudo: insc.dados_participante?.escudo || participanteLiga?.foto_time || "",
+                    // ✅ v2.21: clube_id vem de liga.participantes (fonte oficial do time do coração)
+                    clube_id: participanteLiga?.clube_id || insc.dados_participante?.time_coracao || null,
+                    contato: insc.dados_participante?.contato || participanteLiga?.contato || null,
+                    ativo: true, // Se está em inscricoesAtivas, está ativo
+                    // Dados extras da inscrição
+                    status_inscricao: insc.status,
+                    pagou_inscricao: insc.pagou_inscricao || false,
+                    saldo_transferido: insc.saldo_transferido || 0
+                };
+            });
+
+            console.log(`[TESOURARIA] Temporada ${temporadaNum}: ${participantesFiltrados.length} participantes (fonte: inscricoestemporada + liga.participantes)`);
         }
 
         const timeIds = participantesFiltrados.map(p => p.time_id);

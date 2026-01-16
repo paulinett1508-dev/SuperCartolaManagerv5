@@ -1,6 +1,11 @@
 // =====================================================================
-// PARTICIPANTE-HISTORICO.JS - v12.9 (FIX: timeId no modal detalhes)
+// PARTICIPANTE-HISTORICO.JS - v12.10 (FIX: escopo ligaData em renderizarDadosTempoReal)
 // =====================================================================
+// v12.10: FIX CRÍTICO - Corrigido bug de escopo em renderizarDadosTempoReal()
+//        - ligaData era declarado dentro do try interno mas usado fora dele
+//        - Isso causava ReferenceError ou uso de temporada errada (2026 vs 2025)
+//        - Agora ligaAno é capturado no escopo correto
+// v12.9: FIX - timeId no modal detalhes
 // v12.8: Card Saldo Final clicável → abre modal com detalhes financeiros
 //        - Mostra créditos, débitos, rodadas, ajustes e acertos
 //        - Permite ver breakdown completo de cada componente
@@ -1156,18 +1161,21 @@ async function renderizarDadosTempoReal(ligaId) {
         // Buscar dados da liga (inclui nome e modulos_ativos)
         let ligaNome = 'Liga';
         let modulos = {};
+        // v12.10 FIX: Declarar ligaAno no escopo correto (antes era referenciado fora do try interno)
+        let ligaAno = null;
         try {
             const ligaRes = await fetch(`/api/ligas/${ligaId}`);
             if (ligaRes.ok) {
                 const ligaData = await ligaRes.json();
                 ligaNome = ligaData.nome || 'Liga';
                 modulos = ligaData.modulos_ativos || {};
+                ligaAno = ligaData.ano; // Capturar ano no escopo externo
                 if (window.Log) Log.debug("HISTORICO", "Módulos ativos da liga:", modulos);
-                
+
                 // v9.3: Atualizar subtitle com nome da liga
                 const elSubtitle = document.getElementById("headerSubtitle");
                 if (elSubtitle) {
-                    const anoDisplay = ligaData.ano || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+                    const anoDisplay = ligaAno || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
                     elSubtitle.textContent = `Temporada ${anoDisplay} - ${ligaNome}`;
                 }
             }
@@ -1175,8 +1183,8 @@ async function renderizarDadosTempoReal(ligaId) {
             if (window.Log) Log.warn("HISTORICO", "Erro ao buscar liga:", e);
         }
 
-        // v12.6 FIX: Capturar temporada para passar ao buscarExtrato
-        const temporadaTempoReal = ligaData.ano || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        // v12.10 FIX: Usar ligaAno (capturado acima) em vez de ligaData.ano (escopo errado)
+        const temporadaTempoReal = ligaAno || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
 
         // Buscar dados em paralelo
         const [ranking, melhorRodada, extrato, pc, top10, mataMata, artilheiro, luvaOuro, melhorMes] = await Promise.all([

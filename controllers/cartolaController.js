@@ -23,10 +23,26 @@ export async function listarClubes(req, res) {
 export async function obterTimePorId(req, res) {
   try {
     const time = await buscarTimePorId(req.params.id);
+
+    // ✅ FIX: Tratar time não encontrado
+    if (!time) {
+      return res.status(404).json({
+        erro: `Time ${req.params.id} não encontrado na API do Cartola`
+      });
+    }
+
     res.status(200).json({
+      time: {
+        nome: time.nome_time,
+        nome_cartoleiro: time.nome_cartoleiro,
+        url_escudo_png: time.escudo,
+        clube_id: time.clube_id,
+      },
+      // Campos no nível raiz para compatibilidade
       nome: time.nome_time,
       nome_cartoleiro: time.nome_cartoleiro,
-      url_escudo_png: time.url_escudo_png,
+      url_escudo_png: time.escudo,
+      escudo: time.escudo,
       clube_id: time.clube_id,
     });
   } catch (error) {
@@ -35,7 +51,7 @@ export async function obterTimePorId(req, res) {
       error.message,
     );
     res.status(404).json({
-      error: `Erro ao buscar time com ID ${req.params.id}: ${error.message}`,
+      erro: `Erro ao buscar time com ID ${req.params.id}: ${error.message}`,
     });
   }
 }

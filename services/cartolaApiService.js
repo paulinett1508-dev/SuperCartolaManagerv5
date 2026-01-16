@@ -782,7 +782,9 @@ class CartolaApiService {
         slug: time.slug || '',
         patrimonio: time.patrimonio || 0,
         pontos_campeonato: time.pontos_campeonato || 0,
-        rodada_time_id: time.rodada_time_id || null
+        rodada_time_id: time.rodada_time_id || null,
+        // ✅ v1.1: Incluir clube_id (time do coração do participante)
+        clube_id: time.clube_id || null
       };
 
       // Cache por 1 hora (dados de time mudam pouco)

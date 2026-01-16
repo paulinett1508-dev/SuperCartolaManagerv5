@@ -1,4 +1,6 @@
-// FLUXO-FINANCEIRO-CORE.JS v6.7 - FIX PRÉ-TEMPORADA (RODADA FANTASMA)
+// FLUXO-FINANCEIRO-CORE.JS v6.8 - FIX PRÉ-TEMPORADA (API VIROU PARA 2026)
+// ✅ v6.8: FIX CRÍTICO - Detectar pré-temporada quando API já virou para nova temporada
+//          Agora detecta: temporada=2026, rodada=1, bola_rolando=false
 // ✅ v6.7: FIX CRÍTICO - Detectar pré-temporada e NÃO calcular rodadas inexistentes
 //          Temporada 2026 não começou → retorna apenas inscrições, sem rodada fantasma
 // ✅ v6.6: FIX CRÍTICO - Separar saldo_temporada (histórico) de saldo (pendente)
@@ -284,13 +286,20 @@ export class FluxoFinanceiroCore {
                     const rodadaFinal = mercadoData.rodada_final || 38;
                     temporadaMercado = mercadoData.temporada; // Ex: 2025
 
-                    // ✅ v6.7: DETECTAR PRÉ-TEMPORADA
-                    // Se temporada selecionada (2026) > temporada do mercado (2025), é pré-temporada
-                    if (temporadaMercado && temporadaSelecionada > temporadaMercado) {
+                    // ✅ v6.8: DETECTAR PRÉ-TEMPORADA (MELHORADO)
+                    // Cenário 1: temporada selecionada > temporada do mercado (ex: 2026 > 2025)
+                    // Cenário 2: API já virou para nova temporada mas campeonato não começou
+                    //            (temporada igual, rodada 1, bola_rolando = false)
+                    const isPreTemporadaVirada =
+                        temporadaSelecionada === temporadaMercado &&
+                        rodadaAtualMercado === 1 &&
+                        mercadoData.bola_rolando === false;
+
+                    if (temporadaMercado && (temporadaSelecionada > temporadaMercado || isPreTemporadaVirada)) {
                         isPreTemporada = true;
                         rodadaParaCalculo = 0; // Nenhuma rodada existe ainda
                         console.log(
-                            `[FLUXO-CORE] ⏳ PRÉ-TEMPORADA ${temporadaSelecionada}: mercado ainda em ${temporadaMercado}. NÃO calcular rodadas.`,
+                            `[FLUXO-CORE] ⏳ PRÉ-TEMPORADA ${temporadaSelecionada}: mercado=${temporadaMercado}, rodada=${rodadaAtualMercado}, bola_rolando=${mercadoData.bola_rolando}. NÃO calcular rodadas.`,
                         );
                     }
                     // ✅ FIX: Só usar rodada-1 se mercado aberto E temporada NÃO encerrada E NÃO pré-temporada

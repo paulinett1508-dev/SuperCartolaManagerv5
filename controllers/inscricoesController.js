@@ -608,7 +608,9 @@ export async function processarNovoParticipante(ligaId, temporada, dadosCartola,
             nome_cartoleiro: nomeCartoleiro,
             escudo: dadosCartola.escudo || dadosCartola.url_escudo_png || '',
             id_cartola_oficial: timeId > 0 ? timeId : null,
-            time_coracao: dadosCartola.time_coracao || null,
+            // ✅ v1.1: Padronizar para clube_id (time do coração) - aceita ambos os nomes
+            clube_id: dadosCartola.clube_id || dadosCartola.time_coracao || null,
+            time_coracao: dadosCartola.time_coracao || dadosCartola.clube_id || null, // Legacy
             contato: dadosCartola.contato || null,
             pendente_sincronizacao: isCadastroManual && timeId < 0,
             // Dados completos da API Cartola
@@ -651,7 +653,9 @@ export async function processarNovoParticipante(ligaId, temporada, dadosCartola,
         nome_time: nomeTime,
         nome_cartoleiro: nomeCartoleiro,
         escudo: dadosCartola.escudo || dadosCartola.url_escudo_png || '',
-        time_coracao: dadosCartola.time_coracao || null,
+        // ✅ v1.1: Passar clube_id explicitamente (time do coração)
+        clube_id: dadosCartola.clube_id || dadosCartola.time_coracao || null,
+        time_coracao: dadosCartola.time_coracao || dadosCartola.clube_id || null, // Legacy
         contato: dadosCartola.contato || null,
         pendente_sincronizacao: isCadastroManual && timeId < 0
     }, temporada);

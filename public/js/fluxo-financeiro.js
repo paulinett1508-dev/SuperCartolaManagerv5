@@ -6,6 +6,8 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 // v8.0: Módulo de Quitação de Temporada
 import "./fluxo-financeiro/fluxo-financeiro-quitacao.js";
+// v8.0: Módulo de Ajustes Financeiros Dinâmicos (2026+)
+import "./fluxo-financeiro/fluxo-financeiro-ajustes-api.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
 const CACHE_BUSTER = "v8.4"; // v8.4: Proteção cache temporadas históricas (imutáveis)

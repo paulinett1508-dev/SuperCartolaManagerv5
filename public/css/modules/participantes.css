@@ -514,6 +514,21 @@
   color: #FF5500;
 }
 
+/* === BOTÃO JÁ VALIDADO (check verde) === */
+.btn-compact.ja-validado {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.btn-compact.ja-validado:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.btn-compact.ja-validado .material-symbols-outlined {
+  color: #22c55e;
+}
+
 /* === RESPONSIVO === */
 @media (max-width: 600px) {
   .participante-row {
