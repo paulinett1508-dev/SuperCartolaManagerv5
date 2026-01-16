@@ -7,11 +7,49 @@
 
 ## Status Atual (2026-01-16)
 
-**Nenhuma tarefa pendente.** Todos os bugs reportados foram corrigidos.
+### ⚠️ Bug Potencial - TOP10 sem filtro de temporada
+
+**Arquivo:** `controllers/fluxoFinanceiroController.js` linha 213
+
+**Problema:** Query do TOP10 nao filtra por temporada:
+```javascript
+// ATUAL (potencial bug)
+const cache = await Top10Cache.findOne({ liga_id: String(ligaId) })
+
+// CORRETO (deveria ter filtro)
+const cache = await Top10Cache.findOne({
+    liga_id: String(ligaId),
+    temporada: temporada
+})
+```
+
+**Impacto:** Se existir mais de um cache TOP10 para a mesma liga (ex: 2024 e 2025), pode retornar o cache errado.
+
+**Status:** NAO AFETA SUPERCARTOLA 2025 (so existe um cache). Corrigir para prevenir problemas futuros.
+
+**Prioridade:** BAIXA (preventivo)
 
 ---
 
 ## Historico de Correcoes Recentes
+
+### ✅ Mega-Auditoria Financeira 2025 (2026-01-16)
+
+**Escopo:** 26 participantes da Liga SUPERCARTOLA (excluindo 7 protegidos que ja renovaram 2026).
+
+**Resultado:**
+- 13 devedores: R$ 3.062,79 a receber
+- 13 credores: R$ 6.887,84 a pagar
+
+**Modulos Verificados:** Ranking Rodadas, Pontos Corridos, Mata-Mata, TOP10, Melhor do Mes, Campos Manuais.
+
+**Conclusao:** Nenhuma correcao de saldo necessaria. Valores corretos.
+
+**Relatorio:** `docs/auditorias/MEGA-AUDITORIA-2025-2026-01-16.md`
+
+**Commit:** `01d35ad`
+
+---
 
 ### ✅ Hall da Fama - Saldo Multi-Liga (2026-01-16)
 
