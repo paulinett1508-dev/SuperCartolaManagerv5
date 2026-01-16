@@ -35,7 +35,7 @@
 // v9.0+: Filtros por liga, dados reais das APIs
 // =====================================================================
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.11 carregando...");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.12 carregando...");
 
 // Estado do modulo
 let historicoData = null;
@@ -1724,9 +1724,31 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
         const camposData = camposRes.ok ? await camposRes.json() : null;
         const acertosData = acertosRes.ok ? await acertosRes.json() : null;
 
-        // Processar dados
-        const resumo = cacheData?.resumo || {};
-        const rodadas = cacheData?.rodadas || [];
+        // ✅ v12.12: Fallback para dados do JSON quando não existe cache MongoDB
+        // Isso acontece com temporadas consolidadas (ex: participante em liga sem cache)
+        let resumo = {};
+        let rodadas = [];
+        let usandoFallbackJSON = false;
+
+        if (cacheData?.cached === false || !cacheData?.resumo) {
+            // Buscar dados do historicoData (já carregado globalmente)
+            const tempHistorico = historicoData?.historico?.find(
+                h => String(h.liga_id) === String(ligaId) && h.ano === temporada
+            );
+            if (tempHistorico?.financeiro) {
+                usandoFallbackJSON = true;
+                resumo = {
+                    totalGanhos: tempHistorico.financeiro.total_bonus || 0,
+                    totalPerdas: tempHistorico.financeiro.total_onus || 0,
+                    saldo_final: tempHistorico.financeiro.saldo_final || 0
+                };
+                console.log(`[HISTORICO-DEBUG] Modal usando fallback JSON para liga ${ligaId}`, resumo);
+            }
+        } else {
+            resumo = cacheData?.resumo || {};
+            rodadas = cacheData?.rodadas || [];
+        }
+
         const campos = camposData?.campos || [];
         const acertos = acertosData?.acertos || [];
 
@@ -1734,11 +1756,18 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
         let totalCreditos = 0;
         let totalDebitos = 0;
 
-        rodadas.forEach(r => {
-            const saldo = (r.bonusOnus || 0) + (r.pontosCorridos || 0) + (r.mataMata || 0) + (r.top10 || 0);
-            if (saldo > 0) totalCreditos += saldo;
-            else totalDebitos += Math.abs(saldo);
-        });
+        // ✅ v12.12: Se usando fallback JSON, usar totais do resumo
+        if (usandoFallbackJSON) {
+            totalCreditos = resumo.totalGanhos || 0;
+            totalDebitos = Math.abs(resumo.totalPerdas || 0);
+        } else {
+            // Calcular a partir das rodadas detalhadas
+            rodadas.forEach(r => {
+                const saldo = (r.bonusOnus || 0) + (r.pontosCorridos || 0) + (r.mataMata || 0) + (r.top10 || 0);
+                if (saldo > 0) totalCreditos += saldo;
+                else totalDebitos += Math.abs(saldo);
+            });
+        }
 
         let totalCampos = 0;
         campos.forEach(c => {
@@ -1798,10 +1827,29 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
                     <div style="margin-bottom: 16px;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                             <span class="material-icons" style="color: #ff5500; font-size: 18px;">sports_soccer</span>
-                            <span style="color: #e5e5e5; font-size: 14px; font-weight: 600;">Rodadas Disputadas</span>
-                            <span style="color: #6b7280; font-size: 12px; margin-left: auto;">${rodadas.length} rodadas</span>
+                            <span style="color: #e5e5e5; font-size: 14px; font-weight: 600;">${usandoFallbackJSON ? 'Temporada Consolidada' : 'Rodadas Disputadas'}</span>
+                            <span style="color: #6b7280; font-size: 12px; margin-left: auto;">${usandoFallbackJSON ? 'Historico' : rodadas.length + ' rodadas'}</span>
                         </div>
                         <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px;">
+                            ${usandoFallbackJSON ? `
+                            <!-- Dados consolidados do JSON -->
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: #9ca3af; font-size: 12px;">Total Ganhos</span>
+                                <span style="color: #10b981; font-size: 12px;">+${formatarMoeda(resumo.totalGanhos || 0)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: #9ca3af; font-size: 12px;">Total Perdas</span>
+                                <span style="color: #ef4444; font-size: 12px;">-${formatarMoeda(Math.abs(resumo.totalPerdas || 0))}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <span style="color: #e5e5e5; font-size: 12px; font-weight: 600;">Saldo Temporada</span>
+                                <span style="color: ${(resumo.saldo_final || 0) >= 0 ? '#10b981' : '#ef4444'}; font-size: 12px; font-weight: 600;">${formatarMoeda(resumo.saldo_final || 0)}</span>
+                            </div>
+                            <div style="margin-top: 8px; padding: 8px; background: rgba(255,85,0,0.1); border-radius: 6px;">
+                                <span style="color: #ff5500; font-size: 11px;">Dados historicos consolidados. Detalhes por rodada nao disponiveis.</span>
+                            </div>
+                            ` : `
+                            <!-- Dados detalhados por rodada -->
                             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                 <span style="color: #9ca3af; font-size: 12px;">Bonus/Onus</span>
                                 <span style="color: #e5e5e5; font-size: 12px;">${formatarMoeda(rodadas.reduce((s,r) => s + (r.bonusOnus || 0), 0))}</span>
@@ -1818,6 +1866,7 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
                                 <span style="color: #9ca3af; font-size: 12px;">TOP 10 (Mitos/Micos)</span>
                                 <span style="color: #e5e5e5; font-size: 12px;">${formatarMoeda(rodadas.reduce((s,r) => s + (r.top10 || 0), 0))}</span>
                             </div>
+                            `}
                         </div>
                     </div>
 
@@ -1883,4 +1932,4 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
     }
 };
 
-if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.11 pronto (fix multi-liga)");
+if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.12 pronto (fix modal multi-liga)");
