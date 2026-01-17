@@ -1,5 +1,6 @@
 // routes/jogos-ao-vivo-routes.js
-// v1.0 - Jogos ao vivo usando API-Football (api-sports.io)
+// v1.1 - Jogos ao vivo usando API-Football (api-sports.io)
+// ✅ v1.1: FIX - Cache agora retorna aoVivo para renderizar placar corretamente
 import express from 'express';
 import fetch from 'node-fetch';
 import fs from 'fs/promises';
@@ -131,9 +132,14 @@ router.get('/', async (req, res) => {
 
     // Verificar cache
     if (cacheJogosAoVivo && (agora - cacheTimestamp) < CACHE_TTL) {
+      // ✅ v1.1 FIX: Incluir aoVivo no cache para renderizar placar corretamente
+      const temJogosAoVivo = cacheJogosAoVivo.some(j =>
+        ['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE'].includes(j.statusRaw)
+      );
       return res.json({
         jogos: cacheJogosAoVivo,
         fonte: 'api-football',
+        aoVivo: temJogosAoVivo,  // ✅ FIX: Agora retorna aoVivo no cache
         cache: true,
         atualizadoEm: new Date(cacheTimestamp).toISOString()
       });
