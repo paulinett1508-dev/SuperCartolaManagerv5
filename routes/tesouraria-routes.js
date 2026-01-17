@@ -4,11 +4,14 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.22.0
- * ✅ v2.22.0: FIX CRÍTICO - Transações especiais (INSCRICAO, LEGADO) com rodada:0
+ * @version 2.23.0
+ * ✅ v2.23.0: FIX CRÍTICO - Acertos devem ser filtrados pela temporada EXATA
+ *   - Query busca temporadas N e N-1 para transição, mas cálculo misturava tudo
+ *   - Agora filtra acertos pela temporada sendo visualizada antes de somar
+ *   - Corrige saldo de 2026 que incluía acertos de 2025 erroneamente
+ * ✅ v2.22.0: FIX - Transações especiais (INSCRICAO, LEGADO) com rodada:0
  *   - transformarTransacoesEmRodadas ignora rodada:0, causando saldo=0 errado
  *   - Agora detecta caches com apenas transações especiais e usa saldo_consolidado
- *   - Corrige tabela de participantes para 2026 que mostrava saldos errados
  * ✅ v2.20.0: AUTO-QUITAÇÃO para temporadas anteriores
  *   - Quando saldo zera após acerto em temporada < CURRENT_SEASON, marca como quitado
  *   - Resposta inclui flag autoQuitacao com mensagem para o admin
@@ -304,10 +307,13 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                 });
 
                 // Calcular saldo de acertos
+                // ✅ v2.23 FIX: Filtrar acertos pela temporada EXATA sendo visualizada
                 const acertosList = acertosMap.get(key) || [];
+                const temporadaNum = Number(temporada);
+                const acertosTemporada = acertosList.filter(a => Number(a.temporada) === temporadaNum);
                 let totalPago = 0;
                 let totalRecebido = 0;
-                acertosList.forEach(a => {
+                acertosTemporada.forEach(a => {
                     if (a.tipo === 'pagamento') totalPago += a.valor || 0;
                     else if (a.tipo === 'recebimento') totalRecebido += a.valor || 0;
                 });
@@ -361,7 +367,7 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                     totalRecebido: parseFloat(totalRecebido.toFixed(2)),
                     saldoFinal: parseFloat(saldoFinal.toFixed(2)),
                     situacao,
-                    quantidadeAcertos: acertosList.length,
+                    quantidadeAcertos: acertosTemporada.length,
                     // ✅ v2.0: Breakdown e módulos ativos
                     // ✅ v2.9: Adicionado 'acertos' ao breakdown
                     breakdown: {
@@ -639,10 +645,13 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
             });
 
             // Calcular saldo dos acertos
+            // ✅ v2.23 FIX: Filtrar acertos pela temporada EXATA sendo visualizada
+            // A query busca temporadas current e anterior, mas o cálculo deve usar apenas a atual
             const acertosList = acertosMap.get(timeId) || [];
+            const acertosTemporada = acertosList.filter(a => Number(a.temporada) === temporadaNum);
             let totalPago = 0;
             let totalRecebido = 0;
-            acertosList.forEach(a => {
+            acertosTemporada.forEach(a => {
                 if (a.tipo === 'pagamento') totalPago += a.valor || 0;
                 else if (a.tipo === 'recebimento') totalRecebido += a.valor || 0;
             });
@@ -695,7 +704,7 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
                 totalRecebido: parseFloat(totalRecebido.toFixed(2)),
                 saldoFinal: parseFloat(saldoFinal.toFixed(2)),
                 situacao,
-                quantidadeAcertos: acertosList.length,
+                quantidadeAcertos: acertosTemporada.length,
                 // ✅ v2.0: Breakdown por módulo financeiro
                 // ✅ v2.9: Adicionado 'acertos' ao breakdown
                 breakdown: {
@@ -1320,6 +1329,6 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v2.22 Rotas carregadas (FIX: transações especiais rodada:0)");
+console.log("[TESOURARIA] ✅ v2.23 Rotas carregadas (FIX: acertos filtrados por temporada)");
 
 export default router;
