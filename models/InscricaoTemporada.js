@@ -157,7 +157,7 @@ const InscricaoTemporadaSchema = new mongoose.Schema({
     legado_manual: {
         origem: {
             type: String,
-            enum: ['quitacao_admin', 'acordo', null],  // null permitido
+            enum: ['quitacao_admin', 'acordo', 'decisao_unificada', null],  // null permitido
             default: undefined  // undefined não dispara validação
         },
         valor_original: { type: Number },      // Saldo original antes da quitação
