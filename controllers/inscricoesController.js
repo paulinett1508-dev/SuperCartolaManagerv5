@@ -12,7 +12,7 @@
  *
  * Veja models/LigaRules.js para schema e documentação da regra.
  *
- * @version 1.2.1 (Fix: query quitacao com $or String/ObjectId, removido upsert para evitar duplicados)
+ * @version 1.4.0 (Fix: upsert em SALDO_TEMPORADA_ANTERIOR para criar cache quando pagouInscricao=true)
  * @since 2026-01-04
  */
 
@@ -202,6 +202,8 @@ export async function criarTransacoesIniciais(ligaId, timeId, temporada, valores
                 ? `Crédito aproveitado da temporada ${temporada - 1}`
                 : `Dívida transferida da temporada ${temporada - 1}`;
 
+            // v1.4 FIX: Adicionar upsert para criar documento se não existir
+            // Caso: pagouInscricao=true com saldoTransferido > 0 (credor que pagou com crédito)
             await db.collection('extratofinanceirocaches').updateOne(
                 {
                     liga_id: ligaObjIdSaldo,
@@ -220,8 +222,19 @@ export async function criarTransacoesIniciais(ligaId, timeId, temporada, valores
                     },
                     $inc: {
                         saldo_consolidado: valores.saldoTransferido
+                    },
+                    $setOnInsert: {
+                        liga_id: ligaObjIdSaldo,
+                        time_id: Number(timeId),
+                        temporada: Number(temporada),
+                        criado_em: agora,
+                        ultima_rodada_consolidada: 0,
+                        ganhos_consolidados: valores.saldoTransferido > 0 ? valores.saldoTransferido : 0,
+                        perdas_consolidadas: valores.saldoTransferido < 0 ? valores.saldoTransferido : 0,
+                        versao_calculo: '1.4.0-inscricao-saldo'
                     }
-                }
+                },
+                { upsert: true }  // Garantir criação do documento se não existir
             );
 
             transacoes.push({
