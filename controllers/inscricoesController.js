@@ -163,7 +163,12 @@ export async function criarTransacoesIniciais(ligaId, timeId, temporada, valores
                         liga_id: ligaObjId,
                         time_id: Number(timeId),
                         temporada: Number(temporada),
-                        criado_em: agora
+                        criado_em: agora,
+                        // ✅ v1.3 FIX: Campos obrigatórios para verificarCacheValido funcionar
+                        ultima_rodada_consolidada: 0,
+                        ganhos_consolidados: 0,
+                        perdas_consolidadas: 0,
+                        versao_calculo: '1.3.0-inscricao'
                     }
                 },
                 { upsert: true }

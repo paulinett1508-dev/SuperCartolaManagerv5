@@ -1,5 +1,8 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v6.5 - FIX PRÉ-TEMPORADA CACHE VÁLIDO
+// extratoFinanceiroCacheController.js v6.6 - FIX ROBUSTEZ CACHE PRÉ-TEMPORADA
+// ✅ v6.6: FIX ROBUSTEZ - Usar ?? 0 para lidar com caches sem ultima_rodada_consolidada
+//   - Caches criados pelo sistema de renovação podem não ter o campo definido
+//   - Agora usa: (ultima_rodada_consolidada ?? 0) === 0
 // ✅ v6.5: FIX CRÍTICO - verificarCacheValido agora retorna cache válido em pré-temporada
 //   - Cache com 0 rodadas + transações iniciais (inscrição) é válido
 //   - Antes: retornava "cache_desatualizado" porque 0 < rodadaEsperada
@@ -1146,8 +1149,10 @@ export const verificarCacheValido = async (req, res) => {
 
         // ✅ v6.5 FIX: Pré-temporada - cache com 0 rodadas é válido se tem transações iniciais
         // Cenário: temporada nova (2026), sem rodadas ainda, mas com inscrição/transferência
+        // ✅ v6.6 FIX: Usar || 0 para lidar com caches antigos sem o campo definido
+        const ultimaRodadaCache = cacheExistente.ultima_rodada_consolidada ?? 0;
         const isPreTemporadaCache = temporadaNum >= CURRENT_SEASON &&
-                                     cacheExistente.ultima_rodada_consolidada === 0 &&
+                                     ultimaRodadaCache === 0 &&
                                      cacheExistente.historico_transacoes?.length > 0;
 
         if (isPreTemporadaCache) {
