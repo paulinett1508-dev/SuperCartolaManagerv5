@@ -271,9 +271,11 @@ export const RODADAS_ENDPOINTS = {
     `${baseUrl}/api/cartola/time/id/${timeId}/${rodada}`,
 };
 
+// ✅ v4.4 FIX: Adicionar temporada ao default para pré-temporada funcionar
 export const STATUS_MERCADO_DEFAULT = {
   rodada_atual: 1,
-  status_mercado: 4,
+  status_mercado: 1,  // Mercado aberto (pré-temporada padrão)
+  temporada: new Date().getFullYear(),  // Ano atual
 };
 
 // =====================================================================
