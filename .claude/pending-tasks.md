@@ -51,20 +51,44 @@
 - 567 console.logs (remover em produção)
 - 2 bundles >100KB (fluxo-financeiro-ui: 286K)
 
-**Models sem índice liga_id:**
-- CartolaOficialDump, ModuleConfig, AjusteFinanceiro
-- LigaRules, ExtratoFinanceiroCache
+**Models - Status dos Índices liga_id:**
+- ✅ ModuleConfig, AjusteFinanceiro, LigaRules, ExtratoFinanceiroCache (têm índices)
+- ⚠️ CartolaOficialDump (`meta.liga_id` não indexado - Data Lake)
 
 ### Próximas Ações Recomendadas
 
 1. ~~**P1 Multi-Tenant**~~ ✅ Resolvido
 2. ~~**P1 Auth gols.js**~~ ✅ Corrigido com ligaId obrigatório
-3. **P2 Índices:** Adicionar índice `liga_id` nos 5 models identificados
-4. **P2 Performance:** Adicionar `.lean()` em queries de leitura
+3. ~~**P2 Índices:**~~ ✅ Análise: 4/5 models JÁ têm índices (ModuleConfig, AjusteFinanceiro, LigaRules, ExtratoFinanceiroCache)
+4. **P2 Performance:** Adicionar `.lean()` em 136 queries de leitura (backlog)
 
 ---
 
 ## Histórico de Correções Recentes
+
+### ✅ Auditoria P1/P2 Direta (2026-01-17)
+
+**Análise P1 - Multi-Tenant:**
+- `rodadaController.js` ✅ SEGURO - todas queries filtram por `ligaId`
+- `artilheiroCampeaoController.js` ✅ SEGURO - validação de liga obrigatória
+
+**Análise P1 - Auth:**
+- `routes/gols.js` ✅ ACEITÁVEL - exige `ligaId` obrigatório
+- `routes/configuracao-routes.js` 🔴 CORRIGIDO - `/limpar-cache` sem auth
+
+**FIX Aplicado:**
+- `routes/configuracao-routes.js:146` - Adicionado `verificarAdmin` middleware
+
+**Análise P2 - Índices:**
+- ModuleConfig ✅ `{liga_id, temporada, modulo}` único
+- AjusteFinanceiro ✅ `{liga_id, time_id, temporada, ativo}`
+- LigaRules ✅ `{liga_id, temporada}` único
+- ExtratoFinanceiroCache ✅ `{liga_id, time_id, temporada}` único
+- CartolaOficialDump ⚠️ `meta.liga_id` não indexado (Data Lake, raramente filtrado)
+
+**Análise P2 - Performance:**
+- 136 queries sem `.lean()` (backlog - implementar logger antes)
+- 567 console.logs (requer logger configurável - backlog)
 
 ### ✅ Fix Multi-Tenant golsController.js (2026-01-17)
 
