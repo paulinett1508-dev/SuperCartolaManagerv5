@@ -44,6 +44,67 @@ O projeto conta com 5 skills especializadas que podem ser invocadas para tarefas
 - "Definir regras do mata-mata" → `league-architect`
 - "Explicar como funciona o Top 10" → `system-scribe`
 
+## 🔄 High Senior Protocol (Workflow de Desenvolvimento)
+
+Sistema de workflow em 3 fases para desenvolvimento estruturado de features.
+
+### Skills do Protocolo
+
+| Skill | Fase | Descrição | Output |
+|-------|------|-----------|--------|
+| **workflow** | Maestro | Detecta fase automaticamente e orquestra o fluxo | Direcionamento |
+| **pesquisa** | Fase 1 | Busca autônoma no codebase, mapeia arquivos, gera PRD | `.claude/docs/PRD-*.md` |
+| **spec** | Fase 2 | Lê PRD, mapeia dependências (S.D.A), define mudanças cirúrgicas | `.claude/docs/SPEC-*.md` |
+| **code** | Fase 3 | Lê SPEC, aplica mudanças linha por linha, testa e documenta | Código implementado |
+
+### Fluxo Completo
+
+```
+/workflow [descrição da tarefa]
+        ↓
+   FASE 1: /pesquisa
+   Output: PRD.md
+        ↓
+   🧹 LIMPAR CONTEXTO (nova sessão)
+        ↓
+   FASE 2: /spec PRD-[nome].md
+   Output: SPEC.md
+        ↓
+   🧹 LIMPAR CONTEXTO (nova sessão)
+        ↓
+   FASE 3: /code SPEC-[nome].md
+   Output: Código implementado
+```
+
+### Princípios do Protocolo
+
+| Princípio | Descrição |
+|-----------|-----------|
+| **S.A.I.S** | Solicitar + Analisar + Identificar + Sintetizar |
+| **S.D.A** | Sistema de Dependências Arquiteturais (mapear TODOS os arquivos afetados) |
+| **Antipattern** | Preservar lógica existente, mudanças cirúrgicas mínimas |
+| **Autonomia** | NUNCA perguntar onde estão arquivos, sempre buscar automaticamente |
+
+### Exemplos de Uso
+
+```bash
+# Iniciar nova feature
+/workflow preciso implementar notificações push
+
+# Continuar de PRD existente
+/workflow ler PRD-notificacoes.md e gerar Spec
+
+# Implementar de SPEC existente
+/workflow ler SPEC-notificacoes.md e implementar
+
+# Verificar estado atual
+ls .claude/docs/
+```
+
+### Diretório de Documentos
+- **PRDs:** `.claude/docs/PRD-[nome-kebab-case].md`
+- **SPECs:** `.claude/docs/SPEC-[nome-kebab-case].md`
+
 ## 🔌 Context7 MCP - Documentação Sempre Atualizada
 
 ### O que é?
