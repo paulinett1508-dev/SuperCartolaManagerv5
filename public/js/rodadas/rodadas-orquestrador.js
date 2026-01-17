@@ -1,4 +1,5 @@
 // RODADAS ORQUESTRADOR - Coordenação entre Módulos
+// ✅ v3.0: DADOS HISTÓRICOS IMUTÁVEIS - Sempre buscar primeiro, exibir se existir
 // ✅ v2.1: FIX - Rodada 38 carrega como finalizada quando temporada encerrou
 // Responsável por: coordenação, fluxo principal, integração de módulos
 
@@ -177,7 +178,9 @@ export async function carregarDadosRodada(rodadaSelecionada) {
   const { rodada_atual, status_mercado, temporada: temporadaMercado } = getStatusMercado();
   const mercadoAberto = status_mercado === 1;
 
-  // ✅ v2.5: Usar função de verificação de consolidação com temporada
+  // ✅ v3.0: DADOS HISTÓRICOS SÃO IMUTÁVEIS
+  // Se existem dados no banco (temporada anterior), SEMPRE carregar
+  // A lógica de "rodada ainda não aconteceu" só vale para temporada ATUAL
   const rodadaConsolidada = isRodadaConsolidada(
     rodadaSelecionada,
     rodada_atual,
@@ -193,10 +196,20 @@ export async function carregarDadosRodada(rodadaSelecionada) {
     mostrarLoading(true);
     limparExportContainer();
 
-    // ✅ v2.1: Lógica corrigida para última rodada
-    if (rodadaConsolidada) {
-      // Rodada finalizada (inclui rodada 38 quando temporada encerrou)
-      await carregarRodadaFinalizada(rodadaSelecionada);
+    // ✅ v3.0 FIX: SEMPRE tentar carregar dados históricos primeiro
+    // Dados de temporadas passadas são IMUTÁVEIS e devem sempre ser exibidos
+    // Só mostrar "rodada não aconteceu" se realmente não houver dados
+    const dadosHistoricos = await fetchAndProcessRankingRodada(ligaIdAtual, rodadaSelecionada);
+
+    if (dadosHistoricos && Array.isArray(dadosHistoricos) && dadosHistoricos.length > 0) {
+      // ✅ Dados encontrados - exibir independente do status do mercado
+      console.log(`[RODADAS-ORQUESTRADOR] ✅ Dados históricos encontrados: ${dadosHistoricos.length} participantes`);
+      exibirRanking(dadosHistoricos, rodadaSelecionada, ligaIdAtual);
+      const btnRefresh = document.getElementById("btnRefreshParciais");
+      if (btnRefresh) btnRefresh.style.display = "none";
+    } else if (rodadaConsolidada) {
+      // Rodada marcada como consolidada mas sem dados - exibir mensagem
+      mostrarMensagemRodada("Nenhum dado encontrado para esta rodada.", "info");
     } else if (rodadaSelecionada === rodada_atual) {
       if (mercadoAberto) {
         mostrarMensagemRodada(
@@ -210,8 +223,8 @@ export async function carregarDadosRodada(rodadaSelecionada) {
     } else if (rodadaSelecionada > rodada_atual) {
       mostrarMensagemRodada("Esta rodada ainda não aconteceu.", "aviso");
     } else {
-      // Fallback: carregar como finalizada
-      await carregarRodadaFinalizada(rodadaSelecionada);
+      // Fallback: sem dados
+      mostrarMensagemRodada("Nenhum dado disponível.", "aviso");
     }
   } catch (err) {
     console.error("[RODADAS-ORQUESTRADOR] Erro em carregarDadosRodada:", err);
