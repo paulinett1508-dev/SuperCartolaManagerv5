@@ -1,4 +1,7 @@
-// PARTICIPANTE-JOGOS.JS - v2.0
+// PARTICIPANTE-JOGOS.JS - v2.1 (FIX LAYOUT PLACAR)
+// ✅ v2.1: FIX - Container do placar agora tem min-w e shrink-0
+//          - Evita que o placar "suma" quando nomes dos times são longos
+//          - Redesign do card seguindo padrões frontend-crafter
 // Exibe jogos ao vivo e agenda do dia na tela inicial
 // Usa API-Football para jogos ao vivo e Globo scraper como fallback
 
@@ -74,40 +77,51 @@ function renderizarCardJogo(jogo, aoVivo) {
     // Se tem logo (API-Football), renderizar com escudos
     if (jogo.logoMandante && jogo.logoVisitante) {
         return `
-        <div class="flex items-center justify-between py-2 px-3 bg-gray-700/50 rounded-lg">
-            <div class="flex items-center gap-2 flex-1">
-                <img src="${jogo.logoMandante}" alt="${jogo.mandante}" class="w-6 h-6 object-contain" onerror="this.style.display='none'">
-                <span class="text-white font-medium text-sm truncate max-w-[70px]">${jogo.mandante}</span>
+        <div class="flex items-center py-2 px-3 bg-gray-700/50 rounded-lg">
+            <!-- Time Mandante (lado esquerdo) -->
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+                <img src="${jogo.logoMandante}" alt="${jogo.mandante}" class="w-6 h-6 object-contain shrink-0" onerror="this.style.display='none'">
+                <span class="text-white font-medium text-xs truncate">${jogo.mandante}</span>
             </div>
-            <div class="flex flex-col items-center px-2">
+            <!-- Placar Central (largura fixa, não encolhe) -->
+            <div class="flex flex-col items-center justify-center min-w-[56px] shrink-0 px-1">
                 ${aoVivo && jogo.placar ? `
-                    <span class="text-white font-bold text-lg">${jogo.placar}</span>
-                    <span class="text-[10px] text-green-400 animate-pulse">${jogo.tempo || ''}</span>
+                    <span class="text-white font-bold text-base leading-tight">${jogo.placar}</span>
+                    <span class="text-[9px] text-green-400 animate-pulse">${jogo.tempo || ''}</span>
                 ` : `
                     <span class="text-primary font-bold text-xs">vs</span>
-                    <span class="text-white/70 text-[10px]">${jogo.horario}</span>
+                    <span class="text-white/60 text-[10px]">${jogo.horario}</span>
                 `}
             </div>
-            <div class="flex items-center gap-2 flex-1 justify-end">
-                <span class="text-white font-medium text-sm truncate max-w-[70px] text-right">${jogo.visitante}</span>
-                <img src="${jogo.logoVisitante}" alt="${jogo.visitante}" class="w-6 h-6 object-contain" onerror="this.style.display='none'">
+            <!-- Time Visitante (lado direito) -->
+            <div class="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                <span class="text-white font-medium text-xs truncate text-right">${jogo.visitante}</span>
+                <img src="${jogo.logoVisitante}" alt="${jogo.visitante}" class="w-6 h-6 object-contain shrink-0" onerror="this.style.display='none'">
             </div>
         </div>
-        ${jogo.liga ? `<div class="text-[10px] text-white/30 text-center -mt-1">${jogo.liga}</div>` : ''}
+        ${jogo.liga ? `<div class="text-[9px] text-white/30 text-center mt-0.5">${jogo.liga}</div>` : ''}
         `;
     }
 
     // Fallback para dados do Globo (sem logo)
     return `
-    <div class="flex items-center justify-between py-2 px-3 bg-gray-700/50 rounded-lg">
-        <div class="flex items-center gap-2 flex-1">
-            <span class="text-white font-medium text-sm truncate max-w-[80px]">${jogo.mandante}</span>
-            <span class="text-primary font-bold text-xs">vs</span>
-            <span class="text-white font-medium text-sm truncate max-w-[80px]">${jogo.visitante}</span>
+    <div class="flex items-center py-2 px-3 bg-gray-700/50 rounded-lg">
+        <!-- Time Mandante -->
+        <div class="flex-1 min-w-0">
+            <span class="text-white font-medium text-xs truncate block">${jogo.mandante}</span>
         </div>
-        <div class="flex items-center gap-2 ml-2">
-            <span class="text-white/70 text-xs">${jogo.horario}</span>
-            <span class="text-xs px-2 py-0.5 rounded ${
+        <!-- Placar/Horário Central (largura fixa) -->
+        <div class="flex flex-col items-center justify-center min-w-[56px] shrink-0 px-1">
+            <span class="text-primary font-bold text-xs">vs</span>
+            <span class="text-white/60 text-[10px]">${jogo.horario}</span>
+        </div>
+        <!-- Time Visitante -->
+        <div class="flex-1 min-w-0">
+            <span class="text-white font-medium text-xs truncate block text-right">${jogo.visitante}</span>
+        </div>
+        <!-- Status Badge -->
+        <div class="ml-2 shrink-0">
+            <span class="text-[10px] px-1.5 py-0.5 rounded ${
                 jogo.status === 'Ao vivo' ? 'bg-green-500/20 text-green-400 animate-pulse' :
                 jogo.status === 'Encerrado' ? 'bg-gray-500/20 text-gray-400' :
                 'bg-yellow-500/20 text-yellow-400'
