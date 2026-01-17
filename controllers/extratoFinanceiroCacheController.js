@@ -1,5 +1,9 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v6.4 - FIX ACERTOS NO FALLBACK
+// extratoFinanceiroCacheController.js v6.5 - FIX PRÉ-TEMPORADA CACHE VÁLIDO
+// ✅ v6.5: FIX CRÍTICO - verificarCacheValido agora retorna cache válido em pré-temporada
+//   - Cache com 0 rodadas + transações iniciais (inscrição) é válido
+//   - Antes: retornava "cache_desatualizado" porque 0 < rodadaEsperada
+//   - Agora: detecta pré-temporada e calcula resumo das transações iniciais
 // ✅ v6.4: FIX CRÍTICO - Fallback inscricao-nova-temporada agora inclui acertos
 //   - Corrige bug onde pagamentos (acertos) não eram somados ao saldo
 //   - Exemplo: inscrição -180 + pagamento 60 = saldo -120 (antes mostrava -180)
@@ -1138,6 +1142,66 @@ export const verificarCacheValido = async (req, res) => {
                     rodadaTravada: rodadaLimite,
                 });
             }
+        }
+
+        // ✅ v6.5 FIX: Pré-temporada - cache com 0 rodadas é válido se tem transações iniciais
+        // Cenário: temporada nova (2026), sem rodadas ainda, mas com inscrição/transferência
+        const isPreTemporadaCache = temporadaNum >= CURRENT_SEASON &&
+                                     cacheExistente.ultima_rodada_consolidada === 0 &&
+                                     cacheExistente.historico_transacoes?.length > 0;
+
+        if (isPreTemporadaCache) {
+            console.log(`[CACHE-CONTROLLER] ✅ PRÉ-TEMPORADA: Cache válido com ${cacheExistente.historico_transacoes.length} transações iniciais`);
+
+            // Extrair lançamentos iniciais (inscrição, transferência)
+            const transacoesRaw = cacheExistente.historico_transacoes || [];
+            const lancamentosIniciais = transacoesRaw.filter(t =>
+                t.rodada === 0 ||
+                t.tipo === 'INSCRICAO_TEMPORADA' ||
+                t.tipo === 'SALDO_TEMPORADA_ANTERIOR' ||
+                t.tipo === 'LEGADO_ANTERIOR'
+            );
+
+            // Calcular saldo dos lançamentos iniciais
+            const saldoLancamentosIniciais = lancamentosIniciais.reduce((acc, t) =>
+                acc + (parseFloat(t.valor) || 0), 0
+            );
+
+            const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
+
+            // Criar resumo inicial com saldo das transações
+            const resumoCalculado = {
+                totalGanhos: 0,
+                totalPerdas: 0,
+                bonus: 0,
+                onus: 0,
+                pontosCorridos: 0,
+                mataMata: 0,
+                top10: 0,
+                saldo: saldoLancamentosIniciais,
+                saldo_final: saldoLancamentosIniciais,
+            };
+
+            adicionarAcertosAoResumo(resumoCalculado);
+
+            console.log(`[CACHE-CONTROLLER] ✅ PRÉ-TEMPORADA resumo: saldoInicial=${saldoLancamentosIniciais}, acertos=${saldoAcertosVal}, final=${resumoCalculado.saldo}`);
+
+            return res.json({
+                valido: true,
+                cached: true,
+                permanente: false,
+                preTemporada: true,
+                motivo: "pre_temporada_cache_valido",
+                ultimaRodada: 0,
+                updatedAt: cacheExistente.updatedAt,
+                rodadas: [],
+                resumo: resumoCalculado,
+                camposManuais: camposAtivos,
+                acertos: acertos,
+                inativo: isInativo,
+                rodadaDesistencia,
+                extratoTravado: false,
+            });
         }
 
         // Validação normal para ativos

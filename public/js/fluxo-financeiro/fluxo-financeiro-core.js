@@ -1,4 +1,7 @@
-// FLUXO-FINANCEIRO-CORE.JS v6.8 - FIX PRÉ-TEMPORADA (API VIROU PARA 2026)
+// FLUXO-FINANCEIRO-CORE.JS v6.9 - FIX SALDO PRÉ-TEMPORADA
+// ✅ v6.9: FIX CRÍTICO - Usar resumo do backend em pré-temporada
+//          Antes: calculava localmente só campos+acertos, ignorava inscrição
+//          Agora: usa resumo do backend que inclui inscrição+acertos corretamente
 // ✅ v6.8: FIX CRÍTICO - Detectar pré-temporada quando API já virou para nova temporada
 //          Agora detecta: temporada=2026, rodada=1, bola_rolando=false
 // ✅ v6.7: FIX CRÍTICO - Detectar pré-temporada e NÃO calcular rodadas inexistentes
@@ -332,6 +335,51 @@ export class FluxoFinanceiroCore {
 
             if (cacheValido && cacheValido.valido) {
                 const rodadasArray = cacheValido.rodadas || [];
+
+                // ✅ v6.9 FIX: Em pré-temporada, usar resumo do backend se disponível
+                // O backend já calcula corretamente: inscrição + acertos
+                if (isPreTemporada && cacheValido.resumo) {
+                    console.log(`[FLUXO-CORE] ✅ PRÉ-TEMPORADA: Usando resumo do backend cache`);
+
+                    // Usar campos e acertos do cache
+                    let camposEditaveis;
+                    if (cacheValido.camposManuais && Array.isArray(cacheValido.camposManuais)) {
+                        const campos = cacheValido.camposManuais;
+                        camposEditaveis = {
+                            campo1: campos[0] || { nome: "Campo 1", valor: 0 },
+                            campo2: campos[1] || { nome: "Campo 2", valor: 0 },
+                            campo3: campos[2] || { nome: "Campo 3", valor: 0 },
+                            campo4: campos[3] || { nome: "Campo 4", valor: 0 },
+                        };
+                    } else {
+                        camposEditaveis = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+                    }
+
+                    const acertos = cacheValido.acertos || await this._buscarAcertosFinanceiros(ligaId, timeId);
+
+                    return {
+                        rodadas: [],
+                        resumo: {
+                            ...cacheValido.resumo,
+                            campo1: parseFloat(camposEditaveis.campo1?.valor) || 0,
+                            campo2: parseFloat(camposEditaveis.campo2?.valor) || 0,
+                            campo3: parseFloat(camposEditaveis.campo3?.valor) || 0,
+                            campo4: parseFloat(camposEditaveis.campo4?.valor) || 0,
+                        },
+                        totalTimes: 0,
+                        camposEditaveis: camposEditaveis,
+                        acertos: acertos,
+                        inativo: isInativo,
+                        rodadaDesistencia: rodadaDesistencia,
+                        extratoTravado: false,
+                        preTemporada: true,
+                        temporadaMercado: temporadaMercado,
+                        inscricao: cacheValido.inscricao,
+                        updatedAt: cacheValido.updatedAt,
+                        fonte: cacheValido.fonte || 'cache',
+                        avisoPreTemporada: `Temporada ${temporadaSelecionada} ainda não iniciou. Exibindo apenas inscrições.`
+                    };
+                }
 
                 if (Array.isArray(rodadasArray) && rodadasArray.length > 0) {
                     const primeiraRodada = rodadasArray[0];
@@ -1194,4 +1242,4 @@ window.forcarRefreshExtrato = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-CORE] ✅ v6.6 - Proteção cache temporadas históricas");
+console.log("[FLUXO-CORE] ✅ v6.9 - Fix saldo pré-temporada (usa resumo backend)");

@@ -3272,6 +3272,7 @@ export class FluxoFinanceiroUI {
      * - RESULTADO TEMPORADA: histórico imutável (o que ganhou/perdeu)
      * - ACERTOS: pagamentos/recebimentos que quitam dívida
      * - SALDO PENDENTE: o que ainda deve/tem a receber
+     * ✅ v6.7: Label dinâmico baseado na origem do saldo
      */
     _renderizarSecaoAcertos(extrato) {
         const acertos = extrato.acertos?.lista || [];
@@ -3280,6 +3281,23 @@ export class FluxoFinanceiroUI {
         const saldoAcertos = extrato.resumo?.saldo_acertos ?? 0;
         // ✅ v6.6: saldo é o pendente (com acertos)
         const saldoPendente = extrato.resumo?.saldo ?? 0;
+
+        // ✅ v6.7: Determinar label e ícone baseado na origem do saldo
+        const temporadaAtual = this.temporadaModalExtrato || window.temporadaAtual || 2026;
+        const isPreTemporada = extrato.preTemporada === true;
+
+        let labelSaldoTemporada = 'Resultado Temporada:';
+        let iconeSaldoTemporada = 'history';
+
+        if (isPreTemporada) {
+            // Pré-temporada: saldo vem da inscrição
+            labelSaldoTemporada = `Inscrição ${temporadaAtual}:`;
+            iconeSaldoTemporada = 'person_add';
+        } else if (extrato.rodadas?.length === 0 && saldoTemporada !== 0) {
+            // Temporada iniciada mas sem rodadas ainda, com saldo inicial
+            labelSaldoTemporada = `Saldo Inicial ${temporadaAtual}:`;
+            iconeSaldoTemporada = 'account_balance';
+        }
 
         const formatarValor = (v) => Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
         const corSaldoTemp = saldoTemporada >= 0 ? 'text-success' : 'text-danger';
@@ -3317,13 +3335,13 @@ export class FluxoFinanceiroUI {
                 <!-- Lista de acertos -->
                 ${acertosHTML || '<div style="padding: 12px; text-align: center; color: rgba(255,255,255,0.4); font-size: 12px;">Nenhum acerto registrado</div>'}
 
-                <!-- ✅ v6.6: Resumo separando HISTÓRICO de PENDENTE -->
+                <!-- ✅ v6.7: Resumo separando HISTÓRICO de PENDENTE (com label dinâmico) -->
                 <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <!-- RESULTADO DA TEMPORADA (histórico, imutável) -->
+                    <!-- RESULTADO DA TEMPORADA / INSCRIÇÃO (histórico, imutável) -->
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 8px;">
                         <span style="color: rgba(255,255,255,0.9); font-weight: 600;">
-                            <span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px; color: var(--laranja);">history</span>
-                            Resultado Temporada:
+                            <span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px; color: var(--laranja);">${iconeSaldoTemporada}</span>
+                            ${labelSaldoTemporada}
                         </span>
                         <span class="${corSaldoTemp}" style="font-weight: 700; font-size: 15px;">${saldoTemporada >= 0 ? '+' : '-'}R$ ${formatarValor(saldoTemporada)}</span>
                     </div>
