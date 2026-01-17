@@ -12,7 +12,7 @@
  *
  * Veja models/LigaRules.js para schema e documentação da regra.
  *
- * @version 1.2.0 (Fix: liga_id como ObjectId para compatibilidade com schema Mongoose)
+ * @version 1.2.1 (Fix: query quitacao com $or String/ObjectId, removido upsert para evitar duplicados)
  * @since 2026-01-04
  */
 
@@ -914,9 +914,15 @@ export async function processarDecisaoUnificada(ligaId, timeId, temporada, decis
     const agora = new Date();
     const ligaObjId = new mongoose.Types.ObjectId(ligaId);
 
-    await db.collection('extratofinanceirocaches').updateOne(
+    // v1.2.1 FIX: Usar $or para buscar liga_id como String OU ObjectId
+    // Documentos existentes usam String, novos podem usar ObjectId
+    // REMOVIDO upsert: true para evitar criacao de documentos duplicados vazios
+    const updateQuitacao = await db.collection('extratofinanceirocaches').updateOne(
         {
-            liga_id: ligaObjId,
+            $or: [
+                { liga_id: String(ligaId) },
+                { liga_id: ligaObjId }
+            ],
             time_id: Number(timeId),
             temporada: Number(temporadaAnterior)
         },
@@ -932,9 +938,13 @@ export async function processarDecisaoUnificada(ligaId, timeId, temporada, decis
                     observacao: decisao.observacoes || `Quitacao via modal unificado - ${decisao.decisao}`
                 }
             }
-        },
-        { upsert: true }
+        }
     );
+
+    // Log para debug (documento nao encontrado = cenario raro, mas nao deve criar vazio)
+    if (updateQuitacao.matchedCount === 0) {
+        console.warn(`[INSCRICOES] AVISO: Extrato ${temporadaAnterior} nao encontrado para time ${timeId}. Quitacao nao registrada no cache.`);
+    }
 
     console.log(`[INSCRICOES] Quitacao ${temporadaAnterior} registrada: tipo=${tipoQuitacao} legado=${valorLegado}`);
 
