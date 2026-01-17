@@ -1,7 +1,10 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v4.7 (CACHE-BUSTING)
+// PARTICIPANTE-EXTRATO.JS - v4.8 (TIMEOUT MOBILE)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v4.8: TIMEOUT MOBILE - Aumenta timeout de 15s para 25s
+//          - Corrige "Carregamento lento" em iPhones com 4G fraco
+//          - Requisições sequenciais acumulam latência em redes lentas
 // ✅ v4.7: CACHE-BUSTING - Força recarga do módulo UI após atualizações
 //          - Adiciona ?v=timestamp nos imports dinâmicos
 //          - Evita erro "function is not defined" por cache do browser
@@ -70,7 +73,7 @@ window.addEventListener("temporada-alterada", (event) => {
 });
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.7 CACHE-BUSTING (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.8 TIMEOUT-MOBILE (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
 
 // ✅ v4.5: Inicializar temporada selecionada do seletor (se já existir)
 if (window.seasonSelector) {
@@ -334,7 +337,8 @@ async function carregarExtrato(ligaId, timeId) {
     }
 
     // ✅ v4.6: Timeout de segurança para evitar loading infinito
-    const TIMEOUT_MS = 15000;
+    // ✅ v4.8: Aumentado de 15s para 25s para redes móveis lentas (iPhone 4G)
+    const TIMEOUT_MS = 25000;
     let timeoutId = null;
     const mostrarTimeoutError = () => {
         if (window.Log) Log.error("EXTRATO-PARTICIPANTE", "⏱️ Timeout - requisição demorou demais");
@@ -1269,5 +1273,5 @@ export function initExtratoParticipante() {
 if (window.Log)
     Log.info(
         "EXTRATO-PARTICIPANTE",
-        "✅ Módulo v4.7 carregado (CACHE-BUSTING)",
+        "✅ Módulo v4.8 carregado (TIMEOUT-MOBILE: 25s)",
     );
