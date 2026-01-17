@@ -4,7 +4,11 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.20.0
+ * @version 2.22.0
+ * ✅ v2.22.0: FIX CRÍTICO - Transações especiais (INSCRICAO, LEGADO) com rodada:0
+ *   - transformarTransacoesEmRodadas ignora rodada:0, causando saldo=0 errado
+ *   - Agora detecta caches com apenas transações especiais e usa saldo_consolidado
+ *   - Corrige tabela de participantes para 2026 que mostrava saldos errados
  * ✅ v2.20.0: AUTO-QUITAÇÃO para temporadas anteriores
  *   - Quando saldo zera após acerto em temporada < CURRENT_SEASON, marca como quitado
  *   - Resposta inclui flag autoQuitacao com mensagem para o admin
@@ -253,20 +257,30 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
 
                 // Buscar dados do cache
                 const extrato = extratoMap.get(key);
-
-                // ✅ v2.1 FIX: RECALCULAR usando mesmas funções do extrato individual
-                // Não usar saldo_consolidado direto (pode estar desatualizado)
                 const historico = extrato?.historico_transacoes || [];
-                const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
+
+                // ✅ v2.22 FIX: Detectar caches com apenas transações especiais (INSCRICAO, LEGADO)
+                const apenasTransacoesEspeciais = historico.length > 0 &&
+                    historico.every(t => t.rodada === 0 || t.tipo);
 
                 // Campos manuais
                 const camposDoc = camposMap.get(key);
                 const camposAtivos = camposDoc?.campos?.filter(c => c.valor !== 0) || [];
 
-                // ✅ v2.1 FIX: Calcular resumo igual ao extrato individual
-                const resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
-                const saldoConsolidado = resumoCalculado.saldo;
-                const saldoCampos = resumoCalculado.camposManuais || 0;
+                let saldoConsolidado = 0;
+                let saldoCampos = 0;
+                let resumoCalculado = { bonus: 0, onus: 0, pontosCorridos: 0, mataMata: 0, top10: 0 };
+
+                if (apenasTransacoesEspeciais) {
+                    // ✅ v2.22: Para pré-temporada (só inscrição/legado), usar saldo_consolidado direto
+                    saldoConsolidado = extrato?.saldo_consolidado || 0;
+                } else {
+                    // ✅ v2.1 FIX: RECALCULAR usando mesmas funções do extrato individual
+                    const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
+                    resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
+                    saldoConsolidado = resumoCalculado.saldo;
+                    saldoCampos = resumoCalculado.camposManuais || 0;
+                }
 
                 // ✅ v2.0: Calcular breakdown por módulo (baseado no resumo calculado)
                 // ✅ v2.9: Adicionado 'acertos' ao breakdown
@@ -577,20 +591,32 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
 
             // Calcular saldo do extrato
             const extrato = extratoMap.get(timeId);
-
-            // ✅ v2.1 FIX: RECALCULAR usando mesmas funções do extrato individual
-            // Não usar saldo_consolidado direto (pode estar desatualizado)
             const historico = extrato?.historico_transacoes || [];
-            const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
+
+            // ✅ v2.22 FIX: Detectar caches com apenas transações especiais (INSCRICAO, LEGADO)
+            // Esses caches têm rodada: 0 ou campo tipo, que são ignorados por transformarTransacoesEmRodadas
+            const apenasTransacoesEspeciais = historico.length > 0 &&
+                historico.every(t => t.rodada === 0 || t.tipo);
 
             // Campos manuais
             const camposDoc = camposMap.get(timeId);
             const camposAtivos = camposDoc?.campos?.filter(c => c.valor !== 0) || [];
 
-            // ✅ v2.1 FIX: Calcular resumo igual ao extrato individual
-            const resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
-            const saldoConsolidado = resumoCalculado.saldo;
-            const saldoCampos = resumoCalculado.camposManuais || 0;
+            let saldoConsolidado = 0;
+            let saldoCampos = 0;
+            let resumoCalculado = { bonus: 0, onus: 0, pontosCorridos: 0, mataMata: 0, top10: 0 };
+
+            if (apenasTransacoesEspeciais) {
+                // ✅ v2.22: Para pré-temporada (só inscrição/legado), usar saldo_consolidado direto
+                saldoConsolidado = extrato?.saldo_consolidado || 0;
+                console.log(`[TESOURARIA] Participante ${timeId}: usando saldo_consolidado direto = ${saldoConsolidado}`);
+            } else {
+                // ✅ v2.1 FIX: RECALCULAR usando mesmas funções do extrato individual
+                const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
+                resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
+                saldoConsolidado = resumoCalculado.saldo;
+                saldoCampos = resumoCalculado.camposManuais || 0;
+            }
 
             // ✅ v2.0: Calcular breakdown por módulo (baseado no resumo calculado)
             // ✅ v2.9: Adicionado 'acertos' ao breakdown
@@ -1294,6 +1320,6 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v2.20 Rotas carregadas (AUTO-QUITAÇÃO quando saldo zera)");
+console.log("[TESOURARIA] ✅ v2.22 Rotas carregadas (FIX: transações especiais rodada:0)");
 
 export default router;
