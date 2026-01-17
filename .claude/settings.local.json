@@ -176,7 +176,8 @@
       "WebFetch(domain:dashboard.api-football.com)",
       "WebFetch(domain:www.api-football.com)",
       "Bash(git checkout:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(bash:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
