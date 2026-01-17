@@ -4,7 +4,11 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.23.0
+ * @version 2.24.0
+ * ✅ v2.24.0: FIX CRÍTICO - NÃO deletar cache do extrato ao registrar acertos
+ *   - Bug v2.4 deletava cache, zerando histórico (rodadas, PC, MM, Top10)
+ *   - Acertos são armazenados em coleção separada e integrados na consulta
+ *   - Ref: acertos-financeiros-routes.js v1.4.0
  * ✅ v2.23.0: FIX CRÍTICO - Acertos devem ser filtrados pela temporada EXATA
  *   - Query busca temporadas N e N-1 para transição, mas cálculo misturava tudo
  *   - Agora filtra acertos pela temporada sendo visualizada antes de somar
@@ -1099,18 +1103,19 @@ router.post("/acerto", verificarAdmin, async (req, res) => {
             console.log(`[TESOURARIA] ✅ Troco de R$ ${valorTroco.toFixed(2)} salvo`);
         }
 
-        // ✅ v2.4 FIX: Invalidar cache COM temporada para evitar inconsistências
-        // O cache pode ter múltiplos documentos por temporada
-        try {
-            await ExtratoFinanceiroCache.deleteOne({
-                liga_id: String(ligaId),
-                time_id: Number(timeId),
-                temporada: Number(temporada),
-            });
-            console.log(`[TESOURARIA] ♻️ Cache invalidado para time ${timeId} (temporada ${temporada})`);
-        } catch (cacheError) {
-            console.warn(`[TESOURARIA] ⚠️ Falha ao invalidar cache:`, cacheError.message);
-        }
+        // =========================================================================
+        // ✅ v2.5 FIX CRITICO: NÃO DELETAR CACHE DO EXTRATO
+        //
+        // BUG ANTERIOR (v2.4): deleteOne() zerava todos os dados históricos
+        // (rodadas, Timeline, P.Corridos, MataMata, Top10, etc.)
+        //
+        // Acertos são armazenados em coleção SEPARADA (AcertoFinanceiro) e
+        // são integrados no momento da consulta em getExtratoFinanceiro().
+        // O cache deve ser PRESERVADO - apenas o saldo final muda.
+        //
+        // Ref: acertos-financeiros-routes.js v1.4.0 (mesma lógica)
+        // =========================================================================
+        console.log(`[TESOURARIA] ✅ Acerto registrado para time ${timeId} (cache preservado)`)
 
         // Calcular novo saldo
         const novoSaldo = await calcularSaldoCompleto(ligaId, timeId, temporada);
@@ -1224,16 +1229,10 @@ router.delete("/acerto/:id", verificarAdmin, async (req, res) => {
             await acerto.save();
         }
 
-        // ✅ v2.4 FIX: Invalidar cache COM temporada
-        try {
-            await ExtratoFinanceiroCache.deleteOne({
-                liga_id: String(acerto.ligaId),
-                time_id: Number(acerto.timeId),
-                temporada: Number(acerto.temporada),
-            });
-        } catch (cacheError) {
-            console.warn(`[TESOURARIA] ⚠️ Falha ao invalidar cache:`, cacheError.message);
-        }
+        // ✅ v2.5 FIX CRITICO: NÃO DELETAR CACHE DO EXTRATO
+        // Acertos são armazenados em coleção separada e integrados na consulta
+        // Ref: acertos-financeiros-routes.js v1.4.0
+        console.log(`[TESOURARIA] ✅ Acerto removido para time ${acerto.timeId} (cache preservado)`)
 
         // Calcular novo saldo
         const novoSaldo = await calcularSaldoCompleto(
@@ -1329,6 +1328,6 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v2.23 Rotas carregadas (FIX: acertos filtrados por temporada)");
+console.log("[TESOURARIA] ✅ v2.24 Rotas carregadas (FIX CRÍTICO: cache preservado ao registrar acertos)");
 
 export default router;
