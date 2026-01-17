@@ -1,5 +1,8 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v6.3 - PROTEÇÃO PRÉ-TEMPORADA
+// extratoFinanceiroCacheController.js v6.4 - FIX ACERTOS NO FALLBACK
+// ✅ v6.4: FIX CRÍTICO - Fallback inscricao-nova-temporada agora inclui acertos
+//   - Corrige bug onde pagamentos (acertos) não eram somados ao saldo
+//   - Exemplo: inscrição -180 + pagamento 60 = saldo -120 (antes mostrava -180)
 // ✅ v6.3: Proteção contra salvar rodadas fantasmas em pré-temporada (2026)
 // ✅ v6.2: Proteção contra sobrescrita de caches históricos com dados vazios
 // ✅ v6.1: FIX - Lançamentos iniciais (rodada=0) agora são contabilizados no saldo
@@ -678,17 +681,25 @@ export const getExtratoCache = async (req, res) => {
                     // Se pagou, saldo = 0. Se não pagou, usar saldo_inicial_temporada
                     const saldoInicial = pagouInscricao ? 0 : (inscricao.saldo_inicial_temporada || -taxaInscricao);
 
+                    // ✅ v6.4 FIX CRÍTICO: Incluir acertos no saldo final
+                    // Acertos já foram buscados acima, usar o saldo deles
+                    const saldoAcertosIns = acertos?.resumo?.saldo ?? 0;
+                    const saldoFinalComAcertos = saldoInicial + saldoAcertosIns;
+
                     // ✅ v6.3 FIX: Calcular ganhos/perdas considerando crédito transferido
-                    const totalGanhos = saldoTransferido > 0 ? saldoTransferido : 0;
-                    const totalPerdas = pagouInscricao ? 0 : -taxaInscricao;
+                    let totalGanhos = saldoTransferido > 0 ? saldoTransferido : 0;
+                    let totalPerdas = pagouInscricao ? 0 : -taxaInscricao;
+                    // ✅ v6.4: Incluir acertos nos ganhos/perdas
+                    if (saldoAcertosIns > 0) totalGanhos += saldoAcertosIns;
+                    else if (saldoAcertosIns < 0) totalPerdas += saldoAcertosIns;
 
                     // Extrato inicial zerado, apenas com informação da inscrição
                     const resumoInicial = {
-                        saldo: saldoInicial,
-                        saldo_final: saldoInicial,
-                        saldo_temporada: saldoInicial,
-                        saldo_acertos: 0,
-                        saldo_atual: saldoInicial,
+                        saldo: saldoFinalComAcertos,  // ✅ v6.4 FIX: Inclui acertos!
+                        saldo_final: saldoFinalComAcertos,
+                        saldo_temporada: saldoInicial,  // Saldo SEM acertos
+                        saldo_acertos: saldoAcertosIns,  // ✅ v6.4 FIX: Valor real dos acertos
+                        saldo_atual: saldoFinalComAcertos,
                         totalGanhos: totalGanhos,
                         totalPerdas: totalPerdas,
                         bonus: 0,
@@ -703,7 +714,7 @@ export const getExtratoCache = async (req, res) => {
                         saldoAnteriorTransferido: saldoTransferido,
                     };
 
-                    console.log(`[CACHE-CONTROLLER] ✅ Extrato inicial: taxa=${taxaInscricao}, saldoTransferido=${saldoTransferido}, saldo=${saldoInicial}, status=${statusInscricao}`);
+                    console.log(`[CACHE-CONTROLLER] ✅ Extrato inicial: taxa=${taxaInscricao}, saldoTransferido=${saldoTransferido}, saldoInicial=${saldoInicial}, acertos=${saldoAcertosIns}, saldoFinal=${saldoFinalComAcertos}, status=${statusInscricao}`);
                     
                     return res.json({
                         cached: false,
