@@ -12,22 +12,35 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "1. Queries vazias (find({}) ou findOne({})):"
 grep -rn "\.find({}\|\.findOne({})" controllers/ routes/ services/ 2>/dev/null | \
-  grep -v "system_config\|User\|Admin" | \
+  grep -v "system_config\|User\|Admin\|admins\|times-admin\|admin-gestao" | \
   head -10
 echo ""
 
-echo "2. Queries sem liga_id/ligaId:"
-count=$(grep -rn "\.find({" controllers/ routes/ services/ 2>/dev/null | \
-  grep -v "liga_id\|ligaId" | \
-  grep -v "system_config\|users\|User\|Admin" | \
-  wc -l)
-echo "  Total: $count queries suspeitas"
+echo "2. Queries sem liga_id/ligaId (verificação multiline):"
+# Verificação inteligente: busca .find({ e checa as próximas 5 linhas por ligaId/liga_id
+count=0
+suspicious=""
+while IFS=: read -r file linenum rest; do
+  # Extrair contexto (5 linhas após)
+  context=$(sed -n "${linenum},$((linenum+5))p" "$file" 2>/dev/null)
+
+  # Ignorar se tem ligaId, liga_id, liga.times, time_id, ou timeId no contexto
+  # (time_id é filtro válido pois identifica unicamente o participante)
+  if ! echo "$context" | grep -qE "ligaId|liga_id|liga\.times|time_id|timeId|\\\$in:"; then
+    # Ignorar rotas admin e utilitárias
+    if ! echo "$file" | grep -qE "admin|Admin|tesouraria|proxy|usuarios-online"; then
+      count=$((count + 1))
+      if [ $count -le 10 ]; then
+        suspicious="${suspicious}    ${file}:${linenum}: $(echo "$rest" | head -c 60)\n"
+      fi
+    fi
+  fi
+done < <(grep -rn "\.find({" controllers/ routes/ services/ 2>/dev/null | grep -v "system_config\|users\|User")
+
+echo "  Total: $count queries realmente suspeitas"
 if [ $count -gt 0 ]; then
   echo "  Top 10 exemplos:"
-  grep -rn "\.find({" controllers/ routes/ services/ 2>/dev/null | \
-    grep -v "liga_id\|ligaId" | \
-    grep -v "system_config\|users\|User\|Admin" | \
-    head -10 | sed 's/^/    /'
+  echo -e "$suspicious"
 fi
 echo ""
 

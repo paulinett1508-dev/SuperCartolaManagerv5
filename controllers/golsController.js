@@ -2,23 +2,44 @@ import Gols from "../models/Gols.js";
 import axios from "axios";
 
 // Exportando a função listarGols explicitamente
+// ✅ v2.0: Adicionado filtro obrigatório por ligaId (multi-tenant fix)
 export const listarGols = async function (req, res) {
   try {
-    const { rodada } = req.query;
+    const { rodada, ligaId } = req.query;
 
-    // Filtro condicional baseado na rodada
-    const filtro = rodada ? { rodada: parseInt(rodada, 10) } : {};
+    // ✅ v2.0: ligaId é OBRIGATÓRIO para isolamento multi-tenant
+    if (!ligaId) {
+      return res.status(400).json({
+        error: "Parâmetro ligaId é obrigatório",
+        message: "Informe o ID da liga para listar os gols"
+      });
+    }
 
-    // Buscar todos os gols com o filtro aplicado
-    const gols = await Gols.find(filtro).sort({
-      rodada: -1,
-      G: -1,
-      nome_cartola: 1,
-    });
+    // Filtro base com ligaId obrigatório
+    const filtro = { ligaId: ligaId };
+
+    // Filtro adicional por rodada (opcional)
+    if (rodada) {
+      filtro.rodada = parseInt(rodada, 10);
+    }
+
+    // Buscar gols filtrados por liga
+    const gols = await Gols.find(filtro)
+      .sort({
+        rodada: -1,
+        gols: -1,
+        nome: 1,
+      })
+      .lean();
 
     return res.status(200).json({
       status: "ok",
       data: gols,
+      meta: {
+        total: gols.length,
+        ligaId: ligaId,
+        rodada: rodada || "todas"
+      }
     });
   } catch (err) {
     console.error("Erro ao listar gols:", err);
@@ -30,18 +51,29 @@ export const listarGols = async function (req, res) {
 };
 
 // Exportando a função com ambos os nomes para compatibilidade
+// ✅ v2.0: Adicionado ligaId obrigatório (multi-tenant fix)
 export const extrairGolsDaRodada = async function (req, res) {
   console.log("=== INICIANDO EXTRAÇÃO DE GOLS ===");
-  const { timeIds, rodada, reprocessar } = req.body;
+  const { timeIds, rodada, reprocessar, ligaId } = req.body;
   console.log("Parâmetros recebidos para extração:", {
     timeIds,
     rodada,
     reprocessar,
+    ligaId,
   });
+
+  // ✅ v2.0: ligaId é OBRIGATÓRIO para isolamento multi-tenant
+  if (!ligaId) {
+    console.error("Erro: ligaId é obrigatório");
+    return res.status(400).json({
+      error: "Parâmetro ligaId é obrigatório",
+      message: "Informe o ID da liga para extrair os gols"
+    });
+  }
 
   if (!Array.isArray(timeIds) || !rodada) {
     console.error("Erro: Parâmetros inválidos", { timeIds, rodada });
-    return res.status(400).json({ error: "Parâmetros inválidos" });
+    return res.status(400).json({ error: "Parâmetros inválidos (timeIds e rodada são obrigatórios)" });
   }
 
   // Contadores e arrays para rastreamento
@@ -135,17 +167,15 @@ export const extrairGolsDaRodada = async function (req, res) {
             });
 
             try {
-              // Checa se já existe esse registro para evitar duplicidade
+              // ✅ v2.0: Verificar duplicidade com ligaId (índice único do model)
               console.log(
                 `[Time ${timeId}] Verificando duplicidade para ${apelido} - Gols: ${G} - Rodada: ${rodada}`,
               );
 
               const jaExiste = await Gols.findOne({
-                nome_cartola: nomeCartola,
-                apelido,
-                rodada,
-                time_id: timeId,
-                G: G,
+                ligaId: ligaId,
+                rodada: rodada,
+                atletaId: atletaId,
               });
 
               if (jaExiste && !reprocessar) {
@@ -155,10 +185,10 @@ export const extrairGolsDaRodada = async function (req, res) {
                 duplicadosDetalhes.push({
                   atletaId,
                   apelido,
-                  G,
+                  gols: G,
                   rodada,
                   timeId,
-                  nome_cartola: nomeCartola,
+                  ligaId,
                 });
               } else if (jaExiste && reprocessar) {
                 console.log(
@@ -166,16 +196,21 @@ export const extrairGolsDaRodada = async function (req, res) {
                 );
 
                 try {
+                  // ✅ v2.0: Atualizar com campos corretos do model
                   await Gols.findOneAndUpdate(
                     {
-                      nome_cartola: nomeCartola,
-                      apelido,
-                      rodada,
-                      time_id: timeId,
+                      ligaId: ligaId,
+                      rodada: rodada,
+                      atletaId: atletaId,
                     },
                     {
-                      atletaId,
-                      G,
+                      gols: G,
+                      nome: apelido,
+                      timeId: timeId,
+                      pontos: atleta.pontos_num || 0,
+                      posicao: atleta.posicao_id,
+                      clube: atleta.clube_id,
+                      clubeNome: atleta.clube?.nome || '',
                     },
                     { new: true },
                   );
@@ -202,14 +237,19 @@ export const extrairGolsDaRodada = async function (req, res) {
                 );
 
                 try {
-                  // Usar diretamente o nomeCartola que já tem o fallback implementado
+                  // ✅ v2.0: Incluir ligaId obrigatório + campos corretos do model
                   await Gols.create({
-                    nome_cartola: nomeCartola,
-                    apelido,
-                    atletaId,
-                    G,
-                    rodada,
-                    time_id: timeId,
+                    ligaId: ligaId,
+                    rodada: rodada,
+                    atletaId: atletaId,
+                    nome: apelido,
+                    timeId: timeId,
+                    gols: G,
+                    golsContra: 0,
+                    pontos: atleta.pontos_num || 0,
+                    posicao: atleta.posicao_id,
+                    clube: atleta.clube_id,
+                    clubeNome: atleta.clube?.nome || '',
                   });
                   totalCriados++;
                   console.log(
