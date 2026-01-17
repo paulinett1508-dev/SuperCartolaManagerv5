@@ -237,3 +237,33 @@ export function bloquearParticipanteDeAdmin(req, res, next) {
 export function bloquearPaginasAdminParaParticipantes(req, res, next) {
   return protegerRotas(req, res, next);
 }
+
+/**
+ * Middleware para validar liga_id em rotas de API
+ * Verifica se liga_id foi fornecido no query ou body
+ * Multi-tenant: todas as queries devem ter liga_id
+ */
+export function validarLigaId(req, res, next) {
+  const liga_id = req.query.liga_id || req.body?.liga_id;
+
+  if (!liga_id) {
+    return res.status(400).json({
+      success: false,
+      error: "liga_id obrigatório",
+      message: "Parâmetro liga_id é obrigatório para esta operação",
+    });
+  }
+
+  // Validar formato (ObjectId ou string não vazia)
+  if (typeof liga_id !== "string" || liga_id.trim().length === 0) {
+    return res.status(400).json({
+      success: false,
+      error: "liga_id inválido",
+      message: "liga_id deve ser uma string não vazia",
+    });
+  }
+
+  // Disponibilizar liga_id normalizado no req para uso posterior
+  req.liga_id = liga_id.trim();
+  next();
+}
