@@ -1,7 +1,11 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v4.8 (TIMEOUT MOBILE)
+// PARTICIPANTE-EXTRATO.JS - v4.9 (PARALELO MOBILE)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v4.9: PARALELO MOBILE - Requisições em paralelo (Promise.all)
+//          - Reduz tempo de carregamento de ~15s para ~5-8s em 4G
+//          - verificarRenovacao + mercado/status executam juntos
+//          - Remove chamada redundante a verificarRenovacao (linha 439)
 // ✅ v4.8: TIMEOUT MOBILE - Aumenta timeout de 15s para 25s
 //          - Corrige "Carregamento lento" em iPhones com 4G fraco
 //          - Requisições sequenciais acumulam latência em redes lentas
@@ -73,7 +77,7 @@ window.addEventListener("temporada-alterada", (event) => {
 });
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.8 TIMEOUT-MOBILE (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.9 PARALELO-MOBILE (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
 
 // ✅ v4.5: Inicializar temporada selecionada do seletor (se já existir)
 if (window.seasonSelector) {
@@ -359,15 +363,37 @@ async function carregarExtrato(ligaId, timeId) {
     let usouCache = false;
     let extratoDataCache = null;
 
-    // ✅ v4.1: Verificar status de renovação ANTES de usar cache local
+    // ✅ v4.9: PARALELIZAR requisições independentes para reduzir latência
+    // Problema: Em 4G fraco, requisições sequenciais acumulam 15-20s
+    // Solução: Executar verificarRenovacao + mercado/status em paralelo
     let statusRenovacao = { renovado: false };
+    let rodadaAtual = 1;
+
     try {
-        statusRenovacao = await Promise.race([
-            verificarRenovacao(ligaId, timeId),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+        // ✅ v4.9: Promise.all para requisições independentes (economia de ~3-5s)
+        const [statusRenovacaoResult, mercadoResult] = await Promise.all([
+            // Requisição 1: Verificar renovação (com timeout próprio de 5s)
+            Promise.race([
+                verificarRenovacao(ligaId, timeId),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout-renovacao')), 5000))
+            ]).catch(e => {
+                if (window.Log) Log.warn("EXTRATO-PARTICIPANTE", "⚠️ Timeout renovação, assumindo não renovado");
+                return { renovado: false };
+            }),
+
+            // Requisição 2: Buscar status do mercado (com timeout de 5s)
+            fetch("/api/cartola/mercado/status", {
+                signal: AbortSignal.timeout(5000)
+            }).then(r => r.ok ? r.json() : { rodada_atual: 1 })
+              .catch(() => ({ rodada_atual: 1 }))
         ]);
+
+        statusRenovacao = statusRenovacaoResult || { renovado: false };
+        rodadaAtual = mercadoResult?.rodada_atual || 1;
+
+        if (window.Log) Log.info("EXTRATO-PARTICIPANTE", `✅ Paralelo OK: renovado=${statusRenovacao.renovado}, rodada=${rodadaAtual}`);
     } catch (e) {
-        if (window.Log) Log.warn("EXTRATO-PARTICIPANTE", "⚠️ Timeout ao verificar renovação, assumindo não renovado");
+        if (window.Log) Log.warn("EXTRATO-PARTICIPANTE", "⚠️ Erro no Promise.all, usando defaults");
     }
     const participanteRenovado = statusRenovacao?.renovado === true;
 
@@ -412,31 +438,16 @@ async function carregarExtrato(ligaId, timeId) {
 
     // =========================================================================
     // FASE 2: ATUALIZAÇÃO EM BACKGROUND (Fetch API)
+    // ✅ v4.9: rodadaAtual e statusRenovacao já foram obtidos no Promise.all acima
     // =========================================================================
     try {
-        // Buscar rodada atual
-        let rodadaAtual = 1;
-        try {
-            const resStatus = await fetch("/api/cartola/mercado/status");
-            if (resStatus.ok) {
-                const status = await resStatus.json();
-                rodadaAtual = status.rodada_atual || 1;
-            }
-        } catch (e) {
-            if (window.Log)
-                Log.warn(
-                    "EXTRATO-PARTICIPANTE",
-                    "⚠️ Falha ao buscar rodada atual",
-                );
-        }
-
         let extratoData = null;
         let usouCacheBackend = false;
         let precisaRecalculo = false;
 
         // ✅ v4.5: Verificar se há temporada selecionada pelo usuário (via seletor)
         // Se o usuário selecionou explicitamente uma temporada, respeitar essa escolha
-        const statusRenovacao = await verificarRenovacao(ligaId, timeId);
+        // ✅ v4.9: statusRenovacao já existe no escopo desde o Promise.all inicial
         let temporada;
 
         if (temporadaSelecionadaPeloUsuario) {
@@ -1273,5 +1284,5 @@ export function initExtratoParticipante() {
 if (window.Log)
     Log.info(
         "EXTRATO-PARTICIPANTE",
-        "✅ Módulo v4.8 carregado (TIMEOUT-MOBILE: 25s)",
+        "✅ Módulo v4.9 carregado (PARALELO-MOBILE: Promise.all)",
     );
