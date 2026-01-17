@@ -182,8 +182,9 @@ async function main() {
                     console.log(`  [ATUALIZADO] saldo_consolidado: ${saldoLancamentosEsperado.toFixed(2)}`);
                 } else {
                     // Criar cache novo
+                    // NOTA: Usar String para liga_id (compatível com fluxoFinanceiroController)
                     await db.collection('extratofinanceirocaches').insertOne({
-                        liga_id: ligaIdObj,
+                        liga_id: String(LIGA_ID),
                         time_id: Number(timeId),
                         temporada: TEMPORADA,
                         saldo_consolidado: saldoLancamentosEsperado,
