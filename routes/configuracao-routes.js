@@ -1,6 +1,7 @@
 // routes/configuracao-routes.js
 import express from 'express';
 import cartolaApiService from '../services/cartolaApiService.js';
+import { verificarAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -140,8 +141,9 @@ router.get('/status-sistema', async (req, res) => {
 /**
  * POST /api/configuracao/limpar-cache
  * Limpa o cache do sistema de detecção dinâmica
+ * ✅ v1.1: Adicionado verificarAdmin para segurança
  */
-router.post('/limpar-cache', async (req, res) => {
+router.post('/limpar-cache', verificarAdmin, async (req, res) => {
   try {
     console.log('[CONFIGURACAO] Limpando cache do sistema...');
     
