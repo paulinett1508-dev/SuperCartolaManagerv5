@@ -5,7 +5,7 @@
 
 ---
 
-## Status Atual (2026-01-16)
+## Status Atual (2026-01-17)
 
 **Nenhuma tarefa pendente.**
 
@@ -13,106 +13,42 @@
 
 ## Historico de Correcoes Recentes
 
-### ✅ TOP10 - Filtro por Temporada (2026-01-16)
+### ✅ Jogos do Dia v2.0 - Completo (2026-01-17)
 
-**Arquivo:** `controllers/fluxoFinanceiroController.js` v8.6.0
+**Arquivos:**
+- `routes/jogos-ao-vivo-routes.js` v2.0
+- `public/participante/js/modules/participante-jogos.js` v3.0
 
-**Problema:** Query do TOP10 nao filtrava por temporada, podendo retornar cache errado em cenarios com multiplos anos.
+**Mudancas:**
+- Endpoint mudou de `?live=all` para `?date={hoje}` (mostra TODOS os jogos)
+- Cache inteligente: 2min com jogos ao vivo, 10min sem
+- Frontend exibe jogos encerrados com placar final
+- Ordenacao: Ao vivo > Agendados > Encerrados
+
+**Nota:** Mostrar jogos encerrados NAO consome requests adicionais.
+
+---
+
+### ✅ Fix China Guardiola - Credito 2026 (2026-01-17)
+
+**Problema:** Renovacao com `pagouInscricao=true` nao transferia credito restante.
+
+**Caso:** China Guardiola tinha R$421,54 credito, pagou R$180 taxa, deveria ter R$241,54 restante mas tinha R$0.
 
 **Correcao:**
-- Adicionado parametro `temporada` na funcao `calcularTop10Historico()`
-- Query agora filtra: `Top10Cache.findOne({ liga_id, temporada })`
-- Atualizadas 2 chamadas para passar `temporadaAtual`
-
-**Impacto:** Preventivo - evita bugs quando existirem caches TOP10 de multiplas temporadas.
+- `controllers/inscricoesController.js` v1.4: Logica para transferir `credito - taxa` quando `pagouInscricao=true`
+- Script `fix-china-guardiola-2026.js`: Corrigiu dados no MongoDB
+- Script `fix-renovacoes-credito-2026.js`: Verificou outros participantes (nenhum afetado)
 
 ---
 
-### ✅ Mega-Auditoria Financeira 2025 (2026-01-16)
+### ✅ PWA Install Prompt (Ja implementado)
 
-**Escopo:** 26 participantes da Liga SUPERCARTOLA (excluindo 7 protegidos que ja renovaram 2026).
+**Arquivo:** `public/participante/js/install-prompt.js` v1.1
 
-**Resultado:**
-- 13 devedores: R$ 3.062,79 a receber
-- 13 credores: R$ 6.887,84 a pagar
+**Features:** Banner de instalacao, suporte iOS/Android, cooldown 24h, modo debug.
 
-**Modulos Verificados:** Ranking Rodadas, Pontos Corridos, Mata-Mata, TOP10, Melhor do Mes, Campos Manuais.
-
-**Conclusao:** Nenhuma correcao de saldo necessaria. Valores corretos.
-
-**Relatorio:** `docs/auditorias/MEGA-AUDITORIA-2025-2026-01-16.md`
-
-**Commit:** `01d35ad`
-
----
-
-### ✅ Hall da Fama - Saldo Multi-Liga (2026-01-16)
-
-**Problema:** Paulinett Miranda mostrava R$296 ao inves de -R$193.
-
-**Causa:** API somava dados de TODAS as ligas ao inves de separar por liga.
-
-**Correcao:**
-- Backend v3.0: Mapas indexados por `liga_id`
-- Frontend v12.12: Fallback JSON quando `cached: false`
-
-**Commits:** `2f04570`, `7e5438a`
-
----
-
-### ✅ Extrato 2026 - Pre-Temporada (2026-01-15)
-
-**Problemas:** Tabela ROD/POS aparecia, dados fantasmas eram criados.
-
-**Correcao:**
-- `fluxo-financeiro-core.js` v6.7: Flag `isPreTemporada`, retorna `rodadas: []`
-- `fluxo-financeiro-ui.js` v6.7: Condicional `!extrato.preTemporada`
-
-**Status:** Verificado em 2026-01-16 - codigo correto.
-
----
-
-### ✅ TOP10 - Liga Sobral (2026-01-15)
-
-**Problema:** Sistema marcava MITO/MICO por "ser 1o da rodada" ao inves do ranking global.
-
-**Correcao:** Script `fix-top10-extratos-sobral.js` executado.
-
-**Resultado:** 74 correcoes em 6 extratos.
-
----
-
-### ✅ Jogos ao Vivo - API-Football (2026-01-15)
-
-**Feature:** Implementado `/api/jogos-ao-vivo` com API-Football.
-
-**Fallback:** Scraper Globo Esporte para agenda.
-
----
-
-### ✅ Liga Vazia + Cadastro Participantes (2026-01-15)
-
-**Feature:** Criar liga sem participantes + ferramenta de cadastro independente.
-
-**Commits:** `7fd9a81`, `2e6174b`
-
----
-
-### ✅ Auditoria Debt Tecnico (2026-01-16)
-
-**Analise:** 7 itens verificados do Claude Sonnet.
-
-| Item | Status |
-|------|--------|
-| ID types inconsistentes | Documentado no CLAUDE.md |
-| Flags hardcoded | Documentado no CLAUDE.md |
-| Calculos duplicados | BY DESIGN |
-| Nomenclatura PT/EN | BY DESIGN |
-| Cache nao invalidado | BY DESIGN (acertos sao real-time) |
-| Formula saldo | Ja estava correto |
-| Mongoose deprecated | Corrigido em 2 scripts |
-
-**Commit:** `75af296`
+**Teste:** `?debug=install` ou `?debug=install-ios`
 
 ---
 

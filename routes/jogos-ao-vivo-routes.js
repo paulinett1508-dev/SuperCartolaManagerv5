@@ -1,6 +1,8 @@
 // routes/jogos-ao-vivo-routes.js
-// v1.1 - Jogos ao vivo usando API-Football (api-sports.io)
-// ✅ v1.1: FIX - Cache agora retorna aoVivo para renderizar placar corretamente
+// v2.0 - Jogos do Dia Completo (API-Football)
+// ✅ v2.0: Mudança de ?live=all para ?date={hoje} - mostra todos os jogos do dia
+// ✅ v2.0: Cache inteligente - 2min com jogos ao vivo, 10min sem jogos ao vivo
+// ✅ v2.0: Ordenação: Ao vivo > Agendados > Encerrados
 import express from 'express';
 import fetch from 'node-fetch';
 import fs from 'fs/promises';
@@ -20,26 +22,47 @@ const LIGAS_BRASIL = {
   618: 'Copinha'
 };
 
-// Cache em memória (5 minutos)
-let cacheJogosAoVivo = null;
+// Status que indicam jogo ao vivo
+const STATUS_AO_VIVO = ['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE'];
+const STATUS_ENCERRADO = ['FT', 'AET', 'PEN'];
+const STATUS_AGENDADO = ['NS', 'TBD'];
+
+// Cache inteligente
+let cacheJogosDia = null;
 let cacheTimestamp = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+let cacheTemJogosAoVivo = false;
+
+// TTL dinâmico baseado em jogos ao vivo
+const CACHE_TTL_AO_VIVO = 2 * 60 * 1000;    // 2 minutos se tem jogos ao vivo
+const CACHE_TTL_SEM_JOGOS = 10 * 60 * 1000; // 10 minutos se não tem jogos ao vivo
 
 // Path do scraper Globo (fallback)
 const GLOBO_CACHE_PATH = path.join(process.cwd(), 'data', 'jogos-globo.json');
 
 /**
- * Busca jogos ao vivo da API-Football
+ * Retorna a data atual no formato YYYY-MM-DD (timezone São Paulo)
  */
-async function buscarJogosAoVivo() {
+function getDataHoje() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+}
+
+/**
+ * Busca todos os jogos do dia da API-Football
+ */
+async function buscarJogosDoDia() {
   const apiKey = process.env.API_FOOTBALL_KEY;
   if (!apiKey) {
-    console.warn('[JOGOS-AO-VIVO] API_FOOTBALL_KEY não configurada');
-    return [];
+    console.warn('[JOGOS-DIA] API_FOOTBALL_KEY não configurada');
+    return { jogos: [], temAoVivo: false };
   }
 
   try {
-    const response = await fetch('https://v3.football.api-sports.io/fixtures?live=all', {
+    const dataHoje = getDataHoje();
+    const url = `https://v3.football.api-sports.io/fixtures?date=${dataHoje}`;
+
+    console.log(`[JOGOS-DIA] Buscando jogos de ${dataHoje}...`);
+
+    const response = await fetch(url, {
       headers: { 'x-apisports-key': apiKey },
       timeout: 10000
     });
@@ -47,8 +70,8 @@ async function buscarJogosAoVivo() {
     const data = await response.json();
 
     if (data.errors && Object.keys(data.errors).length > 0) {
-      console.error('[JOGOS-AO-VIVO] Erro API:', data.errors);
-      return [];
+      console.error('[JOGOS-DIA] Erro API:', data.errors);
+      return { jogos: [], temAoVivo: false };
     }
 
     // Filtrar apenas jogos do Brasil
@@ -56,7 +79,10 @@ async function buscarJogosAoVivo() {
       LIGAS_BRASIL[jogo.league?.id]
     );
 
-    return jogosBrasil.map(jogo => ({
+    console.log(`[JOGOS-DIA] ${jogosBrasil.length} jogos brasileiros encontrados`);
+
+    // Mapear jogos
+    const jogos = jogosBrasil.map(jogo => ({
       id: jogo.fixture.id,
       mandante: jogo.teams.home.name,
       visitante: jogo.teams.away.name,
@@ -72,11 +98,32 @@ async function buscarJogosAoVivo() {
         hour: '2-digit',
         minute: '2-digit',
         timeZone: 'America/Sao_Paulo'
-      })
+      }),
+      timestamp: new Date(jogo.fixture.date).getTime()
     }));
+
+    // Ordenar: Ao vivo primeiro, depois agendados por horário, depois encerrados
+    jogos.sort((a, b) => {
+      const aVivo = STATUS_AO_VIVO.includes(a.statusRaw) ? 0 : 1;
+      const bVivo = STATUS_AO_VIVO.includes(b.statusRaw) ? 0 : 1;
+
+      if (aVivo !== bVivo) return aVivo - bVivo;
+
+      const aEncerrado = STATUS_ENCERRADO.includes(a.statusRaw) ? 1 : 0;
+      const bEncerrado = STATUS_ENCERRADO.includes(b.statusRaw) ? 1 : 0;
+
+      if (aEncerrado !== bEncerrado) return aEncerrado - bEncerrado;
+
+      // Mesmo grupo: ordenar por horário
+      return a.timestamp - b.timestamp;
+    });
+
+    const temAoVivo = jogos.some(j => STATUS_AO_VIVO.includes(j.statusRaw));
+
+    return { jogos, temAoVivo };
   } catch (err) {
-    console.error('[JOGOS-AO-VIVO] Erro ao buscar:', err.message);
-    return [];
+    console.error('[JOGOS-DIA] Erro ao buscar:', err.message);
+    return { jogos: [], temAoVivo: false };
   }
 }
 
@@ -96,7 +143,7 @@ function mapearStatus(status) {
     'FT': 'Encerrado',
     'AET': 'Encerrado (Prorrog.)',
     'PEN': 'Encerrado (Pên.)',
-    'NS': 'Não iniciado',
+    'NS': 'Agendado',
     'TBD': 'A definir',
     'PST': 'Adiado',
     'CANC': 'Cancelado',
@@ -117,7 +164,8 @@ async function buscarJogosGlobo() {
     const jogos = JSON.parse(raw);
     return jogos.map(j => ({
       ...j,
-      status: j.status || 'Em breve',
+      status: j.status || 'Agendado',
+      statusRaw: 'NS',
       fonte: 'globo'
     }));
   } catch (err) {
@@ -125,39 +173,58 @@ async function buscarJogosGlobo() {
   }
 }
 
+/**
+ * Calcula estatísticas dos jogos
+ */
+function calcularEstatisticas(jogos) {
+  return {
+    total: jogos.length,
+    aoVivo: jogos.filter(j => STATUS_AO_VIVO.includes(j.statusRaw)).length,
+    agendados: jogos.filter(j => STATUS_AGENDADO.includes(j.statusRaw)).length,
+    encerrados: jogos.filter(j => STATUS_ENCERRADO.includes(j.statusRaw)).length
+  };
+}
+
 // GET /api/jogos-ao-vivo
 router.get('/', async (req, res) => {
   try {
     const agora = Date.now();
 
+    // Calcular TTL baseado em jogos ao vivo
+    const ttlAtual = cacheTemJogosAoVivo ? CACHE_TTL_AO_VIVO : CACHE_TTL_SEM_JOGOS;
+    const cacheValido = cacheJogosDia && (agora - cacheTimestamp) < ttlAtual;
+
     // Verificar cache
-    if (cacheJogosAoVivo && (agora - cacheTimestamp) < CACHE_TTL) {
-      // ✅ v1.1 FIX: Incluir aoVivo no cache para renderizar placar corretamente
-      const temJogosAoVivo = cacheJogosAoVivo.some(j =>
-        ['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE'].includes(j.statusRaw)
-      );
+    if (cacheValido) {
+      const stats = calcularEstatisticas(cacheJogosDia);
       return res.json({
-        jogos: cacheJogosAoVivo,
+        jogos: cacheJogosDia,
         fonte: 'api-football',
-        aoVivo: temJogosAoVivo,  // ✅ FIX: Agora retorna aoVivo no cache
+        aoVivo: cacheTemJogosAoVivo,
+        estatisticas: stats,
         cache: true,
+        ttl: ttlAtual / 1000,
         atualizadoEm: new Date(cacheTimestamp).toISOString()
       });
     }
 
-    // Buscar jogos ao vivo
-    const jogosAoVivo = await buscarJogosAoVivo();
+    // Buscar jogos do dia
+    const { jogos, temAoVivo } = await buscarJogosDoDia();
 
-    // Se há jogos ao vivo, usar eles
-    if (jogosAoVivo.length > 0) {
-      cacheJogosAoVivo = jogosAoVivo;
+    // Se há jogos, usar eles
+    if (jogos.length > 0) {
+      cacheJogosDia = jogos;
       cacheTimestamp = agora;
+      cacheTemJogosAoVivo = temAoVivo;
+
+      const stats = calcularEstatisticas(jogos);
 
       return res.json({
-        jogos: jogosAoVivo,
+        jogos,
         fonte: 'api-football',
-        aoVivo: true,
-        quantidade: jogosAoVivo.length
+        aoVivo: temAoVivo,
+        estatisticas: stats,
+        quantidade: jogos.length
       });
     }
 
@@ -168,11 +235,14 @@ router.get('/', async (req, res) => {
       jogos: jogosGlobo,
       fonte: 'globo',
       aoVivo: false,
-      mensagem: 'Sem jogos ao vivo no momento. Mostrando agenda do dia.'
+      estatisticas: calcularEstatisticas(jogosGlobo),
+      mensagem: jogosGlobo.length > 0
+        ? 'Dados do Globo Esporte'
+        : 'Sem jogos brasileiros hoje'
     });
 
   } catch (err) {
-    console.error('[JOGOS-AO-VIVO] Erro na rota:', err);
+    console.error('[JOGOS-DIA] Erro na rota:', err);
     res.status(500).json({
       error: 'Erro ao buscar jogos',
       detalhes: err.message
@@ -204,6 +274,11 @@ router.get('/status', async (req, res) => {
       requisicoes: {
         atual: data.response?.requests?.current || 0,
         limite: data.response?.requests?.limit_day || 100
+      },
+      cache: {
+        temJogosAoVivo: cacheTemJogosAoVivo,
+        ttlAtual: cacheTemJogosAoVivo ? '2 min' : '10 min',
+        ultimaAtualizacao: cacheTimestamp ? new Date(cacheTimestamp).toISOString() : null
       }
     });
   } catch (err) {
@@ -212,6 +287,18 @@ router.get('/status', async (req, res) => {
       erro: err.message
     });
   }
+});
+
+// GET /api/jogos-ao-vivo/invalidar - Força refresh do cache
+router.get('/invalidar', async (req, res) => {
+  cacheJogosDia = null;
+  cacheTimestamp = 0;
+  cacheTemJogosAoVivo = false;
+
+  res.json({
+    success: true,
+    mensagem: 'Cache invalidado. Próxima requisição buscará dados frescos.'
+  });
 });
 
 export default router;

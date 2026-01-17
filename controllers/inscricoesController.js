@@ -373,16 +373,24 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
         // Se legadoValor == 0, foi zerado - não transfere nada
         console.log(`[INSCRICOES] Usando legado_manual: valor=${legadoValor} (tipo: ${inscricaoExistente.legado_manual.tipo_quitacao})`);
     } else {
-        // REGRA NORMAL: Crédito só é usado se NÃO pagou a inscrição
-        // Se pagou, o crédito fica intacto para uso futuro
+        // REGRA NORMAL: Transferir crédito ou dívida para nova temporada
         if (saldo.status === 'credor') {
-            if (!pagouInscricao && rules.inscricao.aproveitar_saldo_positivo && opcoes.aproveitarCredito !== false) {
-                // Transferir TODO o crédito para nova temporada
-                // Se crédito > taxa, o excedente vira saldo positivo em 2026
-                creditoUsado = saldo.saldoFinal;  // Crédito total (ex: 354)
-                saldoTransferido = creditoUsado;   // Positivo = crédito transferido
+            const creditoTotal = saldo.saldoFinal;
+
+            if (pagouInscricao) {
+                // ✅ v1.4 FIX: Pagou COM crédito - desconta a taxa e transfere o restante
+                // Exemplo: crédito 421.54 - taxa 180 = 241.54 transferido
+                creditoUsado = creditoTotal;  // Todo crédito foi "usado" (para pagamento + transferência)
+                saldoTransferido = Math.max(0, creditoTotal - taxa);  // Restante após pagar a taxa
+                console.log(`[INSCRICOES] Credor pagou com crédito: total=${creditoTotal}, taxa=${taxa}, restante=${saldoTransferido}`);
+            } else if (rules.inscricao.aproveitar_saldo_positivo && opcoes.aproveitarCredito !== false) {
+                // Não pagou, mas quer usar crédito - taxa vira débito, crédito é transferido
+                // Exemplo: crédito 421.54, taxa 180 (débito) = saldo inicial 241.54
+                creditoUsado = creditoTotal;
+                saldoTransferido = creditoUsado;
+                console.log(`[INSCRICOES] Credor sem pagar, aproveitando crédito: ${creditoUsado}`);
             }
-            // Se pagou OU não quer aproveitar: crédito permanece na temporada anterior
+            // Se não pagou E não quer aproveitar: crédito permanece na temporada anterior (raro)
         } else if (saldo.status === 'devedor') {
             // Carregar dívida para nova temporada
             dividaAnterior = Math.abs(saldo.saldoFinal);
@@ -393,9 +401,12 @@ export async function processarRenovacao(ligaId, timeId, temporada, opcoes = {})
     // Taxa só vira dívida se NÃO pagou
     const taxaComoDebito = pagouInscricao ? 0 : taxa;
 
-    // ✅ FIX: Saldo inicial = crédito - taxa - dívida (negativo = deve, positivo = credor)
-    // Exemplo: crédito 111.54 - taxa 180 = -68.46 (deve 68.46)
-    const saldoInicialTemporada = creditoUsado - taxaComoDebito - dividaAnterior;
+    // ✅ v1.4 FIX: Saldo inicial = saldo transferido - taxa como débito - dívida
+    // Se pagou com crédito: saldoTransferido já é o restante após pagar
+    // Se não pagou: saldoTransferido é o crédito total, taxa vira débito
+    // Exemplo pagou: 241.54 (restante) - 0 - 0 = 241.54
+    // Exemplo não pagou: 421.54 (crédito) - 180 (taxa) - 0 = 241.54
+    const saldoInicialTemporada = saldoTransferido - taxaComoDebito - dividaAnterior;
 
     // 6. Buscar dados do participante
     const liga = await Liga.findById(ligaId).lean();
