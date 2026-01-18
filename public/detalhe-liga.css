@@ -439,9 +439,10 @@
     padding: 28px;
     border: 1px solid var(--border-color);
     margin-top: 24px;
-    animation: fadeInUp 0.3s ease-out;
+    animation: fadeInUp 0.3s ease-out forwards; /* ✅ v2.7: forwards mantém transform: none após animação */
     box-shadow: var(--shadow-lg);
-    overflow: visible; /* ✅ v2.6: Não scrollar - sticky header depende disso */
+    overflow: visible !important; /* ✅ v2.6: Não scrollar - sticky header depende disso */
+    transform: none !important; /* ✅ v2.7: Garantir que transform não existe (sticky depende disso) */
 }
 
 .dynamic-content.active,
@@ -454,7 +455,8 @@
     min-height: 200px;
     width: 100%;
     position: relative;
-    overflow: visible; /* ✅ v2.6: Não scrollar - deixar .fluxo-tabela-container scrollar */
+    overflow: visible !important; /* ✅ v2.6: Não scrollar - deixar .fluxo-tabela-container scrollar */
+    transform: none !important; /* ✅ v2.7: Garantir que transform não existe */
 }
 
 /* === BOTÃO VOLTAR === */
