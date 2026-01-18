@@ -814,13 +814,13 @@ export class FluxoFinanceiroUI {
         this._injetarEstilosTabelaExpandida();
         this._injetarModalAcerto();
 
-        // ❌ v4.3: Workaround JS removido - sticky nativo funciona após fix fadeInUp (transform: none)
-        // this._aplicarStickyHeader();
+        // ✅ v4.4: Reativado workaround JS - CSS sticky tem problemas com ancestrais complexos
+        this._aplicarStickyHeader();
     }
 
     /**
-     * ✅ v4.2: Header fixo via JavaScript (clone do header)
-     * Cria um header clone que fica fixo no topo do container ao rolar
+     * ✅ v4.5: Header fixo via JavaScript (clone do header)
+     * Detecta scroll tanto no container quanto na página (window)
      */
     _aplicarStickyHeader() {
         setTimeout(() => {
@@ -834,45 +834,49 @@ export class FluxoFinanceiroUI {
             }
 
             // Remover header fixo anterior se existir
-            const headerFixoAntigo = container.querySelector('.header-fixo-clone');
+            const headerFixoAntigo = document.querySelector('.header-fixo-clone');
             if (headerFixoAntigo) headerFixoAntigo.remove();
 
-            // Criar wrapper para o header fixo
+            // Criar wrapper para o header fixo - FIXED no viewport
             const headerFixo = document.createElement('div');
             headerFixo.className = 'header-fixo-clone';
             headerFixo.style.cssText = `
-                position: absolute;
+                position: fixed;
                 top: 0;
                 left: 0;
                 right: 0;
-                z-index: 1000;
-                background: #1f1f1f;
+                z-index: 9999;
+                background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
                 display: none;
-                overflow: hidden;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+                overflow-x: auto;
+                overflow-y: hidden;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+                border-bottom: 2px solid #FF5500;
             `;
 
             // Clonar a tabela só com o header
             const tabelaClone = document.createElement('table');
             tabelaClone.className = tabela.className;
             tabelaClone.style.cssText = `
-                width: 100%;
+                width: ${tabela.offsetWidth}px;
                 border-collapse: separate;
                 border-spacing: 0;
                 table-layout: fixed;
+                margin: 0 auto;
             `;
             tabelaClone.appendChild(thead.cloneNode(true));
 
             // Estilizar os th do clone
             tabelaClone.querySelectorAll('th').forEach(th => {
-                th.style.background = '#1f1f1f';
+                th.style.background = 'linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%)';
                 th.style.color = '#FF5500';
-                th.style.borderBottom = '2px solid #FF5500';
+                th.style.borderBottom = 'none';
+                th.style.padding = '12px 8px';
+                th.style.fontWeight = '600';
             });
 
             headerFixo.appendChild(tabelaClone);
-            container.style.position = 'relative';
-            container.insertBefore(headerFixo, container.firstChild);
+            document.body.appendChild(headerFixo);
 
             // Sincronizar larguras das colunas
             const sincronizarLarguras = () => {
@@ -886,27 +890,52 @@ export class FluxoFinanceiroUI {
                 tabelaClone.style.width = tabela.offsetWidth + 'px';
             };
 
-            // Listener de scroll
-            container.addEventListener('scroll', () => {
-                const scrollTop = container.scrollTop;
-                const scrollLeft = container.scrollLeft;
+            // Calcular se header original saiu da tela
+            const verificarVisibilidade = () => {
+                const theadRect = thead.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
 
-                if (scrollTop > 10) {
+                // Header original saiu do topo da tela?
+                if (theadRect.top < 0 && containerRect.bottom > 100) {
                     headerFixo.style.display = 'block';
-                    headerFixo.scrollLeft = scrollLeft;
                     sincronizarLarguras();
+
+                    // Posicionar horizontalmente alinhado com a tabela
+                    const tabelaRect = tabela.getBoundingClientRect();
+                    headerFixo.style.left = tabelaRect.left + 'px';
+                    headerFixo.style.width = tabelaRect.width + 'px';
+                    headerFixo.style.right = 'auto';
                 } else {
                     headerFixo.style.display = 'none';
                 }
-            });
+            };
 
-            // Sincronizar scroll horizontal do header fixo
-            headerFixo.addEventListener('scroll', () => {
-                container.scrollLeft = headerFixo.scrollLeft;
-            });
+            // Listener de scroll na WINDOW (página inteira)
+            window.addEventListener('scroll', verificarVisibilidade, { passive: true });
 
-            console.log('[FluxoFinanceiroUI] ✅ Header fixo clone criado');
-        }, 200);
+            // Listener de scroll no container (caso ele scrolle)
+            container.addEventListener('scroll', () => {
+                if (headerFixo.style.display === 'block') {
+                    // Sincronizar scroll horizontal
+                    headerFixo.scrollLeft = container.scrollLeft;
+                }
+            }, { passive: true });
+
+            // Listener de resize
+            window.addEventListener('resize', () => {
+                if (headerFixo.style.display === 'block') {
+                    sincronizarLarguras();
+                    const tabelaRect = tabela.getBoundingClientRect();
+                    headerFixo.style.left = tabelaRect.left + 'px';
+                    headerFixo.style.width = tabelaRect.width + 'px';
+                }
+            }, { passive: true });
+
+            // Verificar imediatamente
+            verificarVisibilidade();
+
+            console.log('[FluxoFinanceiroUI] ✅ Header fixo v4.5 (position: fixed) criado');
+        }, 300);
     }
 
     /**
