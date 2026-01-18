@@ -2997,19 +2997,30 @@ table.fluxo-participantes-tabela {
 }
 
 /* =============================================================================
-   ✅ v2.5 FINAL FIX: STICKY HEADER - TABELA DE PARTICIPANTES
+   ✅ v2.6 FINAL FIX: STICKY HEADER - TABELA DE PARTICIPANTES
    Alta especificidade para garantir que funcione
    ============================================================================= */
 
-/* Container DEVE ter altura máxima e overflow para sticky funcionar */
+/* PASSO 1: Pais NÃO devem scrollar - scroll apenas no container da tabela */
+#fluxo-financeiro,
+#fluxoFinanceiroContent,
+.fluxo-financeiro-content {
+    overflow: visible !important;
+    max-height: none !important;
+}
+
+/* PASSO 2: Container da tabela É o único que scrolla */
 #fluxo-financeiro .fluxo-tabela-container,
 #fluxoFinanceiroContent .fluxo-tabela-container,
 #dynamic-content-area .fluxo-tabela-container,
-.fluxo-financeiro-content .fluxo-tabela-container {
-    max-height: 65vh !important;
+.fluxo-financeiro-content .fluxo-tabela-container,
+.fluxo-tabela-container {
+    max-height: 60vh !important;
+    min-height: 300px !important;
     overflow-y: auto !important;
     overflow-x: auto !important;
     position: relative !important;
+    isolation: isolate !important; /* Novo stacking context isolado */
 }
 
 /* Tabela DEVE ter border-collapse: separate */
@@ -3034,10 +3045,13 @@ table.fluxo-participantes-tabela {
 #fluxo-financeiro .fluxo-participantes-tabela thead th,
 #fluxo-financeiro .tabela-financeira thead th,
 #dynamic-content-area .fluxo-participantes-tabela thead th,
-#dynamic-content-area .tabela-financeira thead th {
+#dynamic-content-area .tabela-financeira thead th,
+.fluxo-tabela-container thead th {
     position: sticky !important;
     top: 0 !important;
     z-index: 100 !important;
     background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+    /* Garantir que background seja sólido e cubra conteúdo abaixo */
+    background-clip: padding-box !important;
 }

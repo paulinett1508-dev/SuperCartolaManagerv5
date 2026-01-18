@@ -441,6 +441,7 @@
     margin-top: 24px;
     animation: fadeInUp 0.3s ease-out;
     box-shadow: var(--shadow-lg);
+    overflow: visible; /* ✅ v2.6: Não scrollar - sticky header depende disso */
 }
 
 .dynamic-content.active,
@@ -453,6 +454,7 @@
     min-height: 200px;
     width: 100%;
     position: relative;
+    overflow: visible; /* ✅ v2.6: Não scrollar - deixar .fluxo-tabela-container scrollar */
 }
 
 /* === BOTÃO VOLTAR === */
