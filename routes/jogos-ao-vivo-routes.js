@@ -1,8 +1,9 @@
 // routes/jogos-ao-vivo-routes.js
-// v2.0 - Jogos do Dia Completo (API-Football)
-// ✅ v2.0: Mudança de ?live=all para ?date={hoje} - mostra todos os jogos do dia
+// v3.1 - Jogos do Dia Completo + Eventos (API-Football)
+// ✅ v3.1: Correção do mapeamento de ligas brasileiras (IDs corretos)
+// ✅ v3.0: Campos extras: golsMandante, golsVisitante, placarHT, estadio, cidade, tempoExtra
+// ✅ v3.0: Nova rota GET /:fixtureId/eventos para buscar gols, cartoes, escalacoes
 // ✅ v2.0: Cache inteligente - 2min com jogos ao vivo, 10min sem jogos ao vivo
-// ✅ v2.0: Ordenação: Ao vivo > Agendados > Encerrados
 import express from 'express';
 import fetch from 'node-fetch';
 import fs from 'fs/promises';
@@ -10,17 +11,50 @@ import path from 'path';
 
 const router = express.Router();
 
-// IDs de ligas brasileiras na API-Football
-const LIGAS_BRASIL = {
+// IDs de ligas principais (mapeamento fixo)
+// Para estaduais, usamos formatarNomeLiga() que limpa o nome original da API
+const LIGAS_PRINCIPAIS = {
   71: 'Brasileirão A',
   72: 'Brasileirão B',
   73: 'Copa do Brasil',
-  475: 'Carioca',
-  76: 'Paulista',
-  629: 'Copa Verde',
-  630: 'Copa do Nordeste',
   618: 'Copinha'
 };
+
+/**
+ * Formata nome da liga da API para exibição
+ * Ex: "Paulista - A1" → "Paulista A1"
+ * Ex: "Mineiro - 1" → "Mineiro"
+ * Ex: "São Paulo Youth Cup" → "Copinha"
+ */
+function formatarNomeLiga(nome) {
+  if (!nome) return 'Liga Brasileira';
+
+  // Mapeamentos especiais de nome
+  const mapeamentos = {
+    'São Paulo Youth Cup': 'Copinha',
+    'Brazil Serie A': 'Brasileirão A',
+    'Brazil Serie B': 'Brasileirão B',
+    'Brazil Cup': 'Copa do Brasil'
+  };
+
+  if (mapeamentos[nome]) return mapeamentos[nome];
+
+  // Limpar sufixos comuns
+  return nome
+    .replace(/ - 1$/, '')       // "Mineiro - 1" → "Mineiro"
+    .replace(/ - 2$/, ' B')     // "Mineiro - 2" → "Mineiro B"
+    .replace(/ - A1$/, ' A1')   // "Paulista - A1" → "Paulista A1"
+    .replace(/ - A2$/, ' A2')
+    .replace(/ - B$/, ' B')
+    .replace(/^Brazil /, '');   // "Brazil X" → "X"
+}
+
+/**
+ * Retorna nome da liga: primeiro tenta mapeamento fixo, senão formata o original
+ */
+function getNomeLiga(ligaId, nomeOriginal) {
+  return LIGAS_PRINCIPAIS[ligaId] || formatarNomeLiga(nomeOriginal);
+}
 
 // Status que indicam jogo ao vivo
 const STATUS_AO_VIVO = ['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE'];
@@ -74,26 +108,45 @@ async function buscarJogosDoDia() {
       return { jogos: [], temAoVivo: false };
     }
 
-    // Filtrar apenas jogos do Brasil
-    const jogosBrasil = (data.response || []).filter(jogo =>
-      LIGAS_BRASIL[jogo.league?.id]
-    );
+    // Filtrar apenas jogos do Brasil (pelo país da liga)
+    const jogosBrasil = (data.response || []).filter(jogo => {
+      const pais = jogo.league?.country?.toLowerCase();
+      return pais === 'brazil';
+    });
 
     console.log(`[JOGOS-DIA] ${jogosBrasil.length} jogos brasileiros encontrados`);
 
-    // Mapear jogos
+    // Debug: mostrar ligas encontradas
+    const ligasEncontradas = [...new Set(jogosBrasil.map(j => `${j.league.id}:${j.league.name}`))];
+    console.log(`[JOGOS-DIA] Ligas:`, ligasEncontradas.slice(0, 10));
+
+    // Mapear jogos - v3.1 com formatação inteligente de nomes
     const jogos = jogosBrasil.map(jogo => ({
       id: jogo.fixture.id,
       mandante: jogo.teams.home.name,
       visitante: jogo.teams.away.name,
       logoMandante: jogo.teams.home.logo,
       logoVisitante: jogo.teams.away.logo,
+      // Placar separado para formatacao flexivel
+      golsMandante: jogo.goals.home ?? 0,
+      golsVisitante: jogo.goals.away ?? 0,
       placar: `${jogo.goals.home ?? 0} x ${jogo.goals.away ?? 0}`,
+      // Placar do primeiro tempo
+      placarHT: jogo.score?.halftime?.home !== null
+        ? `(${jogo.score.halftime.home}-${jogo.score.halftime.away})`
+        : null,
       tempo: jogo.fixture.status.elapsed ? `${jogo.fixture.status.elapsed}'` : '',
+      tempoExtra: jogo.fixture.status.extra || null,
       status: mapearStatus(jogo.fixture.status.short),
       statusRaw: jogo.fixture.status.short,
-      liga: LIGAS_BRASIL[jogo.league.id] || jogo.league.name,
+      liga: getNomeLiga(jogo.league.id, jogo.league.name),
+      ligaId: jogo.league.id,
+      ligaOriginal: jogo.league.name,
       ligaLogo: jogo.league.logo,
+      // Estadio
+      estadio: jogo.fixture.venue?.name || null,
+      cidade: jogo.fixture.venue?.city || null,
+      // Horario
       horario: new Date(jogo.fixture.date).toLocaleTimeString('pt-BR', {
         hour: '2-digit',
         minute: '2-digit',
@@ -125,6 +178,93 @@ async function buscarJogosDoDia() {
     console.error('[JOGOS-DIA] Erro ao buscar:', err.message);
     return { jogos: [], temAoVivo: false };
   }
+}
+
+/**
+ * Busca eventos de um jogo especifico (gols, cartoes, substituicoes)
+ * Endpoint: GET /api/jogos-ao-vivo/:fixtureId/eventos
+ */
+async function buscarEventosJogo(fixtureId) {
+  const apiKey = process.env.API_FOOTBALL_KEY;
+  if (!apiKey) return { eventos: [] };
+
+  try {
+    const url = `https://v3.football.api-sports.io/fixtures?id=${fixtureId}`;
+    const response = await fetch(url, {
+      headers: { 'x-apisports-key': apiKey },
+      timeout: 10000
+    });
+
+    const data = await response.json();
+    const fixture = data.response?.[0];
+    if (!fixture) return { eventos: [] };
+
+    // Mapear eventos
+    const eventos = (fixture.events || []).map(e => ({
+      tempo: e.time.elapsed,
+      tempoExtra: e.time.extra || null,
+      tipo: mapearTipoEvento(e.type, e.detail),
+      tipoRaw: e.type,
+      detalhe: e.detail,
+      time: e.team.name,
+      timeId: e.team.id,
+      timeLogo: e.team.logo,
+      jogador: e.player?.name || null,
+      jogadorId: e.player?.id || null,
+      assistencia: e.assist?.name || null
+    }));
+
+    // Extrair lineups se disponiveis
+    const escalacoes = fixture.lineups?.map(l => ({
+      timeId: l.team.id,
+      time: l.team.name,
+      formacao: l.formation,
+      tecnico: l.coach?.name || null,
+      titulares: l.startXI?.map(p => ({
+        nome: p.player.name,
+        numero: p.player.number,
+        posicao: p.player.pos
+      })) || []
+    })) || [];
+
+    // Estatisticas
+    const estatisticas = fixture.statistics?.map(s => ({
+      timeId: s.team.id,
+      time: s.team.name,
+      stats: s.statistics?.reduce((acc, stat) => {
+        acc[stat.type] = stat.value;
+        return acc;
+      }, {}) || {}
+    })) || [];
+
+    return {
+      eventos,
+      escalacoes,
+      estatisticas,
+      fixture: {
+        id: fixture.fixture.id,
+        arbitro: fixture.fixture.referee,
+        estadio: fixture.fixture.venue?.name,
+        cidade: fixture.fixture.venue?.city
+      }
+    };
+  } catch (err) {
+    console.error('[JOGOS-EVENTOS] Erro:', err.message);
+    return { eventos: [] };
+  }
+}
+
+/**
+ * Mapeia tipo de evento para icone/texto
+ */
+function mapearTipoEvento(type, detail) {
+  const mapa = {
+    'Goal': detail === 'Penalty' ? 'gol_penalti' : detail === 'Own Goal' ? 'gol_contra' : 'gol',
+    'Card': detail === 'Yellow Card' ? 'cartao_amarelo' : detail === 'Red Card' ? 'cartao_vermelho' : 'cartao_segundo_amarelo',
+    'subst': 'substituicao',
+    'Var': 'var'
+  };
+  return mapa[type] || type.toLowerCase();
 }
 
 /**
@@ -299,6 +439,22 @@ router.get('/invalidar', async (req, res) => {
     success: true,
     mensagem: 'Cache invalidado. Próxima requisição buscará dados frescos.'
   });
+});
+
+// GET /api/jogos-ao-vivo/:fixtureId/eventos - Eventos de um jogo especifico
+router.get('/:fixtureId/eventos', async (req, res) => {
+  try {
+    const { fixtureId } = req.params;
+    if (!fixtureId || isNaN(fixtureId)) {
+      return res.status(400).json({ error: 'fixtureId invalido' });
+    }
+
+    const result = await buscarEventosJogo(fixtureId);
+    res.json(result);
+  } catch (err) {
+    console.error('[JOGOS-EVENTOS] Erro na rota:', err);
+    res.status(500).json({ error: 'Erro ao buscar eventos' });
+  }
 });
 
 export default router;
