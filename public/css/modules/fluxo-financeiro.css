@@ -2072,7 +2072,7 @@ body {
 div.fluxo-tabela-container {
     overflow-x: auto !important;
     overflow-y: auto !important;  /* ✅ v2.4: Scroll vertical interno */
-    max-height: 70vh !important;  /* ✅ v2.4: Altura máxima = sticky funciona */
+    max-height: calc(100vh - 300px) !important;  /* ✅ v5.1: Scroll interno = sticky funciona */
     position: relative !important;
 }
 
@@ -2776,12 +2776,12 @@ table.fluxo-participantes-tabela {
    ============================================================ */
 
 /* Container da tabela com scroll horizontal e vertical */
-/* ✅ v1.4 FIX: COM altura máxima - sticky funciona com scroll interno */
+/* ✅ v5.1 FIX: COM altura máxima - sticky funciona com scroll interno */
 .fluxo-tabela-container {
     max-width: 100%;
     overflow-x: auto !important;
-    overflow-y: auto !important;     /* ✅ v1.4: Scroll vertical interno */
-    max-height: 70vh !important;     /* ✅ v1.4: Altura máxima para sticky */
+    overflow-y: auto !important;     /* ✅ v5.1: Scroll vertical interno */
+    max-height: calc(100vh - 300px) !important; /* ✅ v5.1: Scroll interno = sticky funciona */
     -webkit-overflow-scrolling: touch;
     position: relative;
 }
@@ -3015,7 +3015,7 @@ table.fluxo-participantes-tabela {
 #dynamic-content-area .fluxo-tabela-container,
 .fluxo-financeiro-content .fluxo-tabela-container,
 .fluxo-tabela-container {
-    max-height: 60vh !important;
+    max-height: calc(100vh - 300px) !important; /* ✅ v5.1: Scroll interno = sticky funciona */
     min-height: 300px !important;
     overflow-y: auto !important;
     overflow-x: auto !important;
@@ -3054,4 +3054,164 @@ table.fluxo-participantes-tabela {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
     /* Garantir que background seja sólido e cubra conteúdo abaixo */
     background-clip: padding-box !important;
+}
+
+/* =============================================================================
+   ✅ v3.0 FIX DEFINITIVO: STICKY HEADER TABELA FINANCEIRA
+   Data: 2026-01-18
+   Problema: CSS sticky não funcionava por causa de:
+   1. transform no ancestral .dynamic-content (cria novo stacking context)
+   2. overflow: hidden em ancestrais
+   3. Falta de altura máxima no container
+   ============================================================================= */
+
+/* PASSO 1: Forçar remoção de transform de TODOS os ancestrais da tabela */
+#secondary-screen,
+#secondary-screen.dynamic-content,
+.dynamic-content,
+#dynamic-content-area,
+#fluxo-financeiro,
+#fluxoFinanceiroContent,
+.fluxo-financeiro-content {
+    transform: none !important;
+    -webkit-transform: none !important;
+    will-change: auto !important;
+}
+
+/* PASSO 2: Garantir overflow: visible nos ancestrais (exceto container de scroll) */
+#secondary-screen.dynamic-content,
+.dynamic-content.active,
+#dynamic-content-area {
+    overflow: visible !important;
+}
+
+/* PASSO 3: Container da tabela É o único elemento que deve scrollar */
+/* CRÍTICO: max-height força scroll INTERNO, assim sticky funciona com top:0 */
+.fluxo-tabela-container,
+div.fluxo-tabela-container,
+#fluxoFinanceiroContent .fluxo-tabela-container,
+#fluxo-financeiro .fluxo-tabela-container {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    max-height: calc(100vh - 300px) !important; /* Altura que garante scroll interno */
+    min-height: 400px !important;
+    position: relative !important;
+    isolation: isolate !important;
+    contain: layout style !important; /* Otimização de performance */
+}
+
+/* PASSO 4: Tabela com border-collapse: separate (OBRIGATÓRIO para sticky) */
+.fluxo-participantes-tabela,
+table.fluxo-participantes-tabela,
+.tabela-financeira {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    width: 100% !important;
+}
+
+/* PASSO 5: THEAD sticky com todos os prefixos */
+.fluxo-participantes-tabela thead,
+.tabela-financeira thead,
+.fluxo-tabela-container table thead {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 200 !important;
+}
+
+/* PASSO 6: Cada TH também precisa de sticky + background sólido */
+.fluxo-participantes-tabela thead th,
+.tabela-financeira thead th,
+.fluxo-tabela-container table thead th {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 200 !important;
+    background: #1f1f1f !important; /* Background SÓLIDO, não gradiente */
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        inset 0 -2px 0 #FF5500 !important; /* Linha laranja inferior */
+}
+
+/* =============================================================================
+   ✅ v7.0 STICKY HEADER DEFINITIVO - Controlado por JavaScript
+   Data: 2026-01-18
+
+   O JavaScript agora:
+   1. Calcula altura dinamicamente baseado na posição real do container
+   2. Remove transforms de TODOS os ancestrais via loop
+   3. Adiciona classe .sticky-scroll-active quando configurado
+   4. Aplica estilos inline para garantir prioridade
+
+   Este CSS é apenas backup/fallback para browsers sem JS.
+   ============================================================================= */
+
+/* Classe adicionada pelo JS quando sticky está configurado */
+.fluxo-tabela-container.sticky-scroll-active {
+    /* Estilos aplicados via JS, mas fallback aqui */
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+    isolation: isolate;
+}
+
+/* Indicador visual de debug (remover em produção) */
+.fluxo-tabela-container.sticky-scroll-active::before {
+    content: '';
+    display: none; /* Mudar para block para debug visual */
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    background: lime;
+    border-radius: 50%;
+    z-index: 9999;
+}
+
+/* Garantir que scrollbar fique visível no container ativo */
+.fluxo-tabela-container.sticky-scroll-active::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.fluxo-tabela-container.sticky-scroll-active::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.fluxo-tabela-container.sticky-scroll-active::-webkit-scrollbar-thumb {
+    background: rgba(255, 85, 0, 0.5);
+    border-radius: 4px;
+}
+
+.fluxo-tabela-container.sticky-scroll-active::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 85, 0, 0.8);
+}
+
+/* =============================================================================
+   v9.0: STICKY HEADER CLONE - Estilos para header fixo via JavaScript
+   O JS cria um clone com position: fixed. Este CSS e backup/override.
+   ============================================================================= */
+
+/* Wrapper do clone - position fixed no viewport */
+.sticky-header-clone {
+    position: fixed !important;
+    z-index: 1000 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+}
+
+/* Tabela clone dentro do wrapper */
+.sticky-header-clone table {
+    pointer-events: auto !important;
+    background: #1a1a1a !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Celulas do header clone */
+.sticky-header-clone th {
+    background: #1a1a1a !important;
+    border-bottom: 2px solid #FF5500 !important;
+    color: #fff !important;
 }

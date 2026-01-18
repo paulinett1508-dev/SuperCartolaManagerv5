@@ -734,7 +734,7 @@ export class FluxoFinanceiroUI {
             </div>
 
             <!-- Tabela Financeira v4.1 - Layout Condicional por Temporada + Sticky Header -->
-            <div class="fluxo-tabela-container" style="max-height: 65vh; overflow-y: auto; overflow-x: auto; position: relative;">
+            <div class="fluxo-tabela-container" style="max-height: calc(100vh - 300px); overflow-y: auto; overflow-x: auto; position: relative;">
                 <table class="fluxo-participantes-tabela tabela-financeira" style="border-collapse: separate; border-spacing: 0;">
                     <thead style="position: sticky; top: 0; z-index: 100;">
                         ${temporadaNum >= 2026 ? `
@@ -814,13 +814,22 @@ export class FluxoFinanceiroUI {
         this._injetarEstilosTabelaExpandida();
         this._injetarModalAcerto();
 
-        // ✅ v4.4: Reativado workaround JS - CSS sticky tem problemas com ancestrais complexos
+        // ✅ v5.1: Forçar CSS sticky nativo (sem workaround de clone)
         this._aplicarStickyHeader();
     }
 
     /**
-     * ✅ v4.5: Header fixo via JavaScript (clone do header)
-     * Detecta scroll tanto no container quanto na página (window)
+     * v9.0: Header fixo via position: fixed no viewport
+     *
+     * Problema das versoes anteriores:
+     * - CSS sticky nao funciona com transform em ancestrais (mesmo apos animacao)
+     * - Clone de <thead> com position: absolute tem comportamento inconsistente
+     *
+     * Solucao v9.0:
+     * - Criar wrapper <div> com position: fixed no viewport
+     * - Dentro, criar <table> completa com apenas o <thead> clonado
+     * - Posicionar no topo do container visivel
+     * - Mostrar apenas quando usuario scrolla para baixo
      */
     _aplicarStickyHeader() {
         setTimeout(() => {
@@ -829,113 +838,123 @@ export class FluxoFinanceiroUI {
             const thead = tabela?.querySelector('thead');
 
             if (!container || !tabela || !thead) {
-                console.log('[FluxoFinanceiroUI] Elementos não encontrados para sticky header');
+                console.log('[FluxoFinanceiroUI] Elementos nao encontrados para sticky header');
                 return;
             }
 
-            // Remover header fixo anterior se existir
-            const headerFixoAntigo = document.querySelector('.header-fixo-clone');
-            if (headerFixoAntigo) headerFixoAntigo.remove();
+            // Remover clone anterior se existir
+            document.querySelector('.sticky-header-clone')?.remove();
 
-            // Criar wrapper para o header fixo - FIXED no viewport
-            const headerFixo = document.createElement('div');
-            headerFixo.className = 'header-fixo-clone';
-            headerFixo.style.cssText = `
+            // Calcular altura do container
+            const rect = container.getBoundingClientRect();
+            const alturaDisponivel = window.innerHeight - rect.top - 40;
+            const altura = Math.max(300, Math.min(alturaDisponivel, window.innerHeight * 0.7));
+
+            // Configurar container com scroll interno
+            container.style.cssText = `
+                max-height: ${altura}px;
+                overflow-y: auto;
+                overflow-x: auto;
+                position: relative;
+            `;
+
+            // Criar wrapper fixo no viewport
+            const wrapper = document.createElement('div');
+            wrapper.className = 'sticky-header-clone';
+            wrapper.style.cssText = `
                 position: fixed;
                 top: 0;
                 left: 0;
                 right: 0;
-                z-index: 9999;
-                background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+                z-index: 1000;
                 display: none;
-                overflow-x: auto;
-                overflow-y: hidden;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.8);
-                border-bottom: 2px solid #FF5500;
+                overflow: hidden;
+                pointer-events: none;
             `;
 
-            // Clonar a tabela só com o header
-            const tabelaClone = document.createElement('table');
-            tabelaClone.className = tabela.className;
-            tabelaClone.style.cssText = `
+            // Criar tabela clone (estrutura completa para renderizacao correta)
+            const cloneTable = document.createElement('table');
+            cloneTable.className = tabela.className;
+            cloneTable.style.cssText = `
+                margin: 0;
                 width: ${tabela.offsetWidth}px;
+                table-layout: fixed;
                 border-collapse: separate;
                 border-spacing: 0;
-                table-layout: fixed;
-                margin: 0 auto;
+                background: #1a1a1a;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+                pointer-events: auto;
             `;
-            tabelaClone.appendChild(thead.cloneNode(true));
 
-            // Estilizar os th do clone
-            tabelaClone.querySelectorAll('th').forEach(th => {
-                th.style.background = 'linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%)';
-                th.style.color = '#FF5500';
-                th.style.borderBottom = 'none';
-                th.style.padding = '12px 8px';
-                th.style.fontWeight = '600';
+            // Clonar thead
+            const cloneThead = thead.cloneNode(true);
+            cloneTable.appendChild(cloneThead);
+
+            // Copiar larguras exatas das colunas
+            const thsOriginal = thead.querySelectorAll('th');
+            const thsClone = cloneThead.querySelectorAll('th');
+            thsOriginal.forEach((th, i) => {
+                if (thsClone[i]) {
+                    const width = th.getBoundingClientRect().width;
+                    thsClone[i].style.width = `${width}px`;
+                    thsClone[i].style.minWidth = `${width}px`;
+                    thsClone[i].style.maxWidth = `${width}px`;
+                    thsClone[i].style.background = '#1a1a1a';
+                    thsClone[i].style.borderBottom = '2px solid #FF5500';
+                    thsClone[i].style.boxSizing = 'border-box';
+                }
             });
 
-            headerFixo.appendChild(tabelaClone);
-            document.body.appendChild(headerFixo);
+            wrapper.appendChild(cloneTable);
+            document.body.appendChild(wrapper);
 
-            // Sincronizar larguras das colunas
-            const sincronizarLarguras = () => {
-                const thsOriginais = thead.querySelectorAll('th');
-                const thsClone = tabelaClone.querySelectorAll('th');
-                thsOriginais.forEach((th, i) => {
-                    if (thsClone[i]) {
-                        thsClone[i].style.width = th.offsetWidth + 'px';
+            // Funcao para atualizar posicao do header clone
+            const atualizarPosicao = () => {
+                const containerRect = container.getBoundingClientRect();
+                const scrollTop = container.scrollTop;
+                const scrollLeft = container.scrollLeft;
+
+                // Mostrar clone apenas quando thead original sair da view
+                if (scrollTop > 5 && containerRect.top < window.innerHeight && containerRect.bottom > 0) {
+                    wrapper.style.display = 'block';
+                    wrapper.style.top = `${Math.max(0, containerRect.top)}px`;
+                    wrapper.style.left = `${containerRect.left}px`;
+                    wrapper.style.width = `${containerRect.width}px`;
+                    cloneTable.style.transform = `translateX(-${scrollLeft}px)`;
+                } else {
+                    wrapper.style.display = 'none';
+                }
+            };
+
+            // Listeners
+            container.removeEventListener('scroll', this._scrollHandler);
+            window.removeEventListener('scroll', this._windowScrollHandler);
+            window.removeEventListener('resize', this._resizeHandler);
+
+            this._scrollHandler = atualizarPosicao;
+            this._windowScrollHandler = atualizarPosicao;
+            this._resizeHandler = () => {
+                // Recalcular larguras no resize
+                const thsOrig = thead.querySelectorAll('th');
+                const thsCloneNew = cloneThead.querySelectorAll('th');
+                thsOrig.forEach((th, i) => {
+                    if (thsCloneNew[i]) {
+                        const width = th.getBoundingClientRect().width;
+                        thsCloneNew[i].style.width = `${width}px`;
+                        thsCloneNew[i].style.minWidth = `${width}px`;
+                        thsCloneNew[i].style.maxWidth = `${width}px`;
                     }
                 });
-                tabelaClone.style.width = tabela.offsetWidth + 'px';
+                cloneTable.style.width = `${tabela.offsetWidth}px`;
+                atualizarPosicao();
             };
 
-            // Calcular se header original saiu da tela
-            const verificarVisibilidade = () => {
-                const theadRect = thead.getBoundingClientRect();
-                const containerRect = container.getBoundingClientRect();
+            container.addEventListener('scroll', this._scrollHandler);
+            window.addEventListener('scroll', this._windowScrollHandler, { passive: true });
+            window.addEventListener('resize', this._resizeHandler, { passive: true });
 
-                // Header original saiu do topo da tela?
-                if (theadRect.top < 0 && containerRect.bottom > 100) {
-                    headerFixo.style.display = 'block';
-                    sincronizarLarguras();
-
-                    // Posicionar horizontalmente alinhado com a tabela
-                    const tabelaRect = tabela.getBoundingClientRect();
-                    headerFixo.style.left = tabelaRect.left + 'px';
-                    headerFixo.style.width = tabelaRect.width + 'px';
-                    headerFixo.style.right = 'auto';
-                } else {
-                    headerFixo.style.display = 'none';
-                }
-            };
-
-            // Listener de scroll na WINDOW (página inteira)
-            window.addEventListener('scroll', verificarVisibilidade, { passive: true });
-
-            // Listener de scroll no container (caso ele scrolle)
-            container.addEventListener('scroll', () => {
-                if (headerFixo.style.display === 'block') {
-                    // Sincronizar scroll horizontal
-                    headerFixo.scrollLeft = container.scrollLeft;
-                }
-            }, { passive: true });
-
-            // Listener de resize
-            window.addEventListener('resize', () => {
-                if (headerFixo.style.display === 'block') {
-                    sincronizarLarguras();
-                    const tabelaRect = tabela.getBoundingClientRect();
-                    headerFixo.style.left = tabelaRect.left + 'px';
-                    headerFixo.style.width = tabelaRect.width + 'px';
-                }
-            }, { passive: true });
-
-            // Verificar imediatamente
-            verificarVisibilidade();
-
-            console.log('[FluxoFinanceiroUI] ✅ Header fixo v4.5 (position: fixed) criado');
-        }, 300);
+            console.log(`[FluxoFinanceiroUI] Sticky header v9.0 (fixed) - altura container: ${altura}px`);
+        }, 200);
     }
 
     /**
