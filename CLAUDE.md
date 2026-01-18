@@ -27,7 +27,7 @@
 - **File System:** Do not use absolute paths that assume a local Windows/Mac machine. Use relative paths suitable for Linux.
 
 ## 🤖 Project Skills (Agentes Especializados)
-O projeto conta com 5 skills especializadas que podem ser invocadas para tarefas específicas:
+O projeto conta com 6 skills especializadas que podem ser invocadas para tarefas específicas:
 
 | Skill | Descrição | Quando Usar |
 |-------|-----------|-------------|
@@ -35,6 +35,7 @@ O projeto conta com 5 skills especializadas que podem ser invocadas para tarefas
 | **db-guardian** | Banco de Dados (MongoDB), Segurança e Migrações | Scripts de limpeza, manutenção, snapshots de temporada, gestão de acesso |
 | **frontend-crafter** | Frontend Mobile-First, UX Black & Orange, Cache Offline, SPA | Criar telas, ajustar CSS, lógica JS do cliente, navegação |
 | **league-architect** | Regras de Negócio, Formatos de Liga (SaaS), Lógica Financeira | Configs de liga, cálculos financeiros, regras de disputa |
+| **Refactor-Monolith** | Decomposição segura de arquivos monolíticos (+500 linhas) | "refatorar arquivo grande", "separar em módulos", "extrair funções" |
 | **system-scribe** | Documentador Oficial, Wiki Viva do Sistema | "explicar módulo X", "quais as regras do Y?", documentação técnica |
 
 ### Exemplos de Uso:
@@ -42,6 +43,7 @@ O projeto conta com 5 skills especializadas que podem ser invocadas para tarefas
 - "Criar script de migração para nova temporada" → `db-guardian`
 - "Ajustar a tela de ranking no mobile" → `frontend-crafter`
 - "Definir regras do mata-mata" → `league-architect`
+- "Refatorar fluxo-financeiro-ui.js em módulos" → `Refactor-Monolith`
 - "Explicar como funciona o Top 10" → `system-scribe`
 
 ## 🔄 High Senior Protocol (Workflow de Desenvolvimento)
