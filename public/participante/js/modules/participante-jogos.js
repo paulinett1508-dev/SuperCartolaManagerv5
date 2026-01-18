@@ -1,4 +1,8 @@
-// PARTICIPANTE-JOGOS.JS - v4.1 (JOGOS AO VIVO + EVENTOS)
+// PARTICIPANTE-JOGOS.JS - v5.0 (MODAL COM TABS + STATS)
+// ✅ v5.0: Modal com tabs (Eventos | Estatisticas | Escalacoes)
+//          - Barras comparativas de posse, chutes, escanteios
+//          - Lista de titulares com formacao tatica
+//          - Nomes de campeonatos melhorados (backend v3.2)
 // ✅ v4.1: Russo One (font-brand) nos titulos e placar
 // ✅ v4.0: Eventos em tempo real (gols, cartoes), auto-refresh, modal de detalhes
 // ✅ v3.0: Suporte a jogos ao vivo, agendados e encerrados
@@ -370,76 +374,146 @@ export async function obterEventosJogo(fixtureId) {
 }
 
 /**
- * Renderiza modal de detalhes do jogo
+ * Renderiza modal de detalhes do jogo com sistema de tabs
+ * Tabs: Eventos | Estatisticas | Escalacoes
+ * @param {Object} jogo - Dados do jogo
+ * @param {Object} detalhes - Detalhes retornados pelo backend (eventos, escalacoes, resumoStats)
  */
 export function renderizarModalJogo(jogo, detalhes) {
-    const { eventos, escalacoes, estatisticas } = detalhes;
+    const { eventos, escalacoes, resumoStats, fixture } = detalhes;
 
     // Separar eventos por tipo
     const gols = eventos.filter(e => e.tipo.startsWith('gol'));
     const cartoes = eventos.filter(e => e.tipo.startsWith('cartao'));
 
+    // Verificar dados disponiveis para tabs
+    const temEstatisticas = resumoStats && resumoStats.mandante?.posse;
+    const temEscalacoes = escalacoes && escalacoes.length === 2 && escalacoes[0]?.titulares?.length > 0;
+
+    // IDs unicos para tabs
+    const tabPrefix = `modal-jogo-${jogo.id}`;
+
     return `
     <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
          onclick="window.fecharModalJogo && window.fecharModalJogo()">
-        <div class="w-full max-w-lg bg-gray-900 rounded-t-2xl max-h-[85vh] overflow-hidden"
+        <div class="w-full max-w-lg bg-gray-900 rounded-t-2xl max-h-[90vh] overflow-hidden flex flex-col"
              onclick="event.stopPropagation()">
 
-            <!-- Header -->
-            <div class="sticky top-0 bg-gray-900 border-b border-gray-700 p-4">
+            <!-- Header Fixo -->
+            <div class="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 z-10">
                 <div class="flex items-center justify-between">
                     <span class="text-sm font-brand text-white tracking-wide">${jogo.liga}</span>
                     <button onclick="window.fecharModalJogo()"
-                            class="p-1 rounded-full hover:bg-gray-700">
+                            class="p-1 rounded-full hover:bg-gray-700 transition-colors">
                         <span class="material-icons text-white/60">close</span>
                     </button>
                 </div>
             </div>
 
             <!-- Placar Grande -->
-            <div class="p-6 text-center">
-                <div class="flex items-center justify-center gap-6">
-                    <div class="flex flex-col items-center gap-2">
-                        <img src="${jogo.logoMandante}" class="w-16 h-16 object-contain" alt="">
-                        <span class="text-xs font-brand text-white tracking-wide">${jogo.mandante}</span>
+            <div class="p-4 text-center bg-gradient-to-b from-gray-800/50 to-transparent">
+                <div class="flex items-center justify-center gap-4">
+                    <div class="flex flex-col items-center gap-1 flex-1">
+                        <img src="${jogo.logoMandante}" class="w-14 h-14 object-contain" alt="" onerror="this.style.display='none'">
+                        <span class="text-xs font-medium text-white truncate max-w-[100px]">${jogo.mandante}</span>
                     </div>
-                    <div class="text-4xl font-brand text-white tabular-nums">
+                    <div class="text-4xl font-brand text-white tabular-nums px-4">
                         ${jogo.golsMandante ?? 0} - ${jogo.golsVisitante ?? 0}
                     </div>
-                    <div class="flex flex-col items-center gap-2">
-                        <img src="${jogo.logoVisitante}" class="w-16 h-16 object-contain" alt="">
-                        <span class="text-xs font-brand text-white tracking-wide">${jogo.visitante}</span>
+                    <div class="flex flex-col items-center gap-1 flex-1">
+                        <img src="${jogo.logoVisitante}" class="w-14 h-14 object-contain" alt="" onerror="this.style.display='none'">
+                        <span class="text-xs font-medium text-white truncate max-w-[100px]">${jogo.visitante}</span>
                     </div>
                 </div>
-                ${jogo.placarHT ? `<p class="text-sm text-white/40 mt-2">Intervalo: ${jogo.placarHT}</p>` : ''}
+                ${jogo.placarHT ? `<p class="text-xs text-white/40 mt-1">Intervalo: ${jogo.placarHT}</p>` : ''}
             </div>
 
-            <!-- Eventos -->
-            <div class="px-4 pb-6 overflow-y-auto max-h-[40vh]">
-                ${gols.length > 0 ? `
-                    <h4 class="text-xs font-brand text-white/50 uppercase tracking-wide mb-2">Gols</h4>
-                    <div class="space-y-2 mb-4">
-                        ${gols.map(e => renderizarEvento(e, jogo)).join('')}
-                    </div>
+            <!-- Sistema de Tabs -->
+            <div class="border-b border-gray-700">
+                <div class="flex">
+                    <button id="${tabPrefix}-tab-eventos"
+                            class="flex-1 py-3 text-sm font-medium text-white border-b-2 border-primary transition-colors"
+                            onclick="window.trocarTabModal('${tabPrefix}', 'eventos')">
+                        <span class="material-icons text-base align-middle mr-1">sports_soccer</span>
+                        Eventos
+                    </button>
+                    ${temEstatisticas ? `
+                    <button id="${tabPrefix}-tab-stats"
+                            class="flex-1 py-3 text-sm font-medium text-white/50 border-b-2 border-transparent hover:text-white/80 transition-colors"
+                            onclick="window.trocarTabModal('${tabPrefix}', 'stats')">
+                        <span class="material-icons text-base align-middle mr-1">bar_chart</span>
+                        Estatísticas
+                    </button>
+                    ` : ''}
+                    ${temEscalacoes ? `
+                    <button id="${tabPrefix}-tab-escalacoes"
+                            class="flex-1 py-3 text-sm font-medium text-white/50 border-b-2 border-transparent hover:text-white/80 transition-colors"
+                            onclick="window.trocarTabModal('${tabPrefix}', 'escalacoes')">
+                        <span class="material-icons text-base align-middle mr-1">groups</span>
+                        Escalações
+                    </button>
+                    ` : ''}
+                </div>
+            </div>
+
+            <!-- Conteudo das Tabs (scrollable) -->
+            <div class="flex-1 overflow-y-auto">
+                <!-- Tab Eventos -->
+                <div id="${tabPrefix}-content-eventos" class="p-4">
+                    ${gols.length > 0 ? `
+                        <h4 class="text-xs font-brand text-white/50 uppercase tracking-wide mb-2">Gols</h4>
+                        <div class="space-y-2 mb-4">
+                            ${gols.map(e => renderizarEvento(e, jogo)).join('')}
+                        </div>
+                    ` : ''}
+
+                    ${cartoes.length > 0 ? `
+                        <h4 class="text-xs font-brand text-white/50 uppercase tracking-wide mb-2">Cartões</h4>
+                        <div class="space-y-2 mb-4">
+                            ${cartoes.map(e => renderizarEvento(e, jogo)).join('')}
+                        </div>
+                    ` : ''}
+
+                    ${eventos.length === 0 ? `
+                        <div class="flex flex-col items-center justify-center py-12 text-white/40">
+                            <span class="material-icons text-4xl mb-2">sports</span>
+                            <p class="text-sm">Nenhum evento registrado</p>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Tab Estatisticas -->
+                ${temEstatisticas ? `
+                <div id="${tabPrefix}-content-stats" class="p-4 hidden">
+                    ${renderizarEstatisticas(resumoStats, jogo)}
+                </div>
                 ` : ''}
 
-                ${cartoes.length > 0 ? `
-                    <h4 class="text-xs font-brand text-white/50 uppercase tracking-wide mb-2">Cartoes</h4>
-                    <div class="space-y-2 mb-4">
-                        ${cartoes.map(e => renderizarEvento(e, jogo)).join('')}
-                    </div>
-                ` : ''}
-
-                ${eventos.length === 0 ? `
-                    <p class="text-center text-white/40 py-8">Nenhum evento registrado</p>
+                <!-- Tab Escalacoes -->
+                ${temEscalacoes ? `
+                <div id="${tabPrefix}-content-escalacoes" class="p-4 hidden">
+                    ${renderizarEscalacoes(escalacoes, jogo)}
+                </div>
                 ` : ''}
             </div>
 
-            <!-- Estadio -->
-            ${jogo.estadio ? `
-                <div class="border-t border-gray-700 p-4 text-center">
-                    <span class="material-icons text-white/30 text-sm align-middle">stadium</span>
-                    <span class="text-xs text-white/40 ml-1">${jogo.estadio}${jogo.cidade ? `, ${jogo.cidade}` : ''}</span>
+            <!-- Footer com Estadio/Arbitro -->
+            ${fixture?.estadio || fixture?.arbitro ? `
+                <div class="border-t border-gray-700 p-3 bg-gray-800/50">
+                    <div class="flex items-center justify-center gap-4 text-xs text-white/40">
+                        ${fixture.estadio ? `
+                            <span class="flex items-center gap-1">
+                                <span class="material-icons text-sm">stadium</span>
+                                ${fixture.estadio}${fixture.cidade ? `, ${fixture.cidade}` : ''}
+                            </span>
+                        ` : ''}
+                        ${fixture.arbitro ? `
+                            <span class="flex items-center gap-1">
+                                <span class="material-icons text-sm">sports</span>
+                                ${fixture.arbitro}
+                            </span>
+                        ` : ''}
+                    </div>
                 </div>
             ` : ''}
         </div>
@@ -465,6 +539,155 @@ function renderizarEvento(evento, jogo) {
     </div>
     `;
 }
+
+/**
+ * Renderiza tab de estatisticas com barras comparativas
+ * @param {Object} resumoStats - Stats do mandante e visitante
+ * @param {Object} jogo - Dados do jogo para nomes dos times
+ */
+function renderizarEstatisticas(resumoStats, jogo) {
+    if (!resumoStats) return '<p class="text-center text-white/40 py-8">Estatísticas não disponíveis</p>';
+
+    const { mandante, visitante } = resumoStats;
+
+    /**
+     * Renderiza barra comparativa
+     */
+    const renderBarra = (label, valorM, valorV, icon) => {
+        // Extrair valor numerico (ex: "65%" -> 65)
+        const numM = parseFloat(String(valorM).replace('%', '')) || 0;
+        const numV = parseFloat(String(valorV).replace('%', '')) || 0;
+        const total = numM + numV || 1;
+        const percM = (numM / total) * 100;
+        const percV = (numV / total) * 100;
+
+        return `
+        <div class="mb-4">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-medium text-white">${valorM ?? '-'}</span>
+                <span class="text-xs text-white/50 flex items-center gap-1">
+                    <span class="material-icons text-sm text-primary">${icon}</span>
+                    ${label}
+                </span>
+                <span class="text-sm font-medium text-white">${valorV ?? '-'}</span>
+            </div>
+            <div class="flex h-2 rounded-full overflow-hidden bg-gray-700">
+                <div class="bg-primary transition-all" style="width: ${percM}%"></div>
+                <div class="bg-gray-500 transition-all" style="width: ${percV}%"></div>
+            </div>
+        </div>
+        `;
+    };
+
+    return `
+        <div class="space-y-1">
+            <!-- Header com escudos -->
+            <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-700">
+                <div class="flex items-center gap-2">
+                    <img src="${jogo.logoMandante}" class="w-6 h-6 object-contain" alt="">
+                    <span class="text-xs text-white/70 truncate max-w-[80px]">${jogo.mandante}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-white/70 truncate max-w-[80px]">${jogo.visitante}</span>
+                    <img src="${jogo.logoVisitante}" class="w-6 h-6 object-contain" alt="">
+                </div>
+            </div>
+
+            ${renderBarra('Posse de Bola', mandante.posse, visitante.posse, 'sports_soccer')}
+            ${renderBarra('Chutes Totais', mandante.chutesTotal, visitante.chutesTotal, 'gps_fixed')}
+            ${renderBarra('Chutes no Gol', mandante.chutesGol, visitante.chutesGol, 'adjust')}
+            ${renderBarra('Escanteios', mandante.escanteios, visitante.escanteios, 'flag')}
+            ${renderBarra('Faltas', mandante.faltas, visitante.faltas, 'front_hand')}
+            ${mandante.defesas !== null ? renderBarra('Defesas', mandante.defesas, visitante.defesas, 'sports_handball') : ''}
+            ${mandante.impedimentos !== null ? renderBarra('Impedimentos', mandante.impedimentos, visitante.impedimentos, 'block') : ''}
+        </div>
+    `;
+}
+
+/**
+ * Renderiza tab de escalacoes com titulares e formacao
+ * @param {Array} escalacoes - Array com 2 objetos (mandante e visitante)
+ * @param {Object} jogo - Dados do jogo
+ */
+function renderizarEscalacoes(escalacoes, jogo) {
+    if (!escalacoes || escalacoes.length < 2) {
+        return '<p class="text-center text-white/40 py-8">Escalações não disponíveis</p>';
+    }
+
+    const [mandante, visitante] = escalacoes;
+
+    /**
+     * Renderiza lista de jogadores
+     */
+    const renderTimeJogadores = (time, logo, nomeTime) => {
+        return `
+        <div class="flex-1 min-w-0">
+            <!-- Header do time -->
+            <div class="flex items-center gap-2 mb-2 pb-2 border-b border-gray-700">
+                <img src="${logo}" class="w-6 h-6 object-contain" alt="" onerror="this.style.display='none'">
+                <div class="flex-1 min-w-0">
+                    <span class="text-xs font-medium text-white truncate block">${nomeTime}</span>
+                    ${time.formacao ? `<span class="text-[10px] text-primary">${time.formacao}</span>` : ''}
+                </div>
+            </div>
+
+            <!-- Tecnico -->
+            ${time.tecnico ? `
+                <div class="flex items-center gap-2 mb-2 px-2 py-1 rounded bg-gray-800/50">
+                    <span class="material-icons text-xs text-white/30">person</span>
+                    <span class="text-[10px] text-white/50">${time.tecnico}</span>
+                </div>
+            ` : ''}
+
+            <!-- Titulares -->
+            <div class="space-y-1">
+                ${(time.titulares || []).slice(0, 11).map((jogador, idx) => `
+                    <div class="flex items-center gap-2 px-2 py-1.5 rounded ${idx % 2 === 0 ? 'bg-gray-800/30' : ''}">
+                        <span class="text-[10px] text-white/30 w-5 text-center">${jogador.numero || '-'}</span>
+                        <span class="text-xs text-white truncate flex-1">${jogador.nome}</span>
+                        <span class="text-[9px] text-white/30 uppercase">${jogador.posicao || ''}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        `;
+    };
+
+    return `
+    <div class="flex gap-4">
+        ${renderTimeJogadores(mandante, jogo.logoMandante, jogo.mandante)}
+        ${renderTimeJogadores(visitante, jogo.logoVisitante, jogo.visitante)}
+    </div>
+    `;
+}
+
+/**
+ * Funcao global para trocar tabs do modal
+ * @param {string} prefix - Prefixo do modal (ex: "modal-jogo-123456")
+ * @param {string} tab - Nome da tab (eventos, stats, escalacoes)
+ */
+window.trocarTabModal = function(prefix, tab) {
+    const tabs = ['eventos', 'stats', 'escalacoes'];
+
+    tabs.forEach(t => {
+        const tabBtn = document.getElementById(`${prefix}-tab-${t}`);
+        const content = document.getElementById(`${prefix}-content-${t}`);
+
+        if (tabBtn && content) {
+            if (t === tab) {
+                // Ativar tab
+                tabBtn.classList.add('text-white', 'border-primary');
+                tabBtn.classList.remove('text-white/50', 'border-transparent');
+                content.classList.remove('hidden');
+            } else {
+                // Desativar tab
+                tabBtn.classList.remove('text-white', 'border-primary');
+                tabBtn.classList.add('text-white/50', 'border-transparent');
+                content.classList.add('hidden');
+            }
+        }
+    });
+};
 
 // Expor funcoes globais para onclick
 window.expandirJogo = async function(fixtureId) {
@@ -514,4 +737,4 @@ window.fecharModalJogo = function() {
     if (container) container.innerHTML = '';
 };
 
-if (window.Log) Log.info('PARTICIPANTE-JOGOS', 'Modulo v4.0 carregado (eventos + auto-refresh)');
+if (window.Log) Log.info('PARTICIPANTE-JOGOS', 'Modulo v5.0 carregado (modal com tabs + stats)');

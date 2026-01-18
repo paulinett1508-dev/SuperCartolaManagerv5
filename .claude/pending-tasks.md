@@ -7,7 +7,27 @@
 
 ## Status Atual (2026-01-18)
 
-### ✅ SPEC v4.1 Implementada
+### ✅ SPEC v5.0 Implementada
+
+**Melhorias Badges Jogos v5.0** - CONCLUÍDO
+- **PRD:** `.claude/docs/PRD-badges-jogos-melhorias-v5.md`
+- **SPEC:** `.claude/docs/SPEC-badges-jogos-melhorias-v5.md`
+
+**O que foi implementado:**
+| Feature | Status |
+|---------|--------|
+| Nomes de campeonatos | ✅ "Paulista - A1" → "Paulistão", "Carioca - 1" → "Cariocão" |
+| Modal com tabs | ✅ Eventos \| Estatísticas \| Escalações |
+| Tab Estatísticas | ✅ Barras comparativas (posse, chutes, escanteios, faltas) |
+| Tab Escalações | ✅ Formação tática + 11 titulares de cada time |
+
+**Arquivos modificados:**
+1. `routes/jogos-ao-vivo-routes.js` v3.2 - LIGAS_PRINCIPAIS expandido + formatarNomeLiga() com nomes populares + extrairResumoStats()
+2. `public/participante/js/modules/participante-jogos.js` v5.0 - Modal com tabs + renderizarEstatisticas() + renderizarEscalacoes() + trocarTabModal()
+
+---
+
+### ✅ SPEC v4.1 Implementada (Anterior)
 
 **Badges de Jogos API-Football v4.1** - CONCLUÍDO
 - **SPEC:** `.claude/docs/SPEC-badges-jogos-api-football-v3.md`
@@ -20,32 +40,6 @@
 | Auto-refresh | ✅ Atualiza placar a cada 60s quando ao vivo |
 | Badge visual v4.1 | ✅ Tempo pulsante, placar halftime, estádio |
 | Modal de detalhes | ✅ Toque expande timeline de eventos |
-
----
-
-### 🔶 SPEC Pronta para Implementação
-
-**Melhorias Badges Jogos v5.0**
-- **PRD:** `.claude/docs/PRD-badges-jogos-melhorias-v5.md`
-- **SPEC:** `.claude/docs/SPEC-badges-jogos-melhorias-v5.md`
-- **Status:** Especificação completa, aguardando implementação
-
-**O que será implementado:**
-| Feature | Descrição |
-|---------|-----------|
-| Nomes de campeonatos | "Paulista - A1" → "Paulistão", "Carioca - 1" → "Cariocão" |
-| Modal com tabs | Eventos \| Estatísticas \| Escalações |
-| Tab Estatísticas | Barras comparativas (posse, chutes, escanteios) |
-| Tab Escalações | Formação tática + 11 titulares de cada time |
-
-**Arquivos a modificar:**
-1. `routes/jogos-ao-vivo-routes.js` - expandir LIGAS_PRINCIPAIS + formatarNomeLiga() + extrairResumoStats()
-2. `public/participante/js/modules/participante-jogos.js` - Modal com tabs + renderizarEstatisticas() + renderizarEscalacoes()
-
-**Próximo passo:**
-```bash
-/code SPEC-badges-jogos-melhorias-v5.md
-```
 
 ---
 

@@ -1,5 +1,7 @@
 // routes/jogos-ao-vivo-routes.js
-// v3.1 - Jogos do Dia Completo + Eventos (API-Football)
+// v3.2 - Jogos do Dia Completo + Eventos + Stats (API-Football)
+// ✅ v3.2: Nomes populares de estaduais (Paulistão, Cariocão, etc)
+//          + resumoStats para modal com tabs
 // ✅ v3.1: Correção do mapeamento de ligas brasileiras (IDs corretos)
 // ✅ v3.0: Campos extras: golsMandante, golsVisitante, placarHT, estadio, cidade, tempoExtra
 // ✅ v3.0: Nova rota GET /:fixtureId/eventos para buscar gols, cartoes, escalacoes
@@ -11,42 +13,95 @@ import path from 'path';
 
 const router = express.Router();
 
-// IDs de ligas principais (mapeamento fixo)
-// Para estaduais, usamos formatarNomeLiga() que limpa o nome original da API
+// IDs de ligas principais (mapeamento fixo por ID da API-Football)
+// IDs confirmados via dashboard api-sports.io para Brasil
 const LIGAS_PRINCIPAIS = {
+  // Nacionais
   71: 'Brasileirão A',
   72: 'Brasileirão B',
   73: 'Copa do Brasil',
-  618: 'Copinha'
+  75: 'Série C',
+  76: 'Série D',
+  618: 'Copinha',
+
+  // Supercopa
+  77: 'Supercopa',
+
+  // Regionais
+  475: 'Copa do Nordeste'
+
+  // Nota: Estaduais (Paulistao, Carioca, etc) sao tratados via formatarNomeLiga()
+  // porque IDs podem variar entre temporadas
 };
 
 /**
- * Formata nome da liga da API para exibição
- * Ex: "Paulista - A1" → "Paulista A1"
- * Ex: "Mineiro - 1" → "Mineiro"
- * Ex: "São Paulo Youth Cup" → "Copinha"
+ * Formata nome da liga da API para exibicao amigavel
+ * Trata padroes da API-Football como "Paulista - A1", "Carioca - 1"
+ *
+ * @param {string} nome - Nome original da API
+ * @returns {string} Nome formatado para exibicao
  */
 function formatarNomeLiga(nome) {
   if (!nome) return 'Liga Brasileira';
 
-  // Mapeamentos especiais de nome
+  // Mapeamentos especiais de nome (prioridade maxima)
   const mapeamentos = {
+    // Copas e nomes em ingles
     'São Paulo Youth Cup': 'Copinha',
+    'Copa Sao Paulo de Futebol Junior': 'Copinha',
     'Brazil Serie A': 'Brasileirão A',
     'Brazil Serie B': 'Brasileirão B',
-    'Brazil Cup': 'Copa do Brasil'
+    'Brazil Serie C': 'Série C',
+    'Brazil Serie D': 'Série D',
+    'Brazil Cup': 'Copa do Brasil',
+    'Copa do Nordeste': 'Copa do Nordeste',
+    'Supercopa do Brasil': 'Supercopa'
   };
 
+  // Verificar mapeamento exato primeiro
   if (mapeamentos[nome]) return mapeamentos[nome];
 
-  // Limpar sufixos comuns
-  return nome
-    .replace(/ - 1$/, '')       // "Mineiro - 1" → "Mineiro"
-    .replace(/ - 2$/, ' B')     // "Mineiro - 2" → "Mineiro B"
-    .replace(/ - A1$/, ' A1')   // "Paulista - A1" → "Paulista A1"
-    .replace(/ - A2$/, ' A2')
-    .replace(/ - B$/, ' B')
-    .replace(/^Brazil /, '');   // "Brazil X" → "X"
+  // Transformacoes em cadeia para padroes da API
+  let resultado = nome
+    // Remover prefixos
+    .replace(/^Brazil(ian)?\s+/i, '')
+    .replace(/^Campeonato\s+/i, '')
+
+    // Tratar divisoes - remover sufixos de primeira divisao
+    .replace(/\s+-\s+1$/, '')           // "Mineiro - 1" → "Mineiro"
+    .replace(/\s+-\s+A1$/i, '')         // "Paulista - A1" → "Paulista"
+    .replace(/\s+-\s+2$/, ' B')         // "Mineiro - 2" → "Mineiro B"
+    .replace(/\s+-\s+A2$/i, ' A2')      // "Paulista - A2" → "Paulista A2"
+    .replace(/\s+-\s+B$/i, ' B')
+
+    .trim();
+
+  // Aplicar nomes populares apos limpeza
+  const nomesPopulares = {
+    'Paulista': 'Paulistão',
+    'Carioca': 'Cariocão',
+    'Gaucho': 'Gauchão',
+    'Gaúcho': 'Gauchão',
+    'Mineiro': 'Mineirão',
+    'Baiano': 'Baianão',
+    'Pernambucano': 'Pernambucano',
+    'Cearense': 'Cearense',
+    'Paranaense': 'Paranaense',
+    'Catarinense': 'Catarinense',
+    'Goiano': 'Goianão',
+    'Sergipano': 'Sergipano',
+    'Paraibano': 'Paraibano',
+    'Potiguar': 'Potiguar',
+    'Alagoano': 'Alagoano',
+    'Maranhense': 'Maranhense',
+    'Piauiense': 'Piauiense',
+    'Amazonense': 'Amazonense',
+    'Paraense': 'Paraense',
+    'Capixaba': 'Capixaba',
+    'Brasiliense': 'Brasiliense'
+  };
+
+  return nomesPopulares[resultado] || resultado || 'Liga Brasileira';
 }
 
 /**
@@ -241,11 +296,17 @@ async function buscarEventosJogo(fixtureId) {
       eventos,
       escalacoes,
       estatisticas,
+      resumoStats: extrairResumoStats(fixture.statistics),
       fixture: {
         id: fixture.fixture.id,
         arbitro: fixture.fixture.referee,
         estadio: fixture.fixture.venue?.name,
         cidade: fixture.fixture.venue?.city
+      },
+      liga: {
+        nome: getNomeLiga(fixture.league?.id, fixture.league?.name),
+        logo: fixture.league?.logo,
+        rodada: fixture.league?.round
       }
     };
   } catch (err) {
@@ -265,6 +326,47 @@ function mapearTipoEvento(type, detail) {
     'Var': 'var'
   };
   return mapa[type] || type.toLowerCase();
+}
+
+/**
+ * Extrai resumo das estatisticas principais para exibicao no modal
+ * @param {Array} statistics - Array de estatisticas da API
+ * @returns {Object|null} Objeto com stats organizadas por time ou null
+ */
+function extrairResumoStats(statistics) {
+  if (!statistics || statistics.length < 2) return null;
+
+  const homeStats = statistics[0]?.statistics || [];
+  const awayStats = statistics[1]?.statistics || [];
+
+  /**
+   * Busca valor de uma estatistica especifica
+   */
+  const getStat = (stats, type) => {
+    const stat = stats.find(s => s.type === type);
+    return stat?.value ?? null;
+  };
+
+  return {
+    mandante: {
+      posse: getStat(homeStats, 'Ball Possession'),
+      chutesTotal: getStat(homeStats, 'Total Shots'),
+      chutesGol: getStat(homeStats, 'Shots on Goal'),
+      escanteios: getStat(homeStats, 'Corner Kicks'),
+      faltas: getStat(homeStats, 'Fouls'),
+      impedimentos: getStat(homeStats, 'Offsides'),
+      defesas: getStat(homeStats, 'Goalkeeper Saves')
+    },
+    visitante: {
+      posse: getStat(awayStats, 'Ball Possession'),
+      chutesTotal: getStat(awayStats, 'Total Shots'),
+      chutesGol: getStat(awayStats, 'Shots on Goal'),
+      escanteios: getStat(awayStats, 'Corner Kicks'),
+      faltas: getStat(awayStats, 'Fouls'),
+      impedimentos: getStat(awayStats, 'Offsides'),
+      defesas: getStat(awayStats, 'Goalkeeper Saves')
+    }
+  };
 }
 
 /**
