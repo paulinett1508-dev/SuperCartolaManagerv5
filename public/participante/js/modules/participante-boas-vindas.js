@@ -851,35 +851,58 @@ function renderizarBoasVindas(container, data, ligaRules) {
 }
 
 // =====================================================================
-// ✅ v10.9: FUNÇÃO PARA CARREGAR E EXIBIR JOGOS AO VIVO
+// ✅ v11.0: FUNÇÃO PARA CARREGAR E EXIBIR JOGOS AO VIVO + AUTO-REFRESH
 // =====================================================================
 async function carregarEExibirJogos() {
     try {
-        if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "⚽ Carregando jogos ao vivo...");
+        if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "Carregando jogos ao vivo...");
 
         const mod = await import('./participante-jogos.js');
         const result = await mod.obterJogosAoVivo();
 
-        if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "⚽ Resultado jogos:", {
+        if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "Resultado jogos:", {
             quantidade: result.jogos?.length || 0,
             fonte: result.fonte,
             aoVivo: result.aoVivo
         });
+
+        // Armazenar jogos em cache global para modal
+        window._jogosCache = result.jogos || [];
 
         if (result.jogos && result.jogos.length > 0) {
             const html = mod.renderizarJogosAoVivo(result.jogos, result.fonte, result.aoVivo);
             const el = document.getElementById('jogos-do-dia-placeholder');
             if (el) {
                 el.innerHTML = html;
-                if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Card de jogos renderizado!");
+                if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "Card de jogos renderizado!");
+            }
+
+            // v11.0: Iniciar auto-refresh se tem jogos ao vivo
+            if (result.aoVivo) {
+                mod.iniciarAutoRefresh((novoResult) => {
+                    window._jogosCache = novoResult.jogos || [];
+                    const novoHtml = mod.renderizarJogosAoVivo(novoResult.jogos, novoResult.fonte, novoResult.aoVivo);
+                    const container = document.getElementById('jogos-do-dia-placeholder');
+                    if (container) {
+                        container.innerHTML = novoHtml;
+                        if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "Jogos atualizados via auto-refresh");
+                    }
+                });
             }
         } else {
-            if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "📭 Sem jogos para exibir no momento");
+            if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "Sem jogos para exibir no momento");
         }
     } catch (err) {
-        if (window.Log) Log.error("PARTICIPANTE-BOAS-VINDAS", "❌ Erro ao carregar jogos:", err);
+        if (window.Log) Log.error("PARTICIPANTE-BOAS-VINDAS", "Erro ao carregar jogos:", err);
     }
 }
 
+// Parar auto-refresh quando sair da tela
+window.addEventListener('participante-nav-change', () => {
+    import('./participante-jogos.js').then(mod => {
+        mod.pararAutoRefresh();
+    }).catch(() => {});
+});
+
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Módulo v10.9 carregado (Jogos ao vivo API-Football)");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "Modulo v11.0 carregado (Jogos ao vivo + Auto-refresh)");
