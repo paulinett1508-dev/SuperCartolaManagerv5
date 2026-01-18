@@ -7,28 +7,44 @@
 
 ## Status Atual (2026-01-18)
 
+### ✅ SPEC v4.1 Implementada
+
+**Badges de Jogos API-Football v4.1** - CONCLUÍDO
+- **SPEC:** `.claude/docs/SPEC-badges-jogos-api-football-v3.md`
+- **Commit:** `e234a3d feat(jogos-ao-vivo): implementar v4.1 com eventos e auto-refresh`
+
+**O que foi implementado:**
+| Feature | Status |
+|---------|--------|
+| Eventos em tempo real | ✅ Gols, cartões, substituições |
+| Auto-refresh | ✅ Atualiza placar a cada 60s quando ao vivo |
+| Badge visual v4.1 | ✅ Tempo pulsante, placar halftime, estádio |
+| Modal de detalhes | ✅ Toque expande timeline de eventos |
+
+---
+
 ### 🔶 SPEC Pronta para Implementação
 
-**Badges de Jogos API-Football v3**
-- **SPEC:** `.claude/docs/SPEC-badges-jogos-api-football-v3.md`
+**Melhorias Badges Jogos v5.0**
+- **PRD:** `.claude/docs/PRD-badges-jogos-melhorias-v5.md`
+- **SPEC:** `.claude/docs/SPEC-badges-jogos-melhorias-v5.md`
 - **Status:** Especificação completa, aguardando implementação
 
 **O que será implementado:**
 | Feature | Descrição |
 |---------|-----------|
-| Eventos em tempo real | Gols, cartões, substituições |
-| Auto-refresh | Atualiza placar a cada 60s quando ao vivo |
-| Badge visual v4.0 | Tempo pulsante, placar halftime, estádio |
-| Modal de detalhes | Toque expande timeline de eventos |
+| Nomes de campeonatos | "Paulista - A1" → "Paulistão", "Carioca - 1" → "Cariocão" |
+| Modal com tabs | Eventos \| Estatísticas \| Escalações |
+| Tab Estatísticas | Barras comparativas (posse, chutes, escanteios) |
+| Tab Escalações | Formação tática + 11 titulares de cada time |
 
 **Arquivos a modificar:**
-1. `routes/jogos-ao-vivo-routes.js` - Nova rota de eventos
-2. `public/participante/js/modules/participante-jogos.js` - UI + auto-refresh
-3. `public/participante/js/modules/participante-boas-vindas.js` - Integração
+1. `routes/jogos-ao-vivo-routes.js` - expandir LIGAS_PRINCIPAIS + formatarNomeLiga() + extrairResumoStats()
+2. `public/participante/js/modules/participante-jogos.js` - Modal com tabs + renderizarEstatisticas() + renderizarEscalacoes()
 
 **Próximo passo:**
 ```bash
-/code SPEC-badges-jogos-api-football-v3.md
+/code SPEC-badges-jogos-melhorias-v5.md
 ```
 
 ---
