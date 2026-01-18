@@ -5,7 +5,35 @@
 
 ---
 
-## Status Atual (2026-01-17)
+## Status Atual (2026-01-18)
+
+### 🔶 SPEC Pronta para Implementação
+
+**Badges de Jogos API-Football v3**
+- **SPEC:** `.claude/docs/SPEC-badges-jogos-api-football-v3.md`
+- **Status:** Especificação completa, aguardando implementação
+
+**O que será implementado:**
+| Feature | Descrição |
+|---------|-----------|
+| Eventos em tempo real | Gols, cartões, substituições |
+| Auto-refresh | Atualiza placar a cada 60s quando ao vivo |
+| Badge visual v4.0 | Tempo pulsante, placar halftime, estádio |
+| Modal de detalhes | Toque expande timeline de eventos |
+
+**Arquivos a modificar:**
+1. `routes/jogos-ao-vivo-routes.js` - Nova rota de eventos
+2. `public/participante/js/modules/participante-jogos.js` - UI + auto-refresh
+3. `public/participante/js/modules/participante-boas-vindas.js` - Integração
+
+**Próximo passo:**
+```bash
+/code SPEC-badges-jogos-api-football-v3.md
+```
+
+---
+
+## Status Anterior (2026-01-17)
 
 **✅ Skills Robustecidos v2.0 - Instalados**
 **✅ Auditoria Baseline Executada**

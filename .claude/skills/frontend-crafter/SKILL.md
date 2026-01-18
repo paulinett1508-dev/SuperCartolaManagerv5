@@ -43,25 +43,43 @@ Criar experiências frontend excepcionais para o Super Cartola Manager com foco 
 }
 ```
 
-### 1.2 Typography
+### 1.2 Typography (TRES FONTES OBRIGATORIAS)
 
 ```css
-/* OBRIGATÓRIO: Usar Inter font */
+/* OBRIGATORIO: Sistema de 3 fontes */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* === FAMILIAS DE FONTE === */
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-brand: 'Russo One', sans-serif;  /* Titulos, stats, CTAs */
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;  /* Codigo, numeros */
+}
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-family-base);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Hierarquia */
-.h1 { font-size: 28px; font-weight: 700; line-height: 1.2; }
-.h2 { font-size: 24px; font-weight: 700; line-height: 1.3; }
-.h3 { font-size: 20px; font-weight: 600; line-height: 1.4; }
-.body { font-size: 16px; font-weight: 400; line-height: 1.5; }
-.small { font-size: 14px; font-weight: 400; line-height: 1.5; }
-.caption { font-size: 12px; font-weight: 500; line-height: 1.4; }
+/* INTER - Corpo de texto (padrao) */
+.body { font-family: var(--font-family-base); font-size: 16px; font-weight: 400; }
+.small { font-family: var(--font-family-base); font-size: 14px; font-weight: 400; }
+.caption { font-family: var(--font-family-base); font-size: 12px; font-weight: 500; }
+
+/* RUSSO ONE - Titulos e destaques (brand) */
+.font-brand { font-family: var(--font-family-brand); font-weight: 400; }
+.h1 { font-family: var(--font-family-brand); font-size: 28px; letter-spacing: 0.5px; }
+.h2 { font-family: var(--font-family-brand); font-size: 24px; letter-spacing: 0.5px; }
+.h3 { font-family: var(--font-family-brand); font-size: 20px; letter-spacing: 0.3px; }
+
+/* JETBRAINS MONO - Codigo e numeros tabulares */
+.font-mono { font-family: var(--font-family-mono); }
+.tabular-nums { font-variant-numeric: tabular-nums; }
 ```
+
+**REGRA:** Russo One so tem peso 400, usar `letter-spacing` para ajustar espacamento.
 
 ### 1.3 Componentes Base
 
@@ -737,8 +755,13 @@ if ('performance' in window) {
 
 ---
 
-**STATUS:** 🎨 Frontend Crafter - READY TO CRAFT
+**STATUS:** Frontend Crafter - READY TO CRAFT
 
-**Versão:** 3.0 (Mobile-First Master)
+**Versao:** 3.1 (Typography System Update)
 
-**Última atualização:** 2026-01-17
+**Ultima atualizacao:** 2026-01-18
+
+**Changelog v3.1:**
+- Documentado sistema de 3 fontes: Inter (base), Russo One (brand), JetBrains Mono (mono)
+- Classe `.font-brand` para titulos com Russo One
+- Variaveis CSS padronizadas: `--font-family-base`, `--font-family-brand`, `--font-family-mono`
