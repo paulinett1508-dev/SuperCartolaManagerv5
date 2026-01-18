@@ -2063,15 +2063,16 @@ body {
    NOTA: Os estilos principais estão no JS inline. Este CSS é backup/override.
    ============================================================================= */
 
-/* Container da tabela - altura fixa para forçar scroll */
-#fluxoFinanceiroButtons .fluxo-tabela-container,
+/* Container da tabela - COM altura máxima para sticky funcionar com scroll interno */
+/* ✅ v2.4 FIX: Adicionar max-height para sticky header funcionar com scroll do container */
+#fluxoFinanceiroContent .fluxo-tabela-container,
+#fluxo-financeiro .fluxo-tabela-container,
 .page-content .fluxo-tabela-container,
+.fluxo-financeiro-content .fluxo-tabela-container,
 div.fluxo-tabela-container {
-    height: calc(100vh - 320px) !important;
-    min-height: 300px !important;
-    max-height: 600px !important;
-    overflow-y: scroll !important;
     overflow-x: auto !important;
+    overflow-y: auto !important;  /* ✅ v2.4: Scroll vertical interno */
+    max-height: 70vh !important;  /* ✅ v2.4: Altura máxima = sticky funciona */
     position: relative !important;
 }
 
@@ -2771,14 +2772,16 @@ table.fluxo-participantes-tabela {
 
 /* ============================================================
    SCROLL HORIZONTAL: Tabela Fluxo Financeiro
-   v1.1 - Barra de rolagem sempre visivel e estilizada
+   v1.2 - Barra de rolagem sempre visivel + sticky header
    ============================================================ */
 
-/* Container da tabela com scroll horizontal */
+/* Container da tabela com scroll horizontal e vertical */
+/* ✅ v1.4 FIX: COM altura máxima - sticky funciona com scroll interno */
 .fluxo-tabela-container {
     max-width: 100%;
     overflow-x: auto !important;
-    overflow-y: auto !important;
+    overflow-y: auto !important;     /* ✅ v1.4: Scroll vertical interno */
+    max-height: 70vh !important;     /* ✅ v1.4: Altura máxima para sticky */
     -webkit-overflow-scrolling: touch;
     position: relative;
 }
@@ -2991,4 +2994,50 @@ table.fluxo-participantes-tabela {
     color: rgba(255, 255, 255, 0.6);
     margin: 0;
     font-size: 13px;
+}
+
+/* =============================================================================
+   ✅ v2.5 FINAL FIX: STICKY HEADER - TABELA DE PARTICIPANTES
+   Alta especificidade para garantir que funcione
+   ============================================================================= */
+
+/* Container DEVE ter altura máxima e overflow para sticky funcionar */
+#fluxo-financeiro .fluxo-tabela-container,
+#fluxoFinanceiroContent .fluxo-tabela-container,
+#dynamic-content-area .fluxo-tabela-container,
+.fluxo-financeiro-content .fluxo-tabela-container {
+    max-height: 65vh !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    position: relative !important;
+}
+
+/* Tabela DEVE ter border-collapse: separate */
+#fluxo-financeiro .fluxo-participantes-tabela,
+#fluxo-financeiro .tabela-financeira,
+#dynamic-content-area .fluxo-participantes-tabela,
+#dynamic-content-area .tabela-financeira {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+/* THEAD e TH DEVEM ter sticky */
+#fluxo-financeiro .fluxo-participantes-tabela thead,
+#fluxo-financeiro .tabela-financeira thead,
+#dynamic-content-area .fluxo-participantes-tabela thead,
+#dynamic-content-area .tabela-financeira thead {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+}
+
+#fluxo-financeiro .fluxo-participantes-tabela thead th,
+#fluxo-financeiro .tabela-financeira thead th,
+#dynamic-content-area .fluxo-participantes-tabela thead th,
+#dynamic-content-area .tabela-financeira thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
 }

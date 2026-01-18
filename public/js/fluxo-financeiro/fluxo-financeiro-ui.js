@@ -733,10 +733,10 @@ export class FluxoFinanceiroUI {
                 </div>
             </div>
 
-            <!-- Tabela Financeira v4.0 - Layout Condicional por Temporada -->
-            <div class="fluxo-tabela-container">
-                <table class="fluxo-participantes-tabela tabela-financeira">
-                    <thead>
+            <!-- Tabela Financeira v4.1 - Layout Condicional por Temporada + Sticky Header -->
+            <div class="fluxo-tabela-container" style="max-height: 65vh; overflow-y: auto; overflow-x: auto; position: relative;">
+                <table class="fluxo-participantes-tabela tabela-financeira" style="border-collapse: separate; border-spacing: 0;">
+                    <thead style="position: sticky; top: 0; z-index: 100;">
                         ${temporadaNum >= 2026 ? `
                         <!-- Header Pré-Temporada 2026: Colunas simplificadas de inscrição -->
                         <tr>
@@ -813,6 +813,100 @@ export class FluxoFinanceiroUI {
         this._injetarEstilosTabelaCompacta();
         this._injetarEstilosTabelaExpandida();
         this._injetarModalAcerto();
+
+        // ❌ v4.3: Workaround JS removido - sticky nativo funciona após fix fadeInUp (transform: none)
+        // this._aplicarStickyHeader();
+    }
+
+    /**
+     * ✅ v4.2: Header fixo via JavaScript (clone do header)
+     * Cria um header clone que fica fixo no topo do container ao rolar
+     */
+    _aplicarStickyHeader() {
+        setTimeout(() => {
+            const container = document.querySelector('.fluxo-tabela-container');
+            const tabela = container?.querySelector('.fluxo-participantes-tabela, .tabela-financeira');
+            const thead = tabela?.querySelector('thead');
+
+            if (!container || !tabela || !thead) {
+                console.log('[FluxoFinanceiroUI] Elementos não encontrados para sticky header');
+                return;
+            }
+
+            // Remover header fixo anterior se existir
+            const headerFixoAntigo = container.querySelector('.header-fixo-clone');
+            if (headerFixoAntigo) headerFixoAntigo.remove();
+
+            // Criar wrapper para o header fixo
+            const headerFixo = document.createElement('div');
+            headerFixo.className = 'header-fixo-clone';
+            headerFixo.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                background: #1f1f1f;
+                display: none;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            `;
+
+            // Clonar a tabela só com o header
+            const tabelaClone = document.createElement('table');
+            tabelaClone.className = tabela.className;
+            tabelaClone.style.cssText = `
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                table-layout: fixed;
+            `;
+            tabelaClone.appendChild(thead.cloneNode(true));
+
+            // Estilizar os th do clone
+            tabelaClone.querySelectorAll('th').forEach(th => {
+                th.style.background = '#1f1f1f';
+                th.style.color = '#FF5500';
+                th.style.borderBottom = '2px solid #FF5500';
+            });
+
+            headerFixo.appendChild(tabelaClone);
+            container.style.position = 'relative';
+            container.insertBefore(headerFixo, container.firstChild);
+
+            // Sincronizar larguras das colunas
+            const sincronizarLarguras = () => {
+                const thsOriginais = thead.querySelectorAll('th');
+                const thsClone = tabelaClone.querySelectorAll('th');
+                thsOriginais.forEach((th, i) => {
+                    if (thsClone[i]) {
+                        thsClone[i].style.width = th.offsetWidth + 'px';
+                    }
+                });
+                tabelaClone.style.width = tabela.offsetWidth + 'px';
+            };
+
+            // Listener de scroll
+            container.addEventListener('scroll', () => {
+                const scrollTop = container.scrollTop;
+                const scrollLeft = container.scrollLeft;
+
+                if (scrollTop > 10) {
+                    headerFixo.style.display = 'block';
+                    headerFixo.scrollLeft = scrollLeft;
+                    sincronizarLarguras();
+                } else {
+                    headerFixo.style.display = 'none';
+                }
+            });
+
+            // Sincronizar scroll horizontal do header fixo
+            headerFixo.addEventListener('scroll', () => {
+                container.scrollLeft = headerFixo.scrollLeft;
+            });
+
+            console.log('[FluxoFinanceiroUI] ✅ Header fixo clone criado');
+        }, 200);
     }
 
     /**
@@ -1317,17 +1411,15 @@ export class FluxoFinanceiroUI {
                v2.2 - Scroll Horizontal Visível
                ======================================== */
 
-            /* ✅ v2.2: Container com scroll HORIZONTAL + VERTICAL visível */
+            /* ✅ v2.5: Container COM altura máxima - sticky funciona com scroll interno */
             .fluxo-tabela-container {
                 background: #1a1a1a;
                 border: 1px solid rgba(255, 85, 0, 0.25);
                 border-radius: 12px;
                 position: relative;
-                height: calc(100vh - 320px);  /* Altura FIXA baseada na viewport */
-                min-height: 300px;
-                max-height: 600px;
-                overflow-y: scroll !important;  /* SCROLL forçado vertical */
                 overflow-x: auto !important;    /* SCROLL horizontal quando necessário */
+                overflow-y: auto !important;    /* ✅ v2.5: Scroll vertical para sticky */
+                max-height: 70vh !important;    /* ✅ v2.5: Altura máxima = sticky funciona */
             }
 
             /* Scrollbar elegante - VERTICAL */
@@ -2006,12 +2098,13 @@ export class FluxoFinanceiroUI {
             }
 
             /* ========================================
-               TABELA FINANCEIRA v3.0 - Colunas por Módulo
+               TABELA FINANCEIRA v3.1 - Colunas por Módulo + Sticky Header
                ======================================== */
 
             .tabela-financeira {
                 width: 100%;
-                border-collapse: collapse;
+                border-collapse: separate !important;  /* ✅ CRITICAL: separate é OBRIGATÓRIO para sticky */
+                border-spacing: 0 !important;
                 font-size: 0.8rem;
                 table-layout: auto;
             }
@@ -2023,14 +2116,18 @@ export class FluxoFinanceiroUI {
                 vertical-align: middle;
             }
 
+            /* ✅ v2.3: Sticky header - thead E th precisam de position: sticky */
             .tabela-financeira thead {
-                position: sticky;
-                top: 0;
-                z-index: 10;
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 20 !important;
             }
 
             .tabela-financeira th {
-                background: linear-gradient(135deg, #1f1f1f 0%, #181818 100%);
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 20 !important;
+                background: linear-gradient(135deg, #1f1f1f 0%, #181818 100%) !important;
                 color: #FF5500;
                 font-weight: 600;
                 font-size: 0.7rem;
@@ -2038,6 +2135,7 @@ export class FluxoFinanceiroUI {
                 letter-spacing: 0.3px;
                 white-space: nowrap;
                 border-bottom: 2px solid #FF5500;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
             }
 
             .tabela-financeira th.sortable {
