@@ -1,6 +1,16 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.12 (BOTÃO PREMIAÇÕES 2026)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.15 (HEADER COM 2 BOTÕES)
 // =====================================================================
+// ✅ v10.15: Header com 2 botões na mesma linha
+//           - "Premiações" à esquerda (abre modal premiações 2026)
+//           - "Atualizar" à direita (abre modal RefreshButton)
+//           - Classe refresh-button-container evita duplicação
+// ✅ v10.14: Botão "Premiações" movido para o header
+//           - Formato compacto (pill) ao lado direito do header
+//           - Acima da saudação "Olá, [Nome]!"
+//           - Removido card grande (agora usa botão pequeno)
+// ✅ v10.13: Removido card fixo "Inscrição Confirmada!"
+//           - Redundante com modal de boas-vindas que já exibe confirmação
 // ✅ v10.12: Botão "Premiações 2026" na tela Início
 //           - Abre modal com todas as premiações da temporada
 //           - Accordion com 8 seções: Turnos, Disputas, Ranking, etc.
@@ -33,7 +43,7 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.12 (Premiações 2026)...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.15 (Header 2 Botões)...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -624,8 +634,24 @@ function renderizarBoasVindas(container, data, ligaRules) {
         container.innerHTML = `
             <div class="pb-28">
 
+                <!-- Header com botões de ação (mesma linha) -->
+                <div class="px-4 pt-3 pb-2 flex items-center justify-between gap-2 refresh-button-container">
+                    <!-- Botão Premiações (esquerda) -->
+                    <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-white/70 text-xs font-medium active:scale-95 transition-all hover:bg-white/10">
+                        <span class="material-icons text-sm">emoji_events</span>
+                        Premiações
+                    </button>
+                    <!-- Botão Atualizar Dados (direita) -->
+                    <button onclick="window.RefreshButton && window.RefreshButton.showModal()"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-white/70 text-xs font-medium active:scale-95 transition-all hover:bg-white/10">
+                        <span class="material-icons text-sm">refresh</span>
+                        Atualizar
+                    </button>
+                </div>
+
                 <!-- Saudação com indicador de temporada -->
-                <div class="px-4 py-4">
+                <div class="px-4 pb-4">
                     <div class="flex items-center justify-between mb-1">
                         <div class="flex items-center gap-2">
                             <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
@@ -722,29 +748,6 @@ function renderizarBoasVindas(container, data, ligaRules) {
                     </div>
                 </div>
 
-                <!-- Card de Boas-vindas 2026 -->
-                    <div class="mx-4 mb-4 flex items-start gap-3 rounded-xl bg-green-500/10 border border-green-500/20 p-4">
-                        <span class="material-icons mt-0.5 text-green-400">check_circle</span>
-                        <div>
-                            <p class="text-sm font-bold uppercase text-green-400">Inscrição Confirmada!</p>
-                            <p class="text-sm font-normal text-white/70">${ligaRules && ligaRules.mensagens && ligaRules.mensagens.confirmacao ? ligaRules.mensagens.confirmacao : `Sua inscrição para a temporada ${TEMPORADA_ATUAL} está ativa.`}</p>
-                        </div>
-                    </div>
-
-                    <!-- Botão Premiações 2026 -->
-                    <div class="mx-4 mb-4 rounded-xl bg-gradient-to-r from-primary/20 to-transparent border border-primary/30 p-4 cursor-pointer active:scale-[0.98] transition-transform" onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                                <span class="material-icons text-xl text-primary">emoji_events</span>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-bold text-white">Premiações 2026</p>
-                                <p class="text-xs text-white/60">Veja todos os prêmios da temporada</p>
-                            </div>
-                            <span class="material-icons text-white/40">chevron_right</span>
-                        </div>
-                    </div>
-
                     <div id="jogos-do-dia-placeholder"></div>
             </div>
         `;
@@ -755,8 +758,24 @@ function renderizarBoasVindas(container, data, ligaRules) {
         container.innerHTML = `
             <div class="pb-28">
 
+                <!-- Header com botões de ação (mesma linha) -->
+                <div class="px-4 pt-3 pb-2 flex items-center justify-between gap-2 refresh-button-container">
+                    <!-- Botão Premiações (esquerda) -->
+                    <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-white/70 text-xs font-medium active:scale-95 transition-all hover:bg-white/10">
+                        <span class="material-icons text-sm">emoji_events</span>
+                        Premiações
+                    </button>
+                    <!-- Botão Atualizar Dados (direita) -->
+                    <button onclick="window.RefreshButton && window.RefreshButton.showModal()"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-white/70 text-xs font-medium active:scale-95 transition-all hover:bg-white/10">
+                        <span class="material-icons text-sm">refresh</span>
+                        Atualizar
+                    </button>
+                </div>
+
                 <!-- Saudação com indicador de temporada -->
-                <div class="px-4 py-4">
+                <div class="px-4 pb-4">
                     <div class="flex items-center justify-between mb-1">
                         <div class="flex items-center gap-2">
                             <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
@@ -856,20 +875,6 @@ function renderizarBoasVindas(container, data, ligaRules) {
                     <div>
                         <p class="text-sm font-bold uppercase text-white/90">Dica</p>
                         <p class="text-sm font-normal text-white/70">Acompanhe seu extrato financeiro para entender sua evolução na liga!</p>
-                    </div>
-                </div>
-
-                <!-- Botão Premiações 2026 -->
-                <div class="mx-4 mb-4 rounded-xl bg-gradient-to-r from-primary/20 to-transparent border border-primary/30 p-4 cursor-pointer active:scale-[0.98] transition-transform" onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                            <span class="material-icons text-xl text-primary">emoji_events</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-bold text-white">Premiações 2026</p>
-                            <p class="text-xs text-white/60">Veja todos os prêmios da temporada</p>
-                        </div>
-                        <span class="material-icons text-white/40">chevron_right</span>
                     </div>
                 </div>
 
