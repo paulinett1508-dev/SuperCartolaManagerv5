@@ -1,5 +1,8 @@
 // routes/jogos-ao-vivo-routes.js
-// v3.2 - Jogos do Dia Completo + Eventos + Stats (API-Football)
+// v3.4 - Cache Stale: preserva ultimo cache quando cota API acabar
+// ✅ v3.4: Cache stale - quando API falhar, usa ultimo cache valido com aviso
+// ✅ v3.3: Fix LIGAS_PRINCIPAIS - removido IDs de estaduais (variam entre temporadas)
+//          Estaduais tratados via formatarNomeLiga() por nome
 // ✅ v3.2: Nomes populares de estaduais (Paulistão, Cariocão, etc)
 //          + resumoStats para modal com tabs
 // ✅ v3.1: Correção do mapeamento de ligas brasileiras (IDs corretos)
@@ -13,25 +16,18 @@ import path from 'path';
 
 const router = express.Router();
 
-// IDs de ligas principais (mapeamento fixo por ID da API-Football)
-// IDs confirmados via dashboard api-sports.io para Brasil
+// IDs de ligas principais (APENAS nacionais com IDs estáveis)
+// Estaduais NÃO devem estar aqui - IDs variam entre temporadas
+// Usar formatarNomeLiga() para estaduais
 const LIGAS_PRINCIPAIS = {
-  // Nacionais
   71: 'Brasileirão A',
   72: 'Brasileirão B',
   73: 'Copa do Brasil',
   75: 'Série C',
   76: 'Série D',
-  618: 'Copinha',
-
-  // Supercopa
   77: 'Supercopa',
-
-  // Regionais
-  475: 'Copa do Nordeste'
-
-  // Nota: Estaduais (Paulistao, Carioca, etc) sao tratados via formatarNomeLiga()
-  // porque IDs podem variar entre temporadas
+  618: 'Copinha'
+  // NÃO adicionar estaduais aqui - tratar via formatarNomeLiga()
 };
 
 /**
@@ -120,10 +116,12 @@ const STATUS_AGENDADO = ['NS', 'TBD'];
 let cacheJogosDia = null;
 let cacheTimestamp = 0;
 let cacheTemJogosAoVivo = false;
+let cacheFonte = 'api-football'; // Fonte do cache atual
 
 // TTL dinâmico baseado em jogos ao vivo
 const CACHE_TTL_AO_VIVO = 2 * 60 * 1000;    // 2 minutos se tem jogos ao vivo
 const CACHE_TTL_SEM_JOGOS = 10 * 60 * 1000; // 10 minutos se não tem jogos ao vivo
+const CACHE_STALE_MAX = 30 * 60 * 1000;     // 30 minutos máximo para cache stale
 
 // Path do scraper Globo (fallback)
 const GLOBO_CACHE_PATH = path.join(process.cwd(), 'data', 'jogos-globo.json');
@@ -435,13 +433,14 @@ router.get('/', async (req, res) => {
     // Calcular TTL baseado em jogos ao vivo
     const ttlAtual = cacheTemJogosAoVivo ? CACHE_TTL_AO_VIVO : CACHE_TTL_SEM_JOGOS;
     const cacheValido = cacheJogosDia && (agora - cacheTimestamp) < ttlAtual;
+    const cacheStaleValido = cacheJogosDia && (agora - cacheTimestamp) < CACHE_STALE_MAX;
 
-    // Verificar cache
+    // 1º Cache válido (fresh)
     if (cacheValido) {
       const stats = calcularEstatisticas(cacheJogosDia);
       return res.json({
         jogos: cacheJogosDia,
-        fonte: 'api-football',
+        fonte: cacheFonte,
         aoVivo: cacheTemJogosAoVivo,
         estatisticas: stats,
         cache: true,
@@ -450,14 +449,14 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // Buscar jogos do dia
+    // 2º Tentar: API-Football (principal)
     const { jogos, temAoVivo } = await buscarJogosDoDia();
 
-    // Se há jogos, usar eles
     if (jogos.length > 0) {
       cacheJogosDia = jogos;
       cacheTimestamp = agora;
       cacheTemJogosAoVivo = temAoVivo;
+      cacheFonte = 'api-football';
 
       const stats = calcularEstatisticas(jogos);
 
@@ -470,7 +469,27 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // Fallback: jogos do Globo (agenda do dia)
+    // 3º Cache stale (API falhou mas temos cache antigo válido até 30min)
+    if (cacheStaleValido) {
+      const stats = calcularEstatisticas(cacheJogosDia);
+      const idadeMinutos = Math.round((agora - cacheTimestamp) / 60000);
+
+      console.warn(`[JOGOS-DIA] Usando cache stale (${idadeMinutos}min atrás)`);
+
+      return res.json({
+        jogos: cacheJogosDia,
+        fonte: cacheFonte,
+        aoVivo: cacheTemJogosAoVivo,
+        estatisticas: stats,
+        cache: true,
+        stale: true,
+        idadeMinutos,
+        mensagem: `Dados de ${idadeMinutos} min atrás (limite de requisições atingido)`,
+        atualizadoEm: new Date(cacheTimestamp).toISOString()
+      });
+    }
+
+    // 4º Fallback final: Globo Esporte (apenas agenda)
     const jogosGlobo = await buscarJogosGlobo();
 
     return res.json({
@@ -479,7 +498,7 @@ router.get('/', async (req, res) => {
       aoVivo: false,
       estatisticas: calcularEstatisticas(jogosGlobo),
       mensagem: jogosGlobo.length > 0
-        ? 'Dados do Globo Esporte'
+        ? 'Dados do Globo Esporte (agenda)'
         : 'Sem jogos brasileiros hoje'
     });
 
@@ -494,41 +513,78 @@ router.get('/', async (req, res) => {
 
 // GET /api/jogos-ao-vivo/status
 router.get('/status', async (req, res) => {
-  const apiKey = process.env.API_FOOTBALL_KEY;
+  const apiFootballKey = process.env.API_FOOTBALL_KEY;
+  const agora = Date.now();
 
-  if (!apiKey) {
-    return res.json({
-      configurado: false,
-      mensagem: 'API_FOOTBALL_KEY não configurada'
-    });
-  }
+  // Calcular idade do cache
+  const cacheIdadeMs = cacheTimestamp ? agora - cacheTimestamp : null;
+  const cacheIdadeMin = cacheIdadeMs ? Math.round(cacheIdadeMs / 60000) : null;
+  const cacheStale = cacheIdadeMs && cacheIdadeMs > (cacheTemJogosAoVivo ? CACHE_TTL_AO_VIVO : CACHE_TTL_SEM_JOGOS);
 
-  try {
-    const response = await fetch('https://v3.football.api-sports.io/status', {
-      headers: { 'x-apisports-key': apiKey }
-    });
-    const data = await response.json();
+  const resultado = {
+    fontes: {
+      'api-football': {
+        configurado: !!apiFootballKey,
+        tipo: 'principal',
+        limite: '100 req/dia (free)'
+      },
+      'cache-stale': {
+        ativo: cacheStale && cacheJogosDia?.length > 0,
+        tipo: 'fallback',
+        maxIdade: '30 min',
+        descricao: 'Usa ultimo cache valido quando API falhar'
+      },
+      'globo': {
+        configurado: true,
+        tipo: 'fallback-final',
+        limite: 'Ilimitado (scraper)',
+        descricao: 'Apenas agenda (sem placares ao vivo)'
+      }
+    },
+    cache: {
+      temJogosAoVivo: cacheTemJogosAoVivo,
+      fonte: cacheFonte,
+      ttlAtual: cacheTemJogosAoVivo ? '2 min' : '10 min',
+      idadeMinutos: cacheIdadeMin,
+      stale: cacheStale,
+      jogosEmCache: cacheJogosDia?.length || 0,
+      ultimaAtualizacao: cacheTimestamp ? new Date(cacheTimestamp).toISOString() : null
+    }
+  };
 
-    res.json({
-      configurado: true,
-      conta: data.response?.account?.firstname || 'Free',
-      plano: data.response?.subscription?.plan || 'Free',
-      requisicoes: {
+  // Buscar status da API-Football se configurada
+  if (apiFootballKey) {
+    try {
+      const response = await fetch('https://v3.football.api-sports.io/status', {
+        headers: { 'x-apisports-key': apiFootballKey }
+      });
+      const data = await response.json();
+
+      resultado.fontes['api-football'].conta = data.response?.account?.firstname || 'Free';
+      resultado.fontes['api-football'].plano = data.response?.subscription?.plan || 'Free';
+      resultado.fontes['api-football'].requisicoes = {
         atual: data.response?.requests?.current || 0,
         limite: data.response?.requests?.limit_day || 100
-      },
-      cache: {
-        temJogosAoVivo: cacheTemJogosAoVivo,
-        ttlAtual: cacheTemJogosAoVivo ? '2 min' : '10 min',
-        ultimaAtualizacao: cacheTimestamp ? new Date(cacheTimestamp).toISOString() : null
+      };
+
+      // Verificar se cota está acabando
+      const atual = data.response?.requests?.current || 0;
+      const limite = data.response?.requests?.limit_day || 100;
+      const percentual = (atual / limite) * 100;
+
+      if (percentual >= 100) {
+        resultado.fontes['api-football'].alerta = '🚫 Cota esgotada! Usando cache stale.';
+      } else if (percentual >= 90) {
+        resultado.fontes['api-football'].alerta = '⚠️ Cota quase esgotada (>90%)';
+      } else if (percentual >= 75) {
+        resultado.fontes['api-football'].alerta = '⚡ Cota acima de 75%';
       }
-    });
-  } catch (err) {
-    res.status(500).json({
-      configurado: true,
-      erro: err.message
-    });
+    } catch (err) {
+      resultado.fontes['api-football'].erro = err.message;
+    }
   }
+
+  res.json(resultado);
 });
 
 // GET /api/jogos-ao-vivo/invalidar - Força refresh do cache
