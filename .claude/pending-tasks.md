@@ -1,13 +1,53 @@
 # Tarefas Pendentes
 #
-# Pendente (2026-01-19)
+# (Sem tarefas pendentes no momento)
 #
-### Atualizar Seção de Jogos - Participante
+---
 
-- Exibir apenas jogos do dia
-- Separar em "Em Andamento" e "Encerrados"
-- Aplicar no app do participante (frontend)
-- Validar integração com backend (rotas jogos-ao-vivo)
+## ✅ CONCLUÍDO (2026-01-19)
+
+### Modal Premiações 2026
+
+**Arquivos:**
+- `public/participante/index.html` - Modal com accordion
+- `public/participante/js/modules/participante-boas-vindas.js` v10.12 - Botão na tela Início
+
+**O que foi implementado:**
+| Feature | Status |
+|---------|--------|
+| Modal com 8 seções accordion | ✅ |
+| Campeões de Turno | ✅ Copo Térmico + Camisa |
+| Disputas Individuais | ✅ Artilheiro, Luva, Capitão (R$ 50 cada) |
+| Pontos Corridos | ✅ 1° R$ 150, 2° R$ 130, 3° R$ 110 |
+| Outras Disputas | ✅ Resta Um, Tiro Certo, Mata-Mata |
+| Bolões | ✅ Copa do Mundo + Libertadores |
+| Bônus/Ônus Especiais | ✅ Micos/Mitos, Nunca Mico, etc |
+| Ranking Geral (G10) | ✅ 1° R$ 1000 até 10° R$ 50 |
+| Ranking de Rodada | ✅ Bônus G10 + Ônus Z10 |
+| Botão na tela Início | ✅ |
+
+**Acesso:** `window.abrirPremiacoes2026()`
+
+---
+
+### Seção de Jogos Separada - v5.3
+
+**Arquivo:** `public/participante/js/modules/participante-jogos.js`
+
+**O que foi implementado:**
+| Feature | Status |
+|---------|--------|
+| Exibir apenas jogos do dia | ✅ (já existia) |
+| Separar em "Em Andamento" e "Encerrados" | ✅ Implementado |
+| Aplicar no app do participante (frontend) | ✅ |
+| Validar integração com backend | ✅ Funciona com jogos-ao-vivo-routes.js |
+
+**Mudanças técnicas:**
+- Nova função `renderizarSecaoJogos()` para renderizar cada seção
+- `renderizarJogosAoVivo()` agora separa jogos em duas categorias:
+  - "Em Andamento": jogos ao vivo + agendados
+  - "Encerrados": jogos finalizados (FT, AET, PEN)
+- Visual diferenciado: borda laranja para Em Andamento, cinza para Encerrados
 
 ---
 

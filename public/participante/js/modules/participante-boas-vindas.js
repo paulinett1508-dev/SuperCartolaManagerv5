@@ -1,6 +1,9 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.11 (BADGE AMBIENTE NO HEADER)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.12 (BOTÃO PREMIAÇÕES 2026)
 // =====================================================================
+// ✅ v10.12: Botão "Premiações 2026" na tela Início
+//           - Abre modal com todas as premiações da temporada
+//           - Accordion com 8 seções: Turnos, Disputas, Ranking, etc.
 // ✅ v10.11: Badge de ambiente movido para o header (próximo à versão)
 //           - Removido do card de boas-vindas
 //           - Agora aparece no topo, ao lado do badge de versão
@@ -30,7 +33,7 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.10...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.12 (Premiações 2026)...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -727,6 +730,21 @@ function renderizarBoasVindas(container, data, ligaRules) {
                             <p class="text-sm font-normal text-white/70">${ligaRules && ligaRules.mensagens && ligaRules.mensagens.confirmacao ? ligaRules.mensagens.confirmacao : `Sua inscrição para a temporada ${TEMPORADA_ATUAL} está ativa.`}</p>
                         </div>
                     </div>
+
+                    <!-- Botão Premiações 2026 -->
+                    <div class="mx-4 mb-4 rounded-xl bg-gradient-to-r from-primary/20 to-transparent border border-primary/30 p-4 cursor-pointer active:scale-[0.98] transition-transform" onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                                <span class="material-icons text-xl text-primary">emoji_events</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-white">Premiações 2026</p>
+                                <p class="text-xs text-white/60">Veja todos os prêmios da temporada</p>
+                            </div>
+                            <span class="material-icons text-white/40">chevron_right</span>
+                        </div>
+                    </div>
+
                     <div id="jogos-do-dia-placeholder"></div>
             </div>
         `;
@@ -838,6 +856,20 @@ function renderizarBoasVindas(container, data, ligaRules) {
                     <div>
                         <p class="text-sm font-bold uppercase text-white/90">Dica</p>
                         <p class="text-sm font-normal text-white/70">Acompanhe seu extrato financeiro para entender sua evolução na liga!</p>
+                    </div>
+                </div>
+
+                <!-- Botão Premiações 2026 -->
+                <div class="mx-4 mb-4 rounded-xl bg-gradient-to-r from-primary/20 to-transparent border border-primary/30 p-4 cursor-pointer active:scale-[0.98] transition-transform" onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                            <span class="material-icons text-xl text-primary">emoji_events</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-white">Premiações 2026</p>
+                            <p class="text-xs text-white/60">Veja todos os prêmios da temporada</p>
+                        </div>
+                        <span class="material-icons text-white/40">chevron_right</span>
                     </div>
                 </div>
 

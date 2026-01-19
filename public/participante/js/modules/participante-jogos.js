@@ -1,4 +1,7 @@
-// PARTICIPANTE-JOGOS.JS - v5.2 (LAYOUT COMPACTO)
+// PARTICIPANTE-JOGOS.JS - v5.3 (SEÇÕES SEPARADAS)
+// ✅ v5.3: Separação em seções "Em Andamento" e "Encerrados"
+//          - Jogos ao vivo + agendados em "Em Andamento"
+//          - Jogos finalizados em "Encerrados"
 // ✅ v5.2: Layout compacto - reducao de fontes, paddings, escudos (~15-25%)
 // ✅ v5.1: Font-brand (Russo One) aplicado corretamente:
 //          - Nome da liga no header do card
@@ -89,7 +92,7 @@ function isJogoAgendado(jogo) {
 }
 
 /**
- * Renderiza card de jogos do dia
+ * Renderiza card de jogos do dia - v5.3 (Seções separadas)
  * @param {Array} jogos - Lista de jogos
  * @param {string} fonte - Fonte dos dados (api-football, globo)
  * @param {boolean} aoVivo - Se ha jogos ao vivo
@@ -97,49 +100,75 @@ function isJogoAgendado(jogo) {
 export function renderizarJogosAoVivo(jogos, fonte = 'api-football', aoVivo = false) {
     if (!jogos || !jogos.length) return '';
 
+    // Separar jogos em categorias
+    const jogosEmAndamento = jogos.filter(j => isJogoAoVivo(j) || isJogoAgendado(j));
+    const jogosEncerrados = jogos.filter(j => isJogoEncerrado(j));
+
+    // Log para debug
+    console.log('[JOGOS-DEBUG] Renderizados', jogos.length, 'jogos. Em andamento:', jogosEmAndamento.length, 'Encerrados:', jogosEncerrados.length);
+
     // Calcular estatisticas
     const stats = {
         aoVivo: jogos.filter(isJogoAoVivo).length,
         agendados: jogos.filter(isJogoAgendado).length,
-        encerrados: jogos.filter(isJogoEncerrado).length
+        encerrados: jogosEncerrados.length
     };
 
-    // Titulo dinamico
-    let titulo = 'Jogos do Dia';
-    let tituloIcone = 'event';
-    let tagClass = 'bg-gray-500/20 text-gray-400';
-    let tagTexto = `${jogos.length} jogos`;
+    // Fonte dos dados para footer
+    const fonteTexto = fonte === 'api-football' ? 'API-Football'
+        : fonte === 'soccerdata' ? 'SoccerData'
+        : 'Globo Esporte';
 
-    if (stats.aoVivo > 0) {
-        titulo = 'Jogos Ao Vivo';
-        tituloIcone = 'sports_soccer';
-        tagClass = 'bg-green-500/20 text-green-400 animate-pulse';
-        tagTexto = `${stats.aoVivo} ao vivo`;
-    } else if (stats.agendados > 0 && stats.encerrados === 0) {
-        tagClass = 'bg-yellow-400/10 text-yellow-400/70';
-        tagTexto = `${stats.agendados} agendados`;
-    } else if (stats.encerrados > 0 && stats.agendados === 0) {
+    return `
+    <div class="jogos-ao-vivo mx-4 mb-8 space-y-4">
+        ${renderizarSecaoJogos(jogosEmAndamento, 'Em Andamento', stats, true)}
+        ${renderizarSecaoJogos(jogosEncerrados, 'Encerrados', stats, false)}
+        <div class="text-center">
+            <span class="text-[10px] text-white/30">Dados: ${fonteTexto}</span>
+        </div>
+    </div>
+    `;
+}
+
+/**
+ * Renderiza uma seção de jogos (Em Andamento ou Encerrados)
+ * @param {Array} jogos - Lista de jogos da seção
+ * @param {string} titulo - Título da seção
+ * @param {Object} stats - Estatísticas gerais
+ * @param {boolean} isEmAndamento - Se é seção de jogos em andamento
+ */
+function renderizarSecaoJogos(jogos, titulo, stats, isEmAndamento) {
+    if (!jogos || !jogos.length) return '';
+
+    // Configurações visuais baseadas no tipo de seção
+    let tituloIcone, tagClass, tagTexto;
+
+    if (isEmAndamento) {
+        tituloIcone = stats.aoVivo > 0 ? 'sports_soccer' : 'schedule';
+        if (stats.aoVivo > 0) {
+            tagClass = 'bg-green-500/20 text-green-400 animate-pulse';
+            tagTexto = `${stats.aoVivo} ao vivo`;
+        } else {
+            tagClass = 'bg-yellow-400/10 text-yellow-400/70';
+            tagTexto = `${stats.agendados} agendados`;
+        }
+    } else {
+        tituloIcone = 'verified';
         tagClass = 'bg-gray-500/20 text-gray-400';
-        tagTexto = `${stats.encerrados} encerrados`;
+        tagTexto = `${jogos.length} jogos`;
     }
 
     return `
-    <div class="jogos-ao-vivo mx-4 mb-8 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 p-3 border border-primary/30 shadow-lg">
+    <div class="rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 p-3 border ${isEmAndamento ? 'border-primary/30' : 'border-gray-700/30'} shadow-lg">
         <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-1.5">
-                <span class="material-icons text-primary text-base">${tituloIcone}</span>
+                <span class="material-icons ${isEmAndamento ? 'text-primary' : 'text-gray-400'} text-base">${tituloIcone}</span>
                 <h3 class="text-xs font-brand text-white tracking-wide">${titulo}</h3>
             </div>
             <span class="text-[10px] px-1.5 py-0.5 rounded ${tagClass}">${tagTexto}</span>
         </div>
         <div class="space-y-1.5">
             ${jogos.map(jogo => renderizarCardJogo(jogo)).join('')}
-            ${(() => { console.log('[JOGOS-DEBUG] Renderizados', jogos.length, 'jogos. Cache:', window._jogosCache?.length || 0); return ''; })()}
-        </div>
-        <div class="mt-2 text-center">
-            <span class="text-[10px] text-white/30">
-                ${fonte === 'api-football' ? 'Dados: API-Football' : 'Dados: Globo Esporte'}
-            </span>
         </div>
     </div>
     `;
@@ -743,8 +772,8 @@ window.fecharModalJogo = function() {
     if (container) container.innerHTML = '';
 };
 
-if (window.Log) Log.info('PARTICIPANTE-JOGOS', 'Modulo v5.2 carregado (layout compacto)');
+if (window.Log) Log.info('PARTICIPANTE-JOGOS', 'Modulo v5.3 carregado (seções separadas)');
 
-// ✅ DEBUG: Confirmar que versão 5.2 está ativa no console
-console.log('[JOGOS-DEBUG] ✅ Versão 5.2 carregada. Layout compacto ativo.');
+// ✅ DEBUG: Confirmar que versão 5.3 está ativa no console
+console.log('[JOGOS-DEBUG] ✅ Versão 5.3 carregada. Seções Em Andamento/Encerrados ativas.');
 console.log('[JOGOS-DEBUG] expandirJogo disponível:', typeof window.expandirJogo);
