@@ -1,4 +1,9 @@
-// PARTICIPANTE-JOGOS.JS - v5.0 (MODAL COM TABS + STATS)
+// PARTICIPANTE-JOGOS.JS - v5.2 (LAYOUT COMPACTO)
+// ✅ v5.2: Layout compacto - reducao de fontes, paddings, escudos (~15-25%)
+// ✅ v5.1: Font-brand (Russo One) aplicado corretamente:
+//          - Nome da liga no header do card
+//          - Placar (ao vivo e encerrado)
+//          - VS em jogos agendados
 // ✅ v5.0: Modal com tabs (Eventos | Estatisticas | Escalacoes)
 //          - Barras comparativas de posse, chutes, escanteios
 //          - Lista de titulares com formacao tatica
@@ -119,19 +124,20 @@ export function renderizarJogosAoVivo(jogos, fonte = 'api-football', aoVivo = fa
     }
 
     return `
-    <div class="jogos-ao-vivo mx-4 mb-4 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 p-4 border border-primary/30 shadow-lg">
-        <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-                <span class="material-icons text-primary">${tituloIcone}</span>
-                <h3 class="text-sm font-brand text-white tracking-wide">${titulo}</h3>
+    <div class="jogos-ao-vivo mx-4 mb-8 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 p-3 border border-primary/30 shadow-lg">
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-1.5">
+                <span class="material-icons text-primary text-base">${tituloIcone}</span>
+                <h3 class="text-xs font-brand text-white tracking-wide">${titulo}</h3>
             </div>
-            <span class="text-xs px-2 py-0.5 rounded ${tagClass}">${tagTexto}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded ${tagClass}">${tagTexto}</span>
         </div>
-        <div class="space-y-2">
+        <div class="space-y-1.5">
             ${jogos.map(jogo => renderizarCardJogo(jogo)).join('')}
+            ${(() => { console.log('[JOGOS-DEBUG] Renderizados', jogos.length, 'jogos. Cache:', window._jogosCache?.length || 0); return ''; })()}
         </div>
-        <div class="mt-3 text-center">
-            <span class="text-xs text-white/40">
+        <div class="mt-2 text-center">
+            <span class="text-[10px] text-white/30">
                 ${fonte === 'api-football' ? 'Dados: API-Football' : 'Dados: Globo Esporte'}
             </span>
         </div>
@@ -158,12 +164,12 @@ function renderizarCardJogo(jogo) {
     // Se tem logo (API-Football), renderizar com escudos
     if (jogo.logoMandante && jogo.logoVisitante) {
         return `
-        <div class="jogo-card flex flex-col py-2 px-3 rounded-lg ${containerClass} cursor-pointer"
+        <div class="jogo-card flex flex-col py-1.5 px-2.5 rounded-lg ${containerClass} cursor-pointer"
              data-fixture-id="${jogo.id}"
              onclick="window.expandirJogo && window.expandirJogo(${jogo.id})">
             <!-- Header: Liga + Status -->
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[9px] text-white/40 truncate max-w-[60%]" title="ID:${jogo.ligaId} | API:${jogo.ligaOriginal}">${jogo.liga}</span>
+            <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[9px] font-brand text-white/50 truncate max-w-[60%] tracking-wide" title="ID:${jogo.ligaId} | API:${jogo.ligaOriginal}">${jogo.liga}</span>
                 ${renderizarBadgeStatus(jogo, aoVivo, encerrado)}
             </div>
 
@@ -172,29 +178,29 @@ function renderizarCardJogo(jogo) {
                 <!-- Time Mandante -->
                 <div class="flex items-center gap-2 flex-1 min-w-0">
                     <img src="${jogo.logoMandante}" alt="${jogo.mandante}"
-                         class="w-7 h-7 object-contain shrink-0"
+                         class="w-6 h-6 object-contain shrink-0"
                          onerror="this.style.display='none'">
-                    <span class="text-white font-medium text-xs truncate">${jogo.mandante}</span>
+                    <span class="text-white font-medium text-[11px] truncate">${jogo.mandante}</span>
                 </div>
 
                 <!-- Placar Central -->
-                <div class="flex flex-col items-center justify-center min-w-[70px] shrink-0 px-2">
+                <div class="flex flex-col items-center justify-center min-w-[60px] shrink-0 px-1.5">
                     ${renderizarPlacar(jogo, aoVivo, encerrado, agendado)}
                 </div>
 
                 <!-- Time Visitante -->
                 <div class="flex items-center gap-2 flex-1 min-w-0 justify-end">
-                    <span class="text-white font-medium text-xs truncate text-right">${jogo.visitante}</span>
+                    <span class="text-white font-medium text-[11px] truncate text-right">${jogo.visitante}</span>
                     <img src="${jogo.logoVisitante}" alt="${jogo.visitante}"
-                         class="w-7 h-7 object-contain shrink-0"
+                         class="w-6 h-6 object-contain shrink-0"
                          onerror="this.style.display='none'">
                 </div>
             </div>
 
             <!-- Footer: Estadio (se encerrado ou ao vivo) -->
             ${jogo.estadio && (aoVivo || encerrado) ? `
-                <div class="mt-2 text-center">
-                    <span class="text-[9px] text-white/30">${jogo.estadio}${jogo.cidade ? `, ${jogo.cidade}` : ''}</span>
+                <div class="mt-1.5 text-center">
+                    <span class="text-[8px] text-white/25">${jogo.estadio}${jogo.cidade ? `, ${jogo.cidade}` : ''}</span>
                 </div>
             ` : ''}
         </div>
@@ -239,7 +245,7 @@ function renderizarBadgeStatus(jogo, aoVivo, encerrado) {
             : tempoDisplay;
 
         return `
-            <span class="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
+            <span class="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400">
                 <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
                 ${statusTexto}
             </span>
@@ -248,7 +254,7 @@ function renderizarBadgeStatus(jogo, aoVivo, encerrado) {
 
     if (encerrado) {
         return `
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-500/20 text-gray-400">
+            <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-gray-500/20 text-gray-400">
                 Encerrado
             </span>
         `;
@@ -256,7 +262,7 @@ function renderizarBadgeStatus(jogo, aoVivo, encerrado) {
 
     // Agendado
     return `
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+        <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
             ${jogo.horario}
         </span>
     `;
@@ -268,17 +274,17 @@ function renderizarBadgeStatus(jogo, aoVivo, encerrado) {
 function renderizarPlacar(jogo, aoVivo, encerrado, agendado) {
     if (agendado) {
         return `
-            <span class="text-primary font-bold text-lg">vs</span>
-            <span class="text-white/50 text-[10px]">${jogo.horario}</span>
+            <span class="text-primary font-brand text-base">vs</span>
+            <span class="text-white/50 text-[9px]">${jogo.horario}</span>
         `;
     }
 
-    // Ao vivo ou encerrado: mostrar placar
+    // Ao vivo ou encerrado: mostrar placar com Russo One
     const placarClass = aoVivo ? 'text-white' : 'text-white/70';
-    const fontClass = aoVivo ? 'text-xl font-bold' : 'text-lg font-semibold';
+    const sizeClass = aoVivo ? 'text-lg' : 'text-base';
 
     return `
-        <span class="${placarClass} ${fontClass} leading-tight tabular-nums">
+        <span class="${placarClass} ${sizeClass} font-brand leading-tight tabular-nums">
             ${jogo.golsMandante ?? 0} - ${jogo.golsVisitante ?? 0}
         </span>
         ${jogo.placarHT ? `
@@ -394,63 +400,63 @@ export function renderizarModalJogo(jogo, detalhes) {
     const tabPrefix = `modal-jogo-${jogo.id}`;
 
     return `
-    <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
          onclick="window.fecharModalJogo && window.fecharModalJogo()">
-        <div class="w-full max-w-lg bg-gray-900 rounded-t-2xl max-h-[90vh] overflow-hidden flex flex-col"
+        <div class="w-full max-w-sm bg-gray-900 rounded-xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl"
              onclick="event.stopPropagation()">
 
             <!-- Header Fixo -->
-            <div class="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 z-10">
+            <div class="sticky top-0 bg-gray-900 border-b border-gray-700/50 px-3 py-2 z-10">
                 <div class="flex items-center justify-between">
-                    <span class="text-sm font-brand text-white tracking-wide">${jogo.liga}</span>
+                    <span class="text-xs text-white/60 tracking-wide truncate flex-1">${jogo.liga}</span>
                     <button onclick="window.fecharModalJogo()"
-                            class="p-1 rounded-full hover:bg-gray-700 transition-colors">
-                        <span class="material-icons text-white/60">close</span>
+                            class="p-1 rounded-full hover:bg-gray-700 transition-colors ml-2">
+                        <span class="material-icons text-white/40 text-lg">close</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Placar Grande -->
-            <div class="p-4 text-center bg-gradient-to-b from-gray-800/50 to-transparent">
-                <div class="flex items-center justify-center gap-4">
-                    <div class="flex flex-col items-center gap-1 flex-1">
-                        <img src="${jogo.logoMandante}" class="w-14 h-14 object-contain" alt="" onerror="this.style.display='none'">
-                        <span class="text-xs font-medium text-white truncate max-w-[100px]">${jogo.mandante}</span>
+            <!-- Placar Compacto -->
+            <div class="px-3 py-3 text-center bg-gradient-to-b from-gray-800/30 to-transparent">
+                <div class="flex items-center justify-center gap-3">
+                    <div class="flex flex-col items-center gap-1 flex-1 min-w-0">
+                        <img src="${jogo.logoMandante}" class="w-10 h-10 object-contain" alt="" onerror="this.style.display='none'">
+                        <span class="text-[10px] font-medium text-white/80 truncate max-w-[70px]">${jogo.mandante}</span>
                     </div>
-                    <div class="text-4xl font-brand text-white tabular-nums px-4">
+                    <div class="text-2xl font-brand text-white tabular-nums px-2">
                         ${jogo.golsMandante ?? 0} - ${jogo.golsVisitante ?? 0}
                     </div>
-                    <div class="flex flex-col items-center gap-1 flex-1">
-                        <img src="${jogo.logoVisitante}" class="w-14 h-14 object-contain" alt="" onerror="this.style.display='none'">
-                        <span class="text-xs font-medium text-white truncate max-w-[100px]">${jogo.visitante}</span>
+                    <div class="flex flex-col items-center gap-1 flex-1 min-w-0">
+                        <img src="${jogo.logoVisitante}" class="w-10 h-10 object-contain" alt="" onerror="this.style.display='none'">
+                        <span class="text-[10px] font-medium text-white/80 truncate max-w-[70px]">${jogo.visitante}</span>
                     </div>
                 </div>
-                ${jogo.placarHT ? `<p class="text-xs text-white/40 mt-1">Intervalo: ${jogo.placarHT}</p>` : ''}
+                ${jogo.placarHT ? `<p class="text-[10px] text-white/30 mt-1">(HT: ${jogo.placarHT})</p>` : ''}
             </div>
 
             <!-- Sistema de Tabs -->
-            <div class="border-b border-gray-700">
+            <div class="border-b border-gray-700/50">
                 <div class="flex">
                     <button id="${tabPrefix}-tab-eventos"
-                            class="flex-1 py-3 text-sm font-medium text-white border-b-2 border-primary transition-colors"
+                            class="flex-1 py-2 text-[11px] font-medium text-white border-b-2 border-primary transition-colors"
                             onclick="window.trocarTabModal('${tabPrefix}', 'eventos')">
-                        <span class="material-icons text-base align-middle mr-1">sports_soccer</span>
+                        <span class="material-icons text-sm align-middle mr-0.5">sports_soccer</span>
                         Eventos
                     </button>
                     ${temEstatisticas ? `
                     <button id="${tabPrefix}-tab-stats"
-                            class="flex-1 py-3 text-sm font-medium text-white/50 border-b-2 border-transparent hover:text-white/80 transition-colors"
+                            class="flex-1 py-2 text-[11px] font-medium text-white/50 border-b-2 border-transparent hover:text-white/80 transition-colors"
                             onclick="window.trocarTabModal('${tabPrefix}', 'stats')">
-                        <span class="material-icons text-base align-middle mr-1">bar_chart</span>
-                        Estatísticas
+                        <span class="material-icons text-sm align-middle mr-0.5">bar_chart</span>
+                        Stats
                     </button>
                     ` : ''}
                     ${temEscalacoes ? `
                     <button id="${tabPrefix}-tab-escalacoes"
-                            class="flex-1 py-3 text-sm font-medium text-white/50 border-b-2 border-transparent hover:text-white/80 transition-colors"
+                            class="flex-1 py-2 text-[11px] font-medium text-white/50 border-b-2 border-transparent hover:text-white/80 transition-colors"
                             onclick="window.trocarTabModal('${tabPrefix}', 'escalacoes')">
-                        <span class="material-icons text-base align-middle mr-1">groups</span>
-                        Escalações
+                        <span class="material-icons text-sm align-middle mr-0.5">groups</span>
+                        Times
                     </button>
                     ` : ''}
                 </div>
@@ -459,39 +465,39 @@ export function renderizarModalJogo(jogo, detalhes) {
             <!-- Conteudo das Tabs (scrollable) -->
             <div class="flex-1 overflow-y-auto">
                 <!-- Tab Eventos -->
-                <div id="${tabPrefix}-content-eventos" class="p-4">
+                <div id="${tabPrefix}-content-eventos" class="p-3">
                     ${gols.length > 0 ? `
-                        <h4 class="text-xs font-brand text-white/50 uppercase tracking-wide mb-2">Gols</h4>
-                        <div class="space-y-2 mb-4">
+                        <h4 class="text-[10px] text-white/40 uppercase tracking-wide mb-1.5">Gols</h4>
+                        <div class="space-y-1.5 mb-3">
                             ${gols.map(e => renderizarEvento(e, jogo)).join('')}
                         </div>
                     ` : ''}
 
                     ${cartoes.length > 0 ? `
-                        <h4 class="text-xs font-brand text-white/50 uppercase tracking-wide mb-2">Cartões</h4>
-                        <div class="space-y-2 mb-4">
+                        <h4 class="text-[10px] text-white/40 uppercase tracking-wide mb-1.5">Cartões</h4>
+                        <div class="space-y-1.5 mb-3">
                             ${cartoes.map(e => renderizarEvento(e, jogo)).join('')}
                         </div>
                     ` : ''}
 
                     ${eventos.length === 0 ? `
-                        <div class="flex flex-col items-center justify-center py-12 text-white/40">
-                            <span class="material-icons text-4xl mb-2">sports</span>
-                            <p class="text-sm">Nenhum evento registrado</p>
+                        <div class="flex flex-col items-center justify-center py-8 text-white/30">
+                            <span class="material-icons text-2xl mb-1">sports</span>
+                            <p class="text-xs">Nenhum evento</p>
                         </div>
                     ` : ''}
                 </div>
 
                 <!-- Tab Estatisticas -->
                 ${temEstatisticas ? `
-                <div id="${tabPrefix}-content-stats" class="p-4 hidden">
+                <div id="${tabPrefix}-content-stats" class="p-3 hidden">
                     ${renderizarEstatisticas(resumoStats, jogo)}
                 </div>
                 ` : ''}
 
                 <!-- Tab Escalacoes -->
                 ${temEscalacoes ? `
-                <div id="${tabPrefix}-content-escalacoes" class="p-4 hidden">
+                <div id="${tabPrefix}-content-escalacoes" class="p-3 hidden">
                     ${renderizarEscalacoes(escalacoes, jogo)}
                 </div>
                 ` : ''}
@@ -499,17 +505,17 @@ export function renderizarModalJogo(jogo, detalhes) {
 
             <!-- Footer com Estadio/Arbitro -->
             ${fixture?.estadio || fixture?.arbitro ? `
-                <div class="border-t border-gray-700 p-3 bg-gray-800/50">
-                    <div class="flex items-center justify-center gap-4 text-xs text-white/40">
+                <div class="border-t border-gray-700/50 px-3 py-2 bg-gray-800/30">
+                    <div class="flex items-center justify-center gap-3 text-[10px] text-white/30">
                         ${fixture.estadio ? `
-                            <span class="flex items-center gap-1">
-                                <span class="material-icons text-sm">stadium</span>
-                                ${fixture.estadio}${fixture.cidade ? `, ${fixture.cidade}` : ''}
+                            <span class="flex items-center gap-0.5">
+                                <span class="material-icons text-xs">stadium</span>
+                                ${fixture.estadio}
                             </span>
                         ` : ''}
                         ${fixture.arbitro ? `
-                            <span class="flex items-center gap-1">
-                                <span class="material-icons text-sm">sports</span>
+                            <span class="flex items-center gap-0.5">
+                                <span class="material-icons text-xs">sports</span>
                                 ${fixture.arbitro}
                             </span>
                         ` : ''}
@@ -529,12 +535,12 @@ function renderizarEvento(evento, jogo) {
     const isMandante = evento.time === jogo.mandante;
 
     return `
-    <div class="flex items-center gap-3 p-2 rounded-lg bg-gray-800/50 ${isMandante ? '' : 'flex-row-reverse'}">
-        <span class="text-xs text-white/50 w-8 text-center">${evento.tempo}'${evento.tempoExtra ? `+${evento.tempoExtra}` : ''}</span>
-        <span class="material-icons ${iconeConfig.cor} text-lg">${iconeConfig.icon}</span>
+    <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-gray-800/40 ${isMandante ? '' : 'flex-row-reverse'}">
+        <span class="text-[10px] text-white/40 w-6 text-center">${evento.tempo}'${evento.tempoExtra ? `+${evento.tempoExtra}` : ''}</span>
+        <span class="material-icons ${iconeConfig.cor} text-sm">${iconeConfig.icon}</span>
         <div class="flex-1 ${isMandante ? '' : 'text-right'}">
-            <span class="text-sm text-white">${evento.jogador || 'Desconhecido'}</span>
-            ${evento.assistencia ? `<span class="text-xs text-white/40 ml-1">(${evento.assistencia})</span>` : ''}
+            <span class="text-xs text-white/90">${evento.jogador || 'Desconhecido'}</span>
+            ${evento.assistencia ? `<span class="text-[10px] text-white/30 ml-0.5">(${evento.assistencia})</span>` : ''}
         </div>
     </div>
     `;
@@ -737,4 +743,8 @@ window.fecharModalJogo = function() {
     if (container) container.innerHTML = '';
 };
 
-if (window.Log) Log.info('PARTICIPANTE-JOGOS', 'Modulo v5.0 carregado (modal com tabs + stats)');
+if (window.Log) Log.info('PARTICIPANTE-JOGOS', 'Modulo v5.2 carregado (layout compacto)');
+
+// ✅ DEBUG: Confirmar que versão 5.2 está ativa no console
+console.log('[JOGOS-DEBUG] ✅ Versão 5.2 carregada. Layout compacto ativo.');
+console.log('[JOGOS-DEBUG] expandirJogo disponível:', typeof window.expandirJogo);
