@@ -181,7 +181,12 @@
       "Skill(pesquisa)",
       "Skill(spec)",
       "Skill(code)",
-      "Skill(workflow)"
+      "Skill(workflow)",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:api-sports.io)",
+      "WebFetch(domain:apifootball.com)",
+      "WebFetch(domain:www.api-futebol.com.br)",
+      "WebFetch(domain:soccerdataapi.com)"
     ]
   },
   "enableAllProjectMcpServers": true,

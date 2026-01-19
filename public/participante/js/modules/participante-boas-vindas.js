@@ -868,6 +868,7 @@ async function carregarEExibirJogos() {
 
         // Armazenar jogos em cache global para modal
         window._jogosCache = result.jogos || [];
+        console.log('[BOAS-VINDAS-DEBUG] _jogosCache populado com', window._jogosCache.length, 'jogos');
 
         if (result.jogos && result.jogos.length > 0) {
             const html = mod.renderizarJogosAoVivo(result.jogos, result.fonte, result.aoVivo);

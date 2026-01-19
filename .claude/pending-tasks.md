@@ -1,4 +1,15 @@
 # Tarefas Pendentes
+#
+# Pendente (2026-01-19)
+#
+### Atualizar Seção de Jogos - Participante
+
+- Exibir apenas jogos do dia
+- Separar em "Em Andamento" e "Encerrados"
+- Aplicar no app do participante (frontend)
+- Validar integração com backend (rotas jogos-ao-vivo)
+
+---
 
 > Arquivo gerenciado pelos comandos `/salvar-tarefas` e `/retomar-tarefas`
 > Apenas pendencias reais apontadas pelo usuario devem estar aqui.
