@@ -1,4 +1,8 @@
-// PARTICIPANTE-JOGOS.JS - v5.3 (SEÇÕES SEPARADAS)
+// PARTICIPANTE-JOGOS.JS - v5.4 (3 SEÇÕES CORRETAS)
+// ✅ v5.4: Separação correta em 3 seções
+//          - "Ao Vivo": apenas jogos realmente ao vivo (1H, 2H, HT, etc.)
+//          - "Hoje": jogos agendados que ainda não começaram
+//          - "Encerrados": jogos finalizados
 // ✅ v5.3: Separação em seções "Em Andamento" e "Encerrados"
 //          - Jogos ao vivo + agendados em "Em Andamento"
 //          - Jogos finalizados em "Encerrados"
@@ -100,17 +104,18 @@ function isJogoAgendado(jogo) {
 export function renderizarJogosAoVivo(jogos, fonte = 'api-football', aoVivo = false) {
     if (!jogos || !jogos.length) return '';
 
-    // Separar jogos em categorias
-    const jogosEmAndamento = jogos.filter(j => isJogoAoVivo(j) || isJogoAgendado(j));
+    // ✅ v5.4: Separar jogos em 3 categorias distintas
+    const jogosAoVivo = jogos.filter(j => isJogoAoVivo(j));
+    const jogosAgendados = jogos.filter(j => isJogoAgendado(j));
     const jogosEncerrados = jogos.filter(j => isJogoEncerrado(j));
 
     // Log para debug
-    console.log('[JOGOS-DEBUG] Renderizados', jogos.length, 'jogos. Em andamento:', jogosEmAndamento.length, 'Encerrados:', jogosEncerrados.length);
+    console.log('[JOGOS-DEBUG] Total:', jogos.length, '| Ao vivo:', jogosAoVivo.length, '| Agendados:', jogosAgendados.length, '| Encerrados:', jogosEncerrados.length);
 
     // Calcular estatisticas
     const stats = {
-        aoVivo: jogos.filter(isJogoAoVivo).length,
-        agendados: jogos.filter(isJogoAgendado).length,
+        aoVivo: jogosAoVivo.length,
+        agendados: jogosAgendados.length,
         encerrados: jogosEncerrados.length
     };
 
@@ -121,8 +126,9 @@ export function renderizarJogosAoVivo(jogos, fonte = 'api-football', aoVivo = fa
 
     return `
     <div class="jogos-ao-vivo mx-4 mb-8 space-y-4">
-        ${renderizarSecaoJogos(jogosEmAndamento, 'Em Andamento', stats, true)}
-        ${renderizarSecaoJogos(jogosEncerrados, 'Encerrados', stats, false)}
+        ${renderizarSecaoJogos(jogosAoVivo, 'Ao Vivo', stats, 'aoVivo')}
+        ${renderizarSecaoJogos(jogosAgendados, 'Hoje', stats, 'agendados')}
+        ${renderizarSecaoJogos(jogosEncerrados, 'Encerrados', stats, 'encerrados')}
         <div class="text-center">
             <span class="text-[10px] text-white/30">Dados: ${fonteTexto}</span>
         </div>
@@ -131,38 +137,48 @@ export function renderizarJogosAoVivo(jogos, fonte = 'api-football', aoVivo = fa
 }
 
 /**
- * Renderiza uma seção de jogos (Em Andamento ou Encerrados)
+ * Renderiza uma seção de jogos - v5.4
  * @param {Array} jogos - Lista de jogos da seção
  * @param {string} titulo - Título da seção
  * @param {Object} stats - Estatísticas gerais
- * @param {boolean} isEmAndamento - Se é seção de jogos em andamento
+ * @param {string} tipo - Tipo da seção: 'aoVivo', 'agendados', 'encerrados'
  */
-function renderizarSecaoJogos(jogos, titulo, stats, isEmAndamento) {
+function renderizarSecaoJogos(jogos, titulo, stats, tipo) {
     if (!jogos || !jogos.length) return '';
 
     // Configurações visuais baseadas no tipo de seção
-    let tituloIcone, tagClass, tagTexto;
+    let tituloIcone, tagClass, tagTexto, borderClass, iconColor;
 
-    if (isEmAndamento) {
-        tituloIcone = stats.aoVivo > 0 ? 'sports_soccer' : 'schedule';
-        if (stats.aoVivo > 0) {
+    switch (tipo) {
+        case 'aoVivo':
+            tituloIcone = 'sports_soccer';
             tagClass = 'bg-green-500/20 text-green-400 animate-pulse';
-            tagTexto = `${stats.aoVivo} ao vivo`;
-        } else {
-            tagClass = 'bg-yellow-400/10 text-yellow-400/70';
-            tagTexto = `${stats.agendados} agendados`;
-        }
-    } else {
-        tituloIcone = 'verified';
-        tagClass = 'bg-gray-500/20 text-gray-400';
-        tagTexto = `${jogos.length} jogos`;
+            tagTexto = `${jogos.length} ao vivo`;
+            borderClass = 'border-green-500/40';
+            iconColor = 'text-green-400';
+            break;
+        case 'agendados':
+            tituloIcone = 'schedule';
+            tagClass = 'bg-yellow-400/20 text-yellow-400';
+            tagTexto = `${jogos.length} ${jogos.length === 1 ? 'jogo' : 'jogos'}`;
+            borderClass = 'border-yellow-500/30';
+            iconColor = 'text-yellow-400';
+            break;
+        case 'encerrados':
+        default:
+            tituloIcone = 'verified';
+            tagClass = 'bg-gray-500/20 text-gray-400';
+            tagTexto = `${jogos.length} ${jogos.length === 1 ? 'jogo' : 'jogos'}`;
+            borderClass = 'border-gray-700/30';
+            iconColor = 'text-gray-400';
+            break;
     }
 
     return `
-    <div class="rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 p-3 border ${isEmAndamento ? 'border-primary/30' : 'border-gray-700/30'} shadow-lg">
+    <div class="rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 p-3 border ${borderClass} shadow-lg">
         <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-1.5">
-                <span class="material-icons ${isEmAndamento ? 'text-primary' : 'text-gray-400'} text-base">${tituloIcone}</span>
+                <span class="material-icons ${iconColor} text-base">${tituloIcone}</span>
                 <h3 class="text-xs font-brand text-white tracking-wide">${titulo}</h3>
             </div>
             <span class="text-[10px] px-1.5 py-0.5 rounded ${tagClass}">${tagTexto}</span>

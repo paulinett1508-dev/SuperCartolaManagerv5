@@ -1,5 +1,7 @@
 // routes/jogos-ao-vivo-routes.js
-// v3.5 - SoccerDataAPI como fallback secundário (75 req/dia grátis)
+// v3.6 - Invalidação de cache por mudança de data
+// ✅ v3.6: Cache invalida automaticamente quando data muda (virou o dia)
+//          Corrige bug: jogos de ontem apareciam hoje
 // ✅ v3.5: SoccerDataAPI - fallback entre API-Football e Cache Stale
 // ✅ v3.4: Cache stale - quando API falhar, usa ultimo cache valido com aviso
 // ✅ v3.3: Fix LIGAS_PRINCIPAIS - removido IDs de estaduais (variam entre temporadas)
@@ -118,6 +120,7 @@ let cacheJogosDia = null;
 let cacheTimestamp = 0;
 let cacheTemJogosAoVivo = false;
 let cacheFonte = 'api-football'; // Fonte do cache atual
+let cacheDataReferencia = null;  // ✅ v3.5: Data de referência do cache (YYYY-MM-DD)
 
 // TTL dinâmico baseado em jogos ao vivo
 const CACHE_TTL_AO_VIVO = 2 * 60 * 1000;    // 2 minutos se tem jogos ao vivo
@@ -550,6 +553,15 @@ function calcularEstatisticas(jogos) {
 router.get('/', async (req, res) => {
   try {
     const agora = Date.now();
+    const dataHoje = getDataHoje();
+
+    // ✅ v3.5: Invalidar cache se a data mudou (virou o dia)
+    if (cacheDataReferencia && cacheDataReferencia !== dataHoje) {
+      console.log(`[JOGOS-DIA] Data mudou de ${cacheDataReferencia} para ${dataHoje} - invalidando cache`);
+      cacheJogosDia = null;
+      cacheTimestamp = 0;
+      cacheDataReferencia = null;
+    }
 
     // Calcular TTL baseado em jogos ao vivo
     const ttlAtual = cacheTemJogosAoVivo ? CACHE_TTL_AO_VIVO : CACHE_TTL_SEM_JOGOS;
@@ -578,6 +590,7 @@ router.get('/', async (req, res) => {
       cacheTimestamp = agora;
       cacheTemJogosAoVivo = temAoVivo;
       cacheFonte = 'api-football';
+      cacheDataReferencia = dataHoje; // ✅ v3.5: Salvar data de referência
 
       const stats = calcularEstatisticas(jogos);
 
@@ -597,6 +610,7 @@ router.get('/', async (req, res) => {
       cacheJogosDia = soccerData.jogos;
       cacheTimestamp = agora;
       cacheTemJogosAoVivo = soccerData.temAoVivo;
+      cacheDataReferencia = dataHoje; // ✅ v3.5: Salvar data de referência
       cacheFonte = 'soccerdata';
 
       const stats = calcularEstatisticas(soccerData.jogos);
