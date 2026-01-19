@@ -549,6 +549,31 @@ function calcularEstatisticas(jogos) {
   };
 }
 
+// ✅ v3.6: Rota para limpar cache manualmente
+// DELETE /api/jogos-ao-vivo/cache
+router.delete('/cache', (req, res) => {
+  const cacheAnterior = {
+    dataReferencia: cacheDataReferencia,
+    timestamp: cacheTimestamp ? new Date(cacheTimestamp).toISOString() : null,
+    qtdJogos: cacheJogosDia?.length || 0
+  };
+
+  // Limpar todas as variáveis de cache
+  cacheJogosDia = null;
+  cacheTimestamp = 0;
+  cacheTemJogosAoVivo = false;
+  cacheDataReferencia = null;
+
+  console.log('[JOGOS-DIA] Cache limpo manualmente');
+
+  res.json({
+    sucesso: true,
+    mensagem: 'Cache limpo com sucesso',
+    cacheAnterior,
+    dataAtual: getDataHoje()
+  });
+});
+
 // GET /api/jogos-ao-vivo
 router.get('/', async (req, res) => {
   try {

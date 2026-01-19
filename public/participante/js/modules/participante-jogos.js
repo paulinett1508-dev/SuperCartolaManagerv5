@@ -1,4 +1,5 @@
-// PARTICIPANTE-JOGOS.JS - v5.4 (3 SEÇÕES CORRETAS)
+// PARTICIPANTE-JOGOS.JS - v5.5 (BOTÃO FECHAR MODAL)
+// ✅ v5.5: Botão "Fechar" visível no footer do modal de detalhes
 // ✅ v5.4: Separação correta em 3 seções
 //          - "Ao Vivo": apenas jogos realmente ao vivo (1H, 2H, HT, etc.)
 //          - "Hoje": jogos agendados que ainda não começaram
@@ -567,6 +568,15 @@ export function renderizarModalJogo(jogo, detalhes) {
                     </div>
                 </div>
             ` : ''}
+
+            <!-- Botão Fechar (v5.4) -->
+            <div class="border-t border-gray-700/50 p-3 bg-gray-900">
+                <button onclick="window.fecharModalJogo()"
+                        class="w-full py-2.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <span class="material-icons text-lg">close</span>
+                    Fechar
+                </button>
+            </div>
         </div>
     </div>
     `;
