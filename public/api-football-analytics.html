@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>API Football - Analytics | Super Cartola Manager</title>
+        <title>APIs Jogos ao Vivo - Analytics | Super Cartola Manager</title>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
         <link rel="stylesheet" href="css/_admin-tokens.css" />
         <link rel="stylesheet" href="style.css" />
@@ -356,14 +356,28 @@
                             <span class="material-icons">sports_soccer</span>
                         </div>
                         <div>
-                            <h1>API Football - Analytics</h1>
-                            <p>Monitoramento de uso e status da integracao com jogos ao vivo</p>
+                            <h1>APIs Jogos ao Vivo</h1>
+                            <p>Monitoramento de uso e status das APIs de jogos ao vivo (API-Football + SoccerDataAPI)</p>
                         </div>
                     </header>
 
-                    <!-- Stats Row -->
+                    <!-- Fluxo de Fallback -->
+                    <div class="section" style="margin-bottom: 24px;">
+                        <div class="section-body" style="padding: 16px 20px;">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="color: #9ca3af; font-size: 0.8rem;">Fluxo:</span>
+                                <span id="fluxo-fallback" style="font-family: monospace; font-size: 0.85rem; color: #10b981;">Carregando...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Row - API-Football -->
+                    <div style="margin-bottom: 8px; color: #9ca3af; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+                        <span class="material-icons" style="font-size: 16px; color: #10b981;">looks_one</span>
+                        API-Football (Principal)
+                    </div>
                     <div class="stats-row">
-                        <!-- Status -->
+                        <!-- Status API-Football -->
                         <div class="stat-card">
                             <div class="stat-card-header">
                                 <div class="stat-card-icon green">
@@ -371,7 +385,7 @@
                                 </div>
                                 <span class="stat-card-label">Status</span>
                             </div>
-                            <div id="api-status">
+                            <div id="api-football-status">
                                 <span class="status-badge offline">
                                     <span class="dot"></span>
                                     Verificando...
@@ -379,7 +393,7 @@
                             </div>
                         </div>
 
-                        <!-- Requests -->
+                        <!-- Requests API-Football -->
                         <div class="stat-card">
                             <div class="stat-card-header">
                                 <div class="stat-card-icon orange">
@@ -387,16 +401,16 @@
                                 </div>
                                 <span class="stat-card-label">Requests Hoje</span>
                             </div>
-                            <div class="stat-card-value" id="requests-atual">-</div>
-                            <div class="stat-card-sub" id="requests-limite">de - disponiveis</div>
+                            <div class="stat-card-value" id="api-football-requests">-</div>
+                            <div class="stat-card-sub" id="api-football-limite">de 100 disponiveis</div>
                             <div class="progress-container">
                                 <div class="progress-bar">
-                                    <div class="progress-fill green" id="requests-progress" style="width: 0%"></div>
+                                    <div class="progress-fill green" id="api-football-progress" style="width: 0%"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Plano -->
+                        <!-- Plano API-Football -->
                         <div class="stat-card">
                             <div class="stat-card-header">
                                 <div class="stat-card-icon blue">
@@ -404,20 +418,108 @@
                                 </div>
                                 <span class="stat-card-label">Plano</span>
                             </div>
-                            <div class="stat-card-value" id="plano-nome">-</div>
-                            <div class="stat-card-sub" id="plano-conta">Conta: -</div>
+                            <div class="stat-card-value" id="api-football-plano">-</div>
+                            <div class="stat-card-sub" id="api-football-conta">Conta: -</div>
                         </div>
 
+                        <!-- Alerta API-Football -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon yellow">
+                                    <span class="material-icons">notifications</span>
+                                </div>
+                                <span class="stat-card-label">Alerta</span>
+                            </div>
+                            <div class="stat-card-value" style="font-size: 1rem;" id="api-football-alerta">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Row - SoccerDataAPI -->
+                    <div style="margin-bottom: 8px; margin-top: 24px; color: #9ca3af; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+                        <span class="material-icons" style="font-size: 16px; color: #f59e0b;">looks_two</span>
+                        SoccerDataAPI (Fallback 1)
+                    </div>
+                    <div class="stats-row">
+                        <!-- Status SoccerDataAPI -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon green">
+                                    <span class="material-icons">check_circle</span>
+                                </div>
+                                <span class="stat-card-label">Status</span>
+                            </div>
+                            <div id="soccerdata-status">
+                                <span class="status-badge offline">
+                                    <span class="dot"></span>
+                                    Verificando...
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Limite SoccerDataAPI -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon orange">
+                                    <span class="material-icons">speed</span>
+                                </div>
+                                <span class="stat-card-label">Limite Diario</span>
+                            </div>
+                            <div class="stat-card-value" id="soccerdata-limite">75</div>
+                            <div class="stat-card-sub">requests/dia (free)</div>
+                        </div>
+
+                        <!-- Aviso SoccerDataAPI -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon yellow">
+                                    <span class="material-icons">info</span>
+                                </div>
+                                <span class="stat-card-label">Info</span>
+                            </div>
+                            <div class="stat-card-value" style="font-size: 0.9rem;" id="soccerdata-info">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Row - Cache e Jogos -->
+                    <div style="margin-bottom: 8px; margin-top: 24px; color: #9ca3af; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+                        <span class="material-icons" style="font-size: 16px; color: #3b82f6;">cached</span>
+                        Cache & Jogos ao Vivo
+                    </div>
+                    <div class="stats-row">
                         <!-- Jogos ao Vivo -->
                         <div class="stat-card">
                             <div class="stat-card-header">
                                 <div class="stat-card-icon yellow">
                                     <span class="material-icons">live_tv</span>
                                 </div>
-                                <span class="stat-card-label">Jogos ao Vivo (Brasil)</span>
+                                <span class="stat-card-label">Jogos Brasileiros</span>
                             </div>
                             <div class="stat-card-value" id="jogos-ao-vivo">-</div>
                             <div class="stat-card-sub" id="jogos-fonte">Fonte: -</div>
+                        </div>
+
+                        <!-- Cache Status -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon blue">
+                                    <span class="material-icons">storage</span>
+                                </div>
+                                <span class="stat-card-label">Cache</span>
+                            </div>
+                            <div class="stat-card-value" style="font-size: 1rem;" id="cache-status">-</div>
+                            <div class="stat-card-sub" id="cache-idade">-</div>
+                        </div>
+
+                        <!-- Cache TTL -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon green">
+                                    <span class="material-icons">timer</span>
+                                </div>
+                                <span class="stat-card-label">TTL Atual</span>
+                            </div>
+                            <div class="stat-card-value" style="font-size: 1.25rem;" id="cache-ttl">-</div>
+                            <div class="stat-card-sub" id="cache-jogos">- jogos em cache</div>
                         </div>
                     </div>
 
@@ -516,33 +618,71 @@
                         </div>
                         <div class="section-body">
                             <table class="leagues-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">Ordem</th>
+                                        <th>Fonte</th>
+                                        <th>Endpoint</th>
+                                        <th>Limite</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     <tr>
-                                        <td style="color: #9ca3af; width: 200px;">Endpoint Base</td>
-                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.8rem;">https://v3.football.api-sports.io</code></td>
+                                        <td><span style="background:#10b981;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">1</span></td>
+                                        <td style="font-weight: 600;">API-Football</td>
+                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">v3.football.api-sports.io</code></td>
+                                        <td>100 req/dia</td>
                                     </tr>
                                     <tr>
-                                        <td style="color: #9ca3af;">Rota Interna</td>
-                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.8rem;">/api/jogos-ao-vivo</code></td>
+                                        <td><span style="background:#f59e0b;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">2</span></td>
+                                        <td style="font-weight: 600;">SoccerDataAPI</td>
+                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">api.soccerdataapi.com</code></td>
+                                        <td>75 req/dia</td>
                                     </tr>
                                     <tr>
-                                        <td style="color: #9ca3af;">Cache TTL</td>
-                                        <td>10 minutos</td>
+                                        <td><span style="background:#3b82f6;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">3</span></td>
+                                        <td style="font-weight: 600;">Cache Stale</td>
+                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">Ultimo cache valido</code></td>
+                                        <td>Max 30 min</td>
                                     </tr>
                                     <tr>
-                                        <td style="color: #9ca3af;">Fallback</td>
-                                        <td>Scraper Globo Esporte (agenda do dia)</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="color: #9ca3af;">Limite Diario</td>
-                                        <td>100 requests/dia (plano Free)</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="color: #9ca3af;">Reset do Limite</td>
-                                        <td>00:00 UTC</td>
+                                        <td><span style="background:#6b7280;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">4</span></td>
+                                        <td style="font-weight: 600;">Globo Esporte</td>
+                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">Scraper (agenda)</code></td>
+                                        <td>Ilimitado</td>
                                     </tr>
                                 </tbody>
                             </table>
+                            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #2d2d2d;">
+                                <table class="leagues-table">
+                                    <tbody>
+                                        <tr>
+                                            <td style="color: #9ca3af; width: 200px;">Rota Interna</td>
+                                            <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.8rem;">/api/jogos-ao-vivo</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #9ca3af;">Rota Status</td>
+                                            <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.8rem;">/api/jogos-ao-vivo/status</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #9ca3af;">Cache TTL (ao vivo)</td>
+                                            <td>2 minutos</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #9ca3af;">Cache TTL (sem jogos)</td>
+                                            <td>10 minutos</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #9ca3af;">Reset Limites</td>
+                                            <td>00:00 UTC</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #9ca3af;">Total Requests/dia</td>
+                                            <td style="color: #10b981; font-weight: 600;">175 (100 + 75)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
@@ -584,55 +724,122 @@
                     const response = await fetch('/api/jogos-ao-vivo/status');
                     const data = await response.json();
 
-                    // Status
-                    const statusEl = document.getElementById('api-status');
-                    if (data.configurado) {
-                        statusEl.innerHTML = `
+                    // Fluxo de fallback
+                    if (data.fluxo) {
+                        document.getElementById('fluxo-fallback').textContent = data.fluxo;
+                    }
+
+                    // === API-Football ===
+                    const apiFootball = data.fontes?.['api-football'];
+                    const statusApiFootball = document.getElementById('api-football-status');
+
+                    if (apiFootball?.configurado) {
+                        statusApiFootball.innerHTML = `
                             <span class="status-badge online">
                                 <span class="dot"></span>
-                                Online
+                                Configurada
                             </span>
                         `;
                     } else {
-                        statusEl.innerHTML = `
+                        statusApiFootball.innerHTML = `
                             <span class="status-badge offline">
                                 <span class="dot"></span>
-                                Offline
+                                Nao configurada
                             </span>
                         `;
                     }
 
-                    // Requests
-                    const atual = data.requisicoes?.atual || 0;
-                    const limite = data.requisicoes?.limite || 100;
+                    // Requests API-Football
+                    const atual = apiFootball?.requisicoes?.atual || 0;
+                    const limite = apiFootball?.requisicoes?.limite || 100;
                     const percentual = (atual / limite) * 100;
 
-                    document.getElementById('requests-atual').textContent = atual;
-                    document.getElementById('requests-limite').textContent = `de ${limite} disponiveis`;
+                    document.getElementById('api-football-requests').textContent = atual;
+                    document.getElementById('api-football-limite').textContent = `de ${limite} disponiveis`;
 
-                    const progressEl = document.getElementById('requests-progress');
+                    const progressEl = document.getElementById('api-football-progress');
                     progressEl.style.width = `${percentual}%`;
 
-                    // Cor do progresso baseado no uso
                     progressEl.classList.remove('green', 'yellow', 'red');
                     if (percentual < 50) {
                         progressEl.classList.add('green');
-                        document.getElementById('requests-limite').className = 'stat-card-sub success';
+                        document.getElementById('api-football-limite').className = 'stat-card-sub success';
                     } else if (percentual < 80) {
                         progressEl.classList.add('yellow');
-                        document.getElementById('requests-limite').className = 'stat-card-sub warning';
+                        document.getElementById('api-football-limite').className = 'stat-card-sub warning';
                     } else {
                         progressEl.classList.add('red');
-                        document.getElementById('requests-limite').className = 'stat-card-sub danger';
+                        document.getElementById('api-football-limite').className = 'stat-card-sub danger';
                     }
 
-                    // Plano
-                    document.getElementById('plano-nome').textContent = data.plano || 'Free';
-                    document.getElementById('plano-conta').textContent = `Conta: ${data.conta || '-'}`;
+                    // Plano e Conta API-Football
+                    document.getElementById('api-football-plano').textContent = apiFootball?.plano || 'Free';
+                    document.getElementById('api-football-conta').textContent = `Conta: ${apiFootball?.conta || '-'}`;
+
+                    // Alerta API-Football
+                    const alertaEl = document.getElementById('api-football-alerta');
+                    if (apiFootball?.alerta) {
+                        alertaEl.textContent = apiFootball.alerta;
+                        alertaEl.style.color = percentual >= 100 ? '#ef4444' : '#f59e0b';
+                    } else {
+                        alertaEl.textContent = 'Nenhum';
+                        alertaEl.style.color = '#10b981';
+                    }
+
+                    // === SoccerDataAPI ===
+                    const soccerData = data.fontes?.['soccerdata'];
+                    const statusSoccerData = document.getElementById('soccerdata-status');
+
+                    if (soccerData?.configurado) {
+                        statusSoccerData.innerHTML = `
+                            <span class="status-badge online">
+                                <span class="dot"></span>
+                                Configurada
+                            </span>
+                        `;
+                        document.getElementById('soccerdata-info').textContent = 'Pronta como fallback';
+                        document.getElementById('soccerdata-info').style.color = '#10b981';
+                    } else {
+                        statusSoccerData.innerHTML = `
+                            <span class="status-badge offline">
+                                <span class="dot"></span>
+                                Nao configurada
+                            </span>
+                        `;
+                        document.getElementById('soccerdata-info').textContent = soccerData?.aviso || 'API key nao definida';
+                        document.getElementById('soccerdata-info').style.color = '#f59e0b';
+                    }
+
+                    // === Cache ===
+                    const cache = data.cache;
+                    if (cache) {
+                        // Fonte atual do cache
+                        const fonteMap = {
+                            'api-football': 'API-Football',
+                            'soccerdata': 'SoccerDataAPI',
+                            'globo': 'Globo Esporte'
+                        };
+                        document.getElementById('cache-status').textContent = fonteMap[cache.fonte] || cache.fonte || '-';
+
+                        // Idade do cache
+                        if (cache.idadeMinutos !== null) {
+                            const idadeText = cache.stale
+                                ? `${cache.idadeMinutos} min (stale)`
+                                : `${cache.idadeMinutos} min`;
+                            document.getElementById('cache-idade').textContent = idadeText;
+                            document.getElementById('cache-idade').style.color = cache.stale ? '#f59e0b' : '#9ca3af';
+                        } else {
+                            document.getElementById('cache-idade').textContent = 'Sem cache';
+                        }
+
+                        // TTL
+                        document.getElementById('cache-ttl').textContent = cache.ttlAtual || '-';
+                        document.getElementById('cache-jogos').textContent = `${cache.jogosEmCache || 0} jogos em cache`;
+                    }
 
                 } catch (error) {
                     console.error('Erro ao carregar status:', error);
-                    document.getElementById('api-status').innerHTML = `
+                    document.getElementById('api-football-status').innerHTML = `
                         <span class="status-badge offline">
                             <span class="dot"></span>
                             Erro
