@@ -1,6 +1,15 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.15 (HEADER COM 2 BOTÕES)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.18 (ATUALIZAR SÓ NÃO-RENOVADO)
 // =====================================================================
+// ✅ v10.18: Botão "Atualizar" só para NÃO renovados
+//           - Renovados (2026): sem botão Atualizar (não há dados ainda)
+//           - Não renovados (2025): com botão Atualizar (temporada encerrada)
+// ✅ v10.17: Botão "Atualizar" só aparece quando necessário
+//           - Verifica RefreshButton.shouldShow() (temporada encerrada)
+//           - Se não mostrar, "Premiações" fica à esquerda sozinho
+// ✅ v10.16: Cores nos botões do header
+//           - "Premiações" laranja (primary)
+//           - "Atualizar" verde (green-500)
 // ✅ v10.15: Header com 2 botões na mesma linha
 //           - "Premiações" à esquerda (abre modal premiações 2026)
 //           - "Atualizar" à direita (abre modal RefreshButton)
@@ -43,7 +52,7 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.15 (Header 2 Botões)...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.18 (Atualizar Não-Renovado)...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -628,25 +637,31 @@ function renderizarBoasVindas(container, data, ligaRules) {
     // =========================================================================
     // ✅ v10.5: RENDERIZAÇÃO CONDICIONAL - RENOVADO vs NÃO RENOVADO
     // =========================================================================
-    
+
+    // ✅ v10.18: Botão Atualizar só para NÃO renovados com temporada encerrada
+    // Renovados (2026): não há dados para atualizar ainda
+    // Não renovados (2025): podem querer atualizar cache da temporada encerrada
+    const botaoAtualizarHTML = `
+                    <!-- Botão Atualizar Dados (direita - verde) -->
+                    <button onclick="window.RefreshButton && window.RefreshButton.showModal()"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-medium active:scale-95 transition-all hover:bg-green-500/30">
+                        <span class="material-icons text-sm">refresh</span>
+                        Atualizar
+                    </button>`;
+
     if (participanteRenovado) {
         // ✅ PARTICIPANTE RENOVOU - Mostrar dados zerados com "Aguardando 1ª rodada"
+        // ✅ v10.18: Sem botão Atualizar (não há dados 2026 para atualizar ainda)
         container.innerHTML = `
             <div class="pb-28">
 
-                <!-- Header com botões de ação (mesma linha) -->
-                <div class="px-4 pt-3 pb-2 flex items-center justify-between gap-2 refresh-button-container">
-                    <!-- Botão Premiações (esquerda) -->
+                <!-- Header com botão Premiações apenas -->
+                <div class="px-4 pt-3 pb-2 flex items-center justify-start gap-2 refresh-button-container">
+                    <!-- Botão Premiações (esquerda - laranja) -->
                     <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-white/70 text-xs font-medium active:scale-95 transition-all hover:bg-white/10">
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
                         <span class="material-icons text-sm">emoji_events</span>
                         Premiações
-                    </button>
-                    <!-- Botão Atualizar Dados (direita) -->
-                    <button onclick="window.RefreshButton && window.RefreshButton.showModal()"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-white/70 text-xs font-medium active:scale-95 transition-all hover:bg-white/10">
-                        <span class="material-icons text-sm">refresh</span>
-                        Atualizar
                     </button>
                 </div>
 
@@ -755,23 +770,19 @@ function renderizarBoasVindas(container, data, ligaRules) {
         carregarEExibirJogos();
     } else {
         // ✅ PARTICIPANTE NÃO RENOVOU - Mostrar dados da temporada anterior normalmente
+        // ✅ v10.18: Mostra botão Atualizar (temporada 2025 encerrada, pode querer atualizar cache)
         container.innerHTML = `
             <div class="pb-28">
 
-                <!-- Header com botões de ação (mesma linha) -->
+                <!-- Header com botões de ação (Premiações + Atualizar) -->
                 <div class="px-4 pt-3 pb-2 flex items-center justify-between gap-2 refresh-button-container">
-                    <!-- Botão Premiações (esquerda) -->
+                    <!-- Botão Premiações (esquerda - laranja) -->
                     <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-white/70 text-xs font-medium active:scale-95 transition-all hover:bg-white/10">
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
                         <span class="material-icons text-sm">emoji_events</span>
                         Premiações
                     </button>
-                    <!-- Botão Atualizar Dados (direita) -->
-                    <button onclick="window.RefreshButton && window.RefreshButton.showModal()"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-white/70 text-xs font-medium active:scale-95 transition-all hover:bg-white/10">
-                        <span class="material-icons text-sm">refresh</span>
-                        Atualizar
-                    </button>
+                    ${botaoAtualizarHTML}
                 </div>
 
                 <!-- Saudação com indicador de temporada -->
