@@ -1,5 +1,6 @@
 // routes/jogos-ao-vivo-routes.js
-// v3.4 - Cache Stale: preserva ultimo cache quando cota API acabar
+// v3.5 - SoccerDataAPI como fallback secundário (75 req/dia grátis)
+// ✅ v3.5: SoccerDataAPI - fallback entre API-Football e Cache Stale
 // ✅ v3.4: Cache stale - quando API falhar, usa ultimo cache valido com aviso
 // ✅ v3.3: Fix LIGAS_PRINCIPAIS - removido IDs de estaduais (variam entre temporadas)
 //          Estaduais tratados via formatarNomeLiga() por nome
@@ -414,6 +415,126 @@ async function buscarJogosGlobo() {
 }
 
 /**
+ * Busca jogos ao vivo do SoccerDataAPI (fallback secundário)
+ * Free tier: 75 req/dia, sem cartão de crédito
+ * Cobre: Brasileirão A, B e outras ligas
+ */
+async function buscarJogosSoccerDataAPI() {
+  const apiKey = process.env.SOCCERDATA_API_KEY;
+  if (!apiKey) {
+    console.warn('[JOGOS-DIA] SOCCERDATA_API_KEY não configurada');
+    return { jogos: [], temAoVivo: false };
+  }
+
+  try {
+    const url = `https://api.soccerdataapi.com/livescores/?auth_token=${apiKey}`;
+
+    console.log('[JOGOS-DIA] Tentando SoccerDataAPI...');
+
+    const response = await fetch(url, {
+      headers: {
+        'Accept-Encoding': 'gzip',
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000
+    });
+
+    if (!response.ok) {
+      console.error(`[JOGOS-DIA] SoccerDataAPI erro HTTP: ${response.status}`);
+      return { jogos: [], temAoVivo: false };
+    }
+
+    const data = await response.json();
+
+    // A API retorna array de jogos ou objeto com 'data'
+    const jogosRaw = Array.isArray(data) ? data : (data.data || []);
+
+    // Filtrar apenas jogos do Brasil
+    const jogosBrasil = jogosRaw.filter(jogo => {
+      const pais = (jogo.country || jogo.league_country || '').toLowerCase();
+      return pais === 'brazil' || pais === 'brasil';
+    });
+
+    console.log(`[JOGOS-DIA] SoccerDataAPI: ${jogosBrasil.length} jogos brasileiros`);
+
+    if (jogosBrasil.length === 0) {
+      return { jogos: [], temAoVivo: false };
+    }
+
+    // Mapear para formato padrão
+    const jogos = jogosBrasil.map(jogo => {
+      const statusRaw = mapearStatusSoccerData(jogo.status || jogo.match_status);
+
+      return {
+        id: jogo.match_id || jogo.id,
+        mandante: jogo.home_team || jogo.home_name,
+        visitante: jogo.away_team || jogo.away_name,
+        logoMandante: jogo.home_logo || null,
+        logoVisitante: jogo.away_logo || null,
+        golsMandante: parseInt(jogo.home_score || jogo.home_goals || 0),
+        golsVisitante: parseInt(jogo.away_score || jogo.away_goals || 0),
+        placar: `${jogo.home_score || 0} x ${jogo.away_score || 0}`,
+        placarHT: jogo.ht_score || null,
+        tempo: jogo.elapsed || jogo.minute || '',
+        tempoExtra: null,
+        status: mapearStatus(statusRaw),
+        statusRaw,
+        liga: formatarNomeLiga(jogo.league || jogo.league_name),
+        ligaId: jogo.league_id || null,
+        ligaOriginal: jogo.league || jogo.league_name,
+        ligaLogo: jogo.league_logo || null,
+        estadio: jogo.stadium || jogo.venue || null,
+        cidade: jogo.city || null,
+        horario: jogo.time || jogo.match_time || '--:--',
+        timestamp: jogo.timestamp ? jogo.timestamp * 1000 : Date.now(),
+        fonte: 'soccerdata'
+      };
+    });
+
+    // Ordenar: Ao vivo primeiro, depois agendados, depois encerrados
+    jogos.sort((a, b) => {
+      const aVivo = STATUS_AO_VIVO.includes(a.statusRaw) ? 0 : 1;
+      const bVivo = STATUS_AO_VIVO.includes(b.statusRaw) ? 0 : 1;
+      if (aVivo !== bVivo) return aVivo - bVivo;
+
+      const aEncerrado = STATUS_ENCERRADO.includes(a.statusRaw) ? 1 : 0;
+      const bEncerrado = STATUS_ENCERRADO.includes(b.statusRaw) ? 1 : 0;
+      if (aEncerrado !== bEncerrado) return aEncerrado - bEncerrado;
+
+      return a.timestamp - b.timestamp;
+    });
+
+    const temAoVivo = jogos.some(j => STATUS_AO_VIVO.includes(j.statusRaw));
+
+    return { jogos, temAoVivo };
+  } catch (err) {
+    console.error('[JOGOS-DIA] SoccerDataAPI erro:', err.message);
+    return { jogos: [], temAoVivo: false };
+  }
+}
+
+/**
+ * Mapeia status do SoccerDataAPI para padrão API-Football
+ */
+function mapearStatusSoccerData(status) {
+  if (!status) return 'NS';
+
+  const s = status.toLowerCase();
+
+  if (s.includes('live') || s.includes('playing') || s === '1h') return '1H';
+  if (s === '2h' || s.includes('second')) return '2H';
+  if (s.includes('half') || s === 'ht') return 'HT';
+  if (s.includes('finished') || s.includes('ended') || s === 'ft') return 'FT';
+  if (s.includes('postponed')) return 'PST';
+  if (s.includes('cancelled') || s.includes('canceled')) return 'CANC';
+  if (s.includes('scheduled') || s.includes('not started') || s === 'ns') return 'NS';
+  if (s.includes('extra')) return 'ET';
+  if (s.includes('penalty') || s.includes('penalties')) return 'P';
+
+  return 'NS';
+}
+
+/**
  * Calcula estatísticas dos jogos
  */
 function calcularEstatisticas(jogos) {
@@ -449,7 +570,7 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // 2º Tentar: API-Football (principal)
+    // 2º Tentar: API-Football (principal - 100 req/dia)
     const { jogos, temAoVivo } = await buscarJogosDoDia();
 
     if (jogos.length > 0) {
@@ -469,7 +590,30 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // 3º Cache stale (API falhou mas temos cache antigo válido até 30min)
+    // 3º Tentar: SoccerDataAPI (fallback - 75 req/dia)
+    const soccerData = await buscarJogosSoccerDataAPI();
+
+    if (soccerData.jogos.length > 0) {
+      cacheJogosDia = soccerData.jogos;
+      cacheTimestamp = agora;
+      cacheTemJogosAoVivo = soccerData.temAoVivo;
+      cacheFonte = 'soccerdata';
+
+      const stats = calcularEstatisticas(soccerData.jogos);
+
+      console.log(`[JOGOS-DIA] Usando SoccerDataAPI (${soccerData.jogos.length} jogos)`);
+
+      return res.json({
+        jogos: soccerData.jogos,
+        fonte: 'soccerdata',
+        aoVivo: soccerData.temAoVivo,
+        estatisticas: stats,
+        quantidade: soccerData.jogos.length,
+        mensagem: 'Dados via SoccerDataAPI (API-Football indisponível)'
+      });
+    }
+
+    // 4º Cache stale (APIs falharam mas temos cache antigo válido até 30min)
     if (cacheStaleValido) {
       const stats = calcularEstatisticas(cacheJogosDia);
       const idadeMinutos = Math.round((agora - cacheTimestamp) / 60000);
@@ -489,7 +633,7 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // 4º Fallback final: Globo Esporte (apenas agenda)
+    // 5º Fallback final: Globo Esporte (apenas agenda)
     const jogosGlobo = await buscarJogosGlobo();
 
     return res.json({
@@ -514,6 +658,7 @@ router.get('/', async (req, res) => {
 // GET /api/jogos-ao-vivo/status
 router.get('/status', async (req, res) => {
   const apiFootballKey = process.env.API_FOOTBALL_KEY;
+  const soccerDataKey = process.env.SOCCERDATA_API_KEY;
   const agora = Date.now();
 
   // Calcular idade do cache
@@ -522,19 +667,30 @@ router.get('/status', async (req, res) => {
   const cacheStale = cacheIdadeMs && cacheIdadeMs > (cacheTemJogosAoVivo ? CACHE_TTL_AO_VIVO : CACHE_TTL_SEM_JOGOS);
 
   const resultado = {
+    fluxo: 'API-Football → SoccerDataAPI → Cache Stale (30min) → Globo',
     fontes: {
       'api-football': {
+        ordem: 1,
         configurado: !!apiFootballKey,
         tipo: 'principal',
         limite: '100 req/dia (free)'
       },
+      'soccerdata': {
+        ordem: 2,
+        configurado: !!soccerDataKey,
+        tipo: 'fallback-1',
+        limite: '75 req/dia (free)',
+        descricao: 'Fallback quando API-Football esgota'
+      },
       'cache-stale': {
+        ordem: 3,
         ativo: cacheStale && cacheJogosDia?.length > 0,
-        tipo: 'fallback',
+        tipo: 'fallback-2',
         maxIdade: '30 min',
-        descricao: 'Usa ultimo cache valido quando API falhar'
+        descricao: 'Ultimo cache valido quando ambas APIs falharem'
       },
       'globo': {
+        ordem: 4,
         configurado: true,
         tipo: 'fallback-final',
         limite: 'Ilimitado (scraper)',
@@ -573,15 +729,20 @@ router.get('/status', async (req, res) => {
       const percentual = (atual / limite) * 100;
 
       if (percentual >= 100) {
-        resultado.fontes['api-football'].alerta = '🚫 Cota esgotada! Usando cache stale.';
+        resultado.fontes['api-football'].alerta = 'Cota esgotada! Usando SoccerDataAPI.';
       } else if (percentual >= 90) {
-        resultado.fontes['api-football'].alerta = '⚠️ Cota quase esgotada (>90%)';
+        resultado.fontes['api-football'].alerta = 'Cota quase esgotada (>90%)';
       } else if (percentual >= 75) {
-        resultado.fontes['api-football'].alerta = '⚡ Cota acima de 75%';
+        resultado.fontes['api-football'].alerta = 'Cota acima de 75%';
       }
     } catch (err) {
       resultado.fontes['api-football'].erro = err.message;
     }
+  }
+
+  // Info do SoccerDataAPI
+  if (!soccerDataKey) {
+    resultado.fontes['soccerdata'].aviso = 'SOCCERDATA_API_KEY nao configurada';
   }
 
   res.json(resultado);
