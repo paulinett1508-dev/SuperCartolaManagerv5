@@ -6,46 +6,24 @@ import {
 import { formatarMoedaBR, parseMoedaBR } from "./fluxo-financeiro-utils.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v8.2 (Fix Campos Legados)
+ * FLUXO-FINANCEIRO-UI.JS - v8.3 (Removido Botão da Morte)
+ * ✅ v8.3: REMOVIDO botão "Limpar Cache" - causava perda de dados irrecuperáveis
+ *   - Funções recalcularCacheParticipante e limparCacheLiga REMOVIDAS
+ *   - Cache é invalidado automaticamente quando necessário
  * ✅ v8.2: Fix CRÍTICO - Passa temporada no fallback de campos legados
  * ✅ v8.1: Fallback para campos legados (fluxofinanceirocampos) se novo sistema vazio
  * ✅ v6.7: UI adaptada para pré-temporada 2026
- *   - Remove tabela de rodadas ROD/POS para temporadas futuras
- *   - Esconde botões GANHOS/PERDAS e campos editáveis em pré-temporada
- *   - Foca apenas na seção de Acertos para 2026
- *   - Banner informativo de pré-temporada
  * ✅ v6.4: Seletor de temporadas (2025/2026) no modal de extrato individual
- *   - Permite ver histórico e quitação de temporadas anteriores
- *   - Mostra badge QUITADO e banner com detalhes da quitação
- *   - Mostra legado definido para próxima temporada
  * ✅ v6.3: Cards de resumo clicáveis para filtrar tabela
- *   - Card "A Receber" filtra devedores
- *   - Card "A Pagar" filtra credores
- *   - Card "Quitados" filtra participantes sem pendências
- *   - Sincronização com dropdown de filtro
- *   - Clique novamente no card ativo para limpar filtro
  * ✅ v6.2: Modal de Auditoria Financeira com exportação PDF
- *   - Novo botão "Auditoria" na tabela (substituiu "Registrar Acerto" e "Histórico")
- *   - Modal bonito com resumo financeiro completo
- *   - Histórico de acertos integrado
- *   - Exportação para PDF com jsPDF
  * ✅ v5.6: Renomeado 'Ajustes' para 'Aj. Manuais' + nova coluna 'Acertos'
  * ✅ v5.5: FIX - Passar temporada em todas as requisições de API
  * ✅ v5.4: Remove liga ID hardcoded - usa config dinâmica para determinar fases
  * ✅ v5.3: Botão "Acerto" para registrar pagamentos/recebimentos
- * ✅ v5.1: Função renderizarRelatorioConsolidado + botão Voltar
  * ✅ v5.0: PDF multi-página com quebra automática e TOP 10 detalhado
- * ✅ v4.9: Nomes completos: RANKING DE RODADAS, PONTOS CORRIDOS, MATA-MATA
- * ✅ v4.8: PDF compacto 1 página com linha a linha por módulo
  * ✅ v4.7: Botão "Exportar PDF" do extrato individual
  * ✅ v4.6: Títulos dos campos editáveis agora são editáveis em modo Admin
- * ✅ v4.5: Botão "Limpar Cache" + "Recalcular Todos" + auto-popular ao visualizar
- * ✅ v4.4.2: Botão só limpa cache, sem chamar recálculo do backend
- * ✅ v4.4.1: Botão "Limpar Cache" + removido botão duplicado dos campos
- * ✅ v4.4: Botão para limpar cache MongoDB do participante
  * ✅ v4.3: Campos editáveis SEMPRE visíveis para admin + Material Icons
- * ✅ v4.2: Botão "Auditar" para cada participante
- * ✅ v4.1: MICO mostra badge para último lugar da fase
  * Objetivo: Renderização Pura + Classes CSS
  */
 
@@ -123,9 +101,6 @@ export class FluxoFinanceiroUI {
                         <button id="btnModalAtualizar" class="btn-modern btn-secondary-gradient" onclick="window.atualizarExtratoModal()">
                             <span class="material-icons" style="font-size: 14px;">refresh</span> Atualizar
                         </button>
-                        <button id="btnModalLimparCache" class="btn-recalc-cache" onclick="window.limparCacheExtratoModal()">
-                            <span class="material-icons" style="font-size: 14px;">delete_sweep</span> Limpar Cache
-                        </button>
                     </div>
                 </div>
             </div>
@@ -169,12 +144,6 @@ export class FluxoFinanceiroUI {
             if (this.participanteAtual && window.forcarRefreshExtrato) {
                 const timeId = this.participanteAtual.time_id || this.participanteAtual.id;
                 await window.forcarRefreshExtrato(timeId);
-            }
-        };
-        window.limparCacheExtratoModal = async () => {
-            if (this.participanteAtual && window.recalcularCacheParticipante) {
-                const timeId = this.participanteAtual.time_id || this.participanteAtual.id;
-                await window.recalcularCacheParticipante(timeId);
             }
         };
 
@@ -4162,129 +4131,11 @@ window.voltarParaLista = function() {
 };
 
 // =========================================================================
-// ✅ v4.4.2: FUNÇÃO GLOBAL PARA LIMPAR CACHE DO PARTICIPANTE
+// ✅ v7.4: REMOVIDO - Funções limparCache (Botão da Morte)
+// As funções recalcularCacheParticipante e limparCacheLiga foram REMOVIDAS
+// por causar perda de dados irrecuperáveis em temporadas históricas.
+// O cache é invalidado automaticamente quando necessário.
 // =========================================================================
-window.recalcularCacheParticipante = async function (timeId) {
-    const btn = document.getElementById(`btnRecalcCache-${timeId}`);
-    const ligaId = window.obterLigaId?.();
-    const temporadaAtual = window.temporadaAtual || 2025;
-    const TEMPORADA_CARTOLA = 2025; // Temporada atual da API Cartola (2026 inicia 28/01)
-
-    if (!ligaId) {
-        alert("Liga não identificada. Recarregue a página.");
-        return;
-    }
-
-    // ✅ v7.3: BLOQUEAR limpeza de cache para temporadas históricas
-    // Temporadas anteriores são IMUTÁVEIS - dados congelados permanentemente
-    if (temporadaAtual < TEMPORADA_CARTOLA) {
-        console.warn(`[FLUXO-UI] 🔒 Temporada ${temporadaAtual} é histórica - cache protegido`);
-        alert(`Temporada ${temporadaAtual} está encerrada.\n\nOs dados são históricos e não podem ser limpos ou recalculados.`);
-        return;
-    }
-
-    // Confirmar ação
-    const confirmacao = confirm(
-        `Limpar Cache\n\nIsso irá limpar o cache MongoDB do participante.\nNa próxima vez que ele acessar, os dados serão recalculados.\n\nContinuar?`,
-    );
-
-    if (!confirmacao) return;
-
-    // UI: Loading
-    if (btn) {
-        btn.classList.add("loading");
-        btn.disabled = true;
-        btn.innerHTML = `<span class="material-icons" style="font-size: 14px;">sync</span> Aguarde...`;
-    }
-
-    try {
-        console.log(`[FLUXO-UI] 🗑️ Limpando cache do time ${timeId}...`);
-
-        // APENAS limpar cache no MongoDB - NÃO chamar endpoint de recálculo
-        // O recálculo acontecerá quando o participante acessar
-        const urlLimpeza = `/api/extrato-cache/${ligaId}/times/${timeId}/limpar`;
-        const resLimpeza = await fetch(urlLimpeza, { method: "DELETE" });
-
-        if (!resLimpeza.ok) {
-            throw new Error(`Falha ao limpar cache: ${resLimpeza.status}`);
-        }
-
-        const resultadoLimpeza = await resLimpeza.json();
-        console.log(`[FLUXO-UI] ✅ Cache limpo:`, resultadoLimpeza);
-
-        // Feedback simples
-        alert(
-            `Cache limpo!\n\nO participante verá dados atualizados na próxima vez que acessar.`,
-        );
-
-        // NÃO recarregar - admin continua vendo os dados calculados pelo frontend
-    } catch (error) {
-        console.error(`[FLUXO-UI] ❌ Erro ao limpar cache:`, error);
-        alert(`Erro ao limpar cache:\n${error.message}`);
-    } finally {
-        // UI: Restaurar botão
-        if (btn) {
-            btn.classList.remove("loading");
-            btn.disabled = false;
-            btn.innerHTML = `<span class="material-icons" style="font-size: 14px;">delete_sweep</span> Limpar Cache`;
-        }
-    }
-};
-
-// =========================================================================
-// ✅ v4.5: FUNÇÃO GLOBAL PARA LIMPAR CACHE DE TODA A LIGA
-// =========================================================================
-window.limparCacheLiga = async function () {
-    const ligaId = window.obterLigaId?.();
-
-    if (!ligaId) {
-        alert("Liga não identificada. Recarregue a página.");
-        return;
-    }
-
-    // Confirmação com aviso forte
-    const confirmacao = confirm(
-        `LIMPAR CACHE DA LIGA\n\nIsso irá apagar o cache de TODOS os participantes.\nTodos terão os dados recalculados no próximo acesso.\n\nEssa ação é recomendada após atualizações nas regras de cálculo.\n\nContinuar?`,
-    );
-
-    if (!confirmacao) return;
-
-    // Buscar botão e colocar em loading
-    const btn = document.querySelector(".btn-limpar");
-    if (btn) {
-        btn.classList.add("loading");
-        btn.disabled = true;
-        btn.innerHTML = `<span class="material-icons">sync</span><span>Limpando...</span>`;
-    }
-
-    try {
-        console.log(`[FLUXO-UI] 🗑️ Limpando cache de toda a liga ${ligaId}...`);
-
-        const urlLimpeza = `/api/extrato-cache/${ligaId}/limpar`;
-        const resLimpeza = await fetch(urlLimpeza, { method: "DELETE" });
-
-        if (!resLimpeza.ok) {
-            throw new Error(`Falha ao limpar cache: ${resLimpeza.status}`);
-        }
-
-        const resultado = await resLimpeza.json();
-        console.log(`[FLUXO-UI] ✅ Cache da liga limpo:`, resultado);
-
-        alert(
-            `Cache da Liga Limpo!\n\n${resultado.deletedCount || 0} registros removidos.\n\nTodos os participantes terão dados recalculados no próximo acesso.`,
-        );
-    } catch (error) {
-        console.error(`[FLUXO-UI] ❌ Erro ao limpar cache da liga:`, error);
-        alert(`Erro ao limpar cache:\n${error.message}`);
-    } finally {
-        // Restaurar botão
-        if (btn) {
-            btn.classList.remove("loading");
-            btn.disabled = false;
-            btn.innerHTML = `<span class="material-icons">delete_sweep</span><span>Limpar Cache</span>`;
-        }
-    }
-};
 
 // =========================================================================
 // ✅ v4.5: FUNÇÃO GLOBAL PARA RECALCULAR CACHE DE TODOS OS PARTICIPANTES

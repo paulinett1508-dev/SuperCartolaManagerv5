@@ -1,5 +1,8 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v6.6 - FIX ROBUSTEZ CACHE PRÉ-TEMPORADA
+// extratoFinanceiroCacheController.js v6.7 - REMOVIDO Botões de Limpeza Perigosos
+// ✅ v6.7: REMOVIDO funções limparCacheLiga, limparCacheTime, limparTodosCaches
+//   - Causavam perda de dados IRRECUPERÁVEIS em temporadas históricas
+//   - Mantido apenas limparCachesCorrompidos para manutenção
 // ✅ v6.6: FIX ROBUSTEZ - Usar ?? 0 para lidar com caches sem ultima_rodada_consolidada
 //   - Caches criados pelo sistema de renovação podem não ter o campo definido
 //   - Agora usa: (ultima_rodada_consolidada ?? 0) === 0
@@ -1421,42 +1424,12 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
     }
 };
 
-// Funções de limpeza mantidas
-export const limparCacheLiga = async (req, res) => {
-    try {
-        const { ligaId } = req.params;
-        const resultado = await ExtratoFinanceiroCache.deleteMany({
-            liga_id: toLigaId(ligaId),
-        });
-        res.json({
-            success: true,
-            message: `Cache limpo`,
-            deletedCount: resultado.deletedCount,
-            ligaId,
-        });
-    } catch (error) {
-        res.status(500).json({ error: "Erro ao limpar cache" });
-    }
-};
-
-export const limparCacheTime = async (req, res) => {
-    try {
-        const { ligaId, timeId } = req.params;
-        const resultado = await ExtratoFinanceiroCache.deleteOne({
-            liga_id: toLigaId(ligaId),
-            time_id: Number(timeId),
-        });
-        res.json({
-            success: true,
-            message: `Cache limpo`,
-            deletedCount: resultado.deletedCount,
-            ligaId,
-            timeId,
-        });
-    } catch (error) {
-        res.status(500).json({ error: "Erro ao limpar cache" });
-    }
-};
+// =========================================================================
+// ✅ v6.7: REMOVIDO - Funções de limpeza perigosas (Botão da Morte)
+// As funções limparCacheLiga e limparCacheTime foram REMOVIDAS por causar
+// perda de dados IRRECUPERÁVEIS em temporadas históricas.
+// Mantido apenas limparCachesCorrompidos para manutenção técnica.
+// =========================================================================
 
 export const limparCachesCorrompidos = async (req, res) => {
     try {
@@ -1480,21 +1453,7 @@ export const limparCachesCorrompidos = async (req, res) => {
     }
 };
 
-export const limparTodosCaches = async (req, res) => {
-    try {
-        const { confirmar } = req.query;
-        if (confirmar !== "sim")
-            return res.status(400).json({ error: "Adicione ?confirmar=sim" });
-        const resultado = await ExtratoFinanceiroCache.deleteMany({});
-        res.json({
-            success: true,
-            message: `Todos caches limpos`,
-            deletedCount: resultado.deletedCount,
-        });
-    } catch (error) {
-        res.status(500).json({ error: "Erro ao limpar caches" });
-    }
-};
+// ✅ v6.7: limparTodosCaches REMOVIDO - muito perigoso
 
 export const estatisticasCache = async (req, res) => {
     try {
@@ -1526,7 +1485,7 @@ export const estatisticasCache = async (req, res) => {
     }
 };
 
-console.log("[CACHE-CONTROLLER] ✅ v5.0 carregado (fallback para snapshots)");
+console.log("[CACHE-CONTROLLER] ✅ v6.7 carregado (REMOVIDO funções de limpeza perigosas)");
 
 // ✅ v5.6: Exportar funções auxiliares para uso em outros módulos (tesouraria, etc.)
 export {

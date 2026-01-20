@@ -1,6 +1,8 @@
 // =====================================================================
-// extratoFinanceiroCacheRoutes.js - Rotas de Cache com Limpeza
-// Destino: /routes/extratoFinanceiroCacheRoutes.js
+// extratoFinanceiroCacheRoutes.js v2.0 - REMOVIDO rotas de limpeza perigosas
+// ✅ v2.0: REMOVIDO rotas limparCacheLiga, limparCacheTime, limparTodosCaches
+//   - Causavam perda de dados IRRECUPERÁVEIS em temporadas históricas
+//   - Mantido apenas limparCachesCorrompidos para manutenção técnica
 // =====================================================================
 
 import express from "express";
@@ -9,17 +11,14 @@ import {
     salvarExtratoCache,
     verificarCacheValido,
     lerCacheExtratoFinanceiro,
-    limparCacheLiga,
-    limparCacheTime,
     limparCachesCorrompidos,
-    limparTodosCaches,
     estatisticasCache,
 } from "../controllers/extratoFinanceiroCacheController.js";
 
 const router = express.Router();
 
 // =====================================================================
-// ROTAS DE LEITURA E ESCRITA (existentes)
+// ROTAS DE LEITURA E ESCRITA
 // =====================================================================
 
 // Obter cache de um time específico
@@ -35,7 +34,7 @@ router.get("/:ligaId/times/:timeId/cache/valido", verificarCacheValido);
 router.get("/:ligaId/times/:timeId", lerCacheExtratoFinanceiro);
 
 // =====================================================================
-// ROTAS DE ESTATÍSTICAS (novas)
+// ROTAS DE ESTATÍSTICAS
 // =====================================================================
 
 // Estatísticas gerais de cache
@@ -45,31 +44,24 @@ router.get("/stats", estatisticasCache);
 router.get("/:ligaId/stats", estatisticasCache);
 
 // =====================================================================
-// ROTAS DE LIMPEZA (novas)
+// ROTAS DE MANUTENÇÃO (apenas para caches corrompidos)
 // =====================================================================
 
-// ⚠️ Limpar TODOS os caches corrompidos (todas as ligas)
+// Limpar caches corrompidos (todas as ligas)
 // DELETE /api/extrato-cache/corrompidos/limpar
 router.delete("/corrompidos/limpar", limparCachesCorrompidos);
 
-// ⚠️ Limpar TODOS os caches (requer ?confirmar=sim)
-// DELETE /api/extrato-cache/todos/limpar?confirmar=sim
-router.delete("/todos/limpar", limparTodosCaches);
-
-// Limpar todos os caches de uma liga
-// DELETE /api/extrato-cache/:ligaId/limpar
-router.delete("/:ligaId/limpar", limparCacheLiga);
-
-// Limpar caches corrompidos de uma liga
+// Limpar caches corrompidos de uma liga específica
 // DELETE /api/extrato-cache/:ligaId/corrompidos/limpar
 router.delete("/:ligaId/corrompidos/limpar", limparCachesCorrompidos);
 
-// Limpar cache de um time específico
-// DELETE /api/extrato-cache/:ligaId/times/:timeId/limpar
-router.delete("/:ligaId/times/:timeId/limpar", limparCacheTime);
-
-// ✅ Alias: Rota alternativa para compatibilidade com frontend
-// DELETE /api/extrato-cache/:ligaId/times/:timeId/cache
-router.delete("/:ligaId/times/:timeId/cache", limparCacheTime);
+// =====================================================================
+// ✅ v2.0: REMOVIDO - Rotas perigosas que causavam perda de dados
+// As seguintes rotas foram REMOVIDAS por segurança:
+// - DELETE /:ligaId/limpar (limparCacheLiga)
+// - DELETE /:ligaId/times/:timeId/limpar (limparCacheTime)
+// - DELETE /:ligaId/times/:timeId/cache (limparCacheTime)
+// - DELETE /todos/limpar (limparTodosCaches)
+// =====================================================================
 
 export default router;
