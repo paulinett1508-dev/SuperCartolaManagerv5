@@ -649,7 +649,17 @@ class ParticipanteAuth {
 
             // ✅ Limpar TODOS os storages para forçar carregamento dos novos módulos
             sessionStorage.clear();
-            localStorage.clear();  // ✅ NOVO: Limpar localStorage para evitar dados cruzados entre ligas
+
+            // ✅ Limpar localStorage SELETIVAMENTE (preservar chaves de sistema)
+            const chavesPreservadas = ['app_version', 'sw_emergency_clean_v8'];
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!chavesPreservadas.includes(key)) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
 
             // ✅ CORREÇÃO: Aguardar sessão ser salva no MongoDB antes de recarregar (aumentado para 800ms)
             await new Promise((resolve) => setTimeout(resolve, 800));

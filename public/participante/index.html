@@ -250,7 +250,9 @@
                 gap: 8px;
             }
             .liga-selector {
-                flex: 1;
+                flex: 0 1 auto;
+                min-width: 120px;
+                max-width: 200px;
                 padding: 8px 12px;
                 border-radius: 6px;
                 border: 1px solid rgba(255, 255, 255, 0.2);
@@ -259,6 +261,9 @@
                 font-size: 12px;
                 font-weight: 600;
                 cursor: pointer;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
             }
             .btn-logout {
                 padding: 8px 14px;
@@ -1995,6 +2000,132 @@
             window.fecharPremiacoes2026 = fecharPremiacoes2026;
 
             console.log('[PREMIACOES] Modal Premiações 2026 carregado');
+        </script>
+
+        <!-- Modal Participantes 2026 -->
+        <div id="modal-participantes-2026" class="fixed inset-0 z-50 hidden opacity-0 transition-opacity duration-300" style="background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10000;">
+            <div id="participantes-card" class="absolute inset-x-4 top-1/2 -translate-y-1/2 max-w-md mx-auto bg-[#0f1012] rounded-2xl border border-white/10 shadow-2xl overflow-hidden scale-95 opacity-0 transition-all duration-300 max-h-[80vh] flex flex-col">
+
+                <!-- Header Fixo -->
+                <div class="sticky top-0 bg-[#0f1012] border-b border-white/10 p-4 z-10">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                                <span class="material-icons text-primary">groups</span>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-white">Participantes 2026</h2>
+                                <p id="participantes-subtitulo" class="text-xs text-white/50">Carregando...</p>
+                            </div>
+                        </div>
+                        <button onclick="fecharParticipantes2026()" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                            <span class="material-icons text-white/60">close</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Participantes (Scroll) -->
+                <div id="lista-participantes-2026" class="flex-1 overflow-y-auto p-4 space-y-2">
+                    <!-- Loading state -->
+                    <div class="flex items-center justify-center py-8">
+                        <div class="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Footer Fixo -->
+                <div class="sticky bottom-0 bg-[#0f1012] border-t border-white/10 p-3">
+                    <button onclick="fecharParticipantes2026()" class="w-full py-3 rounded-xl bg-primary/20 border border-primary/30 text-primary font-medium text-sm hover:bg-primary/30 transition-colors">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Script do Modal Participantes 2026 -->
+        <script>
+            // Funcoes do Modal Participantes 2026
+            async function abrirParticipantes2026() {
+                const modal = document.getElementById('modal-participantes-2026');
+                const card = document.getElementById('participantes-card');
+                if (!modal || !card) return;
+
+                // Mostrar modal
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    card.classList.remove('scale-95', 'opacity-0');
+                }, 10);
+
+                // Carregar participantes
+                await carregarParticipantes2026();
+            }
+
+            function fecharParticipantes2026() {
+                const modal = document.getElementById('modal-participantes-2026');
+                const card = document.getElementById('participantes-card');
+                if (!modal || !card) return;
+
+                modal.classList.add('opacity-0');
+                card.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+
+            async function carregarParticipantes2026() {
+                const lista = document.getElementById('lista-participantes-2026');
+                const subtitulo = document.getElementById('participantes-subtitulo');
+
+                try {
+                    // Obter ligaId do contexto
+                    const ligaId = window.participanteAuth?.ligaId;
+                    if (!ligaId) {
+                        lista.innerHTML = '<p class="text-center text-white/50 py-8">Liga nao identificada</p>';
+                        return;
+                    }
+
+                    // Buscar participantes renovados
+                    const response = await fetch(`/api/inscricoes/${ligaId}/2026?status=renovado`);
+                    const data = await response.json();
+
+                    if (!data.success || !data.inscricoes?.length) {
+                        lista.innerHTML = '<p class="text-center text-white/50 py-8">Nenhum participante renovado ainda</p>';
+                        subtitulo.textContent = '0 renovados';
+                        return;
+                    }
+
+                    // Atualizar subtitulo
+                    subtitulo.textContent = `${data.total} renovados`;
+
+                    // Renderizar lista
+                    lista.innerHTML = data.inscricoes.map(p => `
+                        <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                                <span class="material-icons text-primary text-lg">person</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-white truncate">${p.dados_participante?.nome_cartoleiro || 'Sem nome'}</p>
+                                <p class="text-xs text-white/50 truncate">${p.dados_participante?.nome_time || 'Sem time'}</p>
+                            </div>
+                        </div>
+                    `).join('');
+
+                } catch (error) {
+                    console.error('[PARTICIPANTES] Erro ao carregar:', error);
+                    lista.innerHTML = '<p class="text-center text-red-400 py-8">Erro ao carregar participantes</p>';
+                }
+            }
+
+            // Fechar modal ao clicar fora
+            document.getElementById('modal-participantes-2026')?.addEventListener('click', function(e) {
+                if (e.target === this) fecharParticipantes2026();
+            });
+
+            // Expor globalmente
+            window.abrirParticipantes2026 = abrirParticipantes2026;
+            window.fecharParticipantes2026 = fecharParticipantes2026;
+
+            console.log('[PARTICIPANTES] Modal Participantes 2026 carregado');
         </script>
     </body>
 </html>

@@ -655,13 +655,19 @@ function renderizarBoasVindas(container, data, ligaRules) {
         container.innerHTML = `
             <div class="pb-28">
 
-                <!-- Header com botão Premiações apenas -->
+                <!-- Header com botoes Premiacoes e Participantes -->
                 <div class="px-4 pt-3 pb-2 flex items-center justify-start gap-2 refresh-button-container">
-                    <!-- Botão Premiações (esquerda - laranja) -->
+                    <!-- Botao Premiacoes (laranja) -->
                     <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
                             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
                         <span class="material-icons text-sm">emoji_events</span>
-                        Premiações
+                        Premiacoes
+                    </button>
+                    <!-- Botao Participantes (laranja) -->
+                    <button onclick="window.abrirParticipantes2026 && window.abrirParticipantes2026()"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
+                        <span class="material-icons text-sm">groups</span>
+                        Participantes
                     </button>
                 </div>
 
@@ -774,14 +780,22 @@ function renderizarBoasVindas(container, data, ligaRules) {
         container.innerHTML = `
             <div class="pb-28">
 
-                <!-- Header com botões de ação (Premiações + Atualizar) -->
+                <!-- Header com botoes de acao (Premiacoes + Participantes + Atualizar) -->
                 <div class="px-4 pt-3 pb-2 flex items-center justify-between gap-2 refresh-button-container">
-                    <!-- Botão Premiações (esquerda - laranja) -->
-                    <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
-                        <span class="material-icons text-sm">emoji_events</span>
-                        Premiações
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <!-- Botao Premiacoes (laranja) -->
+                        <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
+                            <span class="material-icons text-sm">emoji_events</span>
+                            Premiacoes
+                        </button>
+                        <!-- Botao Participantes (laranja) -->
+                        <button onclick="window.abrirParticipantes2026 && window.abrirParticipantes2026()"
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
+                            <span class="material-icons text-sm">groups</span>
+                            Participantes
+                        </button>
+                    </div>
                     ${botaoAtualizarHTML}
                 </div>
 
