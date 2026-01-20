@@ -36,6 +36,8 @@ class ParticipanteNavigation {
             "mata-mata": "/participante/fronts/mata-mata.html",
             artilheiro: "/participante/fronts/artilheiro.html",
             "luva-ouro": "/participante/fronts/luva-ouro.html",
+            campinho: "/participante/fronts/campinho.html",
+            dicas: "/participante/fronts/dicas.html",
         };
 
         // ✅ v3.0: Controles simplificados (apenas debounce por tempo)
@@ -669,6 +671,8 @@ class ParticipanteNavigation {
             "mata-mata": "/participante/js/modules/participante-mata-mata.js",
             artilheiro: "/participante/js/modules/participante-artilheiro.js",
             "luva-ouro": "/participante/js/modules/participante-luva-ouro.js",
+            campinho: "/participante/js/modules/participante-campinho.js",
+            dicas: "/participante/js/modules/participante-dicas.js",
         };
 
         const jsPath = modulosPaths[modulo];

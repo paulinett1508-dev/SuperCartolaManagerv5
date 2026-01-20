@@ -367,6 +367,29 @@
     font-size: 20px;
 }
 
+/* Tipos de toast para notificacoes de mercado */
+.quick-toast.toast-warning {
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.2);
+}
+
+.quick-toast.toast-urgente {
+    border: 1px solid rgba(249, 115, 22, 0.5);
+    box-shadow: 0 4px 20px rgba(249, 115, 22, 0.3);
+    animation: toast-pulse 1s ease-in-out infinite;
+}
+
+.quick-toast.toast-critico {
+    border: 1px solid rgba(239, 68, 68, 0.6);
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+    animation: toast-pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes toast-pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1) translateZ(0); }
+    50% { transform: translate(-50%, -50%) scale(1.02) translateZ(0); }
+}
+
 /* =====================================================================
    AJUSTE DO CONTAINER PRINCIPAL
    ===================================================================== */

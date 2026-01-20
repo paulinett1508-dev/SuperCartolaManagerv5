@@ -1035,6 +1035,97 @@ Ver documentação completa em: [docs/CONTEXT7-MCP-SETUP.md](docs/CONTEXT7-MCP-S
 
 ---
 
+## 🆕 NOVAS IDEIAS - Janeiro 2026
+
+### 🤖 IA e Assistente Virtual
+
+- [ ] [FEAT-020] **IA Conversar com Participante (LLM Free)**
+  - **Descrição:** Chatbot inteligente para tirar dúvidas e dar dicas
+  - **Tecnologia:** LLM gratuita/barata (ex: Gemini Flash, Groq, local LLM)
+  - **Funcionalidades:**
+    - Responder dúvidas sobre regras da liga
+    - Dar dicas de escalação baseadas em dados
+    - Análise do desempenho do participante
+  - **Complexidade:** Alta
+  - **Riscos:** Custo de API, qualidade das respostas, latência
+
+### 📊 Confrontos e Comparativos
+
+- [ ] [FEAT-021] **Comparativo Detalhado de Times Adversários**
+  - **Descrição:** Análise lado-a-lado com adversário em confrontos
+  - **Funcionalidades:**
+    - Comparar jogadores posição a posição
+    - Histórico de confrontos diretos
+    - Probabilidade de vitória baseada em dados
+  - **Arquivos relacionados:** `participante-campinho.js`, `participante-mata-mata.js`
+  - **Status:** Parcialmente implementado (campinho v1.0 tem base)
+
+### 🔴 Tempo Real e Live Experience
+
+- [ ] [FEAT-022] **Tempo Real: Jogos com Jogadores Escalados (Premium)**
+  - **Descrição:** Durante parciais, destacar quais jogos têm jogadores do participante
+  - **Funcionalidades:**
+    - Badge "Você tem jogador neste jogo"
+    - Notificação quando jogador marca gol
+    - Destaque visual no placar ao vivo
+  - **Dependências:** Sistema de jogos ao vivo já implementado (`jogos-ao-vivo-routes.js`)
+  - **Acesso:** Premium apenas
+
+### 🔔 Notificações Avançadas
+
+- [ ] [FEAT-023] **Push Notifications Completo (Web Push API)**
+  - **Descrição:** Sistema completo de push notifications além das visuais
+  - **Status atual:** Sistema visual implementado (toasts + modal urgente)
+  - **Pendente:**
+    - Instalação `web-push` library
+    - VAPID keys + collection MongoDB
+    - Service Worker handlers
+    - Backend de gerenciamento de subscriptions
+  - **Referência:** Ver FEAT-003 para roadmap completo
+
+### 🎮 Integração Cartola PRO
+
+- [ ] [FEAT-024] **Escalar Automaticamente no Cartola PRO** ⚠️ ALTO RISCO
+  - **Descrição:** Permitir que usuário PRO escale diretamente pelo Super Cartola
+  - **Status da pesquisa:**
+    - ✅ Viabilidade técnica confirmada (endpoints identificados)
+    - ⚠️ Riscos significativos:
+      - Pode violar ToS da Globo
+      - Armazenar credenciais é sensível
+      - Conta pode ser banida
+      - API pode mudar sem aviso
+  - **Endpoints identificados:**
+    - Auth: `POST https://login.globo.com/api/authentication`
+    - Salvar: `POST https://api.cartolafc.globo.com/auth/time/salvar`
+  - **Recomendação:** Implementar em fases:
+    1. Fase 1 ✅: Dicas de escalação (somente leitura) - IMPLEMENTADO
+    2. Fase 2: Mostrar sugestão, usuário copia manualmente
+    3. Fase 3: Escalar automaticamente (usuário assume risco)
+  - **Referências GitHub:** `python-cartolafc`, `CartolaJS`, `cartola-api`
+
+### ⚽ Melhorias no Campinho Virtual
+
+- [x] [FEAT-015] **Campinho Virtual Básico** ✅ IMPLEMENTADO 20/01/2026
+  - **Descrição:** Visualização da escalação em formato de campo
+  - **Arquivos criados:**
+    - `public/participante/js/modules/participante-campinho.js`
+    - `public/participante/css/campinho.css`
+    - `public/participante/fronts/campinho.html`
+  - **Funcionalidades implementadas:**
+    - Exibição de jogadores por posição
+    - Pontuação por jogador
+    - Integração com confrontos (estrutura preparada)
+
+- [ ] [FEAT-025] **Campinho com Parciais ao Vivo**
+  - **Descrição:** Atualizar pontuação dos jogadores em tempo real durante jogos
+  - **Dependências:** FEAT-015 (base), API de parciais
+  - **Funcionalidades:**
+    - Auto-refresh a cada 30s durante jogos
+    - Animação quando jogador pontua
+    - Indicador de jogo em andamento
+
+---
+
 ## 🎯 Como Usar
 
 1. **Nova ideia surge?** → Adicione na seção apropriada com ID único
@@ -1046,5 +1137,5 @@ Ver documentação completa em: [docs/CONTEXT7-MCP-SETUP.md](docs/CONTEXT7-MCP-S
 
 ---
 
-_Última atualização: 10/01/2026 - Foco Cartola FC + MCPs + Roadmaps detalhados para FEAT-015/17/18/19_
+_Última atualização: 20/01/2026 - Adicionadas features solicitadas (IA, Comparativos, Push, PRO Cartola)_
 

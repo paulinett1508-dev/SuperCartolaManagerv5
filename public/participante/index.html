@@ -768,7 +768,7 @@
                                 <span id="nomeCartolaText">&nbsp;</span>
                                 <span
                                     id="app-version-badge"
-                                    class="text-[9px] bg-white/10 px-1.5 py-0.5 rounded ml-1"
+                                    class="app-version-badge text-[9px] bg-white/10 px-1.5 py-0.5 rounded"
                                     ></span
                                 >
                                 <span
@@ -1390,6 +1390,99 @@
                 let statusMercado = null;
                 let intervaloAtualizacao = null;
 
+                // =====================================================
+                // SISTEMA DE NOTIFICACOES DE MERCADO
+                // =====================================================
+                const ALERT_THRESHOLDS = [
+                    { minutos: 120, key: '2h', msg: 'Mercado fecha em 2 horas', tipo: 'info' },
+                    { minutos: 60, key: '1h', msg: 'Mercado fecha em 1 hora', tipo: 'warning' },
+                    { minutos: 30, key: '30m', msg: 'Mercado fecha em 30 minutos!', tipo: 'warning' },
+                    { minutos: 15, key: '15m', msg: 'ATENCAO! 15 minutos para escalar!', tipo: 'urgente' },
+                    { minutos: 5, key: '5m', msg: 'URGENTE! Apenas 5 minutos!', tipo: 'critico' }
+                ];
+
+                function getAlertasMostrados() {
+                    try {
+                        const stored = localStorage.getItem('mercado_alertas_mostrados');
+                        return stored ? JSON.parse(stored) : {};
+                    } catch { return {}; }
+                }
+
+                function marcarAlertaMostrado(rodada, key) {
+                    try {
+                        const alertas = getAlertasMostrados();
+                        if (!alertas[rodada]) alertas[rodada] = [];
+                        if (!alertas[rodada].includes(key)) {
+                            alertas[rodada].push(key);
+                            localStorage.setItem('mercado_alertas_mostrados', JSON.stringify(alertas));
+                        }
+                    } catch (e) { console.warn('[NOTIF] Erro ao salvar alerta:', e); }
+                }
+
+                function verificarEDispararAlertas(minutosRestantes, rodada) {
+                    if (minutosRestantes <= 0) return;
+
+                    const alertasMostrados = getAlertasMostrados();
+                    const alertasRodada = alertasMostrados[rodada] || [];
+
+                    for (const threshold of ALERT_THRESHOLDS) {
+                        // Verificar se estamos dentro da janela do alerta (margem de 2 min)
+                        if (minutosRestantes <= threshold.minutos && minutosRestantes > (threshold.minutos - 2)) {
+                            if (!alertasRodada.includes(threshold.key)) {
+                                mostrarNotificacaoMercado(threshold.msg, threshold.tipo, minutosRestantes);
+                                marcarAlertaMostrado(rodada, threshold.key);
+                                break; // Apenas um alerta por vez
+                            }
+                        }
+                    }
+                }
+
+                function mostrarNotificacaoMercado(mensagem, tipo, minutosRestantes) {
+                    // Usar toast system existente se disponivel
+                    if (window.quickAccessBar && window.quickAccessBar.mostrarToast) {
+                        window.quickAccessBar.mostrarToast(mensagem, tipo);
+                    }
+
+                    // Para alertas criticos (5min), mostrar modal
+                    if (tipo === 'critico') {
+                        mostrarModalUrgente(mensagem, minutosRestantes);
+                    }
+
+                    console.log('[NOTIF-MERCADO]', tipo.toUpperCase(), mensagem);
+                }
+
+                function mostrarModalUrgente(mensagem, minutos) {
+                    // Verificar se ja existe modal urgente aberto
+                    if (document.getElementById('modal-urgente-mercado')) return;
+
+                    const modal = document.createElement('div');
+                    modal.id = 'modal-urgente-mercado';
+                    modal.className = 'fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm';
+                    modal.innerHTML = `
+                        <div class="bg-[#1a1a2e] rounded-2xl p-6 max-w-sm w-full border border-red-500/30 shadow-2xl animate-pulse">
+                            <div class="text-center">
+                                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                                    <span class="material-icons text-4xl text-red-500 animate-bounce">alarm</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white mb-2">Mercado Fechando!</h3>
+                                <p class="text-red-400 text-lg font-bold mb-4">${minutos} minutos restantes</p>
+                                <p class="text-white/70 text-sm mb-6">${mensagem}</p>
+                                <button onclick="this.closest('#modal-urgente-mercado').remove()"
+                                        class="w-full py-3 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-colors">
+                                    Entendi
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+
+                    // Auto-fechar apos 10 segundos
+                    setTimeout(() => {
+                        const m = document.getElementById('modal-urgente-mercado');
+                        if (m) m.remove();
+                    }, 10000);
+                }
+
                 // Buscar status do mercado da API
                 async function buscarStatusMercado() {
                     try {
@@ -1433,6 +1526,10 @@
                             const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
                             const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                             const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                            const minutosTotal = dias * 24 * 60 + horas * 60 + minutos;
+
+                            // Verificar e disparar alertas de mercado
+                            verificarEDispararAlertas(minutosTotal, rodada_atual);
 
                             fab.className = fab.className.replace(/mercado-\w+/g, '').trim();
 
@@ -2133,6 +2230,207 @@
             window.fecharParticipantes2026 = fecharParticipantes2026;
 
             console.log('[PARTICIPANTES] Modal Participantes 2026 carregado');
+        </script>
+
+        <!-- Modal Regras 2026 -->
+        <div id="modal-regras-2026" class="fixed inset-0 z-50 hidden opacity-0 transition-opacity duration-300" style="background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10000;">
+            <div id="regras-card" class="absolute inset-x-4 top-1/2 -translate-y-1/2 max-w-md mx-auto bg-[#0f1012] rounded-2xl border border-white/10 shadow-2xl overflow-hidden scale-95 opacity-0 transition-all duration-300 max-h-[80vh] flex flex-col">
+
+                <!-- Header Fixo -->
+                <div class="sticky top-0 bg-[#0f1012] border-b border-white/10 p-4 z-10">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                <span class="material-icons text-blue-400">gavel</span>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-white" style="font-family: 'Russo One', sans-serif;">Regras 2026</h2>
+                                <p id="regras-subtitulo" class="text-xs text-white/50">Configuracoes da temporada</p>
+                            </div>
+                        </div>
+                        <button onclick="fecharRegras2026()" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                            <span class="material-icons text-white/60">close</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Conteudo das Regras (Scroll) -->
+                <div id="conteudo-regras-2026" class="flex-1 overflow-y-auto p-4 space-y-3">
+                    <!-- Loading state -->
+                    <div class="flex items-center justify-center py-8">
+                        <div class="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Footer Fixo -->
+                <div class="sticky bottom-0 bg-[#0f1012] border-t border-white/10 p-3">
+                    <button onclick="fecharRegras2026()" class="w-full py-3 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 font-medium text-sm hover:bg-blue-500/30 transition-colors">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Script do Modal Regras 2026 -->
+        <script>
+            // Funcoes do Modal Regras 2026
+            async function abrirRegras2026() {
+                const modal = document.getElementById('modal-regras-2026');
+                const card = document.getElementById('regras-card');
+                const conteudo = document.getElementById('conteudo-regras-2026');
+                if (!modal || !card) return;
+
+                // Mostrar modal com loading
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    card.classList.remove('scale-95', 'opacity-0');
+                }, 10);
+
+                // Buscar dados da API
+                try {
+                    const ligaId = window.participanteAuth?.ligaId;
+                    if (!ligaId) throw new Error('Liga nao encontrada');
+
+                    const response = await fetch(`/api/liga-rules/${ligaId}/2026`);
+                    if (!response.ok) throw new Error('Regras nao configuradas');
+
+                    const rules = await response.json();
+                    renderizarRegras(rules, conteudo);
+                } catch (error) {
+                    console.error('[REGRAS] Erro:', error);
+                    conteudo.innerHTML = `
+                        <div class="text-center py-8">
+                            <span class="material-icons text-4xl text-white/30 mb-2">info</span>
+                            <p class="text-white/50 text-sm">Regras ainda nao configuradas para 2026</p>
+                            <p class="text-white/30 text-xs mt-1">Aguarde o administrador definir as regras</p>
+                        </div>
+                    `;
+                }
+            }
+
+            function renderizarRegras(rules, container) {
+                const inscricao = rules.inscricao || {};
+                const taxa = inscricao.taxa || 0;
+                const prazo = inscricao.prazo_renovacao ? new Date(inscricao.prazo_renovacao) : null;
+                const prazoFormatado = prazo ? prazo.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Nao definido';
+                const status = rules.status || 'rascunho';
+
+                // Status badge
+                const statusConfig = {
+                    'rascunho': { cor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', texto: 'Rascunho' },
+                    'aberto': { cor: 'bg-green-500/20 text-green-400 border-green-500/30', texto: 'Aberto' },
+                    'encerrado': { cor: 'bg-red-500/20 text-red-400 border-red-500/30', texto: 'Encerrado' }
+                };
+                const statusBadge = statusConfig[status] || statusConfig['rascunho'];
+
+                container.innerHTML = `
+                    <!-- Status da Renovacao -->
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                        <span class="text-sm text-white/70">Status Renovacao</span>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium border ${statusBadge.cor}">${statusBadge.texto}</span>
+                    </div>
+
+                    <!-- Taxa de Inscricao -->
+                    <div class="p-4 rounded-xl bg-primary/10 border border-primary/20">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-icons text-primary text-xl">payments</span>
+                            <span class="text-sm font-medium text-white">Taxa de Inscricao</span>
+                        </div>
+                        <p class="text-2xl font-bold text-primary" style="font-family: 'JetBrains Mono', monospace;">
+                            R$ ${taxa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                    </div>
+
+                    <!-- Prazo de Renovacao -->
+                    <div class="p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons text-yellow-400 text-lg">event</span>
+                                <span class="text-sm text-white/70">Prazo Renovacao</span>
+                            </div>
+                            <span class="text-sm font-medium text-white">${prazoFormatado}</span>
+                        </div>
+                    </div>
+
+                    <!-- Regras Detalhadas -->
+                    <div class="space-y-2">
+                        <p class="text-xs font-medium text-white/50 uppercase tracking-wide px-1">Configuracoes</p>
+
+                        <!-- Devedor pode renovar -->
+                        <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons text-lg ${inscricao.permitir_devedor_renovar ? 'text-green-400' : 'text-red-400'}">
+                                    ${inscricao.permitir_devedor_renovar ? 'check_circle' : 'cancel'}
+                                </span>
+                                <span class="text-xs text-white/70">Devedor pode renovar</span>
+                            </div>
+                            <span class="text-xs font-medium ${inscricao.permitir_devedor_renovar ? 'text-green-400' : 'text-red-400'}">
+                                ${inscricao.permitir_devedor_renovar ? 'Sim' : 'Nao'}
+                            </span>
+                        </div>
+
+                        <!-- Aproveitar credito -->
+                        <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons text-lg ${inscricao.aproveitar_saldo_positivo ? 'text-green-400' : 'text-red-400'}">
+                                    ${inscricao.aproveitar_saldo_positivo ? 'check_circle' : 'cancel'}
+                                </span>
+                                <span class="text-xs text-white/70">Credito abate taxa</span>
+                            </div>
+                            <span class="text-xs font-medium ${inscricao.aproveitar_saldo_positivo ? 'text-green-400' : 'text-red-400'}">
+                                ${inscricao.aproveitar_saldo_positivo ? 'Sim' : 'Nao'}
+                            </span>
+                        </div>
+
+                        <!-- Parcelamento -->
+                        <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons text-lg ${inscricao.permitir_parcelamento ? 'text-green-400' : 'text-white/30'}">
+                                    ${inscricao.permitir_parcelamento ? 'check_circle' : 'cancel'}
+                                </span>
+                                <span class="text-xs text-white/70">Parcelamento</span>
+                            </div>
+                            <span class="text-xs font-medium ${inscricao.permitir_parcelamento ? 'text-green-400' : 'text-white/50'}">
+                                ${inscricao.permitir_parcelamento ? `Ate ${inscricao.max_parcelas || 1}x` : 'Nao'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Link para Premiacoes -->
+                    <button onclick="fecharRegras2026(); setTimeout(() => window.abrirPremiacoes2026 && window.abrirPremiacoes2026(), 350);"
+                            class="w-full flex items-center justify-between p-3 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
+                        <div class="flex items-center gap-2">
+                            <span class="material-icons text-primary">emoji_events</span>
+                            <span class="text-sm text-white">Ver Premiacoes 2026</span>
+                        </div>
+                        <span class="material-icons text-white/30">chevron_right</span>
+                    </button>
+                `;
+            }
+
+            function fecharRegras2026() {
+                const modal = document.getElementById('modal-regras-2026');
+                const card = document.getElementById('regras-card');
+                if (!modal || !card) return;
+
+                modal.classList.add('opacity-0');
+                card.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+
+            // Fechar modal ao clicar fora
+            document.getElementById('modal-regras-2026')?.addEventListener('click', function(e) {
+                if (e.target === this) fecharRegras2026();
+            });
+
+            // Expor globalmente
+            window.abrirRegras2026 = abrirRegras2026;
+            window.fecharRegras2026 = fecharRegras2026;
+
+            console.log('[REGRAS] Modal Regras 2026 carregado');
         </script>
     </body>
 </html>

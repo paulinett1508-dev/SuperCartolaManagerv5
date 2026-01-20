@@ -204,6 +204,10 @@ class QuickAccessBar {
                         <span class="material-icons">leaderboard</span>
                         <span class="menu-card-label">TOP 10</span>
                     </div>
+                    <div class="menu-card" data-module="campinho">
+                        <span class="material-icons">sports_soccer</span>
+                        <span class="menu-card-label">Meu Campinho</span>
+                    </div>
                 </div>
             </div>
 
@@ -228,6 +232,19 @@ class QuickAccessBar {
                     <div class="menu-card" data-module="historico">
                         <span class="material-icons">history</span>
                         <span class="menu-card-label">Hall da Fama</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-category">
+                <div class="menu-category-title">
+                    <span class="material-icons">tips_and_updates</span>
+                    Ferramentas
+                </div>
+                <div class="menu-grid">
+                    <div class="menu-card" data-module="dicas">
+                        <span class="material-icons">psychology</span>
+                        <span class="menu-card-label">Dicas</span>
                     </div>
                 </div>
             </div>
@@ -398,10 +415,21 @@ class QuickAccessBar {
         const toast = document.createElement('div');
         toast.className = 'quick-toast';
 
-        const icone = tipo === 'info' ? 'info' : tipo === 'success' ? 'check_circle' : 'warning';
+        // Configuracao por tipo
+        const configs = {
+            info: { icone: 'info', cor: '#3b82f6', duracao: 2500 },
+            success: { icone: 'check_circle', cor: '#22c55e', duracao: 2500 },
+            warning: { icone: 'warning', cor: '#f59e0b', duracao: 3500 },
+            urgente: { icone: 'alarm', cor: '#f97316', duracao: 4500 },
+            critico: { icone: 'alarm_on', cor: '#ef4444', duracao: 5500 }
+        };
+        const config = configs[tipo] || configs.info;
+
+        // Adicionar classe de tipo para estilos customizados
+        toast.classList.add(`toast-${tipo}`);
 
         toast.innerHTML = `
-            <span class="material-icons">${icone}</span>
+            <span class="material-icons" style="color: ${config.cor}">${config.icone}</span>
             <span>${mensagem}</span>
         `;
 
@@ -414,11 +442,11 @@ class QuickAccessBar {
             });
         });
 
-        // Auto hide
+        // Auto hide com duracao variavel por tipo
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
-        }, 2500);
+        }, config.duracao);
     }
 
     atualizarModulosAtivos(modulosAtivos) {

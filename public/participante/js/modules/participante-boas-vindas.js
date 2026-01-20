@@ -1,6 +1,9 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.18 (ATUALIZAR SÓ NÃO-RENOVADO)
+// PARTICIPANTE-BOAS-VINDAS.JS - v10.19 (BOTAO REGRAS 2026)
 // =====================================================================
+// ✅ v10.19: Botão "Regras 2026" adicionado ao header
+//           - Abre modal com taxa de inscrição, prazo, configurações
+//           - Cor azul para diferenciar dos outros botões
 // ✅ v10.18: Botão "Atualizar" só para NÃO renovados
 //           - Renovados (2026): sem botão Atualizar (não há dados ainda)
 //           - Não renovados (2025): com botão Atualizar (temporada encerrada)
@@ -52,7 +55,7 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.18 (Atualizar Não-Renovado)...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.19 (Botão Regras 2026)...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -655,8 +658,8 @@ function renderizarBoasVindas(container, data, ligaRules) {
         container.innerHTML = `
             <div class="pb-28">
 
-                <!-- Header com botoes Premiacoes e Participantes -->
-                <div class="px-4 pt-3 pb-2 flex items-center justify-start gap-2 refresh-button-container">
+                <!-- Header com botoes Premiacoes, Participantes e Regras -->
+                <div class="px-4 pt-3 pb-2 flex items-center justify-start gap-2 refresh-button-container flex-wrap">
                     <!-- Botao Premiacoes (laranja) -->
                     <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
                             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
@@ -668,6 +671,12 @@ function renderizarBoasVindas(container, data, ligaRules) {
                             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
                         <span class="material-icons text-sm">groups</span>
                         Participantes
+                    </button>
+                    <!-- Botao Regras (azul) -->
+                    <button onclick="window.abrirRegras2026 && window.abrirRegras2026()"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/40 text-blue-400 text-xs font-medium active:scale-95 transition-all hover:bg-blue-500/30">
+                        <span class="material-icons text-sm">gavel</span>
+                        Regras
                     </button>
                 </div>
 
@@ -780,9 +789,9 @@ function renderizarBoasVindas(container, data, ligaRules) {
         container.innerHTML = `
             <div class="pb-28">
 
-                <!-- Header com botoes de acao (Premiacoes + Participantes + Atualizar) -->
-                <div class="px-4 pt-3 pb-2 flex items-center justify-between gap-2 refresh-button-container">
-                    <div class="flex items-center gap-2">
+                <!-- Header com botoes de acao (Premiacoes + Participantes + Regras + Atualizar) -->
+                <div class="px-4 pt-3 pb-2 flex items-center justify-between gap-2 refresh-button-container flex-wrap">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <!-- Botao Premiacoes (laranja) -->
                         <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
                                 class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
@@ -794,6 +803,12 @@ function renderizarBoasVindas(container, data, ligaRules) {
                                 class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
                             <span class="material-icons text-sm">groups</span>
                             Participantes
+                        </button>
+                        <!-- Botao Regras (azul) -->
+                        <button onclick="window.abrirRegras2026 && window.abrirRegras2026()"
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/40 text-blue-400 text-xs font-medium active:scale-95 transition-all hover:bg-blue-500/30">
+                            <span class="material-icons text-sm">gavel</span>
+                            Regras
                         </button>
                     </div>
                     ${botaoAtualizarHTML}
