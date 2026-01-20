@@ -1,7 +1,32 @@
 # Tarefas Pendentes
-#
-# (Sem tarefas pendentes no momento)
-#
+
+## 🔴 P1 - Corrigir Extrato Leilson 2025
+
+**Participante:** Leilson Bezerra (ID 3300583)
+**Liga:** SuperCartola (684cb1c8af923da7c7df51de)
+**Problema:** Valores das colunas sumiram na tabela de fluxo financeiro 2025
+
+### Diagnóstico (2026-01-20)
+
+| Collection | Status | Observação |
+|------------|--------|------------|
+| `extratofinanceirocaches` 2025 | ❌ VAZIO | Cache nunca foi gerado |
+| `rodadas` 2025 | ❌ VAZIO | Sem registros individuais |
+| `fluxofinanceirocampos` 2025 | ✅ | Saldo 2024 = R$ 0,54 |
+| `acertofinanceiros` 2025 | ✅ | Pagamento R$ 204 (quitação) |
+
+### Causa
+O cache de extrato de 2025 nunca foi criado para o Leilson. Outros participantes têm cache com 38 rodadas completas.
+
+### Solução Proposta
+1. Buscar dados de posição do Leilson nas rodadas consolidadas da liga (via `rankingRodadaCaches` ou similar)
+2. Reconstruir o `extratofinanceirocaches` com as 38 rodadas
+3. Validar saldo final = dívida original (R$ 203,46) + campos manuais
+
+### Arquivos Relacionados
+- `controllers/extratoFinanceiroCacheController.js` - Lógica de cache
+- `scripts/fix-leilson-saldo-2026.js` - Script parcial (apenas 2026)
+
 ---
 
 ## ✅ CONCLUÍDO (2026-01-19)
