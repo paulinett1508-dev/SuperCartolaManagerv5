@@ -39,12 +39,33 @@ router.get("/:ligaId/:temporada?", async (req, res) => {
 
         const inscricoes = await InscricaoTemporada.listarPorLiga(ligaId, temporada, status);
 
+        // Buscar liga para enriquecer com clube_id (time do coracao)
+        const liga = await Liga.findById(ligaId).lean();
+        const participantesMap = new Map();
+        if (liga?.participantes) {
+            liga.participantes.forEach(p => {
+                participantesMap.set(Number(p.time_id), {
+                    clube_id: p.clube_id,
+                    contato: p.contato
+                });
+            });
+        }
+
+        // Enriquecer inscricoes com clube_id
+        const inscricoesEnriquecidas = inscricoes.map(i => {
+            const dadosLiga = participantesMap.get(Number(i.time_id)) || {};
+            return {
+                ...i.toObject ? i.toObject() : i,
+                clube_id: dadosLiga.clube_id || null
+            };
+        });
+
         res.json({
             success: true,
             ligaId,
             temporada,
-            total: inscricoes.length,
-            inscricoes
+            total: inscricoesEnriquecidas.length,
+            inscricoes: inscricoesEnriquecidas
         });
 
     } catch (error) {

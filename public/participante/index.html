@@ -2097,18 +2097,25 @@
                     // Atualizar subtitulo
                     subtitulo.textContent = `${data.total} renovados`;
 
-                    // Renderizar lista
-                    lista.innerHTML = data.inscricoes.map(p => `
-                        <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                                <span class="material-icons text-primary text-lg">person</span>
+                    // Renderizar lista com escudo do time do coracao
+                    lista.innerHTML = data.inscricoes.map(p => {
+                        const clubeId = p.clube_id || 'default';
+                        const escudoUrl = `/escudos/${clubeId}.png`;
+                        return `
+                            <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                                <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                    <img src="${escudoUrl}"
+                                         alt="Escudo"
+                                         class="w-8 h-8 object-contain"
+                                         onerror="this.src='/escudos/default.png'">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-white truncate">${p.dados_participante?.nome_cartoleiro || 'Sem nome'}</p>
+                                    <p class="text-xs text-white/50 truncate">${p.dados_participante?.nome_time || 'Sem time'}</p>
+                                </div>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-white truncate">${p.dados_participante?.nome_cartoleiro || 'Sem nome'}</p>
-                                <p class="text-xs text-white/50 truncate">${p.dados_participante?.nome_time || 'Sem time'}</p>
-                            </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
 
                 } catch (error) {
                     console.error('[PARTICIPANTES] Erro ao carregar:', error);
