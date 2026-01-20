@@ -9,13 +9,15 @@ import { parseMoedaBR } from "./fluxo-financeiro-utils.js";
 export class FluxoFinanceiroCampos {
     /**
      * Carrega todos os campos editáveis de um time do MongoDB
+     * ✅ v2.0: Adicionado suporte a temporada (para pré-temporada 2026)
      * @param {string} timeId - ID do time
+     * @param {number} [temporada] - Temporada (opcional)
      * @returns {Promise<Object>} - Objeto com todos os campos editáveis
      */
-    static async carregarTodosCamposEditaveis(timeId) {
+    static async carregarTodosCamposEditaveis(timeId, temporada = null) {
         try {
             const ligaId = obterLigaId();
-            const data = await FluxoFinanceiroAPI.getCampos(ligaId, timeId);
+            const data = await FluxoFinanceiroAPI.getCampos(ligaId, timeId, temporada);
 
             // Transformar array de campos em objeto
             const campos = {
@@ -26,7 +28,7 @@ export class FluxoFinanceiroCampos {
             };
 
             console.log(
-                "[FluxoFinanceiroCampos] Campos carregados do MongoDB:",
+                `[FluxoFinanceiroCampos] Campos carregados (temporada ${temporada || 'default'}):`,
                 campos,
             );
             return campos;

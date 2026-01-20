@@ -7,22 +7,26 @@ const API_BASE_URL = window.location.origin;
 export class FluxoFinanceiroAPI {
     /**
      * Busca campos editáveis de um time
+     * ✅ v2.0: Adicionado suporte a temporada (para pré-temporada 2026)
      * @param {string} ligaId - ID da liga
      * @param {string} timeId - ID do time
+     * @param {number} [temporada] - Temporada (opcional, default: temporada atual do backend)
      * @returns {Promise<Object>}
      */
-    static async getCampos(ligaId, timeId) {
+    static async getCampos(ligaId, timeId, temporada = null) {
         try {
-            const response = await fetch(
-                `${API_BASE_URL}/api/fluxo-financeiro/${ligaId}/times/${timeId}`,
-            );
+            let url = `${API_BASE_URL}/api/fluxo-financeiro/${ligaId}/times/${timeId}`;
+            if (temporada) {
+                url += `?temporada=${temporada}`;
+            }
+            const response = await fetch(url);
 
             if (!response.ok) {
                 throw new Error(`Erro ao buscar campos: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log("[FLUXO-API] Campos carregados:", data);
+            console.log(`[FLUXO-API] Campos carregados (temporada ${temporada || 'default'}):`, data);
             return data;
         } catch (error) {
             console.error("[FLUXO-API] Erro ao buscar campos:", error);

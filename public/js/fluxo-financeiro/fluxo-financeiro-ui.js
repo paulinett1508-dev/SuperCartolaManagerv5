@@ -6,7 +6,9 @@ import {
 import { formatarMoedaBR, parseMoedaBR } from "./fluxo-financeiro-utils.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v6.7 (Pré-Temporada 2026)
+ * FLUXO-FINANCEIRO-UI.JS - v8.2 (Fix Campos Legados)
+ * ✅ v8.2: Fix CRÍTICO - Passa temporada no fallback de campos legados
+ * ✅ v8.1: Fallback para campos legados (fluxofinanceirocampos) se novo sistema vazio
  * ✅ v6.7: UI adaptada para pré-temporada 2026
  *   - Remove tabela de rodadas ROD/POS para temporadas futuras
  *   - Esconde botões GANHOS/PERDAS e campos editáveis em pré-temporada
@@ -3629,6 +3631,7 @@ export class FluxoFinanceiroUI {
     /**
      * ✅ v8.0: Renderiza ajustes dinâmicos (novo sistema para temporada >= 2026)
      * ✅ v8.1: Fallback para campos legados (fluxofinanceirocampos) se novo sistema vazio
+     * ✅ v8.2: Fix CRÍTICO - Passa temporada no fallback de campos legados
      */
     async renderizarAjustesDinamicos(timeId, temporada) {
         const ligaId = window.obterLigaId?.() || '';
@@ -3650,10 +3653,11 @@ export class FluxoFinanceiroUI {
             console.error('[FLUXO-UI] Erro ao carregar ajustes:', error);
         }
 
-        // ✅ v8.1 FALLBACK: Se não tem ajustes no novo sistema, buscar campos legados
+        // ✅ v8.2 FALLBACK: Se não tem ajustes no novo sistema, buscar campos legados (COM TEMPORADA)
         if (ajustes.length === 0) {
             try {
-                const camposLegados = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+                // ✅ CRÍTICO: Passar temporada para buscar campos da temporada correta
+                const camposLegados = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId, temporada);
 
                 // Converter campos legados para formato de ajustes
                 const camposArray = ['campo1', 'campo2', 'campo3', 'campo4'];
@@ -3672,7 +3676,7 @@ export class FluxoFinanceiroUI {
 
                 if (ajustes.length > 0) {
                     usandoLegado = true;
-                    console.log(`[FLUXO-UI] ✅ Fallback: ${ajustes.length} campos legados carregados para time ${timeId}`);
+                    console.log(`[FLUXO-UI] ✅ Fallback: ${ajustes.length} campos legados carregados para time ${timeId} (temporada ${temporada})`);
                 }
             } catch (error) {
                 console.warn('[FLUXO-UI] Erro ao carregar campos legados:', error);
