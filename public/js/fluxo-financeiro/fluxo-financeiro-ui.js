@@ -3628,6 +3628,7 @@ export class FluxoFinanceiroUI {
 
     /**
      * ✅ v8.0: Renderiza ajustes dinâmicos (novo sistema para temporada >= 2026)
+     * ✅ v8.1: Fallback para campos legados (fluxofinanceirocampos) se novo sistema vazio
      */
     async renderizarAjustesDinamicos(timeId, temporada) {
         const ligaId = window.obterLigaId?.() || '';
@@ -3638,14 +3639,44 @@ export class FluxoFinanceiroUI {
             window.isAdminMode === true ||
             document.querySelector('[data-admin-mode="true"]') !== null;
 
-        // Buscar ajustes via API
+        // Buscar ajustes via API (novo sistema)
         let ajustes = [];
+        let usandoLegado = false;
         try {
             if (window.FluxoFinanceiroAjustesAPI) {
                 ajustes = await window.FluxoFinanceiroAjustesAPI.listarAjustes(ligaId, timeId, temporada);
             }
         } catch (error) {
             console.error('[FLUXO-UI] Erro ao carregar ajustes:', error);
+        }
+
+        // ✅ v8.1 FALLBACK: Se não tem ajustes no novo sistema, buscar campos legados
+        if (ajustes.length === 0) {
+            try {
+                const camposLegados = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+
+                // Converter campos legados para formato de ajustes
+                const camposArray = ['campo1', 'campo2', 'campo3', 'campo4'];
+                camposArray.forEach((key, index) => {
+                    const campo = camposLegados[key];
+                    if (campo && campo.valor !== 0) {
+                        ajustes.push({
+                            _id: `legado_${index}`,
+                            descricao: campo.nome || `Campo ${index + 1}`,
+                            valor: parseFloat(campo.valor) || 0,
+                            criado_em: null,
+                            legado: true // Flag para identificar que veio do sistema antigo
+                        });
+                    }
+                });
+
+                if (ajustes.length > 0) {
+                    usandoLegado = true;
+                    console.log(`[FLUXO-UI] ✅ Fallback: ${ajustes.length} campos legados carregados para time ${timeId}`);
+                }
+            } catch (error) {
+                console.warn('[FLUXO-UI] Erro ao carregar campos legados:', error);
+            }
         }
 
         // Calcular totais
@@ -3657,6 +3688,7 @@ export class FluxoFinanceiroUI {
 
         // Lista de ajustes HTML
         const ajustesHTML = ajustes.length > 0 ? ajustes.map(a => {
+            const isLegado = a.legado === true;
             const isCredito = a.valor > 0;
             const cor = isCredito ? '#34d399' : '#f87171';
             const sinal = isCredito ? '+' : '-';
@@ -3665,10 +3697,10 @@ export class FluxoFinanceiroUI {
                 <div class="ajuste-item" data-ajuste-id="${a._id}" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border-left: 3px solid ${cor}; margin-bottom: 6px;">
                     <div style="flex: 1; min-width: 0;">
                         <div style="font-size: 12px; color: #fff; font-weight: 500;">${a.descricao}</div>
-                        <div style="font-size: 10px; color: rgba(255,255,255,0.5);">${a.criado_em ? new Date(a.criado_em).toLocaleDateString('pt-BR') : ''}</div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.5);">${a.criado_em ? new Date(a.criado_em).toLocaleDateString('pt-BR') : (isLegado ? 'Importado' : '')}</div>
                     </div>
                     <div style="font-size: 14px; font-weight: 700; color: ${cor};">${sinal}R$ ${formatarValor(a.valor)}</div>
-                    ${isAdmin ? `
+                    ${isAdmin && !isLegado ? `
                     <div class="ajuste-actions" style="display: flex; gap: 4px;">
                         <button onclick="window.editarAjusteFinanceiro('${a._id}', '${a.descricao.replace(/'/g, "\\'")}', ${a.valor})" class="btn-ajuste-action" style="background: rgba(255,255,255,0.1); border: none; border-radius: 4px; padding: 4px; cursor: pointer;" title="Editar">
                             <span class="material-icons" style="font-size: 16px; color: #888;">edit</span>
