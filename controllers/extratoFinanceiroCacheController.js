@@ -314,7 +314,14 @@ async function buscarExtratoDeSnapshots(ligaId, timeId, temporada = null) {
 // ✅ v5.8 FIX: Calcular totalGanhos/totalPerdas por COMPONENTES (não rodadas inteiras)
 // Isso garante consistência entre o card de Créditos/Débitos e o popup de detalhamento
 function calcularResumoDeRodadas(rodadas, camposManuais = null) {
-    if (!Array.isArray(rodadas) || rodadas.length === 0) {
+    // ✅ v5.9 FIX: Processar campos manuais mesmo sem rodadas (pré-temporada)
+    // Bug anterior: retornava saldo:0 ignorando campos quando rodadas=[]
+    const rodadasArray = Array.isArray(rodadas) ? rodadas : [];
+    const temRodadas = rodadasArray.length > 0;
+    const temCampos = camposManuais && Array.isArray(camposManuais) && camposManuais.length > 0;
+
+    // Se não tem nada para processar, retornar zerado
+    if (!temRodadas && !temCampos) {
         return {
             saldo: 0,
             totalGanhos: 0,
@@ -336,7 +343,8 @@ function calcularResumoDeRodadas(rodadas, camposManuais = null) {
         totalGanhos = 0,
         totalPerdas = 0;
 
-    rodadas.forEach((r) => {
+    // ✅ v5.9: Usar rodadasArray (pode ser [] em pré-temporada)
+    rodadasArray.forEach((r) => {
         const bonusOnus = parseFloat(r.bonusOnus) || 0;
         if (bonusOnus > 0) totalBonus += bonusOnus;
         else totalOnus += bonusOnus;

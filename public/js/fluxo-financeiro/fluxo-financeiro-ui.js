@@ -3429,16 +3429,24 @@ export class FluxoFinanceiroUI {
         const saldoPendente = extrato.resumo?.saldo ?? 0;
 
         // ✅ v6.7: Determinar label e ícone baseado na origem do saldo
+        // ✅ v6.8 FIX: Se pagou inscrição, label é "Saldo Inicial", não "Inscrição"
         const temporadaAtual = this.temporadaModalExtrato || window.temporadaAtual || 2026;
         const isPreTemporada = extrato.preTemporada === true;
+        const pagouInscricao = extrato.resumo?.pagouInscricao === true || extrato.inscricao?.pagouInscricao === true;
 
         let labelSaldoTemporada = 'Resultado Temporada:';
         let iconeSaldoTemporada = 'history';
 
         if (isPreTemporada) {
-            // Pré-temporada: saldo vem da inscrição
-            labelSaldoTemporada = `Inscrição ${temporadaAtual}:`;
-            iconeSaldoTemporada = 'person_add';
+            if (pagouInscricao) {
+                // ✅ v6.8: Pagou inscrição - saldo vem de ajustes/créditos, não da inscrição
+                labelSaldoTemporada = `Saldo Inicial ${temporadaAtual}:`;
+                iconeSaldoTemporada = 'account_balance';
+            } else {
+                // Não pagou - mostrar como inscrição pendente
+                labelSaldoTemporada = `Inscrição ${temporadaAtual}:`;
+                iconeSaldoTemporada = 'person_add';
+            }
         } else if (extrato.rodadas?.length === 0 && saldoTemporada !== 0) {
             // Temporada iniciada mas sem rodadas ainda, com saldo inicial
             labelSaldoTemporada = `Saldo Inicial ${temporadaAtual}:`;

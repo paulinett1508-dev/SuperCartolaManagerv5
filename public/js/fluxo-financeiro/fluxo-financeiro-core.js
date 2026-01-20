@@ -522,6 +522,11 @@ export class FluxoFinanceiroCore {
             const camposEditaveis = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
             const acertos = await this._buscarAcertosFinanceiros(ligaId, timeId);
 
+            // ✅ v6.8: Buscar status de inscrição para determinar se pagou
+            const statusInscricao = this.cache?.getStatusInscricao2026?.(timeId) || {};
+            const pagouInscricao = statusInscricao.pagouInscricao === true || statusInscricao.inscricaoQuitada === true;
+            console.log(`[FLUXO-CORE] 📋 Status inscrição time ${timeId}: pagouInscricao=${pagouInscricao}`);
+
             // Calcular saldo inicial (da inscrição)
             const saldoInscricao = (parseFloat(camposEditaveis.campo1?.valor) || 0) +
                                    (parseFloat(camposEditaveis.campo2?.valor) || 0) +
@@ -539,7 +544,8 @@ export class FluxoFinanceiroCore {
                     campo4: parseFloat(camposEditaveis.campo4?.valor) || 0,
                     saldo_acertos: acertos?.resumo?.saldo ?? 0,
                     saldo_temporada: saldoInscricao,
-                    saldo: saldoInscricao + (acertos?.resumo?.saldo ?? 0)
+                    saldo: saldoInscricao + (acertos?.resumo?.saldo ?? 0),
+                    pagouInscricao: pagouInscricao // ✅ v6.8: Flag para UI determinar label
                 },
                 totalTimes: 0,
                 camposEditaveis: camposEditaveis,
@@ -549,6 +555,7 @@ export class FluxoFinanceiroCore {
                 extratoTravado: false,
                 preTemporada: true,
                 temporadaMercado: temporadaMercado,
+                inscricao: statusInscricao, // ✅ v6.8: Dados completos da inscrição
                 avisoPreTemporada: `Temporada ${temporadaSelecionada} ainda não iniciou. Exibindo apenas inscrições.`
             };
         }

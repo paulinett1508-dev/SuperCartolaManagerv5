@@ -549,22 +549,21 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
         extratosOrdenados.forEach(e => extratoMap.set(String(e.time_id), e));
         console.log(`[TESOURARIA] Extratos carregados: ${todosExtratos.length} (temporadas: ${[...new Set(todosExtratos.map(e => e.temporada))].join(', ')}) | Prioridade: ${temporadaNum}`);
 
-        // ✅ v2.18 FIX: Priorizar temporada ANTERIOR para dados históricos (prêmios 2025)
-        // Bug: forEach simples sobrescrevia 2025 com 2026 (vazio)
-        // Correção: ordenar para que temporada anterior venha por último (sobrescreve vazio)
+        // ✅ v2.25 FIX: Priorizar temporada SOLICITADA (não a anterior)
+        // Bug v2.18: Priorizava temporada anterior, sobrescrevendo dados de 2026 com 2025
+        // Correção: Para visualizar 2026, campos de 2026 têm prioridade (ex: "Saldo 2025")
+        //           Para visualizar 2025, campos de 2025 têm prioridade
         const camposMap = new Map();
         const camposOrdenados = [...todosCampos].sort((a, b) => {
-            // Temporada ANTERIOR tem prioridade (vem por último para sobrescrever)
-            // Se temporadaNum=2026, queremos que 2025 sobrescreva 2026
-            const temporadaAnterior = temporadaNum - 1;
-            const aIsAnterior = a.temporada === temporadaAnterior;
-            const bIsAnterior = b.temporada === temporadaAnterior;
-            if (aIsAnterior && !bIsAnterior) return 1;  // a vem depois
-            if (!aIsAnterior && bIsAnterior) return -1; // b vem depois
+            // Temporada SOLICITADA tem prioridade (vem por último para sobrescrever)
+            const aIsSolicitada = a.temporada === temporadaNum;
+            const bIsSolicitada = b.temporada === temporadaNum;
+            if (aIsSolicitada && !bIsSolicitada) return 1;  // a vem depois
+            if (!aIsSolicitada && bIsSolicitada) return -1; // b vem depois
             return (a.temporada || 0) - (b.temporada || 0);
         });
         camposOrdenados.forEach(c => camposMap.set(String(c.timeId), c));
-        console.log(`[TESOURARIA] Campos históricos: ${todosCampos.length} (temporadas: ${[...new Set(todosCampos.map(c => c.temporada))].join(', ')}) | Prioridade histórico: ${temporadaNum - 1}`);
+        console.log(`[TESOURARIA] Campos carregados: ${todosCampos.length} (temporadas: ${[...new Set(todosCampos.map(c => c.temporada))].join(', ')}) | Prioridade: ${temporadaNum}`);
 
         // Agrupar acertos por timeId
         const acertosMap = new Map();
