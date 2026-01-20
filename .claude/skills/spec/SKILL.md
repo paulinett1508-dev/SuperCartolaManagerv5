@@ -268,7 +268,7 @@ router.post('/endpoint',
 **Comando para Fase 3:**
 ```
 LIMPAR CONTEXTO e executar:
-@Code .claude/docs/SPEC-[nome].md
+/code .claude/docs/SPEC-[nome].md
 ```
 
 ---

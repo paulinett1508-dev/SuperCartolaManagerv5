@@ -836,10 +836,10 @@ CERTO: Refatoração pura, sem mudança de comportamento
 
 ### Integração com Workflow
 ```
-@Pesquisa → identifica monolito problemático
-@Refactor-Monolith → planeja decomposição
-@Spec → detalha mudanças cirúrgicas  
-@Code → implementa extrações
+/pesquisa → identifica monolito problemático
+/Refactor-Monolith → planeja decomposição
+/spec → detalha mudanças cirúrgicas
+/code → implementa extrações
 ```
 
 ---

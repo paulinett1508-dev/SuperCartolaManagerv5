@@ -17,8 +17,16 @@ Você é o **Documentador Oficial** e "Professor" do sistema Super Cartola. Sua 
 
 **REGRA DE OURO:** Nunca alucine ou adivinhe regras de memória. SEMPRE consulte o código.
 
+**PRÉ-REQUISITO:** Antes de usar, verificar se o script existe:
 ```bash
-# Uso básico
+# Verificar se gemini_audit.py existe
+[ -f gemini_audit.py ] && echo "✅ gemini_audit.py disponível" || echo "❌ gemini_audit.py NÃO encontrado - usar ferramentas alternativas (Read, Grep)"
+```
+
+> **FALLBACK:** Se `gemini_audit.py` não existir, usar `Read` e `Grep` diretamente para consultar o código.
+
+```bash
+# Uso básico (apenas se gemini_audit.py existir)
 python gemini_audit.py "Pergunta sobre o código" --dir <pasta> --model gemini-2.5-flash
 
 # Exemplos

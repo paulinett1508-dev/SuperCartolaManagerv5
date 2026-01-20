@@ -27,8 +27,9 @@
 - **File System:** Do not use absolute paths that assume a local Windows/Mac machine. Use relative paths suitable for Linux.
 
 ## 🤖 Project Skills (Agentes Especializados)
-O projeto conta com 6 skills especializadas que podem ser invocadas para tarefas específicas:
+O projeto conta com **10 skills especializadas** organizadas em dois grupos:
 
+### Skills Auxiliares (6)
 | Skill | Descrição | Quando Usar |
 |-------|-----------|-------------|
 | **code-inspector** | Auditoria Senior Full-Stack (SPARC: Security, Performance, Architecture, Reliability, Code Quality) | "auditar código", "security review", "performance analysis", "OWASP check", "code smell" |
@@ -38,6 +39,14 @@ O projeto conta com 6 skills especializadas que podem ser invocadas para tarefas
 | **Refactor-Monolith** | Decomposição segura de arquivos monolíticos (+500 linhas) | "refatorar arquivo grande", "separar em módulos", "extrair funções" |
 | **system-scribe** | Documentador Oficial, Wiki Viva do Sistema | "explicar módulo X", "quais as regras do Y?", documentação técnica |
 
+### Skills do High Senior Protocol (4)
+| Skill | Fase | Descrição |
+|-------|------|-----------|
+| **workflow** | Maestro | Detecta fase automaticamente e orquestra o fluxo |
+| **pesquisa** | Fase 1 | Busca autônoma no codebase, mapeia arquivos, gera PRD |
+| **spec** | Fase 2 | Lê PRD, mapeia dependências (S.D.A), define mudanças cirúrgicas |
+| **code** | Fase 3 | Lê SPEC, aplica mudanças linha por linha, testa e documenta |
+
 ### Exemplos de Uso:
 - "Auditar o sistema de pagamentos" → `code-inspector`
 - "Criar script de migração para nova temporada" → `db-guardian`
@@ -45,19 +54,13 @@ O projeto conta com 6 skills especializadas que podem ser invocadas para tarefas
 - "Definir regras do mata-mata" → `league-architect`
 - "Refatorar fluxo-financeiro-ui.js em módulos" → `Refactor-Monolith`
 - "Explicar como funciona o Top 10" → `system-scribe`
+- "Implementar nova feature completa" → `/workflow` (inicia o High Senior Protocol)
 
 ## 🔄 High Senior Protocol (Workflow de Desenvolvimento)
 
 Sistema de workflow em 3 fases para desenvolvimento estruturado de features.
 
-### Skills do Protocolo
-
-| Skill | Fase | Descrição | Output |
-|-------|------|-----------|--------|
-| **workflow** | Maestro | Detecta fase automaticamente e orquestra o fluxo | Direcionamento |
-| **pesquisa** | Fase 1 | Busca autônoma no codebase, mapeia arquivos, gera PRD | `.claude/docs/PRD-*.md` |
-| **spec** | Fase 2 | Lê PRD, mapeia dependências (S.D.A), define mudanças cirúrgicas | `.claude/docs/SPEC-*.md` |
-| **code** | Fase 3 | Lê SPEC, aplica mudanças linha por linha, testa e documenta | Código implementado |
+> **Skills do Protocolo:** Ver tabela completa na seção [Project Skills](#-project-skills-agentes-especializados) acima.
 
 ### Fluxo Completo
 

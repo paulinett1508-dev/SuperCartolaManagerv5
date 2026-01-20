@@ -213,8 +213,8 @@ grep -r "#[id-elemento]\|.[classe-css]" . --include="*.html" --include="*.js"
 ## Proximos Passos
 
 1. Validar PRD
-2. Gerar Spec: Executar `@Spec` com este PRD
-3. Implementar: Executar `@Code` com Spec gerado
+2. Gerar Spec: Executar `/spec` com este PRD
+3. Implementar: Executar `/code` com Spec gerado
 
 ---
 
@@ -264,7 +264,7 @@ PRD gerado com sucesso!
 LIMPAR CONTEXTO:
 1. Feche esta conversa
 2. Abra nova conversa
-3. Execute: @Spec .claude/docs/PRD-[nome].md
+3. Execute: /spec .claude/docs/PRD-[nome].md
 ```
 
 ---
