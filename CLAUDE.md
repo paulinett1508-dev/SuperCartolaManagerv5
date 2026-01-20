@@ -15,6 +15,19 @@
   - Buttons: Use explicit feedback (hover/active states).
   - Inputs: Remove default white backgrounds. Use `bg-gray-700 text-white border-gray-600`.
 
+### Tipografia (Fontes Padrao)
+| Uso | Fonte | CSS |
+|-----|-------|-----|
+| **Titulos, Badges, Stats** | Russo One | `font-family: 'Russo One', sans-serif;` |
+| **Corpo de texto** | Inter | `font-family: 'Inter', -apple-system, sans-serif;` |
+| **Valores numericos** | JetBrains Mono | `font-family: 'JetBrains Mono', monospace;` |
+
+**Importante:** Sempre usar **Russo One** para:
+- Titulos de modais e secoes
+- Badges e tags
+- Numeros de estatisticas (posicao, pontos)
+- Nomes de destaque
+
 ## 🛡️ Coding Standards
 - **Idempotency:** All financial functions must be idempotent. Prevent double-charging or double-crediting.
 - **Safety:** Always validate `req.session.usuario` before sensitive actions.
