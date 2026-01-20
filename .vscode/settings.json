@@ -1,3 +1,4 @@
 {
-  "github.copilot.chat.verboseLogging": true
+  "github.copilot.chat.verboseLogging": true,
+  "chatgpt.openOnStartup": true
 }
