@@ -15,6 +15,14 @@ const participanteSchema = new mongoose.Schema(
         ativo: { type: Boolean, default: true }, // ✅ NOVO: Controle de participante ativo/inativo
         contato: { type: String, default: "" }, // ✅ v2.12: WhatsApp/telefone para contato direto
         premium: { type: Boolean, default: false }, // ✅ v2.13: Acesso a recursos PRO (Cartola PRO)
+        cartolaAuth: { // ✅ v2.14: Metadados de autenticacao Cartola (tokens ficam na sessao)
+            type: new mongoose.Schema({
+                email: { type: String, default: null },
+                method: { type: String, enum: ['direct', 'oauth', 'capture', null], default: null },
+                lastAuthAt: { type: Date, default: null }
+            }, { _id: false }),
+            default: null
+        }
     },
     { _id: false },
 );
