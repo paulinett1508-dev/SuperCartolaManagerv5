@@ -1,6 +1,128 @@
 # Tarefas Pendentes
 
-(Nenhuma tarefa pendente no momento)
+## 🔴 PRIORIDADE ALTA
+
+### [FEAT-024] Integração OAuth Cartola PRO
+
+**Objetivo:** Permitir que usuário PRO escale automaticamente no Cartola FC através do Super Cartola Manager.
+
+**Status Atual:** FASE 1 CONCLUÍDA - PRD Gerado
+
+| Fase | Status | Arquivo |
+|------|--------|---------|
+| 1. Pesquisa | ✅ Concluído | `.claude/docs/PRD-cartola-pro.md` |
+| 2. Spec | ⏳ Pendente | - |
+| 3. Code | ⏳ Pendente | - |
+
+**RETOMAR:** `/workflow ler PRD-cartola-pro.md e gerar Spec`
+
+---
+
+**Pesquisa já realizada (20/01/2026):**
+
+1. **Endpoint de Autenticação:**
+   ```
+   POST https://login.globo.com/api/authentication
+   Headers: Content-Type: application/json
+   Body: {
+     "payload": {
+       "email": "usuario@email.com",
+       "password": "senha123",
+       "serviceId": 4728
+     }
+   }
+   Retorna: { "glbId": "token_215_caracteres..." }
+   ```
+
+2. **Endpoint para Salvar Escalação:**
+   ```
+   POST https://api.cartolafc.globo.com/auth/time/salvar
+   Headers:
+     X-GLB-Token: [glbId]
+     Content-Type: application/json
+   Body: {
+     "esquema": 3,  // ID da formação (4-3-3, etc)
+     "atleta": [37788, 71116, ...]  // Array de IDs dos jogadores
+   }
+   ```
+
+3. **Projetos de Referência no GitHub:**
+   - `python-cartolafc` (vicenteneto) - Wrapper Python completo
+   - `CartolaJS` (0xVasconcelos) - Wrapper Node.js
+   - `cartola-api` (renatorib) - PHP wrapper para CORS
+
+**Arquitetura Proposta:**
+
+```
+[App Participante Premium]
+    |
+    +-- [Modal de Login Globo]
+    |       - Input email/senha
+    |       - Checkbox "Lembrar credenciais" (opcional, criptografado)
+    |       - Aviso de riscos
+    |
+    +-- [Backend Super Cartola]
+    |       - POST /api/cartola-pro/auth
+    |       - POST /api/cartola-pro/escalar
+    |       - Proxy seguro (não expõe credenciais no frontend)
+    |
+    +-- [API Cartola Globo]
+            - Autenticação com glbId
+            - Salvar escalação
+```
+
+**Arquivos a Criar:**
+
+1. **Backend:**
+   - `routes/cartola-pro-routes.js` - Rotas de autenticação e escalação
+   - `services/cartolaProService.js` - Lógica de integração com Globo
+   - `models/CartolaProSession.js` - Armazenar sessões ativas (opcional)
+
+2. **Frontend:**
+   - `public/participante/js/modules/participante-cartola-pro.js` - Lógica do módulo
+   - `public/participante/fronts/cartola-pro.html` - Interface
+   - Atualizar `participante-dicas.js` para integrar com PRO
+
+**Fluxo de Implementação:**
+
+- [ ] 1. Criar rota backend POST `/api/cartola-pro/auth`
+  - Receber email/senha do participante
+  - Fazer request para login.globo.com
+  - Retornar glbId (ou erro)
+  - NÃO armazenar credenciais em texto claro
+
+- [ ] 2. Criar rota backend POST `/api/cartola-pro/escalar`
+  - Receber glbId + array de atletas + esquema
+  - Fazer request para api.cartolafc.globo.com
+  - Retornar sucesso/erro
+
+- [ ] 3. Criar interface no app participante
+  - Botão "Escalar no Cartola" (apenas Premium)
+  - Modal de login com aviso de riscos
+  - Seletor de jogadores com sugestões
+  - Confirmação antes de salvar
+
+- [ ] 4. Implementar seletor de escalação
+  - Buscar jogadores disponíveis (mercado aberto)
+  - Interface de arrastar/soltar ou seleção
+  - Validar formação (11 jogadores + técnico)
+  - Mostrar preço total vs patrimônio
+
+- [ ] 5. Testes e validação
+  - Testar com conta real (com cuidado)
+  - Verificar rate limiting da Globo
+  - Implementar fallbacks para erros
+
+**⚠️ RISCOS CONFIRMADOS:**
+
+| Risco | Mitigação |
+|-------|-----------|
+| Violar ToS Globo | Aviso explícito ao usuário, termo de aceite |
+| Credenciais expostas | NUNCA armazenar em texto claro, usar session temporária |
+| Conta banida | Limitar requisições, simular comportamento humano |
+| API mudar | Monitorar erros, fallback gracioso |
+
+**Acesso:** Apenas participantes Premium (verificar `timeId === '13935277'` ou flag no banco)
 
 ---
 

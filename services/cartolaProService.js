@@ -365,6 +365,211 @@ class CartolaProService {
             return { aberto: false };
         }
     }
+
+    /**
+     * Gera time sugerido com base em algoritmo próprio
+     * @param {number} esquema - ID do esquema de formação (1-7)
+     * @param {number} patrimonio - Patrimônio disponível para montar o time
+     * @returns {Promise<{success: boolean, atletas?: Array, totalPreco?: number, error?: string}>}
+     */
+    async gerarTimeSugerido(esquema = 3, patrimonio = 100) {
+        CartolaProLogger.info('Gerando time sugerido', { esquema, patrimonio });
+
+        try {
+            // Buscar atletas do mercado (público, sem token)
+            const atletasResponse = await httpClient.get(`${this.apiUrl}/atletas/mercado`);
+            const atletas = atletasResponse.data.atletas || {};
+            const clubes = atletasResponse.data.clubes || {};
+            const posicoes = atletasResponse.data.posicoes || {};
+
+            // Converter para array e adicionar dados formatados
+            const atletasArray = Object.values(atletas).map(a => ({
+                atletaId: a.atleta_id,
+                nome: a.apelido,
+                posicaoId: a.posicao_id,
+                posicao: posicoes[a.posicao_id]?.nome || 'N/D',
+                posicaoAbreviacao: posicoes[a.posicao_id]?.abreviacao || 'N/D',
+                clubeId: a.clube_id,
+                clube: clubes[a.clube_id]?.nome || 'N/D',
+                clubeAbreviacao: clubes[a.clube_id]?.abreviacao || 'N/D',
+                preco: a.preco_num || 0,
+                media: a.media_num || 0,
+                jogos: a.jogos_num || 0,
+                status: a.status_id, // 7 = provável, 2 = dúvida, etc.
+                foto: a.foto?.replace('FORMATO', '140x140') || null,
+                // Custo-benefício: média / preço (evita divisão por zero)
+                custoBeneficio: a.preco_num > 0 ? (a.media_num / a.preco_num) : 0
+            }));
+
+            // Filtrar apenas jogadores prováveis (status 7)
+            const atletasProvaveis = atletasArray.filter(a => a.status === 7 || a.jogos >= 3);
+
+            // Obter configuração do esquema
+            const esquemaConfig = ESQUEMAS[esquema];
+            if (!esquemaConfig) {
+                return { success: false, error: 'Esquema de formação inválido' };
+            }
+
+            // Selecionar atletas por posição com melhor custo-benefício
+            const timeSugerido = [];
+            let precoTotal = 0;
+            const patrimonioRestante = patrimonio;
+
+            // Função para selecionar melhores atletas de uma posição
+            const selecionarAtletas = (posicaoId, quantidade, orcamento) => {
+                const candidatos = atletasProvaveis
+                    .filter(a => a.posicaoId === posicaoId && a.preco <= orcamento)
+                    .sort((a, b) => b.custoBeneficio - a.custoBeneficio);
+
+                return candidatos.slice(0, quantidade);
+            };
+
+            // Mapear posição para ID
+            const posicaoParaId = { gol: 1, lat: 2, zag: 3, mei: 4, ata: 5, tec: 6 };
+
+            // Calcular orçamento por posição (proporcional)
+            const totalJogadores = Object.values(esquemaConfig.posicoes).reduce((a, b) => a + b, 0) + 1; // +1 técnico
+            const orcamentoPorJogador = patrimonioRestante / totalJogadores;
+
+            // Selecionar para cada posição
+            for (const [pos, qtd] of Object.entries(esquemaConfig.posicoes)) {
+                const posId = posicaoParaId[pos];
+                const selecionados = selecionarAtletas(posId, qtd, orcamentoPorJogador * qtd * 1.5);
+
+                if (selecionados.length < qtd) {
+                    // Não tem jogadores suficientes disponíveis
+                    CartolaProLogger.warn(`Faltam jogadores para posição ${pos}`, {
+                        necessario: qtd,
+                        disponivel: selecionados.length
+                    });
+                }
+
+                timeSugerido.push(...selecionados);
+                precoTotal += selecionados.reduce((sum, a) => sum + a.preco, 0);
+            }
+
+            // Selecionar técnico
+            const tecnicos = selecionarAtletas(6, 1, orcamentoPorJogador * 2);
+            if (tecnicos.length > 0) {
+                timeSugerido.push(tecnicos[0]);
+                precoTotal += tecnicos[0].preco;
+            }
+
+            // Sugerir capitão (maior média entre meias e atacantes)
+            const capitaoCandidatos = timeSugerido
+                .filter(a => a.posicaoId === 4 || a.posicaoId === 5)
+                .sort((a, b) => b.media - a.media);
+
+            const capitaoSugerido = capitaoCandidatos[0]?.atletaId || timeSugerido[0]?.atletaId;
+
+            CartolaProLogger.info('Time sugerido gerado', {
+                totalAtletas: timeSugerido.length,
+                precoTotal,
+                capitaoSugerido
+            });
+
+            return {
+                success: true,
+                atletas: timeSugerido,
+                totalPreco: precoTotal,
+                patrimonioRestante: patrimonio - precoTotal,
+                esquema: esquemaConfig.nome,
+                capitaoSugerido,
+                algoritmo: 'custo-beneficio-v1' // Futuramente: integrar GatoMestre
+            };
+
+        } catch (error) {
+            CartolaProLogger.error('Erro ao gerar time sugerido', { error: error.message });
+            return {
+                success: false,
+                error: 'Erro ao gerar sugestão de time. Tente novamente.'
+            };
+        }
+    }
+
+    /**
+     * Busca time atual do usuário autenticado
+     * @param {string} glbToken - Token de autenticação Globo (OAuth ou glbid)
+     * @returns {Promise<{success: boolean, time?: Object, atletas?: Array, error?: string}>}
+     */
+    async buscarMeuTime(glbToken) {
+        CartolaProLogger.info('Buscando time do usuário');
+
+        try {
+            // Buscar dados do time autenticado
+            const timeResponse = await httpClient.get(`${this.apiUrl}/auth/time`, {
+                headers: { 'X-GLB-Token': glbToken }
+            });
+
+            if (!timeResponse.data || !timeResponse.data.time) {
+                return {
+                    success: false,
+                    error: 'Não foi possível obter dados do seu time'
+                };
+            }
+
+            const timeData = timeResponse.data;
+            const atletas = timeData.atletas || [];
+            const clubes = timeData.clubes || {};
+            const posicoes = timeData.posicoes || {};
+
+            // Formatar atletas escalados
+            const atletasFormatados = atletas.map(a => ({
+                atletaId: a.atleta_id,
+                nome: a.apelido,
+                posicaoId: a.posicao_id,
+                posicao: posicoes[a.posicao_id]?.nome || 'N/D',
+                clubeId: a.clube_id,
+                clube: clubes[a.clube_id]?.nome || 'N/D',
+                clubeAbreviacao: clubes[a.clube_id]?.abreviacao || 'N/D',
+                preco: a.preco_num || 0,
+                pontosRodada: a.pontos_num || 0,
+                media: a.media_num || 0,
+                status: a.status_id,
+                foto: a.foto?.replace('FORMATO', '140x140') || null,
+                capitao: a.atleta_id === timeData.capitao_id
+            }));
+
+            // Calcular parcial
+            const pontosAtletas = atletasFormatados.reduce((sum, a) => {
+                const pontos = a.pontosRodada || 0;
+                return sum + (a.capitao ? pontos * 1.5 : pontos); // Capitão 1.5x
+            }, 0);
+
+            return {
+                success: true,
+                time: {
+                    timeId: timeData.time.time_id,
+                    nome: timeData.time.nome,
+                    nomeCartola: timeData.time.nome_cartola,
+                    patrimonio: timeData.time.patrimonio,
+                    rodadaAtual: timeData.time.rodada_atual,
+                    esquemaId: timeData.esquema_id,
+                    capitaoId: timeData.capitao_id
+                },
+                atletas: atletasFormatados,
+                pontosRodada: timeData.pontos || 0,
+                pontosParciais: pontosAtletas,
+                variacao: timeData.variacao_pontuacao || 0
+            };
+
+        } catch (error) {
+            CartolaProLogger.error('Erro ao buscar meu time', { error: error.message });
+
+            if (error.response?.status === 401) {
+                return {
+                    success: false,
+                    error: 'Sessão expirada. Conecte sua conta Globo novamente.',
+                    sessaoExpirada: true
+                };
+            }
+
+            return {
+                success: false,
+                error: 'Erro ao buscar seu time. Tente novamente.'
+            };
+        }
+    }
 }
 
 export default new CartolaProService();

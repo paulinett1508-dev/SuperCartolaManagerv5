@@ -1,6 +1,10 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v10.19 (BOTAO REGRAS 2026)
+// PARTICIPANTE-BOAS-VINDAS.JS - v11.1 (CARTOLA PRO)
 // =====================================================================
+// ✅ v11.1: Integração Cartola PRO para participantes premium
+//           - Botão "Cartola PRO" no header (gradiente amarelo/laranja)
+//           - Verificação premium via API /api/cartola-pro/verificar-premium
+//           - Função global window.abrirCartolaPro()
 // ✅ v10.19: Botão "Regras 2026" adicionado ao header
 //           - Abre modal com taxa de inscrição, prazo, configurações
 //           - Cor azul para diferenciar dos outros botões
@@ -55,7 +59,7 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v10.19 (Botão Regras 2026)...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v11.1 (Cartola PRO)...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -70,6 +74,9 @@ let historicoParticipante = null;
 
 // ✅ v10.5: Estado de renovação do participante
 let participanteRenovado = false;
+
+// ✅ v11.1: Estado PRO do participante
+let participantePremium = false;
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL
@@ -172,6 +179,9 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 
     // ✅ v10.5: Verificar se participante renovou ANTES de renderizar
     await verificarStatusRenovacao(ligaId, timeId);
+
+    // ✅ v11.1: Verificar se participante é PRO
+    await verificarStatusPremium();
 
     // ✅ v9.0: Buscar histórico do participante em background
     buscarHistoricoParticipante(timeId);
@@ -430,6 +440,26 @@ async function verificarStatusRenovacao(ligaId, timeId) {
 }
 
 // =====================================================================
+// ✅ v11.1: VERIFICAR SE PARTICIPANTE É PRO (PREMIUM)
+// =====================================================================
+async function verificarStatusPremium() {
+    try {
+        const response = await fetch('/api/cartola-pro/verificar-premium', {
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            participantePremium = data.premium === true;
+            if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", `✅ Status PRO: premium=${participantePremium}`);
+        }
+    } catch (error) {
+        if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "⚠️ Erro ao verificar PRO:", error);
+        participantePremium = false;
+    }
+}
+
+// =====================================================================
 // ✅ v9.0: BUSCAR HISTÓRICO DO PARTICIPANTE
 // =====================================================================
 async function buscarHistoricoParticipante(timeId) {
@@ -571,9 +601,19 @@ function renderizarBoasVindas(container, data, ligaRules) {
 
     const zona = getZonaInfo(posicao, totalParticipantes);
     const primeiroNome = nomeCartola.split(" ")[0];
-    // Selo premium para Paulinett Miranda (timeId 13935277)
-    const isPremium = String(data?.timeId || '') === '13935277';
+    // ✅ v11.1: Selo premium agora usa estado verificado via API
+    const isPremium = participantePremium;
     const seloPremium = isPremium ? `<span title="Participante Premium" class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full border border-yellow-400/40 bg-yellow-400/10 text-xs font-semibold text-yellow-300 shadow-sm" style="vertical-align:middle;">Premium <span class="material-icons text-yellow-300 text-base ml-1" style="font-size:14px;">star</span></span>` : '';
+
+    // ✅ v11.1: Botão Cartola PRO (só para premium)
+    const botaoCartolaPro = isPremium ? `
+                    <!-- Botao Cartola PRO (gradiente amarelo/laranja) -->
+                    <button onclick="window.abrirCartolaPro && window.abrirCartolaPro()"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium active:scale-95 transition-all"
+                            style="background: linear-gradient(135deg, rgba(234,179,8,0.2), rgba(249,115,22,0.2)); border: 1px solid rgba(234,179,8,0.4);">
+                        <span class="material-icons text-sm text-yellow-400">sports_soccer</span>
+                        <span class="text-yellow-300">Cartola PRO</span>
+                    </button>` : '';
     // ✅ v10.11: Badge de ambiente movido para o header (próximo à versão)
     const rodadasRestantes = Math.max(0, 38 - rodadaAtual);
     const pontosUltimaRodada = ultimaRodada
@@ -658,7 +698,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
         container.innerHTML = `
             <div class="pb-28">
 
-                <!-- Header com botoes Premiacoes, Participantes e Regras -->
+                <!-- Header com botoes Premiacoes, Participantes, Regras e Cartola PRO -->
                 <div class="px-4 pt-3 pb-2 flex items-center justify-start gap-2 refresh-button-container flex-wrap">
                     <!-- Botao Premiacoes (laranja) -->
                     <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
@@ -678,6 +718,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
                         <span class="material-icons text-sm">gavel</span>
                         Regras
                     </button>
+                    ${botaoCartolaPro}
                 </div>
 
                 <!-- Saudação com indicador de temporada -->
@@ -789,7 +830,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
         container.innerHTML = `
             <div class="pb-28">
 
-                <!-- Header com botoes de acao (Premiacoes + Participantes + Regras + Atualizar) -->
+                <!-- Header com botoes de acao (Premiacoes + Participantes + Regras + Cartola PRO + Atualizar) -->
                 <div class="px-4 pt-3 pb-2 flex items-center justify-between gap-2 refresh-button-container flex-wrap">
                     <div class="flex items-center gap-2 flex-wrap">
                         <!-- Botao Premiacoes (laranja) -->
@@ -810,6 +851,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
                             <span class="material-icons text-sm">gavel</span>
                             Regras
                         </button>
+                        ${botaoCartolaPro}
                     </div>
                     ${botaoAtualizarHTML}
                 </div>
@@ -982,5 +1024,26 @@ window.addEventListener('participante-nav-change', () => {
     }).catch(() => {});
 });
 
+// =====================================================================
+// ✅ v11.1: FUNÇÃO GLOBAL PARA ABRIR CARTOLA PRO
+// =====================================================================
+// Define globalmente para funcionar de qualquer tela
+window.abrirCartolaPro = function() {
+    if (window.CartolaProModule) {
+        window.CartolaProModule.abrirModal();
+    } else {
+        // Carregar módulo dinamicamente
+        import('./participante-cartola-pro.js')
+            .then(module => {
+                window.CartolaProModule = module;
+                module.abrirModal();
+            })
+            .catch(err => {
+                console.error('[CARTOLA-PRO] Erro ao carregar módulo:', err);
+                alert('Erro ao carregar Cartola PRO. Tente novamente.');
+            });
+    }
+};
+
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "Modulo v11.0 carregado (Jogos ao vivo + Auto-refresh)");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "Modulo v11.1 carregado (Cartola PRO + Jogos ao vivo)");

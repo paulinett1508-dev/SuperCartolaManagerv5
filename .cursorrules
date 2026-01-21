@@ -7,131 +7,370 @@
 - **Styling:** TailwindCSS (via CDN).
 - **Architecture:** MVC (Models, Controllers, Views/Public).
 
-## 🎨 UI/UX Guidelines (Dark Mode First)
-- **Theme:** Strict Dark Mode. Backgrounds typically `bg-gray-900` or `bg-slate-900`.
-- **Text:** Primary text `text-white` or `text-gray-100`. Muted text `text-gray-400`.
-- **Components:**
-  - Cards: `bg-gray-800 rounded-lg shadow-lg`.
-  - Buttons: Use explicit feedback (hover/active states).
-  - Inputs: Remove default white backgrounds. Use `bg-gray-700 text-white border-gray-600`.
+## 🎯 PROTOCOLOS DE DESENVOLVIMENTO (OBRIGATÓRIOS)
 
-## 🛡️ Coding Standards
-- **Idempotency:** All financial functions must be idempotent. Prevent double-charging or double-crediting.
-- **Safety:** Always validate `req.session.usuario` before sensitive actions.
-- **Error Handling:** Use `try/catch` in async controllers. Log errors clearly.
-- **No React/Vue:** Stick to pure JavaScript for frontend logic to maintain simplicity.
+### S.A.I.S Protocol (Antes de QUALQUER alteração)
+1. **SOLICITAR** arquivo original completo
+2. **ANALISAR** linha por linha
+3. **IDENTIFICAR** dependências
+4. **ALTERAR** minimamente focado no objetivo
+
+**NUNCA**:
+- Modificar sem ver arquivo completo
+- Reescrever código funcional
+- Assumir melhorias sem requisição
+- Fazer múltiplas soluções para mesmo problema
+
+### S.D.A - Sistema de Dependências Arquiteturais
+Antes de modificar QUALQUER arquivo:
+1. Mapear quem importa (`grep -r "require.*arquivo"`)
+2. Verificar IDs/classes CSS usados
+3. Checar rotas/formulários que referenciam
+4. Solicitar arquivos dependentes identificados
+5. SÓ ENTÃO propor mudanças mínimas
+
+### ANTIPATTERN Mode (SEMPRE ATIVO)
+✅ **Context First**: Sempre pedir arquivos/contexto ANTES de solução
+✅ **Preserve Intent**: Manter estrutura original sempre que possível
+✅ **Granular Changes**: Updates pequenos e focados
+✅ **Validate Impact**: Verificar que mudança não quebra nada
+
+❌ **BLOQUEADOS**:
+- Reescrever código funcional sem necessidade
+- Assumir melhorias são desejadas
+- Ignorar feedback sobre "continua ruim"
+- Propor opções múltiplas ao usuário
+
+## 🔒 MULTI-TENANT OBRIGATÓRIO
+
+**CRÍTICO**: Sistema gerencia múltiplas ligas isoladas.
+
+### Regra de Ouro
+```javascript
+// ❌ NUNCA FAZER
+Model.find({})
+Model.updateMany({ campo: valor })
+
+// ✅ SEMPRE FAZER
+Model.find({ liga_id: ligaId })
+Model.updateMany({ liga_id: ligaId, campo: valor })
+```
+
+### Validação em TODAS as operações
+- Queries: SEMPRE incluir `liga_id`
+- Routes: Middleware `validarLigaId` obrigatório
+- Controllers: Extrair `ligaId` de `req.session` ou `req.params`
+- Frontend: Cache por liga (`cacheKey: 'data-${ligaId}'`)
+
+### Ligas Ativas
+- **SuperCartola**: `liga_id: "684cb1c8af923da7c7df51de"` (32 participantes)
+- **Sobral**: `liga_id: "684d821cf1a7ae16d1f89572"` (4-6 participantes)
+
+## ⚡ PERFORMANCE STANDARDS
+
+### MongoDB Queries
+```javascript
+// ✅ CORRETO - Read operations
+Model.find({ liga_id }).lean()  // 40-60% mais rápido
+
+// ❌ ERRADO - Retorna documento Mongoose pesado
+Model.find({ liga_id })
+```
+
+### Cache Strategy
+- **TTL Rodadas**: 5 minutos (`5 * 60 * 1000`)
+- **TTL Rankings**: 10 minutos
+- **TTL Configs**: 30 minutos
+- Sempre validar `cached.timestamp` antes de usar
+
+## 💬 COMUNICAÇÃO E FEEDBACK
+
+### Estilo de Resposta
+- **Conciso e objetivo** - sem tutoriais extensos
+- **Assertivo** - nunca trazer opções de escolha
+- **Decidir pela melhor técnica** - usuário não quer comparações
+- **Sem validações prolixas** - ir direto ao ponto
+
+### Proibições
+- ❌ Sugerir testes em console do navegador
+- ❌ Oferecer múltiplas alternativas
+- ❌ Explicações de cada alteração (a menos que solicitado)
+- ❌ Feedbacks argumentativos
+
+## 📐 PADRÕES DE CÓDIGO
+
+### Commits
+```bash
+# Padrão obrigatório
+tipo(escopo): descrição curta
+
+- Mudança específica 1
+- Mudança específica 2
+
+Ref: SPEC-[nome].md
+```
+
+Tipos: `feat`, `fix`, `refactor`, `perf`, `style`, `docs`, `test`
+
+### Mudanças Cirúrgicas
+```javascript
+// ❌ ERRADO - Reescrever função inteira
+async function calcular() {
+  // ... 50 linhas novas
+}
+
+// ✅ CORRETO - Adicionar apenas necessário
+async function calcular() {
+  // ... [código existente linha 1-44]
+  
+  const novoCalculo = await funcaoNova(); // LINHA 45 - ADICIONAR
+  
+  // ... [código existente linha 46-78]
+  return total + novoCalculo; // LINHA 79 - MODIFICAR
+}
+```
+
+## 🔍 AUTONOMIA TOTAL
+
+### NUNCA pergunte:
+- "Onde está o arquivo X?"
+- "Em qual pasta fica Y?"
+- "Pode me mostrar a estrutura?"
+- "Qual arquivo contém a função W?"
+
+### SEMPRE busque:
+```bash
+view /home/claude                           # Mapear estrutura
+bash find . -name "*padrão*" -type f       # Encontrar arquivos
+bash grep -r "função" controllers/ --include="*.js"  # Buscar código
+bash grep -rn "app.post.*rota" routes/     # Localizar rotas
+```
+
+### Perguntas VÁLIDAS (apenas negócio):
+- ✅ "Quais regras de desempate você quer?"
+- ✅ "Isso se aplica a todas as ligas?"
+- ✅ "Qual comportamento esperado em caso de erro?"
+
+## 🛡️ SEGURANÇA E VALIDAÇÃO
+
+### Idempotency
+- **Crítico**: Funções financeiras devem ser idempotentes
+- Prevenir double-charging ou double-crediting
+- Validar `req.session.usuario` antes de ações sensíveis
+
+### Autenticação
+```javascript
+// Middleware obrigatório em rotas sensíveis
+router.post('/endpoint',
+  verificarAdmin,        // ✅ Proteção
+  validarLigaId,         // ✅ Multi-tenant
+  controller.acao
+);
+```
+
+### Input Validation
+- Sanitizar TODOS os inputs de usuário
+- Validar tipos antes de usar
+- Tratar erros com try/catch em async functions
+
+### Error Handling
+```javascript
+// ✅ PADRÃO
+try {
+  const resultado = await operacao();
+  res.json({ success: true, data: resultado });
+} catch (error) {
+  console.error('Contexto do erro:', error);
+  res.status(500).json({ 
+    success: false, 
+    error: 'Mensagem amigável para usuário' 
+  });
+}
+```
+
+## 📊 WORKFLOW DE DESENVOLVIMENTO
+
+### Fase 1: Pesquisa
+- Buscar automaticamente no codebase
+- Consultar patterns existentes
+- Mapear arquivos relacionados
+- Gerar PRD.md em `/home/claude/docs/`
+
+### Fase 2: Specification
+- Ler PRD.md
+- Aplicar S.D.A completo
+- Definir mudanças linha por linha
+- Gerar Spec.md em `/home/claude/docs/`
+
+### Fase 3: Implementation
+- Ler Spec.md
+- Solicitar arquivos originais
+- Aplicar mudanças cirúrgicas
+- Testar e validar multi-tenant
+
+**Entre fases**: Limpar contexto para eficiência de tokens
+
+## 🎨 UI/UX Guidelines (Dark Mode First)
+
+### Theme
+- **Strict Dark Mode**: Backgrounds `bg-gray-900` ou `bg-slate-900`
+- **Text**: Primary `text-white` ou `text-gray-100`, Muted `text-gray-400`
+
+### Cores Padrão
+- **Laranja principal**: `#FF4500` (destaque, CTAs)
+- **Fundos dark**: `bg-gray-900`, `bg-slate-900`
+- **Cards**: `bg-gray-800 rounded-lg shadow-lg`
+- **Texto primário**: `text-white`, `text-gray-100`
+- **Texto secundário**: `text-gray-400`
+
+### Components
+- **Cards**: `bg-gray-800 rounded-lg shadow-lg`
+- **Buttons**: Explicit feedback (hover/active states)
+- **Inputs**: Remove white backgrounds. Use `bg-gray-700 text-white border-gray-600`
+
+### Ícones
+- **Sistema**: Material Icons (sempre)
+- **Pattern**: `<i class="material-icons">nome_icone</i>`
+
+### Tipografia
+- **Família**: Inter (importada de Google Fonts)
+- **Headers**: `font-semibold` ou `font-bold`
+- **Body**: `font-normal`
+
+## 📱 MOBILE-FIRST & PWA
+
+### Design Responsivo
+- Mobile-first SEMPRE
+- Breakpoints: 640px (sm), 768px (md), 1024px (lg)
+- Testar em viewport 375px (iPhone SE)
+
+### PWA Requirements
+- Service Worker ativo
+- Manifest.json configurado
+- Cache offline de dados críticos
+- Fallback para modo offline
+
+### Export para Mobile
+- Imagens HD otimizadas para social media
+- Fundo dark (#1a1a1a)
+- Tipografia legível em telas pequenas
+- Logos e branding consistentes
+
+## 🚨 CRITICAL PRESERVATIONS
+
+### Princípio da Preservação da Lógica
+Ao alterar arquivo:
+1. Ativar abordagem ao arquivo original
+2. NUNCA perder lógica de negócio
+3. Seguir regras e funcionalidades à risca
+4. Vasculhar cada linha para dependências
+5. NUNCA quebrar funcionalidade do sistema
+
+### Arquivos Intocáveis (salvo requisição explícita)
+1. **NEVER** remove the `gemini_audit.py` file
+2. **NEVER** break the "Follow the Money" audit trail in financial controllers
+3. `config/appVersion.js` - Versionamento automático
+4. `models/Time.js` - Schema core de participantes
+
+### Validações Críticas
+- Always check if variable exists before accessing properties (avoid `undefined` errors)
+- Validate `req.session.usuario` before sensitive actions
 
 ## 🚀 Replit Specifics
-- **Server:** Always verify port configuration (process.env.PORT || 5000).
-- **File System:** Do not use absolute paths that assume a local Windows/Mac machine. Use relative paths suitable for Linux.
-
-## 🤖 Project Skills (Agentes Especializados)
-O projeto conta com 4 skills especializadas que podem ser invocadas para tarefas específicas:
-
-| Skill | Descrição | Quando Usar |
-|-------|-----------|-------------|
-| **code-inspector** | Code Review, Debugging e Qualidade de Software | "procurar bugs", "auditar código", "corrigir erros", "melhorar qualidade" |
-| **db-guardian** | Banco de Dados (MongoDB), Segurança e Migrações | Scripts de limpeza, manutenção, snapshots de temporada, gestão de acesso |
-| **frontend-crafter** | Frontend Mobile-First, UX Black & Orange, Cache Offline, SPA | Criar telas, ajustar CSS, lógica JS do cliente, navegação |
-| **league-architect** | Regras de Negócio, Formatos de Liga (SaaS), Lógica Financeira | Configs de liga, cálculos financeiros, regras de disputa |
-
-### Exemplos de Uso:
-- "Auditar o sistema de pagamentos" → `code-inspector`
-- "Criar script de migração para nova temporada" → `db-guardian`
-- "Ajustar a tela de ranking no mobile" → `frontend-crafter`
-- "Definir regras do mata-mata" → `league-architect`
-
-## ⚠️ Critical Rules
-1. NEVER remove the `gemini_audit.py` file.
-2. NEVER break the "Follow the Money" audit trail in financial controllers.
-3. Always check if a variable exists before accessing its properties (avoid `undefined` errors).
+- **Server:** Always verify port configuration (`process.env.PORT || 5000`)
+- **File System:** Use relative paths suitable for Linux (not Windows/Mac absolute paths)
+- **No React/Vue:** Stick to pure JavaScript for frontend logic
 
 ## 📊 Estrutura de Dados - Participantes
 
 ### Collection "times"
-- **IMPORTANTE:** O sistema NÃO usa a collection "users". Todos os participantes estão na collection **"times"**.
+- **IMPORTANTE:** O sistema NÃO usa collection "users". Todos participantes em **"times"**
 - Model: `models/Time.js`
-- Schema principal: `id` (Number, único), `nome_time`, `nome_cartoleiro`, `ativo`, `rodada_desistencia`, `temporada`
+- Schema: `id` (Number), `nome_time`, `nome_cartoleiro`, `ativo`, `rodada_desistencia`, `temporada`
 
 ### Configuração de Ambiente
-- **MONGODB_URI:** Não está no arquivo `.env` - está configurada nos **Replit Secrets** (variáveis de ambiente seguras).
-- O sistema detecta automaticamente o ambiente (dev/prod) via `NODE_ENV`:
-  - `development` → usa `MONGO_URI_DEV`
-  - `production` → usa `MONGO_URI`
+- **MONGODB_URI:** Configurada nos **Replit Secrets** (não no `.env`)
+- Detecção automática via `NODE_ENV`:
+  - `development` → `MONGO_URI_DEV`
+  - `production` → `MONGO_URI`
 
 ### Estatísticas Atuais (Referência)
-- **Total de participantes:** 40 registros na collection `times`
-- **Participantes ativos:** 36
-- **Participantes inativos (desistentes):** 2
-  - "JBMENGO94 FC"
-  - "Senhores Da Escuridão"
-- **Times de teste:** 2
-  - "FLAMENGO TESTE FC" (id: 99999999)
-  - "Time 123456"
+- **Total participantes**: 40 registros
+- **Ativos**: 36
+- **Inativos**: 2 ("JBMENGO94 FC", "Senhores Da Escuridão")
+- **Times teste**: 2 ("FLAMENGO TESTE FC" id: 99999999, "Time 123456")
 
 ### Scripts Úteis
-- `scripts/analisar-participantes.js` - Análise completa da collection times
-  ```bash
-  node scripts/analisar-participantes.js
-  node scripts/analisar-participantes.js --detalhes
-  node scripts/analisar-participantes.js --limpar-testes  # dry-run
-  ```
+```bash
+node scripts/analisar-participantes.js
+node scripts/analisar-participantes.js --detalhes
+node scripts/analisar-participantes.js --limpar-testes  # dry-run
+```
 
 ## 📦 Sistema de Versionamento
 
 ### Visão Geral
-O sistema de versionamento **força atualizações** no app do participante quando há mudanças.
+Sistema **força atualizações** no app quando há mudanças.
 
 ### Componentes Principais
-- **Badge no Header**: Exibe versão atual (ex: `19.12.24.1430`)
-- **Modal de Atualização**: Aparece automaticamente quando detecta nova versão
-- **API**: `/api/app/check-version` - retorna versão baseada no cliente (admin/app)
-- **Versionamento Separado**: Admin e App têm versões independentes
+- **Badge Header**: Exibe versão (ex: `19.12.24.1430`)
+- **Modal Atualização**: Aparece ao detectar nova versão
+- **API**: `/api/app/check-version` - retorna versão por cliente (admin/app)
+- **Versionamento Separado**: Admin e App independentes
 
 ### Arquivos Principais
 - `config/appVersion.js` - Gera versões automaticamente
 - `config/version-scope.json` - Define escopos (admin/app/shared)
 - `routes/appVersionRoutes.js` - API de versionamento
-- `public/js/app/app-version.js` - Cliente que verifica atualizações
-- `public/participante/js/participante-auth.js` - Inicializa o sistema (linha ~667)
+- `public/js/app/app-version.js` - Cliente verifica atualizações
+- `public/participante/js/participante-auth.js` - Inicializa (~linha 667)
 
 ### Como Funciona
 1. App verifica versão ao iniciar e quando volta do background
-2. Compara versão local vs servidor
-3. Se diferente → exibe modal **obrigatório**
-4. Usuário clica "Atualizar" → limpa cache + reload
+2. Compara local vs servidor
+3. Diferente → modal **obrigatório**
+4. "Atualizar" → limpa cache + reload
 
 ### Forçar Atualização
-Para forçar todos a atualizarem:
 ```bash
-# Modifique qualquer arquivo do app
+# Modificar qualquer arquivo do app
 touch public/participante/js/participante-rodadas.js
-
-# Restart do servidor
-# Próximo acesso → modal de atualização
+# Restart servidor → modal de atualização
 ```
 
-### Documentação Completa
-Ver: `docs/VERSIONAMENTO-SISTEMA.md`
+**Documentação**: `docs/VERSIONAMENTO-SISTEMA.md`
 
----
+## 🤖 PROJECT SKILLS (Agentes Especializados)
+
+| Skill | Descrição | Quando Usar |
+|-------|-----------|-------------|
+| **code-inspector** | Code Review, Debugging, Qualidade | "procurar bugs", "auditar código", "corrigir erros" |
+| **db-guardian** | MongoDB, Segurança, Migrações | Scripts limpeza, snapshots, gestão acesso |
+| **frontend-crafter** | Frontend Mobile-First, UX, Cache | Criar telas, CSS, lógica JS, navegação |
+| **league-architect** | Regras Negócio, Formatos Liga, Financeiro | Configs liga, cálculos, disputas |
+
+### Exemplos:
+- "Auditar pagamentos" → `code-inspector`
+- "Migração temporada" → `db-guardian`
+- "Ajustar ranking mobile" → `frontend-crafter`
+- "Regras mata-mata" → `league-architect`
 
 ## 📝 BACKLOG E IDEIAS FUTURAS
 
 ### Consultar Sempre
-Antes de implementar novas features, verificar:
-1. Arquivo [`BACKLOG.md`](BACKLOG.md) para ideias relacionadas
-2. TODOs no código com padrão `TODO-[PRIORIDADE]`
-3. Issues fechadas/adiadas que podem ser relevantes
+Antes de implementar:
+1. Arquivo [`BACKLOG.md`](BACKLOG.md)
+2. TODOs no código: `TODO-[PRIORIDADE]`
+3. Issues fechadas/adiadas
 
 ### Sistema de Prioridades
-- **CRITICAL**: Resolver ASAP, bloqueia outros trabalhos
+- **CRITICAL**: ASAP, bloqueia trabalhos
 - **HIGH**: Próximas sprints, impacto significativo
 - **MEDIUM**: 1-2 meses, melhorias importantes
 - **LOW**: Oportunidade, quando houver tempo
 - **FUTURE**: Backlog distante, reavaliar periodicamente
 
-### Padrão de TODOs no Código
+### Padrão TODOs no Código
 ```javascript
 // TODO-CRITICAL: [Descrição] - Prioridade máxima
 // TODO-HIGH: [Descrição] - Alta prioridade
@@ -139,31 +378,68 @@ Antes de implementar novas features, verificar:
 // TODO-LOW: [Descrição] - Baixa prioridade
 // TODO-FUTURE: [Descrição] - Backlog distante
 
-// Exemplo contextualizado:
-// TODO-HIGH: Adicionar rate limit específico para upload de imagens
-// Contexto: Atualmente só temos rate limit global, mas uploads podem
-// saturar o servidor. Implementar limitador em uploadController.js
+// Exemplo:
+// TODO-HIGH: Adicionar rate limit para upload imagens
+// Contexto: Só temos rate limit global, uploads podem saturar servidor
+// Implementar em uploadController.js
 // Ref: BACKLOG.md#PERF-002
 ```
 
-### Ao Adicionar Novas Ideias
+### Ao Adicionar Ideias
 1. Avaliar prioridade realista
-2. Adicionar contexto suficiente para retomar meses depois
-3. Referenciar arquivos/linhas específicas quando aplicável
-4. Usar IDs únicos no BACKLOG.md para rastreabilidade (ex: FEAT-001, BUG-002)
-5. Se aplicável, criar TODO no código E entrada no BACKLOG.md
+2. Contexto suficiente para retomar depois
+3. Referenciar arquivos/linhas específicas
+4. IDs únicos no BACKLOG.md (FEAT-001, BUG-002)
+5. TODO no código E entrada no BACKLOG.md se aplicável
 
 ### Workflow Rápido
-- **Ideia afeta arquivo específico?** → Adicionar `TODO-X` no código
-- **Ideia é padrão/regra do projeto?** → Adicionar neste arquivo (.cursorrules)
-- **Ideia é feature ampla?** → Adicionar em BACKLOG.md
+- **Afeta arquivo específico?** → `TODO-X` no código
+- **Padrão/regra projeto?** → Adicionar em `.cursorrules`
+- **Feature ampla?** → `BACKLOG.md`
 
-### Ferramentas de Suporte
-Use o script helper para gerenciar TODOs:
+### Ferramentas
 ```bash
-node scripts/backlog-helper.js list          # Lista todos os TODOs
-node scripts/backlog-helper.js validate      # Valida IDs únicos no BACKLOG.md
-node scripts/backlog-helper.js report        # Relatório por prioridade
-node scripts/backlog-helper.js search [term] # Busca por palavra-chave
+node scripts/backlog-helper.js list          # Lista TODOs
+node scripts/backlog-helper.js validate      # Valida IDs BACKLOG.md
+node scripts/backlog-helper.js report        # Relatório prioridade
+node scripts/backlog-helper.js search [term] # Busca palavra-chave
 ```
 
+---
+
+## 🎓 QUICK REFERENCE
+
+### Checklist Pré-Modificação
+- [ ] Li arquivo completo com `view`
+- [ ] Mapeei dependências com `grep -r`
+- [ ] Identifiquei lógica de negócio existente
+- [ ] Defini mudanças cirúrgicas (linha por linha)
+- [ ] Validei isolamento multi-tenant
+
+### Checklist Pós-Modificação
+- [ ] Syntax check passou (`node --check`)
+- [ ] Removido console.logs de debug
+- [ ] Queries incluem `liga_id`
+- [ ] Rotas protegidas com middleware
+- [ ] Commit seguindo padrão
+- [ ] Testado em ambas ligas
+
+### Emergency Commands
+```bash
+# Reverter mudanças
+git checkout HEAD -- arquivo.js
+
+# Ver quem usa função
+bash grep -r "nomeFuncao" . --include="*.js"
+
+# Validar multi-tenant
+bash grep -n "\.find\|\.findOne" arquivo.js | grep -v "liga_id"
+
+# Limpar cache (se necessário)
+rm -rf node_modules/.cache
+```
+
+---
+
+**Última atualização**: 2026-01-20
+**Versão**: 2.0 (High Senior Protocol)

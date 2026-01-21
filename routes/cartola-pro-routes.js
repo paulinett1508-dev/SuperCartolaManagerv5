@@ -1,5 +1,5 @@
 // =====================================================================
-// CARTOLA PRO ROUTES - Endpoints de Escalação Automática
+// CARTOLA PRO ROUTES - Endpoints de Escalacao Automatica + OAuth
 // =====================================================================
 // ⚠️ APENAS PARA PARTICIPANTES PREMIUM
 // =====================================================================
@@ -7,17 +7,25 @@
 import express from "express";
 import cartolaProService from "../services/cartolaProService.js";
 import Liga from "../models/Liga.js";
+import { setupGloboOAuthRoutes, verificarAutenticacaoGlobo, getGloboToken } from "../config/globo-oauth.js";
 
 const router = express.Router();
 
 // =====================================================================
-// MIDDLEWARE: Verificar Sessão de Participante
+// MIDDLEWARE: Verificar Sessao de Participante
 // =====================================================================
 function verificarSessaoParticipante(req, res, next) {
+    console.log('[CARTOLA-PRO] verificarSessaoParticipante:', {
+        sessionId: req.sessionID,
+        hasSession: !!req.session,
+        hasParticipante: !!req.session?.participante,
+        participante: req.session?.participante ? { timeId: req.session.participante.timeId, ligaId: req.session.participante.ligaId } : null
+    });
+
     if (!req.session || !req.session.participante) {
         return res.status(401).json({
             success: false,
-            error: "Sessão expirada. Faça login novamente.",
+            error: "Sessao expirada. Faca login novamente.",
             needsLogin: true
         });
     }
@@ -31,12 +39,11 @@ async function verificarPremium(req, res, next) {
     try {
         const { timeId, ligaId } = req.session.participante;
 
-        // Buscar participante na liga
         const liga = await Liga.findById(ligaId);
         if (!liga) {
             return res.status(404).json({
                 success: false,
-                error: "Liga não encontrada"
+                error: "Liga nao encontrada"
             });
         }
 
@@ -47,11 +54,10 @@ async function verificarPremium(req, res, next) {
         if (!participante) {
             return res.status(404).json({
                 success: false,
-                error: "Participante não encontrado na liga"
+                error: "Participante nao encontrado na liga"
             });
         }
 
-        // Verificar flag premium
         if (!participante.premium) {
             return res.status(403).json({
                 success: false,
@@ -60,72 +66,88 @@ async function verificarPremium(req, res, next) {
             });
         }
 
-        // Adicionar dados ao request para uso posterior
         req.participantePremium = participante;
+        req.liga = liga;
         next();
 
     } catch (error) {
         console.error('[CARTOLA-PRO] Erro ao verificar premium:', error);
         res.status(500).json({
             success: false,
-            error: "Erro ao verificar permissões"
+            error: "Erro ao verificar permissoes"
         });
     }
 }
 
 // =====================================================================
-// POST /api/cartola-pro/auth - Autenticação na Globo
+// SETUP ROTAS OAUTH GLOBO
 // =====================================================================
-router.post("/auth", verificarSessaoParticipante, verificarPremium, async (req, res) => {
+setupGloboOAuthRoutes(router);
+
+// =====================================================================
+// GET /api/cartola-pro/verificar-premium - Verificar se e Premium
+// =====================================================================
+router.get("/verificar-premium", verificarSessaoParticipante, async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { timeId, ligaId } = req.session.participante;
 
-        if (!email || !password) {
-            return res.status(400).json({
-                success: false,
-                error: "Email e senha são obrigatórios"
-            });
+        const liga = await Liga.findById(ligaId);
+        if (!liga) {
+            return res.json({ premium: false });
         }
 
-        // Autenticar na Globo
-        const resultado = await cartolaProService.autenticar(email, password);
+        const participante = liga.participantes.find(
+            p => String(p.time_id) === String(timeId)
+        );
 
-        if (!resultado.success) {
-            return res.status(401).json(resultado);
-        }
+        // Verificar se esta autenticado na Globo
+        const globoAuth = req.session?.cartolaProAuth;
 
-        // Retornar token (NÃO armazenamos credenciais)
         res.json({
-            success: true,
-            glbId: resultado.glbId,
-            expiresIn: resultado.expiresIn
+            premium: participante?.premium === true,
+            globoAuthenticated: !!globoAuth,
+            globoEmail: globoAuth?.email || null
         });
 
     } catch (error) {
-        console.error('[CARTOLA-PRO] Erro no auth:', error);
+        console.error('[CARTOLA-PRO] Erro ao verificar premium:', error);
+        res.json({ premium: false });
+    }
+});
+
+// =====================================================================
+// GET /api/cartola-pro/status - Status do Mercado
+// =====================================================================
+router.get("/status", verificarSessaoParticipante, async (req, res) => {
+    try {
+        const resultado = await cartolaProService.verificarMercado();
+        res.json(resultado);
+    } catch (error) {
+        console.error('[CARTOLA-PRO] Erro ao verificar status:', error);
         res.status(500).json({
             success: false,
-            error: "Erro interno ao autenticar"
+            error: "Erro ao verificar status do mercado"
         });
     }
 });
 
 // =====================================================================
-// GET /api/cartola-pro/mercado - Buscar Jogadores Disponíveis
+// GET /api/cartola-pro/mercado - Buscar Jogadores do Mercado
 // =====================================================================
 router.get("/mercado", verificarSessaoParticipante, verificarPremium, async (req, res) => {
     try {
-        const glbId = req.headers['x-glb-token'];
+        // Tentar usar token OAuth, senao usar header
+        const glbToken = getGloboToken(req) || req.headers['x-glb-token'];
 
-        if (!glbId) {
+        if (!glbToken) {
             return res.status(401).json({
                 success: false,
-                error: "Token Globo não fornecido",
-                needsAuth: true
+                error: "Conecte sua conta Globo primeiro",
+                needsGloboAuth: true
             });
         }
 
-        const resultado = await cartolaProService.buscarMercado(glbId);
+        const resultado = await cartolaProService.buscarMercado(glbToken);
 
         if (!resultado.success) {
             const status = resultado.sessaoExpirada ? 401 : 400;
@@ -144,45 +166,159 @@ router.get("/mercado", verificarSessaoParticipante, verificarPremium, async (req
 });
 
 // =====================================================================
-// POST /api/cartola-pro/escalar - Salvar Escalação
+// GET /api/cartola-pro/sugestao - Time Sugerido (Algoritmo Proprio)
+// =====================================================================
+router.get("/sugestao", verificarSessaoParticipante, verificarPremium, async (req, res) => {
+    try {
+        const esquema = parseInt(req.query.esquema) || 3; // 4-3-3 padrao
+        const patrimonio = parseFloat(req.query.patrimonio) || 100;
+
+        const resultado = await cartolaProService.gerarTimeSugerido(esquema, patrimonio);
+
+        res.json(resultado);
+
+    } catch (error) {
+        console.error('[CARTOLA-PRO] Erro ao gerar sugestao:', error);
+        res.status(500).json({
+            success: false,
+            error: "Erro ao gerar time sugerido"
+        });
+    }
+});
+
+// =====================================================================
+// GET /api/cartola-pro/nao-escalaram - Participantes que Nao Escalaram
+// =====================================================================
+router.get("/nao-escalaram", verificarSessaoParticipante, verificarPremium, async (req, res) => {
+    try {
+        const { ligaId } = req.session.participante;
+        const liga = req.liga;
+
+        // Buscar status do mercado para saber rodada atual
+        const statusMercado = await cartolaProService.verificarMercado();
+        const rodadaAtual = statusMercado.rodadaAtual || 1;
+
+        // Buscar escalacoes da rodada
+        const participantesAtivos = liga.participantes.filter(p => p.ativo !== false);
+        const naoEscalaram = [];
+        const escalaram = [];
+
+        for (const p of participantesAtivos) {
+            try {
+                // Verificar se escalou (buscar no Cartola)
+                const response = await fetch(`https://api.cartolafc.globo.com/time/id/${p.time_id}`);
+                const data = await response.json();
+
+                // Se rodada_atual do time for diferente da rodada atual, nao escalou
+                if (data.time && data.time.rodada_atual !== rodadaAtual) {
+                    naoEscalaram.push({
+                        time_id: p.time_id,
+                        nome_cartola: p.nome_cartola,
+                        nome_time: p.nome_time,
+                        clube_id: p.clube_id
+                    });
+                } else {
+                    escalaram.push({
+                        time_id: p.time_id,
+                        nome_cartola: p.nome_cartola,
+                        nome_time: p.nome_time
+                    });
+                }
+            } catch {
+                // Se falhar, considerar como nao verificado
+                naoEscalaram.push({
+                    time_id: p.time_id,
+                    nome_cartola: p.nome_cartola,
+                    nome_time: p.nome_time,
+                    clube_id: p.clube_id,
+                    status: 'nao_verificado'
+                });
+            }
+        }
+
+        res.json({
+            success: true,
+            rodada: rodadaAtual,
+            naoEscalaram,
+            escalaram,
+            total: participantesAtivos.length
+        });
+
+    } catch (error) {
+        console.error('[CARTOLA-PRO] Erro ao buscar nao escalaram:', error);
+        res.status(500).json({
+            success: false,
+            error: "Erro ao verificar escalacoes"
+        });
+    }
+});
+
+// =====================================================================
+// GET /api/cartola-pro/meu-time - Time Atual do Usuario
+// =====================================================================
+router.get("/meu-time", verificarSessaoParticipante, verificarPremium, async (req, res) => {
+    try {
+        const glbToken = getGloboToken(req) || req.headers['x-glb-token'];
+
+        if (!glbToken) {
+            return res.status(401).json({
+                success: false,
+                error: "Conecte sua conta Globo primeiro",
+                needsGloboAuth: true
+            });
+        }
+
+        const resultado = await cartolaProService.buscarMeuTime(glbToken);
+        res.json(resultado);
+
+    } catch (error) {
+        console.error('[CARTOLA-PRO] Erro ao buscar meu time:', error);
+        res.status(500).json({
+            success: false,
+            error: "Erro ao buscar seu time"
+        });
+    }
+});
+
+// =====================================================================
+// POST /api/cartola-pro/escalar - Salvar Escalacao
 // =====================================================================
 router.post("/escalar", verificarSessaoParticipante, verificarPremium, async (req, res) => {
     try {
-        const glbId = req.headers['x-glb-token'];
+        const glbToken = getGloboToken(req) || req.headers['x-glb-token'];
         const { atletas, esquema, capitao } = req.body;
 
-        if (!glbId) {
+        if (!glbToken) {
             return res.status(401).json({
                 success: false,
-                error: "Token Globo não fornecido",
-                needsAuth: true
+                error: "Conecte sua conta Globo primeiro",
+                needsGloboAuth: true
             });
         }
 
         if (!atletas || !Array.isArray(atletas) || atletas.length !== 12) {
             return res.status(400).json({
                 success: false,
-                error: "Selecione 12 jogadores (11 + técnico)"
+                error: "Selecione 12 jogadores (11 + tecnico)"
             });
         }
 
         if (!esquema || esquema < 1 || esquema > 7) {
             return res.status(400).json({
                 success: false,
-                error: "Esquema de formação inválido"
+                error: "Esquema de formacao invalido"
             });
         }
 
         if (!capitao || !atletas.includes(capitao)) {
             return res.status(400).json({
                 success: false,
-                error: "Capitão deve ser um dos atletas selecionados"
+                error: "Capitao deve ser um dos atletas selecionados"
             });
         }
 
-        // Salvar escalação
         const resultado = await cartolaProService.salvarEscalacao(
-            glbId,
+            glbToken,
             atletas,
             esquema,
             capitao
@@ -195,57 +331,59 @@ router.post("/escalar", verificarSessaoParticipante, verificarPremium, async (re
 
         res.json({
             success: true,
-            message: "Escalação salva com sucesso!"
+            message: "Escalacao salva com sucesso!"
         });
 
     } catch (error) {
-        console.error('[CARTOLA-PRO] Erro ao salvar escalação:', error);
+        console.error('[CARTOLA-PRO] Erro ao salvar escalacao:', error);
         res.status(500).json({
             success: false,
-            error: "Erro ao salvar escalação"
+            error: "Erro ao salvar escalacao"
         });
     }
 });
 
 // =====================================================================
-// GET /api/cartola-pro/status - Verificar Status do Mercado
+// POST /api/cartola-pro/auth - Autenticacao Direta (FALLBACK)
 // =====================================================================
-router.get("/status", verificarSessaoParticipante, async (req, res) => {
+// Mantido como fallback caso OAuth nao funcione
+router.post("/auth", verificarSessaoParticipante, verificarPremium, async (req, res) => {
     try {
-        const resultado = await cartolaProService.verificarMercado();
-        res.json(resultado);
-    } catch (error) {
-        console.error('[CARTOLA-PRO] Erro ao verificar status:', error);
-        res.status(500).json({
-            success: false,
-            error: "Erro ao verificar status do mercado"
-        });
-    }
-});
+        const { email, password } = req.body;
 
-// =====================================================================
-// GET /api/cartola-pro/verificar-premium - Verificar se é Premium
-// =====================================================================
-router.get("/verificar-premium", verificarSessaoParticipante, async (req, res) => {
-    try {
-        const { timeId, ligaId } = req.session.participante;
-
-        const liga = await Liga.findById(ligaId);
-        if (!liga) {
-            return res.json({ premium: false });
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                error: "Email e senha sao obrigatorios"
+            });
         }
 
-        const participante = liga.participantes.find(
-            p => String(p.time_id) === String(timeId)
-        );
+        const resultado = await cartolaProService.autenticar(email, password);
+
+        if (!resultado.success) {
+            return res.status(401).json(resultado);
+        }
+
+        // Salvar na sessao
+        req.session.cartolaProAuth = {
+            glbid: resultado.glbId,
+            email: email,
+            authenticated_at: Date.now(),
+            method: 'direct'
+        };
 
         res.json({
-            premium: participante?.premium === true
+            success: true,
+            glbId: resultado.glbId,
+            expiresIn: resultado.expiresIn
         });
 
     } catch (error) {
-        console.error('[CARTOLA-PRO] Erro ao verificar premium:', error);
-        res.json({ premium: false });
+        console.error('[CARTOLA-PRO] Erro no auth direto:', error);
+        res.status(500).json({
+            success: false,
+            error: "Erro interno ao autenticar"
+        });
     }
 });
 

@@ -1,14 +1,16 @@
 // =====================================================================
-// PARTICIPANTE-DICAS.JS - v1.0 (DICAS DE ESCALACAO)
+// PARTICIPANTE-DICAS.JS - v1.1 (DICAS DE ESCALACAO)
 // =====================================================================
+// ✅ v1.1: Removida integração PRO (movida para tela Início)
+//          - Botão Cartola PRO agora está na tela de boas-vindas
+//          - Tela de dicas focada apenas em dicas de escalação
 // ✅ v1.0: Dicas de Escalação baseadas em análise de dados
 //          - Jogadores em alta (mitos recentes)
 //          - Jogadores a evitar (micos recentes)
 //          - Análise por posição
-// NOTA: Fase 1 (somente leitura) - sem integração com Cartola PRO
 // =====================================================================
 
-if (window.Log) Log.info("PARTICIPANTE-DICAS", "🔄 Carregando módulo v1.0...");
+if (window.Log) Log.info("PARTICIPANTE-DICAS", "🔄 Carregando módulo v1.1...");
 
 // Estado do módulo
 let dadosDicas = null;
@@ -41,14 +43,13 @@ export async function inicializarDicasParticipante(params) {
 
     try {
         // Buscar dados de mercado e análise
-        const [statusMercado, topMitos, topMicos, isPremium] = await Promise.all([
+        const [statusMercado, topMitos, topMicos] = await Promise.all([
             buscarStatusMercado(),
             buscarTopJogadores('mitos', ligaId),
-            buscarTopJogadores('micos', ligaId),
-            verificarPremium()
+            buscarTopJogadores('micos', ligaId)
         ]);
 
-        dadosDicas = { statusMercado, topMitos, topMicos, isPremium };
+        dadosDicas = { statusMercado, topMitos, topMicos };
 
         // Renderizar tela de dicas
         container.innerHTML = renderizarDicasCompleto(dadosDicas);
@@ -108,20 +109,7 @@ function gerarDicasMock(tipo) {
     }
 }
 
-async function verificarPremium() {
-    try {
-        const response = await fetch('/api/cartola-pro/verificar-premium', {
-            credentials: 'include'
-        });
-        if (response.ok) {
-            const data = await response.json();
-            return data.premium === true;
-        }
-        return false;
-    } catch {
-        return false;
-    }
-}
+// ✅ v1.1: verificarPremium() removida - verificação agora está em boas-vindas.js
 
 // =====================================================================
 // FUNCOES DE RENDERIZACAO
@@ -168,8 +156,7 @@ function renderizarDicasCompleto(dados) {
                 </div>
             </div>
 
-            <!-- Seção PRO -->
-            ${dados.isPremium ? renderizarBotaoCartolaPro(dados.statusMercado) : renderizarAvisoPro()}
+            <!-- ✅ v1.1: Seção PRO removida - agora está na tela Início -->
 
             <!-- Seção: Jogadores em Alta -->
             <div class="px-4 py-4">
@@ -274,47 +261,9 @@ function renderizarCardDica(item, cor) {
     `;
 }
 
-function renderizarAvisoPro() {
-    return `
-        <div class="mx-4 mt-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
-            <div class="flex items-start gap-3">
-                <span class="material-icons text-yellow-400">star</span>
-                <div>
-                    <p class="text-sm font-medium text-yellow-300">Versao Basica</p>
-                    <p class="text-xs text-white/50">Em breve: integracao com escalacao automatica para assinantes PRO</p>
-                </div>
-            </div>
-        </div>
-    `;
-}
+// ✅ v1.1: renderizarAvisoPro() removida - agora está na tela Início
 
-function renderizarBotaoCartolaPro(statusMercado) {
-    const mercadoAberto = statusMercado?.status_mercado === 1;
-
-    return `
-        <div class="mx-4 mt-4">
-            <button
-                onclick="window.abrirCartolaPro()"
-                class="w-full flex items-center justify-between p-4 rounded-xl ${mercadoAberto ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/40 hover:from-yellow-500/30 hover:to-orange-500/30' : 'bg-gray-800/50 border-gray-700'} border transition-all"
-                ${!mercadoAberto ? 'disabled' : ''}>
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full ${mercadoAberto ? 'bg-yellow-500/30' : 'bg-gray-700'} flex items-center justify-center">
-                        <span class="material-icons ${mercadoAberto ? 'text-yellow-400' : 'text-gray-500'}">sports_soccer</span>
-                    </div>
-                    <div class="text-left">
-                        <p class="text-sm font-bold ${mercadoAberto ? 'text-yellow-300' : 'text-gray-400'}">
-                            Escalar no Cartola PRO
-                        </p>
-                        <p class="text-xs ${mercadoAberto ? 'text-white/50' : 'text-gray-600'}">
-                            ${mercadoAberto ? 'Mercado aberto - Escale agora!' : 'Mercado fechado'}
-                        </p>
-                    </div>
-                </div>
-                <span class="material-icons ${mercadoAberto ? 'text-yellow-400' : 'text-gray-600'}">chevron_right</span>
-            </button>
-        </div>
-    `;
-}
+// ✅ v1.1: renderizarBotaoCartolaPro() removida - agora está na tela Início
 
 // Funcao global para abrir modal Cartola PRO
 window.abrirCartolaPro = function() {
@@ -337,4 +286,4 @@ window.abrirCartolaPro = function() {
 // Expor globalmente
 window.inicializarDicasParticipante = inicializarDicasParticipante;
 
-if (window.Log) Log.info("PARTICIPANTE-DICAS", "✅ Módulo v1.0 carregado");
+if (window.Log) Log.info("PARTICIPANTE-DICAS", "✅ Módulo v1.1 carregado (PRO movido para Início)");
