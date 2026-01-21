@@ -126,6 +126,9 @@ import moduleConfigRoutes from "./routes/module-config-routes.js";
 // 📦 DATA LAKE dos Participantes
 import dataLakeRoutes from "./routes/data-lake-routes.js";
 
+// ⚡ Cartola PRO (Escalação Automática)
+import cartolaProRoutes from "./routes/cartola-pro-routes.js";
+
 // 📦 Versionamento do App
 import appVersionRoutes from "./routes/appVersionRoutes.js";
 
@@ -337,6 +340,7 @@ app.use("/api/jogos-ao-vivo", jogosAoVivoRoutes); // API-Football
 app.use("/api/ligas", ligaRoutes);
 app.use("/api/cartola", cartolaRoutes);
 app.use("/api/cartola", cartolaProxyRoutes);
+app.use("/api/cartola-pro", cartolaProRoutes);
 app.use("/api/times", timesRoutes);
 app.use("/api/time", timesRoutes);
 app.use("/api/rodadas", rodadasRoutes);

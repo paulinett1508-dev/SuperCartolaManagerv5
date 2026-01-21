@@ -41,13 +41,14 @@ export async function inicializarDicasParticipante(params) {
 
     try {
         // Buscar dados de mercado e análise
-        const [statusMercado, topMitos, topMicos] = await Promise.all([
+        const [statusMercado, topMitos, topMicos, isPremium] = await Promise.all([
             buscarStatusMercado(),
             buscarTopJogadores('mitos', ligaId),
-            buscarTopJogadores('micos', ligaId)
+            buscarTopJogadores('micos', ligaId),
+            verificarPremium()
         ]);
 
-        dadosDicas = { statusMercado, topMitos, topMicos };
+        dadosDicas = { statusMercado, topMitos, topMicos, isPremium };
 
         // Renderizar tela de dicas
         container.innerHTML = renderizarDicasCompleto(dadosDicas);
@@ -107,6 +108,21 @@ function gerarDicasMock(tipo) {
     }
 }
 
+async function verificarPremium() {
+    try {
+        const response = await fetch('/api/cartola-pro/verificar-premium', {
+            credentials: 'include'
+        });
+        if (response.ok) {
+            const data = await response.json();
+            return data.premium === true;
+        }
+        return false;
+    } catch {
+        return false;
+    }
+}
+
 // =====================================================================
 // FUNCOES DE RENDERIZACAO
 // =====================================================================
@@ -152,16 +168,8 @@ function renderizarDicasCompleto(dados) {
                 </div>
             </div>
 
-            <!-- Aviso PRO -->
-            <div class="mx-4 mt-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
-                <div class="flex items-start gap-3">
-                    <span class="material-icons text-yellow-400">star</span>
-                    <div>
-                        <p class="text-sm font-medium text-yellow-300">Versão Básica</p>
-                        <p class="text-xs text-white/50">Em breve: integração com dicas avançadas do GatoMestre para assinantes PRO</p>
-                    </div>
-                </div>
-            </div>
+            <!-- Seção PRO -->
+            ${dados.isPremium ? renderizarBotaoCartolaPro(dados.statusMercado) : renderizarAvisoPro()}
 
             <!-- Seção: Jogadores em Alta -->
             <div class="px-4 py-4">
@@ -265,6 +273,66 @@ function renderizarCardDica(item, cor) {
         </div>
     `;
 }
+
+function renderizarAvisoPro() {
+    return `
+        <div class="mx-4 mt-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+            <div class="flex items-start gap-3">
+                <span class="material-icons text-yellow-400">star</span>
+                <div>
+                    <p class="text-sm font-medium text-yellow-300">Versao Basica</p>
+                    <p class="text-xs text-white/50">Em breve: integracao com escalacao automatica para assinantes PRO</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderizarBotaoCartolaPro(statusMercado) {
+    const mercadoAberto = statusMercado?.status_mercado === 1;
+
+    return `
+        <div class="mx-4 mt-4">
+            <button
+                onclick="window.abrirCartolaPro()"
+                class="w-full flex items-center justify-between p-4 rounded-xl ${mercadoAberto ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/40 hover:from-yellow-500/30 hover:to-orange-500/30' : 'bg-gray-800/50 border-gray-700'} border transition-all"
+                ${!mercadoAberto ? 'disabled' : ''}>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full ${mercadoAberto ? 'bg-yellow-500/30' : 'bg-gray-700'} flex items-center justify-center">
+                        <span class="material-icons ${mercadoAberto ? 'text-yellow-400' : 'text-gray-500'}">sports_soccer</span>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-sm font-bold ${mercadoAberto ? 'text-yellow-300' : 'text-gray-400'}">
+                            Escalar no Cartola PRO
+                        </p>
+                        <p class="text-xs ${mercadoAberto ? 'text-white/50' : 'text-gray-600'}">
+                            ${mercadoAberto ? 'Mercado aberto - Escale agora!' : 'Mercado fechado'}
+                        </p>
+                    </div>
+                </div>
+                <span class="material-icons ${mercadoAberto ? 'text-yellow-400' : 'text-gray-600'}">chevron_right</span>
+            </button>
+        </div>
+    `;
+}
+
+// Funcao global para abrir modal Cartola PRO
+window.abrirCartolaPro = function() {
+    if (window.CartolaProModule) {
+        window.CartolaProModule.abrirModal();
+    } else {
+        // Carregar modulo dinamicamente
+        import('./participante-cartola-pro.js')
+            .then(module => {
+                window.CartolaProModule = module;
+                module.abrirModal();
+            })
+            .catch(err => {
+                console.error('Erro ao carregar modulo Cartola PRO:', err);
+                alert('Erro ao carregar. Tente novamente.');
+            });
+    }
+};
 
 // Expor globalmente
 window.inicializarDicasParticipante = inicializarDicasParticipante;

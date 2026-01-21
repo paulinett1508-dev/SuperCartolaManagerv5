@@ -14,6 +14,7 @@ const participanteSchema = new mongoose.Schema(
         senha_acesso: { type: String, default: "" },
         ativo: { type: Boolean, default: true }, // ✅ NOVO: Controle de participante ativo/inativo
         contato: { type: String, default: "" }, // ✅ v2.12: WhatsApp/telefone para contato direto
+        premium: { type: Boolean, default: false }, // ✅ v2.13: Acesso a recursos PRO (Cartola PRO)
     },
     { _id: false },
 );
