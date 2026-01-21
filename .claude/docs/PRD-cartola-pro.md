@@ -10,6 +10,48 @@ Permitir que participantes PRO do Super Cartola Manager escalem seu time diretam
 
 ---
 
+## ⚠️ LIMITAÇÃO CRÍTICA IDENTIFICADA (v2.0 - 21/01/2026)
+
+### O Problema: Contas Google OAuth
+
+Após implementação e testes extensivos, foi identificado que:
+
+| Tipo de Conta | Endpoint Legacy | Status |
+|---------------|-----------------|--------|
+| Conta com senha direta (email/senha) | `login.globo.com/api/authentication` | ✅ Funciona |
+| Conta via Google OAuth | `login.globo.com/api/authentication` | ❌ Retorna HTTP 406 |
+| Conta via Facebook | `login.globo.com/api/authentication` | ❌ Retorna HTTP 406 |
+
+**Motivo:** Contas criadas via Google/Facebook **não possuem senha direta** no sistema Globo. O endpoint de autenticação direta não aceita essas contas.
+
+### Solução Necessária para Google OAuth
+
+Apps que suportam Google OAuth (Guru do Cartola, Parciais CFC, Cartomante) utilizam:
+1. **WebView nativo** (plugin Capacitor/Cordova)
+2. **Captura de cookies** durante redirect OIDC
+3. **Combinação específica** de cookies + headers
+
+**Problema para PWA:** Nosso app é PWA/Web, não nativo. Não temos acesso a WebView com captura de cookies.
+
+### Opções de Implementação
+
+| Opção | Descrição | Complexidade | Cobertura |
+|-------|-----------|--------------|-----------|
+| **A** | Suportar apenas contas com senha | Baixa | ~30% dos usuários |
+| **B** | Implementar WebView via iframe/popup | Alta | Pode não funcionar (CORS) |
+| **C** | Converter para app nativo (Capacitor) | Muito Alta | 100% dos usuários |
+| **D** | Apenas endpoints públicos | Baixa | Sugestões apenas, sem escalar |
+
+### Recomendação
+
+**Opção A + D (Híbrido):**
+- Suportar login direto para contas com senha
+- Adicionar mensagem educativa para usuários Google OAuth
+- Manter funcionalidades que usam endpoints públicos (sugestões, análises)
+- Não escalar para quem não conseguir autenticar
+
+---
+
 ## 1. Pesquisa Realizada
 
 ### 1.1 Endpoints da API Globo (Confirmados)
@@ -308,6 +350,47 @@ const isPremium = participante.premium === true;
 
 ---
 
+---
+
+## 14. Pesquisa v2.0 (21/01/2026 - Perplexity MCP)
+
+### Fontes Consultadas
+
+| Fonte | URL | Descoberta |
+|-------|-----|------------|
+| TabNews | [Link](https://www.tabnews.com.br/juniorandrade88/345421e4-1e40-4c5d-b12f-a27ff021d881) | Mesmo problema de 401 após captura de cookies |
+| Workana | [Link](https://www.workana.com/job/implementar-login-autenticado-do-cartola-fc-em-app-capacitor-firebase) | Job pedindo implementação - sem solução pública |
+| ChoraAPI | [Link](https://choraapi.com.br/blog/api-cartola-fc/) | Lista completa de endpoints |
+| Python-CartolaFC | [Link](https://pypi.org/project/Python-CartolaFC/) | Código-fonte de auth |
+| vicenteneto/python-cartolafc | [Link](https://github.com/vicenteneto/python-cartolafc) | Implementação de referência |
+
+### Descobertas Chave
+
+1. **serviceId correto:** 4728 (confirmado no Python-CartolaFC)
+2. **GLBID:** Token de 215 caracteres retornado após auth
+3. **Header:** `X-GLB-Token` (não `Authorization: Bearer`)
+4. **Contas Google:** Não suportadas via endpoint direto (HTTP 406)
+5. **Alternativa:** WebView + captura de cookies (apps nativos)
+
+### Código de Referência (Python)
+
+```python
+# De vicenteneto/python-cartolafc
+self._auth_url = 'https://login.globo.com/api/authentication'
+response = requests.post(self._auth_url,
+    json=dict(payload=dict(
+        email=self._email,
+        password=self._password,
+        serviceId=4728
+    ))
+)
+if response.status_code == 200:
+    self._glb_id = response.json()['glbId']
+```
+
+---
+
 **Gerado por:** High Senior Protocol (Fase 1 - Pesquisa)
 **Data:** 2026-01-20
-**Versão:** 1.0
+**Atualizado:** 2026-01-21 (v2.0 - Pesquisa Perplexity)
+**Versão:** 2.0

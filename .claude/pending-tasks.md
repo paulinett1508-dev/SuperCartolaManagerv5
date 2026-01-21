@@ -6,15 +6,157 @@
 
 **Objetivo:** Permitir que usuário PRO escale automaticamente no Cartola FC através do Super Cartola Manager.
 
-**Status Atual:** FASE 1 CONCLUÍDA - PRD Gerado
+**Status Atual:** 🟡 EM ANÁLISE - Pesquisa concluída, aguardando decisão
 
 | Fase | Status | Arquivo |
 |------|--------|---------|
 | 1. Pesquisa | ✅ Concluído | `.claude/docs/PRD-cartola-pro.md` |
-| 2. Spec | ⏳ Pendente | - |
-| 3. Code | ⏳ Pendente | - |
+| 2. Spec | ✅ Concluído | `.claude/docs/SPEC-cartola-pro.md` |
+| 3. Code | 🟡 PARCIAL | Implementado, auth Google OAuth não funciona |
+| 4. Pesquisa v2 | ✅ Concluído | Perplexity MCP (21/01/2026) |
 
-**RETOMAR:** `/workflow ler PRD-cartola-pro.md e gerar Spec`
+---
+
+### 🔴 BLOQUEIO IDENTIFICADO (21/01/2026)
+
+**Tentativas realizadas:**
+
+| Método | Ambiente | Resultado | Erro |
+|--------|----------|-----------|------|
+| OAuth OIDC redirect | Replit Dev | ❌ Falhou | `invalid_request` - redirect_uri não autorizado |
+| Login direto (email/senha) | Replit Dev | ❌ Falhou | HTTP 406 - Conta vinculada ao Google |
+| Login direto (email/senha) | Produção (supercartolamanager.com.br) | ❌ Falhou | HTTP 401 - Sessão não encontrada |
+
+**Problemas identificados:**
+
+1. **OAuth redirect_uri:** O client_id `cartola-web@apps.globoid` só aceita redirect_uri de domínios oficiais da Globo
+2. **Login direto com conta Google:** Contas Globo criadas via Google OAuth não têm senha direta (erro 406)
+3. **Sessão em produção:** Mesmo no domínio correto, a sessão do participante não está sendo reconhecida (erro 401)
+
+**Arquivos criados/modificados:**
+- `config/globo-oauth.js` - Configuração OIDC Globo (criado)
+- `routes/cartola-pro-routes.js` - Rotas OAuth + auth direto (modificado)
+- `services/cartolaProService.js` - Serviço com `autenticar()`, `gerarTimeSugerido()`, `buscarMeuTime()` (modificado)
+- `public/participante/js/modules/participante-cartola-pro.js` v2.0 - Interface com 4 abas (refatorado)
+- `public/participante/js/modules/participante-boas-vindas.js` v11.1 - Botão PRO adicionado (modificado)
+- `public/participante/js/modules/participante-dicas.js` v1.1 - Seção PRO removida (modificado)
+
+---
+
+### 📋 PESQUISA REALIZADA (21/01/2026 - Perplexity MCP)
+
+**Status:** ✅ Pesquisa concluída - Problema IDENTIFICADO
+
+---
+
+#### 🔍 DESCOBERTA CRÍTICA: Contas Google OAuth
+
+**O problema identificado:**
+- Contas Globo criadas via Google OAuth **NÃO TÊM SENHA DIRETA**
+- O endpoint `login.globo.com/api/authentication` **retorna 406** para essas contas
+- **NÃO EXISTE** forma programática de autenticar contas Google OAuth sem WebView interativo
+
+**Evidência encontrada (TabNews - mesmo problema):**
+> "Já consigo capturar GLBID, glb_uid_jwt e GLOBO_ID nos cookies. Mas qualquer chamada à API (/auth/time) retorna 401 Usuário não autorizado."
+
+**Apps que funcionam (Guru do Cartola, Cartomante, Parciais CFC):**
+- Usam **WebView nativo** (Capacitor/Cordova plugin)
+- Capturam cookies **durante** o redirect OIDC
+- Precisam de combinação específica de cookies + headers
+
+---
+
+#### 🏗️ ARQUITETURA DE AUTENTICAÇÃO GLOBO (2025/2026)
+
+| Sistema | Endpoint | Uso | Status |
+|---------|----------|-----|--------|
+| **Legacy** | `login.globo.com/api/authentication` | Contas com senha direta | ✅ Funciona |
+| **OIDC** | `authx.globoid.globo.com` | Contas Google/Facebook | ⚠️ Requer WebView |
+
+**Fluxo OIDC completo:**
+```
+[1] User → authx.globoid.globo.com/oauth/authorize
+[2] → goidc.globo.com (login interface)
+[3] → Google OAuth (se conta Google)
+[4] → Callback com cookies (GLBID, GLOBO_ID, glb_uid_jwt)
+[5] → /auth/time com cookies + X-GLB-Token header
+```
+
+---
+
+#### 📦 BIBLIOTECAS CONFIRMADAS FUNCIONANDO
+
+| Projeto | Linguagem | Autenticação | Link |
+|---------|-----------|--------------|------|
+| **Python-CartolaFC** | Python 3.8-3.10 | Email/senha direto | [vicenteneto/python-cartolafc](https://github.com/vicenteneto/python-cartolafc) |
+| **CartolaJS** | Node.js | GLBID manual | [0xVasconcelos/CartolaJS](https://github.com/0xVasconcelos/CartolaJS) |
+| **cartola-api** | PHP | Proxy CORS + GLBID | [renatorib/cartola-api](https://github.com/renatorib/cartola-api) |
+
+**Código de autenticação confirmado (Python-CartolaFC):**
+```python
+self._auth_url = 'https://login.globo.com/api/authentication'
+response = requests.post(self._auth_url,
+    json=dict(payload=dict(
+        email=self._email,
+        password=self._password,
+        serviceId=4728  # ID do Cartola FC
+    ))
+)
+self._glb_id = response.json()['glbId']  # Token de 215 caracteres
+```
+
+---
+
+#### 🎯 ENDPOINTS CONFIRMADOS (2025/2026)
+
+**Públicos (sem auth):**
+- `GET /mercado/status` - Status do mercado
+- `GET /atletas/mercado` - Todos jogadores disponíveis
+- `GET /atletas/pontuados` - Pontuação parcial
+- `GET /time/id/{id}` - Info de qualquer time
+- `GET /clubes` - Lista de clubes
+
+**Autenticados (requer X-GLB-Token):**
+- `GET /auth/time` - Meu time atual
+- `GET /auth/ligas` - Minhas ligas
+- `POST /auth/time/salvar` - Salvar escalação
+
+**Formato do POST /auth/time/salvar:**
+```json
+{
+  "esquema": 3,
+  "atleta": [37788, 71116, ...]
+}
+```
+
+---
+
+#### ✅ PRÓXIMOS PASSOS DEFINIDOS
+
+**Opção A: Conta com Senha Direta (Recomendado)**
+1. Testar com participante que tem conta Globo com senha direta
+2. Se funcionar → Documentar que Google OAuth não suportado
+3. Adicionar mensagem no app para usuários criarem senha no Globo
+
+**Opção B: WebView (Complexo)**
+1. Implementar popup/modal com WebView para login
+2. Capturar cookies após redirect
+3. Usar cookies no backend
+4. **Problema:** Requer plugin nativo no app mobile
+
+**Opção C: Funcionalidade Reduzida**
+1. Manter apenas endpoints públicos
+2. Remover feature de "Escalar Time"
+3. Focar em sugestões e análises
+
+---
+
+#### 🔗 REFERÊNCIAS DA PESQUISA
+
+- [TabNews - Mesmo problema de 401](https://www.tabnews.com.br/juniorandrade88/345421e4-1e40-4c5d-b12f-a27ff021d881)
+- [Workana - Job de implementação](https://www.workana.com/job/implementar-login-autenticado-do-cartola-fc-em-app-capacitor-firebase)
+- [ChoraAPI - Lista de endpoints](https://choraapi.com.br/blog/api-cartola-fc/)
+- [PyPI - Python-CartolaFC](https://pypi.org/project/Python-CartolaFC/)
 
 ---
 
