@@ -50,9 +50,59 @@ function verificarSessaoParticipante(req, res, next) {
 }
 
 // =====================================================================
+// MIDDLEWARE: Verificar Acesso Premium (apenas participantes PRO)
+// =====================================================================
+async function verificarPremium(req, res, next) {
+    try {
+        const { timeId, ligaId } = req.session.participante;
+
+        const liga = await Liga.findById(ligaId);
+        if (!liga) {
+            return res.status(404).json({
+                success: false,
+                error: "Liga nao encontrada"
+            });
+        }
+
+        const participante = liga.participantes.find(
+            p => String(p.time_id) === String(timeId)
+        );
+
+        if (!participante) {
+            return res.status(404).json({
+                success: false,
+                error: "Participante nao encontrado na liga"
+            });
+        }
+
+        // Verificar flag premium
+        if (!participante.premium) {
+            log('warn', 'Acesso negado - participante nao premium', { timeId });
+            return res.status(403).json({
+                success: false,
+                error: "Recurso exclusivo para assinantes PRO",
+                needsPremium: true
+            });
+        }
+
+        // Adicionar dados ao request
+        req.participantePremium = participante;
+        req.liga = liga;
+        next();
+
+    } catch (error) {
+        log('error', 'Erro ao verificar premium', { error: error.message });
+        res.status(500).json({
+            success: false,
+            error: "Erro ao verificar permissoes"
+        });
+    }
+}
+
+// =====================================================================
 // POST /api/cartola-auth/login - Login direto com email/senha
 // =====================================================================
-router.post("/login", verificarSessaoParticipante, async (req, res) => {
+router.post("/login", verificarSessaoParticipante, verificarPremium, async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -108,7 +158,7 @@ router.post("/login", verificarSessaoParticipante, async (req, res) => {
 // =====================================================================
 // POST /api/cartola-auth/capture - Capturar tokens/cookies do frontend
 // =====================================================================
-router.post("/capture", verificarSessaoParticipante, async (req, res) => {
+router.post("/capture", verificarSessaoParticipante, verificarPremium, async (req, res) => {
     const { glbId, glbTag, cookies, accessToken } = req.body;
 
     log('info', 'Recebendo captura de tokens', {
@@ -221,7 +271,7 @@ router.get("/status", verificarSessaoParticipante, (req, res) => {
 // =====================================================================
 // POST /api/cartola-auth/logout - Desconectar conta Globo
 // =====================================================================
-router.post("/logout", verificarSessaoParticipante, (req, res) => {
+router.post("/logout", verificarSessaoParticipante, verificarPremium, (req, res) => {
     const email = req.session?.cartolaProAuth?.email || 'desconhecido';
 
     delete req.session.cartolaProAuth;
@@ -243,7 +293,7 @@ router.post("/logout", verificarSessaoParticipante, (req, res) => {
 // =====================================================================
 // GET /api/cartola-auth/time - Buscar time autenticado
 // =====================================================================
-router.get("/time", verificarSessaoParticipante, async (req, res) => {
+router.get("/time", verificarSessaoParticipante, verificarPremium, async (req, res) => {
     const auth = req.session?.cartolaProAuth;
 
     if (!auth || (!auth.glbid && !auth.access_token)) {
@@ -295,7 +345,7 @@ router.get("/time", verificarSessaoParticipante, async (req, res) => {
 // =====================================================================
 // GET /api/cartola-auth/ligas - Buscar ligas do usuario
 // =====================================================================
-router.get("/ligas", verificarSessaoParticipante, async (req, res) => {
+router.get("/ligas", verificarSessaoParticipante, verificarPremium, async (req, res) => {
     const auth = req.session?.cartolaProAuth;
 
     if (!auth || (!auth.glbid && !auth.access_token)) {
@@ -345,7 +395,7 @@ router.get("/ligas", verificarSessaoParticipante, async (req, res) => {
 // =====================================================================
 // POST /api/cartola-auth/salvar-escalacao - Salvar escalacao
 // =====================================================================
-router.post("/salvar-escalacao", verificarSessaoParticipante, async (req, res) => {
+router.post("/salvar-escalacao", verificarSessaoParticipante, verificarPremium, async (req, res) => {
     const auth = req.session?.cartolaProAuth;
     const { atletas, esquema, capitao } = req.body;
 
@@ -460,7 +510,7 @@ router.get("/debug", verificarSessaoParticipante, (req, res) => {
 // =====================================================================
 // POST /api/cartola-auth/save-to-liga - Salvar auth no participante da liga
 // =====================================================================
-router.post("/save-to-liga", verificarSessaoParticipante, async (req, res) => {
+router.post("/save-to-liga", verificarSessaoParticipante, verificarPremium, async (req, res) => {
     const { timeId, ligaId } = req.session.participante;
     const auth = req.session?.cartolaProAuth;
 
