@@ -178,7 +178,7 @@ router.get("/session", async (req, res) => {
         let timeData = null;
         if (timeId) {
             timeData = await Time.findOne({ time_id: timeId }).select(
-                "nome nome_cartola clube_id url_escudo_png",
+                "nome nome_cartola clube_id url_escudo_png assinante",
             );
         }
 
@@ -193,6 +193,7 @@ router.get("/session", async (req, res) => {
             authenticated: true,
             participante: {
                 ...req.session.participante,
+                assinante: timeData?.assinante || false, // Flag premium para Cartola PRO
                 time: timeData
                     ? {
                           nome: timeData.nome, // Compatibilidade com schema antigo/novo

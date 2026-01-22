@@ -33,32 +33,24 @@ function verificarSessaoParticipante(req, res, next) {
 }
 
 // =====================================================================
-// MIDDLEWARE: Verificar Acesso Premium
+// MIDDLEWARE: Verificar Acesso Premium (usa campo assinante de times)
 // =====================================================================
 async function verificarPremium(req, res, next) {
     try {
-        const { timeId, ligaId } = req.session.participante;
+        const { timeId } = req.session.participante;
 
-        const liga = await Liga.findById(ligaId);
-        if (!liga) {
+        // Buscar time na collection times para verificar campo assinante
+        const Time = (await import("../models/Time.js")).default;
+        const time = await Time.findOne({ time_id: timeId }).select("assinante nome_cartola");
+
+        if (!time) {
             return res.status(404).json({
                 success: false,
-                error: "Liga nao encontrada"
+                error: "Time nao encontrado"
             });
         }
 
-        const participante = liga.participantes.find(
-            p => String(p.time_id) === String(timeId)
-        );
-
-        if (!participante) {
-            return res.status(404).json({
-                success: false,
-                error: "Participante nao encontrado na liga"
-            });
-        }
-
-        if (!participante.premium) {
+        if (!time.assinante) {
             return res.status(403).json({
                 success: false,
                 error: "Recurso exclusivo para assinantes PRO",
@@ -66,8 +58,7 @@ async function verificarPremium(req, res, next) {
             });
         }
 
-        req.participantePremium = participante;
-        req.liga = liga;
+        req.participantePremium = time;
         next();
 
     } catch (error) {
@@ -89,22 +80,17 @@ setupGloboOAuthRoutes(router);
 // =====================================================================
 router.get("/verificar-premium", verificarSessaoParticipante, async (req, res) => {
     try {
-        const { timeId, ligaId } = req.session.participante;
+        const { timeId } = req.session.participante;
 
-        const liga = await Liga.findById(ligaId);
-        if (!liga) {
-            return res.json({ premium: false });
-        }
-
-        const participante = liga.participantes.find(
-            p => String(p.time_id) === String(timeId)
-        );
+        // Buscar time na collection times para verificar campo assinante
+        const Time = (await import("../models/Time.js")).default;
+        const time = await Time.findOne({ time_id: timeId }).select("assinante");
 
         // Verificar se esta autenticado na Globo
         const globoAuth = req.session?.cartolaProAuth;
 
         res.json({
-            premium: participante?.premium === true,
+            premium: time?.assinante === true,
             globoAuthenticated: !!globoAuth,
             globoEmail: globoAuth?.email || null
         });
