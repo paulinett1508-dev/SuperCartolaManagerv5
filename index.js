@@ -312,8 +312,9 @@ app.use("/api/admin/usuarios-online", usuariosOnlineRoutes);
 console.log("[SERVER] 👁️ Rota de usuários online registrada");
 
 // 🔐 Rotas de autenticação participante - ANTES do protegerRotas
-// Aplicar rate limiting específico para login
+// Aplicar rate limiting específico para login (tradicional e Globo)
 app.use("/api/participante/auth/login", authRateLimiter);
+app.use("/api/participante/auth/globo/direct", authRateLimiter);
 app.use("/api/participante/auth", participanteAuthRoutes);
 app.use("/api/participante/historico", participanteHistoricoRoutes);
 

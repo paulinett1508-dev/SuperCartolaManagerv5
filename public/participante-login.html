@@ -467,6 +467,79 @@
                     height: 36px;
                 }
             }
+
+            /* Secao Login Globo */
+            .globo-section {
+                margin-top: 20px;
+                padding-top: 16px;
+            }
+
+            .divider-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .divider-line {
+                flex: 1;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(255,69,0,0.3), transparent);
+            }
+
+            .divider-text {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.4);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .globo-btn {
+                display: flex;
+                width: 100%;
+                height: 52px;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                border-radius: 12px;
+                border: none;
+                font-family: inherit;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .oauth-btn {
+                background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+                color: #fff;
+                box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+            }
+
+            .oauth-btn:hover {
+                box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+            }
+
+            .oauth-btn:active {
+                transform: scale(0.98);
+            }
+
+            .direct-btn {
+                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+                color: #fff;
+            }
+
+            .globo-hint {
+                margin-top: 12px;
+                font-size: 11px;
+                color: rgba(255, 255, 255, 0.4);
+                text-align: center;
+            }
+
+            .globo-btn:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+            }
         </style>
     </head>
 
@@ -591,6 +664,44 @@
                     </div>
                 </div>
 
+                <!-- Secao Login Globo (inicialmente oculta) -->
+                <div id="globoLoginSection" style="display: none;" class="globo-section">
+                    <!-- Divisor -->
+                    <div class="divider-row">
+                        <div class="divider-line"></div>
+                        <span class="divider-text">ou entre com</span>
+                        <div class="divider-line"></div>
+                    </div>
+
+                    <!-- Botao OAuth (dominios Replit) -->
+                    <button type="button" id="btnGloboOAuth" onclick="loginGlobo('oauth')" class="globo-btn oauth-btn">
+                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+                        <span>Entrar com Conta Globo</span>
+                    </button>
+
+                    <!-- Formulario Login Direto (dominios customizados) -->
+                    <div id="globoDirectForm" style="display: none;">
+                        <div class="input-wrapper" style="margin-top: 12px;">
+                            <span class="material-symbols-outlined input-icon">mail</span>
+                            <input type="email" id="globoEmail" class="input-field input-glow" placeholder="Email da conta Globo" />
+                        </div>
+                        <div class="input-wrapper" style="margin-top: 12px;">
+                            <span class="material-symbols-outlined input-icon">key</span>
+                            <input type="password" id="globoSenha" class="input-field input-glow" placeholder="Senha da conta Globo" />
+                        </div>
+                        <button type="button" onclick="loginGlobo('direct')" class="globo-btn direct-btn" style="margin-top: 12px;">
+                            <span class="material-symbols-outlined">login</span>
+                            <span>Conectar</span>
+                        </button>
+                    </div>
+
+                    <!-- Aviso -->
+                    <p class="globo-hint">
+                        <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">verified</span>
+                        Login unico: acesse o app e recursos PRO de uma vez
+                    </p>
+                </div>
+
                 <!-- Submit Button -->
                 <button
                     type="submit"
@@ -707,6 +818,33 @@
                 if (verificandoSessao) return;
                 verificandoSessao = true;
 
+                // Verificar erros de OAuth no carregamento
+                const urlParams = new URLSearchParams(window.location.search);
+                const error = urlParams.get('error');
+
+                if (error) {
+                    const errorMessage = document.getElementById('errorMessage');
+                    const errorText = document.getElementById('errorText');
+
+                    const mensagens = {
+                        'oauth_init_failed': 'Erro ao iniciar conexao com Globo',
+                        'oauth_failed': 'Falha na autenticacao Globo',
+                        'oauth_callback_error': 'Erro ao processar retorno da Globo',
+                        'no_token': 'Token de autenticacao nao recebido',
+                        'no_time_globo': 'Nao foi possivel obter seu time da conta Globo',
+                        'not_subscriber': 'Esta conta nao e assinante Cartola PRO',
+                        'no_league': 'Time nao encontrado em nenhuma liga cadastrada',
+                        'session_save_error': 'Erro ao criar sessao',
+                        'session_error': 'Erro interno ao processar sessao'
+                    };
+
+                    errorText.textContent = mensagens[error] || 'Erro na autenticacao';
+                    errorMessage.classList.add('show');
+
+                    // Limpar URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+
                 try {
                     const response = await fetch(
                         "/api/participante/auth/session",
@@ -731,6 +869,131 @@
                     verificandoSessao = false;
                 }
             });
+
+            // =====================================================================
+            // DETECCAO DE ASSINANTE E LOGIN GLOBO
+            // =====================================================================
+
+            // Detectar se dominio suporta OAuth
+            function isOAuthDisponivel() {
+                const hostname = window.location.hostname;
+                const dominiosPermitidos = [
+                    'localhost', '127.0.0.1',
+                    '.replit.dev', '.repl.co', '.replit.app'
+                ];
+                return dominiosPermitidos.some(d => {
+                    if (d.startsWith('.')) return hostname.endsWith(d);
+                    return hostname === d;
+                });
+            }
+
+            // Configurar interface baseada no dominio
+            function configurarInterfaceGlobo() {
+                const oauthBtn = document.getElementById('btnGloboOAuth');
+                const directForm = document.getElementById('globoDirectForm');
+
+                if (isOAuthDisponivel()) {
+                    // Dominio Replit: mostrar botao OAuth
+                    if (oauthBtn) oauthBtn.style.display = 'flex';
+                    if (directForm) directForm.style.display = 'none';
+                } else {
+                    // Dominio customizado: mostrar formulario direto
+                    if (oauthBtn) oauthBtn.style.display = 'none';
+                    if (directForm) directForm.style.display = 'block';
+                }
+            }
+
+            // Verificar se e assinante quando time_id perde foco
+            const timeIdInput = document.getElementById('timeId');
+            const globoSection = document.getElementById('globoLoginSection');
+
+            let debounceTimer = null;
+            timeIdInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(verificarAssinante, 500);
+            });
+
+            timeIdInput.addEventListener('blur', verificarAssinante);
+
+            async function verificarAssinante() {
+                const timeId = timeIdInput.value.trim();
+
+                if (!timeId || timeId.length < 5) {
+                    if (globoSection) globoSection.style.display = 'none';
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/participante/auth/check-assinante/${timeId}`);
+                    const data = await response.json();
+
+                    if (data.assinante) {
+                        if (globoSection) {
+                            globoSection.style.display = 'block';
+                            configurarInterfaceGlobo();
+                        }
+                    } else {
+                        if (globoSection) globoSection.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.log('Erro ao verificar assinante:', error);
+                    if (globoSection) globoSection.style.display = 'none';
+                }
+            }
+
+            // Funcao principal de login Globo
+            async function loginGlobo(metodo) {
+                const errorMessage = document.getElementById('errorMessage');
+                const errorText = document.getElementById('errorText');
+                const loading = document.getElementById('loading');
+
+                if (metodo === 'oauth') {
+                    // Redirecionar para OAuth
+                    loading.classList.add('show');
+                    window.location.href = '/api/participante/auth/globo/login';
+                    return;
+                }
+
+                if (metodo === 'direct') {
+                    const email = document.getElementById('globoEmail')?.value;
+                    const senha = document.getElementById('globoSenha')?.value;
+
+                    if (!email || !senha) {
+                        errorText.textContent = 'Preencha email e senha da conta Globo';
+                        errorMessage.classList.add('show');
+                        return;
+                    }
+
+                    loading.classList.add('show');
+                    errorMessage.classList.remove('show');
+
+                    try {
+                        const response = await fetch('/api/participante/auth/globo/direct', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ email, password: senha })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok || !data.success) {
+                            throw new Error(data.error || 'Erro ao conectar com Globo');
+                        }
+
+                        // Limpar chave do app
+                        sessionStorage.removeItem('participante_app_loaded');
+
+                        // Redirecionar para app
+                        window.location.href = '/participante/';
+
+                    } catch (error) {
+                        loading.classList.remove('show');
+                        errorText.textContent = error.message;
+                        errorMessage.classList.add('show');
+                    }
+                }
+            }
         </script>
 
         <!-- 🛡️ PROTEÇÃO CLIENT-SIDE -->
