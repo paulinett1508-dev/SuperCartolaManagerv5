@@ -679,7 +679,13 @@
                         <span>Entrar com Conta Globo</span>
                     </button>
 
-                    <!-- Formulario Login Direto (dominios customizados) -->
+                    <!-- Botao Popup OAuth (dominios customizados) -->
+                    <button type="button" id="btnGloboPopup" onclick="loginGlobo('popup')" class="globo-btn oauth-btn" style="display: none;">
+                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+                        <span>Entrar com Conta Globo</span>
+                    </button>
+
+                    <!-- Formulario Login Direto (desabilitado - usar popup) -->
                     <div id="globoDirectForm" style="display: none;">
                         <div class="input-wrapper" style="margin-top: 12px;">
                             <span class="material-symbols-outlined input-icon">mail</span>
@@ -893,16 +899,19 @@
             // Configurar interface baseada no dominio
             function configurarInterfaceGlobo() {
                 const oauthBtn = document.getElementById('btnGloboOAuth');
+                const popupBtn = document.getElementById('btnGloboPopup');
                 const directForm = document.getElementById('globoDirectForm');
 
                 if (isOAuthDisponivel()) {
-                    // Dominio Replit: mostrar botao OAuth
+                    // Dominio Replit: mostrar botao OAuth direto
                     if (oauthBtn) oauthBtn.style.display = 'flex';
+                    if (popupBtn) popupBtn.style.display = 'none';
                     if (directForm) directForm.style.display = 'none';
                 } else {
-                    // Dominio customizado: mostrar formulario direto
+                    // Dominio customizado: mostrar botao Popup (OAuth via Replit)
                     if (oauthBtn) oauthBtn.style.display = 'none';
-                    if (directForm) directForm.style.display = 'block';
+                    if (popupBtn) popupBtn.style.display = 'flex';
+                    if (directForm) directForm.style.display = 'none'; // Ocultar form direto
                 }
             }
 
@@ -962,9 +971,15 @@
                 const loading = document.getElementById('loading');
 
                 if (metodo === 'oauth') {
-                    // Redirecionar para OAuth
+                    // Redirecionar para OAuth (domínios Replit)
                     loading.classList.add('show');
                     window.location.href = '/api/participante/auth/globo/login';
+                    return;
+                }
+
+                if (metodo === 'popup') {
+                    // Abrir popup para OAuth (domínios customizados)
+                    abrirPopupGlobo();
                     return;
                 }
 
@@ -1006,6 +1021,125 @@
                         errorText.textContent = error.message;
                         errorMessage.classList.add('show');
                     }
+                }
+            }
+
+            // =====================================================================
+            // POPUP OAUTH - Para domínios customizados
+            // =====================================================================
+
+            // URL do domínio Replit para OAuth (funciona com callback autorizado)
+            // Este domínio é onde o OAuth da Globo está autorizado
+            const REPLIT_OAUTH_DOMAIN = 'e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev';
+
+            let popupWindow = null;
+
+            function abrirPopupGlobo() {
+                const loading = document.getElementById('loading');
+                const errorMessage = document.getElementById('errorMessage');
+                const errorText = document.getElementById('errorText');
+
+                loading.classList.add('show');
+                errorMessage.classList.remove('show');
+
+                // Abrir popup no domínio Replit
+                const popupUrl = `https://${REPLIT_OAUTH_DOMAIN}/api/participante/auth/globo/popup?origin=${encodeURIComponent(window.location.origin)}`;
+                const popupFeatures = 'width=500,height=600,scrollbars=yes,resizable=yes,status=yes';
+
+                popupWindow = window.open(popupUrl, 'GloboAuth', popupFeatures);
+
+                if (!popupWindow || popupWindow.closed) {
+                    loading.classList.remove('show');
+                    errorText.textContent = 'Popup bloqueado. Permita popups para este site.';
+                    errorMessage.classList.add('show');
+                    return;
+                }
+
+                // Monitorar se popup foi fechado manualmente
+                const checkPopup = setInterval(() => {
+                    if (popupWindow && popupWindow.closed) {
+                        clearInterval(checkPopup);
+                        loading.classList.remove('show');
+                    }
+                }, 1000);
+            }
+
+            // Listener para mensagens do popup
+            window.addEventListener('message', async (event) => {
+                // Validar origem (aceitar do domínio Replit)
+                if (!event.origin.includes('replit')) {
+                    return;
+                }
+
+                const { type, data } = event.data || {};
+
+                if (type === 'GLOBO_AUTH_SUCCESS' && data?.success) {
+                    console.log('[LOGIN] Recebido sucesso do popup:', data);
+
+                    // Fechar popup se ainda aberto
+                    if (popupWindow && !popupWindow.closed) {
+                        popupWindow.close();
+                    }
+
+                    // Fazer token exchange
+                    await processarTokenExchange(data);
+                }
+
+                if (type === 'GLOBO_AUTH_ERROR') {
+                    console.error('[LOGIN] Erro do popup:', data);
+
+                    if (popupWindow && !popupWindow.closed) {
+                        popupWindow.close();
+                    }
+
+                    const loading = document.getElementById('loading');
+                    const errorMessage = document.getElementById('errorMessage');
+                    const errorText = document.getElementById('errorText');
+
+                    loading.classList.remove('show');
+                    errorText.textContent = data?.message || 'Erro na autenticação Globo';
+                    errorMessage.classList.add('show');
+                }
+            });
+
+            // Criar sessão local com o token recebido do popup
+            async function processarTokenExchange(data) {
+                const loading = document.getElementById('loading');
+                const errorMessage = document.getElementById('errorMessage');
+                const errorText = document.getElementById('errorText');
+
+                try {
+                    // Chamar endpoint LOCAL para criar sessão
+                    // O glbToken foi obtido via popup no domínio Replit
+                    const response = await fetch('/api/participante/auth/globo/create-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            glbToken: data.glbToken,
+                            timeId: data.timeId
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.error || 'Erro ao criar sessão');
+                    }
+
+                    console.log('[LOGIN] Sessão criada via popup OAuth:', result);
+
+                    // Limpar chave do app
+                    sessionStorage.removeItem('participante_app_loaded');
+
+                    // Redirecionar para app
+                    window.location.href = '/participante/';
+
+                } catch (error) {
+                    console.error('[LOGIN] Erro ao criar sessão:', error);
+                    loading.classList.remove('show');
+                    errorText.textContent = error.message || 'Erro ao finalizar login';
+                    errorMessage.classList.add('show');
                 }
             }
         </script>

@@ -62,36 +62,43 @@ router.get("/check-assinante/:timeId", async (req, res) => {
 // =====================================================================
 const registeredUnifiedStrategies = new Set();
 
-function ensureUnifiedGloboStrategy(domain, config) {
-    const strategyName = `globo-unified:${domain}`;
+// Função de verify compartilhada
+const globoVerifyCallback = async (tokens, done) => {
+    try {
+        const claims = tokens.claims();
+        const user = {
+            globo_id: claims.globo_id || claims.sub,
+            glbid: claims.glbid || claims.fs_id,
+            email: claims.email,
+            nome: claims.name || claims.preferred_username,
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            expires_at: claims.exp
+        };
+        done(null, user);
+    } catch (error) {
+        done(error);
+    }
+};
+
+function ensureUnifiedGloboStrategy(domain, config, isPopup = false) {
+    const suffix = isPopup ? ':popup' : '';
+    const strategyName = `globo-unified:${domain}${suffix}`;
+    const callbackPath = isPopup
+        ? '/api/participante/auth/globo/popup/callback'
+        : '/api/participante/auth/globo/callback';
 
     if (!registeredUnifiedStrategies.has(strategyName)) {
-        console.log("[PARTICIPANTE-AUTH] Criando strategy unificada para:", domain);
+        console.log("[PARTICIPANTE-AUTH] Criando strategy para:", strategyName);
 
         const strategy = new Strategy(
             {
                 name: strategyName,
                 config,
                 scope: "openid email profile",
-                callbackURL: `https://${domain}/api/participante/auth/globo/callback`
+                callbackURL: `https://${domain}${callbackPath}`
             },
-            async (tokens, done) => {
-                try {
-                    const claims = tokens.claims();
-                    const user = {
-                        globo_id: claims.globo_id || claims.sub,
-                        glbid: claims.glbid || claims.fs_id,
-                        email: claims.email,
-                        nome: claims.name || claims.preferred_username,
-                        access_token: tokens.access_token,
-                        refresh_token: tokens.refresh_token,
-                        expires_at: claims.exp
-                    };
-                    done(null, user);
-                } catch (error) {
-                    done(error);
-                }
-            }
+            globoVerifyCallback
         );
 
         passport.use(strategy);
@@ -706,6 +713,406 @@ router.get(
         }
     },
 );
+
+// =====================================================================
+// POPUP OAUTH - Para domínios customizados (cross-origin)
+// Fluxo: Popup abre no Replit -> OAuth Globo -> Retorna token -> Janela pai cria sessão local
+// =====================================================================
+
+// GET /globo/popup - Inicia OAuth em modo popup
+router.get("/globo/popup", async (req, res, next) => {
+    console.log("[PARTICIPANTE-AUTH] Iniciando OAuth via popup...");
+
+    // Salvar origem do request para usar no callback
+    const origin = req.query.origin || req.headers.referer || '';
+    req.session.popupOrigin = origin;
+
+    try {
+        const config = await getGloboOidcConfig();
+        // Usar strategy com callback de popup
+        const strategyName = ensureUnifiedGloboStrategy(req.hostname, config, true);
+
+        passport.authenticate(strategyName, {
+            prompt: "login consent",
+            scope: ["openid", "email", "profile"]
+        })(req, res, next);
+
+    } catch (error) {
+        console.error("[PARTICIPANTE-AUTH] Erro ao iniciar OAuth popup:", error);
+        res.send(gerarHtmlPopupErro('oauth_init_failed', 'Erro ao iniciar conexão com Globo'));
+    }
+});
+
+// GET /globo/popup/callback - Callback do OAuth que envia resultado via postMessage
+router.get("/globo/popup/callback", async (req, res) => {
+    console.log("[PARTICIPANTE-AUTH] Callback OAuth popup recebido");
+
+    if (req.query.error) {
+        console.error("[PARTICIPANTE-AUTH] Erro retornado pela Globo:", req.query.error);
+        return res.send(gerarHtmlPopupErro(req.query.error, 'Erro na autenticação Globo'));
+    }
+
+    try {
+        const config = await getGloboOidcConfig();
+        // Usar strategy com callback de popup
+        const strategyName = ensureUnifiedGloboStrategy(req.hostname, config, true);
+
+        passport.authenticate(strategyName, {
+            failureRedirect: "/api/participante/auth/globo/popup/error"
+        })(req, res, async (err) => {
+            if (err || !req.user) {
+                console.error("[PARTICIPANTE-AUTH] Erro no callback popup:", err?.message);
+                return res.send(gerarHtmlPopupErro('oauth_callback_error', 'Erro ao processar autenticação'));
+            }
+
+            try {
+                // Obter token GLB
+                const glbToken = req.user.glbid || req.user.access_token;
+
+                if (!glbToken) {
+                    return res.send(gerarHtmlPopupErro('no_token', 'Token não recebido'));
+                }
+
+                // Buscar time_id via API Globo
+                const timeResult = await cartolaProService.buscarMeuTime(glbToken);
+
+                if (!timeResult.success || !timeResult.time?.timeId) {
+                    return res.send(gerarHtmlPopupErro('no_time_globo', 'Não foi possível obter seu time'));
+                }
+
+                const timeIdGlobo = timeResult.time.timeId;
+
+                // Verificar se é assinante
+                const { default: Time } = await import("../models/Time.js");
+                const timeData = await Time.findOne({ id: timeIdGlobo }).select("assinante nome_cartola nome_time");
+
+                if (!timeData || !timeData.assinante) {
+                    return res.send(gerarHtmlPopupErro('not_subscriber', 'Esta conta não é assinante PRO'));
+                }
+
+                console.log("[PARTICIPANTE-AUTH] OAuth popup bem-sucedido para time:", timeIdGlobo);
+
+                // Enviar glbToken e dados para janela pai via postMessage
+                // A janela pai criará a sessão localmente chamando /globo/create-session
+                res.send(gerarHtmlPopupSucesso(glbToken, timeIdGlobo, timeData));
+
+            } catch (innerError) {
+                console.error("[PARTICIPANTE-AUTH] Erro ao processar popup callback:", innerError);
+                res.send(gerarHtmlPopupErro('session_error', 'Erro interno'));
+            }
+        });
+
+    } catch (error) {
+        console.error("[PARTICIPANTE-AUTH] Erro no callback popup (catch):", error);
+        res.send(gerarHtmlPopupErro('oauth_exception', 'Erro inesperado'));
+    }
+});
+
+// POST /globo/create-session - Cria sessão a partir do token GLB (para domínios customizados)
+// Este endpoint recebe o glbToken obtido via popup e cria a sessão LOCAL
+router.post("/globo/create-session", async (req, res) => {
+    console.log("[PARTICIPANTE-AUTH] Criando sessão via glbToken...");
+
+    const { glbToken, timeId } = req.body;
+
+    if (!glbToken || !timeId) {
+        return res.status(400).json({
+            success: false,
+            error: "Token e timeId são obrigatórios"
+        });
+    }
+
+    try {
+        // 1. Validar token chamando API Globo
+        const timeResult = await cartolaProService.buscarMeuTime(glbToken);
+
+        if (!timeResult.success) {
+            return res.status(401).json({
+                success: false,
+                error: timeResult.error || "Token inválido ou expirado"
+            });
+        }
+
+        // 2. Verificar se timeId corresponde
+        if (String(timeResult.time?.timeId) !== String(timeId)) {
+            return res.status(401).json({
+                success: false,
+                error: "TimeId não corresponde ao token"
+            });
+        }
+
+        const timeIdGlobo = timeResult.time.timeId;
+
+        // 3. Verificar se é assinante
+        const { default: Time } = await import("../models/Time.js");
+        const timeData = await Time.findOne({ id: timeIdGlobo }).select("assinante nome_cartola nome_time clube_id url_escudo_png");
+
+        if (!timeData || !timeData.assinante) {
+            return res.status(403).json({
+                success: false,
+                error: "Esta conta não é assinante PRO"
+            });
+        }
+
+        // 4. Buscar liga do participante
+        const { default: Liga } = await import("../models/Liga.js");
+        const ligaEncontrada = await Liga.findOne({
+            "participantes.time_id": timeIdGlobo
+        });
+
+        if (!ligaEncontrada) {
+            return res.status(404).json({
+                success: false,
+                error: "Time não encontrado em nenhuma liga cadastrada"
+            });
+        }
+
+        // 5. Extrair dados do participante
+        const participanteEncontrado = ligaEncontrada.participantes.find(
+            (p) => String(p.time_id) === String(timeIdGlobo)
+        );
+
+        const dadosReais = {
+            nome_cartola: timeData.nome_cartola || participanteEncontrado?.nome_cartola || "Cartoleiro",
+            nome_time: timeData.nome_time || participanteEncontrado?.nome_time || "Meu Time",
+            foto_perfil: participanteEncontrado?.foto_perfil || "",
+            foto_time: timeData.url_escudo_png || "",
+            clube_id: timeData.clube_id || participanteEncontrado?.clube_id || null
+        };
+
+        // 6. Configurar sessão longa (365 dias)
+        const ONE_YEAR = 1000 * 60 * 60 * 24 * 365;
+        req.session.cookie.maxAge = ONE_YEAR;
+
+        // 7. CRIAR SESSÃO UNIFICADA
+        req.session.participante = {
+            timeId: String(timeIdGlobo),
+            ligaId: ligaEncontrada._id.toString(),
+            participante: dadosReais
+        };
+
+        req.session.cartolaProAuth = {
+            glbid: glbToken,
+            authenticated_at: Date.now(),
+            method: "popup_create_session"
+        };
+
+        req.session.save((saveErr) => {
+            if (saveErr) {
+                console.error("[PARTICIPANTE-AUTH] Erro ao salvar sessão:", saveErr);
+                return res.status(500).json({
+                    success: false,
+                    error: "Erro ao criar sessão"
+                });
+            }
+
+            console.log("[PARTICIPANTE-AUTH] Sessão criada via create-session:", timeIdGlobo);
+
+            res.json({
+                success: true,
+                participante: {
+                    nome: dadosReais.nome_cartola,
+                    time: dadosReais.nome_time,
+                    timeId: timeIdGlobo
+                }
+            });
+        });
+
+    } catch (error) {
+        console.error("[PARTICIPANTE-AUTH] Erro no create-session:", error);
+        res.status(500).json({
+            success: false,
+            error: "Erro interno ao criar sessão"
+        });
+    }
+});
+
+// =====================================================================
+// HELPERS - Gerar HTML para popup
+// =====================================================================
+
+function gerarHtmlPopupSucesso(glbToken, timeId, timeData) {
+    return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Autenticação Concluída</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(180deg, #0d0d0d 0%, #1a1a1a 100%);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            padding: 32px;
+            max-width: 400px;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #4ade80;
+        }
+        p {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 24px;
+        }
+        .info {
+            background: rgba(255,255,255,0.1);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        .info-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+        }
+        .info-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ff4500;
+        }
+        .close-msg {
+            font-size: 14px;
+            color: rgba(255,255,255,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">✅</div>
+        <h1>Autenticação Concluída!</h1>
+        <p>Sua conta Globo foi conectada com sucesso.</p>
+        <div class="info">
+            <div class="info-label">TIME</div>
+            <div class="info-value">${timeData.nome_time || 'Meu Time'}</div>
+        </div>
+        <p class="close-msg">Esta janela será fechada automaticamente...</p>
+    </div>
+    <script>
+        (function() {
+            const resultado = {
+                success: true,
+                glbToken: '${glbToken}',
+                timeId: '${timeId}',
+                nome: '${(timeData.nome_cartola || '').replace(/'/g, "\\'")}',
+                time: '${(timeData.nome_time || '').replace(/'/g, "\\'")}'
+            };
+
+            // Enviar para janela pai
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'GLOBO_AUTH_SUCCESS',
+                    data: resultado
+                }, '*');
+
+                // Fechar popup após 2 segundos
+                setTimeout(() => window.close(), 2000);
+            } else {
+                // Se não tiver opener, mostrar mensagem
+                document.querySelector('.close-msg').innerHTML =
+                    'Feche esta janela e volte ao app.';
+            }
+        })();
+    </script>
+</body>
+</html>`;
+}
+
+function gerarHtmlPopupErro(codigo, mensagem) {
+    const mensagens = {
+        'oauth_init_failed': 'Erro ao iniciar conexão com Globo',
+        'oauth_failed': 'Falha na autenticação Globo',
+        'oauth_callback_error': 'Erro ao processar retorno da Globo',
+        'no_token': 'Token de autenticação não recebido',
+        'no_time_globo': 'Não foi possível obter seu time da conta Globo',
+        'not_subscriber': 'Esta conta não é assinante Cartola PRO',
+        'session_error': 'Erro interno ao processar sessão'
+    };
+
+    const msg = mensagens[codigo] || mensagem || 'Erro desconhecido';
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Erro na Autenticação</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(180deg, #0d0d0d 0%, #1a1a1a 100%);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            padding: 32px;
+            max-width: 400px;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #ef4444;
+        }
+        p {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 24px;
+        }
+        button {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">❌</div>
+        <h1>Erro na Autenticação</h1>
+        <p>${msg}</p>
+        <button onclick="window.close()">Fechar</button>
+    </div>
+    <script>
+        (function() {
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'GLOBO_AUTH_ERROR',
+                    data: {
+                        success: false,
+                        error: '${codigo}',
+                        message: '${msg.replace(/'/g, "\\'")}'
+                    }
+                }, '*');
+            }
+        })();
+    </script>
+</body>
+</html>`;
+}
 
 export { verificarSessaoParticipante };
 export default router;

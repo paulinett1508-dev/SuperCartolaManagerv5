@@ -17,9 +17,79 @@
 
 ---
 
-### 🔴 BLOQUEIO IDENTIFICADO (21/01/2026)
+### 🟢 NOVA ABORDAGEM IMPLEMENTADA (22/01/2026)
 
-**Tentativas realizadas:**
+**Solução: OAuth via Popup Cross-Domain**
+
+O OAuth da Globo só funciona em domínios Replit (`*.replit.dev`). Para domínios customizados (`supercartolamanager.com.br`), implementamos um fluxo via popup:
+
+```
+[supercartolamanager.com.br]              [*.replit.dev]
+         │                                      │
+         │ 1. Clica "Entrar com Globo"          │
+         │ ─────────────────────────────────────>│
+         │    (abre popup)                       │
+         │                                      │
+         │                             2. OAuth Globo
+         │                                      │
+         │ 3. Recebe glbToken via postMessage   │
+         │ <────────────────────────────────────│
+         │                                      │
+         │ 4. POST /globo/create-session        │
+         │    (cria sessão LOCAL)               │
+         └──────────────────────────────────────┘
+```
+
+**Arquivos modificados:**
+- `routes/participante-auth.js` - +3 novas rotas
+- `public/participante-login.html` - +JS para popup OAuth
+
+**Novas rotas:**
+| Rota | Função |
+|------|--------|
+| `GET /globo/popup` | Inicia OAuth em popup |
+| `GET /globo/popup/callback` | Callback que envia token via postMessage |
+| `POST /globo/create-session` | Cria sessão local a partir do glbToken |
+
+---
+
+### 🧪 TESTES PENDENTES (22/01/2026)
+
+**Ambiente de teste:** `supercartolamanager.com.br`
+
+| # | Teste | Passos | Esperado | Status |
+|---|-------|--------|----------|--------|
+| 1 | Detecção de assinante | Digitar ID de time assinante no login | Seção "Entrar com Globo" aparece | ⏳ |
+| 2 | Abrir popup | Clicar "Entrar com Conta Globo" | Popup abre no domínio Replit | ⏳ |
+| 3 | OAuth Globo | Fazer login na conta Globo no popup | Tela de sucesso aparece | ⏳ |
+| 4 | postMessage | Popup fecha automaticamente | Token enviado para janela pai | ⏳ |
+| 5 | Criar sessão | Token recebido | POST /create-session funciona | ⏳ |
+| 6 | Redirecionamento | Sessão criada | Usuário vai para /participante/ | ⏳ |
+| 7 | Funcionalidades PRO | Acessar aba Cartola PRO | Escalação funciona com glbToken | ⏳ |
+
+**Casos de erro a testar:**
+| # | Cenário | Esperado |
+|---|---------|----------|
+| E1 | Popup bloqueado | Mensagem "Permita popups" |
+| E2 | Usuário fecha popup | Loading some, sem erro |
+| E3 | Conta não é assinante | Erro "não é assinante PRO" |
+| E4 | Time não está em liga | Erro "não encontrado em liga" |
+| E5 | Token expirado | Erro "token inválido" |
+
+**Comando para testar localmente:**
+```bash
+# Iniciar servidor
+npm start
+
+# Acessar em navegador diferente do Replit
+# (simular domínio customizado)
+```
+
+---
+
+### 🔴 BLOQUEIO ANTERIOR (21/01/2026) - RESOLVIDO
+
+**Tentativas anteriores que falharam:**
 
 | Método | Ambiente | Resultado | Erro |
 |--------|----------|-----------|------|
@@ -27,11 +97,11 @@
 | Login direto (email/senha) | Replit Dev | ❌ Falhou | HTTP 406 - Conta vinculada ao Google |
 | Login direto (email/senha) | Produção (supercartolamanager.com.br) | ❌ Falhou | HTTP 401 - Sessão não encontrada |
 
-**Problemas identificados:**
+**Problemas identificados (resolvidos com nova abordagem):**
 
-1. **OAuth redirect_uri:** O client_id `cartola-web@apps.globoid` só aceita redirect_uri de domínios oficiais da Globo
-2. **Login direto com conta Google:** Contas Globo criadas via Google OAuth não têm senha direta (erro 406)
-3. **Sessão em produção:** Mesmo no domínio correto, a sessão do participante não está sendo reconhecida (erro 401)
+1. ~~**OAuth redirect_uri:** O client_id só aceita redirect_uri de domínios oficiais~~ → Resolvido com popup no Replit
+2. **Login direto com conta Google:** Contas Globo criadas via Google OAuth não têm senha direta (erro 406) → Ainda não suportado
+3. ~~**Sessão em produção:** Sessão não reconhecida~~ → Resolvido criando sessão local com glbToken
 
 **Arquivos criados/modificados:**
 - `config/globo-oauth.js` - Configuração OIDC Globo (criado)
