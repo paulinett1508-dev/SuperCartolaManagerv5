@@ -188,7 +188,17 @@
       "WebFetch(domain:www.api-futebol.com.br)",
       "WebFetch(domain:soccerdataapi.com)",
       "Bash(__NEW_LINE_192634122207acd7__ echo \"\")",
-      "Bash(__NEW_LINE_847aed99bac3a4ee__ echo \"\")"
+      "Bash(__NEW_LINE_847aed99bac3a4ee__ echo \"\")",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:blog.mobiscroll.com)",
+      "WebFetch(domain:www.webfx.com)",
+      "WebFetch(domain:www.axon.dev)",
+      "WebFetch(domain:www.passportjs.org)",
+      "WebFetch(domain:mherman.org)",
+      "WebFetch(domain:tailwindflex.com)",
+      "WebFetch(domain:www.geeksforgeeks.org)",
+      "WebFetch(domain:portal.api.tvglobo.com.br)",
+      "WebFetch(domain:choraapi.com.br)"
     ]
   },
   "enableAllProjectMcpServers": true,
