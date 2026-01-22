@@ -307,7 +307,7 @@ const excluirLiga = async (req, res) => {
 
 async function salvarTime(timeId) {
   try {
-    const timeExistente = await Time.findOne({ id: timeId });
+    const timeExistente = await Time.findOne({ id: timeId }).lean();
     if (!timeExistente) {
       console.log(`Salvando time ${timeId}...`);
     }
@@ -494,7 +494,7 @@ const buscarRodadasDaLiga = async (req, res) => {
   }
 
   try {
-    const ligaExiste = await Liga.findById(ligaIdParam);
+    const ligaExiste = await Liga.findById(ligaIdParam).lean();
     if (!ligaExiste) {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }

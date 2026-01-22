@@ -972,7 +972,7 @@ export async function processarDecisaoUnificada(ligaId, timeId, temporada, decis
                 liga_id: ligaObjId,
                 time_id: Number(timeId),
                 temporada: Number(temporada)
-            });
+            }).lean();
 
             if (!inscricaoPrevia) {
                 await InscricaoTemporada.create({

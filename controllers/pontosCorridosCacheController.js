@@ -241,7 +241,7 @@ export const lerCachePontosCorridos = async (req, res) => {
 
         const cache = await PontosCorridosCache.findOne(query).sort({
             rodada_consolidada: -1,
-        });
+        }).lean();
 
         if (!cache) {
             return res.status(404).json({ cached: false });
