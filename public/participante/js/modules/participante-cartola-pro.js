@@ -3,10 +3,9 @@
 // =====================================================================
 // ⚠️ RECURSO PREMIUM: Integração OAuth com API Globo
 // =====================================================================
-// ✅ v2.1: Correcao de inconsistencia
-//          - OAuth OIDC como metodo PRINCIPAL (redirect para login Globo)
-//          - Login direto com email/senha como FALLBACK (contas antigas)
-//          - Aviso sobre limitacao de contas Google OAuth
+// ✅ v2.2: Deteccao automatica de dominio
+//          - OAuth disponivel apenas em dominios registrados (replit.dev, localhost)
+//          - Dominios customizados vao direto para login email/senha
 //          - Interface com 4 abas: Sugerido | Escalar | Nao Escalaram | Meu Time
 // =====================================================================
 
@@ -29,6 +28,31 @@ const ESQUEMAS = {
     1: '3-4-3', 2: '3-5-2', 3: '4-3-3', 4: '4-4-2',
     5: '4-5-1', 6: '5-3-2', 7: '5-4-1'
 };
+
+// =====================================================================
+// DETECCAO DE DISPONIBILIDADE OAUTH
+// =====================================================================
+// OAuth so funciona em dominios registrados no client Globo
+// Dominios customizados (ex: supercartolamanager.com.br) NAO funcionam
+function isOAuthDisponivel() {
+    const hostname = window.location.hostname;
+
+    // Dominios onde OAuth funciona (registrados na Globo)
+    const dominiosPermitidos = [
+        'localhost',
+        '127.0.0.1',
+        '.replit.dev',      // Replit preview
+        '.repl.co',         // Replit antigo
+        '.replit.app'       // Replit apps
+    ];
+
+    return dominiosPermitidos.some(d => {
+        if (d.startsWith('.')) {
+            return hostname.endsWith(d);
+        }
+        return hostname === d;
+    });
+}
 
 // =====================================================================
 // FUNCAO PRINCIPAL: Abrir Modal
@@ -86,12 +110,21 @@ function mostrarLoading() {
 }
 
 // =====================================================================
-// TELA DE CONEXÃO OAUTH
+// TELA DE CONEXAO - Detecta automaticamente se OAuth disponivel
 // =====================================================================
 function mostrarTelaConexao() {
     const modal = document.getElementById('cartola-pro-modal');
     if (!modal) return;
 
+    const oauthDisponivel = isOAuthDisponivel();
+
+    // Se OAuth nao disponivel, ir direto para formulario email/senha
+    if (!oauthDisponivel) {
+        mostrarFormularioEmail();
+        return;
+    }
+
+    // OAuth disponivel: mostrar tela com opcoes
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
     modal.innerHTML = `
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="window.CartolaProModule.fecharModal()"></div>
@@ -190,46 +223,88 @@ function mostrarTelaConexao() {
 }
 
 // =====================================================================
-// FORMULARIO EMAIL/SENHA (FALLBACK)
+// FORMULARIO EMAIL/SENHA (FALLBACK ou UNICA OPCAO)
 // =====================================================================
 function mostrarFormularioEmail() {
     const modal = document.getElementById('cartola-pro-modal');
     if (!modal) return;
 
+    const oauthDisponivel = isOAuthDisponivel();
+
+    // Header diferente: com botao voltar (se OAuth disponivel) ou sem (se unica opcao)
+    const headerHTML = oauthDisponivel ? `
+        <!-- Header com Voltar -->
+        <div class="sticky top-0 bg-[#1a1a1a] rounded-t-3xl px-4 py-4 border-b border-white/10 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button onclick="window.CartolaProModule.voltarTelaConexao()" class="p-2 -ml-2 rounded-full hover:bg-white/10">
+                    <span class="material-icons text-white/50">arrow_back</span>
+                </button>
+                <div>
+                    <h2 class="text-lg font-bold text-white" style="font-family: 'Russo One', sans-serif;">
+                        Login Direto
+                    </h2>
+                    <p class="text-xs text-white/50">Email e senha da conta Globo</p>
+                </div>
+            </div>
+            <button onclick="window.CartolaProModule.fecharModal()" class="p-2 rounded-full hover:bg-white/10">
+                <span class="material-icons text-white/50">close</span>
+            </button>
+        </div>
+    ` : `
+        <!-- Header sem Voltar (unica opcao de login) -->
+        <div class="sticky top-0 bg-[#1a1a1a] rounded-t-3xl px-4 py-4 border-b border-white/10 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, rgba(234,179,8,0.2), rgba(249,115,22,0.2));">
+                    <span class="material-icons text-yellow-400">sports_soccer</span>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white" style="font-family: 'Russo One', sans-serif;">
+                        Cartola PRO
+                    </h2>
+                    <p class="text-xs text-white/50">Conecte sua conta Globo</p>
+                </div>
+            </div>
+            <button onclick="window.CartolaProModule.fecharModal()" class="p-2 rounded-full hover:bg-white/10">
+                <span class="material-icons text-white/50">close</span>
+            </button>
+        </div>
+    `;
+
+    // Aviso diferente baseado no contexto
+    const avisoHTML = oauthDisponivel ? `
+        <!-- Aviso para contas antigas -->
+        <div class="mx-4 mt-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/30">
+            <div class="flex items-start gap-3">
+                <span class="material-icons text-orange-400">info</span>
+                <div>
+                    <p class="text-sm font-medium text-orange-300">Contas Antigas</p>
+                    <p class="text-xs text-white/60 mt-1">
+                        Este metodo funciona apenas para contas criadas diretamente na Globo (nao via Google/Facebook).
+                    </p>
+                </div>
+            </div>
+        </div>
+    ` : `
+        <!-- Aviso integracao nao-oficial -->
+        <div class="mx-4 mt-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+            <div class="flex items-start gap-3">
+                <span class="material-icons text-yellow-400">warning</span>
+                <div>
+                    <p class="text-sm font-medium text-yellow-300">Integracao Nao-Oficial</p>
+                    <p class="text-xs text-white/60 mt-1">
+                        Suas credenciais sao usadas apenas para autenticar na API da Globo e NAO sao armazenadas.
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
+
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
     modal.innerHTML = `
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="window.CartolaProModule.fecharModal()"></div>
         <div class="relative w-full max-w-lg mx-4 bg-[#1a1a1a] rounded-3xl border border-white/10 max-h-[80vh] overflow-y-auto animate-slide-up">
-            <!-- Header com Voltar -->
-            <div class="sticky top-0 bg-[#1a1a1a] rounded-t-3xl px-4 py-4 border-b border-white/10 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <button onclick="window.CartolaProModule.voltarTelaConexao()" class="p-2 -ml-2 rounded-full hover:bg-white/10">
-                        <span class="material-icons text-white/50">arrow_back</span>
-                    </button>
-                    <div>
-                        <h2 class="text-lg font-bold text-white" style="font-family: 'Russo One', sans-serif;">
-                            Login Direto
-                        </h2>
-                        <p class="text-xs text-white/50">Email e senha da conta Globo</p>
-                    </div>
-                </div>
-                <button onclick="window.CartolaProModule.fecharModal()" class="p-2 rounded-full hover:bg-white/10">
-                    <span class="material-icons text-white/50">close</span>
-                </button>
-            </div>
-
-            <!-- Aviso -->
-            <div class="mx-4 mt-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/30">
-                <div class="flex items-start gap-3">
-                    <span class="material-icons text-orange-400">info</span>
-                    <div>
-                        <p class="text-sm font-medium text-orange-300">Contas Antigas</p>
-                        <p class="text-xs text-white/60 mt-1">
-                            Este metodo funciona apenas para contas criadas diretamente na Globo (nao via Google/Facebook).
-                        </p>
-                    </div>
-                </div>
-            </div>
+            ${headerHTML}
+            ${avisoHTML}
 
             <!-- Formulario -->
             <div class="p-4 space-y-4">
@@ -264,6 +339,31 @@ function mostrarFormularioEmail() {
 
                 <!-- Mensagem de erro -->
                 <div id="pro-erro" class="hidden p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-300"></div>
+
+                <!-- Recursos disponiveis (so mostra se OAuth nao disponivel) -->
+                ${!oauthDisponivel ? `
+                <div class="pt-2 border-t border-white/10">
+                    <p class="text-xs text-white/40 mb-2">Recursos disponiveis:</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="flex items-center gap-2 text-xs text-white/60">
+                            <span class="material-icons text-green-400 text-sm">lightbulb</span>
+                            Sugestoes
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-white/60">
+                            <span class="material-icons text-yellow-400 text-sm">edit</span>
+                            Escalar
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-white/60">
+                            <span class="material-icons text-purple-400 text-sm">groups</span>
+                            Nao Escalaram
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-white/60">
+                            <span class="material-icons text-blue-400 text-sm">visibility</span>
+                            Meu Time
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
             </div>
 
             <div class="h-4"></div>
@@ -819,4 +919,4 @@ window.CartolaProModule = {
 // Alias global para uso pelo botão na tela de início
 window.abrirCartolaPro = abrirModal;
 
-if (window.Log) Log.info("CARTOLA-PRO", "Modulo v2.1 carregado (OAuth-first + Fallback)");
+if (window.Log) Log.info("CARTOLA-PRO", "Modulo v2.2 carregado (OAuth auto-detect)");
