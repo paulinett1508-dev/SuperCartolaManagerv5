@@ -198,7 +198,8 @@
       "WebFetch(domain:tailwindflex.com)",
       "WebFetch(domain:www.geeksforgeeks.org)",
       "WebFetch(domain:portal.api.tvglobo.com.br)",
-      "WebFetch(domain:choraapi.com.br)"
+      "WebFetch(domain:choraapi.com.br)",
+      "Skill(Refactor-Monolith)"
     ]
   },
   "enableAllProjectMcpServers": true,

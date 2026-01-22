@@ -2,11 +2,48 @@
 
 ## 🔴 PRIORIDADE ALTA
 
+### [REFACTOR-001] Decomposição fluxo-financeiro-ui.js (7.010 linhas)
+
+**Objetivo:** Reduzir o monolito de 7.010 linhas para módulos menores e manuteníveis.
+
+**Status Atual:** ✅ FASE 1 CONCLUÍDA - CSS Extraído
+
+| Fase | Status | Descrição |
+|------|--------|-----------|
+| 1. Análise | ✅ Concluído | Inventário de 50+ funções, 5 responsabilidades |
+| 2. CSS Extract | ✅ Concluído | `fluxo-financeiro-styles.js` criado (1.831 linhas) |
+| 3. Integração | ✅ Concluído | Imports atualizados, métodos removidos |
+| 4. Validação | ⏳ Pendente | Testar em browser que estilos funcionam |
+
+**Branch:** `refactor/extract-fluxo-ui-styles`
+
+**Resultado (22/01/2026):**
+- ✅ CRIADO: `public/js/fluxo-financeiro/fluxo-financeiro-styles.js` (1.831 linhas)
+- ✅ MODIFICADO: `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` (7.019 → 5.214 linhas, -26%)
+
+**Funções extraídas:**
+- `injetarEstilosWrapper()` - Estilos do wrapper/controles
+- `injetarEstilosTabelaCompacta()` - Estilos da tabela compacta
+- `injetarEstilosTabelaExpandida()` - Estilos da tabela expandida
+- `injetarEstilosModal()` - Estilos do modal de acerto
+- `injetarEstilosModalAuditoriaFinanceira()` - Estilos do modal de auditoria
+
+**Próximos passos:**
+1. ⏳ Testar em browser que estilos carregam corretamente
+2. ⏳ Merge para main após validação
+3. 📋 Considerar próxima extração (Auditoria/PDF ~20% do código)
+
+**Rollback:** `git checkout main -- public/js/fluxo-financeiro/fluxo-financeiro-ui.js`
+
+---
+
 ### [FEAT-024] Integração OAuth Cartola PRO
 
 **Objetivo:** Permitir que usuário PRO escale automaticamente no Cartola FC através do Super Cartola Manager.
 
-**Status Atual:** 🟡 EM ANÁLISE - Pesquisa concluída, aguardando decisão
+**Status Atual:** ⏸️ ADIADO - Será implementado em momento futuro
+
+> **⚠️ OBSERVAÇÃO (22/01/2026):** Feature adiada por decisão de priorização. Como se trata de funcionalidade focada exclusivamente em participantes premium, existem outras prioridades mais urgentes tanto no app do participante quanto na versão admin. Retomar quando as features core estiverem consolidadas.
 
 | Fase | Status | Arquivo |
 |------|--------|---------|
