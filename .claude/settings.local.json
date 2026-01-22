@@ -186,7 +186,9 @@
       "WebFetch(domain:api-sports.io)",
       "WebFetch(domain:apifootball.com)",
       "WebFetch(domain:www.api-futebol.com.br)",
-      "WebFetch(domain:soccerdataapi.com)"
+      "WebFetch(domain:soccerdataapi.com)",
+      "Bash(__NEW_LINE_192634122207acd7__ echo \"\")",
+      "Bash(__NEW_LINE_847aed99bac3a4ee__ echo \"\")"
     ]
   },
   "enableAllProjectMcpServers": true,
