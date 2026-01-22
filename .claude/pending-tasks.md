@@ -2,6 +2,36 @@
 
 ## 🔴 PRIORIDADE ALTA
 
+### [REFACTOR-001] Decomposição fluxo-financeiro-ui.js (7.010 linhas)
+
+**Objetivo:** Reduzir o monolito de 7.010 linhas para módulos menores e manuteníveis.
+
+**Status Atual:** 🟡 EM ANDAMENTO - CSS extraído, aguardando integração
+
+| Fase | Status | Descrição |
+|------|--------|-----------|
+| 1. Análise | ✅ Concluído | Inventário de 50+ funções, 5 responsabilidades |
+| 2. CSS Extract | ✅ Concluído | `fluxo-financeiro-styles.js` criado (1.831 linhas) |
+| 3. Integração | 🟡 Pendente | Atualizar imports no arquivo original |
+| 4. Validação | ⏳ Pendente | Testar que sistema continua funcionando |
+
+**Branch:** `refactor/extract-fluxo-ui-styles`
+
+**Arquivos:**
+- ✅ CRIADO: `public/js/fluxo-financeiro/fluxo-financeiro-styles.js` (1.831 linhas)
+- 🔄 A MODIFICAR: `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` (7.010 → ~5.200 linhas)
+
+**Próximos passos (ver `/newsession`):**
+1. Adicionar import das funções de estilo no topo
+2. Substituir `this._injetarEstilos*()` por funções importadas
+3. Remover métodos CSS da classe (linhas 1231-2760)
+4. Remover função standalone (linhas 5103-5457)
+5. Commit final
+
+**Rollback:** `git checkout main && git branch -D refactor/extract-fluxo-ui-styles`
+
+---
+
 ### [FEAT-024] Integração OAuth Cartola PRO
 
 **Objetivo:** Permitir que usuário PRO escale automaticamente no Cartola FC através do Super Cartola Manager.
