@@ -6,29 +6,34 @@
 
 **Objetivo:** Reduzir o monolito de 7.010 linhas para módulos menores e manuteníveis.
 
-**Status Atual:** 🟡 EM ANDAMENTO - CSS extraído, aguardando integração
+**Status Atual:** ✅ FASE 1 CONCLUÍDA - CSS Extraído
 
 | Fase | Status | Descrição |
 |------|--------|-----------|
 | 1. Análise | ✅ Concluído | Inventário de 50+ funções, 5 responsabilidades |
 | 2. CSS Extract | ✅ Concluído | `fluxo-financeiro-styles.js` criado (1.831 linhas) |
-| 3. Integração | 🟡 Pendente | Atualizar imports no arquivo original |
-| 4. Validação | ⏳ Pendente | Testar que sistema continua funcionando |
+| 3. Integração | ✅ Concluído | Imports atualizados, métodos removidos |
+| 4. Validação | ⏳ Pendente | Testar em browser que estilos funcionam |
 
 **Branch:** `refactor/extract-fluxo-ui-styles`
 
-**Arquivos:**
+**Resultado (22/01/2026):**
 - ✅ CRIADO: `public/js/fluxo-financeiro/fluxo-financeiro-styles.js` (1.831 linhas)
-- 🔄 A MODIFICAR: `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` (7.010 → ~5.200 linhas)
+- ✅ MODIFICADO: `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` (7.019 → 5.214 linhas, -26%)
 
-**Próximos passos (ver `/newsession`):**
-1. Adicionar import das funções de estilo no topo
-2. Substituir `this._injetarEstilos*()` por funções importadas
-3. Remover métodos CSS da classe (linhas 1231-2760)
-4. Remover função standalone (linhas 5103-5457)
-5. Commit final
+**Funções extraídas:**
+- `injetarEstilosWrapper()` - Estilos do wrapper/controles
+- `injetarEstilosTabelaCompacta()` - Estilos da tabela compacta
+- `injetarEstilosTabelaExpandida()` - Estilos da tabela expandida
+- `injetarEstilosModal()` - Estilos do modal de acerto
+- `injetarEstilosModalAuditoriaFinanceira()` - Estilos do modal de auditoria
 
-**Rollback:** `git checkout main && git branch -D refactor/extract-fluxo-ui-styles`
+**Próximos passos:**
+1. ⏳ Testar em browser que estilos carregam corretamente
+2. ⏳ Merge para main após validação
+3. 📋 Considerar próxima extração (Auditoria/PDF ~20% do código)
+
+**Rollback:** `git checkout main -- public/js/fluxo-financeiro/fluxo-financeiro-ui.js`
 
 ---
 
