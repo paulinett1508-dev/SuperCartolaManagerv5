@@ -194,7 +194,7 @@ export const buscarStatusParticipante = async (req, res) => {
         }
 
         // ✅ Buscar por 'id' (campo correto do schema)
-        const time = await Time.findOne({ id: timeIdNum });
+        const time = await Time.findOne({ id: timeIdNum }).lean();
 
         if (!time) {
             // Retornar status padrão (ativo) se não existir no banco
@@ -289,7 +289,7 @@ export const alternarStatusParticipante = async (req, res) => {
 export const verificarAtivoNaRodada = async (timeId, rodada) => {
     try {
         const Time = getTimeModel();
-        const time = await Time.findOne({ id: Number(timeId) });
+        const time = await Time.findOne({ id: Number(timeId) }).lean();
 
         if (!time) return true; // Assume ativo se não existir
 

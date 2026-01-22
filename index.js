@@ -1,4 +1,5 @@
 import cron from "node-cron";
+import compression from "compression";
 // Executar scraper de jogos Globo Esporte diariamente às 6h (horário do servidor)
 import { exec } from "child_process";
 cron.schedule("0 6 * * *", () => {
@@ -172,6 +173,20 @@ setupSecurity(app);
 
 // Trust proxy (necessário para rate limiting correto no Replit)
 app.set("trust proxy", 1);
+
+// ====================================================================
+// 📦 COMPRESSION - Reduz ~70% do tamanho de JS/CSS na transferência
+// ====================================================================
+app.use(compression({
+    filter: (req, res) => {
+        // Não comprimir se o cliente não suportar
+        if (req.headers['x-no-compression']) return false;
+        // Comprimir por padrão
+        return compression.filter(req, res);
+    },
+    level: 6, // Balanceado entre compressão e CPU (1-9)
+    threshold: 1024 // Só comprimir arquivos > 1KB
+}));
 
 // Middleware para Parsing do Body (JSON e URL-encoded)
 app.use(express.json({ limit: "50mb" }));

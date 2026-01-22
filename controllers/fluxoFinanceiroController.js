@@ -370,7 +370,7 @@ async function calcularFinanceiroDaRodada(
     const pontuacoes = await Rodada.find({
         ligaId: ligaId,
         rodada: rodadaNumero,
-    }).select("timeId pontos nome_time nome_cartola");
+    }).select("timeId pontos nome_time nome_cartola").lean();
 
     const minhaPontuacaoObj = pontuacoes.find(
         (p) => String(p.timeId) === String(timeId),
@@ -487,7 +487,7 @@ export const getExtratoFinanceiro = async (req, res) => {
             });
         }
 
-        const liga = await Liga.findById(ligaId);
+        const liga = await Liga.findById(ligaId).lean();
         if (!liga)
             return res.status(404).json({ error: "Liga não encontrada" });
 
@@ -686,7 +686,7 @@ export const getExtratoFinanceiro = async (req, res) => {
                 ligaId,
                 timeId,
                 temporada: temporadaAtual,
-            });
+            }).lean();
 
             if (camposManuais?.campos) {
                 camposManuais.campos.forEach((campo) => {
@@ -788,7 +788,7 @@ export const getCampos = async (req, res) => {
         const { ligaId, timeId } = req.params;
         // ✅ v8.3.0 FIX: Aceitar temporada via query param, default getFinancialSeason()
         const temporadaAtual = req.query.temporada ? parseInt(req.query.temporada) : getFinancialSeason();
-        let campos = await FluxoFinanceiroCampos.findOne({ ligaId, timeId, temporada: temporadaAtual });
+        let campos = await FluxoFinanceiroCampos.findOne({ ligaId, timeId, temporada: temporadaAtual }).lean();
 
         if (!campos) {
             console.log(
@@ -861,7 +861,7 @@ export const getCamposLiga = async (req, res) => {
         const { ligaId } = req.params;
         // ✅ v8.3.0 FIX: Aceitar temporada via query, default getFinancialSeason()
         const temporadaAtual = req.query.temporada ? parseInt(req.query.temporada) : getFinancialSeason();
-        const todosCampos = await FluxoFinanceiroCampos.find({ ligaId, temporada: temporadaAtual });
+        const todosCampos = await FluxoFinanceiroCampos.find({ ligaId, temporada: temporadaAtual }).lean();
         res.json(todosCampos);
     } catch (error) {
         res.status(500).json({ error: "Erro ao buscar campos da liga" });
@@ -913,7 +913,7 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
             `[FLUXO-CONSOLIDAÇÃO] Processando liga ${ligaId} até R${rodadaNumero}`,
         );
 
-        const liga = await Liga.findById(ligaId);
+        const liga = await Liga.findById(ligaId).lean();
         if (!liga) throw new Error("Liga não encontrada");
 
         const financeiroPorTime = [];
@@ -1051,7 +1051,7 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                 ligaId,
                 timeId,
                 temporada: temporadaAtual,
-            });
+            }).lean();
             let saldoCampos = 0;
 
             if (camposManuais?.campos) {

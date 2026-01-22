@@ -270,7 +270,7 @@ async function processarRodada(
 
   // 1. VERIFICAR SE JÁ EXISTE
   if (!repopular) {
-    const existente = await Rodada.findOne({ ligaId: ligaIdObj, rodada });
+    const existente = await Rodada.findOne({ ligaId: ligaIdObj, rodada }).lean();
     if (existente) {
       console.log(`[PROCESSAR-RODADA] Rodada ${rodada} já existe (pulando)`);
       return { inseridas: 0, atualizadas: 0 };
