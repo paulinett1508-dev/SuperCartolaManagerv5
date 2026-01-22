@@ -177,7 +177,7 @@ router.get("/session", async (req, res) => {
 
         let timeData = null;
         if (timeId) {
-            timeData = await Time.findOne({ time_id: timeId }).select(
+            timeData = await Time.findOne({ id: timeId }).select(
                 "nome nome_cartola clube_id url_escudo_png assinante",
             );
         }

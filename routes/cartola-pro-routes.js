@@ -41,7 +41,7 @@ async function verificarPremium(req, res, next) {
 
         // Buscar time na collection times para verificar campo assinante
         const Time = (await import("../models/Time.js")).default;
-        const time = await Time.findOne({ time_id: timeId }).select("assinante nome_cartola");
+        const time = await Time.findOne({ id: timeId }).select("assinante nome_cartola");
 
         if (!time) {
             return res.status(404).json({
@@ -84,7 +84,7 @@ router.get("/verificar-premium", verificarSessaoParticipante, async (req, res) =
 
         // Buscar time na collection times para verificar campo assinante
         const Time = (await import("../models/Time.js")).default;
-        const time = await Time.findOne({ time_id: timeId }).select("assinante");
+        const time = await Time.findOne({ id: timeId }).select("assinante");
 
         // Verificar se esta autenticado na Globo
         const globoAuth = req.session?.cartolaProAuth;
