@@ -1,4 +1,5 @@
 // MÓDULO PARTICIPANTES - VERSÃO OTIMIZADA (Performance)
+// v2.14: Cache-bust fix (2026-01-22)
 
 const urlParams = new URLSearchParams(window.location.search);
 const ligaId = urlParams.get("id");
@@ -180,6 +181,10 @@ async function carregarParticipantesPorTemporada(temporada) {
         const stats = data.stats || {};
         const isTemporadaBase = data.fonte === "liga.participantes";
 
+        // ✅ v2.14: Log de diagnóstico para verificar dados recebidos
+        console.log(`[PARTICIPANTES] Recebidos ${participantes.length} de ${temporada} (fonte: ${data.fonte})`);
+        console.log(`[PARTICIPANTES] Stats:`, stats);
+
         // Atualizar contadores
         document.getElementById("total-participantes").textContent = stats.total || 0;
         document.getElementById("participantes-ativos").textContent = stats.ativos || 0;
@@ -205,6 +210,10 @@ async function carregarParticipantesPorTemporada(temporada) {
         const participantesFiltrados = isTemporadaBase
             ? participantes
             : participantes.filter(p => p.status !== "nao_participa");
+
+        // ✅ v2.14: Log dos participantes filtrados para diagnóstico
+        console.log(`[PARTICIPANTES] Após filtro: ${participantesFiltrados.length} participantes`);
+        console.log(`[PARTICIPANTES] Lista:`, participantesFiltrados.map(p => `${p.nome_cartoleiro} (${p.status})`));
 
         participantesFiltrados.forEach((p, index) => {
             const estaAtivo = p.ativo !== false;
