@@ -6,7 +6,9 @@
 
 **Objetivo:** Permitir que usuário PRO escale automaticamente no Cartola FC através do Super Cartola Manager.
 
-**Status Atual:** 🟡 EM ANÁLISE - Pesquisa concluída, aguardando decisão
+**Status Atual:** ⏸️ ADIADO - Será implementado em momento futuro
+
+> **⚠️ OBSERVAÇÃO (22/01/2026):** Feature adiada por decisão de priorização. Como se trata de funcionalidade focada exclusivamente em participantes premium, existem outras prioridades mais urgentes tanto no app do participante quanto na versão admin. Retomar quando as features core estiverem consolidadas.
 
 | Fase | Status | Arquivo |
 |------|--------|---------|
