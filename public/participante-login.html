@@ -868,6 +868,9 @@
                 } finally {
                     verificandoSessao = false;
                 }
+
+                // Configurar deteccao de assinante APOS DOM carregar
+                setupGloboLoginDetection();
             });
 
             // =====================================================================
@@ -903,20 +906,31 @@
                 }
             }
 
-            // Verificar se e assinante quando time_id perde foco
-            const timeIdInput = document.getElementById('timeId');
-            const globoSection = document.getElementById('globoLoginSection');
+            // Funcao que configura os listeners (chamada apos DOM carregar)
+            function setupGloboLoginDetection() {
+                const timeIdInput = document.getElementById('timeId');
+                const globoSection = document.getElementById('globoLoginSection');
 
-            let debounceTimer = null;
-            timeIdInput.addEventListener('input', function() {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(verificarAssinante, 500);
-            });
+                if (!timeIdInput || !globoSection) {
+                    console.warn('[LOGIN] Elementos nao encontrados para deteccao de assinante');
+                    return;
+                }
 
-            timeIdInput.addEventListener('blur', verificarAssinante);
+                let debounceTimer = null;
+                timeIdInput.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(verificarAssinante, 500);
+                });
+
+                timeIdInput.addEventListener('blur', verificarAssinante);
+
+                console.log('[LOGIN] Deteccao de assinante configurada');
+            }
 
             async function verificarAssinante() {
-                const timeId = timeIdInput.value.trim();
+                const timeIdInput = document.getElementById('timeId');
+                const globoSection = document.getElementById('globoLoginSection');
+                const timeId = timeIdInput?.value?.trim();
 
                 if (!timeId || timeId.length < 5) {
                     if (globoSection) globoSection.style.display = 'none';
