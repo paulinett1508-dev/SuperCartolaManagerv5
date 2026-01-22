@@ -4,97 +4,130 @@ Handover para nova sessao - carrega contexto do trabalho em andamento e instrui 
 
 ---
 
-## HANDOVER: Login Unificado Participante Premium
+## HANDOVER: Refatoracao fluxo-financeiro-ui.js (7.010 linhas)
 
 ### Contexto
 
-Trabalho em andamento: **unificacao do login do participante premium** (Cartola PRO).
+Trabalho em andamento: **refatoracao do monolito fluxo-financeiro-ui.js** usando o skill `/Refactor-Monolith`.
 
-### Problema
+O arquivo tem **7.010 linhas** e esta sendo decomposto de forma segura, comecando pela extracao de CSS (~1.850 linhas).
 
-O sistema tem **dois logins separados**:
-1. **Login App:** time_id + senha local → `req.session.participante`
-2. **Login Cartola PRO:** email/senha Globo → `req.session.cartolaProAuth`
+### Estado Atual
 
-Isso causa confusao para o participante premium (Paulinett).
+**Branch criada:** `refactor/extract-fluxo-ui-styles`
 
-### Solucao Desejada
-
-**Login unico via Globo** para participantes premium (assinantes):
-
-```
-Tela Login
-├── [Entrar com Globo] ← Para premium (assinante=true)
-│   └── Autentica Globo → API retorna time_id → Sessao unificada
-│
-└── [Entrar com senha] ← Para todos os outros
-    └── Login tradicional (time_id + senha local)
-```
-
-### Arquivos Relevantes
-
-**Backend:**
-- `routes/participante-auth.js` - Login atual (time_id + senha)
-- `routes/cartola-pro-routes.js` - Endpoints PRO + OAuth
-- `config/globo-oauth.js` - Configuracao OAuth OIDC Globo
-
-**Frontend:**
-- `public/participante/js/participante-auth.js` - Tela de login
-- `public/participante/js/modules/participante-cartola-pro.js` - Modal PRO (v2.2)
-
-**Banco:**
-- Collection `times` - Campo `assinante: true` indica premium
-- Paulinett (time_id: 13935277) tem `assinante: true`
-
-### Restricoes
-
-1. **OAuth so funciona em dominios Replit** (localhost, *.replit.dev)
-2. **Dominios customizados** (supercartolamanager.com.br) precisam usar login direto (email/senha Globo)
-3. Funcao `isOAuthDisponivel()` detecta isso automaticamente
+**Progresso:**
+- [x] FASE 0: Pre-analise do monolito
+- [x] FASE 1: Analise estrutural profunda (inventario de funcoes)
+- [x] Checkpoint criado (commit: c547173)
+- [x] Arquivo `fluxo-financeiro-styles.js` criado com 1.831 linhas
+- [ ] **EM ANDAMENTO:** Atualizar imports no arquivo original
+- [ ] Validar que sistema continua funcionando
+- [ ] Documentar mudancas no pending-tasks.md
 
 ### O Que Ja Foi Feito
 
-- ✅ Backend retorna `assinante` na sessao (`routes/participante-auth.js`)
-- ✅ Middleware `verificarPremium` usa `times.assinante` (`routes/cartola-pro-routes.js`)
-- ✅ Frontend mostra botao PRO apenas para assinantes
-- ✅ Deteccao automatica de dominio para OAuth
-- ✅ Query corrigida para usar campo `id` (nao `time_id`)
+1. **Criado `public/js/fluxo-financeiro/fluxo-financeiro-styles.js`** com 5 funcoes exportadas:
+   - `injetarEstilosWrapper` (ex `_injetarEstilosWrapper`)
+   - `injetarEstilosTabelaCompacta` (ex `_injetarEstilosTabelaCompacta`)
+   - `injetarEstilosTabelaExpandida` (ex `_injetarEstilosTabelaExpandida`)
+   - `injetarEstilosModal` (ex `_injetarEstilosModal`)
+   - `injetarEstilosModalAuditoriaFinanceira`
 
----
+2. **Validado:** O modulo exporta corretamente todas as funcoes (testado com Node.js)
 
-## PROXIMA TAREFA
+### Arquivos Relevantes
 
-Implementar login unificado para participante premium:
+**Novo modulo:**
+- `public/js/fluxo-financeiro/fluxo-financeiro-styles.js` - CSS extraido (1.831 linhas) ✅ CRIADO
 
-1. **Modificar tela de login** (`public/participante/js/participante-auth.js`):
-   - Adicionar botao "Entrar com Globo" para assinantes
-   - Manter botao "Entrar com senha" para todos
+**Arquivo a modificar:**
+- `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` - Monolito original (7.010 linhas)
 
-2. **Criar rota de login unificado** (backend):
-   - Apos autenticar na Globo, buscar time_id da conta
-   - Verificar se time_id esta cadastrado em alguma liga
-   - Criar sessao unificada (participante + cartolaProAuth)
+**Checkpoint:**
+- Branch: `refactor/extract-fluxo-ui-styles`
+- Commit: c547173
 
-3. **Deteccao de assinante na tela de login**:
-   - Usuario digita time_id → Sistema verifica se e assinante
-   - Se assinante, mostra opcao "Entrar com Globo"
+### Proxima Tarefa
 
-**Restricao:** Em dominios customizados, usar formulario email/senha Globo em vez de OAuth redirect.
+Modificar `fluxo-financeiro-ui.js` para usar o novo modulo de estilos:
 
----
+1. **Adicionar import no topo do arquivo:**
+```javascript
+import {
+    injetarEstilosWrapper,
+    injetarEstilosTabelaCompacta,
+    injetarEstilosTabelaExpandida,
+    injetarEstilosModal,
+    injetarEstilosModalAuditoriaFinanceira
+} from "./fluxo-financeiro-styles.js";
+```
 
-## Comando para Iniciar
+2. **Substituir chamadas (linhas 783-785):**
+```javascript
+// ANTES:
+this._injetarEstilosWrapper();
+this._injetarEstilosTabelaCompacta();
+this._injetarEstilosTabelaExpandida();
 
+// DEPOIS:
+injetarEstilosWrapper();
+injetarEstilosTabelaCompacta();
+injetarEstilosTabelaExpandida();
+```
+
+3. **Substituir chamada (linha 2548):**
+```javascript
+// ANTES:
+this._injetarEstilosModal();
+
+// DEPOIS:
+injetarEstilosModal();
+```
+
+4. **Remover da classe (linhas 1231-2760):**
+   - Metodo `_injetarEstilosWrapper` (190 linhas)
+   - Metodo `_injetarEstilosTabelaCompacta` (268 linhas)
+   - Metodo `_injetarEstilosTabelaExpandida` (775 linhas)
+   - Metodo `_injetarEstilosModal` (206 linhas)
+
+5. **Remover funcao standalone (linhas 5103-5457):**
+   - Funcao `injetarEstilosModalAuditoriaFinanceira` (355 linhas)
+   - Ja esta importada no topo, so remover a implementacao local
+
+6. **Validar:**
+   - Testar no browser que estilos carregam corretamente
+   - Verificar que nenhuma funcionalidade quebrou
+
+### Rollback
+
+Se algo der errado:
 ```bash
-/workflow implementar login unificado Globo para participante premium
+git checkout main
+git branch -D refactor/extract-fluxo-ui-styles
 ```
 
-Ou execute diretamente:
+Ou reverter arquivo especifico:
+```bash
+git checkout HEAD~1 -- public/js/fluxo-financeiro/fluxo-financeiro-ui.js
+```
+
+---
+
+## Comando para Continuar
+
+Execute na nova sessao:
 
 ```
-Implemente login unificado para participante premium:
-1. Na tela de login, adicione opcao "Entrar com Globo"
-2. Crie endpoint que autentica via Globo e cria sessao do participante
-3. Apenas assinante=true podem usar essa opcao
-4. Mantenha login tradicional como fallback
+Continue a refatoracao do fluxo-financeiro-ui.js:
+
+1. Adicione import das funcoes de estilo no topo do arquivo
+2. Substitua chamadas this._injetarEstilos* por funcoes importadas
+3. Remova os metodos _injetarEstilos* da classe (linhas 1231-2760)
+4. Remova a funcao injetarEstilosModalAuditoriaFinanceira (linhas 5103-5457)
+5. Teste que o sistema continua funcionando
+6. Commit com mensagem descritiva
+
+IMPORTANTE: O arquivo fluxo-financeiro-styles.js ja foi criado e testado.
+Branch atual: refactor/extract-fluxo-ui-styles
 ```
