@@ -289,6 +289,7 @@ Comandos disponíveis para invocar diretamente:
 | `/html-audit` | Auditoria de qualidade frontend (QA) - verifica conformidade com padrões | `/html-audit public/participante/fronts/perfil.html` |
 | `/salvar-tarefas` | Salva tarefas pendentes antes de encerrar sessão | `/salvar-tarefas` |
 | `/retomar-tarefas` | Retoma trabalho da sessão anterior | `/retomar-tarefas` |
+| `/newsession` | Handover para nova sessão com contexto do trabalho em andamento | `/newsession` |
 
 ### Detalhes dos Commands:
 
@@ -338,6 +339,12 @@ Comandos disponíveis para invocar diretamente:
 **`/salvar-tarefas` e `/retomar-tarefas`**
 - Persistem contexto entre sessões no arquivo `.claude/pending-tasks.md`
 - Útil para pausar e continuar trabalhos complexos
+
+**`/newsession`**
+- Carrega handover com contexto completo do trabalho em andamento
+- Inclui: problema, solução desejada, arquivos relevantes, o que já foi feito, próximos passos
+- Ideal para continuar implementações complexas em nova sessão
+- Arquivo: `.claude/skills/newsession/SKILL.md`
 
 ## 🔄 Sistema de Renovacao de Temporada
 
