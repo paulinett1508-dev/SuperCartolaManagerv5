@@ -274,7 +274,9 @@ export async function adicionarParticipanteNaLiga(ligaId, dadosParticipante, tem
             ativo: true,
             // ✅ v2.12: Campos adicionais para WhatsApp e Time do Coração
             contato: dadosParticipante.contato || "",
-            clube_id: dadosParticipante.time_coracao || dadosParticipante.clube_id || null
+            clube_id: dadosParticipante.time_coracao || dadosParticipante.clube_id || null,
+            // ✅ v2.13: Senha padrão para novos participantes (evita login bloqueado)
+            senha_acesso: dadosParticipante.senha_acesso || "acessocartola"
         });
 
         // Adicionar ao array de times
@@ -301,7 +303,9 @@ export async function adicionarParticipanteNaLiga(ligaId, dadosParticipante, tem
                 escudo: dadosParticipante.escudo,
                 liga_id: ligaId,
                 temporada: Number(temporada),
-                ativo: true
+                ativo: true,
+                // ✅ v2.13: Senha padrão para novos participantes
+                senha_acesso: dadosParticipante.senha_acesso || "acessocartola"
             },
             $setOnInsert: {
                 id: Number(dadosParticipante.time_id)
