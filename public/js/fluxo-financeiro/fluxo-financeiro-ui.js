@@ -551,7 +551,7 @@ export class FluxoFinanceiroUI {
         // ✅ v5.5 FIX: Passar temporada para sincronizar com outras telas
         let dadosSaldo = null;
         try {
-            const temporada = window.temporadaAtual || 2025;
+            const temporada = window.temporadaAtual || 2026;
             const response = await fetch(`/api/tesouraria/liga/${ligaId}?temporada=${temporada}`);
             if (response.ok) {
                 dadosSaldo = await response.json();
@@ -777,8 +777,8 @@ export class FluxoFinanceiroUI {
                                 <td colspan="15" style="text-align: center; padding: 40px; color: var(--texto-secundario);">
                                     <span class="material-icons" style="font-size: 48px; color: var(--laranja); opacity: 0.5;">group_off</span>
                                     <p style="margin-top: 16px; font-size: 14px;">
-                                        ${(window.temporadaAtual || 2025) >= 2026
-                                            ? 'Nenhum participante renovado para ' + (window.temporadaAtual || 2025) + '.<br><small>Acesse a tela de Renovação para adicionar participantes.</small>'
+                                        ${(window.temporadaAtual || 2026) >= 2026
+                                            ? 'Nenhum participante renovado para ' + (window.temporadaAtual || 2026) + '.<br><small>Acesse a tela de Renovação para adicionar participantes.</small>'
                                             : 'Nenhum participante encontrado.'}
                                     </p>
                                 </td>
@@ -1044,7 +1044,7 @@ export class FluxoFinanceiroUI {
                             // v2.14: Botao de quitar removido para temporada 2025+ (coberta pelo modal unificado de renovacao)
                             // Quitacao de 2025 e feita automaticamente no modal de decisao ao renovar para 2026
                             // Manter botao apenas para temporadas retroativas antigas (2024, etc)
-                            const tempAtual = window.temporadaAtual || 2025;
+                            const tempAtual = window.temporadaAtual || 2026;
                             const tempRenovacao = window.temporadaRenovacao || 2026;
                             const isTemporadaRenovacao = tempAtual >= (tempRenovacao - 1);
                             const mostrarBotaoQuitar = !isQuitado && Math.abs(saldoFinal) >= 0.01 && !isTemporadaRenovacao;
@@ -1434,7 +1434,7 @@ export class FluxoFinanceiroUI {
                         valor,
                         descricao: descricao || `Acerto via Fluxo Financeiro - ${tipoAcertoAtual}`,
                         metodoPagamento: metodo,
-                        temporada: window.temporadaAtual || 2025, // Temporada dinamica
+                        temporada: window.temporadaAtual || 2026, // Temporada dinamica
                     })
                 });
 
@@ -1568,7 +1568,7 @@ export class FluxoFinanceiroUI {
         // ✅ v5.5 FIX: Passar temporada
         window.abrirHistoricoAcertos = async (timeId, ligaIdParam) => {
             try {
-                const temporada = window.temporadaAtual || 2025;
+                const temporada = window.temporadaAtual || 2026;
                 const response = await fetch(`/api/tesouraria/participante/${ligaIdParam}/${timeId}?temporada=${temporada}`);
                 const data = await response.json();
 
@@ -2059,7 +2059,7 @@ export class FluxoFinanceiroUI {
      * - Temporada >= 2026: Ajustes dinâmicos (novo sistema)
      */
     async renderizarCamposEditaveis(timeId) {
-        const temporada = this.temporadaModalExtrato || window.temporadaAtual || 2025;
+        const temporada = this.temporadaModalExtrato || window.temporadaAtual || 2026;
 
         if (temporada >= 2026) {
             // ✅ v8.0: Novo sistema - ajustes dinâmicos ilimitados
@@ -2074,8 +2074,10 @@ export class FluxoFinanceiroUI {
      * ✅ v8.0: Renderiza campos fixos (sistema legado para temporada <= 2025)
      */
     async renderizarCamposFixos(timeId) {
+        // ✅ v6.10 FIX: Passar temporada correta para buscar campos da temporada selecionada
+        const temporadaSelecionada = window.temporadaAtual || 2025;
         const campos =
-            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
         const lista = [
             {
                 id: "campo1",
@@ -2300,7 +2302,7 @@ export class FluxoFinanceiroUI {
             if (!ligaId || !timeId || !extrato) return;
 
             // ✅ v4.6 FIX: Obter temporada do modal
-            const temporada = this.temporadaModalExtrato || window.temporadaAtual || 2025;
+            const temporada = this.temporadaModalExtrato || window.temporadaAtual || 2026;
 
             // ✅ v4.6 FIX: NÃO popular cache de 2026 durante pré-temporada
             // O extrato 2026 só deve ter dados quando a temporada começar

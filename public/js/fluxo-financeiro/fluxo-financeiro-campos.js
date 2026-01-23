@@ -57,10 +57,12 @@ export class FluxoFinanceiroCampos {
         try {
             const ligaId = obterLigaId();
             const campoIndex = parseInt(nomeCampo.replace("campo", "")) - 1;
+            // ✅ v6.10 FIX: Usar temporada atual selecionada
+            const temporadaSelecionada = window.temporadaAtual || 2026;
 
             // ✅ CARREGAR DADOS ATUAIS PRIMEIRO
             const camposAtuais =
-                await this.carregarTodosCamposEditaveis(timeId);
+                await this.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
             const campoAtual = camposAtuais[nomeCampo];
 
             const valorNumerico = parseMoedaBR(valor);
@@ -107,10 +109,12 @@ export class FluxoFinanceiroCampos {
         try {
             const ligaId = obterLigaId();
             const campoIndex = parseInt(nomeCampo.replace("campo", "")) - 1;
+            // ✅ v6.10 FIX: Usar temporada atual selecionada
+            const temporadaSelecionada = window.temporadaAtual || 2026;
 
             // ✅ CARREGAR DADOS ATUAIS PRIMEIRO
             const camposAtuais =
-                await this.carregarTodosCamposEditaveis(timeId);
+                await this.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
             const campoAtual = camposAtuais[nomeCampo];
 
             // ✅ PRESERVAR O VALOR EXISTENTE
@@ -149,7 +153,9 @@ export class FluxoFinanceiroCampos {
      */
     static async obterNomeCampo(timeId, nomeCampo) {
         try {
-            const campos = await this.carregarTodosCamposEditaveis(timeId);
+            // ✅ v6.10 FIX: Usar temporada atual selecionada
+            const temporadaSelecionada = window.temporadaAtual || 2026;
+            const campos = await this.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
             return campos[nomeCampo]?.nome || `Campo ${nomeCampo.slice(-1)}`;
         } catch (error) {
             console.error("[FluxoFinanceiroCampos] Erro ao obter nome:", error);
@@ -183,10 +189,13 @@ export class FluxoFinanceiroCampos {
     /**
      * Exporta dados dos campos para backup
      * @param {string} timeId - ID do time
+     * @param {number} [temporada] - Temporada (opcional)
      * @returns {Promise<Object>} - Dados dos campos
      */
-    static async exportarCampos(timeId) {
-        return await this.carregarTodosCamposEditaveis(timeId);
+    static async exportarCampos(timeId, temporada = null) {
+        // ✅ v6.10 FIX: Usar temporada atual selecionada
+        const temporadaSelecionada = temporada || window.temporadaAtual || 2026;
+        return await this.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
     }
 
     /**
@@ -232,7 +241,9 @@ export class FluxoFinanceiroCampos {
      */
     static async obterEstatisticas(timeId) {
         try {
-            const campos = await this.carregarTodosCamposEditaveis(timeId);
+            // ✅ v6.10 FIX: Usar temporada atual selecionada
+            const temporadaSelecionada = window.temporadaAtual || 2026;
+            const campos = await this.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
             const valores = Object.values(campos).map((c) => c.valor);
 
             return {

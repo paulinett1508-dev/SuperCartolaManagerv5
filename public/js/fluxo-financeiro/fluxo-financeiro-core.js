@@ -1,4 +1,7 @@
-// FLUXO-FINANCEIRO-CORE.JS v6.9 - FIX SALDO PRÉ-TEMPORADA
+// FLUXO-FINANCEIRO-CORE.JS v6.10 - FIX DEFAULTS INCONSISTENTES
+// ✅ v6.10: FIX CRÍTICO - Defaults inconsistentes (|| 2025 → || 2026)
+//           Problema: Se window.temporadaAtual não definido, buscava cache 2025
+//           Solução: Todos os defaults agora usam 2026 (consistente com init)
 // ✅ v6.9: FIX CRÍTICO - Usar resumo do backend em pré-temporada
 //          Antes: calculava localmente só campos+acertos, ignorava inscrição
 //          Agora: usa resumo do backend que inclui inscrição+acertos corretamente
@@ -54,8 +57,8 @@ export class FluxoFinanceiroCore {
     // ✅ v6.2 FIX: Passar temporada para sincronização
     async _buscarAcertosFinanceiros(ligaId, timeId) {
         try {
-            // ✅ FIX: Default 2025 (temporada com dados) até Brasileirão 2026 iniciar
-            const temporada = window.temporadaAtual || 2025;
+            // ✅ FIX v6.10: Default 2026 (temporada atual) - consistente com fluxo-financeiro.js
+            const temporada = window.temporadaAtual || 2026;
             const response = await fetch(`${API_BASE_URL}/api/acertos/${ligaId}/${timeId}?temporada=${temporada}`);
             const result = await response.json();
 
@@ -243,8 +246,8 @@ export class FluxoFinanceiroCore {
         let mercadoAberto = false;
 
         // ✅ v6.5: Verificar temporada selecionada
-        // FIX: Default 2025 (temporada com dados) até Brasileirão 2026 iniciar
-        const temporadaSelecionada = window.temporadaAtual || 2025;
+        // ✅ FIX v6.10: Default 2026 (temporada atual) - consistente com fluxo-financeiro.js
+        const temporadaSelecionada = window.temporadaAtual || 2026;
         const temporadaAtualReal = new Date().getFullYear(); // 2026
         const isTemporadaHistorica = temporadaSelecionada < temporadaAtualReal;
 
@@ -352,7 +355,8 @@ export class FluxoFinanceiroCore {
                             campo4: campos[3] || { nome: "Campo 4", valor: 0 },
                         };
                     } else {
-                        camposEditaveis = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+                        // ✅ v6.10 FIX: Passar temporada correta para buscar campos da temporada selecionada
+                        camposEditaveis = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
                     }
 
                     const acertos = cacheValido.acertos || await this._buscarAcertosFinanceiros(ligaId, timeId);
@@ -417,9 +421,11 @@ export class FluxoFinanceiroCore {
                             console.log(`[FLUXO-CORE] ✅ Usando campos do cache (${campos.length} itens)`);
                         } else {
                             // Fallback: buscar do servidor se não veio no cache
+                            // ✅ v6.10 FIX: Passar temporada correta
                             camposEditaveis =
                                 await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(
                                     timeId,
+                                    temporadaSelecionada,
                                 );
                         }
 
@@ -519,7 +525,8 @@ export class FluxoFinanceiroCore {
             console.log(`[FLUXO-CORE] ⏳ Apenas inscrições e campos manuais serão exibidos.`);
 
             // Buscar campos editáveis e acertos (únicos dados válidos na pré-temporada)
-            const camposEditaveis = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+            // ✅ v6.10 FIX: Passar temporada correta para buscar campos da temporada selecionada
+            const camposEditaveis = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
             const acertos = await this._buscarAcertosFinanceiros(ligaId, timeId);
 
             // ✅ v6.8: Buscar status de inscrição para determinar se pagou
@@ -569,8 +576,9 @@ export class FluxoFinanceiroCore {
         // ✅ LAZY LOADING: Carregar dados completos sob demanda (primeira vez que clica)
         await this.cache.carregarDadosCompletos();
 
+        // ✅ v6.10 FIX: Passar temporada correta para buscar campos da temporada selecionada
         const camposEditaveis =
-            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
 
         // ✅ v6.1: Buscar acertos financeiros
         const acertos = await this._buscarAcertosFinanceiros(ligaId, timeId);
@@ -697,7 +705,7 @@ export class FluxoFinanceiroCore {
     async _verificarCacheMongoDB(ligaId, timeId, rodadaAtual, mercadoAberto) {
         try {
             const timestamp = Date.now();
-            const temporada = window.temporadaAtual || 2025;
+            const temporada = window.temporadaAtual || 2026;
             const url = `${API_BASE_URL}/api/extrato-cache/${ligaId}/times/${timeId}/cache/valido?rodadaAtual=${rodadaAtual}&mercadoAberto=${mercadoAberto}&temporada=${temporada}&_=${timestamp}`;
 
             const response = await fetch(url);
@@ -760,7 +768,7 @@ export class FluxoFinanceiroCore {
             }
 
             // ✅ v6.4: Incluir temporada selecionada no payload
-            const temporada = window.temporadaAtual || 2025;
+            const temporada = window.temporadaAtual || 2026;
 
             const payload = {
                 historico_transacoes: extrato.rodadas,
@@ -1214,8 +1222,8 @@ export class FluxoFinanceiroCore {
 
 window.forcarRefreshExtrato = async function (timeId) {
     const ligaId = window.obterLigaId();
-    const temporadaAtual = window.temporadaAtual || 2025;
-    const TEMPORADA_CARTOLA = 2025; // Temporada atual da API Cartola (2026 inicia 28/01)
+    const temporadaAtual = window.temporadaAtual || 2026;
+    const TEMPORADA_CARTOLA = 2026; // Temporada atual da API Cartola
 
     console.log(
         `[FLUXO-CORE] 🔄 Forçando refresh do extrato para time ${timeId} (temporada ${temporadaAtual})...`,
@@ -1249,4 +1257,4 @@ window.forcarRefreshExtrato = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-CORE] ✅ v6.9 - Fix saldo pré-temporada (usa resumo backend)");
+console.log("[FLUXO-CORE] ✅ v6.10 - Fix defaults inconsistentes (|| 2025 → || 2026)");

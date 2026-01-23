@@ -39,8 +39,10 @@ export class FluxoFinanceiroAuditoria {
     // NÍVEL 1: RESUMO EXECUTIVO
     // =========================================================================
     async gerarResumoExecutivo(timeId, extrato) {
+        // ✅ v6.10 FIX: Passar temporada correta para buscar campos da temporada selecionada
+        const temporadaSelecionada = window.temporadaAtual || 2026;
         const camposEditaveis =
-            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
 
         // Totais automáticos das rodadas
         let totaisAutomaticos = {

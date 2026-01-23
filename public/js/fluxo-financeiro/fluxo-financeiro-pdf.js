@@ -92,7 +92,7 @@ export async function abrirAuditoriaFinanceira(timeId, ligaId, nomeParticipante)
     `;
 
     try {
-        const temporada = window.temporadaAtual || 2025;
+        const temporada = window.temporadaAtual || 2026;
 
         // Buscar dados via API de tesouraria
         const response = await fetch(`/api/tesouraria/participante/${ligaId}/${timeId}?temporada=${temporada}`);
