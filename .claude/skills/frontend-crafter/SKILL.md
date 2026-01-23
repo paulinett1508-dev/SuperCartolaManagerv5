@@ -471,7 +471,562 @@ const CACHE_TTL = {
 
 ---
 
-## 4. 🎭 Admin UI (Desktop)
+## 4. 📱 Componentes Mobile Premium (v3.2)
+
+### 4.1 Header com Avatar e Badge
+
+```html
+<!-- Header Premium com identidade do usuario -->
+<header class="header-premium">
+  <div class="header-content">
+    <!-- Avatar com Iniciais -->
+    <div class="user-section">
+      <div class="avatar-circle">
+        <span class="avatar-initials font-brand">PM</span>
+      </div>
+      <div class="user-info">
+        <h1 class="user-name font-brand">Paulinett Miranda</h1>
+        <div class="badge-premium">
+          <i class="material-icons badge-icon">star</i>
+          <span>Premium</span>
+        </div>
+      </div>
+    </div>
+    <!-- Notificacoes -->
+    <button class="btn-icon" aria-label="Notificacoes">
+      <i class="material-icons">notifications</i>
+    </button>
+  </div>
+</header>
+
+<style>
+.header-premium {
+  padding: 48px 16px 24px;
+  background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #bdc3c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-card);
+}
+
+.avatar-initials {
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.user-name {
+  font-size: 18px;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.badge-premium {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.badge-premium .badge-icon {
+  font-size: 12px;
+  color: #f59e0b;
+}
+
+.badge-premium span {
+  font-size: 10px;
+  color: #f59e0b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-icon {
+  padding: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.btn-icon .material-icons {
+  font-size: 24px;
+}
+</style>
+```
+
+### 4.2 Grid de Atalhos (4 colunas)
+
+```html
+<!-- Grid de acoes rapidas -->
+<section class="action-grid">
+  <button class="action-item">
+    <div class="action-icon">
+      <i class="material-icons">emoji_events</i>
+    </div>
+    <span class="action-label">Premiacoes</span>
+  </button>
+  <button class="action-item">
+    <div class="action-icon">
+      <i class="material-icons">groups</i>
+    </div>
+    <span class="action-label">Participantes</span>
+  </button>
+  <button class="action-item">
+    <div class="action-icon">
+      <i class="material-icons">description</i>
+    </div>
+    <span class="action-label">Regras</span>
+  </button>
+  <button class="action-item">
+    <div class="action-icon">
+      <i class="material-icons">workspace_premium</i>
+    </div>
+    <span class="action-label">Cartola PRO</span>
+  </button>
+</section>
+
+<style>
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.action-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  border: 1px solid var(--laranja);
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.action-icon:hover {
+  background: var(--bg-secondary);
+}
+
+.action-icon .material-icons {
+  font-size: 24px;
+  color: var(--laranja);
+}
+
+.action-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-align: center;
+}
+</style>
+```
+
+### 4.3 Card de Status do Time (Split Layout)
+
+```html
+<!-- Card com Pontos e Posicao lado a lado -->
+<section class="team-status-card">
+  <div class="team-header">
+    <h2 class="team-name font-brand">Urubu Play F.C.</h2>
+    <div class="team-shield">
+      <i class="material-icons">shield</i>
+    </div>
+  </div>
+  <div class="stats-split">
+    <div class="stat-block">
+      <span class="stat-label">Pontos</span>
+      <span class="stat-value font-mono text-accent">0</span>
+      <span class="stat-hint">Aguardando 1a rodada</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-block">
+      <span class="stat-label">Posicao</span>
+      <span class="stat-value font-mono">--</span>
+      <span class="stat-hint">Aguardando 1a rodada</span>
+    </div>
+  </div>
+</section>
+
+<style>
+.team-status-card {
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  margin: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.team-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.team-name {
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.team-shield {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.team-shield .material-icons {
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.stats-split {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+}
+
+.stat-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.stat-value.text-accent {
+  color: var(--laranja);
+}
+
+.stat-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.stat-divider {
+  width: 1px;
+  background: var(--border-color);
+}
+</style>
+```
+
+### 4.4 FAB do Mercado (Floating Action Button)
+
+```html
+<!-- FAB com Timer do Mercado -->
+<div class="fab-mercado">
+  <button class="fab-btn">
+    <div class="fab-icon">
+      <i class="material-icons">storefront</i>
+    </div>
+    <div class="fab-content">
+      <span class="fab-timer">Fecha em 7d 5h</span>
+      <span class="fab-status font-brand">Aberto R1</span>
+    </div>
+  </button>
+</div>
+
+<style>
+.fab-mercado {
+  position: fixed;
+  bottom: 96px; /* Acima do bottom nav */
+  right: 16px;
+  z-index: 40;
+}
+
+.fab-btn {
+  background: linear-gradient(135deg, var(--verde-lucro), #27ae60);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 10px 24px 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 180px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+  transition: transform 0.2s;
+}
+
+.fab-btn:hover {
+  transform: scale(1.05);
+}
+
+.fab-icon {
+  width: 32px;
+  height: 32px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab-icon .material-icons {
+  font-size: 16px;
+  color: #fff;
+}
+
+.fab-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.fab-timer {
+  font-size: 10px;
+  color: rgba(255,255,255,0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.fab-status {
+  font-size: 14px;
+  color: #fff;
+  text-transform: uppercase;
+}
+</style>
+```
+
+### 4.5 Card de Jogo (Match Card)
+
+```html
+<!-- Card de partida com escudos -->
+<div class="match-card">
+  <div class="match-league">Brasileirao Serie A</div>
+  <div class="match-content">
+    <!-- Time 1 -->
+    <div class="match-team">
+      <div class="team-badge" style="background-color: #c8102e;">
+        <span>FLA</span>
+      </div>
+      <span class="team-name-short">Flamengo</span>
+    </div>
+    <!-- VS e Horario -->
+    <div class="match-center">
+      <span class="match-vs">VS</span>
+      <span class="match-time font-mono">16:00</span>
+    </div>
+    <!-- Time 2 -->
+    <div class="match-team">
+      <div class="team-badge" style="background-color: #006437;">
+        <span>PAL</span>
+      </div>
+      <span class="team-name-short">Palmeiras</span>
+    </div>
+  </div>
+</div>
+
+<style>
+.match-card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.match-league {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.match-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.match-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 33%;
+}
+
+.team-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.team-badge span {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.team-name-short {
+  font-size: 10px;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.match-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 33%;
+}
+
+.match-vs {
+  font-size: 12px;
+  color: var(--laranja);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.match-time {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+</style>
+```
+
+### 4.6 Bottom Navigation (4 itens)
+
+```html
+<!-- Bottom Nav fixo -->
+<nav class="bottom-nav">
+  <a href="#home" class="nav-item active">
+    <i class="material-icons">home</i>
+    <span>Inicio</span>
+  </a>
+  <a href="#ranking" class="nav-item">
+    <i class="material-icons">leaderboard</i>
+    <span>Ranking</span>
+  </a>
+  <a href="#menu" class="nav-item">
+    <i class="material-icons">apps</i>
+    <span>Menu</span>
+  </a>
+  <a href="#financeiro" class="nav-item">
+    <i class="material-icons">account_balance_wallet</i>
+    <span>Financeiro</span>
+  </a>
+</nav>
+
+<style>
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: #000;
+  border-top: 1px solid var(--border-color);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.bottom-nav .nav-item.active,
+.bottom-nav .nav-item:hover {
+  color: var(--laranja);
+}
+
+.bottom-nav .nav-item .material-icons {
+  font-size: 22px;
+}
+
+.bottom-nav .nav-item span {
+  font-size: 10px;
+  font-weight: 500;
+}
+</style>
+```
+
+### 4.7 Mapeamento Font Awesome → Material Icons
+
+| Font Awesome | Material Icons | Uso |
+|--------------|----------------|-----|
+| `fa-trophy` | `emoji_events` | Premiacoes |
+| `fa-users` | `groups` | Participantes |
+| `fa-clipboard-list` | `description` | Regras |
+| `fa-crown` | `workspace_premium` | Premium |
+| `fa-home` | `home` | Inicio |
+| `fa-chart-line` | `leaderboard` | Ranking |
+| `fa-th` | `apps` | Menu |
+| `fa-wallet` | `account_balance_wallet` | Financeiro |
+| `fa-shop` | `storefront` | Mercado |
+| `fa-coins` | `payments` | Saldo |
+| `fa-bell` | `notifications` | Alertas |
+| `fa-shield-alt` | `shield` | Escudo |
+
+---
+
+## 5. 🎭 Admin UI (Desktop)
 
 ### 4.1 Layout Padrão
 
@@ -611,7 +1166,7 @@ const adminTesouraria = {
 
 ---
 
-## 5. 📤 Export System (Mobile Dark HD)
+## 6. 📤 Export System (Mobile Dark HD)
 
 ### 5.1 Configuração Padrão
 
@@ -675,7 +1230,7 @@ async function exportarModulo(elementId, filename) {
 
 ---
 
-## 6. 🛠️ Debugging & Tools
+## 7. 🛠️ Debugging & Tools
 
 ### 6.1 Performance Monitoring
 
@@ -724,7 +1279,7 @@ if ('performance' in window) {
 
 ---
 
-## 7. 📋 Checklists
+## 8. 📋 Checklists
 
 ### 7.1 Novo Módulo Mobile
 
@@ -757,9 +1312,20 @@ if ('performance' in window) {
 
 **STATUS:** Frontend Crafter - READY TO CRAFT
 
-**Versao:** 3.1 (Typography System Update)
+**Versao:** 3.2 (Mobile Premium Components)
 
-**Ultima atualizacao:** 2026-01-18
+**Ultima atualizacao:** 2026-01-23
+
+**Changelog v3.2:**
+- Nova secao 4: Componentes Mobile Premium
+- Header com Avatar e Badge Premium
+- Grid de Atalhos 4 colunas (outlined icons)
+- Card de Status do Time com split Pontos/Posicao
+- FAB do Mercado com timer integrado e gradiente verde
+- Match Card com escudos circulares
+- Bottom Navigation padronizado (4 itens)
+- Tabela de conversao Font Awesome → Material Icons
+- Todos componentes usando variaveis CSS do Design System
 
 **Changelog v3.1:**
 - Documentado sistema de 3 fontes: Inter (base), Russo One (brand), JetBrains Mono (mono)

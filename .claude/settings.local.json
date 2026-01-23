@@ -199,7 +199,9 @@
       "WebFetch(domain:www.geeksforgeeks.org)",
       "WebFetch(domain:portal.api.tvglobo.com.br)",
       "WebFetch(domain:choraapi.com.br)",
-      "Skill(Refactor-Monolith)"
+      "Skill(Refactor-Monolith)",
+      "Bash(git branch:*)",
+      "Bash(git stash:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

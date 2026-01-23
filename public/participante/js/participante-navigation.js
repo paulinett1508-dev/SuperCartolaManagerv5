@@ -26,6 +26,7 @@ class ParticipanteNavigation {
         this.historicoNavegacao = []; // Histórico interno de navegação
         this.modulos = {
             "boas-vindas": "/participante/fronts/boas-vindas.html",
+            home: "/participante/fronts/home.html",
             extrato: "/participante/fronts/extrato.html",
             ranking: "/participante/fronts/ranking.html",
             rodadas: "/participante/fronts/rodadas.html",
@@ -661,6 +662,7 @@ class ParticipanteNavigation {
 
         const modulosPaths = {
             "boas-vindas": "/participante/js/modules/participante-boas-vindas.js",
+            home: "/participante/js/modules/participante-home.js",
             extrato: "/participante/js/modules/participante-extrato.js",
             ranking: "/participante/js/modules/participante-ranking.js",
             rodadas: "/participante/js/modules/participante-rodadas.js",

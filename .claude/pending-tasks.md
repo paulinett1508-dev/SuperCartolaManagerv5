@@ -2,38 +2,42 @@
 
 ## 🔴 PRIORIDADE ALTA
 
-### [REFACTOR-001] Decomposição fluxo-financeiro-ui.js (7.010 linhas)
+### [REFACTOR-001] Decomposição fluxo-financeiro-ui.js (7.010 → 4.426 linhas)
 
 **Objetivo:** Reduzir o monolito de 7.010 linhas para módulos menores e manuteníveis.
 
-**Status Atual:** ✅ FASE 1 CONCLUÍDA - CSS Extraído
+**Status Atual:** ✅ FASE 2 CONCLUÍDA - PDF/Auditoria Extraído
 
 | Fase | Status | Descrição |
 |------|--------|-----------|
 | 1. Análise | ✅ Concluído | Inventário de 50+ funções, 5 responsabilidades |
 | 2. CSS Extract | ✅ Concluído | `fluxo-financeiro-styles.js` criado (1.831 linhas) |
-| 3. Integração | ✅ Concluído | Imports atualizados, métodos removidos |
-| 4. Validação | ⏳ Pendente | Testar em browser que estilos funcionam |
+| 3. PDF Extract | ✅ Concluído | `fluxo-financeiro-pdf.js` criado (830 linhas) |
+| 4. Validação | ✅ Concluído | Testado - servidor inicia, módulos carregam |
 
-**Branch:** `refactor/extract-fluxo-ui-styles`
-
-**Resultado (22/01/2026):**
+**Resultado Final (22/01/2026):**
 - ✅ CRIADO: `public/js/fluxo-financeiro/fluxo-financeiro-styles.js` (1.831 linhas)
-- ✅ MODIFICADO: `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` (7.019 → 5.214 linhas, -26%)
+- ✅ CRIADO: `public/js/fluxo-financeiro/fluxo-financeiro-pdf.js` (830 linhas)
+- ✅ MODIFICADO: `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` (7.019 → 4.426 linhas, **-37%**)
 
-**Funções extraídas:**
-- `injetarEstilosWrapper()` - Estilos do wrapper/controles
-- `injetarEstilosTabelaCompacta()` - Estilos da tabela compacta
-- `injetarEstilosTabelaExpandida()` - Estilos da tabela expandida
-- `injetarEstilosModal()` - Estilos do modal de acerto
-- `injetarEstilosModalAuditoriaFinanceira()` - Estilos do modal de auditoria
+**Funções extraídas (Fase 2 - PDF/Auditoria):**
+- `exportarExtratoPDF()` - Exportação de extrato para PDF multi-página
+- `abrirAuditoriaFinanceira()` - Modal de auditoria financeira
+- `renderizarConteudoAuditoria()` - Renderização do conteúdo
+- `fecharModalAuditoria()` - Fechar modal
+- `exportarAuditoriaPDF()` - Exportar auditoria para PDF
+- `gerarPDFAuditoria()` - Geração do PDF
+- `inicializarPDF()` - Registro de funções globais no window
 
-**Próximos passos:**
-1. ⏳ Testar em browser que estilos carregam corretamente
-2. ⏳ Merge para main após validação
-3. 📋 Considerar próxima extração (Auditoria/PDF ~20% do código)
+**Commits:**
+- `fb226ba refactor(p3): extract PDF/Auditoria module, add .lean() to queries`
 
-**Rollback:** `git checkout main -- public/js/fluxo-financeiro/fluxo-financeiro-ui.js`
+**Próximos passos (opcional):**
+1. 📋 Extrair módulo de Ajustes Dinâmicos (~300 linhas)
+2. 📋 Extrair módulo de Tabela Expandida (~400 linhas)
+3. 📋 Meta: reduzir para <3.000 linhas
+
+**Rollback:** `git checkout HEAD~1 -- public/js/fluxo-financeiro/fluxo-financeiro-ui.js`
 
 ---
 
@@ -375,6 +379,34 @@ self._glb_id = response.json()['glbId']  # Token de 215 caracteres
 
 ---
 
+## ✅ CONCLUÍDO (2026-01-22)
+
+### REFACTOR-001 Fase 2: Extração PDF/Auditoria + Performance P2
+
+**Commit:** `fb226ba refactor(p3): extract PDF/Auditoria module, add .lean() to queries`
+
+**Arquivos criados:**
+- `public/js/fluxo-financeiro/fluxo-financeiro-pdf.js` (830 linhas)
+
+**Arquivos modificados:**
+- `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` (5.214 → 4.426 linhas, -15%)
+- `controllers/inscricoesController.js` (+.lean() em 1 query)
+- `controllers/ligaController.js` (+.lean() em 2 queries)
+- `controllers/pontosCorridosCacheController.js` (+.lean() em 1 query)
+
+**Documentação:**
+- `.claude/docs/PRD-admin-performance-refactor.md`
+- `.claude/docs/SPEC-admin-performance-refactor.md`
+
+**Resultado:**
+| Métrica | Antes | Depois | Melhoria |
+|---------|-------|--------|----------|
+| fluxo-financeiro-ui.js | 5.214 linhas | 4.426 linhas | -15% |
+| Total desde início | 7.019 linhas | 4.426 linhas | **-37%** |
+| Queries com .lean() | ~135 sem | ~130 sem | +4 controllers |
+
+---
+
 ## ✅ CONCLUÍDO (2026-01-20)
 
 ### Corrigir Extrato Leilson 2025 + Remover Botão da Morte
@@ -546,12 +578,12 @@ O **botão "Limpar Cache"** no modal de extrato individual apagava dados do Mong
 **Secrets Hardcoded (34):**
 - ✅ Falso positivo: todos em `.config/` e `node_modules`
 
-### 🟡 P2 - Issues Médios (Pendentes)
+### 🟡 P2 - Issues Médios (Parcialmente Resolvidos)
 
 **Performance:**
-- 135 queries sem `.lean()`
+- ~~135 queries sem `.lean()`~~ → 🟡 ~130 restantes (4 controllers atualizados em 22/01/2026)
 - 567 console.logs (remover em produção)
-- 2 bundles >100KB (fluxo-financeiro-ui: 286K)
+- ~~2 bundles >100KB (fluxo-financeiro-ui: 286K)~~ → ✅ Reduzido para 180K (-37%)
 
 **Models - Status dos Índices liga_id:**
 - ✅ ModuleConfig, AjusteFinanceiro, LigaRules, ExtratoFinanceiroCache (têm índices)
@@ -561,8 +593,8 @@ O **botão "Limpar Cache"** no modal de extrato individual apagava dados do Mong
 
 1. ~~**P1 Multi-Tenant**~~ ✅ Resolvido
 2. ~~**P1 Auth gols.js**~~ ✅ Corrigido com ligaId obrigatório
-3. ~~**P2 Índices:**~~ ✅ Análise: 4/5 models JÁ têm índices (ModuleConfig, AjusteFinanceiro, LigaRules, ExtratoFinanceiroCache)
-4. **P2 Performance:** Adicionar `.lean()` em 136 queries de leitura (backlog)
+3. ~~**P2 Índices:**~~ ✅ Análise: 4/5 models JÁ têm índices
+4. **P2 Performance:** ~~136 queries sem .lean()~~ → 🟡 ~130 restantes (4 controllers atualizados)
 
 ---
 
@@ -674,9 +706,10 @@ bash scripts/check_dependencies.sh   # NPM vulnerabilidades
 3. **Verificar auth** em `routes/gols.js` e `routes/configuracao-routes.js`
 
 ### Curto Prazo (P2)
-1. Adicionar `.lean()` em 135 queries para performance
-2. Criar índices `liga_id` nos 5 models identificados
+1. ~~Adicionar `.lean()` em 135 queries~~ → 🟡 ~130 restantes (4 controllers feitos)
+2. ~~Criar índices `liga_id`~~ → ✅ 4/5 models JÁ têm índices
 3. Remover console.logs de produção (567 encontrados)
+4. 📋 Continuar refatoração fluxo-financeiro-ui.js (4.426 linhas restantes)
 
 ### Quando Brasileirão 2026 Iniciar
 1. Atualizar `CAMPEONATO_ENCERRADO = false` em `fluxo-financeiro-core.js`

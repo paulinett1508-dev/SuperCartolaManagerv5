@@ -1,0 +1,650 @@
+<!-- PARTICIPANTE HOME - Template Premium v1.0 -->
+<!-- Fragmento HTML (sem doctype/html/body) para insercao via navegacao -->
+<!-- Baseado nos componentes Mobile Premium do SKILL.md v3.2 -->
+<div id="home-container" class="pb-28">
+    <!-- Conteudo renderizado via JS -->
+    <div class="flex flex-col items-center justify-center py-16">
+        <div class="w-10 h-10 border-4 border-zinc-700 border-t-orange-500 rounded-full animate-spin mb-4"></div>
+        <p class="text-sm text-gray-400">Carregando...</p>
+    </div>
+</div>
+
+<style>
+/* =====================================================
+   HOME PREMIUM COMPONENTS v1.0
+   Componentes Mobile-First baseados no SKILL.md v3.2
+   ===================================================== */
+
+/* === HEADER PREMIUM === */
+.home-header-premium {
+    padding: 48px 16px 20px;
+    background: var(--app-bg);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.home-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.home-user-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.home-avatar-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--app-surface);
+    flex-shrink: 0;
+}
+
+.home-avatar-initials {
+    font-family: var(--app-font-brand);
+    color: #fff;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
+
+.home-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.home-user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.home-user-name {
+    font-family: var(--app-font-brand);
+    font-size: 18px;
+    color: var(--app-text-primary);
+    line-height: 1.2;
+    letter-spacing: 0.3px;
+}
+
+.home-badge-premium {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.home-badge-premium .badge-icon {
+    font-size: 12px;
+    color: var(--app-warning);
+}
+
+.home-badge-premium span {
+    font-size: 10px;
+    color: var(--app-warning);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.home-btn-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--app-text-primary);
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.home-btn-icon:active {
+    background: var(--app-surface);
+}
+
+/* === GRID DE ATALHOS (4 colunas) === */
+.home-action-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 16px;
+}
+
+.home-action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.home-action-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    border: 1px solid var(--app-primary);
+    background: var(--app-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.home-action-icon:active {
+    transform: scale(0.95);
+    background: var(--app-surface-hover);
+}
+
+.home-action-icon .material-icons {
+    font-size: 24px;
+    color: var(--app-primary);
+}
+
+.home-action-label {
+    font-size: 10px;
+    color: var(--app-text-muted);
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* === CARD STATUS DO TIME (Split Layout) === */
+.home-team-card {
+    background: var(--app-surface);
+    border-radius: var(--app-radius-lg);
+    padding: 20px;
+    margin: 0 16px 16px;
+    border: 1px solid var(--app-border);
+    box-shadow: var(--app-shadow-md);
+}
+
+.home-team-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.home-team-name {
+    font-family: var(--app-font-brand);
+    font-size: 18px;
+    color: var(--app-text-primary);
+    letter-spacing: 0.3px;
+}
+
+.home-team-shield {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--app-surface-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.home-team-shield .material-icons {
+    font-size: 18px;
+    color: var(--app-text-muted);
+}
+
+.home-team-shield img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.home-stats-split {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+}
+
+.home-stat-block {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.home-stat-label {
+    font-size: 11px;
+    color: var(--app-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.home-stat-value {
+    font-family: var(--app-font-brand);
+    font-size: 42px;
+    color: var(--app-text-primary);
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.home-stat-value.text-accent {
+    color: var(--app-primary);
+}
+
+.home-stat-hint {
+    font-size: 10px;
+    color: var(--app-text-dim);
+    margin-top: 4px;
+}
+
+.home-stat-divider {
+    width: 1px;
+    height: 60px;
+    background: var(--app-border);
+}
+
+.home-zone-badge {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--app-primary-muted);
+}
+
+.home-zone-badge .material-icons {
+    font-size: 16px;
+}
+
+.home-zone-badge span {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--app-text-secondary);
+}
+
+/* === CARD SALDO FINANCEIRO === */
+.home-finance-card {
+    background: var(--app-surface);
+    border-radius: var(--app-radius-lg);
+    padding: 16px;
+    margin: 0 16px 16px;
+    border: 1px solid var(--app-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.home-finance-card:active {
+    transform: scale(0.98);
+}
+
+.home-finance-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.home-finance-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--app-primary-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.home-finance-icon .material-icons {
+    font-size: 24px;
+    color: var(--app-primary);
+}
+
+.home-finance-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.home-finance-label {
+    font-size: 11px;
+    color: var(--app-text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.home-finance-value {
+    font-family: var(--app-font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--app-text-primary);
+}
+
+.home-finance-value.positive {
+    color: var(--app-success-light);
+}
+
+.home-finance-value.negative {
+    color: var(--app-danger);
+}
+
+.home-finance-arrow .material-icons {
+    font-size: 20px;
+    color: var(--app-text-dim);
+}
+
+/* === FAB DO MERCADO === */
+.home-fab-mercado {
+    position: fixed;
+    bottom: 96px;
+    right: 16px;
+    z-index: 40;
+}
+
+.home-fab-btn {
+    background: linear-gradient(135deg, var(--app-success), #27ae60);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 10px 20px 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 170px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+    transition: transform 0.2s;
+}
+
+.home-fab-btn:active {
+    transform: scale(0.95);
+}
+
+.home-fab-icon {
+    width: 32px;
+    height: 32px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.home-fab-icon .material-icons {
+    font-size: 16px;
+    color: #fff;
+}
+
+.home-fab-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.home-fab-timer {
+    font-size: 10px;
+    color: rgba(255,255,255,0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+}
+
+.home-fab-status {
+    font-family: var(--app-font-brand);
+    font-size: 13px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* FAB Fechado (vermelho) */
+.home-fab-btn.closed {
+    background: linear-gradient(135deg, var(--app-danger), #c0392b);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+}
+
+/* === CARD DE JOGO (Match Card) === */
+.home-matches-section {
+    padding: 0 16px 16px;
+}
+
+.home-matches-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.home-matches-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.home-matches-title h3 {
+    font-family: var(--app-font-brand);
+    font-size: 16px;
+    color: var(--app-text-primary);
+}
+
+.home-matches-title .material-icons {
+    font-size: 18px;
+    color: var(--app-text-muted);
+}
+
+.home-matches-badge {
+    background: var(--app-warning);
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.home-matches-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.home-match-card {
+    background: var(--app-surface);
+    border-radius: var(--app-radius-lg);
+    padding: 12px;
+    border: 1px solid var(--app-border);
+}
+
+.home-match-league {
+    font-size: 10px;
+    color: var(--app-text-dim);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--app-border);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.home-match-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.home-match-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 33%;
+}
+
+.home-team-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 6px;
+    overflow: hidden;
+}
+
+.home-team-badge img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.home-team-badge span {
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.home-team-name-short {
+    font-size: 10px;
+    color: var(--app-text-secondary);
+    text-align: center;
+    line-height: 1.2;
+    max-width: 80px;
+}
+
+.home-match-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 33%;
+}
+
+.home-match-vs {
+    font-size: 11px;
+    color: var(--app-primary);
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.home-match-time {
+    font-family: var(--app-font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--app-text-primary);
+}
+
+.home-match-score {
+    font-family: var(--app-font-brand);
+    font-size: 22px;
+    color: var(--app-text-primary);
+    letter-spacing: 2px;
+}
+
+.home-match-live {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.home-match-live-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--app-danger);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.home-match-live-text {
+    font-size: 9px;
+    color: var(--app-danger);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* === BOTTOM NAVIGATION === */
+.home-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: var(--app-bg);
+    border-top: 1px solid var(--app-border);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.home-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--app-text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+.home-nav-item.active,
+.home-nav-item:hover {
+    color: var(--app-primary);
+}
+
+.home-nav-item .material-icons {
+    font-size: 22px;
+}
+
+.home-nav-item span:not(.material-icons) {
+    font-size: 10px;
+    font-weight: 500;
+}
+
+/* === VARIACAO DE POSICAO === */
+.home-variation-up {
+    color: var(--app-success-light);
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+.home-variation-down {
+    color: var(--app-danger);
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+/* === RESPONSIVE === */
+@media (min-width: 400px) {
+    .home-action-grid {
+        gap: 16px;
+    }
+
+    .home-action-icon {
+        width: 60px;
+        height: 60px;
+    }
+
+    .home-stat-value {
+        font-size: 48px;
+    }
+}
+</style>
