@@ -17,12 +17,12 @@
 
 /* === HEADER PREMIUM === */
 .home-header-premium {
-    padding: 48px 16px 20px;
-    background: var(--app-bg);
+    padding: 48px 16px 24px;
+    background: #000000;
     position: sticky;
     top: 0;
     z-index: 20;
-    border-bottom: 1px solid var(--app-border);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .home-header-content {
@@ -41,18 +41,19 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #6b7280, #4b5563);
+    background: #bdc3c7;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--app-surface);
+    border: 2px solid #1c1c1e;
     flex-shrink: 0;
 }
 
 .home-avatar-initials {
-    font-family: var(--app-font-brand);
-    color: #fff;
+    font-family: 'Russo One', var(--app-font-brand), sans-serif;
+    color: #1f2937;
     font-size: 14px;
+    font-weight: 700;
     letter-spacing: 0.5px;
 }
 
@@ -137,8 +138,8 @@
     width: 56px;
     height: 56px;
     border-radius: 12px;
-    border: 1px solid var(--app-primary);
-    background: var(--app-surface);
+    border: 1px solid #ff6d00;
+    background: #1c1c1e;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -146,13 +147,15 @@
 }
 
 .home-action-icon:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
     background: var(--app-surface-hover);
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 2px rgba(255, 85, 0, 0.2);
 }
 
 .home-action-icon .material-icons {
     font-size: 24px;
-    color: var(--app-primary);
+    color: #ff6d00;
 }
 
 .home-action-label {
@@ -165,12 +168,12 @@
 
 /* === CARD STATUS DO TIME (Split Layout) === */
 .home-team-card {
-    background: var(--app-surface);
-    border-radius: var(--app-radius-lg);
+    background: #1c1c1e;
+    border-radius: 16px;
     padding: 20px;
     margin: 0 16px 16px;
-    border: 1px solid var(--app-border);
-    box-shadow: var(--app-shadow-md);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 
 .home-team-header {
@@ -231,15 +234,16 @@
 }
 
 .home-stat-value {
-    font-family: var(--app-font-brand);
-    font-size: 42px;
-    color: var(--app-text-primary);
+    font-family: 'Russo One', var(--app-font-brand), sans-serif;
+    font-size: 72px;
+    font-weight: 800;
+    color: #ffffff;
     line-height: 1;
-    letter-spacing: -1px;
+    letter-spacing: -2px;
 }
 
 .home-stat-value.text-accent {
-    color: var(--app-primary);
+    color: #FF5500;
 }
 
 .home-stat-hint {
@@ -277,20 +281,22 @@
 
 /* === CARD SALDO FINANCEIRO === */
 .home-finance-card {
-    background: var(--app-surface);
-    border-radius: var(--app-radius-lg);
+    background: #1c1c1e;
+    border-radius: 16px;
     padding: 16px;
     margin: 0 16px 16px;
-    border: 1px solid var(--app-border);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     display: flex;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .home-finance-card:active {
     transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .home-finance-left {
@@ -355,21 +361,27 @@
 }
 
 .home-fab-btn {
-    background: linear-gradient(135deg, var(--app-success), #27ae60);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 24px;
-    padding: 10px 20px 10px 14px;
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 9999px;
+    padding: 10px 24px 10px 16px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    min-width: 170px;
+    gap: 12px;
+    min-width: 180px;
     cursor: pointer;
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
-    transition: transform 0.2s;
+    box-shadow: 0 10px 30px rgba(46, 204, 113, 0.45);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .home-fab-btn:active {
     transform: scale(0.95);
+    box-shadow: 0 6px 20px rgba(46, 204, 113, 0.35);
+}
+
+.home-fab-btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 12px 35px rgba(46, 204, 113, 0.5);
 }
 
 .home-fab-icon {
@@ -461,20 +473,22 @@
 }
 
 .home-match-card {
-    background: var(--app-surface);
-    border-radius: var(--app-radius-lg);
-    padding: 12px;
-    border: 1px solid var(--app-border);
+    background: #2c3e50;
+    border-radius: 12px;
+    padding: 12px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .home-match-league {
     font-size: 10px;
-    color: var(--app-text-dim);
+    color: #9ca3af;
     padding-bottom: 8px;
     margin-bottom: 10px;
-    border-bottom: 1px solid var(--app-border);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    font-weight: 500;
 }
 
 .home-match-content {
@@ -644,7 +658,87 @@
     }
 
     .home-stat-value {
-        font-size: 48px;
+        font-size: 80px;
     }
+}
+
+/* Smooth transitions for all interactive elements */
+.home-action-item,
+.home-match-card,
+.home-nav-item {
+    transition: all 0.2s ease;
+}
+
+/* Match card hover effect (for desktop/tablets) */
+@media (hover: hover) {
+    .home-match-card:hover {
+        background: #34495e;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    }
+
+    .home-finance-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+}
+
+/* === CORES HARDCODED (sem variáveis) === */
+.home-user-name {
+    color: #ffffff !important;
+}
+
+.home-badge-premium .badge-icon,
+.home-badge-premium span {
+    color: #f59e0b !important;
+}
+
+.home-team-name {
+    color: #ffffff !important;
+}
+
+.home-stat-label {
+    color: #a1a1aa !important;
+}
+
+.home-stat-hint {
+    color: #71717a !important;
+}
+
+.home-finance-label {
+    color: #a1a1aa !important;
+}
+
+.home-finance-value {
+    color: #ffffff !important;
+}
+
+.home-finance-icon {
+    background: rgba(255, 109, 0, 0.2) !important;
+}
+
+.home-finance-icon .material-icons {
+    color: #ff6d00 !important;
+}
+
+.home-matches-title h3 {
+    color: #ffffff !important;
+}
+
+.home-matches-badge {
+    background: #f1c40f !important;
+    color: #000000 !important;
+}
+
+.home-match-time {
+    color: #ffffff !important;
+}
+
+.home-match-vs {
+    color: #ff6d00 !important;
+}
+
+.home-team-name-short {
+    color: #ffffff !important;
 }
 </style>

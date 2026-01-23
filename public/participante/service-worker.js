@@ -1,14 +1,15 @@
 // =====================================================================
-// service-worker.js - Service Worker do PWA v3.3 (SALDO INICIAL FIX)
+// service-worker.js - Service Worker do PWA v3.4 (HOME REDESIGN)
 // Destino: /participante/service-worker.js
+// ✅ v3.5: HOME PREMIUM UI - Cores hardcoded, fonte 72px, match cards azul
 // ✅ v3.3: SALDO INICIAL FIX - Força reload para correções de saldo
 // ✅ v3.2: FORCE CACHE CLEAR - Limpar cache antigo que causava erros
 // ✅ v3.1: Network-First com cache fallback (FIX fetch failures)
 // ✅ v3.0: Força limpeza de caches antigos
-// BUILD: 2026-01-16T21:30:00Z
+// BUILD: 2026-01-23T01:45:00Z
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v10-saldo-fix";
+const CACHE_NAME = "super-cartola-v12-home-premium-ui";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
