@@ -279,7 +279,7 @@ export async function sincronizarDadosCartola(req, res) {
         _raw: dadosCompletos
       },
       salvo_no_banco: false,
-      atualizado_na_liga: false
+      atualizado_inscricao: false
     };
 
     // Se solicitado, salvar no banco de dados
@@ -331,65 +331,35 @@ export async function sincronizarDadosCartola(req, res) {
         console.log(`[CARTOLA-SYNC] Time ${id} não existe no banco local`);
       }
 
-      // Se ligaId foi passado, também atualizar o participante embedded na liga
+      // Se ligaId foi passado, atualizar APENAS a inscrição da temporada atual
+      // IMPORTANTE: NÃO atualizamos liga.participantes pois contém dados históricos
       if (ligaId) {
         try {
-          const Liga = (await import('../models/Liga.js')).default;
-          const liga = await Liga.findById(ligaId);
+          const inscricaoAtualizada = await InscricaoTemporada.findOneAndUpdate(
+            {
+              liga_id: ligaId,
+              time_id: parseInt(id),
+              temporada: CURRENT_SEASON
+            },
+            {
+              $set: {
+                'dados_participante.nome_time': time.nome,
+                'dados_participante.nome_cartoleiro': time.nome_cartola,
+                'dados_participante.escudo': time.url_escudo_png || ''
+              }
+            },
+            { new: true }
+          );
 
-          if (liga && liga.participantes) {
-            const participanteIndex = liga.participantes.findIndex(
-              p => Number(p.time_id) === parseInt(id)
-            );
-
-            if (participanteIndex !== -1) {
-              // Atualizar dados do participante embedded
-              liga.participantes[participanteIndex].nome_time = time.nome || liga.participantes[participanteIndex].nome_time;
-              liga.participantes[participanteIndex].nome_cartola = time.nome_cartola || liga.participantes[participanteIndex].nome_cartola;
-              liga.participantes[participanteIndex].clube_id = time.clube?.id || liga.participantes[participanteIndex].clube_id;
-              liga.participantes[participanteIndex].foto_perfil = time.foto_perfil || liga.participantes[participanteIndex].foto_perfil;
-              liga.participantes[participanteIndex].foto_time = time.url_escudo_png || liga.participantes[participanteIndex].foto_time;
-              liga.participantes[participanteIndex].assinante = time.assinante ?? liga.participantes[participanteIndex].assinante;
-
-              await liga.save();
-
-              resposta.atualizado_na_liga = true;
-              resposta.mensagem += ". Participante na liga também atualizado.";
-              console.log(`[CARTOLA-SYNC] Participante ${id} atualizado na liga ${ligaId}`);
-            } else {
-              console.log(`[CARTOLA-SYNC] Participante ${id} não encontrado na liga ${ligaId}`);
-            }
+          if (inscricaoAtualizada) {
+            resposta.atualizado_inscricao = true;
+            resposta.mensagem += ` Inscrição ${CURRENT_SEASON} atualizada.`;
+            console.log(`[CARTOLA-SYNC] Inscrição ${CURRENT_SEASON} do time ${id} atualizada`);
+          } else {
+            console.log(`[CARTOLA-SYNC] Inscrição ${CURRENT_SEASON} não encontrada para time ${id}`);
           }
-
-          // Também atualizar a inscrição da temporada atual (2026)
-          try {
-            const inscricaoAtualizada = await InscricaoTemporada.findOneAndUpdate(
-              {
-                liga_id: ligaId,
-                time_id: parseInt(id),
-                temporada: CURRENT_SEASON
-              },
-              {
-                $set: {
-                  'dados_participante.nome_time': time.nome,
-                  'dados_participante.nome_cartoleiro': time.nome_cartola,
-                  'dados_participante.escudo': time.url_escudo_png || ''
-                }
-              },
-              { new: true }
-            );
-
-            if (inscricaoAtualizada) {
-              resposta.atualizado_inscricao = true;
-              resposta.mensagem += ` Inscrição ${CURRENT_SEASON} atualizada.`;
-              console.log(`[CARTOLA-SYNC] Inscrição ${CURRENT_SEASON} do time ${id} atualizada`);
-            }
-          } catch (inscError) {
-            console.error(`[CARTOLA-SYNC] Erro ao atualizar inscrição:`, inscError.message);
-          }
-        } catch (ligaError) {
-          console.error(`[CARTOLA-SYNC] Erro ao atualizar liga:`, ligaError.message);
-          // Não falhar a request por erro na liga
+        } catch (inscError) {
+          console.error(`[CARTOLA-SYNC] Erro ao atualizar inscrição:`, inscError.message);
         }
       }
     }

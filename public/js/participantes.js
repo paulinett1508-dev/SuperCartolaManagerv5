@@ -1949,9 +1949,9 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
                 syncBar?.classList.add("sync-success");
                 setTimeout(() => syncBar?.classList.remove("sync-success"), 3000);
 
-                // Mensagem de sucesso com detalhes da atualização na liga
-                const msgLiga = resultado.atualizado_na_liga ? " e na liga" : "";
-                mostrarToast(`Dados salvos com sucesso${msgLiga}!`, "success");
+                // Mensagem de sucesso com detalhes da atualização
+                const msgInscricao = resultado.atualizado_inscricao ? " (inscrição 2026 atualizada)" : "";
+                mostrarToast(`Dados salvos com sucesso${msgInscricao}!`, "success");
 
                 // Recarregar lista de participantes para refletir mudanças
                 if (typeof carregarParticipantes === "function") {
