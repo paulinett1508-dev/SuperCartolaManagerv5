@@ -203,7 +203,11 @@
       "Bash(git branch:*)",
       "Bash(git stash:*)",
       "Bash(npm start)",
-      "Bash(PORT=3000 npm start)"
+      "Bash(PORT=3000 npm start)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(replit:*)",
+      "Bash(killall:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

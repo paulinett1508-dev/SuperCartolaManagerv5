@@ -1,4 +1,5 @@
 {
   "github.copilot.chat.verboseLogging": true,
-  "chatgpt.openOnStartup": true
+  "chatgpt.openOnStartup": true,
+  "claudeCode.useTerminal": true
 }
