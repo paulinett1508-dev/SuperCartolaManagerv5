@@ -7,6 +7,8 @@ import {
 import { isSeasonFinished, getSeasonStatus, logBlockedOperation, SEASON_CONFIG } from "../utils/seasonGuard.js";
 import cartolaApiService from "../services/cartolaApiService.js";
 import Time from "../models/Time.js";
+import InscricaoTemporada from "../models/InscricaoTemporada.js";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 // Retorna todos os clubes disponíveis
 export async function listarClubes(req, res) {
@@ -222,10 +224,11 @@ export async function getClubes(req, res) {
  * - Atualiza campos básicos (nome_time, nome_cartoleiro, url_escudo_png, slug, assinante)
  * - Salva JSON completo em dados_cartola
  * - Atualiza ultima_sincronizacao_globo
+ * - Se ligaId for passado, também atualiza o participante embedded na liga
  */
 export async function sincronizarDadosCartola(req, res) {
   const { id } = req.params;
-  const { salvar } = req.query; // ?salvar=true para persistir no banco
+  const { salvar, ligaId } = req.query; // ?salvar=true&ligaId=xxx para persistir no banco e na liga
 
   try {
     console.log(`[CARTOLA-SYNC] Buscando dados completos do time ${id}...`);
@@ -275,7 +278,8 @@ export async function sincronizarDadosCartola(req, res) {
         // Raw completo para referência
         _raw: dadosCompletos
       },
-      salvo_no_banco: false
+      salvo_no_banco: false,
+      atualizado_inscricao: false
     };
 
     // Se solicitado, salvar no banco de dados
@@ -325,6 +329,38 @@ export async function sincronizarDadosCartola(req, res) {
         resposta.salvo_no_banco = false;
         resposta.mensagem = `Time ${id} não encontrado no banco local. Use o cadastro de participantes para adicioná-lo primeiro.`;
         console.log(`[CARTOLA-SYNC] Time ${id} não existe no banco local`);
+      }
+
+      // Se ligaId foi passado, atualizar APENAS a inscrição da temporada atual
+      // IMPORTANTE: NÃO atualizamos liga.participantes pois contém dados históricos
+      if (ligaId) {
+        try {
+          const inscricaoAtualizada = await InscricaoTemporada.findOneAndUpdate(
+            {
+              liga_id: ligaId,
+              time_id: parseInt(id),
+              temporada: CURRENT_SEASON
+            },
+            {
+              $set: {
+                'dados_participante.nome_time': time.nome,
+                'dados_participante.nome_cartoleiro': time.nome_cartola,
+                'dados_participante.escudo': time.url_escudo_png || ''
+              }
+            },
+            { new: true }
+          );
+
+          if (inscricaoAtualizada) {
+            resposta.atualizado_inscricao = true;
+            resposta.mensagem += ` Inscrição ${CURRENT_SEASON} atualizada.`;
+            console.log(`[CARTOLA-SYNC] Inscrição ${CURRENT_SEASON} do time ${id} atualizada`);
+          } else {
+            console.log(`[CARTOLA-SYNC] Inscrição ${CURRENT_SEASON} não encontrada para time ${id}`);
+          }
+        } catch (inscError) {
+          console.error(`[CARTOLA-SYNC] Erro ao atualizar inscrição:`, inscError.message);
+        }
       }
     }
 
