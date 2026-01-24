@@ -7,6 +7,8 @@ import {
 import { isSeasonFinished, getSeasonStatus, logBlockedOperation, SEASON_CONFIG } from "../utils/seasonGuard.js";
 import cartolaApiService from "../services/cartolaApiService.js";
 import Time from "../models/Time.js";
+import InscricaoTemporada from "../models/InscricaoTemporada.js";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 // Retorna todos os clubes disponíveis
 export async function listarClubes(req, res) {
@@ -357,6 +359,33 @@ export async function sincronizarDadosCartola(req, res) {
             } else {
               console.log(`[CARTOLA-SYNC] Participante ${id} não encontrado na liga ${ligaId}`);
             }
+          }
+
+          // Também atualizar a inscrição da temporada atual (2026)
+          try {
+            const inscricaoAtualizada = await InscricaoTemporada.findOneAndUpdate(
+              {
+                liga_id: ligaId,
+                time_id: parseInt(id),
+                temporada: CURRENT_SEASON
+              },
+              {
+                $set: {
+                  'dados_participante.nome_time': time.nome,
+                  'dados_participante.nome_cartoleiro': time.nome_cartola,
+                  'dados_participante.escudo': time.url_escudo_png || ''
+                }
+              },
+              { new: true }
+            );
+
+            if (inscricaoAtualizada) {
+              resposta.atualizado_inscricao = true;
+              resposta.mensagem += ` Inscrição ${CURRENT_SEASON} atualizada.`;
+              console.log(`[CARTOLA-SYNC] Inscrição ${CURRENT_SEASON} do time ${id} atualizada`);
+            }
+          } catch (inscError) {
+            console.error(`[CARTOLA-SYNC] Erro ao atualizar inscrição:`, inscError.message);
           }
         } catch (ligaError) {
           console.error(`[CARTOLA-SYNC] Erro ao atualizar liga:`, ligaError.message);
