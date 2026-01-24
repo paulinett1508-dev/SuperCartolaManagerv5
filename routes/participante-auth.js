@@ -695,7 +695,7 @@ router.get(
 
             const baseURL =
                 process.env.BASE_URL ||
-                `http://localhost:${process.env.PORT || 5000}`;
+                `http://localhost:${process.env.PORT || 3000}`;
             const response = await axios.get(`${baseURL}${extratoUrl}`, {
                 params: req.query,
             });

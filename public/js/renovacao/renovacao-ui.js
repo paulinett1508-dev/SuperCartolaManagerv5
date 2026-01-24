@@ -943,7 +943,34 @@ const RenovacaoUI = (function() {
     }
 
     /**
+     * Mapeia opcao unificada para payload compativel com backend
+     * @param {string} opcao - Valor da opcao selecionada
+     * @returns {Object} - Payload parcial { aproveitarCredito, pagouInscricao, carregarDivida }
+     */
+    function mapearOpcaoParaPayload(opcao) {
+        const mapa = {
+            // CREDOR
+            'usar_credito_pago': { aproveitarCredito: true, pagouInscricao: true },
+            'credito_intacto_pago': { aproveitarCredito: false, pagouInscricao: true },
+            'credito_intacto_pendente': { aproveitarCredito: false, pagouInscricao: false },
+
+            // DEVEDOR
+            'carregar_pago': { carregarDivida: true, pagouInscricao: true },
+            'carregar_pendente': { carregarDivida: true, pagouInscricao: false },
+            'quitou_pago': { carregarDivida: false, pagouInscricao: true },
+            'quitou_pendente': { carregarDivida: false, pagouInscricao: false },
+
+            // QUITADO
+            'inscricao_paga': { pagouInscricao: true },
+            'inscricao_pendente': { pagouInscricao: false }
+        };
+
+        return mapa[opcao] || { pagouInscricao: true };
+    }
+
+    /**
      * Confirma a decisao unificada
+     * v2.0: Usa opcoes unificadas sem contradicoes
      */
     async function confirmarDecisaoUnificada() {
         const btn = document.getElementById('btnConfirmarDecisao');
@@ -963,29 +990,27 @@ const RenovacaoUI = (function() {
         };
 
         if (decisao === 'renovar') {
-            // Opcoes de renovacao
-            payload.pagouInscricao = document.getElementById('checkPagouInscricaoUnif')?.checked ?? true;
+            // v2.0: Ler opcao unificada (opcaoRenovacao)
+            const opcaoRenovacao = document.querySelector('input[name="opcaoRenovacao"]:checked')?.value;
+            const mapeado = mapearOpcaoParaPayload(opcaoRenovacao);
 
-            if (cenario === 'credor') {
-                const opcaoCredito = document.querySelector('input[name="opcaoCredito"]:checked')?.value;
-                payload.aproveitarCredito = opcaoCredito === 'usar';
-            } else if (cenario === 'devedor') {
-                const opcaoDivida = document.querySelector('input[name="opcaoDivida"]:checked')?.value;
-                payload.carregarDivida = opcaoDivida === 'carregar';
-            }
+            // Aplicar valores mapeados ao payload
+            Object.assign(payload, mapeado);
 
-            // Confirmacao extra se NAO pagou inscricao
+            console.log('[RENOVACAO-UI] Opcao selecionada:', opcaoRenovacao, '-> Mapeado:', mapeado);
+
+            // Confirmacao extra se inscricao PENDENTE (opcoes com "pendente" no nome)
             if (!payload.pagouInscricao) {
                 const confirmar = confirm(
-                    `ATENCAO: "Pagou a inscricao" esta DESMARCADO!\n\n` +
+                    `ATENCAO: A inscricao esta marcada como PENDENTE!\n\n` +
                     `Isso criara um DEBITO no extrato do participante.\n\n` +
-                    `Confirma que o participante NAO PAGOU?`
+                    `Confirma que o participante NAO PAGOU a inscricao?`
                 );
                 if (!confirmar) return;
             }
 
         } else {
-            // Opcoes de nao-participar
+            // Opcoes de nao-participar (mantidas do original)
             const opcaoSaida = document.querySelector('input[name="opcaoSaida"]:checked')?.value;
 
             if (cenario === 'credor') {

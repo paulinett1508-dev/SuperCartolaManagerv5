@@ -277,7 +277,7 @@ Ao alterar arquivo:
 - Validate `req.session.usuario` before sensitive actions
 
 ## 🚀 Replit Specifics
-- **Server:** Always verify port configuration (`process.env.PORT || 5000`)
+- **Server:** Always verify port configuration (`process.env.PORT || 3000`)
 - **File System:** Use relative paths suitable for Linux (not Windows/Mac absolute paths)
 - **No React/Vue:** Stick to pure JavaScript for frontend logic
 

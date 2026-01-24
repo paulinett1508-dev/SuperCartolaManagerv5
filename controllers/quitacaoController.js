@@ -29,7 +29,7 @@ export async function buscarDadosParaQuitacao(req, res) {
 
         // Buscar cache do extrato
         const cache = await ExtratoFinanceiroCache.findOne({
-            liga_id: new mongoose.Types.ObjectId(ligaId),
+            liga_id: String(ligaId),
             time_id: Number(timeId),
             temporada: temporada
         }).lean();
@@ -87,7 +87,7 @@ export async function buscarDadosParaQuitacao(req, res) {
             semCache = true;
             const Rodada = mongoose.model('Rodada');
             const rodadas = await Rodada.find({
-                liga_id: new mongoose.Types.ObjectId(ligaId),
+                liga_id: String(ligaId),
                 time_id: Number(timeId),
                 temporada: temporada,
                 consolidada: true
@@ -110,7 +110,7 @@ export async function buscarDadosParaQuitacao(req, res) {
         // ✅ v1.1: Buscar status da inscrição na próxima temporada (integração com modal de Renovação)
         const proximaTemporada = temporada + 1;
         const inscricao2026 = await InscricaoTemporada.findOne({
-            liga_id: new mongoose.Types.ObjectId(ligaId),
+            liga_id: String(ligaId),
             time_id: Number(timeId),
             temporada: proximaTemporada
         }).lean();
@@ -232,7 +232,7 @@ export async function quitarTemporada(req, res) {
 
         // Buscar cache da temporada origem (pode não existir)
         const cacheOrigem = await ExtratoFinanceiroCache.findOne({
-            liga_id: new mongoose.Types.ObjectId(ligaId),
+            liga_id: String(ligaId),
             time_id: Number(timeId),
             temporada: Number(temporada_origem)
         });
@@ -262,7 +262,7 @@ export async function quitarTemporada(req, res) {
         } else {
             // v1.1: Se não há cache, criar um registro mínimo de quitação
             await ExtratoFinanceiroCache.create({
-                liga_id: new mongoose.Types.ObjectId(ligaId),
+                liga_id: String(ligaId), // ✅ v6.10 FIX: Usar String para consistência
                 time_id: Number(timeId),
                 temporada: Number(temporada_origem),
                 saldo_consolidado: saldo_original,
@@ -285,7 +285,7 @@ export async function quitarTemporada(req, res) {
                                  (tipo_quitacao === 'integral' ? saldo_original : valor_legado);
 
         const inscricaoUpdate = {
-            liga_id: new mongoose.Types.ObjectId(ligaId),
+            liga_id: String(ligaId),
             time_id: Number(timeId),
             temporada: Number(temporada_destino),
             temporada_anterior: {
@@ -322,7 +322,7 @@ export async function quitarTemporada(req, res) {
 
         await InscricaoTemporada.findOneAndUpdate(
             {
-                liga_id: new mongoose.Types.ObjectId(ligaId),
+                liga_id: String(ligaId),
                 time_id: Number(timeId),
                 temporada: Number(temporada_destino)
             },
@@ -388,7 +388,7 @@ export async function verificarStatusQuitacao(req, res) {
         const temporada = parseInt(req.query.temporada) || getFinancialSeason();
 
         const cache = await ExtratoFinanceiroCache.findOne({
-            liga_id: new mongoose.Types.ObjectId(ligaId),
+            liga_id: String(ligaId),
             time_id: Number(timeId),
             temporada: temporada
         }).lean();

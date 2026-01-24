@@ -517,8 +517,10 @@ async function recalcularSaldoNaTela(timeId) {
     try {
         console.log("[FLUXO] Iniciando recálculo de saldo para time:", timeId);
 
+        // ✅ v6.10 FIX: Passar temporada correta para buscar campos da temporada selecionada
+        const temporadaSelecionada = window.temporadaAtual || 2025;
         const camposAtualizados =
-            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
         console.log(
             "[FLUXO] Campos atualizados do MongoDB:",
             camposAtualizados,

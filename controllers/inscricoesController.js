@@ -300,6 +300,9 @@ export async function adicionarParticipanteNaLiga(ligaId, dadosParticipante, tem
                 nome_time: dadosParticipante.nome_time,
                 nome_cartoleiro: dadosParticipante.nome_cartoleiro || dadosParticipante.nome_cartola,
                 nome: dadosParticipante.nome_cartoleiro || dadosParticipante.nome_cartola,
+                // ✅ v2.14: Campos usados pelo frontend para exibição
+                nome_cartola: dadosParticipante.nome_cartoleiro || dadosParticipante.nome_cartola,
+                url_escudo_png: dadosParticipante.escudo || dadosParticipante.url_escudo_png || '',
                 escudo: dadosParticipante.escudo,
                 liga_id: ligaId,
                 temporada: Number(temporada),

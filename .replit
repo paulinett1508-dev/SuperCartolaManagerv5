@@ -1,4 +1,5 @@
 run = "npm start"
+onBoot = "curl -fsSL https://raw.githubusercontent.com/anthropics/anthropic-quickstarts/main/claude-code/install.sh | sh && echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc"
 modules = ["nodejs-20", "python-3.11"]
 
 [[ports]]

@@ -877,16 +877,218 @@ const RenovacaoModals = (function() {
     }
 
     // =========================================================================
-    // MODAL: DECISAO UNIFICADA (QUITACAO + RENOVACAO)
+    // MODAL: DECISAO UNIFICADA (QUITACAO + RENOVACAO) - v2.0 REDESIGN
     // =========================================================================
 
     /**
+     * Gera opcoes unificadas para cenario CREDOR
+     * Cada opcao inclui: tratamento do credito + status de pagamento
+     */
+    function gerarOpcoesCredor(credito, taxa, temporadaDestino) {
+        const restante = credito - taxa;
+
+        return `
+            <div class="opcoes-renovacao">
+                <p class="text-muted mb-3" style="font-size: 13px;">
+                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;">info</span>
+                    Como usar o credito de <strong class="text-success">${formatarMoeda(credito)}</strong>?
+                </p>
+
+                <!-- Opcao 1: Usar credito para pagar (RECOMENDADA) -->
+                <div class="opcao-card opcao-recomendada">
+                    <input type="radio" name="opcaoRenovacao" id="opCredUsarPago"
+                           value="usar_credito_pago" checked>
+                    <label for="opCredUsarPago">
+                        <strong>Usar credito para PAGAR inscricao</strong>
+                        <div class="opcao-detalhe">
+                            ${formatarMoeda(credito)} - ${formatarMoeda(taxa)} =
+                            <span class="text-success fw-bold">${formatarMoeda(restante)}</span> de saldo
+                        </div>
+                        <div class="opcao-status text-success">
+                            <span class="material-icons">check_circle</span> Inscricao paga com credito
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Opcao 2: Manter credito + pagou separado -->
+                <div class="opcao-card">
+                    <input type="radio" name="opcaoRenovacao" id="opCredIntactoPago"
+                           value="credito_intacto_pago">
+                    <label for="opCredIntactoPago">
+                        <strong>Manter credito intacto</strong>
+                        <div class="opcao-detalhe">
+                            Saldo inicial: <span class="text-success fw-bold">${formatarMoeda(credito)}</span>
+                        </div>
+                        <div class="opcao-status text-success">
+                            <span class="material-icons">check_circle</span> Inscricao paga separadamente
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Opcao 3: Manter credito + taxa pendente -->
+                <div class="opcao-card opcao-alerta">
+                    <input type="radio" name="opcaoRenovacao" id="opCredIntactoPendente"
+                           value="credito_intacto_pendente">
+                    <label for="opCredIntactoPendente">
+                        <strong>Manter credito intacto</strong>
+                        <div class="opcao-detalhe">
+                            Saldo inicial: <span class="text-success">${formatarMoeda(credito)}</span>
+                            - <span class="text-warning">${formatarMoeda(taxa)}</span> =
+                            <span class="fw-bold">${formatarMoeda(restante)}</span>
+                        </div>
+                        <div class="opcao-status text-warning">
+                            <span class="material-icons">warning</span> Inscricao PENDENTE (vira debito)
+                        </div>
+                    </label>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Gera opcoes unificadas para cenario DEVEDOR
+     * Cada opcao inclui: tratamento da divida + status de pagamento
+     */
+    function gerarOpcoesDevedor(divida, taxa, temporadaDestino, podeRenovar) {
+        const dividaAbs = Math.abs(divida);
+        const dividaMaisTaxa = dividaAbs + taxa;
+
+        return `
+            <div class="opcoes-renovacao">
+                <p class="text-muted mb-3" style="font-size: 13px;">
+                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;">info</span>
+                    Divida de <strong class="text-danger">${formatarMoeda(dividaAbs)}</strong>
+                </p>
+
+                ${!podeRenovar ? `
+                <div class="alert alert-danger py-2 mb-3">
+                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;">block</span>
+                    <small>Devedores nao podem renovar (regra da liga). Quite a divida primeiro.</small>
+                </div>
+                ` : ''}
+
+                <!-- Opcao 1: Carregar divida + inscricao paga -->
+                <div class="opcao-card ${podeRenovar ? '' : 'opcao-disabled'}">
+                    <input type="radio" name="opcaoRenovacao" id="opDivCarregarPago"
+                           value="carregar_pago" ${podeRenovar ? 'checked' : 'disabled'}>
+                    <label for="opDivCarregarPago">
+                        <strong>Carregar divida + Inscricao JA PAGA</strong>
+                        <div class="opcao-detalhe">
+                            Saldo inicial: <span class="text-danger fw-bold">-${formatarMoeda(dividaAbs)}</span>
+                        </div>
+                        <div class="opcao-status text-success">
+                            <span class="material-icons">check_circle</span> Inscricao paga separadamente
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Opcao 2: Carregar divida + inscricao pendente -->
+                <div class="opcao-card opcao-alerta ${podeRenovar ? '' : 'opcao-disabled'}">
+                    <input type="radio" name="opcaoRenovacao" id="opDivCarregarPendente"
+                           value="carregar_pendente" ${podeRenovar ? '' : 'disabled'}>
+                    <label for="opDivCarregarPendente">
+                        <strong>Carregar divida + Inscricao PENDENTE</strong>
+                        <div class="opcao-detalhe">
+                            Saldo inicial: <span class="text-danger fw-bold">-${formatarMoeda(dividaMaisTaxa)}</span>
+                            <small class="text-muted">(divida + taxa)</small>
+                        </div>
+                        <div class="opcao-status text-warning">
+                            <span class="material-icons">warning</span> Inscricao vira debito adicional
+                        </div>
+                    </label>
+                </div>
+
+                <hr class="border-gray-700 my-2">
+
+                <!-- Opcao 3: Quitou divida + inscricao paga -->
+                <div class="opcao-card">
+                    <input type="radio" name="opcaoRenovacao" id="opDivQuitouPago"
+                           value="quitou_pago" ${!podeRenovar ? 'checked' : ''}>
+                    <label for="opDivQuitouPago">
+                        <strong>Participante JA QUITOU divida + Inscricao PAGA</strong>
+                        <div class="opcao-detalhe">
+                            Saldo inicial: <span class="text-success fw-bold">${formatarMoeda(0)}</span>
+                            <small class="text-muted">(zerado)</small>
+                        </div>
+                        <div class="opcao-status text-success">
+                            <span class="material-icons">check_circle</span> Tudo quitado
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Opcao 4: Quitou divida + inscricao pendente -->
+                <div class="opcao-card opcao-alerta">
+                    <input type="radio" name="opcaoRenovacao" id="opDivQuitouPendente"
+                           value="quitou_pendente">
+                    <label for="opDivQuitouPendente">
+                        <strong>Participante JA QUITOU divida + Inscricao PENDENTE</strong>
+                        <div class="opcao-detalhe">
+                            Saldo inicial: <span class="text-danger fw-bold">-${formatarMoeda(taxa)}</span>
+                            <small class="text-muted">(apenas taxa)</small>
+                        </div>
+                        <div class="opcao-status text-warning">
+                            <span class="material-icons">warning</span> Inscricao vira debito
+                        </div>
+                    </label>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Gera opcoes unificadas para cenario QUITADO
+     * Apenas opcoes de pagamento da inscricao
+     */
+    function gerarOpcoesQuitado(taxa) {
+        return `
+            <div class="opcoes-renovacao">
+                <div class="alert alert-success py-2 mb-3">
+                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;">check_circle</span>
+                    Participante quitado! Sem pendencias anteriores.
+                </div>
+
+                <!-- Opcao 1: Inscricao paga -->
+                <div class="opcao-card opcao-recomendada">
+                    <input type="radio" name="opcaoRenovacao" id="opQuitadoPago"
+                           value="inscricao_paga" checked>
+                    <label for="opQuitadoPago">
+                        <strong>Inscricao JA PAGA</strong>
+                        <div class="opcao-detalhe">
+                            Saldo inicial: <span class="text-success fw-bold">${formatarMoeda(0)}</span>
+                        </div>
+                        <div class="opcao-status text-success">
+                            <span class="material-icons">check_circle</span> Inscricao paga
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Opcao 2: Inscricao pendente -->
+                <div class="opcao-card opcao-alerta">
+                    <input type="radio" name="opcaoRenovacao" id="opQuitadoPendente"
+                           value="inscricao_pendente">
+                    <label for="opQuitadoPendente">
+                        <strong>Inscricao PENDENTE</strong>
+                        <div class="opcao-detalhe">
+                            Saldo inicial: <span class="text-danger fw-bold">-${formatarMoeda(taxa)}</span>
+                        </div>
+                        <div class="opcao-status text-warning">
+                            <span class="material-icons">warning</span> Taxa vira debito
+                        </div>
+                    </label>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
      * Modal unificado para decidir sobre participante pendente
-     * Combina quitacao da temporada anterior + renovacao/nao-participar
+     * v2.0: Opcoes unificadas sem contradicoes
      * @param {Object} dados - Dados retornados por buscarDadosDecisao
      */
     function modalDecisaoUnificada(dados) {
         const { participante, saldo2025, quitacao2025, regras, cenario, cenarios, temporadaAnterior, temporadaDestino, inscricaoExistente } = dados;
+
+        const taxa = regras.taxa || 0;
 
         // Badge de cenario
         const cenarioBadge = {
@@ -898,29 +1100,19 @@ const RenovacaoModals = (function() {
         // Ja foi quitado?
         const jaQuitado = quitacao2025?.quitado === true;
 
-        // Opcoes especificas por cenario
+        // Gerar opcoes de RENOVAR baseadas no cenario
         let opcoesRenovar = '';
-        let opcoesNaoParticipar = '';
-
         if (cenario === 'credor') {
-            opcoesRenovar = `
-                <div class="opcoes-cenario opcoes-credor">
-                    <div class="form-check mb-2">
-                        <input type="radio" class="form-check-input" name="opcaoCredito" id="opCredUsarCredito" value="usar" checked>
-                        <label class="form-check-label" for="opCredUsarCredito">
-                            <strong>Usar credito para abater taxa</strong>
-                            <br><small class="text-muted">Credito ${formatarMoeda(saldo2025.saldoFinal)} - Taxa ${formatarMoeda(regras.taxa)} = Saldo inicial ${formatarMoeda(cenarios.renovar.aproveitarCredito?.saldoInicial || 0)}</small>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input type="radio" class="form-check-input" name="opcaoCredito" id="opCredPagarSeparado" value="separado">
-                        <label class="form-check-label" for="opCredPagarSeparado">
-                            <strong>Pagar taxa separadamente</strong>
-                            <br><small class="text-muted">Credito fica intacto. Saldo inicial: ${formatarMoeda(cenarios.renovar.naoAproveitarCredito?.saldoInicial || 0)}</small>
-                        </label>
-                    </div>
-                </div>
-            `;
+            opcoesRenovar = gerarOpcoesCredor(saldo2025.saldoFinal, taxa, temporadaDestino);
+        } else if (cenario === 'devedor') {
+            opcoesRenovar = gerarOpcoesDevedor(saldo2025.saldoFinal, taxa, temporadaDestino, regras.permitir_devedor_renovar);
+        } else {
+            opcoesRenovar = gerarOpcoesQuitado(taxa);
+        }
+
+        // Opcoes de NAO PARTICIPAR (mantidas do original)
+        let opcoesNaoParticipar = '';
+        if (cenario === 'credor') {
             opcoesNaoParticipar = `
                 <div class="opcoes-cenario opcoes-nao-participa-credor">
                     <div class="form-check mb-2">
@@ -941,32 +1133,12 @@ const RenovacaoModals = (function() {
                         <input type="radio" class="form-check-input" name="opcaoSaida" id="opSaidaPerdoarCred" value="perdoar">
                         <label class="form-check-label" for="opSaidaPerdoarCred">
                             <strong>Zerar/Perdoar</strong>
-                            <br><small class="text-muted">Credito zerado (raro, mas possivel)</small>
+                            <br><small class="text-muted">Credito zerado (raro)</small>
                         </label>
                     </div>
                 </div>
             `;
         } else if (cenario === 'devedor') {
-            const podeRenovar = regras.permitir_devedor_renovar;
-            opcoesRenovar = `
-                <div class="opcoes-cenario opcoes-devedor">
-                    ${!podeRenovar ? '<div class="alert alert-danger py-2 mb-2"><small>Devedores nao podem renovar (regra da liga). Quite a divida primeiro.</small></div>' : ''}
-                    <div class="form-check mb-2">
-                        <input type="radio" class="form-check-input" name="opcaoDivida" id="opDivCarregar" value="carregar" ${podeRenovar ? 'checked' : 'disabled'}>
-                        <label class="form-check-label" for="opDivCarregar">
-                            <strong>Carregar divida para ${temporadaDestino}</strong>
-                            <br><small class="text-muted">Divida ${formatarMoeda(Math.abs(saldo2025.saldoFinal))} + Taxa ${formatarMoeda(regras.taxa)} = Saldo inicial ${formatarMoeda(cenarios.renovar.carregarDivida?.saldoInicial || 0)}</small>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input type="radio" class="form-check-input" name="opcaoDivida" id="opDivQuitar" value="quitar" ${!podeRenovar ? 'checked' : ''}>
-                        <label class="form-check-label" for="opDivQuitar">
-                            <strong>Participante ja quitou a divida</strong>
-                            <br><small class="text-muted">Zera saldo ${temporadaAnterior}. Saldo inicial: ${formatarMoeda(cenarios.renovar.quitarDivida?.saldoInicial || 0)}</small>
-                        </label>
-                    </div>
-                </div>
-            `;
             opcoesNaoParticipar = `
                 <div class="opcoes-cenario opcoes-nao-participa-devedor">
                     <div class="form-check mb-2">
@@ -986,15 +1158,6 @@ const RenovacaoModals = (function() {
                 </div>
             `;
         } else {
-            // Quitado - sem opcoes especificas
-            opcoesRenovar = `
-                <div class="opcoes-cenario opcoes-quitado">
-                    <div class="alert alert-success py-2">
-                        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">check_circle</span>
-                        Participante quitado. Saldo inicial sera: ${formatarMoeda(cenarios.renovar.quitado?.saldoInicial || 0)}
-                    </div>
-                </div>
-            `;
             opcoesNaoParticipar = `
                 <div class="opcoes-cenario opcoes-quitado">
                     <div class="alert alert-secondary py-2">
@@ -1073,17 +1236,6 @@ const RenovacaoModals = (function() {
                                     </div>
                                     <div class="card-body">
                                         ${opcoesRenovar}
-
-                                        <hr class="border-gray-700 my-3">
-
-                                        <!-- Checkbox Pagou Inscricao -->
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="checkPagouInscricaoUnif" checked>
-                                            <label class="form-check-label" for="checkPagouInscricaoUnif">
-                                                <strong>Pagou a inscricao</strong>
-                                            </label>
-                                        </div>
-                                        <small class="text-muted d-block mt-1">Se desmarcado, taxa de ${formatarMoeda(regras.taxa)} vira debito</small>
                                     </div>
                                 </div>
                             </div>
@@ -1135,6 +1287,7 @@ const RenovacaoModals = (function() {
         </div>
 
         <style>
+            /* Estilo base dos cards de decisao */
             #modalDecisaoUnificada .card {
                 transition: all 0.2s;
             }
@@ -1145,20 +1298,94 @@ const RenovacaoModals = (function() {
             #modalDecisaoUnificada .card:has(input[name="decisaoPrincipal"]:not(:checked)) {
                 opacity: 0.6;
             }
-            #modalDecisaoUnificada .opcoes-cenario {
+
+            /* Visibilidade das opcoes por decisao */
+            #modalDecisaoUnificada .opcoes-cenario,
+            #modalDecisaoUnificada .opcoes-renovacao {
                 transition: all 0.2s;
             }
             #modalDecisaoUnificada #cardNaoParticipar .opcoes-cenario {
                 display: none;
             }
-            #modalDecisaoUnificada:has(#decisaoNaoParticipar:checked) #cardRenovar .opcoes-cenario {
+            #modalDecisaoUnificada:has(#decisaoNaoParticipar:checked) #cardRenovar .opcoes-renovacao {
                 display: none;
             }
             #modalDecisaoUnificada:has(#decisaoNaoParticipar:checked) #cardNaoParticipar .opcoes-cenario {
                 display: block;
             }
-            #modalDecisaoUnificada:has(#decisaoRenovar:checked) #cardRenovar .opcoes-cenario {
+            #modalDecisaoUnificada:has(#decisaoRenovar:checked) #cardRenovar .opcoes-renovacao {
                 display: block;
+            }
+
+            /* Estilo dos cards de opcao unificada */
+            #modalDecisaoUnificada .opcao-card {
+                border: 2px solid #374151;
+                border-radius: 8px;
+                padding: 12px;
+                margin-bottom: 10px;
+                cursor: pointer;
+                transition: all 0.2s;
+                position: relative;
+            }
+            #modalDecisaoUnificada .opcao-card:hover {
+                border-color: #6b7280;
+            }
+            #modalDecisaoUnificada .opcao-card:has(input:checked) {
+                border-color: #ff5500;
+                background: rgba(255, 85, 0, 0.1);
+            }
+            #modalDecisaoUnificada .opcao-card input[type="radio"] {
+                position: absolute;
+                opacity: 0;
+            }
+            #modalDecisaoUnificada .opcao-card label {
+                display: block;
+                cursor: pointer;
+                margin: 0;
+            }
+
+            /* Opcao recomendada */
+            #modalDecisaoUnificada .opcao-recomendada {
+                border-color: #22c55e;
+            }
+            #modalDecisaoUnificada .opcao-recomendada::after {
+                content: "Recomendado";
+                position: absolute;
+                top: -10px;
+                right: 10px;
+                font-size: 10px;
+                background: #22c55e;
+                color: white;
+                padding: 2px 8px;
+                border-radius: 4px;
+            }
+
+            /* Opcao alerta (pendente) */
+            #modalDecisaoUnificada .opcao-alerta {
+                border-color: #eab308;
+            }
+
+            /* Opcao desabilitada */
+            #modalDecisaoUnificada .opcao-disabled {
+                opacity: 0.5;
+                pointer-events: none;
+            }
+
+            /* Detalhes e status */
+            #modalDecisaoUnificada .opcao-detalhe {
+                font-size: 13px;
+                color: #9ca3af;
+                margin-top: 4px;
+            }
+            #modalDecisaoUnificada .opcao-status {
+                font-size: 12px;
+                margin-top: 8px;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+            #modalDecisaoUnificada .opcao-status .material-icons {
+                font-size: 16px;
             }
         </style>
         `;

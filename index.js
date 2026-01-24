@@ -161,7 +161,7 @@ import { protegerRotas } from "./middleware/auth.js";
 // dotenv já foi carregado no início do arquivo
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 // Conectar ao Banco de Dados (Otimizado)
 connectDB();

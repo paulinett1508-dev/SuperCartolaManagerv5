@@ -201,7 +201,9 @@
       "WebFetch(domain:choraapi.com.br)",
       "Skill(Refactor-Monolith)",
       "Bash(git branch:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(npm start)",
+      "Bash(PORT=3000 npm start)"
     ]
   },
   "enableAllProjectMcpServers": true,

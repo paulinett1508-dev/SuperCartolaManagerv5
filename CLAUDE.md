@@ -36,7 +36,7 @@
 - **Nomenclatura em Português:** O projeto usa nomes de funções/variáveis em PORTUGUÊS. Use `autorizado` (não `authorized`), `usuario` (não `user`), `senha` (não `password`). Ao criar ou modificar código, manter consistência com o idioma português para evitar typos como `isAdminAuthorizado` vs `isAdminAutorizado`.
 
 ## 🚀 Replit Specifics
-- **Server:** Always verify port configuration (process.env.PORT || 5000).
+- **Server:** Always verify port configuration (process.env.PORT || 3000).
 - **File System:** Do not use absolute paths that assume a local Windows/Mac machine. Use relative paths suitable for Linux.
 
 ## 🤖 Project Skills (Agentes Especializados)
