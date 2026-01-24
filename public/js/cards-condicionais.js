@@ -208,47 +208,28 @@ function aplicarNavegacaoCondicional() {
 
 /**
  * Função universal para voltar aos cards de módulos
- * Funciona para TODOS os módulos (Rodadas, Melhor do Mês, etc.)
+ * Delega para o orquestrador se disponível (fonte única de verdade)
  */
 function voltarParaCards() {
-    console.log("[CARDS-CONDICIONAIS] Executando voltarParaCards universal...");
+    // Delegar para orquestrador se disponível (fonte única)
+    if (window.orquestrador?.voltarParaCards) {
+        return window.orquestrador.voltarParaCards();
+    }
+
+    // Fallback básico (caso orquestrador não carregue)
+    console.log("[CARDS-CONDICIONAIS] voltarParaCards fallback...");
 
     const mainScreen = document.getElementById("main-screen");
     const secondaryScreen = document.getElementById("secondary-screen");
 
-    // Esconder tela secundária
     if (secondaryScreen) {
         secondaryScreen.classList.remove("active");
         secondaryScreen.style.display = "none";
     }
 
-    // Mostrar tela principal com cards
     if (mainScreen) {
-        mainScreen.classList.add("active");
         mainScreen.style.display = "block";
     }
-
-    // Limpar conteúdo dinâmico para evitar conflitos ao recarregar
-    const dynamicContent = document.getElementById("dynamic-content-area");
-    if (dynamicContent) {
-        // Não limpar - preservar estado do módulo
-    }
-
-    // ✅ COMPATIBILIDADE: Também esconder elementos específicos de módulos
-    // Rodadas
-    const rodadaContentSection = document.getElementById(
-        "rodadaContentSection",
-    );
-    const rodadasCards = document.getElementById("rodadasCards");
-    const relatorioMitosMicos = document.getElementById("relatorioMitosMicos");
-
-    if (rodadaContentSection) rodadaContentSection.style.display = "none";
-    if (relatorioMitosMicos) relatorioMitosMicos.style.display = "none";
-    if (rodadasCards && rodadasCards.parentElement) {
-        rodadasCards.parentElement.style.display = "block";
-    }
-
-    console.log("✅ [CARDS-CONDICIONAIS] Voltou para visualização de cards");
 }
 
 // ✅ REGISTRAR GLOBALMENTE IMEDIATAMENTE

@@ -22,7 +22,7 @@ class DetalheLigaOrquestrador {
     // Detecta se é temporada histórica e configura o contexto global
     async detectarTemporadaHistorica() {
         try {
-            const response = await fetch('/api/mercado/status');
+            const response = await fetch('/api/cartola/mercado/status');
             if (response.ok) {
                 const mercado = await response.json();
                 const temporadaAtual = mercado.temporada || new Date().getFullYear();
@@ -676,7 +676,7 @@ class DetalheLigaOrquestrador {
                     if (toggleBtn) fragment.appendChild(toggleBtn);
                     fragment.appendChild(sidebar);
                     placeholder.replaceWith(fragment);
-                    setTimeout(() => this.carregarLigasSidebar(), 100);
+                    // Ligas já são carregadas pelo layout.html via carregarLigasLayout()
                 }
             }
 
@@ -701,57 +701,6 @@ class DetalheLigaOrquestrador {
             }, 150);
         } catch (error) {
             console.error("[ORQUESTRADOR] Erro ao carregar layout:", error);
-        }
-    }
-
-    async carregarLigasSidebar() {
-        const ligasList = document.getElementById("ligasList");
-        if (!ligasList) return;
-
-        try {
-            const response = await fetch("/api/ligas");
-            const ligas = await response.json();
-
-            if (!Array.isArray(ligas) || ligas.length === 0) {
-                ligasList.innerHTML = `
-                    <div class="ligas-empty">
-                        Nenhuma liga criada<br>
-                        <small style="color: #606060; font-size: 10px; margin-top: 4px; display: block;">
-                            Clique em "Nova Liga" para começar
-                        </small>
-                    </div>
-                `;
-                return;
-            }
-
-            ligasList.innerHTML = ligas
-                .map(
-                    (liga) => `
-                <a href="detalhe-liga.html?id=${liga._id || liga.id}" class="liga-item">
-                    <div class="liga-info">
-                        <div class="liga-name">${liga.nome || "Liga sem nome"}</div>
-                        <div class="liga-details">${liga.times?.length || liga.participantes?.length || 0} times</div>
-                    </div>
-                </a>
-            `,
-                )
-                .join("");
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const ligaId = urlParams.get("id");
-            if (ligaId) this.highlightCurrentLigaInSidebar(ligaId);
-        } catch (error) {
-            console.error("[ORQUESTRADOR] Erro ao carregar ligas:", error);
-            ligasList.innerHTML = `
-                <div class="ligas-empty">
-                    Erro ao carregar<br>
-                    <button onclick="window.orquestrador?.carregarLigasSidebar()" style="
-                        margin-top: 8px; padding: 6px 10px; background: #ff4500;
-                        color: white; border: none; border-radius: 4px;
-                        font-size: 10px; cursor: pointer; font-weight: 600;
-                    ">Tentar Novamente</button>
-                </div>
-            `;
         }
     }
 

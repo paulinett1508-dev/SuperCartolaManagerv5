@@ -333,7 +333,7 @@ async function verificarStatusPremium() {
 
 async function buscarStatusMercado() {
     try {
-        const response = await fetch('/api/mercado/status');
+        const response = await fetch('/api/cartola/mercado/status');
         if (response.ok) {
             mercadoStatus = await response.json();
         }
