@@ -1805,21 +1805,19 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
                 </div>
 
                 <!-- Seção: Clube do Coração -->
-                ${clube.id ? `
                 <div class="api-section">
                     <div class="api-section-header">
                         <span class="material-symbols-outlined">favorite</span>
                         <h4>Clube do Coração</h4>
                     </div>
+                    ${clube.id ? `
                     <div class="api-grid api-grid-clube">
-                        ${clubeEscudo ? `
-                            <div class="api-card api-card-escudo-clube">
-                                <img src="${clubeEscudo}"
-                                     alt="${clube.nome || 'Clube'}"
-                                     class="escudo-clube"
-                                     onerror="this.style.display='none'">
-                            </div>
-                        ` : ""}
+                        <div class="api-card api-card-escudo-clube">
+                            <img src="/escudos/${clube.id}.png"
+                                 alt="${clube.nome || 'Clube'}"
+                                 class="escudo-clube"
+                                 onerror="this.onerror=null; this.src='${clubeEscudo || '/escudos/default.png'}'">
+                        </div>
                         <div class="api-card">
                             <span class="api-card-value">${clube.nome || "N/D"}</span>
                             <span class="api-card-label">Nome</span>
@@ -1829,12 +1827,19 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
                             <span class="api-card-label">Abreviação</span>
                         </div>
                         <div class="api-card">
-                            <span class="api-card-value">${clube.id || "N/D"}</span>
+                            <span class="api-card-value">${clube.id}</span>
                             <span class="api-card-label">ID Clube</span>
                         </div>
                     </div>
+                    ` : `
+                    <div class="api-grid api-grid-1">
+                        <div class="api-card api-card-warning">
+                            <span class="material-symbols-outlined" style="color: #f59e0b; font-size: 32px;">help</span>
+                            <span class="api-card-label">Clube não definido na API</span>
+                        </div>
+                    </div>
+                    `}
                 </div>
-                ` : ""}
 
                 <!-- Seção: IDs e Metadados -->
                 <div class="api-section api-section-meta">
@@ -1916,7 +1921,7 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
         }
     });
 
-    // Salvar: Persiste no banco de dados
+    // Salvar: Persiste no banco de dados e na liga
     btnSalvar?.addEventListener("click", async () => {
         btnSalvar.disabled = true;
         btnSalvar.innerHTML = `
@@ -1925,7 +1930,9 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
         `;
 
         try {
-            const response = await fetch(`/api/cartola/time/${timeId}/sincronizar?salvar=true`, {
+            // Incluir ligaId para atualizar também o participante embedded na liga
+            const syncUrl = `/api/cartola/time/${timeId}/sincronizar?salvar=true${ligaId ? `&ligaId=${ligaId}` : ""}`;
+            const response = await fetch(syncUrl, {
                 method: "POST"
             });
             const resultado = await response.json();
@@ -1942,7 +1949,9 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
                 syncBar?.classList.add("sync-success");
                 setTimeout(() => syncBar?.classList.remove("sync-success"), 3000);
 
-                mostrarToast("Dados salvos com sucesso!", "success");
+                // Mensagem de sucesso com detalhes da atualização na liga
+                const msgLiga = resultado.atualizado_na_liga ? " e na liga" : "";
+                mostrarToast(`Dados salvos com sucesso${msgLiga}!`, "success");
 
                 // Recarregar lista de participantes para refletir mudanças
                 if (typeof carregarParticipantes === "function") {

@@ -222,10 +222,11 @@ export async function getClubes(req, res) {
  * - Atualiza campos básicos (nome_time, nome_cartoleiro, url_escudo_png, slug, assinante)
  * - Salva JSON completo em dados_cartola
  * - Atualiza ultima_sincronizacao_globo
+ * - Se ligaId for passado, também atualiza o participante embedded na liga
  */
 export async function sincronizarDadosCartola(req, res) {
   const { id } = req.params;
-  const { salvar } = req.query; // ?salvar=true para persistir no banco
+  const { salvar, ligaId } = req.query; // ?salvar=true&ligaId=xxx para persistir no banco e na liga
 
   try {
     console.log(`[CARTOLA-SYNC] Buscando dados completos do time ${id}...`);
@@ -275,7 +276,8 @@ export async function sincronizarDadosCartola(req, res) {
         // Raw completo para referência
         _raw: dadosCompletos
       },
-      salvo_no_banco: false
+      salvo_no_banco: false,
+      atualizado_na_liga: false
     };
 
     // Se solicitado, salvar no banco de dados
@@ -325,6 +327,41 @@ export async function sincronizarDadosCartola(req, res) {
         resposta.salvo_no_banco = false;
         resposta.mensagem = `Time ${id} não encontrado no banco local. Use o cadastro de participantes para adicioná-lo primeiro.`;
         console.log(`[CARTOLA-SYNC] Time ${id} não existe no banco local`);
+      }
+
+      // Se ligaId foi passado, também atualizar o participante embedded na liga
+      if (ligaId) {
+        try {
+          const Liga = (await import('../models/Liga.js')).default;
+          const liga = await Liga.findById(ligaId);
+
+          if (liga && liga.participantes) {
+            const participanteIndex = liga.participantes.findIndex(
+              p => Number(p.time_id) === parseInt(id)
+            );
+
+            if (participanteIndex !== -1) {
+              // Atualizar dados do participante embedded
+              liga.participantes[participanteIndex].nome_time = time.nome || liga.participantes[participanteIndex].nome_time;
+              liga.participantes[participanteIndex].nome_cartola = time.nome_cartola || liga.participantes[participanteIndex].nome_cartola;
+              liga.participantes[participanteIndex].clube_id = time.clube?.id || liga.participantes[participanteIndex].clube_id;
+              liga.participantes[participanteIndex].foto_perfil = time.foto_perfil || liga.participantes[participanteIndex].foto_perfil;
+              liga.participantes[participanteIndex].foto_time = time.url_escudo_png || liga.participantes[participanteIndex].foto_time;
+              liga.participantes[participanteIndex].assinante = time.assinante ?? liga.participantes[participanteIndex].assinante;
+
+              await liga.save();
+
+              resposta.atualizado_na_liga = true;
+              resposta.mensagem += ". Participante na liga também atualizado.";
+              console.log(`[CARTOLA-SYNC] Participante ${id} atualizado na liga ${ligaId}`);
+            } else {
+              console.log(`[CARTOLA-SYNC] Participante ${id} não encontrado na liga ${ligaId}`);
+            }
+          }
+        } catch (ligaError) {
+          console.error(`[CARTOLA-SYNC] Erro ao atualizar liga:`, ligaError.message);
+          // Não falhar a request por erro na liga
+        }
       }
     }
 
