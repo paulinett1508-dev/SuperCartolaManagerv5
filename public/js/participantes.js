@@ -229,6 +229,14 @@ async function carregarParticipantesPorTemporada(temporada) {
 
             card.innerHTML = `
                 <div class="participante-row">
+                    ${temporadaSelecionada >= 2026 ? `
+                    <input type="checkbox"
+                           class="batch-checkbox"
+                           data-time-id="${p.time_id}"
+                           data-status="${p.status || 'pendente'}"
+                           data-nome="${(p.nome_cartoleiro || '').replace(/"/g, '&quot;')}"
+                           onclick="event.stopPropagation(); window.toggleSelecaoBatch(${p.time_id})">
+                    ` : ''}
                     <div class="participante-avatar-mini">
                         <img src="${p.escudo || CLUBES_CONFIG.PATHS.defaultImage}"
                              alt="${p.nome_cartoleiro}"
@@ -2851,3 +2859,262 @@ setTimeout(() => {
 }, 100);
 
 console.log("[PARTICIPANTES] ✅ Módulo carregado (otimizado)");
+
+// ==============================
+// AÇÕES EM LOTE - TEMPORADA 2026
+// v1.0 - 2026-01-24
+// ==============================
+
+let selecaoBatch = new Set();
+
+// Toggle seleção individual
+window.toggleSelecaoBatch = function(timeId) {
+    const checkbox = document.querySelector(`.batch-checkbox[data-time-id="${timeId}"]`);
+    if (selecaoBatch.has(timeId)) {
+        selecaoBatch.delete(timeId);
+        if (checkbox) checkbox.checked = false;
+    } else {
+        selecaoBatch.add(timeId);
+        if (checkbox) checkbox.checked = true;
+    }
+    atualizarToolbarBatch();
+};
+
+// Selecionar todos visíveis
+window.selecionarTodosBatch = function() {
+    document.querySelectorAll('.batch-checkbox').forEach(cb => {
+        const timeId = parseInt(cb.dataset.timeId);
+        selecaoBatch.add(timeId);
+        cb.checked = true;
+    });
+    atualizarToolbarBatch();
+};
+
+// Limpar seleção
+window.limparSelecao = function() {
+    selecaoBatch.clear();
+    document.querySelectorAll('.batch-checkbox').forEach(cb => cb.checked = false);
+    const selectAll = document.getElementById('batch-select-all');
+    if (selectAll) selectAll.checked = false;
+    atualizarToolbarBatch();
+};
+
+// Toggle selecionar todos (checkbox do header)
+window.toggleSelecionarTodos = function(checked) {
+    if (checked) {
+        selecionarTodosBatch();
+    } else {
+        limparSelecao();
+    }
+};
+
+// Atualizar visibilidade da toolbar
+function atualizarToolbarBatch() {
+    const toolbar = document.getElementById('batch-toolbar');
+    if (!toolbar) return;
+
+    const count = selecaoBatch.size;
+
+    if (count > 0 && temporadaSelecionada >= 2026) {
+        toolbar.style.display = 'flex';
+        toolbar.querySelector('.batch-count').textContent = count;
+    } else {
+        toolbar.style.display = 'none';
+    }
+}
+
+// Limpar seleção ao trocar temporada
+const _originalSelecionarTemporada = window.selecionarTemporada;
+window.selecionarTemporada = async function(temporada) {
+    limparSelecao();
+    await _originalSelecionarTemporada(temporada);
+};
+
+// === AÇÕES EM LOTE ===
+
+// Grupo Renovação
+window.batchRenovar = () => executarAcaoBatch('renovar', 'Renovar participantes');
+window.batchNaoParticipa = () => executarAcaoBatch('nao_participa', 'Marcar como não participa');
+window.batchMarcarPago = () => executarAcaoBatch('marcar_pago', 'Marcar inscrição como paga');
+window.batchReverter = () => executarAcaoBatch('reverter', 'Reverter para pendente');
+
+// Grupo Gestão
+window.batchValidarIds = () => executarAcaoBatch('validar_ids', 'Validar IDs na API Cartola');
+window.batchToggleStatus = async () => {
+    const acao = await mostrarModalEscolhaStatus();
+    if (acao) {
+        executarAcaoBatch(acao, acao === 'ativar' ? 'Ativar participantes' : 'Inativar participantes');
+    }
+};
+window.batchGerarSenhas = () => executarAcaoBatch('gerar_senhas', 'Gerar senhas de acesso');
+
+// Modal de escolha ativar/inativar
+function mostrarModalEscolhaStatus() {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'modal-custom';
+        modal.innerHTML = `
+            <div class="modal-custom-overlay"></div>
+            <div class="modal-custom-content" style="max-width: 300px;">
+                <div class="modal-custom-header">
+                    <h3>Escolha a ação</h3>
+                </div>
+                <div class="modal-custom-body" style="display: flex; gap: 12px; justify-content: center;">
+                    <button class="btn-primary" onclick="this.closest('.modal-custom').remove(); window._resolveStatus('ativar')">
+                        <span class="material-icons">play_circle</span> Ativar
+                    </button>
+                    <button class="btn-danger" onclick="this.closest('.modal-custom').remove(); window._resolveStatus('inativar')">
+                        <span class="material-icons">pause_circle</span> Inativar
+                    </button>
+                </div>
+                <div class="modal-custom-footer">
+                    <button class="btn-secondary" onclick="this.closest('.modal-custom').remove(); window._resolveStatus(null)">Cancelar</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        window._resolveStatus = resolve;
+    });
+}
+
+// Modal de confirmação batch
+async function mostrarModalConfirmacaoBatch(acao, titulo, timeIds) {
+    // Buscar dados dos participantes selecionados
+    const participantes = timeIds.map((id, idx) => {
+        const cb = document.querySelector(`.batch-checkbox[data-time-id="${id}"]`);
+        return {
+            num: idx + 1,
+            nome: cb?.dataset.nome || `Time ${id}`,
+            status: cb?.dataset.status || 'pendente'
+        };
+    });
+
+    // Calcular largura máxima do número para alinhamento
+    const maxNum = participantes.length;
+    const numWidth = String(maxNum).length;
+
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'modal-custom';
+        modal.innerHTML = `
+            <div class="modal-custom-overlay" onclick="this.closest('.modal-custom').remove(); window._resolveBatch(false)"></div>
+            <div class="modal-custom-content" style="max-width: 500px;">
+                <div class="modal-custom-header" style="display: flex; align-items: center; gap: 12px;">
+                    <span class="material-icons" style="color: #FF5500;">group</span>
+                    <h3 style="margin: 0;">${titulo}</h3>
+                </div>
+                <div class="modal-custom-body">
+                    <p style="margin-bottom: 16px; color: #a0a0a0;">
+                        Aplicar ação em <strong style="color: #FF5500;">${timeIds.length}</strong> participante(s):
+                    </p>
+                    <div class="batch-lista-container" style="max-height: 280px; overflow-y: auto; background: #0d0d1a; border-radius: 10px; border: 1px solid #333;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                            <thead style="position: sticky; top: 0; background: #1a1a2e; z-index: 1;">
+                                <tr style="border-bottom: 1px solid #FF5500;">
+                                    <th style="padding: 10px 12px; text-align: right; width: 50px; color: #888; font-weight: 500;">#</th>
+                                    <th style="padding: 10px 12px; text-align: left; color: #888; font-weight: 500;">Participante</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${participantes.map((p, i) => `
+                                <tr style="border-bottom: 1px solid #222; ${i % 2 === 0 ? 'background: rgba(255,255,255,0.02);' : ''}">
+                                    <td style="padding: 8px 12px; text-align: right; font-family: 'JetBrains Mono', monospace; color: #666; font-size: 13px;">
+                                        ${String(p.num).padStart(numWidth, '0')}
+                                    </td>
+                                    <td style="padding: 8px 12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 350px;">
+                                        ${p.nome}
+                                    </td>
+                                </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    ${acao === 'renovar' ? `
+                    <label style="display: flex; align-items: center; gap: 10px; margin-top: 16px; padding: 12px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; cursor: pointer;">
+                        <input type="checkbox" id="batch-pagou-inscricao" style="width: 18px; height: 18px; accent-color: #22c55e;">
+                        <span style="color: #22c55e;">Marcar como "Já pagou inscrição"</span>
+                    </label>
+                    ` : ''}
+                </div>
+                <div class="modal-custom-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #333;">
+                    <button class="btn-secondary" onclick="this.closest('.modal-custom').remove(); window._resolveBatch(false)">
+                        <span class="material-icons" style="font-size: 18px;">close</span>
+                        Cancelar
+                    </button>
+                    <button class="btn-primary" onclick="this.closest('.modal-custom').remove(); window._resolveBatch(true)">
+                        <span class="material-icons" style="font-size: 18px;">check</span>
+                        Confirmar (${timeIds.length})
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        window._resolveBatch = resolve;
+    });
+}
+
+// Executor principal de ações em lote
+async function executarAcaoBatch(acao, titulo) {
+    if (selecaoBatch.size === 0) {
+        mostrarToast('Selecione ao menos um participante', 'warning');
+        return;
+    }
+
+    const timeIds = Array.from(selecaoBatch);
+    const confirmado = await mostrarModalConfirmacaoBatch(acao, titulo, timeIds);
+    if (!confirmado) return;
+
+    // Obter opções extras
+    const opcoes = {};
+    if (acao === 'renovar') {
+        const checkPagou = document.getElementById('batch-pagou-inscricao');
+        opcoes.pagouInscricao = checkPagou?.checked || false;
+    }
+
+    // Loading overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'batch-loading';
+    overlay.innerHTML = `
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+            <div style="background: #1a1a2e; padding: 24px; border-radius: 12px; text-align: center;">
+                <div class="loading-spinner" style="margin: 0 auto 12px;"></div>
+                <p>Processando ${timeIds.length} participantes...</p>
+                <p id="batch-progress" style="color: #888; font-size: 14px;">0 / ${timeIds.length}</p>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    try {
+        const response = await fetch(`/api/inscricoes/${ligaId}/${temporadaSelecionada}/batch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ timeIds, acao, opcoes })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            mostrarToast(`${result.processados}/${result.total} participantes processados!`, 'success');
+
+            // Mostrar erros se houver
+            if (result.erros?.length > 0) {
+                console.warn('[BATCH] Erros:', result.erros);
+                result.erros.forEach(e => {
+                    mostrarToast(`Erro no time ${e.timeId}: ${e.error}`, 'error');
+                });
+            }
+
+            limparSelecao();
+            await carregarParticipantesPorTemporada(temporadaSelecionada);
+        } else {
+            mostrarToast('Erro ao processar: ' + (result.error || 'Erro desconhecido'), 'error');
+        }
+    } catch (error) {
+        mostrarToast('Erro: ' + error.message, 'error');
+    } finally {
+        overlay.remove();
+    }
+}
+
+console.log("[PARTICIPANTES] ✅ Módulo de ações em lote carregado");

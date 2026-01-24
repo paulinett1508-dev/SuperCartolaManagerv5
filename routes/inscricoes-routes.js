@@ -550,4 +550,52 @@ router.post("/:ligaId/:temporada/decisao/:timeId", verificarAdmin, async (req, r
     }
 });
 
+// =============================================================================
+// POST /api/inscricoes/:ligaId/:temporada/batch
+// Processa ações em lote para múltiplos participantes
+// =============================================================================
+router.post("/:ligaId/:temporada/batch", verificarAdmin, async (req, res) => {
+    try {
+        const { ligaId, temporada } = req.params;
+        const { timeIds, acao, opcoes } = req.body;
+
+        console.log(`[INSCRICOES] POST batch liga=${ligaId} temporada=${temporada} acao=${acao} times=${timeIds?.length}`);
+
+        // Validar payload
+        if (!Array.isArray(timeIds) || timeIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: "timeIds deve ser um array não vazio"
+            });
+        }
+
+        if (!acao) {
+            return res.status(400).json({
+                success: false,
+                error: "Campo 'acao' é obrigatório"
+            });
+        }
+
+        // Importar função batch do controller
+        const { processarBatchInscricoes } = await import("../controllers/inscricoesController.js");
+
+        const resultado = await processarBatchInscricoes(
+            ligaId,
+            Number(temporada),
+            timeIds,
+            acao,
+            opcoes || {}
+        );
+
+        res.json(resultado);
+
+    } catch (error) {
+        console.error("[INSCRICOES] Erro no batch:", error);
+        res.status(500).json({
+            success: false,
+            error: error.message || "Erro ao processar batch"
+        });
+    }
+});
+
 export default router;

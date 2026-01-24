@@ -36,6 +36,43 @@
         <!-- Renderizado via JavaScript -->
     </div>
 
+    <!-- Toolbar Batch 2026 (visível quando seleção > 0) -->
+    <div id="batch-toolbar" class="batch-toolbar" style="display: none;">
+        <div class="batch-info">
+            <input type="checkbox" id="batch-select-all" title="Selecionar todos" onchange="window.toggleSelecionarTodos(this.checked)">
+            <span class="batch-count">0</span> selecionado(s)
+            <button class="btn-batch-clear" onclick="window.limparSelecao()" title="Limpar seleção">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="batch-actions">
+            <!-- Grupo Renovação -->
+            <button class="btn-batch btn-batch-success" onclick="window.batchRenovar()" title="Renovar selecionados">
+                <span class="material-icons">check_circle</span> Renovar
+            </button>
+            <button class="btn-batch btn-batch-danger" onclick="window.batchNaoParticipa()" title="Marcar como não participa">
+                <span class="material-icons">cancel</span> Não Participa
+            </button>
+            <button class="btn-batch btn-batch-warning" onclick="window.batchMarcarPago()" title="Marcar inscrição como paga">
+                <span class="material-icons">payments</span> Pago
+            </button>
+            <button class="btn-batch btn-batch-secondary" onclick="window.batchReverter()" title="Reverter para pendente">
+                <span class="material-icons">undo</span> Reverter
+            </button>
+            <span class="batch-divider">|</span>
+            <!-- Grupo Gestão -->
+            <button class="btn-batch btn-batch-info" onclick="window.batchValidarIds()" title="Validar IDs na API Cartola">
+                <span class="material-icons">verified</span> Validar
+            </button>
+            <button class="btn-batch btn-batch-secondary" onclick="window.batchToggleStatus()" title="Ativar/Inativar">
+                <span class="material-icons">toggle_on</span> Status
+            </button>
+            <button class="btn-batch btn-batch-secondary" onclick="window.batchGerarSenhas()" title="Gerar senhas de acesso">
+                <span class="material-icons">key</span> Senhas
+            </button>
+        </div>
+    </div>
+
     <!-- Grid de Participantes -->
     <div id="participantes-grid" class="participantes-grid">
         <div class="loading-state-full">

@@ -1047,6 +1047,183 @@ export async function processarDecisaoUnificada(ligaId, timeId, temporada, decis
     };
 }
 
+// =============================================================================
+// BATCH: Processar múltiplas inscrições de uma vez
+// =============================================================================
+
+/**
+ * Processa ações em lote para múltiplos participantes
+ * @param {string} ligaId - ID da liga
+ * @param {number} temporada - Temporada destino
+ * @param {Array<number>} timeIds - IDs dos times
+ * @param {string} acao - Ação a executar (renovar, nao_participa, marcar_pago, reverter, validar_ids, ativar, inativar, gerar_senhas)
+ * @param {Object} opcoes - Opções extras { pagouInscricao, observacoes, aprovadoPor }
+ * @returns {Promise<Object>} { success, total, processados, erros }
+ */
+export async function processarBatchInscricoes(ligaId, temporada, timeIds, acao, opcoes = {}) {
+    const resultados = [];
+    const db = mongoose.connection.db;
+
+    console.log(`[BATCH] Iniciando: ${acao} para ${timeIds.length} times`);
+
+    for (const timeId of timeIds) {
+        try {
+            let sucesso = false;
+
+            switch (acao) {
+                case 'renovar':
+                    await processarDecisaoUnificada(ligaId, Number(timeId), temporada, {
+                        decisao: 'renovar',
+                        pagouInscricao: opcoes.pagouInscricao === true,
+                        aproveitarCredito: true,
+                        carregarDivida: true,
+                        observacoes: opcoes.observacoes || 'Ação em lote',
+                        aprovadoPor: opcoes.aprovadoPor || 'admin_batch'
+                    });
+                    sucesso = true;
+                    break;
+
+                case 'nao_participa':
+                    await processarDecisaoUnificada(ligaId, Number(timeId), temporada, {
+                        decisao: 'nao_participar',
+                        acaoCredito: 'congelar',
+                        acaoDivida: 'cobrar',
+                        observacoes: opcoes.observacoes || 'Ação em lote - não participa',
+                        aprovadoPor: opcoes.aprovadoPor || 'admin_batch'
+                    });
+                    sucesso = true;
+                    break;
+
+                case 'marcar_pago':
+                    // Atualizar inscrição existente
+                    const inscricao = await InscricaoTemporada.findOne({
+                        liga_id: new mongoose.Types.ObjectId(ligaId),
+                        time_id: Number(timeId),
+                        temporada: Number(temporada)
+                    });
+
+                    if (inscricao && !inscricao.pagou_inscricao) {
+                        inscricao.pagou_inscricao = true;
+                        inscricao.data_pagamento_inscricao = new Date();
+                        await inscricao.save();
+
+                        // Estornar débito do extrato
+                        const ligaObjId = new mongoose.Types.ObjectId(ligaId);
+                        await db.collection('extratofinanceirocaches').updateOne(
+                            {
+                                liga_id: ligaObjId,
+                                time_id: Number(timeId),
+                                temporada: Number(temporada)
+                            },
+                            {
+                                $pull: { historico_transacoes: { tipo: 'INSCRICAO_TEMPORADA' } },
+                                $inc: { saldo_consolidado: inscricao.taxa_inscricao || 0 }
+                            }
+                        );
+                    }
+                    sucesso = true;
+                    break;
+
+                case 'reverter':
+                    // Voltar para pendente
+                    await InscricaoTemporada.updateOne(
+                        {
+                            liga_id: new mongoose.Types.ObjectId(ligaId),
+                            time_id: Number(timeId),
+                            temporada: Number(temporada)
+                        },
+                        {
+                            $set: {
+                                status: 'pendente',
+                                processado: false,
+                                observacoes: 'Revertido via ação em lote'
+                            }
+                        }
+                    );
+                    sucesso = true;
+                    break;
+
+                case 'validar_ids':
+                    // Chamar sincronização com API Cartola
+                    // Reutiliza lógica existente de sincronização
+                    const ligaDoc = await Liga.findById(ligaId).lean();
+                    const participante = ligaDoc?.participantes?.find(p => Number(p.time_id) === Number(timeId));
+
+                    if (participante) {
+                        // Buscar dados na API Cartola
+                        const cartolaRes = await fetch(`https://api.cartola.globo.com/time/id/${timeId}`);
+                        if (cartolaRes.ok) {
+                            const cartolaData = await cartolaRes.json();
+                            // Atualizar dados na liga
+                            await Liga.updateOne(
+                                { _id: ligaId, "participantes.time_id": Number(timeId) },
+                                {
+                                    $set: {
+                                        "participantes.$.nome_time": cartolaData.time?.nome,
+                                        "participantes.$.nome_cartola": cartolaData.time?.nome_cartola,
+                                        "participantes.$.escudo_url": cartolaData.time?.url_escudo_png
+                                    }
+                                }
+                            );
+                            sucesso = true;
+                        }
+                    }
+                    break;
+
+                case 'ativar':
+                    await Time.updateOne({ id: Number(timeId) }, { $set: { ativo: true } });
+                    await Liga.updateOne(
+                        { _id: ligaId, "participantes.time_id": Number(timeId) },
+                        { $set: { "participantes.$.ativo": true } }
+                    );
+                    sucesso = true;
+                    break;
+
+                case 'inativar':
+                    await Time.updateOne({ id: Number(timeId) }, { $set: { ativo: false } });
+                    await Liga.updateOne(
+                        { _id: ligaId, "participantes.time_id": Number(timeId) },
+                        { $set: { "participantes.$.ativo": false } }
+                    );
+                    sucesso = true;
+                    break;
+
+                case 'gerar_senhas':
+                    // Gerar senha aleatória
+                    const novaSenha = Math.random().toString(36).substring(2, 10);
+                    await Time.updateOne({ id: Number(timeId) }, { $set: { senha_acesso: novaSenha } });
+                    await Liga.updateOne(
+                        { _id: ligaId, "participantes.time_id": Number(timeId) },
+                        { $set: { "participantes.$.senha_acesso": novaSenha } }
+                    );
+                    sucesso = true;
+                    break;
+
+                default:
+                    throw new Error(`Ação '${acao}' não reconhecida`);
+            }
+
+            resultados.push({ timeId, success: sucesso });
+
+        } catch (error) {
+            console.error(`[BATCH] Erro no time ${timeId}:`, error.message);
+            resultados.push({ timeId, success: false, error: error.message });
+        }
+    }
+
+    const processados = resultados.filter(r => r.success).length;
+    const erros = resultados.filter(r => !r.success);
+
+    console.log(`[BATCH] Concluído: ${processados}/${timeIds.length} sucesso, ${erros.length} erros`);
+
+    return {
+        success: true,
+        total: timeIds.length,
+        processados,
+        erros
+    };
+}
+
 export default {
     buscarSaldoTemporada,
     criarTransacoesIniciais,
@@ -1055,5 +1232,6 @@ export default {
     processarNaoParticipar,
     processarNovoParticipante,
     buscarDadosDecisao,
-    processarDecisaoUnificada
+    processarDecisaoUnificada,
+    processarBatchInscricoes
 };
