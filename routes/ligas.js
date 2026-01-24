@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { verificarAdmin } from "../middleware/auth.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
 import InscricaoTemporada from "../models/InscricaoTemporada.js";
+import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import {
   listarLigas,
   buscarLigaPorId,
@@ -784,45 +785,90 @@ router.get("/:id/participantes", async (req, res) => {
       stats.total = participantes.length;
       stats.ativos = participantes.filter((p) => p.ativo).length;
     } else {
-      // Temporada diferente: consultar inscricoestemporada
-      fonte = "inscricoestemporada";
-
+      // Temporada diferente: consultar inscricoestemporada primeiro
       const inscricoes = await InscricaoTemporada.find({
         liga_id: new mongoose.Types.ObjectId(ligaId),
         temporada: temporadaFiltro,
       }).lean();
 
-      // ✅ v2.3: Criar mapa de liga.participantes para obter dados faltantes (escudo, clube_id)
-      const ligaParticipantesMap = new Map();
-      (liga.participantes || []).forEach(p => {
-        ligaParticipantesMap.set(String(p.time_id), p);
-      });
+      // ✅ v2.4: Se não há inscrições, usar extratos financeiros como fonte de verdade
+      // Isso é necessário para temporadas históricas onde o sistema de inscrições não existia
+      if (inscricoes.length === 0) {
+        fonte = "extratofinanceirocaches";
 
-      participantes = inscricoes.map((insc) => {
-        const participanteLiga = ligaParticipantesMap.get(String(insc.time_id));
-        const dadosInsc = insc.dados_participante || {};
+        // Buscar participantes que têm extrato nessa temporada
+        const extratos = await ExtratoFinanceiroCache.find({
+          liga_id: ligaId,
+          temporada: temporadaFiltro,
+        }).select("time_id").lean();
 
-        return {
-          time_id: insc.time_id,
-          nome_cartoleiro: dadosInsc.nome_cartoleiro || participanteLiga?.nome_cartola || "N/D",
-          nome_time: dadosInsc.nome_time || participanteLiga?.nome_time || "N/D",
-          // ✅ Escudo: prioridade para inscricao, fallback para liga.participantes
-          escudo: dadosInsc.escudo || participanteLiga?.foto_time || "",
-          // ✅ Clube do coração: prioridade para inscricao, fallback para liga.participantes
-          clube_id: dadosInsc.clube_id || participanteLiga?.clube_id || null,
-          status: insc.status,
-          ativo: insc.status === "renovado" || insc.status === "novo",
-          pagou_inscricao: insc.pagou_inscricao || false,
-          saldo_transferido: insc.saldo_transferido || 0,
-        };
-      });
+        const timeIdsComExtrato = new Set(extratos.map(e => e.time_id));
 
-      stats.total = participantes.length;
-      stats.renovados = participantes.filter((p) => p.status === "renovado").length;
-      stats.pendentes = participantes.filter((p) => p.status === "pendente").length;
-      stats.nao_participa = participantes.filter((p) => p.status === "nao_participa").length;
-      stats.novos = participantes.filter((p) => p.status === "novo").length;
-      stats.ativos = stats.renovados + stats.novos;
+        // Criar mapa de liga.participantes para obter dados
+        const ligaParticipantesMap = new Map();
+        (liga.participantes || []).forEach(p => {
+          ligaParticipantesMap.set(String(p.time_id), p);
+        });
+
+        // Buscar status de inativos
+        const inativos = await getParticipantesInativos(ligaId);
+
+        // Filtrar apenas participantes que têm extrato nessa temporada
+        participantes = (liga.participantes || [])
+          .filter(p => timeIdsComExtrato.has(p.time_id))
+          .map((p) => {
+            const inativoData = inativos.get(String(p.time_id));
+            const ativo = !inativoData;
+
+            return {
+              time_id: p.time_id,
+              nome_cartoleiro: p.nome_cartola || p.nome_cartoleiro || "N/D",
+              nome_time: p.nome_time || "N/D",
+              escudo: p.foto_time || p.escudo || "",
+              clube_id: p.clube_id || null,
+              status: ativo ? "ativo" : "inativo",
+              ativo,
+              rodada_desistencia: inativoData?.rodada_inativo || null,
+            };
+          });
+
+        stats.total = participantes.length;
+        stats.ativos = participantes.filter((p) => p.ativo).length;
+      } else {
+        fonte = "inscricoestemporada";
+
+        // ✅ v2.3: Criar mapa de liga.participantes para obter dados faltantes (escudo, clube_id)
+        const ligaParticipantesMap = new Map();
+        (liga.participantes || []).forEach(p => {
+          ligaParticipantesMap.set(String(p.time_id), p);
+        });
+
+        participantes = inscricoes.map((insc) => {
+          const participanteLiga = ligaParticipantesMap.get(String(insc.time_id));
+          const dadosInsc = insc.dados_participante || {};
+
+          return {
+            time_id: insc.time_id,
+            nome_cartoleiro: dadosInsc.nome_cartoleiro || participanteLiga?.nome_cartola || "N/D",
+            nome_time: dadosInsc.nome_time || participanteLiga?.nome_time || "N/D",
+            // ✅ Escudo: prioridade para inscricao, fallback para liga.participantes
+            escudo: dadosInsc.escudo || participanteLiga?.foto_time || "",
+            // ✅ Clube do coração: prioridade para inscricao, fallback para liga.participantes
+            clube_id: dadosInsc.clube_id || participanteLiga?.clube_id || null,
+            status: insc.status,
+            ativo: insc.status === "renovado" || insc.status === "novo",
+            pagou_inscricao: insc.pagou_inscricao || false,
+            saldo_transferido: insc.saldo_transferido || 0,
+          };
+        });
+
+        stats.total = participantes.length;
+        stats.renovados = participantes.filter((p) => p.status === "renovado").length;
+        stats.pendentes = participantes.filter((p) => p.status === "pendente").length;
+        stats.nao_participa = participantes.filter((p) => p.status === "nao_participa").length;
+        stats.novos = participantes.filter((p) => p.status === "novo").length;
+        stats.ativos = stats.renovados + stats.novos;
+      }
     }
 
     res.json({
