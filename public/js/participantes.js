@@ -229,6 +229,7 @@ async function carregarParticipantesPorTemporada(temporada) {
 
             card.innerHTML = `
                 <div class="participante-row">
+                    <span class="participante-numero">${String(index + 1).padStart(2, '0')}</span>
                     ${temporadaSelecionada >= 2026 ? `
                     <input type="checkbox"
                            class="batch-checkbox"
@@ -303,6 +304,9 @@ async function carregarParticipantesPorTemporada(temporada) {
         // Adicionar event listeners (via delegation) - ✅ v2.2: Para todas as temporadas
         container.removeEventListener("click", handleCardClick);
         container.addEventListener("click", handleCardClick);
+
+        // Atualizar toolbar batch (sempre visível em 2026+)
+        atualizarToolbarBatch();
 
         console.log(`[PARTICIPANTES] ${participantesFiltrados.length} participantes de ${temporada}`);
     } catch (error) {
@@ -626,6 +630,7 @@ async function carregarParticipantesComBrasoes() {
             // Layout compacto horizontal
             card.innerHTML = `
                 <div class="participante-row">
+                    <span class="participante-numero">${String(index + 1).padStart(2, '0')}</span>
                     <div class="participante-avatar-mini">
                         <img src="${BrasoesHelper.getTimeFantasyBrasao(timeData)}"
                              alt="${timeData.nome_cartoleiro}"
@@ -679,6 +684,9 @@ async function carregarParticipantesComBrasoes() {
         // ✅ EVENT DELEGATION
         container.removeEventListener("click", handleCardClick);
         container.addEventListener("click", handleCardClick);
+
+        // ✅ Atualizar toolbar batch (sempre visível em 2026+)
+        atualizarToolbarBatch();
 
         // ✅ Atualizar stats do toolbar
         const totalAtivos = timesValidos.filter(t => t.ativo !== false).length;
@@ -2915,9 +2923,18 @@ function atualizarToolbarBatch() {
 
     const count = selecaoBatch.size;
 
-    if (count > 0 && temporadaSelecionada >= 2026) {
+    // Sempre visível em temporada >= 2026
+    if (temporadaSelecionada >= 2026) {
         toolbar.style.display = 'flex';
         toolbar.querySelector('.batch-count').textContent = count;
+
+        // Desabilitar botões quando não há seleção
+        const btns = toolbar.querySelectorAll('.btn-batch');
+        btns.forEach(btn => {
+            btn.disabled = count === 0;
+            btn.style.opacity = count === 0 ? '0.5' : '1';
+            btn.style.cursor = count === 0 ? 'not-allowed' : 'pointer';
+        });
     } else {
         toolbar.style.display = 'none';
     }
