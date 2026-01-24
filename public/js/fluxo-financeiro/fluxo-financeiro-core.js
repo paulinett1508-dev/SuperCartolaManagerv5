@@ -23,10 +23,10 @@
 // ✅ v6.0: SaaS Dinamico - configs do endpoint /api/ligas/:id/configuracoes
 
 // ============================================================================
-// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
+// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2026
 // ============================================================================
-const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2025
-const CAMPEONATO_ENCERRADO = true; // Flag: temporada 2025 finalizada
+const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2026
+const CAMPEONATO_ENCERRADO = false; // Flag: temporada 2026 em andamento
 
 import { calcularFinanceiroConfronto } from "../pontos-corridos-utils.js";
 import { obterLigaId } from "../pontos-corridos-utils.js";

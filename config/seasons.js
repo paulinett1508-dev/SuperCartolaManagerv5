@@ -64,7 +64,7 @@ export const SEASON_CONFIG = {
     // 'preparando' = antes da 1ª rodada (mercado pode estar aberto)
     // 'ativa' = temporada em andamento
     // 'encerrada' = após última rodada
-    status: 'preparando',
+    status: 'ativa',
 };
 
 // =============================================================================

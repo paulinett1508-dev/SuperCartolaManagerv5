@@ -10,10 +10,10 @@ import mongoose from "mongoose";
 import Rodada from "../models/Rodada.js";
 
 // ============================================================================
-// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
+// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2026
 // ============================================================================
-const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2025
-const CAMPEONATO_ENCERRADO = true; // Flag: temporada finalizada
+const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2026
+const CAMPEONATO_ENCERRADO = false; // Flag: temporada 2026 em andamento
 
 // ============================================================================
 // CONFIGURAÇÃO DAS EDIÇÕES (sincronizado com mata-mata-config.js)

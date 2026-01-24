@@ -1,8 +1,8 @@
 {
   "temporada": 2025,
-  "status": "em_andamento",
+  "status": "finalizada",
   "data_inicio": "2025-04-13",
-  "data_fim": null,
+  "data_fim": "2025-12-08",
   "total_rodadas": 38,
   "rodada_atual": 38,
   "ligas": [
@@ -10,13 +10,20 @@
       "id": "684cb1c8af923da7c7df51de",
       "nome": "SuperCartola",
       "participantes": 32,
-      "campeao": null
+      "campeao": "Vitim 10 FC",
+      "campeao_id": 3027272,
+      "campeao_pontos": 3597.87,
+      "vice": "AltosShow",
+      "vice_id": 5254799,
+      "terceiro": "FC WESLEY OLIVEIRA",
+      "terceiro_id": 7698677
     },
     {
       "id": "684d821cf1a7ae16d1f89572",
       "nome": "Cartoleiros Sobral",
       "participantes": 6,
-      "campeao": null
+      "campeao": null,
+      "observacao": "Liga sem dados suficientes exportados no snapshot"
     }
   ],
   "modulos_ativos": [
@@ -30,10 +37,18 @@
     "melhor_mes"
   ],
   "exportacao": {
-    "exportado_em": null,
-    "exportado_por": null,
-    "versao_sistema": "1.0.0",
-    "arquivos_gerados": []
+    "exportado_em": "2026-01-01T22:52:09.830Z",
+    "exportado_por": "turn_key_2026.js",
+    "versao_sistema": "2.1.0",
+    "arquivos_gerados": [
+      "final_standings.json",
+      "migration_report.json"
+    ]
   },
-  "notas": "Temporada 2025 - Aguardando consolidacao final"
+  "finalizacao": {
+    "data": "2026-01-24T21:00:00.000Z",
+    "responsavel": "Claude Opus 4.5",
+    "motivo": "Virada oficial para temporada 2026"
+  },
+  "notas": "Temporada 2025 encerrada oficialmente. Campeao: Vitim 10 FC (3597.87 pts). Vice: AltosShow. Terceiro: FC WESLEY OLIVEIRA."
 }
