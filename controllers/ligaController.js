@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
 import Rodada from "../models/Rodada.js";
+import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import axios from "axios";
 import { hasAccessToLiga } from "../middleware/tenant.js";
 
@@ -38,17 +39,57 @@ const listarLigas = async (req, res) => {
       return res.status(200).json([]);
     }
 
-    // ✅ v2.0: Enriquecer com contagem de times e flags úteis
-    const ligasEnriquecidas = ligas.map(liga => ({
-      _id: liga._id,
-      nome: liga.nome,
-      temporada: liga.temporada || 2025,
-      ativa: liga.ativa !== false, // Default true se não definido
-      status: liga.status || (liga.ativa !== false ? 'ativa' : 'aposentada'),
-      times: liga.times || [],
-      timesCount: liga.times?.length || 0,
-      historico: liga.historico || {},
-    }));
+    // ✅ v3.0: Buscar temporadas com dados para cada liga (multi-temporada no sidebar)
+    // Agregação otimizada: normaliza liga_id para string (pode ser ObjectId ou String no banco)
+    const temporadasPorLiga = await ExtratoFinanceiroCache.aggregate([
+      {
+        // Normalizar liga_id para string antes de agrupar
+        $addFields: {
+          liga_id_str: { $toString: "$liga_id" }
+        }
+      },
+      {
+        $group: {
+          _id: { liga_id: "$liga_id_str", temporada: "$temporada" }
+        }
+      },
+      {
+        $group: {
+          _id: "$_id.liga_id",
+          temporadas: { $addToSet: "$_id.temporada" }
+        }
+      }
+    ]);
+
+    // Criar mapa liga_id -> temporadas para lookup rápido
+    const temporadasMap = {};
+    temporadasPorLiga.forEach(item => {
+      // _id já é string após a normalização
+      temporadasMap[item._id] = item.temporadas.sort((a, b) => b - a);
+    });
+
+    // ✅ v3.0: Enriquecer com contagem de times, flags úteis e temporadas_com_dados
+    const ligasEnriquecidas = ligas.map(liga => {
+      const ligaIdStr = String(liga._id);
+      const temporadasExtrato = temporadasMap[ligaIdStr] || [];
+      const temporadaAtual = liga.temporada || 2025;
+
+      // Combinar temporada atual com temporadas dos extratos (sem duplicatas)
+      const todasTemporadas = [...new Set([temporadaAtual, ...temporadasExtrato])].sort((a, b) => b - a);
+
+      return {
+        _id: liga._id,
+        nome: liga.nome,
+        temporada: temporadaAtual,
+        ativa: liga.ativa !== false, // Default true se não definido
+        status: liga.status || (liga.ativa !== false ? 'ativa' : 'aposentada'),
+        times: liga.times || [],
+        timesCount: liga.times?.length || 0,
+        historico: liga.historico || {},
+        // ✅ NOVO: Temporadas onde a liga tem dados (para multi-temporada no sidebar)
+        temporadas_com_dados: todasTemporadas,
+      };
+    });
 
     console.log(`[LIGAS] Listando ${ligas.length} ligas para admin ${req.session?.admin?.email || "anônimo"}`);
     res.status(200).json(ligasEnriquecidas);

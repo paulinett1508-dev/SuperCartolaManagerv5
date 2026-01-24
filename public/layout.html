@@ -276,14 +276,22 @@
                         return;
                     }
 
-                    // ✅ v2.0: Agrupar ligas por temporada
+                    // ✅ v3.0: Agrupar ligas por temporada (multi-temporada: mesma liga aparece em várias temporadas)
                     const ligasPorTemporada = {};
                     ligas.forEach(liga => {
-                        const temporada = liga.temporada || 2025;
-                        if (!ligasPorTemporada[temporada]) {
-                            ligasPorTemporada[temporada] = [];
-                        }
-                        ligasPorTemporada[temporada].push(liga);
+                        // Usar temporadas_com_dados se disponível, senão apenas temporada atual
+                        const temporadas = liga.temporadas_com_dados || [liga.temporada || 2025];
+                        temporadas.forEach(temporada => {
+                            if (!ligasPorTemporada[temporada]) {
+                                ligasPorTemporada[temporada] = [];
+                            }
+                            // Clonar liga com contexto de temporada para identificar histórico
+                            ligasPorTemporada[temporada].push({
+                                ...liga,
+                                _temporada_contexto: temporada,
+                                _is_historico: temporada !== liga.temporada
+                            });
+                        });
                     });
 
                     // Ordenar temporadas (mais recente primeiro)
@@ -321,17 +329,24 @@
                             const timesCount = liga.timesCount || liga.times?.length || 0;
                             const logoUrl = obterLogoLiga(liga.nome);
                             const isAposentada = liga.ativa === false || liga.status === 'aposentada';
+                            // ✅ v3.0: Detectar se é visualização histórica (temporada diferente da atual)
+                            const isHistorico = liga._is_historico === true;
+                            const temporadaContexto = liga._temporada_contexto || liga.temporada;
 
                             const logoHtml = logoUrl
                                 ? `<img src="${logoUrl}" alt="" class="liga-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" /><span class="liga-dot" style="display:none;"></span>`
-                                : `<span class="liga-dot ${isAposentada ? 'archived' : ''}"></span>`;
+                                : `<span class="liga-dot ${isAposentada ? 'archived' : ''} ${isHistorico ? 'historico' : ''}"></span>`;
+
+                            // ✅ v3.0: Adicionar ?temporada= na URL para contexto histórico
+                            const urlParams = isHistorico ? `id=${ligaId}&temporada=${temporadaContexto}` : `id=${ligaId}`;
 
                             html += `
-                                <a href="detalhe-liga.html?id=${ligaId}" class="sidebar-liga-item ${isLigaAtual ? 'active' : ''} ${isAposentada ? 'aposentada' : ''}" data-page="detalhe-liga.html">
+                                <a href="detalhe-liga.html?${urlParams}" class="sidebar-liga-item ${isLigaAtual ? 'active' : ''} ${isAposentada ? 'aposentada' : ''} ${isHistorico ? 'historico' : ''}" data-page="detalhe-liga.html">
                                     ${logoHtml}
                                     <div class="liga-info-sidebar">
                                         <div class="liga-name-sidebar">${liga.nome || "Liga sem nome"}</div>
-                                        ${isAposentada ? '<span class="liga-status-tag">Arquivo</span>' : ''}
+                                        ${isHistorico ? '<span class="liga-status-tag historico">Histórico</span>' : ''}
+                                        ${isAposentada && !isHistorico ? '<span class="liga-status-tag">Arquivo</span>' : ''}
                                     </div>
                                     <span class="liga-badge-count">${timesCount}</span>
                                 </a>

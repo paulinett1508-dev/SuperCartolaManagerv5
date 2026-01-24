@@ -1346,6 +1346,30 @@ body.sidebar-collapsed .app-main {
     margin-top: 2px;
 }
 
+/* ✅ v3.0: Liga histórica (multi-temporada no sidebar) */
+.sidebar-liga-item.historico {
+    opacity: 0.75;
+}
+
+.sidebar-liga-item.historico .liga-name-sidebar {
+    font-style: italic;
+}
+
+.sidebar-liga-item .liga-status-tag.historico {
+    color: var(--laranja);
+    background: rgba(251, 146, 60, 0.15);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.liga-dot.historico {
+    background: var(--laranja) !important;
+    opacity: 0.6;
+}
+
 /* User Section */
 .sidebar-user-new {
     padding: 16px;
