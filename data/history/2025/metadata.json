@@ -22,8 +22,15 @@
       "id": "684d821cf1a7ae16d1f89572",
       "nome": "Cartoleiros Sobral",
       "participantes": 6,
-      "campeao": null,
-      "observacao": "Liga sem dados suficientes exportados no snapshot"
+      "campeao": "specter United",
+      "campeao_id": 1926323,
+      "campeao_pontos": 3309.05,
+      "vice": "Urubu Play F.C.",
+      "vice_id": 13935277,
+      "terceiro": "RB Teteux SC",
+      "terceiro_id": 49149009,
+      "status": "aposentada",
+      "observacao": "Liga encerrada oficialmente em 2025. Não continua em 2026."
     }
   ],
   "modulos_ativos": [
@@ -50,5 +57,5 @@
     "responsavel": "Claude Opus 4.5",
     "motivo": "Virada oficial para temporada 2026"
   },
-  "notas": "Temporada 2025 encerrada oficialmente. Campeao: Vitim 10 FC (3597.87 pts). Vice: AltosShow. Terceiro: FC WESLEY OLIVEIRA."
+  "notas": "Temporada 2025 encerrada oficialmente. SuperCartola: Campeao Vitim 10 FC (3597.87 pts). Cartoleiros Sobral: Campeao specter United (3309.05 pts) - liga aposentada, nao continua em 2026."
 }
