@@ -14,10 +14,12 @@ const LOG_PREFIX = "[RANKING-TURNO-CTRL]";
 export async function getRankingTurno(req, res) {
     try {
         const { ligaId } = req.params;
-        const { turno = "geral" } = req.query;
+        const { turno = "geral", temporada } = req.query;
+        // Multi-Temporada: usar temporada do query ou ano atual
+        const temporadaNum = temporada ? parseInt(temporada, 10) : new Date().getFullYear();
 
         console.log(
-            `${LOG_PREFIX} GET ranking turno ${turno} - Liga: ${ligaId}`,
+            `${LOG_PREFIX} GET ranking turno ${turno} - Liga: ${ligaId} - Temporada: ${temporadaNum}`,
         );
 
         if (!ligaId) {
@@ -27,7 +29,7 @@ export async function getRankingTurno(req, res) {
             });
         }
 
-        const snapshot = await buscarRankingTurno(ligaId, turno);
+        const snapshot = await buscarRankingTurno(ligaId, turno, temporadaNum);
 
         if (!snapshot) {
             return res.status(404).json({

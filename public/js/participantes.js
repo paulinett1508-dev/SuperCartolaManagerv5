@@ -26,9 +26,19 @@ async function inicializarTemporadas() {
         const data = await res.json();
         temporadasDisponiveis = data.disponiveis || [];
         temporadaLiga = data.temporada_liga;
-        // ✅ v2.1: Default para a temporada mais recente (2026) ao invés de temporadaLiga
+
+        // ✅ Multi-Temporada: verificar se tem temporada na URL ou contexto global
+        const temporadaUrl = urlParams.get("temporada");
+        const temporadaContexto = temporadaUrl ? parseInt(temporadaUrl, 10) : (window.temporadaAtual || null);
+
+        // ✅ v2.2: Usar temporada do contexto se disponível e válida
         const temporadaMaisRecente = Math.max(...temporadasDisponiveis);
-        temporadaSelecionada = temporadaSelecionada || temporadaMaisRecente;
+        if (temporadaContexto && temporadasDisponiveis.includes(temporadaContexto)) {
+            temporadaSelecionada = temporadaContexto;
+            console.log(`[TEMPORADAS] 📜 Usando temporada do contexto: ${temporadaContexto}`);
+        } else {
+            temporadaSelecionada = temporadaSelecionada || temporadaMaisRecente;
+        }
 
         renderizarAbas();
         atualizarVisibilidadeBotaoValidar();

@@ -6,12 +6,64 @@ class DetalheLigaOrquestrador {
         this.processingModule = false;
         this.modules = {};
         this.loadedCSS = new Set();
+        // Multi-Temporada: contexto de navegação
+        this.temporada = this.obterTemporadaDaUrl();
+        this.isTemporadaHistorica = false;
         this.init();
+    }
+
+    // Lê o parâmetro ?temporada= da URL
+    obterTemporadaDaUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const temporadaParam = urlParams.get("temporada");
+        return temporadaParam ? parseInt(temporadaParam, 10) : new Date().getFullYear();
+    }
+
+    // Detecta se é temporada histórica e configura o contexto global
+    async detectarTemporadaHistorica() {
+        try {
+            const response = await fetch('/api/mercado/status');
+            if (response.ok) {
+                const mercado = await response.json();
+                const temporadaAtual = mercado.temporada || new Date().getFullYear();
+                this.isTemporadaHistorica = this.temporada < temporadaAtual;
+
+                // Expor globalmente para uso em módulos
+                window.temporadaAtual = this.temporada;
+                window.isTemporadaHistorica = this.isTemporadaHistorica;
+
+                // Mostrar badge e aplicar modo histórico
+                if (this.isTemporadaHistorica) {
+                    document.body.classList.add('temporada-historica');
+                    this.mostrarBadgeTemporada();
+                    console.log(`[ORQUESTRADOR] 📜 Modo histórico: Temporada ${this.temporada}`);
+                } else {
+                    console.log(`[ORQUESTRADOR] 📅 Temporada atual: ${this.temporada}`);
+                }
+            }
+        } catch (error) {
+            console.warn('[ORQUESTRADOR] Erro ao detectar temporada:', error);
+            // Fallback: assumir temporada atual
+            window.temporadaAtual = this.temporada;
+            window.isTemporadaHistorica = false;
+        }
+    }
+
+    // Mostra o badge de temporada histórica no header
+    mostrarBadgeTemporada() {
+        const badge = document.getElementById('temporadaBadge');
+        const label = document.getElementById('temporadaLabel');
+        if (badge && label) {
+            label.textContent = this.temporada;
+            badge.style.display = 'inline-flex';
+        }
     }
 
     async init() {
         try {
             await this.loadLayout();
+            // Multi-Temporada: detectar e configurar contexto
+            await this.detectarTemporadaHistorica();
             await this.loadModules();
             await this.updateParticipantesCount();
             this.initializeNavigation();
@@ -839,6 +891,19 @@ class DetalheLigaOrquestrador {
         window.voltarParaCards = () => this.voltarParaCards();
         window.executeAction = (action) => this.executeAction(action);
         window.orquestrador = this;
+
+        // Multi-Temporada: função para obter URL com contexto de temporada preservado
+        window.obterUrlComTemporada = (baseUrl) => {
+            if (!this.isTemporadaHistorica) return baseUrl;
+            try {
+                const url = new URL(baseUrl, window.location.origin);
+                url.searchParams.set('temporada', this.temporada);
+                return url.toString();
+            } catch {
+                // Se não for URL válida, retorna como está
+                return baseUrl;
+            }
+        };
     }
 }
 

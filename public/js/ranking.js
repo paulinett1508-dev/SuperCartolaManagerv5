@@ -127,11 +127,14 @@ async function carregarPosicoesTurnosAdmin(ligaId) {
     const timeId = participanteLogado.time_id;
     if (!timeId) return;
 
+    // Multi-Temporada: usar contexto global
+    const temporada = window.temporadaAtual || new Date().getFullYear();
+
     try {
-        // Buscar 1º e 2º turno em paralelo
+        // Buscar 1º e 2º turno em paralelo (com temporada)
         const [resp1, resp2] = await Promise.all([
-            fetch(`/api/ranking-turno/${ligaId}?turno=1`),
-            fetch(`/api/ranking-turno/${ligaId}?turno=2`),
+            fetch(`/api/ranking-turno/${ligaId}?turno=1&temporada=${temporada}`),
+            fetch(`/api/ranking-turno/${ligaId}?turno=2&temporada=${temporada}`),
         ]);
 
         const [data1, data2] = await Promise.all([resp1.json(), resp2.json()]);
@@ -211,6 +214,8 @@ async function carregarRankingGeral(turnoParam = null) {
 
         const urlParams = new URLSearchParams(window.location.search);
         const ligaId = urlParams.get("id");
+        // Multi-Temporada: usar contexto global ou parâmetro da URL
+        const temporada = window.temporadaAtual || urlParams.get("temporada") || new Date().getFullYear();
 
         if (!ligaId) {
             throw new Error("ID da liga não encontrado na URL");
@@ -218,9 +223,9 @@ async function carregarRankingGeral(turnoParam = null) {
 
         estadoRankingAdmin.ligaId = ligaId;
 
-        // Buscar ranking do turno via nova API
+        // Buscar ranking do turno via nova API (com temporada)
         const response = await fetch(
-            `/api/ranking-turno/${ligaId}?turno=${turno}`,
+            `/api/ranking-turno/${ligaId}?turno=${turno}&temporada=${temporada}`,
         );
 
         if (!response.ok) {

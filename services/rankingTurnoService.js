@@ -10,10 +10,13 @@ const LOG_PREFIX = "[RANKING-TURNO-SERVICE]";
 /**
  * Busca ranking de um turno específico
  * Se não existir ou estiver desatualizado, consolida automaticamente
+ * @param {string} ligaId - ID da liga
+ * @param {string} turno - Turno (1, 2 ou geral)
+ * @param {number} temporada - Ano da temporada (opcional, default: ano atual)
  */
-export async function buscarRankingTurno(ligaId, turno) {
+export async function buscarRankingTurno(ligaId, turno, temporada = new Date().getFullYear()) {
     console.log(
-        `${LOG_PREFIX} Buscando ranking turno ${turno} para liga ${ligaId}`,
+        `${LOG_PREFIX} Buscando ranking turno ${turno} para liga ${ligaId} - Temporada: ${temporada}`,
     );
 
     // Validar turno
@@ -27,8 +30,8 @@ export async function buscarRankingTurno(ligaId, turno) {
             ? new mongoose.Types.ObjectId(ligaId)
             : ligaId;
 
-    // Buscar snapshot existente
-    let snapshot = await RankingTurno.findOne({ ligaId: ligaObjectId, turno });
+    // Buscar snapshot existente (filtrado por temporada)
+    let snapshot = await RankingTurno.findOne({ ligaId: ligaObjectId, turno, temporada });
 
     // Se já está consolidado, retorna direto (imutável)
     if (snapshot && snapshot.status === "consolidado") {
@@ -39,8 +42,8 @@ export async function buscarRankingTurno(ligaId, turno) {
     // Se não existe ou está em andamento, verificar se precisa atualizar
     const { inicio, fim } = RankingTurno.getRodadasTurno(turno);
 
-    // Buscar última rodada processada da liga
-    const ultimaRodada = await Rodada.findOne({ ligaId: ligaObjectId })
+    // Buscar última rodada processada da liga (filtrada por temporada)
+    const ultimaRodada = await Rodada.findOne({ ligaId: ligaObjectId, temporada })
         .sort({ rodada: -1 })
         .select("rodada")
         .lean();
@@ -54,11 +57,12 @@ export async function buscarRankingTurno(ligaId, turno) {
         (rodadaAtual >= fim && snapshot.status !== "consolidado");
 
     if (precisaConsolidar) {
-        console.log(`${LOG_PREFIX} 🔄 Consolidando ranking turno ${turno}...`);
+        console.log(`${LOG_PREFIX} 🔄 Consolidando ranking turno ${turno} - Temporada ${temporada}...`);
         snapshot = await consolidarRankingTurno(
             ligaObjectId,
             turno,
             rodadaAtual,
+            temporada,
         );
     }
 
@@ -68,12 +72,16 @@ export async function buscarRankingTurno(ligaId, turno) {
 /**
  * Consolida ranking de um turno calculando pontos das rodadas
  * ✅ v2.0: Inclui informações de participantes inativos
+ * @param {ObjectId} ligaId - ID da liga
+ * @param {string} turno - Turno (1, 2 ou geral)
+ * @param {number} rodadaAtualGeral - Rodada atual geral
+ * @param {number} temporada - Ano da temporada (opcional, default: ano atual)
  */
-export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral) {
+export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral, temporada = new Date().getFullYear()) {
     const { inicio, fim } = RankingTurno.getRodadasTurno(turno);
 
     console.log(
-        `${LOG_PREFIX} Consolidando turno ${turno} (rodadas ${inicio}-${fim})`,
+        `${LOG_PREFIX} Consolidando turno ${turno} (rodadas ${inicio}-${fim}) - Temporada ${temporada}`,
     );
 
     // ✅ v2.0: Buscar liga para obter status de participantes
@@ -88,9 +96,10 @@ export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral) {
         });
     }
 
-    // Buscar todas as rodadas do turno
+    // Buscar todas as rodadas do turno (filtradas por temporada)
     const rodadas = await Rodada.find({
         ligaId,
+        temporada,
         rodada: { $gte: inicio, $lte: fim },
     }).lean();
 
@@ -172,12 +181,13 @@ export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral) {
     const deveConsolidar = rodadaAtualGeral >= fim;
     const status = deveConsolidar ? "consolidado" : "em_andamento";
 
-    // Salvar snapshot (upsert)
+    // Salvar snapshot (upsert) - filtrado por temporada
     const snapshot = await RankingTurno.findOneAndUpdate(
-        { ligaId, turno },
+        { ligaId, turno, temporada },
         {
             ligaId,
             turno,
+            temporada,
             status,
             rodada_inicio: inicio,
             rodada_fim: fim,

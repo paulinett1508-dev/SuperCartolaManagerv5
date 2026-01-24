@@ -143,6 +143,27 @@
                 return null;
             }
 
+            // =====================================================================
+            // CACHE TEMPORADA - FUNÇÕES GLOBAIS (NAVEGAÇÃO MULTI-TEMPORADA)
+            // =====================================================================
+            let temporadaCache = null;
+
+            function obterTemporadaCache() {
+                if (temporadaCache) return temporadaCache;
+                const urlParams = new URLSearchParams(window.location.search);
+                const temporadaUrl = urlParams.get("temporada");
+                if (temporadaUrl) {
+                    temporadaCache = parseInt(temporadaUrl, 10);
+                    return temporadaCache;
+                }
+                // Fallback: temporada atual
+                return new Date().getFullYear();
+            }
+
+            // Exportar globalmente para uso em módulos
+            window.obterTemporadaCache = obterTemporadaCache;
+            window.temporadaContexto = obterTemporadaCache();
+
             function abrirModalRecalcMini() {
                 const modal = document.getElementById("modalRecalcMini");
                 if (modal) modal.classList.add("show");
@@ -408,6 +429,11 @@
                             <div class="liga-header-info">
                                 <h1 id="nomeLiga">Nome da Liga</h1>
                                 <p id="quantidadeTimes">0 participantes</p>
+                                <!-- Badge de Temporada Histórica (Multi-Temporada) -->
+                                <span id="temporadaBadge" class="temporada-badge" style="display: none;">
+                                    <span class="material-icons">history</span>
+                                    <span>Temporada </span><span id="temporadaLabel">2025</span>
+                                </span>
                             </div>
                         </div>
                         <div class="liga-header-actions">

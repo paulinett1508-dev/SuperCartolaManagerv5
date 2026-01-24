@@ -150,21 +150,26 @@ export async function getRankingsEmLote(
   forcarRecarga = false,
 ) {
   const ligaIdNormalizado = String(ligaId);
+  // Multi-Temporada: usar contexto global
+  const temporada = (typeof window !== 'undefined' && window.temporadaAtual) || new Date().getFullYear();
 
-  if (!forcarRecarga && cacheRankingsLote.has(ligaIdNormalizado)) {
-    const cached = cacheRankingsLote.get(ligaIdNormalizado);
+  // Cache key inclui temporada para evitar conflitos
+  const cacheKey = `${ligaIdNormalizado}_${temporada}`;
+
+  if (!forcarRecarga && cacheRankingsLote.has(cacheKey)) {
+    const cached = cacheRankingsLote.get(cacheKey);
     const idade = Date.now() - cached.timestamp;
 
     if (idade < CACHE_TTL) {
       console.log(
-        `[RODADAS-CORE] ⚡ Cache hit! ${Object.keys(cached.rodadas).length} rodadas em memória`,
+        `[RODADAS-CORE] ⚡ Cache hit! ${Object.keys(cached.rodadas).length} rodadas em memória (${temporada})`,
       );
       return cached.rodadas;
     }
   }
 
   console.log(
-    `[RODADAS-CORE] 🚀 Buscando rodadas ${rodadaInicio}-${rodadaFim} em LOTE (1 requisição)...`,
+    `[RODADAS-CORE] 🚀 Buscando rodadas ${rodadaInicio}-${rodadaFim} em LOTE - Temporada ${temporada}...`,
   );
 
   try {
@@ -173,7 +178,7 @@ export async function getRankingsEmLote(
 
     const [rankingsResponse, timesStatus] = await Promise.all([
       fetchFunc(
-        `${baseUrl}/api/rodadas/${ligaIdNormalizado}/rodadas?inicio=${rodadaInicio}&fim=${rodadaFim}`,
+        `${baseUrl}/api/rodadas/${ligaIdNormalizado}/rodadas?inicio=${rodadaInicio}&fim=${rodadaFim}&temporada=${temporada}`,
       ),
       buscarTimesStatus(ligaIdNormalizado),
     ]);
@@ -217,7 +222,7 @@ export async function getRankingsEmLote(
       );
     });
 
-    cacheRankingsLote.set(ligaIdNormalizado, {
+    cacheRankingsLote.set(cacheKey, {
       rodadas: rodadasAgrupadas,
       timestamp: Date.now(),
     });
@@ -599,15 +604,17 @@ export async function buscarRodadas() {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const ligaId = urlParams.get("id");
+    // Multi-Temporada: usar contexto global ou parâmetro da URL
+    const temporada = window.temporadaAtual || urlParams.get("temporada") || new Date().getFullYear();
 
     if (!ligaId) {
       console.error("[RODADAS-CORE] ID da liga não encontrado na URL");
       return [];
     }
 
-    console.log(`[RODADAS-CORE] Buscando rodadas para liga: ${ligaId}`);
+    console.log(`[RODADAS-CORE] Buscando rodadas para liga: ${ligaId} - Temporada: ${temporada}`);
     const response = await fetch(
-      `/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`,
+      `/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38&temporada=${temporada}`,
     );
 
     if (!response.ok) {

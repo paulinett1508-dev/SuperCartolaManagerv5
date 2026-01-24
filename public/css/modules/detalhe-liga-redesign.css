@@ -101,6 +101,34 @@
     font-size: 14px;
 }
 
+/* === BADGE DE TEMPORADA HISTÓRICA (MULTI-TEMPORADA) === */
+.detalhe-liga-redesign .temporada-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 6px;
+    font-family: 'Russo One', sans-serif;
+}
+
+.detalhe-liga-redesign .temporada-badge .material-icons {
+    font-size: 14px;
+}
+
+/* Modo histórico: ocultar ferramentas de admin */
+body.temporada-historica .admin-tools-section,
+body.temporada-historica .btn-cache-admin,
+body.temporada-historica .btn-recalcular,
+body.temporada-historica [data-action="recalcular"],
+body.temporada-historica [data-action="limpar-cache"] {
+    display: none !important;
+}
+
 /* === BOTÃO VOLTAR (COMPACTO) === */
 .detalhe-liga-redesign .back-button-container {
     margin-bottom: 12px;

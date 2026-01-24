@@ -430,11 +430,16 @@ async function processarRodada(
 // =====================================================================
 export const obterRodadas = async (req, res) => {
   const { ligaId } = req.params;
-  const { rodada, inicio, fim } = req.query;
+  const { rodada, inicio, fim, temporada } = req.query;
 
   try {
     const ligaIdObj = toLigaId(ligaId);
     let filtro = { ligaId: ligaIdObj };
+
+    // Multi-Temporada: filtrar por temporada se fornecida
+    if (temporada) {
+      filtro.temporada = Number(temporada);
+    }
 
     if (rodada) {
       filtro.rodada = Number(rodada);
