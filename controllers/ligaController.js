@@ -28,13 +28,30 @@ const listarLigas = async (req, res) => {
     // ✅ MULTI-TENANT: Aplica filtro de tenant (definido pelo middleware)
     const filtro = req.tenantFilter || {};
 
-    const ligas = await Liga.find(filtro).lean();
+    // ✅ v2.0: Retorna ligas ativas E aposentadas para organização por temporada no sidebar
+    const ligas = await Liga.find(filtro)
+      .select('nome temporada ativa status times participantes historico')
+      .sort({ temporada: -1, nome: 1 }) // Mais recentes primeiro
+      .lean();
+
     if (!ligas || ligas.length === 0) {
       return res.status(200).json([]);
     }
 
+    // ✅ v2.0: Enriquecer com contagem de times e flags úteis
+    const ligasEnriquecidas = ligas.map(liga => ({
+      _id: liga._id,
+      nome: liga.nome,
+      temporada: liga.temporada || 2025,
+      ativa: liga.ativa !== false, // Default true se não definido
+      status: liga.status || (liga.ativa !== false ? 'ativa' : 'aposentada'),
+      times: liga.times || [],
+      timesCount: liga.times?.length || 0,
+      historico: liga.historico || {},
+    }));
+
     console.log(`[LIGAS] Listando ${ligas.length} ligas para admin ${req.session?.admin?.email || "anônimo"}`);
-    res.status(200).json(ligas);
+    res.status(200).json(ligasEnriquecidas);
   } catch (err) {
     console.error("Erro ao listar ligas:", err.message);
     res.status(500).json({ erro: "Erro ao listar ligas: " + err.message });

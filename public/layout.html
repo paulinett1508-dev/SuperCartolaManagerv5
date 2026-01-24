@@ -253,7 +253,7 @@
                 }
             };
 
-            // === CARREGAMENTO DAS LIGAS NO SIDEBAR ===
+            // === CARREGAMENTO DAS LIGAS NO SIDEBAR (v2.0 - Agrupadas por Temporada) ===
             async function carregarLigasLayout() {
                 const ligasList = document.getElementById("ligasList");
                 if (!ligasList) return;
@@ -276,36 +276,87 @@
                         return;
                     }
 
-                    // Renderizar ligas com logos
-                    ligasList.innerHTML = ligas
-                        .map((liga) => {
+                    // ✅ v2.0: Agrupar ligas por temporada
+                    const ligasPorTemporada = {};
+                    ligas.forEach(liga => {
+                        const temporada = liga.temporada || 2025;
+                        if (!ligasPorTemporada[temporada]) {
+                            ligasPorTemporada[temporada] = [];
+                        }
+                        ligasPorTemporada[temporada].push(liga);
+                    });
+
+                    // Ordenar temporadas (mais recente primeiro)
+                    const temporadasOrdenadas = Object.keys(ligasPorTemporada)
+                        .map(Number)
+                        .sort((a, b) => b - a);
+
+                    // Renderizar grupos de temporada
+                    let html = '';
+                    temporadasOrdenadas.forEach((temporada, idx) => {
+                        const ligasTemp = ligasPorTemporada[temporada];
+                        const todasAposentadas = ligasTemp.every(l => l.ativa === false || l.status === 'aposentada');
+                        const isExpanded = idx === 0; // Apenas primeira temporada (mais recente) expandida
+
+                        // Header do grupo de temporada
+                        html += `
+                            <div class="sidebar-temporada-group ${isExpanded ? 'open' : ''}" data-temporada="${temporada}">
+                                <div class="sidebar-temporada-header" onclick="toggleTemporadaGroup(this)">
+                                    <span class="temporada-label">
+                                        <span class="material-icons" style="font-size: 14px;">${todasAposentadas ? 'history' : 'sports_soccer'}</span>
+                                        ${temporada}
+                                    </span>
+                                    <span class="temporada-meta">
+                                        ${todasAposentadas ? '<span class="temporada-badge archived">Arquivo</span>' : ''}
+                                        <span class="material-icons temporada-arrow">expand_more</span>
+                                    </span>
+                                </div>
+                                <div class="sidebar-temporada-content">
+                        `;
+
+                        // Ligas da temporada
+                        ligasTemp.forEach(liga => {
                             const ligaId = liga._id || liga.id;
                             const isLigaAtual = ligaId === ligaAtualId;
-                            const timesCount = liga.times?.length || 0;
+                            const timesCount = liga.timesCount || liga.times?.length || 0;
                             const logoUrl = obterLogoLiga(liga.nome);
+                            const isAposentada = liga.ativa === false || liga.status === 'aposentada';
 
-                            // Se tem logo, usa imagem; senao usa dot colorido
                             const logoHtml = logoUrl
                                 ? `<img src="${logoUrl}" alt="" class="liga-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" /><span class="liga-dot" style="display:none;"></span>`
-                                : `<span class="liga-dot"></span>`;
+                                : `<span class="liga-dot ${isAposentada ? 'archived' : ''}"></span>`;
 
-                            return `
-                                <a href="detalhe-liga.html?id=${ligaId}" class="sidebar-liga-item ${isLigaAtual ? 'active' : ''}" data-page="detalhe-liga.html">
+                            html += `
+                                <a href="detalhe-liga.html?id=${ligaId}" class="sidebar-liga-item ${isLigaAtual ? 'active' : ''} ${isAposentada ? 'aposentada' : ''}" data-page="detalhe-liga.html">
                                     ${logoHtml}
                                     <div class="liga-info-sidebar">
                                         <div class="liga-name-sidebar">${liga.nome || "Liga sem nome"}</div>
+                                        ${isAposentada ? '<span class="liga-status-tag">Arquivo</span>' : ''}
                                     </div>
                                     <span class="liga-badge-count">${timesCount}</span>
                                 </a>
                             `;
-                        })
-                        .join("");
+                        });
+
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    ligasList.innerHTML = html;
 
                     // Se estamos em uma pagina de liga, expandir o accordion de ligas
                     if (ligaAtualId) {
                         const ligasAccordion = document.querySelector('[data-accordion="ligas"]');
                         if (ligasAccordion && window.AccordionManager) {
                             window.AccordionManager.open(ligasAccordion);
+                        }
+                        // Também expandir o grupo da temporada da liga atual
+                        const ligaItem = ligasList.querySelector(`.sidebar-liga-item.active`);
+                        if (ligaItem) {
+                            const grupo = ligaItem.closest('.sidebar-temporada-group');
+                            if (grupo) grupo.classList.add('open');
                         }
                     }
                 } catch (error) {
@@ -326,6 +377,14 @@
                             ">Tentar</button>
                         </div>
                     `;
+                }
+            }
+
+            // ✅ v2.0: Toggle de grupo de temporada
+            function toggleTemporadaGroup(header) {
+                const grupo = header.closest('.sidebar-temporada-group');
+                if (grupo) {
+                    grupo.classList.toggle('open');
                 }
             }
 

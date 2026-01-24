@@ -1248,6 +1248,104 @@ body.sidebar-collapsed .app-main {
     border-radius: 4px;
 }
 
+/* =============================================
+   GRUPOS DE TEMPORADA NO SIDEBAR (v2.0)
+   ============================================= */
+
+.sidebar-temporada-group {
+    margin-bottom: 4px;
+}
+
+.sidebar-temporada-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px 8px 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    color: #9ca3af;
+}
+
+.sidebar-temporada-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #d1d5db;
+}
+
+.sidebar-temporada-header .temporada-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sidebar-temporada-header .temporada-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sidebar-temporada-header .temporada-badge {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.sidebar-temporada-header .temporada-badge.archived {
+    background: rgba(107, 114, 128, 0.3);
+    color: #9ca3af;
+}
+
+.sidebar-temporada-header .temporada-arrow {
+    font-size: 18px;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-temporada-group.open .temporada-arrow {
+    transform: rotate(180deg);
+}
+
+.sidebar-temporada-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease;
+}
+
+.sidebar-temporada-group.open .sidebar-temporada-content {
+    max-height: 500px;
+}
+
+/* Liga aposentada/arquivada */
+.sidebar-liga-item.aposentada {
+    opacity: 0.7;
+}
+
+.sidebar-liga-item.aposentada:hover {
+    opacity: 1;
+}
+
+.sidebar-liga-item.aposentada .liga-dot {
+    background: #4b5563;
+}
+
+.sidebar-liga-item.aposentada .liga-dot.archived {
+    background: #6b7280;
+    border: 1px dashed #9ca3af;
+}
+
+.sidebar-liga-item .liga-status-tag {
+    font-size: 0.6rem;
+    color: #6b7280;
+    font-weight: 500;
+    display: block;
+    margin-top: 2px;
+}
+
 /* User Section */
 .sidebar-user-new {
     padding: 16px;
@@ -2039,6 +2137,22 @@ body.sidebar-collapsed .main-content {
 }
 
 .sidebar-accordion .sidebar-liga-item .liga-name-sidebar {
+    font-size: 0.8rem;
+}
+
+/* Ajuste para ligas dentro de grupos de temporada */
+.sidebar-temporada-content .sidebar-liga-item {
+    padding-left: 32px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.sidebar-temporada-content .sidebar-liga-item .liga-logo-img {
+    width: 20px;
+    height: 20px;
+}
+
+.sidebar-temporada-content .sidebar-liga-item .liga-name-sidebar {
     font-size: 0.8rem;
 }
 

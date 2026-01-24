@@ -56,6 +56,23 @@ const ligaSchema = new mongoose.Schema({
         default: CURRENT_SEASON,
         index: true,
     },
+
+    // ✅ STATUS DA LIGA - Controle de ligas ativas/aposentadas
+    ativa: {
+        type: Boolean,
+        default: true,
+        index: true,
+    },
+    status: {
+        type: String,
+        enum: ['ativa', 'aposentada', 'suspensa', null],
+        default: null,
+    },
+    aposentada_em: { type: Date, default: null },
+    aposentada_motivo: { type: String, default: null },
+
+    // ✅ HISTÓRICO - Dados de temporadas anteriores
+    historico: { type: Object, default: {} },
     times: [{ type: Number }], // Array de IDs dos times da liga
     participantes: [participanteSchema],
     configuracoes: {
