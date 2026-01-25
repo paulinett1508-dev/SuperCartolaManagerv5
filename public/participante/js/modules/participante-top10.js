@@ -252,7 +252,9 @@ async function calcularMitosMicos(ligaId, rodadaAtual) {
     const micos = [];
 
     try {
-        const response = await fetch(`/api/ligas/${ligaId}/top10`);
+        // ✅ v9.0: Passar temporada para segregar dados por ano
+        const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const response = await fetch(`/api/ligas/${ligaId}/top10?temporada=${temporada}`);
         if (!response.ok) return { mitos: [], micos: [] };
 
         const dados = await response.json();

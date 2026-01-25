@@ -115,8 +115,12 @@
 
         <script>
             // === SISTEMA DE CACHE LOCALSTORAGE ===
-            // TTL em minutos: sessão=5min, ligas=2min
-            const CacheManager = {
+            // ✅ v9.1: Protecao contra redeclaracao em navegacao SPA
+            if (typeof window._layoutCacheManager === 'undefined') {
+            window._layoutCacheManager = true;
+
+            // TTL em minutos: sessao=5min, ligas=2min
+            var CacheManager = {
                 KEYS: {
                     SESSION: '_cache_admin_session',
                     SUPER_ADMIN: '_cache_super_admin',
@@ -1125,6 +1129,7 @@
                     setTimeout(carregarLigasLayout, 200);
                 }
             });
+            } // ✅ Fecha o if de proteção contra redeclaração (linha 119)
         </script>
 
         <!-- PROTECAO CLIENT-SIDE -->

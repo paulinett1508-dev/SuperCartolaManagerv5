@@ -346,10 +346,13 @@ class ParticipanteCacheManager {
             })
         );
 
+        // ✅ v9.0: Passar temporada para segregar dados por ano
+        const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+
         // Ranking
         promises.push(
             this.getRankingAsync(ligaId, async () => {
-                const res = await fetch(`/api/ligas/${ligaId}/ranking`);
+                const res = await fetch(`/api/ligas/${ligaId}/ranking?temporada=${temporada}`);
                 return res.ok ? res.json() : [];
             })
         );
@@ -357,7 +360,7 @@ class ParticipanteCacheManager {
         // Rodadas
         promises.push(
             this.getRodadasAsync(ligaId, async () => {
-                const res = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
+                const res = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38&temporada=${temporada}`);
                 return res.ok ? res.json() : [];
             })
         );

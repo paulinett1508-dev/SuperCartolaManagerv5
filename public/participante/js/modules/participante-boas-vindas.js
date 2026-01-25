@@ -249,11 +249,13 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     // =========================================================================
 
     try {
-        // Buscar dados frescos da API (mesmo se já mostrou cache)
+        // ✅ v9.0: Passar temporada para segregar dados por ano
+        const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        // Buscar dados frescos da API (mesmo se ja mostrou cache)
         const [ligaFresh, rankingFresh, rodadasFresh] = await Promise.all([
             fetch(`/api/ligas/${ligaId}`).then(r => r.ok ? r.json() : liga),
-            fetch(`/api/ligas/${ligaId}/ranking`).then(r => r.ok ? r.json() : ranking),
-            fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`).then(r => r.ok ? r.json() : rodadas)
+            fetch(`/api/ligas/${ligaId}/ranking?temporada=${temporada}`).then(r => r.ok ? r.json() : ranking),
+            fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38&temporada=${temporada}`).then(r => r.ok ? r.json() : rodadas)
         ]);
 
         // Atualizar cache com dados frescos
@@ -1011,6 +1013,18 @@ async function carregarEExibirJogos() {
             }
         } else {
             if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "Sem jogos para exibir no momento");
+            const el = document.getElementById('jogos-do-dia-placeholder');
+            if (el) {
+                const mensagem = result.mensagem || 'Sem jogos brasileiros hoje';
+                el.innerHTML = `
+                    <div class="mx-4 mb-6 rounded-xl bg-gray-800/50 border border-gray-700/50 p-4 text-center">
+                        <div class="flex items-center justify-center gap-2 text-white/70">
+                            <span class="material-icons text-base text-primary">sports_soccer</span>
+                            <span class="text-xs font-medium">${mensagem}</span>
+                        </div>
+                    </div>
+                `;
+            }
         }
     } catch (err) {
         if (window.Log) Log.error("PARTICIPANTE-BOAS-VINDAS", "Erro ao carregar jogos:", err);

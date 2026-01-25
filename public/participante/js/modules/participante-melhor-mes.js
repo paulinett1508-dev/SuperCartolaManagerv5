@@ -83,7 +83,9 @@ async function carregarMelhorMes(ligaId, timeId, usouCache = false, dadosCache =
     }
 
     try {
-        const response = await fetch(`/api/ligas/${ligaId}/melhor-mes`);
+        // ✅ v9.0: Passar temporada para segregar dados por ano
+        const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const response = await fetch(`/api/ligas/${ligaId}/melhor-mes?temporada=${temporada}`);
 
         if (!response.ok) {
             throw new Error(`Erro ao buscar dados: ${response.status}`);

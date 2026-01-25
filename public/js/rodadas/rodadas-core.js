@@ -296,6 +296,9 @@ export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
       fetchFunc = fetch;
     }
 
+    // ✅ v9.0: Obter temporada do contexto global ou URL
+    const temporada = (typeof window !== 'undefined' && window.temporadaAtual) || new Date().getFullYear();
+
     const baseUrl = isBackend ? "http://localhost:3000" : "";
     const endpoints = RODADAS_ENDPOINTS.getEndpoints(
       ligaId,
@@ -308,8 +311,12 @@ export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
 
     for (const endpoint of endpoints) {
       try {
-        console.log(`[RODADAS-CORE] Tentando endpoint: ${endpoint}`);
-        const resRodadas = await fetchFunc(endpoint);
+        // ✅ v9.0: Adicionar temporada ao endpoint
+        const endpointComTemporada = endpoint.includes('?')
+          ? `${endpoint}&temporada=${temporada}`
+          : `${endpoint}?temporada=${temporada}`;
+        console.log(`[RODADAS-CORE] Tentando endpoint: ${endpointComTemporada}`);
+        const resRodadas = await fetchFunc(endpointComTemporada);
 
         if (!resRodadas.ok) {
           console.warn(

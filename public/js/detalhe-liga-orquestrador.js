@@ -165,6 +165,11 @@ class DetalheLigaOrquestrador {
     }
 
     async executeModuleScripts(moduleName) {
+        // ✅ v9.0: Preservar temporada antes de executar modulo
+        // Alguns modulos (ex: fluxo-financeiro) podem sobrescrever window.temporadaAtual
+        const temporadaPreservada = window.temporadaAtual;
+        const isHistoricaPreservada = window.isTemporadaHistorica;
+
         try {
             switch (moduleName) {
                 case "ranking-geral":
@@ -368,9 +373,16 @@ class DetalheLigaOrquestrador {
             }
         } catch (error) {
             console.error(
-                `[ORQUESTRADOR] Erro ao executar módulo ${moduleName}:`,
+                `[ORQUESTRADOR] Erro ao executar modulo ${moduleName}:`,
                 error,
             );
+        } finally {
+            // ✅ v9.0: Restaurar temporada se modulo sobrescreveu
+            if (window.temporadaAtual !== temporadaPreservada) {
+                console.warn(`[ORQUESTRADOR] Modulo ${moduleName} alterou temporada de ${temporadaPreservada} para ${window.temporadaAtual}. Restaurando.`);
+                window.temporadaAtual = temporadaPreservada;
+                window.isTemporadaHistorica = isHistoricaPreservada;
+            }
         }
     }
 

@@ -857,7 +857,9 @@ async function buscarTop10(tempLigaId) {
 
 async function buscarMelhorMes(tempLigaId) {
     try {
-        const res = await fetch(`/api/ligas/${tempLigaId}/melhor-mes`);
+        // ✅ v9.0: Passar temporada para segregar dados por ano
+        const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const res = await fetch(`/api/ligas/${tempLigaId}/melhor-mes?temporada=${temporada}`);
         if (!res.ok) return null;
         const data = await res.json();
         if (!data.edicoes) return null;
@@ -873,7 +875,9 @@ async function buscarMelhorMes(tempLigaId) {
 
 async function buscarMataMata(tempLigaId) {
     try {
-        const res = await fetch(`/api/ligas/${tempLigaId}/mata-mata`);
+        // ✅ v9.0: Passar temporada para segregar dados por ano
+        const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const res = await fetch(`/api/ligas/${tempLigaId}/mata-mata?temporada=${temporada}`);
         if (!res.ok) return null;
         const data = await res.json();
         if (!data.edicoes || data.edicoes.length === 0) return null;

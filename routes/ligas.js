@@ -163,9 +163,11 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
 });
 
 // Rota: Buscar ranking da liga
-// ✅ ATUALIZADO: Filtra participantes inativos
+// ✅ v9.0: Filtra por temporada + participantes inativos
 router.get("/:id/ranking", async (req, res) => {
   const { id: ligaId } = req.params;
+  const { temporada } = req.query;
+  const temporadaFiltro = temporada ? parseInt(temporada) : CURRENT_SEASON;
 
   try {
     const Rodada = (await import("../models/Rodada.js")).default;
@@ -173,7 +175,8 @@ router.get("/:id/ranking", async (req, res) => {
     // ✅ Buscar participantes inativos
     const inativos = await getParticipantesInativos(ligaId);
 
-    const rodadas = await Rodada.find({ ligaId }).lean();
+    // ✅ v9.0: Filtrar por temporada para nao misturar dados de temporadas diferentes
+    const rodadas = await Rodada.find({ ligaId, temporada: temporadaFiltro }).lean();
 
     if (!rodadas || rodadas.length === 0) {
       return res.json([]);
@@ -244,28 +247,30 @@ router.get("/:id/rodadas/:timeId", async (req, res) => {
 
 // =====================================================================
 // Rota: Buscar Melhor Mês de TODOS os participantes (ranking mensal)
-// ✅ v4.0 COM CACHE MONGODB - Edições consolidadas são imutáveis
+// ✅ v9.0: COM CACHE MONGODB + FILTRO TEMPORADA
 // IMPORTANTE: Esta rota DEVE vir ANTES de "/:id/melhor-mes/:timeId"
 // =====================================================================
 router.get("/:id/melhor-mes", async (req, res) => {
   const { id: ligaId } = req.params;
+  const { temporada } = req.query;
+  const temporadaFiltro = temporada ? parseInt(temporada) : CURRENT_SEASON;
 
   try {
     // Importar service
     const melhorMesService = (await import("../services/melhorMesService.js"))
       .default;
 
-    // Buscar rodada atual do sistema (última rodada processada)
+    // ✅ v9.0: Buscar rodada atual FILTRANDO por temporada
     const Rodada = (await import("../models/Rodada.js")).default;
-    const ultimaRodada = await Rodada.findOne({ ligaId })
+    const ultimaRodada = await Rodada.findOne({ ligaId, temporada: temporadaFiltro })
       .sort({ rodada: -1 })
       .select("rodada")
       .lean();
 
     const rodadaAtual = ultimaRodada?.rodada || 0;
 
-    // Buscar dados usando service (com cache)
-    const dados = await melhorMesService.buscarMelhorMes(ligaId, rodadaAtual);
+    // Buscar dados usando service (com cache) - passando temporada
+    const dados = await melhorMesService.buscarMelhorMes(ligaId, rodadaAtual, temporadaFiltro);
 
     res.json({
       ...dados,
@@ -277,18 +282,21 @@ router.get("/:id/melhor-mes", async (req, res) => {
   }
 });
 
-// Rota: Buscar Melhor Mês de um participante específico
+// Rota: Buscar Melhor Mes de um participante especifico
+// ✅ v9.0: Filtro por temporada
 router.get("/:id/melhor-mes/:timeId", async (req, res) => {
   const { id: ligaId, timeId } = req.params;
+  const { temporada } = req.query;
+  const temporadaFiltro = temporada ? parseInt(temporada) : CURRENT_SEASON;
 
   try {
     // Importar service
     const melhorMesService = (await import("../services/melhorMesService.js"))
       .default;
 
-    // Buscar rodada atual
+    // ✅ v9.0: Buscar rodada atual FILTRANDO por temporada
     const Rodada = (await import("../models/Rodada.js")).default;
-    const ultimaRodada = await Rodada.findOne({ ligaId })
+    const ultimaRodada = await Rodada.findOne({ ligaId, temporada: temporadaFiltro })
       .sort({ rodada: -1 })
       .select("rodada")
       .lean();
@@ -309,20 +317,24 @@ router.get("/:id/melhor-mes/:timeId", async (req, res) => {
   }
 });
 
-// Rota: Buscar ranking de uma rodada específica (Top 10)
-// ✅ ATUALIZADO: Filtra participantes inativos
+// Rota: Buscar ranking de uma rodada especifica (Top 10)
+// ✅ v9.0: Filtra por temporada + participantes inativos
 router.get("/:id/ranking/:rodada", async (req, res) => {
   const { id: ligaId, rodada } = req.params;
+  const { temporada } = req.query;
+  const temporadaFiltro = temporada ? parseInt(temporada) : CURRENT_SEASON;
   const rodadaNum = parseInt(rodada);
 
   try {
     const Rodada = (await import("../models/Rodada.js")).default;
 
-    // ✅ Buscar participantes inativos com rodada de inativação
+    // ✅ Buscar participantes inativos com rodada de inativacao
     const inativos = await getParticipantesInativos(ligaId);
 
+    // ✅ v9.0: Filtrar por temporada
     const dados = await Rodada.find({
       ligaId,
+      temporada: temporadaFiltro,
       rodada: rodadaNum,
     }).lean();
 
@@ -354,19 +366,22 @@ router.get("/:id/ranking/:rodada", async (req, res) => {
 });
 
 // =====================================================================
-// 🔧 ROTA MATA-MATA - LEITURA DO MONGODB (SNAPSHOTS SALVOS PELO ADMIN)
+// ROTA MATA-MATA - LEITURA DO MONGODB (SNAPSHOTS SALVOS PELO ADMIN)
+// ✅ v9.0: Filtra por temporada
 // =====================================================================
 router.get("/:id/mata-mata", async (req, res) => {
   const { id: ligaId } = req.params;
+  const { temporada } = req.query;
+  const temporadaFiltro = temporada ? parseInt(temporada) : CURRENT_SEASON;
 
   try {
-    console.log(`[MATA-MATA] 📋 Buscando edições para liga: ${ligaId}`);
+    console.log(`[MATA-MATA] Buscando edicoes para liga: ${ligaId}, temporada: ${temporadaFiltro}`);
 
     // Importar model do cache
     const MataMataCache = (await import("../models/MataMataCache.js")).default;
 
-    // Buscar todas as edições desta liga, ordenadas da mais recente para mais antiga
-    const caches = await MataMataCache.find({ liga_id: ligaId }).sort({
+    // ✅ v9.0: Filtrar por temporada para nao misturar edicoes de temporadas diferentes
+    const caches = await MataMataCache.find({ liga_id: ligaId, temporada: temporadaFiltro }).sort({
       edicao: -1,
     });
 
@@ -513,9 +528,11 @@ function verificarEmpate(confronto) {
 }
 
 // Rota: Buscar TOP 10 da liga
-// ✅ v2.0: Filtragem por fase - times inativos só excluídos a partir da rodada_inativo
+// ✅ v9.0: Filtra por temporada + filtragem por fase
 router.get("/:id/top10", async (req, res) => {
   const { id: ligaId } = req.params;
+  const { temporada } = req.query;
+  const temporadaFiltro = temporada ? parseInt(temporada) : CURRENT_SEASON;
 
   try {
     const Rodada = (await import("../models/Rodada.js")).default;
@@ -523,7 +540,8 @@ router.get("/:id/top10", async (req, res) => {
     // ✅ Buscar participantes inativos COM rodada de inativação
     const inativos = await getParticipantesInativos(ligaId);
 
-    const rodadas = await Rodada.find({ ligaId }).lean();
+    // ✅ v9.0: Filtrar por temporada
+    const rodadas = await Rodada.find({ ligaId, temporada: temporadaFiltro }).lean();
 
     if (!rodadas || rodadas.length === 0) {
       return res.json([]);

@@ -141,11 +141,13 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     }
 
     // Buscar dados frescos da API
+    // ✅ v9.0: Passar temporada para segregar dados por ano
+    const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
     try {
         const [ligaFresh, rankingFresh, rodadasFresh] = await Promise.all([
             fetch(`/api/ligas/${ligaId}`).then(r => r.ok ? r.json() : liga),
-            fetch(`/api/ligas/${ligaId}/ranking`).then(r => r.ok ? r.json() : ranking),
-            fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`).then(r => r.ok ? r.json() : rodadas)
+            fetch(`/api/ligas/${ligaId}/ranking?temporada=${temporada}`).then(r => r.ok ? r.json() : ranking),
+            fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38&temporada=${temporada}`).then(r => r.ok ? r.json() : rodadas)
         ]);
 
         if (cache) {

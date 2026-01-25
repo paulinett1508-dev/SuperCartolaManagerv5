@@ -103,18 +103,29 @@ async function carregarModulos() {
 
 // ===== FUNÇÃO DE INICIALIZAÇÃO =====
 async function inicializarFluxoFinanceiro() {
-    console.log("[FLUXO-ADMIN] 🚀 Inicializando módulo ADMIN");
+    console.log("[FLUXO-ADMIN] Inicializando modulo ADMIN");
 
-    // ✅ v7.9: Verificar temporada salva no localStorage (prioridade)
-    // Ordem: localStorage > default 2026 (API Cartola retorna 2025, ignoramos)
+    // ✅ v9.0: PRIORIDADE CORRIGIDA: URL > Orquestrador > localStorage > default
+    // Isso garante que temporadas historicas (ex: ?temporada=2025) sejam respeitadas
+    const urlParams = new URLSearchParams(window.location.search);
+    const temporadaUrl = urlParams.get('temporada');
     const temporadaSalva = localStorage.getItem('temporadaSelecionada');
-    if (temporadaSalva) {
+
+    if (temporadaUrl) {
+        // 1. URL tem prioridade maxima (admin navegando para temporada especifica)
+        window.temporadaAtual = parseInt(temporadaUrl, 10);
+        console.log("[FLUXO-ADMIN] Temporada da URL:", window.temporadaAtual);
+    } else if (window.temporadaAtual && window.isTemporadaHistorica !== undefined) {
+        // 2. Orquestrador ja definiu (manter contexto do detalhe-liga)
+        console.log("[FLUXO-ADMIN] Temporada do orquestrador:", window.temporadaAtual);
+    } else if (temporadaSalva) {
+        // 3. localStorage (preferencia do usuario para navegacao normal)
         window.temporadaAtual = parseInt(temporadaSalva, 10);
-        console.log("[FLUXO-ADMIN] 📅 Temporada do localStorage:", window.temporadaAtual);
+        console.log("[FLUXO-ADMIN] Temporada do localStorage:", window.temporadaAtual);
     } else {
-        // ✅ v8.1: Default para 2026 (temporada atual)
+        // 4. Default para 2026 (temporada atual)
         window.temporadaAtual = 2026;
-        console.log("[FLUXO-ADMIN] 📅 Temporada padrão: 2026");
+        console.log("[FLUXO-ADMIN] Temporada padrao: 2026");
     }
 
     try {

@@ -12,17 +12,22 @@ const LOG_PREFIX = "[MELHOR-MES-SERVICE]";
 // =====================================================================
 
 /**
- * Busca dados do Melhor do Mês para uma liga
- * - Se cache consolidado existe, retorna direto (imutável)
- * - Se não existe ou desatualizado, consolida automaticamente
+ * Busca dados do Melhor do Mes para uma liga
+ * - Se cache consolidado existe, retorna direto (imutavel)
+ * - Se nao existe ou desatualizado, consolida automaticamente
  *
  * @param {string} ligaId - ID da liga
  * @param {number} rodadaAtual - Rodada atual do sistema (da API Cartola)
- * @returns {Object} Cache com todas as edições
+ * @param {number} temporada - Temporada para filtrar (opcional, default CURRENT_SEASON)
+ * @returns {Object} Cache com todas as edicoes
  */
-export async function buscarMelhorMes(ligaId, rodadaAtual) {
+export async function buscarMelhorMes(ligaId, rodadaAtual, temporada = null) {
+    // ✅ v9.0: Import CURRENT_SEASON para default
+    const { CURRENT_SEASON } = await import("../config/seasons.js");
+    const temporadaFiltro = temporada || CURRENT_SEASON;
+
     console.log(
-        `${LOG_PREFIX} Buscando Melhor do Mês para liga ${ligaId} (rodada ${rodadaAtual})`,
+        `${LOG_PREFIX} Buscando Melhor do Mes para liga ${ligaId} (rodada ${rodadaAtual}, temporada ${temporadaFiltro})`,
     );
 
     const ligaObjectId =
@@ -30,8 +35,8 @@ export async function buscarMelhorMes(ligaId, rodadaAtual) {
             ? new mongoose.Types.ObjectId(ligaId)
             : ligaId;
 
-    // Buscar cache existente
-    let cache = await MelhorMesCache.findOne({ ligaId: ligaObjectId });
+    // ✅ v9.0: Buscar cache existente FILTRANDO por temporada
+    let cache = await MelhorMesCache.findOne({ ligaId: ligaObjectId, temporada: temporadaFiltro });
 
     // Se temporada encerrada, retorna direto (100% imutável)
     if (cache?.temporada_encerrada) {
@@ -48,8 +53,8 @@ export async function buscarMelhorMes(ligaId, rodadaAtual) {
     );
 
     if (precisaAtualizar) {
-        console.log(`${LOG_PREFIX} 🔄 Atualizando cache...`);
-        cache = await consolidarMelhorMes(ligaObjectId, rodadaAtual);
+        console.log(`${LOG_PREFIX} Atualizando cache...`);
+        cache = await consolidarMelhorMes(ligaObjectId, rodadaAtual, temporadaFiltro);
     }
 
     return formatarResposta(cache);
@@ -60,13 +65,18 @@ export async function buscarMelhorMes(ligaId, rodadaAtual) {
 // =====================================================================
 
 /**
- * Consolida todas as edições do Melhor do Mês
- * - Edições já consolidadas NÃO são recalculadas
- * - Apenas edições em andamento ou pendentes são processadas
+ * Consolida todas as edicoes do Melhor do Mes
+ * - Edicoes ja consolidadas NAO sao recalculadas
+ * - Apenas edicoes em andamento ou pendentes sao processadas
+ * @param {number} temporada - Temporada para filtrar (opcional)
  */
-export async function consolidarMelhorMes(ligaId, rodadaAtual) {
+export async function consolidarMelhorMes(ligaId, rodadaAtual, temporada = null) {
+    // ✅ v9.0: Import CURRENT_SEASON para default
+    const { CURRENT_SEASON } = await import("../config/seasons.js");
+    const temporadaFiltro = temporada || CURRENT_SEASON;
+
     console.log(
-        `${LOG_PREFIX} 🔄 Consolidando Melhor do Mês (rodada ${rodadaAtual})`,
+        `${LOG_PREFIX} Consolidando Melhor do Mes (rodada ${rodadaAtual}, temporada ${temporadaFiltro})`,
     );
 
     const ligaObjectId =
@@ -74,13 +84,14 @@ export async function consolidarMelhorMes(ligaId, rodadaAtual) {
             ? new mongoose.Types.ObjectId(ligaId)
             : ligaId;
 
-    // Buscar cache existente
-    let cache = await MelhorMesCache.findOne({ ligaId: ligaObjectId });
+    // ✅ v9.0: Buscar cache existente FILTRANDO por temporada
+    let cache = await MelhorMesCache.findOne({ ligaId: ligaObjectId, temporada: temporadaFiltro });
 
-    // Criar cache se não existe
+    // Criar cache se nao existe
     if (!cache) {
         cache = new MelhorMesCache({
             ligaId: ligaObjectId,
+            temporada: temporadaFiltro,
             edicoes: [],
             rodada_sistema: 0,
         });
@@ -123,12 +134,13 @@ export async function consolidarMelhorMes(ligaId, rodadaAtual) {
             continue;
         }
 
-        // Calcular ranking da edição
-        console.log(`${LOG_PREFIX} 📊 Calculando ${configEdicao.nome}...`);
+        // Calcular ranking da edicao
+        console.log(`${LOG_PREFIX} Calculando ${configEdicao.nome}...`);
         const dadosEdicao = await calcularRankingEdicao(
             ligaObjectId,
             configEdicao,
             rodadaAtual,
+            temporadaFiltro,
         );
 
         // Atualizar ou criar edição no cache
@@ -173,17 +185,19 @@ export async function consolidarMelhorMes(ligaId, rodadaAtual) {
 // =====================================================================
 
 /**
- * Calcula ranking de uma edição específica
+ * Calcula ranking de uma edicao especifica
+ * @param {number} temporada - Temporada para filtrar
  */
-async function calcularRankingEdicao(ligaId, configEdicao, rodadaAtual) {
+async function calcularRankingEdicao(ligaId, configEdicao, rodadaAtual, temporada) {
     const { id, nome, inicio, fim } = configEdicao;
 
-    // Determinar rodada final para cálculo
+    // Determinar rodada final para calculo
     const rodadaFinal = Math.min(fim, rodadaAtual);
 
-    // Buscar rodadas da edição
+    // ✅ v9.0: Buscar rodadas da edicao FILTRANDO por temporada
     const rodadas = await Rodada.find({
         ligaId,
+        temporada,
         rodada: { $gte: inicio, $lte: rodadaFinal },
     }).lean();
 

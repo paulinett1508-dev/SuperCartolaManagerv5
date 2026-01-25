@@ -1,8 +1,13 @@
 /**
  * CACHE MANAGER - Sistema de Cache Inteligente
- * Persistente (IndexedDB) + Memória (Map)
+ * Persistente (IndexedDB) + Memoria (Map)
  * Sobrevive a page refreshes
  */
+
+// ✅ v9.1: Protecao contra redeclaracao em navegacao SPA
+if (typeof window.CacheManager !== 'undefined') {
+    console.log('[CACHE-MANAGER] Ja carregado, pulando redeclaracao');
+} else {
 
 const CACHE_CONFIG = {
   dbName: "CartolaCache",
@@ -560,6 +565,9 @@ setInterval(
 
 // Expor no window para debug
 window.cacheManager = cacheManager;
+window.CacheManager = CacheManager;
 
 if (window.Log)
-  Log.info("CACHE-MANAGER", "✅ Sistema de cache inteligente carregado");
+  Log.info("CACHE-MANAGER", "Sistema de cache inteligente carregado");
+
+} // Fim do bloco else (protecao contra redeclaracao)
