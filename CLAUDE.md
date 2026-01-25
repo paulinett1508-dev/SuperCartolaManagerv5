@@ -40,13 +40,14 @@
 - **File System:** Do not use absolute paths that assume a local Windows/Mac machine. Use relative paths suitable for Linux.
 
 ## 🤖 Project Skills (Agentes Especializados)
-O projeto conta com **11 skills especializadas** organizadas em dois grupos:
+O projeto conta com **12 skills especializadas** organizadas em dois grupos:
 
-### Skills Auxiliares (7)
+### Skills Auxiliares (8)
 | Skill | Descrição | Quando Usar |
 |-------|-----------|-------------|
 | **code-inspector** | Auditoria Senior Full-Stack (SPARC: Security, Performance, Architecture, Reliability, Code Quality) | "auditar código", "security review", "performance analysis", "OWASP check", "code smell" |
 | **db-guardian** | Banco de Dados (MongoDB), Segurança e Migrações | Scripts de limpeza, manutenção, snapshots de temporada, gestão de acesso |
+| **fact-checker** | Protocolo Anti-Alucinacao (V.E.R.I.F.Y) - Valida afirmacoes antes de responder | "verifique se", "confirme que", "é verdade que", validar informações críticas |
 | **frontend-crafter** | Frontend Mobile-First, UX Black & Orange, Cache Offline, SPA | Criar telas, ajustar CSS, lógica JS do cliente, navegação |
 | **git-commit-push** | Commits e pushes automatizados com Conventional Commits | "faça um git push", "commite tudo", "suba as mudanças" |
 | **league-architect** | Regras de Negócio, Formatos de Liga (SaaS), Lógica Financeira | Configs de liga, cálculos financeiros, regras de disputa |
@@ -64,6 +65,7 @@ O projeto conta com **11 skills especializadas** organizadas em dois grupos:
 ### Exemplos de Uso:
 - "Auditar o sistema de pagamentos" → `code-inspector`
 - "Criar script de migração para nova temporada" → `db-guardian`
+- "Verifique se a função calcularSaldo existe" → `fact-checker`
 - "Ajustar a tela de ranking no mobile" → `frontend-crafter`
 - "Faça um git push das mudanças" → `git-commit-push`
 - "Definir regras do mata-mata" → `league-architect`
