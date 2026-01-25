@@ -617,11 +617,10 @@
                         { ttl: 86400000 },
                     );
 
+                    // Se nao tem ligas, mostrar estado vazio (nao redirecionar)
                     if (ligasData.length === 0) {
-                        // MULTI-TENANT: Redirecionar para wizard de primeira liga
-                        console.log("[DASHBOARD] Admin sem ligas - redirecionando para wizard");
-                        window.location.href = "/wizard-primeira-liga.html";
-                        return;
+                        console.log("[DASHBOARD] Nenhuma liga encontrada - exibindo estado vazio");
+                        // O estado vazio ja esta no HTML (#emptyState)
                     }
 
                     estatisticasGlobais =
