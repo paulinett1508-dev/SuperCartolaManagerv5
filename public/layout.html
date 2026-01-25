@@ -114,15 +114,88 @@
         </nav>
 
         <script>
-            // === VERIFICAÇÃO DE SUPER ADMIN - FUNÇÃO SIMPLES ===
+            // === SISTEMA DE CACHE LOCALSTORAGE ===
+            // TTL em minutos: sessão=5min, ligas=2min
+            const CacheManager = {
+                KEYS: {
+                    SESSION: '_cache_admin_session',
+                    SUPER_ADMIN: '_cache_super_admin',
+                    LIGAS: '_cache_ligas'
+                },
+                TTL: {
+                    SESSION: 5 * 60 * 1000,    // 5 minutos
+                    SUPER_ADMIN: 5 * 60 * 1000, // 5 minutos
+                    LIGAS: 2 * 60 * 1000        // 2 minutos
+                },
+
+                set(key, data, ttl) {
+                    const item = {
+                        data: data,
+                        timestamp: Date.now(),
+                        ttl: ttl
+                    };
+                    try {
+                        localStorage.setItem(key, JSON.stringify(item));
+                    } catch (e) {
+                        console.warn('[CACHE] Erro ao salvar:', e);
+                    }
+                },
+
+                get(key) {
+                    try {
+                        const item = localStorage.getItem(key);
+                        if (!item) return null;
+
+                        const parsed = JSON.parse(item);
+                        const age = Date.now() - parsed.timestamp;
+
+                        if (age > parsed.ttl) {
+                            localStorage.removeItem(key);
+                            return null; // Expirado
+                        }
+
+                        return parsed.data;
+                    } catch (e) {
+                        return null;
+                    }
+                },
+
+                invalidate(key) {
+                    if (key) {
+                        localStorage.removeItem(key);
+                    } else {
+                        // Invalidar todos os caches
+                        Object.values(this.KEYS).forEach(k => localStorage.removeItem(k));
+                    }
+                },
+
+                // Invalidar ao fazer logout
+                clear() {
+                    this.invalidate();
+                }
+            };
+
+            // Expor globalmente para debug/invalidação manual
+            window.CacheManager = CacheManager;
+
+            // === VERIFICAÇÃO DE SUPER ADMIN - COM CACHE ===
             // Esta função é chamada pelas páginas após injetar o layout
             window.verificarMenuSuperAdmin = async function() {
                 console.log('[LAYOUT] verificarMenuSuperAdmin() iniciado');
                 try {
-                    console.log('[LAYOUT] Chamando API check-super...');
-                    const response = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
-                    if (!response.ok) return;
-                    const data = await response.json();
+                    // Tentar cache primeiro
+                    let data = CacheManager.get(CacheManager.KEYS.SUPER_ADMIN);
+
+                    if (data) {
+                        console.log('[LAYOUT] Super Admin (cache hit)');
+                    } else {
+                        console.log('[LAYOUT] Chamando API check-super...');
+                        const response = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
+                        if (!response.ok) return;
+                        data = await response.json();
+                        CacheManager.set(CacheManager.KEYS.SUPER_ADMIN, data, CacheManager.TTL.SUPER_ADMIN);
+                    }
+
                     const menuAdmin = document.getElementById('menuAdministradores');
                     if (menuAdmin) {
                         menuAdmin.style.cssText = data.isSuperAdmin
@@ -253,8 +326,8 @@
                 }
             };
 
-            // === CARREGAMENTO DAS LIGAS NO SIDEBAR (v2.0 - Agrupadas por Temporada) ===
-            async function carregarLigasLayout() {
+            // === CARREGAMENTO DAS LIGAS NO SIDEBAR (v3.0 - Com Cache) ===
+            async function carregarLigasLayout(forceRefresh = false) {
                 const ligasList = document.getElementById("ligasList");
                 if (!ligasList) return;
 
@@ -263,8 +336,17 @@
                 const ligaAtualId = urlParams.get("id");
 
                 try {
-                    const response = await fetch("/api/ligas");
-                    const ligas = await response.json();
+                    // Tentar cache primeiro (se não forçar refresh)
+                    let ligas = !forceRefresh ? CacheManager.get(CacheManager.KEYS.LIGAS) : null;
+
+                    if (ligas) {
+                        console.log('[LAYOUT] Ligas (cache hit)');
+                    } else {
+                        console.log('[LAYOUT] Carregando ligas da API...');
+                        const response = await fetch("/api/ligas");
+                        ligas = await response.json();
+                        CacheManager.set(CacheManager.KEYS.LIGAS, ligas, CacheManager.TTL.LIGAS);
+                    }
 
                     if (!Array.isArray(ligas) || ligas.length === 0) {
                         ligasList.innerHTML = `
@@ -493,9 +575,192 @@
                 }
             }
 
+            // === NAVEGAÇÃO SPA (Sidebar Fixo) ===
+            const SPANavigation = {
+                enabled: true,
+                transitioning: false,
+
+                // Páginas que suportam SPA (mesmo layout)
+                supportedPages: [
+                    'painel.html',
+                    'detalhe-liga.html',
+                    'ferramentas.html',
+                    'ferramentas-rodadas.html',
+                    'criar-liga.html',
+                    'editar-liga.html',
+                    'gerenciar.html',
+                    'gerenciar-modulos.html',
+                    'preencher-liga.html',
+                    'gerir-senhas-participantes.html',
+                    'fluxo-financeiro.html',
+                    'admin-gestao.html',
+                    'historico-acessos.html',
+                    'auditoria-extratos.html'
+                ],
+
+                init() {
+                    // Interceptar cliques no sidebar
+                    document.addEventListener('click', (e) => {
+                        const link = e.target.closest('a[href]');
+                        if (!link) return;
+
+                        // Ignorar links externos ou com target
+                        if (link.target === '_blank' || link.href.startsWith('http') && !link.href.includes(location.host)) {
+                            return;
+                        }
+
+                        // Verificar se é página suportada
+                        const href = link.getAttribute('href');
+                        const pageName = href?.split('?')[0]?.split('/').pop();
+
+                        if (!this.supportedPages.includes(pageName)) {
+                            return; // Navegação normal
+                        }
+
+                        // Verificar se está no sidebar
+                        if (!link.closest('#appSidebar') && !link.closest('.sidebar')) {
+                            return; // Só SPA para sidebar
+                        }
+
+                        e.preventDefault();
+                        this.navigate(href);
+                    });
+
+                    // Suporte a botão voltar
+                    window.addEventListener('popstate', (e) => {
+                        if (e.state?.spa) {
+                            this.navigate(location.href, false);
+                        }
+                    });
+
+                    console.log('[SPA] Navegação SPA inicializada');
+                },
+
+                async navigate(url, pushState = true) {
+                    if (this.transitioning) return;
+                    this.transitioning = true;
+
+                    const mainContent = document.querySelector('main') || document.querySelector('.main-content');
+                    if (!mainContent) {
+                        this.transitioning = false;
+                        window.location.href = url;
+                        return;
+                    }
+
+                    try {
+                        // Fade out sutil
+                        mainContent.style.opacity = '0.5';
+                        mainContent.style.transition = 'opacity 0.15s ease';
+
+                        // Fetch da nova página
+                        const response = await fetch(url);
+                        if (!response.ok) throw new Error('Fetch failed');
+
+                        const html = await response.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+
+                        // Extrair novo conteúdo
+                        const newMain = doc.querySelector('main') || doc.querySelector('.main-content');
+                        if (!newMain) throw new Error('No main content');
+
+                        // Extrair scripts inline da nova página (exceto layout.html)
+                        const newScripts = Array.from(doc.querySelectorAll('script:not([src])')).filter(s => {
+                            const text = s.textContent || '';
+                            return !text.includes('CacheManager') && !text.includes('SPANavigation');
+                        });
+
+                        // Extrair scripts externos específicos da página
+                        const pageScripts = Array.from(doc.querySelectorAll('script[src]')).filter(s => {
+                            const src = s.getAttribute('src') || '';
+                            // Ignorar scripts do layout
+                            return !src.includes('sidebar') && !src.includes('layout');
+                        });
+
+                        // Substituir conteúdo
+                        mainContent.innerHTML = newMain.innerHTML;
+
+                        // Atualizar título
+                        const newTitle = doc.querySelector('title')?.textContent;
+                        if (newTitle) document.title = newTitle;
+
+                        // Atualizar URL
+                        if (pushState) {
+                            history.pushState({ spa: true }, '', url);
+                        }
+
+                        // Fade in
+                        requestAnimationFrame(() => {
+                            mainContent.style.opacity = '1';
+                        });
+
+                        // Executar scripts da nova página
+                        this.executeScripts(pageScripts, newScripts);
+
+                        // Atualizar navegação ativa
+                        if (window.navigationSystem) {
+                            window.navigationSystem.setActiveNavigation();
+                            window.navigationSystem.updatePageTitle();
+                        }
+
+                        console.log('[SPA] Navegação concluída:', url);
+
+                    } catch (error) {
+                        console.warn('[SPA] Fallback para navegação normal:', error);
+                        window.location.href = url;
+                    } finally {
+                        this.transitioning = false;
+                    }
+                },
+
+                executeScripts(externalScripts, inlineScripts) {
+                    // Carregar scripts externos
+                    const loadScript = (src) => {
+                        return new Promise((resolve) => {
+                            // Verificar se já carregado
+                            if (document.querySelector(`script[src="${src}"]`)) {
+                                resolve();
+                                return;
+                            }
+                            const script = document.createElement('script');
+                            script.src = src;
+                            script.onload = resolve;
+                            script.onerror = resolve;
+                            document.body.appendChild(script);
+                        });
+                    };
+
+                    // Carregar externos primeiro
+                    Promise.all(externalScripts.map(s => loadScript(s.getAttribute('src')))).then(() => {
+                        // Executar inline scripts
+                        inlineScripts.forEach(oldScript => {
+                            const newScript = document.createElement('script');
+                            newScript.textContent = oldScript.textContent;
+                            document.body.appendChild(newScript);
+                            // Remover após executar
+                            setTimeout(() => newScript.remove(), 100);
+                        });
+                    });
+                }
+            };
+
+            // Inicializar SPA após DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => SPANavigation.init());
+            } else {
+                SPANavigation.init();
+            }
+
+            // Expor globalmente
+            window.SPANavigation = SPANavigation;
+
             // === FUNÇÕES GLOBAIS ===
             function goToDashboard() {
-                window.location.href = "painel.html";
+                if (SPANavigation.enabled) {
+                    SPANavigation.navigate('painel.html');
+                } else {
+                    window.location.href = "painel.html";
+                }
             }
 
             // === TOGGLE SIDEBAR (DESKTOP) ===
@@ -548,11 +813,8 @@
 
                 if (!userSection || !userToggle) return;
 
-                // Evitar dupla inicialização (sidebar-menu.js pode ter inicializado primeiro)
-                if (userToggle.dataset.initialized) {
-                    console.log('[LAYOUT] Menu já inicializado por sidebar-menu.js');
-                    return;
-                }
+                // Guard contra dupla inicialização
+                if (userToggle.dataset.initialized) return;
                 userToggle.dataset.initialized = 'true';
 
                 // Toggle do menu
@@ -703,7 +965,7 @@
                 }
             }
 
-            // Expor funções globalmente para sidebar-menu.js
+            // Expor funções globalmente
             window.abrirPerfilAdmin = abrirPerfilAdmin;
             window.fecharModalPerfil = fecharModalPerfil;
             window.mostrarModalPerfil = mostrarModalPerfil;
@@ -715,27 +977,40 @@
                         credentials: 'include'
                     })
                     .then(() => {
+                        CacheManager.clear(); // Limpar cache ao sair
                         localStorage.removeItem('adminLogado');
                         localStorage.removeItem('ligaIdSelecionada');
                         window.location.href = '/';
                     })
                     .catch(() => {
+                        CacheManager.clear(); // Limpar cache ao sair
                         localStorage.removeItem('adminLogado');
                         window.location.href = '/';
                     });
                 }
             }
 
-            // === CARREGAR DADOS DO ADMIN ===
+            // === CARREGAR DADOS DO ADMIN - COM CACHE ===
             async function carregarDadosAdmin() {
                 console.log('[LAYOUT] carregarDadosAdmin() chamado');
                 try {
-                    const response = await fetch('/api/admin/auth/session', { credentials: 'include' });
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log('[LAYOUT] Session data:', data);
+                    // Tentar cache de sessão primeiro
+                    let sessionData = CacheManager.get(CacheManager.KEYS.SESSION);
+
+                    if (sessionData) {
+                        console.log('[LAYOUT] Session (cache hit)');
+                    } else {
+                        console.log('[LAYOUT] Carregando sessão da API...');
+                        const response = await fetch('/api/admin/auth/session', { credentials: 'include' });
+                        if (response.ok) {
+                            sessionData = await response.json();
+                            CacheManager.set(CacheManager.KEYS.SESSION, sessionData, CacheManager.TTL.SESSION);
+                        }
+                    }
+
+                    if (sessionData) {
                         // API retorna data.admin, não data.user
-                        const admin = data.admin || data.user;
+                        const admin = sessionData.admin || sessionData.user;
                         if (admin) {
                             const userName = document.getElementById('userName');
                             if (userName) {
@@ -748,31 +1023,28 @@
                         }
                     }
 
-                    // Verificar se é Super Admin para mostrar menu Administradores
-                    console.log('[LAYOUT] Chamando check-super...');
-                    const superResponse = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
-                    console.log('[LAYOUT] check-super response status:', superResponse.status);
-                    if (superResponse.ok) {
-                        const superData = await superResponse.json();
-                        console.log('[LAYOUT] Check Super Admin result:', superData);
+                    // Verificar Super Admin (também usa cache)
+                    let superData = CacheManager.get(CacheManager.KEYS.SUPER_ADMIN);
 
-                        const menuAdmin = document.getElementById('menuAdministradores');
-                        console.log('[LAYOUT] menuAdministradores element:', menuAdmin);
-                        if (menuAdmin) {
-                            if (superData.isSuperAdmin) {
-                                // Super Admin - mostrar menu
-                                menuAdmin.style.cssText = 'display: flex !important;';
-                                console.log('[LAYOUT] Menu Administradores VISÍVEL (Super Admin)');
-                            } else {
-                                // Admin comum - esconder menu
-                                menuAdmin.style.cssText = 'display: none !important;';
-                                console.log('[LAYOUT] Menu Administradores OCULTO (Admin comum)');
-                            }
-                        } else {
-                            console.warn('[LAYOUT] Elemento menuAdministradores não encontrado!');
-                        }
+                    if (superData) {
+                        console.log('[LAYOUT] Super Admin (cache hit)');
                     } else {
-                        console.warn('[LAYOUT] check-super falhou:', superResponse.status);
+                        console.log('[LAYOUT] Chamando check-super...');
+                        const superResponse = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
+                        if (superResponse.ok) {
+                            superData = await superResponse.json();
+                            CacheManager.set(CacheManager.KEYS.SUPER_ADMIN, superData, CacheManager.TTL.SUPER_ADMIN);
+                        }
+                    }
+
+                    if (superData) {
+                        const menuAdmin = document.getElementById('menuAdministradores');
+                        if (menuAdmin) {
+                            menuAdmin.style.cssText = superData.isSuperAdmin
+                                ? 'display: flex !important;'
+                                : 'display: none !important;';
+                            console.log('[LAYOUT] Menu Administradores:', superData.isSuperAdmin ? 'VISÍVEL' : 'OCULTO');
+                        }
                     }
                 } catch (error) {
                     // Silencioso - manter "Admin" como fallback
@@ -814,8 +1086,15 @@
 
             // Expor função globalmente ANTES de qualquer inicialização
             window.carregarDadosAdmin = carregarDadosAdmin;
+            window.carregarLigasLayout = carregarLigasLayout;
             window.inicializarLayout = inicializarLayout;
             window.tentarInicializarLayout = tentarInicializarLayout;
+
+            // Função para forçar refresh (após criar/editar liga)
+            window.refreshLigasSidebar = function() {
+                CacheManager.invalidate(CacheManager.KEYS.LIGAS);
+                carregarLigasLayout(true);
+            };
 
             // Inicialização automática - sempre executar após pequeno delay
             // para garantir que o DOM foi atualizado
