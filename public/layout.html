@@ -326,7 +326,8 @@
                         ligasTemp.forEach(liga => {
                             const ligaId = liga._id || liga.id;
                             const isLigaAtual = ligaId === ligaAtualId;
-                            const timesCount = liga.timesCount || liga.times?.length || 0;
+                            // ✅ v4.0 FIX: Usar timesCountPerSeason para a temporada específica
+                            const timesCount = liga.timesCountPerSeason?.[temporada] ?? liga.timesCount ?? liga.times?.length ?? 0;
                             const logoUrl = obterLogoLiga(liga.nome);
                             const isAposentada = liga.ativa === false || liga.status === 'aposentada';
                             // ✅ v3.0: Detectar se é visualização histórica (temporada diferente da atual)
