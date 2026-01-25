@@ -708,6 +708,7 @@
                         }
 
                         // ✅ FIX: Disparar evento para reinicializar módulos após navegação SPA
+                        const pageName = url?.split('?')[0]?.split('/').pop();
                         setTimeout(() => {
                             window.dispatchEvent(new CustomEvent('spa:navigated', {
                                 detail: { url, pageName }

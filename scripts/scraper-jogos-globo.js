@@ -3,10 +3,10 @@
 // Uso: node scripts/scraper-jogos-globo.js
 
 import axios from 'axios';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 
 async function obterJogosGloboEsporte() {
-  const url = 'https://ge.globo.com/futebol/agenda/';
+  const url = 'https://ge.globo.com/agenda/';
   const { data: html } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
   const $ = cheerio.load(html);
   const jogos = [];
@@ -21,8 +21,10 @@ async function obterJogosGloboEsporte() {
   return jogos;
 }
 
-// Execução direta
-if (require.main === module) {
+// Execução direta (ESM)
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+if (process.argv[1] === __filename) {
   obterJogosGloboEsporte()
     .then(jogos => {
       if (!jogos.length) {

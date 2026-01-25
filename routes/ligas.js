@@ -745,7 +745,8 @@ router.get("/:id/temporadas", async (req, res) => {
     });
 
     // Combinar e ordenar (mais recente primeiro)
-    const disponiveis = [...new Set([temporadaBase, ...temporadasInscricoes])]
+    // v2.0: Incluir CURRENT_SEASON mesmo sem inscricoes para permitir navegacao
+    const disponiveis = [...new Set([temporadaBase, CURRENT_SEASON, ...temporadasInscricoes])]
       .sort((a, b) => b - a);
 
     res.json({

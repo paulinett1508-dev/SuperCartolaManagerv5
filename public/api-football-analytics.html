@@ -879,18 +879,24 @@
             // Carregar jogos ao vivo
             window.carregarJogos = async function() {
                 const btn = document.querySelector('.refresh-btn');
-                btn.classList.add('loading');
+                if (btn) btn.classList.add('loading');
 
                 try {
                     const response = await fetch('/api/jogos-ao-vivo');
                     const data = await response.json();
 
-                    // Contador
-                    document.getElementById('jogos-ao-vivo').textContent = data.jogos?.length || 0;
-                    document.getElementById('jogos-fonte').textContent = `Fonte: ${data.fonte || '-'}`;
+                    // Contador (com null checks)
+                    const countEl = document.getElementById('jogos-ao-vivo');
+                    const fonteEl = document.getElementById('jogos-fonte');
+                    if (countEl) countEl.textContent = data.jogos?.length || 0;
+                    if (fonteEl) fonteEl.textContent = `Fonte: ${data.fonte || '-'}`;
 
-                    // Lista de jogos
-                    const container = document.getElementById('live-games');
+                    // Lista de jogos (usa jogos-andamento como container principal)
+                    const container = document.getElementById('jogos-andamento');
+                    if (!container) {
+                        console.warn('[API-Football] Container jogos-andamento nao encontrado');
+                        return;
+                    }
 
                     if (!data.jogos || data.jogos.length === 0) {
                         container.innerHTML = `
@@ -924,14 +930,17 @@
 
                 } catch (error) {
                     console.error('Erro ao carregar jogos:', error);
-                    document.getElementById('live-games').innerHTML = `
-                        <div class="no-games">
-                            <span class="material-icons">error</span>
-                            <p>Erro ao carregar jogos</p>
-                        </div>
-                    `;
+                    const errorContainer = document.getElementById('jogos-andamento');
+                    if (errorContainer) {
+                        errorContainer.innerHTML = `
+                            <div class="no-games">
+                                <span class="material-icons">error</span>
+                                <p>Erro ao carregar jogos</p>
+                            </div>
+                        `;
+                    }
                 } finally {
-                    btn.classList.remove('loading');
+                    if (btn) btn.classList.remove('loading');
                 }
             }
 

@@ -11,6 +11,10 @@ class EditarLigaManager {
         this.clubes = [];
         this.isLoading = false;
 
+        // Temporada state
+        this.temporadaSelecionada = null;
+        this.temporadasDisponiveis = [];
+
         this.elements = {};
         this.initElements();
     }
@@ -39,12 +43,63 @@ class EditarLigaManager {
         try {
             await this.loadLayout();
             await this.carregarClubes();
+            await this.carregarTemporadas();
             await this.carregarTimes();
             this.attachEventListeners();
         } catch (error) {
             console.error("Erro ao inicializar editar liga:", error);
             this.showError("Erro ao carregar página de edição");
         }
+    }
+
+    async carregarTemporadas() {
+        try {
+            const res = await fetch(`/api/ligas/${this.ligaId}/temporadas`);
+            if (!res.ok) throw new Error('Erro ao buscar temporadas');
+
+            const data = await res.json();
+            this.temporadasDisponiveis = data.disponiveis || [];
+
+            // Default: temporada mais recente (primeiro da lista)
+            this.temporadaSelecionada = this.temporadasDisponiveis[0] || data.temporada_atual || new Date().getFullYear();
+
+            this.renderizarSeletorTemporada();
+            return true;
+        } catch (err) {
+            console.error('Erro ao carregar temporadas:', err);
+            // Fallback: apenas temporada atual
+            this.temporadasDisponiveis = [new Date().getFullYear()];
+            this.temporadaSelecionada = this.temporadasDisponiveis[0];
+            return false;
+        }
+    }
+
+    renderizarSeletorTemporada() {
+        const container = document.getElementById('temporada-tabs');
+        if (!container) return;
+
+        // Ocultar se apenas uma temporada (v2.0: mostrar tabs quando >= 2)
+        if (this.temporadasDisponiveis.length < 2) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'inline-flex';
+        container.innerHTML = this.temporadasDisponiveis.map(ano => `
+            <button class="tab-btn-inline ${ano === this.temporadaSelecionada ? 'active' : ''}"
+                    data-temporada="${ano}"
+                    onclick="editarLiga.mudarTemporada(${ano})">
+                ${ano}
+            </button>
+        `).join('');
+    }
+
+    async mudarTemporada(novaTemporada) {
+        if (novaTemporada === this.temporadaSelecionada) return;
+
+        this.temporadaSelecionada = novaTemporada;
+        this.renderizarSeletorTemporada();
+        await this.carregarTimes();
     }
 
     async loadLayout() {
@@ -188,47 +243,61 @@ class EditarLigaManager {
         try {
             this.showLoading(true);
 
-            const res = await fetch(`/api/ligas/${this.ligaId}`);
-            if (!res.ok) {
-                throw new Error(`Erro ao buscar liga: ${res.statusText}`);
+            // 1. Buscar dados básicos da liga (nome, etc.)
+            const resLiga = await fetch(`/api/ligas/${this.ligaId}`);
+            if (!resLiga.ok) {
+                throw new Error(`Erro ao buscar liga: ${resLiga.statusText}`);
             }
 
-            this.ligaAtual = await res.json();
+            this.ligaAtual = await resLiga.json();
 
             if (!this.ligaAtual || !this.ligaAtual.nome) {
                 throw new Error("Liga não encontrada ou dados inválidos");
             }
 
-            // Atualizar título
+            // Atualizar título com indicador de temporada
             if (this.elements.tituloLiga) {
-                this.elements.tituloLiga.innerHTML = `Editar Times da <span>${this.ligaAtual.nome}</span>`;
+                const temporadaLabel = this.temporadaSelecionada ? ` (${this.temporadaSelecionada})` : '';
+                this.elements.tituloLiga.innerHTML = `Editar Times da <span>${this.ligaAtual.nome}</span>${temporadaLabel}`;
             }
 
-            const timesIds = this.ligaAtual.times || [];
+            // 2. Buscar participantes filtrados por temporada
+            const temporada = this.temporadaSelecionada || this.ligaAtual.temporada || new Date().getFullYear();
+            const resParticipantes = await fetch(
+                `/api/ligas/${this.ligaId}/participantes?temporada=${temporada}`
+            );
 
-            if (!Array.isArray(timesIds) || timesIds.length === 0) {
+            if (!resParticipantes.ok) {
+                throw new Error(`Erro ao buscar participantes: ${resParticipantes.statusText}`);
+            }
+
+            const dadosParticipantes = await resParticipantes.json();
+            const participantes = dadosParticipantes.participantes || [];
+
+            if (participantes.length === 0) {
                 this.showEmpty();
+                this.ligaAtual.times = [];
                 this.adicionarLinhaNova();
                 return;
             }
 
-            // Buscar dados dos times
+            // Buscar dados adicionais do Cartola para cada participante
             const timesComDados = await Promise.all(
-                timesIds.map(async (timeId, index) => {
-                    const timeData = await this.buscarDadosCartola(timeId);
-                    const clubeId = timeData.clube_id;
+                participantes.map(async (p, index) => {
+                    const timeData = await this.buscarDadosCartola(p.time_id);
+                    const clubeId = p.clube_id || timeData.clube_id;
                     const clube = this.clubes.find((c) => c.id === clubeId);
 
                     return {
-                        id: timeId,
-                        nome_cartoleiro:
-                            timeData.nome_cartoleiro || "Não encontrado",
-                        brasao: timeData.url_escudo_png || null,
+                        id: p.time_id,
+                        nome_cartoleiro: p.nome_cartoleiro || timeData.nome_cartoleiro || "Não encontrado",
+                        brasao: timeData.url_escudo_png || p.escudo || null,
                         clube_id: clubeId,
                         timeDoCoracao: clube ? `/escudos/${clube.id}.png` : "",
                         timeDoCoracaoNome: clube ? clube.nome : "N/D",
                         index: index,
                         error: timeData.error,
+                        status: p.status, // 'ativo', 'renovado', 'novo', etc.
                     };
                 }),
             );
@@ -716,4 +785,5 @@ window.editarLiga = {
         editarLiga?.atualizarClube(select, index),
     atualizarNovoEscudo: (select) => editarLiga?.atualizarNovoEscudo(select),
     limparCampos: () => editarLiga?.limparCampos(),
+    mudarTemporada: (ano) => editarLiga?.mudarTemporada(ano),
 };
