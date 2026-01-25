@@ -703,6 +703,13 @@
                             window.navigationSystem.updatePageTitle();
                         }
 
+                        // ✅ FIX: Disparar evento para reinicializar módulos após navegação SPA
+                        setTimeout(() => {
+                            window.dispatchEvent(new CustomEvent('spa:navigated', {
+                                detail: { url, pageName }
+                            }));
+                        }, 100);
+
                         console.log('[SPA] Navegação concluída:', url);
 
                     } catch (error) {
@@ -715,26 +722,37 @@
 
                 executeScripts(externalScripts, inlineScripts) {
                     // Carregar scripts externos
-                    const loadScript = (src) => {
+                    const loadScript = (scriptEl) => {
+                        const src = scriptEl.getAttribute('src');
+                        const isModule = scriptEl.getAttribute('type') === 'module';
+
                         return new Promise((resolve) => {
-                            // Verificar se já carregado
-                            if (document.querySelector(`script[src="${src}"]`)) {
+                            // Verificar se já carregado (apenas para não-módulos)
+                            if (!isModule && document.querySelector(`script[src="${src}"]`)) {
                                 resolve();
                                 return;
                             }
                             const script = document.createElement('script');
                             script.src = src;
+                            // ✅ FIX: Preservar type="module" para módulos ES
+                            if (isModule) {
+                                script.type = 'module';
+                            }
                             script.onload = resolve;
                             script.onerror = resolve;
                             document.body.appendChild(script);
                         });
                     };
 
-                    // Carregar externos primeiro
-                    Promise.all(externalScripts.map(s => loadScript(s.getAttribute('src')))).then(() => {
+                    // Carregar externos primeiro (preservando type)
+                    Promise.all(externalScripts.map(s => loadScript(s))).then(() => {
                         // Executar inline scripts
                         inlineScripts.forEach(oldScript => {
                             const newScript = document.createElement('script');
+                            // ✅ FIX: Preservar type="module" para inline modules
+                            if (oldScript.getAttribute('type') === 'module') {
+                                newScript.type = 'module';
+                            }
                             newScript.textContent = oldScript.textContent;
                             document.body.appendChild(newScript);
                             // Remover após executar

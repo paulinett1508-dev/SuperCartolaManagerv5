@@ -214,7 +214,8 @@
       "Bash(if not exist \"%USERPROFILE%\\\\.claude\" mkdir \"%USERPROFILE%\\\\.claude\")",
       "Bash(npx web-push:*)",
       "Bash(~/bin/jq.exe:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(where:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -78,18 +78,6 @@ class DetalheLigaOrquestrador {
             // ✅ v2.0: Auto-navegar para módulo via URL (section + timeId)
             this.handleUrlNavigation();
 
-            // DEBUG: Listener global para verificar se cliques estão chegando
-            document.addEventListener('click', (e) => {
-                const card = e.target.closest('.module-card');
-                if (card) {
-                    console.log(`[DEBUG-GLOBAL] Clique em module-card: ${card.dataset.module}`, {
-                        target: e.target.tagName,
-                        defaultPrevented: e.defaultPrevented,
-                        propagationStopped: e.cancelBubble
-                    });
-                }
-            }, true); // capture phase
-
             console.log("[ORQUESTRADOR] ✅ Inicializado");
         } catch (error) {
             console.error("[ORQUESTRADOR] ❌ Erro na inicialização:", error);
@@ -408,58 +396,57 @@ class DetalheLigaOrquestrador {
     }
 
     initializeNavigation() {
-        const cards = document.querySelectorAll(".module-card");
-        const items = document.querySelectorAll(
-            ".module-items li[data-action]",
-        );
+        // ✅ v3.0: Event delegation para sobreviver a navegação SPA
+        // Listener no document ao invés de nos cards individuais
 
-        // DEBUG: Log de inicialização de navegação
-        console.log(`[ORQUESTRADOR] initializeNavigation: ${cards.length} cards encontrados`);
+        if (this._navigationInitialized) {
+            console.log(`[ORQUESTRADOR] Navegação já inicializada (event delegation)`);
+            return;
+        }
+        this._navigationInitialized = true;
 
-        let cardsAtivos = 0;
-        let cardsDesabilitados = 0;
+        console.log(`[ORQUESTRADOR] Inicializando navegação via event delegation`);
 
-        cards.forEach((card) => {
+        // Event delegation para module-cards
+        document.addEventListener("click", async (e) => {
+            const card = e.target.closest(".module-card");
+            if (!card) return;
+
+            // Ignorar cards desabilitados
             if (card.classList.contains("disabled")) {
-                cardsDesabilitados++;
                 console.log(`[ORQUESTRADOR] Card DISABLED: ${card.dataset.module}`);
                 return;
             }
 
-            cardsAtivos++;
-            console.log(`[ORQUESTRADOR] Registrando click em: ${card.dataset.module}`);
-
-            card.addEventListener("click", async (e) => {
-                console.log(`[ORQUESTRADOR] CLICK em: ${card.dataset.module}`);
-                if (this.processingModule) {
-                    console.log(`[ORQUESTRADOR] BLOQUEADO - processingModule=true`);
-                    return;
-                }
-
-                card.style.transform = "translateY(-1px) scale(0.98)";
-                setTimeout(() => (card.style.transform = ""), 150);
-
-                const module = card.dataset.module;
-                this.showSecondaryScreen();
-                await this.handleModuleClick(module);
-            });
-        });
-
-        console.log(`[ORQUESTRADOR] Navegação: ${cardsAtivos} ativos, ${cardsDesabilitados} desabilitados`);
-
-        items.forEach((item) => {
-            const parentCard = item.closest(".module-card");
-            if (parentCard && parentCard.classList.contains("disabled")) return;
-
-            item.addEventListener("click", async (e) => {
+            // Verificar se é item de ação dentro do card
+            const actionItem = e.target.closest(".module-items li[data-action]");
+            if (actionItem) {
                 e.stopPropagation();
                 if (this.processingModule) return;
 
-                item.style.opacity = "0.6";
-                setTimeout(() => (item.style.opacity = ""), 150);
-                await this.executeAction(item.dataset.action);
-            });
+                actionItem.style.opacity = "0.6";
+                setTimeout(() => (actionItem.style.opacity = ""), 150);
+                await this.executeAction(actionItem.dataset.action);
+                return;
+            }
+
+            // Clique no card principal
+            console.log(`[ORQUESTRADOR] CLICK em: ${card.dataset.module}`);
+
+            if (this.processingModule) {
+                console.log(`[ORQUESTRADOR] BLOQUEADO - processingModule=true`);
+                return;
+            }
+
+            card.style.transform = "translateY(-1px) scale(0.98)";
+            setTimeout(() => (card.style.transform = ""), 150);
+
+            const module = card.dataset.module;
+            this.showSecondaryScreen();
+            await this.handleModuleClick(module);
         });
+
+        console.log(`[ORQUESTRADOR] Navegação via event delegation ativada`);
     }
 
     async executeAction(action, showSecondary = true) {
@@ -997,7 +984,43 @@ function setupLazyModuleLoading() {
     // Configuração para lazy loading - módulos carregam sob demanda
 }
 
-// INICIALIZAÇÃO
-document.addEventListener("DOMContentLoaded", () => {
+// ✅ FIX v3.0: Função de inicialização que pode ser chamada múltiplas vezes
+function initOrquestrador() {
+    // Verificar se estamos na página detalhe-liga
+    if (!window.location.pathname.includes('detalhe-liga')) {
+        return;
+    }
+
+    // Verificar se já existe um orquestrador válido
+    if (window.detalheLigaOrquestrador && window.detalheLigaOrquestrador._navigationInitialized) {
+        console.log('[ORQUESTRADOR] Já inicializado, pulando...');
+        return;
+    }
+
+    console.log('[ORQUESTRADOR] Criando nova instância...');
     window.detalheLigaOrquestrador = new DetalheLigaOrquestrador();
+    window.orquestrador = window.detalheLigaOrquestrador;
+}
+
+// INICIALIZAÇÃO - DOMContentLoaded
+document.addEventListener("DOMContentLoaded", () => {
+    initOrquestrador();
 });
+
+// ✅ FIX: Reinicializar após navegação SPA
+window.addEventListener('spa:navigated', (e) => {
+    const { pageName } = e.detail || {};
+    if (pageName === 'detalhe-liga.html') {
+        console.log('[ORQUESTRADOR] Reinicializando após navegação SPA...');
+        // Resetar flag para permitir nova inicialização
+        if (window.detalheLigaOrquestrador) {
+            window.detalheLigaOrquestrador._navigationInitialized = false;
+        }
+        initOrquestrador();
+    }
+});
+
+// ✅ FIX: Também inicializar se o DOM já estiver pronto (para navegação SPA)
+if (document.readyState !== 'loading') {
+    initOrquestrador();
+}
