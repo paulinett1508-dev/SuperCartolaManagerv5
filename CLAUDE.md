@@ -464,6 +464,118 @@ const TEMPORADA_CARTOLA = 2026;     // Atualizar para 2026
 
 **Quando atualizar:** Quando API Cartola retornar `temporada: 2026` (geralmente final de marco).
 
+## 🧩 Sistema de Módulos (Arquitetura Extensível)
+
+O Super Cartola Manager possui um sistema de módulos dinâmico que permite habilitar/desabilitar funcionalidades por liga e por temporada.
+
+### Estrutura de Controle
+
+| Camada | Local | Função |
+|--------|-------|--------|
+| **Liga.modulos_ativos** | Collection `ligas` | On/Off simples por módulo |
+| **ModuleConfig** | Collection `moduleconfigs` | Config granular por liga/temporada/módulo |
+| **Navigation** | `participante-navigation.js` | Carrega módulos dinamicamente |
+
+### Módulos Existentes
+
+#### Módulos Base (sempre ativos)
+| Módulo | ID | Descrição |
+|--------|-----|-----------|
+| Extrato | `extrato` | Saldo financeiro do participante |
+| Ranking | `ranking` | Classificação geral da liga |
+| Rodadas | `rodadas` | Histórico de pontuação por rodada |
+| Hall da Fama | `historico` | Conquistas e badges |
+
+#### Módulos Opcionais (configuráveis)
+| Módulo | ID | Descrição | Financeiro |
+|--------|-----|-----------|------------|
+| Top 10 | `top10` | Mito/Mico da rodada | Sim |
+| Melhor Mês | `melhorMes` | Ranking por período | Sim |
+| Pontos Corridos | `pontosCorridos` | Confrontos todos vs todos | Opcional |
+| Mata-Mata | `mataMata` | Eliminatórias em chaves | Sim |
+| Artilheiro | `artilheiro` | Ranking de gols | Opcional |
+| Luva de Ouro | `luvaOuro` | Ranking de goleiros | Opcional |
+| Campinho | `campinho` | Visualização de escalação | Não |
+
+### Como Criar um Novo Módulo
+
+#### 1. Backend (API)
+```bash
+# Criar rota
+routes/novo-modulo-routes.js
+
+# Criar controller
+controllers/novoModuloController.js
+
+# Registrar no index.js
+import novoModuloRoutes from './routes/novo-modulo-routes.js';
+app.use('/api/novo-modulo', novoModuloRoutes);
+```
+
+#### 2. Frontend (App Participante)
+```bash
+# Criar HTML
+public/participante/fronts/novo-modulo.html
+
+# Criar JS
+public/participante/js/modules/participante-novo-modulo.js
+```
+
+#### 3. Registrar no Sistema de Navegação
+```javascript
+// Em participante-navigation.js, adicionar ao MODULES_CONFIG:
+'novo-modulo': {
+    id: 'novo-modulo',
+    label: 'Novo Módulo',
+    icon: 'emoji_events',  // Material Icon
+    htmlPath: '/participante/fronts/novo-modulo.html',
+    jsPath: 'participante-novo-modulo.js',
+    configKey: 'novoModulo',  // Chave em modulos_ativos
+    requiresConfig: true      // Precisa de configuração do admin
+}
+```
+
+#### 4. Habilitar na Liga
+```javascript
+// Via MongoDB ou painel admin
+db.ligas.updateOne(
+    { _id: ligaId },
+    { $set: { "modulos_ativos.novoModulo": true } }
+)
+```
+
+#### 5. (Opcional) Configuração Avançada via ModuleConfig
+```javascript
+// Para configs específicas por temporada
+db.moduleconfigs.insertOne({
+    liga_id: ligaId,
+    modulo: 'novo_modulo',
+    temporada: 2026,
+    ativo: true,
+    configurado: true,
+    financeiro_override: { /* valores customizados */ },
+    regras_override: { /* regras específicas */ }
+})
+```
+
+### Segregação por Temporada
+
+Cada temporada começa "zerada":
+- Módulos opcionais: **desabilitados por padrão**
+- Configurações: **arquivadas** da temporada anterior
+- Caches: **vazios** (índice `temporada` em todas collections)
+
+**Script de reset:** `scripts/reset-temporada-2026.js`
+
+### Arquivos Principais
+
+| Arquivo | Função |
+|---------|--------|
+| `models/Liga.js` | Schema com `modulos_ativos` |
+| `models/ModuleConfig.js` | Config granular por módulo |
+| `public/participante/js/participante-navigation.js` | Navegação dinâmica |
+| `public/participante/js/participante-quick-bar.js` | Barra de acesso rápido |
+
 ## ⚠️ Critical Rules
 1. NEVER remove the `gemini_audit.py` file.
 2. NEVER break the "Follow the Money" audit trail in financial controllers.
