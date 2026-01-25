@@ -1,8 +1,9 @@
-// === CARDS-CONDICIONAIS.JS v2.0 ===
-// ✅ v2.0: Refatorado para SaaS - busca config do servidor via API
+// === CARDS-CONDICIONAIS.JS v2.1 ===
+// v2.1: FIX - Remove clonagem que destruia event listeners de navegacao
+// v2.0: Refatorado para SaaS - busca config do servidor via API
 // Sistema de desativação condicional de cards por liga
 
-console.log("[CARDS-CONDICIONAIS] v2.0 SaaS - Carregando sistema...");
+console.log("[CARDS-CONDICIONAIS] v2.1 SaaS - Carregando sistema...");
 
 // === CACHE DE CONFIG DA LIGA ===
 let ligaConfigCache = null;
@@ -84,17 +85,22 @@ function isModuleDisabled(moduleId) {
 
 /**
  * Aplicar estado desabilitado visual nos cards
+ * v2.1 FIX: NAO clonar cards - apenas desabilitar visualmente
+ * A clonagem removia os event listeners de navegacao do orquestrador
  */
 function aplicarEstadoDesabilitado(card, moduleId) {
-    // Adicionar classe CSS
+    // Adicionar classe CSS para estilo visual
     card.classList.add("disabled");
 
-    // Remover event listeners existentes clonando o elemento
-    const newCard = card.cloneNode(true);
-    card.parentNode.replaceChild(newCard, card);
+    // Adicionar atributo data para identificacao
+    card.dataset.disabledBy = 'cards-condicionais';
 
-    console.log(`🚫 [CARDS-CONDICIONAIS] Card "${moduleId}" desabilitado`);
-    return newCard;
+    // Bloquear pointer events via CSS (mais seguro que clonar)
+    card.style.pointerEvents = "none";
+    card.style.opacity = "0.5";
+
+    console.log(`[CARDS-CONDICIONAIS] Card "${moduleId}" desabilitado (v2.1)`);
+    return card; // Retorna o mesmo card, nao um clone
 }
 
 /**
@@ -334,7 +340,7 @@ function adicionarAnimacoes() {
  * Inicializar sistema quando DOM estiver pronto (v2.0 - async)
  */
 async function inicializar() {
-    console.log("[CARDS-CONDICIONAIS] Inicializando v2.0 SaaS...");
+    console.log("[CARDS-CONDICIONAIS] Inicializando v2.1 SaaS...");
 
     try {
         // Garantir que voltarParaCards está disponível globalmente
@@ -356,7 +362,7 @@ async function inicializar() {
         adicionarAnimacoes();
         setTimeout(melhorarExperienciaCards, 100);
 
-        console.log("[CARDS-CONDICIONAIS] Sistema v2.0 inicializado");
+        console.log("[CARDS-CONDICIONAIS] Sistema v2.1 inicializado");
     } catch (error) {
         console.error("[CARDS-CONDICIONAIS] Erro na inicialização:", error);
     }
@@ -388,4 +394,4 @@ if (document.readyState === "loading") {
     setTimeout(inicializar, 150);
 }
 
-console.log("[CARDS-CONDICIONAIS] Módulo v2.0 SaaS carregado");
+console.log("[CARDS-CONDICIONAIS] Módulo v2.1 SaaS carregado");

@@ -1216,6 +1216,13 @@
 
             // === Inicializar quando a página carregar ===
             document.addEventListener("DOMContentLoaded", async () => {
+                // === PROTECAO ANTI RE-EXECUCAO SPA ===
+                if (window._painelInitialized) {
+                    console.log("[DASHBOARD] Ja inicializado, ignorando re-execucao");
+                    return;
+                }
+                window._painelInitialized = true;
+
                 console.log("[DASHBOARD] Inicializando dashboard...");
 
                 const autenticado = await verificarAutenticacao();

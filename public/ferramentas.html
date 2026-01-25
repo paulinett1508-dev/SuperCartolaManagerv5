@@ -512,6 +512,13 @@
             }
 
             document.addEventListener("DOMContentLoaded", () => {
+                // === PROTECAO ANTI RE-EXECUCAO SPA ===
+                if (window._ferramentasInitialized) {
+                    console.log("[FERRAMENTAS] Ja inicializado, ignorando re-execucao");
+                    return;
+                }
+                window._ferramentasInitialized = true;
+
                 loadLayout();
                 carregarEstatisticas();
             });
