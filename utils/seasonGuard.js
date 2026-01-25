@@ -40,10 +40,10 @@ export const SEASON_CONFIG = {
     LAST_ROUND: 38,
 
     // Ano da temporada atual
-    SEASON_YEAR: 2025,
+    SEASON_YEAR: 2026,
 
     // Data de encerramento (para logs)
-    SEASON_END_DATE: '2025-12-08',
+    SEASON_END_DATE: '2026-12-08',
 
     // Mensagem padrão de bloqueio
     get BLOCK_MESSAGE() {

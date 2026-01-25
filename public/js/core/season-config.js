@@ -15,7 +15,7 @@
 export const CURRENT_SEASON = 2026;
 
 // Status da temporada: 'preparando' | 'ativa' | 'encerrada'
-export const SEASON_STATUS = 'preparando';
+export const SEASON_STATUS = 'ativa';
 
 // Última rodada do Brasileirão
 export const RODADA_FINAL_CAMPEONATO = 38;

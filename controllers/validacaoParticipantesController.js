@@ -73,9 +73,10 @@ export async function validarParticipantesTemporada(req, res) {
                     continue;
                 }
 
-                const nomeAtual = dadosCartola.time?.nome_cartoleiro || dadosCartola.nome_cartoleiro || "N/D";
-                const nomeTimeAtual = dadosCartola.time?.nome || dadosCartola.nome || "N/D";
-                const escudoAtual = dadosCartola.time?.url_escudo_png || dadosCartola.url_escudo_png || "";
+                // ✅ v1.4: buscarTimePorId retorna dados normalizados (flat, sem wrapper 'time')
+                const nomeAtual = dadosCartola.nome_cartoleiro || "N/D";
+                const nomeTimeAtual = dadosCartola.nome_time || "N/D";
+                const escudoAtual = dadosCartola.escudo || "";
 
                 // Comparar nome do cartoleiro (dono)
                 const nomesIguais = normalizarNome(nomeRegistrado) === normalizarNome(nomeAtual);
