@@ -92,6 +92,29 @@ const listarLigas = async (req, res) => {
       inscricoesAtivasMap[key] = item.count;
     });
 
+    // ✅ v4.1: Buscar participantes NOVOS (que entraram em 2026+) por liga
+    // Esses NÃO devem ser contados em temporadas históricas
+    const novosPorLiga = await InscricaoTemporada.aggregate([
+      {
+        $match: {
+          status: 'novo',
+          temporada: { $gte: 2026 }
+        }
+      },
+      {
+        $group: {
+          _id: "$liga_id",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Criar mapa liga_id -> quantidade de novos
+    const novosMap = {};
+    novosPorLiga.forEach(item => {
+      novosMap[String(item._id)] = item.count;
+    });
+
     // ✅ v3.0: Enriquecer com contagem de times, flags úteis e temporadas_com_dados
     const ligasEnriquecidas = ligas.map(liga => {
       const ligaIdStr = String(liga._id);
@@ -108,8 +131,11 @@ const listarLigas = async (req, res) => {
           const key = `${ligaIdStr}_${temp}`;
           timesCountPerSeason[temp] = inscricoesAtivasMap[key] || 0;
         } else {
-          // Para temporadas legadas, usa o tamanho do array de times
-          timesCountPerSeason[temp] = liga.times?.length || 0;
+          // ✅ v4.1: Para temporadas legadas, subtrai os "novos" de 2026+
+          // Exemplo: Se liga.times tem 33 e 1 é "novo" em 2026, temporada 2025 = 32
+          const totalTimes = liga.times?.length || 0;
+          const novosNaLiga = novosMap[ligaIdStr] || 0;
+          timesCountPerSeason[temp] = Math.max(0, totalTimes - novosNaLiga);
         }
       });
 
