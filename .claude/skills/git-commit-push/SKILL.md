@@ -13,12 +13,50 @@ Automatizar commits e pushes com mensagens descritivas, validações de código 
 ## ⚡ ATIVAÇÃO AUTOMÁTICA
 
 ### Comandos que Acionam a Skill
+
+**Termos Diretos (SEMPRE usar skill):**
+- `git push`
+- `git commit`
+- `push`
+- `commit`
+
+**Frases em Português:**
 - "faça um git push"
+- "faça o push"
+- "faz um push"
 - "commite tudo"
 - "commit e push"
 - "suba as mudanças"
+- "subir mudanças"
+- "envie para o github"
+- "envia pro github"
 - "git push das alterações"
 - "commit das mudanças"
+- "salva no git"
+- "salvar no git"
+- "versiona isso"
+- "versionar"
+- "commitar"
+- "pushar"
+
+**Variações Curtas:**
+- "push isso"
+- "commita"
+- "manda pro git"
+- "atualiza o repo"
+- "atualizar repositório"
+
+**Após Implementações:**
+- "pronto, push"
+- "feito, commit"
+- "terminei, sobe"
+- "ok, git push"
+
+**Regex de Detecção:**
+```regex
+/^(git\s*)?(push|commit|commita|commitar|pushar|suba|subir|envie?|manda|versiona)/i
+/(push|commit|github|repo|git)\s*(isso|tudo|mudanças|alterações)?$/i
+```
 
 ### Quando Usar
 - Após implementar funcionalidade completa

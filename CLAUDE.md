@@ -49,7 +49,7 @@ O projeto conta com **12 skills especializadas** organizadas em dois grupos:
 | **db-guardian** | Banco de Dados (MongoDB), Segurança e Migrações | Scripts de limpeza, manutenção, snapshots de temporada, gestão de acesso |
 | **fact-checker** | Protocolo Anti-Alucinacao (V.E.R.I.F.Y) - Valida afirmacoes antes de responder | "verifique se", "confirme que", "é verdade que", validar informações críticas |
 | **frontend-crafter** | Frontend Mobile-First, UX Black & Orange, Cache Offline, SPA | Criar telas, ajustar CSS, lógica JS do cliente, navegação |
-| **git-commit-push** | Commits e pushes automatizados com Conventional Commits | "faça um git push", "commite tudo", "suba as mudanças" |
+| **git-commit-push** | Commits e pushes automatizados com Conventional Commits | "git push", "commit", "push", "commita", "suba as mudanças", "envia pro github" |
 | **league-architect** | Regras de Negócio, Formatos de Liga (SaaS), Lógica Financeira | Configs de liga, cálculos financeiros, regras de disputa |
 | **Refactor-Monolith** | Decomposição segura de arquivos monolíticos (+500 linhas) | "refatorar arquivo grande", "separar em módulos", "extrair funções" |
 | **system-scribe** | Documentador Oficial, Wiki Viva do Sistema | "explicar módulo X", "quais as regras do Y?", documentação técnica |
@@ -67,7 +67,7 @@ O projeto conta com **12 skills especializadas** organizadas em dois grupos:
 - "Criar script de migração para nova temporada" → `db-guardian`
 - "Verifique se a função calcularSaldo existe" → `fact-checker`
 - "Ajustar a tela de ranking no mobile" → `frontend-crafter`
-- "Faça um git push das mudanças" → `git-commit-push`
+- "git push" ou "commit" ou "suba as mudanças" → `git-commit-push`
 - "Definir regras do mata-mata" → `league-architect`
 - "Refatorar fluxo-financeiro-ui.js em módulos" → `Refactor-Monolith`
 - "Explicar como funciona o Top 10" → `system-scribe`
