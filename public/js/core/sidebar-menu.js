@@ -31,9 +31,10 @@
         const ligasList = document.getElementById('ligasList');
         if (!ligasList) return;
 
-        // Obter ID da liga atual da URL
+        // Obter ID da liga atual e da temporada da URL
         const urlParams = new URLSearchParams(window.location.search);
         const ligaAtualId = urlParams.get('id');
+        const temporadaAtual = urlParams.get('temporada');
 
         try {
             const response = await fetch('/api/ligas');
@@ -49,27 +50,35 @@
                 return;
             }
 
-            // Renderizar ligas com logos
-            ligasList.innerHTML = ligas.map(liga => {
+            // v2.0: Renderizar item de menu para CADA temporada de CADA liga
+            const itemsHtml = ligas.flatMap(liga => {
                 const ligaId = liga._id || liga.id;
-                const isLigaAtual = ligaId === ligaAtualId;
-                const timesCount = liga.times?.length || 0;
                 const logoUrl = obterLogoLiga(liga.nome);
-
                 const logoHtml = logoUrl
                     ? `<img src="${logoUrl}" alt="" class="liga-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" /><span class="liga-dot" style="display:none;"></span>`
                     : `<span class="liga-dot"></span>`;
 
-                return `
-                    <a href="detalhe-liga.html?id=${ligaId}" class="sidebar-liga-item ${isLigaAtual ? 'active' : ''}">
-                        ${logoHtml}
-                        <div class="liga-info-sidebar">
-                            <div class="liga-name-sidebar">${liga.nome || 'Liga sem nome'}</div>
-                        </div>
-                        <span class="liga-badge-count">${timesCount}</span>
-                    </a>
-                `;
-            }).join('');
+                // Gerar um item para cada temporada que a liga possui
+                return (liga.temporadas_com_dados || [liga.temporada]).map(temporada => {
+                    // Usar o novo objeto timesCountPerSeason para obter a contagem correta
+                    const timesCount = liga.timesCountPerSeason?.[temporada] ?? 0;
+                    
+                    // Checar se esta é a liga E a temporada ativa
+                    const isLigaAtual = (ligaId === ligaAtualId && String(temporada) === temporadaAtual);
+
+                    return `
+                        <a href="detalhe-liga.html?id=${ligaId}&temporada=${temporada}" class="sidebar-liga-item ${isLigaAtual ? 'active' : ''}">
+                            ${logoHtml}
+                            <div class="liga-info-sidebar">
+                                <div class="liga-name-sidebar">${liga.nome || 'Liga sem nome'} <span class="liga-season-sidebar">${temporada}</span></div>
+                            </div>
+                            <span class="liga-badge-count">${timesCount}</span>
+                        </a>
+                    `;
+                });
+            });
+
+            ligasList.innerHTML = itemsHtml.join('');
         } catch (error) {
             console.error('[SIDEBAR-MENU] Erro ao carregar ligas:', error);
             ligasList.innerHTML = `
