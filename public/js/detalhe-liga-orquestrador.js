@@ -78,6 +78,18 @@ class DetalheLigaOrquestrador {
             // ✅ v2.0: Auto-navegar para módulo via URL (section + timeId)
             this.handleUrlNavigation();
 
+            // DEBUG: Listener global para verificar se cliques estão chegando
+            document.addEventListener('click', (e) => {
+                const card = e.target.closest('.module-card');
+                if (card) {
+                    console.log(`[DEBUG-GLOBAL] Clique em module-card: ${card.dataset.module}`, {
+                        target: e.target.tagName,
+                        defaultPrevented: e.defaultPrevented,
+                        propagationStopped: e.cancelBubble
+                    });
+                }
+            }, true); // capture phase
+
             console.log("[ORQUESTRADOR] ✅ Inicializado");
         } catch (error) {
             console.error("[ORQUESTRADOR] ❌ Erro na inicialização:", error);
@@ -401,11 +413,28 @@ class DetalheLigaOrquestrador {
             ".module-items li[data-action]",
         );
 
+        // DEBUG: Log de inicialização de navegação
+        console.log(`[ORQUESTRADOR] initializeNavigation: ${cards.length} cards encontrados`);
+
+        let cardsAtivos = 0;
+        let cardsDesabilitados = 0;
+
         cards.forEach((card) => {
-            if (card.classList.contains("disabled")) return;
+            if (card.classList.contains("disabled")) {
+                cardsDesabilitados++;
+                console.log(`[ORQUESTRADOR] Card DISABLED: ${card.dataset.module}`);
+                return;
+            }
+
+            cardsAtivos++;
+            console.log(`[ORQUESTRADOR] Registrando click em: ${card.dataset.module}`);
 
             card.addEventListener("click", async (e) => {
-                if (this.processingModule) return;
+                console.log(`[ORQUESTRADOR] CLICK em: ${card.dataset.module}`);
+                if (this.processingModule) {
+                    console.log(`[ORQUESTRADOR] BLOQUEADO - processingModule=true`);
+                    return;
+                }
 
                 card.style.transform = "translateY(-1px) scale(0.98)";
                 setTimeout(() => (card.style.transform = ""), 150);
@@ -415,6 +444,8 @@ class DetalheLigaOrquestrador {
                 await this.handleModuleClick(module);
             });
         });
+
+        console.log(`[ORQUESTRADOR] Navegação: ${cardsAtivos} ativos, ${cardsDesabilitados} desabilitados`);
 
         items.forEach((item) => {
             const parentCard = item.closest(".module-card");

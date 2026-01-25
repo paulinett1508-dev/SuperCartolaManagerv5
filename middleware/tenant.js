@@ -63,8 +63,13 @@ export function tenantFilter(req, res, next) {
         // Admin normal vê apenas suas ligas
         const adminId = admin._id || admin.id;
 
-        if (adminId) {
-            // Converte para ObjectId se for string
+        // Verifica se adminId é válido para conversão em ObjectId
+        const isValidObjectId = adminId &&
+            (mongoose.Types.ObjectId.isValid(adminId) ||
+             (typeof adminId === 'object' && adminId._bsontype === 'ObjectId'));
+
+        if (isValidObjectId) {
+            // Converte para ObjectId se for string válida
             const objectId = typeof adminId === "string"
                 ? new mongoose.Types.ObjectId(adminId)
                 : adminId;
@@ -72,6 +77,11 @@ export function tenantFilter(req, res, next) {
             req.tenantFilter = { admin_id: objectId };
             req.isSuperAdmin = false;
             console.log(`[TENANT] Admin ${email} - filtro: admin_id=${adminId}`);
+        } else if (adminId) {
+            // adminId existe mas não é um ObjectId válido - log de warning
+            console.warn(`[TENANT] Admin ${email} - adminId inválido: "${adminId}" (tipo: ${typeof adminId})`);
+            req.tenantFilter = { owner_email: email };
+            req.isSuperAdmin = false;
         } else {
             // Fallback: filtra por email (caso admin_id não esteja disponível)
             req.tenantFilter = { owner_email: email };

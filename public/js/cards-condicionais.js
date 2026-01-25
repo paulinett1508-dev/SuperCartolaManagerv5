@@ -1,9 +1,10 @@
-// === CARDS-CONDICIONAIS.JS v2.1 ===
+// === CARDS-CONDICIONAIS.JS v2.2 ===
+// v2.2: FIX - Não desabilitar módulos em temporadas históricas
 // v2.1: FIX - Remove clonagem que destruia event listeners de navegacao
 // v2.0: Refatorado para SaaS - busca config do servidor via API
 // Sistema de desativação condicional de cards por liga
 
-console.log("[CARDS-CONDICIONAIS] v2.1 SaaS - Carregando sistema...");
+console.log("[CARDS-CONDICIONAIS] v2.2 SaaS - Carregando sistema...");
 
 // === CACHE DE CONFIG DA LIGA ===
 let ligaConfigCache = null;
@@ -99,17 +100,128 @@ function aplicarEstadoDesabilitado(card, moduleId) {
     card.style.pointerEvents = "none";
     card.style.opacity = "0.5";
 
-    console.log(`[CARDS-CONDICIONAIS] Card "${moduleId}" desabilitado (v2.1)`);
+    console.log(`[CARDS-CONDICIONAIS] Card "${moduleId}" desabilitado (v2.2)`);
     return card; // Retorna o mesmo card, nao um clone
 }
 
 /**
+ * Verificar se estamos em temporada histórica
+ * Temporada histórica = parâmetro ?temporada= menor que a temporada atual da liga
+ */
+function isTemporadaHistorica() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const temporadaParam = urlParams.get("temporada");
+    if (!temporadaParam) return false;
+
+    const temporadaSelecionada = parseInt(temporadaParam, 10);
+    const anoAtual = new Date().getFullYear();
+
+    // Se temporada selecionada é menor que ano atual, é histórica
+    return temporadaSelecionada < anoAtual;
+}
+
+/**
+ * Módulos que NUNCA existiram em 2025 (em nenhuma liga)
+ * Estes são sempre ocultados em temporadas históricas
+ */
+const MODULOS_2026_ONLY = ['tiro-certo', 'bolao-copa', 'resta-um', 'capitao-luxo'];
+
+/**
+ * Mapeamento de chave de config histórica -> data-module do card
+ */
+const CONFIG_TO_MODULE_MAP = {
+    'artilheiro': 'artilheiro-campeao',
+    'luva_ouro': 'luva-de-ouro',
+    'top10': 'top10',
+    'melhor_mes': 'melhor-mes',
+    'pontos_corridos': 'pontos-corridos',
+    'mata_mata': 'mata-mata'
+};
+
+/**
+ * Obter temporada selecionada da URL
+ */
+function getTemporadaSelecionada() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const temporadaParam = urlParams.get("temporada");
+    return temporadaParam ? parseInt(temporadaParam, 10) : new Date().getFullYear();
+}
+
+/**
+ * Ocultar módulos inexistentes em temporadas históricas
+ * - Módulos 2026 são SEMPRE ocultados
+ * - Outros módulos são ocultados baseado na config histórica da liga
+ */
+async function ocultarModulosInexistentesEmHistorico() {
+    if (!isTemporadaHistorica()) return;
+
+    // Adicionar classe ao body para ativar regra CSS
+    document.body.classList.add('temporada-historica');
+
+    const temporada = getTemporadaSelecionada();
+    const ligaId = getLigaIdAtual();
+
+    console.log(`[CARDS-CONDICIONAIS] Temporada histórica ${temporada} - Liga ${ligaId}`);
+
+    // 1. SEMPRE ocultar módulos 2026 (não existiam em nenhuma liga em 2025)
+    MODULOS_2026_ONLY.forEach(moduleId => {
+        const card = document.querySelector(`[data-module="${moduleId}"]`);
+        if (card) {
+            card.style.display = 'none';
+            console.log(`[CARDS-CONDICIONAIS] Módulo 2026 "${moduleId}" oculto`);
+        }
+    });
+
+    // 2. Buscar configuração histórica da liga para saber quais módulos estavam habilitados
+    if (ligaId) {
+        try {
+            const response = await fetch(`/api/ligas/${ligaId}`);
+            if (response.ok) {
+                const liga = await response.json();
+                const configHistorico = liga.configuracoes_historico?.[temporada];
+
+                if (configHistorico) {
+                    console.log(`[CARDS-CONDICIONAIS] Config histórica ${temporada} encontrada`);
+
+                    // Verificar cada módulo configurável
+                    Object.entries(CONFIG_TO_MODULE_MAP).forEach(([configKey, moduleId]) => {
+                        const moduleConfig = configHistorico[configKey];
+                        const habilitado = moduleConfig?.habilitado === true;
+
+                        if (!habilitado) {
+                            const card = document.querySelector(`[data-module="${moduleId}"]`);
+                            if (card) {
+                                card.style.display = 'none';
+                                console.log(`[CARDS-CONDICIONAIS] Módulo "${moduleId}" oculto (não habilitado em ${temporada})`);
+                            }
+                        }
+                    });
+                } else {
+                    console.log(`[CARDS-CONDICIONAIS] Sem config histórica para ${temporada} - mantendo módulos visíveis`);
+                }
+            }
+        } catch (error) {
+            console.warn(`[CARDS-CONDICIONAIS] Erro ao buscar config histórica:`, error.message);
+        }
+    }
+
+    console.log(`[CARDS-CONDICIONAIS] Processamento de temporada histórica ${temporada} concluído`);
+}
+
+/**
  * Aplicar configurações condicionais baseadas na liga (v2.0 - async)
+ * v2.2 FIX: Não desabilitar módulos em temporadas históricas
  */
 async function aplicarConfiguracaoCards() {
     console.log("[CARDS-CONDICIONAIS] Aplicando configuração dinâmica...");
 
     try {
+        // v2.2: Não aplicar restrições em temporadas históricas
+        if (isTemporadaHistorica()) {
+            console.log("[CARDS-CONDICIONAIS] Temporada histórica detectada - mantendo todos os módulos habilitados");
+            return;
+        }
+
         const ligaId = getLigaIdAtual();
 
         if (!ligaId) {
@@ -340,11 +452,14 @@ function adicionarAnimacoes() {
  * Inicializar sistema quando DOM estiver pronto (v2.0 - async)
  */
 async function inicializar() {
-    console.log("[CARDS-CONDICIONAIS] Inicializando v2.1 SaaS...");
+    console.log("[CARDS-CONDICIONAIS] Inicializando v2.2 SaaS...");
 
     try {
         // Garantir que voltarParaCards está disponível globalmente
         window.voltarParaCards = voltarParaCards;
+
+        // v2.2: Ocultar módulos inexistentes em temporadas históricas (antes de aplicar configs)
+        await ocultarModulosInexistentesEmHistorico();
 
         // v2.0: Aplicar configurações visuais (agora async)
         await aplicarConfiguracaoCards();
@@ -362,7 +477,7 @@ async function inicializar() {
         adicionarAnimacoes();
         setTimeout(melhorarExperienciaCards, 100);
 
-        console.log("[CARDS-CONDICIONAIS] Sistema v2.1 inicializado");
+        console.log("[CARDS-CONDICIONAIS] Sistema v2.2 inicializado");
     } catch (error) {
         console.error("[CARDS-CONDICIONAIS] Erro na inicialização:", error);
     }
@@ -394,4 +509,4 @@ if (document.readyState === "loading") {
     setTimeout(inicializar, 150);
 }
 
-console.log("[CARDS-CONDICIONAIS] Módulo v2.1 SaaS carregado");
+console.log("[CARDS-CONDICIONAIS] Módulo v2.2 SaaS carregado");
