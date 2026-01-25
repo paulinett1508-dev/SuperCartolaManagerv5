@@ -29,6 +29,8 @@ export const ROTAS_PUBLICAS = [
   "/participante/css/",
   "/participante/img/",
   "/participante/fronts/",
+  // ✅ Push Notifications - VAPID key precisa ser pública
+  "/api/notifications/vapid-key",
 ];
 
 /**
@@ -87,6 +89,33 @@ export function isPaginaParticipante(url) {
     return false;
   }
   return PAGINAS_PARTICIPANTE.some((pagina) => url.includes(pagina));
+}
+
+/**
+ * ✅ BYPASS DE DESENVOLVIMENTO
+ * Injeta sessão admin automaticamente em NODE_ENV=development
+ * Não afeta produção (Replit Auth continua funcionando)
+ */
+export function injetarSessaoDevAdmin(req, res, next) {
+  const isDev = process.env.NODE_ENV === 'development';
+  const devBypass = process.env.DEV_ADMIN_BYPASS === 'true';
+
+  if (isDev && devBypass && !req.session?.admin) {
+    // Usar ObjectId fixo válido para desenvolvimento (24 caracteres hex)
+    const devAdminId = process.env.DEV_ADMIN_ID || '000000000000000000000001';
+    const devEmail = process.env.DEV_ADMIN_EMAIL || 'dev@localhost';
+
+    req.session.admin = {
+      email: devEmail,
+      nome: 'Admin Dev',
+      _id: devAdminId,  // ObjectId válido para tenant filter
+      id: devAdminId,   // Compatibilidade
+      isDev: true
+    };
+    console.log(`[AUTH-DEV] Sessao admin injetada (email: ${devEmail})`);
+  }
+
+  next();
 }
 
 /**

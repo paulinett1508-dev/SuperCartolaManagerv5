@@ -130,6 +130,11 @@ import dataLakeRoutes from "./routes/data-lake-routes.js";
 // ⚡ Cartola PRO (Escalação Automática)
 import cartolaProRoutes from "./routes/cartola-pro-routes.js";
 
+// 🔔 Push Notifications
+import notificationsRoutes from "./routes/notifications-routes.js";
+import { cleanExpiredSubscriptions } from "./controllers/notificationsController.js";
+import { cronEscalacaoPendente } from "./services/notificationTriggers.js";
+
 // 📦 Versionamento do App
 import appVersionRoutes from "./routes/appVersionRoutes.js";
 
@@ -156,7 +161,7 @@ import {
 import { iniciarSchedulerConsolidacao } from "./utils/consolidacaoScheduler.js";
 
 // Middleware de proteção
-import { protegerRotas } from "./middleware/auth.js";
+import { protegerRotas, injetarSessaoDevAdmin } from "./middleware/auth.js";
 
 // dotenv já foi carregado no início do arquivo
 
@@ -340,6 +345,8 @@ app.use("/api/app", appVersionRoutes);
 console.log("[SERVER] 📦 Rotas de versionamento registradas em /api/app");
 
 // 🛡️ MIDDLEWARE DE PROTEÇÃO DE ROTAS (antes de servir estáticos)
+// ✅ Bypass de desenvolvimento: injeta sessão admin automaticamente em NODE_ENV=development
+app.use(injetarSessaoDevAdmin);
 app.use(protegerRotas);
 
 // 👁️ MIDDLEWARE DE RASTREAMENTO DE ATIVIDADE (participantes)
@@ -398,6 +405,10 @@ app.use("/api/data-lake", dataLakeRoutes);
 // Alias para acesso conveniente: /api/participantes/:id/raw → /api/data-lake/raw/:id
 app.use("/api/participantes", dataLakeRoutes);
 console.log("[SERVER] 📦 Data Lake dos Participantes registrado em /api/data-lake");
+
+// 🔔 Push Notifications
+app.use("/api/notifications", notificationsRoutes);
+console.log("[SERVER] 🔔 Rotas de Push Notifications registradas em /api/notifications");
 
 // Rotas Adicionais (Controllers Diretos)
 app.get("/api/clubes", getClubes);
@@ -530,6 +541,44 @@ mongoose.connection.once("open", async () => {
       "[SERVER] ⚠️ Scheduler de consolidação desativado em desenvolvimento",
     );
   }
+
+  // 🔔 CRON: Limpeza de push subscriptions expiradas
+  // Toda segunda-feira às 3h da manhã
+  cron.schedule("0 3 * * 1", async () => {
+    console.log("[CRON] Executando limpeza de push subscriptions...");
+    try {
+      const removidas = await cleanExpiredSubscriptions();
+      console.log(`[CRON] Limpeza concluída: ${removidas} subscriptions removidas`);
+    } catch (erro) {
+      console.error("[CRON] Erro na limpeza de subscriptions:", erro.message);
+    }
+  });
+  console.log("[SERVER] 🔔 Cron de limpeza de push subscriptions agendado (seg 3h)");
+
+  // 🔔 CRON: Notificação de escalação pendente (FASE 5)
+  // Roda em horários típicos antes do fechamento do mercado Cartola:
+  // - Sexta às 18h (jogos de sexta-feira)
+  // - Sábado às 14h e 16h (jogos de sábado)
+  // - Domingo às 14h (jogos de domingo)
+  // O gatilho verifica se o mercado está aberto antes de notificar
+  const horariosEscalacao = [
+    "0 18 * * 5",   // Sexta às 18h
+    "0 14 * * 6",   // Sábado às 14h
+    "0 16 * * 6",   // Sábado às 16h
+    "0 14 * * 0"    // Domingo às 14h
+  ];
+
+  horariosEscalacao.forEach(horario => {
+    cron.schedule(horario, async () => {
+      console.log("[CRON] Verificando escalações pendentes...");
+      try {
+        await cronEscalacaoPendente();
+      } catch (erro) {
+        console.error("[CRON] Erro ao verificar escalações:", erro.message);
+      }
+    });
+  });
+  console.log("[SERVER] 🔔 Cron de escalação pendente agendado (sex 18h, sab 14h/16h, dom 14h)");
 });
 
 export default app;

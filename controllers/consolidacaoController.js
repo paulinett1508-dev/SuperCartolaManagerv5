@@ -26,6 +26,12 @@ import { obterConfrontosMataMata } from './mataMataCacheController.js';
 import { calcularConfrontosDaRodada, getRankingArtilheiroCampeao } from '../utils/consolidacaoHelpers.js';
 import { isSeasonFinished, SEASON_CONFIG } from '../utils/seasonGuard.js';
 
+// 🔔 PUSH NOTIFICATIONS - Gatilhos automaticos (FASE 5)
+import {
+  triggerRodadaFinalizada,
+  triggerMitoMico
+} from '../services/notificationTriggers.js';
+
 // ============================================================================
 // ✅ v3.0: FUNÇÕES SaaS DINÂMICAS (Multi-Tenant)
 // ============================================================================
@@ -458,8 +464,29 @@ export const consolidarRodada = async (req, res) => {
         // Salva dados permanentes para Hall da Fama e restaurações futuras
         const temporadaAtual = SEASON_CONFIG?.temporada || new Date().getFullYear();
         const backupResult = await backupRodadaParaDataLake(ligaId, rodadaNum, dadosRodada, temporadaAtual);
-        
+
         console.log(`[CONSOLIDAÇÃO] ✅ R${rodadaNum} consolidada com sucesso! (${rankingRodada.length} times)`);
+
+        // 14. PUSH NOTIFICATIONS - Gatilhos automaticos (FASE 5)
+        // Executar em background para nao atrasar resposta
+        setImmediate(async () => {
+            try {
+                // Gatilho: Rodada Finalizada (todos da liga)
+                await triggerRodadaFinalizada(ligaId, rodadaNum, {
+                    times: rankingRodada.length,
+                    mitos: mitos.length,
+                    micos: micos.length
+                });
+
+                // Gatilho: Mito/Mico (apenas top 1 e ultimo)
+                await triggerMitoMico(ligaId, rodadaNum, { mitos, micos });
+
+                console.log(`[CONSOLIDAÇÃO] 🔔 Notificacoes push disparadas para R${rodadaNum}`);
+            } catch (notifError) {
+                console.error(`[CONSOLIDAÇÃO] ⚠️ Erro ao enviar notificacoes:`, notifError.message);
+                // Nao falha a consolidacao por erro de notificacao
+            }
+        });
         
         res.json({
             success: true,

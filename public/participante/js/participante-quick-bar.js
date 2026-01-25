@@ -246,6 +246,10 @@ class QuickAccessBar {
                         <span class="material-icons">psychology</span>
                         <span class="menu-card-label">Dicas</span>
                     </div>
+                    <div class="menu-card" data-module="configuracoes">
+                        <span class="material-icons">settings</span>
+                        <span class="menu-card-label">Configurações</span>
+                    </div>
                 </div>
             </div>
 

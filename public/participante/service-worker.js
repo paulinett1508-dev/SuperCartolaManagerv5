@@ -1,15 +1,16 @@
 // =====================================================================
 // service-worker.js - Service Worker do PWA v3.4 (HOME REDESIGN)
 // Destino: /participante/service-worker.js
+// ✅ v3.6: PUSH NOTIFICATIONS - Handlers de push, click e close
 // ✅ v3.5: HOME PREMIUM UI - Cores hardcoded, fonte 72px, match cards azul
 // ✅ v3.3: SALDO INICIAL FIX - Força reload para correções de saldo
 // ✅ v3.2: FORCE CACHE CLEAR - Limpar cache antigo que causava erros
 // ✅ v3.1: Network-First com cache fallback (FIX fetch failures)
 // ✅ v3.0: Força limpeza de caches antigos
-// BUILD: 2026-01-23T01:45:00Z
+// BUILD: 2026-01-25T20:00:00Z
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v12-home-premium-ui";
+const CACHE_NAME = "super-cartola-v13-push-notifications";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
@@ -118,4 +119,116 @@ self.addEventListener("message", (event) => {
     if (event.data && event.data.type === "SKIP_WAITING") {
         self.skipWaiting();
     }
+});
+
+// =====================================================================
+// PUSH NOTIFICATIONS - v1.0 (FEAT-003)
+// =====================================================================
+
+// ✅ Receber Push Notification
+self.addEventListener("push", (event) => {
+    console.log("[SW] Push recebido:", event);
+
+    // Payload padrão caso não tenha dados
+    // Badge: usa default.png como fallback (TODO: criar badge-72x72.png monocromático)
+    let payload = {
+        title: "Super Cartola",
+        body: "Você tem uma nova notificação",
+        icon: "/escudos/default.png",
+        badge: "/escudos/default.png",
+        url: "/participante/",
+        tag: "default",
+    };
+
+    // Parsear payload JSON se existir
+    if (event.data) {
+        try {
+            const data = event.data.json();
+            payload = {
+                title: data.title || payload.title,
+                body: data.body || payload.body,
+                icon: data.icon || payload.icon,
+                badge: data.badge || payload.badge,
+                url: data.url || payload.url,
+                tag: data.tag || payload.tag,
+                data: data.data || {}, // dados extras
+            };
+        } catch (e) {
+            // Se não for JSON, usa como texto simples
+            payload.body = event.data.text() || payload.body;
+        }
+    }
+
+    // Opções da notificação
+    const options = {
+        body: payload.body,
+        icon: payload.icon,
+        badge: payload.badge,
+        tag: payload.tag,
+        vibrate: [200, 100, 200], // Vibração: on-off-on (ms)
+        requireInteraction: false, // Auto-dismiss após alguns segundos
+        data: {
+            url: payload.url,
+            ...payload.data,
+        },
+        actions: [
+            {
+                action: "open",
+                title: "Abrir",
+            },
+            {
+                action: "close",
+                title: "Fechar",
+            },
+        ],
+    };
+
+    // Exibir notificação
+    event.waitUntil(
+        self.registration.showNotification(payload.title, options)
+    );
+});
+
+// ✅ Clique na Notificação
+self.addEventListener("notificationclick", (event) => {
+    console.log("[SW] Notificação clicada:", event.action);
+
+    // Fechar a notificação
+    event.notification.close();
+
+    // Se clicou em "close", apenas fecha
+    if (event.action === "close") {
+        return;
+    }
+
+    // URL para navegar (padrão ou customizada)
+    const urlToOpen = event.notification.data?.url || "/participante/";
+
+    // Abrir URL ao clicar
+    event.waitUntil(
+        clients.matchAll({ type: "window", includeUncontrolled: true })
+            .then((clientList) => {
+                // Procurar janela já aberta do app
+                for (const client of clientList) {
+                    const clientUrl = new URL(client.url);
+
+                    // Se já tem uma janela do participante aberta, foca nela
+                    if (clientUrl.pathname.startsWith("/participante") && "focus" in client) {
+                        // Navegar para a URL específica
+                        return client.navigate(urlToOpen).then(() => client.focus());
+                    }
+                }
+
+                // Se não tem janela aberta, abre uma nova
+                if (clients.openWindow) {
+                    return clients.openWindow(urlToOpen);
+                }
+            })
+    );
+});
+
+// ✅ Notificação fechada (swipe ou timeout)
+self.addEventListener("notificationclose", (event) => {
+    console.log("[SW] Notificação fechada:", event.notification.tag);
+    // Pode ser usado para analytics no futuro
 });

@@ -39,6 +39,7 @@ class ParticipanteNavigation {
             "luva-ouro": "/participante/fronts/luva-ouro.html",
             campinho: "/participante/fronts/campinho.html",
             dicas: "/participante/fronts/dicas.html",
+            configuracoes: "/participante/fronts/configuracoes.html",
         };
 
         // ✅ v3.0: Controles simplificados (apenas debounce por tempo)
@@ -638,6 +639,7 @@ class ParticipanteNavigation {
             "mata-mata": "Mata-Mata",
             artilheiro: "Artilheiro Campeão",
             "luva-ouro": "Luva de Ouro",
+            configuracoes: "Configurações",
         };
         return nomes[moduloId] || moduloId;
     }
@@ -675,6 +677,7 @@ class ParticipanteNavigation {
             "luva-ouro": "/participante/js/modules/participante-luva-ouro.js",
             campinho: "/participante/js/modules/participante-campinho.js",
             dicas: "/participante/js/modules/participante-dicas.js",
+            configuracoes: "/participante/js/modules/participante-notifications.js",
         };
 
         const jsPath = modulosPaths[modulo];
@@ -747,7 +750,7 @@ class ParticipanteNavigation {
         }
 
         // Modulos que funcionam mesmo em pre-temporada
-        const modulosLiberados = ['boas-vindas', 'extrato', 'historico'];
+        const modulosLiberados = ['boas-vindas', 'extrato', 'historico', 'configuracoes'];
 
         // Se o modulo esta na lista de liberados, nao bloquear
         if (modulosLiberados.includes(moduloId)) {

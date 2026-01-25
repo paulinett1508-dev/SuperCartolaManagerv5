@@ -27,6 +27,8 @@ import Time from "../models/Time.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
 // ✅ v1.7.0: Importar calculadora de saldo centralizada
 import { calcularSaldoParticipante } from "../utils/saldo-calculator.js";
+// 🔔 PUSH NOTIFICATIONS - Gatilho de acerto financeiro (FASE 5)
+import { triggerAcertoFinanceiro } from "../services/notificationTriggers.js";
 
 const router = express.Router();
 
@@ -304,6 +306,23 @@ router.post("/:ligaId/:timeId", async (req, res) => {
             await acertoTroco.save();
             console.log(`[ACERTOS] ✅ Troco de R$ ${valorTroco.toFixed(2)} salvo para ${nomeTimeFinal}`);
         }
+
+        // =========================================================================
+        // 🔔 PUSH NOTIFICATION - Gatilho de acerto financeiro (FASE 5)
+        // Executar em background para nao atrasar resposta
+        // =========================================================================
+        setImmediate(async () => {
+            try {
+                await triggerAcertoFinanceiro(timeId, {
+                    tipo,
+                    valor: valorPagamento,
+                    descricao: descricao || `Acerto financeiro - ${tipo}`
+                });
+            } catch (notifError) {
+                console.error(`[ACERTOS] ⚠️ Erro ao enviar notificacao:`, notifError.message);
+                // Nao falha o registro por erro de notificacao
+            }
+        });
 
         // =========================================================================
         // ✅ v1.4.0: NÃO DELETAR CACHE DO EXTRATO
