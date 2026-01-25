@@ -64,6 +64,39 @@ async function isAdminAuthorizado(email) {
   return true;
 }
 
+/**
+ * Verifica se o admin é superAdmin
+ * SuperAdmin pode ver todas as ligas (bypass tenant filter)
+ */
+async function isSuperAdminCheck(email) {
+  if (!email) return false;
+  const emailLower = email.toLowerCase();
+
+  // 1. Verificar na lista de emails da env (são sempre superAdmin)
+  if (ADMIN_EMAILS_ENV.includes(emailLower)) {
+    return true;
+  }
+
+  // 2. Verificar no banco se tem flag superAdmin
+  try {
+    const db = getDB();
+    if (db) {
+      const admin = await db.collection("admins").findOne({
+        email: emailLower,
+        superAdmin: true,
+        ativo: { $ne: false }
+      });
+      if (admin) {
+        return true;
+      }
+    }
+  } catch (error) {
+    console.error("[REPLIT-AUTH] Erro ao verificar superAdmin:", error.message);
+  }
+
+  return false;
+}
+
 const getOidcConfig = memoize(
   async () => {
     return await client.discovery(
@@ -132,6 +165,10 @@ const verify = async (tokens, done) => {
 
     console.log("[REPLIT-AUTH] ✅ Admin autorizado:", email);
 
+    // Verificar se é superAdmin (env ou banco)
+    const isSuperAdminUser = await isSuperAdminCheck(email);
+    console.log("[REPLIT-AUTH] 👑 SuperAdmin:", isSuperAdminUser);
+
     const user = {
       id: claims.sub,
       email: email,
@@ -141,6 +178,7 @@ const verify = async (tokens, done) => {
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
       expires_at: claims.exp,
+      superAdmin: isSuperAdminUser, // Flag para bypass do tenant filter
     };
 
     console.log("[REPLIT-AUTH] ✅ User criado, chamando done(null, user)");
