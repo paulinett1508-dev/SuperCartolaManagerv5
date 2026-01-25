@@ -126,15 +126,18 @@
             // =====================================================================
             // CACHE RODADAS - FUNÇÕES GLOBAIS (DEFINIDAS NO HEAD)
             // =====================================================================
-            let ligaIdCache = null;
+            // Usar window.* para evitar re-declaração em navegação SPA
+            if (typeof window.ligaIdCache === 'undefined') {
+                window.ligaIdCache = null;
+            }
 
             function obterLigaIdCache() {
-                if (ligaIdCache) return ligaIdCache;
+                if (window.ligaIdCache) return window.ligaIdCache;
                 const urlParams = new URLSearchParams(window.location.search);
                 const ligaIdUrl =
                     urlParams.get("id") || urlParams.get("ligaId");
                 if (ligaIdUrl) {
-                    ligaIdCache = ligaIdUrl;
+                    window.ligaIdCache = ligaIdUrl;
                     return ligaIdUrl;
                 }
                 if (window.ligaAtual?.id) return window.ligaAtual.id;
@@ -147,15 +150,18 @@
             // =====================================================================
             // CACHE TEMPORADA - FUNÇÕES GLOBAIS (NAVEGAÇÃO MULTI-TEMPORADA)
             // =====================================================================
-            let temporadaCache = null;
+            // Usar window.* para evitar re-declaração em navegação SPA
+            if (typeof window.temporadaCache === 'undefined') {
+                window.temporadaCache = null;
+            }
 
             function obterTemporadaCache() {
-                if (temporadaCache) return temporadaCache;
+                if (window.temporadaCache) return window.temporadaCache;
                 const urlParams = new URLSearchParams(window.location.search);
                 const temporadaUrl = urlParams.get("temporada");
                 if (temporadaUrl) {
-                    temporadaCache = parseInt(temporadaUrl, 10);
-                    return temporadaCache;
+                    window.temporadaCache = parseInt(temporadaUrl, 10);
+                    return window.temporadaCache;
                 }
                 // Fallback: temporada atual
                 return new Date().getFullYear();

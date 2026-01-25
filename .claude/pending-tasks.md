@@ -1,5 +1,119 @@
 # Tarefas Pendentes
 
+## 🚨 BUGS CRÍTICOS (25/01/2026)
+
+### [BUG-001] Re-declaração de Variáveis no SPA
+
+**Status:** 🟡 CORREÇÃO PARCIAL APLICADA
+
+**Erro:**
+```
+Uncaught SyntaxError: Identifier 'ligaIdCache' has already been declared
+```
+
+**Causa:** Variáveis `let ligaIdCache` e `let temporadaCache` em `detalhe-liga.html` são re-declaradas quando SPA re-executa scripts.
+
+**Correção Aplicada (25/01):**
+- `public/detalhe-liga.html` - Alterado para usar `window.ligaIdCache` e `window.temporadaCache`
+
+**Verificar:** Se corrigiu o problema após reiniciar servidor.
+
+---
+
+### [BUG-002] Módulos Históricos 2025 Não Funcionam
+
+**Status:** 🔴 PENDENTE
+
+**Sintomas:**
+- Ao clicar em módulos da temporada 2025 (SuperCartola ou Cartoleiros Sobral), nada acontece
+- Cards não respondem ao clique
+
+**Ligas Afetadas:**
+- SuperCartola (684cb1c8af923da7c7df51de)
+- Cartoleiros Sobral (684d821cf1a7ae16d1f89572)
+
+**Arquivos a Investigar:**
+- `public/js/detalhe-liga-orquestrador.js` (handleModuleClick)
+- `public/js/cards-condicionais.js` (navegação condicional)
+
+---
+
+### [BUG-003] Módulos 2026 Não São Clicáveis
+
+**Status:** 🔴 PENDENTE
+
+**Sintomas:**
+- Temporada 2026 / Liga SuperCartola
+- Nenhum módulo é clicável
+- Cards aparecem mas não respondem
+
+**Logs:**
+```
+[CARDS-CONDICIONAIS] 6 cards desabilitados
+```
+
+**Nota:** Módulos não configurados deveriam estar desabilitados, mas parecem completamente quebrados.
+
+**Arquivos a Investigar:**
+- `public/js/cards-condicionais.js`
+- `public/js/detalhe-liga-orquestrador.js`
+
+---
+
+### [BUG-004] Menu Ferramentas Sem Renderização
+
+**Status:** 🔴 PENDENTE
+
+**Sintomas:**
+- Menu Ferramentas perdeu toda a renderização
+- Página aparece em branco ou com erros
+
+**Erro Relacionado:**
+```
+Uncaught SyntaxError: Cannot use import statement outside a module
+```
+
+**Causa Provável:** Script com `import` sendo executado fora de contexto de módulo ES6 pelo SPA.
+
+**Arquivos a Investigar:**
+- `public/ferramentas.html`
+- `public/js/ferramentas-pesquisar-time.js`
+- Sistema SPA que executa scripts
+
+---
+
+### [BUG-005] Erro Import Statement no Painel
+
+**Status:** 🔴 PENDENTE
+
+**Erro:**
+```
+Uncaught SyntaxError: Cannot use import statement outside a module
+    at painel.html
+```
+
+**Causa:** Script com `import` em `painel.html` sendo executado pelo SPA sem `type="module"`.
+
+**Arquivos a Investigar:**
+- `public/painel.html`
+- Sistema SPA (como scripts são injetados)
+
+---
+
+### Resumo dos Bugs
+
+| ID | Descrição | Status |
+|----|-----------|--------|
+| BUG-001 | Re-declaração variáveis SPA | 🟡 Correção parcial |
+| BUG-002 | Módulos 2025 não funcionam | 🔴 Pendente |
+| BUG-003 | Módulos 2026 não clicáveis | 🔴 Pendente |
+| BUG-004 | Ferramentas sem renderização | 🔴 Pendente |
+| BUG-005 | Import statement no painel | 🔴 Pendente |
+
+**Causa Raiz Comum:** Sistema SPA re-executa scripts inline sem contexto adequado (re-declarações, imports fora de módulo).
+
+---
+
 ## 🔴 PRIORIDADE ALTA
 
 ### [REFACTOR-001] Decomposição fluxo-financeiro-ui.js (7.010 → 4.426 linhas)
