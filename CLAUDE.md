@@ -506,6 +506,40 @@ O Super Cartola Manager possui um sistema de módulos dinâmico que permite habi
 
 > **Nota:** O módulo `jogos` (`participante-jogos.js`) é um **componente auxiliar** usado pela tela Home para exibir jogos do dia, não um módulo de navegação independente.
 
+#### Módulos Planejados 2026 (Em Desenvolvimento)
+
+| Módulo | ID | Categoria | Definição | Status |
+|--------|-----|-----------|-----------|--------|
+| Tiro Certo | `tiro_certo` | Survival | `config/definitions/tiro_certo_def.json` | Planejado |
+| Bolão Copa & Liberta | `bolao_copa` | Palpites | Parcial | Planejado |
+| Resta Um | `resta_um` | Survival | `config/definitions/resta_um_def.json` | Planejado |
+| Capitão de Luxo | `capitao_luxo` | Estatístico | `config/definitions/capitao_luxo_def.json` | Planejado |
+
+**Tiro Certo** - Survival baseado em palpites de resultados reais do Brasileirão
+- Participante escolhe um time que vai VENCER na rodada
+- Acertou → Avança / Errou ou Empatou → Eliminado
+- Último sobrevivente vence a edição
+- **Requer:** Integração com API de resultados do Brasileirão
+
+**Bolão Copa & Liberta** - Palpites em competições externas
+- Palpites em jogos de Copa do Brasil e Libertadores
+- Pontuação por acertos de placar/resultado
+- **Requer:** Definição JSON completa + integração APIs externas
+
+**Resta Um** - Eliminação progressiva por pontuação Cartola
+- A cada rodada, os X piores são eliminados
+- Último sobrevivente é o campeão
+- Diferente do Tiro Certo: usa pontuação Cartola, não palpites
+- **Definição completa:** `config/definitions/resta_um_def.json`
+
+**Capitão de Luxo** - Ranking baseado na pontuação dos capitães
+- Soma a pontuação de todos os capitães escolhidos na temporada
+- Premia quem soube escolher os melhores capitães
+- Estatísticas: melhor/pior capitão, média, capitães distintos
+- **Requer:** Coleta do campo `capitao_id` via API Cartola
+
+> **Arquivos de referência:** `config/definitions/index.js` (registry), `public/detalhe-liga.html` (cards admin)
+
 ### Estados e Condições (NÃO são módulos)
 
 **IMPORTANTE:** Existem conceitos no sistema que parecem módulos mas são **estados** ou **condições** temporárias. Não confundir:

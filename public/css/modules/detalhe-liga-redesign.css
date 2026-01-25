@@ -946,3 +946,9 @@ body.temporada-historica [data-action="limpar-cache"] {
         padding: 2px 6px;
     }
 }
+
+/* ===== OCULTAR MÓDULOS 2026 EM TEMPORADAS HISTÓRICAS ===== */
+/* Quando visualizando temporada anterior (ex: 2025), não exibir cards de módulos planejados para 2026 */
+.temporada-historica .module-card-2026 {
+    display: none !important;
+}
