@@ -360,8 +360,6 @@ function renderizarHome(container, data, ligaId) {
         clubeId
     } = data;
 
-    const zona = getZonaInfo(posicao, totalParticipantes);
-    const primeiroNome = nomeCartola.split(" ")[0];
     const iniciais = getIniciais(nomeCartola);
     const isPremium = participantePremium;
     const isRenovado = participanteRenovado;
@@ -403,10 +401,11 @@ function renderizarHome(container, data, ligaId) {
     ` : "";
 
     // Valores para display
-    const posicaoDisplay = isRenovado ? "--" : (posicao ? `${posicao}` : "--");
-    const pontosDisplay = isRenovado ? "0" : formatarPontos(pontosTotal).split(",")[0];
-    const hintPosicao = isRenovado ? "aguardando" : `de ${totalParticipantes}${variacaoHTML}`;
-    const hintPontos = isRenovado ? "aguardando" : "total acumulado";
+    const aguardandoRodada = isRenovado || rodadaAtual === 0;
+    const posicaoDisplay = aguardandoRodada ? "--" : (posicao ? `${posicao}` : "--");
+    const pontosDisplay = aguardandoRodada ? "0" : formatarPontos(pontosTotal).split(",")[0];
+    const hintPosicao = aguardandoRodada ? "Aguardando 1ª rodada" : `de ${totalParticipantes}${variacaoHTML}`;
+    const hintPontos = aguardandoRodada ? "Aguardando 1ª rodada" : "total acumulado";
 
     container.innerHTML = `
         <!-- Header Premium -->
@@ -417,7 +416,7 @@ function renderizarHome(container, data, ligaId) {
                         <span class="home-avatar-initials">${iniciais}</span>
                     </div>
                     <div class="home-user-info">
-                        <h1 class="home-user-name">Ola, ${primeiroNome}!</h1>
+                        <h1 class="home-user-name">${nomeCartola}</h1>
                         ${badgePremiumHTML}
                     </div>
                 </div>
@@ -476,17 +475,13 @@ function renderizarHome(container, data, ligaId) {
                     <span class="home-stat-hint">${hintPosicao}</span>
                 </div>
             </div>
-            <div class="home-zone-badge" style="background: ${zona.bg};">
-                <span class="material-icons" style="color: ${zona.cor};">${zona.icon}</span>
-                <span style="color: ${zona.cor};">${zona.texto}</span>
-            </div>
         </section>
 
         <!-- Card Saldo Financeiro -->
         <section class="home-finance-card" onclick="window.participanteNav?.navegarPara('extrato')">
             <div class="home-finance-left">
                 <div class="home-finance-icon">
-                    <span class="material-icons">payments</span>
+                    <span class="material-icons">toll</span>
                 </div>
                 <div class="home-finance-info">
                     <span class="home-finance-label">Saldo Financeiro</span>
