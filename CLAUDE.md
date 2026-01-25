@@ -496,6 +496,49 @@ O Super Cartola Manager possui um sistema de módulos dinâmico que permite habi
 | Artilheiro | `artilheiro` | Ranking de gols | Opcional |
 | Luva de Ouro | `luvaOuro` | Ranking de goleiros | Opcional |
 | Campinho | `campinho` | Visualização de escalação | Não |
+| Dicas | `dicas` | Análise de jogadores (mitos/micos) | Não |
+
+#### Módulos Novidade 2026
+| Módulo | ID | Criado em | Descrição |
+|--------|-----|-----------|-----------|
+| Campinho | `campinho` | 20/01/2026 | Campo virtual com escalação posicionada |
+| Dicas | `dicas` | 21/01/2026 | Recomendações de jogadores baseadas em análise |
+
+> **Nota:** O módulo `jogos` (`participante-jogos.js`) é um **componente auxiliar** usado pela tela Home para exibir jogos do dia, não um módulo de navegação independente.
+
+### Estados e Condições (NÃO são módulos)
+
+**IMPORTANTE:** Existem conceitos no sistema que parecem módulos mas são **estados** ou **condições** temporárias. Não confundir:
+
+| Conceito | Tipo | Descrição |
+|----------|------|-----------|
+| **Parciais** | Estado da Rodada | Quando jogos estão em andamento. Pontuações são atualizadas em tempo real até o encerramento. |
+| **Pré-Temporada** | Condição Temporal | Período entre fim de uma temporada e início da próxima (API ainda retorna ano anterior). |
+| **Mercado Aberto/Fechado** | Estado do Cartola | Indica se participantes podem escalar/trocar jogadores. |
+| **Rodada Finalizada** | Estado da Rodada | Todos os jogos terminaram, pontuação consolidada. |
+
+#### Diferença Conceitual
+
+| Aspecto | Módulo | Estado/Condição |
+|---------|--------|-----------------|
+| **Permanência** | Fixo na estrutura do sistema | Transitório, muda com o tempo |
+| **Configuração** | Admin habilita/desabilita | Sistema detecta automaticamente |
+| **Navegação** | Aparece no menu lateral | Não tem tela própria |
+| **Banco de Dados** | Tem collection/cache próprio | Afeta comportamento de outros dados |
+
+#### Exemplo: "Parciais"
+```javascript
+// Parciais NÃO é um módulo, é um estado detectado pelo sistema
+const statusMercado = await fetch('/api/status-mercado');
+const isParciais = statusMercado.rodada_atual.status === 'em_andamento';
+
+// Se parciais, pontuações são voláteis e não devem ser cacheadas
+if (isParciais) {
+    // Buscar dados frescos da API
+} else {
+    // Usar cache consolidado
+}
+```
 
 ### Como Criar um Novo Módulo
 

@@ -79,19 +79,20 @@
         <!-- CORREÇÃO CRÍTICA: Definir funções globais no HEAD antes do carregamento -->
         <script>
             // === GERENCIAMENTO DA LOGO - DEFINIDO NO HEAD ===
-            let logoTentativas = [
+            // Compatível com navegação SPA (evita re-declaração)
+            window.logoTentativas = window.logoTentativas || [
                 "img/logo-supercartola.png",
                 "../public/img/logo-supercartola.png",
                 "./public/img/logo-supercartola.png",
                 "/public/img/logo-supercartola.png",
                 "public/img/logo-supercartola.png",
             ];
-            let logoIndiceAtual = 0;
+            window.logoIndiceAtual = window.logoIndiceAtual ?? 0;
 
             function tentarProximoCaminho(img) {
-                logoIndiceAtual++;
-                if (logoIndiceAtual < logoTentativas.length) {
-                    img.src = logoTentativas[logoIndiceAtual];
+                window.logoIndiceAtual++;
+                if (window.logoIndiceAtual < window.logoTentativas.length) {
+                    img.src = window.logoTentativas[window.logoIndiceAtual];
                 } else {
                     // Todas as tentativas falharam, mostrar emoji
                     mostrarLogoFallback();
