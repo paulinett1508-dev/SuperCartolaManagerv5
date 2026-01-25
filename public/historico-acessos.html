@@ -367,8 +367,6 @@
                 console.error('Erro ao carregar layout:', error);
             }
         }
-        carregarLayout();
-
         // Carregar dashboard
         async function carregarDashboard() {
             try {
@@ -645,8 +643,26 @@
             });
         });
 
-        // Inicializar
-        carregarDashboard();
+        // Função de inicialização reutilizável
+        async function initHistoricoAcessos() {
+            console.log("[HISTORICO-ACESSOS] Inicializando página...");
+            await carregarLayout();
+            await carregarDashboard();
+        }
+
+        // Inicializar apenas se estamos na página correta
+        if (window.location.pathname.includes('historico-acessos.html')) {
+            initHistoricoAcessos();
+        }
+
+        // ✅ FIX: Reinicializar após navegação SPA
+        window.addEventListener('spa:navigated', async (e) => {
+            const { pageName } = e.detail || {};
+            if (pageName === 'historico-acessos.html') {
+                console.log('[HISTORICO-ACESSOS] Reinicializando após navegação SPA...');
+                await initHistoricoAcessos();
+            }
+        });
 
         // Toggle Sidebar Mobile
         function toggleMobileSidebar() {

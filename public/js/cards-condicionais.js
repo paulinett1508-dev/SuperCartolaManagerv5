@@ -1,10 +1,12 @@
-// === CARDS-CONDICIONAIS.JS v2.2 ===
+// === CARDS-CONDICIONAIS.JS v2.4 ===
+// v2.4: Temporada 2026+ sem restrições automáticas - cards sempre visíveis
+// v2.3: FIX - Mapeamento correto de modulos_ativos para data-module dos cards
 // v2.2: FIX - Não desabilitar módulos em temporadas históricas
 // v2.1: FIX - Remove clonagem que destruia event listeners de navegacao
 // v2.0: Refatorado para SaaS - busca config do servidor via API
 // Sistema de desativação condicional de cards por liga
 
-console.log("[CARDS-CONDICIONAIS] v2.2 SaaS - Carregando sistema...");
+console.log("[CARDS-CONDICIONAIS] v2.4 - Carregando sistema...");
 
 // === CACHE DE CONFIG DA LIGA ===
 let ligaConfigCache = null;
@@ -100,7 +102,7 @@ function aplicarEstadoDesabilitado(card, moduleId) {
     card.style.pointerEvents = "none";
     card.style.opacity = "0.5";
 
-    console.log(`[CARDS-CONDICIONAIS] Card "${moduleId}" desabilitado (v2.2)`);
+    console.log(`[CARDS-CONDICIONAIS] Card "${moduleId}" desabilitado (v2.4)`);
     return card; // Retorna o mesmo card, nao um clone
 }
 
@@ -127,7 +129,30 @@ function isTemporadaHistorica() {
 const MODULOS_2026_ONLY = ['tiro-certo', 'bolao-copa', 'resta-um', 'capitao-luxo'];
 
 /**
+ * Mapeamento de chave de modulos_ativos -> data-module do card HTML
+ * IMPORTANTE: Os nomes em Liga.modulos_ativos NÃO correspondem diretamente aos data-module
+ */
+const MODULO_TO_CARD_MAP = {
+    // Nomes em modulos_ativos -> data-module no HTML
+    'artilheiro': 'artilheiro-campeao',
+    'artilheiroCampeao': 'artilheiro-campeao',
+    'luvaOuro': 'luva-de-ouro',
+    'luva_ouro': 'luva-de-ouro',
+    'top10': 'top10',
+    'melhorMes': 'melhor-mes',
+    'melhor_mes': 'melhor-mes',
+    'pontosCorridos': 'pontos-corridos',
+    'pontos_corridos': 'pontos-corridos',
+    'mataMata': 'mata-mata',
+    'mata_mata': 'mata-mata',
+    'parciais': 'parciais',
+    'fluxoFinanceiro': 'fluxo-financeiro',
+    'fluxo_financeiro': 'fluxo-financeiro'
+};
+
+/**
  * Mapeamento de chave de config histórica -> data-module do card
+ * (Usado para temporadas anteriores)
  */
 const CONFIG_TO_MODULE_MAP = {
     'artilheiro': 'artilheiro-campeao',
@@ -210,12 +235,22 @@ async function ocultarModulosInexistentesEmHistorico() {
 
 /**
  * Aplicar configurações condicionais baseadas na liga (v2.0 - async)
+ * v2.3 FIX: Temporada 2026+ não tem restrições automáticas de cards
  * v2.2 FIX: Não desabilitar módulos em temporadas históricas
  */
 async function aplicarConfiguracaoCards() {
     console.log("[CARDS-CONDICIONAIS] Aplicando configuração dinâmica...");
 
     try {
+        const temporadaAtual = getTemporadaSelecionada();
+
+        // v2.3: Temporada 2026+ - Sem restrições automáticas de cards
+        // Todos os módulos ficam visíveis; cada módulo mostra seu próprio estado (configurado/não)
+        if (temporadaAtual >= 2026) {
+            console.log("[CARDS-CONDICIONAIS] Temporada 2026+ - sem restrições automáticas de cards");
+            return;
+        }
+
         // v2.2: Não aplicar restrições em temporadas históricas
         if (isTemporadaHistorica()) {
             console.log("[CARDS-CONDICIONAIS] Temporada histórica detectada - mantendo todos os módulos habilitados");
@@ -243,10 +278,17 @@ async function aplicarConfiguracaoCards() {
         const cardsDesabilitados = config.cards_desabilitados || [];
 
         // Também verificar modulos_ativos para detectar módulos desativados
+        // v2.3 FIX: Usar mapeamento correto de nomes de módulos para data-module
         const modulos = config.modulos_ativos || {};
         const modulosDesabilitados = Object.entries(modulos)
             .filter(([_, enabled]) => enabled === false)
-            .map(([key]) => key.replace(/([A-Z])/g, '-$1').toLowerCase());
+            .map(([key]) => {
+                // Usar mapeamento se existir, senão converter camelCase para kebab-case
+                if (MODULO_TO_CARD_MAP[key]) {
+                    return MODULO_TO_CARD_MAP[key];
+                }
+                return key.replace(/([A-Z])/g, '-$1').toLowerCase();
+            });
 
         // Unir listas sem duplicatas
         const todosDesabilitados = [...new Set([...cardsDesabilitados, ...modulosDesabilitados])];
@@ -452,7 +494,7 @@ function adicionarAnimacoes() {
  * Inicializar sistema quando DOM estiver pronto (v2.0 - async)
  */
 async function inicializar() {
-    console.log("[CARDS-CONDICIONAIS] Inicializando v2.2 SaaS...");
+    console.log("[CARDS-CONDICIONAIS] Inicializando v2.4...");
 
     try {
         // Garantir que voltarParaCards está disponível globalmente
@@ -477,7 +519,7 @@ async function inicializar() {
         adicionarAnimacoes();
         setTimeout(melhorarExperienciaCards, 100);
 
-        console.log("[CARDS-CONDICIONAIS] Sistema v2.2 inicializado");
+        console.log("[CARDS-CONDICIONAIS] Sistema v2.4 inicializado");
     } catch (error) {
         console.error("[CARDS-CONDICIONAIS] Erro na inicialização:", error);
     }
@@ -509,4 +551,4 @@ if (document.readyState === "loading") {
     setTimeout(inicializar, 150);
 }
 
-console.log("[CARDS-CONDICIONAIS] Módulo v2.2 SaaS carregado");
+console.log("[CARDS-CONDICIONAIS] Módulo v2.4 carregado");

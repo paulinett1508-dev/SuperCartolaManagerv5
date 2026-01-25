@@ -11,11 +11,29 @@
     // INICIALIZAÇÃO
     // ============================================
 
-    document.addEventListener("DOMContentLoaded", init);
-
     function init() {
+        console.log('[GERIR-SENHAS] Inicializando módulo...');
         carregarLigasParaSenhas();
         configurarEventos();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        if (!window.location.pathname.includes('gerir-senhas-participantes.html')) return;
+        init();
+    });
+
+    // ✅ FIX: Reinicializar após navegação SPA
+    window.addEventListener('spa:navigated', (e) => {
+        const { pageName } = e.detail || {};
+        if (pageName === 'gerir-senhas-participantes.html') {
+            console.log('[GERIR-SENHAS] Reinicializando após navegação SPA...');
+            init();
+        }
+    });
+
+    // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
+    if (document.readyState !== 'loading' && window.location.pathname.includes('gerir-senhas-participantes.html')) {
+        init();
     }
 
     function configurarEventos() {

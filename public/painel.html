@@ -271,12 +271,13 @@
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(layoutHtml, "text/html");
 
-                    // Injetar sidebar
+                    // Injetar sidebar (com proteção contra re-execução)
                     const sidebar = doc.querySelector(".app-sidebar");
-                    if (sidebar) {
-                        document
-                            .getElementById("sidebar-placeholder")
-                            .replaceWith(sidebar);
+                    const placeholder = document.getElementById("sidebar-placeholder");
+                    if (sidebar && placeholder) {
+                        placeholder.replaceWith(sidebar);
+                    } else if (sidebar && !placeholder) {
+                        console.log("[PAINEL] Sidebar já injetado, pulando...");
                     }
 
                     // Injetar scripts do layout para accordions funcionarem
@@ -1213,15 +1214,8 @@
             window.carregarHistoricoAcessos = carregarHistoricoAcessos;
             window.carregarMaisHistorico = carregarMaisHistorico;
 
-            // === Inicializar quando a página carregar ===
-            document.addEventListener("DOMContentLoaded", async () => {
-                // === PROTECAO ANTI RE-EXECUCAO SPA ===
-                if (window._painelInitialized) {
-                    console.log("[DASHBOARD] Ja inicializado, ignorando re-execucao");
-                    return;
-                }
-                window._painelInitialized = true;
-
+            // Função de inicialização reutilizável
+            async function initPainel() {
                 console.log("[DASHBOARD] Inicializando dashboard...");
 
                 const autenticado = await verificarAutenticacao();
@@ -1236,7 +1230,30 @@
                 } else {
                     console.log("[DASHBOARD] Autenticacao falhou");
                 }
+            }
+
+            // === Inicializar quando a página carregar ===
+            document.addEventListener("DOMContentLoaded", async () => {
+                // Verificar se estamos na página painel
+                if (!window.location.pathname.includes('painel.html')) {
+                    return;
+                }
+                await initPainel();
             });
+
+            // ✅ FIX: Reinicializar após navegação SPA
+            window.addEventListener('spa:navigated', async (e) => {
+                const { pageName } = e.detail || {};
+                if (pageName === 'painel.html') {
+                    console.log('[DASHBOARD] Reinicializando após navegação SPA...');
+                    await initPainel();
+                }
+            });
+
+            // ✅ FIX: Também inicializar se o DOM já estiver pronto (para navegação SPA)
+            if (document.readyState !== 'loading' && window.location.pathname.includes('painel.html')) {
+                initPainel();
+            }
 
             // Função global para retry
             window.carregarDadosLigas = carregarDadosLigas;

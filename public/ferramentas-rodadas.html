@@ -518,12 +518,39 @@
                 }
             }
 
-            document.getElementById("btnPopular").addEventListener("click", popularRodadas);
+            document.getElementById("btnPopular")?.addEventListener("click", popularRodadas);
 
-            document.addEventListener("DOMContentLoaded", async () => {
+            // Função de inicialização reutilizável
+            async function initFerramentasRodadas() {
+                console.log("[FERRAMENTAS-RODADAS] Inicializando página...");
                 await loadLayout();
                 await carregarLigasDisponiveis();
+                // Re-bind do botão após SPA navigation
+                const btn = document.getElementById("btnPopular");
+                if (btn && !btn._bound) {
+                    btn.addEventListener("click", popularRodadas);
+                    btn._bound = true;
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", async () => {
+                if (!window.location.pathname.includes('ferramentas-rodadas.html')) return;
+                await initFerramentasRodadas();
             });
+
+            // ✅ FIX: Reinicializar após navegação SPA
+            window.addEventListener('spa:navigated', async (e) => {
+                const { pageName } = e.detail || {};
+                if (pageName === 'ferramentas-rodadas.html') {
+                    console.log('[FERRAMENTAS-RODADAS] Reinicializando após navegação SPA...');
+                    await initFerramentasRodadas();
+                }
+            });
+
+            // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
+            if (document.readyState !== 'loading' && window.location.pathname.includes('ferramentas-rodadas.html')) {
+                initFerramentasRodadas();
+            }
         </script>
     </body>
 </html>

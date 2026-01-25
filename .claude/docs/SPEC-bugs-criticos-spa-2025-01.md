@@ -411,7 +411,40 @@ Corrige BUG-004.
 
 ---
 
+---
+
+## Implementação (25/01/2026)
+
+### Correção Aplicada: cards-condicionais.js v2.3
+
+**Problema identificado:** O mapeamento de `modulos_ativos` para `data-module` estava incorreto.
+
+Exemplo:
+- `artilheiro` no banco → código tentava encontrar `[data-module="artilheiro"]`
+- HTML real: `[data-module="artilheiro-campeao"]`
+
+**Solução:** Criado `MODULO_TO_CARD_MAP` com mapeamento explícito:
+
+```javascript
+const MODULO_TO_CARD_MAP = {
+    'artilheiro': 'artilheiro-campeao',
+    'artilheiroCampeao': 'artilheiro-campeao',
+    'luvaOuro': 'luva-de-ouro',
+    'luva_ouro': 'luva-de-ouro',
+    'top10': 'top10',
+    'melhorMes': 'melhor-mes',
+    'pontosCorridos': 'pontos-corridos',
+    'mataMata': 'mata-mata',
+    // ... etc
+};
+```
+
+**Arquivos modificados:**
+- `public/js/cards-condicionais.js` (v2.2 → v2.3)
+
+---
+
 *SPEC gerado em: 25/01/2026*
-*Fase: SPECIFICATION (2 de 3)*
+*Fase: SPECIFICATION (2 de 3) → IMPLEMENTATION (3 de 3)*
 *Workflow: High Senior Protocol*
 *PRD de origem: PRD-bugs-criticos-spa-2025-01.md*

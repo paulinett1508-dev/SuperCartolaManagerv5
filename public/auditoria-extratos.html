@@ -237,8 +237,6 @@
                 console.error('Erro ao carregar layout:', error);
             }
         }
-        carregarLayout();
-
         // Obter ligaId da URL
         function obterLigaIdUrl() {
             const params = new URLSearchParams(window.location.search);
@@ -478,8 +476,26 @@
             document.getElementById('auditResults').innerHTML = '';
         });
 
-        // Inicializar
-        carregarLigas();
+        // Função de inicialização reutilizável
+        async function initAuditoriaExtratos() {
+            console.log("[AUDITORIA-EXTRATOS] Inicializando página...");
+            await carregarLayout();
+            await carregarLigas();
+        }
+
+        // Inicializar apenas se estamos na página correta
+        if (window.location.pathname.includes('auditoria-extratos.html')) {
+            initAuditoriaExtratos();
+        }
+
+        // ✅ FIX: Reinicializar após navegação SPA
+        window.addEventListener('spa:navigated', async (e) => {
+            const { pageName } = e.detail || {};
+            if (pageName === 'auditoria-extratos.html') {
+                console.log('[AUDITORIA-EXTRATOS] Reinicializando após navegação SPA...');
+                await initAuditoriaExtratos();
+            }
+        });
 
         // Toggle Sidebar Mobile
         function toggleMobileSidebar() {

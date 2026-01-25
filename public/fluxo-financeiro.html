@@ -319,7 +319,24 @@
             }
 
             // Inicializar
-            document.addEventListener('DOMContentLoaded', carregarLigas);
+            document.addEventListener('DOMContentLoaded', () => {
+                if (!window.location.pathname.includes('fluxo-financeiro.html')) return;
+                carregarLigas();
+            });
+
+            // ✅ FIX: Reinicializar após navegação SPA
+            window.addEventListener('spa:navigated', (e) => {
+                const { pageName } = e.detail || {};
+                if (pageName === 'fluxo-financeiro.html') {
+                    console.log('[FLUXO-FINANCEIRO] Reinicializando após navegação SPA...');
+                    carregarLigas();
+                }
+            });
+
+            // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
+            if (document.readyState !== 'loading' && window.location.pathname.includes('fluxo-financeiro.html')) {
+                carregarLigas();
+            }
         </script>
     </body>
 </html>

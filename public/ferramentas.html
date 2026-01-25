@@ -511,17 +511,34 @@
                 }
             }
 
-            document.addEventListener("DOMContentLoaded", () => {
-                // === PROTECAO ANTI RE-EXECUCAO SPA ===
-                if (window._ferramentasInitialized) {
-                    console.log("[FERRAMENTAS] Ja inicializado, ignorando re-execucao");
-                    return;
-                }
-                window._ferramentasInitialized = true;
-
+            // Função de inicialização reutilizável
+            function initFerramentas() {
+                console.log("[FERRAMENTAS] Inicializando página...");
                 loadLayout();
                 carregarEstatisticas();
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                // Verificar se estamos na página ferramentas
+                if (!window.location.pathname.includes('ferramentas.html')) {
+                    return;
+                }
+                initFerramentas();
             });
+
+            // ✅ FIX: Reinicializar após navegação SPA
+            window.addEventListener('spa:navigated', (e) => {
+                const { pageName } = e.detail || {};
+                if (pageName === 'ferramentas.html') {
+                    console.log('[FERRAMENTAS] Reinicializando após navegação SPA...');
+                    initFerramentas();
+                }
+            });
+
+            // ✅ FIX: Também inicializar se o DOM já estiver pronto (para navegação SPA)
+            if (document.readyState !== 'loading' && window.location.pathname.includes('ferramentas.html')) {
+                initFerramentas();
+            }
         </script>
 
         <!-- Adicionar Participante Modal -->

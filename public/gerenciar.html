@@ -95,7 +95,7 @@
 
                     const sidebar = doc.querySelector(".app-sidebar");
                     if (sidebar) {
-                        document.getElementById("sidebar-placeholder").replaceWith(sidebar);
+                        document.getElementById("sidebar-placeholder")?.replaceWith(sidebar);
                     }
 
                     // Injetar scripts do layout
@@ -243,10 +243,31 @@
                 }
             });
 
-            document.addEventListener("DOMContentLoaded", async () => {
+            // Função de inicialização reutilizável
+            async function initGerenciar() {
+                console.log("[GERENCIAR] Inicializando página...");
                 await loadLayout();
                 setTimeout(() => carregarListaLigas(), 100);
+            }
+
+            document.addEventListener("DOMContentLoaded", async () => {
+                if (!window.location.pathname.includes('gerenciar.html')) return;
+                await initGerenciar();
             });
+
+            // ✅ FIX: Reinicializar após navegação SPA
+            window.addEventListener('spa:navigated', async (e) => {
+                const { pageName } = e.detail || {};
+                if (pageName === 'gerenciar.html') {
+                    console.log('[GERENCIAR] Reinicializando após navegação SPA...');
+                    await initGerenciar();
+                }
+            });
+
+            // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
+            if (document.readyState !== 'loading' && window.location.pathname.includes('gerenciar.html')) {
+                initGerenciar();
+            }
         </script>
     </body>
 </html>

@@ -997,6 +997,9 @@ function setupLazyModuleLoading() {
 }
 
 // ✅ FIX v3.0: Função de inicialização que pode ser chamada múltiplas vezes
+// Flag para evitar inicialização duplicada na mesma sessão de página
+let _orquestradorInitPending = false;
+
 function initOrquestrador() {
     // Verificar se estamos na página detalhe-liga
     if (!window.location.pathname.includes('detalhe-liga')) {
@@ -1009,9 +1012,19 @@ function initOrquestrador() {
         return;
     }
 
+    // Evitar chamadas simultâneas durante init
+    if (_orquestradorInitPending) {
+        console.log('[ORQUESTRADOR] Init já em andamento, pulando...');
+        return;
+    }
+    _orquestradorInitPending = true;
+
     console.log('[ORQUESTRADOR] Criando nova instância...');
     window.detalheLigaOrquestrador = new DetalheLigaOrquestrador();
     window.orquestrador = window.detalheLigaOrquestrador;
+
+    // Resetar flag após criação
+    _orquestradorInitPending = false;
 }
 
 // INICIALIZAÇÃO - DOMContentLoaded
@@ -1028,11 +1041,13 @@ window.addEventListener('spa:navigated', (e) => {
         if (window.detalheLigaOrquestrador) {
             window.detalheLigaOrquestrador._navigationInitialized = false;
         }
+        _orquestradorInitPending = false; // Permitir novo init
         initOrquestrador();
     }
 });
 
 // ✅ FIX: Também inicializar se o DOM já estiver pronto (para navegação SPA)
 if (document.readyState !== 'loading') {
-    initOrquestrador();
+    // Delay mínimo para evitar race condition com DOMContentLoaded
+    setTimeout(() => initOrquestrador(), 10);
 }

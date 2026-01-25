@@ -671,7 +671,24 @@
                     console.error("Erro ao carregar layout:", error);
                 }
             }
-            document.addEventListener("DOMContentLoaded", loadLayout);
+            document.addEventListener("DOMContentLoaded", () => {
+                if (!window.location.pathname.includes('gerir-senhas-participantes.html')) return;
+                loadLayout();
+            });
+
+            // ✅ FIX: Reinicializar após navegação SPA
+            window.addEventListener('spa:navigated', (e) => {
+                const { pageName } = e.detail || {};
+                if (pageName === 'gerir-senhas-participantes.html') {
+                    console.log('[GERIR-SENHAS] Reinicializando após navegação SPA...');
+                    loadLayout();
+                }
+            });
+
+            // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
+            if (document.readyState !== 'loading' && window.location.pathname.includes('gerir-senhas-participantes.html')) {
+                loadLayout();
+            }
         </script>
 
         <!-- Main JS -->

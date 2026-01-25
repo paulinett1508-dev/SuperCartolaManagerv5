@@ -1,55 +1,14 @@
-<!-- MÓDULO PARCIAIS - v3.0 (Temporada Encerrada) -->
+<!-- MÓDULO PARCIAIS - v4.0 (Multi-Temporada) -->
 <div id="parciais-container" class="module-content">
-    <!-- Card Temporada Encerrada -->
-    <div class="parciais-encerrado">
-        <div class="parciais-encerrado-icon">
-            <span class="material-icons">emoji_events</span>
-        </div>
-
-        <h2 class="parciais-encerrado-title">Temporada 2025 Encerrada</h2>
-
-        <p class="parciais-encerrado-subtitle">
-            As 38 rodadas foram concluídas com sucesso
-        </p>
-
-        <div class="parciais-encerrado-stats">
-            <div class="parciais-stat">
-                <span class="material-icons">flag</span>
-                <span>38 Rodadas</span>
-            </div>
-            <div class="parciais-stat">
-                <span class="material-icons">check_circle</span>
-                <span>Consolidado</span>
-            </div>
-        </div>
-
-        <div class="parciais-encerrado-info">
-            <span class="material-icons">info</span>
-            <p>
-                Confira a classificação final e os premiados nos módulos de
-                Ranking e Premiações.
-            </p>
-        </div>
-
-        <div class="parciais-encerrado-actions">
-            <button
-                class="parciais-btn-ranking"
-                onclick="window.orquestrador?.showModule('ranking-geral')"
-            >
-                <span class="material-icons">leaderboard</span>
-                Ver Classificação Final
-            </button>
-        </div>
-
-        <div class="parciais-encerrado-footer">
-            <span class="material-icons">schedule</span>
-            <span>Nova temporada em breve</span>
-        </div>
+    <!-- Conteúdo será renderizado dinamicamente pelo JS baseado na temporada -->
+    <div class="parciais-loading">
+        <div class="spinner"></div>
+        <span>Carregando parciais...</span>
     </div>
 </div>
 
 <style>
-    /* ===== TEMPORADA ENCERRADA - CLEAN DESIGN ===== */
+    /* ===== LOADING STATE ===== */
     #parciais-container {
         padding: 20px;
         min-height: 400px;
@@ -58,6 +17,26 @@
         justify-content: center;
     }
 
+    .parciais-loading {
+        text-align: center;
+        color: #888;
+    }
+
+    .parciais-loading .spinner {
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 16px;
+        border: 3px solid #333;
+        border-top-color: #ff5c00;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* ===== TEMPORADA ENCERRADA / PRÉ-TEMPORADA - CLEAN DESIGN ===== */
     .parciais-encerrado {
         text-align: center;
         max-width: 420px;

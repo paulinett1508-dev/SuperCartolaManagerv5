@@ -38,25 +38,45 @@ Uncaught SyntaxError: Identifier 'ligaIdCache' has already been declared
 
 ---
 
-### [BUG-003] Módulos 2026 Não São Clicáveis
+### [BUG-003] Módulos 2026 - Pré-Temporada
 
-**Status:** 🔴 PENDENTE
+**Status:** 🟡 CORREÇÃO PARCIAL (25/01/2026)
 
-**Sintomas:**
+**Problema Original:**
 - Temporada 2026 / Liga SuperCartola
-- Nenhum módulo é clicável
-- Cards aparecem mas não respondem
+- Módulos mostram erros ao invés de mensagem amigável de pré-temporada
 
-**Logs:**
-```
-[CARDS-CONDICIONAIS] 6 cards desabilitados
-```
+**Correções Aplicadas (25/01/2026):**
 
-**Nota:** Módulos não configurados deveriam estar desabilitados, mas parecem completamente quebrados.
+| Arquivo | Versão | Mudança |
+|---------|--------|---------|
+| `public/js/parciais.js` | v3.0 → v4.0 | Multi-Temporada - verifica `window.temporadaAtual` |
+| `public/fronts/parciais.html` | v3.0 → v4.0 | Carregamento dinâmico baseado na temporada |
+| `public/js/ranking.js` | v2.4 → v2.5 | Adicionada função `mostrarPreTemporada()` |
+| `public/js/cards-condicionais.js` | v2.4 | Temporada 2026+ sem restrições automáticas |
+| `public/js/core/cache-manager.js` | v9.2 | Fix export fora de if/else |
 
-**Arquivos a Investigar:**
+**Estado do Banco de Dados (Temporada 2026):**
+- ✅ Participantes (times): 3+ registrados
+- ❌ Rodadas: 0 (pré-temporada)
+- ❌ Ranking snapshots: 0 (pré-temporada)
+
+**Módulos que Mostram Tela de Pré-Temporada:**
+- ✅ Parciais - "Aguardando início das rodadas"
+- ✅ Ranking - "Temporada 2026 - Aguardando início"
+- 🟡 Rodadas - Mensagem "Nenhum dado encontrado"
+
+**Pendente (não corrigido):**
+- `pontos-corridos-orquestrador.js` - Não usa `window.temporadaAtual`
+- `artilheiro-campeao.js` - Flag `temporadaEncerrada` vem da API
+- Outros módulos podem precisar de ajuste similar
+
+**Arquivos Modificados:**
 - `public/js/cards-condicionais.js`
-- `public/js/detalhe-liga-orquestrador.js`
+- `public/js/parciais.js`
+- `public/fronts/parciais.html`
+- `public/js/ranking.js`
+- `public/js/core/cache-manager.js`
 
 ---
 

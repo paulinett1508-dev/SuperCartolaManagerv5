@@ -337,7 +337,27 @@ document.addEventListener("input", (e) => {
 });
 
 // === INICIALIZAÇÃO ===
-document.addEventListener("DOMContentLoaded", async () => {
+async function initCriarLiga() {
+    console.log("[CRIAR-LIGA] Inicializando página...");
     await loadLayout();
     atualizarListaTimes();
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    if (!window.location.pathname.includes('criar-liga.html')) return;
+    await initCriarLiga();
 });
+
+// ✅ FIX: Reinicializar após navegação SPA
+window.addEventListener('spa:navigated', async (e) => {
+    const { pageName } = e.detail || {};
+    if (pageName === 'criar-liga.html') {
+        console.log('[CRIAR-LIGA] Reinicializando após navegação SPA...');
+        await initCriarLiga();
+    }
+});
+
+// ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
+if (document.readyState !== 'loading' && window.location.pathname.includes('criar-liga.html')) {
+    initCriarLiga();
+}

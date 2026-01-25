@@ -772,10 +772,30 @@ class EditarLigaManager {
 // Inicialização global
 let editarLiga;
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function initEditarLiga() {
+    console.log("[EDITAR-LIGA] Inicializando página...");
     editarLiga = new EditarLigaManager();
     await editarLiga.init();
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    if (!window.location.pathname.includes('editar-liga.html')) return;
+    await initEditarLiga();
 });
+
+// ✅ FIX: Reinicializar após navegação SPA
+window.addEventListener('spa:navigated', async (e) => {
+    const { pageName } = e.detail || {};
+    if (pageName === 'editar-liga.html') {
+        console.log('[EDITAR-LIGA] Reinicializando após navegação SPA...');
+        await initEditarLiga();
+    }
+});
+
+// ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
+if (document.readyState !== 'loading' && window.location.pathname.includes('editar-liga.html')) {
+    initEditarLiga();
+}
 
 // Funções globais para compatibilidade com HTML inline
 window.editarLiga = {

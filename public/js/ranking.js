@@ -1,4 +1,5 @@
-// 🔧 RANKING.JS - v2.4 COM MATERIAL ICONS FORÇADO
+// 🔧 RANKING.JS - v2.5 COM MATERIAL ICONS FORÇADO
+// v2.5: Multi-Temporada - tela de pré-temporada quando não há dados
 // v2.4: Refatorado para SaaS - usa totalParticipantes em vez de liga ID hardcoded
 // Visual diferenciado para inativos + filtros 1º/2º turno/Geral
 // ✅ NOVO: Card destaque do líder + Card "Seu Desempenho" + Posições por turno
@@ -243,7 +244,15 @@ async function carregarRankingGeral(turnoParam = null) {
         const data = await response.json();
 
         if (!data.success || !data.ranking) {
-            throw new Error("Dados inválidos da API");
+            // Pode ser pré-temporada - mostrar mensagem amigável
+            mostrarPreTemporada(rankingContainer, temporada);
+            return;
+        }
+
+        // Se ranking está vazio, mostrar pré-temporada
+        if (data.ranking.length === 0) {
+            mostrarPreTemporada(rankingContainer, temporada);
+            return;
         }
 
         console.log(
@@ -361,11 +370,28 @@ async function carregarRankingGeral(turnoParam = null) {
 // FALLBACK PARA API ANTIGA
 // ==============================
 async function carregarRankingFallback(ligaId, rankingContainer) {
+    // Multi-Temporada: verificar se é pré-temporada
+    const temporada = window.temporadaAtual || new Date().getFullYear();
+
     try {
-        const response = await fetch(`/api/ranking-cache/${ligaId}`);
-        if (!response.ok) throw new Error(`Erro: ${response.status}`);
+        const response = await fetch(`/api/ranking-cache/${ligaId}?temporada=${temporada}`);
+
+        // Se 404, pode ser pré-temporada
+        if (!response.ok) {
+            if (response.status === 404) {
+                mostrarPreTemporada(rankingContainer, temporada);
+                return;
+            }
+            throw new Error(`Erro: ${response.status}`);
+        }
 
         const data = await response.json();
+
+        // Se não há ranking, mostrar pré-temporada
+        if (!data.ranking || data.ranking.length === 0) {
+            mostrarPreTemporada(rankingContainer, temporada);
+            return;
+        }
 
         const participantes = data.ranking.map((p) => ({
             time_id: p.timeId,
@@ -392,10 +418,48 @@ async function carregarRankingFallback(ligaId, rankingContainer) {
         rankingContainer.innerHTML = tabelaHTML;
         configurarTabsRanking();
     } catch (error) {
-        throw error;
+        // Em caso de erro, verificar se é pré-temporada
+        mostrarPreTemporada(rankingContainer, temporada);
     } finally {
         rankingProcessando = false;
     }
+}
+
+// ==============================
+// MOSTRAR TELA PRÉ-TEMPORADA
+// ==============================
+function mostrarPreTemporada(container, temporada) {
+    console.log(`[RANKING] 📅 Pré-temporada ${temporada} - sem dados disponíveis`);
+
+    container.innerHTML = `
+        <div style="max-width: 500px; margin: 0 auto; text-align: center; padding: 40px 20px;">
+            <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);">
+                <span class="material-icons" style="font-size: 40px; color: #fff;">schedule</span>
+            </div>
+
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0 0 8px;">Temporada ${temporada}</h2>
+            <p style="font-size: 0.95rem; color: rgba(255, 255, 255, 0.6); margin: 0 0 24px;">Aguardando início das rodadas</p>
+
+            <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 24px;">
+                <div style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; font-size: 0.85rem; color: rgba(255, 255, 255, 0.8);">
+                    <span class="material-icons" style="font-size: 18px; color: #3b82f6;">event</span>
+                    <span>Pré-temporada</span>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; background: rgba(255, 255, 255, 0.03); border-radius: 10px; border-left: 3px solid #3b82f6; text-align: left; margin-bottom: 24px;">
+                <span class="material-icons" style="font-size: 20px; color: #3b82f6; flex-shrink: 0; margin-top: 2px;">info</span>
+                <p style="margin: 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">
+                    A classificação estará disponível quando as rodadas da temporada ${temporada} começarem.
+                </p>
+            </div>
+
+            <button onclick="window.orquestrador?.voltarParaCards()" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #ff5c00 0%, #ff8c00 100%); color: #fff; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(255, 92, 0, 0.3);">
+                <span class="material-icons" style="font-size: 20px;">arrow_back</span>
+                Voltar aos Módulos
+            </button>
+        </div>
+    `;
 }
 
 // ==============================
@@ -1202,5 +1266,5 @@ window.modulosCarregados.ranking = {
 };
 
 console.log(
-    "✅ [RANKING] Módulo v2.4 SaaS carregado - usa totalParticipantes para labels",
+    "✅ [RANKING] Módulo v2.5 carregado - Multi-Temporada + tela pré-temporada",
 );

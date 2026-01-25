@@ -146,7 +146,7 @@
                     const doc = parser.parseFromString(html, 'text/html');
                     const sidebar = doc.querySelector('.app-sidebar');
                     if (sidebar) {
-                        document.getElementById('sidebar-placeholder').replaceWith(sidebar);
+                        document.getElementById('sidebar-placeholder')?.replaceWith(sidebar);
                     }
 
                     // Injetar scripts do layout
@@ -292,8 +292,37 @@
                 }
             }
 
-            document.getElementById('salvarBtn').addEventListener('click', salvarModulos);
-            document.addEventListener('DOMContentLoaded', init);
+            document.getElementById('salvarBtn')?.addEventListener('click', salvarModulos);
+
+            document.addEventListener('DOMContentLoaded', () => {
+                if (!window.location.pathname.includes('gerenciar-modulos.html')) return;
+                init();
+                // Re-bind do botão após init
+                const btn = document.getElementById('salvarBtn');
+                if (btn && !btn._bound) {
+                    btn.addEventListener('click', salvarModulos);
+                    btn._bound = true;
+                }
+            });
+
+            // ✅ FIX: Reinicializar após navegação SPA
+            window.addEventListener('spa:navigated', (e) => {
+                const { pageName } = e.detail || {};
+                if (pageName === 'gerenciar-modulos.html') {
+                    console.log('[GERENCIAR-MODULOS] Reinicializando após navegação SPA...');
+                    init();
+                    const btn = document.getElementById('salvarBtn');
+                    if (btn && !btn._bound) {
+                        btn.addEventListener('click', salvarModulos);
+                        btn._bound = true;
+                    }
+                }
+            });
+
+            // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
+            if (document.readyState !== 'loading' && window.location.pathname.includes('gerenciar-modulos.html')) {
+                init();
+            }
         </script>
     </body>
 </html>

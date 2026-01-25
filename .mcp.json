@@ -3,18 +3,18 @@
     "mongo": {
       "command": "node",
       "args": ["mongo-server.js"],
-      "cwd": "C:\\PROJETOS\\SuperCartolaManagerv5\\SuperCartolaManagerv5"
+      "cwd": "/home/runner/workspace"
     },
     "perplexity": {
-      "command": "cmd",
-      "args": ["/c", "npx", "-y", "@perplexity-ai/mcp-server"],
+      "command": "npx",
+      "args": ["-y", "@perplexity-ai/mcp-server"],
       "env": {
         "PERPLEXITY_API_KEY": "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"
       }
     },
     "context7": {
-      "command": "cmd",
-      "args": ["/c", "npx", "-y", "@upstash/context7-mcp@latest"],
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
       "env": {
         "NODE_ENV": "production"
       }

@@ -1098,6 +1098,72 @@ Ver documentação completa em: [docs/CONTEXT7-MCP-SETUP.md](docs/CONTEXT7-MCP-S
 
 ---
 
+### 🏷️ White Label / Multi-Tenant SaaS
+
+- [ ] [FEAT-025] **Sistema White Label Completo** 🚀 VISÃO ESTRATÉGICA
+  - **Descrição:** Transformar o Super Cartola em plataforma white-label onde qualquer pessoa pode criar sua própria liga com identidade visual customizada
+  - **Contexto atual:**
+    - ✅ Multi-tenant já implementado (cada liga tem suas configs)
+    - ✅ Controllers usam `liga.configuracoes` dinâmico
+    - ✅ `modulos_ativos` por liga
+    - ⚠️ Branding ainda é fixo (Super Cartola)
+
+  - **Funcionalidades White Label:**
+
+    **📦 FASE 1: Configuração de Marca**
+    - [ ] Modelo `LigaBranding` com:
+      - Nome da liga (já existe)
+      - Logo customizado (upload)
+      - Cores primária/secundária (CSS variables)
+      - Favicon customizado
+      - Domínio customizado (CNAME)
+    - [ ] Tela admin "Personalizar Marca"
+
+    **🎨 FASE 2: Theming Dinâmico**
+    - [ ] CSS variables carregadas do banco
+    - [ ] Dark/Light mode por liga
+    - [ ] Fontes customizáveis (Google Fonts)
+    - [ ] Templates de email com marca da liga
+
+    **🔗 FASE 3: Domínio Customizado**
+    - [ ] Suporte a subdomínio: `minhaliga.supercartola.com.br`
+    - [ ] Suporte a domínio próprio: `minhaliga.com.br`
+    - [ ] SSL automático (Let's Encrypt)
+    - [ ] Redirect middleware baseado em hostname
+
+    **💰 FASE 4: Monetização (Opcional)**
+    - [ ] Planos de assinatura para ligas (Free/Pro/Enterprise)
+    - [ ] Limites por plano (participantes, módulos, storage)
+    - [ ] Gateway de pagamento (Stripe/PIX)
+    - [ ] Dashboard de billing para owners
+
+  - **Arquitetura proposta:**
+    ```
+    Request → Middleware detecta hostname → Carrega LigaBranding → Injeta CSS vars → Renderiza
+
+    Models:
+    - LigaBranding { liga_id, logo, cores, dominio, plano }
+    - LigaPlano { features[], limites{}, preco }
+    ```
+
+  - **Arquivos a criar/modificar:**
+    - `models/LigaBranding.js` - Schema de branding
+    - `middleware/whitelabel.js` - Detecta liga por domínio
+    - `public/css/_liga-variables.css` - CSS dinâmico
+    - `routes/branding-routes.js` - Upload de logo, cores
+    - `controllers/brandingController.js` - CRUD branding
+
+  - **Dependências:**
+    - Cloudflare ou similar para wildcard SSL
+    - Storage para logos (S3/Cloudinary)
+    - DNS dinâmico para subdomínios
+
+  - **Complexidade:** Muito Alta (~80h+)
+  - **ROI:** Potencial de escalar para múltiplas ligas independentes
+  - **Status:** Backlog - Visão de longo prazo
+
+---
+
 ## 🎯 Como Usar
 
 1. **Nova ideia surge?** → Adicione na seção apropriada com ID único
@@ -1109,5 +1175,5 @@ Ver documentação completa em: [docs/CONTEXT7-MCP-SETUP.md](docs/CONTEXT7-MCP-S
 
 ---
 
-_Última atualização: 25/01/2026 - FEAT-003 Push Notifications implementado (Fases 1-5 concluídas)_
+_Última atualização: 25/01/2026 - FEAT-025 White Label adicionado ao backlog_
 

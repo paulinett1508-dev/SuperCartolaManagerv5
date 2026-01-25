@@ -4,80 +4,121 @@ Handover para nova sessao - carrega contexto do trabalho em andamento e instrui 
 
 ---
 
-## STATUS ATUAL: Pronto para novas tarefas
+## STATUS ATUAL: Cadastrar Liga e Participantes
 
 **Data:** 25/01/2026
-**Ultima acao:** Bug sidebar corrigido
+**Ultima acao:** Plano aprovado, pronto para execucao
 
 ---
 
-## CORRECAO APLICADA (25/01/2026)
+## TAREFA EM ANDAMENTO
 
-### Problema
-O sidebar nao renderizava corretamente em `gerenciar.html` e `gerenciar-modulos.html`.
+### Objetivo
+1. Criar uma nova liga no sistema
+2. Adicionar participantes na nova liga
+3. Adicionar participantes na SuperCartola 2026
 
-### Causa Raiz
-Os arquivos carregavam o sidebar via `loadLayout()` que injeta HTML de `layout.html`, porem **nao incluiam** o CSS `dashboard-redesign.css` que define os estilos para `.app-sidebar.sidebar-redesign`.
+### Plano Aprovado
+Arquivo: `/home/runner/.claude/plans/lively-inventing-music.md`
 
-### Solucao
-Adicionado `dashboard-redesign.css` antes de `gerenciar.css` em:
-- `public/gerenciar.html` (linha 11)
-- `public/gerenciar-modulos.html` (linha 11)
+---
 
-### Arquivos Modificados
+## RESUMO DO PLANO
+
+### PARTE 1: Criar Nova Liga
+- **URL:** `/criar-liga.html`
+- Wizard de 2 etapas:
+  1. Buscar times por ID do Cartola e adicionar
+  2. Nomear liga e salvar
+- Liga pode ser criada vazia
+
+### PARTE 2: Adicionar Participantes (Liga Existente)
+- **Opcao A:** `/editar-liga.html?id={ligaId}`
+  - Linha "+" no final da tabela
+  - Digitar ID, sistema auto-preenche dados
+
+- **Opcao B (Recomendado 2026):** `/ferramentas.html` > "Adicionar Participante"
+  - Modal com busca por nome ou ID
+  - Cria inscricao automatica em `inscricoestemporada`
+
+### PARTE 3: SuperCartola 2026
+- **Liga ID:** `684cb1c8af923da7c7df51de`
+- **Participantes atuais:** 33
+- Usar Ferramentas modal para adicionar novos
+
+---
+
+## DADOS IMPORTANTES
+
+### Como Obter ID do Cartola FC
+1. Participante acessa Cartola FC
+2. URL do perfil: `cartola.globo.com/time/{ID}`
+3. Ou buscar por nome no modal de Ferramentas
+
+### Verificacao Pos-Cadastro
+```javascript
+// Verificar liga.times[]
+db.ligas.findOne({ _id: ObjectId("{ligaId}") }, { times: 1 })
+
+// Verificar inscricao 2026
+db.inscricoestemporada.find({
+  liga_id: ObjectId("{ligaId}"),
+  temporada: 2026,
+  time_id: {novoTimeId}
+})
 ```
-public/gerenciar.html
-public/gerenciar-modulos.html
-```
-
-### Validacao
-Testar acessando:
-1. `http://localhost:3000/gerenciar.html`
-2. `http://localhost:3000/gerenciar-modulos.html?id=[ID_LIGA]`
-
-Sidebar deve aparecer fixo a esquerda com 280px de largura.
 
 ---
 
-## COMMITS RECENTES
+## ARQUIVOS RELEVANTES
 
-| Commit | Descricao |
-|--------|-----------|
-| `c146b07` | fix(admin): corrige bugs de layout e navegacao em ferramentas admin |
-| Pendente | fix(admin): adiciona dashboard-redesign.css em gerenciar pages |
-
----
-
-## CONTEXTO DO PROJETO
-
-### Reset Temporada 2026
-- Liga SuperCartola JA esta zerada para 2026
-- `modulos_ativos`: Todos opcionais desabilitados
-- Script `reset-temporada-2026.js` funcionando
-
-### Arquitetura de CSS Admin
-Ordem de carregamento obrigatoria para paginas com sidebar dinamico:
-1. `css/_admin-tokens.css` - Variaveis CSS
-2. `style.css` - Layout base (.app-container, .app-sidebar, .app-main)
-3. `css/modules/dashboard-redesign.css` - Sidebar redesign (OBRIGATORIO)
-4. CSS especifico da pagina (ex: gerenciar.css)
+| Arquivo | Funcao |
+|---------|--------|
+| `public/criar-liga.html` | UI criacao de liga |
+| `public/js/criar-liga.js` | Logica de criacao |
+| `public/editar-liga.html` | UI edicao de liga |
+| `public/js/editar-liga.js` | Logica de edicao |
+| `public/js/ferramentas/ferramentas-pesquisar-time.js` | Modal adicionar participante |
+| `controllers/ligaController.js` | API backend |
 
 ---
 
-## PARA RETOMAR TRABALHO
+## BUG PENDENTE (Adiado)
+
+### BUG-003: Anomalias Multi-Temporada
+**Status:** Correcao parcial (documentado em `.claude/pending-tasks.md`)
+
+**Corrigido:**
+- `parciais.js` v4.0 - Multi-temporada
+- `ranking.js` v2.5 - Pre-temporada handling
+
+**Pendente:**
+- `pontos-corridos-orquestrador.js` - Nao usa `window.temporadaAtual`
+- `artilheiro-campeao.js` - Flag `temporadaEncerrada` vem da API
+
+---
+
+## PARA RETOMAR
 
 ```bash
-# Verificar alteracoes pendentes
-git status
+# Verificar plano completo
+cat /home/runner/.claude/plans/lively-inventing-music.md
 
-# Testar as paginas corrigidas
-# Abrir navegador em http://localhost:3000/gerenciar.html
+# Acessar interface para criar liga
+# URL: /criar-liga.html
 
-# Se funcionar, commitar
-git add public/gerenciar.html public/gerenciar-modulos.html
-git commit -m "fix(admin): adiciona dashboard-redesign.css em gerenciar pages"
+# Acessar Ferramentas para adicionar participantes
+# URL: /ferramentas.html
 ```
 
 ---
 
-**PRONTO PARA NOVAS TAREFAS**
+## PERGUNTAR AO USUARIO
+
+1. Qual o nome da nova liga?
+2. Quais os IDs do Cartola FC dos participantes?
+   - Se nao tiver, perguntar os nomes dos times para buscar
+
+---
+
+**AGUARDANDO:** Dados dos participantes para cadastro

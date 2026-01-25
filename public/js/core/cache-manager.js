@@ -2,12 +2,10 @@
  * CACHE MANAGER - Sistema de Cache Inteligente
  * Persistente (IndexedDB) + Memoria (Map)
  * Sobrevive a page refreshes
+ *
+ * v9.2: Removida proteção if/else que quebrava export em ES6 modules
+ *       Módulos ES6 são executados apenas uma vez, proteção é desnecessária
  */
-
-// ✅ v9.1: Protecao contra redeclaracao em navegacao SPA
-if (typeof window.CacheManager !== 'undefined') {
-    console.log('[CACHE-MANAGER] Ja carregado, pulando redeclaracao');
-} else {
 
 const CACHE_CONFIG = {
   dbName: "CartolaCache",
@@ -563,11 +561,8 @@ setInterval(
   10 * 60 * 1000,
 );
 
-// Expor no window para debug
+// Expor no window para debug e compatibilidade com scripts não-módulo
 window.cacheManager = cacheManager;
 window.CacheManager = CacheManager;
 
-if (window.Log)
-  Log.info("CACHE-MANAGER", "Sistema de cache inteligente carregado");
-
-} // Fim do bloco else (protecao contra redeclaracao)
+console.log("[CACHE-MANAGER] v9.2 - Sistema de cache inteligente carregado");

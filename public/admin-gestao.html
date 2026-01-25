@@ -310,7 +310,6 @@
                 console.error('Erro ao carregar layout:', error);
             }
         }
-        carregarLayout();
 
         // Verificar se é Super Admin
         async function verificarAcesso() {
@@ -591,8 +590,26 @@
             }
         }
 
-        // Inicializar
-        verificarAcesso();
+        // Função de inicialização reutilizável
+        async function initAdminGestao() {
+            console.log("[ADMIN-GESTAO] Inicializando página...");
+            await carregarLayout();
+            await verificarAcesso();
+        }
+
+        // Inicializar apenas se estamos na página correta
+        if (window.location.pathname.includes('admin-gestao.html')) {
+            initAdminGestao();
+        }
+
+        // ✅ FIX: Reinicializar após navegação SPA
+        window.addEventListener('spa:navigated', async (e) => {
+            const { pageName } = e.detail || {};
+            if (pageName === 'admin-gestao.html') {
+                console.log('[ADMIN-GESTAO] Reinicializando após navegação SPA...');
+                await initAdminGestao();
+            }
+        });
 
         // Toggle Sidebar Mobile
         function toggleMobileSidebar() {
