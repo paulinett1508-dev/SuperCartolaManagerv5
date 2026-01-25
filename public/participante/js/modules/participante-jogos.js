@@ -1,4 +1,5 @@
-// PARTICIPANTE-JOGOS.JS - v5.5 (BOTÃO FECHAR MODAL)
+// PARTICIPANTE-JOGOS.JS - v5.6 (ACORDEÃO POR CAMPEONATO)
+// ✅ v5.6: Jogos agrupados por campeonato em menus expandíveis
 // ✅ v5.5: Botão "Fechar" visível no footer do modal de detalhes
 // ✅ v5.4: Separação correta em 3 seções
 //          - "Ao Vivo": apenas jogos realmente ao vivo (1H, 2H, HT, etc.)
@@ -97,7 +98,7 @@ function isJogoAgendado(jogo) {
 }
 
 /**
- * Renderiza card de jogos do dia - v5.3 (Seções separadas)
+ * Renderiza card de jogos do dia - v5.6 (Campeonatos expandíveis)
  * @param {Array} jogos - Lista de jogos
  * @param {string} fonte - Fonte dos dados (api-football, globo)
  * @param {boolean} aoVivo - Se ha jogos ao vivo
@@ -105,20 +106,18 @@ function isJogoAgendado(jogo) {
 export function renderizarJogosAoVivo(jogos, fonte = 'api-football', aoVivo = false) {
     if (!jogos || !jogos.length) return '';
 
-    // ✅ v5.4: Separar jogos em 3 categorias distintas
-    const jogosAoVivo = jogos.filter(j => isJogoAoVivo(j));
-    const jogosAgendados = jogos.filter(j => isJogoAgendado(j));
-    const jogosEncerrados = jogos.filter(j => isJogoEncerrado(j));
+    // ✅ v5.6: Agenda do dia (agendados) em bloco separado
+    const jogosAgendados = jogos
+        .filter(j => isJogoAgendado(j))
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
-    // Log para debug
-    console.log('[JOGOS-DEBUG] Total:', jogos.length, '| Ao vivo:', jogosAoVivo.length, '| Agendados:', jogosAgendados.length, '| Encerrados:', jogosEncerrados.length);
-
-    // Calcular estatisticas
-    const stats = {
-        aoVivo: jogosAoVivo.length,
-        agendados: jogosAgendados.length,
-        encerrados: jogosEncerrados.length
-    };
+    // ✅ v5.6: Agrupar por campeonato (liga)
+    const jogosPorLiga = jogos.reduce((acc, jogo) => {
+        const liga = jogo.liga || 'Outros';
+        if (!acc[liga]) acc[liga] = [];
+        acc[liga].push(jogo);
+        return acc;
+    }, {});
 
     // Fonte dos dados para footer
     const fonteTexto = fonte === 'api-football' ? 'API-Football'
@@ -126,10 +125,39 @@ export function renderizarJogosAoVivo(jogos, fonte = 'api-football', aoVivo = fa
         : 'Globo Esporte';
 
     return `
-    <div class="jogos-ao-vivo mx-4 mb-8 space-y-4">
-        ${renderizarSecaoJogos(jogosAoVivo, 'Ao Vivo', stats, 'aoVivo')}
-        ${renderizarSecaoJogos(jogosAgendados, 'Hoje', stats, 'agendados')}
-        ${renderizarSecaoJogos(jogosEncerrados, 'Encerrados', stats, 'encerrados')}
+    <div class="jogos-ao-vivo mx-4 mb-8 space-y-3">
+        ${jogosAgendados.length > 0
+            ? renderizarSecaoJogos(jogosAgendados, 'Agenda do Dia', 'agendados')
+            : ''}
+        ${Object.entries(jogosPorLiga).map(([liga, lista]) => {
+            const jogosAoVivo = lista.filter(j => isJogoAoVivo(j));
+            const jogosEncerrados = lista.filter(j => isJogoEncerrado(j));
+
+            if (jogosAoVivo.length === 0 && jogosEncerrados.length === 0) return '';
+
+            const total = jogosAoVivo.length + jogosEncerrados.length;
+            const abertoPorPadrao = jogosAoVivo.length > 0 ? 'open' : '';
+
+            return `
+            <details class="rounded-xl border border-gray-800/60 bg-gradient-to-br from-gray-800 to-gray-900 shadow-lg" ${abertoPorPadrao}>
+                <summary class="list-none cursor-pointer select-none px-3 py-2 flex items-center justify-between">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="material-icons text-primary text-base">sports_soccer</span>
+                        <h3 class="text-xs font-brand text-white tracking-wide truncate">${liga}</h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        ${jogosAoVivo.length > 0 ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400">${jogosAoVivo.length} ao vivo</span>` : ''}
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-500/20 text-gray-300">${total} jogos</span>
+                        <span class="material-icons text-white/40 text-base">expand_more</span>
+                    </div>
+                </summary>
+                <div class="px-3 pb-3 space-y-2">
+                    ${renderizarSecaoJogos(jogosAoVivo, 'Ao Vivo', 'aoVivo')}
+                    ${renderizarSecaoJogos(jogosEncerrados, 'Encerrados', 'encerrados')}
+                </div>
+            </details>
+            `;
+        }).join('')}
         <div class="text-center">
             <span class="text-[10px] text-white/30">Dados: ${fonteTexto}</span>
         </div>
@@ -138,13 +166,12 @@ export function renderizarJogosAoVivo(jogos, fonte = 'api-football', aoVivo = fa
 }
 
 /**
- * Renderiza uma seção de jogos - v5.4
+ * Renderiza uma seção de jogos - v5.6
  * @param {Array} jogos - Lista de jogos da seção
  * @param {string} titulo - Título da seção
- * @param {Object} stats - Estatísticas gerais
  * @param {string} tipo - Tipo da seção: 'aoVivo', 'agendados', 'encerrados'
  */
-function renderizarSecaoJogos(jogos, titulo, stats, tipo) {
+function renderizarSecaoJogos(jogos, titulo, tipo) {
     if (!jogos || !jogos.length) return '';
 
     // Configurações visuais baseadas no tipo de seção
@@ -155,14 +182,14 @@ function renderizarSecaoJogos(jogos, titulo, stats, tipo) {
             tituloIcone = 'sports_soccer';
             tagClass = 'bg-green-500/20 text-green-400 animate-pulse';
             tagTexto = `${jogos.length} ao vivo`;
-            borderClass = 'border-green-500/40';
+            borderClass = 'border-green-500/30';
             iconColor = 'text-green-400';
             break;
         case 'agendados':
             tituloIcone = 'schedule';
             tagClass = 'bg-yellow-400/20 text-yellow-400';
             tagTexto = `${jogos.length} ${jogos.length === 1 ? 'jogo' : 'jogos'}`;
-            borderClass = 'border-yellow-500/30';
+            borderClass = 'border-yellow-500/20';
             iconColor = 'text-yellow-400';
             break;
         case 'encerrados':
@@ -170,19 +197,19 @@ function renderizarSecaoJogos(jogos, titulo, stats, tipo) {
             tituloIcone = 'verified';
             tagClass = 'bg-gray-500/20 text-gray-400';
             tagTexto = `${jogos.length} ${jogos.length === 1 ? 'jogo' : 'jogos'}`;
-            borderClass = 'border-gray-700/30';
+            borderClass = 'border-gray-700/20';
             iconColor = 'text-gray-400';
             break;
     }
 
     return `
-    <div class="rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 p-3 border ${borderClass} shadow-lg">
-        <div class="flex items-center justify-between mb-2">
+    <div class="rounded-lg bg-gray-900/40 p-2 border ${borderClass}">
+        <div class="flex items-center justify-between mb-1.5">
             <div class="flex items-center gap-1.5">
-                <span class="material-icons ${iconColor} text-base">${tituloIcone}</span>
-                <h3 class="text-xs font-brand text-white tracking-wide">${titulo}</h3>
+                <span class="material-icons ${iconColor} text-sm">${tituloIcone}</span>
+                <h4 class="text-[11px] font-brand text-white/90 tracking-wide">${titulo}</h4>
             </div>
-            <span class="text-[10px] px-1.5 py-0.5 rounded ${tagClass}">${tagTexto}</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded ${tagClass}">${tagTexto}</span>
         </div>
         <div class="space-y-1.5">
             ${jogos.map(jogo => renderizarCardJogo(jogo)).join('')}

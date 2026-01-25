@@ -591,6 +591,20 @@ body.temporada-historica [data-action="limpar-cache"] {
     border-top: 1px solid #2a2a2a;
 }
 
+/* Responsivo: 2 colunas em telas menores */
+@media (max-width: 768px) {
+    .detalhe-liga-redesign .admin-tools-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Responsivo: 1 coluna em mobile */
+@media (max-width: 480px) {
+    .detalhe-liga-redesign .admin-tools-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .detalhe-liga-redesign .admin-tool-item {
     display: flex;
     align-items: center;
@@ -661,6 +675,16 @@ body.temporada-historica [data-action="limpar-cache"] {
 .detalhe-liga-redesign .admin-tool-icon.create {
     background: rgba(236, 72, 153, 0.15);
     color: #ec4899;
+}
+
+.detalhe-liga-redesign .admin-tool-icon.audit {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2));
+    color: #f59e0b;
+}
+
+.detalhe-liga-redesign .admin-tool-icon.modules {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.2));
+    color: #8b5cf6;
 }
 
 .detalhe-liga-redesign .admin-tool-info {
