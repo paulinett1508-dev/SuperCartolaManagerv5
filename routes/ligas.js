@@ -759,8 +759,21 @@ router.get("/:id/participantes", async (req, res) => {
     let fonte = "";
     let stats = { total: 0, ativos: 0, renovados: 0, pendentes: 0, nao_participa: 0, novos: 0 };
 
-    // Temporada base da liga: usar participantes embutidos
-    if (temporadaFiltro === temporadaLiga) {
+    // ✅ v2.5 FIX: Para temporadas >= 2026, SEMPRE consultar inscricoestemporada primeiro
+    // Isso garante que participantes com status 'nao_participa' sejam excluidos
+    let usarInscricoes = false;
+
+    if (temporadaFiltro >= 2026) {
+      // Verificar se existem inscricoes para esta temporada
+      const temInscricoes = await InscricaoTemporada.countDocuments({
+        liga_id: new mongoose.Types.ObjectId(ligaId),
+        temporada: temporadaFiltro
+      });
+      usarInscricoes = temInscricoes > 0;
+    }
+
+    // Temporada base da liga SEM inscricoes (comportamento legado)
+    if (temporadaFiltro === temporadaLiga && !usarInscricoes) {
       fonte = "liga.participantes";
 
       // Buscar status de inativos
@@ -784,6 +797,44 @@ router.get("/:id/participantes", async (req, res) => {
 
       stats.total = participantes.length;
       stats.ativos = participantes.filter((p) => p.ativo).length;
+    } else if (usarInscricoes) {
+      // ✅ v2.5: Temporada >= 2026 COM inscricoes - usar inscricoestemporada
+      fonte = "inscricoestemporada";
+
+      const inscricoes = await InscricaoTemporada.find({
+        liga_id: new mongoose.Types.ObjectId(ligaId),
+        temporada: temporadaFiltro,
+      }).lean();
+
+      // Criar mapa de liga.participantes para obter dados faltantes (escudo, clube_id)
+      const ligaParticipantesMap = new Map();
+      (liga.participantes || []).forEach(p => {
+        ligaParticipantesMap.set(String(p.time_id), p);
+      });
+
+      participantes = inscricoes.map((insc) => {
+        const participanteLiga = ligaParticipantesMap.get(String(insc.time_id));
+        const dadosInsc = insc.dados_participante || {};
+
+        return {
+          time_id: insc.time_id,
+          nome_cartoleiro: dadosInsc.nome_cartoleiro || participanteLiga?.nome_cartola || "N/D",
+          nome_time: dadosInsc.nome_time || participanteLiga?.nome_time || "N/D",
+          escudo: dadosInsc.escudo || participanteLiga?.foto_time || "",
+          clube_id: dadosInsc.clube_id || participanteLiga?.clube_id || null,
+          status: insc.status,
+          ativo: insc.status === "renovado" || insc.status === "novo",
+          pagou_inscricao: insc.pagou_inscricao || false,
+          saldo_transferido: insc.saldo_transferido || 0,
+        };
+      });
+
+      stats.total = participantes.length;
+      stats.renovados = participantes.filter((p) => p.status === "renovado").length;
+      stats.pendentes = participantes.filter((p) => p.status === "pendente").length;
+      stats.nao_participa = participantes.filter((p) => p.status === "nao_participa").length;
+      stats.novos = participantes.filter((p) => p.status === "novo").length;
+      stats.ativos = stats.renovados + stats.novos;
     } else {
       // Temporada diferente: consultar inscricoestemporada primeiro
       const inscricoes = await InscricaoTemporada.find({

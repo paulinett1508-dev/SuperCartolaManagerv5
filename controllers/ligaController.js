@@ -3,6 +3,7 @@ import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
 import Rodada from "../models/Rodada.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
+import InscricaoTemporada from "../models/InscricaoTemporada.js";
 import axios from "axios";
 import { hasAccessToLiga } from "../middleware/tenant.js";
 
@@ -68,14 +69,49 @@ const listarLigas = async (req, res) => {
       temporadasMap[item._id] = item.temporadas.sort((a, b) => b - a);
     });
 
+    // ✅ v4.0: Buscar contagem de participantes ATIVOS por liga (inscricoes 2026+)
+    // Para temporadas >= 2026, conta apenas inscritos com status 'renovado' ou 'novo'
+    const inscricoesAtivasPorLiga = await InscricaoTemporada.aggregate([
+      {
+        $match: {
+          status: { $in: ['renovado', 'novo'] }
+        }
+      },
+      {
+        $group: {
+          _id: { liga_id: "$liga_id", temporada: "$temporada" },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Criar mapa liga_id + temporada -> contagem ativa
+    const inscricoesAtivasMap = {};
+    inscricoesAtivasPorLiga.forEach(item => {
+      const key = `${item._id.liga_id}_${item._id.temporada}`;
+      inscricoesAtivasMap[key] = item.count;
+    });
+
     // ✅ v3.0: Enriquecer com contagem de times, flags úteis e temporadas_com_dados
     const ligasEnriquecidas = ligas.map(liga => {
       const ligaIdStr = String(liga._id);
       const temporadasExtrato = temporadasMap[ligaIdStr] || [];
       const temporadaAtual = liga.temporada || 2025;
 
-      // Combinar temporada atual com temporadas dos extratos (sem duplicatas)
+      // Combina temporada atual com temporadas dos extratos (sem duplicatas)
       const todasTemporadas = [...new Set([temporadaAtual, ...temporadasExtrato])].sort((a, b) => b - a);
+
+      // NOVO: Criar mapa de contagem de times para cada temporada
+      const timesCountPerSeason = {};
+      todasTemporadas.forEach(temp => {
+        if (temp >= 2026) {
+          const key = `${ligaIdStr}_${temp}`;
+          timesCountPerSeason[temp] = inscricoesAtivasMap[key] || 0;
+        } else {
+          // Para temporadas legadas, usa o tamanho do array de times
+          timesCountPerSeason[temp] = liga.times?.length || 0;
+        }
+      });
 
       return {
         _id: liga._id,
@@ -84,7 +120,10 @@ const listarLigas = async (req, res) => {
         ativa: liga.ativa !== false, // Default true se não definido
         status: liga.status || (liga.ativa !== false ? 'ativa' : 'aposentada'),
         times: liga.times || [],
-        timesCount: liga.times?.length || 0,
+        // Manter para compatibilidade, usando a contagem da temporada principal da liga
+        timesCount: timesCountPerSeason[temporadaAtual] ?? (liga.times?.length || 0),
+        // ✅ NOVO: Objeto com contagem para cada temporada
+        timesCountPerSeason,
         historico: liga.historico || {},
         // ✅ NOVO: Temporadas onde a liga tem dados (para multi-temporada no sidebar)
         temporadas_com_dados: todasTemporadas,
