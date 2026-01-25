@@ -207,7 +207,10 @@
       "Bash(git fetch:*)",
       "Bash(git merge:*)",
       "Bash(replit:*)",
-      "Bash(killall:*)"
+      "Bash(killall:*)",
+      "Bash(do node --check:*)",
+      "Bash(env)",
+      "Bash(git pull:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
