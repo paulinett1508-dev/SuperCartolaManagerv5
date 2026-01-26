@@ -244,14 +244,7 @@
 
             carregarLayout();
 
-            // Mapeamento de logos
-            function obterLogoLiga(nomeLiga) {
-                const nome = (nomeLiga || '').toLowerCase();
-                if (nome.includes('super')) return 'img/logo-supercartola.png';
-                if (nome.includes('sobral') || nome.includes('cartoleiros')) return 'img/logo-cartoleirossobral.png';
-                if (nome.includes('fulero')) return 'img/logo-osfuleros.png';
-                return null;
-            }
+            // Logos das ligas - dinâmico via campo liga.logo (sem hardcode)
 
             // Carregar ligas
             async function carregarLigas() {
@@ -273,7 +266,7 @@
 
                     grid.innerHTML = ligas.map(liga => {
                         const ligaId = liga._id || liga.id;
-                        const logoUrl = obterLogoLiga(liga.nome);
+                        const logoUrl = liga.logo || null;  // ✅ Dinâmico via banco
                         const timesCount = liga.times?.length || 0;
 
                         const logoHtml = logoUrl

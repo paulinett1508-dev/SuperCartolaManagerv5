@@ -84,6 +84,46 @@ router.get("/:id/fluxo", consultarFluxoFinanceiro);
 router.get("/:id/times", buscarTimesDaLiga);
 router.get("/:id/rodadas", buscarRodadasDaLiga);
 
+// ==============================
+// ROTA: Atualizar logo da liga
+// PUT /api/ligas/:id/logo
+// ==============================
+router.put("/:id/logo", verificarAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { logo } = req.body;
+
+    // Validar formato do path (deve ser relativo, ex: "img/logo-minhaliga.png")
+    if (logo && !logo.match(/^img\/[\w\-\.]+\.(png|jpg|jpeg|svg|webp)$/i)) {
+      return res.status(400).json({
+        success: false,
+        error: "Formato de logo inválido. Use: img/nome-do-arquivo.png"
+      });
+    }
+
+    const liga = await Liga.findByIdAndUpdate(
+      id,
+      { logo: logo || null, atualizadaEm: new Date() },
+      { new: true }
+    );
+
+    if (!liga) {
+      return res.status(404).json({ success: false, error: "Liga não encontrada" });
+    }
+
+    console.log(`[LIGA] Logo atualizada: ${liga.nome} -> ${logo || 'removida'}`);
+
+    res.json({
+      success: true,
+      message: logo ? "Logo atualizada com sucesso" : "Logo removida",
+      liga: { _id: liga._id, nome: liga.nome, logo: liga.logo }
+    });
+  } catch (error) {
+    console.error("[LIGA] Erro ao atualizar logo:", error);
+    res.status(500).json({ success: false, error: "Erro ao atualizar logo" });
+  }
+});
+
 router.post("/:id/rodadas", verificarAdmin, (req, res) => {
   req.params.ligaId = req.params.id;
   delete req.params.id;

@@ -32,6 +32,9 @@ const ligaSchema = new mongoose.Schema({
     descricao: { type: String, default: "" },
     tipo: { type: String, enum: ["publica", "privada"], default: "publica" },
 
+    // ✅ BRANDING: Logo da liga (path relativo)
+    logo: { type: String, default: null },
+
     // ✅ MULTI-TENANT: Ownership da liga
     admin_id: {
         type: mongoose.Schema.Types.ObjectId,

@@ -800,6 +800,9 @@ class DetalheLigaOrquestrador {
                 if (nomeElement)
                     nomeElement.textContent = liga.nome || "Nome da Liga";
 
+                // ✅ Definir logo da liga para uso no header (dinâmico via banco)
+                window._currentLigaLogo = liga.logo || null;
+
                 const totalParticipantes =
                     liga.participantes?.length || liga.times?.length || 0;
 

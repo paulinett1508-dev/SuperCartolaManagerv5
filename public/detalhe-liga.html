@@ -1070,16 +1070,9 @@
                 const logoContainer = document.getElementById('ligaLogoContainer');
                 if (!nomeLigaEl || !logoContainer) return;
 
-                const nome = (nomeLigaEl.textContent || '').toLowerCase();
-                let logoUrl = null;
-
-                if (nome.includes('super')) {
-                    logoUrl = 'img/logo-supercartola.png';
-                } else if (nome.includes('sobral') || nome.includes('cartoleiros')) {
-                    logoUrl = 'img/logo-cartoleirossobral.png';
-                } else if (nome.includes('fulero')) {
-                    logoUrl = 'img/logo-osfuleros.png';
-                }
+                // ✅ Logo dinâmica via campo liga.logo (sem hardcode)
+                // A logo é obtida do objeto da liga carregado via API
+                const logoUrl = window._currentLigaLogo || null;
 
                 if (logoUrl) {
                     logoContainer.innerHTML = `

@@ -479,14 +479,7 @@ class ParticipanteAuth {
         if (window.Log) Log.debug('PARTICIPANTE-AUTH', '✅ Seletor de ligas renderizado e visível');
     }
 
-    // ✅ FUNÇÃO AUXILIAR: Obter logo da liga
-    obterLogoLiga(nomeLiga) {
-        const nome = (nomeLiga || '').toLowerCase();
-        if (nome.includes('super')) return '/img/logo-supercartola.png';
-        if (nome.includes('sobral') || nome.includes('cartoleiros')) return '/img/logo-cartoleirossobral.png';
-        if (nome.includes('fulero')) return '/img/logo-osfuleros.png';
-        return null;
-    }
+    // ✅ Logo da liga - dinâmico via campo liga.logo (sem hardcode)
 
     // ✅ NOVO: Mostrar badge de liga clicável no header
     mostrarBadgeLiga(ligas) {
@@ -503,8 +496,8 @@ class ParticipanteAuth {
         // Encontrar liga atual
         const ligaAtual = ligas.find(l => l.id === this.ligaId);
         if (ligaAtual && badgeNome) {
-            // Obter logo da liga
-            const logoUrl = this.obterLogoLiga(ligaAtual.nome);
+            // ✅ Logo dinâmica via campo liga.logo (sem hardcode)
+            const logoUrl = ligaAtual.logo ? `/${ligaAtual.logo}` : null;
             
             // Truncar nome se muito longo
             const nomeExibir = ligaAtual.nome.length > 18
