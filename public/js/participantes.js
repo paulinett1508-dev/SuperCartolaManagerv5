@@ -3608,13 +3608,17 @@ window.buscarTimeNovoParticipante = async function() {
  * Normaliza campos da API (nome_time, nome_cartoleiro) para uso interno
  */
 window.selecionarTimeParaAdicionar = function(time) {
-    // Normalizar campos (API usa nome_time/nome_cartoleiro, frontend pode usar outros)
+    // ✅ v3.0: Normalizar campos preservando TODOS os dados da API Cartola
+    // Campos: nome_time, nome_cartoleiro, escudo, clube_id, foto_perfil, assinante
     const timeNormalizado = {
         time_id: time.time_id,
         nome_time: time.nome_time || time.nome || 'Time sem nome',
         nome_cartola: time.nome_cartoleiro || time.nome_cartola || '-',
         url_escudo_png: time.url_escudo_png || time.escudo || '/escudos/default.png',
-        clube_id: time.clube_id || time.time_coracao || null
+        clube_id: time.clube_id || time.time_coracao || null,
+        // ✅ Campos adicionais da API Cartola (como Paulinett Miranda tem)
+        foto_perfil: time.foto_perfil || time.url_foto_perfil || '',
+        assinante: time.assinante || false
     };
 
     timeSelecionadoParaAdicionar = timeNormalizado;
@@ -3653,7 +3657,7 @@ window.confirmarNovoParticipante = async function() {
     btn.innerHTML = '<div class="loading-spinner" style="width: 16px; height: 16px;"></div> Adicionando...';
 
     try {
-        // Usar endpoint simples que não exige LigaRules
+        // ✅ v3.0: Usar endpoint simples com TODOS os campos da API Cartola
         // Campos já normalizados em selecionarTimeParaAdicionar()
         const response = await fetch(`/api/ligas/${ligaId}/participantes`, {
             method: 'POST',
@@ -3663,7 +3667,10 @@ window.confirmarNovoParticipante = async function() {
                 nome_cartola: timeSelecionadoParaAdicionar.nome_cartola,
                 nome_time: timeSelecionadoParaAdicionar.nome_time,
                 clube_id: timeSelecionadoParaAdicionar.clube_id,
-                url_escudo_png: timeSelecionadoParaAdicionar.url_escudo_png
+                url_escudo_png: timeSelecionadoParaAdicionar.url_escudo_png,
+                // ✅ Campos adicionais (como Paulinett Miranda tem)
+                foto_perfil: timeSelecionadoParaAdicionar.foto_perfil,
+                assinante: timeSelecionadoParaAdicionar.assinante
             })
         });
 

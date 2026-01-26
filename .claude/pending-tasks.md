@@ -1,53 +1,52 @@
 # Tarefas Pendentes
 
-## 🆕 PRÓXIMA SESSÃO (26/01/2026)
+## ✅ CORRIGIDO (26/01/2026)
 
 ### [FEAT-025] Evoluir Botão "Validar ID" da API Cartola
 
-**Status:** 📋 PLANEJADO
+**Status:** ✅ CORRIGIDO COMPLETAMENTE
 
-**Contexto:**
-No modal de adicionar novo participante (`participantes.js`), o botão "Validar ID" deve realmente consultar a API do Cartola FC e trazer as informações pertinentes do time.
+**Problema Encontrado:**
+1. Modal em `ferramentas-pesquisar-time.js` usava endpoint incorreto
+2. Campos `foto_time`, `foto_perfil`, `assinante` não eram salvos no participante
 
-**Referência Funcional:**
-- Liga: **Os Fuleros** (`6977a62071dee12036bb163e`)
-- Participante: **Paulinett Miranda** - dados vêm corretamente como exemplo
+**Correções Aplicadas (26/01/2026):**
 
-**O que deve fazer:**
-1. Ao digitar um ID de time e clicar "Validar ID"
-2. Consultar API Cartola: `GET https://api.cartolafc.globo.com/time/id/{timeId}`
-3. Preencher automaticamente os campos:
-   - `nome_cartola` (nome do cartoleiro)
-   - `nome_time` (nome do time)
-   - `url_escudo_png` (escudo do time)
-   - `clube_id` (clube do coração, se disponível)
-4. Mostrar feedback visual de sucesso/erro
-5. Habilitar botão "Confirmar" apenas após validação bem-sucedida
+| Arquivo | Mudança |
+|---------|---------|
+| `ferramentas-pesquisar-time.js` v2.1.1 | Fix endpoint `/api/cartola/buscar-time/` |
+| `participantes.js` v3.0 | Preservar campos `foto_perfil` e `assinante` |
+| `ligas.js` v2.1 | Aceitar e passar todos os campos da API |
+| `inscricoesController.js` v2.15 | Salvar `foto_time`, `foto_perfil`, `assinante` |
+| `cartolaApiService.js` v1.2 | Incluir `foto_perfil` na normalização |
 
-**Arquivos Envolvidos:**
-- `public/js/participantes.js` - Função de validação (frontend)
-- `routes/cartola.js` ou `services/cartolaApiService.js` - Proxy para API Cartola (backend)
+**Referência:** Participante "Paulinett Miranda" da liga "Os Fuleros" com dados completos.
 
-**Endpoint Cartola (público, sem auth):**
-```
-GET https://api.cartolafc.globo.com/time/id/{timeId}
-```
+---
 
-**Resposta esperada:**
-```json
-{
-  "time": {
-    "time_id": 50988035,
-    "nome": "Obraga04",
-    "nome_cartola": "Enderson",
-    "url_escudo_png": "https://s2-cartola.glbimg.com/...",
-    "clube": {
-      "id": 262,
-      "nome": "Flamengo"
-    }
-  }
-}
-```
+### [BUG-004/005] Erros de Import no SPA
+
+**Status:** ✅ CORRIGIDO
+
+**Problema:**
+- Scripts com `type="module"` eram removidos após 100ms pelo SPA
+- Módulos ES6 são async e precisam de mais tempo para resolver imports
+
+**Correção Aplicada:**
+- `public/layout.html` - Módulos ES6 não são mais removidos automaticamente (permanecem no DOM)
+
+---
+
+### [BUG-002] Módulos Históricos 2025 Não Funcionam
+
+**Status:** ✅ CORRIGIDO
+
+**Problema:**
+- `cards-condicionais.js` ocultava módulos quando `habilitado !== true`
+- Deveria ocultar apenas quando `habilitado === false` explicitamente
+
+**Correção Aplicada:**
+- `public/js/cards-condicionais.js` v2.5 - Lógica invertida: só oculta se explicitamente desabilitado
 
 ---
 
@@ -55,37 +54,9 @@ GET https://api.cartolafc.globo.com/time/id/{timeId}
 
 ### [BUG-001] Re-declaração de Variáveis no SPA
 
-**Status:** 🟡 CORREÇÃO PARCIAL APLICADA
+**Status:** ✅ JÁ CORRIGIDO (25/01)
 
-**Erro:**
-```
-Uncaught SyntaxError: Identifier 'ligaIdCache' has already been declared
-```
-
-**Causa:** Variáveis `let ligaIdCache` e `let temporadaCache` em `detalhe-liga.html` são re-declaradas quando SPA re-executa scripts.
-
-**Correção Aplicada (25/01):**
-- `public/detalhe-liga.html` - Alterado para usar `window.ligaIdCache` e `window.temporadaCache`
-
-**Verificar:** Se corrigiu o problema após reiniciar servidor.
-
----
-
-### [BUG-002] Módulos Históricos 2025 Não Funcionam
-
-**Status:** 🔴 PENDENTE
-
-**Sintomas:**
-- Ao clicar em módulos da temporada 2025 (SuperCartola ou Cartoleiros Sobral), nada acontece
-- Cards não respondem ao clique
-
-**Ligas Afetadas:**
-- SuperCartola (684cb1c8af923da7c7df51de)
-- Cartoleiros Sobral (684d821cf1a7ae16d1f89572)
-
-**Arquivos a Investigar:**
-- `public/js/detalhe-liga-orquestrador.js` (handleModuleClick)
-- `public/js/cards-condicionais.js` (navegação condicional)
+**Correção:** Uso de `window.ligaIdCache` e `window.temporadaCache` em vez de `let`
 
 ---
 
@@ -133,41 +104,17 @@ Uncaught SyntaxError: Identifier 'ligaIdCache' has already been declared
 
 ### [BUG-004] Menu Ferramentas Sem Renderização
 
-**Status:** 🔴 PENDENTE
+**Status:** ✅ CORRIGIDO (26/01/2026)
 
-**Sintomas:**
-- Menu Ferramentas perdeu toda a renderização
-- Página aparece em branco ou com erros
-
-**Erro Relacionado:**
-```
-Uncaught SyntaxError: Cannot use import statement outside a module
-```
-
-**Causa Provável:** Script com `import` sendo executado fora de contexto de módulo ES6 pelo SPA.
-
-**Arquivos a Investigar:**
-- `public/ferramentas.html`
-- `public/js/ferramentas-pesquisar-time.js`
-- Sistema SPA que executa scripts
+**Correção:** Ver [BUG-004/005] acima - Scripts com `type="module"` não são mais removidos pelo SPA.
 
 ---
 
 ### [BUG-005] Erro Import Statement no Painel
 
-**Status:** 🔴 PENDENTE
+**Status:** ✅ CORRIGIDO (26/01/2026)
 
-**Erro:**
-```
-Uncaught SyntaxError: Cannot use import statement outside a module
-    at painel.html
-```
-
-**Causa:** Script com `import` em `painel.html` sendo executado pelo SPA sem `type="module"`.
-
-**Arquivos a Investigar:**
-- `public/painel.html`
-- Sistema SPA (como scripts são injetados)
+**Correção:** Ver [BUG-004/005] acima - Scripts com `type="module"` permanecem no DOM para resolver imports.
 
 ---
 
@@ -175,13 +122,13 @@ Uncaught SyntaxError: Cannot use import statement outside a module
 
 | ID | Descrição | Status |
 |----|-----------|--------|
-| BUG-001 | Re-declaração variáveis SPA | 🟡 Correção parcial |
-| BUG-002 | Módulos 2025 não funcionam | 🔴 Pendente |
-| BUG-003 | Módulos 2026 não clicáveis | 🔴 Pendente |
-| BUG-004 | Ferramentas sem renderização | 🔴 Pendente |
-| BUG-005 | Import statement no painel | 🔴 Pendente |
+| BUG-001 | Re-declaração variáveis SPA | ✅ Corrigido (25/01) |
+| BUG-002 | Módulos 2025 não funcionam | ✅ Corrigido (26/01) |
+| BUG-003 | Módulos 2026 pré-temporada | 🟡 Parcial |
+| BUG-004 | Ferramentas sem renderização | ✅ Corrigido (26/01) |
+| BUG-005 | Import statement no painel | ✅ Corrigido (26/01) |
 
-**Causa Raiz Comum:** Sistema SPA re-executa scripts inline sem contexto adequado (re-declarações, imports fora de módulo).
+**Causa Raiz Corrigida:** SPA agora preserva scripts `type="module"` sem removê-los prematuramente.
 
 ---
 

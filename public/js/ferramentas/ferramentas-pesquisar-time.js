@@ -1,7 +1,7 @@
 /**
  * Ferramentas - Pesquisar Time na API do Cartola
  * Permite buscar times e adicionar a ligas existentes
- * @version 2.0.0 - Modal com abas
+ * @version 2.1.1 - Fix endpoint buscar-time por ID
  */
 
 // Estado do modal
@@ -819,7 +819,8 @@ async function buscarPorId() {
     `;
 
     try {
-        const response = await fetch(`/api/cartola/time/${timeId}`);
+        // ✅ v2.1.1 FIX: Corrigir endpoint para rota correta
+        const response = await fetch(`/api/cartola/buscar-time/${timeId}`);
         const data = await response.json();
 
         if (!response.ok || !data.success) {
@@ -1345,4 +1346,4 @@ window.buscarPorId = buscarPorId;
 window.toggleDadosCompletos = toggleDadosCompletos;
 window.copiarJSON = copiarJSON;
 
-console.log('[FERRAMENTAS] Modulo Adicionar Participante carregado v2.1.0');
+console.log('[FERRAMENTAS] Modulo Adicionar Participante carregado v2.1.1');

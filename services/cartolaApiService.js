@@ -784,7 +784,9 @@ class CartolaApiService {
         pontos_campeonato: time.pontos_campeonato || 0,
         rodada_time_id: time.rodada_time_id || null,
         // ✅ v1.1: Incluir clube_id (time do coração do participante)
-        clube_id: time.clube_id || null
+        clube_id: time.clube_id || null,
+        // ✅ v1.2: Incluir foto_perfil do cartoleiro (como Paulinett Miranda)
+        foto_perfil: time.foto_perfil || time.url_foto_perfil || ''
       };
 
       // Cache por 1 hora (dados de time mudam pouco)

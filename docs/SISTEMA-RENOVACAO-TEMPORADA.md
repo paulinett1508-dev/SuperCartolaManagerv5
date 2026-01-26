@@ -350,8 +350,8 @@ Resultado:
 
 | Metodo | Rota | Descricao |
 |--------|------|-----------|
-| `GET` | `/api/cartola-proxy/buscar-time?q=nome` | Buscar por nome |
-| `GET` | `/api/cartola-proxy/buscar-time/:timeId` | Buscar por ID |
+| `GET` | `/api/cartola/buscar-time?q=nome` | Buscar por nome |
+| `GET` | `/api/cartola/buscar-time/:timeId` | Buscar por ID |
 
 ---
 

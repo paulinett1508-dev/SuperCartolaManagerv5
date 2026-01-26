@@ -1,12 +1,13 @@
-// === CARDS-CONDICIONAIS.JS v2.4 ===
-// v2.4: Temporada 2026+ sem restrições automáticas - cards sempre visíveis
+// === CARDS-CONDICIONAIS.JS v2.5 ===
+// v2.5: FIX BUG-002 - Módulos históricos só ocultados se EXPLICITAMENTE desabilitados
+// v2.5: Temporada 2026+ sem restrições automáticas - cards sempre visíveis
 // v2.3: FIX - Mapeamento correto de modulos_ativos para data-module dos cards
 // v2.2: FIX - Não desabilitar módulos em temporadas históricas
 // v2.1: FIX - Remove clonagem que destruia event listeners de navegacao
 // v2.0: Refatorado para SaaS - busca config do servidor via API
 // Sistema de desativação condicional de cards por liga
 
-console.log("[CARDS-CONDICIONAIS] v2.4 - Carregando sistema...");
+console.log("[CARDS-CONDICIONAIS] v2.5 - Carregando sistema...");
 
 // === CACHE DE CONFIG DA LIGA ===
 let ligaConfigCache = null;
@@ -102,7 +103,7 @@ function aplicarEstadoDesabilitado(card, moduleId) {
     card.style.pointerEvents = "none";
     card.style.opacity = "0.5";
 
-    console.log(`[CARDS-CONDICIONAIS] Card "${moduleId}" desabilitado (v2.4)`);
+    console.log(`[CARDS-CONDICIONAIS] Card "${moduleId}" desabilitado (v2.5)`);
     return card; // Retorna o mesmo card, nao um clone
 }
 
@@ -205,19 +206,24 @@ async function ocultarModulosInexistentesEmHistorico() {
                 const liga = await response.json();
                 const configHistorico = liga.configuracoes_historico?.[temporada];
 
-                if (configHistorico) {
+                if (configHistorico && Object.keys(configHistorico).length > 0) {
                     console.log(`[CARDS-CONDICIONAIS] Config histórica ${temporada} encontrada`);
 
                     // Verificar cada módulo configurável
+                    // v2.5 FIX: Só ocultar se EXPLICITAMENTE desabilitado (habilitado === false)
+                    // Módulos sem config assumem habilitado por padrão
                     Object.entries(CONFIG_TO_MODULE_MAP).forEach(([configKey, moduleId]) => {
                         const moduleConfig = configHistorico[configKey];
-                        const habilitado = moduleConfig?.habilitado === true;
 
-                        if (!habilitado) {
+                        // Só ocultar se explicitamente desabilitado
+                        // Se não há config ou habilitado não é false, manter visível
+                        const explicitamenteDesabilitado = moduleConfig?.habilitado === false;
+
+                        if (explicitamenteDesabilitado) {
                             const card = document.querySelector(`[data-module="${moduleId}"]`);
                             if (card) {
                                 card.style.display = 'none';
-                                console.log(`[CARDS-CONDICIONAIS] Módulo "${moduleId}" oculto (não habilitado em ${temporada})`);
+                                console.log(`[CARDS-CONDICIONAIS] Módulo "${moduleId}" oculto (desabilitado em ${temporada})`);
                             }
                         }
                     });
@@ -494,7 +500,7 @@ function adicionarAnimacoes() {
  * Inicializar sistema quando DOM estiver pronto (v2.0 - async)
  */
 async function inicializar() {
-    console.log("[CARDS-CONDICIONAIS] Inicializando v2.4...");
+    console.log("[CARDS-CONDICIONAIS] Inicializando v2.5...");
 
     try {
         // Garantir que voltarParaCards está disponível globalmente
@@ -519,7 +525,7 @@ async function inicializar() {
         adicionarAnimacoes();
         setTimeout(melhorarExperienciaCards, 100);
 
-        console.log("[CARDS-CONDICIONAIS] Sistema v2.4 inicializado");
+        console.log("[CARDS-CONDICIONAIS] Sistema v2.5 inicializado");
     } catch (error) {
         console.error("[CARDS-CONDICIONAIS] Erro na inicialização:", error);
     }
@@ -551,4 +557,4 @@ if (document.readyState === "loading") {
     setTimeout(inicializar, 150);
 }
 
-console.log("[CARDS-CONDICIONAIS] Módulo v2.4 carregado");
+console.log("[CARDS-CONDICIONAIS] Módulo v2.5 carregado");

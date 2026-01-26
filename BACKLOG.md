@@ -298,6 +298,25 @@ _1-2 meses - Melhorias importantes mas não urgentes_
   - **Tabela:** `audit_logs` ou expandir `useractivities`
   - **Benefício:** Rastreabilidade e segurança
 
+### 🔄 Renovação de Temporada (Fluxo Financeiro)
+
+- [x] [FEAT-REN-001] **Regras por liga/temporada (CRUD + status rascunho/aberto/encerrado)**
+  - **Arquivos:** `models/LigaRules.js`, `routes/liga-rules-routes.js`, `public/js/renovacao/renovacao-ui.js`
+- [x] [FEAT-REN-002] **Inscrições por temporada (listar/estatísticas/buscar/renovar/não participa/novo/inicializar/reverter)**
+  - **Arquivos:** `models/InscricaoTemporada.js`, `routes/inscricoes-routes.js`
+- [x] [FEAT-REN-003] **Fluxos de negócio + transferência de saldo + transações no extrato**
+  - **Arquivos:** `controllers/inscricoesController.js`
+- [x] [FEAT-REN-004] **Frontend de renovação + integração com Fluxo Financeiro**
+  - **Arquivos:** `public/js/renovacao/*`, `public/js/fluxo-financeiro.js`, `public/js/fluxo-financeiro/fluxo-financeiro-ui.js`
+- [x] [FEAT-REN-005] **Expor regra `gerar_debito_inscricao_renovacao` na UI/API**
+  - **Arquivos:** `routes/liga-rules-routes.js`, `public/js/renovacao/renovacao-ui.js`, `public/js/renovacao/renovacao-modals.js`
+- [ ] [FEAT-REN-006] **Parcelamento de taxa (lógica de parcelas)**
+  - **Arquivos:** `controllers/inscricoesController.js`, `public/js/renovacao/renovacao-ui.js`
+- [~] [SEC-REN-001] **Auditoria do fluxo de renovação (quem/quando/o quê em decisões e mudanças de status)**
+  - **Observação:** Coberto por `SEC-001` (Auditoria de Ações Administrativas).
+- [x] [DOC-REN-001] **Atualizar doc: endpoint de busca Cartola (`/api/cartola/*` vs `/api/cartola-proxy/*`)**
+  - **Arquivo:** `docs/SISTEMA-RENOVACAO-TEMPORADA.md`
+
 ---
 
 ## 🟢 BAIXA PRIORIDADE (Nice to have, ideias experimentais)
@@ -1176,4 +1195,3 @@ Ver documentação completa em: [docs/CONTEXT7-MCP-SETUP.md](docs/CONTEXT7-MCP-S
 ---
 
 _Última atualização: 25/01/2026 - FEAT-025 White Label adicionado ao backlog_
-

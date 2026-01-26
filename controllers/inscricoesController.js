@@ -270,7 +270,11 @@ export async function adicionarParticipanteNaLiga(ligaId, dadosParticipante, tem
             time_id: Number(dadosParticipante.time_id),
             nome_time: dadosParticipante.nome_time,
             nome_cartola: dadosParticipante.nome_cartoleiro || dadosParticipante.nome_cartola,
-            escudo_url: dadosParticipante.escudo,
+            // ✅ v2.15 FIX: Usar campos corretos para consistência com dados da API Cartola
+            // foto_time = escudo do time (URL da imagem)
+            foto_time: dadosParticipante.escudo || dadosParticipante.url_escudo_png || dadosParticipante.foto_time || "",
+            foto_perfil: dadosParticipante.foto_perfil || "",
+            assinante: dadosParticipante.assinante || false,
             ativo: true,
             // ✅ v2.12: Campos adicionais para WhatsApp e Time do Coração
             contato: dadosParticipante.contato || "",

@@ -1011,7 +1011,8 @@ router.put("/:id/participantes/:timeId/sincronizar", verificarAdmin, sincronizar
 router.post("/:id/participantes", verificarAdmin, async (req, res) => {
   try {
     const { id: ligaId } = req.params;
-    const { time_id, nome_time, nome_cartola, clube_id, url_escudo_png, contato } = req.body;
+    // ✅ v2.1: Aceitar TODOS os campos da API Cartola (como Paulinett Miranda)
+    const { time_id, nome_time, nome_cartola, clube_id, url_escudo_png, contato, foto_perfil, assinante } = req.body;
 
     // Validação básica
     if (!time_id) {
@@ -1049,14 +1050,18 @@ router.post("/:id/participantes", verificarAdmin, async (req, res) => {
       });
     }
 
-    // Adicionar participante usando função existente
+    // ✅ v2.1: Adicionar participante com TODOS os campos da API Cartola
     await adicionarParticipanteNaLiga(ligaId, {
       time_id: Number(time_id),
       nome_time: nome_time || nome_cartola,
       nome_cartoleiro: nome_cartola,
       escudo: url_escudo_png,
+      url_escudo_png: url_escudo_png,
       clube_id: clube_id,
-      contato: contato || ""
+      contato: contato || "",
+      // ✅ Campos adicionais (como Paulinett Miranda tem)
+      foto_perfil: foto_perfil || "",
+      assinante: assinante || false
     }, CURRENT_SEASON);
 
     console.log(`✅ [LIGAS] Participante ${nome_cartola} (ID: ${time_id}) adicionado à liga ${ligaId}`);

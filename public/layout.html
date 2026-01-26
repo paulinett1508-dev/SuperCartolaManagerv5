@@ -750,14 +750,22 @@
                         // Executar inline scripts
                         inlineScripts.forEach(oldScript => {
                             const newScript = document.createElement('script');
+                            const isModule = oldScript.getAttribute('type') === 'module';
+
                             // ✅ FIX: Preservar type="module" para inline modules
-                            if (oldScript.getAttribute('type') === 'module') {
+                            if (isModule) {
                                 newScript.type = 'module';
                             }
                             newScript.textContent = oldScript.textContent;
                             document.body.appendChild(newScript);
-                            // Remover após executar
-                            setTimeout(() => newScript.remove(), 100);
+
+                            // ✅ FIX: Módulos ES6 são async e precisam de mais tempo
+                            // Scripts normais podem ser removidos em 100ms
+                            // Módulos com import precisam de mais tempo para resolver dependências
+                            if (!isModule) {
+                                setTimeout(() => newScript.remove(), 100);
+                            }
+                            // Módulos permanecem no DOM para manter contexto dos imports
                         });
                     });
                 }
