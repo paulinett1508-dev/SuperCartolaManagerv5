@@ -19,11 +19,14 @@ Automatizar commits e pushes com mensagens descritivas, validações de código 
 - `git commit`
 - `push`
 - `commit`
+- `git e push` ← **IMPORTANTE: variação comum**
 
 **Frases em Português:**
 - "faça um git push"
 - "faça o push"
 - "faz um push"
+- "faça git e push"
+- "git e push"
 - "commite tudo"
 - "commit e push"
 - "suba as mudanças"
@@ -45,17 +48,32 @@ Automatizar commits e pushes com mensagens descritivas, validações de código 
 - "manda pro git"
 - "atualiza o repo"
 - "atualizar repositório"
+- "sobe isso"
+- "sobe pro git"
+- "joga no git"
+- "puxa e empurra" (pull + push)
 
 **Após Implementações:**
 - "pronto, push"
 - "feito, commit"
 - "terminei, sobe"
 - "ok, git push"
+- "antes... git e push"
+- "antes, push"
+- "só falta o push"
+
+**Variações Implícitas (contexto de finalização):**
+- "agora commita"
+- "pode commitar"
+- "manda ver no git"
+- "finaliza no github"
+- "fecha com push"
 
 **Regex de Detecção:**
 ```regex
-/^(git\s*)?(push|commit|commita|commitar|pushar|suba|subir|envie?|manda|versiona)/i
+/^(antes\s*[\.,]?\s*)?(git\s*(e\s*)?)?((push|commit|commita|commitar|pushar|suba|subir|envie?|manda|versiona|sobe))/i
 /(push|commit|github|repo|git)\s*(isso|tudo|mudanças|alterações)?$/i
+/(só\s*falta|pode|agora|fecha\s*com)\s*(o\s*)?(push|commit)/i
 ```
 
 ### Quando Usar
