@@ -248,10 +248,19 @@ async function carregarRanking(turno) {
 
         if (!data.success || !data.ranking) {
             if (!usouCache) {
+                // Detectar se é pré-temporada usando config global
+                const config = window.ParticipanteConfig;
+                const isPreTemporada = config && config.isPreparando && config.isPreparando();
+
+                const icone = isPreTemporada ? 'schedule' : 'event_busy';
+                const mensagem = isPreTemporada
+                    ? 'Campeonato ainda não iniciou. Aguarde a rodada 1!'
+                    : 'Sem dados para este turno';
+
                 container.innerHTML = `
                     <div class="empty-state">
-                        <span class="material-icons">event_busy</span>
-                        <p>Sem dados para este turno</p>
+                        <span class="material-icons">${icone}</span>
+                        <p>${mensagem}</p>
                     </div>
                 `;
             }
