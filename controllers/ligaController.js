@@ -377,31 +377,54 @@ const criarLiga = async (req, res) => {
     }
 
     const admin = req.session.admin;
-    const adminId = admin._id || admin.id;
     const adminEmail = admin.email?.toLowerCase();
+
+    // ✅ v2.2 FIX: Extrair adminId de forma segura (pode ser objeto, string, ou undefined)
+    let rawAdminId = admin._id || admin.id;
+
+    // Se for objeto com toString ou $oid, extrair o valor
+    if (rawAdminId && typeof rawAdminId === 'object') {
+      rawAdminId = rawAdminId.toString?.() || rawAdminId.$oid || rawAdminId._id || null;
+    }
+
+    console.log(`[LIGA] Criando liga "${nome}" - adminId raw: "${rawAdminId}" (tipo: ${typeof rawAdminId})`);
 
     const timesIds = Array.isArray(times)
       ? times.map((t) => Number(t.id || t)).filter((id) => !isNaN(id))
       : [];
 
     // ✅ MULTI-TENANT: Vincular liga ao admin que está criando
-    const novaLiga = new Liga({
+    const ligaData = {
       nome,
       descricao: descricao || "",
       times: timesIds,
-      admin_id: adminId ? new mongoose.Types.ObjectId(adminId) : undefined,
       owner_email: adminEmail,
-      modulos_ativos: modulos_ativos || undefined,
-      configuracoes: configuracoes || undefined,
-    });
+    };
 
+    // Apenas adicionar admin_id se for string de 24 hex válida
+    if (rawAdminId && typeof rawAdminId === 'string' && /^[a-f0-9]{24}$/i.test(rawAdminId)) {
+      try {
+        ligaData.admin_id = new mongoose.Types.ObjectId(rawAdminId);
+        console.log(`[LIGA] admin_id definido: ${ligaData.admin_id}`);
+      } catch (convErr) {
+        console.warn(`[LIGA] Erro ao converter adminId: ${convErr.message}`);
+      }
+    } else if (rawAdminId) {
+      console.warn(`[LIGA] adminId não é hex24: "${rawAdminId}" - usando apenas owner_email`);
+    }
+
+    // Adicionar campos opcionais se fornecidos
+    if (modulos_ativos) ligaData.modulos_ativos = modulos_ativos;
+    if (configuracoes) ligaData.configuracoes = configuracoes;
+
+    const novaLiga = new Liga(ligaData);
     const ligaSalva = await novaLiga.save();
 
-    console.log(`[LIGA] Nova liga "${nome}" criada por ${adminEmail} (admin_id: ${adminId})`);
+    console.log(`[LIGA] Nova liga "${nome}" criada por ${adminEmail} (id: ${ligaSalva._id})`);
 
     res.status(201).json(ligaSalva);
   } catch (err) {
-    console.error("Erro ao criar liga:", err.message);
+    console.error("[LIGA] Erro ao criar liga:", err.message, err.stack);
     res.status(500).json({ erro: "Erro ao criar liga: " + err.message });
   }
 };

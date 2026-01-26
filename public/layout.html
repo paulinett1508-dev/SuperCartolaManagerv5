@@ -1130,6 +1130,20 @@
                     setTimeout(carregarLigasLayout, 200);
                 }
             });
+            } else {
+                // ✅ v9.3 FIX: Scripts já carregados - RECARREGAR LIGAS diretamente
+                // Não chamar tentarInicializarLayout() pois a flag bloqueia
+                console.log('[LAYOUT] Scripts já carregados, recarregando ligas...');
+                setTimeout(() => {
+                    // Recarregar ligas no sidebar (função que renderiza COM temporadas)
+                    if (typeof carregarLigasLayout === 'function') {
+                        carregarLigasLayout();
+                    }
+                    // Atualizar navegação ativa
+                    if (window.navigationSystem) {
+                        window.navigationSystem.setActiveNavigation();
+                    }
+                }, 200);
             } // ✅ Fecha o if de proteção contra redeclaração (linha 119)
         </script>
 

@@ -912,18 +912,32 @@
                     const res = await fetch('/api/ligas', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include', // Incluir cookies de sessão
                         body: JSON.stringify({ nome, times })
                     });
 
-                    if (!res.ok) throw new Error('Erro ao criar liga');
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        throw new Error(data.erro || data.error || `Erro ${res.status}`);
+                    }
 
                     showToast('Liga criada com sucesso!', 'success');
 
+                    // Invalidar cache de ligas no sidebar
+                    if (window.CacheManager) {
+                        window.CacheManager.invalidate(window.CacheManager.KEYS.LIGAS);
+                    }
+                    if (typeof window.refreshLigasSidebar === 'function') {
+                        window.refreshLigasSidebar();
+                    }
+
                     setTimeout(() => {
-                        window.location.href = 'painel.html';
+                        window.location.href = `detalhe-liga.html?id=${data._id || data.id}`;
                     }, 1500);
                 } catch (err) {
-                    showToast('Erro ao criar liga. Tente novamente.', 'error');
+                    console.error('[CRIAR-LIGA] Erro:', err);
+                    showToast(err.message || 'Erro ao criar liga. Tente novamente.', 'error');
                     btn.disabled = false;
                     btn.innerHTML = '<span class="material-icons">rocket_launch</span> Criar Liga';
                 }

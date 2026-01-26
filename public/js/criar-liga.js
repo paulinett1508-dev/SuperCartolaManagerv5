@@ -273,22 +273,31 @@ async function salvarLiga() {
         const response = await fetch("/api/ligas", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include", // Incluir cookies de sessão
             body: JSON.stringify({
                 nome: nomeLiga,
                 times: timesSelecionados.map((t) => t.id),
             }),
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.erro || "Erro ao salvar liga");
+            throw new Error(data.erro || data.error || `Erro ${response.status}`);
         }
 
-        const data = await response.json();
         showAlert("Liga criada com sucesso!", "success");
 
+        // Invalidar cache de ligas no sidebar
+        if (window.CacheManager) {
+            window.CacheManager.invalidate(window.CacheManager.KEYS.LIGAS);
+        }
+        if (typeof window.refreshLigasSidebar === 'function') {
+            window.refreshLigasSidebar();
+        }
+
         setTimeout(() => {
-            window.location.href = `detalhe-liga.html?id=${data.id}`;
+            window.location.href = `detalhe-liga.html?id=${data._id || data.id}`;
         }, 1500);
     } catch (error) {
         showAlert(`Erro: ${error.message}`, "error");
