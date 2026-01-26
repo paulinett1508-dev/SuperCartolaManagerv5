@@ -90,18 +90,24 @@ const ligaSchema = new mongoose.Schema({
         temporada_2025: { type: Object, default: {} },
     },
     // ✅ Controle granular de módulos ativos
+    // Módulos BASE (sempre ativos) vs OPCIONAIS (admin configura)
     modulos_ativos: {
         type: Object,
         default: {
+            // Módulos BASE - sempre habilitados
             extrato: true,
             ranking: true,
             rodadas: true,
-            top10: true,
-            melhorMes: true,
-            pontosCorridos: true,
-            mataMata: true,
-            artilheiro: true,
-            luvaOuro: true,
+            historico: true,
+            // Módulos OPCIONAIS - admin habilita conforme necessário
+            top10: false,
+            melhorMes: false,
+            pontosCorridos: false,
+            mataMata: false,
+            artilheiro: false,
+            luvaOuro: false,
+            campinho: false,
+            dicas: false,
         },
     },
     criadaEm: { type: Date, default: Date.now },
