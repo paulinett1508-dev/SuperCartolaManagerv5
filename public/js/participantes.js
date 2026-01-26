@@ -3145,3 +3145,554 @@ async function executarAcaoBatch(acao, titulo) {
 }
 
 console.log("[PARTICIPANTES] ✅ Módulo de ações em lote carregado");
+
+// =====================================================================
+// MODAL NOVO PARTICIPANTE
+// =====================================================================
+
+/**
+ * Abre modal para adicionar novo participante
+ */
+window.abrirModalNovoParticipante = function() {
+    // Remover modal existente
+    document.querySelector('.modal-novo-participante')?.remove();
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-novo-participante';
+    modal.innerHTML = `
+        <div class="modal-overlay" onclick="window.fecharModalNovoParticipante()"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3><span class="material-icons">person_add</span> Adicionar Participante</h3>
+                <button class="modal-close" onclick="window.fecharModalNovoParticipante()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Busca -->
+                <div class="busca-section">
+                    <label>Buscar time no Cartola FC</label>
+                    <div class="busca-input-group">
+                        <input type="text"
+                               id="novo-participante-busca"
+                               placeholder="Digite o ID ou nome do time..."
+                               autocomplete="off">
+                        <button id="btn-buscar-time" onclick="window.buscarTimeNovoParticipante()">
+                            <span class="material-icons">search</span>
+                        </button>
+                    </div>
+                    <small class="busca-hint">Use o ID numérico para busca exata ou nome para busca aproximada</small>
+                </div>
+
+                <!-- Resultados da busca -->
+                <div id="novo-participante-resultados" class="resultados-busca" style="display: none;">
+                    <!-- Preenchido dinamicamente -->
+                </div>
+
+                <!-- Preview do time selecionado -->
+                <div id="novo-participante-preview" class="time-preview" style="display: none;">
+                    <div class="preview-header">
+                        <span class="material-icons">check_circle</span>
+                        Time Selecionado
+                    </div>
+                    <div class="preview-content">
+                        <img id="preview-escudo" src="/escudos/default.png" alt="Escudo">
+                        <div class="preview-info">
+                            <div class="preview-nome" id="preview-nome-time">-</div>
+                            <div class="preview-cartoleiro" id="preview-cartoleiro">-</div>
+                            <div class="preview-id" id="preview-time-id">ID: -</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancelar" onclick="window.fecharModalNovoParticipante()">Cancelar</button>
+                <button class="btn-confirmar" id="btn-confirmar-novo" onclick="window.confirmarNovoParticipante()" disabled>
+                    <span class="material-icons">person_add</span>
+                    Adicionar
+                </button>
+            </div>
+        </div>
+    `;
+
+    // Estilos inline do modal
+    const styles = `
+        .modal-novo-participante {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-novo-participante .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+        }
+        .modal-novo-participante .modal-container {
+            position: relative;
+            background: #1a1a2e;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: modalSlideIn 0.3s ease;
+        }
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-novo-participante .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #333;
+            background: #0d0d1a;
+        }
+        .modal-novo-participante .modal-header h3 {
+            margin: 0;
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.1rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-novo-participante .modal-header h3 .material-icons {
+            color: #4caf50;
+        }
+        .modal-novo-participante .modal-close {
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .modal-novo-participante .modal-close:hover {
+            background: #333;
+            color: #fff;
+        }
+        .modal-novo-participante .modal-body {
+            padding: 20px;
+            max-height: calc(90vh - 140px);
+            overflow-y: auto;
+        }
+        .modal-novo-participante .busca-section {
+            margin-bottom: 16px;
+        }
+        .modal-novo-participante .busca-section label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        .modal-novo-participante .busca-input-group {
+            display: flex;
+            gap: 8px;
+        }
+        .modal-novo-participante .busca-input-group input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #0d0d1a;
+            color: #fff;
+            font-size: 1rem;
+        }
+        .modal-novo-participante .busca-input-group input:focus {
+            outline: none;
+            border-color: #ff6600;
+        }
+        .modal-novo-participante .busca-input-group button {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #ff6600;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .modal-novo-participante .busca-input-group button:hover {
+            background: #ff8533;
+        }
+        .modal-novo-participante .busca-hint {
+            display: block;
+            margin-top: 6px;
+            color: #666;
+            font-size: 0.8rem;
+        }
+        .modal-novo-participante .resultados-busca {
+            margin-top: 16px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .modal-novo-participante .resultado-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid #222;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .modal-novo-participante .resultado-item:last-child {
+            border-bottom: none;
+        }
+        .modal-novo-participante .resultado-item:hover {
+            background: #252540;
+        }
+        .modal-novo-participante .resultado-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .modal-novo-participante .resultado-info {
+            flex: 1;
+        }
+        .modal-novo-participante .resultado-nome {
+            color: #fff;
+            font-weight: 500;
+        }
+        .modal-novo-participante .resultado-cartoleiro {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        .modal-novo-participante .resultado-id {
+            color: #666;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .modal-novo-participante .time-preview {
+            margin-top: 16px;
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #0d2818;
+        }
+        .modal-novo-participante .preview-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #1a4d2e;
+            color: #4caf50;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .modal-novo-participante .preview-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+        }
+        .modal-novo-participante .preview-content img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #4caf50;
+        }
+        .modal-novo-participante .preview-info {
+            flex: 1;
+        }
+        .modal-novo-participante .preview-nome {
+            color: #fff;
+            font-weight: 600;
+            font-size: 1.1rem;
+            font-family: 'Russo One', sans-serif;
+        }
+        .modal-novo-participante .preview-cartoleiro {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .modal-novo-participante .preview-id {
+            color: #666;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 4px;
+        }
+        .modal-novo-participante .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding: 16px 20px;
+            border-top: 1px solid #333;
+            background: #0d0d1a;
+        }
+        .modal-novo-participante .btn-cancelar {
+            padding: 10px 20px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: transparent;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .modal-novo-participante .btn-cancelar:hover {
+            border-color: #666;
+            color: #fff;
+        }
+        .modal-novo-participante .btn-confirmar {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            background: #4caf50;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .modal-novo-participante .btn-confirmar:hover:not(:disabled) {
+            background: #66bb6a;
+        }
+        .modal-novo-participante .btn-confirmar:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+        .modal-novo-participante .loading-busca {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 20px;
+            color: #888;
+        }
+        .modal-novo-participante .erro-busca {
+            padding: 16px;
+            color: #ff6b6b;
+            text-align: center;
+        }
+        .modal-novo-participante .sem-resultados {
+            padding: 16px;
+            color: #888;
+            text-align: center;
+        }
+    `;
+
+    // Adicionar estilos
+    const styleTag = document.createElement('style');
+    styleTag.textContent = styles;
+    modal.appendChild(styleTag);
+
+    document.body.appendChild(modal);
+
+    // Focus no input
+    setTimeout(() => {
+        document.getElementById('novo-participante-busca')?.focus();
+    }, 100);
+
+    // Enter para buscar
+    document.getElementById('novo-participante-busca')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            window.buscarTimeNovoParticipante();
+        }
+    });
+
+    console.log('[PARTICIPANTES] Modal novo participante aberto');
+};
+
+// Estado do time selecionado
+let timeSelecionadoParaAdicionar = null;
+
+/**
+ * Busca time no Cartola FC (API da Globo)
+ */
+window.buscarTimeNovoParticipante = async function() {
+    const input = document.getElementById('novo-participante-busca');
+    const resultadosDiv = document.getElementById('novo-participante-resultados');
+    const previewDiv = document.getElementById('novo-participante-preview');
+    const query = input?.value?.trim();
+
+    if (!query) {
+        mostrarToast('Digite algo para buscar', 'warning');
+        return;
+    }
+
+    // Esconder preview anterior
+    previewDiv.style.display = 'none';
+    timeSelecionadoParaAdicionar = null;
+    document.getElementById('btn-confirmar-novo').disabled = true;
+
+    // Mostrar loading
+    resultadosDiv.style.display = 'block';
+    resultadosDiv.innerHTML = `
+        <div class="loading-busca">
+            <div class="loading-spinner" style="width: 20px; height: 20px;"></div>
+            Buscando na API Cartola...
+        </div>
+    `;
+
+    try {
+        let response;
+
+        // Se for número, buscar por ID direto na API da Globo
+        if (/^\d+$/.test(query)) {
+            response = await fetch(`/api/cartola/buscar-time/${query}`);
+            const data = await response.json();
+
+            if (!response.ok || !data.time) {
+                resultadosDiv.innerHTML = `<div class="erro-busca">${data.error || 'Time não encontrado com esse ID'}</div>`;
+                return;
+            }
+
+            // Busca por ID retorna um time direto
+            selecionarTimeParaAdicionar(data.time);
+            resultadosDiv.style.display = 'none';
+            return;
+        }
+
+        // Buscar por nome na API da Globo
+        if (query.length < 3) {
+            resultadosDiv.innerHTML = `<div class="erro-busca">Digite pelo menos 3 caracteres para buscar por nome</div>`;
+            return;
+        }
+
+        // Usar endpoint que busca na API pública da Globo
+        response = await fetch(`/api/cartola/buscar-time-globo?q=${encodeURIComponent(query)}&limit=10`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            resultadosDiv.innerHTML = `<div class="erro-busca">${data.error || 'Erro na busca'}</div>`;
+            return;
+        }
+
+        // Busca por nome retorna lista
+        const times = data.times || [];
+        if (times.length === 0) {
+            resultadosDiv.innerHTML = `<div class="sem-resultados">Nenhum time encontrado para "${query}" na API Cartola</div>`;
+            return;
+        }
+
+        // Renderizar resultados (campos da API: nome_time, nome_cartoleiro)
+        resultadosDiv.innerHTML = times.map(time => `
+            <div class="resultado-item" onclick="window.selecionarTimeParaAdicionar(${JSON.stringify(time).replace(/"/g, '&quot;')})">
+                <img src="${time.url_escudo_png || time.escudo || '/escudos/default.png'}"
+                     alt="Escudo"
+                     onerror="this.src='/escudos/default.png'">
+                <div class="resultado-info">
+                    <div class="resultado-nome">${time.nome_time || time.nome || 'Time sem nome'}</div>
+                    <div class="resultado-cartoleiro">${time.nome_cartoleiro || time.nome_cartola || '-'}</div>
+                    <div class="resultado-id">ID: ${time.time_id}</div>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('[BUSCA] Erro:', error);
+        resultadosDiv.innerHTML = `<div class="erro-busca">Erro ao buscar: ${error.message}</div>`;
+    }
+};
+
+/**
+ * Seleciona um time da lista para adicionar
+ * Normaliza campos da API (nome_time, nome_cartoleiro) para uso interno
+ */
+window.selecionarTimeParaAdicionar = function(time) {
+    // Normalizar campos (API usa nome_time/nome_cartoleiro, frontend pode usar outros)
+    const timeNormalizado = {
+        time_id: time.time_id,
+        nome_time: time.nome_time || time.nome || 'Time sem nome',
+        nome_cartola: time.nome_cartoleiro || time.nome_cartola || '-',
+        url_escudo_png: time.url_escudo_png || time.escudo || '/escudos/default.png',
+        clube_id: time.clube_id || time.time_coracao || null
+    };
+
+    timeSelecionadoParaAdicionar = timeNormalizado;
+
+    // Esconder resultados
+    document.getElementById('novo-participante-resultados').style.display = 'none';
+
+    // Mostrar preview
+    const previewDiv = document.getElementById('novo-participante-preview');
+    previewDiv.style.display = 'block';
+
+    document.getElementById('preview-escudo').src = timeNormalizado.url_escudo_png;
+    document.getElementById('preview-nome-time').textContent = timeNormalizado.nome_time;
+    document.getElementById('preview-cartoleiro').textContent = timeNormalizado.nome_cartola;
+    document.getElementById('preview-time-id').textContent = `ID: ${timeNormalizado.time_id}`;
+
+    // Habilitar botão
+    document.getElementById('btn-confirmar-novo').disabled = false;
+
+    console.log('[PARTICIPANTES] Time selecionado:', timeNormalizado);
+};
+
+/**
+ * Confirma adição do novo participante
+ * Usa endpoint simples /api/ligas/:id/participantes (sem exigir LigaRules)
+ */
+window.confirmarNovoParticipante = async function() {
+    if (!timeSelecionadoParaAdicionar) {
+        mostrarToast('Selecione um time primeiro', 'warning');
+        return;
+    }
+
+    const btn = document.getElementById('btn-confirmar-novo');
+    const textoOriginal = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="loading-spinner" style="width: 16px; height: 16px;"></div> Adicionando...';
+
+    try {
+        // Usar endpoint simples que não exige LigaRules
+        // Campos já normalizados em selecionarTimeParaAdicionar()
+        const response = await fetch(`/api/ligas/${ligaId}/participantes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                time_id: timeSelecionadoParaAdicionar.time_id,
+                nome_cartola: timeSelecionadoParaAdicionar.nome_cartola,
+                nome_time: timeSelecionadoParaAdicionar.nome_time,
+                clube_id: timeSelecionadoParaAdicionar.clube_id,
+                url_escudo_png: timeSelecionadoParaAdicionar.url_escudo_png
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            mostrarToast(`Participante "${timeSelecionadoParaAdicionar.nome_cartola}" adicionado com sucesso!`, 'success');
+            window.fecharModalNovoParticipante();
+
+            // Recarregar lista
+            await carregarParticipantesPorTemporada(temporadaSelecionada);
+        } else {
+            throw new Error(data.error || 'Erro ao adicionar participante');
+        }
+
+    } catch (error) {
+        console.error('[PARTICIPANTES] Erro ao adicionar:', error);
+        mostrarToast('Erro: ' + error.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+    }
+};
+
+/**
+ * Fecha modal de novo participante
+ */
+window.fecharModalNovoParticipante = function() {
+    document.querySelector('.modal-novo-participante')?.remove();
+    timeSelecionadoParaAdicionar = null;
+};
+
+console.log("[PARTICIPANTES] ✅ Modal novo participante carregado");

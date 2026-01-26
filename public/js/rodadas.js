@@ -94,7 +94,8 @@ export async function carregarRodadas(forceRefresh = false) {
 }
 
 // FUNÇÃO PARA OBTER RANKING ESPECÍFICO (Compatibilidade)
-export async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
+// v3.2: Adicionado parâmetro temporadaOverride para pré-temporada
+export async function getRankingRodadaEspecifica(ligaId, rodadaNum, temporadaOverride = null) {
   const ligaIdNormalizado = String(ligaId);
 
   if (isBackend) {
@@ -102,8 +103,9 @@ export async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
     try {
       const fetch = (await import("node-fetch")).default;
       const baseUrl = "http://localhost:3000";
+      const temporadaParam = temporadaOverride ? `&temporada=${temporadaOverride}` : '';
       const response = await fetch(
-        `${baseUrl}/api/rodadas/${ligaIdNormalizado}/rodadas?inicio=${rodadaNum}&fim=${rodadaNum}`,
+        `${baseUrl}/api/rodadas/${ligaIdNormalizado}/rodadas?inicio=${rodadaNum}&fim=${rodadaNum}${temporadaParam}`,
       );
 
       if (!response.ok) {
@@ -131,7 +133,7 @@ export async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
   }
 
   if (getRankingRodadaEspecificaCore) {
-    return await getRankingRodadaEspecificaCore(ligaIdNormalizado, rodadaNum);
+    return await getRankingRodadaEspecificaCore(ligaIdNormalizado, rodadaNum, temporadaOverride);
   }
 
   console.warn("[RODADAS] Core module não disponível");

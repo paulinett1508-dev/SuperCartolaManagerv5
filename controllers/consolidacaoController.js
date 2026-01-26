@@ -449,12 +449,14 @@ export const consolidarRodada = async (req, res) => {
             { upsert: true, session }
         );
         
-        // 12b. Top10 Cache
+        // 12b. Top10 Cache - v3.1.1: Incluir temporada para segregacao
+        const temporadaAtualConsolidacao = SEASON_CONFIG?.current || new Date().getFullYear();
         await Top10Cache.findOneAndUpdate(
-            { liga_id: ligaId, rodada_consolidada: rodadaNum },
+            { liga_id: ligaId, rodada_consolidada: rodadaNum, temporada: temporadaAtualConsolidacao },
             {
                 mitos,
                 micos,
+                temporada: temporadaAtualConsolidacao,
                 cache_permanente: true,
                 ultima_atualizacao: new Date()
             },

@@ -172,6 +172,49 @@
   background: linear-gradient(135deg, #ff6611 0%, #FF5500 100%);
 }
 
+/* Botão Adicionar Participante */
+.btn-toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-toolbar .material-icons {
+  font-size: 18px;
+}
+
+.btn-toolbar.btn-success {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.btn-toolbar.btn-success:hover {
+  background: linear-gradient(135deg, #2dd36f 0%, #22c55e 100%);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-toolbar.btn-success:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  .btn-toolbar .btn-label {
+    display: none;
+  }
+  .btn-toolbar {
+    padding: 8px 10px;
+  }
+}
+
 /* Responsivo Toolbar */
 @media (max-width: 600px) {
   .module-toolbar {

@@ -1,7 +1,8 @@
-// TOP10.JS - MÓDULO DE MITOS E MICOS v3.1
+// TOP10.JS - MÓDULO DE MITOS E MICOS v3.2
 // ✅ v2.0: Fix rodada 38 (CAMPEONATO_ENCERRADO)
 // ✅ v3.0: SaaS Dinamico - usa configs do endpoint /api/ligas/:id/configuracoes
 // ✅ v3.1: Detecção automática de temporada passada (remove hardcode 2025)
+// ✅ v3.2: Propagação de temporada para cache e API (fix pré-temporada 2026)
 // ✅ Usando imports dinâmicos para compatibilidade com rodadas.js
 
 import { fetchLigaConfig } from "./rodadas/rodadas-config.js";
@@ -24,13 +25,17 @@ let ligaConfigCache = null; // v3.0: Cache da config da liga
 
 /**
  * Obtém função getRankingRodadaEspecifica de forma segura
+ * @param {string} ligaId - ID da liga
+ * @param {number} rodadaNum - Número da rodada
+ * @param {number} temporada - Ano da temporada (opcional, v3.2)
  */
-async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
+async function getRankingRodadaEspecifica(ligaId, rodadaNum, temporada = null) {
     // Tentar via window primeiro (mais rápido)
     if (window.rodadasDebug?.getRankingRodadaEspecifica) {
         return await window.rodadasDebug.getRankingRodadaEspecifica(
             ligaId,
             rodadaNum,
+            temporada,
         );
     }
 
@@ -41,16 +46,18 @@ async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
             return await rodadasModule.getRankingRodadaEspecifica(
                 ligaId,
                 rodadaNum,
+                temporada,
             );
         }
     } catch (error) {
         console.warn("[TOP10] Erro ao importar rodadas:", error);
     }
 
-    // Fallback final: API direta
+    // Fallback final: API direta (v3.2: incluir temporada)
     try {
+        const temporadaParam = temporada ? `&temporada=${temporada}` : '';
         const response = await fetch(
-            `/api/rodadas/${ligaId}/rodadas?inicio=${rodadaNum}&fim=${rodadaNum}`,
+            `/api/rodadas/${ligaId}/rodadas?inicio=${rodadaNum}&fim=${rodadaNum}${temporadaParam}`,
         );
         if (response.ok) {
             const data = await response.json();
@@ -80,30 +87,34 @@ async function getMercadoStatus() {
 }
 
 /**
- * v3.1: Detecta se estamos visualizando temporada passada
- * Retorna { isTemporadaPassada, ultimaRodadaCompleta }
+ * v3.2: Detecta se estamos visualizando temporada passada
+ * Retorna { isTemporadaPassada, ultimaRodadaCompleta, temporadaParaBusca }
  */
 function detectarTemporadaStatus(status) {
     const rodadaAtual = status.rodada_atual || 1;
     const statusMercado = status.status_mercado;
     const mercadoAberto = statusMercado === 1;
+    const temporadaAPI = status.temporada || new Date().getFullYear();
 
     // Se mercado está na rodada 1 com status "aberto", nova temporada ainda não começou
     // Usar dados da temporada anterior (todas as 38 rodadas)
     if (rodadaAtual === 1 && mercadoAberto) {
-        console.log("[TOP10] Detecção automática: nova temporada não iniciou - usando 38 rodadas da anterior");
+        const temporadaAnterior = temporadaAPI; // API ainda retorna 2025
+        console.log(`[TOP10] Detecção automática: nova temporada não iniciou - usando 38 rodadas da temporada ${temporadaAnterior}`);
         return {
             isTemporadaPassada: true,
-            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO
+            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO,
+            temporadaParaBusca: temporadaAnterior
         };
     }
 
     // Se estamos na rodada 38 com mercado fechado, temporada atual encerrou
     if (rodadaAtual === RODADA_FINAL_CAMPEONATO && !mercadoAberto) {
-        console.log("[TOP10] Temporada atual encerrada - usando rodada 38");
+        console.log(`[TOP10] Temporada ${temporadaAPI} encerrada - usando rodada 38`);
         return {
             isTemporadaPassada: false,
-            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO
+            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO,
+            temporadaParaBusca: temporadaAPI
         };
     }
 
@@ -119,7 +130,8 @@ function detectarTemporadaStatus(status) {
 
     return {
         isTemporadaPassada: false,
-        ultimaRodadaCompleta
+        ultimaRodadaCompleta,
+        temporadaParaBusca: temporadaAPI
     };
 }
 
@@ -142,12 +154,17 @@ function obterLigaId() {
 
 /**
  * Tenta buscar o snapshot pronto do servidor
+ * @param {string} ligaId - ID da liga
+ * @param {number} rodada - Número da rodada
+ * @param {number} temporada - Ano da temporada (opcional, usa CURRENT_SEASON se não informado)
  */
-async function lerCacheTop10(ligaId, rodada) {
+async function lerCacheTop10(ligaId, rodada, temporada = null) {
     try {
         const ts = new Date().getTime();
+        // v3.2: Incluir temporada na query se fornecida
+        const temporadaParam = temporada ? `&temporada=${temporada}` : '';
         const response = await fetch(
-            `/api/top10/cache/${ligaId}?rodada=${rodada}&_=${ts}`,
+            `/api/top10/cache/${ligaId}?rodada=${rodada}${temporadaParam}&_=${ts}`,
         );
 
         if (!response.ok) return null;
@@ -208,8 +225,13 @@ async function lerCacheTop10(ligaId, rodada) {
 
 /**
  * Salva o resultado do cálculo para o futuro
+ * @param {string} ligaId - ID da liga
+ * @param {number} rodada - Número da rodada
+ * @param {Array} mitos - Array de mitos
+ * @param {Array} micos - Array de micos
+ * @param {number} temporada - Ano da temporada (opcional)
  */
-async function salvarCacheTop10(ligaId, rodada, mitos, micos) {
+async function salvarCacheTop10(ligaId, rodada, mitos, micos, temporada = null) {
     try {
         // ✅ Determinar se é cache permanente (rodada consolidada)
         const status = await getMercadoStatus();
@@ -224,6 +246,7 @@ async function salvarCacheTop10(ligaId, rodada, mitos, micos) {
                 mitos: mitos,
                 micos: micos,
                 permanent: isPermanent,
+                temporada: temporada, // v3.2: Incluir temporada no body
             }),
         });
 
@@ -323,8 +346,8 @@ async function carregarDadosTop10() {
         if (!status || !status.rodada_atual)
             throw new Error("Não foi possível obter a rodada atual");
 
-        // ✅ v3.1: Detecção dinâmica de temporada
-        const { isTemporadaPassada, ultimaRodadaCompleta } = detectarTemporadaStatus(status);
+        // ✅ v3.2: Detecção dinâmica de temporada com temporadaParaBusca
+        const { isTemporadaPassada, ultimaRodadaCompleta, temporadaParaBusca } = detectarTemporadaStatus(status);
 
         if (ultimaRodadaCompleta === 0) {
             console.log("[TOP10] Nenhuma rodada completa ainda.");
@@ -332,13 +355,13 @@ async function carregarDadosTop10() {
         }
 
         console.log(
-            `[TOP10] 📊 Calculando Top10 até rodada ${ultimaRodadaCompleta}`,
+            `[TOP10] 📊 Calculando Top10 até rodada ${ultimaRodadaCompleta} - Temporada ${temporadaParaBusca}`,
         );
 
         // ============================================================
-        // 🚀 OTIMIZAÇÃO: Tentar ler do Cache primeiro
+        // 🚀 OTIMIZAÇÃO: Tentar ler do Cache primeiro (com temporada correta)
         // ============================================================
-        const cache = await lerCacheTop10(ligaId, ultimaRodadaCompleta);
+        const cache = await lerCacheTop10(ligaId, ultimaRodadaCompleta, temporadaParaBusca);
 
         if (cache) {
             todosOsMitos = cache.mitos;
@@ -350,16 +373,17 @@ async function carregarDadosTop10() {
         }
 
         console.log(
-            `[TOP10] ⚠️ Cache Miss. Iniciando cálculo histórico (1 até ${ultimaRodadaCompleta})...`,
+            `[TOP10] ⚠️ Cache Miss. Iniciando cálculo histórico (1 até ${ultimaRodadaCompleta}) - Temporada ${temporadaParaBusca}...`,
         );
 
         // ============================================================
         // 🐢 LENTO: Cálculo Histórico (Só roda se não tiver cache)
+        // v3.2: Passar temporada para getRankingRodadaEspecifica
         // ============================================================
         const promises = [];
         for (let i = 1; i <= ultimaRodadaCompleta; i++) {
             promises.push(
-                getRankingRodadaEspecifica(ligaId, i)
+                getRankingRodadaEspecifica(ligaId, i, temporadaParaBusca)
                     .then((ranking) => {
                         if (ranking && ranking.length > 0) {
                             const rankingOrdenado = ranking.sort(
@@ -391,7 +415,7 @@ async function carregarDadosTop10() {
         todosOsMicos.sort((a, b) => a.pontos - b.pontos);
 
         // ============================================================
-        // 💾 OTIMIZAÇÃO: Salvar o resultado para a próxima vez
+        // 💾 OTIMIZAÇÃO: Salvar o resultado para a próxima vez (com temporada)
         // ============================================================
         if (todosOsMitos.length > 0) {
             await salvarCacheTop10(
@@ -399,6 +423,7 @@ async function carregarDadosTop10() {
                 ultimaRodadaCompleta,
                 todosOsMitos,
                 todosOsMicos,
+                temporadaParaBusca, // v3.2: Incluir temporada
             );
         }
 
@@ -560,4 +585,4 @@ if (typeof window !== "undefined") {
     window.getTop10Data = getTop10Data;
 }
 
-console.log("[TOP10] Módulo v3.1 carregado (detecção dinâmica de temporada)");
+console.log("[TOP10] Módulo v3.2 carregado (temporada propagada para cache e API)");

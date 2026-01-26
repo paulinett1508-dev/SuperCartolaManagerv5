@@ -30,6 +30,7 @@ import {
   validarParticipantesTemporada,
   sincronizarParticipanteCartola
 } from "../controllers/validacaoParticipantesController.js";
+import { adicionarParticipanteNaLiga } from "../controllers/inscricoesController.js";
 import Liga from "../models/Liga.js";
 import { tenantFilter } from "../middleware/tenant.js";
 
@@ -1002,5 +1003,82 @@ router.get("/:id/validar-participantes/:temporada", verificarAdmin, validarParti
 
 // PUT /api/ligas/:id/participantes/:timeId/sincronizar - Atualiza dados do Cartola
 router.put("/:id/participantes/:timeId/sincronizar", verificarAdmin, sincronizarParticipanteCartola);
+
+// =====================================================================
+// ROTA: Adicionar novo participante (simples, sem LigaRules)
+// POST /api/ligas/:id/participantes
+// =====================================================================
+router.post("/:id/participantes", verificarAdmin, async (req, res) => {
+  try {
+    const { id: ligaId } = req.params;
+    const { time_id, nome_time, nome_cartola, clube_id, url_escudo_png, contato } = req.body;
+
+    // Validação básica
+    if (!time_id) {
+      return res.status(400).json({
+        success: false,
+        error: "ID do time é obrigatório"
+      });
+    }
+
+    if (!nome_cartola && !nome_time) {
+      return res.status(400).json({
+        success: false,
+        error: "Nome do cartoleiro ou do time é obrigatório"
+      });
+    }
+
+    // Verificar se liga existe
+    const liga = await Liga.findById(ligaId);
+    if (!liga) {
+      return res.status(404).json({
+        success: false,
+        error: "Liga não encontrada"
+      });
+    }
+
+    // Verificar se já existe
+    const jaExiste = liga.participantes?.some(
+      p => Number(p.time_id) === Number(time_id)
+    );
+
+    if (jaExiste) {
+      return res.status(400).json({
+        success: false,
+        error: "Este participante já está cadastrado na liga"
+      });
+    }
+
+    // Adicionar participante usando função existente
+    await adicionarParticipanteNaLiga(ligaId, {
+      time_id: Number(time_id),
+      nome_time: nome_time || nome_cartola,
+      nome_cartoleiro: nome_cartola,
+      escudo: url_escudo_png,
+      clube_id: clube_id,
+      contato: contato || ""
+    }, CURRENT_SEASON);
+
+    console.log(`✅ [LIGAS] Participante ${nome_cartola} (ID: ${time_id}) adicionado à liga ${ligaId}`);
+
+    res.json({
+      success: true,
+      message: `Participante "${nome_cartola}" adicionado com sucesso!`,
+      participante: {
+        time_id: Number(time_id),
+        nome_time: nome_time || nome_cartola,
+        nome_cartola: nome_cartola,
+        ativo: true
+      }
+    });
+
+  } catch (error) {
+    console.error("[LIGAS] Erro ao adicionar participante:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Erro ao adicionar participante"
+    });
+  }
+});
 
 export default router;

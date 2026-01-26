@@ -1,5 +1,7 @@
 // RODADAS CORE - Lógica de Negócio e API Calls
-// ✅ VERSÃO 4.3 - CORREÇÃO SINTAXE + TABELAS CONTEXTUAIS
+// ✅ VERSÃO 4.4 - TEMPORADA OVERRIDE PARA PRÉ-TEMPORADA
+// ✅ v4.3: Correção sintaxe + tabelas contextuais
+// ✅ v4.4: getRankingRodadaEspecifica aceita temporadaOverride para pré-temporada 2026
 // Responsável por: processamento de dados, chamadas de API, cálculos
 
 import {
@@ -238,11 +240,14 @@ export async function getRankingsEmLote(
   }
 }
 
-export async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
+export async function getRankingRodadaEspecifica(ligaId, rodadaNum, temporadaOverride = null) {
   const ligaIdNormalizado = String(ligaId);
+  // v3.2: Usar temporada override se fornecida, senão usar global
+  const temporada = temporadaOverride || (typeof window !== 'undefined' && window.temporadaAtual) || new Date().getFullYear();
+  const cacheKey = `${ligaIdNormalizado}_${temporada}`;
 
-  if (cacheRankingsLote.has(ligaIdNormalizado)) {
-    const cached = cacheRankingsLote.get(ligaIdNormalizado);
+  if (cacheRankingsLote.has(cacheKey)) {
+    const cached = cacheRankingsLote.get(cacheKey);
     const idade = Date.now() - cached.timestamp;
 
     if (idade < CACHE_TTL && cached.rodadas[rodadaNum]) {
@@ -251,9 +256,9 @@ export async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
   }
 
   console.log(
-    `[RODADAS-CORE] ⚠️ Cache miss para rodada ${rodadaNum} (liga: ${ligaIdNormalizado}) - buscando individual`,
+    `[RODADAS-CORE] ⚠️ Cache miss para rodada ${rodadaNum} (liga: ${ligaIdNormalizado}, temp: ${temporada}) - buscando individual`,
   );
-  return await fetchAndProcessRankingRodada(ligaId, rodadaNum);
+  return await fetchAndProcessRankingRodada(ligaId, rodadaNum, temporadaOverride);
 }
 
 export async function preCarregarRodadas(ligaId, ultimaRodada = 38) {
@@ -287,7 +292,7 @@ export function limparCacheRankings(ligaId = null) {
 // FUNÇÕES DE API E PROCESSAMENTO
 // ==============================
 
-export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
+export async function fetchAndProcessRankingRodada(ligaId, rodadaNum, temporadaOverride = null) {
   try {
     let fetchFunc;
     if (isBackend) {
@@ -296,8 +301,8 @@ export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
       fetchFunc = fetch;
     }
 
-    // ✅ v9.0: Obter temporada do contexto global ou URL
-    const temporada = (typeof window !== 'undefined' && window.temporadaAtual) || new Date().getFullYear();
+    // ✅ v9.1: Usar temporada override se fornecida, senão usar contexto global
+    const temporada = temporadaOverride || (typeof window !== 'undefined' && window.temporadaAtual) || new Date().getFullYear();
 
     const baseUrl = isBackend ? "http://localhost:3000" : "";
     const endpoints = RODADAS_ENDPOINTS.getEndpoints(
@@ -682,4 +687,4 @@ export function agruparRodadasPorNumero(rodadas) {
   return grouped;
 }
 
-console.log("[RODADAS-CORE] ✅ Módulo v4.3 carregado (tabelas contextuais)");
+console.log("[RODADAS-CORE] ✅ Módulo v4.4 carregado (temporada override para pré-temporada)");

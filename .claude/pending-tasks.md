@@ -1,5 +1,56 @@
 # Tarefas Pendentes
 
+## 🆕 PRÓXIMA SESSÃO (26/01/2026)
+
+### [FEAT-025] Evoluir Botão "Validar ID" da API Cartola
+
+**Status:** 📋 PLANEJADO
+
+**Contexto:**
+No modal de adicionar novo participante (`participantes.js`), o botão "Validar ID" deve realmente consultar a API do Cartola FC e trazer as informações pertinentes do time.
+
+**Referência Funcional:**
+- Liga: **Os Fuleros** (`6977a62071dee12036bb163e`)
+- Participante: **Paulinett Miranda** - dados vêm corretamente como exemplo
+
+**O que deve fazer:**
+1. Ao digitar um ID de time e clicar "Validar ID"
+2. Consultar API Cartola: `GET https://api.cartolafc.globo.com/time/id/{timeId}`
+3. Preencher automaticamente os campos:
+   - `nome_cartola` (nome do cartoleiro)
+   - `nome_time` (nome do time)
+   - `url_escudo_png` (escudo do time)
+   - `clube_id` (clube do coração, se disponível)
+4. Mostrar feedback visual de sucesso/erro
+5. Habilitar botão "Confirmar" apenas após validação bem-sucedida
+
+**Arquivos Envolvidos:**
+- `public/js/participantes.js` - Função de validação (frontend)
+- `routes/cartola.js` ou `services/cartolaApiService.js` - Proxy para API Cartola (backend)
+
+**Endpoint Cartola (público, sem auth):**
+```
+GET https://api.cartolafc.globo.com/time/id/{timeId}
+```
+
+**Resposta esperada:**
+```json
+{
+  "time": {
+    "time_id": 50988035,
+    "nome": "Obraga04",
+    "nome_cartola": "Enderson",
+    "url_escudo_png": "https://s2-cartola.glbimg.com/...",
+    "clube": {
+      "id": 262,
+      "nome": "Flamengo"
+    }
+  }
+}
+```
+
+---
+
 ## 🚨 BUGS CRÍTICOS (25/01/2026)
 
 ### [BUG-001] Re-declaração de Variáveis no SPA

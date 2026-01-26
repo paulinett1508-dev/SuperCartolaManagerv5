@@ -1,6 +1,7 @@
-// MELHOR DO MÊS - CORE BUSINESS LOGIC v1.2
+// MELHOR DO MÊS - CORE BUSINESS LOGIC v1.3
 // public/js/melhor-mes/melhor-mes-core.js
 // v1.2: Detecção dinâmica de temporada (R1 + mercado aberto = temporada anterior)
+// v1.3: Propagação de temporada para getRankingRodadaEspecifica (fix pré-temporada 2026)
 
 import { getRankingRodadaEspecifica } from "../rodadas.js";
 import {
@@ -23,6 +24,7 @@ export class MelhorMesCore {
     this.ligaId = null;
     this.ultimaRodadaCompleta = 0;
     this.dadosProcessados = {};
+    this.temporadaParaBusca = null; // v1.3: Temporada correta para buscar dados
   }
 
   // INICIALIZAÇÃO DO CORE
@@ -122,17 +124,21 @@ export class MelhorMesCore {
 
       const mercadoStatus = await response.json();
 
-      // v1.2: Detecção dinâmica de temporada
+      // v1.3: Detecção dinâmica de temporada com propagação correta
       // Se rodada 1 e mercado aberto, nova temporada não iniciou - usar dados da anterior
       const rodadaAtual = mercadoStatus.rodada_atual || 1;
       const mercadoAberto = mercadoStatus.status_mercado === 1;
+      const temporadaAPI = mercadoStatus.temporada || new Date().getFullYear();
       const RODADA_FINAL_CAMPEONATO = mercadoStatus.rodada_final || 38;
 
       if (rodadaAtual === 1 && mercadoAberto) {
-        console.log("[MELHOR-MES-CORE] Nova temporada não iniciou - usando dados da temporada anterior (38 rodadas)");
+        // v1.3: API ainda retorna temporada anterior durante pré-temporada
+        this.temporadaParaBusca = temporadaAPI;
+        console.log(`[MELHOR-MES-CORE] Nova temporada não iniciou - usando dados da temporada ${this.temporadaParaBusca} (38 rodadas)`);
         this.ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO;
         this.temporadaAnterior = true;
       } else {
+        this.temporadaParaBusca = temporadaAPI;
         this.ultimaRodadaCompleta = rodadaAtual > 0 ? rodadaAtual - 1 : 0;
         this.temporadaAnterior = false;
       }
@@ -246,16 +252,16 @@ export class MelhorMesCore {
   // CALCULAR RANKING AGREGADO DE UMA EDIÇÃO
   async calcularRankingEdicao(rodadaInicio, rodadaFim) {
     console.log(
-      `[MELHOR-MES-CORE] Calculando ranking rodadas ${rodadaInicio}-${rodadaFim}`,
+      `[MELHOR-MES-CORE] Calculando ranking rodadas ${rodadaInicio}-${rodadaFim} - Temporada ${this.temporadaParaBusca}`,
     );
 
     const rankingsAgregados = [];
     const promises = [];
 
-    // Buscar todos os rankings das rodadas
+    // v1.3: Buscar todos os rankings das rodadas COM temporada correta
     for (let rodada = rodadaInicio; rodada <= rodadaFim; rodada++) {
       promises.push(
-        getRankingRodadaEspecifica(this.ligaId, rodada)
+        getRankingRodadaEspecifica(this.ligaId, rodada, this.temporadaParaBusca)
           .then((ranking) => {
             if (ranking && Array.isArray(ranking) && ranking.length > 0) {
               const rankingComRodada = ranking.map((time) => ({
@@ -523,4 +529,4 @@ setInterval(() => {
   melhorMesCore.limparCacheAntigo();
 }, MELHOR_MES_CONFIG.cache?.ttl || 300000);
 
-console.log("[MELHOR-MES-CORE] ✅ Core business logic carregado");
+console.log("[MELHOR-MES-CORE] ✅ Core business logic v1.3 carregado (temporada propagada)");
