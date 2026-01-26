@@ -553,7 +553,8 @@ export const getExtratoFinanceiro = async (req, res) => {
 
         // ✅ v8.0: Calcular TOP10 histórico (separado do loop de rodadas)
         // ✅ v8.4.0: Só calcular se NÃO for temporada futura
-        const top10Habilitado = isModuloHabilitado(liga, 'top10') || liga.modulos_ativos?.top10 !== false;
+        // ✅ v8.5.0: top10 é OPCIONAL, só habilita se === true
+        const top10Habilitado = isModuloHabilitado(liga, 'top10') || liga.modulos_ativos?.top10 === true;
         if (top10Habilitado && !isTemporadaFutura) {
             // Verificar se já tem transações de TOP10 no cache
             const temTop10NoCache = cache.historico_transacoes.some(
@@ -964,7 +965,8 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                 }
 
                 // ✅ v8.0: Calcular TOP10 histórico na consolidação
-                const top10Habilitado = isModuloHabilitado(liga, 'top10') || liga.modulos_ativos?.top10 !== false;
+                // ✅ v8.5.0: top10 é OPCIONAL, só habilita se === true
+                const top10Habilitado = isModuloHabilitado(liga, 'top10') || liga.modulos_ativos?.top10 === true;
                 if (top10Habilitado) {
                     // ✅ FIX: Subtrair TOP10 antigos do saldo ANTES de remover do array
                     const top10Antigos = cache.historico_transacoes.filter(

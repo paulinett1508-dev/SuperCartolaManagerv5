@@ -241,12 +241,13 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
             const ligaId = liga._id.toString();
             const ligaNome = liga.nome || "Liga sem nome";
 
-            // ✅ v2.0: Extrair módulos ativos desta liga
+            // ✅ v2.1: Extrair módulos ativos desta liga
+            // OPCIONAIS usam === true (não habilitados por default)
             const modulosAtivos = {
                 banco: liga.modulos_ativos?.banco !== false,
                 pontosCorridos: liga.modulos_ativos?.pontosCorridos === true || liga.configuracoes?.pontos_corridos?.habilitado === true,
                 mataMata: liga.modulos_ativos?.mataMata === true || liga.configuracoes?.mata_mata?.habilitado === true,
-                top10: liga.modulos_ativos?.top10 !== false || liga.configuracoes?.top10?.habilitado !== false,
+                top10: liga.modulos_ativos?.top10 === true || liga.configuracoes?.top10?.habilitado === true,
                 melhorMes: liga.modulos_ativos?.melhorMes === true || liga.configuracoes?.melhor_mes?.habilitado === true,
                 artilheiro: liga.modulos_ativos?.artilheiro === true || liga.configuracoes?.artilheiro?.habilitado === true,
                 luvaOuro: liga.modulos_ativos?.luvaOuro === true || liga.configuracoes?.luva_ouro?.habilitado === true,
@@ -575,12 +576,13 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
 
         console.log(`[TESOURARIA] Bulk queries: ${todosExtratos.length} extratos, ${todosCampos.length} campos, ${todosAcertos.length} acertos`);
 
-        // ✅ v2.0: Extrair módulos ativos da liga para enviar ao frontend
+        // ✅ v2.1: Extrair módulos ativos da liga para enviar ao frontend
+        // OPCIONAIS usam === true (não habilitados por default)
         const modulosAtivos = {
             banco: liga.modulos_ativos?.banco !== false,
             pontosCorridos: liga.modulos_ativos?.pontosCorridos === true || liga.configuracoes?.pontos_corridos?.habilitado === true,
             mataMata: liga.modulos_ativos?.mataMata === true || liga.configuracoes?.mata_mata?.habilitado === true,
-            top10: liga.modulos_ativos?.top10 !== false || liga.configuracoes?.top10?.habilitado !== false,
+            top10: liga.modulos_ativos?.top10 === true || liga.configuracoes?.top10?.habilitado === true,
             melhorMes: liga.modulos_ativos?.melhorMes === true || liga.configuracoes?.melhor_mes?.habilitado === true,
             artilheiro: liga.modulos_ativos?.artilheiro === true || liga.configuracoes?.artilheiro?.habilitado === true,
             luvaOuro: liga.modulos_ativos?.luvaOuro === true || liga.configuracoes?.luva_ouro?.habilitado === true,

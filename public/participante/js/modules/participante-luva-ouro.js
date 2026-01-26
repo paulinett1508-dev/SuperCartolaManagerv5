@@ -66,7 +66,8 @@ export async function inicializarLuvaOuroParticipante({
             const liga = await ligaRes.json();
             const modulosAtivos =
                 liga.modulosAtivos || liga.modulos_ativos || {};
-            const luvaAtiva = modulosAtivos.luvaOuro !== false;
+            // v2.0: Módulo OPCIONAL, só habilita se === true
+            const luvaAtiva = modulosAtivos.luvaOuro === true;
 
             if (!luvaAtiva) {
                 container.innerHTML = `

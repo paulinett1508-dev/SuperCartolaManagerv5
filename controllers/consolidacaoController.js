@@ -304,8 +304,9 @@ export const consolidarRodada = async (req, res) => {
         }));
         
         // 4. CONFRONTOS PONTOS CORRIDOS (calcular desta rodada)
+        // v2.0: Módulo OPCIONAL, só habilita se === true
         let confrontosPontosCorridos = [];
-        if (modulosAtivos.pontosCorridos !== false) {
+        if (modulosAtivos.pontosCorridos === true) {
             console.log(`[CONSOLIDAÇÃO] Calculando confrontos pontos corridos...`);
             try {
                 confrontosPontosCorridos = await calcularConfrontosDaRodada(ligaId, rodadaNum, dadosRodada, liga);
@@ -315,8 +316,9 @@ export const consolidarRodada = async (req, res) => {
         }
         
         // 5. MATA-MATA
+        // v2.0: Módulo OPCIONAL, só habilita se === true
         let confrontosMataMata = [];
-        if (modulosAtivos.mataMata !== false) {
+        if (modulosAtivos.mataMata === true) {
             console.log(`[CONSOLIDAÇÃO] Obtendo confrontos mata-mata...`);
             try {
                 confrontosMataMata = await obterConfrontosMataMata(ligaId, rodadaNum);
@@ -344,8 +346,9 @@ export const consolidarRodada = async (req, res) => {
             }));
         
         // 7. ARTILHEIRO E CAMPEÃO (se módulo ativo)
+        // v2.0: Módulo OPCIONAL, só habilita se === true
         let artilheiroCampeao = { artilheiro: null, campeao_rodada: null };
-        if (modulosAtivos.artilheiro !== false) {
+        if (modulosAtivos.artilheiro === true) {
             console.log(`[CONSOLIDAÇÃO] Buscando artilheiro/campeão...`);
             try {
                 const dadosArtilheiro = await getRankingArtilheiroCampeao(ligaId, rodadaNum);

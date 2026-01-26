@@ -142,8 +142,8 @@ router.get("/extratos/:ligaId", requireAdmin, async (req, res) => {
                 errosParticipante.push("SaldoAcumulado progressivo incorreto");
             }
 
-            // 4. Verificar Top10 (se módulo ativo)
-            if (modulosAtivos.top10 !== false) {
+            // 4. Verificar Top10 (se módulo ativo) - OPCIONAL, só se === true
+            if (modulosAtivos.top10 === true) {
                 const temTop10 = transacoes.some(t => (t.top10 || 0) !== 0 || t.isMito || t.isMico);
                 if (!temTop10) {
                     stats.semTop10++;
@@ -152,7 +152,8 @@ router.get("/extratos/:ligaId", requireAdmin, async (req, res) => {
             }
 
             // 5. Verificar Mata-Mata (se módulo ativo)
-            if (modulosAtivos.mataMata !== false) {
+            // v2.0: Módulo OPCIONAL, só se === true
+            if (modulosAtivos.mataMata === true) {
                 const temMM = transacoes.some(t => (t.mataMata || 0) !== 0);
                 if (!temMM) {
                     stats.semMataMata++;
@@ -161,7 +162,8 @@ router.get("/extratos/:ligaId", requireAdmin, async (req, res) => {
             }
 
             // 6. Verificar Pontos Corridos (se módulo ativo)
-            if (modulosAtivos.pontosCorridos !== false) {
+            // v2.0: Módulo OPCIONAL, só se === true
+            if (modulosAtivos.pontosCorridos === true) {
                 const temPC = transacoes.some(t => (t.pontosCorridos || 0) !== 0);
                 if (!temPC) {
                     stats.semPontosCorridos++;

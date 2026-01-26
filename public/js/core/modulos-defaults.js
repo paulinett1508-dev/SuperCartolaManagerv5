@@ -8,15 +8,18 @@
 
 /**
  * Valores padrão para módulos ativos
+ *
+ * v2.0: TODOS os módulos opcionais desabilitados por padrão
+ * Admin deve configurar regras antes de habilitar
  */
 export const MODULOS_DEFAULTS = {
-    banco: true,            // Bônus/Ônus por rodada - sempre ativo
-    pontosCorridos: false,  // Liga de pontos corridos - precisa habilitar
-    mataMata: false,        // Mata-mata - precisa habilitar
-    top10: true,            // Ranking Top 10 histórico - sempre ativo
-    melhorMes: false,       // Prêmio melhor do mês - precisa habilitar
-    artilheiro: false,      // Prêmio artilheiro - precisa habilitar
-    luvaOuro: false,        // Prêmio luva de ouro - precisa habilitar
+    banco: true,            // Bônus/Ônus por rodada - sempre ativo (módulo BASE)
+    pontosCorridos: false,  // Liga de pontos corridos - OPCIONAL
+    mataMata: false,        // Mata-mata - OPCIONAL
+    top10: false,           // Ranking Top 10 (Mito/Mico) - OPCIONAL (admin habilita)
+    melhorMes: false,       // Prêmio melhor do mês - OPCIONAL
+    artilheiro: false,      // Prêmio artilheiro - OPCIONAL
+    luvaOuro: false,        // Prêmio luva de ouro - OPCIONAL
 };
 
 /**

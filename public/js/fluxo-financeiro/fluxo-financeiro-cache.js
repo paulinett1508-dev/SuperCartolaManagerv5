@@ -112,8 +112,15 @@ export class FluxoFinanceiroCache {
     }
 
     // ✅ NOVO v4.1: Verificar se módulo está ativo
+    // v4.2: Diferenciar módulos BASE (sempre ativos) vs OPCIONAIS
     isModuloAtivo(modulo) {
-        return this.modulosAtivos[modulo] !== false;
+        // Módulos BASE usam !== false (default true)
+        const modulosBase = ['banco', 'extrato', 'ranking', 'rodadas', 'historico'];
+        if (modulosBase.includes(modulo)) {
+            return this.modulosAtivos[modulo] !== false;
+        }
+        // Módulos OPCIONAIS usam === true (default false)
+        return this.modulosAtivos[modulo] === true;
     }
 
     // ===================================================================

@@ -278,13 +278,14 @@ async function renderizarTodasLigas() {
         // Buscar dados REAIS da API (v8.0: adicionado ranking, melhorRodada e extrato)
         // v12.6 FIX: Passar temporada para buscarExtrato (evita criar cache de temporada futura)
         const temporadaTemp = tempRecente.ano || temporadaSelecionada;
+        // v12.7: Módulos OPCIONAIS usam === true (não habilitados por default)
         const [pc, top10, melhorMes, mataMata, artilheiro, luvaOuro, ranking, melhorRodada, extrato] = await Promise.all([
-            modulos.pontosCorridos !== false ? buscarPontosCorridos(ligaId) : null,
-            modulos.top10 !== false ? buscarTop10(ligaId) : null,
-            modulos.melhorMes !== false ? buscarMelhorMes(ligaId) : null,
-            modulos.mataMata !== false ? buscarMataMata(ligaId) : null,
-            modulos.artilheiro !== false ? buscarArtilheiro(ligaId) : null,
-            modulos.luvaOuro !== false ? buscarLuvaOuro(ligaId) : null,
+            modulos.pontosCorridos === true ? buscarPontosCorridos(ligaId) : null,
+            modulos.top10 === true ? buscarTop10(ligaId) : null,
+            modulos.melhorMes === true ? buscarMelhorMes(ligaId) : null,
+            modulos.mataMata === true ? buscarMataMata(ligaId) : null,
+            modulos.artilheiro === true ? buscarArtilheiro(ligaId) : null,
+            modulos.luvaOuro === true ? buscarLuvaOuro(ligaId) : null,
             buscarRanking(ligaId),
             buscarMelhorRodada(ligaId),
             buscarExtrato(ligaId, temporadaTemp)
@@ -360,7 +361,7 @@ async function renderizarTodasLigas() {
         html += `<div class="divider"></div>`;
 
         // Mata-Mata (v10.0: interativo com detalhes por edição)
-        if (modulos.mataMata !== false && mataMata && mataMata.participou) {
+        if (modulos.mataMata === true && mataMata && mataMata.participou) {
             const totalJogos = mataMata.vitorias + mataMata.derrotas;
             const aproveitamento = totalJogos > 0 ? Math.round((mataMata.vitorias / totalJogos) * 100) : 0;
             const edicoes = mataMata.edicoes || [];
@@ -441,7 +442,7 @@ async function renderizarTodasLigas() {
         }
 
         // Artilheiro (v9.3: texto descritivo atualizado)
-        if (modulos.artilheiro !== false && artilheiro) {
+        if (modulos.artilheiro === true && artilheiro) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -462,7 +463,7 @@ async function renderizarTodasLigas() {
         }
 
         // Luva de Ouro (v9.3: texto descritivo atualizado)
-        if (modulos.luvaOuro !== false && luvaOuro) {
+        if (modulos.luvaOuro === true && luvaOuro) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -483,7 +484,7 @@ async function renderizarTodasLigas() {
         }
 
         // Melhor do Mes (v9.0: verifica módulo ativo)
-        if (modulos.melhorMes !== false && melhorMes && melhorMes.length > 0) {
+        if (modulos.melhorMes === true && melhorMes && melhorMes.length > 0) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -507,7 +508,8 @@ async function renderizarTodasLigas() {
         }
 
         // TOP 10 (v10.4: Unificado - mesmo card para todas as ligas)
-        if (modulos.top10 !== false && top10) {
+        // v12.7: Módulo OPCIONAL, só exibe se === true
+        if (modulos.top10 === true && top10) {
             const temAlgoNoTop10 = top10.mitosNoTop10 > 0 || top10.micosNoTop10 > 0;
             const saldoClass = top10.saldoTop10 > 0 ? 'positive' : top10.saldoTop10 < 0 ? 'negative' : '';
 
@@ -597,7 +599,7 @@ async function renderizarTodasLigas() {
         }
 
         // Pontos Corridos (v9.0: verifica módulo ativo)
-        if (modulos.pontosCorridos !== false && pc) {
+        if (modulos.pontosCorridos === true && pc) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -1202,12 +1204,13 @@ async function renderizarDadosTempoReal(ligaId) {
             buscarRanking(ligaId),
             buscarMelhorRodada(ligaId),
             buscarExtrato(ligaId, temporadaTempoReal),
-            modulos.pontosCorridos !== false ? buscarPontosCorridos(ligaId) : null,
-            modulos.top10 !== false ? buscarTop10(ligaId) : null,
-            modulos.mataMata !== false ? buscarMataMata(ligaId) : null,
-            modulos.artilheiro !== false ? buscarArtilheiro(ligaId) : null,
-            modulos.luvaOuro !== false ? buscarLuvaOuro(ligaId) : null,
-            modulos.melhorMes !== false ? buscarMelhorMes(ligaId) : null
+            // v12.7: Módulos OPCIONAIS usam === true
+            modulos.pontosCorridos === true ? buscarPontosCorridos(ligaId) : null,
+            modulos.top10 === true ? buscarTop10(ligaId) : null,
+            modulos.mataMata === true ? buscarMataMata(ligaId) : null,
+            modulos.artilheiro === true ? buscarArtilheiro(ligaId) : null,
+            modulos.luvaOuro === true ? buscarLuvaOuro(ligaId) : null,
+            modulos.melhorMes === true ? buscarMelhorMes(ligaId) : null
         ]);
 
         // Verificar se há dados
@@ -1376,7 +1379,7 @@ async function renderizarDadosTempoReal(ligaId) {
         `;
 
         // Mata-Mata (interativo com edicoes)
-        if (modulos.mataMata !== false && mataMata && mataMata.participou) {
+        if (modulos.mataMata === true && mataMata && mataMata.participou) {
             const totalJogos = mataMata.vitorias + mataMata.derrotas;
             const aproveitamento = totalJogos > 0 ? Math.round((mataMata.vitorias / totalJogos) * 100) : 0;
             const edicoes = mataMata.edicoes || [];
@@ -1454,7 +1457,7 @@ async function renderizarDadosTempoReal(ligaId) {
         }
 
         // Artilheiro (v9.3: texto descritivo atualizado)
-        if (modulos.artilheiro !== false && artilheiro) {
+        if (modulos.artilheiro === true && artilheiro) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -1475,7 +1478,7 @@ async function renderizarDadosTempoReal(ligaId) {
         }
 
         // Luva de Ouro (v9.3: texto descritivo atualizado)
-        if (modulos.luvaOuro !== false && luvaOuro) {
+        if (modulos.luvaOuro === true && luvaOuro) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -1496,7 +1499,7 @@ async function renderizarDadosTempoReal(ligaId) {
         }
 
         // Melhor do Mes
-        if (modulos.melhorMes !== false && melhorMes && melhorMes.length > 0) {
+        if (modulos.melhorMes === true && melhorMes && melhorMes.length > 0) {
             html += `
                 <div class="section">
                     <div class="section-header">
@@ -1520,7 +1523,8 @@ async function renderizarDadosTempoReal(ligaId) {
         }
 
         // TOP 10 (v10.3: Corrigido para usar campos novos - valores por liga)
-        if (modulos.top10 !== false && top10) {
+        // v12.7: Módulo OPCIONAL, só exibe se === true
+        if (modulos.top10 === true && top10) {
             const temAlgoNoTop10 = top10.mitosNoTop10 > 0 || top10.micosNoTop10 > 0;
             const saldoClass = top10.saldoTop10 > 0 ? 'positive' : top10.saldoTop10 < 0 ? 'negative' : '';
 
@@ -1607,7 +1611,7 @@ async function renderizarDadosTempoReal(ligaId) {
         }
 
         // Pontos Corridos
-        if (modulos.pontosCorridos !== false && pc) {
+        if (modulos.pontosCorridos === true && pc) {
             html += `
                 <div class="section">
                     <div class="section-header">

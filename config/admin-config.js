@@ -60,17 +60,25 @@ export function isAdminSuper(admin) {
 
 /**
  * Módulos ativos por padrão ao criar nova liga
+ *
+ * v2.0: Módulos BASE sempre ativos, OPCIONAIS desabilitados
+ * Admin deve configurar regras antes de habilitar módulos opcionais
  */
 export const DEFAULT_MODULOS_ATIVOS = {
+    // Módulos BASE - sempre habilitados
     extrato: true,
     ranking: true,
     rodadas: true,
-    top10: true,
-    melhorMes: true,
-    pontosCorridos: true,
-    mataMata: true,
-    artilheiro: true,
-    luvaOuro: true,
+    historico: true,
+    // Módulos OPCIONAIS - desabilitados até admin configurar
+    top10: false,
+    melhorMes: false,
+    pontosCorridos: false,
+    mataMata: false,
+    artilheiro: false,
+    luvaOuro: false,
+    campinho: false,
+    dicas: false,
 };
 
 /**

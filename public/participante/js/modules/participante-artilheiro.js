@@ -66,7 +66,8 @@ export async function inicializarArtilheiroParticipante({
             const liga = await ligaRes.json();
             const modulosAtivos =
                 liga.modulosAtivos || liga.modulos_ativos || {};
-            const artilheiroAtivo = modulosAtivos.artilheiro !== false;
+            // v2.0: Módulo OPCIONAL, só habilita se === true
+            const artilheiroAtivo = modulosAtivos.artilheiro === true;
 
             if (!artilheiroAtivo) {
                 container.innerHTML = `
