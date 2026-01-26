@@ -75,13 +75,25 @@ modulos_ativos: {
 
 ## PENDÊNCIAS PARA PRÓXIMA SESSÃO
 
-### Testes Manuais (opcional)
-- [ ] Criar nova liga e verificar que módulos opcionais vêm desabilitados
-- [ ] Testar navegação SPA do sidebar de temporadas
-- [ ] Verificar se liga "Os Fuleros" funciona corretamente no app participante
+### BUG CRÍTICO: APIs 404 em Liga Nova (Os Fuleros)
+**Problema:** Ao acessar liga recém-criada, APIs retornam 404:
+```
+GET /api/ranking-turno/6977a62071dee12036bb163e?turno=geral&temporada=2026 → 404
+GET /api/ranking-cache/6977a62071dee12036bb163e?temporada=2026 → 404
+```
 
-### Documentação
-- [ ] Atualizar CLAUDE.md se necessário com novas regras de módulos
+**Hipótese:** Sistema pode estar buscando dados de temporada 2025 ou endpoints não existem para ligas novas.
+
+**Logs relevantes:**
+- `[RANKING] ⚠️ API de turno não encontrada, usando fallback`
+- `[RANKING] 📅 Pré-temporada 2026 - sem dados disponíveis`
+
+**Para investigar:**
+1. Verificar rotas em `routes/ranking*.js`
+2. Verificar se liga nova precisa de inicialização de cache
+3. Confirmar se é comportamento esperado em pré-temporada
+
+**Comando:** `/workflow investigar 404 em APIs de ranking para liga nova`
 
 ---
 
