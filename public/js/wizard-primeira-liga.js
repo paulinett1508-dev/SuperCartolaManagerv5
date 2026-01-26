@@ -14,19 +14,27 @@ class WizardPrimeiraLiga {
         this.totalEtapas = 5;
 
         // Dados coletados no wizard
+        // ✅ v2.0: Módulos BASE ativos, OPCIONAIS desabilitados por padrão
+        // Admin deve configurar regras antes de habilitar módulos opcionais
         this.dados = {
             nome: "",
             descricao: "",
             times: [],
             modulos_ativos: {
+                // Módulos BASE - sempre habilitados
+                extrato: true,
                 ranking: true,
-                top10: true,
-                pontosCorridos: true,
-                mataMata: true,
-                artilheiro: true,
-                luvaOuro: true,
-                melhorMes: true,
-                extrato: true
+                rodadas: true,
+                historico: true,
+                // Módulos OPCIONAIS - desabilitados até admin configurar
+                top10: false,
+                pontosCorridos: false,
+                mataMata: false,
+                artilheiro: false,
+                luvaOuro: false,
+                melhorMes: false,
+                campinho: false,
+                dicas: false
             },
             configuracoes: "padrao" // Usar configs padrao
         };
