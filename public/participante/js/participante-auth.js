@@ -484,6 +484,7 @@ class ParticipanteAuth {
         const nome = (nomeLiga || '').toLowerCase();
         if (nome.includes('super')) return '/img/logo-supercartola.png';
         if (nome.includes('sobral') || nome.includes('cartoleiros')) return '/img/logo-cartoleirossobral.png';
+        if (nome.includes('fulero')) return '/img/logo-osfuleros.png';
         return null;
     }
 
