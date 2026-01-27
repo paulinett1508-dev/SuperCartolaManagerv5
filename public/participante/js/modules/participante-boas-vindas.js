@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v11.4 (Otimização Liga Estreante)
+// PARTICIPANTE-BOAS-VINDAS.JS - v11.5 (Fix Participantes Pré-Temporada)
 // =====================================================================
+// ✅ v11.5: totalParticipantes usa liga.participantes como fallback (pré-temporada)
 // ✅ v11.4: Otimização para ligas estreantes
 //           - Não busca histórico para ligas novas (evita 404 desnecessário)
 //           - Não renderiza Hall da Fama para ligas estreantes
@@ -69,7 +70,7 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v11.4 (Liga Estreante Fix)...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v11.5 (Participantes Pré-Temporada)...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -386,7 +387,8 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeIdNum, participante) {
     const meuTime = ranking?.find((t) => Number(t.timeId) === meuTimeIdNum);
     const posicao = meuTime ? meuTime.posicao : null;
-    const totalParticipantes = ranking?.length || 0;
+    // ✅ v11.5: Em pré-temporada (sem ranking), usar participantes da liga como fallback
+    const totalParticipantes = ranking?.length || liga?.participantes?.filter(p => p.ativo !== false)?.length || liga?.times?.length || 0;
 
     const minhasRodadas = (rodadas || []).filter(
         (r) => Number(r.timeId) === meuTimeIdNum || Number(r.time_id) === meuTimeIdNum
@@ -851,9 +853,9 @@ function renderizarBoasVindas(container, data, ligaRules) {
                         <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
                             <p class="text-xs font-medium uppercase text-white/70">Participantes</p>
                             <p class="text-2xl font-bold text-white">
-                                ${typeof totalParticipantes === 'number' && totalParticipantes > 0 && temporada === TEMPORADA_ATUAL ? totalParticipantes : '--'}
+                                ${typeof totalParticipantes === 'number' && totalParticipantes > 0 ? totalParticipantes : '--'}
                             </p>
-                            ${(typeof totalParticipantes !== 'number' || totalParticipantes === 0 || temporada !== TEMPORADA_ATUAL) ? `<span class="flex items-center gap-1 text-xs text-yellow-400 mt-1"><span class="material-icons text-base align-middle">hourglass_empty</span> Aguardando definição</span>` : ''}
+                            ${(typeof totalParticipantes !== 'number' || totalParticipantes === 0) ? `<span class="flex items-center gap-1 text-xs text-yellow-400 mt-1"><span class="material-icons text-base align-middle">hourglass_empty</span> Aguardando definição</span>` : ''}
                         </div>
                             <!-- Mini-card FALTAM removido -->
                 </div>
