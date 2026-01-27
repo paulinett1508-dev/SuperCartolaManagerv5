@@ -244,14 +244,14 @@ async function carregarRankingGeral(turnoParam = null) {
         const data = await response.json();
 
         if (!data.success || !data.ranking) {
-            // Pode ser pré-temporada - mostrar mensagem amigável
-            mostrarPreTemporada(rankingContainer, temporada);
+            // Pode ser pré-temporada ou dados ainda não consolidados
+            mostrarSemDados(rankingContainer, temporada, data?.message);
             return;
         }
 
-        // Se ranking está vazio, mostrar pré-temporada
+        // Se ranking está vazio, mostrar estado sem dados
         if (data.ranking.length === 0) {
-            mostrarPreTemporada(rankingContainer, temporada);
+            mostrarSemDados(rankingContainer, temporada, data?.message);
             return;
         }
 
@@ -387,9 +387,10 @@ async function carregarRankingFallback(ligaId, rankingContainer) {
 
         const data = await response.json();
 
-        // Se não há ranking, mostrar pré-temporada
+        // Se não há ranking, mostrar estado sem dados
         if (!data.ranking || data.ranking.length === 0) {
-            mostrarPreTemporada(rankingContainer, temporada);
+            const motivo = data.message || "Dados ainda não consolidados";
+            mostrarSemDados(rankingContainer, temporada, motivo);
             return;
         }
 
@@ -437,8 +438,8 @@ function mostrarPreTemporada(container, temporada) {
                 <span class="material-icons" style="font-size: 40px; color: #fff;">schedule</span>
             </div>
 
-            <h2 style="font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0 0 8px;">Temporada ${temporada}</h2>
-            <p style="font-size: 0.95rem; color: rgba(255, 255, 255, 0.6); margin: 0 0 24px;">Aguardando início das rodadas</p>
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0 0 8px;">Classificação indisponível</h2>
+            <p style="font-size: 0.95rem; color: rgba(255, 255, 255, 0.6); margin: 0 0 24px;">Temporada ${temporada} • Pré-temporada</p>
 
             <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 24px;">
                 <div style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; font-size: 0.85rem; color: rgba(255, 255, 255, 0.8);">
@@ -450,7 +451,7 @@ function mostrarPreTemporada(container, temporada) {
             <div style="display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; background: rgba(255, 255, 255, 0.03); border-radius: 10px; border-left: 3px solid #3b82f6; text-align: left; margin-bottom: 24px;">
                 <span class="material-icons" style="font-size: 20px; color: #3b82f6; flex-shrink: 0; margin-top: 2px;">info</span>
                 <p style="margin: 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">
-                    A classificação estará disponível quando as rodadas da temporada ${temporada} começarem.
+                    A classificação estará disponível quando as rodadas da temporada ${temporada} começarem e forem consolidadas.
                 </p>
             </div>
 
@@ -458,6 +459,35 @@ function mostrarPreTemporada(container, temporada) {
                 <span class="material-icons" style="font-size: 20px;">arrow_back</span>
                 Voltar aos Módulos
             </button>
+        </div>
+    `;
+}
+
+// ==============================
+// MOSTRAR ESTADO SEM DADOS
+// ==============================
+function mostrarSemDados(container, temporada, motivo) {
+    console.log(`[RANKING] ℹ️ Sem dados consolidados - temporada ${temporada}`);
+
+    const detalhe = motivo || "Aguarde a consolidação das rodadas para exibir a classificação.";
+
+    container.innerHTML = `
+        <div style="max-width: 520px; margin: 0 auto; text-align: center; padding: 40px 20px;">
+            <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(34, 197, 94, 0.3);">
+                <span class="material-icons" style="font-size: 40px; color: #fff;">hourglass_empty</span>
+            </div>
+
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0 0 8px;">Classificação indisponível</h2>
+            <p style="color: #cbd5f5; margin: 0 0 16px;">Temporada ${temporada}</p>
+            <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 16px; color: #e2e8f0;">
+                ${detalhe}
+            </div>
+            <div style="margin-top: 24px;">
+                <button onclick="window.orquestrador?.voltarParaCards()" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #ff5c00 0%, #ff8c00 100%); color: #fff; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(255, 92, 0, 0.3);">
+                    <span class="material-icons" style="font-size: 20px;">arrow_back</span>
+                    Voltar aos Módulos
+                </button>
+            </div>
         </div>
     `;
 }

@@ -1115,6 +1115,42 @@ Ver documentação completa em: [docs/CONTEXT7-MCP-SETUP.md](docs/CONTEXT7-MCP-S
     - Animação quando jogador pontua
     - Indicador de jogo em andamento
 
+### 🔴 Live Experience / Matchday (2026)
+
+- [ ] [FEAT-026] **Modo Matchday (Live Experience 2026)**
+  - **Descrição:** Ativar estado global “MATCHDAY” quando mercado estiver fechado e atualizar o app em tempo real
+  - **Doc:** `docs/live_experience_2026.md` (especificação aprovada)
+  - **Backend (mínimo):**
+    - [ ] `/api/matchday/status`
+    - [ ] `/api/matchday/parciais/:ligaId`
+    - [ ] `/api/matchday/partidas`
+  - **Frontend (core):**
+    - [ ] `MatchdayService` (estado global + polling)
+    - [ ] Header “AO VIVO” + CSS global do modo
+    - [ ] Ticker de scouts
+  - **Frontend (módulos live):**
+    - [ ] Ranking Live (reordenação animada)
+    - [ ] Pontos Corridos Live
+    - [ ] Mata-Mata Live (cabo de guerra)
+    - [ ] Capitao de Luxo / Luva de Ouro live badges
+  - **Extras:**
+    - [ ] Cache TTL (30s) para parciais/partidas
+    - [ ] WebSocket opcional (fase 2)
+
+### 🧩 Módulos Planejados (ARQUITETURA-MODULOS)
+
+- [ ] [FEAT-027] **Capitão de Luxo (ranking estatístico do capitão)**
+  - **Doc:** `docs/ARQUITETURA-MODULOS.md`
+- [ ] [FEAT-028] **Tiro Certo (Survival)**
+  - **Doc:** `docs/ARQUITETURA-MODULOS.md`, `docs/live_experience_2026.md`
+- [ ] [FEAT-029] **Resta Um (Competição Eliminatória)**
+  - **Doc:** `docs/ARQUITETURA-MODULOS.md`, `docs/live_experience_2026.md`
+
+### 🗄️ Backups (legado docs/archives)
+
+- [ ] [PERF-BKP-001] **Backup Scheduler + Monitoramento**
+  - **Doc:** `docs/archives/2025/ANALISE-BACKUPS-25-12-2025.md`
+
 ---
 
 ### 🏷️ White Label / Multi-Tenant SaaS

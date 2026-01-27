@@ -266,8 +266,8 @@ export async function sincronizarDadosCartola(req, res) {
         pontos_campeonato: time.pontos_campeonato,
         rodada_atual: time.rodada_atual,
         rodada_time_id: time.rodada_time_id,
-        // Dados do clube do coração
-        clube_id: time.clube?.id || null,
+        // Dados do clube do coração (fallback para time.clube_id quando objeto não vem completo)
+        clube_id: time.clube?.id || time.clube_id || null,
         clube_nome: time.clube?.nome || null,
         clube_abreviacao: time.clube?.abreviacao || null,
         clube_escudo: time.clube?.escudos?.["60x60"] || time.clube?.escudos?.["45x45"] || null,
@@ -285,6 +285,9 @@ export async function sincronizarDadosCartola(req, res) {
     // Se solicitado, salvar no banco de dados
     if (salvar === "true") {
       console.log(`[CARTOLA-SYNC] Salvando dados do time ${id} no banco...`);
+
+      // ✅ v2.1: Extrair clube_id com fallback (API pode retornar só o ID direto)
+      const clubeIdExtraido = time.clube?.id || time.clube_id || null;
 
       const timeDoc = await Time.findOne({ id: parseInt(id) });
 
@@ -306,7 +309,7 @@ export async function sincronizarDadosCartola(req, res) {
           pontos_campeonato: time.pontos_campeonato,
           rodada_atual: time.rodada_atual,
           rodada_time_id: time.rodada_time_id,
-          clube_id: time.clube?.id || null,
+          clube_id: clubeIdExtraido,
           clube_nome: time.clube?.nome || null,
           clube_abreviacao: time.clube?.abreviacao || null,
           clube_escudo: time.clube?.escudos?.["60x60"] || null,
@@ -316,6 +319,11 @@ export async function sincronizarDadosCartola(req, res) {
           cadastro_completo: time.cadastro_completo,
           _ultima_atualizacao: agora
         };
+
+        // ✅ v2.1: Também salvar clube_id no nível raiz do time (para listagem)
+        if (clubeIdExtraido) {
+          timeDoc.clube_id = clubeIdExtraido;
+        }
 
         // Atualizar timestamp de sincronização
         timeDoc.ultima_sincronizacao_globo = agora;
@@ -331,10 +339,10 @@ export async function sincronizarDadosCartola(req, res) {
         console.log(`[CARTOLA-SYNC] Time ${id} não existe no banco local`);
       }
 
-      // Se ligaId foi passado, atualizar APENAS a inscrição da temporada atual
-      // IMPORTANTE: NÃO atualizamos liga.participantes pois contém dados históricos
+      // Se ligaId foi passado, atualizar inscrição E liga.participantes
       if (ligaId) {
         try {
+          // ✅ v2.1: Incluir clube_id na atualização da inscrição
           const inscricaoAtualizada = await InscricaoTemporada.findOneAndUpdate(
             {
               liga_id: ligaId,
@@ -345,7 +353,8 @@ export async function sincronizarDadosCartola(req, res) {
               $set: {
                 'dados_participante.nome_time': time.nome,
                 'dados_participante.nome_cartoleiro': time.nome_cartola,
-                'dados_participante.escudo': time.url_escudo_png || ''
+                'dados_participante.escudo': time.url_escudo_png || '',
+                'dados_participante.clube_id': clubeIdExtraido
               }
             },
             { new: true }
@@ -358,8 +367,33 @@ export async function sincronizarDadosCartola(req, res) {
           } else {
             console.log(`[CARTOLA-SYNC] Inscrição ${CURRENT_SEASON} não encontrada para time ${id}`);
           }
+
+          // ✅ v2.1: Também atualizar liga.participantes (fonte da listagem)
+          const Liga = (await import('../models/Liga.js')).default;
+          const ligaAtualizada = await Liga.findByIdAndUpdate(
+            ligaId,
+            {
+              $set: {
+                'participantes.$[elem].nome_cartola': time.nome_cartola,
+                'participantes.$[elem].nome_time': time.nome,
+                'participantes.$[elem].foto_time': time.url_escudo_png || '',
+                'participantes.$[elem].clube_id': clubeIdExtraido,
+                'participantes.$[elem].foto_perfil': time.foto_perfil || ''
+              }
+            },
+            {
+              arrayFilters: [{ 'elem.time_id': parseInt(id) }],
+              new: true
+            }
+          );
+
+          if (ligaAtualizada) {
+            resposta.atualizado_liga = true;
+            resposta.mensagem += ` Participante na liga atualizado.`;
+            console.log(`[CARTOLA-SYNC] Participante ${id} atualizado na liga ${ligaId}`);
+          }
         } catch (inscError) {
-          console.error(`[CARTOLA-SYNC] Erro ao atualizar inscrição:`, inscError.message);
+          console.error(`[CARTOLA-SYNC] Erro ao atualizar inscrição/liga:`, inscError.message);
         }
       }
     }

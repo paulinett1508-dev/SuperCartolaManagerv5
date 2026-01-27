@@ -203,6 +203,28 @@ export function renderizarSeletorRodadasModerno(
 
   rodadaAtualInterface = rodadaAtual;
   const totalRodadas = confrontos.length;
+
+  if (totalRodadas === 0) {
+    if (progresso) {
+      progresso.innerHTML = `
+        <div class="progresso-info">
+          <span class="progresso-texto">Sem rodadas consolidadas</span>
+          <div class="progresso-bar">
+            <div class="progresso-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      `;
+    }
+    grid.innerHTML = `
+      <div class="empty-state" style="width: 100%;">
+        <span class="material-icons" style="font-size: 36px; color: var(--text-muted);">assignment</span>
+        <h3 class="empty-title">Rodadas indisponíveis</h3>
+        <p class="empty-message">Não há dados consolidados para exibir.</p>
+      </div>
+    `;
+    return;
+  }
+
   const rodadasPassadas = Math.max(
     0,
     rodadaAtual - PONTOS_CORRIDOS_CONFIG.rodadaInicial,

@@ -32,9 +32,19 @@ export async function getRankingTurno(req, res) {
         const snapshot = await buscarRankingTurno(ligaId, turno, temporadaNum);
 
         if (!snapshot) {
-            return res.status(404).json({
-                success: false,
-                error: "Nenhum dado encontrado para este turno",
+            // Pré-temporada ou dados ainda não consolidados
+            return res.status(200).json({
+                success: true,
+                turno,
+                status: "vazio",
+                rodada_atual: null,
+                rodada_inicio: null,
+                rodada_fim: null,
+                total_times: 0,
+                consolidado_em: null,
+                atualizado_em: null,
+                ranking: [],
+                message: "Nenhum dado encontrado para este turno",
             });
         }
 

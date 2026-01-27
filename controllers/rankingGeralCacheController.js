@@ -25,8 +25,13 @@ export async function buscarRankingConsolidado(req, res) {
       .lean();
 
     if (!ultimaRodadaComDados) {
-      return res.status(404).json({ 
-        error: "Nenhuma rodada encontrada para esta liga" 
+      // Pré-temporada: sem rodadas consolidadas ainda
+      return res.status(200).json({
+        cached: false,
+        rodadaFinal: 0,
+        ranking: [],
+        atualizadoEm: null,
+        message: "Nenhuma rodada encontrada para esta liga",
       });
     }
 

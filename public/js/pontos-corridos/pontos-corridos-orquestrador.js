@@ -66,6 +66,7 @@ let estadoOrquestrador = {
   // v3.0: Modo somente leitura para temporada encerrada
   temporadaEncerrada: false,
   dadosConsolidados: null, // Dados do cache quando temporada encerrada
+  semDadosConsolidados: false,
 };
 
 // Função de carregamento dinâmico das rodadas
@@ -182,26 +183,32 @@ export async function carregarPontosCorridos() {
       const dadosConsolidados = await carregarDadosConsolidados(estadoOrquestrador.ligaId);
 
       if (!dadosConsolidados || dadosConsolidados.length === 0) {
-        throw new Error("Dados consolidados não encontrados no cache");
+        console.warn("[PONTOS-CORRIDOS-ORQUESTRADOR] Sem dados consolidados; exibindo estado vazio.");
+        estadoOrquestrador.dadosConsolidados = [];
+        estadoOrquestrador.times = [];
+        estadoOrquestrador.confrontos = [];
+        estadoOrquestrador.ultimaRodadaComDados = 0;
+        estadoOrquestrador.semDadosConsolidados = true;
+      } else {
+        estadoOrquestrador.dadosConsolidados = dadosConsolidados;
+
+        // Extrair times da última rodada consolidada
+        const ultimaRodada = dadosConsolidados[dadosConsolidados.length - 1];
+        estadoOrquestrador.times = (ultimaRodada.classificacao || []).map(t => ({
+          id: Number(t.timeId) || Number(t.time_id),
+          nome: t.nome || t.nome_time,
+          nome_cartola: t.nome_cartola,
+          escudo: t.escudo,
+        }));
+
+        // Extrair confrontos de todas as rodadas
+        estadoOrquestrador.confrontos = dadosConsolidados.map(r => r.confrontos || []);
+        estadoOrquestrador.ultimaRodadaComDados = dadosConsolidados.length;
+        estadoOrquestrador.semDadosConsolidados = false;
+
+        console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ ${estadoOrquestrador.times.length} times carregados do cache`);
+        console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ ${estadoOrquestrador.confrontos.length} rodadas consolidadas`);
       }
-
-      estadoOrquestrador.dadosConsolidados = dadosConsolidados;
-
-      // Extrair times da última rodada consolidada
-      const ultimaRodada = dadosConsolidados[dadosConsolidados.length - 1];
-      estadoOrquestrador.times = (ultimaRodada.classificacao || []).map(t => ({
-        id: Number(t.timeId) || Number(t.time_id),
-        nome: t.nome || t.nome_time,
-        nome_cartola: t.nome_cartola,
-        escudo: t.escudo,
-      }));
-
-      // Extrair confrontos de todas as rodadas
-      estadoOrquestrador.confrontos = dadosConsolidados.map(r => r.confrontos || []);
-      estadoOrquestrador.ultimaRodadaComDados = dadosConsolidados.length;
-
-      console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ ${estadoOrquestrador.times.length} times carregados do cache`);
-      console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ ${estadoOrquestrador.confrontos.length} rodadas consolidadas`);
 
     } else {
       // ✅ MODO NORMAL - Temporada em andamento
@@ -330,11 +337,21 @@ async function renderRodada(rodadaNum) {
   const containerId = "pontosCorridosRodada";
 
   // CORREÇÃO: Validar rodadaNum
-  if (
-    !rodadaNum ||
-    rodadaNum < 1 ||
-    rodadaNum > estadoOrquestrador.confrontos.length
-  ) {
+  if (estadoOrquestrador.confrontos.length === 0) {
+    atualizarContainer(
+      containerId,
+      `
+        <div class="empty-state">
+          <span class="material-icons" style="font-size: 48px; color: var(--text-muted);">assignment</span>
+          <h3 class="empty-title">Rodadas indisponíveis</h3>
+          <p class="empty-message">Não há dados consolidados para exibir.</p>
+        </div>
+      `,
+    );
+    return;
+  }
+
+  if (!rodadaNum || rodadaNum < 1 || rodadaNum > estadoOrquestrador.confrontos.length) {
     console.error(
       `[PONTOS-CORRIDOS-ORQUESTRADOR] Rodada inválida: ${rodadaNum}`,
     );
@@ -460,12 +477,14 @@ async function renderClassificacao() {
       const ultimaRodada = estadoOrquestrador.dadosConsolidados[estadoOrquestrador.dadosConsolidados.length - 1];
 
       if (!ultimaRodada || !ultimaRodada.classificacao) {
-        throw new Error("Classificação não encontrada no cache consolidado");
+        classificacao = [];
+        ultimaRodadaComDados = 0;
+        houveErro = false;
+      } else {
+        classificacao = ultimaRodada.classificacao;
+        ultimaRodadaComDados = ultimaRodada.rodada;
+        houveErro = false;
       }
-
-      classificacao = ultimaRodada.classificacao;
-      ultimaRodadaComDados = ultimaRodada.rodada;
-      houveErro = false;
 
       console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ Classificação final da Rodada ${ultimaRodadaComDados}`);
 

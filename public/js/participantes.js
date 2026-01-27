@@ -1723,7 +1723,15 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
     const pontosCampeonato = time.pontos_campeonato ?? rawJson?.pontos_campeonato ?? 0;
 
     // Dados do clube do coração
-    const clube = time.clube || {};
+    // ✅ v3.1: Fallback para clube_id quando objeto clube não vier completo da API
+    const clubeObj = time.clube || {};
+    const clubeIdFallback = clubeObj.id || time.clube_id || null;
+    const clube = {
+        id: clubeIdFallback,
+        nome: clubeObj.nome || (clubeIdFallback ? BrasoesHelper.getNomeClube(clubeIdFallback) : null),
+        abreviacao: clubeObj.abreviacao || null,
+        escudos: clubeObj.escudos || null
+    };
     const clubeEscudo = clube.escudos?.["60x60"] || clube.escudos?.["45x45"] || "";
 
     // Última sincronização (do banco local, se disponível)
