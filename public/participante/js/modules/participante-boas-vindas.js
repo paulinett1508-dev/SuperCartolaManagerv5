@@ -1,6 +1,9 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v11.3 (Logo da Liga)
+// PARTICIPANTE-BOAS-VINDAS.JS - v11.4 (Otimização Liga Estreante)
 // =====================================================================
+// ✅ v11.4: Otimização para ligas estreantes
+//           - Não busca histórico para ligas novas (evita 404 desnecessário)
+//           - Não renderiza Hall da Fama para ligas estreantes
 // ✅ v11.3: Logo da liga exibida ao lado do nome na saudação
 //           - Usa campo liga.logo do banco de dados
 //           - Fallback silencioso se logo não existir
@@ -66,7 +69,7 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v11.1 (Cartola PRO)...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v11.4 (Liga Estreante Fix)...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -198,8 +201,13 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     // ✅ v11.1: Verificar se participante é PRO
     await verificarStatusPremium();
 
-    // ✅ v9.0: Buscar histórico do participante em background
-    buscarHistoricoParticipante(timeId);
+    // ✅ v11.4: Buscar histórico APENAS para ligas NÃO estreantes
+    // Ligas novas não têm histórico - evita 404 desnecessário
+    if (!window.isLigaEstreante) {
+        buscarHistoricoParticipante(timeId);
+    } else {
+        if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "⏭️ Liga estreante - pulando busca de histórico");
+    }
 
     // =========================================================================
     // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
@@ -510,10 +518,17 @@ async function buscarHistoricoParticipante(timeId) {
 // =====================================================================
 // ✅ v10.0: RENDERIZAR CARD DISCRETO DO HALL DA FAMA
 // Pequeno, na parte superior, não chama atenção para temporada anterior
+// ✅ v11.4: Não renderiza para ligas estreantes (sem histórico)
 // =====================================================================
 function renderizarBannerHistorico() {
     const container = document.getElementById("boas-vindas-container");
     if (!container || !historicoParticipante) return;
+
+    // ✅ v11.4: Liga estreante não tem histórico para exibir
+    if (window.isLigaEstreante) {
+        if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "⏭️ Liga estreante - não renderiza Hall da Fama");
+        return;
+    }
 
     // Verificar se já existe o card
     if (document.getElementById("card-hall-fama")) return;
@@ -1122,4 +1137,4 @@ window.abrirCartolaPro = function() {
 };
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "Modulo v11.1 carregado (Cartola PRO + Jogos ao vivo)");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "Modulo v11.4 carregado (Liga Estreante + Cartola PRO)");
