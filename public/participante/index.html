@@ -798,10 +798,9 @@
                 </div>
 
                 <!-- HEADER SECUNDÁRIO (COLLAPSED) -->
+                <!-- ✅ v2.2: Seletor de temporada REMOVIDO - Hall da Fama serve para histórico -->
                 <div id="headerSecondary" class="header-secondary">
                     <div class="secondary-content">
-                        <!-- Seletor de Temporada -->
-                        <div id="seasonSelectorContainer"></div>
                         <select id="seletorLiga" class="liga-selector">
                             <option></option>
                         </select>
@@ -814,35 +813,6 @@
                     </div>
                 </div>
             </header>
-
-            <!-- Inicializar seletor de temporada -->
-            <script>
-                document.addEventListener("DOMContentLoaded", function() {
-                    // Aguardar carregamento do seasonSelector e dados de auth
-                    setTimeout(() => {
-                        if (window.seasonSelector) {
-                            // ✅ v2.0: Ocultar seletor para ligas estreantes (só tem 1 temporada)
-                            // e participantes em apenas 1 liga
-                            const isLigaEstreante = window.isLigaEstreante || false;
-                            const multiplasLigas = window.participanteAuth?.multiplasLigas || false;
-
-                            // Só mostrar seletor se:
-                            // - Liga NÃO é estreante (tem histórico)
-                            // - OU participante tem múltiplas ligas
-                            const mostrarSeletor = !isLigaEstreante || multiplasLigas;
-
-                            if (mostrarSeletor) {
-                                window.seasonSelector.renderizarEm("seasonSelectorContainer");
-                            } else {
-                                // Ocultar container do seletor
-                                const container = document.getElementById("seasonSelectorContainer");
-                                if (container) container.style.display = "none";
-                                if (window.Log) Log.info("SEASON-SELECTOR", "🚫 Seletor oculto (liga estreante sem histórico)");
-                            }
-                        }
-                    }, 800);
-                });
-            </script>
 
             <script>
                 document.addEventListener("DOMContentLoaded", function () {
