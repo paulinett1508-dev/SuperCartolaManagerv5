@@ -536,7 +536,7 @@ window.renderizarGraficoPreTemporada = function renderizarGraficoPreTemporada() 
 }
 
 // ===== RENDERIZAR CONTEÚDO COMPLETO =====
-function renderizarConteudoCompleto(container, extrato) {
+window.renderizarConteudoCompleto = function renderizarConteudoCompleto(container, extrato) {
     const resumoBase = extrato.resumo || {
         saldo: 0,
         totalGanhos: 0,

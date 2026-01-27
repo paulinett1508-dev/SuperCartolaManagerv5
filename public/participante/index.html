@@ -2041,10 +2041,69 @@
             </div>
         </div>
 
+        <!-- Mini-Modal Aguarde Atualizações -->
+        <div id="modal-aguarde" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm hidden transition-opacity duration-300 opacity-0" style="z-index: 10001;">
+            <div id="aguarde-card" class="relative w-full max-w-xs rounded-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300 shadow-2xl border border-primary/30 bg-[#0f1012] p-6 text-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span class="material-icons text-3xl text-primary">hourglass_empty</span>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2" style="font-family: 'Russo One', sans-serif;">Em breve!</h3>
+                <p class="text-sm text-white/60 mb-4">Aguarde novas atualizações</p>
+                <button onclick="fecharModalAguarde()" class="w-full py-3 rounded-xl bg-primary/20 border border-primary/30 text-primary font-medium text-sm hover:bg-primary/30 transition-colors">
+                    Entendi
+                </button>
+            </div>
+        </div>
+
         <!-- Script do Modal Premiações 2026 -->
         <script>
+            // ID da liga Super Cartola (única com premiações configuradas)
+            const LIGA_SUPER_CARTOLA_ID = '684cb1c8af923da7c7df51de';
+
+            // Mini-modal "Aguarde"
+            function abrirModalAguarde() {
+                const modal = document.getElementById('modal-aguarde');
+                const card = document.getElementById('aguarde-card');
+                if (!modal || !card) return;
+
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    card.classList.remove('scale-95', 'opacity-0');
+                }, 10);
+            }
+
+            function fecharModalAguarde() {
+                const modal = document.getElementById('modal-aguarde');
+                const card = document.getElementById('aguarde-card');
+                if (!modal || !card) return;
+
+                modal.classList.add('opacity-0');
+                card.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+
+            // Fechar modal ao clicar fora
+            document.getElementById('modal-aguarde')?.addEventListener('click', function(e) {
+                if (e.target === this) fecharModalAguarde();
+            });
+
+            window.abrirModalAguarde = abrirModalAguarde;
+            window.fecharModalAguarde = fecharModalAguarde;
+
             // Funções do Modal Premiações 2026
             function abrirPremiacoes2026() {
+                // Verificar se a liga tem premiações configuradas
+                const ligaId = window.participanteAuth?.ligaId;
+                if (ligaId !== LIGA_SUPER_CARTOLA_ID) {
+                    // Liga sem configurações - mostrar mini-modal
+                    abrirModalAguarde();
+                    console.log('[PREMIACOES] Liga sem configurações, exibindo modal aguarde');
+                    return;
+                }
+
                 const modal = document.getElementById('modal-premiacoes-2026');
                 const card = document.getElementById('premiacoes-card');
                 if (!modal || !card) return;
@@ -2073,14 +2132,6 @@
                 const item = header.closest('.accordion-item');
                 const content = item.querySelector('.accordion-content');
                 const icon = header.querySelector('.accordion-icon');
-
-                // Fechar outros accordions (opcional - remova se quiser múltiplos abertos)
-                // document.querySelectorAll('.accordion-content').forEach(c => {
-                //     if (c !== content) c.classList.add('hidden');
-                // });
-                // document.querySelectorAll('.accordion-icon').forEach(i => {
-                //     if (i !== icon) i.style.transform = 'rotate(0deg)';
-                // });
 
                 // Toggle atual
                 content.classList.toggle('hidden');
@@ -2181,21 +2232,67 @@
                         return;
                     }
 
-                    // Buscar participantes renovados
-                    const response = await fetch(`/api/inscricoes/${ligaId}/2026?status=renovado`);
-                    const data = await response.json();
+                    // Tentar buscar participantes renovados (inscricoes)
+                    let participantes = [];
+                    let fonte = 'inscricoes';
 
-                    if (!data.success || !data.inscricoes?.length) {
-                        lista.innerHTML = '<p class="text-center text-white/50 py-8">Nenhum participante renovado ainda</p>';
-                        subtitulo.textContent = '0 renovados';
+                    try {
+                        const response = await fetch(`/api/inscricoes/${ligaId}/2026?status=renovado`);
+                        const data = await response.json();
+                        if (data.success && data.inscricoes?.length) {
+                            participantes = data.inscricoes.map(p => ({
+                                nome_cartola: p.dados_participante?.nome_cartoleiro || p.dados_participante?.nome_cartola || 'Sem nome',
+                                nome_time: p.dados_participante?.nome_time || 'Sem time',
+                                clube_id: p.clube_id || 'default'
+                            }));
+                        }
+                    } catch (err) {
+                        console.warn('[PARTICIPANTES] API inscricoes falhou, usando fallback');
+                    }
+
+                    // FALLBACK: Buscar de liga.participantes se nao houver inscricoes
+                    if (!participantes.length) {
+                        fonte = 'liga';
+                        // Tentar cache local primeiro
+                        let liga = window.participanteAuth?.liga;
+
+                        // Se nao tiver no cache, buscar da API de participantes
+                        if (!liga?.participantes?.length) {
+                            const ligaResponse = await fetch(`/api/ligas/${ligaId}/participantes?temporada=2026`);
+                            const ligaData = await ligaResponse.json();
+                            // A API retorna { participantes: [...] }
+                            if (ligaData.participantes?.length) {
+                                participantes = ligaData.participantes
+                                    .filter(p => p.ativo !== false)
+                                    .map(p => ({
+                                        nome_cartola: p.nome_cartola || p.nome_cartoleiro || 'Sem nome',
+                                        nome_time: p.nome_time || 'Sem time',
+                                        clube_id: p.clube_id || 'default'
+                                    }));
+                            }
+                        } else if (liga?.participantes?.length) {
+                            participantes = liga.participantes
+                                .filter(p => p.ativo !== false)
+                                .map(p => ({
+                                    nome_cartola: p.nome_cartola || p.nome_cartoleiro || 'Sem nome',
+                                    nome_time: p.nome_time || 'Sem time',
+                                    clube_id: p.clube_id || 'default'
+                                }));
+                        }
+                    }
+
+                    if (!participantes.length) {
+                        lista.innerHTML = '<p class="text-center text-white/50 py-8">Nenhum participante na liga</p>';
+                        subtitulo.textContent = '0 participantes';
                         return;
                     }
 
                     // Atualizar subtitulo
-                    subtitulo.textContent = `${data.total} renovados`;
+                    subtitulo.textContent = `${participantes.length} participantes`;
+                    console.log(`[PARTICIPANTES] ${participantes.length} carregados (fonte: ${fonte})`);
 
                     // Renderizar lista com escudo do time do coracao
-                    lista.innerHTML = data.inscricoes.map(p => {
+                    lista.innerHTML = participantes.map(p => {
                         const clubeId = p.clube_id || 'default';
                         const escudoUrl = `/escudos/${clubeId}.png`;
                         return `
@@ -2207,8 +2304,8 @@
                                          onerror="this.src='/escudos/default.png'">
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-white truncate">${p.dados_participante?.nome_cartoleiro || 'Sem nome'}</p>
-                                    <p class="text-xs text-white/50 truncate">${p.dados_participante?.nome_time || 'Sem time'}</p>
+                                    <p class="text-sm font-semibold text-white truncate">${p.nome_cartola}</p>
+                                    <p class="text-xs text-white/50 truncate">${p.nome_time}</p>
                                 </div>
                             </div>
                         `;
@@ -2275,6 +2372,18 @@
         <script>
             // Funcoes do Modal Regras 2026
             async function abrirRegras2026() {
+                // ID da liga Super Cartola (única com regras configuradas)
+                const LIGA_SUPER_CARTOLA_ID = '684cb1c8af923da7c7df51de';
+
+                // Verificar se a liga tem regras configuradas
+                const ligaId = window.participanteAuth?.ligaId;
+                if (ligaId !== LIGA_SUPER_CARTOLA_ID) {
+                    // Liga sem configurações - mostrar mini-modal
+                    abrirModalAguarde();
+                    console.log('[REGRAS] Liga sem configurações, exibindo modal aguarde');
+                    return;
+                }
+
                 const modal = document.getElementById('modal-regras-2026');
                 const card = document.getElementById('regras-card');
                 const conteudo = document.getElementById('conteudo-regras-2026');
@@ -2289,7 +2398,6 @@
 
                 // Buscar dados da API
                 try {
-                    const ligaId = window.participanteAuth?.ligaId;
                     if (!ligaId) throw new Error('Liga nao encontrada');
 
                     const response = await fetch(`/api/liga-rules/${ligaId}/2026`);

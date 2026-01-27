@@ -157,14 +157,17 @@
 
             function obterTemporadaCache() {
                 if (window.temporadaCache) return window.temporadaCache;
-                const urlParams = new URLSearchParams(window.location.search);
-                const temporadaUrl = urlParams.get("temporada");
+                const temporadaUrl = window.SeasonContext?.getUrlSeason
+                    ? window.SeasonContext.getUrlSeason()
+                    : null;
                 if (temporadaUrl) {
                     window.temporadaCache = parseInt(temporadaUrl, 10);
                     return window.temporadaCache;
                 }
-                // Fallback: temporada atual
-                return new Date().getFullYear();
+                // Fallback: temporada do sistema
+                return window.SeasonContext?.getTemporadaSistema
+                    ? window.SeasonContext.getTemporadaSistema()
+                    : new Date().getFullYear();
             }
 
             // Exportar globalmente para uso em módulos
@@ -1042,6 +1045,9 @@
                     });
             });
         </script>
+
+        <!-- CONTEXTO DE TEMPORADA (deve carregar antes dos módulos) -->
+        <script src="js/core/season-context.js"></script>
 
         <!-- SCHEDULERS AUTOMÁTICOS (devem carregar antes dos módulos) -->
         <script src="js/parciais-scheduler.js"></script>

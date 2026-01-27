@@ -15,8 +15,14 @@ const RenovacaoAPI = (function() {
     // CONFIGURAÇÃO
     // =========================================================================
 
+    const temporadaSistema =
+        window.SeasonContext?.getTemporadaRenovacao?.() ||
+        window.SeasonContext?.getTemporadaSistema?.() ||
+        window.temporadaRenovacao ||
+        new Date().getFullYear();
+
     const CONFIG = {
-        TEMPORADA_ATUAL: 2026,
+        TEMPORADA_ATUAL: temporadaSistema,
         DEBUG: window.DEBUG_MODE || false,
         ENDPOINTS: {
             LIGA_RULES: '/api/liga-rules',

@@ -15,9 +15,15 @@ const RenovacaoUI = (function() {
     // ESTADO
     // =========================================================================
 
+    const temporadaSistema =
+        window.SeasonContext?.getTemporadaRenovacao?.() ||
+        window.SeasonContext?.getTemporadaSistema?.() ||
+        window.temporadaRenovacao ||
+        new Date().getFullYear();
+
     let state = {
         ligaId: null,
-        temporada: 2026,
+        temporada: temporadaSistema,
         regras: null,
         modalAtivo: null,
         timeSelecionado: null
