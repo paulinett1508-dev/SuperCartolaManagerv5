@@ -40,12 +40,21 @@ export async function inicializarHomeParticipante(params) {
         timeId = arguments[1];
     }
 
-    // Fallback - buscar dados do auth
+    // ✅ v1.1 FIX: SEMPRE buscar dados do auth para garantir campos completos (clube_id, etc)
+    // A navegação passa dados incompletos (camelCase, sem clube_id)
+    if (window.participanteAuth) {
+        const authData = window.participanteAuth.participante?.participante;
+        // Mesclar dados: auth tem prioridade pois tem estrutura completa
+        if (authData && typeof authData === 'object') {
+            participante = { ...participante, ...authData };
+        }
+    }
+
+    // Fallback - buscar IDs do auth se não vieram
     if (!ligaId || !timeId || ligaId === "[object Object]" || timeId === "undefined") {
         if (window.participanteAuth) {
             ligaId = ligaId || window.participanteAuth.ligaId;
             timeId = timeId || window.participanteAuth.timeId;
-            participante = participante || window.participanteAuth.participante?.participante;
         }
 
         if (!ligaId || !timeId) {
@@ -238,10 +247,19 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
     }
 
     const saldoFinanceiro = extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0;
-    const nomeTime = participante?.nome_time || meuTime?.nome_time || "Seu Time";
-    const nomeCartola = participante?.nome_cartola || meuTime?.nome_cartola || "Cartoleiro";
+
+    // ✅ v1.1 FIX: Buscar dados do participante com fallback robusto
+    // A navegação passa camelCase (nomeTime, nomeCartola) mas outros módulos usam snake_case
+    // Também buscar do auth original se não vier nos params
+    const authParticipante = window.participanteAuth?.participante?.participante;
+
+    const nomeTime = participante?.nome_time || participante?.nomeTime ||
+                     authParticipante?.nome_time || meuTime?.nome_time || "Seu Time";
+    const nomeCartola = participante?.nome_cartola || participante?.nomeCartola ||
+                        authParticipante?.nome_cartola || meuTime?.nome_cartola || "Cartoleiro";
     const nomeLiga = liga?.nome || "Liga";
-    const clubeId = participante?.clube_id || meuTime?.clube_id || null;
+    const clubeId = participante?.clube_id || participante?.clubeId ||
+                    authParticipante?.clube_id || meuTime?.clube_id || null;
 
     return {
         posicao,

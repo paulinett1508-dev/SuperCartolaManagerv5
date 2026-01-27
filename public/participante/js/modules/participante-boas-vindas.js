@@ -140,6 +140,14 @@ export async function inicializarBoasVindasParticipante(params) {
         }
     }
 
+    // ✅ v11.2 FIX: SEMPRE buscar dados do auth para garantir campos completos
+    if (window.participanteAuth) {
+        const authData = window.participanteAuth.participante?.participante;
+        if (authData && typeof authData === 'object') {
+            participante = { ...participante, ...authData };
+        }
+    }
+
     ligaId = typeof ligaId === "string" ? ligaId : String(ligaId || "");
     timeId = typeof timeId === "string" ? timeId : String(timeId || "");
 
@@ -399,8 +407,14 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
         });
     }
     
-    const nomeTime = participante?.nome_time || meuTime?.nome_time || "Seu Time";
-    const nomeCartola = participante?.nome_cartola || meuTime?.nome_cartola || "Cartoleiro";
+    // ✅ v11.2 FIX: Buscar dados do participante com fallback robusto
+    // A navegação pode passar camelCase, mas também precisamos do auth
+    const authParticipante = window.participanteAuth?.participante?.participante;
+
+    const nomeTime = participante?.nome_time || participante?.nomeTime ||
+                     authParticipante?.nome_time || meuTime?.nome_time || "Seu Time";
+    const nomeCartola = participante?.nome_cartola || participante?.nomeCartola ||
+                        authParticipante?.nome_cartola || meuTime?.nome_cartola || "Cartoleiro";
     const nomeLiga = liga?.nome || "Liga";
 
     return {

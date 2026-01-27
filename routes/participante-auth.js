@@ -173,7 +173,8 @@ router.get("/globo/callback", async (req, res, next) => {
 
                 // 3. Verificar se time e assinante
                 const { default: Time } = await import("../models/Time.js");
-                const timeData = await Time.findOne({ id: timeIdGlobo }).select("assinante nome_cartola nome_time clube_id url_escudo_png");
+                // ✅ v2.3: Incluir nome_cartoleiro para fallback
+                const timeData = await Time.findOne({ id: timeIdGlobo }).select("assinante nome_cartola nome_cartoleiro nome_time clube_id url_escudo_png");
 
                 if (!timeData || !timeData.assinante) {
                     console.warn("[PARTICIPANTE-AUTH] Time nao e assinante:", timeIdGlobo);
@@ -197,8 +198,9 @@ router.get("/globo/callback", async (req, res, next) => {
                 );
 
                 // 6. Montar dados reais do time
+                // ✅ v2.3: Incluir fallback para nome_cartoleiro
                 const dadosReais = {
-                    nome_cartola: timeData.nome_cartola || participanteEncontrado?.nome_cartola || "Cartoleiro",
+                    nome_cartola: timeData.nome_cartola || timeData.nome_cartoleiro || participanteEncontrado?.nome_cartola || "Cartoleiro",
                     nome_time: timeData.nome_time || participanteEncontrado?.nome_time || "Meu Time",
                     foto_perfil: participanteEncontrado?.foto_perfil || "",
                     foto_time: timeData.url_escudo_png || "",
@@ -301,7 +303,8 @@ router.post("/globo/direct", async (req, res) => {
 
         // 3. Verificar se time e assinante
         const { default: Time } = await import("../models/Time.js");
-        const timeData = await Time.findOne({ id: timeIdGlobo }).select("assinante nome_cartola nome_time clube_id url_escudo_png");
+        // ✅ v2.3: Incluir nome_cartoleiro para fallback
+        const timeData = await Time.findOne({ id: timeIdGlobo }).select("assinante nome_cartola nome_cartoleiro nome_time clube_id url_escudo_png");
 
         if (!timeData || !timeData.assinante) {
             return res.status(403).json({
@@ -329,8 +332,9 @@ router.post("/globo/direct", async (req, res) => {
         );
 
         // 6. Montar dados reais
+        // ✅ v2.3: Incluir fallback para nome_cartoleiro
         const dadosReais = {
-            nome_cartola: timeData.nome_cartola || participanteEncontrado?.nome_cartola || "Cartoleiro",
+            nome_cartola: timeData.nome_cartola || timeData.nome_cartoleiro || participanteEncontrado?.nome_cartola || "Cartoleiro",
             nome_time: timeData.nome_time || participanteEncontrado?.nome_time || "Meu Time",
             foto_perfil: participanteEncontrado?.foto_perfil || "",
             foto_time: timeData.url_escudo_png || "",
@@ -436,9 +440,10 @@ router.post("/login", async (req, res) => {
         }
 
         // ✅ BUSCAR DADOS REAIS DO TIME DA API CARTOLA
+        // ✅ v2.3: Incluir fallback para nome_cartoleiro (campo alternativo no schema)
         let dadosReais = {
-            nome_cartola: participanteEncontrado.nome_cartola || 'N/D',
-            nome_time: participanteEncontrado.nome_time || 'N/D',
+            nome_cartola: participanteEncontrado.nome_cartola || participanteEncontrado.nome_cartoleiro || 'Cartoleiro',
+            nome_time: participanteEncontrado.nome_time || 'Meu Time',
             foto_perfil: participanteEncontrado.foto_perfil || '',
             foto_time: participanteEncontrado.foto_time || '',
             clube_id: participanteEncontrado.clube_id || null
@@ -446,7 +451,8 @@ router.post("/login", async (req, res) => {
 
         try {
             const { default: Time } = await import("../models/Time.js");
-            const timeReal = await Time.findOne({ time_id: parseInt(timeId) }).lean();
+            // ✅ v2.3: Corrigido - campo correto é 'id', não 'time_id'
+            const timeReal = await Time.findOne({ id: parseInt(timeId) }).lean();
 
             if (timeReal) {
                 dadosReais = {
@@ -502,8 +508,9 @@ router.post("/login", async (req, res) => {
                 success: true,
                 message: "Login realizado com sucesso",
                 participante: {
-                    nome: participanteEncontrado.nome_cartola,
-                    time: participanteEncontrado.nome_time,
+                    // ✅ v2.3: Usar dadosReais que já tem fallbacks corretos
+                    nome: dadosReais.nome_cartola,
+                    time: dadosReais.nome_time,
                 },
             });
         });
@@ -535,8 +542,9 @@ router.get("/session", async (req, res) => {
 
         let timeData = null;
         if (timeId) {
+            // ✅ v2.3: Incluir nome_time e nome_cartoleiro para compatibilidade
             timeData = await Time.findOne({ id: timeId }).select(
-                "nome nome_cartola clube_id url_escudo_png assinante",
+                "nome nome_time nome_cartola nome_cartoleiro clube_id url_escudo_png assinante",
             );
         }
 
@@ -547,16 +555,36 @@ router.get("/session", async (req, res) => {
         res.set('Pragma', 'no-cache');
         res.set('Expires', '0');
 
+        // ✅ v2.3: Construir dados com fallbacks robustos
+        const sessionData = req.session.participante;
+        const dadosParticipante = sessionData.participante || {};
+
+        // Priorizar dados do banco (frescos) sobre dados da sessão (podem estar desatualizados)
+        const nomeCartola = timeData?.nome_cartola || timeData?.nome_cartoleiro ||
+                            dadosParticipante.nome_cartola || dadosParticipante.nome_cartoleiro || "Cartoleiro";
+        const nomeTime = timeData?.nome_time || timeData?.nome ||
+                         dadosParticipante.nome_time || dadosParticipante.nome || "Meu Time";
+        const clubeId = timeData?.clube_id || dadosParticipante.clube_id || null;
+
         res.json({
             authenticated: true,
             participante: {
-                ...req.session.participante,
-                assinante: timeData?.assinante || false, // Flag premium para Cartola PRO
+                ...sessionData,
+                // ✅ v2.3: Sobrescrever dados do participante com valores atualizados
+                participante: {
+                    ...dadosParticipante,
+                    nome_cartola: nomeCartola,
+                    nome_time: nomeTime,
+                    clube_id: clubeId,
+                    foto_time: timeData?.url_escudo_png || dadosParticipante.foto_time || ""
+                },
+                assinante: timeData?.assinante || false,
                 time: timeData
                     ? {
-                          nome: timeData.nome, // Compatibilidade com schema antigo/novo
-                          nome_cartola: timeData.nome_cartola,
-                          clube_id: timeData.clube_id,
+                          nome: nomeTime,
+                          nome_cartola: nomeCartola,
+                          nome_time: nomeTime,
+                          clube_id: clubeId,
                           url_escudo_png: timeData.url_escudo_png,
                       }
                     : null,
@@ -784,7 +812,8 @@ router.get("/globo/popup/callback", async (req, res) => {
 
                 // Verificar se é assinante
                 const { default: Time } = await import("../models/Time.js");
-                const timeData = await Time.findOne({ id: timeIdGlobo }).select("assinante nome_cartola nome_time");
+                // ✅ v2.3: Incluir nome_cartoleiro para fallback
+                const timeData = await Time.findOne({ id: timeIdGlobo }).select("assinante nome_cartola nome_cartoleiro nome_time clube_id");
 
                 if (!timeData || !timeData.assinante) {
                     return res.send(gerarHtmlPopupErro('not_subscriber', 'Esta conta não é assinante PRO'));
@@ -845,7 +874,8 @@ router.post("/globo/create-session", async (req, res) => {
 
         // 3. Verificar se é assinante
         const { default: Time } = await import("../models/Time.js");
-        const timeData = await Time.findOne({ id: timeIdGlobo }).select("assinante nome_cartola nome_time clube_id url_escudo_png");
+        // ✅ v2.3: Incluir nome_cartoleiro para fallback
+        const timeData = await Time.findOne({ id: timeIdGlobo }).select("assinante nome_cartola nome_cartoleiro nome_time clube_id url_escudo_png");
 
         if (!timeData || !timeData.assinante) {
             return res.status(403).json({
@@ -872,8 +902,9 @@ router.post("/globo/create-session", async (req, res) => {
             (p) => String(p.time_id) === String(timeIdGlobo)
         );
 
+        // ✅ v2.3: Incluir fallback para nome_cartoleiro
         const dadosReais = {
-            nome_cartola: timeData.nome_cartola || participanteEncontrado?.nome_cartola || "Cartoleiro",
+            nome_cartola: timeData.nome_cartola || timeData.nome_cartoleiro || participanteEncontrado?.nome_cartola || "Cartoleiro",
             nome_time: timeData.nome_time || participanteEncontrado?.nome_time || "Meu Time",
             foto_perfil: participanteEncontrado?.foto_perfil || "",
             foto_time: timeData.url_escudo_png || "",

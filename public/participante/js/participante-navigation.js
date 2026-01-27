@@ -750,7 +750,8 @@ class ParticipanteNavigation {
         }
 
         // Modulos que funcionam mesmo em pre-temporada
-        const modulosLiberados = ['boas-vindas', 'extrato', 'historico', 'configuracoes'];
+        // ✅ v4.1: Adicionado 'home' - mostra dados basicos do participante
+        const modulosLiberados = ['boas-vindas', 'home', 'extrato', 'historico', 'configuracoes'];
 
         // Se o modulo esta na lista de liberados, nao bloquear
         if (modulosLiberados.includes(moduloId)) {
