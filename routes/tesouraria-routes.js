@@ -737,18 +737,24 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
         console.log(`[TESOURARIA] ✅ ${participantes.length} participantes em ${elapsed}ms`);
 
         // 🐛 DEBUG: Log dos totais calculados
+        // ✅ v8.8.1: Calcular primeiraTemporada antes do response para logar
+        const primeiraTemporada = liga.criadaEm ? new Date(liga.criadaEm).getFullYear() : (liga.temporada || 2025);
+
         console.log(`[TESOURARIA-API] 📊 TOTAIS para liga ${ligaId}:`);
         console.log(`  Total participantes: ${participantes.length}`);
         console.log(`  Devedores: ${quantidadeDevedores}`);
         console.log(`  Credores: ${quantidadeCredores}`);
         console.log(`  Quitados: ${quantidadeQuitados}`);
         console.log(`  Validação: ${quantidadeDevedores + quantidadeCredores + quantidadeQuitados} = ${participantes.length}`);
+        console.log(`  📅 primeiraTemporada: ${primeiraTemporada} (criadaEm: ${liga.criadaEm})`);
 
         res.json({
             success: true,
             ligaId,
             ligaNome: liga.nome,
             temporada,
+            // ✅ v8.8.1: Usa variável calculada acima para consistência com o log
+            primeiraTemporada,
             // ✅ v2.0: Incluir módulos ativos para renderização condicional no frontend
             modulosAtivos,
             participantes,

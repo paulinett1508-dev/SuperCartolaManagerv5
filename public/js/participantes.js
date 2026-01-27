@@ -1,4 +1,5 @@
 // MÓDULO PARTICIPANTES - VERSÃO OTIMIZADA (Performance)
+// v2.15: Exportar lista de participantes para PDF (2026-01-27)
 // v2.14: Cache-bust fix (2026-01-22)
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -224,6 +225,10 @@ async function carregarParticipantesPorTemporada(temporada) {
         // ✅ v2.14: Log dos participantes filtrados para diagnóstico
         console.log(`[PARTICIPANTES] Após filtro: ${participantesFiltrados.length} participantes`);
         console.log(`[PARTICIPANTES] Lista:`, participantesFiltrados.map(p => `${p.nome_cartoleiro} (${p.status})`));
+
+        // ✅ v2.15: Salvar para exportação PDF
+        window.participantesCarregados = participantesFiltrados;
+        window.participantesTemporada = temporada;
 
         participantesFiltrados.forEach((p, index) => {
             const estaAtivo = p.ativo !== false;
@@ -3711,3 +3716,168 @@ window.fecharModalNovoParticipante = function() {
 };
 
 console.log("[PARTICIPANTES] ✅ Modal novo participante carregado");
+
+// =============================================================================
+// EXPORTAR LISTA DE PARTICIPANTES PARA PDF
+// =============================================================================
+
+/**
+ * Exporta lista de participantes para PDF
+ * ✅ v2.15: Nova funcionalidade de exportação
+ */
+window.exportarParticipantesPDF = async function() {
+    const participantes = window.participantesCarregados;
+    const temporada = window.participantesTemporada || temporadaSelecionada;
+
+    if (!participantes || participantes.length === 0) {
+        mostrarToast('Nenhum participante para exportar', 'error');
+        return;
+    }
+
+    // Verificar se jsPDF está disponível, senão carregar dinamicamente
+    if (typeof window.jspdf === 'undefined') {
+        mostrarToast('Carregando biblioteca PDF...', 'info');
+
+        // Carregar jsPDF
+        const script1 = document.createElement('script');
+        script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+
+        await new Promise((resolve, reject) => {
+            script1.onload = resolve;
+            script1.onerror = reject;
+            document.head.appendChild(script1);
+        });
+
+        // Carregar AutoTable plugin
+        const script2 = document.createElement('script');
+        script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+
+        await new Promise((resolve, reject) => {
+            script2.onload = resolve;
+            script2.onerror = reject;
+            document.head.appendChild(script2);
+        });
+    }
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 15;
+
+        // Buscar nome da liga
+        let ligaNome = 'Liga';
+        try {
+            const ligaRes = await fetch(`/api/ligas/${ligaId}`);
+            const ligaData = await ligaRes.json();
+            ligaNome = ligaData.nome || 'Liga';
+        } catch (e) {
+            console.warn('[PDF] Erro ao buscar nome da liga:', e);
+        }
+
+        // ========== HEADER ==========
+        doc.setFillColor(30, 30, 30);
+        doc.rect(0, 0, pageWidth, 35, 'F');
+
+        doc.setTextColor(255, 140, 0);
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('SUPER CARTOLA', margin, 15);
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.text(`Lista de Participantes - ${temporada}`, margin, 24);
+
+        doc.setFontSize(10);
+        doc.setTextColor(180, 180, 180);
+        doc.text(ligaNome, margin, 31);
+
+        // Data de geração
+        const dataGeracao = new Date().toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        doc.text(`Gerado em: ${dataGeracao}`, pageWidth - margin, 31, { align: 'right' });
+
+        // ========== TABELA ==========
+        const tableData = participantes.map((p, idx) => [
+            String(idx + 1).padStart(2, '0'),
+            p.nome_cartoleiro || 'N/D',
+            p.nome_time || 'N/D',
+            String(p.time_id),
+            p.ativo !== false ? 'Ativo' : 'Inativo'
+        ]);
+
+        doc.autoTable({
+            startY: 42,
+            head: [['#', 'Cartoleiro', 'Nome do Time', 'ID Cartola', 'Status']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [255, 140, 0],
+                textColor: [0, 0, 0],
+                fontStyle: 'bold',
+                fontSize: 10,
+                halign: 'center'
+            },
+            bodyStyles: {
+                fontSize: 9,
+                textColor: [50, 50, 50]
+            },
+            columnStyles: {
+                0: { halign: 'center', cellWidth: 10 },
+                1: { cellWidth: 50 },
+                2: { cellWidth: 50 },
+                3: { halign: 'center', cellWidth: 30 },
+                4: { halign: 'center', cellWidth: 20 }
+            },
+            alternateRowStyles: {
+                fillColor: [245, 245, 245]
+            },
+            margin: { left: margin, right: margin },
+            didDrawPage: function(data) {
+                // Footer em cada página
+                const pageCount = doc.internal.getNumberOfPages();
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.text(
+                    `Página ${data.pageNumber} de ${pageCount}`,
+                    pageWidth / 2,
+                    doc.internal.pageSize.getHeight() - 10,
+                    { align: 'center' }
+                );
+            }
+        });
+
+        // ========== RESUMO ==========
+        const finalY = doc.lastAutoTable.finalY + 10;
+        const ativos = participantes.filter(p => p.ativo !== false).length;
+        const inativos = participantes.length - ativos;
+
+        doc.setFontSize(10);
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Total: ${participantes.length} participantes`, margin, finalY);
+        doc.text(`Ativos: ${ativos} | Inativos: ${inativos}`, margin, finalY + 5);
+
+        // ========== SALVAR ==========
+        const nomeArquivo = `participantes_${ligaNome.replace(/\s+/g, '_')}_${temporada}_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(nomeArquivo);
+
+        mostrarToast(`PDF exportado: ${participantes.length} participantes`, 'success');
+        console.log(`[PDF] Exportado: ${nomeArquivo}`);
+
+    } catch (error) {
+        console.error('[PDF] Erro ao gerar:', error);
+        mostrarToast('Erro ao gerar PDF: ' + error.message, 'error');
+    }
+};
+
+console.log("[PARTICIPANTES] ✅ Exportação PDF disponível");

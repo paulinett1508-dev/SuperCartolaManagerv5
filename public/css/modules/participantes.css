@@ -206,6 +206,23 @@
   transform: translateY(0);
 }
 
+/* ✅ v2.15: Botão PDF (secondary) */
+.btn-toolbar.btn-secondary {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+}
+
+.btn-toolbar.btn-secondary:hover {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-toolbar.btn-secondary:active {
+  transform: translateY(0);
+}
+
 @media (max-width: 480px) {
   .btn-toolbar .btn-label {
     display: none;

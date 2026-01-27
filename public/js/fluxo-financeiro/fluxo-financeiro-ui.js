@@ -14,7 +14,12 @@ import {
 import { inicializarPDF } from "./fluxo-financeiro-pdf.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v8.4 (CSS Extraído)
+ * FLUXO-FINANCEIRO-UI.JS - v8.8.1 (Seletor de Temporada Inteligente)
+ * ✅ v8.8.1: FIX - primeiraTemporada usa criadaEm (ano real de criação da liga)
+ * ✅ v8.8: Tab 2025 oculta para ligas criadas em 2026 (usa primeiraTemporada da API)
+ * ✅ v8.7: Label "Inscrição XXXX" substituído por "Saldo Inicial" + sub-linha informativa
+ * ✅ v8.6: Removida seção "Lançamentos" do extrato (redundante com Acertos/Ajustes)
+ * ✅ v8.5: PDF/Auditoria extraído para módulo separado
  * ✅ v8.4: Funções CSS extraídas para fluxo-financeiro-styles.js (~1.850 linhas)
  * ✅ v8.3 (Removido Botão da Morte)
  * ✅ v8.3: REMOVIDO botão "Limpar Cache" - causava perda de dados irrecuperáveis
@@ -342,7 +347,11 @@ export class FluxoFinanceiroUI {
             </div>
         `;
 
-        // Mostrar transações especiais primeiro (inscrição 2026, legado, etc.)
+        // ✅ v8.6: Seção de "Lançamentos" (inscrição, legado) REMOVIDA
+        // Motivo: Redundante com botão "Acerto" (footer) e seção "Ajustes Manuais" (Adicionar)
+        // O admin pode registrar inscrição/legado via Acertos ou Ajustes Financeiros
+        // Mantendo código comentado para referência:
+        /*
         if (transacoesEspeciais.length > 0) {
             html += `
                 <div class="extrato-transacoes-especiais" style="margin-top: 20px;">
@@ -367,6 +376,7 @@ export class FluxoFinanceiroUI {
                 </div>
             `;
         }
+        */
 
         // Mostrar tabela de rodadas se existirem
         if (rodadasNormais.length > 0) {
@@ -408,13 +418,14 @@ export class FluxoFinanceiroUI {
                     </div>
                 </div>
             `;
-        } else if (!isQuitado && transacoesEspeciais.length === 0) {
-            // Sem dados ainda
+        } else if (!isQuitado) {
+            // ✅ v8.6: Simplificado - mostra "sem dados" se não tem rodadas e não está quitado
+            // (removida condição transacoesEspeciais pois seção foi removida)
             html += `
                 <div class="extrato-sem-dados-temporada">
                     <span class="material-icons">hourglass_empty</span>
                     <p>Nenhum dado de rodadas para ${temporada}</p>
-                    <p class="hint">${temporada === 2026 ? 'A temporada 2026 ainda não começou ou o participante não foi renovado.' : 'Verifique se o cache foi gerado.'}</p>
+                    <p class="hint">${temporada === 2026 ? 'A temporada 2026 ainda não começou. Use "Acerto" ou "Ajustes" para registrar valores.' : 'Verifique se o cache foi gerado.'}</p>
                 </div>
             `;
         }
@@ -555,6 +566,9 @@ export class FluxoFinanceiroUI {
             const response = await fetch(`/api/tesouraria/liga/${ligaId}?temporada=${temporada}`);
             if (response.ok) {
                 dadosSaldo = await response.json();
+                // ✅ v8.8.1: Salvar primeira temporada da liga para condicionar tabs
+                window.ligaPrimeiraTemporada = dadosSaldo.primeiraTemporada || 2025;
+                console.log(`[FLUXO-UI] 📅 primeiraTemporada da API: ${dadosSaldo.primeiraTemporada} → ligaPrimeiraTemporada: ${window.ligaPrimeiraTemporada}`);
             }
         } catch (error) {
             console.warn("[FLUXO-UI] Erro ao buscar saldos:", error);
@@ -629,6 +643,10 @@ export class FluxoFinanceiroUI {
             totalAPagar: 0,
         };
 
+        // ✅ v8.8.1: Log para debug do seletor de temporada
+        const mostrarTab2025 = (window.ligaPrimeiraTemporada || 2025) < 2026;
+        console.log(`[FLUXO-UI] 📅 Renderizando tabs: ligaPrimeiraTemporada=${window.ligaPrimeiraTemporada}, mostrar2025=${mostrarTab2025}`);
+
         // Layout Dashboard com Cards de Resumo + Tabela Expandida
         container.innerHTML = `
             <div class="module-toolbar">
@@ -637,18 +655,20 @@ export class FluxoFinanceiroUI {
                         <span class="material-icons">account_balance_wallet</span>
                         Financeiro
                     </h2>
-                    <!-- ✅ v8.1: Seletor de Temporada em TABS (mesmo estilo de participantes.js) -->
+                    <!-- ✅ v8.8.1: Seletor de Temporada - oculta 2025 se liga foi criada em 2026 -->
                     <div id="temporada-tabs-fluxo" class="temporada-tabs-inline">
                         <button class="tab-btn-inline ${(window.temporadaAtual || 2026) === 2026 ? 'active' : ''}"
                                 data-temporada="2026"
                                 onclick="window.mudarTemporada(2026)">
                             2026
                         </button>
+                        ${mostrarTab2025 ? `
                         <button class="tab-btn-inline ${(window.temporadaAtual || 2026) === 2025 ? 'active' : ''}"
                                 data-temporada="2025"
                                 onclick="window.mudarTemporada(2025)">
                             2025
                         </button>
+                        ` : ''}
                     </div>
                     <div class="toolbar-stats">
                         <span class="stat-badge">
@@ -1989,19 +2009,10 @@ export class FluxoFinanceiroUI {
         let labelSaldoTemporada = 'Resultado Temporada:';
         let iconeSaldoTemporada = 'history';
 
-        if (isPreTemporada) {
-            if (pagouInscricao) {
-                // ✅ v6.8: Pagou inscrição - saldo vem de ajustes/créditos, não da inscrição
-                labelSaldoTemporada = `Saldo Inicial ${temporadaAtual}:`;
-                iconeSaldoTemporada = 'account_balance';
-            } else {
-                // Não pagou - mostrar como inscrição pendente
-                labelSaldoTemporada = `Inscrição ${temporadaAtual}:`;
-                iconeSaldoTemporada = 'person_add';
-            }
-        } else if (extrato.rodadas?.length === 0 && saldoTemporada !== 0) {
-            // Temporada iniciada mas sem rodadas ainda, com saldo inicial
-            labelSaldoTemporada = `Saldo Inicial ${temporadaAtual}:`;
+        // ✅ v8.7: Simplificado - sempre "Saldo Inicial" para pré-temporada
+        // Removido label "Inscrição XXXX" que era redundante com botões Acerto/Ajustes
+        if (isPreTemporada || (extrato.rodadas?.length === 0 && saldoTemporada !== 0)) {
+            labelSaldoTemporada = 'Saldo Inicial:';
             iconeSaldoTemporada = 'account_balance';
         }
 
@@ -2041,9 +2052,9 @@ export class FluxoFinanceiroUI {
                 <!-- Lista de acertos -->
                 ${acertosHTML || '<div style="padding: 12px; text-align: center; color: rgba(255,255,255,0.4); font-size: 12px;">Nenhum acerto registrado</div>'}
 
-                <!-- ✅ v6.7: Resumo separando HISTÓRICO de PENDENTE (com label dinâmico) -->
+                <!-- ✅ v8.7: Resumo simplificado - SALDO INICIAL + status inscrição em sub-linha -->
                 <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <!-- RESULTADO DA TEMPORADA / INSCRIÇÃO (histórico, imutável) -->
+                    <!-- SALDO INICIAL (valor inicial da temporada) -->
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 8px;">
                         <span style="color: rgba(255,255,255,0.9); font-weight: 600;">
                             <span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px; color: var(--laranja);">${iconeSaldoTemporada}</span>
@@ -2051,6 +2062,15 @@ export class FluxoFinanceiroUI {
                         </span>
                         <span class="${corSaldoTemp}" style="font-weight: 700; font-size: 15px;">${saldoTemporada >= 0 ? '+' : '-'}R$ ${formatarValor(saldoTemporada)}</span>
                     </div>
+                    ${isPreTemporada ? `
+                    <!-- ✅ v8.7: Sub-linha informativa de status de inscrição -->
+                    <div style="display: flex; justify-content: flex-end; padding: 4px 12px 0; font-size: 11px; color: rgba(255,255,255,0.5);">
+                        <span style="display: flex; align-items: center; gap: 4px;">
+                            <span class="material-icons" style="font-size: 12px; color: ${pagouInscricao ? '#10b981' : '#f59e0b'};">${pagouInscricao ? 'check_circle' : 'schedule'}</span>
+                            Inscrição ${pagouInscricao ? 'paga' : 'pendente'}
+                        </span>
+                    </div>
+                    ` : ''}
                     <!-- ACERTOS (pagamentos/recebimentos) -->
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; font-size: 13px;">
                         <span style="color: rgba(255,255,255,0.6);">Acertos Financeiros:</span>
@@ -3294,7 +3314,7 @@ window.filtrarParticipantes = window.filtrarParticipantesTabela;
 
 // ✅ v8.5: Modal de Auditoria e funcoes PDF movidas para fluxo-financeiro-pdf.js
 
-console.log("[FLUXO-UI] v8.5 - CSS extraido + PDF/Auditoria extraido para modulo separado");
+console.log("[FLUXO-UI] v8.8.1 - Tab 2025 usa criadaEm (ano real de criação)");
 
 // =============================================================================
 // AJUSTES DINAMICOS (Temporada 2026+)
