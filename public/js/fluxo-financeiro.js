@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 // v8.0: Módulo de Quitação de Temporada
 import "./fluxo-financeiro/fluxo-financeiro-quitacao.js";
-// v8.0: Módulo de Ajustes Financeiros Dinâmicos (2026+)
+// v8.0: Módulo de Ajustes Financeiros Dinâmicos (multi-temporada)
 import "./fluxo-financeiro/fluxo-financeiro-ajustes-api.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
@@ -19,6 +19,22 @@ let mercadoAberto = false;
 let isDataLoading = false;
 let isDataLoaded = false;
 let isCalculating = false;
+
+function getTemporadaSistemaFallback() {
+    if (window.SeasonContext?.getTemporadaSistema) {
+        return window.SeasonContext.getTemporadaSistema();
+    }
+    if (typeof window.temporadaAtual === "number") return window.temporadaAtual;
+    return new Date().getFullYear();
+}
+
+function getTemporadaSelecionada() {
+    if (typeof window.temporadaAtual === "number") return window.temporadaAtual;
+    if (window.SeasonContext?.getTemporadaContexto) {
+        return window.SeasonContext.getTemporadaContexto();
+    }
+    return getTemporadaSistemaFallback();
+}
 
 function obterLigaId() {
     // ✅ MODO ADMIN: Verificar URL (detalhe-liga.html?id=XXX)
@@ -123,9 +139,9 @@ async function inicializarFluxoFinanceiro() {
         window.temporadaAtual = parseInt(temporadaSalva, 10);
         console.log("[FLUXO-ADMIN] Temporada do localStorage:", window.temporadaAtual);
     } else {
-        // 4. Default para 2026 (temporada atual)
-        window.temporadaAtual = 2026;
-        console.log("[FLUXO-ADMIN] Temporada padrao: 2026");
+        // 4. Default para temporada atual configurada
+        window.temporadaAtual = getTemporadaSistemaFallback();
+        console.log("[FLUXO-ADMIN] Temporada padrao:", window.temporadaAtual);
     }
 
     try {
@@ -136,7 +152,7 @@ async function inicializarFluxoFinanceiro() {
             rodadaAtual = status.rodada_atual || 1;
 
             // ✅ v7.9: NÃO sobrescrever temporada com valor da API Cartola
-            // A API retorna 2025 mas queremos usar 2026 como default
+            // A temporada padrão vem da configuração local (SeasonContext)
             console.log("[FLUXO-ADMIN] Temporada selecionada:", window.temporadaAtual, "(API Cartola:", status.temporada, ")");
 
             // ✅ FIX: Verificar se temporada encerrou (game_over) ou mercado fechado
@@ -160,7 +176,7 @@ async function inicializarFluxoFinanceiro() {
             console.log("[FLUXO-ADMIN] Rodada atual:", rodadaAtual, "| Última completa:", ultimaRodadaCompleta);
         } catch (error) {
             rodadaAtual = 38;
-            ultimaRodadaCompleta = 38; // ✅ FIX: Padrão para 38 (temporada 2025 encerrada)
+            ultimaRodadaCompleta = 38; // ✅ FIX: Padrão para 38 (temporada encerrada)
             console.warn(
                 "[FLUXO-ADMIN] Usando rodada padrão:",
                 ultimaRodadaCompleta,
@@ -529,7 +545,7 @@ async function recalcularSaldoNaTela(timeId) {
         console.log("[FLUXO] Iniciando recálculo de saldo para time:", timeId);
 
         // ✅ v6.10 FIX: Passar temporada correta para buscar campos da temporada selecionada
-        const temporadaSelecionada = window.temporadaAtual || 2025;
+        const temporadaSelecionada = getTemporadaSelecionada();
         const camposAtualizados =
             await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
         console.log(
@@ -899,7 +915,7 @@ async function carregarHistoricoAcertos(ligaId, timeId) {
     try {
         // ✅ v6.4: Buscar acertos E extrato em paralelo para mostrar saldo FINAL
         // ✅ v7.1 FIX: Passar temporada nas requisições
-        const temporada = window.temporadaAtual || 2025;
+        const temporada = getTemporadaSelecionada();
         const [acertosResponse, extratoResponse] = await Promise.all([
             fetch(`/api/acertos/${ligaId}/${timeId}?temporada=${temporada}`),
             fetch(`/api/extrato-cache/${ligaId}/times/${timeId}?temporada=${temporada}`)
@@ -1303,7 +1319,7 @@ window.confirmarAcertoFinanceiro = async function (ligaId, timeId, nomeTime) {
                 metodoPagamento: metodo,
                 dataAcerto: data ? new Date(data).toISOString() : new Date().toISOString(),
                 observacoes: observacoes || null,
-                temporada: window.temporadaAtual || 2025,
+                temporada: getTemporadaSelecionada(),
                 registradoPor: "admin",
             }),
         });
@@ -1508,7 +1524,7 @@ function mostrarToastAcerto(mensagem, sucesso) {
  */
 window.listarAcertosParticipante = async function (ligaId, timeId) {
     try {
-        const temporada = window.temporadaAtual || 2025;
+        const temporada = getTemporadaSelecionada();
         const response = await fetch(`/api/acertos/${ligaId}/${timeId}?temporada=${temporada}`);
         const result = await response.json();
 
@@ -1528,7 +1544,7 @@ window.listarAcertosParticipante = async function (ligaId, timeId) {
 };
 
 // =============================================================================
-// ===== RENOVAÇÃO DE TEMPORADA 2026 (v7.7) =====
+// ===== RENOVAÇÃO DE TEMPORADA (v7.7) =====
 // =============================================================================
 
 /**
@@ -1543,7 +1559,7 @@ async function inicializarModuloRenovacao() {
         try {
             await RenovacaoCore.init(ligaId);
             RenovacaoCore.setupEventListeners();
-            console.log("[FLUXO-ADMIN] ✅ Módulo de Renovação 2026 inicializado");
+            console.log("[FLUXO-ADMIN] ✅ Módulo de Renovação inicializado");
         } catch (error) {
             console.warn("[FLUXO-ADMIN] Renovação não inicializado:", error.message);
         }
@@ -1712,4 +1728,4 @@ window.abrirWhatsApp = function(contato, nome) {
     window.open(url, '_blank');
 };
 
-console.log("[FLUXO-ADMIN] ✅ v7.9 carregado (Seletor de Temporada 2025/2026)");
+console.log("[FLUXO-ADMIN] ✅ v7.9 carregado (Seletor de Temporada)");

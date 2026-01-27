@@ -50,6 +50,15 @@ const RenovacaoModals = (function() {
         return new Date(data).toLocaleDateString('pt-BR');
     }
 
+    function getTemporadaRenovacao() {
+        if (window.SeasonContext?.getTemporadaRenovacao) {
+            return window.SeasonContext.getTemporadaRenovacao();
+        }
+        if (typeof window.temporadaRenovacao === 'number') return window.temporadaRenovacao;
+        if (typeof window.temporadaAtual === 'number') return window.temporadaAtual;
+        return new Date().getFullYear();
+    }
+
     function getStatusBadge(status) {
         const badges = {
             pendente: '<span class="badge bg-warning text-dark"><span class="material-icons" style="font-size: 14px; vertical-align: middle;">schedule</span> Pendente</span>',
@@ -139,6 +148,7 @@ const RenovacaoModals = (function() {
         const isDefault = rules._isDefault;
         const inscricao = rules.inscricao || {};
         const mensagens = rules.mensagens || {};
+        const prazoDefault = `${temporada}-01-27`;
 
         return `
         <div class="modal fade" id="modalConfigLiga" tabindex="-1" data-bs-backdrop="static">
@@ -198,7 +208,7 @@ const RenovacaoModals = (function() {
                                                    class="form-control bg-gray-700 text-white border-gray-600"
                                                    id="prazoRenovacao"
                                                    name="prazo_renovacao"
-                                                   value="${inscricao.prazo_renovacao ? new Date(inscricao.prazo_renovacao).toISOString().split('T')[0] : '2026-01-27'}"
+                                                   value="${inscricao.prazo_renovacao ? new Date(inscricao.prazo_renovacao).toISOString().split('T')[0] : prazoDefault}"
                                                    required>
                                             <small class="text-muted">Recomendado: 1 dia antes da 1a rodada</small>
                                         </div>
@@ -362,6 +372,8 @@ const RenovacaoModals = (function() {
         const saldoAnterior = preview?.saldoTemporadaAnterior || {};
         const podeRenovar = preview?.podeRenovar !== false;
         const taxa = preview?.regras?.taxa || calculo.taxa || 0;
+        const temporadaDestino = preview?.temporadaDestino || getTemporadaRenovacao();
+        const temporadaOrigem = preview?.temporadaOrigem || (Number(temporadaDestino) - 1);
 
         return `
         <div class="modal fade" id="modalRenovar" tabindex="-1" data-bs-backdrop="static">
@@ -398,11 +410,11 @@ const RenovacaoModals = (function() {
                         <!-- Alertas de integracao com Quitacao -->
                         ${renderAlertasQuitacao(preview)}
 
-                        <!-- Situacao 2025 -->
+                        <!-- Situacao da Temporada Anterior -->
                         <div class="card bg-gray-900 border-gray-700 mb-3">
                             <div class="card-header border-gray-700">
                                 <span class="material-icons" style="vertical-align: middle;">history</span>
-                                Situacao ${preview?.temporadaOrigem || 2025}
+                                Situacao ${temporadaOrigem}
                                 ${preview?.quitacao?.quitado ? '<span class="badge bg-success ms-2">QUITADO</span>' : ''}
                             </div>
                             <div class="card-body">
@@ -435,14 +447,14 @@ const RenovacaoModals = (function() {
                             </div>
                         </div>
 
-                        <!-- Calculo 2026 (Dinamico) -->
+                        <!-- Calculo da Temporada (Dinamico) -->
                         <div class="card bg-gray-900 border-gray-700" id="cardCalculo2026"
                              data-cenario-pagou="${escapeJsonAttr(cenarios.pagou)}"
                              data-cenario-nao-pagou="${escapeJsonAttr(cenarios.naoPagou)}"
                              data-taxa="${taxa}">
                             <div class="card-header border-gray-700">
                                 <span class="material-icons" style="vertical-align: middle;">calculate</span>
-                                Inscricao ${preview?.temporadaDestino || 2026}
+                                Inscricao ${temporadaDestino}
                             </div>
                             <div class="card-body">
                                 <table class="table table-sm table-borderless text-white mb-0">
@@ -463,11 +475,11 @@ const RenovacaoModals = (function() {
                                             <td class="text-end" id="valorCredito">- ${formatarMoeda(cenarios.pagou.credito)}</td>
                                         </tr>
                                         <tr id="rowDivida" class="text-danger" style="display: ${calculo.divida > 0 ? 'table-row' : 'none'};">
-                                            <td>(+) Divida ${preview?.temporadaOrigem || 2025}</td>
+                                            <td>(+) Divida ${temporadaOrigem}</td>
                                             <td class="text-end" id="valorDivida">+ ${formatarMoeda(calculo.divida)}</td>
                                         </tr>
                                         <tr class="border-top border-gray-700">
-                                            <td><strong>Saldo Inicial ${preview?.temporadaDestino || 2026}</strong></td>
+                                            <td><strong>Saldo Inicial ${temporadaDestino}</strong></td>
                                             <td class="text-end">
                                                 <strong id="valorSaldoInicial" class="${cenarios.pagou.total > 0 ? 'text-danger fw-bold' : 'text-success fw-bold'}">
                                                     ${cenarios.pagou.total > 0 ? '-' : ''}${formatarMoeda(cenarios.pagou.total)}
@@ -536,6 +548,9 @@ const RenovacaoModals = (function() {
     // =========================================================================
 
     function modalNaoParticipar(participante, saldoAnterior) {
+        const temporadaDestino = getTemporadaRenovacao();
+        const temporadaOrigem = Number(temporadaDestino) - 1;
+
         return `
         <div class="modal fade" id="modalNaoParticipar" tabindex="-1" data-bs-backdrop="static">
             <div class="modal-dialog">
@@ -563,19 +578,19 @@ const RenovacaoModals = (function() {
 
                         <div class="alert alert-warning">
                             <span class="material-icons" style="vertical-align: middle;">info</span>
-                            <strong>Atencao:</strong> O participante nao sera inscrito na temporada 2026.
+                            <strong>Atencao:</strong> O participante nao sera inscrito na temporada ${temporadaDestino}.
                             ${saldoAnterior?.final !== 0 ? `
                             <br><br>
                             O saldo de <strong>${formatarMoeda(saldoAnterior?.final)}</strong> ficara
                             ${saldoAnterior?.final > 0 ? 'disponivel para saque' : 'pendente para quitacao'}
-                            na temporada 2025.
+                            na temporada ${temporadaOrigem}.
                             ` : ''}
                         </div>
 
-                        <!-- Situacao 2025 -->
+                        <!-- Situacao da Temporada Anterior -->
                         <div class="card bg-gray-900 border-gray-700 mb-3">
                             <div class="card-header border-gray-700">
-                                Saldo 2025 (congelado)
+                                Saldo ${temporadaOrigem} (congelado)
                             </div>
                             <div class="card-body text-center">
                                 <h4 class="${saldoAnterior?.final >= 0 ? 'text-success' : 'text-danger'}">
