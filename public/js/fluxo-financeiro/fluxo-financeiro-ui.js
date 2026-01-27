@@ -1412,6 +1412,21 @@ export class FluxoFinanceiroUI {
             }
         };
 
+        // ✅ Wrapper para compatibilidade com botão "Registrar Acerto" da tabela (linha 1167)
+        // O botão chama abrirModalAcertoFinanceiro(ligaId, timeId, nome, temporada)
+        // mas a função real é abrirModalAcertoFluxo(timeId, nome, saldo)
+        window.abrirModalAcertoFinanceiro = (ligaId, timeId, nome, temporada) => {
+            // Buscar saldo do participante na lista em memória
+            const participantes = window.participantesFluxo || [];
+            const participante = participantes.find(p =>
+                String(p.time_id) === String(timeId) || String(p.id) === String(timeId)
+            );
+            const saldo = participante?.saldoFinal || 0;
+
+            // Chamar função real com os parâmetros corretos
+            window.abrirModalAcertoFluxo(timeId, nome, saldo);
+        };
+
         // Confirmar acerto
         window.confirmarAcertoFluxo = async () => {
             const valor = parseFloat(document.getElementById('acertoValor').value);
