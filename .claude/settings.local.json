@@ -215,7 +215,8 @@
       "Bash(npx web-push:*)",
       "Bash(~/bin/jq.exe:*)",
       "Bash(taskkill:*)",
-      "Bash(where:*)"
+      "Bash(where:*)",
+      "Bash(nc:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
