@@ -300,7 +300,7 @@ export async function renderizarExtratoParticipante(extrato, participanteId) {
     if (!visualizandoHistorico && renovado && preTemporada) {
         renderizarConteudoRenovadoPreTemporada(container, extrato);
     } else {
-        renderizarConteudoCompleto(container, extrato);
+        window.renderizarConteudoCompleto(container, extrato);
     }
 
     setTimeout(() => {
@@ -1214,7 +1214,7 @@ window.refreshAcertosBottomSheet = async function() {
         // Re-renderizar extrato completo para atualizar cards principais também
         const container = document.getElementById("fluxoFinanceiroContent");
         if (container && window.extratoAtual) {
-            renderizarConteudoCompleto(container, window.extratoAtual);
+            window.renderizarConteudoCompleto(container, window.extratoAtual);
 
             // Reabrir bottom sheet se estava aberto
             if (wasOpen) {
