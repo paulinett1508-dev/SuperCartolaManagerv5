@@ -1,5 +1,5 @@
 // =====================================================================
-// PARTICIPANTE-NOTIFICATIONS.JS - v1.0 (FEAT-003 FASE 4)
+// PARTICIPANTE-NOTIFICATIONS.JS - v1.1 (Fix VAPID not configured)
 // Destino: /participante/js/modules/participante-notifications.js
 // =====================================================================
 // Gerencia Web Push Notifications para o app do participante
@@ -7,13 +7,15 @@
 // - Gerencia permissões
 // - Registra/remove subscriptions
 // - Atualiza preferências
+// ✅ v1.1: Trata graciosamente quando VAPID não está configurado
 // =====================================================================
 
-if (window.Log) Log.info('NOTIFICATIONS', '🔔 Carregando módulo v1.0...');
+if (window.Log) Log.info('NOTIFICATIONS', '🔔 Carregando módulo v1.1...');
 
 // Estado global do módulo
 const NotificationsState = {
     isSupported: false,
+    isSystemConfigured: true, // ✅ v1.1: Assume true até verificar
     permission: 'default',
     isSubscribed: false,
     subscription: null,
@@ -84,12 +86,20 @@ async function getVapidKey() {
 
         if (data.publicKey) {
             NotificationsState.vapidKey = data.publicKey;
+            NotificationsState.isSystemConfigured = true;
             if (window.Log) Log.debug('NOTIFICATIONS', '🔑 VAPID key obtida');
             return data.publicKey;
         } else {
-            throw new Error(data.erro || 'VAPID key não disponível');
+            // ✅ v1.1: Sistema não configurado (VAPID ausente)
+            NotificationsState.isSystemConfigured = false;
+            if (window.Log) Log.warn('NOTIFICATIONS', '⚠️ Sistema de push não configurado no servidor');
+            throw new Error(data.erro || 'Sistema de notificações não configurado');
         }
     } catch (erro) {
+        // ✅ v1.1: Marcar como não configurado se falhar
+        if (erro.message?.includes('não configurado') || erro.message?.includes('503')) {
+            NotificationsState.isSystemConfigured = false;
+        }
         if (window.Log) Log.error('NOTIFICATIONS', '❌ Erro ao obter VAPID key:', erro);
         throw erro;
     }
@@ -420,9 +430,19 @@ async function inicializarConfiguracoes() {
     checkBrowserSupport();
     checkPermission();
 
-    // Verificar status no servidor
-    await getNotificationStatus();
-    await getCurrentSubscription();
+    // ✅ v1.1: Verificar se sistema está configurado (VAPID keys)
+    try {
+        await getVapidKey();
+    } catch (e) {
+        // Se falhar, isSystemConfigured será false
+        if (window.Log) Log.warn('NOTIFICATIONS', '⚠️ Sistema de notificações não configurado');
+    }
+
+    // Verificar status no servidor (só se sistema configurado)
+    if (NotificationsState.isSystemConfigured) {
+        await getNotificationStatus();
+        await getCurrentSubscription();
+    }
 
     // Renderizar UI
     renderConfiguracoesUI();
@@ -441,9 +461,29 @@ function renderConfiguracoesUI() {
     }
 
     const isSupported = NotificationsState.isSupported;
+    const isSystemConfigured = NotificationsState.isSystemConfigured;
     const permission = NotificationsState.permission;
     const isSubscribed = NotificationsState.isSubscribed;
     const prefs = NotificationsState.preferences;
+
+    // ✅ v1.1: Se sistema não está configurado, mostrar mensagem amigável
+    if (!isSystemConfigured) {
+        container.innerHTML = `
+            <h3 class="config-section-title">Notificações Push</h3>
+            <div class="config-status-card status-inactive">
+                <div class="status-icon-wrapper">
+                    <span class="material-symbols-outlined">notifications_paused</span>
+                </div>
+                <div class="status-info">
+                    <span class="status-label">Em breve!</span>
+                    <p style="font-size: 12px; color: var(--config-text-muted); margin-top: 4px;">
+                        O sistema de notificações push está sendo preparado e estará disponível em breve.
+                    </p>
+                </div>
+            </div>
+        `;
+        return;
+    }
 
     // Status card
     let statusHtml = '';

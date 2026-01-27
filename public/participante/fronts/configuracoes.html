@@ -43,8 +43,8 @@
 
         <!-- Footer -->
         <div class="about-footer">
-            <img src="/img/logo-supercartola.png" alt="Super Cartola Manager" class="footer-logo">
             <div class="footer-brand">
+                <img src="/img/logo-supercartola.png" alt="Super Cartola Manager" class="footer-logo">
                 <span class="brand-name">Super Cartola Manager</span>
                 <span class="brand-site">supercartolamanager.com.br</span>
             </div>
@@ -486,20 +486,20 @@
         text-align: center;
     }
 
-    .footer-logo {
-        width: 64px;
-        height: 64px;
-        object-fit: contain;
-        margin-bottom: 12px;
-        opacity: 0.9;
-    }
-
     .footer-brand {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 2px;
+        gap: 4px;
         margin-bottom: 8px;
+    }
+
+    .footer-logo {
+        width: 56px;
+        height: 56px;
+        object-fit: contain;
+        margin-bottom: 8px;
+        opacity: 0.95;
     }
 
     .footer-brand .brand-name {
@@ -573,8 +573,9 @@
             if (response.ok) {
                 const data = await response.json();
                 const versionEl = document.getElementById('appVersion');
-                if (versionEl && data.versao) {
-                    versionEl.textContent = `v${data.versao}`;
+                // API retorna "version" não "versao"
+                if (versionEl && data.version) {
+                    versionEl.textContent = `v${data.version}`;
                 }
             }
         } catch (e) {

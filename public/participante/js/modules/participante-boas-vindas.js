@@ -786,7 +786,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
                         <button onclick="window.participanteNav?.navegarPara('configuracoes')"
                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 active:scale-90 transition-all"
                                 title="Configurações">
-                            <span class="material-icons text-lg text-white/60">settings</span>
+                            <span class="material-icons text-lg text-orange-500">settings</span>
                         </button>
                     </div>
                 </div>
@@ -930,7 +930,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
                         <button onclick="window.participanteNav?.navegarPara('configuracoes')"
                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 active:scale-90 transition-all"
                                 title="Configurações">
-                            <span class="material-icons text-lg text-white/60">settings</span>
+                            <span class="material-icons text-lg text-orange-500">settings</span>
                         </button>
                     </div>
                 </div>
