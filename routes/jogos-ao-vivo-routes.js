@@ -19,9 +19,21 @@ import path from 'path';
 
 const router = express.Router();
 
-// IDs de ligas principais (APENAS nacionais com IDs estáveis)
-// Estaduais NÃO devem estar aqui - IDs variam entre temporadas
-// Usar formatarNomeLiga() para estaduais
+// ┌──────────────────────────────────────────────────────────────────────┐
+// │ MAPEAMENTO DE LIGAS - IDs ESTÁVEIS DA API-FOOTBALL                   │
+// │ Documentação: docs/JOGOS-DO-DIA-API.md                               │
+// ├──────────────────────────────────────────────────────────────────────┤
+// │ APENAS ligas com IDs que NÃO mudam entre temporadas.                 │
+// │                                                                      │
+// │ ⚠️  ESTADUAIS NÃO DEVEM SER ADICIONADOS AQUI!                        │
+// │     IDs de estaduais VARIAM a cada temporada na API-Football.        │
+// │     Tratá-los via formatarNomeLiga() pelo NOME, não pelo ID.         │
+// │                                                                      │
+// │ Exemplo de problema se adicionar estaduais:                          │
+// │   - 2025: Cariocão tinha ID 123                                      │
+// │   - 2026: Cariocão passou a ter ID 456                               │
+// │   - Resultado: mapeamento quebra silenciosamente                     │
+// └──────────────────────────────────────────────────────────────────────┘
 const LIGAS_PRINCIPAIS = {
   71: 'Brasileirão A',
   72: 'Brasileirão B',
@@ -30,7 +42,7 @@ const LIGAS_PRINCIPAIS = {
   76: 'Série D',
   77: 'Supercopa',
   618: 'Copinha'
-  // NÃO adicionar estaduais aqui - tratar via formatarNomeLiga()
+  // ⛔ NÃO adicionar estaduais - usar formatarNomeLiga() para eles
 };
 
 /**
@@ -165,10 +177,28 @@ async function buscarJogosDoDia() {
       return { jogos: [], temAoVivo: false };
     }
 
-    // Filtrar apenas jogos do Brasil (pelo país da liga)
+    // ┌──────────────────────────────────────────────────────────────────────┐
+    // │ FILTRO DE JOGOS - REGRA DE NEGÓCIO FUNDAMENTAL                       │
+    // │ Documentação: docs/JOGOS-DO-DIA-API.md                               │
+    // ├──────────────────────────────────────────────────────────────────────┤
+    // │ ESCOPO: TODOS os jogos brasileiros (não apenas Brasileirão)          │
+    // │                                                                      │
+    // │ INCLUI:                                                              │
+    // │   - Brasileirão Séries A, B, C, D                                    │
+    // │   - Copa do Brasil                                                   │
+    // │   - TODOS os Estaduais (Cariocão, Paulistão, Mineirão, etc.)        │
+    // │   - Copinha, Supercopa                                               │
+    // │                                                                      │
+    // │ POR QUE? Brasileirão não acontece todos os dias. Estaduais ocupam   │
+    // │ o calendário quando não há jogos nacionais. Usuários querem ver     │
+    // │ QUALQUER jogo brasileiro relevante do dia.                          │
+    // │                                                                      │
+    // │ ⚠️  NÃO ALTERAR para filtrar por liga_id ou nome de competição!     │
+    // │     Isso quebraria a exibição de estaduais e outros torneios.       │
+    // └──────────────────────────────────────────────────────────────────────┘
     const jogosBrasil = (data.response || []).filter(jogo => {
       const pais = jogo.league?.country?.toLowerCase();
-      return pais === 'brazil';
+      return pais === 'brazil';  // ← Filtra por PAÍS, não por liga específica
     });
 
     console.log(`[JOGOS-DIA] ${jogosBrasil.length} jogos brasileiros encontrados`);

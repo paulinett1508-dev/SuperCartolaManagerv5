@@ -12,11 +12,12 @@
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
         <style>
             /* ============================================================
-               POPULAR RODADAS - Design Compacto v2.0
+               POPULAR RODADAS - Design Compacto v2.1
+               Atualizado: Usa variáveis CSS do Design System
                ============================================================ */
 
             .rodadas-page {
-                background: #121212;
+                background: var(--bg-base, #121212);
                 min-height: 100vh;
             }
 
@@ -28,26 +29,27 @@
 
             /* Header */
             .rodadas-header {
-                background: #1a1a1a;
-                border-radius: 10px;
+                background: var(--bg-card, #1a1a1a);
+                border-radius: var(--radius-md, 10px);
                 padding: 16px 18px;
                 margin-bottom: 16px;
-                border: 1px solid #2d2d2d;
+                border: 1px solid var(--border-color, #2d2d2d);
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
             }
 
             .rodadas-header-info h1 {
+                font-family: 'Russo One', sans-serif;
                 font-size: 1.2rem;
-                font-weight: 700;
-                color: #ffffff;
+                font-weight: 400;
+                color: var(--text-white, #ffffff);
                 margin: 0 0 4px 0;
             }
 
             .rodadas-header-info p {
                 font-size: 0.75rem;
-                color: #9ca3af;
+                color: var(--text-muted, #9ca3af);
                 margin: 0;
             }
 
@@ -56,9 +58,9 @@
                 align-items: center;
                 gap: 4px;
                 padding: 8px 14px;
-                background: #252525;
-                color: #9ca3af;
-                border: 1px solid #2d2d2d;
+                background: var(--bg-secondary, #252525);
+                color: var(--text-muted, #9ca3af);
+                border: 1px solid var(--border-color, #2d2d2d);
                 border-radius: 6px;
                 font-size: 0.75rem;
                 font-weight: 500;
@@ -67,9 +69,9 @@
             }
 
             .btn-voltar:hover {
-                background: #2d2d2d;
-                color: #FF5500;
-                border-color: #FF5500;
+                background: var(--border-color, #2d2d2d);
+                color: var(--laranja, #FF5500);
+                border-color: var(--laranja, #FF5500);
             }
 
             .btn-voltar .material-icons {
@@ -78,9 +80,9 @@
 
             /* Form Card */
             .form-card {
-                background: #1a1a1a;
-                border-radius: 10px;
-                border: 1px solid #2d2d2d;
+                background: var(--bg-card, #1a1a1a);
+                border-radius: var(--radius-md, 10px);
+                border: 1px solid var(--border-color, #2d2d2d);
                 padding: 20px;
             }
 
@@ -92,7 +94,7 @@
                 display: block;
                 font-size: 0.75rem;
                 font-weight: 600;
-                color: #9ca3af;
+                color: var(--text-muted, #9ca3af);
                 margin-bottom: 6px;
                 text-transform: uppercase;
                 letter-spacing: 0.03em;
@@ -102,10 +104,10 @@
             .form-input {
                 width: 100%;
                 padding: 10px 12px;
-                background: #252525;
-                border: 1px solid #333;
+                background: var(--bg-secondary, #252525);
+                border: 1px solid var(--border-subtle, #333);
                 border-radius: 6px;
-                color: #ffffff;
+                color: var(--text-white, #ffffff);
                 font-size: 0.85rem;
                 outline: none;
                 transition: all 0.2s ease;
@@ -113,7 +115,7 @@
 
             .form-select:focus,
             .form-input:focus {
-                border-color: #FF5500;
+                border-color: var(--laranja, #FF5500);
                 box-shadow: 0 0 0 2px rgba(255, 85, 0, 0.1);
             }
 
@@ -138,19 +140,19 @@
             .checkbox-wrapper input[type="checkbox"] {
                 width: 16px;
                 height: 16px;
-                accent-color: #ef4444;
+                accent-color: var(--vermelho, #ef4444);
                 cursor: pointer;
             }
 
             .checkbox-wrapper label {
                 font-size: 0.75rem;
-                color: #9ca3af;
+                color: var(--text-muted, #9ca3af);
                 cursor: pointer;
                 flex: 1;
             }
 
             .checkbox-wrapper label strong {
-                color: #ef4444;
+                color: var(--vermelho, #ef4444);
             }
 
             /* Button */
@@ -161,8 +163,8 @@
                 justify-content: center;
                 gap: 8px;
                 padding: 12px 16px;
-                background: linear-gradient(135deg, #FF5500 0%, #ff6b1a 100%);
-                color: #ffffff;
+                background: linear-gradient(135deg, var(--laranja, #FF5500) 0%, var(--laranja-hover, #ff6b1a) 100%);
+                color: var(--text-white, #ffffff);
                 border: none;
                 border-radius: 6px;
                 font-size: 0.85rem;
@@ -189,8 +191,8 @@
             /* Log Container */
             .log-container {
                 margin-top: 16px;
-                background: #0d0d0d;
-                border: 1px solid #252525;
+                background: var(--bg-darker, #0d0d0d);
+                border: 1px solid var(--bg-secondary, #252525);
                 border-radius: 6px;
                 max-height: 280px;
                 overflow-y: auto;
@@ -206,8 +208,8 @@
                 align-items: center;
                 justify-content: space-between;
                 padding: 10px 12px;
-                background: #151515;
-                border-bottom: 1px solid #252525;
+                background: var(--bg-elevated, #151515);
+                border-bottom: 1px solid var(--bg-secondary, #252525);
                 position: sticky;
                 top: 0;
             }
@@ -218,7 +220,7 @@
                 gap: 6px;
                 font-size: 0.7rem;
                 font-weight: 600;
-                color: #6b7280;
+                color: var(--text-dim, #6b7280);
                 text-transform: uppercase;
             }
 
@@ -234,8 +236,8 @@
 
             .log-entry {
                 padding: 4px 0;
-                color: #6b7280;
-                border-bottom: 1px solid #1a1a1a;
+                color: var(--text-dim, #6b7280);
+                border-bottom: 1px solid var(--bg-card, #1a1a1a);
             }
 
             .log-entry:last-child {
@@ -243,15 +245,15 @@
             }
 
             .log-entry.log-success {
-                color: #10b981;
+                color: var(--verde, #10b981);
             }
 
             .log-entry.log-error {
-                color: #ef4444;
+                color: var(--vermelho, #ef4444);
             }
 
             .log-entry.log-info {
-                color: #3b82f6;
+                color: var(--azul, #3b82f6);
             }
 
             /* Info Box */
@@ -268,13 +270,13 @@
 
             .info-box .material-icons {
                 font-size: 18px;
-                color: #3b82f6;
+                color: var(--azul, #3b82f6);
                 flex-shrink: 0;
             }
 
             .info-box p {
                 font-size: 0.7rem;
-                color: #9ca3af;
+                color: var(--text-muted, #9ca3af);
                 margin: 0;
                 line-height: 1.5;
             }
@@ -369,9 +371,16 @@
         </div>
 
         <script type="module">
+            // ============================================================
+            // FERRAMENTAS RODADAS - v2.1 (FIX: Race conditions)
+            // ============================================================
             import { carregarLigas as carregarLigasAPI } from "./js/gerenciar-ligas.js";
 
             let ligasDisponiveis = [];
+
+            // ✅ FIX: Flag global para evitar inicialização múltipla
+            let _isInitialized = false;
+            let _isInitializing = false;
 
             async function loadLayout() {
                 try {
@@ -394,24 +403,46 @@
                         }
                     });
 
-                    // Garantir que AccordionManager seja inicializado
-                    setTimeout(() => {
-                        if (window.AccordionManager && !window.AccordionManager._initialized) {
-                            window.AccordionManager.init();
-                        }
-                        if (typeof window.verificarMenuSuperAdmin === 'function') {
-                            window.verificarMenuSuperAdmin();
-                        }
-                    }, 150);
+                    // ✅ FIX: Polling ao invés de timeout fixo (mais robusto)
+                    await waitForAccordionManager();
+
                 } catch (error) {
-                    console.error("Erro ao carregar layout:", error);
+                    console.error("[FERRAMENTAS-RODADAS] Erro ao carregar layout:", error);
                 }
+            }
+
+            // ✅ FIX: Espera AccordionManager estar disponível (máx 2s)
+            function waitForAccordionManager() {
+                return new Promise((resolve) => {
+                    let attempts = 0;
+                    const maxAttempts = 20; // 20 * 100ms = 2s
+
+                    const check = () => {
+                        attempts++;
+                        if (window.AccordionManager) {
+                            if (!window.AccordionManager._initialized) {
+                                window.AccordionManager.init();
+                            }
+                            if (typeof window.verificarMenuSuperAdmin === 'function') {
+                                window.verificarMenuSuperAdmin();
+                            }
+                            resolve();
+                        } else if (attempts < maxAttempts) {
+                            setTimeout(check, 100);
+                        } else {
+                            console.warn("[FERRAMENTAS-RODADAS] AccordionManager não carregou em 2s");
+                            resolve();
+                        }
+                    };
+                    check();
+                });
             }
 
             async function carregarLigasDisponiveis() {
                 try {
                     ligasDisponiveis = await carregarLigasAPI();
                     const select = document.getElementById("ligaSelect");
+                    if (!select) return;
 
                     if (ligasDisponiveis.length === 0) {
                         select.innerHTML = '<option value="">Nenhuma liga encontrada</option>';
@@ -433,14 +464,19 @@
                         select.value = preSelectId;
                     }
                 } catch (error) {
-                    console.error("Erro ao carregar ligas:", error);
-                    document.getElementById("ligaSelect").innerHTML = '<option value="">Erro ao carregar ligas</option>';
+                    console.error("[FERRAMENTAS-RODADAS] Erro ao carregar ligas:", error);
+                    const select = document.getElementById("ligaSelect");
+                    if (select) {
+                        select.innerHTML = '<option value="">Erro ao carregar ligas</option>';
+                    }
                 }
             }
 
             function addLog(message, type = "info") {
                 const logContainer = document.getElementById("log-container");
                 const logContent = document.getElementById("log-content");
+                if (!logContainer || !logContent) return;
+
                 logContainer.classList.add("visible");
 
                 const entry = document.createElement("div");
@@ -452,10 +488,10 @@
             }
 
             async function popularRodadas() {
-                const ligaId = document.getElementById("ligaSelect").value;
-                const rodadaInicial = parseInt(document.getElementById("rodadaInicial").value);
-                const rodadaFinal = parseInt(document.getElementById("rodadaFinal").value);
-                const forcarRepopular = document.getElementById("forcarRepopular").checked;
+                const ligaId = document.getElementById("ligaSelect")?.value;
+                const rodadaInicial = parseInt(document.getElementById("rodadaInicial")?.value);
+                const rodadaFinal = parseInt(document.getElementById("rodadaFinal")?.value);
+                const forcarRepopular = document.getElementById("forcarRepopular")?.checked;
 
                 if (!ligaId) {
                     alert("Selecione uma liga!");
@@ -468,10 +504,13 @@
                 }
 
                 const btn = document.getElementById("btnPopular");
+                if (!btn) return;
+
                 btn.disabled = true;
                 btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Processando...';
 
-                document.getElementById("log-content").innerHTML = "";
+                const logContent = document.getElementById("log-content");
+                if (logContent) logContent.innerHTML = "";
                 addLog(`Iniciando populacao de rodadas ${rodadaInicial} a ${rodadaFinal}...`, "info");
 
                 try {
@@ -518,38 +557,68 @@
                 }
             }
 
-            document.getElementById("btnPopular")?.addEventListener("click", popularRodadas);
-
-            // Função de inicialização reutilizável
-            async function initFerramentasRodadas() {
-                console.log("[FERRAMENTAS-RODADAS] Inicializando página...");
-                await loadLayout();
-                await carregarLigasDisponiveis();
-                // Re-bind do botão após SPA navigation
+            // ✅ FIX: Bind único do botão com proteção
+            function bindButton() {
                 const btn = document.getElementById("btnPopular");
                 if (btn && !btn._bound) {
                     btn.addEventListener("click", popularRodadas);
                     btn._bound = true;
+                    console.log("[FERRAMENTAS-RODADAS] Botão vinculado");
                 }
             }
 
+            // ✅ FIX: Função de inicialização com proteção contra chamadas múltiplas
+            async function initFerramentasRodadas() {
+                // Evitar inicialização múltipla
+                if (_isInitialized || _isInitializing) {
+                    console.log("[FERRAMENTAS-RODADAS] Já inicializado ou em progresso, ignorando...");
+                    return;
+                }
+
+                _isInitializing = true;
+                console.log("[FERRAMENTAS-RODADAS] Inicializando página v2.1...");
+
+                try {
+                    await loadLayout();
+                    await carregarLigasDisponiveis();
+                    bindButton();
+                    _isInitialized = true;
+                } catch (error) {
+                    console.error("[FERRAMENTAS-RODADAS] Erro na inicialização:", error);
+                } finally {
+                    _isInitializing = false;
+                }
+            }
+
+            // ✅ FIX: Reset de estado para navegação SPA
+            function resetState() {
+                _isInitialized = false;
+                _isInitializing = false;
+                // Reset do botão para permitir re-bind
+                const btn = document.getElementById("btnPopular");
+                if (btn) btn._bound = false;
+            }
+
+            // ✅ Único ponto de entrada - DOMContentLoaded
             document.addEventListener("DOMContentLoaded", async () => {
                 if (!window.location.pathname.includes('ferramentas-rodadas.html')) return;
                 await initFerramentasRodadas();
             });
 
-            // ✅ FIX: Reinicializar após navegação SPA
+            // ✅ FIX: Reinicializar após navegação SPA (com reset de estado)
             window.addEventListener('spa:navigated', async (e) => {
                 const { pageName } = e.detail || {};
                 if (pageName === 'ferramentas-rodadas.html') {
-                    console.log('[FERRAMENTAS-RODADAS] Reinicializando após navegação SPA...');
+                    console.log('[FERRAMENTAS-RODADAS] Navegação SPA detectada, reinicializando...');
+                    resetState();
                     await initFerramentasRodadas();
                 }
             });
 
-            // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
-            if (document.readyState !== 'loading' && window.location.pathname.includes('ferramentas-rodadas.html')) {
-                initFerramentasRodadas();
+            // ✅ FIX: Inicializar se DOM já carregado (acesso direto após SPA navigation)
+            if (document.readyState === 'complete' && window.location.pathname.includes('ferramentas-rodadas.html')) {
+                // Usar requestAnimationFrame para garantir que o DOM está renderizado
+                requestAnimationFrame(() => initFerramentasRodadas());
             }
         </script>
     </body>

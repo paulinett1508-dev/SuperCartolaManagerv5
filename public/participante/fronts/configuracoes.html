@@ -1,4 +1,5 @@
-<!-- PARTICIPANTE CONFIGURAÇÕES - v1.1 (Sobre o App melhorado) -->
+<!-- PARTICIPANTE CONFIGURAÇÕES - v1.2 (Versão via JS) -->
+<!-- v1.2: Versão do app carregada via JS (script inline não executa em SPA) -->
 <!-- v1.1: Disclaimer, footer com copyright e branding -->
 <div id="paginaConfiguracoes" class="p-4 pb-28 font-display text-gray-300">
     <!-- Header -->
@@ -565,21 +566,4 @@
     }
 </style>
 
-<script>
-    // Inicialização imediata - buscar versão do app
-    (async function() {
-        try {
-            const response = await fetch('/api/app/check-version?client=app');
-            if (response.ok) {
-                const data = await response.json();
-                const versionEl = document.getElementById('appVersion');
-                // API retorna "version" não "versao"
-                if (versionEl && data.version) {
-                    versionEl.textContent = `v${data.version}`;
-                }
-            }
-        } catch (e) {
-            console.warn('Erro ao buscar versão:', e);
-        }
-    })();
-</script>
+<!-- Script movido para participante-notifications.js v1.2 (script inline não executa em SPA) -->

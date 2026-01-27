@@ -844,40 +844,72 @@ Nestes casos, reconfigurar `MONGO_URI_DEV` nos Secrets.
   node scripts/fix-extrato-2026-rodada-fantasma.js --force    # Executa
   ```
 
-## ⚽ Scraper Jogos do Dia (Globo Esporte)
+## ⚽ Jogos do Dia (API-Football + Fallbacks)
 
-### Arquitetura
+> **Documentação Completa:** [`docs/JOGOS-DO-DIA-API.md`](docs/JOGOS-DO-DIA-API.md)
+
+### Escopo de Cobertura
+**IMPORTANTE:** A feature exibe TODOS os jogos brasileiros do dia:
+- Brasileirão Séries A, B, C, D
+- Copa do Brasil
+- **TODOS os Estaduais** (Cariocão, Paulistão, Gauchão, Mineirão, etc.)
+- Copinha, Supercopa
+
+### Organização Visual (Frontend)
 ```
-[index.js] ──> [scripts/save-jogos-globo.js] ──> [scripts/scraper-jogos-globo.js]
-     │                     │
-     │                     └──> Salva em: data/jogos-globo.json
-     │
-     └──> [routes/jogos-hoje-globo.js] ──> GET /api/jogos-hoje-globo
+┌─────────────────────────────────────┐
+│ JOGOS DO DIA                        │
+├─────────────────────────────────────┤
+│ ▼ Cariocão (2 jogos)               │
+│   ● Flamengo 2x1 Botafogo [AO VIVO]│
+│   ○ Vasco vs Fluminense    17:00   │
+├─────────────────────────────────────┤
+│ ▼ Paulistão (1 jogo)               │
+│   ✓ Palmeiras 3x0 Santos [ENCERR.] │
+├─────────────────────────────────────┤
+│ ▼ Brasileirão A (3 jogos)          │
+│   ○ Inter vs Grêmio        19:00   │
+│   ...                              │
+└─────────────────────────────────────┘
 ```
 
-### Execucao Automatica
-- **Ao iniciar servidor:** Executa scraper imediatamente
-- **CRON diario:** Todo dia as 6h da manha (`0 6 * * *`)
-- **Fonte:** https://ge.globo.com/futebol/agenda/
+**Seções por Status:**
+- **Ao Vivo** (●) - Jogos em andamento
+- **Agenda** (○) - Jogos agendados para hoje
+- **Encerrados** (✓) - Jogos finalizados hoje
 
-### Arquivos Envolvidos
+### Arquitetura de Fallback
+```
+1. API-Football ─→ 2. SoccerDataAPI ─→ 3. Cache Stale ─→ 4. Globo Esporte
+```
 
-| Arquivo | Funcao |
+### Endpoints
+
+| Endpoint | Função |
+|----------|--------|
+| `GET /api/jogos-ao-vivo` | Jogos do dia com placares |
+| `GET /api/jogos-ao-vivo/status` | Diagnóstico das APIs |
+| `GET /api/jogos-ao-vivo/invalidar` | Força refresh do cache |
+
+### Arquivos Principais
+
+| Arquivo | Função |
 |---------|--------|
-| `scripts/scraper-jogos-globo.js` | Faz scraping usando Cheerio |
-| `scripts/save-jogos-globo.js` | Executa scraper e salva JSON |
-| `routes/jogos-hoje-globo.js` | API que serve o JSON salvo |
-| `data/jogos-globo.json` | Cache dos jogos extraidos |
+| `routes/jogos-ao-vivo-routes.js` | Backend - lógica de fallback |
+| `public/participante/js/modules/participante-jogos.js` | Frontend - UI acordeão |
+| `docs/JOGOS-DO-DIA-API.md` | Documentação completa |
 
-### Limitacoes Atuais
-- So extrai **agenda** (horarios), nao placares ao vivo
-- Depende da estrutura HTML do Globo Esporte
-- Sem fallback se site mudar seletores CSS
+### Variáveis de Ambiente
+```env
+API_FOOTBALL_KEY=xxx    # Obrigatório - api-football.com
+SOCCERDATA_API_KEY=xxx  # Opcional - fallback
+```
 
-### Evolucao Futura (Documentada)
-- **API-Football** (api-sports.io) para placares em tempo real
-- Cobertura de estaduais (Carioca, Paulista)
-- Ver `.claude/pending-tasks.md` para detalhes
+### Troubleshooting
+Se jogos não aparecem:
+1. Verificar `/api/jogos-ao-vivo/status` (cota esgotada?)
+2. Forçar refresh via `/api/jogos-ao-vivo/invalidar`
+3. Verificar se há jogos brasileiros hoje (ge.globo.com)
 
 ## 📦 Sistema de Versionamento
 

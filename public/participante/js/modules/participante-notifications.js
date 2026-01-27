@@ -1,5 +1,5 @@
 // =====================================================================
-// PARTICIPANTE-NOTIFICATIONS.JS - v1.1 (Fix VAPID not configured)
+// PARTICIPANTE-NOTIFICATIONS.JS - v1.2 (Fix versão em Configurações)
 // Destino: /participante/js/modules/participante-notifications.js
 // =====================================================================
 // Gerencia Web Push Notifications para o app do participante
@@ -7,10 +7,11 @@
 // - Gerencia permissões
 // - Registra/remove subscriptions
 // - Atualiza preferências
+// ✅ v1.2: Carrega versão do app via JS (script inline não executa em SPA)
 // ✅ v1.1: Trata graciosamente quando VAPID não está configurado
 // =====================================================================
 
-if (window.Log) Log.info('NOTIFICATIONS', '🔔 Carregando módulo v1.1...');
+if (window.Log) Log.info('NOTIFICATIONS', '🔔 Carregando módulo v1.2...');
 
 // Estado global do módulo
 const NotificationsState = {
@@ -426,6 +427,9 @@ async function sendTestNotification() {
 async function inicializarConfiguracoes() {
     if (window.Log) Log.info('NOTIFICATIONS', '🚀 Inicializando tela de configurações...');
 
+    // ✅ v1.2: Buscar versão do app (script inline no HTML não executa em SPA)
+    carregarVersaoApp();
+
     // Verificar suporte
     checkBrowserSupport();
     checkPermission();
@@ -448,6 +452,26 @@ async function inicializarConfiguracoes() {
     renderConfiguracoesUI();
 
     if (window.Log) Log.info('NOTIFICATIONS', '✅ Tela de configurações inicializada');
+}
+
+/**
+ * ✅ v1.2: Carrega versão do app via API
+ * Script inline no HTML não executa em navegação SPA
+ */
+async function carregarVersaoApp() {
+    try {
+        const response = await fetch('/api/app/check-version?client=app');
+        if (response.ok) {
+            const data = await response.json();
+            const versionEl = document.getElementById('appVersion');
+            if (versionEl && data.version) {
+                versionEl.textContent = `v${data.version}`;
+                if (window.Log) Log.debug('NOTIFICATIONS', `📱 Versão carregada: ${data.version}`);
+            }
+        }
+    } catch (e) {
+        if (window.Log) Log.warn('NOTIFICATIONS', 'Erro ao buscar versão:', e);
+    }
 }
 
 /**

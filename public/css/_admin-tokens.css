@@ -189,7 +189,29 @@
     --z-tooltip: 800;
 
     /* ========================================
-       13. COMPONENTES ESPECÍFICOS
+       13. ALIASES DE COMPATIBILIDADE
+       ======================================== */
+    /* Aliases para manter consistência com design system do app participante */
+    --laranja: var(--color-primary);
+    --laranja-hover: var(--color-primary-light);
+    --laranja-dark: var(--color-primary-dark);
+    --verde: var(--color-success);
+    --vermelho: var(--color-danger);
+    --azul: var(--color-info);
+    --bg-base: var(--surface-bg);
+    --bg-card: var(--surface-card);
+    --bg-secondary: var(--surface-card-elevated);
+    --bg-darker: #0d0d0d;
+    --bg-elevated: #151515;
+    --border-color: #2d2d2d;
+    --border-subtle: #333333;
+    --text-white: var(--text-primary);
+    --text-muted: #9ca3af;
+    --text-dim: #6b7280;
+    --radius-md: 10px;
+
+    /* ========================================
+       14. COMPONENTES ESPECÍFICOS
        ======================================== */
     /* Sidebar Admin */
     --sidebar-width: 280px;
