@@ -1,11 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-SEASON-SELECTOR.JS - Seletor de Temporada v1.0
+// PARTICIPANTE-SEASON-SELECTOR.JS - Seletor de Temporada v1.1
 // =====================================================================
 // Componente para alternar entre temporadas (histórico / atual)
 // Persiste a preferência no localStorage
+// ✅ v1.1: Respeita isLigaEstreante - não mostra indicador para ligas novas
 // =====================================================================
 
-if (window.Log) Log.info("SEASON-SELECTOR", "🗓️ Carregando seletor de temporada v1.0...");
+if (window.Log) Log.info("SEASON-SELECTOR", "🗓️ Carregando seletor de temporada v1.1...");
 
 class SeasonSelector {
     constructor() {
@@ -226,8 +227,22 @@ class SeasonSelector {
     }
 
     // Mostrar/esconder indicador de modo histórico
+    // ✅ v1.1: Respeita isLigaEstreante - ligas novas não têm histórico
     atualizarIndicadorHistorico() {
         let indicator = document.getElementById("historicoModeIndicator");
+
+        // ✅ v1.1: Liga estreante NÃO deve mostrar indicador de histórico
+        // (não tem temporadas anteriores para visualizar)
+        if (window.isLigaEstreante) {
+            // Forçar temporada atual para ligas estreantes
+            if (this.temporadaSelecionada !== this.temporadaAtual) {
+                this.temporadaSelecionada = this.temporadaAtual;
+                this.salvarPreferencia(this.temporadaAtual);
+            }
+            // Remover indicador se existir
+            if (indicator) indicator.remove();
+            return;
+        }
 
         if (this.isVisualizandoHistorico()) {
             if (!indicator) {
@@ -266,11 +281,21 @@ seasonSelector.onTemporadaChange(() => {
     seasonSelector.atualizarIndicadorHistorico();
 });
 
-// Inicializar indicador se necessário
+// ✅ v1.1: NÃO inicializar indicador no DOMContentLoaded
+// Aguardar auth-ready para saber se é liga estreante
+// Isso evita flash do indicador que some depois
 document.addEventListener("DOMContentLoaded", () => {
-    seasonSelector.atualizarIndicadorHistorico();
+    // Listener para quando auth estiver pronto (isLigaEstreante definido)
+    window.addEventListener('participante-auth-ready', () => {
+        seasonSelector.atualizarIndicadorHistorico();
+    }, { once: true });
+
+    // Fallback: se auth já rodou
+    if (window.isLigaEstreante !== undefined) {
+        seasonSelector.atualizarIndicadorHistorico();
+    }
 });
 
-if (window.Log) Log.info("SEASON-SELECTOR", "✅ Seletor de temporada v1.0 carregado");
+if (window.Log) Log.info("SEASON-SELECTOR", "✅ Seletor de temporada v1.1 carregado");
 
 export default seasonSelector;
