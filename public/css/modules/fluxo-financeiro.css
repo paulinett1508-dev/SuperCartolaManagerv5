@@ -1713,9 +1713,16 @@ body {
 }
 
 .modal-content .card.bg-gray-900 .card-title {
-    color: #f9fafb;
-    font-weight: 600;
-    letter-spacing: 0.2px;
+    color: var(--color-primary, #ff5500);
+    font-family: var(--font-family-brand);
+    font-size: 0.95rem;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+}
+
+.modal-content .card.bg-gray-900 .card-text,
+.modal-content .card.bg-gray-900 .text-muted {
+    color: #e5e7eb !important;
 }
 
 .modal-content .card-header.border-gray-700 {

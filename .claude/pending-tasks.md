@@ -1,5 +1,74 @@
 # Tarefas Pendentes
 
+## 🔴 PENDENTE (27/01/2026)
+
+### [UI-001] Auditoria Design Extrato Individual - Redução de Verbosidade
+
+**Status:** ❌ NÃO FUNCIONOU - Investigar
+
+**Contexto:**
+- Mudanças foram feitas no **App Participante** (`participante-extrato-ui.js`)
+- Usuário estava testando no **Painel Admin** (`fluxo-financeiro-ui.js`)
+- São arquivos/contextos DIFERENTES!
+
+**O que foi solicitado:**
+1. ✅ Sub-linha Inscrição no card de saldo: "Inscrição 2026: R$ X,XX C/D" (verde=pago, vermelho=deve)
+2. ✅ Simplificar footer Bottom Sheet Acertos: remover QUITADO/A RECEBER/A PAGAR → apenas "Saldo Final"
+3. ✅ Simplificar cores do footer: apenas verde (positivo) ou vermelho (negativo)
+4. ✅ Fix modal +Adicionar Ajuste: z-index aumentado de 10001 para 15000
+
+**Mudanças já aplicadas (commit c2b28af):**
+
+| Arquivo | Mudança | Para quem? |
+|---------|---------|------------|
+| `participante-extrato-ui.js` | Sub-linha Inscrição + footer simplificado | **APP PARTICIPANTE** |
+| `fluxo-financeiro-ui.js` | z-index 15000 + debug logging | **PAINEL ADMIN** |
+
+**Problema:**
+- Usuário testou no Painel Admin → não viu as mudanças de Inscrição/Saldo Final
+- As mudanças 1, 2, 3 estão no App Participante, não no Admin
+- O Admin usa `renderizarExtratoModal()` em `fluxo-financeiro-ui.js`, não `renderizarConteudoCompleto()`
+
+**Próximos passos:**
+1. **DECIDIR:** As mudanças devem aparecer no Admin também?
+   - Se SIM: Replicar mudanças em `fluxo-financeiro-ui.js` → função `renderizarExtratoModal()`
+   - Se NÃO: Testar no App Participante (mobile) para validar
+
+2. **TESTAR App Participante:**
+   - Acessar como participante (não admin)
+   - Ir para Extrato
+   - Verificar se sub-linha Inscrição aparece
+   - Clicar em "Meus Acertos" → verificar footer simplificado
+
+3. **Se não funcionar no App também:**
+   - Verificar se `resumoBase.taxaInscricao` e `resumoBase.pagouInscricao` têm valores
+   - Adicionar console.log para debug
+   - Verificar qual função de renderização está sendo chamada
+
+**Arquivos envolvidos:**
+- **Admin:** `public/js/fluxo-financeiro/fluxo-financeiro-ui.js`
+  - Função: `renderizarExtratoModal()` (linha ~1700)
+  - Modal: `#modalExtrato`
+- **Participante:** `public/participante/js/modules/participante-extrato-ui.js`
+  - Função: `renderizarConteudoRenovadoPreTemporada()` (linha 321)
+  - Função: `renderizarConteudoCompleto()` (linha 542)
+  - Bottom Sheet: `renderizarBottomSheetAcertos()` (linha 1066)
+
+**Logs relevantes (sessão anterior):**
+```
+[FLUXO-UI] v8.5 - CSS extraido + PDF/Auditoria extraido para modulo separado
+[FLUXO-UI] Abrindo modal para: Enderson
+```
+Isso confirma que o Admin usa `fluxo-financeiro-ui.js`, não `participante-extrato-ui.js`.
+
+**Plano de contingência:**
+Se precisar replicar no Admin, editar `fluxo-financeiro-ui.js`:
+1. Encontrar `renderizarExtratoModal()` (~linha 1700)
+2. Adicionar sub-linha Inscrição no card de saldo
+3. Simplificar footer do modal de acertos (se existir)
+
+---
+
 ## ✅ CORRIGIDO (26/01/2026)
 
 ### [FEAT-025] Evoluir Botão "Validar ID" da API Cartola
