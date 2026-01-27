@@ -1,6 +1,13 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v11.1 (CARTOLA PRO)
+// PARTICIPANTE-BOAS-VINDAS.JS - v11.3 (Logo da Liga)
 // =====================================================================
+// ✅ v11.3: Logo da liga exibida ao lado do nome na saudação
+//           - Usa campo liga.logo do banco de dados
+//           - Fallback silencioso se logo não existir
+// ✅ v11.2: Ícones discretos Dicas e Configurações no header
+//           - Removidos do Menu, agora ficam no canto superior direito
+//           - Padrão app profissional (ícones circulares pequenos)
+//           - Dicas só aparece se módulo estiver ativo
 // ✅ v11.1: Integração Cartola PRO para participantes premium
 //           - Botão "Cartola PRO" no header (gradiente amarelo/laranja)
 //           - Verificação premium via API /api/cartola-pro/verificar-premium
@@ -416,6 +423,8 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
     const nomeCartola = participante?.nome_cartola || participante?.nomeCartola ||
                         authParticipante?.nome_cartola || meuTime?.nome_cartola || "Cartoleiro";
     const nomeLiga = liga?.nome || "Liga";
+    // ✅ v11.3: Logo da liga para exibição nas telas
+    const logoLiga = liga?.logo ? `/${liga.logo}` : null;
 
     return {
         posicao,
@@ -426,6 +435,7 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
         nomeTime,
         nomeCartola,
         nomeLiga,
+        logoLiga,
         saldoFinanceiro,
         posicaoAnterior,
         minhasRodadas: rodadasOrdenadas,
@@ -609,6 +619,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
         nomeTime,
         nomeCartola,
         nomeLiga,
+        logoLiga,
         saldoFinanceiro,
         posicaoAnterior,
         minhasRodadas,
@@ -708,6 +719,23 @@ function renderizarBoasVindas(container, data, ligaRules) {
                         Atualizar
                     </button>`;
 
+    // ✅ v10.19: Ícones discretos de Dicas e Configurações no header (padrão app profissional)
+    const modulosAtivos = window.participanteNav?.modulosAtivos || {};
+    const dicasAtivo = modulosAtivos.dicas === true;
+    const iconeDicas = dicasAtivo ? `
+        <button onclick="window.participanteNav?.navegarPara('dicas')"
+                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 active:scale-90 transition-all"
+                title="Dicas">
+            <span class="material-icons text-lg text-white/60">psychology</span>
+        </button>` : '';
+
+    // ✅ v11.3: Logo da liga (se existir) ao lado do nome
+    const logoLigaHTML = logoLiga ? `
+        <img src="${logoLiga}"
+             alt="${nomeLiga}"
+             class="w-5 h-5 object-contain rounded"
+             onerror="this.style.display='none'">` : '';
+
     if (participanteRenovado) {
         // ✅ PARTICIPANTE RENOVOU - Mostrar dados zerados com "Aguardando 1ª rodada"
         // ✅ v10.18: Sem botão Atualizar (não há dados 2026 para atualizar ainda)
@@ -715,26 +743,37 @@ function renderizarBoasVindas(container, data, ligaRules) {
             <div class="pb-28">
 
                 <!-- Header com botoes Premiacoes, Participantes, Regras e Cartola PRO -->
-                <div class="px-4 pt-3 pb-2 flex items-center justify-start gap-2 refresh-button-container flex-wrap">
-                    <!-- Botao Premiacoes (laranja) -->
-                    <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
-                        <span class="material-icons text-sm">emoji_events</span>
-                        Premiacoes
-                    </button>
-                    <!-- Botao Participantes (laranja) -->
-                    <button onclick="window.abrirParticipantes2026 && window.abrirParticipantes2026()"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
-                        <span class="material-icons text-sm">groups</span>
-                        Participantes
-                    </button>
-                    <!-- Botao Regras (azul) -->
-                    <button onclick="window.abrirRegras2026 && window.abrirRegras2026()"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/40 text-blue-400 text-xs font-medium active:scale-95 transition-all hover:bg-blue-500/30">
-                        <span class="material-icons text-sm">gavel</span>
-                        Regras
-                    </button>
-                    ${botaoCartolaPro}
+                <div class="px-4 pt-3 pb-2 flex items-center justify-between gap-2 refresh-button-container">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <!-- Botao Premiacoes (laranja) -->
+                        <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
+                            <span class="material-icons text-sm">emoji_events</span>
+                            Premiacoes
+                        </button>
+                        <!-- Botao Participantes (laranja) -->
+                        <button onclick="window.abrirParticipantes2026 && window.abrirParticipantes2026()"
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary text-xs font-medium active:scale-95 transition-all hover:bg-primary/30">
+                            <span class="material-icons text-sm">groups</span>
+                            Participantes
+                        </button>
+                        <!-- Botao Regras (azul) -->
+                        <button onclick="window.abrirRegras2026 && window.abrirRegras2026()"
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/40 text-blue-400 text-xs font-medium active:scale-95 transition-all hover:bg-blue-500/30">
+                            <span class="material-icons text-sm">gavel</span>
+                            Regras
+                        </button>
+                        ${botaoCartolaPro}
+                    </div>
+                    <!-- Ícones discretos: Dicas e Configurações -->
+                    <div class="flex items-center gap-1">
+                        ${iconeDicas}
+                        <button onclick="window.participanteNav?.navegarPara('configuracoes')"
+                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 active:scale-90 transition-all"
+                                title="Configurações">
+                            <span class="material-icons text-lg text-white/60">settings</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Saudação com indicador de temporada -->
@@ -748,7 +787,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
                             ${TEMPORADA_ATUAL}
                         </span>
                     </div>
-                    <p class="text-sm font-normal text-white/70">${nomeLiga} • Aguardando 1ª rodada</p>
+                    <p class="text-sm font-normal text-white/70 flex items-center gap-1.5">${logoLigaHTML}<span>${nomeLiga}</span> • Aguardando 1ª rodada</p>
                 </div>
 
                 <!-- Card Principal do Time - Aguardando -->
@@ -847,7 +886,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
             <div class="pb-28">
 
                 <!-- Header com botoes de acao (Premiacoes + Participantes + Regras + Cartola PRO + Atualizar) -->
-                <div class="px-4 pt-3 pb-2 flex items-center justify-between gap-2 refresh-button-container flex-wrap">
+                <div class="px-4 pt-3 pb-2 flex items-center justify-between gap-2 refresh-button-container">
                     <div class="flex items-center gap-2 flex-wrap">
                         <!-- Botao Premiacoes (laranja) -->
                         <button onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()"
@@ -869,7 +908,16 @@ function renderizarBoasVindas(container, data, ligaRules) {
                         </button>
                         ${botaoCartolaPro}
                     </div>
-                    ${botaoAtualizarHTML}
+                    <!-- Ícones discretos: Atualizar, Dicas e Configurações -->
+                    <div class="flex items-center gap-1">
+                        ${botaoAtualizarHTML}
+                        ${iconeDicas}
+                        <button onclick="window.participanteNav?.navegarPara('configuracoes')"
+                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 active:scale-90 transition-all"
+                                title="Configurações">
+                            <span class="material-icons text-lg text-white/60">settings</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Saudação com indicador de temporada -->
@@ -883,7 +931,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
                             ${TEMPORADA_ATUAL}
                         </span>
                     </div>
-                    <p class="text-sm font-normal text-white/70">${nomeLiga} • Rodada ${rodadaAtual || "--"}</p>
+                    <p class="text-sm font-normal text-white/70 flex items-center gap-1.5">${logoLigaHTML}<span>${nomeLiga}</span> • Rodada ${rodadaAtual || "--"}</p>
                 </div>
 
                 <!-- Card Principal do Time -->

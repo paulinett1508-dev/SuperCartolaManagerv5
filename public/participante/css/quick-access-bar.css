@@ -427,3 +427,41 @@
         transition-duration: 0.01ms !important;
     }
 }
+
+/* =====================================================================
+   CARD "AGUARDE CONFIGURAÇÃO" - Módulos não habilitados pelo admin
+   v2.4: Estilos para módulos opcionais pendentes de configuração
+   ===================================================================== */
+.menu-card.aguarde {
+    opacity: 0.45;
+    position: relative;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.menu-card.aguarde .material-icons {
+    color: #666 !important;
+}
+
+.menu-card.aguarde .badge-aguarde {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 7px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.08);
+    color: #888;
+    padding: 2px 5px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.menu-card.aguarde:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.menu-card.aguarde:active {
+    transform: scale(0.96) translateZ(0);
+}

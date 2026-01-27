@@ -1,4 +1,5 @@
-<!-- PARTICIPANTE CONFIGURAÇÕES - v1.0 (FEAT-003 FASE 4) -->
+<!-- PARTICIPANTE CONFIGURAÇÕES - v1.1 (Sobre o App melhorado) -->
+<!-- v1.1: Disclaimer, footer com copyright e branding -->
 <div id="paginaConfiguracoes" class="p-4 pb-28 font-display text-gray-300">
     <!-- Header -->
     <div class="config-header">
@@ -34,13 +35,20 @@
             </div>
         </div>
 
-        <div class="about-item clickable" onclick="window.open('https://supercartolamanager.com.br', '_blank')">
-            <span class="material-symbols-outlined">language</span>
-            <div class="about-text">
-                <span class="about-label">Site Oficial</span>
-                <span class="about-value">supercartolamanager.com.br</span>
+        <!-- Disclaimer -->
+        <div class="about-disclaimer">
+            <p>Este sistema é gerido e mantido de forma independente. As informações de pontuações do seu time são extraídas do conteúdo publicamente divulgado em <strong>cartola.globo.com</strong>.</p>
+            <p class="disclaimer-warning">Não nos responsabilizamos por scores ou pontuações eventualmente divulgadas de forma incorreta pela fonte original.</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="about-footer">
+            <img src="/img/logo-supercartola.png" alt="Super Cartola Manager" class="footer-logo">
+            <div class="footer-brand">
+                <span class="brand-name">Super Cartola Manager</span>
+                <span class="brand-site">supercartolamanager.com.br</span>
             </div>
-            <span class="material-symbols-outlined arrow">chevron_right</span>
+            <p class="footer-copyright">© 2026 - Todos os direitos reservados</p>
         </div>
     </div>
 </div>
@@ -438,6 +446,77 @@
     .about-value {
         font-size: 14px;
         color: var(--config-text-white);
+    }
+
+    /* Disclaimer */
+    .about-disclaimer {
+        margin-top: 16px;
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        border: 1px solid var(--config-border);
+    }
+
+    .about-disclaimer p {
+        font-size: 11px;
+        color: var(--config-text-muted);
+        line-height: 1.5;
+        margin: 0 0 8px 0;
+    }
+
+    .about-disclaimer p:last-child {
+        margin-bottom: 0;
+    }
+
+    .about-disclaimer strong {
+        color: var(--config-orange);
+    }
+
+    .about-disclaimer .disclaimer-warning {
+        font-size: 10px;
+        color: #71717a;
+        font-style: italic;
+    }
+
+    /* Footer */
+    .about-footer {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--config-border);
+        text-align: center;
+    }
+
+    .footer-logo {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+        margin-bottom: 12px;
+        opacity: 0.9;
+    }
+
+    .footer-brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        margin-bottom: 8px;
+    }
+
+    .footer-brand .brand-name {
+        font-family: 'Russo One', sans-serif;
+        font-size: 14px;
+        color: var(--config-orange);
+    }
+
+    .footer-brand .brand-site {
+        font-size: 11px;
+        color: var(--config-text-muted);
+    }
+
+    .footer-copyright {
+        font-size: 10px;
+        color: #52525b;
+        margin: 0;
     }
 
     /* Toast Notification (fallback) */

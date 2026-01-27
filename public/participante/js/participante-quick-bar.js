@@ -1,12 +1,15 @@
 // =====================================================================
-// QUICK ACCESS BAR v2.2 - Splash-Aware
+// QUICK ACCESS BAR v2.5 - Menu Dinâmico + Liga Estreante
 // =====================================================================
 // 4 botões: Início, Ranking, Menu (sheet), Financeiro
 // GPU-accelerated, 60fps guaranteed, DOM caching
 // v2.2: Aguarda splash fechar antes de renderizar (evita conflito)
+// v2.5: Menu dinâmico baseado em modulosAtivos e isLigaEstreante
+//       - Hall da Fama oculto para ligas estreantes
+//       - Módulos não configurados mostram "Aguarde"
 // =====================================================================
 
-if (window.Log) Log.info('QUICK-BAR', '🚀 Carregando Quick Access Bar v2.2...');
+if (window.Log) Log.info('QUICK-BAR', '🚀 Carregando Quick Access Bar v2.5...');
 
 class QuickAccessBar {
     constructor() {
@@ -178,7 +181,50 @@ class QuickAccessBar {
         this._dom.navItems = document.querySelectorAll('.nav-item');
     }
 
+    /**
+     * ✅ v2.5: Menu dinâmico baseado em modulosAtivos e isLigaEstreante
+     * - Módulos base (extrato, ranking, rodadas) sempre visíveis
+     * - historico (Hall da Fama) oculto para ligas estreantes
+     * - Módulos opcionais não configurados mostram badge "Aguarde"
+     */
     renderizarMenuContent() {
+        const modulosAtivos = this.modulosAtivos || {};
+        const isLigaEstreante = window.isLigaEstreante || false;
+
+        // Módulos base sempre ativos (configurações agora está no header da tela Início)
+        const modulosBase = ['extrato', 'ranking', 'rodadas'];
+
+        // Helper: verifica se módulo está ativo
+        const isAtivo = (configKey) => {
+            if (modulosBase.includes(configKey)) return true;
+            // Usar chave do config (camelCase) para verificar
+            return modulosAtivos[configKey] === true;
+        };
+
+        // Helper: renderiza card do módulo
+        const renderCard = (moduleId, configKey, icon, label) => {
+            const ativo = isAtivo(configKey);
+            const aguarde = !ativo;
+
+            return `
+                <div class="menu-card${aguarde ? ' aguarde' : ''}"
+                     data-module="${moduleId}"
+                     ${aguarde ? 'data-action="aguarde-config"' : ''}>
+                    <span class="material-icons">${icon}</span>
+                    <span class="menu-card-label">${label}</span>
+                    ${aguarde ? '<span class="badge-aguarde">Aguarde</span>' : ''}
+                </div>
+            `;
+        };
+
+        // Hall da Fama: ocultar completamente para ligas estreantes
+        const hallDaFamaCard = isLigaEstreante ? '' : `
+            <div class="menu-card" data-module="historico">
+                <span class="material-icons">history</span>
+                <span class="menu-card-label">Hall da Fama</span>
+            </div>
+        `;
+
         return `
             <div class="menu-handle"></div>
 
@@ -192,22 +238,10 @@ class QuickAccessBar {
                         <span class="material-icons">view_week</span>
                         <span class="menu-card-label">Rodadas</span>
                     </div>
-                    <div class="menu-card" data-module="pontos-corridos">
-                        <span class="material-icons">format_list_numbered</span>
-                        <span class="menu-card-label">Pontos Corridos</span>
-                    </div>
-                    <div class="menu-card" data-module="mata-mata">
-                        <span class="material-icons">military_tech</span>
-                        <span class="menu-card-label">Mata-Mata</span>
-                    </div>
-                    <div class="menu-card" data-module="top10">
-                        <span class="material-icons">leaderboard</span>
-                        <span class="menu-card-label">TOP 10</span>
-                    </div>
-                    <div class="menu-card" data-module="campinho">
-                        <span class="material-icons">sports_soccer</span>
-                        <span class="menu-card-label">Meu Campinho</span>
-                    </div>
+                    ${renderCard('pontos-corridos', 'pontosCorridos', 'format_list_numbered', 'Pontos Corridos')}
+                    ${renderCard('mata-mata', 'mataMata', 'military_tech', 'Mata-Mata')}
+                    ${renderCard('top10', 'top10', 'leaderboard', 'TOP 10')}
+                    ${renderCard('campinho', 'campinho', 'sports_soccer', 'Meu Campinho')}
                 </div>
             </div>
 
@@ -217,39 +251,10 @@ class QuickAccessBar {
                     Prêmios & Estatísticas
                 </div>
                 <div class="menu-grid">
-                    <div class="menu-card" data-module="artilheiro">
-                        <span class="material-icons">sports_soccer</span>
-                        <span class="menu-card-label">Artilheiro</span>
-                    </div>
-                    <div class="menu-card" data-module="luva-ouro">
-                        <span class="material-icons">sports_handball</span>
-                        <span class="menu-card-label">Luva de Ouro</span>
-                    </div>
-                    <div class="menu-card" data-module="melhor-mes">
-                        <span class="material-icons">calendar_month</span>
-                        <span class="menu-card-label">Melhor do Mês</span>
-                    </div>
-                    <div class="menu-card" data-module="historico">
-                        <span class="material-icons">history</span>
-                        <span class="menu-card-label">Hall da Fama</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="menu-category">
-                <div class="menu-category-title">
-                    <span class="material-icons">tips_and_updates</span>
-                    Ferramentas
-                </div>
-                <div class="menu-grid">
-                    <div class="menu-card" data-module="dicas">
-                        <span class="material-icons">psychology</span>
-                        <span class="menu-card-label">Dicas</span>
-                    </div>
-                    <div class="menu-card" data-module="configuracoes">
-                        <span class="material-icons">settings</span>
-                        <span class="menu-card-label">Configurações</span>
-                    </div>
+                    ${renderCard('artilheiro', 'artilheiro', 'sports_soccer', 'Artilheiro')}
+                    ${renderCard('luva-ouro', 'luvaOuro', 'sports_handball', 'Luva de Ouro')}
+                    ${renderCard('melhor-mes', 'melhorMes', 'calendar_month', 'Melhor do Mês')}
+                    ${hallDaFamaCard}
                 </div>
             </div>
 
@@ -319,6 +324,12 @@ class QuickAccessBar {
 
                 if (action === 'em-breve') {
                     this.mostrarToast('Em breve na temporada 2026!');
+                    return;
+                }
+
+                // ✅ v2.5: Módulo não configurado pelo admin
+                if (action === 'aguarde-config') {
+                    this.mostrarModalAguardeConfig(module);
                     return;
                 }
 
@@ -457,6 +468,67 @@ class QuickAccessBar {
         this.modulosAtivos = modulosAtivos;
         if (window.Log) Log.debug('QUICK-BAR', 'Módulos atualizados');
     }
+
+    /**
+     * ✅ v2.5: Modal para módulos não configurados pelo admin
+     */
+    mostrarModalAguardeConfig(moduloId) {
+        const nomesModulos = {
+            'pontos-corridos': 'Pontos Corridos',
+            'mata-mata': 'Mata-Mata',
+            'top10': 'TOP 10',
+            'melhor-mes': 'Melhor do Mês',
+            'artilheiro': 'Artilheiro',
+            'luva-ouro': 'Luva de Ouro',
+            'campinho': 'Meu Campinho',
+            'dicas': 'Dicas'
+        };
+
+        const nomeModulo = nomesModulos[moduloId] || moduloId;
+
+        // Verificar se já existe modal no DOM
+        let modal = document.getElementById('modal-aguarde-config');
+        if (!modal) {
+            // Criar modal
+            modal = document.createElement('div');
+            modal.id = 'modal-aguarde-config';
+            modal.className = 'fixed inset-0 flex items-center justify-center z-[99999999] px-4';
+            modal.style.background = 'rgba(0,0,0,0.85)';
+            modal.style.backdropFilter = 'blur(8px)';
+            modal.innerHTML = `
+                <div class="bg-gray-900 rounded-2xl p-6 max-w-xs w-full text-center border border-gray-700/50 shadow-2xl">
+                    <div class="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">
+                        <span class="material-icons text-3xl text-amber-500">hourglass_empty</span>
+                    </div>
+                    <h3 id="aguarde-titulo" class="text-lg font-bold text-white mb-2" style="font-family: 'Russo One', sans-serif;">
+                        ${nomeModulo}
+                    </h3>
+                    <p class="text-gray-400 text-sm mb-5">
+                        Aguarde o administrador<br>configurar este módulo
+                    </p>
+                    <button onclick="document.getElementById('modal-aguarde-config').remove()"
+                            class="w-full py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-medium transition-colors">
+                        Entendi
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        } else {
+            // Atualizar título e mostrar
+            const titulo = modal.querySelector('#aguarde-titulo');
+            if (titulo) titulo.textContent = nomeModulo;
+            modal.classList.remove('hidden');
+        }
+
+        // Click fora fecha
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        }, { once: true });
+
+        if (window.Log) Log.debug('QUICK-BAR', `Modal "Aguarde" exibido para: ${moduloId}`);
+    }
 }
 
 // Singleton instance
@@ -473,4 +545,4 @@ if (document.readyState === 'loading') {
     quickAccessBar.inicializar();
 }
 
-if (window.Log) Log.info('QUICK-BAR', '✅ v2.2 carregado');
+if (window.Log) Log.info('QUICK-BAR', '✅ v2.5 carregado');

@@ -261,6 +261,14 @@ class ParticipanteAuth {
                 if (window.Log) Log.debug('PARTICIPANTE-AUTH', '📥 Liga carregada e cacheada');
             }
 
+            // ✅ v3.0: Detectar se liga é estreante (criada na temporada atual)
+            const anoAtual = new Date().getFullYear();
+            const anoCriacao = ligaData.criadaEm ? new Date(ligaData.criadaEm).getFullYear() : 2025;
+            window.isLigaEstreante = (anoCriacao >= anoAtual);
+            window.ligaPrimeiraTemporada = anoCriacao;
+            if (window.Log) Log.info('PARTICIPANTE-AUTH', `📅 Liga estreante: ${window.isLigaEstreante} (criada em ${anoCriacao})`);
+
+
             let participanteDataNaLiga = ligaData.participantes?.find(
                 (p) => String(p.time_id) === String(this.timeId),
             );
@@ -405,6 +413,9 @@ class ParticipanteAuth {
             }
 
             // ✅ SEMPRE mostrar seletor se tiver múltiplas ligas
+            // ✅ v3.1: Expor flag multiplasLigas para uso no seletor de temporada
+            this.multiplasLigas = ligas.length > 1;
+
             if (ligas.length > 1) {
                 if (window.Log) Log.info('PARTICIPANTE-AUTH', '🏆 Participante em múltiplas ligas:', ligas.length);
                 this.renderizarSeletorLigas(ligas);

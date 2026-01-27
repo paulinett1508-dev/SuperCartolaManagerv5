@@ -740,9 +740,16 @@ class ParticipanteNavigation {
     /**
      * Verifica se o modulo esta bloqueado por conta da pre-temporada
      * Modulos que dependem de dados de rodadas ficam bloqueados ate o Brasileirao iniciar
+     * ✅ v4.2: Liga estreante - bloquear Hall da Fama (sem historico)
      */
     verificarBloqueioPreTemporada(moduloId) {
         const config = window.ParticipanteConfig;
+
+        // ✅ v4.2: Liga estreante - bloquear Hall da Fama (sem historico para mostrar)
+        if (window.isLigaEstreante && moduloId === 'historico') {
+            if (window.Log) Log.info('PARTICIPANTE-NAV', '🚫 Hall da Fama bloqueado para liga estreante');
+            return true;
+        }
 
         // Se nao estiver em "preparando", nenhum modulo esta bloqueado
         if (!config || !config.isPreparando || !config.isPreparando()) {

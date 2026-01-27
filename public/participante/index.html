@@ -818,12 +818,29 @@
             <!-- Inicializar seletor de temporada -->
             <script>
                 document.addEventListener("DOMContentLoaded", function() {
-                    // Aguardar carregamento do seasonSelector
+                    // Aguardar carregamento do seasonSelector e dados de auth
                     setTimeout(() => {
                         if (window.seasonSelector) {
-                            window.seasonSelector.renderizarEm("seasonSelectorContainer");
+                            // ✅ v2.0: Ocultar seletor para ligas estreantes (só tem 1 temporada)
+                            // e participantes em apenas 1 liga
+                            const isLigaEstreante = window.isLigaEstreante || false;
+                            const multiplasLigas = window.participanteAuth?.multiplasLigas || false;
+
+                            // Só mostrar seletor se:
+                            // - Liga NÃO é estreante (tem histórico)
+                            // - OU participante tem múltiplas ligas
+                            const mostrarSeletor = !isLigaEstreante || multiplasLigas;
+
+                            if (mostrarSeletor) {
+                                window.seasonSelector.renderizarEm("seasonSelectorContainer");
+                            } else {
+                                // Ocultar container do seletor
+                                const container = document.getElementById("seasonSelectorContainer");
+                                if (container) container.style.display = "none";
+                                if (window.Log) Log.info("SEASON-SELECTOR", "🚫 Seletor oculto (liga estreante sem histórico)");
+                            }
                         }
-                    }, 500);
+                    }, 800);
                 });
             </script>
 
@@ -958,6 +975,9 @@
                 <div class="h-1 w-full bg-gradient-to-r from-[#FF5500] to-[#FF8800] shadow-[0_0_25px_rgba(255,85,0,0.6)]"></div>
 
                 <div class="p-6 overflow-y-auto custom-scroll relative">
+                    <!-- Logo da Liga (se existir) -->
+                    <div id="teaser-logo-liga" class="mb-4"></div>
+
                     <!-- Título -->
                     <div class="mb-6">
                         <h2 class="text-gray-500 text-[10px] font-bold tracking-[0.4em] uppercase mb-1">ROADMAP OFICIAL</h2>
@@ -1100,6 +1120,22 @@
 
             function abrirTeaser() {
                 atualizarCountdown();
+
+                // ✅ v2.3: Adicionar logo da liga (se existir)
+                const logoContainer = document.getElementById('teaser-logo-liga');
+                const ligaData = window.participanteAuth?.ligaDataCache;
+                if (logoContainer && ligaData?.logo) {
+                    logoContainer.innerHTML = `
+                        <div class="flex flex-col items-center">
+                            <img src="/${ligaData.logo}"
+                                 alt="${ligaData.nome || 'Liga'}"
+                                 class="w-14 h-14 object-contain rounded-lg shadow-lg border border-[#FF5500]/30"
+                                 onerror="this.parentElement.parentElement.style.display='none'">
+                            <p class="text-xs text-gray-500 mt-1">${ligaData.nome || ''}</p>
+                        </div>
+                    `;
+                }
+
                 overlay.classList.remove('hidden');
                 setTimeout(() => {
                     overlay.classList.remove('opacity-0');
@@ -1176,7 +1212,15 @@
                                 const status = await verificarRenovacaoInline(ligaId, timeId);
 
                                 if (status.renovado) {
-                                    // Participante RENOVOU - mostrar boas-vindas verde
+                                    // ✅ v2.2: Liga estreante - não faz sentido "Bem-vindo de VOLTA"
+                                    // Mostra apenas o Roadmap/Teaser
+                                    if (window.isLigaEstreante) {
+                                        console.log('[MODAL] Liga estreante + renovado - mostrando Roadmap (não "de volta")');
+                                        abrirTeaser();
+                                        return;
+                                    }
+
+                                    // Participante RENOVOU em liga existente - mostrar boas-vindas verde
                                     console.log('[MODAL] Participante renovado - mostrando boas-vindas (até 27/01/2026)');
                                     abrirBoasVindas();
                                     return;
@@ -1220,6 +1264,9 @@
                             <div class="p-6 relative">
                                 <!-- Confetti container -->
                                 <div class="absolute inset-0 pointer-events-none overflow-hidden" id="confetti-container"></div>
+
+                                <!-- Logo da Liga (se existir) -->
+                                <div id="boas-vindas-logo-liga" class="relative z-10 mb-3"></div>
 
                                 <!-- Icone Sucesso -->
                                 <div class="relative z-10 mb-4">
@@ -1276,6 +1323,19 @@
                 const modal = document.getElementById('modal-boas-vindas-2026');
                 const card = document.getElementById('boas-vindas-card');
                 if (!modal || !card) return;
+
+                // ✅ v2.3: Adicionar logo da liga (se existir)
+                const logoContainer = document.getElementById('boas-vindas-logo-liga');
+                const ligaData = window.participanteAuth?.ligaDataCache;
+                if (logoContainer && ligaData?.logo) {
+                    logoContainer.innerHTML = `
+                        <img src="/${ligaData.logo}"
+                             alt="${ligaData.nome || 'Liga'}"
+                             class="w-16 h-16 mx-auto object-contain rounded-lg shadow-lg border border-white/10"
+                             onerror="this.parentElement.style.display='none'">
+                        <p class="text-xs text-gray-500 mt-1">${ligaData.nome || ''}</p>
+                    `;
+                }
 
                 modal.classList.remove('hidden');
                 setTimeout(() => {
