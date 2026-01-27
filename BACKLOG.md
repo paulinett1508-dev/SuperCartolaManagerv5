@@ -316,6 +316,15 @@ _1-2 meses - Melhorias importantes mas não urgentes_
   - **Observação:** Coberto por `SEC-001` (Auditoria de Ações Administrativas).
 - [x] [DOC-REN-001] **Atualizar doc: endpoint de busca Cartola (`/api/cartola/*` vs `/api/cartola-proxy/*`)**
   - **Arquivo:** `docs/SISTEMA-RENOVACAO-TEMPORADA.md`
+- [ ] [FEAT-REN-007] **Wizard de criação de liga deve incluir config de taxa de inscrição**
+  - **Problema:** Ligas novas são criadas sem `ligarules` configurado, ficando sem taxa de inscrição definida
+  - **Solução:** Adicionar passo no wizard de criação de liga para definir `inscricao.taxa` por temporada
+  - **Arquivos:**
+    - `public/js/admin-ligas.js` (wizard de criação)
+    - `routes/liga-routes.js` (endpoint de criação)
+    - `models/LigaRules.js` (já existe, precisa ser populado na criação)
+  - **Contexto:** Cada liga define sua própria taxa (não é valor fixo). Exemplo: SuperCartola 2026 = R$180, mas outras ligas podem ter valores diferentes
+  - **Impacto:** Admin precisa configurar manualmente após criar liga
 
 ---
 

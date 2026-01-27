@@ -4132,7 +4132,7 @@ window._criarModalAjuste = function() {
         right: 0;
         bottom: 0;
         background: rgba(0,0,0,0.8);
-        z-index: 10001;
+        z-index: 15000;
         justify-content: center;
         align-items: center;
     `;
@@ -4275,32 +4275,43 @@ window._criarModalAjuste = function() {
  * Abre modal para novo ajuste
  */
 window.abrirModalNovoAjuste = function(timeId, temporada) {
-    window._criarModalAjuste();
+    console.log('[AJUSTES] ✅ abrirModalNovoAjuste chamado:', { timeId, temporada });
 
-    window._ajusteModalState = {
-        timeId: timeId,
-        temporada: temporada || 2026,
-        ajusteId: null,
-        modo: 'criar'
-    };
+    try {
+        window._criarModalAjuste();
 
-    // Limpar campos
-    document.getElementById('inputDescricaoAjuste').value = '';
-    document.getElementById('inputValorAjuste').value = '';
-    document.getElementById('contadorDescricao').textContent = '0';
-    document.getElementById('tituloModalAjuste').innerHTML = `
-        <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">add_circle</span>
-        Novo Ajuste
-    `;
+        window._ajusteModalState = {
+            timeId: timeId,
+            temporada: temporada || 2026,
+            ajusteId: null,
+            modo: 'criar'
+        };
 
-    // Mostrar modal
-    const modal = document.getElementById('modalAjusteFinanceiro');
-    modal.style.display = 'flex';
+        // Limpar campos
+        document.getElementById('inputDescricaoAjuste').value = '';
+        document.getElementById('inputValorAjuste').value = '';
+        document.getElementById('contadorDescricao').textContent = '0';
+        document.getElementById('tituloModalAjuste').innerHTML = `
+            <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">add_circle</span>
+            Novo Ajuste
+        `;
 
-    // Focar no input
-    setTimeout(() => {
-        document.getElementById('inputDescricaoAjuste').focus();
-    }, 100);
+        // Mostrar modal
+        const modal = document.getElementById('modalAjusteFinanceiro');
+        if (modal) {
+            modal.style.display = 'flex';
+            console.log('[AJUSTES] ✅ Modal de ajuste exibido');
+        } else {
+            console.error('[AJUSTES] ❌ Modal de ajuste não encontrado!');
+        }
+
+        // Focar no input
+        setTimeout(() => {
+            document.getElementById('inputDescricaoAjuste')?.focus();
+        }, 100);
+    } catch (error) {
+        console.error('[AJUSTES] ❌ Erro ao abrir modal:', error);
+    }
 };
 
 /**

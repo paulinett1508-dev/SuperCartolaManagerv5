@@ -366,6 +366,9 @@ function renderizarConteudoRenovadoPreTemporada(container, extrato) {
                     <div>
                         <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
                         <p class="text-2xl font-bold ${saldoPositivo ? "text-emerald-400" : "text-rose-400"}">${saldoPositivo ? "+" : "-"}${saldoFormatado}</p>
+                        <p class="text-xs mt-1 ${pagouInscricao ? 'text-emerald-400' : 'text-rose-400'}">
+                            Inscrição 2026: R$ ${taxaInscricao.toFixed(2).replace('.', ',')} ${pagouInscricao ? 'C' : 'D'}
+                        </p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -605,6 +608,10 @@ window.renderizarConteudoCompleto = function renderizarConteudoCompleto(containe
     const saldoFormatado = `R$ ${Math.abs(saldo).toFixed(2).replace(".", ",")}`;
     const statusTexto = saldoPositivo ? "A RECEBER" : "A PAGAR";
 
+    // ✅ v10.22: Dados de inscrição para exibição no card
+    const taxaInscricao = resumoBase.taxaInscricao || 0;
+    const pagouInscricao = resumoBase.pagouInscricao === true;
+
     const ligaId =
         extrato.liga_id ||
         extrato.ligaId ||
@@ -637,6 +644,11 @@ window.renderizarConteudoCompleto = function renderizarConteudoCompleto(containe
                     <div>
                         <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
                         <p class="text-2xl font-bold ${saldoPositivo ? "text-emerald-400" : "text-rose-400"}">${saldoPositivo ? "+" : "-"}${saldoFormatado}</p>
+                        ${taxaInscricao > 0 ? `
+                        <p class="text-xs mt-1 ${pagouInscricao ? 'text-emerald-400' : 'text-rose-400'}">
+                            Inscrição ${temporadaSelecionada || temporadaAtual}: R$ ${taxaInscricao.toFixed(2).replace('.', ',')} ${pagouInscricao ? 'C' : 'D'}
+                        </p>
+                        ` : ''}
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -1066,7 +1078,7 @@ function renderizarBottomSheetAcertos(listaAcertos, resumoAcertos, saldoTemporad
 
                 <!-- Footer: Saldo Final -->
                 <div class="px-5 py-4 border-t border-white/10 bg-[#141414]">
-                    <div class="${quitado ? "bg-emerald-500/10 border-emerald-500/30" : saldoFinal >= 0 ? "bg-amber-500/10 border-amber-500/30" : "bg-rose-500/10 border-rose-500/30"} rounded-xl p-4 border">
+                    <div class="${saldoFinal >= 0 ? "bg-emerald-500/10 border-emerald-500/30" : "bg-rose-500/10 border-rose-500/30"} rounded-xl p-4 border">
                         <div class="flex justify-between items-center mb-2 text-xs text-white/50">
                             <span>Saldo do Jogo</span>
                             <span class="${saldoTemporada >= 0 ? "text-emerald-400" : "text-rose-400"}">
@@ -1081,12 +1093,10 @@ function renderizarBottomSheetAcertos(listaAcertos, resumoAcertos, saldoTemporad
                         </div>
                         <div class="border-t border-white/10 pt-3 flex justify-between items-center">
                             <span class="flex items-center gap-2 text-sm font-bold text-white">
-                                <span class="material-icons ${quitado ? "text-emerald-400" : saldoFinal >= 0 ? "text-amber-400" : "text-rose-400"}">
-                                    ${quitado ? "check_circle" : "account_balance_wallet"}
-                                </span>
-                                ${quitado ? "QUITADO" : saldoFinal >= 0 ? "A RECEBER" : "A PAGAR"}
+                                <span class="material-icons text-white/70">account_balance_wallet</span>
+                                Saldo Final
                             </span>
-                            <span class="text-2xl font-extrabold ${quitado ? "text-emerald-400" : saldoFinal >= 0 ? "text-amber-400" : "text-rose-400"}">
+                            <span class="text-2xl font-extrabold ${saldoFinal >= 0 ? "text-emerald-400" : "text-rose-400"}">
                                 R$ ${Math.abs(saldoFinal).toFixed(2).replace(".", ",")}
                             </span>
                         </div>

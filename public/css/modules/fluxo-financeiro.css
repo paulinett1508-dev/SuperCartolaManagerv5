@@ -1709,6 +1709,13 @@ body {
 .modal-content .card.bg-gray-900 {
     background-color: #111827 !important;
     border-color: #374151 !important;
+    color: #e5e7eb;
+}
+
+.modal-content .card.bg-gray-900 .card-title {
+    color: #f9fafb;
+    font-weight: 600;
+    letter-spacing: 0.2px;
 }
 
 .modal-content .card-header.border-gray-700 {
