@@ -1,4 +1,5 @@
-// === CARDS-CONDICIONAIS.JS v2.5 ===
+// === CARDS-CONDICIONAIS.JS v2.6 ===
+// v2.6: FIX - Invalida cache ao mudar de liga (navegação entre ligas)
 // v2.5: FIX BUG-002 - Módulos históricos só ocultados se EXPLICITAMENTE desabilitados
 // v2.5: Temporada 2026+ sem restrições automáticas - cards sempre visíveis
 // v2.3: FIX - Mapeamento correto de modulos_ativos para data-module dos cards
@@ -7,11 +8,12 @@
 // v2.0: Refatorado para SaaS - busca config do servidor via API
 // Sistema de desativação condicional de cards por liga
 
-console.log("[CARDS-CONDICIONAIS] v2.5 - Carregando sistema...");
+console.log("[CARDS-CONDICIONAIS] v2.6 - Carregando sistema...");
 
 // === CACHE DE CONFIG DA LIGA ===
 let ligaConfigCache = null;
 let cacheTimestamp = 0;
+let cachedLigaId = null; // v2.6: Rastrear qual liga está cacheada
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 /**
@@ -23,9 +25,26 @@ function getLigaIdAtual() {
 }
 
 /**
+ * Invalidar cache (útil quando navega entre ligas)
+ */
+function invalidarCache() {
+    ligaConfigCache = null;
+    cacheTimestamp = 0;
+    cachedLigaId = null;
+    console.log('[CARDS-CONDICIONAIS] Cache invalidado');
+}
+
+/**
  * Buscar configuração da liga do servidor (v2.0 SaaS)
+ * v2.6 FIX: Invalida cache se liga mudou
  */
 async function fetchLigaConfig(ligaId) {
+    // v2.6: Verificar se liga mudou - invalidar cache se sim
+    if (cachedLigaId && cachedLigaId !== ligaId) {
+        console.log(`[CARDS-CONDICIONAIS] Liga mudou (${cachedLigaId} -> ${ligaId}), invalidando cache...`);
+        invalidarCache();
+    }
+
     // Verificar cache
     if (ligaConfigCache && Date.now() - cacheTimestamp < CACHE_TTL) {
         return ligaConfigCache;
@@ -39,6 +58,7 @@ async function fetchLigaConfig(ligaId) {
         if (data.success) {
             ligaConfigCache = data;
             cacheTimestamp = Date.now();
+            cachedLigaId = ligaId; // v2.6: Salvar ID da liga cacheada
             console.log(`[CARDS-CONDICIONAIS] Config carregada para ${data.liga_nome}`);
             return data;
         }
@@ -532,7 +552,7 @@ async function inicializar() {
 }
 
 /**
- * API pública do módulo (v2.0 SaaS)
+ * API pública do módulo (v2.6 SaaS)
  */
 window.cardsCondicionais = {
     aplicarConfiguracao: aplicarConfiguracaoCards,
@@ -544,6 +564,7 @@ window.cardsCondicionais = {
     melhorarUX: melhorarExperienciaCards,
     fetchLigaConfig: fetchLigaConfig,
     getLigaConfigCache: () => ligaConfigCache,
+    invalidarCache: invalidarCache, // v2.6: Expor função de invalidação
 };
 
 // Auto-inicialização
@@ -557,4 +578,4 @@ if (document.readyState === "loading") {
     setTimeout(inicializar, 150);
 }
 
-console.log("[CARDS-CONDICIONAIS] Módulo v2.5 carregado");
+console.log("[CARDS-CONDICIONAIS] Módulo v2.6 carregado");

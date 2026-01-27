@@ -34,6 +34,7 @@
     "@modelcontextprotocol/sdk": "^1.24.3",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
+    "cheerio": "^1.2.0",
     "compression": "^1.8.1",
     "connect-mongo": "^5.1.0",
     "cors": "^2.8.5",

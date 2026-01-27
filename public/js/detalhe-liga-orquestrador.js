@@ -1,5 +1,6 @@
-// DETALHE-LIGA ORQUESTRADOR - COORDENADOR OTIMIZADO
+// DETALHE-LIGA ORQUESTRADOR - COORDENADOR OTIMIZADO v3.1
 // Responsável por coordenar navegação e carregar módulos sob demanda
+// v3.1: FIX - Evita re-injeção de scripts do layout + invalida cache ao navegar entre ligas
 
 class DetalheLigaOrquestrador {
     constructor() {
@@ -710,15 +711,26 @@ class DetalheLigaOrquestrador {
                 }
             }
 
-            // Injetar scripts do layout
-            const scripts = doc.querySelectorAll("script");
-            scripts.forEach((script) => {
-                if (script.textContent.trim()) {
-                    const newScript = document.createElement("script");
-                    newScript.textContent = script.textContent;
-                    document.head.appendChild(newScript);
+            // Injetar scripts do layout APENAS na primeira vez
+            // v3.1 FIX: Evita re-injeção de scripts que causa problemas de estado
+            if (!window._layoutScriptsInjected) {
+                const scripts = doc.querySelectorAll("script");
+                scripts.forEach((script) => {
+                    if (script.textContent.trim()) {
+                        const newScript = document.createElement("script");
+                        newScript.textContent = script.textContent;
+                        document.head.appendChild(newScript);
+                    }
+                });
+                window._layoutScriptsInjected = true;
+                console.log('[ORQUESTRADOR] Scripts do layout injetados');
+            } else {
+                console.log('[ORQUESTRADOR] Scripts do layout já injetados, pulando...');
+                // Apenas recarregar as ligas se a função já existir
+                if (typeof window.carregarLigasLayout === 'function') {
+                    window.carregarLigasLayout();
                 }
-            });
+            }
 
             // Garantir que AccordionManager seja inicializado
             setTimeout(() => {
@@ -1040,6 +1052,10 @@ window.addEventListener('spa:navigated', (e) => {
     const { pageName } = e.detail || {};
     if (pageName === 'detalhe-liga.html') {
         console.log('[ORQUESTRADOR] Reinicializando após navegação SPA...');
+        // v3.1: Invalidar cache de cards-condicionais ao navegar para outra liga
+        if (window.cardsCondicionais?.invalidarCache) {
+            window.cardsCondicionais.invalidarCache();
+        }
         // Resetar flag para permitir nova inicialização
         if (window.detalheLigaOrquestrador) {
             window.detalheLigaOrquestrador._navigationInitialized = false;

@@ -1,10 +1,33 @@
 # Tarefas Pendentes
 
-## 🔴 PENDENTE (27/01/2026)
+## ✅ CORRIGIDO (27/01/2026)
 
 ### [UI-001] Auditoria Design Extrato Individual - Redução de Verbosidade
 
-**Status:** ❌ NÃO FUNCIONOU - Investigar
+**Status:** ✅ CORRIGIDO v8.7
+
+**Problema Original:**
+- Linha fixa "Inscrição 2026: -R$ XXX" era redundante com botões Acerto/Ajustes
+- Label confundia quando participante tinha pago inscrição
+
+**Solução Implementada (v8.7):**
+1. Label simplificado: "Saldo Inicial:" (sempre, para pré-temporada)
+2. Sub-linha informativa: "Inscrição paga" (verde) ou "Inscrição pendente" (amarelo)
+
+**Arquivos Modificados:**
+- `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` v8.7
+  - Linhas 2001-2005: Lógica simplificada do label
+  - Linhas 2054-2062: Sub-linha de status adicionada
+
+**PRD/SPEC:**
+- `.claude/docs/PRD-extrato-individual-remover-inscricao-fixa.md`
+- `.claude/docs/SPEC-extrato-individual-remover-inscricao-fixa.md`
+
+---
+
+## 🔴 HISTÓRICO (27/01/2026)
+
+### [UI-001-OLD] Contexto Anterior
 
 **Contexto:**
 - Mudanças foram feitas no **App Participante** (`participante-extrato-ui.js`)
