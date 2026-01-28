@@ -1414,11 +1414,32 @@
                 `;
                 fab.title = 'Status do Mercado Cartola';
 
-                // Click abre teaser em pre-temporada ou mostra info
-                fab.onclick = () => {
+                // Click abre teaser em pre-temporada ou navega para parciais
+                fab.onclick = async () => {
                     if (config && config.isPreparando()) {
                         fab.style.animation = 'none';
                         abrirTeaser();
+                        return;
+                    }
+
+                    // Se mercado fechado (jogos em andamento), navegar para parciais
+                    if (statusMercado && (statusMercado.status_mercado === 2 || statusMercado.status_mercado === 3)) {
+                        const rodadaAtual = statusMercado.rodada_atual;
+                        if (window.Log) Log.info('FAB-MERCADO', `Navegando para parciais da rodada ${rodadaAtual}`);
+
+                        // Navegar para módulo de rodadas
+                        if (window.ParticipanteNavigation?.navegarPara) {
+                            await window.ParticipanteNavigation.navegarPara('rodadas');
+
+                            // Aguardar módulo carregar e selecionar rodada atual
+                            setTimeout(() => {
+                                if (typeof window.selecionarRodada === 'function') {
+                                    window.selecionarRodada(rodadaAtual, true);
+                                } else if (typeof window.RodadasModule?.selecionarRodada === 'function') {
+                                    window.RodadasModule.selecionarRodada(rodadaAtual, true);
+                                }
+                            }, 500);
+                        }
                     }
                 };
                 document.body.appendChild(fab);

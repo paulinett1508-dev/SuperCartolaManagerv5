@@ -10,7 +10,8 @@ const PREVIOUS_SEASON = 2025;
 
 // Status da temporada: 'ativa' | 'preparando' | 'encerrada'
 // 'preparando' = Brasileirao nao iniciou, modulos bloqueados
-const SEASON_STATUS = 'preparando';
+// ✅ 28/01/2026: Brasileirão iniciado - temporada ATIVA
+const SEASON_STATUS = 'ativa';
 
 // Datas importantes da temporada 2026
 const MARKET_OPEN_DATE = '2026-01-12';  // Abertura do mercado Cartola FC

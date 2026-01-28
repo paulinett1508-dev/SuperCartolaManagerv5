@@ -36,14 +36,14 @@ let estadoParciais = {
     },
 };
 
-// Aplicar config global inicial (pode ser sobrescrito antes de iniciar)
-aplicarConfigAutoRefresh();
-
 const AUTO_REFRESH_DEFAULTS = {
     minMs: 15000,
     maxMs: 120000,
     baseMs: 20000,
 };
+
+// Aplicar config global inicial (pode ser sobrescrito antes de iniciar)
+aplicarConfigAutoRefresh();
 
 function obterConfigAutoRefresh() {
     const cfg = (typeof window !== "undefined" && window) || {};
