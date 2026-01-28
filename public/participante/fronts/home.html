@@ -47,6 +47,8 @@
     justify-content: center;
     border: 2px solid #1c1c1e;
     flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
 }
 
 .home-avatar-initials {
@@ -82,6 +84,10 @@
     align-items: center;
     gap: 4px;
     margin-top: 2px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(197, 155, 52, 0.15);
+    border: 1px solid rgba(197, 155, 52, 0.45);
 }
 
 .home-badge-premium .badge-icon {
@@ -95,6 +101,26 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+.home-team-badge {
+    position: absolute;
+    bottom: -3px;
+    right: -3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #b91c1c;
+    border: 2px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.home-team-badge .material-icons {
+    font-size: 12px;
+    color: #fff;
 }
 
 .home-btn-icon {
@@ -128,10 +154,17 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    background: transparent;
-    border: none;
+    background: #151515;
+    border: 1px solid rgba(255, 109, 0, 0.25);
+    border-radius: 12px;
     cursor: pointer;
-    padding: 0;
+    padding: 10px 6px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+}
+
+.home-action-item:active {
+    transform: scale(0.98);
+    background: #1a1a1a;
 }
 
 .home-action-icon {
@@ -139,7 +172,7 @@
     height: 56px;
     border-radius: 12px;
     border: 1px solid #ff6d00;
-    background: #1c1c1e;
+    background: #1b1b1c;
     display: flex;
     align-items: center;
     justify-content: center;

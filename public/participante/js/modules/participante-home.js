@@ -26,6 +26,9 @@ let participanteRenovado = false;
 let participantePremium = false;
 let mercadoStatus = null;
 
+const CLUBES_CACHE_KEY = 'cartola_clubes_cache_v1';
+const CLUBES_CACHE_TTL = 12 * 60 * 60 * 1000; // 12h
+
 // =====================================================================
 // FUNCAO PRINCIPAL
 // =====================================================================
@@ -390,6 +393,102 @@ async function buscarStatusMercado() {
     }
 }
 
+async function obterClubesCache() {
+    if (window.__clubesCache) return window.__clubesCache;
+
+    try {
+        const cached = sessionStorage.getItem(CLUBES_CACHE_KEY);
+        if (cached) {
+            const payload = JSON.parse(cached);
+            if (payload?.data && Date.now() - (payload.timestamp || 0) < CLUBES_CACHE_TTL) {
+                window.__clubesCache = payload.data;
+                return payload.data;
+            }
+        }
+    } catch (error) {
+        // cache inválido, ignorar
+    }
+
+    try {
+        const response = await fetch('/api/cartola/clubes');
+        if (!response.ok) return null;
+        const data = await response.json();
+        window.__clubesCache = data;
+        try {
+            sessionStorage.setItem(CLUBES_CACHE_KEY, JSON.stringify({
+                timestamp: Date.now(),
+                data
+            }));
+        } catch (error) {
+            // storage cheio/indisponível
+        }
+        return data;
+    } catch (error) {
+        return null;
+    }
+}
+
+async function aplicarCorBadgeClube(clubeId) {
+    if (!clubeId) return;
+    const badge = document.querySelector('.home-team-badge');
+    if (!badge) return;
+
+    const clubes = await obterClubesCache();
+    if (!clubes) return;
+
+    const clube = clubes[String(clubeId)] || clubes[Number(clubeId)];
+    const cor =
+        clube?.cor_primaria ||
+        clube?.cor_fundo ||
+        clube?.cor_secundaria ||
+        null;
+
+    if (!cor) return;
+    if (!document.contains(badge)) return;
+
+    badge.style.background = cor;
+    const icon = badge.querySelector('.material-icons');
+    if (icon) {
+        const rgb = corParaRGB(cor);
+        if (rgb) {
+            const luminancia = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
+            icon.style.color = luminancia > 0.6 ? '#111111' : '#FFFFFF';
+            badge.style.borderColor = luminancia > 0.7 ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.5)';
+        } else {
+            icon.style.color = '#FFFFFF';
+        }
+    }
+}
+
+function corParaRGB(cor) {
+    if (!cor || typeof cor !== 'string') return null;
+    const hex = cor.trim();
+    if (hex.startsWith('#')) {
+        const clean = hex.slice(1);
+        if (clean.length === 3) {
+            const r = parseInt(clean[0] + clean[0], 16);
+            const g = parseInt(clean[1] + clean[1], 16);
+            const b = parseInt(clean[2] + clean[2], 16);
+            return { r, g, b };
+        }
+        if (clean.length === 6) {
+            const r = parseInt(clean.slice(0, 2), 16);
+            const g = parseInt(clean.slice(2, 4), 16);
+            const b = parseInt(clean.slice(4, 6), 16);
+            return { r, g, b };
+        }
+    }
+    const rgbMatch = hex.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+    if (rgbMatch) {
+        return {
+            r: parseInt(rgbMatch[1], 10),
+            g: parseInt(rgbMatch[2], 10),
+            b: parseInt(rgbMatch[3], 10),
+        };
+    }
+    return null;
+}
+
 // =====================================================================
 // RENDERIZACAO PRINCIPAL
 // =====================================================================
@@ -471,6 +570,9 @@ function renderizarHome(container, data, ligaId) {
                 <div class="home-user-section">
                     <div class="home-avatar-circle">
                         <span class="home-avatar-initials">${iniciais}</span>
+                        <span class="home-team-badge" aria-hidden="true">
+                            <span class="material-icons">shield</span>
+                        </span>
                     </div>
                     <div class="home-user-info">
                         <h1 class="home-user-name">${nomeCartola}</h1>
@@ -684,6 +786,8 @@ function renderizarJogosHome(jogos, fonte, aoVivo, totalJogos) {
             ${verMaisBtn}
         </section>
     `;
+
+    aplicarCorBadgeClube(clubeId);
 }
 
 // =====================================================================
