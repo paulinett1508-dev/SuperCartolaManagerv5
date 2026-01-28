@@ -40,9 +40,9 @@
 - **File System:** Do not use absolute paths that assume a local Windows/Mac machine. Use relative paths suitable for Linux.
 
 ## 🤖 Project Skills (Agentes Especializados)
-O projeto conta com **12 skills especializadas** organizadas em dois grupos:
+O projeto conta com **14 skills especializadas** organizadas em dois grupos:
 
-### Skills Auxiliares (8)
+### Skills Auxiliares (10)
 | Skill | Descrição | Quando Usar |
 |-------|-----------|-------------|
 | **code-inspector** | Auditoria Senior Full-Stack (SPARC: Security, Performance, Architecture, Reliability, Code Quality) | "auditar código", "security review", "performance analysis", "OWASP check", "code smell" |
@@ -52,6 +52,8 @@ O projeto conta com **12 skills especializadas** organizadas em dois grupos:
 | **git-commit-push** | Commits e pushes automatizados com Conventional Commits | "git push", "git e push", "commit", "push", "commita", "suba as mudanças", "envia pro github", "sobe pro git" |
 | **league-architect** | Regras de Negócio, Formatos de Liga (SaaS), Lógica Financeira | Configs de liga, cálculos financeiros, regras de disputa |
 | **Refactor-Monolith** | Decomposição segura de arquivos monolíticos (+500 linhas) | "refatorar arquivo grande", "separar em módulos", "extrair funções" |
+| **skill-creator** | Guia para criar/atualizar skills que estendem capacidades do agente | "criar nova skill", "fazer skill", "atualizar skill existente" |
+| **skill-installer** | Instala skills do catálogo curado ou de repositórios GitHub | "instalar skill", "listar skills disponíveis", "baixar skill do github" |
 | **system-scribe** | Documentador Oficial, Wiki Viva do Sistema | "explicar módulo X", "quais as regras do Y?", documentação técnica |
 
 ### Skills do High Senior Protocol (4)
@@ -70,6 +72,8 @@ O projeto conta com **12 skills especializadas** organizadas em dois grupos:
 - "git push", "git e push", "commit", "suba as mudanças" → `git-commit-push`
 - "Definir regras do mata-mata" → `league-architect`
 - "Refatorar fluxo-financeiro-ui.js em módulos" → `Refactor-Monolith`
+- "Criar uma skill para análise de jogadores" → `skill-creator`
+- "Instalar skill de PDF do catálogo" → `skill-installer`
 - "Explicar como funciona o Top 10" → `system-scribe`
 - "Implementar nova feature completa" → `/workflow` (inicia o High Senior Protocol)
 

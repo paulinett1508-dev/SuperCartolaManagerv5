@@ -55,30 +55,44 @@ if (rodadaAtual === 1 && mercadoAberto) {
 - ✅ Mata-Mata
 
 **FASE 2 - Desativar Módulos Opcionais por Default:**
-> Status: 📋 PENDENTE - A ser implementado na próxima sessão
+> Status: ✅ JÁ IMPLEMENTADO (verificado 28/01/2026)
 
 Objetivo: Garantir que novas ligas não ativam módulos opcionais automaticamente.
-- Módulos essenciais (sempre ativos): Parciais/Rodadas, Ranking Geral, Fluxo Financeiro
-- Módulos opcionais (desativados até admin habilitar): Top 10, Artilheiro, Luva, Pontos Corridos, Melhor Mês, Mata-Mata, Campinho, Dicas
+
+**Implementação verificada em:**
+| Arquivo | Status | Comportamento |
+|---------|--------|---------------|
+| `models/Liga.js` | ✅ | Default `false` para todos opcionais |
+| `config/modulos-defaults.js` | ✅ | `MODULOS_DEFAULTS` com opcionais = `false` |
+| `public/js/wizard-primeira-liga.js` | ✅ | `dados.modulos_ativos` com opcionais = `false` |
+| `participante-navigation.js` | ✅ | Módulos ausentes tratados como `false` (linha 275) |
+
+**Módulos BASE (sempre ativos):** extrato, ranking, rodadas, historico
+**Módulos OPCIONAIS (desativados por default):** top10, pontosCorridos, mataMata, artilheiro, luvaOuro, melhorMes, campinho, dicas
+
+**Ligas verificadas:**
+- "Super Cartola" (2026): ✅ Todos opcionais = `false`
+- "Os Fuleros" (2026): ✅ Todos opcionais = `false`
 
 ---
 
-## 📋 PENDENTE - PRÓXIMA SESSÃO
+## ✅ CONCLUÍDO (28/01/2026)
 
 ### [DOC-001] Documentar Skills skill-creator e skill-installer no CLAUDE.md
 
-**Status:** 📋 PENDENTE
+**Status:** ✅ CONCLUÍDO
 
-**Problema:**
+**Problema Original:**
 O hook de pre-push alertou que as skills `skill-creator` e `skill-installer` não estão documentadas no CLAUDE.md.
 
-**Ação Necessária:**
-1. Adicionar `skill-creator` na tabela de Skills Auxiliares do CLAUDE.md
-2. Adicionar `skill-installer` na tabela de Skills Auxiliares do CLAUDE.md
-3. Opcionalmente, adicionar na seção de Slash Commands se forem user-invocable
+**Correções Aplicadas (28/01/2026):**
+1. ✅ Adicionado `skill-creator` na tabela de Skills Auxiliares do CLAUDE.md
+2. ✅ Adicionado `skill-installer` na tabela de Skills Auxiliares do CLAUDE.md
+3. ✅ Adicionados exemplos de uso na seção "Exemplos de Uso"
+4. ✅ Atualizado contador de skills de 12 para 14 (8→10 auxiliares)
 
-**Arquivos a Modificar:**
-- `CLAUDE.md` - Seção "Project Skills (Agentes Especializados)"
+**Mudanças:**
+- `CLAUDE.md` - Seção "Project Skills (Agentes Especializados)" atualizada
 
 **Localização das Skills:**
 - `.claude/skills/skill-creator/`
