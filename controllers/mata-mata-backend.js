@@ -8,12 +8,7 @@
 
 import mongoose from "mongoose";
 import Rodada from "../models/Rodada.js";
-
-// ============================================================================
-// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2026
-// ============================================================================
-const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2026
-const CAMPEONATO_ENCERRADO = false; // Flag: temporada 2026 em andamento
+import { SEASON_CONFIG } from "../config/seasons.js";
 
 // ============================================================================
 // CONFIGURAÇÃO DAS EDIÇÕES (sincronizado com mata-mata-config.js)
