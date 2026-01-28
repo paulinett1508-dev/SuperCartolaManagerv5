@@ -23,16 +23,50 @@ let estadoParciais = {
     autoRefresh: {
         ativo: false,
         timer: null,
-        intervalMs: 30000,
-        minMs: 20000,
-        maxMs: 300000,
+        intervalMs: 20000,
+        minMs: 15000,
+        maxMs: 120000,
         step: 1.6,
         slowStep: 1.3,
         failures: 0,
         cycles: 0,
-        onUpdate: null
+        nextAt: null,
+        onUpdate: null,
+        onStatus: null
     },
 };
+
+// Aplicar config global inicial (pode ser sobrescrito antes de iniciar)
+aplicarConfigAutoRefresh();
+
+const AUTO_REFRESH_DEFAULTS = {
+    minMs: 15000,
+    maxMs: 120000,
+    baseMs: 20000,
+};
+
+function obterConfigAutoRefresh() {
+    const cfg = (typeof window !== "undefined" && window) || {};
+    let min = Number(cfg.PARCIAIS_REFRESH_MIN_MS);
+    let max = Number(cfg.PARCIAIS_REFRESH_MAX_MS);
+    let base = Number(cfg.PARCIAIS_REFRESH_BASE_MS);
+
+    if (!Number.isFinite(min) || min <= 0) min = AUTO_REFRESH_DEFAULTS.minMs;
+    if (!Number.isFinite(max) || max <= 0) max = AUTO_REFRESH_DEFAULTS.maxMs;
+    if (!Number.isFinite(base) || base <= 0) base = AUTO_REFRESH_DEFAULTS.baseMs;
+
+    if (max < min) max = min;
+    base = Math.min(Math.max(base, min), max);
+
+    return { min, max, base };
+}
+
+function aplicarConfigAutoRefresh() {
+    const cfg = obterConfigAutoRefresh();
+    estadoParciais.autoRefresh.minMs = cfg.min;
+    estadoParciais.autoRefresh.maxMs = cfg.max;
+    estadoParciais.autoRefresh.intervalMs = cfg.base;
+}
 
 // =====================================================================
 // INICIALIZAÇÃO - Chamado pelo participante-rodadas.js
@@ -473,10 +507,24 @@ async function processarTimesComLimite(times, rodada, atletasPontuados, limite =
 function programarAutoRefresh() {
     if (!estadoParciais.autoRefresh.ativo) return;
     clearTimeout(estadoParciais.autoRefresh.timer);
+    estadoParciais.autoRefresh.nextAt = Date.now() + estadoParciais.autoRefresh.intervalMs;
     estadoParciais.autoRefresh.timer = setTimeout(
         executarAutoRefresh,
         estadoParciais.autoRefresh.intervalMs,
     );
+    emitirStatusAutoRefresh('schedule');
+}
+
+function emitirStatusAutoRefresh(motivo) {
+    if (typeof estadoParciais.autoRefresh.onStatus !== 'function') return;
+    estadoParciais.autoRefresh.onStatus({
+        ativo: estadoParciais.autoRefresh.ativo,
+        intervalMs: estadoParciais.autoRefresh.intervalMs,
+        nextAt: estadoParciais.autoRefresh.nextAt,
+        failures: estadoParciais.autoRefresh.failures,
+        cycles: estadoParciais.autoRefresh.cycles,
+        motivo,
+    });
 }
 
 async function executarAutoRefresh() {
@@ -534,19 +582,24 @@ async function executarAutoRefresh() {
     }
 }
 
-export function iniciarAutoRefresh(onUpdate = null) {
+export function iniciarAutoRefresh(onUpdate = null, onStatus = null) {
     if (estadoParciais.autoRefresh.ativo) return;
+    aplicarConfigAutoRefresh();
     estadoParciais.autoRefresh.ativo = true;
     estadoParciais.autoRefresh.onUpdate = onUpdate;
-    estadoParciais.autoRefresh.intervalMs = estadoParciais.autoRefresh.minMs;
+    estadoParciais.autoRefresh.onStatus = onStatus;
     estadoParciais.autoRefresh.failures = 0;
     estadoParciais.autoRefresh.cycles = 0;
     programarAutoRefresh();
+    emitirStatusAutoRefresh('start');
 }
 
 export function pararAutoRefresh() {
     estadoParciais.autoRefresh.ativo = false;
+    emitirStatusAutoRefresh('stop');
     estadoParciais.autoRefresh.onUpdate = null;
+    estadoParciais.autoRefresh.onStatus = null;
+    estadoParciais.autoRefresh.nextAt = null;
     if (estadoParciais.autoRefresh.timer) {
         clearTimeout(estadoParciais.autoRefresh.timer);
         estadoParciais.autoRefresh.timer = null;

@@ -827,6 +827,18 @@ class ModuleConfigModal {
                 }
 
                 const ordered = ranges.sort((a, b) => a.inicio - b.inicio || a.fim - b.fim);
+                if (ordered.length) {
+                    const first = ordered[0];
+                    const last = ordered[ordered.length - 1];
+                    if (first.inicio !== 1) {
+                        this.showError(`A primeira edição deve iniciar na rodada 1 (atual: ${first.inicio})`);
+                        return false;
+                    }
+                    if (last.fim !== totalRodadas) {
+                        this.showError(`A última edição deve finalizar na rodada ${totalRodadas} (atual: ${last.fim})`);
+                        return false;
+                    }
+                }
                 for (let i = 1; i < ordered.length; i++) {
                     const prev = ordered[i - 1];
                     const curr = ordered[i];

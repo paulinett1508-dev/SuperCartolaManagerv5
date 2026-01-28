@@ -38,6 +38,8 @@
 .rodadas-icon { font-size: 32px; color: var(--rodadas-primary); }
 .rodadas-header-pro h2 { font-family: var(--rodadas-font-brand); font-size: 24px; font-weight: 400; letter-spacing: 0.5px; color: var(--rodadas-primary); margin: 0; }
 .rodadas-subtitle { color: var(--rodadas-text-muted); font-size: 14px; margin-top: 8px; }
+.auto-refresh-indicator { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; color: var(--rodadas-success); background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35); }
+.auto-refresh-indicator .material-symbols-outlined { font-size: 14px; animation: spin-rodadas 1.6s linear infinite; }
 .rodadas-ano-selector { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
 .ano-btn { padding: 10px 24px; background: var(--rodadas-surface-elevated); border: none; border-radius: 8px; color: var(--rodadas-text-muted); font-family: var(--rodadas-font-brand); font-size: 13px; font-weight: 400; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; }
 .ano-btn:hover { background: var(--rodadas-surface-hover); }
@@ -166,10 +168,14 @@
 
     <div id="rodadaDetalhamento" class="rodada-detalhamento-pro" style="display: none">
         <div class="detalhamento-header-pro">
-            <div class="detalhamento-info">
-                <h3 id="rodadaTitulo">Rodada X</h3>
-                <p id="rodadaResumo" class="rodada-resumo"></p>
+        <div class="detalhamento-info">
+            <h3 id="rodadaTitulo">Rodada X</h3>
+            <p id="rodadaResumo" class="rodada-resumo"></p>
+            <div id="autoRefreshIndicator" class="auto-refresh-indicator" style="display: none;">
+                <span class="material-symbols-outlined">autorenew</span>
+                <span id="autoRefreshText">Auto-refresh ativo</span>
             </div>
+        </div>
             <button class="btn-voltar-pro" onclick="window.voltarParaCards()">
                 <span class="material-symbols-outlined">arrow_back</span>
                 Voltar

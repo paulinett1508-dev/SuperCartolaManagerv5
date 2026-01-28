@@ -454,6 +454,7 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
 
     rodadaSelecionada = numeroRodada;
     ParciaisModule.pararAutoRefresh?.();
+    atualizarIndicadorAutoRefresh({ ativo: false });
 
     document.querySelectorAll(".rodada-card-compacto").forEach((card) => {
         card.classList.remove("selected");
@@ -494,7 +495,7 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
         ParciaisModule.iniciarAutoRefresh?.((dados) => {
             if (rodadaSelecionada !== numeroRodada) return;
             renderizarParciaisDados(numeroRodada, dados);
-        });
+        }, atualizarIndicadorAutoRefresh);
     } else {
         const rodadaData = todasRodadasCache.find(
             (r) => r.numero === numeroRodada,
@@ -870,6 +871,7 @@ function renderizarSecaoInativos(inativos, rodadaNum) {
 // =====================================================================
 window.voltarParaCards = function () {
     ParciaisModule.pararAutoRefresh?.();
+    atualizarIndicadorAutoRefresh({ ativo: false });
     const detalhamento = document.getElementById("rodadaDetalhamento");
     if (detalhamento) {
         detalhamento.style.display = "none";
@@ -886,6 +888,27 @@ window.voltarParaCards = function () {
         gridContainer.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 };
+
+// =====================================================================
+// INDICADOR DE AUTO-REFRESH
+// =====================================================================
+function atualizarIndicadorAutoRefresh(status) {
+    const indicador = document.getElementById("autoRefreshIndicator");
+    const texto = document.getElementById("autoRefreshText");
+    if (!indicador || !texto) return;
+
+    if (!status?.ativo) {
+        indicador.style.display = "none";
+        return;
+    }
+
+    const intervaloSeg = Math.max(1, Math.round((status.intervalMs || 0) / 1000));
+    const nextAt = status.nextAt || (Date.now() + (status.intervalMs || 0));
+    const restanteSeg = Math.max(0, Math.round((nextAt - Date.now()) / 1000));
+
+    texto.textContent = `Auto-refresh ativo • ${intervaloSeg}s (próx. ${restanteSeg}s)`;
+    indicador.style.display = "inline-flex";
+}
 
 // =====================================================================
 // TOAST
