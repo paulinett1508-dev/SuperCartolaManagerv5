@@ -5,6 +5,7 @@
  */
 
 import express from 'express';
+import mongoose from 'mongoose';
 import UserActivity from '../models/UserActivity.js';
 import AccessLog from '../models/AccessLog.js';
 import { verificarAdmin } from '../middleware/auth.js';
@@ -18,6 +19,27 @@ const PERIODOS = {
 };
 
 const router = express.Router();
+
+function ensureDbConnected(res) {
+    if (mongoose.connection.readyState !== 1) {
+        console.error('[UsuariosOnline] MongoDB não conectado (readyState:', mongoose.connection.readyState, ')');
+        res.status(503).json({
+            success: false,
+            error: 'Banco de dados indisponível',
+            message: 'MongoDB não está conectado no momento'
+        });
+        return false;
+    }
+    return true;
+}
+
+function logUsuariosOnlineError(context, error) {
+    if (error?.stack) {
+        console.error(`[UsuariosOnline] ${context}:`, error.stack);
+    } else {
+        console.error(`[UsuariosOnline] ${context}:`, error?.message || error);
+    }
+}
 
 /**
  * Formata tempo relativo no formato dd:hh:mm:ss
@@ -53,6 +75,7 @@ function formatarTempoRelativo(data) {
  */
 router.get('/', verificarAdmin, async (req, res) => {
     try {
+        if (!ensureDbConnected(res)) return;
         const minutos = parseInt(req.query.minutos) || 5;
         const ligaFiltro = req.query.liga;
 
@@ -87,7 +110,7 @@ router.get('/', verificarAdmin, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[UsuariosOnline] Erro:', error.message);
+        logUsuariosOnlineError('Erro', error);
         res.status(500).json({
             success: false,
             error: 'Erro ao buscar usuários online',
@@ -102,6 +125,7 @@ router.get('/', verificarAdmin, async (req, res) => {
  */
 router.get('/stats', verificarAdmin, async (req, res) => {
     try {
+        if (!ensureDbConnected(res)) return;
         const minutos = parseInt(req.query.minutos) || 5;
 
         // Buscar contagem por liga
@@ -133,7 +157,7 @@ router.get('/stats', verificarAdmin, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[UsuariosOnline] Erro stats:', error.message);
+        logUsuariosOnlineError('Erro stats', error);
         res.status(500).json({
             success: false,
             error: 'Erro ao buscar estatísticas'
@@ -153,6 +177,7 @@ router.get('/stats', verificarAdmin, async (req, res) => {
  */
 router.get('/historico', verificarAdmin, async (req, res) => {
     try {
+        if (!ensureDbConnected(res)) return;
         const ligaFiltro = req.query.liga || null;
         const dias = parseInt(req.query.dias) || 30;
         const page = parseInt(req.query.page) || 1;
@@ -183,7 +208,7 @@ router.get('/historico', verificarAdmin, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[UsuariosOnline] Erro historico:', error.message);
+        logUsuariosOnlineError('Erro historico', error);
         res.status(500).json({
             success: false,
             error: 'Erro ao buscar histórico de acessos',
@@ -201,6 +226,7 @@ router.get('/historico', verificarAdmin, async (req, res) => {
  */
 router.get('/ligas', verificarAdmin, async (req, res) => {
     try {
+        if (!ensureDbConnected(res)) return;
         const dias = parseInt(req.query.dias) || 30;
 
         const ligas = await AccessLog.getLigasComAcessos(dias);
@@ -214,7 +240,7 @@ router.get('/ligas', verificarAdmin, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[UsuariosOnline] Erro ligas:', error.message);
+        logUsuariosOnlineError('Erro ligas', error);
         res.status(500).json({
             success: false,
             error: 'Erro ao buscar ligas com acessos'
@@ -229,6 +255,7 @@ router.get('/ligas', verificarAdmin, async (req, res) => {
  */
 router.get('/dashboard', verificarAdmin, async (req, res) => {
     try {
+        if (!ensureDbConnected(res)) return;
         const ligaFiltro = req.query.liga || null;
 
         // Calcular estatísticas para cada período
@@ -364,7 +391,7 @@ router.get('/dashboard', verificarAdmin, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[UsuariosOnline] Erro dashboard:', error.message);
+        logUsuariosOnlineError('Erro dashboard', error);
         res.status(500).json({
             success: false,
             error: 'Erro ao gerar dashboard de acessos',
@@ -379,6 +406,7 @@ router.get('/dashboard', verificarAdmin, async (req, res) => {
  */
 router.get('/usuario/:timeId', verificarAdmin, async (req, res) => {
     try {
+        if (!ensureDbConnected(res)) return;
         const timeId = parseInt(req.params.timeId);
         const dias = parseInt(req.query.dias) || 30;
 
@@ -450,7 +478,7 @@ router.get('/usuario/:timeId', verificarAdmin, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[UsuariosOnline] Erro usuario:', error.message);
+        logUsuariosOnlineError('Erro usuario', error);
         res.status(500).json({
             success: false,
             error: 'Erro ao buscar histórico do usuário',

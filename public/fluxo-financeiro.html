@@ -312,24 +312,42 @@
                 }
             }
 
+            // ✅ Guards SPA para evitar dupla inicialização
+            if (!window.__fluxo_financeiro_state) {
+                window.__fluxo_financeiro_state = {
+                    domBound: false,
+                    spaBound: false,
+                    readyChecked: false
+                };
+            }
+
             // Inicializar
-            document.addEventListener('DOMContentLoaded', () => {
-                if (!window.location.pathname.includes('fluxo-financeiro.html')) return;
-                carregarLigas();
-            });
+            if (!window.__fluxo_financeiro_state.domBound) {
+                window.__fluxo_financeiro_state.domBound = true;
+                document.addEventListener('DOMContentLoaded', () => {
+                    if (!window.location.pathname.includes('fluxo-financeiro.html')) return;
+                    carregarLigas();
+                });
+            }
 
             // ✅ FIX: Reinicializar após navegação SPA
-            window.addEventListener('spa:navigated', (e) => {
-                const { pageName } = e.detail || {};
-                if (pageName === 'fluxo-financeiro.html') {
-                    console.log('[FLUXO-FINANCEIRO] Reinicializando após navegação SPA...');
-                    carregarLigas();
-                }
-            });
+            if (!window.__fluxo_financeiro_state.spaBound) {
+                window.__fluxo_financeiro_state.spaBound = true;
+                window.addEventListener('spa:navigated', (e) => {
+                    const { pageName } = e.detail || {};
+                    if (pageName === 'fluxo-financeiro.html') {
+                        console.log('[FLUXO-FINANCEIRO] Reinicializando após navegação SPA...');
+                        carregarLigas();
+                    }
+                });
+            }
 
             // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
-            if (document.readyState !== 'loading' && window.location.pathname.includes('fluxo-financeiro.html')) {
-                carregarLigas();
+            if (!window.__fluxo_financeiro_state.readyChecked) {
+                window.__fluxo_financeiro_state.readyChecked = true;
+                if (document.readyState !== 'loading' && window.location.pathname.includes('fluxo-financeiro.html')) {
+                    carregarLigas();
+                }
             }
         </script>
     </body>

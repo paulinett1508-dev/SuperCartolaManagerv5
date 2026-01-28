@@ -83,55 +83,64 @@
                     icon: 'account_balance_wallet',
                     titulo: 'Extrato Financeiro',
                     descricao: 'Controle de mensalidades e pagamentos',
-                    base: true
+                    base: true,
+                    backendId: 'extrato' // ✅ ID no backend
                 },
                 ranking: {
                     icon: 'leaderboard',
                     titulo: 'Ranking Geral',
                     descricao: 'Classificação geral da liga',
-                    base: true
+                    base: true,
+                    backendId: 'ranking_geral' // ✅ Mapeia para ranking_geral
                 },
                 rodadas: {
                     icon: 'event',
                     titulo: 'Por Rodadas',
                     descricao: 'Visualização rodada a rodada',
-                    base: true
+                    base: true,
+                    backendId: 'ranking_rodada' // ✅ Mapeia para ranking_rodada
                 },
                 top10: {
                     icon: 'military_tech',
                     titulo: 'TOP 10',
                     descricao: 'Melhores e piores pontuações',
-                    base: false
+                    base: false,
+                    backendId: 'top_10'
                 },
                 melhorMes: {
                     icon: 'calendar_month',
                     titulo: 'Melhor do Mês',
                     descricao: 'Competição mensal',
-                    base: false
+                    base: false,
+                    backendId: 'melhor_mes'
                 },
                 pontosCorridos: {
                     icon: 'format_list_numbered',
                     titulo: 'Pontos Corridos',
                     descricao: 'Sistema de pontos corridos',
-                    base: false
+                    base: false,
+                    backendId: 'pontos_corridos'
                 },
                 mataMata: {
                     icon: 'swords',
                     titulo: 'Mata-Mata',
                     descricao: 'Competição eliminatória',
-                    base: false
+                    base: false,
+                    backendId: 'mata_mata'
                 },
                 artilheiro: {
                     icon: 'sports_soccer',
                     titulo: 'Artilheiro',
                     descricao: 'Ranking de artilheiros',
-                    base: false
+                    base: false,
+                    backendId: 'artilheiro'
                 },
                 luvaOuro: {
                     icon: 'sports_mma',
                     titulo: 'Luva de Ouro',
                     descricao: 'Ranking de goleiros',
-                    base: false
+                    base: false,
+                    backendId: 'luva_ouro'
                 }
             };
 
@@ -341,12 +350,15 @@
                     return;
                 }
 
+                // Mapear para ID do backend
+                const backendId = config.backendId || moduloKey;
+
                 // Abrir modal de configuração
-                console.log(`[GERENCIAR-MODULOS] Abrindo configuração: ${moduloKey}`);
+                console.log(`[GERENCIAR-MODULOS] Abrindo configuração: ${moduloKey} → ${backendId}`);
 
                 try {
                     const modal = new window.ModuleConfigModal();
-                    await modal.init(ligaId, moduloKey);
+                    await modal.init(ligaId, backendId); // ✅ Usa backendId
                 } catch (error) {
                     console.error('[GERENCIAR-MODULOS] Erro ao abrir modal:', error);
                     showMessage('Erro ao carregar configuração', 'error');

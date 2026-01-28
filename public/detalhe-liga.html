@@ -8,15 +8,18 @@
         <!-- Suprimir warnings de extensões do navegador -->
         <script>
             // Capturar erros de extensões que não afetam o sistema
-            window.addEventListener("unhandledrejection", function (event) {
-                if (
-                    event.reason &&
-                    event.reason.message &&
-                    event.reason.message.includes("message channel closed")
-                ) {
-                    event.preventDefault(); // Silenciar este erro específico
-                }
-            });
+            if (!window.__dl_unhandledrejection_guard) {
+                window.__dl_unhandledrejection_guard = true;
+                window.addEventListener("unhandledrejection", function (event) {
+                    if (
+                        event.reason &&
+                        event.reason.message &&
+                        event.reason.message.includes("message channel closed")
+                    ) {
+                        event.preventDefault(); // Silenciar este erro específico
+                    }
+                });
+            }
         </script>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 
@@ -259,16 +262,19 @@
             }
 
             // Restaurar estado da seção Admin ao carregar
-            document.addEventListener("DOMContentLoaded", function() {
-                const section = document.getElementById("admin-tools-section");
-                const savedState = localStorage.getItem("adminSectionCollapsed");
-                // Por padrão começa colapsado, a menos que o usuário tenha expandido
-                if (savedState === "false" && section) {
-                    section.classList.remove("admin-collapsed");
-                }
-                // Atualizar texto do botão voltar baseado no estado inicial
-                atualizarBotaoVoltar();
-            });
+            if (!window.__dl_admin_section_init) {
+                window.__dl_admin_section_init = true;
+                document.addEventListener("DOMContentLoaded", function() {
+                    const section = document.getElementById("admin-tools-section");
+                    const savedState = localStorage.getItem("adminSectionCollapsed");
+                    // Por padrão começa colapsado, a menos que o usuário tenha expandido
+                    if (savedState === "false" && section) {
+                        section.classList.remove("admin-collapsed");
+                    }
+                    // Atualizar texto do botão voltar baseado no estado inicial
+                    atualizarBotaoVoltar();
+                });
+            }
 
             // =====================================================================
             // BOTÃO VOLTAR CONTEXTUAL
@@ -308,13 +314,17 @@
             }
 
             // Observar mudanças na tela secundária para atualizar o botão
-            document.addEventListener("DOMContentLoaded", function() {
-                const secondaryScreen = document.getElementById("secondary-screen");
-                if (secondaryScreen) {
-                    const observer = new MutationObserver(atualizarBotaoVoltar);
-                    observer.observe(secondaryScreen, { attributes: true, attributeFilter: ["class", "style"] });
-                }
-            });
+            if (!window.__dl_secondary_observer_init) {
+                window.__dl_secondary_observer_init = true;
+                document.addEventListener("DOMContentLoaded", function() {
+                    const secondaryScreen = document.getElementById("secondary-screen");
+                    if (secondaryScreen) {
+                        const observer = new MutationObserver(atualizarBotaoVoltar);
+                        observer.observe(secondaryScreen, { attributes: true, attributeFilter: ["class", "style"] });
+                        window.__dl_secondary_observer = observer;
+                    }
+                });
+            }
 
             function fecharModalMini(modalId) {
                 const modal = document.getElementById(modalId);
@@ -1031,19 +1041,22 @@
 
         <script>
             // Listener para fechar modais ao clicar fora
-            document.addEventListener("DOMContentLoaded", () => {
-                document
-                    .querySelectorAll(".modal-cache-mini")
-                    .forEach((modal) => {
-                        modal.addEventListener("click", (e) => {
-                            if (
-                                e.target.classList.contains("modal-cache-mini")
-                            ) {
-                                modal.classList.remove("show");
-                            }
+            if (!window.__dl_modal_close_init) {
+                window.__dl_modal_close_init = true;
+                document.addEventListener("DOMContentLoaded", () => {
+                    document
+                        .querySelectorAll(".modal-cache-mini")
+                        .forEach((modal) => {
+                            modal.addEventListener("click", (e) => {
+                                if (
+                                    e.target.classList.contains("modal-cache-mini")
+                                ) {
+                                    modal.classList.remove("show");
+                                }
+                            });
                         });
-                    });
-            });
+                });
+            }
         </script>
 
         <!-- CONTEXTO DE TEMPORADA (deve carregar antes dos módulos) -->
@@ -1089,23 +1102,29 @@
             }
 
             // Usar MutationObserver para detectar quando o nome da liga é atualizado
-            document.addEventListener('DOMContentLoaded', () => {
-                const nomeLigaEl = document.getElementById('nomeLiga');
-                if (nomeLigaEl) {
-                    const observer = new MutationObserver(atualizarLogoLiga);
-                    observer.observe(nomeLigaEl, { childList: true, characterData: true, subtree: true });
-                    // Também verificar após um delay (fallback)
-                    setTimeout(atualizarLogoLiga, 500);
-                    setTimeout(atualizarLogoLiga, 1500);
-                }
-            });
+            if (!window.__dl_logo_observer_init) {
+                window.__dl_logo_observer_init = true;
+                document.addEventListener('DOMContentLoaded', () => {
+                    const nomeLigaEl = document.getElementById('nomeLiga');
+                    if (nomeLigaEl) {
+                        const observer = new MutationObserver(atualizarLogoLiga);
+                        observer.observe(nomeLigaEl, { childList: true, characterData: true, subtree: true });
+                        window.__dl_logo_observer = observer;
+                        // Também verificar após um delay (fallback)
+                        setTimeout(atualizarLogoLiga, 500);
+                        setTimeout(atualizarLogoLiga, 1500);
+                    }
+                });
+            }
         </script>
 
         <!-- ADMINISTRAÇÃO DA LIGA - HANDLERS -->
         <script>
             // === HANDLERS PARA BOTÕES DE ADMINISTRAÇÃO ===
-            document.addEventListener('DOMContentLoaded', () => {
-                const ligaId = obterLigaIdCache();
+            if (!window.__dl_admin_handlers_init) {
+                window.__dl_admin_handlers_init = true;
+                document.addEventListener('DOMContentLoaded', () => {
+                    const ligaId = obterLigaIdCache();
 
                 // Botão Editar Liga
                 const btnEditar = document.getElementById('btnEditarLiga');
@@ -1148,7 +1167,8 @@
                         }
                     });
                 }
-            });
+                });
+            }
         </script>
 
     </body>

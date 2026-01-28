@@ -599,26 +599,44 @@
                 if (btn) btn._bound = false;
             }
 
+            // ✅ Guards SPA para evitar dupla inicialização
+            if (!window.__ferramentas_rodadas_state) {
+                window.__ferramentas_rodadas_state = {
+                    domBound: false,
+                    spaBound: false,
+                    readyChecked: false
+                };
+            }
+
             // ✅ Único ponto de entrada - DOMContentLoaded
-            document.addEventListener("DOMContentLoaded", async () => {
-                if (!window.location.pathname.includes('ferramentas-rodadas.html')) return;
-                await initFerramentasRodadas();
-            });
+            if (!window.__ferramentas_rodadas_state.domBound) {
+                window.__ferramentas_rodadas_state.domBound = true;
+                document.addEventListener("DOMContentLoaded", async () => {
+                    if (!window.location.pathname.includes('ferramentas-rodadas.html')) return;
+                    await initFerramentasRodadas();
+                });
+            }
 
             // ✅ FIX: Reinicializar após navegação SPA (com reset de estado)
-            window.addEventListener('spa:navigated', async (e) => {
-                const { pageName } = e.detail || {};
-                if (pageName === 'ferramentas-rodadas.html') {
-                    console.log('[FERRAMENTAS-RODADAS] Navegação SPA detectada, reinicializando...');
-                    resetState();
-                    await initFerramentasRodadas();
-                }
-            });
+            if (!window.__ferramentas_rodadas_state.spaBound) {
+                window.__ferramentas_rodadas_state.spaBound = true;
+                window.addEventListener('spa:navigated', async (e) => {
+                    const { pageName } = e.detail || {};
+                    if (pageName === 'ferramentas-rodadas.html') {
+                        console.log('[FERRAMENTAS-RODADAS] Navegação SPA detectada, reinicializando...');
+                        resetState();
+                        await initFerramentasRodadas();
+                    }
+                });
+            }
 
             // ✅ FIX: Inicializar se DOM já carregado (acesso direto após SPA navigation)
-            if (document.readyState === 'complete' && window.location.pathname.includes('ferramentas-rodadas.html')) {
-                // Usar requestAnimationFrame para garantir que o DOM está renderizado
-                requestAnimationFrame(() => initFerramentasRodadas());
+            if (!window.__ferramentas_rodadas_state.readyChecked) {
+                window.__ferramentas_rodadas_state.readyChecked = true;
+                if (document.readyState === 'complete' && window.location.pathname.includes('ferramentas-rodadas.html')) {
+                    // Usar requestAnimationFrame para garantir que o DOM está renderizado
+                    requestAnimationFrame(() => initFerramentasRodadas());
+                }
             }
         </script>
     </body>

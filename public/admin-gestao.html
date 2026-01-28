@@ -590,26 +590,48 @@
             }
         }
 
+        // ✅ Guards SPA para evitar dupla inicialização
+        if (!window.__admin_gestao_state) {
+            window.__admin_gestao_state = {
+                initRunning: false,
+                spaBound: false,
+                mobileBound: false,
+                initChecked: false
+            };
+        }
+
         // Função de inicialização reutilizável
         async function initAdminGestao() {
+            if (window.__admin_gestao_state.initRunning) return;
+            window.__admin_gestao_state.initRunning = true;
             console.log("[ADMIN-GESTAO] Inicializando página...");
-            await carregarLayout();
-            await verificarAcesso();
+            try {
+                await carregarLayout();
+                await verificarAcesso();
+            } finally {
+                window.__admin_gestao_state.initRunning = false;
+            }
         }
 
         // Inicializar apenas se estamos na página correta
-        if (window.location.pathname.includes('admin-gestao.html')) {
-            initAdminGestao();
+        if (!window.__admin_gestao_state.initChecked) {
+            window.__admin_gestao_state.initChecked = true;
+            if (window.location.pathname.includes('admin-gestao.html')) {
+                initAdminGestao();
+            }
         }
 
         // ✅ FIX: Reinicializar após navegação SPA
-        window.addEventListener('spa:navigated', async (e) => {
-            const { pageName } = e.detail || {};
-            if (pageName === 'admin-gestao.html') {
-                console.log('[ADMIN-GESTAO] Reinicializando após navegação SPA...');
-                await initAdminGestao();
-            }
-        });
+        if (!window.__admin_gestao_state.spaBound) {
+            window.__admin_gestao_state.spaBound = true;
+            window.addEventListener('spa:navigated', async (e) => {
+                const { pageName } = e.detail || {};
+                if (pageName === 'admin-gestao.html') {
+                    console.log('[ADMIN-GESTAO] Reinicializando após navegação SPA...');
+                    await initAdminGestao();
+                }
+            });
+        }
 
         // Toggle Sidebar Mobile
         function toggleMobileSidebar() {
@@ -620,15 +642,18 @@
         }
 
         // Fechar sidebar ao clicar fora (mobile)
-        document.addEventListener('click', function(e) {
-            const sidebar = document.querySelector('.app-sidebar');
-            const toggleBtn = document.getElementById('mobileSidebarToggle');
-            if (sidebar && sidebar.classList.contains('mobile-open')) {
-                if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
-                    sidebar.classList.remove('mobile-open');
+        if (!window.__admin_gestao_state.mobileBound) {
+            window.__admin_gestao_state.mobileBound = true;
+            document.addEventListener('click', function(e) {
+                const sidebar = document.querySelector('.app-sidebar');
+                const toggleBtn = document.getElementById('mobileSidebarToggle');
+                if (sidebar && sidebar.classList.contains('mobile-open')) {
+                    if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        sidebar.classList.remove('mobile-open');
+                    }
                 }
-            }
-        });
+            });
+        }
     </script>
 </body>
 </html>

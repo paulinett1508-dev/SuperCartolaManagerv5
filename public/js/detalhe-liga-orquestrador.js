@@ -12,7 +12,7 @@ class DetalheLigaOrquestrador {
         // Multi-Temporada: contexto de navegação
         this.temporada = this.obterTemporadaDaUrl();
         this.isTemporadaHistorica = false;
-        this.init();
+        this._initPromise = this.init();
     }
 
     // Lê o parâmetro ?temporada= da URL
@@ -1073,8 +1073,15 @@ function initOrquestrador() {
     window.detalheLigaOrquestrador = new DetalheLigaOrquestrador();
     window.orquestrador = window.detalheLigaOrquestrador;
 
-    // Resetar flag após criação
-    _orquestradorInitPending = false;
+    // Resetar flag apenas quando a inicialização assíncrona terminar
+    const initPromise = window.detalheLigaOrquestrador?._initPromise;
+    if (initPromise && typeof initPromise.finally === 'function') {
+        initPromise.finally(() => {
+            _orquestradorInitPending = false;
+        });
+    } else {
+        _orquestradorInitPending = false;
+    }
 }
 
 // INICIALIZAÇÃO - DOMContentLoaded

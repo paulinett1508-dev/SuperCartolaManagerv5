@@ -626,43 +626,73 @@
             document.getElementById('modalUsuario').classList.remove('active');
         }
 
+        // ✅ Guards SPA para evitar dupla inicialização
+        if (!window.__historico_state) {
+            window.__historico_state = {
+                initRunning: false,
+                spaBound: false,
+                modalBound: false,
+                tabsBound: false,
+                mobileBound: false,
+                initChecked: false
+            };
+        }
+
         // Fechar modal ao clicar fora
-        document.getElementById('modalUsuario').addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-overlay')) {
-                fecharModal();
-            }
-        });
+        if (!window.__historico_state.modalBound) {
+            window.__historico_state.modalBound = true;
+            document.getElementById('modalUsuario').addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal-overlay')) {
+                    fecharModal();
+                }
+            });
+        }
 
         // Tabs de periodo
-        document.querySelectorAll('.periodo-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.periodo-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                periodoAtual = tab.dataset.periodo;
-                renderizarEstatisticas();
+        if (!window.__historico_state.tabsBound) {
+            window.__historico_state.tabsBound = true;
+            document.querySelectorAll('.periodo-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.periodo-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    periodoAtual = tab.dataset.periodo;
+                    renderizarEstatisticas();
+                });
             });
-        });
+        }
 
         // Função de inicialização reutilizável
         async function initHistoricoAcessos() {
+            if (window.__historico_state.initRunning) return;
+            window.__historico_state.initRunning = true;
             console.log("[HISTORICO-ACESSOS] Inicializando página...");
-            await carregarLayout();
-            await carregarDashboard();
+            try {
+                await carregarLayout();
+                await carregarDashboard();
+            } finally {
+                window.__historico_state.initRunning = false;
+            }
         }
 
         // Inicializar apenas se estamos na página correta
-        if (window.location.pathname.includes('historico-acessos.html')) {
-            initHistoricoAcessos();
+        if (!window.__historico_state.initChecked) {
+            window.__historico_state.initChecked = true;
+            if (window.location.pathname.includes('historico-acessos.html')) {
+                initHistoricoAcessos();
+            }
         }
 
         // ✅ FIX: Reinicializar após navegação SPA
-        window.addEventListener('spa:navigated', async (e) => {
-            const { pageName } = e.detail || {};
-            if (pageName === 'historico-acessos.html') {
-                console.log('[HISTORICO-ACESSOS] Reinicializando após navegação SPA...');
-                await initHistoricoAcessos();
-            }
-        });
+        if (!window.__historico_state.spaBound) {
+            window.__historico_state.spaBound = true;
+            window.addEventListener('spa:navigated', async (e) => {
+                const { pageName } = e.detail || {};
+                if (pageName === 'historico-acessos.html') {
+                    console.log('[HISTORICO-ACESSOS] Reinicializando após navegação SPA...');
+                    await initHistoricoAcessos();
+                }
+            });
+        }
 
         // Toggle Sidebar Mobile
         function toggleMobileSidebar() {
@@ -673,16 +703,19 @@
         }
 
         // Fechar sidebar ao clicar fora (mobile)
-        document.addEventListener('click', function(e) {
-            const sidebar = document.querySelector('.app-sidebar');
-            const toggleBtn = document.getElementById('mobileSidebarToggle');
+        if (!window.__historico_state.mobileBound) {
+            window.__historico_state.mobileBound = true;
+            document.addEventListener('click', function(e) {
+                const sidebar = document.querySelector('.app-sidebar');
+                const toggleBtn = document.getElementById('mobileSidebarToggle');
 
-            if (sidebar && sidebar.classList.contains('mobile-open')) {
-                if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
-                    sidebar.classList.remove('mobile-open');
+                if (sidebar && sidebar.classList.contains('mobile-open')) {
+                    if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        sidebar.classList.remove('mobile-open');
+                    }
                 }
-            }
-        });
+            });
+        }
     </script>
 </body>
 </html>

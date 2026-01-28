@@ -637,6 +637,15 @@
 
         <!-- Layout loader -->
         <script>
+            // ✅ Guards SPA para evitar dupla inicialização
+            if (!window.__gerir_senhas_state) {
+                window.__gerir_senhas_state = {
+                    domBound: false,
+                    spaBound: false,
+                    readyChecked: false
+                };
+            }
+
             async function loadLayout() {
                 try {
                     const response = await fetch("layout.html");
@@ -671,23 +680,32 @@
                     console.error("Erro ao carregar layout:", error);
                 }
             }
-            document.addEventListener("DOMContentLoaded", () => {
-                if (!window.location.pathname.includes('gerir-senhas-participantes.html')) return;
-                loadLayout();
-            });
+            if (!window.__gerir_senhas_state.domBound) {
+                window.__gerir_senhas_state.domBound = true;
+                document.addEventListener("DOMContentLoaded", () => {
+                    if (!window.location.pathname.includes('gerir-senhas-participantes.html')) return;
+                    loadLayout();
+                });
+            }
 
             // ✅ FIX: Reinicializar após navegação SPA
-            window.addEventListener('spa:navigated', (e) => {
-                const { pageName } = e.detail || {};
-                if (pageName === 'gerir-senhas-participantes.html') {
-                    console.log('[GERIR-SENHAS] Reinicializando após navegação SPA...');
-                    loadLayout();
-                }
-            });
+            if (!window.__gerir_senhas_state.spaBound) {
+                window.__gerir_senhas_state.spaBound = true;
+                window.addEventListener('spa:navigated', (e) => {
+                    const { pageName } = e.detail || {};
+                    if (pageName === 'gerir-senhas-participantes.html') {
+                        console.log('[GERIR-SENHAS] Reinicializando após navegação SPA...');
+                        loadLayout();
+                    }
+                });
+            }
 
             // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
-            if (document.readyState !== 'loading' && window.location.pathname.includes('gerir-senhas-participantes.html')) {
-                loadLayout();
+            if (!window.__gerir_senhas_state.readyChecked) {
+                window.__gerir_senhas_state.readyChecked = true;
+                if (document.readyState !== 'loading' && window.location.pathname.includes('gerir-senhas-participantes.html')) {
+                    loadLayout();
+                }
             }
         </script>
 

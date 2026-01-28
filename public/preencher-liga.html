@@ -692,6 +692,15 @@
 
         <!-- Sidebar loader -->
         <script>
+            // ✅ Guards SPA para evitar dupla inicialização
+            if (!window.__preencher_liga_state) {
+                window.__preencher_liga_state = {
+                    domBound: false,
+                    spaBound: false,
+                    readyChecked: false
+                };
+            }
+
             async function loadLayout() {
                 try {
                     const response = await fetch("layout.html");
@@ -725,23 +734,32 @@
                     console.error("Erro ao carregar layout:", error);
                 }
             }
-            document.addEventListener("DOMContentLoaded", () => {
-                if (!window.location.pathname.includes('preencher-liga.html')) return;
-                loadLayout();
-            });
+            if (!window.__preencher_liga_state.domBound) {
+                window.__preencher_liga_state.domBound = true;
+                document.addEventListener("DOMContentLoaded", () => {
+                    if (!window.location.pathname.includes('preencher-liga.html')) return;
+                    loadLayout();
+                });
+            }
 
             // ✅ FIX: Reinicializar após navegação SPA
-            window.addEventListener('spa:navigated', (e) => {
-                const { pageName } = e.detail || {};
-                if (pageName === 'preencher-liga.html') {
-                    console.log('[PREENCHER-LIGA] Reinicializando após navegação SPA...');
-                    loadLayout();
-                }
-            });
+            if (!window.__preencher_liga_state.spaBound) {
+                window.__preencher_liga_state.spaBound = true;
+                window.addEventListener('spa:navigated', (e) => {
+                    const { pageName } = e.detail || {};
+                    if (pageName === 'preencher-liga.html') {
+                        console.log('[PREENCHER-LIGA] Reinicializando após navegação SPA...');
+                        loadLayout();
+                    }
+                });
+            }
 
             // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
-            if (document.readyState !== 'loading' && window.location.pathname.includes('preencher-liga.html')) {
-                loadLayout();
+            if (!window.__preencher_liga_state.readyChecked) {
+                window.__preencher_liga_state.readyChecked = true;
+                if (document.readyState !== 'loading' && window.location.pathname.includes('preencher-liga.html')) {
+                    loadLayout();
+                }
             }
         </script>
 

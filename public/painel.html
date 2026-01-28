@@ -262,6 +262,17 @@
                 totalParticipantes: 0,
             };
 
+            // ✅ Guards SPA para evitar dupla inicialização
+            if (!window.__painel_state) {
+                window.__painel_state = {
+                    initRunning: false,
+                    domBound: false,
+                    spaBound: false,
+                    modalBound: false,
+                    readyChecked: false
+                };
+            }
+
             // === CARREGAR LAYOUT ===
             async function loadLayout() {
                 try {
@@ -955,7 +966,9 @@
 
             async function carregarUsuariosOnline() {
                 try {
-                    const response = await fetch('/api/admin/usuarios-online');
+                    const response = await fetch('/api/admin/usuarios-online', {
+                        credentials: 'include'
+                    });
                     if (!response.ok) throw new Error('Erro ao buscar');
 
                     const data = await response.json();
@@ -1046,7 +1059,9 @@
 
             async function carregarLigasHistorico() {
                 try {
-                    const response = await fetch('/api/admin/usuarios-online/ligas');
+                    const response = await fetch('/api/admin/usuarios-online/ligas', {
+                        credentials: 'include'
+                    });
                     if (!response.ok) throw new Error('Erro ao buscar ligas');
 
                     const data = await response.json();
@@ -1082,7 +1097,9 @@
 
                 try {
                     const url = `/api/admin/usuarios-online/historico?page=${historicoPage}&limit=20${ligaId ? '&liga=' + ligaId : ''}`;
-                    const response = await fetch(url);
+                    const response = await fetch(url, {
+                        credentials: 'include'
+                    });
                     if (!response.ok) throw new Error('Erro ao buscar histórico');
 
                     const data = await response.json();
@@ -1150,12 +1167,15 @@
             }
 
             // Fechar modal ao clicar fora
-            document.addEventListener('click', (e) => {
-                const modal = document.getElementById('modalHistoricoAcessos');
-                if (modal && e.target === modal) {
-                    fecharModalHistorico();
-                }
-            });
+            if (!window.__painel_state.modalBound) {
+                window.__painel_state.modalBound = true;
+                document.addEventListener('click', (e) => {
+                    const modal = document.getElementById('modalHistoricoAcessos');
+                    if (modal && e.target === modal) {
+                        fecharModalHistorico();
+                    }
+                });
+            }
 
             // Expor funções globalmente
             window.abrirModalHistoricoAcessos = abrirModalHistoricoAcessos;
@@ -1165,43 +1185,58 @@
 
             // Função de inicialização reutilizável
             async function initPainel() {
+                if (window.__painel_state.initRunning) return;
+                window.__painel_state.initRunning = true;
                 console.log("[DASHBOARD] Inicializando dashboard...");
 
-                const autenticado = await verificarAutenticacao();
+                try {
+                    const autenticado = await verificarAutenticacao();
 
-                if (autenticado) {
-                    console.log(
-                        "[DASHBOARD] Usuario autenticado, carregando ligas...",
-                    );
-                    await loadLayout();
-                    await carregarDadosLigas();
-                    iniciarAtualizacaoUsuariosOnline();
-                } else {
-                    console.log("[DASHBOARD] Autenticacao falhou");
+                    if (autenticado) {
+                        console.log(
+                            "[DASHBOARD] Usuario autenticado, carregando ligas...",
+                        );
+                        await loadLayout();
+                        await carregarDadosLigas();
+                        iniciarAtualizacaoUsuariosOnline();
+                    } else {
+                        console.log("[DASHBOARD] Autenticacao falhou");
+                    }
+                } finally {
+                    window.__painel_state.initRunning = false;
                 }
             }
 
             // === Inicializar quando a página carregar ===
-            document.addEventListener("DOMContentLoaded", async () => {
-                // Verificar se estamos na página painel
-                if (!window.location.pathname.includes('painel.html')) {
-                    return;
-                }
-                await initPainel();
-            });
+            if (!window.__painel_state.domBound) {
+                window.__painel_state.domBound = true;
+                document.addEventListener("DOMContentLoaded", async () => {
+                    // Verificar se estamos na página painel
+                    if (!window.location.pathname.includes('painel.html')) {
+                        return;
+                    }
+                    await initPainel();
+                });
+            }
 
             // ✅ FIX: Reinicializar após navegação SPA
-            window.addEventListener('spa:navigated', async (e) => {
-                const { pageName } = e.detail || {};
-                if (pageName === 'painel.html') {
-                    console.log('[DASHBOARD] Reinicializando após navegação SPA...');
-                    await initPainel();
-                }
-            });
+            if (!window.__painel_state.spaBound) {
+                window.__painel_state.spaBound = true;
+                window.addEventListener('spa:navigated', async (e) => {
+                    const { pageName } = e.detail || {};
+                    if (pageName === 'painel.html') {
+                        console.log('[DASHBOARD] Reinicializando após navegação SPA...');
+                        await initPainel();
+                    }
+                });
+            }
 
             // ✅ FIX: Também inicializar se o DOM já estiver pronto (para navegação SPA)
-            if (document.readyState !== 'loading' && window.location.pathname.includes('painel.html')) {
-                initPainel();
+            if (!window.__painel_state.readyChecked) {
+                window.__painel_state.readyChecked = true;
+                if (document.readyState !== 'loading' && window.location.pathname.includes('painel.html')) {
+                    initPainel();
+                }
             }
 
             // Função global para retry
@@ -1210,66 +1245,69 @@
 
         <!-- PROTECAO CLIENT-SIDE -->
         <script>
-            (function () {
-                "use strict";
-                var isMobile =
-                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                        navigator.userAgent,
-                    );
-                if (!isMobile) {
-                    document.addEventListener("keydown", function (e) {
-                        if (e.key === "F12" || e.keyCode === 123) {
+            if (!window.__painel_protection_guard) {
+                window.__painel_protection_guard = true;
+                (function () {
+                    "use strict";
+                    var isMobile =
+                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                            navigator.userAgent,
+                        );
+                    if (!isMobile) {
+                        document.addEventListener("keydown", function (e) {
+                            if (e.key === "F12" || e.keyCode === 123) {
+                                e.preventDefault();
+                                return false;
+                            }
+                            if (
+                                e.ctrlKey &&
+                                e.shiftKey &&
+                                (e.key === "I" || e.key === "i" || e.keyCode === 73)
+                            ) {
+                                e.preventDefault();
+                                return false;
+                            }
+                            if (
+                                e.ctrlKey &&
+                                e.shiftKey &&
+                                (e.key === "J" || e.key === "j" || e.keyCode === 74)
+                            ) {
+                                e.preventDefault();
+                                return false;
+                            }
+                            if (
+                                e.ctrlKey &&
+                                e.shiftKey &&
+                                (e.key === "C" || e.key === "c" || e.keyCode === 67)
+                            ) {
+                                e.preventDefault();
+                                return false;
+                            }
+                            if (
+                                e.ctrlKey &&
+                                (e.key === "U" || e.key === "u" || e.keyCode === 85)
+                            ) {
+                                e.preventDefault();
+                                return false;
+                            }
+                            if (
+                                e.ctrlKey &&
+                                (e.key === "S" || e.key === "s" || e.keyCode === 83)
+                            ) {
+                                e.preventDefault();
+                                return false;
+                            }
+                        });
+                        document.addEventListener("contextmenu", function (e) {
                             e.preventDefault();
                             return false;
-                        }
-                        if (
-                            e.ctrlKey &&
-                            e.shiftKey &&
-                            (e.key === "I" || e.key === "i" || e.keyCode === 73)
-                        ) {
-                            e.preventDefault();
-                            return false;
-                        }
-                        if (
-                            e.ctrlKey &&
-                            e.shiftKey &&
-                            (e.key === "J" || e.key === "j" || e.keyCode === 74)
-                        ) {
-                            e.preventDefault();
-                            return false;
-                        }
-                        if (
-                            e.ctrlKey &&
-                            e.shiftKey &&
-                            (e.key === "C" || e.key === "c" || e.keyCode === 67)
-                        ) {
-                            e.preventDefault();
-                            return false;
-                        }
-                        if (
-                            e.ctrlKey &&
-                            (e.key === "U" || e.key === "u" || e.keyCode === 85)
-                        ) {
-                            e.preventDefault();
-                            return false;
-                        }
-                        if (
-                            e.ctrlKey &&
-                            (e.key === "S" || e.key === "s" || e.keyCode === 83)
-                        ) {
-                            e.preventDefault();
-                            return false;
-                        }
-                    });
-                    document.addEventListener("contextmenu", function (e) {
-                        e.preventDefault();
-                        return false;
-                    });
-                }
-                if (window.self !== window.top) {
-                    window.top.location = window.self.location;
-                }
-            })();
+                        });
+                    }
+                    if (window.self !== window.top) {
+                        window.top.location = window.self.location;
+                    }
+                })();
+            }
         </script>
 
     </body>

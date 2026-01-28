@@ -1,0 +1,202 @@
+{
+  "id": "extrato",
+  "nome": "Extrato Financeiro",
+  "descricao": "Controle de mensalidades, pagamentos, acertos e saldo financeiro dos participantes.",
+  "tipo": "financeiro",
+  "status": "ativo",
+  "versao": "1.0.0",
+  "configuracao": {
+    "modulo_ativo": true,
+    "temporada": 2026
+  },
+  "regras": {
+    "calculo": {
+      "metodo": "soma_componentes",
+      "componentes": [
+        "banco_rodadas",
+        "top10_mitos_micos",
+        "melhor_mes",
+        "pontos_corridos",
+        "mata_mata",
+        "artilheiro_luva_ouro",
+        "acertos_manuais",
+        "campos_editaveis"
+      ]
+    },
+    "moeda": "BRL",
+    "precisao_decimal": 2,
+    "exibir_historico": true,
+    "permitir_exportacao": true
+  },
+  "campos_editaveis": {
+    "campo1": {
+      "label": "Campo Livre 1",
+      "descricao": "Campo editável customizável",
+      "tipo": "currency",
+      "default": 0
+    },
+    "campo2": {
+      "label": "Campo Livre 2",
+      "descricao": "Campo editável customizável",
+      "tipo": "currency",
+      "default": 0
+    },
+    "campo3": {
+      "label": "Campo Livre 3",
+      "descricao": "Campo editável customizável",
+      "tipo": "currency",
+      "default": 0
+    },
+    "campo4": {
+      "label": "Campo Livre 4",
+      "descricao": "Campo editável customizável",
+      "tipo": "currency",
+      "default": 0
+    }
+  },
+  "financeiro": {
+    "impacto_direto": false,
+    "descricao": "Módulo agregador, não gera transações próprias"
+  },
+  "wizard": {
+    "titulo": "Configurar Extrato Financeiro",
+    "descricao": "Defina as configurações de exibição e os rótulos dos campos livres do extrato.",
+    "perguntas": [
+      {
+        "id": "exibir_historico_completo",
+        "tipo": "boolean",
+        "label": "Exibir histórico completo por rodada?",
+        "descricao": "Se ativado, mostra tabela detalhada rodada por rodada. Se desativado, mostra apenas saldo consolidado.",
+        "default": true,
+        "required": true,
+        "afeta": "regras_override.exibir_historico"
+      },
+      {
+        "id": "permitir_exportacao_pdf",
+        "tipo": "boolean",
+        "label": "Permitir exportação em PDF?",
+        "descricao": "Habilita botão de download do extrato em formato PDF para os participantes.",
+        "default": true,
+        "required": true,
+        "afeta": "regras_override.permitir_exportacao"
+      },
+      {
+        "id": "label_campo1",
+        "tipo": "text",
+        "label": "Nome do Campo Livre 1",
+        "descricao": "Personalize o rótulo do primeiro campo editável (ex: 'Bônus Melhor Mês', 'Prêmio Especial')",
+        "default": "Campo Livre 1",
+        "placeholder": "Ex: Bônus Melhor Mês",
+        "maxlength": 50,
+        "required": false,
+        "afeta": "campos_editaveis_override.campo1.label"
+      },
+      {
+        "id": "label_campo2",
+        "tipo": "text",
+        "label": "Nome do Campo Livre 2",
+        "descricao": "Personalize o rótulo do segundo campo editável",
+        "default": "Campo Livre 2",
+        "placeholder": "Ex: Prêmio Pontos Corridos",
+        "maxlength": 50,
+        "required": false,
+        "afeta": "campos_editaveis_override.campo2.label"
+      },
+      {
+        "id": "label_campo3",
+        "tipo": "text",
+        "label": "Nome do Campo Livre 3",
+        "descricao": "Personalize o rótulo do terceiro campo editável",
+        "default": "Campo Livre 3",
+        "placeholder": "Ex: Multa por Atraso",
+        "maxlength": 50,
+        "required": false,
+        "afeta": "campos_editaveis_override.campo3.label"
+      },
+      {
+        "id": "label_campo4",
+        "tipo": "text",
+        "label": "Nome do Campo Livre 4",
+        "descricao": "Personalize o rótulo do quarto campo editável",
+        "default": "Campo Livre 4",
+        "placeholder": "Ex: Taxa Extraordinária",
+        "maxlength": 50,
+        "required": false,
+        "afeta": "campos_editaveis_override.campo4.label"
+      },
+      {
+        "id": "exibir_campos_zerados",
+        "tipo": "boolean",
+        "label": "Exibir campos livres mesmo quando zerados?",
+        "descricao": "Se desativado, campos com valor R$ 0,00 ficam ocultos no extrato.",
+        "default": false,
+        "required": true,
+        "afeta": "regras_override.exibir_campos_zerados"
+      },
+      {
+        "id": "cor_saldo_positivo",
+        "tipo": "select",
+        "label": "Cor do saldo positivo",
+        "descricao": "Escolha a cor para exibir saldos positivos (crédito)",
+        "default": "verde",
+        "required": true,
+        "options": [
+          {
+            "valor": "verde",
+            "label": "Verde (#10b981)"
+          },
+          {
+            "valor": "azul",
+            "label": "Azul (#3b82f6)"
+          },
+          {
+            "valor": "laranja",
+            "label": "Laranja (#f97316)"
+          }
+        ],
+        "afeta": "ui_override.cor_saldo_positivo"
+      },
+      {
+        "id": "cor_saldo_negativo",
+        "tipo": "select",
+        "label": "Cor do saldo negativo",
+        "descricao": "Escolha a cor para exibir saldos negativos (débito)",
+        "default": "vermelho",
+        "required": true,
+        "options": [
+          {
+            "valor": "vermelho",
+            "label": "Vermelho (#ef4444)"
+          },
+          {
+            "valor": "laranja_escuro",
+            "label": "Laranja Escuro (#ea580c)"
+          },
+          {
+            "valor": "rosa",
+            "label": "Rosa (#ec4899)"
+          }
+        ],
+        "afeta": "ui_override.cor_saldo_negativo"
+      }
+    ]
+  },
+  "ui": {
+    "cores": {
+      "credito": "#10b981",
+      "neutro": "#6b7280",
+      "debito": "#ef4444"
+    },
+    "icones": {
+      "principal": "account_balance_wallet",
+      "positivo": "trending_up",
+      "negativo": "trending_down",
+      "neutro": "remove"
+    }
+  },
+  "metadados": {
+    "criado_em": "2026-01-28",
+    "autor": "Sistema",
+    "fonte": "controllers/extratoFinanceiroCacheController.js"
+  }
+}

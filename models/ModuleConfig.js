@@ -20,6 +20,7 @@ import { CURRENT_SEASON } from "../config/seasons.js";
 // =============================================================================
 
 export const MODULOS_DISPONIVEIS = [
+    'extrato',            // ✅ NOVO: Módulo base de extrato financeiro
     'ranking_geral',
     'ranking_rodada',
     'pontos_corridos',

@@ -86,6 +86,17 @@
 
             window.ligasData = [];
 
+            // ✅ Guards SPA para evitar dupla inicialização
+            if (!window.__gerenciar_state) {
+                window.__gerenciar_state = {
+                    initRunning: false,
+                    domBound: false,
+                    spaBound: false,
+                    inputBound: false,
+                    readyChecked: false
+                };
+            }
+
             async function loadLayout() {
                 try {
                     const response = await fetch("layout.html");
@@ -229,44 +240,62 @@
                 }
             };
 
-            document.addEventListener("input", function (e) {
-                if (e.target.id === "searchInput") {
-                    const searchTerm = e.target.value.toLowerCase();
-                    const items = document.querySelectorAll(".liga-item");
+            if (!window.__gerenciar_state.inputBound) {
+                window.__gerenciar_state.inputBound = true;
+                document.addEventListener("input", function (e) {
+                    if (e.target.id === "searchInput") {
+                        const searchTerm = e.target.value.toLowerCase();
+                        const items = document.querySelectorAll(".liga-item");
 
-                    items.forEach((item) => {
-                        const nome = item.dataset.nome.toLowerCase();
-                        const id = item.dataset.id.toLowerCase();
-                        const visible = nome.includes(searchTerm) || id.includes(searchTerm);
-                        item.style.display = visible ? "flex" : "none";
-                    });
-                }
-            });
+                        items.forEach((item) => {
+                            const nome = item.dataset.nome.toLowerCase();
+                            const id = item.dataset.id.toLowerCase();
+                            const visible = nome.includes(searchTerm) || id.includes(searchTerm);
+                            item.style.display = visible ? "flex" : "none";
+                        });
+                    }
+                });
+            }
 
             // Função de inicialização reutilizável
             async function initGerenciar() {
+                if (window.__gerenciar_state.initRunning) return;
+                window.__gerenciar_state.initRunning = true;
                 console.log("[GERENCIAR] Inicializando página...");
-                await loadLayout();
-                setTimeout(() => carregarListaLigas(), 100);
+                try {
+                    await loadLayout();
+                    setTimeout(() => carregarListaLigas(), 100);
+                } finally {
+                    window.__gerenciar_state.initRunning = false;
+                }
             }
 
-            document.addEventListener("DOMContentLoaded", async () => {
-                if (!window.location.pathname.includes('gerenciar.html')) return;
-                await initGerenciar();
-            });
+            if (!window.__gerenciar_state.domBound) {
+                window.__gerenciar_state.domBound = true;
+                document.addEventListener("DOMContentLoaded", async () => {
+                    if (!window.location.pathname.includes('gerenciar.html')) return;
+                    await initGerenciar();
+                });
+            }
 
             // ✅ FIX: Reinicializar após navegação SPA
-            window.addEventListener('spa:navigated', async (e) => {
-                const { pageName } = e.detail || {};
-                if (pageName === 'gerenciar.html') {
-                    console.log('[GERENCIAR] Reinicializando após navegação SPA...');
-                    await initGerenciar();
-                }
-            });
+            if (!window.__gerenciar_state.spaBound) {
+                window.__gerenciar_state.spaBound = true;
+                window.addEventListener('spa:navigated', async (e) => {
+                    const { pageName } = e.detail || {};
+                    if (pageName === 'gerenciar.html') {
+                        console.log('[GERENCIAR] Reinicializando após navegação SPA...');
+                        await initGerenciar();
+                    }
+                });
+            }
 
             // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
-            if (document.readyState !== 'loading' && window.location.pathname.includes('gerenciar.html')) {
-                initGerenciar();
+            if (!window.__gerenciar_state.readyChecked) {
+                window.__gerenciar_state.readyChecked = true;
+                if (document.readyState !== 'loading' && window.location.pathname.includes('gerenciar.html')) {
+                    initGerenciar();
+                }
             }
         </script>
     </body>

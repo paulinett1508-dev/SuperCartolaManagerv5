@@ -470,32 +470,58 @@
             }
         }
 
+        // ✅ Guards SPA para evitar dupla inicialização
+        if (!window.__auditoria_extratos_state) {
+            window.__auditoria_extratos_state = {
+                initRunning: false,
+                spaBound: false,
+                eventsBound: false,
+                mobileBound: false,
+                initChecked: false
+            };
+        }
+
         // Eventos
-        document.getElementById('btnAudit').addEventListener('click', executarAuditoria);
-        document.getElementById('ligaSelect').addEventListener('change', function() {
-            document.getElementById('auditResults').innerHTML = '';
-        });
+        if (!window.__auditoria_extratos_state.eventsBound) {
+            window.__auditoria_extratos_state.eventsBound = true;
+            document.getElementById('btnAudit').addEventListener('click', executarAuditoria);
+            document.getElementById('ligaSelect').addEventListener('change', function() {
+                document.getElementById('auditResults').innerHTML = '';
+            });
+        }
 
         // Função de inicialização reutilizável
         async function initAuditoriaExtratos() {
+            if (window.__auditoria_extratos_state.initRunning) return;
+            window.__auditoria_extratos_state.initRunning = true;
             console.log("[AUDITORIA-EXTRATOS] Inicializando página...");
-            await carregarLayout();
-            await carregarLigas();
+            try {
+                await carregarLayout();
+                await carregarLigas();
+            } finally {
+                window.__auditoria_extratos_state.initRunning = false;
+            }
         }
 
         // Inicializar apenas se estamos na página correta
-        if (window.location.pathname.includes('auditoria-extratos.html')) {
-            initAuditoriaExtratos();
+        if (!window.__auditoria_extratos_state.initChecked) {
+            window.__auditoria_extratos_state.initChecked = true;
+            if (window.location.pathname.includes('auditoria-extratos.html')) {
+                initAuditoriaExtratos();
+            }
         }
 
         // ✅ FIX: Reinicializar após navegação SPA
-        window.addEventListener('spa:navigated', async (e) => {
-            const { pageName } = e.detail || {};
-            if (pageName === 'auditoria-extratos.html') {
-                console.log('[AUDITORIA-EXTRATOS] Reinicializando após navegação SPA...');
-                await initAuditoriaExtratos();
-            }
-        });
+        if (!window.__auditoria_extratos_state.spaBound) {
+            window.__auditoria_extratos_state.spaBound = true;
+            window.addEventListener('spa:navigated', async (e) => {
+                const { pageName } = e.detail || {};
+                if (pageName === 'auditoria-extratos.html') {
+                    console.log('[AUDITORIA-EXTRATOS] Reinicializando após navegação SPA...');
+                    await initAuditoriaExtratos();
+                }
+            });
+        }
 
         // Toggle Sidebar Mobile
         function toggleMobileSidebar() {
@@ -506,15 +532,18 @@
         }
 
         // Fechar sidebar ao clicar fora (mobile)
-        document.addEventListener('click', function(e) {
-            const sidebar = document.querySelector('.app-sidebar');
-            const toggleBtn = document.getElementById('mobileSidebarToggle');
-            if (sidebar && sidebar.classList.contains('mobile-open')) {
-                if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
-                    sidebar.classList.remove('mobile-open');
+        if (!window.__auditoria_extratos_state.mobileBound) {
+            window.__auditoria_extratos_state.mobileBound = true;
+            document.addEventListener('click', function(e) {
+                const sidebar = document.querySelector('.app-sidebar');
+                const toggleBtn = document.getElementById('mobileSidebarToggle');
+                if (sidebar && sidebar.classList.contains('mobile-open')) {
+                    if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        sidebar.classList.remove('mobile-open');
+                    }
                 }
-            }
-        });
+            });
+        }
     </script>
 </body>
 </html>

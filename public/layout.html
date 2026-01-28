@@ -701,6 +701,41 @@
                         const newMain = doc.querySelector('main') || doc.querySelector('.main-content');
                         if (!newMain) throw new Error('No main content');
 
+                        // ✅ Sincronizar CSS da nova página (evita layout quebrado ao navegar via SPA)
+                        const newStyles = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
+                        newStyles.forEach((link) => {
+                            const href = link.getAttribute('href');
+                            if (!href) return;
+                            if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
+                                const newLink = document.createElement('link');
+                                newLink.rel = 'stylesheet';
+                                newLink.href = href;
+                                document.head.appendChild(newLink);
+                            }
+                        });
+
+                        // ✅ Sincronizar estilos inline do head (evita estilos críticos faltando no SPA)
+                        const hashString = (str) => {
+                            let hash = 0;
+                            for (let i = 0; i < str.length; i++) {
+                                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                                hash |= 0; // 32-bit
+                            }
+                            return Math.abs(hash);
+                        };
+                        const newInlineStyles = Array.from(doc.querySelectorAll('head style'));
+                        newInlineStyles.forEach((styleEl) => {
+                            const cssText = styleEl.textContent || '';
+                            if (!cssText.trim()) return;
+                            const hash = `spa-inline-style-${hashString(cssText)}`;
+                            // Evitar duplicar o mesmo bloco de CSS
+                            if (document.querySelector(`style[data-spa-inline="${hash}"]`)) return;
+                            const newStyle = document.createElement('style');
+                            newStyle.setAttribute('data-spa-inline', hash);
+                            newStyle.textContent = cssText;
+                            document.head.appendChild(newStyle);
+                        });
+
                         // Extrair scripts inline da nova página (exceto layout.html)
                         const newScripts = Array.from(doc.querySelectorAll('script:not([src])')).filter(s => {
                             const text = s.textContent || '';
@@ -765,8 +800,8 @@
                         const isModule = scriptEl.getAttribute('type') === 'module';
 
                         return new Promise((resolve) => {
-                            // Verificar se já carregado (apenas para não-módulos)
-                            if (!isModule && document.querySelector(`script[src="${src}"]`)) {
+                            // Verificar se já carregado (inclusive módulos) para evitar dupla inicialização
+                            if (document.querySelector(`script[src="${src}"]`)) {
                                 resolve();
                                 return;
                             }
