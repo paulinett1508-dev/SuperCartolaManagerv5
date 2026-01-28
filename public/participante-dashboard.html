@@ -319,16 +319,24 @@
 
     <!-- ✅ CRITICAL: Módulo DEVE carregar como ES6 MODULE -->
     <script type="module">
-        console.log('[PARTICIPANTE-DASHBOARD] 🔄 Carregando módulo extrato...');
+        if (!window.__participante_dashboard_state) {
+            window.__participante_dashboard_state = { menuBound: false };
+        }
+        if (window.__participante_dashboard_state.extratoLoaded) {
+            console.warn('[PARTICIPANTE-DASHBOARD] Módulo extrato já carregado, pulando...');
+        } else {
+            window.__participante_dashboard_state.extratoLoaded = true;
+            console.log('[PARTICIPANTE-DASHBOARD] 🔄 Carregando módulo extrato...');
 
-        // Importar e expor função globalmente
-        const { inicializarExtratoParticipante } = await import('/participante/js/modules/participante-extrato.js');
-        window.inicializarExtratoParticipante = inicializarExtratoParticipante;
+            // Importar e expor função globalmente
+            const { inicializarExtratoParticipante } = await import('/participante/js/modules/participante-extrato.js');
+            window.inicializarExtratoParticipante = inicializarExtratoParticipante;
 
-        console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulo extrato carregado:', typeof window.inicializarExtratoParticipante);
+            console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulo extrato carregado:', typeof window.inicializarExtratoParticipante);
 
-        // Disparar evento para notificar que módulo está pronto
-        window.dispatchEvent(new CustomEvent('moduloExtratoCarregado'));
+            // Disparar evento para notificar que módulo está pronto
+            window.dispatchEvent(new CustomEvent('moduloExtratoCarregado'));
+        }
     </script>
 
     <!-- Sistema de Navegação -->
@@ -336,7 +344,12 @@
 
     <!-- SCRIPT: Hamburger Menu Toggle -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        if (!window.__participante_dashboard_state) {
+            window.__participante_dashboard_state = { menuBound: false };
+        }
+        if (!window.__participante_dashboard_state.menuBound) {
+            window.__participante_dashboard_state.menuBound = true;
+            document.addEventListener('DOMContentLoaded', function() {
             const menuToggle = document.getElementById('headerMenuToggle');
             const headerSecondary = document.getElementById('headerSecondary');
             
@@ -358,7 +371,8 @@
                     });
                 });
             }
-        });
+            });
+        }
     </script>
 </head>
 <body>
@@ -426,7 +440,12 @@
 
   <!-- SCRIPT: Hamburger Menu Toggle -->
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    if (!window.__participante_dashboard_state) {
+      window.__participante_dashboard_state = { menuBound: false };
+    }
+    if (!window.__participante_dashboard_state.menuBound) {
+      window.__participante_dashboard_state.menuBound = true;
+      document.addEventListener('DOMContentLoaded', function() {
       const menuToggle = document.getElementById('headerMenuToggle');
       const headerSecondary = document.getElementById('headerSecondary');
       
@@ -443,7 +462,8 @@
           });
         });
       }
-    });
+      });
+    }
   </script>
 
   <div class="container">
@@ -456,6 +476,13 @@
   </div>
 
   <script type="module">
+        if (!window.__participante_dashboard_state) {
+            window.__participante_dashboard_state = { menuBound: false };
+        }
+        if (window.__participante_dashboard_state.fluxoLoaded) {
+            console.warn('[PARTICIPANTE-DASHBOARD] Fluxo financeiro já inicializado, pulando...');
+        } else {
+            window.__participante_dashboard_state.fluxoLoaded = true;
         // ⚠️ IMPORTANTE: Este script usa APENAS fluxo-financeiro-participante.js
         // NÃO importar fluxo-financeiro.js (módulo ADMIN)
 
@@ -1305,6 +1332,7 @@
 
             console.log('[PARTICIPANTE-DASHBOARD] ✅ Dashboard inicializado');
         });
+        } // guard
     </script>
 </body>
 </html>

@@ -299,6 +299,11 @@
         <script type="module">
             import { FluxoFinanceiroAPI } from "./js/fluxo-financeiro/fluxo-financeiro-api.js";
 
+            if (window.__migrar_localstorage_guard) {
+                console.warn('[MIGRAR] Script já inicializado, pulando...');
+            } else {
+                window.__migrar_localstorage_guard = true;
+
             let dadosEncontrados = [];
 
             // Função para obter Liga ID da URL
@@ -661,6 +666,8 @@
                 addLog("⚠️  Nenhuma liga detectada na URL", "warning");
                 addLog("💡 Adicione ?id=LIGA_ID à URL e recarregue", "warning");
             }
+
+            } // guard
         </script>
     </body>
 </html>

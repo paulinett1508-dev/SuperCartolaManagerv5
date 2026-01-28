@@ -754,6 +754,14 @@
         </div>
 
         <script>
+            // ✅ Guards para evitar dupla inicialização
+            if (!window.__participante_login_state) {
+                window.__participante_login_state = {
+                    loadBound: false,
+                    globoBound: false
+                };
+            }
+
             // Toggle Password Visibility
             function togglePassword() {
                 const senhaInput = document.getElementById("senha");
@@ -820,7 +828,9 @@
             // Check if already authenticated
             let verificandoSessao = false;
 
-            window.addEventListener("load", async () => {
+            if (!window.__participante_login_state.loadBound) {
+                window.__participante_login_state.loadBound = true;
+                window.addEventListener("load", async () => {
                 if (verificandoSessao) return;
                 verificandoSessao = true;
 
@@ -876,8 +886,9 @@
                 }
 
                 // Configurar deteccao de assinante APOS DOM carregar
-                setupGloboLoginDetection();
-            });
+                    setupGloboLoginDetection();
+                });
+            }
 
             // =====================================================================
             // DETECCAO DE ASSINANTE E LOGIN GLOBO
@@ -917,6 +928,8 @@
 
             // Funcao que configura os listeners (chamada apos DOM carregar)
             function setupGloboLoginDetection() {
+                if (window.__participante_login_state.globoBound) return;
+                window.__participante_login_state.globoBound = true;
                 const timeIdInput = document.getElementById('timeId');
                 const globoSection = document.getElementById('globoLoginSection');
 

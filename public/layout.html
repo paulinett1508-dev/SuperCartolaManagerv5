@@ -749,8 +749,11 @@
                             return !src.includes('sidebar') && !src.includes('layout');
                         });
 
-                        // Substituir conteúdo
+                        // Substituir conteúdo + sincronizar classes do main
                         mainContent.innerHTML = newMain.innerHTML;
+                        if (newMain.className && mainContent.className !== newMain.className) {
+                            mainContent.className = newMain.className;
+                        }
 
                         // Atualizar título
                         const newTitle = doc.querySelector('title')?.textContent;

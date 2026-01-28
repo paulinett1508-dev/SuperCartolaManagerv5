@@ -720,6 +720,10 @@
 
         <!-- Scripts -->
         <script type="module">
+            if (window.__api_football_guard) {
+                console.warn('[API-FOOTBALL] Script já inicializado, pulando...');
+            } else {
+            window.__api_football_guard = true;
             // Carregar layout
             async function loadLayout() {
                 try {
@@ -956,6 +960,7 @@
                     carregarJogos();
                 }, 60000);
             });
+            } // guard
         </script>
     </body>
 </html>

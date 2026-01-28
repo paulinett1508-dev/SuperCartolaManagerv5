@@ -269,7 +269,9 @@
 
     <!-- 🛡️ PROTEÇÃO CLIENT-SIDE -->
     <script>
-      (function () {
+      if (!window.__index_protection_guard) {
+        window.__index_protection_guard = true;
+        (function () {
         "use strict";
 
         var isMobile =
@@ -331,32 +333,36 @@
         if (window.self !== window.top) {
           window.top.location = window.self.location;
         }
-      })();
+        })();
+      }
     </script>
 
     <script>
-      // Verificar erros na URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const error = urlParams.get("error");
+      if (!window.__index_error_guard) {
+        window.__index_error_guard = true;
+        // Verificar erros na URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get("error");
 
-      if (error) {
-        const errorEl = document.getElementById("errorMessage");
-        const messages = {
-          unauthorized: "Seu email não está autorizado como administrador.",
-          admin_required:
-            "Você precisa fazer login como administrador para acessar esta área.",
-          session: "Erro ao criar sessão. Tente novamente.",
-          auth_init_failed: "Erro ao iniciar autenticação. Tente novamente.",
-          auth_failed: "Falha na autenticação. Verifique suas credenciais.",
-          auth_callback_failed: "Erro no processo de login. Tente novamente.",
-        };
+        if (error) {
+          const errorEl = document.getElementById("errorMessage");
+          const messages = {
+            unauthorized: "Seu email não está autorizado como administrador.",
+            admin_required:
+              "Você precisa fazer login como administrador para acessar esta área.",
+            session: "Erro ao criar sessão. Tente novamente.",
+            auth_init_failed: "Erro ao iniciar autenticação. Tente novamente.",
+            auth_failed: "Falha na autenticação. Verifique suas credenciais.",
+            auth_callback_failed: "Erro no processo de login. Tente novamente.",
+          };
 
-        errorEl.textContent =
-          messages[error] || `Erro desconhecido (${error}). Tente novamente.`;
-        errorEl.classList.add("show");
+          errorEl.textContent =
+            messages[error] || `Erro desconhecido (${error}). Tente novamente.`;
+          errorEl.classList.add("show");
 
-        // Limpar URL
-        window.history.replaceState({}, document.title, "/");
+          // Limpar URL
+          window.history.replaceState({}, document.title, "/");
+        }
       }
     </script>
   </body>

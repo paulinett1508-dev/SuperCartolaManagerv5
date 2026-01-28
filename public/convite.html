@@ -535,7 +535,10 @@
                     container.appendChild(particle);
                 }
             }
-            createParticles();
+            if (!window.__convite_particles_guard) {
+                window.__convite_particles_guard = true;
+                createParticles();
+            }
         </script>
     </body>
 </html>

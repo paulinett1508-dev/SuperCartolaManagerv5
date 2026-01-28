@@ -64,6 +64,9 @@ class DetalheLigaOrquestrador {
 
     async init() {
         try {
+            if (typeof window.__logInit === 'function') {
+                window.__logInit('detalhe-liga.html', 'DetalheLigaOrquestrador.init');
+            }
             await this.loadLayout();
             // Multi-Temporada: detectar e configurar contexto
             await this.detectarTemporadaHistorica();
@@ -1056,6 +1059,13 @@ function initOrquestrador() {
         return;
     }
 
+    // Evitar reinicializar se já rodou nesta navegação SPA
+    const currentNavId = window.__spaInitLog?.navId ?? 0;
+    if (window.__dl_last_nav_id === currentNavId && window.detalheLigaOrquestrador?._navigationInitialized) {
+        console.log('[ORQUESTRADOR] Já inicializado nesta navegação, pulando...');
+        return;
+    }
+
     // Verificar se já existe um orquestrador válido
     if (window.detalheLigaOrquestrador && window.detalheLigaOrquestrador._navigationInitialized) {
         console.log('[ORQUESTRADOR] Já inicializado, pulando...');
@@ -1072,6 +1082,7 @@ function initOrquestrador() {
     console.log('[ORQUESTRADOR] Criando nova instância...');
     window.detalheLigaOrquestrador = new DetalheLigaOrquestrador();
     window.orquestrador = window.detalheLigaOrquestrador;
+    window.__dl_last_nav_id = currentNavId;
 
     // Resetar flag apenas quando a inicialização assíncrona terminar
     const initPromise = window.detalheLigaOrquestrador?._initPromise;
@@ -1094,6 +1105,11 @@ window.addEventListener('spa:navigated', (e) => {
     const { pageName } = e.detail || {};
     if (pageName === 'detalhe-liga.html') {
         console.log('[ORQUESTRADOR] Reinicializando após navegação SPA...');
+        const currentNavId = window.__spaInitLog?.navId ?? 0;
+        if (window.__dl_last_nav_id === currentNavId && window.detalheLigaOrquestrador?._navigationInitialized) {
+            console.log('[ORQUESTRADOR] SPA já inicializado nesta navegação, pulando...');
+            return;
+        }
         // v3.1: Invalidar cache de cards-condicionais ao navegar para outra liga
         if (window.cardsCondicionais?.invalidarCache) {
             window.cardsCondicionais.invalidarCache();

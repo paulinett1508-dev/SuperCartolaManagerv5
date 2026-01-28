@@ -298,12 +298,18 @@
     </div>
 
     <script>
+        if (!window.__admin_login_state) {
+            window.__admin_login_state = { bound: false };
+        }
+
         const loginForm = document.getElementById('loginForm');
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
         const btnLogin = document.getElementById('btnLogin');
 
-        loginForm.addEventListener('submit', async (e) => {
+        if (!window.__admin_login_state.bound) {
+            window.__admin_login_state.bound = true;
+            loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const email = document.getElementById('email').value.trim();
@@ -355,7 +361,7 @@
                 btnLogin.disabled = false;
                 btnLogin.innerHTML = '<span class="material-icons">login</span> Entrar';
             }
-        });
+            });
 
         // Trocar senha
         document.getElementById('formTrocarSenha').addEventListener('submit', async (e) => {
@@ -394,7 +400,8 @@
             } catch (error) {
                 alert('Erro: ' + error.message);
             }
-        });
+            });
+        }
 
         function mostrarErro(msg) {
             errorMessage.textContent = msg;

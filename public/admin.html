@@ -31,16 +31,19 @@
         }
     </style>
     <script>
-        // Redirect para ferramentas-rodadas.html (consolidação de páginas)
-        // Preserva compatibilidade com links antigos que usavam ?id=
-        const params = new URLSearchParams(window.location.search);
-        const ligaId = params.get('id');
+        if (!window.__admin_redirect_guard) {
+            window.__admin_redirect_guard = true;
+            // Redirect para ferramentas-rodadas.html (consolidação de páginas)
+            // Preserva compatibilidade com links antigos que usavam ?id=
+            const params = new URLSearchParams(window.location.search);
+            const ligaId = params.get('id');
 
-        // Se tinha ID, redireciona com ID para seleção automática
-        if (ligaId) {
-            window.location.replace(`ferramentas-rodadas.html?id=${ligaId}`);
-        } else {
-            window.location.replace('ferramentas-rodadas.html');
+            // Se tinha ID, redireciona com ID para seleção automática
+            if (ligaId) {
+                window.location.replace(`ferramentas-rodadas.html?id=${ligaId}`);
+            } else {
+                window.location.replace('ferramentas-rodadas.html');
+            }
         }
     </script>
 </head>

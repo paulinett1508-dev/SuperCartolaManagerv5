@@ -4,7 +4,13 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.24.0
+ * @version 2.26.0
+ * ✅ v2.26.0: FIX CRÍTICO CRIT-001 e CRIT-002 - Bugs inscrição 2026
+ *   - CRIT-001: Atualiza pagou_inscricao=true quando admin registra acerto de inscrição
+ *   - CRIT-002: Deduz taxa de inscrição no cálculo de saldo quando pagou_inscricao=false
+ *   - Badge "DEVE" agora atualiza corretamente após pagamento
+ *   - Extrato individual mostra saldo correto (saldo_anterior - taxa se não pagou)
+ *   - Ref: .claude/FIX-FLUXO-FINANCEIRO-INSCRICAO.md + Auditoria SPARC
  * ✅ v2.24.0: FIX CRÍTICO - NÃO deletar cache do extrato ao registrar acertos
  *   - Bug v2.4 deletava cache, zerando histórico (rodadas, PC, MM, Top10)
  *   - Acertos são armazenados em coleção separada e integrados na consulta
@@ -91,6 +97,58 @@ async function calcularSaldoCompleto(ligaId, timeId, temporada = CURRENT_SEASON)
             time_id: Number(timeId),
             temporada: Number(temporada),
         }).lean();
+    }
+
+    // =========================================================================
+    // ✅ v2.26 FIX CRIT-002: Deduzir taxa de inscrição se não pagou diretamente
+    // Quando participante renovou mas não pagou a inscrição, o saldo inicial
+    // deve refletir o débito da taxa (saldo_anterior - taxa)
+    // =========================================================================
+    const tempNum = Number(temporada);
+    if (tempNum >= 2026) {
+        const inscricao = await InscricaoTemporada.findOne({
+            liga_id: String(ligaId),
+            time_id: Number(timeId),
+            temporada: tempNum
+        }).lean();
+
+        if (inscricao && inscricao.pagou_inscricao === false) {
+            const taxaInscricao = inscricao.taxa_inscricao || 180;
+            const saldoAnterior = inscricao.saldo_transferido || 0;
+
+            // IMPORTANTE: Saldo inicial = saldo anterior - taxa
+            // Ex: Saldo 2025 = +R$50, Taxa = R$180 → Saldo inicial 2026 = -R$130 (DEVE)
+            const saldoInicialCorrigido = saldoAnterior - taxaInscricao;
+
+            console.log(`[TESOURARIA] 📊 Ajuste de inscrição não paga:`);
+            console.log(`  - Saldo anterior: R$ ${saldoAnterior.toFixed(2)}`);
+            console.log(`  - Taxa inscrição: R$ ${taxaInscricao.toFixed(2)}`);
+            console.log(`  - Saldo inicial: R$ ${saldoInicialCorrigido.toFixed(2)}`);
+
+            // Injetar transação virtual de inscrição no cache
+            if (!cache) {
+                cache = {
+                    liga_id: String(ligaId),
+                    time_id: Number(timeId),
+                    temporada: tempNum,
+                    saldo_consolidado: saldoInicialCorrigido,
+                    historico_transacoes: []
+                };
+            }
+
+            // Adicionar transação de inscrição (virtual - não persiste no banco)
+            cache.historico_transacoes = cache.historico_transacoes || [];
+            cache.historico_transacoes.unshift({
+                tipo: 'INSCRICAO',
+                rodada: 0,
+                valor: -taxaInscricao,
+                descricao: `Taxa de inscrição ${tempNum}`,
+                data: inscricao.criado_em || new Date()
+            });
+
+            // Ajustar saldo consolidado
+            cache.saldo_consolidado = saldoInicialCorrigido;
+        }
     }
 
     // ✅ v2.4 FIX: Verificar se tem apenas transações especiais (rodada 0)
@@ -1108,6 +1166,46 @@ router.post("/acerto", verificarAdmin, async (req, res) => {
         if (acertoTroco) {
             await acertoTroco.save();
             console.log(`[TESOURARIA] ✅ Troco de R$ ${valorTroco.toFixed(2)} salvo`);
+        }
+
+        // =========================================================================
+        // ✅ v2.26 FIX CRIT-001: Atualizar inscrição 2026 se for pagamento de inscrição
+        // Quando admin registra pagamento de inscrição, atualizar flag pagou_inscricao
+        // =========================================================================
+        const tempNum = parseInt(temporada);
+        if (tipo === "pagamento" && tempNum >= 2026) {
+            // Verificar se a descrição indica pagamento de inscrição
+            const ehPagamentoInscricao = descricao &&
+                (descricao.toLowerCase().includes("inscrição") ||
+                 descricao.toLowerCase().includes("inscricao") ||
+                 descricao.toLowerCase().includes("taxa") ||
+                 descricao.toLowerCase().includes("renovação") ||
+                 descricao.toLowerCase().includes("renovacao"));
+
+            if (ehPagamentoInscricao) {
+                // Buscar inscrição
+                const inscricao = await InscricaoTemporada.findOne({
+                    liga_id: String(ligaId),
+                    time_id: Number(timeId),
+                    temporada: tempNum
+                });
+
+                if (inscricao) {
+                    const taxaInscricao = inscricao.taxa_inscricao || 180;
+
+                    // Se o acerto cobre a taxa, marcar como pago
+                    if (valorNumerico >= taxaInscricao) {
+                        inscricao.pagou_inscricao = true;
+                        inscricao.data_pagamento = dataAcertoFinal;
+                        inscricao.metodo_pagamento = metodoPagamento;
+                        await inscricao.save();
+
+                        console.log(`[TESOURARIA] ✅ Inscrição ${tempNum} marcada como PAGA para time ${timeId}`);
+                    } else {
+                        console.log(`[TESOURARIA] ⚠️ Pagamento parcial (R$ ${valorNumerico.toFixed(2)} < R$ ${taxaInscricao.toFixed(2)}). Inscrição ainda não quitada.`);
+                    }
+                }
+            }
         }
 
         // =========================================================================
