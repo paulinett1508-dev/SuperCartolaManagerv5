@@ -341,21 +341,53 @@
             }
 
             // === MODAL DE MÓDULOS ===
-            window.currentLigaId = null;
+            if (!window.__gerenciar_state.modalBound) {
+                window.__gerenciar_state.modalBound = true;
+                window.currentLigaId = null;
 
-            // Event delegation para botões de módulos
-            document.addEventListener('click', function(e) {
-                const btnModulos = e.target.closest('.btn-modules');
-                if (btnModulos) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const ligaId = btnModulos.dataset.ligaId;
-                    const nomeLiga = btnModulos.dataset.ligaNome;
-                    if (ligaId && nomeLiga) {
-                        abrirModalModulos(ligaId, nomeLiga);
+                // Event delegation para botões de módulos
+                document.addEventListener('click', function(e) {
+                    const btnModulos = e.target.closest('.btn-modules');
+                    if (btnModulos) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const ligaId = btnModulos.dataset.ligaId;
+                        const nomeLiga = btnModulos.dataset.ligaNome;
+                        if (ligaId && nomeLiga) {
+                            window.abrirModalModulos(ligaId, nomeLiga);
+                        }
                     }
-                }
-            });
+                });
+
+                // Event delegation para toggles de módulos
+                document.addEventListener('change', function(e) {
+                    if (e.target.classList.contains('toggle-modulo')) {
+                        const moduloKey = e.target.dataset.moduloKey;
+                        const ativo = e.target.checked;
+                        if (moduloKey) {
+                            window.toggleModuloModal(moduloKey, ativo);
+                        }
+                    }
+                });
+
+                // Fechar modal ao clicar no overlay (fora do conteúdo)
+                document.addEventListener('click', function(e) {
+                    const modalOverlay = document.getElementById('modulosModal');
+                    if (e.target === modalOverlay && modalOverlay.style.display !== 'none') {
+                        window.fecharModalModulos();
+                    }
+                });
+
+                // Fechar modal com ESC
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        const modal = document.getElementById('modulosModal');
+                        if (modal && modal.style.display !== 'none') {
+                            window.fecharModalModulos();
+                        }
+                    }
+                });
+            }
 
             window.abrirModalModulos = async function(ligaId, nomeLiga) {
                 window.currentLigaId = ligaId;
@@ -408,18 +440,18 @@
                 window.currentLigaId = null;
             };
 
-            // Event listeners para botões do modal
-            document.addEventListener('DOMContentLoaded', function() {
+            // Event listeners para botões do modal (quando DOM estiver pronto)
+            function initModalButtons() {
                 // Botão fechar (X)
                 const btnFechar = document.getElementById('btnFecharModal');
                 if (btnFechar) {
-                    btnFechar.addEventListener('click', fecharModalModulos);
+                    btnFechar.addEventListener('click', window.fecharModalModulos);
                 }
 
                 // Botão concluir
                 const btnConcluir = document.getElementById('btnConcluir');
                 if (btnConcluir) {
-                    btnConcluir.addEventListener('click', fecharModalModulos);
+                    btnConcluir.addEventListener('click', window.fecharModalModulos);
                 }
 
                 // Botão abrir página completa
@@ -431,7 +463,14 @@
                         }
                     });
                 }
-            });
+            }
+
+            // Inicializar botões quando DOM estiver pronto
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initModalButtons);
+            } else {
+                initModalButtons();
+            }
 
             function renderizarModulosModal(liga) {
                 const modalContent = document.getElementById('modalContent');
@@ -551,34 +590,6 @@
                 }
             };
 
-            // Event delegation para toggles de módulos
-            document.addEventListener('change', function(e) {
-                if (e.target.classList.contains('toggle-modulo')) {
-                    const moduloKey = e.target.dataset.moduloKey;
-                    const ativo = e.target.checked;
-                    if (moduloKey) {
-                        toggleModuloModal(moduloKey, ativo);
-                    }
-                }
-            });
-
-            // Fechar modal ao clicar no overlay (fora do conteúdo)
-            document.addEventListener('click', function(e) {
-                const modalOverlay = document.getElementById('modulosModal');
-                if (e.target === modalOverlay && modalOverlay.style.display !== 'none') {
-                    fecharModalModulos();
-                }
-            });
-
-            // Fechar modal com ESC
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    const modal = document.getElementById('modulosModal');
-                    if (modal && modal.style.display !== 'none') {
-                        fecharModalModulos();
-                    }
-                }
-            });
         </script>
     </body>
 </html>
