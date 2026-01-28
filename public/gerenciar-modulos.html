@@ -64,8 +64,19 @@
         </div>
 
         <script type="module">
+            // Importar sistema de configuração de módulos
+            import '/js/modules/module-config-modal.js';
+
             let ligaId = null;
             let modulosState = {};
+
+            // ✅ Guards para evitar dupla inicialização em SPA
+            if (!window.__gm_state) {
+                window.__gm_state = {
+                    initRunning: false,
+                    listenersBound: false
+                };
+            }
 
             const MODULOS_CONFIG = {
                 extrato: {
@@ -125,17 +136,24 @@
             };
 
             async function init() {
+                if (window.__gm_state.initRunning) return;
+                window.__gm_state.initRunning = true;
                 const urlParams = new URLSearchParams(window.location.search);
                 ligaId = urlParams.get('id');
 
                 if (!ligaId) {
                     showMessage('ID da liga não fornecido', 'error');
+                    window.__gm_state.initRunning = false;
                     return;
                 }
 
-                await loadLayout();
-                await loadLiga();
-                await loadModulos();
+                try {
+                    await loadLayout();
+                    await loadLiga();
+                    await loadModulos();
+                } finally {
+                    window.__gm_state.initRunning = false;
+                }
             }
 
             async function loadLayout() {
@@ -211,6 +229,7 @@
                     else cardClass += isAtivo ? ' ativo' : ' inativo';
 
                     card.className = cardClass;
+                    card.dataset.moduloKey = key; // Adicionar data attribute
 
                     card.innerHTML = `
                         <div class="modulo-card-header">
@@ -223,7 +242,7 @@
                                     ${config.base ? '<span class="badge-base">Base</span>' : ''}
                                 </span>
                             </div>
-                            <label class="toggle-switch">
+                            <label class="toggle-switch" onclick="event.stopPropagation();">
                                 <input type="checkbox"
                                        ${isAtivo ? 'checked' : ''}
                                        ${config.base ? 'disabled' : ''}
@@ -234,13 +253,19 @@
                         <div class="modulo-desc">${config.descricao}</div>
                     `;
 
+                    // Evento de toggle (apenas módulos opcionais)
                     if (!config.base) {
                         const toggle = card.querySelector('input[type="checkbox"]');
                         toggle.addEventListener('change', (e) => {
+                            e.stopPropagation(); // Não propagar para o card
                             modulosState[key] = e.target.checked;
                             card.className = `modulo-card ${e.target.checked ? 'ativo' : 'inativo'}`;
                         });
                     }
+
+                    // Evento de clique no card (para configuração)
+                    card.addEventListener('click', () => onCardClick(key));
+                    card.style.cursor = 'pointer';
 
                     if (config.base) {
                         baseGrid.appendChild(card);
@@ -281,47 +306,95 @@
 
             function showMessage(text, type) {
                 const msg = document.getElementById('statusMessage');
-                const icon = type === 'success' ? 'check_circle' : 'error';
+                const icon = type === 'success' ? 'check_circle' : type === 'warning' ? 'warning' : type === 'info' ? 'info' : 'error';
                 msg.innerHTML = `<span class="material-icons">${icon}</span> ${text}`;
                 msg.className = `status-message ${type}`;
 
-                if (type === 'success') {
+                if (type === 'success' || type === 'info') {
                     setTimeout(() => {
                         msg.className = 'status-message';
                     }, 3000);
                 }
             }
 
-            document.getElementById('salvarBtn')?.addEventListener('click', salvarModulos);
+            /**
+             * Verifica se módulo pode ser configurado
+             */
+            function isModuloConfiguravel(moduloKey) {
+                const config = MODULOS_CONFIG[moduloKey];
 
-            document.addEventListener('DOMContentLoaded', () => {
-                if (!window.location.pathname.includes('gerenciar-modulos.html')) return;
-                init();
-                // Re-bind do botão após init
-                const btn = document.getElementById('salvarBtn');
-                if (btn && !btn._bound) {
-                    btn.addEventListener('click', salvarModulos);
-                    btn._bound = true;
+                // Módulos base SÃO configuráveis (mudança: base também configura)
+                // Módulos opcionais só se estiverem ativos
+                if (config.base) return true;
+                return modulosState[moduloKey] === true;
+            }
+
+            /**
+             * Abre modal de configuração ao clicar no card
+             */
+            async function onCardClick(moduloKey) {
+                const config = MODULOS_CONFIG[moduloKey];
+
+                // Verificar se pode configurar
+                if (!config.base && !modulosState[moduloKey]) {
+                    showMessage('Ative o módulo primeiro usando o toggle', 'warning');
+                    return;
                 }
-            });
 
-            // ✅ FIX: Reinicializar após navegação SPA
-            window.addEventListener('spa:navigated', (e) => {
-                const { pageName } = e.detail || {};
-                if (pageName === 'gerenciar-modulos.html') {
-                    console.log('[GERENCIAR-MODULOS] Reinicializando após navegação SPA...');
+                // Abrir modal de configuração
+                console.log(`[GERENCIAR-MODULOS] Abrindo configuração: ${moduloKey}`);
+
+                try {
+                    const modal = new window.ModuleConfigModal();
+                    await modal.init(ligaId, moduloKey);
+                } catch (error) {
+                    console.error('[GERENCIAR-MODULOS] Erro ao abrir modal:', error);
+                    showMessage('Erro ao carregar configuração', 'error');
+                }
+            }
+
+            if (!window.__gm_state.listenersBound) {
+                window.__gm_state.listenersBound = true;
+                document.getElementById('salvarBtn')?.addEventListener('click', salvarModulos);
+            }
+
+            if (!window.__gm_domcontent_guard) {
+                window.__gm_domcontent_guard = true;
+                document.addEventListener('DOMContentLoaded', () => {
+                    if (!window.location.pathname.includes('gerenciar-modulos.html')) return;
                     init();
+                    // Re-bind do botão após init
                     const btn = document.getElementById('salvarBtn');
                     if (btn && !btn._bound) {
                         btn.addEventListener('click', salvarModulos);
                         btn._bound = true;
                     }
-                }
-            });
+                });
+            }
+
+            // ✅ FIX: Reinicializar após navegação SPA
+            if (!window.__gm_spa_guard) {
+                window.__gm_spa_guard = true;
+                window.addEventListener('spa:navigated', (e) => {
+                    const { pageName } = e.detail || {};
+                    if (pageName === 'gerenciar-modulos.html') {
+                        console.log('[GERENCIAR-MODULOS] Reinicializando após navegação SPA...');
+                        init();
+                        const btn = document.getElementById('salvarBtn');
+                        if (btn && !btn._bound) {
+                            btn.addEventListener('click', salvarModulos);
+                            btn._bound = true;
+                        }
+                    }
+                });
+            }
 
             // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
-            if (document.readyState !== 'loading' && window.location.pathname.includes('gerenciar-modulos.html')) {
-                init();
+            if (!window.__gm_ready_guard) {
+                window.__gm_ready_guard = true;
+                if (document.readyState !== 'loading' && window.location.pathname.includes('gerenciar-modulos.html')) {
+                    init();
+                }
             }
         </script>
     </body>

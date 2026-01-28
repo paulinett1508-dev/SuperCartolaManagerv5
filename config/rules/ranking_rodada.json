@@ -118,67 +118,60 @@
 
   "wizard": {
     "titulo": "Configurar Ranking da Rodada (BANCO)",
-    "descricao": "Defina posicoes de ganho, neutras e perda, e os valores financeiros",
+    "descricao": "Defina os valores financeiros por posição no ranking de cada rodada. Valores positivos para ganhos, negativos para perdas.",
     "perguntas": [
       {
-        "id": "posicoes_ganho",
+        "id": "tipo_config",
+        "tipo": "select",
+        "label": "Tipo de configuração",
+        "descricao": "Escolha se terá valores fixos ou por fases (ex: Sobral tem fases diferentes)",
+        "default": "fixo",
+        "required": true,
+        "options": [
+          {
+            "valor": "fixo",
+            "label": "Valores Fixos (todas as rodadas iguais)"
+          },
+          {
+            "valor": "temporal",
+            "label": "Por Fases (rodadas diferentes têm valores diferentes)"
+          }
+        ],
+        "afeta": "configuracao.temporal"
+      },
+      {
+        "id": "total_participantes",
         "tipo": "number",
-        "label": "Quantas posicoes de GANHO?",
-        "descricao": "Posicoes que recebem bonus (ex: top 11)",
-        "default": 11,
+        "label": "Total de participantes ativos",
+        "descricao": "Quantos times participam desta liga? Isso define quantos valores você precisa preencher.",
+        "default": 10,
+        "min": 4,
+        "max": 50,
+        "required": true,
+        "afeta": "configuracao.total_participantes"
+      },
+      {
+        "id": "valores_manual",
+        "tipo": "valores_grid",
+        "label": "Valores financeiros por posição",
+        "descricao": "Defina o valor (em R$) para cada posição no ranking. Use valores positivos para ganhos e negativos para perdas. Zero para posições neutras.",
+        "required": true,
+        "dependeDe": "total_participantes",
+        "renderiza": "grid_dinamico",
+        "afeta": "financeiro_override.valores_por_posicao",
+        "preview": true
+      },
+      {
+        "id": "rodada_transicao",
+        "tipo": "number",
+        "label": "Rodada de transição entre fases",
+        "descricao": "A partir de qual rodada os valores mudam? (apenas para tipo temporal). Ex: Sobral muda na rodada 29.",
+        "default": 30,
         "min": 1,
-        "max": 20,
-        "step": 1,
-        "required": true,
-        "afeta": "regras_override.posicoes_ganho"
-      },
-      {
-        "id": "posicoes_perda",
-        "tipo": "number",
-        "label": "Quantas posicoes de PERDA?",
-        "descricao": "Posicoes que pagam onus (ex: ultimos 11)",
-        "default": 11,
-        "min": 1,
-        "max": 20,
-        "step": 1,
-        "required": true,
-        "afeta": "regras_override.posicoes_perda"
-      },
-      {
-        "id": "valor_mito",
-        "tipo": "number",
-        "label": "Valor do 1o lugar - MITO (R$)",
-        "descricao": "Bonus para o primeiro colocado da rodada",
-        "default": 20,
-        "min": 0,
-        "max": 100,
-        "step": 1,
-        "required": true,
-        "afeta": "financeiro_override.valores_por_posicao.1"
-      },
-      {
-        "id": "valor_mico",
-        "tipo": "number",
-        "label": "Valor do ultimo lugar - MICO (R$)",
-        "descricao": "Onus para o ultimo colocado (valor negativo)",
-        "default": -20,
-        "min": -100,
-        "max": 0,
-        "step": 1,
-        "required": true,
-        "afeta": "financeiro_override.valores_por_posicao.ultimo"
-      },
-      {
-        "id": "decremento_valor",
-        "tipo": "number",
-        "label": "Decremento por posicao (R$)",
-        "descricao": "Quanto diminui a cada posicao (ex: 1o=20, 2o=19, dec=1)",
-        "default": 1,
-        "min": 0,
-        "max": 10,
-        "step": 0.5,
-        "required": true,
-        "afeta": "regras_override.decremento_valor"
+        "max": 38,
+        "dependeDe": "tipo_config",
+        "condicao": "temporal",
+        "afeta": "configuracao.rodada_transicao"
       }
     ]
   },
