@@ -82,15 +82,16 @@ router.get("/verificar-premium", verificarSessaoParticipante, async (req, res) =
     try {
         const { timeId } = req.session.participante;
 
-        // Buscar time na collection times para verificar campo assinante
-        const Time = (await import("../models/Time.js")).default;
-        const time = await Time.findOne({ id: timeId }).select("assinante");
+        // ✅ v2.0: Premium do Super Cartola é apenas Paulinett Miranda (ID: 13935277)
+        // NOTA: NÃO usar campo 'assinante' que é do Cartola FC PRO (Globo)
+        const PREMIUM_TIME_ID = 13935277;
+        const isPremium = Number(timeId) === PREMIUM_TIME_ID;
 
         // Verificar se esta autenticado na Globo
         const globoAuth = req.session?.cartolaProAuth;
 
         res.json({
-            premium: time?.assinante === true,
+            premium: isPremium,
             globoAuthenticated: !!globoAuth,
             globoEmail: globoAuth?.email || null
         });

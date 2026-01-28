@@ -30,7 +30,7 @@ import {
   validarParticipantesTemporada,
   sincronizarParticipanteCartola
 } from "../controllers/validacaoParticipantesController.js";
-import { adicionarParticipanteNaLiga } from "../controllers/inscricoesController.js";
+import { processarNovoParticipante } from "../controllers/inscricoesController.js";
 import Liga from "../models/Liga.js";
 import { tenantFilter } from "../middleware/tenant.js";
 
@@ -1050,8 +1050,8 @@ router.post("/:id/participantes", verificarAdmin, async (req, res) => {
       });
     }
 
-    // ✅ v2.1: Adicionar participante com TODOS os campos da API Cartola
-    await adicionarParticipanteNaLiga(ligaId, {
+    // ✅ v2.2: Usar processarNovoParticipante para criar InscricaoTemporada
+    const resultado = await processarNovoParticipante(ligaId, CURRENT_SEASON, {
       time_id: Number(time_id),
       nome_time: nome_time || nome_cartola,
       nome_cartoleiro: nome_cartola,
@@ -1059,21 +1059,29 @@ router.post("/:id/participantes", verificarAdmin, async (req, res) => {
       url_escudo_png: url_escudo_png,
       clube_id: clube_id,
       contato: contato || "",
-      // ✅ Campos adicionais (como Paulinett Miranda tem)
       foto_perfil: foto_perfil || "",
       assinante: assinante || false
-    }, CURRENT_SEASON);
+    }, {
+      pagouInscricao: false,  // Default: taxa de inscrição vira débito no extrato
+      aprovadoPor: req.session?.usuario?.email || 'admin',
+      observacoes: 'Novo participante adicionado via modal'
+    });
 
-    console.log(`✅ [LIGAS] Participante ${nome_cartola} (ID: ${time_id}) adicionado à liga ${ligaId}`);
+    console.log(`✅ [LIGAS] Participante ${nome_cartola} (ID: ${time_id}) adicionado à liga ${ligaId} com inscrição ${resultado.inscricao._id}`);
 
     res.json({
       success: true,
       message: `Participante "${nome_cartola}" adicionado com sucesso!`,
       participante: {
-        time_id: Number(time_id),
-        nome_time: nome_time || nome_cartola,
-        nome_cartola: nome_cartola,
+        time_id: resultado.resumo.timeId,
+        nome_time: resultado.resumo.nomeTime,
+        nome_cartola: resultado.resumo.nomeCartoleiro,
         ativo: true
+      },
+      inscricao: {
+        id: resultado.inscricao._id,
+        status: 'novo',
+        saldoInicial: resultado.resumo.saldoInicialTemporada
       }
     });
 

@@ -196,11 +196,12 @@ async function carregarParticipantesPorTemporada(temporada) {
         console.log(`[PARTICIPANTES] Recebidos ${participantes.length} de ${temporada} (fonte: ${data.fonte})`);
         console.log(`[PARTICIPANTES] Stats:`, stats);
 
-        // Atualizar contadores
-        document.getElementById("total-participantes").textContent = stats.total || 0;
-        document.getElementById("participantes-ativos").textContent = stats.ativos || 0;
+        // ✅ Contadores serão atualizados APÓS o filtro (v2.16)
 
         if (participantes.length === 0) {
+            // ✅ v2.16: Zerar contadores quando não há participantes
+            document.getElementById("total-participantes").textContent = 0;
+            document.getElementById("participantes-ativos").textContent = 0;
             container.innerHTML = `
                 <div class="participantes-empty-state">
                     <span class="material-icons" style="font-size: 48px;">group</span>
@@ -225,6 +226,14 @@ async function carregarParticipantesPorTemporada(temporada) {
         // ✅ v2.14: Log dos participantes filtrados para diagnóstico
         console.log(`[PARTICIPANTES] Após filtro: ${participantesFiltrados.length} participantes`);
         console.log(`[PARTICIPANTES] Lista:`, participantesFiltrados.map(p => `${p.nome_cartoleiro} (${p.status})`));
+
+        // ✅ v2.16: Atualizar contadores com valores REAIS da lista visível
+        // Total = participantes visíveis (exclui nao_participa)
+        // Ativos = renovados + novos
+        const totalVisiveis = participantesFiltrados.length;
+        const ativosVisiveis = participantesFiltrados.filter(p => p.status === "renovado" || p.status === "novo").length;
+        document.getElementById("total-participantes").textContent = totalVisiveis;
+        document.getElementById("participantes-ativos").textContent = ativosVisiveis;
 
         // ✅ v2.15: Salvar para exportação PDF
         window.participantesCarregados = participantesFiltrados;
