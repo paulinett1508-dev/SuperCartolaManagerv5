@@ -41,6 +41,8 @@
 | **git-commit-push** | "git push", "commit", "suba as mudanças" |
 | **league-architect** | Regras de negócio, configs de liga, cálculos |
 | **Refactor-Monolith** | "refatorar arquivo grande", "separar em módulos" |
+| **skill-creator** | "criar skill", "fazer skill", criar/atualizar skills customizadas |
+| **skill-installer** | "instalar skill", listar e instalar skills do catálogo |
 | **system-scribe** | "explicar módulo X", "como funciona Y?" |
 
 ### Skills do High Senior Protocol (4)
