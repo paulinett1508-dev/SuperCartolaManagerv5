@@ -32,8 +32,9 @@ const TEMPORADA_FINANCEIRA = window.ParticipanteConfig?.getFinancialSeason
 // Estado do histórico
 let historicoParticipante = null;
 
-// ✅ v12.0: Estado de renovação removido - temporada em andamento
-// let participanteRenovado = false; // ARQUIVADO - todos são participantes ativos
+// ✅ v12.0: Temporada 2026 em andamento - sempre mostrar dados reais
+// Em pré-temporada, este valor seria alterado pela função verificarStatusRenovacao
+let participanteRenovado = false;
 
 // ✅ v11.1: Estado PRO do participante
 let participantePremium = false;
