@@ -23,11 +23,9 @@
 // ✅ v6.0: SaaS Dinamico - configs do endpoint /api/ligas/:id/configuracoes
 
 // ============================================================================
-// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2026
+// ⚽ IMPORTS E CONFIGURAÇÕES
 // ============================================================================
-const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2026
-const CAMPEONATO_ENCERRADO = false; // Flag: temporada 2026 em andamento
-
+import { seasonStatus } from "../core/season-status-manager.js";
 import { calcularFinanceiroConfronto } from "../pontos-corridos-utils.js";
 import { obterLigaId } from "../pontos-corridos-utils.js";
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro-campos.js";
