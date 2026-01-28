@@ -1,9 +1,10 @@
-// PARTICIPANTE PONTOS CORRIDOS - v5.1
+// PARTICIPANTE PONTOS CORRIDOS - v5.2
+// ✅ v5.2: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v5.1: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v4.9: Emojis substituídos por Material Icons + Card "Seu Desempenho"
 // ✅ v5.0: Posição na liga integrada no card + card ao final da página
 
-if (window.Log) Log.info("[PONTOS-CORRIDOS] 📊 Módulo v5.1 carregando...");
+if (window.Log) Log.info("[PONTOS-CORRIDOS] 📊 Módulo v5.2 carregando...");
 
 const estadoPC = {
     ligaId: null,
@@ -23,7 +24,10 @@ const estadoPC = {
 // ============================================
 
 export async function inicializarPontosCorridosParticipante(params = {}) {
-    if (window.Log) Log.info("[PONTOS-CORRIDOS] 🚀 Inicializando v5.1...", params);
+    if (window.Log) Log.info("[PONTOS-CORRIDOS] 🚀 Inicializando v5.2...", params);
+
+    // ✅ v5.2: Aguardar DOM estar renderizado (double RAF)
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     const participante = params.participante || window.participanteData || {};
     estadoPC.ligaId = params.ligaId || participante.ligaId;

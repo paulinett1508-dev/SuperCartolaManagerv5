@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE-HOME.JS - v1.0 (Premium Components)
+// PARTICIPANTE-HOME.JS - v1.1 (Premium Components)
 // =====================================================================
+// v1.1: FIX - Double RAF para garantir container no DOM após refresh
 // v1.0: Nova Home com componentes premium baseados no SKILL.md v3.2
 //       - Header com Avatar e Badge Premium
 //       - Grid de Atalhos 4 colunas
@@ -11,7 +12,7 @@
 // =====================================================================
 
 if (window.Log)
-    Log.info("PARTICIPANTE-HOME", "Carregando modulo v1.0 (Premium Components)...");
+    Log.info("PARTICIPANTE-HOME", "Carregando modulo v1.1 (Fix Refresh)...");
 
 // Configuracao de temporada
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -99,11 +100,38 @@ export async function inicializarHomeParticipante(params) {
 window.inicializarHomeParticipante = inicializarHomeParticipante;
 
 // =====================================================================
-// CARREGAR DADOS E RENDERIZAR
+// CARREGAR DADOS E RENDERIZAR - v1.1 FIX REFRESH
 // =====================================================================
 async function carregarDadosERenderizar(ligaId, timeId, participante) {
-    const container = document.getElementById("home-container");
-    if (!container) return;
+    // ✅ v1.1: Aguardar DOM estar renderizado (double RAF)
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    let container = document.getElementById("home-container");
+
+    // ✅ v1.1: Retry com polling se container não encontrado imediatamente
+    if (!container) {
+        if (window.Log) Log.warn("PARTICIPANTE-HOME", "Container não encontrado - aguardando...");
+        container = await new Promise((resolve) => {
+            let tentativas = 0;
+            const maxTentativas = 10;
+            const interval = setInterval(() => {
+                tentativas++;
+                const el = document.getElementById("home-container");
+                if (el) {
+                    clearInterval(interval);
+                    resolve(el);
+                } else if (tentativas >= maxTentativas) {
+                    clearInterval(interval);
+                    resolve(null);
+                }
+            }, 100);
+        });
+    }
+
+    if (!container) {
+        if (window.Log) Log.error("PARTICIPANTE-HOME", "Container não encontrado após retry");
+        return;
+    }
 
     const cache = window.ParticipanteCache;
     const meuTimeIdNum = Number(timeId);

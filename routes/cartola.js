@@ -31,14 +31,32 @@ router.get("/time/:id/:rodada/escalacao", obterEscalacao);
 router.get('/mercado-status', async (req, res) => {
     try {
         // Usar a API diretamente já que não há função específica no service
-        const response = await fetch('https://api.cartola.globo.com/mercado/status');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const response = await fetch('https://api.cartola.globo.com/mercado/status', {
+            signal: controller.signal,
+            headers: {
+                'User-Agent': 'SuperCartolaManager/1.0'
+            }
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
         const data = await response.json();
         res.json(data);
     } catch (error) {
-        console.error('[CARTOLA-ROUTES] Erro ao buscar mercado-status:', error);
-        res.status(500).json({
-            erro: 'Erro ao buscar status do mercado',
-            rodada_atual: 1 // Fallback
+        console.error('[CARTOLA-ROUTES] Erro ao buscar mercado-status:', error.message);
+        // Fallback com valores padrão para não quebrar o frontend
+        res.json({
+            temporada: new Date().getFullYear(),
+            rodada_atual: 1,
+            status_mercado: 1,
+            erro_interno: true,
+            mensagem: 'Usando dados de fallback'
         });
     }
 });

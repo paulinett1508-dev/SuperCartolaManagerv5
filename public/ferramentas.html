@@ -211,8 +211,8 @@
                                 </div>
                                 <div class="stat-box">
                                     <div class="stat-box-label">Rodada Atual</div>
-                                    <div class="stat-box-value" id="rodadaAtualStat">#38</div>
-                                    <div class="stat-box-change primary">Encerrada</div>
+                                    <div class="stat-box-value" id="rodadaAtualStat">-</div>
+                                    <div class="stat-box-change primary" id="rodadaStatusStat">Carregando...</div>
                                 </div>
                             </div>
                         </div>
@@ -262,14 +262,92 @@
             // Carregar estatísticas
             async function carregarEstatisticas() {
                 try {
+                    // 1. Buscar status do mercado para saber temporada e rodada atual
+                    const anoAtual = new Date().getFullYear();
+                    let temporadaCartola = anoAtual;
+                    let temporadaParaFiltro = anoAtual; // Sempre usar o ano atual para filtrar ligas
+                    let rodadaAtual = 1;
+                    let statusMercado = 'Carregando...';
+                    let isPreTemporada = false;
+
+                    try {
+                        // Tentar ambas as rotas de API (mercado/status e mercado-status)
+                        let mercadoData = null;
+                        const rotas = ['/api/cartola/mercado/status', '/api/cartola/mercado-status'];
+
+                        for (const rota of rotas) {
+                            try {
+                                const mercadoResponse = await fetch(rota);
+                                if (mercadoResponse.ok) {
+                                    mercadoData = await mercadoResponse.json();
+                                    console.log(`[FERRAMENTAS] Mercado obtido via ${rota}`);
+                                    break;
+                                }
+                            } catch (e) {
+                                console.warn(`[FERRAMENTAS] Rota ${rota} falhou:`, e.message);
+                            }
+                        }
+
+                        if (mercadoData) {
+                            temporadaCartola = mercadoData.temporada || anoAtual;
+                            rodadaAtual = mercadoData.rodada_atual || 1;
+
+                            // Determinar status da rodada
+                            // status_mercado: 1 = Mercado aberto, 2 = Mercado fechado (jogos em andamento), 6 = Final de temporada
+                            const statusCodes = {
+                                1: 'Mercado Aberto',
+                                2: 'Em Andamento',
+                                3: 'Parciais',
+                                4: 'Encerrada',
+                                6: 'Fim de Temporada'
+                            };
+                            statusMercado = statusCodes[mercadoData.status_mercado] || 'Ativa';
+
+                            // Se temporada do Cartola for menor que ano atual, é pré-temporada
+                            // Ex: Janeiro/2026 mas API retorna temporada: 2025
+                            if (temporadaCartola < anoAtual) {
+                                isPreTemporada = true;
+                                statusMercado = 'Pre-Temporada';
+                                rodadaAtual = 0;
+                                // Filtrar ligas pelo ano atual, não pela temporada do Cartola
+                                temporadaParaFiltro = anoAtual;
+                            } else {
+                                temporadaParaFiltro = temporadaCartola;
+                            }
+                        } else {
+                            console.warn("[FERRAMENTAS] Nenhuma rota de mercado funcionou, usando valores padrão");
+                            statusMercado = 'Ativa';
+                        }
+                    } catch (mercadoError) {
+                        console.warn("[FERRAMENTAS] Erro ao buscar mercado:", mercadoError);
+                        statusMercado = 'Indisponivel';
+                    }
+
+                    // Atualizar rodada atual
+                    const rodadaEl = document.getElementById("rodadaAtualStat");
+                    const rodadaStatusEl = document.getElementById("rodadaStatusStat");
+                    if (rodadaEl) {
+                        rodadaEl.textContent = rodadaAtual > 0 ? `#${rodadaAtual}` : '-';
+                    }
+                    if (rodadaStatusEl) {
+                        rodadaStatusEl.textContent = statusMercado;
+                    }
+
+                    // 2. Buscar ligas e filtrar pela temporada atual
                     const response = await fetch("/api/ligas");
                     const ligas = await response.json();
 
                     if (Array.isArray(ligas)) {
-                        document.getElementById("totalLigasStat").textContent = ligas.length;
+                        // Filtrar ligas pela temporada atual (ano atual, não da API do Cartola)
+                        const ligasTemporadaAtual = ligas.filter(liga =>
+                            liga.temporada === temporadaParaFiltro || !liga.temporada
+                        );
 
+                        document.getElementById("totalLigasStat").textContent = ligasTemporadaAtual.length;
+
+                        // Contar participantes apenas das ligas da temporada atual
                         let totalParticipantes = 0;
-                        ligas.forEach(liga => {
+                        ligasTemporadaAtual.forEach(liga => {
                             totalParticipantes += liga.times?.length || 0;
                         });
                         document.getElementById("totalParticipantesStat").textContent = totalParticipantes;

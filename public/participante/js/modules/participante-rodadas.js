@@ -1,5 +1,6 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v4.5 SaaS DYNAMIC
+// PARTICIPANTE-RODADAS.JS - v4.6 SaaS DYNAMIC
+// ✅ v4.6: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v4.5: Removido LIGAS_CONFIG hardcoded - configs vêm do servidor
 // ✅ v4.4: CACHE-FIRST - Carregamento instantâneo do IndexedDB
 // ✅ v4.3: Cards coloridos por saldo financeiro
@@ -11,7 +12,7 @@
 // ✅ v4.0: Todos os cálculos movidos para o backend
 // =====================================================================
 
-if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v4.5 SaaS DYNAMIC...");
+if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v4.6 SaaS DYNAMIC...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
@@ -34,13 +35,16 @@ export async function inicializarRodadasParticipante({
     timeId,
 }) {
     if (window.Log)
-        Log.info("[PARTICIPANTE-RODADAS] 🚀 Inicializando v4.4 (CACHE-FIRST)...", {
+        Log.info("[PARTICIPANTE-RODADAS] 🚀 Inicializando v4.6 (CACHE-FIRST)...", {
             ligaIdParam,
             timeId,
         });
 
     ligaId = ligaIdParam;
     meuTimeId = timeId;
+
+    // ✅ v4.6: Aguardar DOM estar renderizado (double RAF)
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     const cache = window.ParticipanteCache;
     let usouCache = false;

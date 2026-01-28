@@ -1,7 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v4.9 (PARALELO MOBILE)
+// PARTICIPANTE-EXTRATO.JS - v4.10 (PARALELO MOBILE)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v4.10: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v4.9: PARALELO MOBILE - Requisições em paralelo (Promise.all)
 //          - Reduz tempo de carregamento de ~15s para ~5-8s em 4G
 //          - verificarRenovacao + mercado/status executam juntos
@@ -77,7 +78,7 @@ window.addEventListener("temporada-alterada", (event) => {
 });
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.9 PARALELO-MOBILE (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v4.10 PARALELO-MOBILE (Temporada ${CONFIG.CURRENT_SEASON || 2026})`);
 
 // ✅ v4.5: Inicializar temporada selecionada do seletor (se já existir)
 if (window.seasonSelector) {
@@ -165,7 +166,7 @@ export async function inicializarExtratoParticipante({
     timeId,
 }) {
     if (window.Log)
-        Log.info("EXTRATO-PARTICIPANTE", "🔄 Inicializando...", {
+        Log.info("EXTRATO-PARTICIPANTE", "🔄 Inicializando v4.10...", {
             ligaId,
             timeId,
         });
@@ -174,6 +175,9 @@ export async function inicializarExtratoParticipante({
         mostrarErro("Dados inválidos para carregar extrato");
         return;
     }
+
+    // ✅ v4.10: Aguardar DOM estar renderizado (double RAF)
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     PARTICIPANTE_IDS.ligaId = ligaId;
     PARTICIPANTE_IDS.timeId = timeId;

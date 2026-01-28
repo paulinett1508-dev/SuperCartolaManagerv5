@@ -10,7 +10,7 @@ import "./fluxo-financeiro/fluxo-financeiro-quitacao.js";
 import "./fluxo-financeiro/fluxo-financeiro-ajustes-api.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v8.4"; // v8.4: Proteção cache temporadas históricas (imutáveis)
+const CACHE_BUSTER = "v8.5"; // v8.5: Double RAF para garantir container no DOM após refresh
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -228,6 +228,9 @@ async function inicializarFluxoFinanceiro() {
 }
 
 async function inicializarSistemaFinanceiro(ligaId) {
+    // ✅ v8.5: Aguardar DOM estar renderizado (double RAF)
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
     const contentContainer = document.getElementById("fluxoFinanceiroContent");
     const buttonsContainer = document.getElementById("fluxoFinanceiroButtons");
 

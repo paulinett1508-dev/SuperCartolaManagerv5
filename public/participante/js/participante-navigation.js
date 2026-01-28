@@ -1,6 +1,10 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION v4.1 - Sistema de Navegação entre Módulos
+// PARTICIPANTE NAVIGATION v4.2 - Sistema de Navegação entre Módulos
 // =====================================================================
+// v4.2: FIX CRÍTICO - Sincronização auth/nav para evitar renderização perdida
+//       - Aguarda auth estar 100% pronto antes de navegar
+//       - Garante opacity restore em finally block
+//       - Double RAF para garantir DOM renderizado
 // v4.1: Cache-busting nos imports dinâmicos (evita erros por cache antigo)
 // v4.0: Bloqueio de modulos em pre-temporada com modal amigavel
 // v3.1: Feedback visual imediato durante navegação (opacity transition)
@@ -16,7 +20,7 @@
 // v2.2: Debounce e controle de navegações duplicadas
 // =====================================================================
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação v3.1...');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação v4.2...');
 
 class ParticipanteNavigation {
     constructor() {
@@ -62,6 +66,34 @@ class ParticipanteNavigation {
         // Aguardar dados do participante
         await this.aguardarDadosParticipante();
 
+        // ✅ v4.2: CORREÇÃO CRÍTICA - Garantir que auth realmente carregou dados
+        if (!this.participanteData || !this.participanteData.ligaId) {
+            if (window.Log) Log.warn('PARTICIPANTE-NAV', '⏳ Auth incompleto - aguardando evento...');
+            await new Promise((resolve) => {
+                const onAuthReady = (event) => {
+                    if (event.detail) {
+                        this.participanteData = {
+                            timeId: event.detail.timeId,
+                            ligaId: event.detail.ligaId,
+                            nomeCartola: event.detail.participante?.participante?.nome_cartola || "Participante",
+                            nomeTime: event.detail.participante?.participante?.nome_time || "Meu Time",
+                        };
+                        if (event.detail.ligaData) {
+                            this._ligaDataFromEvent = event.detail.ligaData;
+                        }
+                    }
+                    resolve();
+                };
+                window.addEventListener('participante-auth-ready', onAuthReady, { once: true });
+                // Timeout de segurança (5s)
+                setTimeout(() => {
+                    window.removeEventListener('participante-auth-ready', onAuthReady);
+                    if (window.Log) Log.warn('PARTICIPANTE-NAV', '⚠️ Timeout aguardando auth - continuando');
+                    resolve();
+                }, 5000);
+            });
+        }
+
         // Buscar módulos ativos da liga
         await this.carregarModulosAtivos();
 
@@ -86,6 +118,9 @@ class ParticipanteNavigation {
                 }
             });
         }
+
+        // ✅ v4.2: Aguardar próximo frame para garantir DOM estável antes de navegar
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
         // Navegar para módulo (salvo ou inicial)
         await this.navegarPara(moduloSalvo);
@@ -543,6 +578,9 @@ class ParticipanteNavigation {
 
             container.innerHTML = html;
 
+            // ✅ v4.2: Aguardar DOM renderizar antes de carregar JS do módulo
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
             await this.carregarModuloJS(moduloId);
 
             this.moduloAtual = moduloId;
@@ -552,20 +590,7 @@ class ParticipanteNavigation {
             // ✅ v2.5: Salvar timestamp do carregamento para loading inteligente
             localStorage.setItem(`modulo_loaded_${moduloId}`, Date.now().toString());
 
-            // ✅ v3.1: Restaurar opacity após carregamento
-            container.style.opacity = '1';
-
             if (window.Log) Log.info('PARTICIPANTE-NAV', `✅ Módulo ${moduloId} carregado`);
-
-            // ✅ SPLASH: Esconder após módulo carregado
-            if (window.SplashScreen) {
-                window.SplashScreen.hide();
-            }
-
-            // ✅ LOADING OVERLAY: Esconder também (para pull-to-refresh)
-            if (window.LoadingOverlay) {
-                window.LoadingOverlay.hide();
-            }
 
             // ✅ v2.4: Adicionar botão de atualização manual (temporada encerrada)
             if (window.RefreshButton?.shouldShow()) {
@@ -578,20 +603,19 @@ class ParticipanteNavigation {
 
             if (window.Log) Log.error('PARTICIPANTE-NAV', `❌ Erro ao carregar ${moduloId}:`, error);
 
-            // ✅ v3.1: Restaurar opacity mesmo em caso de erro
+            this.mostrarErroCarregamento(container, moduloId, error.message);
+        } finally {
+            // ✅ v4.2: SEMPRE restaurar opacity e esconder overlays (evita UI travada)
             container.style.opacity = '1';
+            container.style.transition = '';
 
-            // ✅ SPLASH: Esconder mesmo em caso de erro
             if (window.SplashScreen) {
                 window.SplashScreen.hide();
             }
 
-            // ✅ LOADING OVERLAY: Esconder também em caso de erro
             if (window.LoadingOverlay) {
                 window.LoadingOverlay.hide();
             }
-
-            this.mostrarErroCarregamento(container, moduloId, error.message);
         }
     }
 
@@ -1020,4 +1044,4 @@ if (document.readyState === "loading") {
     participanteNav.inicializar();
 }
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v4.0 pronto (bloqueio pre-temporada + feedback visual)');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v4.2 pronto (fix sync auth/nav + opacity restore)');

@@ -1,6 +1,7 @@
 
-// SISTEMA DE CACHE SUPER INTELIGENTE PARA PARTICIPANTE
-console.log('[PARTICIPANTE-CACHE] 🚀 Carregando sistema de cache inteligente...');
+// SISTEMA DE CACHE SUPER INTELIGENTE PARA PARTICIPANTE v3.1
+// ✅ v3.1: Adiciona utilitário global aguardarContainerDOM
+console.log('[PARTICIPANTE-CACHE] 🚀 Carregando sistema de cache inteligente v3.1...');
 
 class ParticipanteCache {
     constructor() {
@@ -228,4 +229,33 @@ const participanteCache = new ParticipanteCache();
 // Limpar expirados a cada 5 minutos
 setInterval(() => participanteCache.limparExpirados(), 300000);
 
-console.log('[PARTICIPANTE-CACHE] ✅ Sistema carregado');
+// =====================================================================
+// ✅ v3.1: UTILITÁRIO GLOBAL - Aguardar Container no DOM
+// Usado por módulos para garantir que container existe após refresh
+// =====================================================================
+window.aguardarContainerDOM = async function(containerId, maxTentativas = 10, intervalo = 100) {
+    // Double RAF primeiro
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    let container = document.getElementById(containerId);
+    if (container) return container;
+
+    // Polling com retry
+    return new Promise((resolve) => {
+        let tentativas = 0;
+        const poll = setInterval(() => {
+            tentativas++;
+            const el = document.getElementById(containerId);
+            if (el) {
+                clearInterval(poll);
+                resolve(el);
+            } else if (tentativas >= maxTentativas) {
+                clearInterval(poll);
+                console.warn(`[PARTICIPANTE-CACHE] Container #${containerId} não encontrado após ${maxTentativas} tentativas`);
+                resolve(null);
+            }
+        }, intervalo);
+    });
+};
+
+console.log('[PARTICIPANTE-CACHE] ✅ Sistema v3.1 carregado (+ aguardarContainerDOM)');

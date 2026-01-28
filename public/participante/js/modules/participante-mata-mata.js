@@ -1,5 +1,6 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v6.9 (Cache-First IndexedDB)
+// PARTICIPANTE MATA-MATA v7.0 (Cache-First IndexedDB)
+// ✅ v7.0: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v6.9: FIX Escudo placeholder não usa mais logo do sistema
 // ✅ v6.8: FIX Comparação de tipos (string vs number) em timeId
 // ✅ v6.7: Cache-first com IndexedDB para carregamento instantâneo
@@ -107,7 +108,10 @@ let estado = {
 // INICIALIZAÇÃO
 // =====================================================================
 export async function inicializarMataMata(params) {
-  if (window.Log) Log.info("[MATA-MATA] 🚀 Inicializando v6.8...", params);
+  if (window.Log) Log.info("[MATA-MATA] 🚀 Inicializando v7.0...", params);
+
+  // ✅ v7.0: Aguardar DOM estar renderizado (double RAF)
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
   // ✅ CORREÇÃO: Usar participanteAuth como fallback em vez de localStorage (evita dados cruzados entre ligas)
   estado.ligaId = params?.ligaId || window.participanteAuth?.ligaId;

@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v11.5 (Fix Participantes Pré-Temporada)
+// PARTICIPANTE-BOAS-VINDAS.JS - v11.6 (Fix Renderização Refresh)
 // =====================================================================
+// ✅ v11.6: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v11.5: totalParticipantes usa liga.participantes como fallback (pré-temporada)
 // ✅ v11.4: Otimização para ligas estreantes
 //           - Não busca histórico para ligas novas (evita 404 desnecessário)
@@ -70,7 +71,7 @@
 // ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v11.5 (Participantes Pré-Temporada)...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v11.6 (Fix Renderização Refresh)...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -187,11 +188,38 @@ export async function inicializarBoasVindasParticipante(params) {
 window.inicializarBoasVindasParticipante = inicializarBoasVindasParticipante;
 
 // =====================================================================
-// CARREGAR DADOS E RENDERIZAR - v10.6 FIX CACHE TEMPORADA
+// CARREGAR DADOS E RENDERIZAR - v11.6 FIX REFRESH
 // =====================================================================
 async function carregarDadosERenderizar(ligaId, timeId, participante) {
-    const container = document.getElementById("boas-vindas-container");
-    if (!container) return;
+    // ✅ v11.6: Aguardar DOM estar renderizado (double RAF)
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    let container = document.getElementById("boas-vindas-container");
+
+    // ✅ v11.6: Retry com polling se container não encontrado imediatamente
+    if (!container) {
+        if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "Container não encontrado - aguardando...");
+        container = await new Promise((resolve) => {
+            let tentativas = 0;
+            const maxTentativas = 10;
+            const interval = setInterval(() => {
+                tentativas++;
+                const el = document.getElementById("boas-vindas-container");
+                if (el) {
+                    clearInterval(interval);
+                    resolve(el);
+                } else if (tentativas >= maxTentativas) {
+                    clearInterval(interval);
+                    resolve(null);
+                }
+            }, 100);
+        });
+    }
+
+    if (!container) {
+        if (window.Log) Log.error("PARTICIPANTE-BOAS-VINDAS", "Container não encontrado após retry");
+        return;
+    }
 
     const cache = window.ParticipanteCache;
     const meuTimeIdNum = Number(timeId);

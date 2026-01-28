@@ -1,13 +1,14 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v5.1 (Detecção Dinâmica de Temporada)
+// PARTICIPANTE-TOP10.JS - v5.2 (Detecção Dinâmica de Temporada)
 // =====================================================================
+// ✅ v5.2: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v5.1: Detecção automática de temporada passada (remove hardcode 2025)
 // ✅ v5.0: SaaS Dinamico - configs via endpoint /api/ligas/:id/configuracoes
 // ✅ v4.8: Padronização de escudos - sempre usa brasão do time do cartoleiro
 // ✅ v4.7: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v4.5: Destaque visual para os 10 primeiros (verdadeiro TOP 10)
 
-if (window.Log) Log.info("[PARTICIPANTE-TOP10] Carregando módulo v5.1...");
+if (window.Log) Log.info("[PARTICIPANTE-TOP10] Carregando módulo v5.2...");
 
 // =====================================================================
 // CONFIGURAÇÃO DINÂMICA DO CAMPEONATO
@@ -107,10 +108,13 @@ export async function inicializarTop10Participante({
     timeId,
 }) {
     if (window.Log)
-        Log.info("[PARTICIPANTE-TOP10] 🚀 Inicializando v5.0...", {
+        Log.info("[PARTICIPANTE-TOP10] 🚀 Inicializando v5.2...", {
             ligaId,
             timeId,
         });
+
+    // ✅ v5.2: Aguardar DOM estar renderizado (double RAF)
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     meuTimeIdGlobal = timeId;
 

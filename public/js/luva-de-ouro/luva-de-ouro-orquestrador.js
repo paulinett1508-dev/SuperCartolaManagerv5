@@ -1,5 +1,5 @@
-// public/js/luva-de-ouro/luva-de-ouro-orquestrador.js - V2 COM SUPORTE A INATIVOS
-console.log("🎯 [LUVA-ORQUESTRADOR] Módulo orquestrador carregando...");
+// public/js/luva-de-ouro/luva-de-ouro-orquestrador.js - V2.1 COM UI AGUARDANDO DADOS
+console.log("🎯 [LUVA-ORQUESTRADOR] Módulo orquestrador v2.1 carregando...");
 
 const LuvaDeOuroOrquestrador = {
   estado: {
@@ -10,12 +10,131 @@ const LuvaDeOuroOrquestrador = {
     rodadaDetectada: null,
     carregando: false,
     statusMap: {}, // ✅ Status de inatividade
+    mercadoStatus: null, // v2.1: Cache do status do mercado
+  },
+
+  /**
+   * v2.1: Verifica se está aguardando dados (pré-temporada ou rodada 1 não finalizada)
+   * @returns {Promise<boolean>}
+   */
+  async isAguardandoDados() {
+    try {
+      const res = await fetch("/api/cartola/mercado/status");
+      if (!res.ok) return false;
+
+      const status = await res.json();
+      this.estado.mercadoStatus = status;
+
+      const rodadaAtual = status.rodada_atual || 1;
+      const mercadoAberto = status.status_mercado === 1;
+      const temporadaAPI = status.temporada || new Date().getFullYear();
+      const anoAtual = new Date().getFullYear();
+
+      // Pré-temporada: API retorna ano anterior
+      if (temporadaAPI < anoAtual) {
+        console.log("[LUVA-ORQ] 🕐 Pré-temporada detectada");
+        return true;
+      }
+
+      // Rodada 1 com mercado aberto = ainda não começou
+      if (rodadaAtual === 1 && mercadoAberto) {
+        console.log("[LUVA-ORQ] 🕐 Rodada 1 ainda não iniciada");
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.warn("[LUVA-ORQ] Erro ao verificar status:", error.message);
+      return false;
+    }
+  },
+
+  /**
+   * v2.1: Renderiza mensagem de aguardando dados
+   */
+  renderizarAguardandoDados() {
+    const config = window.LuvaDeOuroConfig;
+    const contentSelector = config?.SELECTORS?.CONTENT || "#luvaDeOuroContent";
+    const container = document.getElementById(contentSelector.replace("#", ""));
+
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="luva-aguardando-container" style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 136, 0, 0.2);
+        min-height: 300px;
+        margin: 20px;
+      ">
+        <span class="material-icons" style="
+          font-size: 64px;
+          color: var(--laranja, #ff8800);
+          margin-bottom: 20px;
+          animation: luvaPulse 2s ease-in-out infinite;
+        ">sports_soccer</span>
+
+        <h2 style="
+          font-family: 'Russo One', sans-serif;
+          font-size: 1.5rem;
+          color: var(--text-primary, #ffffff);
+          margin: 0 0 12px 0;
+        ">Aguardando Início do Campeonato</h2>
+
+        <p style="
+          font-family: 'Inter', sans-serif;
+          font-size: 1rem;
+          color: var(--text-secondary, #94a3b8);
+          margin: 0 0 24px 0;
+          max-width: 320px;
+          line-height: 1.5;
+        ">O ranking de Luva de Ouro estará disponível após a primeira rodada ser finalizada.</p>
+
+        <div style="
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 20px;
+          background: rgba(255, 136, 0, 0.1);
+          border-radius: 8px;
+          border: 1px solid rgba(255, 136, 0, 0.3);
+        ">
+          <span class="material-icons" style="color: var(--laranja, #ff8800); font-size: 20px;">info</span>
+          <span style="font-size: 0.85rem; color: var(--text-secondary, #94a3b8);">
+            Goleiros precisam jogar para pontuar
+          </span>
+        </div>
+      </div>
+
+      <style>
+        @keyframes luvaPulse {
+          0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+          50% { opacity: 0.7; transform: scale(1.1) rotate(5deg); }
+        }
+      </style>
+    `;
+
+    console.log("[LUVA-ORQ] ✅ Renderizado estado de aguardando dados");
   },
 
   async inicializar() {
     console.log("🥅 [LUVA-ORQUESTRADOR] Inicializando módulo...");
 
     try {
+      // v2.1: Verificar se está aguardando dados antes de qualquer coisa
+      const aguardando = await this.isAguardandoDados();
+      if (aguardando) {
+        console.log("[LUVA-ORQ] 🕐 Modo aguardando dados ativado");
+        this.renderizarAguardandoDados();
+        return;
+      }
+
       const config = window.LuvaDeOuroConfig;
 
       // ✅ Usar ID direto do seletor (remover #)
@@ -379,5 +498,5 @@ const LuvaDeOuroOrquestrador = {
 window.LuvaDeOuroOrquestrador = LuvaDeOuroOrquestrador;
 
 console.log(
-  "✅ [LUVA-ORQUESTRADOR] Módulo orquestrador carregado com suporte a inativos",
+  "✅ [LUVA-ORQUESTRADOR] Módulo orquestrador v2.1 carregado (UI aguardando dados + suporte a inativos)",
 );

@@ -69,14 +69,10 @@ const listarLigas = async (req, res) => {
       temporadasMap[item._id] = item.temporadas.sort((a, b) => b - a);
     });
 
-    // ✅ v4.0: Buscar contagem de participantes ATIVOS por liga (inscricoes 2026+)
-    // Para temporadas >= 2026, conta apenas inscritos com status 'renovado' ou 'novo'
-    const inscricoesAtivasPorLiga = await InscricaoTemporada.aggregate([
-      {
-        $match: {
-          status: { $in: ['renovado', 'novo'] }
-        }
-      },
+    // ✅ v4.2: Buscar contagem TOTAL de inscrições por liga/temporada (2026+)
+    // Conta TODAS as inscrições (renovado, novo, nao_participa, pendente)
+    // O sidebar mostra o total de participantes inscritos na temporada
+    const inscricoesPorLiga = await InscricaoTemporada.aggregate([
       {
         $group: {
           _id: { liga_id: "$liga_id", temporada: "$temporada" },
@@ -85,11 +81,11 @@ const listarLigas = async (req, res) => {
       }
     ]);
 
-    // Criar mapa liga_id + temporada -> contagem ativa
-    const inscricoesAtivasMap = {};
-    inscricoesAtivasPorLiga.forEach(item => {
+    // Criar mapa liga_id + temporada -> contagem total
+    const inscricoesTotalMap = {};
+    inscricoesPorLiga.forEach(item => {
       const key = `${item._id.liga_id}_${item._id.temporada}`;
-      inscricoesAtivasMap[key] = item.count;
+      inscricoesTotalMap[key] = item.count;
     });
 
     // ✅ v4.1: Buscar participantes NOVOS (que entraram em 2026+) por liga
@@ -124,12 +120,13 @@ const listarLigas = async (req, res) => {
       // Combina temporada atual com temporadas dos extratos (sem duplicatas)
       const todasTemporadas = [...new Set([temporadaAtual, ...temporadasExtrato])].sort((a, b) => b - a);
 
-      // NOVO: Criar mapa de contagem de times para cada temporada
+      // ✅ v4.2: Criar mapa de contagem de times para cada temporada
       const timesCountPerSeason = {};
       todasTemporadas.forEach(temp => {
         if (temp >= 2026) {
+          // Usa total de inscrições (inclui nao_participa, pendente, etc.)
           const key = `${ligaIdStr}_${temp}`;
-          timesCountPerSeason[temp] = inscricoesAtivasMap[key] || 0;
+          timesCountPerSeason[temp] = inscricoesTotalMap[key] || 0;
         } else {
           // ✅ v4.1: Para temporadas legadas, subtrai os "novos" de 2026+
           // Exemplo: Se liga.times tem 33 e 1 é "novo" em 2026, temporada 2025 = 32

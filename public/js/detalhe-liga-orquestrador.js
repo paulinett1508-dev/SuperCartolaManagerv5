@@ -1,5 +1,7 @@
-// DETALHE-LIGA ORQUESTRADOR - COORDENADOR OTIMIZADO v3.1
+// DETALHE-LIGA ORQUESTRADOR - COORDENADOR OTIMIZADO v3.2
 // Responsável por coordenar navegação e carregar módulos sob demanda
+// v3.2: FIX CRÍTICO - Double RAF para garantir container no DOM após injeção de HTML
+//       Resolve problema de "renderização perdida" em refresh (F5)
 // v3.1: FIX - Evita re-injeção de scripts do layout + invalida cache ao navegar entre ligas
 
 class DetalheLigaOrquestrador {
@@ -23,7 +25,7 @@ class DetalheLigaOrquestrador {
     // Detecta se é temporada histórica e configura o contexto global
     async detectarTemporadaHistorica() {
         try {
-            const response = await fetch('/api/cartola/mercado/status');
+            const response = await fetch('/api/cartola/mercado-status');
             if (response.ok) {
                 const mercado = await response.json();
                 const temporadaAtual = mercado.temporada || new Date().getFullYear();
@@ -138,6 +140,10 @@ class DetalheLigaOrquestrador {
                 contentArea.innerHTML = html;
             }
 
+            // ✅ v3.2: Aguardar DOM estar pintado antes de executar scripts
+            // Double RAF garante que o browser completou o layout após innerHTML
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
             await this.executeModuleScripts(moduleName);
             return { success: true, html };
         } catch (error) {
@@ -189,7 +195,8 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "rodadas":
-                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    // ✅ v3.2: Double RAF em vez de setTimeout fixo
+                    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
                     if (!this.modules.rodadas) {
                         await carregarModuloRodadas();
@@ -224,7 +231,8 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "pontos-corridos":
-                    await new Promise((resolve) => setTimeout(resolve, 50));
+                    // ✅ v3.2: Double RAF em vez de setTimeout fixo
+                    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
                     const pontosCorridosContainer =
                         document.getElementById("pontos-corridos");
                     if (pontosCorridosContainer)
@@ -281,7 +289,8 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "melhor-mes":
-                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    // ✅ v3.2: Double RAF em vez de setTimeout fixo
+                    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
                     if (!this.modules.melhorMes) {
                         await carregarModuloMelhorMes();
@@ -310,7 +319,8 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "fluxo-financeiro":
-                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    // ✅ v3.2: Double RAF em vez de setTimeout fixo
+                    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
                     if (!this.modules.fluxoFinanceiro) {
                         await carregarModuloFluxoFinanceiro();
@@ -335,9 +345,8 @@ class DetalheLigaOrquestrador {
                 case "participantes":
                     try {
                         await import("./participantes.js");
-                        await new Promise((resolve) =>
-                            setTimeout(resolve, 100),
-                        );
+                        // ✅ v3.2: Double RAF em vez de setTimeout fixo
+                        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
                         if (
                             typeof window.carregarParticipantesComBrasoes ===
@@ -356,9 +365,8 @@ class DetalheLigaOrquestrador {
                 case "parciais":
                     try {
                         const parciaisModule = await import("./parciais.js");
-                        await new Promise((resolve) =>
-                            setTimeout(resolve, 100),
-                        );
+                        // ✅ v3.2: Double RAF em vez de setTimeout fixo
+                        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
                         if (parciaisModule?.inicializarParciais) {
                             await parciaisModule.inicializarParciais();
@@ -885,6 +893,33 @@ class DetalheLigaOrquestrador {
         window.voltarParaCards = () => this.voltarParaCards();
         window.executeAction = (action) => this.executeAction(action);
         window.orquestrador = this;
+
+        // ✅ v3.2: Utilitário global para aguardar container no DOM
+        // Usado por módulos para garantir que container existe após injeção de HTML
+        window.aguardarContainerAdmin = async (containerId, maxTentativas = 10, intervalo = 100) => {
+            // Double RAF primeiro
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+            let container = document.getElementById(containerId);
+            if (container) return container;
+
+            // Polling com retry
+            return new Promise((resolve) => {
+                let tentativas = 0;
+                const poll = setInterval(() => {
+                    tentativas++;
+                    const el = document.getElementById(containerId);
+                    if (el) {
+                        clearInterval(poll);
+                        resolve(el);
+                    } else if (tentativas >= maxTentativas) {
+                        clearInterval(poll);
+                        console.warn(`[ORQUESTRADOR] Container #${containerId} não encontrado após ${maxTentativas} tentativas`);
+                        resolve(null);
+                    }
+                }, intervalo);
+            });
+        };
 
         // Multi-Temporada: função para obter URL com contexto de temporada preservado
         window.obterUrlComTemporada = (baseUrl) => {

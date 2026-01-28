@@ -1,13 +1,14 @@
 // =====================================================
-// MÓDULO: RANKING PARTICIPANTE - v3.8 PRO (CACHE-FIRST)
+// MÓDULO: RANKING PARTICIPANTE - v3.9 PRO (CACHE-FIRST)
 // Usa API de snapshots /api/ranking-turno
+// ✅ v3.9: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v3.8: CACHE-FIRST - Carregamento instantâneo do IndexedDB
 // ✅ v3.7: Separação de participantes inativos (desistentes)
 // ✅ v3.6: Detecção de CAMPEÃO (R38 encerrada) + Card menor
 // ✅ v3.5: Card Seu Desempenho ao final + Vezes Líder
 // =====================================================
 
-if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Módulo v3.8 PRO (CACHE-FIRST) carregando...');
+if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Módulo v3.9 PRO (CACHE-FIRST) carregando...');
 
 // ==============================
 // CONSTANTES
@@ -131,9 +132,33 @@ export async function inicializarRankingParticipante(params, timeIdParam) {
 
     if (window.Log) Log.debug('PARTICIPANTE-RANKING', 'Dados:', { ligaId, timeId });
 
-    const container = document.getElementById("rankingLista");
+    // ✅ v3.9: Aguardar DOM estar renderizado (double RAF)
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    let container = document.getElementById("rankingLista");
+
+    // ✅ v3.9: Retry com polling se container não encontrado imediatamente
     if (!container) {
-        if (window.Log) Log.error('PARTICIPANTE-RANKING', 'Container não encontrado');
+        if (window.Log) Log.warn('PARTICIPANTE-RANKING', 'Container não encontrado - aguardando...');
+        container = await new Promise((resolve) => {
+            let tentativas = 0;
+            const maxTentativas = 10;
+            const interval = setInterval(() => {
+                tentativas++;
+                const el = document.getElementById("rankingLista");
+                if (el) {
+                    clearInterval(interval);
+                    resolve(el);
+                } else if (tentativas >= maxTentativas) {
+                    clearInterval(interval);
+                    resolve(null);
+                }
+            }, 100);
+        });
+    }
+
+    if (!container) {
+        if (window.Log) Log.error('PARTICIPANTE-RANKING', 'Container não encontrado após retry');
         return;
     }
 
@@ -1278,4 +1303,4 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
     document.body.appendChild(modal);
 };
 
-if (window.Log) Log.info('PARTICIPANTE-RANKING', '✅ Módulo v3.8 PRO carregado (CACHE-FIRST + Separação Inativos + Campeão)');
+if (window.Log) Log.info('PARTICIPANTE-RANKING', '✅ Módulo v3.9 PRO carregado (CACHE-FIRST + Fix Container Refresh)');

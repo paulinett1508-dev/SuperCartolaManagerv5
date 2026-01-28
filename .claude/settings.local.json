@@ -216,7 +216,9 @@
       "Bash(~/bin/jq.exe:*)",
       "Bash(taskkill:*)",
       "Bash(where:*)",
-      "Bash(nc:*)"
+      "Bash(nc:*)",
+      "Bash(do echo -n \"Verificando $f: \")",
+      "Bash(do Campeonato\" quando não há dados disponíveis.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   },
   "enableAllProjectMcpServers": true,
