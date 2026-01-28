@@ -50,6 +50,8 @@ export class FluxoFinanceiroUI {
         this.auditoria = null;
         this.modalId = "modalExtratoFinanceiro";
         this.participanteAtual = null;
+        this._extratoIntegracoes = [];
+        this._extratoIntegracoesCarregadas = false;
         injetarEstilosAuditoria();
 
         // ✅ v4.3: Detectar modo admin
@@ -1841,6 +1843,11 @@ export class FluxoFinanceiroUI {
         }
 
         extrato = this._ajustarExtratoPreTemporada(extrato);
+        await this._carregarIntegracoesExtrato(window.obterLigaId?.());
+        const modulosExtras = this._coletarModulosExtras(participante);
+        if (modulosExtras && Object.keys(modulosExtras).length > 0) {
+            extrato.modulosExtras = modulosExtras;
+        }
         window.extratoAtual = extrato;
         const camposEditaveisHTML = await this.renderizarCamposEditaveis(
             participante.time_id || participante.id,
@@ -1962,6 +1969,123 @@ export class FluxoFinanceiroUI {
         } else {
             console.log('[FLUXO-UI] Modal não aberto:', { modalAtivo: !!modalAtivo, participante: !!participante });
         }
+    }
+
+    async _carregarIntegracoesExtrato(ligaId) {
+        if (this._extratoIntegracoesCarregadas) return;
+        this._extratoIntegracoesCarregadas = true;
+        this._extratoIntegracoes = [];
+
+        const ligaIdFinal = ligaId || window.obterLigaId?.();
+        if (!ligaIdFinal) return;
+
+        const modulos = [
+            { flag: 'melhorMes', backendId: 'melhor_mes', key: 'melhorMes', label: 'Melhor do Mês' },
+            { flag: 'artilheiro', backendId: 'artilheiro', key: 'artilheiro', label: 'Artilheiro' },
+            { flag: 'luvaOuro', backendId: 'luva_ouro', key: 'luvaOuro', label: 'Luva de Ouro' },
+        ];
+
+        const ativos = this._modulosAtivos || {};
+
+        await Promise.all(
+            modulos.map(async (modulo) => {
+                if (!ativos?.[modulo.flag]) return;
+
+                let integrar = true;
+                let tipo = 'misto';
+                let label = modulo.label;
+                let regra = '';
+
+                try {
+                    const response = await fetch(`/api/liga/${ligaIdFinal}/modulos/${modulo.backendId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        const respostas =
+                            data?.config?.wizard_respostas ||
+                            data?.wizard_respostas ||
+                            {};
+
+                        if (respostas.integrar_extrato === false) integrar = false;
+                        if (typeof respostas.extrato_tipo_impacto === 'string' && respostas.extrato_tipo_impacto) {
+                            tipo = respostas.extrato_tipo_impacto;
+                        }
+                        if (typeof respostas.extrato_label === 'string' && respostas.extrato_label.trim()) {
+                            label = respostas.extrato_label.trim();
+                        }
+                        if (typeof respostas.extrato_regra === 'string') {
+                            regra = respostas.extrato_regra;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('[FLUXO-UI] Falha ao carregar integração do extrato:', modulo.backendId, error);
+                }
+
+                if (!integrar) return;
+                this._extratoIntegracoes.push({
+                    key: modulo.key,
+                    label,
+                    tipo,
+                    regra,
+                    modulo: modulo.flag,
+                });
+            }),
+        );
+
+        const extrasGlobais = Array.isArray(window.EXTRATO_MODULOS_EXTRAS)
+            ? window.EXTRATO_MODULOS_EXTRAS
+            : [];
+
+        extrasGlobais.forEach((extra) => {
+            if (!extra || !extra.key) return;
+            this._extratoIntegracoes.push({
+                key: extra.key,
+                label: extra.label || extra.key,
+                tipo: extra.tipo || 'misto',
+                regra: extra.regra || '',
+                modulo: extra.modulo || 'custom',
+            });
+        });
+
+        const dedupe = new Map();
+        this._extratoIntegracoes.forEach((item) => {
+            if (!item?.key || dedupe.has(item.key)) return;
+            dedupe.set(item.key, item);
+        });
+        this._extratoIntegracoes = Array.from(dedupe.values());
+    }
+
+    _coletarModulosExtras(participante) {
+        const breakdown = participante?.breakdown;
+        if (!breakdown) return {};
+
+        const extras = {};
+        if (typeof breakdown.melhorMes === 'number') extras.melhorMes = breakdown.melhorMes;
+        if (typeof breakdown.artilheiro === 'number') extras.artilheiro = breakdown.artilheiro;
+        if (typeof breakdown.luvaOuro === 'number') extras.luvaOuro = breakdown.luvaOuro;
+
+        return extras;
+    }
+
+    obterModulosExtrato() {
+        const base = [
+            { key: 'bonus', label: 'Bônus MITO', tipo: 'credito' },
+            { key: 'onus', label: 'Ônus MICO', tipo: 'debito' },
+            { key: 'pontosCorridos', label: 'Pontos Corridos', tipo: 'misto' },
+            { key: 'mataMata', label: 'Mata-Mata', tipo: 'misto' },
+            { key: 'top10', label: 'TOP 10', tipo: 'misto' },
+        ];
+
+        const extras = Array.isArray(this._extratoIntegracoes)
+            ? this._extratoIntegracoes
+            : [];
+
+        const merged = new Map();
+        [...base, ...extras].forEach((item) => {
+            if (!item?.key || merged.has(item.key)) return;
+            merged.set(item.key, item);
+        });
+
+        return Array.from(merged.values());
     }
 
     _isAcertoInscricao(acerto) {
@@ -2955,19 +3079,47 @@ window.mostrarDetalhamentoGanhos = function () {
 
     const resumo = window.extratoAtual.resumo;
     const campos = window.extratoAtual.camposEditaveis || {};
+    const extras = window.extratoAtual.modulosExtras || {};
+    const modulosConfigurados =
+        window.fluxoFinanceiroUI?.obterModulosExtrato?.() || [
+            { key: 'bonus', label: 'Bônus MITO', tipo: 'credito' },
+            { key: 'onus', label: 'Ônus MICO', tipo: 'debito' },
+            { key: 'pontosCorridos', label: 'Pontos Corridos', tipo: 'misto' },
+            { key: 'mataMata', label: 'Mata-Mata', tipo: 'misto' },
+            { key: 'top10', label: 'TOP 10', tipo: 'misto' },
+            { key: 'melhorMes', label: 'Melhor do Mês', tipo: 'misto' },
+            { key: 'artilheiro', label: 'Artilheiro', tipo: 'misto' },
+            { key: 'luvaOuro', label: 'Luva de Ouro', tipo: 'misto' },
+        ];
+
+    const obterValorModulo = (key) => {
+        const valorExtra = extras[key];
+        const valorResumo = resumo?.[key];
+
+        if (typeof valorExtra === "number" && !Number.isNaN(valorExtra) && valorExtra !== 0) {
+            return valorExtra;
+        }
+
+        if (typeof valorResumo === "number" && !Number.isNaN(valorResumo)) {
+            return valorResumo;
+        }
+
+        if (typeof valorExtra === "number" && !Number.isNaN(valorExtra)) {
+            return valorExtra;
+        }
+
+        return 0;
+    };
 
     // Coletar todos os ganhos (valores positivos)
     const itens = [];
 
-    if (resumo.bonus > 0)
-        itens.push({ nome: "Bônus MITO", valor: resumo.bonus });
-    if (resumo.pontosCorridos > 0)
-        itens.push({ nome: "Pontos Corridos", valor: resumo.pontosCorridos });
-    if (resumo.mataMata > 0)
-        itens.push({ nome: "Mata-Mata", valor: resumo.mataMata });
-    if (resumo.top10 > 0) itens.push({ nome: "TOP 10", valor: resumo.top10 });
-    if (resumo.melhorMes > 0)
-        itens.push({ nome: "Melhor do Mês", valor: resumo.melhorMes });
+    modulosConfigurados.forEach((modulo) => {
+        const tipo = (modulo.tipo || "misto").toLowerCase();
+        if (tipo === "debito") return;
+        const valor = obterValorModulo(modulo.key);
+        if (valor > 0) itens.push({ nome: modulo.label, valor });
+    });
 
     // Campos manuais positivos
     if (campos.campo1?.valor > 0)
@@ -3040,26 +3192,47 @@ window.mostrarDetalhamentoPerdas = function () {
 
     const resumo = window.extratoAtual.resumo;
     const campos = window.extratoAtual.camposEditaveis || {};
+    const extras = window.extratoAtual.modulosExtras || {};
+    const modulosConfigurados =
+        window.fluxoFinanceiroUI?.obterModulosExtrato?.() || [
+            { key: 'bonus', label: 'Bônus MITO', tipo: 'credito' },
+            { key: 'onus', label: 'Ônus MICO', tipo: 'debito' },
+            { key: 'pontosCorridos', label: 'Pontos Corridos', tipo: 'misto' },
+            { key: 'mataMata', label: 'Mata-Mata', tipo: 'misto' },
+            { key: 'top10', label: 'TOP 10', tipo: 'misto' },
+            { key: 'melhorMes', label: 'Melhor do Mês', tipo: 'misto' },
+            { key: 'artilheiro', label: 'Artilheiro', tipo: 'misto' },
+            { key: 'luvaOuro', label: 'Luva de Ouro', tipo: 'misto' },
+        ];
+
+    const obterValorModulo = (key) => {
+        const valorExtra = extras[key];
+        const valorResumo = resumo?.[key];
+
+        if (typeof valorExtra === "number" && !Number.isNaN(valorExtra) && valorExtra !== 0) {
+            return valorExtra;
+        }
+
+        if (typeof valorResumo === "number" && !Number.isNaN(valorResumo)) {
+            return valorResumo;
+        }
+
+        if (typeof valorExtra === "number" && !Number.isNaN(valorExtra)) {
+            return valorExtra;
+        }
+
+        return 0;
+    };
 
     // Coletar todas as perdas (valores negativos)
     const itens = [];
 
-    if (resumo.onus < 0)
-        itens.push({ nome: "Ônus MICO", valor: Math.abs(resumo.onus) });
-    if (resumo.pontosCorridos < 0)
-        itens.push({
-            nome: "Pontos Corridos",
-            valor: Math.abs(resumo.pontosCorridos),
-        });
-    if (resumo.mataMata < 0)
-        itens.push({ nome: "Mata-Mata", valor: Math.abs(resumo.mataMata) });
-    if (resumo.top10 < 0)
-        itens.push({ nome: "TOP 10", valor: Math.abs(resumo.top10) });
-    if (resumo.melhorMes < 0)
-        itens.push({
-            nome: "Melhor do Mês",
-            valor: Math.abs(resumo.melhorMes),
-        });
+    modulosConfigurados.forEach((modulo) => {
+        const tipo = (modulo.tipo || "misto").toLowerCase();
+        if (tipo === "credito") return;
+        const valor = obterValorModulo(modulo.key);
+        if (valor < 0) itens.push({ nome: modulo.label, valor: Math.abs(valor) });
+    });
 
     // Campos manuais negativos
     if (campos.campo1?.valor < 0)

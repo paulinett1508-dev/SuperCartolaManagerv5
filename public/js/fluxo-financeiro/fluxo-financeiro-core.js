@@ -503,10 +503,10 @@ export class FluxoFinanceiroCore {
                         // ✅ v6.3 FIX: Usar acertos que já vêm do cache (elimina chamada redundante)
                         const acertos = cacheValido.acertos || await this._buscarAcertosFinanceiros(ligaId, timeId);
 
-                        const resumoRecalculado = this._recalcularResumoDoCache(
-                            rodadasFiltradas,
-                            camposEditaveis,
-                        );
+        const resumoRecalculado = this._recalcularResumoDoCache(
+            rodadasFiltradas,
+            camposEditaveis,
+        );
                         this._calcularSaldoAcumulado(rodadasFiltradas);
 
                         // Montar resumo com campos editáveis
@@ -522,6 +522,10 @@ export class FluxoFinanceiroCore {
                                 parseFloat(camposEditaveis.campo4?.valor) || 0,
                             // ✅ v6.1: Incluir saldo de acertos no resumo
                             saldo_acertos: acertos?.resumo?.saldo ?? 0,
+                            // ✅ v6.12: Preservar módulos opcionais do cache (quando existirem)
+                            melhorMes: cacheValido?.resumo?.melhorMes ?? resumoRecalculado.melhorMes ?? 0,
+                            artilheiro: cacheValido?.resumo?.artilheiro ?? resumoRecalculado.artilheiro ?? 0,
+                            luvaOuro: cacheValido?.resumo?.luvaOuro ?? resumoRecalculado.luvaOuro ?? 0,
                         };
 
                         // ✅ v6.6: CALCULAR AMBOS OS SALDOS (histórico e pendente)
@@ -574,7 +578,9 @@ export class FluxoFinanceiroCore {
                 rodadas: [],
                 resumo: {
                     totalGanhos: 0, totalPerdas: 0, bonus: 0, onus: 0,
-                    pontosCorridos: 0, mataMata: 0, top10: 0, saldo: 0,
+                    pontosCorridos: 0, mataMata: 0, top10: 0,
+                    melhorMes: 0, artilheiro: 0, luvaOuro: 0,
+                    saldo: 0,
                     campo1: 0, campo2: 0, campo3: 0, campo4: 0,
                     saldo_acertos: 0
                 },
@@ -634,6 +640,7 @@ export class FluxoFinanceiroCore {
                 resumo: {
                     totalGanhos: 0, totalPerdas: 0, bonus: 0, onus: 0,
                     pontosCorridos: 0, mataMata: 0, top10: 0,
+                    melhorMes: 0, artilheiro: 0, luvaOuro: 0,
                     campo1: parseFloat(camposEditaveis.campo1?.valor) || 0,
                     campo2: parseFloat(camposEditaveis.campo2?.valor) || 0,
                     campo3: parseFloat(camposEditaveis.campo3?.valor) || 0,
@@ -699,6 +706,8 @@ export class FluxoFinanceiroCore {
                 pontosCorridos: hasPontosCorridos ? 0 : null, // v6.0: config dinamica
                 mataMata: 0,
                 melhorMes: 0,
+                artilheiro: 0,
+                luvaOuro: 0,
                 campo1: parseFloat(camposEditaveis.campo1?.valor) || 0,
                 campo2: parseFloat(camposEditaveis.campo2?.valor) || 0,
                 campo3: parseFloat(camposEditaveis.campo3?.valor) || 0,
@@ -873,6 +882,9 @@ export class FluxoFinanceiroCore {
                     pontosCorridos: extrato.resumo.pontosCorridos,
                     mataMata: extrato.resumo.mataMata,
                     top10: extrato.resumo.top10,
+                    melhorMes: extrato.resumo.melhorMes,
+                    artilheiro: extrato.resumo.artilheiro,
+                    luvaOuro: extrato.resumo.luvaOuro,
                 },
                 // ✅ v4.1: Salvar info de inativo no cache
                 inativo: extrato.inativo,
@@ -978,6 +990,8 @@ export class FluxoFinanceiroCore {
             pontosCorridos,
             mataMata,
             melhorMes: 0,
+            artilheiro: 0,
+            luvaOuro: 0,
             top10: 0,
             top10Status: null,
             isMito,
@@ -994,6 +1008,8 @@ export class FluxoFinanceiroCore {
             pontosCorridos: hasPontosCorridos ? 0 : null,
             mataMata: 0,
             melhorMes: 0,
+            artilheiro: 0,
+            luvaOuro: 0,
             top10: 0,
             top10Status: null,
             isMito: false,
@@ -1074,6 +1090,9 @@ export class FluxoFinanceiroCore {
             pontosCorridos = 0,
             mataMata = 0,
             top10 = 0,
+            melhorMes = 0,
+            artilheiro = 0,
+            luvaOuro = 0,
             totalGanhos = 0,
             totalPerdas = 0;
 
@@ -1101,6 +1120,15 @@ export class FluxoFinanceiroCore {
             top10 += t10Valor;
             if (t10Valor > 0) totalGanhos += t10Valor;
             else if (t10Valor < 0) totalPerdas += Math.abs(t10Valor);
+
+            const melhorMesValor = parseFloat(rodada.melhorMes) || 0;
+            melhorMes += melhorMesValor;
+
+            const artilheiroValor = parseFloat(rodada.artilheiro) || 0;
+            artilheiro += artilheiroValor;
+
+            const luvaOuroValor = parseFloat(rodada.luvaOuro) || 0;
+            luvaOuro += luvaOuroValor;
         }
 
         return {
@@ -1109,6 +1137,9 @@ export class FluxoFinanceiroCore {
             pontosCorridos,
             mataMata,
             top10,
+            melhorMes,
+            artilheiro,
+            luvaOuro,
             totalGanhos,
             totalPerdas,
             saldo: 0,
@@ -1177,6 +1208,9 @@ export class FluxoFinanceiroCore {
             resumo.pontosCorridos += r.pontosCorridos;
         resumo.mataMata += r.mataMata || 0;
         resumo.top10 += r.top10 || 0;
+        resumo.melhorMes += r.melhorMes || 0;
+        resumo.artilheiro += r.artilheiro || 0;
+        resumo.luvaOuro += r.luvaOuro || 0;
     }
 
     // ✅ v6.2 FIX: Corrigido para setar r.saldoAcumulado (não r.saldo)

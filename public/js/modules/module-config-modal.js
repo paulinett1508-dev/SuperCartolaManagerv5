@@ -25,6 +25,7 @@ class ModuleConfigModal {
         try {
             // Buscar wizard do backend
             this.wizardData = await this.fetchWizard(modulo);
+            this._injectExtratoIntegrationQuestions();
 
             // Buscar config existente (se houver)
             const configAtual = await this.fetchConfig(ligaId, modulo);
@@ -36,6 +37,60 @@ class ModuleConfigModal {
         } catch (error) {
             console.error('[MODULE-CONFIG-MODAL] Erro ao inicializar:', error);
             this.showError('Erro ao carregar wizard de configuração');
+        }
+    }
+
+    /**
+     * Injeta perguntas de integração no extrato (frontend-only)
+     */
+    _injectExtratoIntegrationQuestions() {
+        if (!this.wizardData) return;
+        if (!Array.isArray(this.wizardData.perguntas)) {
+            this.wizardData.perguntas = [];
+        }
+
+        const perguntas = this.wizardData.perguntas;
+        const ids = new Set(perguntas.map(p => p.id));
+
+        if (!ids.has('integrar_extrato')) {
+            perguntas.push({
+                id: 'integrar_extrato',
+                tipo: 'boolean',
+                label: 'Integrar no Extrato Financeiro',
+                descricao: 'Se ativo, este módulo poderá gerar créditos/débitos no extrato.',
+                default: false
+            });
+        }
+
+        if (!ids.has('extrato_tipo_impacto')) {
+            perguntas.push({
+                id: 'extrato_tipo_impacto',
+                tipo: 'select',
+                label: 'Tipo de impacto no extrato',
+                descricao: 'Defina se o módulo gera crédito, débito ou ambos.',
+                required: true,
+                dependeDe: 'integrar_extrato',
+                condicao: true,
+                options: [
+                    { valor: 'credito', label: 'Crédito (a receber)' },
+                    { valor: 'debito', label: 'Débito (a pagar)' },
+                    { valor: 'misto', label: 'Misto (crédito e débito)' }
+                ],
+                default: 'misto'
+            });
+        }
+
+        if (!ids.has('extrato_regra')) {
+            perguntas.push({
+                id: 'extrato_regra',
+                tipo: 'text',
+                label: 'Regra de integração no extrato',
+                descricao: 'Explique como créditos/débitos serão lançados (ex: +R$5 por rodada, débito no fim da temporada).',
+                placeholder: 'Descreva a regra de lançamento no extrato...',
+                required: true,
+                dependeDe: 'integrar_extrato',
+                condicao: true
+            });
         }
     }
 
