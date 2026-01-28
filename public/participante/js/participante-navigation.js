@@ -1,6 +1,11 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION v4.2 - Sistema de Navegação entre Módulos
+// PARTICIPANTE NAVIGATION v4.3 - Sistema de Navegação entre Módulos
 // =====================================================================
+// v4.3: TEMPORADA 2026 ATIVA - Rodada 1+ em andamento
+//       - Módulo inicial agora é "home" (não mais "boas-vindas")
+//       - Bloqueio de pré-temporada desativado (só ativa se isPreparando=true)
+//       - Referências de "boas-vindas" atualizadas para "home"
+//       - Modal de bloqueio genérico (sem hardcode de ano)
 // v4.2: FIX CRÍTICO - Sincronização auth/nav para evitar renderização perdida
 //       - Aguarda auth estar 100% pronto antes de navegar
 //       - Garante opacity restore em finally block
@@ -20,11 +25,12 @@
 // v2.2: Debounce e controle de navegações duplicadas
 // =====================================================================
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação v4.2...');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação v4.3...');
 
 class ParticipanteNavigation {
     constructor() {
-        this.moduloAtual = "boas-vindas";
+        // ✅ v4.3: Módulo inicial agora é "home" (temporada 2026 em andamento)
+        this.moduloAtual = "home";
         this.participanteData = null;
         this.modulosAtivos = {};
         this.historicoNavegacao = []; // Histórico interno de navegação
@@ -103,10 +109,10 @@ class ParticipanteNavigation {
         // Configurar event listeners
         this.configurarEventListeners();
 
-        // ✅ AJUSTE REFRESH: Recuperar módulo salvo ou usar boas-vindas
+        // ✅ v4.3: Recuperar módulo salvo ou usar home (temporada em andamento)
         const moduloSalvo =
             sessionStorage.getItem("participante_modulo_atual") ||
-            "boas-vindas";
+            "home";
 
         // ✅ Sincronizar botão ativo do menu com módulo salvo
         if (moduloSalvo) {
@@ -305,7 +311,8 @@ class ParticipanteNavigation {
 
     tratarBotaoVoltar(event) {
         const moduloAtual = this.moduloAtual;
-        const paginasIniciais = ['boas-vindas', 'home'];
+        // ✅ v4.3: Home é a página inicial principal agora
+        const paginasIniciais = ['home'];
 
         // Se estiver na página inicial, mostrar modal de confirmação
         if (paginasIniciais.includes(moduloAtual)) {
@@ -325,9 +332,9 @@ class ParticipanteNavigation {
             // Navegar sem adicionar ao histórico
             this.navegarPara(moduloAnterior, false, true);
         } else {
-            // Se não há histórico, ir para boas-vindas
-            history.pushState({ modulo: 'boas-vindas', index: 0 }, '', window.location.href);
-            this.navegarPara('boas-vindas', false, true);
+            // ✅ v4.3: Se não há histórico, ir para home
+            history.pushState({ modulo: 'home', index: 0 }, '', window.location.href);
+            this.navegarPara('home', false, true);
         }
     }
 
@@ -491,8 +498,11 @@ class ParticipanteNavigation {
     }
 
     async navegarPara(moduloId, forcarReload = false, voltandoHistorico = false) {
-        // ✅ v4.0: Verificar bloqueio de pre-temporada ANTES de qualquer coisa
-        if (this.verificarBloqueioPreTemporada(moduloId)) {
+        // ✅ v4.3: Bloqueio de pré-temporada DESATIVADO (temporada 2026 em andamento - Rodada 1+)
+        // O verificarBloqueioPreTemporada só é ativado em pré-temporada (antes da rodada 1)
+        // Mantemos o código para futuras pré-temporadas, mas desativado por padrão
+        const isPreTemporada = window.ParticipanteConfig?.isPreparando?.() ?? false;
+        if (isPreTemporada && this.verificarBloqueioPreTemporada(moduloId)) {
             if (window.Log) Log.info('PARTICIPANTE-NAV', `🚫 Modulo bloqueado (pre-temporada): ${moduloId}`);
             this.mostrarModalBloqueioPreTemporada(moduloId);
             return;
@@ -634,7 +644,7 @@ class ParticipanteNavigation {
                             <span class="material-symbols-outlined" style="font-size: 18px;">refresh</span>
                             Tentar Novamente
                         </button>
-                        <button onclick="window.participanteNav.navegarPara('boas-vindas')"
+                        <button onclick="window.participanteNav.navegarPara('home')"
                                 style="background: #ff4500; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                             <span class="material-symbols-outlined" style="font-size: 18px;">home</span>
                             Voltar ao Início
@@ -652,7 +662,7 @@ class ParticipanteNavigation {
 
     obterNomeModulo(moduloId) {
         const nomes = {
-            "boas-vindas": "Boas-Vindas",
+            "boas-vindas": "Início", // ✅ v4.3: Renomeado de "Boas-Vindas" para "Início"
             extrato: "Extrato Financeiro",
             ranking: "Ranking Geral",
             rodadas: "Rodadas",
@@ -829,9 +839,9 @@ class ParticipanteNavigation {
                     <div class="modal-bloqueio-icon">
                         <span class="material-symbols-outlined">hourglass_top</span>
                     </div>
-                    <h3 class="modal-bloqueio-titulo">Aguarde o Cartola 2026</h3>
+                    <h3 class="modal-bloqueio-titulo">Aguarde o Brasileirão</h3>
                     <p class="modal-bloqueio-texto">
-                        O modulo <strong>${nomeModulo}</strong> estara disponivel quando o Brasileirao 2026 comecar.
+                        O modulo <strong>${nomeModulo}</strong> estara disponivel quando a temporada comecar.
                     </p>
                     ${diasRestantes > 0 ? `
                     <div class="modal-bloqueio-countdown">
@@ -841,7 +851,7 @@ class ParticipanteNavigation {
                     ` : ''}
                     <div class="modal-bloqueio-dica">
                         <span class="material-symbols-outlined">lightbulb</span>
-                        <span>Enquanto isso, explore seu <strong>Historico</strong> e veja suas conquistas de 2025!</span>
+                        <span>Enquanto isso, explore seu <strong>Historico</strong> e veja suas conquistas anteriores!</span>
                     </div>
                     <div class="modal-bloqueio-botoes">
                         <button class="modal-bloqueio-btn secundario" onclick="window.participanteNav.fecharModalBloqueio()">
@@ -1044,4 +1054,4 @@ if (document.readyState === "loading") {
     participanteNav.inicializar();
 }
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v4.2 pronto (fix sync auth/nav + opacity restore)');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v4.3 pronto (temporada 2026 ativa - home como módulo inicial)');

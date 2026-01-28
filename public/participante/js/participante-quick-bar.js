@@ -1,22 +1,24 @@
 // =====================================================================
-// QUICK ACCESS BAR v2.6 - Menu Dinâmico + Liga Estreante + Ao Vivo
+// QUICK ACCESS BAR v2.7 - Menu Dinâmico + Temporada 2026 Ativa
 // =====================================================================
-// 4 botões: Início, Ranking, Menu (sheet), Financeiro
+// 4 botões: Início (home), Ranking, Menu (sheet), Financeiro
 // GPU-accelerated, 60fps guaranteed, DOM caching
-// v2.2: Aguarda splash fechar antes de renderizar (evita conflito)
+// v2.7: Módulo inicial agora é "home" (temporada 2026 em andamento - rodada 1+)
+// v2.6: Botão "Ao Vivo" funcional - navega para rodadas com parciais
 // v2.5: Menu dinâmico baseado em modulosAtivos e isLigaEstreante
 //       - Hall da Fama oculto para ligas estreantes
 //       - Módulos não configurados mostram "Aguarde"
-// v2.6: Botão "Ao Vivo" funcional - navega para rodadas com parciais
+// v2.2: Aguarda splash fechar antes de renderizar (evita conflito)
 // =====================================================================
 
-if (window.Log) Log.info('QUICK-BAR', '🚀 Carregando Quick Access Bar v2.6...');
+if (window.Log) Log.info('QUICK-BAR', '🚀 Carregando Quick Access Bar v2.7...');
 
 class QuickAccessBar {
     constructor() {
         this.menuAberto = false;
         this.modulosAtivos = {};
-        this.moduloAtual = 'boas-vindas';
+        // ✅ v2.7: Módulo inicial agora é "home" (temporada 2026 em andamento)
+        this.moduloAtual = 'home';
 
         // DOM Cache - populated on render
         this._dom = {
@@ -148,7 +150,7 @@ class QuickAccessBar {
         bottomNav.className = 'bottom-nav';
         bottomNav.innerHTML = `
             <div class="nav-container">
-                <button class="nav-item active" data-page="boas-vindas" type="button">
+                <button class="nav-item active" data-page="home" type="button">
                     <span class="material-icons nav-icon">home</span>
                     <span class="nav-label">Início</span>
                 </button>
@@ -267,7 +269,7 @@ class QuickAccessBar {
             <div class="menu-category">
                 <div class="menu-category-title">
                     <span class="material-icons">upcoming</span>
-                    Em Breve (2026)
+                    Em Breve
                 </div>
                 <div class="menu-grid">
                     <div class="menu-card disabled" data-action="em-breve">
@@ -325,7 +327,7 @@ class QuickAccessBar {
                 const action = card.dataset.action;
 
                 if (action === 'em-breve') {
-                    this.mostrarToast('Em breve na temporada 2026!');
+                    this.mostrarToast('Em breve!');
                     return;
                 }
 

@@ -202,7 +202,8 @@ const SplashScreen = {
                 // Recarregar módulo atual
                 if (window.participanteNavigation || window.participanteNav) {
                     const nav = window.participanteNavigation || window.participanteNav;
-                    const moduloAtual = nav.moduloAtual || 'boas-vindas';
+                    // ✅ v5.1: Módulo padrão agora é "home" (temporada em andamento)
+                    const moduloAtual = nav.moduloAtual || 'home';
                     await nav.navegarPara(moduloAtual, true);
                 } else {
                     if (window.Log) Log.warn('SPLASH', 'Navigation não disponível');

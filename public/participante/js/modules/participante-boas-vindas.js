@@ -1,77 +1,25 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v11.6 (Fix Renderização Refresh)
+// PARTICIPANTE-BOAS-VINDAS.JS - v12.0 (Temporada 2026 Ativa)
 // =====================================================================
+// ✅ v12.0: TEMPORADA 2026 EM ANDAMENTO - Rodada 1+ iniciada
+//           - Removida lógica de "Aguardando 1ª rodada" (temporada ativa)
+//           - Simplificado código para sempre mostrar dados reais
+//           - Estado participanteRenovado removido (todos são ativos)
+//           - Foco em exibir dados da temporada atual
 // ✅ v11.6: FIX - Double RAF para garantir container no DOM após refresh
-// ✅ v11.5: totalParticipantes usa liga.participantes como fallback (pré-temporada)
+// ✅ v11.5: totalParticipantes usa liga.participantes como fallback
 // ✅ v11.4: Otimização para ligas estreantes
 //           - Não busca histórico para ligas novas (evita 404 desnecessário)
 //           - Não renderiza Hall da Fama para ligas estreantes
 // ✅ v11.3: Logo da liga exibida ao lado do nome na saudação
-//           - Usa campo liga.logo do banco de dados
-//           - Fallback silencioso se logo não existir
 // ✅ v11.2: Ícones discretos Dicas e Configurações no header
-//           - Removidos do Menu, agora ficam no canto superior direito
-//           - Padrão app profissional (ícones circulares pequenos)
-//           - Dicas só aparece se módulo estiver ativo
 // ✅ v11.1: Integração Cartola PRO para participantes premium
-//           - Botão "Cartola PRO" no header (gradiente amarelo/laranja)
-//           - Verificação premium via API /api/cartola-pro/verificar-premium
-//           - Função global window.abrirCartolaPro()
-// ✅ v10.19: Botão "Regras 2026" adicionado ao header
-//           - Abre modal com taxa de inscrição, prazo, configurações
-//           - Cor azul para diferenciar dos outros botões
-// ✅ v10.18: Botão "Atualizar" só para NÃO renovados
-//           - Renovados (2026): sem botão Atualizar (não há dados ainda)
-//           - Não renovados (2025): com botão Atualizar (temporada encerrada)
-// ✅ v10.17: Botão "Atualizar" só aparece quando necessário
-//           - Verifica RefreshButton.shouldShow() (temporada encerrada)
-//           - Se não mostrar, "Premiações" fica à esquerda sozinho
-// ✅ v10.16: Cores nos botões do header
-//           - "Premiações" laranja (primary)
-//           - "Atualizar" verde (green-500)
-// ✅ v10.15: Header com 2 botões na mesma linha
-//           - "Premiações" à esquerda (abre modal premiações 2026)
-//           - "Atualizar" à direita (abre modal RefreshButton)
-//           - Classe refresh-button-container evita duplicação
-// ✅ v10.14: Botão "Premiações" movido para o header
-//           - Formato compacto (pill) ao lado direito do header
-//           - Acima da saudação "Olá, [Nome]!"
-//           - Removido card grande (agora usa botão pequeno)
-// ✅ v10.13: Removido card fixo "Inscrição Confirmada!"
-//           - Redundante com modal de boas-vindas que já exibe confirmação
-// ✅ v10.12: Botão "Premiações 2026" na tela Início
-//           - Abre modal com todas as premiações da temporada
-//           - Accordion com 8 seções: Turnos, Disputas, Ranking, etc.
-// ✅ v10.11: Badge de ambiente movido para o header (próximo à versão)
-//           - Removido do card de boas-vindas
-//           - Agora aparece no topo, ao lado do badge de versão
 // ✅ v10.9: Jogos ao vivo com API-Football para TODOS os participantes
-//          - Usa /api/jogos-ao-vivo (API-Football + Globo fallback)
-//          - Exibe placares em tempo real quando há jogos brasileiros
-// ✅ v10.7: Integração do módulo Jogos do Dia para participantes premium
-//          - Exibe jogos do Brasileirão (ou mock em pré-temporada)
-//          - Apenas para participantes premium (ex: Paulinett Miranda)
-// ✅ v10.6: FIX - Participantes renovados ignoram cache IndexedDB de extrato
-//          - Evita mostrar saldo de 2025 em vez de 2026
-//          - Cache local pode ter dados antigos após renovação
-// ✅ v10.5: Para participantes RENOVADOS, mostra "Aguardando 1ª rodada"
-//          em vez de dados da temporada anterior
-// ✅ v10.4: FIX - URL correta para API de inscrições (/ligaId/temporada/timeId)
-//          - Verifica status 'renovado' ou 'novo' na resposta
-// ✅ v10.3: FIX - Verifica renovação antes de buscar extrato
-//          - Renovados usam temporada 2026 (saldo começa com inscrição)
-//          - Não renovados usam temporada 2025 (saldo da temporada anterior)
-// ✅ v10.1: FIX - Inclui temporada nas URLs de API (evita criar cache 2026 vazio)
 // ✅ v10.0: Hall da Fama discreto na tela inicial
-//    - Card pequeno e clean na parte superior
-//    - Não chama atenção para temporada anterior
-//    - Navegação direta para histórico completo
-// ✅ v9.0: Banner de Resumo da Temporada Anterior (SUBSTITUÍDO)
 // ✅ v8.0: Carregamento INSTANTÂNEO com cache offline (IndexedDB)
-// ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v11.6 (Fix Renderização Refresh)...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v12.0 (Temporada 2026 Ativa)...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -84,8 +32,8 @@ const TEMPORADA_FINANCEIRA = window.ParticipanteConfig?.getFinancialSeason
 // Estado do histórico
 let historicoParticipante = null;
 
-// ✅ v10.5: Estado de renovação do participante
-let participanteRenovado = false;
+// ✅ v12.0: Estado de renovação removido - temporada em andamento
+// let participanteRenovado = false; // ARQUIVADO - todos são participantes ativos
 
 // ✅ v11.1: Estado PRO do participante
 let participantePremium = false;
@@ -224,8 +172,9 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     const cache = window.ParticipanteCache;
     const meuTimeIdNum = Number(timeId);
 
-    // ✅ v10.5: Verificar se participante renovou ANTES de renderizar
-    await verificarStatusRenovacao(ligaId, timeId);
+    // ✅ v12.0: Verificação de renovação removida - temporada em andamento
+    // Todos os participantes ativos na liga são considerados válidos
+    // await verificarStatusRenovacao(ligaId, timeId); // ARQUIVADO
 
     // ✅ v11.1: Verificar se participante é PRO
     await verificarStatusPremium();
@@ -247,10 +196,9 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     let usouCache = false;
 
     if (cache) {
-        // ✅ v10.6 FIX: Para participantes RENOVADOS, NÃO usar cache IndexedDB do extrato
-        // O cache pode ter dados de 2025 (saldo antigo) que não se aplica mais em 2026
-        const deveBuscarExtratoDoCacheLocal = !participanteRenovado;
-        
+        // ✅ v12.0: Temporada ativa - sempre usar cache local (dados são da temporada atual)
+        const deveBuscarExtratoDoCacheLocal = true;
+
         // Buscar regras da liga para a temporada
         let ligaRules = null;
         try {
@@ -270,11 +218,6 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
                 ? (cache.getExtratoAsync ? cache.getExtratoAsync(ligaId, timeId) : cache.getExtrato(ligaId, timeId))
                 : Promise.resolve(null) // ✅ Renovados: ignorar cache local de extrato
         ]);
-
-        // ✅ v10.6: Log para debug
-        if (participanteRenovado && window.Log) {
-            Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Participante renovado - ignorando cache local de extrato");
-        }
 
         if (liga && ranking?.length && rodadas?.length) {
             // Inicializar dadosRenderizados antes de usar
@@ -1167,4 +1110,4 @@ window.abrirCartolaPro = function() {
 };
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "Modulo v11.4 carregado (Liga Estreante + Cartola PRO)");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "Modulo v12.0 carregado (Temporada 2026 Ativa)");
