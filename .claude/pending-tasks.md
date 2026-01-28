@@ -63,6 +63,29 @@ Objetivo: Garantir que novas ligas não ativam módulos opcionais automaticament
 
 ---
 
+## 📋 PENDENTE - PRÓXIMA SESSÃO
+
+### [DOC-001] Documentar Skills skill-creator e skill-installer no CLAUDE.md
+
+**Status:** 📋 PENDENTE
+
+**Problema:**
+O hook de pre-push alertou que as skills `skill-creator` e `skill-installer` não estão documentadas no CLAUDE.md.
+
+**Ação Necessária:**
+1. Adicionar `skill-creator` na tabela de Skills Auxiliares do CLAUDE.md
+2. Adicionar `skill-installer` na tabela de Skills Auxiliares do CLAUDE.md
+3. Opcionalmente, adicionar na seção de Slash Commands se forem user-invocable
+
+**Arquivos a Modificar:**
+- `CLAUDE.md` - Seção "Project Skills (Agentes Especializados)"
+
+**Localização das Skills:**
+- `.claude/skills/skill-creator/`
+- `.claude/skills/skill-installer/`
+
+---
+
 ## ✅ CORRIGIDO (27/01/2026)
 
 ### [UI-001] Auditoria Design Extrato Individual - Redução de Verbosidade
