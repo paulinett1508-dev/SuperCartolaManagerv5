@@ -91,7 +91,7 @@
                             <p class="modal-subtitle" id="modalLigaNome">Liga sem nome</p>
                         </div>
                     </div>
-                    <button class="modal-close" onclick="fecharModalModulos()">
+                    <button class="modal-close" id="btnFecharModal">
                         <span class="material-icons">close</span>
                     </button>
                 </div>
@@ -108,11 +108,11 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn-modal-secondary" onclick="window.location.href='gerenciar-modulos.html?id=' + window.currentLigaId">
+                    <button class="btn-modal-secondary" id="btnAbrirPaginaCompleta">
                         <span class="material-icons">open_in_new</span>
                         Abrir Página Completa
                     </button>
-                    <button class="btn-modal-primary" onclick="fecharModalModulos()">
+                    <button class="btn-modal-primary" id="btnConcluir">
                         <span class="material-icons">check</span>
                         Concluído
                     </button>
@@ -253,7 +253,7 @@
                                     <span class="material-icons">edit</span>
                                     Editar
                                 </a>
-                                <button class="btn-action btn-modules" onclick="abrirModalModulos('${liga._id}', '${nomeLiga.replace(/'/g, "\\'")}')">
+                                <button class="btn-action btn-modules" data-liga-id="${liga._id}" data-liga-nome="${nomeLiga}">
                                     <span class="material-icons">widgets</span>
                                     Módulos
                                 </button>
@@ -343,6 +343,20 @@
             // === MODAL DE MÓDULOS ===
             window.currentLigaId = null;
 
+            // Event delegation para botões de módulos
+            document.addEventListener('click', function(e) {
+                const btnModulos = e.target.closest('.btn-modules');
+                if (btnModulos) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const ligaId = btnModulos.dataset.ligaId;
+                    const nomeLiga = btnModulos.dataset.ligaNome;
+                    if (ligaId && nomeLiga) {
+                        abrirModalModulos(ligaId, nomeLiga);
+                    }
+                }
+            });
+
             window.abrirModalModulos = async function(ligaId, nomeLiga) {
                 window.currentLigaId = ligaId;
                 const modal = document.getElementById('modulosModal');
@@ -393,6 +407,31 @@
                 document.body.style.overflow = '';
                 window.currentLigaId = null;
             };
+
+            // Event listeners para botões do modal
+            document.addEventListener('DOMContentLoaded', function() {
+                // Botão fechar (X)
+                const btnFechar = document.getElementById('btnFecharModal');
+                if (btnFechar) {
+                    btnFechar.addEventListener('click', fecharModalModulos);
+                }
+
+                // Botão concluir
+                const btnConcluir = document.getElementById('btnConcluir');
+                if (btnConcluir) {
+                    btnConcluir.addEventListener('click', fecharModalModulos);
+                }
+
+                // Botão abrir página completa
+                const btnAbrirPagina = document.getElementById('btnAbrirPaginaCompleta');
+                if (btnAbrirPagina) {
+                    btnAbrirPagina.addEventListener('click', function() {
+                        if (window.currentLigaId) {
+                            window.location.href = 'gerenciar-modulos.html?id=' + window.currentLigaId;
+                        }
+                    });
+                }
+            });
 
             function renderizarModulosModal(liga) {
                 const modalContent = document.getElementById('modalContent');
@@ -474,8 +513,9 @@
                                 <label class="toggle-switch">
                                     <input
                                         type="checkbox"
+                                        class="toggle-modulo"
+                                        data-modulo-key="${modulo.key}"
                                         ${isAtivo ? 'checked' : ''}
-                                        onchange="toggleModuloModal('${modulo.key}', this.checked)"
                                     >
                                     <span class="toggle-slider"></span>
                                 </label>
@@ -511,10 +551,21 @@
                 }
             };
 
-            // Fechar modal ao clicar fora
+            // Event delegation para toggles de módulos
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('toggle-modulo')) {
+                    const moduloKey = e.target.dataset.moduloKey;
+                    const ativo = e.target.checked;
+                    if (moduloKey) {
+                        toggleModuloModal(moduloKey, ativo);
+                    }
+                }
+            });
+
+            // Fechar modal ao clicar no overlay (fora do conteúdo)
             document.addEventListener('click', function(e) {
-                const modal = document.getElementById('modulosModal');
-                if (e.target === modal) {
+                const modalOverlay = document.getElementById('modulosModal');
+                if (e.target === modalOverlay && modalOverlay.style.display !== 'none') {
                     fecharModalModulos();
                 }
             });
