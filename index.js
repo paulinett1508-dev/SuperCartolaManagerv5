@@ -135,6 +135,9 @@ import notificationsRoutes from "./routes/notifications-routes.js";
 import { cleanExpiredSubscriptions } from "./controllers/notificationsController.js";
 import { cronEscalacaoPendente } from "./services/notificationTriggers.js";
 
+// 🎯 Dicas Premium
+import dicasPremiumRoutes from "./routes/dicas-premium-routes.js";
+
 // 📦 Versionamento do App
 import appVersionRoutes from "./routes/appVersionRoutes.js";
 
@@ -409,6 +412,10 @@ console.log("[SERVER] 📦 Data Lake dos Participantes registrado em /api/data-l
 // 🔔 Push Notifications
 app.use("/api/notifications", notificationsRoutes);
 console.log("[SERVER] 🔔 Rotas de Push Notifications registradas em /api/notifications");
+
+// 🎯 Dicas Premium
+app.use("/api/dicas-premium", dicasPremiumRoutes);
+console.log("[SERVER] 🎯 Rotas de Dicas Premium registradas em /api/dicas-premium");
 
 // Rotas Adicionais (Controllers Diretos)
 app.get("/api/clubes", getClubes);

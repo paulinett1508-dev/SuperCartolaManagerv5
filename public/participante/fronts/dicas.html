@@ -1,12 +1,273 @@
 <!-- =====================================================================
-     DICAS.HTML - Frontend de Dicas de Escalacao v1.0
+     DICAS.HTML - Dicas Premium v2.0
      Super Cartola Manager
+     ACESSO: Exclusivo para participantes Premium
      ===================================================================== -->
 
 <div id="dicas-container" class="min-h-screen bg-[#0a0a0a]">
-    <!-- Conteudo sera renderizado pelo JS -->
-    <div class="flex flex-col items-center justify-center min-h-[400px] py-16">
-        <div class="w-12 h-12 border-4 border-zinc-700 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
-        <p class="text-sm text-gray-400">Analisando dados...</p>
+    <!-- Header -->
+    <div class="px-4 py-3 border-b border-white/10">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-white" style="font-family: 'Russo One', sans-serif;">
+                    Dicas Premium
+                </h2>
+                <p class="text-xs text-white/50" id="dicas-rodada-info">Carregando...</p>
+            </div>
+            <div id="dicas-mercado-status"></div>
+        </div>
+    </div>
+
+    <!-- Tabs de Navegacao (oculto ate verificar premium) -->
+    <div class="px-4 py-2 border-b border-white/10 hidden" id="dicas-tabs-container">
+        <div class="flex gap-2 overflow-x-auto pb-1" id="dicas-tabs">
+            <button class="dicas-tab active" data-tab="sugestao">
+                <span class="material-icons text-sm">auto_awesome</span>
+                Sugestao
+            </button>
+            <button class="dicas-tab" data-tab="jogadores">
+                <span class="material-icons text-sm">people</span>
+                Jogadores
+            </button>
+            <button class="dicas-tab" data-tab="confrontos">
+                <span class="material-icons text-sm">sports_soccer</span>
+                Confrontos
+            </button>
+            <button class="dicas-tab" data-tab="calculadora">
+                <span class="material-icons text-sm">calculate</span>
+                MPV
+            </button>
+        </div>
+    </div>
+
+    <!-- Conteudo das Tabs -->
+    <div id="dicas-content" class="pb-28">
+        <!-- Conteudo sera renderizado pelo JS -->
+        <div class="flex flex-col items-center justify-center min-h-[400px] py-16">
+            <div class="w-12 h-12 border-4 border-zinc-700 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
+            <p class="text-sm text-gray-400">Verificando acesso...</p>
+        </div>
     </div>
 </div>
+
+<style>
+.dicas-tab {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.dicas-tab:active {
+    transform: scale(0.98);
+}
+
+.dicas-tab.active {
+    color: #ff5500;
+    background: rgba(255,85,0,0.1);
+    border-color: rgba(255,85,0,0.3);
+}
+
+.dicas-filtro-btn {
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.2s;
+}
+
+.dicas-filtro-btn.active {
+    color: white;
+    background: #ff5500;
+    border-color: #ff5500;
+}
+
+.dicas-jogador-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.dicas-jogador-card:active {
+    transform: scale(0.99);
+    background: rgba(255,255,255,0.05);
+}
+
+.dicas-confronto-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+}
+
+.dicas-input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 16px;
+    color: white;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    outline: none;
+}
+
+.dicas-input:focus {
+    border-color: #ff5500;
+    background: rgba(255,85,0,0.05);
+}
+
+.mpv-tabela-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.mpv-tabela-row:last-child {
+    border-bottom: none;
+}
+
+/* Tela de bloqueio premium */
+.premium-bloqueio {
+    text-align: center;
+    padding: 60px 24px;
+}
+
+.premium-bloqueio-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    background: linear-gradient(135deg, rgba(255,85,0,0.2), rgba(255,170,0,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.premium-bloqueio-icon .material-icons {
+    font-size: 40px;
+    color: #ff5500;
+}
+
+.premium-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #ff5500, #ffaa00);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+}
+
+/* Sugestao de Escalacao */
+.sugestao-jogador {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+}
+
+.sugestao-jogador.capitao {
+    background: linear-gradient(135deg, rgba(255,85,0,0.1), rgba(255,170,0,0.05));
+    border-color: rgba(255,85,0,0.3);
+}
+
+.sugestao-posicao-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 20px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.sugestao-posicao-badge.gol { background: #f59e0b; color: #000; }
+.sugestao-posicao-badge.lat { background: #22c55e; color: #000; }
+.sugestao-posicao-badge.zag { background: #3b82f6; color: #fff; }
+.sugestao-posicao-badge.mei { background: #8b5cf6; color: #fff; }
+.sugestao-posicao-badge.ata { background: #ef4444; color: #fff; }
+.sugestao-posicao-badge.tec { background: #6b7280; color: #fff; }
+
+.capitao-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 6px;
+    background: #ff5500;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    color: white;
+}
+
+.slider-container {
+    position: relative;
+    padding: 8px 0;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 4px;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, #22c55e, #ff5500);
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.resumo-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+</style>
