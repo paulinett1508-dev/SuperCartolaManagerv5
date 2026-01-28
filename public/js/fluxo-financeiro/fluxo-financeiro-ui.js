@@ -14,7 +14,8 @@ import {
 import { inicializarPDF } from "./fluxo-financeiro-pdf.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v8.8.1 (Seletor de Temporada Inteligente)
+ * FLUXO-FINANCEIRO-UI.JS - v8.9 (Seção Ajustes Financeiros Removida)
+ * ✅ v8.9: Seção "Ajustes Financeiros" REMOVIDA para 2026+ (redundante com botão Acerto no footer)
  * ✅ v8.8.1: FIX - primeiraTemporada usa criadaEm (ano real de criação da liga)
  * ✅ v8.8: Tab 2025 oculta para ligas criadas em 2026 (usa primeiraTemporada da API)
  * ✅ v8.7: Label "Inscrição XXXX" substituído por "Saldo Inicial" + sub-linha informativa
@@ -425,7 +426,7 @@ export class FluxoFinanceiroUI {
                 <div class="extrato-sem-dados-temporada">
                     <span class="material-icons">hourglass_empty</span>
                     <p>Nenhum dado de rodadas para ${temporada}</p>
-                    <p class="hint">${temporada === 2026 ? 'A temporada 2026 ainda não começou. Use "Acerto" ou "Ajustes" para registrar valores.' : 'Verifique se o cache foi gerado.'}</p>
+                    <p class="hint">${temporada === 2026 ? 'A temporada 2026 ainda não começou. Use o botão "Acerto" no rodapé para registrar valores.' : 'Verifique se o cache foi gerado.'}</p>
                 </div>
             `;
         }
@@ -469,46 +470,9 @@ export class FluxoFinanceiroUI {
             `;
         }
 
-        // ✅ v2.17: Seção de Ajustes Dinâmicos (temporada 2026+)
-        if (temporada >= 2026 && window.isAdminMode) {
-            const ajustes = data.ajustes || [];
-            const totalAjustes = data.ajustes_total || 0;
-
-            html += `
-                <div class="extrato-ajustes-section" style="margin-top: 20px;">
-                    <div class="extrato-ajustes-header">
-                        <div class="extrato-ajustes-titulo">
-                            <span class="material-icons">tune</span>
-                            <h4>Ajustes Manuais</h4>
-                            <span class="ajustes-total ${getValorClass(totalAjustes)}">${formatarMoeda(totalAjustes)}</span>
-                        </div>
-                        <button class="btn-adicionar-ajuste" onclick="window.abrirModalAjuste()">
-                            <span class="material-icons">add</span>
-                            Adicionar
-                        </button>
-                    </div>
-                    <div class="extrato-ajustes-lista" id="ajustesListaContainer">
-                        ${ajustes.length === 0 ? `
-                            <div class="ajuste-vazio">
-                                <span class="material-icons">info</span>
-                                <span>Nenhum ajuste cadastrado</span>
-                            </div>
-                        ` : ajustes.map(a => `
-                            <div class="ajuste-item" data-ajuste-id="${a._id}">
-                                <div class="ajuste-info">
-                                    <span class="ajuste-descricao">${a.descricao}</span>
-                                    <span class="ajuste-data">${new Date(a.criado_em).toLocaleDateString('pt-BR')}</span>
-                                </div>
-                                <div class="ajuste-valor ${getValorClass(a.valor)}">${formatarMoeda(a.valor)}</div>
-                                <button class="ajuste-remover" onclick="window.removerAjuste('${a._id}')" title="Remover ajuste">
-                                    <span class="material-icons">close</span>
-                                </button>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
+        // ✅ v8.9: Seção "Ajustes Manuais" REMOVIDA para temporada 2026+
+        // Motivo: Redundante com botão "Acerto" no footer do modal
+        // O admin usa o botão "Acerto" (payments) para registrar movimentações
 
         modalBody.innerHTML = html;
     }
@@ -607,6 +571,8 @@ export class FluxoFinanceiroUI {
             console.log(`[FLUXO-UI] Temporada ${temporadaNum}: Usando lista da API (${listaBase.length} renovados)`);
         }
 
+        const totalParticipantesBase = listaBase.length;
+
         // Mesclar dados de participantes com dados de saldo
         const participantesComSaldo = listaBase.map(p => {
             const timeId = String(p.time_id || p.id);
@@ -635,10 +601,10 @@ export class FluxoFinanceiroUI {
 
         // Calcular totais
         const totais = dadosSaldo?.totais || {
-            totalParticipantes: participantes.length,
+            totalParticipantes: totalParticipantesBase,
             quantidadeCredores: 0,
             quantidadeDevedores: 0,
-            quantidadeQuitados: participantes.length,
+            quantidadeQuitados: totalParticipantesBase,
             totalAReceber: 0,
             totalAPagar: 0,
         };
@@ -673,7 +639,7 @@ export class FluxoFinanceiroUI {
                     <div class="toolbar-stats">
                         <span class="stat-badge">
                             <span class="material-icons">people</span>
-                            <span class="participantes-count">${participantes.length}</span>
+                            <span class="participantes-count">${totalParticipantesBase}</span>
                         </span>
                     </div>
                 </div>
@@ -809,7 +775,7 @@ export class FluxoFinanceiroUI {
             </div>
         `;
 
-        window.totalParticipantes = participantes.length;
+        window.totalParticipantes = totalParticipantesBase;
         window.participantesFluxo = participantesComSaldo;
 
         // Injetar estilos (v8.4: importados de fluxo-financeiro-styles.js)
@@ -1098,26 +1064,39 @@ export class FluxoFinanceiroUI {
         // Buscar dados de inscrição do cache
         const inscricao = window.fluxoFinanceiroCache?.inscricoes2026?.get(String(timeId)) || {};
 
-        // Dados financeiros de inscrição
-        const saldoAnterior = inscricao.saldo_transferido || 0;
-        const taxaInscricao = inscricao.taxa_inscricao || 180;
-        const pagouDiretamente = inscricao.pagou_inscricao === true;
+        // Dados financeiros de inscrição (com fallback seguro)
+        const saldoAnterior = (typeof inscricao.saldo_transferido === 'number')
+            ? inscricao.saldo_transferido
+            : (typeof p.saldo_transferido === 'number' ? p.saldo_transferido : 0);
+        const taxaInscricao = (typeof inscricao.taxa_inscricao === 'number')
+            ? inscricao.taxa_inscricao
+            : (typeof p.taxa_inscricao === 'number' ? p.taxa_inscricao : 180);
+        const saldoInicial = (typeof inscricao.saldo_inicial_temporada === 'number')
+            ? inscricao.saldo_inicial_temporada
+            : null;
+        const pagouFlag = inscricao.pagou_inscricao === true || p.pagou_inscricao === true;
+        // ✅ v2.2.1: Se saldo_inicial_temporada não desconta a taxa, considerar pago
+        const saldoIndicouPago = saldoInicial !== null && taxaInscricao > 0 && Math.abs(saldoInicial - saldoAnterior) < 0.01;
+        const pagouDiretamente = pagouFlag || saldoIndicouPago;
         // ✅ v2.2 FIX: legado_manual.tipo_quitacao='zerado' é sobre SALDO 2025, não inscrição 2026
         const saldoCobriuTaxa = saldoAnterior >= taxaInscricao && taxaInscricao > 0;
-        const inscricaoQuitada = pagouDiretamente || saldoCobriuTaxa;
+        // ✅ v2.2.1: Se a API já trouxe saldo final, usar como fallback para quitar status
+        const saldoFinalApi = (typeof p.saldoFinal === 'number') ? p.saldoFinal : null;
+        const quitadoPorSaldoFinal = saldoFinalApi !== null && saldoFinalApi >= -0.01;
+        const inscricaoQuitada = pagouDiretamente || saldoCobriuTaxa || quitadoPorSaldoFinal;
 
         // Calcular saldo final
-        let saldoFinal = inscricao.saldo_inicial_temporada;
+        let saldoFinal = saldoFinalApi !== null ? saldoFinalApi : saldoInicial;
         if (saldoFinal === undefined || saldoFinal === null) {
             // Calcular: saldo anterior - taxa (se não pagou diretamente)
             saldoFinal = pagouDiretamente ? saldoAnterior : (saldoAnterior - taxaInscricao);
         }
 
         // Status visual - v7.1: Simplificado (PAGO ou DEVE)
-        // PAGO = pagou diretamente OU crédito cobriu a taxa
+        // PAGO = pagou diretamente OU crédito cobriu a taxa OU saldo final já quitado na API
         // DEVE = não pagou e crédito não cobriu
         let statusText, statusClass;
-        if (pagouDiretamente || saldoCobriuTaxa) {
+        if (inscricaoQuitada) {
             statusText = 'Pago';
             statusClass = 'status-pago';
         } else {
@@ -1861,6 +1840,7 @@ export class FluxoFinanceiroUI {
             return;
         }
 
+        extrato = this._ajustarExtratoPreTemporada(extrato);
         window.extratoAtual = extrato;
         const camposEditaveisHTML = await this.renderizarCamposEditaveis(
             participante.time_id || participante.id,
@@ -1892,13 +1872,13 @@ export class FluxoFinanceiroUI {
         let html = `
         <div class="extrato-container fadeIn">
             <!-- Card de Saldo Principal -->
-            <div class="extrato-header-card" style="position: relative; padding: 24px;">
-                <div class="text-muted font-bold text-uppercase" style="font-size: 11px;">${labelSaldo}</div>
+            <div class="extrato-header-card">
+                <div class="extrato-saldo-label">${labelSaldo}</div>
                 <div class="saldo-display ${classeSaldo}">
                     R$ ${Math.abs(saldoFinal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                 </div>
 
-                ${extrato.updatedAt ? `<div class="text-muted" style="font-size: 9px; margin-top: 8px;">Atualizado: ${new Date(extrato.updatedAt).toLocaleString()}</div>` : ""}
+                ${extrato.updatedAt ? `<div class="extrato-saldo-atualizado">Atualizado: ${new Date(extrato.updatedAt).toLocaleString()}</div>` : ""}
 
                 ${/* ✅ v6.7: Botões GANHOS/PERDAS só aparecem se tem rodadas (não pré-temporada) */
                   !extrato.preTemporada && extrato.rodadas && extrato.rodadas.length > 0 ? `
@@ -1961,10 +1941,10 @@ export class FluxoFinanceiroUI {
                 </div>
             </div>
             ` : extrato.preTemporada ? `
-            <div class="card-padrao" style="text-align: center; padding: 24px;">
-                <span class="material-icons" style="font-size: 48px; color: var(--laranja);">hourglass_empty</span>
-                <h3 style="margin: 12px 0 8px; color: var(--texto-primario);">Pré-Temporada ${window.temporadaAtual || 2026}</h3>
-                <p style="color: var(--texto-secundario); margin: 0;">O campeonato ainda não começou. Apenas acertos financeiros estão disponíveis.</p>
+            <div class="card-padrao extrato-pretemporada">
+                <span class="material-icons extrato-pretemporada-icone">hourglass_empty</span>
+                <h3 class="extrato-pretemporada-titulo">Pré-Temporada ${window.temporadaAtual || 2026}</h3>
+                <p class="extrato-pretemporada-subtitulo">O campeonato ainda não começou. Apenas acertos financeiros estão disponíveis.</p>
             </div>
             ` : ''}
 
@@ -1982,6 +1962,59 @@ export class FluxoFinanceiroUI {
         } else {
             console.log('[FLUXO-UI] Modal não aberto:', { modalAtivo: !!modalAtivo, participante: !!participante });
         }
+    }
+
+    _isAcertoInscricao(acerto) {
+        const descricao = (acerto?.descricao || '').toLowerCase();
+        return descricao.includes('inscri') || descricao.includes('renova');
+    }
+
+    _ajustarExtratoPreTemporada(extrato) {
+        if (!extrato || extrato.preTemporada !== true) return extrato;
+
+        const pagouInscricao =
+            extrato.resumo?.pagouInscricao === true ||
+            extrato.inscricao?.pagouInscricao === true;
+
+        if (!pagouInscricao) return extrato;
+
+        const lista = extrato.acertos?.lista || [];
+        if (!Array.isArray(lista) || lista.length === 0) return extrato;
+
+        const listaFiltrada = lista.filter((a) => !this._isAcertoInscricao(a));
+        if (listaFiltrada.length === lista.length) return extrato;
+
+        let totalPago = 0;
+        let totalRecebido = 0;
+        listaFiltrada.forEach((a) => {
+            const valor = Number(a.valor) || 0;
+            if (a.tipo === 'pagamento') totalPago += valor;
+            else if (a.tipo === 'recebimento') totalRecebido += valor;
+        });
+
+        const saldoAcertos = parseFloat((totalPago - totalRecebido).toFixed(2));
+        const saldoTemporada = extrato.resumo?.saldo_temporada ?? 0;
+
+        return {
+            ...extrato,
+            resumo: {
+                ...extrato.resumo,
+                saldo_acertos: saldoAcertos,
+                saldo: saldoTemporada + saldoAcertos,
+            },
+            acertos: {
+                ...(extrato.acertos || {}),
+                lista: listaFiltrada,
+                resumo: {
+                    ...(extrato.acertos?.resumo || {}),
+                    totalPago: parseFloat(totalPago.toFixed(2)),
+                    totalRecebido: parseFloat(totalRecebido.toFixed(2)),
+                    saldo: saldoAcertos,
+                    saldoAcertos: saldoAcertos,
+                    quantidadeAcertos: listaFiltrada.length,
+                },
+            },
+        };
     }
 
     /**
@@ -2089,16 +2122,18 @@ export class FluxoFinanceiroUI {
     }
 
     /**
-     * ✅ v8.0: Renderiza campos editáveis - agora com lógica condicional por temporada
+     * ✅ v8.9: Renderiza campos editáveis - agora com lógica condicional por temporada
      * - Temporada <= 2025: Campos fixos (legado)
-     * - Temporada >= 2026: Ajustes dinâmicos (novo sistema)
+     * - Temporada >= 2026: Seção REMOVIDA (redundante com botão "Acerto" no footer)
      */
     async renderizarCamposEditaveis(timeId) {
         const temporada = this.temporadaModalExtrato || window.temporadaAtual || 2026;
 
         if (temporada >= 2026) {
-            // ✅ v8.0: Novo sistema - ajustes dinâmicos ilimitados
-            return await this.renderizarAjustesDinamicos(timeId, temporada);
+            // ✅ v8.9: Seção "Ajustes Financeiros" REMOVIDA para temporada 2026+
+            // Motivo: Redundante com botão "Acerto" no footer do modal
+            // O admin usa o botão "Acerto" (payments) para registrar movimentações
+            return "";
         } else {
             // ✅ v8.0: Sistema legado - 4 campos fixos (mantém compatibilidade 2025)
             return await this.renderizarCamposFixos(timeId);
@@ -2299,6 +2334,8 @@ export class FluxoFinanceiroUI {
         const corTotal = totais.total >= 0 ? 'text-success' : 'text-danger';
         const sinalTotal = totais.total >= 0 ? '+' : '-';
 
+        const timeIdSafe = String(timeId).replace(/'/g, "\\'");
+
         return `
             <div class="card-padrao mb-20 ajustes-section">
                 <h4 class="card-titulo" style="font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
@@ -2307,7 +2344,7 @@ export class FluxoFinanceiroUI {
                         Ajustes Financeiros
                     </span>
                     ${isAdmin ? `
-                    <button onclick="window.abrirModalNovoAjuste(${timeId}, ${temporada})" class="btn-add-ajuste" style="display: flex; align-items: center; gap: 4px; background: linear-gradient(135deg, var(--laranja) 0%, #ff6b00 100%); border: none; border-radius: 6px; padding: 6px 12px; color: #fff; font-size: 11px; font-weight: 600; cursor: pointer;">
+                    <button onclick="window.abrirModalNovoAjuste ? window.abrirModalNovoAjuste('${timeIdSafe}', ${temporada}) : window.abrirModalAjuste && window.abrirModalAjuste()" class="btn-add-ajuste" style="display: flex; align-items: center; gap: 4px; background: linear-gradient(135deg, var(--laranja) 0%, #ff6b00 100%); border: none; border-radius: 6px; padding: 6px 12px; color: #fff; font-size: 11px; font-weight: 600; cursor: pointer;">
                         <span class="material-icons" style="font-size: 14px;">add</span> Adicionar
                     </button>
                     ` : ''}
