@@ -867,6 +867,38 @@ class CartolaApiService {
     }
   }
 
+  /**
+   * Obtém status de uma rodada específica
+   * @param {number} rodada - Número da rodada (1-38)
+   * @returns {Promise<string>} 'futura' | 'em_andamento' | 'parciais' | 'consolidada' | 'encerrada'
+   */
+  async getRodadaStatus(rodada) {
+    try {
+      const statusMercado = await this.obterStatusMercado();
+      const rodadaAtual = statusMercado.rodada_atual;
+      const statusCode = statusMercado.status_mercado;
+
+      // Lógica centralizada de estados
+      if (rodada > rodadaAtual) {
+        return 'futura';
+      } else if (rodada === rodadaAtual && statusCode === 1) {
+        return 'em_andamento'; // Mercado aberto
+      } else if (rodada === rodadaAtual && statusCode === 2) {
+        return 'parciais'; // Mercado fechado, jogos rolando
+      } else if (rodada < rodadaAtual) {
+        return 'consolidada'; // Rodada anterior
+      } else if (statusCode === 6) {
+        return 'encerrada'; // Temporada encerrada
+      } else {
+        return 'consolidada'; // Default seguro
+      }
+    } catch (error) {
+      CartolaLogger.error(`Erro ao obter status da rodada ${rodada}`, { error: error.message });
+      // Fallback seguro
+      return 'consolidada';
+    }
+  }
+
   // Limpar cache
   limparCache() {
     cache.flushAll();
