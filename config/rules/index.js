@@ -33,6 +33,9 @@ function loadRule(filename) {
 // REGRAS BÁSICAS
 // =============================================================================
 
+/** Extrato Financeiro - Controle de saldo e transações */
+export const extrato = loadRule('extrato.json');
+
 /** Ranking Geral - Acumulado total */
 export const rankingGeral = loadRule('ranking_geral.json');
 
@@ -94,6 +97,7 @@ export const restaUm = loadRule('resta_um.json');
  */
 export const allRules = {
     // Básicas
+    extrato,
     rankingGeral,
     rankingRodada,
 
@@ -123,6 +127,7 @@ export const allRules = {
  */
 export function getRuleById(ruleId) {
     const mapping = {
+        'extrato': extrato,
         'ranking_geral': rankingGeral,
         'ranking_rodada': rankingRodada,
         'pontos_corridos': pontosCorridos,
@@ -186,6 +191,7 @@ export default {
     getFinanceiroForRule,
 
     // Exports individuais para conveniência
+    extrato,
     rankingGeral,
     rankingRodada,
     pontosCorridos,
@@ -200,4 +206,4 @@ export default {
     restaUm,
 };
 
-console.log('[RULES] ✅ Sistema de Regras carregado - 12 módulos disponíveis');
+console.log('[RULES] ✅ Sistema de Regras carregado - 13 módulos disponíveis');
