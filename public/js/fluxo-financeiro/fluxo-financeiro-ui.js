@@ -2095,27 +2095,7 @@ export class FluxoFinanceiroUI {
                         </span>
                         <span class="${corSaldoTemp}" style="font-weight: 700; font-size: 15px;">${saldoTemporada >= 0 ? '+' : '-'}R$ ${formatarValor(saldoTemporada)}</span>
                     </div>
-                    ${isPreTemporada ? `
-                    <!-- ✅ v8.7: Sub-linha informativa de status de inscrição -->
-                    <div style="display: flex; justify-content: flex-end; padding: 4px 12px 0; font-size: 11px; color: rgba(255,255,255,0.5);">
-                        <span style="display: flex; align-items: center; gap: 4px;">
-                            <span class="material-icons" style="font-size: 12px; color: ${pagouInscricao ? '#10b981' : '#f59e0b'};">${pagouInscricao ? 'check_circle' : 'schedule'}</span>
-                            Inscrição ${pagouInscricao ? 'paga' : 'pendente'}
-                        </span>
-                    </div>
-                    ` : ''}
-                    <!-- ACERTOS (pagamentos/recebimentos) -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; font-size: 13px;">
-                        <span style="color: rgba(255,255,255,0.6);">Acertos Financeiros:</span>
-                        <span class="${corSaldoAcertos}" style="font-weight: 600;">${saldoAcertos >= 0 ? '+' : '-'}R$ ${formatarValor(saldoAcertos)}</span>
-                    </div>
-                    <!-- SALDO PENDENTE (operacional) -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-top: 8px; background: ${saldoPendente === 0 ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.05)'}; border-radius: 8px; font-size: 14px; border: 1px solid ${saldoPendente === 0 ? 'rgba(52,211,153,0.3)' : 'transparent'};">
-                        <span style="color: #fff; font-weight: 700;">
-                            ${saldoPendente === 0 ? '✓ QUITADO' : 'SALDO PENDENTE:'}
-                        </span>
-                        <span class="${corSaldoPendente}" style="font-weight: 700; font-size: 16px;">${saldoPendente === 0 ? 'R$ 0,00' : (saldoPendente >= 0 ? '+' : '-') + 'R$ ' + formatarValor(saldoPendente)}</span>
-                    </div>
+                    <!-- ✅ v9.1: Removidas linhas verbosas (inscrição pendente, acertos, quitado) -->
                 </div>
             </div>
         `;

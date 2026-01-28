@@ -73,6 +73,9 @@
             let ligaId = null;
             let modulosState = {};
 
+            // Opcional: configura tamanho dos blocos no grid de valores do modal
+            // window.MODAL_GRID_CHUNK_SIZE = 8;
+
             // ✅ Guards para evitar dupla inicialização em SPA
             if (!window.__gm_state) {
                 window.__gm_state = {

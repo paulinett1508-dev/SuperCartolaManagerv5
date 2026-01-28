@@ -82,6 +82,79 @@ export class FluxoFinanceiroCore {
         }
     }
 
+    _isAcertoInscricao(acerto) {
+        const descricao = (acerto?.descricao || "").toLowerCase();
+        return descricao.includes("inscri") || descricao.includes("renova");
+    }
+
+    _filtrarAcertosInscricao(acertos, ignorar) {
+        if (!ignorar || !acertos || !Array.isArray(acertos.lista) || acertos.lista.length === 0) {
+            return { acertos, ignorados: [] };
+        }
+
+        const ignorados = [];
+        const listaFiltrada = [];
+        acertos.lista.forEach((a) => {
+            if (this._isAcertoInscricao(a)) {
+                ignorados.push(a);
+            } else {
+                listaFiltrada.push(a);
+            }
+        });
+
+        if (ignorados.length === 0) {
+            return { acertos, ignorados };
+        }
+
+        let totalPago = 0;
+        let totalRecebido = 0;
+        listaFiltrada.forEach((a) => {
+            const valor = Number(a.valor) || 0;
+            if (a.tipo === "pagamento") totalPago += valor;
+            else if (a.tipo === "recebimento") totalRecebido += valor;
+        });
+
+        const saldoAcertos = parseFloat((totalPago - totalRecebido).toFixed(2));
+
+        return {
+            acertos: {
+                ...acertos,
+                lista: listaFiltrada,
+                resumo: {
+                    ...(acertos.resumo || {}),
+                    totalPago: parseFloat(totalPago.toFixed(2)),
+                    totalRecebido: parseFloat(totalRecebido.toFixed(2)),
+                    saldo: saldoAcertos,
+                    saldoAcertos: saldoAcertos,
+                    quantidadeAcertos: listaFiltrada.length,
+                },
+            },
+            ignorados,
+        };
+    }
+
+    _calcularSaldoInicialInscricao(inscricao, camposEditaveis, pagouInscricao) {
+        if (inscricao) {
+            if (typeof inscricao.saldo_inicial_temporada === "number") {
+                return inscricao.saldo_inicial_temporada;
+            }
+
+            const taxa = Number(inscricao.taxa_inscricao) || 0;
+            const divida = Number(inscricao.divida_anterior) || 0;
+            const saldoTransferido = Number(inscricao.saldo_transferido) || 0;
+            const pagou = pagouInscricao || inscricao.pagou_inscricao === true;
+
+            return (pagou ? 0 : taxa) + divida - saldoTransferido;
+        }
+
+        return (
+            (parseFloat(camposEditaveis.campo1?.valor) || 0) +
+            (parseFloat(camposEditaveis.campo2?.valor) || 0) +
+            (parseFloat(camposEditaveis.campo3?.valor) || 0) +
+            (parseFloat(camposEditaveis.campo4?.valor) || 0)
+        );
+    }
+
     // ✅ v6.0: Carregar config da liga
     async _carregarLigaConfig(ligaId) {
         if (this.ligaConfig && this.ligaConfig.liga_id === ligaId) {
@@ -525,18 +598,36 @@ export class FluxoFinanceiroCore {
             // Buscar campos editáveis e acertos (únicos dados válidos na pré-temporada)
             // ✅ v6.10 FIX: Passar temporada correta para buscar campos da temporada selecionada
             const camposEditaveis = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId, temporadaSelecionada);
-            const acertos = await this._buscarAcertosFinanceiros(ligaId, timeId);
+            const acertosRaw = await this._buscarAcertosFinanceiros(ligaId, timeId);
 
             // ✅ v6.8: Buscar status de inscrição para determinar se pagou
             const statusInscricao = this.cache?.getStatusInscricao2026?.(timeId) || {};
             const pagouInscricao = statusInscricao.pagouInscricao === true || statusInscricao.inscricaoQuitada === true;
             console.log(`[FLUXO-CORE] 📋 Status inscrição time ${timeId}: pagouInscricao=${pagouInscricao}`);
 
-            // Calcular saldo inicial (da inscrição)
-            const saldoInscricao = (parseFloat(camposEditaveis.campo1?.valor) || 0) +
-                                   (parseFloat(camposEditaveis.campo2?.valor) || 0) +
-                                   (parseFloat(camposEditaveis.campo3?.valor) || 0) +
-                                   (parseFloat(camposEditaveis.campo4?.valor) || 0);
+            // ✅ v6.11: Garantir que inscrições 2026 estejam carregadas para cálculo correto
+            if (this.cache?.carregarInscricoes2026) {
+                await this.cache.carregarInscricoes2026();
+            }
+            const inscricaoDetalhe = this.cache?.inscricoes2026?.get(String(timeId));
+
+            // Calcular saldo inicial (inscrição + legado) com base na inscrição real
+            const saldoInscricao = this._calcularSaldoInicialInscricao(
+                inscricaoDetalhe,
+                camposEditaveis,
+                pagouInscricao,
+            );
+
+            // ✅ v6.11: Se pagou inscrição, ignorar acertos de "inscrição" no saldo
+            const { acertos, ignorados } = this._filtrarAcertosInscricao(
+                acertosRaw,
+                pagouInscricao,
+            );
+            if (ignorados.length > 0) {
+                console.log(
+                    `[FLUXO-CORE] 🧹 ${ignorados.length} acerto(s) de inscrição ignorado(s) no saldo (pré-temporada)`,
+                );
+            }
 
             return {
                 rodadas: [],

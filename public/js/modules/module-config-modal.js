@@ -260,38 +260,72 @@ class ModuleConfigModal {
     renderValoresGrid(pergunta) {
         const totalParticipantes = this.userAnswers.total_participantes || 10;
         const valores = this.userAnswers[pergunta.id] || {};
+        const gridHTML = this.buildValoresGridSections(totalParticipantes, valores, pergunta);
 
-        let html = `
+        return `
             <div class="mb-4">
                 <label class="form-label">${pergunta.label} ${pergunta.required ? '<span class="text-danger">*</span>' : ''}</label>
                 ${pergunta.descricao ? `<small class="text-muted d-block mb-2">${pergunta.descricao}</small>` : ''}
                 <div class="valores-grid" id="valoresGrid">
-        `;
-
-        for (let i = 1; i <= totalParticipantes; i++) {
-            const valor = valores[i] || '';
-            html += `
-                <div class="input-group mb-2">
-                    <span class="input-group-text bg-gray-700 text-white border-gray-600" style="min-width: 80px;">
-                        ${i}º lugar
-                    </span>
-                    <span class="input-group-text bg-gray-700 text-white border-gray-600">R$</span>
-                    <input type="number"
-                           class="form-control bg-gray-700 text-white border-gray-600 valor-input"
-                           step="0.01"
-                           data-posicao="${i}"
-                           data-question-id="${pergunta.id}"
-                           value="${valor}"
-                           placeholder="0.00"
-                           required>
-                </div>
-            `;
-        }
-
-        html += `
+                    ${gridHTML}
                 </div>
             </div>
         `;
+    }
+
+    /**
+     * Monta HTML do grid em blocos (1-10, 11-20...) para ligas grandes
+     */
+    buildValoresGridSections(totalParticipantes, valores, pergunta) {
+        const globalChunk =
+            typeof window !== 'undefined' && Number(window.MODAL_GRID_CHUNK_SIZE) > 0
+                ? Number(window.MODAL_GRID_CHUNK_SIZE)
+                : 0;
+        const configChunk =
+            Number(pergunta?.tamanho_bloco || pergunta?.block_size || pergunta?.chunk_size) || 0;
+        const chunkSizeBase = configChunk > 0 ? configChunk : (totalParticipantes > 12 ? 10 : totalParticipantes);
+        const chunkSize = Math.max(
+            2,
+            Math.min(globalChunk > 0 ? globalChunk : chunkSizeBase, totalParticipantes),
+        );
+        let html = '';
+        let chunkIndex = 0;
+
+        for (let start = 1; start <= totalParticipantes; start += chunkSize) {
+            const end = Math.min(start + chunkSize - 1, totalParticipantes);
+            const isChunked = totalParticipantes > chunkSize;
+            const sectionClass = chunkIndex % 2 === 1 ? 'valores-grid-section is-alt' : 'valores-grid-section';
+
+            html += `
+                <div class="${sectionClass}">
+                    ${isChunked ? `<div class="valores-grid-title">${start}–${end}</div>` : ''}
+            `;
+
+            for (let i = start; i <= end; i++) {
+                const valor = valores[i] || '';
+                html += `
+                    <div class="input-group mb-2">
+                        <span class="input-group-text bg-gray-700 text-white border-gray-600" style="min-width: 80px;">
+                            ${i}º lugar
+                        </span>
+                        <span class="input-group-text bg-gray-700 text-white border-gray-600">R$</span>
+                        <input type="number"
+                               class="form-control bg-gray-700 text-white border-gray-600 valor-input"
+                               step="0.01"
+                               data-posicao="${i}"
+                               data-question-id="${pergunta.id}"
+                               value="${valor}"
+                               placeholder="0.00"
+                               required>
+                    </div>
+                `;
+            }
+
+            html += `
+                </div>
+            `;
+            chunkIndex += 1;
+        }
 
         return html;
     }
@@ -480,28 +514,7 @@ class ModuleConfigModal {
         const totalParticipantes = this.userAnswers.total_participantes || 10;
         const valores = this.userAnswers[pergunta.id] || {};
 
-        let html = '';
-        for (let i = 1; i <= totalParticipantes; i++) {
-            const valor = valores[i] || '';
-            html += `
-                <div class="input-group mb-2">
-                    <span class="input-group-text bg-gray-700 text-white border-gray-600" style="min-width: 80px;">
-                        ${i}º lugar
-                    </span>
-                    <span class="input-group-text bg-gray-700 text-white border-gray-600">R$</span>
-                    <input type="number"
-                           class="form-control bg-gray-700 text-white border-gray-600 valor-input"
-                           step="0.01"
-                           data-posicao="${i}"
-                           data-question-id="${pergunta.id}"
-                           value="${valor}"
-                           placeholder="0.00"
-                           required>
-                </div>
-            `;
-        }
-
-        gridContainer.innerHTML = html;
+        gridContainer.innerHTML = this.buildValoresGridSections(totalParticipantes, valores, pergunta);
         this.updatePreview();
     }
 

@@ -826,8 +826,37 @@ class DetalheLigaOrquestrador {
                 // ✅ Definir logo da liga para uso no header (dinâmico via banco)
                 window._currentLigaLogo = liga.logo || null;
 
-                const totalParticipantes =
+                let totalParticipantes =
                     liga.participantes?.length || liga.times?.length || 0;
+
+                // ✅ v3.1: Para 2026+, usar inscritos ativos da temporada (renovados + novos)
+                const temporadaAtual =
+                    window.temporadaAtual || liga.temporada || 2026;
+                if (temporadaAtual >= 2026) {
+                    try {
+                        const respParticipantes = await fetch(
+                            `/api/ligas/${ligaId}/participantes?temporada=${temporadaAtual}`,
+                        );
+                        if (respParticipantes.ok) {
+                            const dadosParticipantes =
+                                await respParticipantes.json();
+                            const ativosTemporada =
+                                dadosParticipantes?.stats?.ativos;
+                            if (Number.isFinite(ativosTemporada)) {
+                                totalParticipantes = ativosTemporada;
+                            } else if (
+                                Array.isArray(
+                                    dadosParticipantes?.participantes,
+                                )
+                            ) {
+                                totalParticipantes =
+                                    dadosParticipantes.participantes.length;
+                            }
+                        }
+                    } catch (error) {
+                        // Silencioso - fallback para total legado
+                    }
+                }
 
                 if (quantidadeElement)
                     quantidadeElement.textContent = `${totalParticipantes} participantes`;
