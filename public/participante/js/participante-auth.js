@@ -334,10 +334,10 @@ class ParticipanteAuth {
                 nomeCartolaTextEl.textContent = nomeCartolaTextoFinal;
             }
 
-            // ✅ Badge de ambiente (DEV/PROD) - apenas para participante premium (Paulinett Miranda)
+            // ✅ Badge de ambiente (DEV/PROD) - apenas para participante premium
             const envBadge = document.getElementById("app-env-badge");
             if (envBadge) {
-                const isPremium = String(this.timeId) === '13935277';
+                const isPremium = participanteDataNaLiga?.premium === true;
                 const isProduction = window.Log?.isProduction ?? !window.location.hostname.includes('replit');
                 if (isPremium) {
                     envBadge.classList.remove('hidden');

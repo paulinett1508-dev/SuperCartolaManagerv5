@@ -26,6 +26,7 @@ class ModuleConfigModal {
             // Buscar wizard do backend
             this.wizardData = await this.fetchWizard(modulo);
             this._injectExtratoIntegrationQuestions();
+            this._injectMelhorMesIntervalsQuestion();
 
             // Buscar config existente (se houver)
             const configAtual = await this.fetchConfig(ligaId, modulo);
@@ -91,6 +92,41 @@ class ModuleConfigModal {
                 dependeDe: 'integrar_extrato',
                 condicao: true
             });
+        }
+    }
+
+    /**
+     * Injeta pergunta de intervalos de edicoes para Melhor do Mes (fallback)
+     */
+    _injectMelhorMesIntervalsQuestion() {
+        if (this.currentModule !== 'melhor_mes' || !this.wizardData) return;
+        if (!Array.isArray(this.wizardData.perguntas)) {
+            this.wizardData.perguntas = [];
+        }
+
+        const perguntas = this.wizardData.perguntas;
+        const ids = new Set(perguntas.map(p => p.id));
+
+        if (!ids.has('edicoes_intervalos')) {
+            const idxTotal = perguntas.findIndex(p => p.id === 'total_edicoes');
+            const pergunta = {
+                id: 'edicoes_intervalos',
+                tipo: 'edicoes_ranges',
+                label: 'Intervalo de rodadas por edicao',
+                descricao: 'Defina de qual rodada ate qual rodada cada edicao sera disputada.',
+                required: true,
+                dependeDe: 'total_edicoes',
+                afeta: 'calendario_override.edicoes'
+            };
+
+            if (idxTotal >= 0) {
+                if (perguntas[idxTotal].default === undefined) {
+                    perguntas[idxTotal].default = 7;
+                }
+                perguntas.splice(idxTotal + 1, 0, pergunta);
+            } else {
+                perguntas.push(pergunta);
+            }
         }
     }
 
@@ -404,7 +440,13 @@ class ModuleConfigModal {
     }
 
     _getTotalEdicoes() {
-        const raw = this.userAnswers.total_edicoes ?? this.userAnswers.totalEdicoes ?? this.userAnswers.qtd_edicoes;
+        let raw = this.userAnswers.total_edicoes ?? this.userAnswers.totalEdicoes ?? this.userAnswers.qtd_edicoes;
+        if (raw === undefined) {
+            const pergunta = this.wizardData?.perguntas?.find(p => p.id === 'total_edicoes');
+            if (pergunta?.default !== undefined) {
+                raw = pergunta.default;
+            }
+        }
         const total = Number(raw);
         return Number.isFinite(total) && total > 0 ? total : 0;
     }
@@ -692,7 +734,17 @@ class ModuleConfigModal {
     shouldShowQuestion(pergunta) {
         if (!pergunta.dependeDe) return true;
 
-        const dependValue = this.userAnswers[pergunta.dependeDe];
+        if (pergunta.tipo === 'edicoes_ranges' && pergunta.dependeDe === 'total_edicoes') {
+            return this._getTotalEdicoes() > 0;
+        }
+
+        let dependValue = this.userAnswers[pergunta.dependeDe];
+        if (dependValue === undefined) {
+            const dependQuestion = this.wizardData?.perguntas?.find(p => p.id === pergunta.dependeDe);
+            if (dependQuestion?.default !== undefined) {
+                dependValue = dependQuestion.default;
+            }
+        }
         if (pergunta.condicao === undefined) {
             return !!dependValue;
         }

@@ -1,5 +1,5 @@
 // =====================================================================
-// QUICK ACCESS BAR v2.5 - Menu Dinâmico + Liga Estreante
+// QUICK ACCESS BAR v2.6 - Menu Dinâmico + Liga Estreante + Ao Vivo
 // =====================================================================
 // 4 botões: Início, Ranking, Menu (sheet), Financeiro
 // GPU-accelerated, 60fps guaranteed, DOM caching
@@ -7,9 +7,10 @@
 // v2.5: Menu dinâmico baseado em modulosAtivos e isLigaEstreante
 //       - Hall da Fama oculto para ligas estreantes
 //       - Módulos não configurados mostram "Aguarde"
+// v2.6: Botão "Ao Vivo" funcional - navega para rodadas com parciais
 // =====================================================================
 
-if (window.Log) Log.info('QUICK-BAR', '🚀 Carregando Quick Access Bar v2.5...');
+if (window.Log) Log.info('QUICK-BAR', '🚀 Carregando Quick Access Bar v2.6...');
 
 class QuickAccessBar {
     constructor() {
@@ -238,6 +239,11 @@ class QuickAccessBar {
                         <span class="material-icons">view_week</span>
                         <span class="menu-card-label">Rodadas</span>
                     </div>
+                    <div class="menu-card ao-vivo-card" data-action="ao-vivo">
+                        <span class="material-icons">sensors</span>
+                        <span class="menu-card-label">Ao Vivo</span>
+                        <span class="live-indicator"></span>
+                    </div>
                     ${renderCard('pontos-corridos', 'pontosCorridos', 'format_list_numbered', 'Pontos Corridos')}
                     ${renderCard('mata-mata', 'mataMata', 'military_tech', 'Mata-Mata')}
                     ${renderCard('top10', 'top10', 'leaderboard', 'TOP 10')}
@@ -271,10 +277,6 @@ class QuickAccessBar {
                     <div class="menu-card disabled" data-action="em-breve">
                         <span class="material-icons">stadium</span>
                         <span class="menu-card-label">Bolão Libertadores</span>
-                    </div>
-                    <div class="menu-card disabled" data-action="em-breve">
-                        <span class="material-icons">sensors</span>
-                        <span class="menu-card-label">Ao Vivo</span>
                     </div>
                 </div>
             </div>
@@ -324,6 +326,12 @@ class QuickAccessBar {
 
                 if (action === 'em-breve') {
                     this.mostrarToast('Em breve na temporada 2026!');
+                    return;
+                }
+
+                // ✅ v2.6: Ao Vivo - navega para rodadas e seleciona rodada atual
+                if (action === 'ao-vivo') {
+                    this.navegarParaAoVivo();
                     return;
                 }
 
@@ -413,6 +421,56 @@ class QuickAccessBar {
         if (window.participanteNav) {
             window.participanteNav.navegarPara(modulo);
             this.moduloAtual = modulo;
+        }
+    }
+
+    /**
+     * ✅ v2.6: Navegar para módulo de rodadas e abrir rodada atual (parciais)
+     */
+    async navegarParaAoVivo() {
+        this.fecharMenu();
+
+        // Buscar status do mercado para saber a rodada atual
+        try {
+            const response = await fetch('/api/cartola/mercado/status');
+            const status = await response.json();
+
+            const rodadaEmAndamento = status.status_mercado === 2 || status.bola_rolando;
+
+            if (!rodadaEmAndamento) {
+                this.mostrarToast('Nenhuma rodada em andamento no momento', 'info');
+                // Navegar para rodadas mesmo assim
+                this.navegarPara('rodadas');
+                return;
+            }
+
+            // Navegar para rodadas
+            this.navegarPara('rodadas');
+            this._dom.navItems.forEach(nav => nav.classList.remove('active'));
+
+            // Aguardar módulo carregar e selecionar rodada atual
+            setTimeout(() => {
+                // Tentar selecionar a rodada atual via função global
+                if (typeof window.selecionarRodada === 'function') {
+                    window.selecionarRodada(status.rodada_atual, true);
+                    if (window.Log) Log.info('QUICK-BAR', `Selecionando rodada ${status.rodada_atual} (ao vivo)`);
+                } else if (typeof window.RodadasModule?.selecionarRodada === 'function') {
+                    window.RodadasModule.selecionarRodada(status.rodada_atual, true);
+                } else {
+                    // Fallback: clicar no card da rodada atual
+                    const rodadaCard = document.querySelector(`[data-rodada="${status.rodada_atual}"]`);
+                    if (rodadaCard) {
+                        rodadaCard.click();
+                    }
+                }
+
+                this.mostrarToast(`Rodada ${status.rodada_atual} - Ao Vivo`, 'success');
+            }, 600);
+
+        } catch (error) {
+            if (window.Log) Log.error('QUICK-BAR', 'Erro ao buscar status:', error);
+            this.mostrarToast('Erro ao verificar status da rodada', 'warning');
+            this.navegarPara('rodadas');
         }
     }
 
@@ -545,4 +603,4 @@ if (document.readyState === 'loading') {
     quickAccessBar.inicializar();
 }
 
-if (window.Log) Log.info('QUICK-BAR', '✅ v2.5 carregado');
+if (window.Log) Log.info('QUICK-BAR', '✅ v2.6 carregado');

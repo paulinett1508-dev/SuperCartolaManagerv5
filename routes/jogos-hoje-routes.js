@@ -2,14 +2,12 @@
 // v1.1 - Jogos do dia com mock para premium
 import express from 'express';
 import fetch from 'node-fetch';
+import { verificarParticipantePremium } from '../utils/premium-participante.js';
 
 const router = express.Router();
 
 // Campeonato Brasileiro Série A (BSA)
 const COMPETICAO_ID = 'BSA';
-
-// Participantes premium que podem ver jogos (mesmo mock)
-const PREMIUM_TIME_IDS = [13935277]; // Paulinett Miranda
 
 // Jogos mock para pré-temporada
 const JOGOS_MOCK = [
@@ -20,8 +18,8 @@ const JOGOS_MOCK = [
 
 router.get('/', async (req, res) => {
     try {
-        const timeId = Number(req.query.timeId);
-        const isPremium = PREMIUM_TIME_IDS.includes(timeId);
+        const acesso = await verificarParticipantePremium(req);
+        const isPremium = acesso.isPremium === true;
 
         // Buscar jogos reais da API
         const dataHoje = new Date().toISOString().split('T')[0];

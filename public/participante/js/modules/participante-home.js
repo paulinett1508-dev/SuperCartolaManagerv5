@@ -448,6 +448,15 @@ function renderizarHome(container, data, ligaId) {
         </div>
     ` : "";
 
+    const cartolaProHTML = isPremium ? `
+            <button class="home-action-item" onclick="window.abrirCartolaPro && window.abrirCartolaPro()">
+                <div class="home-action-icon">
+                    <span class="material-icons">workspace_premium</span>
+                </div>
+                <span class="home-action-label">Cartola PRO</span>
+            </button>
+        ` : "";
+
     // Valores para display
     const aguardandoRodada = isRenovado || rodadaAtual === 0;
     const posicaoDisplay = aguardandoRodada ? "--" : (posicao ? `${posicao}` : "--");
@@ -494,12 +503,7 @@ function renderizarHome(container, data, ligaId) {
                 </div>
                 <span class="home-action-label">Regras</span>
             </button>
-            <button class="home-action-item" onclick="window.abrirCartolaPro && window.abrirCartolaPro()">
-                <div class="home-action-icon">
-                    <span class="material-icons">workspace_premium</span>
-                </div>
-                <span class="home-action-label">Cartola PRO</span>
-            </button>
+            ${cartolaProHTML}
         </section>
 
         <!-- Card Status do Time -->

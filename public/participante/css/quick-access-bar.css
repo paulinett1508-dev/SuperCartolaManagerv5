@@ -1,9 +1,10 @@
 /* =====================================================================
-   QUICK ACCESS BAR v2.3 - Ícones Coloridos
+   QUICK ACCESS BAR v2.6 - Ícones Coloridos + Ao Vivo
    =====================================================================
    GPU-accelerated animations, 60fps guaranteed
    v2.2: Aguarda splash fechar antes de renderizar
    v2.3: Ícones coloridos por módulo (padrão admin)
+   v2.6: Botão "Ao Vivo" funcional com indicador pulsante
    ===================================================================== */
 
 /* =====================================================================
@@ -464,4 +465,46 @@
 
 .menu-card.aguarde:active {
     transform: scale(0.96) translateZ(0);
+}
+
+/* =====================================================================
+   CARD "AO VIVO" - Indicador pulsante vermelho
+   v2.6: Destaque visual para acesso rápido aos parciais
+   ===================================================================== */
+.menu-card.ao-vivo-card {
+    position: relative;
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.25);
+}
+
+.menu-card.ao-vivo-card:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+.menu-card.ao-vivo-card .material-icons {
+    color: #ef4444;
+}
+
+.menu-card.ao-vivo-card .live-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: live-pulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+}
+
+@keyframes live-pulse {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+    }
+    50% {
+        opacity: 0.6;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
+    }
 }

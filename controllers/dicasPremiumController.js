@@ -7,56 +7,25 @@
  */
 
 import dicasPremiumService from '../services/dicasPremiumService.js';
-import Liga from '../models/Liga.js';
+import { verificarParticipantePremium } from '../utils/premium-participante.js';
 
 /**
  * Verifica se o participante logado e premium
  * @returns {Object} { isPremium, participante, error }
  */
 async function verificarAcessoPremium(req) {
-    // Verificar sessao
-    if (!req.session?.participante) {
-        return { isPremium: false, error: 'Sessao invalida', code: 401 };
+    const acesso = await verificarParticipantePremium(req);
+
+    if (!acesso.isPremium) {
+        return {
+            isPremium: false,
+            error: acesso.error || 'Acesso exclusivo para participantes Premium',
+            code: acesso.code || 403,
+            participante: acesso.participante
+        };
     }
 
-    const { timeId, ligaId } = req.session.participante;
-
-    if (!timeId || !ligaId) {
-        return { isPremium: false, error: 'Dados de sessao incompletos', code: 401 };
-    }
-
-    try {
-        // Buscar participante na liga
-        const liga = await Liga.findById(ligaId).select('participantes').lean();
-
-        if (!liga) {
-            return { isPremium: false, error: 'Liga nao encontrada', code: 404 };
-        }
-
-        const participante = liga.participantes?.find(
-            p => String(p.time_id) === String(timeId)
-        );
-
-        if (!participante) {
-            return { isPremium: false, error: 'Participante nao encontrado na liga', code: 404 };
-        }
-
-        // Verificar flag premium (do nosso sistema, NAO da Globo)
-        if (participante.premium !== true) {
-            return {
-                isPremium: false,
-                error: 'Acesso exclusivo para participantes Premium',
-                code: 403,
-                participante
-            };
-        }
-
-        return { isPremium: true, participante };
-
-    } catch (error) {
-        console.error('[DICAS-PREMIUM] Erro ao verificar premium:', error);
-        return { isPremium: false, error: 'Erro interno', code: 500 };
-    }
+    return { isPremium: true, participante: acesso.participante };
 }
 
 /**

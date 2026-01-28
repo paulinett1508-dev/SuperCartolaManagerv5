@@ -6,7 +6,7 @@
 
 import express from "express";
 import cartolaProService from "../services/cartolaProService.js";
-import Liga from "../models/Liga.js";
+import { verificarParticipantePremium } from "../utils/premium-participante.js";
 import { setupGloboOAuthRoutes, verificarAutenticacaoGlobo, getGloboToken } from "../config/globo-oauth.js";
 
 const router = express.Router();
@@ -33,41 +33,21 @@ function verificarSessaoParticipante(req, res, next) {
 }
 
 // =====================================================================
-// MIDDLEWARE: Verificar Acesso Premium (usa campo assinante de times)
+// MIDDLEWARE: Verificar Acesso Premium (fonte unica: liga.participantes[].premium)
 // =====================================================================
 async function verificarPremium(req, res, next) {
-    try {
-        const { timeId } = req.session.participante;
+    const acesso = await verificarParticipantePremium(req);
 
-        // Buscar time na collection times para verificar campo assinante
-        const Time = (await import("../models/Time.js")).default;
-        const time = await Time.findOne({ id: timeId }).select("assinante nome_cartola");
-
-        if (!time) {
-            return res.status(404).json({
-                success: false,
-                error: "Time nao encontrado"
-            });
-        }
-
-        if (!time.assinante) {
-            return res.status(403).json({
-                success: false,
-                error: "Recurso exclusivo para assinantes PRO",
-                needsPremium: true
-            });
-        }
-
-        req.participantePremium = time;
-        next();
-
-    } catch (error) {
-        console.error('[CARTOLA-PRO] Erro ao verificar premium:', error);
-        res.status(500).json({
+    if (!acesso.isPremium) {
+        return res.status(acesso.code || 403).json({
             success: false,
-            error: "Erro ao verificar permissoes"
+            error: acesso.error || "Recurso exclusivo para participantes Premium",
+            needsPremium: true
         });
     }
+
+    req.participantePremium = acesso.participante;
+    next();
 }
 
 // =====================================================================
@@ -80,12 +60,8 @@ setupGloboOAuthRoutes(router);
 // =====================================================================
 router.get("/verificar-premium", verificarSessaoParticipante, async (req, res) => {
     try {
-        const { timeId } = req.session.participante;
-
-        // ✅ v2.0: Premium do Super Cartola é apenas Paulinett Miranda (ID: 13935277)
-        // NOTA: NÃO usar campo 'assinante' que é do Cartola FC PRO (Globo)
-        const PREMIUM_TIME_ID = 13935277;
-        const isPremium = Number(timeId) === PREMIUM_TIME_ID;
+        const acesso = await verificarParticipantePremium(req);
+        const isPremium = acesso.isPremium === true;
 
         // Verificar se esta autenticado na Globo
         const globoAuth = req.session?.cartolaProAuth;

@@ -1,14 +1,37 @@
 // =====================================================================
-// MÓDULO PARCIAIS - v4.0 (Multi-Temporada)
+// MÓDULO PARCIAIS - v5.0 (Multi-Temporada + Ranking em Tempo Real)
 // public/js/parciais.js
 // =====================================================================
 
-console.log("[PARCIAIS] Módulo v4.0 carregando...");
+console.log("[PARCIAIS] Módulo v5.0 carregando...");
 
 // Configuração de temporadas
 const TEMPORADAS_CONFIG = {
     2025: { encerrada: true, totalRodadas: 38 },
     2026: { encerrada: false, totalRodadas: 38 }
+};
+
+// Estado do módulo
+const estadoParciais = {
+    ligaId: null,
+    rodadaAtual: null,
+    mercadoStatus: null,
+    timesLiga: [],
+    dadosParciais: [],
+    atletasPontuados: null,
+    isCarregando: false,
+    ultimaAtualizacao: null,
+    autoRefresh: {
+        ativo: false,
+        timer: null,
+        intervalMs: 20000,
+        minMs: 15000,
+        maxMs: 120000,
+        step: 1.6,
+        slowStep: 1.3,
+        failures: 0,
+        cycles: 0
+    }
 };
 
 /**
@@ -20,6 +43,14 @@ function obterTemporadaSelecionada() {
     if (temporadaParam) return parseInt(temporadaParam, 10);
     if (window.temporadaAtual) return window.temporadaAtual;
     return new Date().getFullYear();
+}
+
+/**
+ * Obter ligaId da URL
+ */
+function obterLigaIdDaUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("id");
 }
 
 /**
@@ -104,11 +135,220 @@ function mostrarUITemporadaEncerrada(temporada) {
     `;
 }
 
+// =====================================================================
+// FUNÇÕES DE BUSCA DE DADOS
+// =====================================================================
+
+/**
+ * Buscar status do mercado
+ */
+async function buscarStatusMercado() {
+    try {
+        const response = await fetch("/api/cartola/mercado/status");
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.error("[PARCIAIS] Erro ao buscar status:", error);
+        return null;
+    }
+}
+
+/**
+ * Buscar times da liga
+ */
+async function buscarTimesLiga(ligaId) {
+    try {
+        const response = await fetch(`/api/ligas/${ligaId}/times`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const times = Array.isArray(data) ? data : data.times || data.participantes || [];
+        console.log(`[PARCIAIS] 📋 Times da liga: ${times.length} total`);
+        return times.filter(t => t.ativo !== false); // Apenas ativos
+    } catch (error) {
+        console.error("[PARCIAIS] Erro ao buscar times:", error);
+        return [];
+    }
+}
+
+/**
+ * Buscar atletas pontuados (tempo real, sem cache)
+ */
+async function buscarAtletasPontuados() {
+    try {
+        const timestamp = Date.now();
+        const response = await fetch(`/api/cartola/atletas/pontuados?_t=${timestamp}`, {
+            cache: "no-store",
+            headers: {
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        if (!data.atletas) {
+            console.warn("[PARCIAIS] ⚠️ Sem atletas pontuados na resposta");
+            return {};
+        }
+
+        console.log(`[PARCIAIS] 🔥 ${Object.keys(data.atletas).length} atletas pontuados`);
+        return data.atletas;
+    } catch (error) {
+        console.error("[PARCIAIS] Erro ao buscar atletas pontuados:", error);
+        return {};
+    }
+}
+
+/**
+ * Buscar escalação e calcular pontuação de um time
+ */
+async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
+    const timeId = time.id || time.time_id || time.timeId;
+
+    if (!timeId) {
+        console.warn("[PARCIAIS] Time sem ID:", time);
+        return null;
+    }
+
+    try {
+        const timestamp = Date.now();
+        const response = await fetch(`/api/cartola/time/id/${timeId}/${rodada}?_t=${timestamp}`, {
+            cache: "no-store",
+            headers: {
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache"
+            }
+        });
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                return {
+                    timeId,
+                    nome_time: time.nome_time || time.nome || "N/D",
+                    nome_cartola: time.nome_cartola || time.cartoleiro || "N/D",
+                    escudo: time.url_escudo_png || time.escudo || null,
+                    pontos: 0,
+                    rodadaNaoJogada: true
+                };
+            }
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const dadosEscalacao = await response.json();
+
+        // CALCULAR PONTUAÇÃO
+        let pontos = 0;
+        const posicoesQuePontuaram = new Set();
+
+        // Somar pontos dos TITULARES
+        if (dadosEscalacao.atletas && Array.isArray(dadosEscalacao.atletas)) {
+            dadosEscalacao.atletas.forEach((atleta) => {
+                const atletaPontuado = atletasPontuados[atleta.atleta_id];
+                const pontuacao = atletaPontuado?.pontuacao || 0;
+                const entrouEmCampo = atletaPontuado?.entrou_em_campo;
+
+                if (entrouEmCampo || pontuacao !== 0) {
+                    posicoesQuePontuaram.add(atleta.posicao_id);
+                }
+
+                // Capitão pontua em dobro
+                if (atleta.atleta_id === dadosEscalacao.capitao_id) {
+                    pontos += pontuacao * 2;
+                } else {
+                    pontos += pontuacao;
+                }
+            });
+        }
+
+        // Somar pontos dos RESERVAS
+        if (dadosEscalacao.reservas && Array.isArray(dadosEscalacao.reservas)) {
+            dadosEscalacao.reservas.forEach((atleta) => {
+                const atletaPontuado = atletasPontuados[atleta.atleta_id];
+                const pontuacao = atletaPontuado?.pontuacao || 0;
+                const entrouEmCampo = atletaPontuado?.entrou_em_campo;
+
+                // Reserva de luxo pontua 1.5x se entrou em campo
+                if (atleta.atleta_id === dadosEscalacao.reserva_luxo_id && entrouEmCampo) {
+                    pontos += pontuacao * 1.5;
+                }
+                // Reserva comum substitui titular que não pontuou
+                else if (!posicoesQuePontuaram.has(atleta.posicao_id) && entrouEmCampo) {
+                    pontos += pontuacao;
+                    posicoesQuePontuaram.add(atleta.posicao_id);
+                }
+            });
+        }
+
+        const nomeTime = dadosEscalacao.time?.nome || time.nome_time || time.nome || "N/D";
+        const nomeCartola = dadosEscalacao.time?.nome_cartola || time.nome_cartola || "N/D";
+        const escudo = dadosEscalacao.time?.url_escudo_png || time.url_escudo_png || time.escudo || null;
+
+        return {
+            timeId,
+            nome_time: nomeTime,
+            nome_cartola: nomeCartola,
+            escudo: escudo,
+            pontos: pontos,
+            patrimonio: dadosEscalacao.time?.patrimonio || 0,
+            rodadaNaoJogada: !dadosEscalacao.atletas || dadosEscalacao.atletas.length === 0
+        };
+    } catch (error) {
+        console.warn(`[PARCIAIS] Erro ao calcular time ${timeId}:`, error.message);
+        return {
+            timeId,
+            nome_time: time.nome_time || time.nome || "N/D",
+            nome_cartola: time.nome_cartola || "N/D",
+            escudo: time.url_escudo_png || time.escudo || null,
+            pontos: 0,
+            erro: true
+        };
+    }
+}
+
+/**
+ * Processar times com limite de concorrência
+ */
+async function processarTimesComLimite(times, rodada, atletasPontuados, limite = 8) {
+    const resultados = [];
+    let index = 0;
+    let ativos = 0;
+
+    return new Promise((resolve) => {
+        const iniciarProximo = () => {
+            while (ativos < limite && index < times.length) {
+                const time = times[index++];
+                ativos += 1;
+                buscarECalcularPontuacao(time, rodada, atletasPontuados)
+                    .then((res) => {
+                        if (res) resultados.push(res);
+                    })
+                    .catch(() => {})
+                    .finally(() => {
+                        ativos -= 1;
+                        if (index >= times.length && ativos === 0) {
+                            resolve(resultados);
+                        } else {
+                            iniciarProximo();
+                        }
+                    });
+            }
+        };
+        iniciarProximo();
+    });
+}
+
+// =====================================================================
+// CARREGAR PARCIAIS - IMPLEMENTAÇÃO COMPLETA
+// =====================================================================
+
 /**
  * Carregar parciais da rodada atual
  */
 async function carregarParciais() {
     const temporada = obterTemporadaSelecionada();
+    const ligaId = obterLigaIdDaUrl();
 
     if (isTemporadaEncerrada(temporada)) {
         console.log(`[PARCIAIS] Temporada ${temporada} encerrada - função desabilitada`);
@@ -116,29 +356,155 @@ async function carregarParciais() {
         return;
     }
 
-    // TODO: Implementar carregamento de parciais para temporada ativa
-    // Por enquanto mostrar mensagem de pré-temporada
+    if (!ligaId) {
+        console.error("[PARCIAIS] Liga ID não encontrado na URL");
+        mostrarUIErro("Liga não encontrada");
+        return;
+    }
+
+    if (estadoParciais.isCarregando) {
+        console.log("[PARCIAIS] ⏳ Já está carregando...");
+        return null;
+    }
+
+    estadoParciais.isCarregando = true;
+    estadoParciais.ligaId = ligaId;
+
+    const container = document.getElementById('parciais-container');
+    if (!container) {
+        estadoParciais.isCarregando = false;
+        return;
+    }
+
+    try {
+        // 1. Buscar status do mercado
+        const status = await buscarStatusMercado();
+        if (!status) {
+            mostrarUIErro("Não foi possível verificar o status do mercado");
+            return;
+        }
+
+        estadoParciais.mercadoStatus = status;
+        estadoParciais.rodadaAtual = status.rodada_atual;
+
+        // 2. Verificar estado do mercado
+        const rodadaEmAndamento = status.status_mercado === 2 || status.bola_rolando;
+
+        if (!rodadaEmAndamento) {
+            // Mercado aberto - mostrar UI apropriada
+            mostrarUIMercadoAberto(status.rodada_atual, temporada);
+            return;
+        }
+
+        // 3. Mostrar loading
+        container.innerHTML = `
+            <div class="parciais-loading-estado">
+                <div class="spinner"></div>
+                <span>Calculando pontuações...</span>
+            </div>
+        `;
+
+        // 4. Buscar times da liga
+        const times = await buscarTimesLiga(ligaId);
+        if (!times.length) {
+            mostrarUIErro("Nenhum participante ativo encontrado");
+            return;
+        }
+        estadoParciais.timesLiga = times;
+
+        // 5. Buscar atletas pontuados
+        const atletasPontuados = await buscarAtletasPontuados();
+        estadoParciais.atletasPontuados = atletasPontuados;
+
+        if (Object.keys(atletasPontuados).length === 0) {
+            mostrarUIAguardandoPontuacao(status.rodada_atual, temporada);
+            return;
+        }
+
+        // 6. Calcular pontuação de cada time
+        console.log(`[PARCIAIS] 🔄 Calculando ${times.length} times...`);
+        const resultados = await processarTimesComLimite(times, status.rodada_atual, atletasPontuados, 8);
+
+        // 7. Ordenar por pontos e adicionar posição
+        resultados.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+        resultados.forEach((r, idx) => { r.posicao = idx + 1; });
+
+        estadoParciais.dadosParciais = resultados;
+        estadoParciais.ultimaAtualizacao = new Date();
+
+        // 8. Renderizar ranking
+        renderizarRankingParcial(resultados, status.rodada_atual, temporada);
+
+        console.log(`[PARCIAIS] ✅ ${resultados.length} times calculados`);
+
+        return {
+            rodada: status.rodada_atual,
+            participantes: resultados,
+            totalTimes: resultados.length,
+            atualizadoEm: estadoParciais.ultimaAtualizacao
+        };
+
+    } catch (error) {
+        console.error("[PARCIAIS] ❌ Erro ao carregar parciais:", error);
+        mostrarUIErro("Erro ao carregar parciais");
+        return null;
+    } finally {
+        estadoParciais.isCarregando = false;
+    }
+}
+
+// =====================================================================
+// FUNÇÕES DE UI
+// =====================================================================
+
+/**
+ * Mostrar UI de erro
+ */
+function mostrarUIErro(mensagem) {
     const container = document.getElementById('parciais-container');
     if (!container) return;
 
     container.innerHTML = `
         <div class="parciais-encerrado">
-            <div class="parciais-encerrado-icon">
-                <span class="material-icons">schedule</span>
+            <div class="parciais-encerrado-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                <span class="material-icons">error_outline</span>
             </div>
-            <h2 class="parciais-encerrado-title">Temporada ${temporada}</h2>
+            <h2 class="parciais-encerrado-title">Erro</h2>
+            <p class="parciais-encerrado-subtitle">${mensagem}</p>
+            <div class="parciais-encerrado-actions">
+                <button class="parciais-btn-ranking" onclick="window.carregarParciais()">
+                    <span class="material-icons">refresh</span>
+                    Tentar Novamente
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Mostrar UI de mercado aberto
+ */
+function mostrarUIMercadoAberto(rodada, temporada) {
+    const container = document.getElementById('parciais-container');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="parciais-encerrado">
+            <div class="parciais-encerrado-icon" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">
+                <span class="material-icons">storefront</span>
+            </div>
+            <h2 class="parciais-encerrado-title">Mercado Aberto</h2>
             <p class="parciais-encerrado-subtitle">
-                Aguardando início das rodadas
+                Temporada ${temporada} - Próxima Rodada: ${rodada}
             </p>
             <div class="parciais-encerrado-info">
                 <span class="material-icons">info</span>
                 <p>
-                    Os parciais estarão disponíveis quando as rodadas da temporada ${temporada} começarem.
+                    Os parciais estarão disponíveis quando o mercado fechar e os jogos começarem.
                 </p>
             </div>
             <div class="parciais-encerrado-actions">
-                <button class="parciais-btn-ranking"
-                    onclick="window.orquestrador?.voltarParaCards()">
+                <button class="parciais-btn-ranking" onclick="window.orquestrador?.voltarParaCards()">
                     <span class="material-icons">arrow_back</span>
                     Voltar aos Módulos
                 </button>
@@ -147,21 +513,230 @@ async function carregarParciais() {
     `;
 }
 
-function atualizarParciais() {
-    const temporada = obterTemporadaSelecionada();
+/**
+ * Mostrar UI aguardando pontuação
+ */
+function mostrarUIAguardandoPontuacao(rodada, temporada) {
+    const container = document.getElementById('parciais-container');
+    if (!container) return;
 
-    if (isTemporadaEncerrada(temporada)) {
-        console.log(`[PARCIAIS] Temporada ${temporada} encerrada - função desabilitada`);
-        return;
-    }
+    container.innerHTML = `
+        <div class="parciais-encerrado">
+            <div class="parciais-encerrado-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                <span class="material-icons">sports_soccer</span>
+            </div>
+            <h2 class="parciais-encerrado-title">Rodada ${rodada} - Temporada ${temporada}</h2>
+            <p class="parciais-encerrado-subtitle">
+                Aguardando início dos jogos
+            </p>
+            <div class="parciais-encerrado-info">
+                <span class="material-icons">info</span>
+                <p>
+                    As pontuações aparecerão assim que os jogos começarem.
+                </p>
+            </div>
+            <div class="parciais-encerrado-actions">
+                <button class="parciais-btn-ranking" onclick="window.carregarParciais()">
+                    <span class="material-icons">refresh</span>
+                    Atualizar
+                </button>
+            </div>
+        </div>
+    `;
 
-    // TODO: Implementar atualização de parciais
-    console.log(`[PARCIAIS] Atualizando parciais temporada ${temporada}...`);
+    // Iniciar auto-refresh para verificar quando começar
+    iniciarAutoRefresh();
 }
 
-// Expor globalmente
+/**
+ * Renderizar ranking parcial
+ */
+function renderizarRankingParcial(resultados, rodada, temporada) {
+    const container = document.getElementById('parciais-container');
+    if (!container) return;
+
+    const atualizadoEm = new Date().toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+
+    let html = `
+        <div class="parciais-ranking-wrapper">
+            <div class="parciais-header">
+                <div class="parciais-header-info">
+                    <span class="parciais-badge-live">
+                        <span class="live-dot"></span>
+                        AO VIVO
+                    </span>
+                    <h2>Rodada ${rodada} - Temporada ${temporada}</h2>
+                </div>
+                <div class="parciais-header-actions">
+                    <span class="parciais-atualizado">Atualizado: ${atualizadoEm}</span>
+                    <button class="parciais-btn-refresh" onclick="window.carregarParciais()" title="Atualizar">
+                        <span class="material-icons">refresh</span>
+                    </button>
+                </div>
+            </div>
+            <div class="parciais-ranking-list">
+    `;
+
+    resultados.forEach((time, idx) => {
+        const posicao = idx + 1;
+        const medalha = posicao === 1 ? '🥇' : posicao === 2 ? '🥈' : posicao === 3 ? '🥉' : '';
+        const pontosTxt = time.pontos?.toFixed(2) || '0.00';
+        const escudoUrl = time.escudo || '/escudos/default.png';
+        const naoJogou = time.rodadaNaoJogada ? ' nao-jogou' : '';
+
+        html += `
+            <div class="parciais-ranking-item${naoJogou}">
+                <div class="parciais-posicao">
+                    ${medalha || posicao}
+                </div>
+                <div class="parciais-time-info">
+                    <img src="${escudoUrl}" alt="" class="parciais-escudo" onerror="this.src='/escudos/default.png'">
+                    <div class="parciais-time-nomes">
+                        <span class="parciais-time-nome">${time.nome_time}</span>
+                        <span class="parciais-cartola-nome">${time.nome_cartola}</span>
+                    </div>
+                </div>
+                <div class="parciais-pontos ${time.pontos > 0 ? 'positivo' : time.pontos < 0 ? 'negativo' : ''}">
+                    ${pontosTxt}
+                </div>
+            </div>
+        `;
+    });
+
+    html += `
+            </div>
+            <div class="parciais-footer">
+                <span>${resultados.length} participantes</span>
+                <button class="parciais-btn-auto ${estadoParciais.autoRefresh.ativo ? 'ativo' : ''}"
+                        onclick="window.toggleAutoRefresh()"
+                        title="${estadoParciais.autoRefresh.ativo ? 'Parar auto-refresh' : 'Iniciar auto-refresh'}">
+                    <span class="material-icons">${estadoParciais.autoRefresh.ativo ? 'pause' : 'play_arrow'}</span>
+                    Auto-refresh
+                </button>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+
+    // Iniciar auto-refresh se não estiver ativo
+    if (!estadoParciais.autoRefresh.ativo) {
+        iniciarAutoRefresh();
+    }
+}
+
+// =====================================================================
+// AUTO-REFRESH
+// =====================================================================
+
+function iniciarAutoRefresh() {
+    if (estadoParciais.autoRefresh.ativo) return;
+
+    estadoParciais.autoRefresh.ativo = true;
+    estadoParciais.autoRefresh.failures = 0;
+    estadoParciais.autoRefresh.cycles = 0;
+    estadoParciais.autoRefresh.intervalMs = 20000;
+
+    console.log("[PARCIAIS] ▶️ Auto-refresh iniciado");
+    programarAutoRefresh();
+}
+
+function pararAutoRefresh() {
+    estadoParciais.autoRefresh.ativo = false;
+
+    if (estadoParciais.autoRefresh.timer) {
+        clearTimeout(estadoParciais.autoRefresh.timer);
+        estadoParciais.autoRefresh.timer = null;
+    }
+
+    console.log("[PARCIAIS] ⏹️ Auto-refresh parado");
+}
+
+function toggleAutoRefresh() {
+    if (estadoParciais.autoRefresh.ativo) {
+        pararAutoRefresh();
+    } else {
+        iniciarAutoRefresh();
+    }
+
+    // Atualizar botão
+    const btn = document.querySelector('.parciais-btn-auto');
+    if (btn) {
+        btn.classList.toggle('ativo', estadoParciais.autoRefresh.ativo);
+        btn.querySelector('.material-icons').textContent = estadoParciais.autoRefresh.ativo ? 'pause' : 'play_arrow';
+    }
+}
+
+function programarAutoRefresh() {
+    if (!estadoParciais.autoRefresh.ativo) return;
+
+    clearTimeout(estadoParciais.autoRefresh.timer);
+    estadoParciais.autoRefresh.timer = setTimeout(executarAutoRefresh, estadoParciais.autoRefresh.intervalMs);
+}
+
+async function executarAutoRefresh() {
+    if (!estadoParciais.autoRefresh.ativo) return;
+
+    try {
+        estadoParciais.autoRefresh.cycles += 1;
+
+        // Verificar status do mercado a cada 5 ciclos
+        if (estadoParciais.autoRefresh.cycles % 5 === 0) {
+            const status = await buscarStatusMercado();
+            if (status) {
+                estadoParciais.mercadoStatus = status;
+                estadoParciais.rodadaAtual = status.rodada_atual;
+
+                // Se mercado abriu, parar auto-refresh
+                if (status.status_mercado === 1 && !status.bola_rolando) {
+                    pararAutoRefresh();
+                    mostrarUIMercadoAberto(status.rodada_atual, obterTemporadaSelecionada());
+                    return;
+                }
+            }
+        }
+
+        // Carregar parciais
+        const dados = await carregarParciais();
+
+        if (dados && dados.participantes?.length > 0) {
+            // Dados OK: reset intervalo
+            estadoParciais.autoRefresh.intervalMs = estadoParciais.autoRefresh.minMs;
+            estadoParciais.autoRefresh.failures = 0;
+        } else {
+            // Sem dados: aumentar intervalo (backoff)
+            estadoParciais.autoRefresh.intervalMs = Math.min(
+                estadoParciais.autoRefresh.maxMs,
+                Math.round(estadoParciais.autoRefresh.intervalMs * estadoParciais.autoRefresh.slowStep)
+            );
+        }
+    } catch (error) {
+        estadoParciais.autoRefresh.failures += 1;
+        estadoParciais.autoRefresh.intervalMs = Math.min(
+            estadoParciais.autoRefresh.maxMs,
+            Math.round(estadoParciais.autoRefresh.intervalMs * estadoParciais.autoRefresh.step)
+        );
+        console.warn("[PARCIAIS] Auto-refresh falhou:", error?.message || error);
+    } finally {
+        programarAutoRefresh();
+    }
+}
+
+function atualizarParciais() {
+    return carregarParciais();
+}
+
+// =====================================================================
+// EXPOR GLOBALMENTE
+// =====================================================================
 window.carregarParciais = carregarParciais;
 window.atualizarParciais = atualizarParciais;
 window.inicializarParciais = inicializarParciais;
+window.toggleAutoRefresh = toggleAutoRefresh;
+window.pararAutoRefresh = pararAutoRefresh;
 
-console.log("[PARCIAIS] Módulo v4.0 carregado - Multi-Temporada habilitado");
+console.log("[PARCIAIS] Módulo v5.0 carregado - Multi-Temporada + Ranking em Tempo Real");
