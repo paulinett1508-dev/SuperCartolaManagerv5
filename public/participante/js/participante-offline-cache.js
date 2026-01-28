@@ -19,7 +19,7 @@ const OfflineCache = {
     // =====================================================================
     // FLAG DE TEMPORADA ENCERRADA - Cache permanente
     // =====================================================================
-    TEMPORADA_ENCERRADA: true, // 2025 - Campeonato finalizado
+    TEMPORADA_ENCERRADA: false, // Calculado dinamicamente via ParticipanteConfig
 
     // TTL infinito para temporada encerrada (10 anos em ms)
     TTL_INFINITO: 10 * 365 * 24 * 60 * 60 * 1000,
@@ -41,9 +41,16 @@ const OfflineCache = {
         config: { ttl: 24 * 60 * 60 * 1000 },        // 24 horas
     },
 
+    // Detecta se a temporada atual está encerrada
+    isTemporadaEncerrada() {
+        const status = window.ParticipanteConfig?.SEASON_STATUS;
+        if (!status) return this.TEMPORADA_ENCERRADA;
+        return status === 'encerrada';
+    },
+
     // Retorna TTL efetivo (infinito se temporada encerrada)
     getTTL(store) {
-        if (this.TEMPORADA_ENCERRADA) {
+        if (this.isTemporadaEncerrada()) {
             return this.TTL_INFINITO;
         }
         return this.STORES[store]?.ttl || 30 * 60 * 1000;
@@ -207,7 +214,7 @@ const OfflineCache = {
         // =====================================================================
         // TEMPORADA ENCERRADA: Cache é definitivo, não precisa atualizar
         // =====================================================================
-        if (this.TEMPORADA_ENCERRADA && cached) {
+        if (this.isTemporadaEncerrada() && cached) {
             if (window.Log) Log.debug('OFFLINE-CACHE', `📦 Temporada encerrada - usando cache permanente: ${store}/${key}`);
             return cached;
         }

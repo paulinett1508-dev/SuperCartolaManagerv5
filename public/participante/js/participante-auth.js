@@ -53,7 +53,7 @@ class ParticipanteAuth {
 
             // Executar operações assíncronas
             await Promise.all([
-                this.atualizarHeader(),
+                this.atualizarHeader({ forceRefresh: true }),
                 this.verificarMultiplasLigas(),
             ]);
 
@@ -128,7 +128,7 @@ class ParticipanteAuth {
 
             // Atualizar UI e verificar múltiplas ligas
             await Promise.all([
-                this.atualizarHeader(),
+                this.atualizarHeader({ forceRefresh: true }),
                 this.verificarMultiplasLigas(),
             ]);
 
@@ -175,8 +175,10 @@ class ParticipanteAuth {
         }
     }
 
-    async atualizarHeader() {
+    async atualizarHeader(options = {}) {
         if (!this.participante) return;
+
+        const { forceRefresh = false } = options;
 
         // Evitar múltiplas atualizações simultâneas
         if (this._atualizandoHeader) return;
@@ -189,7 +191,7 @@ class ParticipanteAuth {
         const headerLogoutButton =
             document.getElementById("headerLogoutButton");
 
-        if (window.Log) Log.debug('PARTICIPANTE-AUTH', 'Atualizando header com dados da sessão');
+        if (window.Log) Log.debug('PARTICIPANTE-AUTH', 'Atualizando header com dados da sessão', { forceRefresh });
 
         try {
             // ✅ PRIORIZAR DADOS DA SESSÃO (já validados no backend)
@@ -203,31 +205,24 @@ class ParticipanteAuth {
             // Buscar dados atualizados do time APENAS se necessário
             const timeResponse = await fetch(`/api/times/${this.timeId}`, {
                 credentials: "include",
+                cache: "no-store",
             });
 
             let timeData = {}; // Inicializa timeData como um objeto vazio
             if (timeResponse.ok) {
                 timeData = await timeResponse.json();
 
-                // Atualizar SOMENTE se dados da sessão estiverem vazios ou com valores padrão
-                if (nomeTimeTexto === "Meu Time") {
-                    nomeTimeTexto =
-                        timeData.nome_time || timeData.nome || nomeTimeTexto;
-                }
-                if (nomeCartolaTexto === "Cartoleiro") {
-                    nomeCartolaTexto =
-                        timeData.nome_cartola ||
-                        timeData.nome_cartoleiro ||
-                        nomeCartolaTexto;
-                }
-                if (!clubeId) {
-                    clubeId = timeData.clube_id;
-                }
-                if (!fotoTime) {
-                    fotoTime = timeData.url_escudo_png || timeData.foto_time;
-                }
+                // Atualizar sempre que houver dados do time (prioridade máxima)
+                nomeTimeTexto = timeData.nome_time || timeData.nome || nomeTimeTexto;
+                nomeCartolaTexto = timeData.nome_cartola || timeData.nome_cartoleiro || nomeCartolaTexto;
+                clubeId = timeData.clube_id || clubeId;
+                fotoTime = timeData.url_escudo_png || timeData.foto_time || fotoTime;
 
-                if (window.Log) Log.debug('PARTICIPANTE-AUTH', '✅ Dados do time mesclados');
+                if (window.Log) Log.debug('PARTICIPANTE-AUTH', '✅ Dados do time atualizados', {
+                    timeId: this.timeId,
+                    nome_time: timeData.nome_time || timeData.nome,
+                    nome_cartola: timeData.nome_cartola || timeData.nome_cartoleiro,
+                });
             } else {
                 if (window.Log) Log.warn('PARTICIPANTE-AUTH', '⚠️ Não foi possível buscar dados atualizados do time');
             }
@@ -237,7 +232,8 @@ class ParticipanteAuth {
             const now = Date.now();
 
             // Verificar cache da liga
-            if (this.ligaDataCache &&
+            if (!forceRefresh &&
+                this.ligaDataCache &&
                 this.ligaDataCacheTime &&
                 now - this.ligaDataCacheTime < this.LIGA_CACHE_DURATION &&
                 this.ligaDataCache._ligaId === this.ligaId) {
@@ -258,7 +254,7 @@ class ParticipanteAuth {
                 ligaData._ligaId = this.ligaId; // Marcar para validação do cache
                 this.ligaDataCache = ligaData;
                 this.ligaDataCacheTime = Date.now();
-                if (window.Log) Log.debug('PARTICIPANTE-AUTH', '📥 Liga carregada e cacheada');
+                if (window.Log) Log.debug('PARTICIPANTE-AUTH', '📥 Liga carregada e cacheada', { forceRefresh });
             }
 
             // ✅ v3.0: Detectar se liga é estreante (criada na temporada atual)
@@ -278,10 +274,12 @@ class ParticipanteAuth {
             // Priorizar dados reais do time sobre dados da liga (que podem estar desatualizados)
             const nomeTimeTextoFinal =
                 timeData?.nome_time ||
+                timeData?.nome ||
                 participanteDataNaLiga?.nome_time ||
                 nomeTimeTexto ||
                 "Meu Time";
             const nomeCartolaTextoFinal =
+                timeData?.nome_cartola ||
                 timeData?.nome_cartoleiro ||
                 participanteDataNaLiga?.nome_cartola ||
                 nomeCartolaTexto ||
@@ -298,6 +296,35 @@ class ParticipanteAuth {
                 fotoTime ||
                 null;
             const patrimonio = participanteDataNaLiga?.patrimonio;
+
+            // ✅ Sincronizar dados atualizados no auth e cache persistente
+            if (this.participante?.participante) {
+                const participanteAtualizado = {
+                    ...this.participante.participante,
+                    nome_time: nomeTimeTextoFinal,
+                    nome_cartola: nomeCartolaTextoFinal,
+                    clube_id: clubeIdFinal,
+                    foto_time: fotoTimeFinal,
+                    patrimonio,
+                };
+
+                this.participante = { ...this.participante, participante: participanteAtualizado };
+                if (this.sessionCache?.participante) {
+                    this.sessionCache.participante = this.participante;
+                }
+
+                if (window.ParticipanteCache) {
+                    window.ParticipanteCache.setParticipanteBasico(this.ligaId, this.timeId, {
+                        ligaId: this.ligaId,
+                        timeId: this.timeId,
+                        nome_time: nomeTimeTextoFinal,
+                        nome_cartola: nomeCartolaTextoFinal,
+                        foto_time: fotoTimeFinal,
+                        clube_id: clubeIdFinal,
+                        patrimonio,
+                    });
+                }
+            }
 
             // Atualizar nome do time e cartoleiro
             if (nomeTimeEl) {

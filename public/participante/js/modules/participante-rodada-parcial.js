@@ -20,6 +20,18 @@ let estadoParciais = {
     atletasPontuados: null,
     isCarregando: false,
     ultimaAtualizacao: null,
+    autoRefresh: {
+        ativo: false,
+        timer: null,
+        intervalMs: 30000,
+        minMs: 20000,
+        maxMs: 300000,
+        step: 1.6,
+        slowStep: 1.3,
+        failures: 0,
+        cycles: 0,
+        onUpdate: null
+    },
 };
 
 // =====================================================================
@@ -70,6 +82,7 @@ export async function inicializarParciais(ligaId, timeId) {
         const { ativos, inativos } = separarTimesAtivosInativos(times);
         estadoParciais.timesLiga = ativos;
         estadoParciais.timesInativos = inativos;
+        estadoParciais.dadosInativos = mapearInativos(inativos);
 
         if (window.Log) Log.info(
             `[PARCIAIS] ✅ Pronto: Rodada ${status.rodada_atual}, ${ativos.length} ativos, ${inativos.length} inativos`,
@@ -189,6 +202,20 @@ async function buscarAtletasPontuados() {
 }
 
 // =====================================================================
+// MAPEAR INATIVOS (dados exibíveis)
+// =====================================================================
+function mapearInativos(timesInativos = []) {
+    return timesInativos.map((time) => ({
+        timeId: time.id || time.time_id,
+        nome_time: time.nome_time || time.nome || "N/D",
+        nome_cartola: time.nome_cartola || "N/D",
+        escudo: time.url_escudo_png || time.escudo || null,
+        ativo: false,
+        rodada_desistencia: time.rodada_desistencia || null,
+    }));
+}
+
+// =====================================================================
 // CARREGAR PARCIAIS - Busca e calcula pontuação real
 // =====================================================================
 export async function carregarParciais() {
@@ -217,6 +244,9 @@ export async function carregarParciais() {
         if (Object.keys(atletasPontuados).length === 0) {
             if (window.Log) Log.warn("[PARCIAIS] ⚠️ Nenhum atleta pontuado ainda");
             estadoParciais.isCarregando = false;
+            if (!estadoParciais.dadosInativos?.length) {
+                estadoParciais.dadosInativos = mapearInativos(estadoParciais.timesInativos);
+            }
             return {
                 rodada,
                 participantes: [],
@@ -228,19 +258,14 @@ export async function carregarParciais() {
         }
 
         // ✅ PASSO 2: Buscar escalação de cada time e calcular pontos
-        const resultados = [];
-        const BATCH_SIZE = 5;
         const times = estadoParciais.timesLiga;
-
-        for (let i = 0; i < times.length; i += BATCH_SIZE) {
-            const batch = times.slice(i, i + BATCH_SIZE);
-            const promises = batch.map((time) =>
-                buscarECalcularPontuacao(time, rodada, atletasPontuados),
-            );
-
-            const batchResults = await Promise.all(promises);
-            resultados.push(...batchResults.filter((r) => r !== null));
-        }
+        const MAX_CONCURRENT = 8;
+        const resultados = await processarTimesComLimite(
+            times,
+            rodada,
+            atletasPontuados,
+            MAX_CONCURRENT,
+        );
 
         // Ordenar por pontos
         resultados.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
@@ -254,16 +279,7 @@ export async function carregarParciais() {
         estadoParciais.ultimaAtualizacao = new Date();
 
         // ✅ v2.2: TODOS os inativos aparecem (sem filtro por rodada)
-        estadoParciais.dadosInativos = estadoParciais.timesInativos.map(
-            (time) => ({
-                timeId: time.id || time.time_id,
-                nome_time: time.nome_time || time.nome || "N/D",
-                nome_cartola: time.nome_cartola || "N/D",
-                escudo: time.url_escudo_png || time.escudo || null,
-                ativo: false,
-                rodada_desistencia: time.rodada_desistencia || null,
-            }),
-        );
+        estadoParciais.dadosInativos = mapearInativos(estadoParciais.timesInativos);
 
         if (window.Log) Log.info(
             `[PARCIAIS] ✅ ${resultados.length} ativos, ${estadoParciais.dadosInativos.length} inativos`,
@@ -419,6 +435,125 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
 }
 
 // =====================================================================
+// PROCESSAR TIMES COM LIMITE DE CONCORRÊNCIA
+// =====================================================================
+async function processarTimesComLimite(times, rodada, atletasPontuados, limite = 8) {
+    const resultados = [];
+    let index = 0;
+    let ativos = 0;
+
+    return new Promise((resolve) => {
+        const iniciarProximo = () => {
+            while (ativos < limite && index < times.length) {
+                const time = times[index++];
+                ativos += 1;
+                buscarECalcularPontuacao(time, rodada, atletasPontuados)
+                    .then((res) => {
+                        if (res) resultados.push(res);
+                    })
+                    .catch(() => {})
+                    .finally(() => {
+                        ativos -= 1;
+                        if (index >= times.length && ativos === 0) {
+                            resolve(resultados);
+                        } else {
+                            iniciarProximo();
+                        }
+                    });
+            }
+        };
+
+        iniciarProximo();
+    });
+}
+
+// =====================================================================
+// AUTO-REFRESH COM BACKOFF
+// =====================================================================
+function programarAutoRefresh() {
+    if (!estadoParciais.autoRefresh.ativo) return;
+    clearTimeout(estadoParciais.autoRefresh.timer);
+    estadoParciais.autoRefresh.timer = setTimeout(
+        executarAutoRefresh,
+        estadoParciais.autoRefresh.intervalMs,
+    );
+}
+
+async function executarAutoRefresh() {
+    if (!estadoParciais.autoRefresh.ativo) return;
+
+    try {
+        estadoParciais.autoRefresh.cycles += 1;
+
+        // Atualizar status do mercado periodicamente
+        if (estadoParciais.autoRefresh.cycles % 5 === 0) {
+            const status = await buscarStatusMercado();
+            if (status) {
+                estadoParciais.mercadoStatus = status;
+                estadoParciais.rodadaAtual = status.rodada_atual;
+            }
+        }
+
+        if (!parciaisDisponiveis()) {
+            pararAutoRefresh();
+            return;
+        }
+
+        const dados = await carregarParciais();
+
+        if (dados && Array.isArray(dados.participantes)) {
+            if (dados.participantes.length > 0) {
+                estadoParciais.autoRefresh.intervalMs = estadoParciais.autoRefresh.minMs;
+                estadoParciais.autoRefresh.failures = 0;
+            } else {
+                estadoParciais.autoRefresh.intervalMs = Math.min(
+                    estadoParciais.autoRefresh.maxMs,
+                    Math.round(estadoParciais.autoRefresh.intervalMs * estadoParciais.autoRefresh.slowStep),
+                );
+            }
+        } else {
+            estadoParciais.autoRefresh.failures += 1;
+            estadoParciais.autoRefresh.intervalMs = Math.min(
+                estadoParciais.autoRefresh.maxMs,
+                Math.round(estadoParciais.autoRefresh.intervalMs * estadoParciais.autoRefresh.step),
+            );
+        }
+
+        if (typeof estadoParciais.autoRefresh.onUpdate === 'function') {
+            estadoParciais.autoRefresh.onUpdate(dados);
+        }
+    } catch (error) {
+        estadoParciais.autoRefresh.failures += 1;
+        estadoParciais.autoRefresh.intervalMs = Math.min(
+            estadoParciais.autoRefresh.maxMs,
+            Math.round(estadoParciais.autoRefresh.intervalMs * estadoParciais.autoRefresh.step),
+        );
+        if (window.Log) Log.warn("[PARCIAIS] Auto-refresh falhou:", error?.message || error);
+    } finally {
+        programarAutoRefresh();
+    }
+}
+
+export function iniciarAutoRefresh(onUpdate = null) {
+    if (estadoParciais.autoRefresh.ativo) return;
+    estadoParciais.autoRefresh.ativo = true;
+    estadoParciais.autoRefresh.onUpdate = onUpdate;
+    estadoParciais.autoRefresh.intervalMs = estadoParciais.autoRefresh.minMs;
+    estadoParciais.autoRefresh.failures = 0;
+    estadoParciais.autoRefresh.cycles = 0;
+    programarAutoRefresh();
+}
+
+export function pararAutoRefresh() {
+    estadoParciais.autoRefresh.ativo = false;
+    estadoParciais.autoRefresh.onUpdate = null;
+    if (estadoParciais.autoRefresh.timer) {
+        clearTimeout(estadoParciais.autoRefresh.timer);
+        estadoParciais.autoRefresh.timer = null;
+    }
+}
+
+// =====================================================================
 // OBTER DADOS ATUAIS (sem buscar novamente)
 // =====================================================================
 export function obterDadosParciais() {
@@ -488,6 +623,8 @@ window.ParciaisModule = {
     obterMinhaPosicao: obterMinhaPosicaoParcial,
     disponivel: parciaisDisponiveis,
     rodadaAtual: obterRodadaAtual,
+    iniciarAutoRefresh,
+    pararAutoRefresh,
 };
 
 if (window.Log) Log.info(

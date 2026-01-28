@@ -119,6 +119,15 @@
         "afeta": "calendario.total_edicoes"
       },
       {
+        "id": "edicoes_intervalos",
+        "tipo": "edicoes_ranges",
+        "label": "Intervalo de rodadas por edicao",
+        "descricao": "Defina de qual rodada ate qual rodada cada edicao sera disputada.",
+        "required": true,
+        "dependeDe": "total_edicoes",
+        "afeta": "calendario_override.edicoes"
+      },
+      {
         "id": "valor_campeao_edicao",
         "tipo": "number",
         "label": "Valor por edicao vencida (R$)",

@@ -307,8 +307,11 @@
                     showMessage('Configurações salvas com sucesso!', 'success');
 
                     setTimeout(() => {
-                        window.location.href = 'gerenciar.html';
-                    }, 1500);
+                        // Manter usuário na tela atual para navegação mais fluida
+                        if (typeof window.refreshLigasSidebar === 'function') {
+                            window.refreshLigasSidebar();
+                        }
+                    }, 600);
 
                 } catch (error) {
                     console.error('Erro ao salvar:', error);

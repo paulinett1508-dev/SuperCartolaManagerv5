@@ -180,16 +180,28 @@ class ModuleConfigModal {
         if (!this.wizardData?.perguntas) return '<p class="text-muted">Nenhuma configuração disponível</p>';
 
         const questionsHTML = this.wizardData.perguntas.map(q => {
-            if (!this.shouldShowQuestion(q)) return '';
+            let html = '';
 
             switch (q.tipo) {
-                case 'number': return this.renderNumberInput(q);
-                case 'select': return this.renderSelect(q);
-                case 'boolean': return this.renderSwitch(q);
-                case 'text': return this.renderTextInput(q);
-                case 'valores_grid': return this.renderValoresGrid(q);
-                default: return '';
+                case 'number': html = this.renderNumberInput(q); break;
+                case 'select': html = this.renderSelect(q); break;
+                case 'boolean': html = this.renderSwitch(q); break;
+                case 'text': html = this.renderTextInput(q); break;
+                case 'valores_grid': html = this.renderValoresGrid(q); break;
+                case 'edicoes_ranges': html = this.renderEdicoesRanges(q); break;
+                default: html = '';
             }
+
+            if (!html) return '';
+
+            if (!q.dependeDe) return html;
+
+            const shouldShow = this.shouldShowQuestion(q);
+            return `
+                <div class="question-conditional" data-question-container="${q.id}" style="display: ${shouldShow ? 'block' : 'none'};">
+                    ${html}
+                </div>
+            `;
         }).join('');
 
         return `
@@ -310,12 +322,75 @@ class ModuleConfigModal {
     }
 
     /**
+     * Renderiza intervalos de edicoes (Melhor do Mes)
+     */
+    renderEdicoesRanges(pergunta) {
+        const totalEdicoes = this._getTotalEdicoes();
+        const respostas = this._getEdicoesValues(pergunta.id, totalEdicoes);
+
+        const cards = [];
+        for (let i = 1; i <= totalEdicoes; i++) {
+            const edicao = respostas[i] || {};
+            const inicio = edicao.inicio ?? '';
+            const fim = edicao.fim ?? '';
+            cards.push(`
+                <div class="edicao-range-card">
+                    <div class="edicao-range-header">Edição ${String(i).padStart(2, '0')}</div>
+                    <div class="edicao-range-body">
+                        <div class="input-group">
+                            <span class="input-group-text bg-gray-700 text-white border-gray-600">Início</span>
+                            <input type="number"
+                                   class="form-control bg-gray-700 text-white border-gray-600"
+                                   min="1"
+                                   max="38"
+                                   step="1"
+                                   data-question-id="${pergunta.id}"
+                                   data-edicao="${i}"
+                                   data-campo="inicio"
+                                   value="${inicio}"
+                                   placeholder="Rodada">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-gray-700 text-white border-gray-600">Fim</span>
+                            <input type="number"
+                                   class="form-control bg-gray-700 text-white border-gray-600"
+                                   min="1"
+                                   max="38"
+                                   step="1"
+                                   data-question-id="${pergunta.id}"
+                                   data-edicao="${i}"
+                                   data-campo="fim"
+                                   value="${fim}"
+                                   placeholder="Rodada">
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+
+        const cardsHtml = cards.length ? cards.join('') : '<div class="text-muted">Defina o total de edições para configurar.</div>';
+
+        return `
+            <div class="mb-4" id="edicoesRangesWrapper">
+                <label class="form-label">${pergunta.label} ${pergunta.required ? '<span class="text-danger">*</span>' : ''}</label>
+                ${pergunta.descricao ? `<small class="text-muted d-block mb-2">${pergunta.descricao}</small>` : ''}
+                <div class="edicoes-ranges" id="edicoesRanges">
+                    ${cardsHtml}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
      * Renderiza grid de valores (específico para rodadas)
      */
     renderValoresGrid(pergunta) {
-        const totalParticipantes = this.userAnswers.total_participantes || 10;
+        const totalParticipantes = this._getTotalParticipantes();
         const valores = this.userAnswers[pergunta.id] || {};
-        const gridHTML = this.buildValoresGridSections(totalParticipantes, valores, pergunta);
+        const zonaConfig = this._getZonaConfig(pergunta, totalParticipantes);
+        const gridHTML = zonaConfig
+            ? this.buildValoresGridZonas(totalParticipantes, valores, pergunta, zonaConfig)
+            : this.buildValoresGridSections(totalParticipantes || 10, valores, pergunta);
 
         return `
             <div class="mb-4">
@@ -326,6 +401,142 @@ class ModuleConfigModal {
                 </div>
             </div>
         `;
+    }
+
+    _getTotalEdicoes() {
+        const raw = this.userAnswers.total_edicoes ?? this.userAnswers.totalEdicoes ?? this.userAnswers.qtd_edicoes;
+        const total = Number(raw);
+        return Number.isFinite(total) && total > 0 ? total : 0;
+    }
+
+    _getTotalRodadas() {
+        const totalRodadasConfig = Number(this.wizardData?.calendario?.total_rodadas);
+        if (Number.isFinite(totalRodadasConfig) && totalRodadasConfig > 0) return totalRodadasConfig;
+
+        const edicoes = this.wizardData?.calendario?.edicoes;
+        if (Array.isArray(edicoes) && edicoes.length) {
+            const maxFim = Math.max(...edicoes.map(ed => Number(ed?.fim) || 0));
+            if (maxFim > 0) return maxFim;
+        }
+
+        return 38;
+    }
+
+    _getEdicoesValues(questionId, totalEdicoes) {
+        if (!questionId) return {};
+
+        if (!this.userAnswers[questionId] || typeof this.userAnswers[questionId] !== 'object') {
+            this.userAnswers[questionId] = {};
+        }
+
+        const valores = this.userAnswers[questionId];
+
+        // Se nao existe respostas, tentar usar calendario default do wizard
+        if (Object.keys(valores).length === 0 && Array.isArray(this.wizardData?.calendario?.edicoes)) {
+            this.wizardData.calendario.edicoes.forEach((ed) => {
+                if (!ed?.id) return;
+                valores[ed.id] = { inicio: ed.inicio, fim: ed.fim };
+            });
+        }
+
+        if (!this._hasEdicoesValues(questionId)) {
+            this._autoDistribuirEdicoesRanges(questionId, totalEdicoes);
+        }
+
+        // Normalizar quantidade
+        this._normalizeEdicoesRanges(questionId, totalEdicoes);
+
+        return valores;
+    }
+    _getTotalParticipantes() {
+        const raw = this.userAnswers.total_participantes ?? this.userAnswers.total_times ?? this.userAnswers.totalTimes;
+        const total = Number(raw);
+        return Number.isFinite(total) && total > 0 ? total : 0;
+    }
+
+    _getZonaConfig(pergunta, totalParticipantes) {
+        if (!totalParticipantes) return null;
+
+        const perguntas = this.wizardData?.perguntas || [];
+        let ganhoId = null;
+        let perdaId = null;
+
+        perguntas.forEach(p => {
+            if (p.tipo !== 'number') return;
+            const label = String(p.label || '').toLowerCase();
+            const id = String(p.id || '').toLowerCase();
+
+            if (!ganhoId && (label.includes('ganho') || label.includes('bônus') || label.includes('bonus') || id.includes('ganho') || id.includes('bonus'))) {
+                ganhoId = p.id;
+            }
+            if (!perdaId && (label.includes('perda') || label.includes('ônus') || label.includes('onus') || label.includes('débito') || label.includes('debito') || id.includes('perda') || id.includes('onus') || id.includes('debito'))) {
+                perdaId = p.id;
+            }
+        });
+
+        const ganhosRaw = ganhoId ? Number(this.userAnswers[ganhoId]) : 0;
+        const perdasRaw = perdaId ? Number(this.userAnswers[perdaId]) : 0;
+
+        const ganhos = Number.isFinite(ganhosRaw) ? ganhosRaw : 0;
+        const perdas = Number.isFinite(perdasRaw) ? perdasRaw : 0;
+
+        if (!ganhos && !perdas) return null;
+
+        const ganhosClamped = Math.max(0, Math.min(totalParticipantes, ganhos));
+        const perdasClamped = Math.max(0, Math.min(totalParticipantes - ganhosClamped, perdas));
+        const neutraInicio = ganhosClamped + 1;
+        const neutraFim = totalParticipantes - perdasClamped;
+
+        return {
+            ganhos: ganhosClamped,
+            perdas: perdasClamped,
+            neutraInicio,
+            neutraFim,
+            ganhoId,
+            perdaId
+        };
+    }
+
+    _hasEdicoesValues(questionId) {
+        const valores = this.userAnswers?.[questionId];
+        if (!valores || typeof valores !== 'object') return false;
+        return Object.values(valores).some((ed) => {
+            const inicioRaw = ed?.inicio;
+            const fimRaw = ed?.fim;
+            const inicio = Number(inicioRaw);
+            const fim = Number(fimRaw);
+            const hasInicio = inicioRaw !== '' && inicioRaw !== null && inicioRaw !== undefined;
+            const hasFim = fimRaw !== '' && fimRaw !== null && fimRaw !== undefined;
+            return (hasInicio && Number.isFinite(inicio)) || (hasFim && Number.isFinite(fim));
+        });
+    }
+
+    _autoDistribuirEdicoesRanges(questionIdOverride = null, totalOverride = null, force = false) {
+        const pergunta = this.wizardData?.perguntas?.find(p => p.tipo === 'edicoes_ranges');
+        const questionId = questionIdOverride || pergunta?.id;
+        const totalEdicoes = totalOverride ?? this._getTotalEdicoes();
+        if (!questionId || !totalEdicoes) return;
+
+        if (!force && this._hasEdicoesValues(questionId)) return;
+
+        const totalRodadas = this._getTotalRodadas();
+        const base = Math.floor(totalRodadas / totalEdicoes);
+        const resto = totalRodadas % totalEdicoes;
+
+        let inicio = 1;
+        const valores = {};
+
+        for (let i = 1; i <= totalEdicoes; i++) {
+            const tamanho = base + (i <= resto ? 1 : 0);
+            const fim = tamanho > 0 ? inicio + tamanho - 1 : inicio - 1;
+            valores[i] = {
+                inicio: tamanho > 0 ? inicio : '',
+                fim: tamanho > 0 ? fim : ''
+            };
+            inicio = fim + 1;
+        }
+
+        this.userAnswers[questionId] = valores;
     }
 
     /**
@@ -386,12 +597,105 @@ class ModuleConfigModal {
     }
 
     /**
+     * Monta HTML do grid com 3 zonas (ganho, neutra, perda)
+     */
+    buildValoresGridZonas(totalParticipantes, valores, pergunta, zonaConfig) {
+        const { ganhos, perdas, neutraInicio, neutraFim } = zonaConfig;
+
+        let html = '';
+
+        // Zona de ganho
+        html += `
+            <div class="valores-grid-section zone-ganho">
+                <div class="valores-grid-title">Zona de Ganho</div>
+        `;
+        if (ganhos > 0) {
+            for (let i = 1; i <= ganhos; i++) {
+                const valor = valores[i] ?? '';
+                html += `
+                    <div class="input-group mb-2">
+                        <span class="input-group-text bg-gray-700 text-white border-gray-600" style="min-width: 80px;">
+                            ${i}º lugar
+                        </span>
+                        <span class="input-group-text bg-gray-700 text-white border-gray-600">R$</span>
+                        <input type="number"
+                               class="form-control bg-gray-700 text-white border-gray-600 valor-input"
+                               step="0.01"
+                               min="0"
+                               data-posicao="${i}"
+                               data-question-id="${pergunta.id}"
+                               value="${valor}"
+                               placeholder="0.00"
+                               required>
+                    </div>
+                `;
+            }
+        } else {
+            html += `<div class="text-muted" style="font-size: 0.85rem;">Nenhuma posição de ganho configurada.</div>`;
+        }
+        html += `</div>`;
+
+        // Zona neutra
+        html += `
+            <div class="valores-grid-section zone-neutra">
+                <div class="valores-grid-title">Zona Neutra</div>
+        `;
+        if (neutraFim >= neutraInicio) {
+            html += `
+                <div class="text-muted" style="font-size: 0.9rem;">
+                    Posições ${neutraInicio}–${neutraFim} sem ganho ou perda.
+                </div>
+            `;
+        } else {
+            html += `<div class="text-muted" style="font-size: 0.85rem;">Sem posições neutras.</div>`;
+        }
+        html += `</div>`;
+
+        // Zona de perda
+        html += `
+            <div class="valores-grid-section zone-perda">
+                <div class="valores-grid-title">Zona de Perda</div>
+        `;
+        if (perdas > 0) {
+            const startPerda = totalParticipantes - perdas + 1;
+            for (let i = startPerda; i <= totalParticipantes; i++) {
+                const valor = valores[i] ?? '';
+                html += `
+                    <div class="input-group mb-2">
+                        <span class="input-group-text bg-gray-700 text-white border-gray-600" style="min-width: 80px;">
+                            ${i}º lugar
+                        </span>
+                        <span class="input-group-text bg-gray-700 text-white border-gray-600">R$</span>
+                        <input type="number"
+                               class="form-control bg-gray-700 text-white border-gray-600 valor-input"
+                               step="0.01"
+                               max="0"
+                               data-posicao="${i}"
+                               data-question-id="${pergunta.id}"
+                               value="${valor}"
+                               placeholder="-0.00"
+                               required>
+                    </div>
+                `;
+            }
+        } else {
+            html += `<div class="text-muted" style="font-size: 0.85rem;">Nenhuma posição de perda configurada.</div>`;
+        }
+        html += `</div>`;
+
+        return html;
+    }
+
+    /**
      * Verifica se pergunta deve ser exibida (dependências)
      */
     shouldShowQuestion(pergunta) {
         if (!pergunta.dependeDe) return true;
 
         const dependValue = this.userAnswers[pergunta.dependeDe];
+        if (pergunta.condicao === undefined) {
+            return !!dependValue;
+        }
         return dependValue === pergunta.condicao;
     }
 
@@ -402,17 +706,25 @@ class ModuleConfigModal {
         const previewContainer = document.getElementById('previewValores');
         if (!previewContainer) return;
 
-        const totalParticipantes = this.userAnswers.total_participantes;
-        const valores = this.userAnswers.valores_manual || {};
+        const pergunta = this.wizardData?.perguntas?.find(p => p.tipo === 'valores_grid');
+        const totalParticipantes = this._getTotalParticipantes();
+        const valores = pergunta ? (this.userAnswers[pergunta.id] || {}) : {};
+        const zonaConfig = pergunta ? this._getZonaConfig(pergunta, totalParticipantes) : null;
+
+        if (pergunta && zonaConfig) {
+            this._preencherValoresNeutros(pergunta, zonaConfig, totalParticipantes);
+        }
 
         if (!totalParticipantes || Object.keys(valores).length === 0) {
             previewContainer.innerHTML = '<small class="text-muted">Preencha os campos para ver o preview</small>';
             return;
         }
 
+        const valoresNormalizados = pergunta ? (this.userAnswers[pergunta.id] || {}) : valores;
+
         let html = '<table class="table table-sm table-borderless text-white mb-0">';
         for (let i = 1; i <= totalParticipantes; i++) {
-            const valor = parseFloat(valores[i]) || 0;
+            const valor = parseFloat(valoresNormalizados[i]) || 0;
             const cor = valor > 0 ? 'text-success' : valor < 0 ? 'text-danger' : 'text-muted';
             const sinal = valor > 0 ? '+' : '';
             html += `
@@ -434,7 +746,18 @@ class ModuleConfigModal {
         const inputs = form.querySelectorAll('[data-question-id]');
 
         inputs.forEach(input => {
+            if (input.disabled) return;
             const questionId = input.dataset.questionId;
+
+            if (input.dataset.edicao && input.dataset.campo) {
+                const edicao = Number(input.dataset.edicao);
+                const campo = input.dataset.campo;
+                if (!this.userAnswers[questionId]) this.userAnswers[questionId] = {};
+                if (!this.userAnswers[questionId][edicao]) this.userAnswers[questionId][edicao] = {};
+                const valor = input.value === '' ? '' : parseInt(input.value);
+                this.userAnswers[questionId][edicao][campo] = Number.isFinite(valor) ? valor : '';
+                return;
+            }
 
             if (input.type === 'checkbox') {
                 this.userAnswers[questionId] = input.checked;
@@ -449,6 +772,10 @@ class ModuleConfigModal {
                 this.userAnswers[questionId] = input.value;
             }
         });
+
+        this._normalizeDependentValues();
+        this._normalizeValoresGrid();
+        this._normalizeEdicoesRanges();
     }
 
     /**
@@ -470,10 +797,45 @@ class ModuleConfigModal {
 
             // Validação de grid de valores
             if (pergunta.tipo === 'valores_grid') {
-                const totalParticipantes = this.userAnswers.total_participantes || 10;
+                const totalParticipantes = this._getTotalParticipantes() || 10;
                 for (let i = 1; i <= totalParticipantes; i++) {
                     if (valor[i] === undefined || valor[i] === null || valor[i] === '') {
                         this.showError(`Valor para ${i}º lugar é obrigatório`);
+                        return false;
+                    }
+                }
+            }
+
+            // Validação de intervalos de edicoes
+            if (pergunta.tipo === 'edicoes_ranges') {
+                const totalEdicoes = this._getTotalEdicoes() || 0;
+                const totalRodadas = this._getTotalRodadas();
+                const ranges = [];
+                for (let i = 1; i <= totalEdicoes; i++) {
+                    const edicao = valor?.[i];
+                    const inicio = Number(edicao?.inicio);
+                    const fim = Number(edicao?.fim);
+                    if (!Number.isFinite(inicio) || !Number.isFinite(fim)) {
+                        this.showError(`Informe início e fim da edição ${i}`);
+                        return false;
+                    }
+                    if (inicio < 1 || fim < 1 || inicio > totalRodadas || fim > totalRodadas || inicio > fim) {
+                        this.showError(`Intervalo inválido na edição ${i}`);
+                        return false;
+                    }
+                    ranges.push({ index: i, inicio, fim });
+                }
+
+                const ordered = ranges.sort((a, b) => a.inicio - b.inicio || a.fim - b.fim);
+                for (let i = 1; i < ordered.length; i++) {
+                    const prev = ordered[i - 1];
+                    const curr = ordered[i];
+                    if (curr.inicio <= prev.fim) {
+                        this.showError(`Sobreposição de rodadas entre as edições ${prev.index} e ${curr.index}`);
+                        return false;
+                    }
+                    if (curr.inicio > prev.fim + 1) {
+                        this.showError(`Lacuna entre as edições ${prev.index} e ${curr.index}`);
                         return false;
                     }
                 }
@@ -509,11 +871,17 @@ class ModuleConfigModal {
             }
 
             this.showSuccess('Configuração salva com sucesso!');
+            window.dispatchEvent(new CustomEvent('modulo-config-saved', {
+                detail: {
+                    ligaId: this.ligaId,
+                    modulo: this.currentModule,
+                    respostas: { ...this.userAnswers }
+                }
+            }));
 
             setTimeout(() => {
                 this.close();
-                window.location.reload(); // Recarregar para refletir mudanças
-            }, 1500);
+            }, 800);
 
         } catch (error) {
             console.error('[MODULE-CONFIG-MODAL] Erro ao salvar:', error);
@@ -536,6 +904,17 @@ class ModuleConfigModal {
         totalParticipantesInput?.addEventListener('change', (e) => {
             this.userAnswers.total_participantes = parseInt(e.target.value);
             this.reRenderDynamicFields();
+            this.reRenderConditionalFields();
+        });
+
+        const totalEdicoesInput = document.getElementById('input_total_edicoes');
+        totalEdicoesInput?.addEventListener('change', (e) => {
+            this.userAnswers.total_edicoes = parseInt(e.target.value);
+            const pergunta = this.wizardData?.perguntas?.find(p => p.tipo === 'edicoes_ranges');
+            if (pergunta) {
+                this._autoDistribuirEdicoesRanges(pergunta.id, this._getTotalEdicoes(), true);
+            }
+            this.reRenderDynamicFields();
         });
 
         // Inputs de valores (para preview)
@@ -552,8 +931,29 @@ class ModuleConfigModal {
             input.addEventListener('change', () => {
                 this.collectAnswers();
                 this.reRenderConditionalFields();
+                if (this._shouldRebuildGrid(input)) {
+                    this.reRenderDynamicFields();
+                }
             });
         });
+    }
+
+    _shouldRebuildGrid(input) {
+        if (!input || input.classList.contains('valor-input')) return false;
+
+        const questionId = input.dataset.questionId;
+        if (!questionId) return false;
+
+        if (questionId === 'total_participantes') return true;
+
+        const pergunta = this.wizardData?.perguntas?.find(p => p.tipo === 'valores_grid');
+        if (!pergunta) return false;
+
+        const totalParticipantes = this._getTotalParticipantes();
+        const zonaConfig = this._getZonaConfig(pergunta, totalParticipantes);
+        if (!zonaConfig) return false;
+
+        return questionId === zonaConfig.ganhoId || questionId === zonaConfig.perdaId;
     }
 
     /**
@@ -561,16 +961,70 @@ class ModuleConfigModal {
      */
     reRenderDynamicFields() {
         const gridContainer = document.getElementById('valoresGrid');
-        if (!gridContainer) return;
+        if (gridContainer) {
+            const pergunta = this.wizardData.perguntas.find(p => p.tipo === 'valores_grid');
+            if (pergunta) {
+                const totalParticipantes = this._getTotalParticipantes() || 10;
+                const valores = this.userAnswers[pergunta.id] || {};
+                const zonaConfig = this._getZonaConfig(pergunta, totalParticipantes);
 
-        const pergunta = this.wizardData.perguntas.find(p => p.tipo === 'valores_grid');
-        if (!pergunta) return;
+                gridContainer.innerHTML = zonaConfig
+                    ? this.buildValoresGridZonas(totalParticipantes, valores, pergunta, zonaConfig)
+                    : this.buildValoresGridSections(totalParticipantes, valores, pergunta);
+                this.updatePreview();
+            }
+        }
 
-        const totalParticipantes = this.userAnswers.total_participantes || 10;
-        const valores = this.userAnswers[pergunta.id] || {};
+        const edicoesContainer = document.getElementById('edicoesRanges');
+        if (edicoesContainer) {
+            const pergunta = this.wizardData.perguntas.find(p => p.tipo === 'edicoes_ranges');
+            if (pergunta) {
+                const totalEdicoes = this._getTotalEdicoes();
+                const respostas = this._getEdicoesValues(pergunta.id, totalEdicoes);
 
-        gridContainer.innerHTML = this.buildValoresGridSections(totalParticipantes, valores, pergunta);
-        this.updatePreview();
+                const cards = [];
+                for (let i = 1; i <= totalEdicoes; i++) {
+                    const edicao = respostas[i] || {};
+                    const inicio = edicao.inicio ?? '';
+                    const fim = edicao.fim ?? '';
+                    cards.push(`
+                        <div class="edicao-range-card">
+                            <div class="edicao-range-header">Edição ${String(i).padStart(2, '0')}</div>
+                            <div class="edicao-range-body">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-gray-700 text-white border-gray-600">Início</span>
+                                    <input type="number"
+                                           class="form-control bg-gray-700 text-white border-gray-600"
+                                           min="1"
+                                           max="38"
+                                           step="1"
+                                           data-question-id="${pergunta.id}"
+                                           data-edicao="${i}"
+                                           data-campo="inicio"
+                                           value="${inicio}"
+                                           placeholder="Rodada">
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-gray-700 text-white border-gray-600">Fim</span>
+                                    <input type="number"
+                                           class="form-control bg-gray-700 text-white border-gray-600"
+                                           min="1"
+                                           max="38"
+                                           step="1"
+                                           data-question-id="${pergunta.id}"
+                                           data-edicao="${i}"
+                                           data-campo="fim"
+                                           value="${fim}"
+                                           placeholder="Rodada">
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                }
+
+                edicoesContainer.innerHTML = cards.join('') || '<div class="text-muted">Defina o total de edições para configurar.</div>';
+            }
+        }
     }
 
     /**
@@ -582,15 +1036,94 @@ class ModuleConfigModal {
         perguntas.forEach(pergunta => {
             if (!pergunta.dependeDe) return;
 
-            const container = document.getElementById(`input_${pergunta.id}`)?.closest('.mb-4');
+            const container = this.modalElement.querySelector(`[data-question-container="${pergunta.id}"]`)
+                || document.getElementById(`input_${pergunta.id}`)?.closest('.mb-4');
             if (!container) return;
 
             if (this.shouldShowQuestion(pergunta)) {
                 container.style.display = 'block';
+                const input = document.getElementById(`input_${pergunta.id}`);
+                if (input) input.disabled = false;
             } else {
                 container.style.display = 'none';
+                const input = document.getElementById(`input_${pergunta.id}`);
+                if (input) input.disabled = true;
+
+                // Limpar valores dependentes do toggle Integrar no Extrato
+                if (pergunta.dependeDe === 'integrar_extrato') {
+                    delete this.userAnswers[pergunta.id];
+                    if (input) {
+                        if (input.type === 'checkbox') input.checked = false;
+                        else input.value = '';
+                    }
+                }
             }
         });
+    }
+
+    _normalizeDependentValues() {
+        const perguntas = this.wizardData?.perguntas || [];
+        perguntas.forEach(pergunta => {
+            if (!pergunta.dependeDe) return;
+            if (this.shouldShowQuestion(pergunta)) return;
+            if (pergunta.dependeDe === 'integrar_extrato') {
+                delete this.userAnswers[pergunta.id];
+            }
+        });
+    }
+
+    _normalizeValoresGrid() {
+        const pergunta = this.wizardData?.perguntas?.find(p => p.tipo === 'valores_grid');
+        if (!pergunta) return;
+        const totalParticipantes = this._getTotalParticipantes();
+        if (!totalParticipantes) return;
+
+        if (!this.userAnswers[pergunta.id]) {
+            this.userAnswers[pergunta.id] = {};
+        }
+
+        const zonaConfig = this._getZonaConfig(pergunta, totalParticipantes);
+        if (zonaConfig) {
+            this._preencherValoresNeutros(pergunta, zonaConfig, totalParticipantes);
+        }
+    }
+
+    _normalizeEdicoesRanges(questionIdOverride = null, totalOverride = null) {
+        const pergunta = this.wizardData?.perguntas?.find(p => p.tipo === 'edicoes_ranges');
+        if (!pergunta && !questionIdOverride) return;
+        const questionId = questionIdOverride || pergunta.id;
+        const totalEdicoes = totalOverride ?? this._getTotalEdicoes();
+        if (!totalEdicoes || !questionId) return;
+
+        if (!this.userAnswers[questionId]) {
+            this.userAnswers[questionId] = {};
+        }
+
+        const valores = this.userAnswers[questionId];
+        Object.keys(valores).forEach((key) => {
+            if (Number(key) > totalEdicoes) {
+                delete valores[key];
+            }
+        });
+
+        for (let i = 1; i <= totalEdicoes; i++) {
+            if (!valores[i]) {
+                valores[i] = { inicio: '', fim: '' };
+            }
+        }
+    }
+
+    _preencherValoresNeutros(pergunta, zonaConfig, totalParticipantes) {
+        const valores = this.userAnswers[pergunta.id] || {};
+        const { neutraInicio, neutraFim } = zonaConfig;
+        if (neutraFim >= neutraInicio) {
+            for (let i = neutraInicio; i <= neutraFim; i++) {
+                if (valores[i] === undefined || valores[i] === null || valores[i] === '') {
+                    valores[i] = 0;
+                }
+            }
+        }
+        this.userAnswers[pergunta.id] = valores;
     }
 
     /**

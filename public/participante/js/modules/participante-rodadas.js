@@ -453,6 +453,7 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
         );
 
     rodadaSelecionada = numeroRodada;
+    ParciaisModule.pararAutoRefresh?.();
 
     document.querySelectorAll(".rodada-card-compacto").forEach((card) => {
         card.classList.remove("selected");
@@ -490,6 +491,10 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
 
     if (isRodadaParcial) {
         await carregarERenderizarParciais(numeroRodada);
+        ParciaisModule.iniciarAutoRefresh?.((dados) => {
+            if (rodadaSelecionada !== numeroRodada) return;
+            renderizarParciaisDados(numeroRodada, dados);
+        });
     } else {
         const rodadaData = todasRodadasCache.find(
             (r) => r.numero === numeroRodada,
@@ -533,55 +538,7 @@ async function carregarERenderizarParciais(numeroRodada) {
     try {
         const dados = await ParciaisModule.carregarParciais();
 
-        if (
-            !dados ||
-            !dados.participantes ||
-            dados.participantes.length === 0
-        ) {
-            const rankingContainer = document.getElementById("rankingListPro");
-            if (rankingContainer) {
-                rankingContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #6b7280;">
-                        <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">hourglass_empty</span>
-                        <p>Aguardando pontuações...</p>
-                        <p style="font-size: 12px; margin-top: 8px;">Os dados aparecerão quando os jogos começarem</p>
-                    </div>
-                `;
-            }
-            return;
-        }
-
-        const rodadaData = {
-            numero: numeroRodada,
-            participantes: dados.participantes,
-            isParcial: true,
-            atualizadoEm: dados.atualizadoEm,
-        };
-
-        const minhaPosicao = ParciaisModule.obterMinhaPosicaoParcial();
-        if (minhaPosicao) {
-            rodadaData.posicaoFinanceira = minhaPosicao.posicao;
-            rodadaData.meusPontos = minhaPosicao.pontos;
-        }
-
-        // ✅ v3.5: Passar TODOS os inativos
-        const inativos = dados.inativos || [];
-        renderizarDetalhamentoRodada(rodadaData, true, inativos);
-
-        if (resumo) {
-            const horaAtualizacao = dados.atualizadoEm
-                ? new Date(dados.atualizadoEm).toLocaleTimeString("pt-BR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                  })
-                : "--:--";
-            const infoInativos =
-                inativos.length > 0
-                    ? ` • ${inativos.length} inativo${inativos.length > 1 ? "s" : ""}`
-                    : "";
-            resumo.innerHTML = `${dados.totalTimes} participantes • Sua posição: ${minhaPosicao?.posicao || "-"}º${infoInativos}
-                <span style="color: #6b7280; font-size: 11px;"> • Atualizado às ${horaAtualizacao}</span>`;
-        }
+        renderizarParciaisDados(numeroRodada, dados);
     } catch (error) {
         if (window.Log)
             Log.error(
@@ -601,6 +558,75 @@ async function carregarERenderizarParciais(numeroRodada) {
                 </div>
             `;
         }
+    }
+}
+
+function renderizarParciaisDados(numeroRodada, dados) {
+    const titulo = document.getElementById("rodadaTitulo");
+    if (titulo) {
+        titulo.innerHTML = `Rodada ${numeroRodada} <span class="badge-parcial">EM ANDAMENTO</span>`;
+    }
+
+    const resumo = document.getElementById("rodadaResumo");
+    const rankingContainer = document.getElementById("rankingListPro");
+    const participantes = dados?.participantes || [];
+    const inativos = dados?.inativos || [];
+
+    const minhaPosicao = ParciaisModule.obterMinhaPosicaoParcial();
+
+    if (!dados || !Array.isArray(participantes) || participantes.length === 0) {
+        if (rankingContainer) {
+            let html = `
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">hourglass_empty</span>
+                    <p>Aguardando pontuações...</p>
+                    <p style="font-size: 12px; margin-top: 8px;">Os dados aparecerão quando os jogos começarem</p>
+                </div>
+            `;
+            if (inativos.length > 0) {
+                html += renderizarSecaoInativos(inativos, numeroRodada);
+            }
+            rankingContainer.innerHTML = html;
+        }
+
+        if (resumo) {
+            const infoInativos =
+                inativos.length > 0
+                    ? ` • ${inativos.length} inativo${inativos.length > 1 ? "s" : ""}`
+                    : "";
+            resumo.innerHTML = `0 participantes • Sua posição: ${minhaPosicao?.posicao || "-"}º${infoInativos}`;
+        }
+
+        return;
+    }
+
+    const rodadaData = {
+        numero: numeroRodada,
+        participantes: participantes,
+        isParcial: true,
+        atualizadoEm: dados?.atualizadoEm,
+    };
+
+    if (minhaPosicao) {
+        rodadaData.posicaoFinanceira = minhaPosicao.posicao;
+        rodadaData.meusPontos = minhaPosicao.pontos;
+    }
+
+    renderizarDetalhamentoRodada(rodadaData, true, inativos);
+
+    if (resumo) {
+        const horaAtualizacao = dados?.atualizadoEm
+            ? new Date(dados.atualizadoEm).toLocaleTimeString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+              })
+            : "--:--";
+        const infoInativos =
+            inativos.length > 0
+                ? ` • ${inativos.length} inativo${inativos.length > 1 ? "s" : ""}`
+                : "";
+        resumo.innerHTML = `${dados?.totalTimes || participantes.length} participantes • Sua posição: ${minhaPosicao?.posicao || "-"}º${infoInativos}
+            <span style="color: #6b7280; font-size: 11px;"> • Atualizado às ${horaAtualizacao}</span>`;
     }
 }
 
@@ -843,6 +869,7 @@ function renderizarSecaoInativos(inativos, rodadaNum) {
 // VOLTAR
 // =====================================================================
 window.voltarParaCards = function () {
+    ParciaisModule.pararAutoRefresh?.();
     const detalhamento = document.getElementById("rodadaDetalhamento");
     if (detalhamento) {
         detalhamento.style.display = "none";

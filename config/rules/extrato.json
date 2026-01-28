@@ -60,7 +60,7 @@
   },
   "wizard": {
     "titulo": "Configurar Extrato Financeiro",
-    "descricao": "Defina as configurações de exibição e os rótulos dos campos livres do extrato.",
+    "descricao": "Defina as configurações de exibição do extrato e o comportamento dos ajustes financeiros.",
     "perguntas": [
       {
         "id": "exibir_historico_completo",
@@ -79,59 +79,6 @@
         "default": true,
         "required": true,
         "afeta": "regras_override.permitir_exportacao"
-      },
-      {
-        "id": "label_campo1",
-        "tipo": "text",
-        "label": "Nome do Campo Livre 1",
-        "descricao": "Personalize o rótulo do primeiro campo editável (ex: 'Bônus Melhor Mês', 'Prêmio Especial')",
-        "default": "Campo Livre 1",
-        "placeholder": "Ex: Bônus Melhor Mês",
-        "maxlength": 50,
-        "required": false,
-        "afeta": "campos_editaveis_override.campo1.label"
-      },
-      {
-        "id": "label_campo2",
-        "tipo": "text",
-        "label": "Nome do Campo Livre 2",
-        "descricao": "Personalize o rótulo do segundo campo editável",
-        "default": "Campo Livre 2",
-        "placeholder": "Ex: Prêmio Pontos Corridos",
-        "maxlength": 50,
-        "required": false,
-        "afeta": "campos_editaveis_override.campo2.label"
-      },
-      {
-        "id": "label_campo3",
-        "tipo": "text",
-        "label": "Nome do Campo Livre 3",
-        "descricao": "Personalize o rótulo do terceiro campo editável",
-        "default": "Campo Livre 3",
-        "placeholder": "Ex: Multa por Atraso",
-        "maxlength": 50,
-        "required": false,
-        "afeta": "campos_editaveis_override.campo3.label"
-      },
-      {
-        "id": "label_campo4",
-        "tipo": "text",
-        "label": "Nome do Campo Livre 4",
-        "descricao": "Personalize o rótulo do quarto campo editável",
-        "default": "Campo Livre 4",
-        "placeholder": "Ex: Taxa Extraordinária",
-        "maxlength": 50,
-        "required": false,
-        "afeta": "campos_editaveis_override.campo4.label"
-      },
-      {
-        "id": "exibir_campos_zerados",
-        "tipo": "boolean",
-        "label": "Exibir campos livres mesmo quando zerados?",
-        "descricao": "Se desativado, campos com valor R$ 0,00 ficam ocultos no extrato.",
-        "default": false,
-        "required": true,
-        "afeta": "regras_override.exibir_campos_zerados"
       },
       {
         "id": "cor_saldo_positivo",

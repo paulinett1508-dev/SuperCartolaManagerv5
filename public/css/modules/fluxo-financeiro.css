@@ -1378,6 +1378,57 @@ body {
     text-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
 
+.extrato-integracoes {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(21, 21, 21, 0.96), rgba(9, 9, 9, 0.96));
+    margin-bottom: 20px;
+}
+
+.extrato-integracoes-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 13px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.72);
+    margin-bottom: 14px;
+}
+
+.extrato-integracoes-header .material-icons {
+    font-size: 18px;
+    color: var(--laranja, #ff4500);
+}
+
+.extrato-integracoes-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.extrato-integracoes-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.extrato-integracoes-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.extrato-integracoes-regra {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.4;
+}
+
 /* Avatares */
 .avatar-lg {
     width: 48px;

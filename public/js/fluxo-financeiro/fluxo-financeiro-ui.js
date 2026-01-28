@@ -148,7 +148,9 @@ export class FluxoFinanceiroUI {
             if (this.participanteAtual) {
                 const timeId = this.participanteAtual.time_id || this.participanteAtual.id;
                 const nome = (this.participanteAtual.nome || this.participanteAtual.nomeTime || 'Participante').replace(/'/g, "\\'");
-                const saldo = this.participanteAtual.saldoFinal || this.participanteAtual.saldo || 0;
+                const saldo = typeof this.participanteAtual.saldoFinalIntegrado === 'number'
+                    ? this.participanteAtual.saldoFinalIntegrado
+                    : (this.participanteAtual.saldoFinal || this.participanteAtual.saldo || 0);
                 // ✅ FIX: Chamar função correta com saldo para habilitar botão "Zerar"
                 if (window.abrirModalAcertoFluxo) {
                     window.abrirModalAcertoFluxo(timeId, nome, saldo);
@@ -550,6 +552,7 @@ export class FluxoFinanceiroUI {
             artilheiro: false,      // Precisa habilitar
             luvaOuro: false,        // Precisa habilitar
         };
+        await this._carregarIntegracoesExtrato(ligaId);
 
         // ✅ v6.5 FIX: Para temporadas >= 2026, usar lista da API de tesouraria (já filtrada por renovados)
         // Temporadas anteriores (2025) usam lista do cache (todos os participantes)
@@ -596,13 +599,16 @@ export class FluxoFinanceiroUI {
             };
         });
 
+        const { participantes: participantesIntegrados, totais: totaisIntegrados } =
+            this._aplicarIntegracoesTabela(participantesComSaldo, totalParticipantesBase);
+
         // Ordenar por nome
-        const participantesOrdenados = [...participantesComSaldo].sort((a, b) =>
+        const participantesOrdenados = [...participantesIntegrados].sort((a, b) =>
             (a.nome_cartola || '').localeCompare(b.nome_cartola || '')
         );
 
         // Calcular totais
-        const totais = dadosSaldo?.totais || {
+        const totais = totaisIntegrados || dadosSaldo?.totais || {
             totalParticipantes: totalParticipantesBase,
             quantidadeCredores: 0,
             quantidadeDevedores: 0,
@@ -778,7 +784,7 @@ export class FluxoFinanceiroUI {
         `;
 
         window.totalParticipantes = totalParticipantesBase;
-        window.participantesFluxo = participantesComSaldo;
+        window.participantesFluxo = participantesIntegrados;
 
         // Injetar estilos (v8.4: importados de fluxo-financeiro-styles.js)
         injetarEstilosWrapper();
@@ -935,9 +941,11 @@ export class FluxoFinanceiroUI {
      */
     _renderizarLinhaTabela(p, idx, ligaId) {
         const timeId = p.time_id || p.id;
-        const saldoFinal = p.saldoFinal || 0;
-        const situacao = p.situacao || 'quitado';
-        const breakdown = p.breakdown || {};
+        const saldoFinal = typeof p.saldoFinalIntegrado === 'number'
+            ? p.saldoFinalIntegrado
+            : (p.saldoFinal || 0);
+        const situacao = p.situacaoIntegrada || p.situacao || 'quitado';
+        const breakdown = this._ajustarBreakdownPorIntegracoes(p.breakdown || {});
 
         const classeSaldo = saldoFinal > 0 ? 'val-positivo' : saldoFinal < 0 ? 'val-negativo' : '';
 
@@ -1093,6 +1101,10 @@ export class FluxoFinanceiroUI {
             // Calcular: saldo anterior - taxa (se não pagou diretamente)
             saldoFinal = pagouDiretamente ? saldoAnterior : (saldoAnterior - taxaInscricao);
         }
+        const deltaIntegracoes = typeof p.deltaIntegracoesExtrato === 'number'
+            ? p.deltaIntegracoesExtrato
+            : 0;
+        const saldoFinalIntegrado = saldoFinal + deltaIntegracoes;
 
         // Status visual - v7.1: Simplificado (PAGO ou DEVE)
         // PAGO = pagou diretamente OU crédito cobriu a taxa OU saldo final já quitado na API
@@ -1125,7 +1137,7 @@ export class FluxoFinanceiroUI {
         };
 
         // Classe da linha baseada no saldo
-        const classeLinha = saldoFinal > 0 ? '' : saldoFinal < 0 ? 'row-devedor' : '';
+        const classeLinha = saldoFinalIntegrado > 0 ? '' : saldoFinalIntegrado < 0 ? 'row-devedor' : '';
 
         return `
             <tr class="linha-participante ${classeLinha}"
@@ -1156,8 +1168,8 @@ export class FluxoFinanceiroUI {
                 <td class="col-modulo">
                     <span class="badge-status ${statusClass}">${statusText}</span>
                 </td>
-                <td class="col-saldo ${saldoFinal > 0 ? 'val-positivo' : saldoFinal < 0 ? 'val-negativo' : ''}">
-                    <strong>${fmtValor(saldoFinal)}</strong>
+                <td class="col-saldo ${saldoFinalIntegrado > 0 ? 'val-positivo' : saldoFinalIntegrado < 0 ? 'val-negativo' : ''}">
+                    <strong>${fmtValor(saldoFinalIntegrado)}</strong>
                 </td>
                 <td class="col-acoes">
                     <div class="acoes-row">
@@ -1422,7 +1434,9 @@ export class FluxoFinanceiroUI {
             const participante = participantes.find(p =>
                 String(p.time_id) === String(timeId) || String(p.id) === String(timeId)
             );
-            const saldo = participante?.saldoFinal || 0;
+            const saldo = typeof participante?.saldoFinalIntegrado === 'number'
+                ? participante.saldoFinalIntegrado
+                : (participante?.saldoFinal || 0);
 
             // Chamar função real com os parâmetros corretos
             window.abrirModalAcertoFluxo(timeId, nome, saldo);
@@ -1519,8 +1533,12 @@ export class FluxoFinanceiroUI {
                             : valorB.localeCompare(valorA);
 
                     case 'temporada':
-                        valorA = a.saldoTemporada || 0;
-                        valorB = b.saldoTemporada || 0;
+                        valorA = typeof a.saldoTemporadaIntegrado === 'number'
+                            ? a.saldoTemporadaIntegrado
+                            : (a.saldoTemporada || 0);
+                        valorB = typeof b.saldoTemporadaIntegrado === 'number'
+                            ? b.saldoTemporadaIntegrado
+                            : (b.saldoTemporada || 0);
                         break;
 
                     case 'acertos':
@@ -1529,14 +1547,18 @@ export class FluxoFinanceiroUI {
                         break;
 
                     case 'saldo':
-                        valorA = a.saldoFinal || 0;
-                        valorB = b.saldoFinal || 0;
+                        valorA = typeof a.saldoFinalIntegrado === 'number'
+                            ? a.saldoFinalIntegrado
+                            : (a.saldoFinal || 0);
+                        valorB = typeof b.saldoFinalIntegrado === 'number'
+                            ? b.saldoFinalIntegrado
+                            : (b.saldoFinal || 0);
                         break;
 
                     case 'situacao':
                         const ordem = { devedor: 1, credor: 2, quitado: 3 };
-                        valorA = ordem[a.situacao] || 3;
-                        valorB = ordem[b.situacao] || 3;
+                        valorA = ordem[a.situacaoIntegrada || a.situacao] || 3;
+                        valorB = ordem[b.situacaoIntegrada || b.situacao] || 3;
                         break;
 
                     default:
@@ -1848,7 +1870,6 @@ export class FluxoFinanceiroUI {
         if (modulosExtras && Object.keys(modulosExtras).length > 0) {
             extrato.modulosExtras = modulosExtras;
         }
-        window.extratoAtual = extrato;
         const camposEditaveisHTML = await this.renderizarCamposEditaveis(
             participante.time_id || participante.id,
         );
@@ -1856,6 +1877,13 @@ export class FluxoFinanceiroUI {
         // ✅ v4.5: Popular cache no backend quando admin visualiza (silencioso)
         const timeId = participante.time_id || participante.id;
         this.popularCacheBackend(timeId, extrato);
+
+        // ✅ v8.9: Aplicar integrações do wizard apenas para visualização (sem backend)
+        const extratoView = this._aplicarIntegracoesExtrato(
+            this._clonarExtrato(extrato),
+        );
+        window.extratoAtual = extratoView;
+        extrato = extratoView;
 
         const saldoFinal = parseFloat(extrato.resumo.saldo) || 0;
 
@@ -1895,6 +1923,8 @@ export class FluxoFinanceiroUI {
                 </div>
                 ` : ''}
             </div>
+
+            ${this._renderizarIntegracoesExtrato(extrato)}
 
             ${/* ✅ v6.7: Campos editáveis (Ajustes Manuais) SEMPRE disponíveis - inclusive pré-temporada */
               camposEditaveisHTML}
@@ -1969,6 +1999,234 @@ export class FluxoFinanceiroUI {
         } else {
             console.log('[FLUXO-UI] Modal não aberto:', { modalAtivo: !!modalAtivo, participante: !!participante });
         }
+    }
+
+    _clonarExtrato(extrato) {
+        try {
+            if (typeof structuredClone === 'function') {
+                return structuredClone(extrato);
+            }
+        } catch (error) {
+            console.warn('[FLUXO-UI] Falha ao usar structuredClone:', error);
+        }
+
+        try {
+            return JSON.parse(JSON.stringify(extrato));
+        } catch (error) {
+            console.warn('[FLUXO-UI] Falha ao clonar extrato:', error);
+            return extrato;
+        }
+    }
+
+    _aplicarIntegracoesExtrato(extrato) {
+        const integracoes = Array.isArray(this._extratoIntegracoes)
+            ? this._extratoIntegracoes
+            : [];
+        if (!integracoes.length) return extrato;
+
+        const resumo = extrato.resumo || {};
+        const extras = extrato.modulosExtras || {};
+        const integrados = {};
+        const aplicadas = [];
+        let deltaSaldo = 0;
+        let ganhosExtras = 0;
+        let perdasExtras = 0;
+
+        integracoes.forEach((item) => {
+            const valorBase = typeof extras[item.key] === 'number'
+                ? extras[item.key]
+                : typeof resumo[item.key] === 'number'
+                    ? resumo[item.key]
+                    : 0;
+
+            if (!valorBase || Number.isNaN(valorBase)) return;
+
+            const tipo = (item.tipo || 'misto').toLowerCase();
+            let valorIntegrado = valorBase;
+            if (tipo === 'credito') valorIntegrado = Math.abs(valorBase);
+            else if (tipo === 'debito') valorIntegrado = -Math.abs(valorBase);
+
+            if (!valorIntegrado || Number.isNaN(valorIntegrado)) return;
+
+            integrados[item.key] = valorIntegrado;
+            resumo[item.key] = valorIntegrado;
+            deltaSaldo += valorIntegrado;
+
+            if (valorIntegrado > 0) ganhosExtras += valorIntegrado;
+            else if (valorIntegrado < 0) perdasExtras += Math.abs(valorIntegrado);
+
+            aplicadas.push({
+                ...item,
+                valor: valorIntegrado,
+            });
+        });
+
+        if (deltaSaldo !== 0) {
+            const saldoTemporadaBase =
+                typeof resumo.saldo_temporada === 'number' ? resumo.saldo_temporada : 0;
+            const saldoPendenteBase =
+                typeof resumo.saldo === 'number' ? resumo.saldo : 0;
+
+            resumo.saldo_temporada = saldoTemporadaBase + deltaSaldo;
+            resumo.saldo = saldoPendenteBase + deltaSaldo;
+
+            if (typeof resumo.totalGanhos === 'number') {
+                resumo.totalGanhos += ganhosExtras;
+            }
+            if (typeof resumo.totalPerdas === 'number') {
+                resumo.totalPerdas += perdasExtras;
+            }
+        }
+
+        extrato.resumo = resumo;
+        extrato.modulosExtrasIntegrados = integrados;
+        extrato.integracoesAplicadas = aplicadas;
+        return extrato;
+    }
+
+    _renderizarIntegracoesExtrato(extrato) {
+        const integracoes = Array.isArray(extrato.integracoesAplicadas)
+            ? extrato.integracoesAplicadas
+            : [];
+
+        const regras = integracoes.filter(
+            (item) => typeof item.regra === 'string' && item.regra.trim().length > 0,
+        );
+
+        if (!regras.length) return '';
+
+        return `
+            <div class="card-padrao extrato-integracoes">
+                <div class="extrato-integracoes-header">
+                    <span class="material-icons">extension</span>
+                    <h4>Integrações no Extrato</h4>
+                </div>
+                <div class="extrato-integracoes-lista">
+                    ${regras
+                        .map(
+                            (item) => `
+                        <div class="extrato-integracoes-item">
+                            <span class="extrato-integracoes-label">${item.label}</span>
+                            <span class="extrato-integracoes-regra">${item.regra}</span>
+                        </div>
+                    `,
+                        )
+                        .join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    _normalizarValorIntegracao(valor, tipo) {
+        if (typeof valor !== 'number' || Number.isNaN(valor)) return 0;
+        const modo = (tipo || 'misto').toLowerCase();
+        if (modo === 'credito') return Math.abs(valor);
+        if (modo === 'debito') return -Math.abs(valor);
+        return valor;
+    }
+
+    _ajustarBreakdownPorIntegracoes(breakdown) {
+        if (!breakdown || typeof breakdown !== 'object') return breakdown;
+        const integracoes = Array.isArray(this._extratoIntegracoes)
+            ? this._extratoIntegracoes
+            : [];
+        if (!integracoes.length) return breakdown;
+
+        const ajustado = { ...breakdown };
+        integracoes.forEach((item) => {
+            if (!item?.key) return;
+            const valorBase = ajustado[item.key];
+            if (typeof valorBase !== 'number') return;
+            ajustado[item.key] = this._normalizarValorIntegracao(valorBase, item.tipo);
+        });
+        return ajustado;
+    }
+
+    _aplicarIntegracoesTabela(participantes, totalParticipantesBase) {
+        const integracoes = Array.isArray(this._extratoIntegracoes)
+            ? this._extratoIntegracoes
+            : [];
+
+        if (!integracoes.length) {
+            return { participantes, totais: null };
+        }
+
+        const participantesIntegrados = participantes.map((p) => {
+            const breakdown = p.breakdown || {};
+            let deltaSaldo = 0;
+            let ganhosExtras = 0;
+            let perdasExtras = 0;
+            const aplicadas = [];
+
+            integracoes.forEach((item) => {
+                if (!item?.key) return;
+                const valorBase = breakdown[item.key];
+                if (typeof valorBase !== 'number' || Number.isNaN(valorBase)) return;
+                const valorIntegrado = this._normalizarValorIntegracao(valorBase, item.tipo);
+                if (!valorIntegrado || Number.isNaN(valorIntegrado)) return;
+
+                deltaSaldo += valorIntegrado;
+                if (valorIntegrado > 0) ganhosExtras += valorIntegrado;
+                else if (valorIntegrado < 0) perdasExtras += Math.abs(valorIntegrado);
+
+                aplicadas.push({
+                    ...item,
+                    valor: valorIntegrado,
+                });
+            });
+
+            const saldoTemporadaBase =
+                typeof p.saldoTemporada === 'number' ? p.saldoTemporada : 0;
+            const saldoFinalBase =
+                typeof p.saldoFinal === 'number' ? p.saldoFinal : 0;
+
+            const saldoTemporadaIntegrado = saldoTemporadaBase + deltaSaldo;
+            const saldoFinalIntegrado = saldoFinalBase + deltaSaldo;
+            const situacaoIntegrada =
+                saldoFinalIntegrado > 0
+                    ? 'credor'
+                    : saldoFinalIntegrado < 0
+                        ? 'devedor'
+                        : 'quitado';
+
+            return {
+                ...p,
+                saldoTemporadaIntegrado,
+                saldoFinalIntegrado,
+                situacaoIntegrada,
+                deltaIntegracoesExtrato: deltaSaldo,
+                integracoesAplicadas: aplicadas,
+                totalGanhosExtras: ganhosExtras,
+                totalPerdasExtras: perdasExtras,
+            };
+        });
+
+        const totais = {
+            totalParticipantes: totalParticipantesBase,
+            quantidadeCredores: 0,
+            quantidadeDevedores: 0,
+            quantidadeQuitados: 0,
+            totalAReceber: 0,
+            totalAPagar: 0,
+        };
+
+        participantesIntegrados.forEach((p) => {
+            const saldo = typeof p.saldoFinalIntegrado === 'number'
+                ? p.saldoFinalIntegrado
+                : 0;
+
+            if (saldo > 0) {
+                totais.quantidadeCredores += 1;
+                totais.totalAPagar += saldo;
+            } else if (saldo < 0) {
+                totais.quantidadeDevedores += 1;
+                totais.totalAReceber += Math.abs(saldo);
+            } else {
+                totais.quantidadeQuitados += 1;
+            }
+        });
+
+        return { participantes: participantesIntegrados, totais };
     }
 
     async _carregarIntegracoesExtrato(ligaId) {
@@ -2532,7 +2790,7 @@ export class FluxoFinanceiroUI {
         const totalMM = relatorio.reduce((sum, p) => sum + (p.mataMata || 0), 0);
         const totalMelhorMes = relatorio.reduce((sum, p) => sum + (p.melhorMes || 0), 0);
         const totalAjustes = relatorio.reduce((sum, p) => sum + (p.ajustes || 0), 0);
-        const totalSaldo = relatorio.reduce((sum, p) => sum + (p.saldoFinal || 0), 0);
+        const totalSaldo = relatorio.reduce((sum, p) => sum + (typeof p.saldoFinalIntegrado === 'number' ? p.saldoFinalIntegrado : (p.saldoFinal || 0)), 0);
 
         container.innerHTML = `
             <div class="relatorio-consolidado">
@@ -2591,7 +2849,7 @@ export class FluxoFinanceiroUI {
                         </thead>
                         <tbody>
                             ${relatorio.map((p, i) => `
-                                <tr class="${p.saldoFinal >= 0 ? 'positivo' : 'negativo'}">
+                                <tr class="${(typeof p.saldoFinalIntegrado === 'number' ? p.saldoFinalIntegrado : p.saldoFinal) >= 0 ? 'positivo' : 'negativo'}">
                                     <td class="col-pos">${i + 1}º</td>
                                     <td class="col-participante">
                                         <div class="participante-cell">
@@ -2611,8 +2869,8 @@ export class FluxoFinanceiroUI {
                                     <td class="col-valor">${(p.mataMata || 0).toFixed(0)}</td>
                                     <td class="col-valor">${(p.melhorMes || 0).toFixed(0)}</td>
                                     <td class="col-valor">${(p.ajustes || 0).toFixed(0)}</td>
-                                    <td class="col-saldo ${p.saldoFinal >= 0 ? 'positivo' : 'negativo'}">
-                                        ${formatarMoedaBR(p.saldoFinal)}
+                                    <td class="col-saldo ${(typeof p.saldoFinalIntegrado === 'number' ? p.saldoFinalIntegrado : p.saldoFinal) >= 0 ? 'positivo' : 'negativo'}">
+                                        ${formatarMoedaBR(typeof p.saldoFinalIntegrado === 'number' ? p.saldoFinalIntegrado : p.saldoFinal)}
                                     </td>
                                 </tr>
                             `).join('')}
@@ -3080,6 +3338,7 @@ window.mostrarDetalhamentoGanhos = function () {
     const resumo = window.extratoAtual.resumo;
     const campos = window.extratoAtual.camposEditaveis || {};
     const extras = window.extratoAtual.modulosExtras || {};
+    const extrasIntegrados = window.extratoAtual.modulosExtrasIntegrados || {};
     const modulosConfigurados =
         window.fluxoFinanceiroUI?.obterModulosExtrato?.() || [
             { key: 'bonus', label: 'Bônus MITO', tipo: 'credito' },
@@ -3093,8 +3352,13 @@ window.mostrarDetalhamentoGanhos = function () {
         ];
 
     const obterValorModulo = (key) => {
+        const valorExtraIntegrado = extrasIntegrados[key];
         const valorExtra = extras[key];
         const valorResumo = resumo?.[key];
+
+        if (typeof valorExtraIntegrado === "number" && !Number.isNaN(valorExtraIntegrado)) {
+            return valorExtraIntegrado;
+        }
 
         if (typeof valorExtra === "number" && !Number.isNaN(valorExtra) && valorExtra !== 0) {
             return valorExtra;
@@ -3102,10 +3366,6 @@ window.mostrarDetalhamentoGanhos = function () {
 
         if (typeof valorResumo === "number" && !Number.isNaN(valorResumo)) {
             return valorResumo;
-        }
-
-        if (typeof valorExtra === "number" && !Number.isNaN(valorExtra)) {
-            return valorExtra;
         }
 
         return 0;
@@ -3193,6 +3453,7 @@ window.mostrarDetalhamentoPerdas = function () {
     const resumo = window.extratoAtual.resumo;
     const campos = window.extratoAtual.camposEditaveis || {};
     const extras = window.extratoAtual.modulosExtras || {};
+    const extrasIntegrados = window.extratoAtual.modulosExtrasIntegrados || {};
     const modulosConfigurados =
         window.fluxoFinanceiroUI?.obterModulosExtrato?.() || [
             { key: 'bonus', label: 'Bônus MITO', tipo: 'credito' },
@@ -3206,8 +3467,13 @@ window.mostrarDetalhamentoPerdas = function () {
         ];
 
     const obterValorModulo = (key) => {
+        const valorExtraIntegrado = extrasIntegrados[key];
         const valorExtra = extras[key];
         const valorResumo = resumo?.[key];
+
+        if (typeof valorExtraIntegrado === "number" && !Number.isNaN(valorExtraIntegrado)) {
+            return valorExtraIntegrado;
+        }
 
         if (typeof valorExtra === "number" && !Number.isNaN(valorExtra) && valorExtra !== 0) {
             return valorExtra;
@@ -3215,10 +3481,6 @@ window.mostrarDetalhamentoPerdas = function () {
 
         if (typeof valorResumo === "number" && !Number.isNaN(valorResumo)) {
             return valorResumo;
-        }
-
-        if (typeof valorExtra === "number" && !Number.isNaN(valorExtra)) {
-            return valorExtra;
         }
 
         return 0;
