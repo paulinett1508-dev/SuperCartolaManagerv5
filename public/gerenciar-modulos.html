@@ -14,6 +14,8 @@
         <!-- Bootstrap 5.3 (necessário para modais) -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- jsPDF para exportação PDF -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     </head>
     <body>
         <div class="app-container">
@@ -57,6 +59,10 @@
                             <span class="material-icons">arrow_back</span>
                             Voltar
                         </a>
+                        <button class="btn-outline" id="btnExportarPDF" title="Exportar relatório de parametrizações em PDF">
+                            <span class="material-icons">picture_as_pdf</span>
+                            Exportar PDF
+                        </button>
                         <button class="btn-primary" id="salvarBtn">
                             <span class="material-icons">save</span>
                             Salvar Configurações
@@ -69,6 +75,8 @@
         <script type="module">
             // Importar sistema de configuração de módulos
             import '/js/modules/module-config-modal.js';
+            // Importar exportação PDF
+            import '/js/modules/module-config-pdf.js';
 
             let ligaId = null;
             let modulosState = {};
@@ -377,6 +385,13 @@
             if (!window.__gm_state.listenersBound) {
                 window.__gm_state.listenersBound = true;
                 document.getElementById('salvarBtn')?.addEventListener('click', salvarModulos);
+                document.getElementById('btnExportarPDF')?.addEventListener('click', () => {
+                    if (window.exportarParametrizacoesPDF) {
+                        window.exportarParametrizacoesPDF(ligaId);
+                    } else {
+                        showMessage('Módulo de exportação PDF não carregado', 'error');
+                    }
+                });
             }
 
             if (!window.__gm_domcontent_guard) {

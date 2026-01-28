@@ -1087,6 +1087,49 @@ input:checked + .toggle-slider:before {
     font-size: 16px;
 }
 
+/* Botão Outline (PDF Export, etc) */
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    background: transparent;
+    border: 1px solid var(--accent-orange);
+    border-radius: var(--radius-button, 8px);
+    color: var(--accent-orange);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-outline:hover:not(:disabled) {
+    background: rgba(255, 85, 0, 0.1);
+    border-color: var(--accent-orange-light, #ff7a33);
+    color: var(--accent-orange-light, #ff7a33);
+}
+
+.btn-outline:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-outline .material-icons {
+    font-size: 18px;
+}
+
+/* Animação de loading para botão */
+.btn-outline .material-icons.spin,
+.btn-primary .material-icons.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* === MODAL PREMIUM (Design System Black & Orange) === */
 .modal-overlay {
     position: fixed;
