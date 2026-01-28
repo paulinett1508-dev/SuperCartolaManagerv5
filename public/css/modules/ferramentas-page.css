@@ -1,0 +1,231 @@
+/**
+ * FERRAMENTAS PAGE - Design Moderno v2.0
+ * Estilos extraídos para carregamento global via SPA
+ */
+
+.ferramentas-page {
+    background: #121212;
+    min-height: 100vh;
+}
+
+.ferramentas-content {
+    padding: 20px 16px;
+}
+
+/* Header */
+.ferramentas-header {
+    background: #1a1a1a;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    border: 1px solid #2d2d2d;
+}
+
+.ferramentas-header h1 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+}
+
+.ferramentas-header p {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+/* Cards Grid */
+.ferramentas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+/* Tool Card */
+.tool-card {
+    background: #1a1a1a;
+    border-radius: 10px;
+    border: 1px solid #2d2d2d;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tool-card:hover {
+    border-color: #FF5500;
+    box-shadow: 0 8px 32px rgba(255, 85, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Background Icon */
+.tool-card-bg-icon {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    opacity: 0.05;
+    transition: opacity 0.3s ease;
+}
+
+.tool-card:hover .tool-card-bg-icon {
+    opacity: 0.1;
+}
+
+.tool-card-bg-icon .material-icons {
+    font-size: 80px;
+    color: #FF5500;
+    transform: rotate(12deg);
+}
+
+/* Card Content */
+.tool-card-content {
+    position: relative;
+    z-index: 1;
+}
+
+.tool-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 85, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.tool-card:hover .tool-card-icon {
+    background: #FF5500;
+}
+
+.tool-card-icon .material-icons {
+    font-size: 18px;
+    color: #FF5500;
+    transition: color 0.3s ease;
+}
+
+.tool-card:hover .tool-card-icon .material-icons {
+    color: #ffffff;
+}
+
+.tool-card h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 6px 0;
+}
+
+.tool-card p {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+}
+
+.tool-card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #FF5500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.tool-card-link:hover {
+    color: #ff7733;
+}
+
+.tool-card-link .material-icons {
+    font-size: 14px;
+}
+
+/* Bottom Section - Full width for System Summary */
+.ferramentas-bottom {
+    display: block;
+}
+
+/* System Summary */
+.system-summary {
+    background: #1a1a1a;
+    border-radius: 10px;
+    border: 1px solid #2d2d2d;
+    padding: 16px;
+}
+
+.system-summary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.system-summary-header h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+.system-summary-link {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #FF5500;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.system-summary-link:hover {
+    color: #ff7733;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.stat-box {
+    background: #252525;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.stat-box-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.stat-box-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 2px;
+}
+
+.stat-box-change {
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.stat-box-change.positive {
+    color: #10b981;
+}
+
+.stat-box-change.primary {
+    color: #FF5500;
+}
