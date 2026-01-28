@@ -1,5 +1,6 @@
-// MATA-MATA ORQUESTRADOR - Coordenador Principal v1.3
+// MATA-MATA ORQUESTRADOR - Coordenador Principal v1.4
 // Responsável por: coordenação de módulos, carregamento dinâmico, cache
+// ✅ v1.4: FIX CRÍTICO - Verifica temporada da API antes de assumir dados anteriores
 // ✅ v1.3: Detecção dinâmica de temporada (R1 + mercado aberto = temporada anterior)
 // ✅ v1.2: Adiciona persistência no MongoDB ao calcular fases
 
@@ -255,12 +256,23 @@ export async function carregarMataMata() {
       const data = await response.json();
       let rodadaAtual = data.rodada_atual || 1;
       const mercadoAberto = data.status_mercado === 1;
+      const temporadaAPI = data.temporada || new Date().getFullYear();
+      const anoAtual = new Date().getFullYear();
       const RODADA_FINAL_CAMPEONATO = data.rodada_final || 38;
 
-      // v1.3: Detecção dinâmica de temporada
-      // Se rodada 1 e mercado aberto, nova temporada não iniciou - usar dados da anterior
+      // v1.4: Detecção dinâmica de temporada com verificação do ano
       if (rodadaAtual === 1 && mercadoAberto) {
-        console.log("[MATA-ORQUESTRADOR] Nova temporada não iniciou - usando rodada 38 da temporada anterior");
+        // Se API já retorna ano atual, NÃO há dados anteriores
+        if (temporadaAPI >= anoAtual) {
+          console.log("[MATA-ORQUESTRADOR] Temporada iniciando - nenhuma edição ativa ainda");
+          edicoes.forEach((edicao) => {
+            edicao.ativo = false;
+          });
+          renderizarAguardandoDados(container, ligaId);
+          return;
+        }
+        // Pré-temporada real: usar rodada 38 da anterior
+        console.log("[MATA-ORQUESTRADOR] Pré-temporada - usando rodada 38 da temporada anterior");
         rodadaAtual = RODADA_FINAL_CAMPEONATO;
       }
 
@@ -280,6 +292,47 @@ export async function carregarMataMata() {
   }
 
   renderizarInterface(container, ligaId, handleEdicaoChange, handleFaseClick);
+}
+
+// v1.4: Renderizar UI de aguardando dados
+function renderizarAguardandoDados(container, ligaId) {
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="mata-mata-aguardando" style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 136, 0, 0.2);
+      min-height: 300px;
+      margin: 20px;
+    ">
+      <span class="material-icons" style="
+        font-size: 64px;
+        color: var(--laranja, #ff8800);
+        margin-bottom: 20px;
+      ">account_tree</span>
+      <h2 style="
+        font-family: 'Russo One', sans-serif;
+        color: white;
+        font-size: 24px;
+        margin-bottom: 12px;
+      ">Aguardando Início do Campeonato</h2>
+      <p style="
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 16px;
+        max-width: 400px;
+        line-height: 1.5;
+      ">
+        As chaves do Mata-Mata serão definidas quando as rodadas de classificação forem concluídas.
+      </p>
+    </div>
+  `;
 }
 
 // Handler para mudança de edição
@@ -364,19 +417,29 @@ async function carregarFase(fase, ligaId) {
         const data = await resMercado.json();
         rodada_atual = data.rodada_atual || 1;
         const mercadoAberto = data.status_mercado === 1;
+        const temporadaAPI = data.temporada || new Date().getFullYear();
+        const anoAtual = new Date().getFullYear();
         const RODADA_FINAL_CAMPEONATO = data.rodada_final || 38;
 
-        // v1.3: Detecção dinâmica de temporada
+        // v1.4: Detecção dinâmica de temporada com verificação do ano
         if (rodada_atual === 1 && mercadoAberto) {
-          console.log("[MATA-ORQUESTRADOR] Usando rodada 38 da temporada anterior para cálculo de fases");
-          rodada_atual = RODADA_FINAL_CAMPEONATO;
-          isTemporadaAnterior = true;
+          // Se API já retorna ano atual, NÃO há dados
+          if (temporadaAPI >= anoAtual) {
+            console.log("[MATA-ORQUESTRADOR] Temporada iniciando - sem dados para calcular fases");
+            rodada_atual = 0;
+            isTemporadaAnterior = false;
+          } else {
+            // Pré-temporada real: usar dados da anterior
+            console.log("[MATA-ORQUESTRADOR] Pré-temporada - usando rodada 38 para cálculo de fases");
+            rodada_atual = RODADA_FINAL_CAMPEONATO;
+            isTemporadaAnterior = true;
+          }
         }
       }
     } catch (err) {
-      console.warn("[MATA-ORQUESTRADOR] Usando rodada 38 (fallback)");
-      rodada_atual = 38;
-      isTemporadaAnterior = true;
+      console.warn("[MATA-ORQUESTRADOR] Erro ao buscar mercado, usando defaults seguros");
+      rodada_atual = 0;
+      isTemporadaAnterior = false;
     }
 
     const edicaoSelecionada = edicoes.find((e) => e.id === edicaoAtual);

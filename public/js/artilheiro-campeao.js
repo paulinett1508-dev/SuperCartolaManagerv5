@@ -1,8 +1,9 @@
-// ✅ ARTILHEIRO-CAMPEAO.JS v4.5.0 SaaS
+// ✅ ARTILHEIRO-CAMPEAO.JS v4.6.0 SaaS
 // Tabela com Rodadas em Colunas - DESTAQUE 1º LUGAR + RODADA FINAL + Material Icons
+// v4.6.0: FIX CRÍTICO - Removido fallback || 38 que causava loop de requisições
 // v4.5.0: Removido liga ID hardcoded - usa URL dinamicamente
 // v4.4.1: Fix temporada encerrada (não mostrar como parcial após R38)
-console.log("🏆 [ARTILHEIRO] Sistema v4.5.0 SaaS carregando...");
+console.log("🏆 [ARTILHEIRO] Sistema v4.6.0 SaaS carregando...");
 
 const ArtilheiroCampeao = {
     // Configurações
@@ -71,6 +72,15 @@ const ArtilheiroCampeao = {
             if (loading) loading.style.display = "none";
 
             await this.detectarRodada();
+
+            // ✅ v4.5: Verificar se é início de temporada (sem dados ainda)
+            if (this.isAguardandoDados()) {
+                console.log("⏳ [ARTILHEIRO] Aguardando início do campeonato...");
+                this.renderizarAguardandoDados();
+                this.estado.inicializado = true;
+                return;
+            }
+
             this.renderizarLayout();
             await this.buscarRanking(false);
 
@@ -92,12 +102,22 @@ const ArtilheiroCampeao = {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.data) {
-                    this.estado.rodadaAtual = data.data.rodadaAtual || 38;
+                    // ✅ v4.6: Usar || 1 em vez de || 38 para evitar loop de requisições
+                    this.estado.rodadaAtual = data.data.rodadaAtual || 1;
                     this.estado.mercadoAberto =
-                        data.data.mercadoAberto || false;
+                        data.data.mercadoAberto ?? true; // Se não informado, assume aberto (mais seguro)
                     this.estado.temporadaEncerrada =
                         data.data.temporadaEncerrada || false;
-                    this.estado.rodadaFim = this.estado.rodadaAtual;
+
+                    // v4.6: Calcular rodadaFim de forma segura
+                    // Se mercado aberto e rodada 1, rodadaFim = 0 (sem dados ainda)
+                    if (this.estado.mercadoAberto && this.estado.rodadaAtual <= 1) {
+                        this.estado.rodadaFim = 0;
+                    } else if (this.estado.mercadoAberto) {
+                        this.estado.rodadaFim = this.estado.rodadaAtual - 1;
+                    } else {
+                        this.estado.rodadaFim = this.estado.rodadaAtual;
+                    }
 
                     this.estado.rodadaNavInicio = Math.max(
                         1,
@@ -107,13 +127,127 @@ const ArtilheiroCampeao = {
                     );
 
                     console.log(
-                        `📅 Rodada detectada: ${this.estado.rodadaAtual}, Mercado: ${this.estado.mercadoAberto ? "Aberto" : "Fechado"}, Temporada: ${this.estado.temporadaEncerrada ? "ENCERRADA" : "ATIVA"}`,
+                        `📅 Rodada detectada: ${this.estado.rodadaAtual}, RodadaFim: ${this.estado.rodadaFim}, Mercado: ${this.estado.mercadoAberto ? "Aberto" : "Fechado"}, Temporada: ${this.estado.temporadaEncerrada ? "ENCERRADA" : "ATIVA"}`,
                     );
                 }
             }
         } catch (error) {
             console.warn("⚠️ Erro ao detectar rodada:", error.message);
         }
+    },
+
+    // ==============================
+    // v4.5: VERIFICAR SE AGUARDA DADOS
+    // ==============================
+    isAguardandoDados() {
+        // Considera "aguardando" se:
+        // - Rodada atual é 1 E mercado está aberto (campeonato não começou)
+        // - OU rodadaFim é 0 ou undefined
+        const rodada = this.estado.rodadaAtual || 1;
+        const mercadoAberto = this.estado.mercadoAberto === true;
+        const rodadaFim = this.estado.rodadaFim || 0;
+
+        // Se rodada 1 e mercado aberto, ainda não teve jogos
+        if (rodada <= 1 && mercadoAberto) {
+            return true;
+        }
+
+        // Se rodadaFim é 0, não há dados
+        if (rodadaFim <= 0) {
+            return true;
+        }
+
+        return false;
+    },
+
+    renderizarAguardandoDados() {
+        let container = document.getElementById("artilheiro-container");
+        if (!container) container = document.getElementById("artilheiro-campeao-content");
+        if (!container) container = document.getElementById("modulo-content");
+        if (!container) container = document.getElementById("dynamic-content-area");
+
+        if (!container) {
+            console.error("❌ [ARTILHEIRO] Container não encontrado!");
+            return;
+        }
+
+        console.log(`✅ [ARTILHEIRO] Container encontrado: ${container.id}`);
+
+        container.innerHTML = `
+            <div class="artilheiro-aguardando">
+                <div class="artilheiro-aguardando-content">
+                    <div class="artilheiro-aguardando-icon">
+                        <span class="material-icons">sports_soccer</span>
+                    </div>
+                    <h2 class="artilheiro-aguardando-title">Aguardando Início do Campeonato</h2>
+                    <p class="artilheiro-aguardando-desc">
+                        O ranking de artilheiros será atualizado assim que a primeira rodada for concluída.
+                    </p>
+                    <div class="artilheiro-aguardando-info">
+                        <span class="material-icons">info</span>
+                        <span>Os dados de gols serão coletados automaticamente após cada rodada.</span>
+                    </div>
+                </div>
+            </div>
+            <style>
+                .artilheiro-aguardando {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 400px;
+                    padding: 2rem;
+                }
+                .artilheiro-aguardando-content {
+                    text-align: center;
+                    max-width: 400px;
+                }
+                .artilheiro-aguardando-icon {
+                    width: 80px;
+                    height: 80px;
+                    margin: 0 auto 1.5rem;
+                    background: linear-gradient(135deg, #ff6b00, #ff8c00);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: pulse 2s infinite;
+                }
+                .artilheiro-aguardando-icon .material-icons {
+                    font-size: 40px;
+                    color: white;
+                }
+                .artilheiro-aguardando-title {
+                    font-family: 'Russo One', sans-serif;
+                    font-size: 1.5rem;
+                    color: #fff;
+                    margin-bottom: 0.75rem;
+                }
+                .artilheiro-aguardando-desc {
+                    color: #9ca3af;
+                    font-size: 1rem;
+                    margin-bottom: 1.5rem;
+                    line-height: 1.5;
+                }
+                .artilheiro-aguardando-info {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.75rem 1rem;
+                    background: rgba(255, 107, 0, 0.1);
+                    border: 1px solid rgba(255, 107, 0, 0.3);
+                    border-radius: 8px;
+                    color: #ff8c00;
+                    font-size: 0.875rem;
+                }
+                .artilheiro-aguardando-info .material-icons {
+                    font-size: 18px;
+                }
+                @keyframes pulse {
+                    0%, 100% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.05); opacity: 0.8; }
+                }
+            </style>
+        `;
     },
 
     // ==============================

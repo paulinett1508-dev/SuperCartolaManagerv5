@@ -1,4 +1,5 @@
-// PONTOS CORRIDOS ORQUESTRADOR - v3.0 Coordenador Principal
+// PONTOS CORRIDOS ORQUESTRADOR - v3.1 Coordenador Principal
+// ✅ v3.1: FIX CRÍTICO - Verifica temporada da API antes de assumir dados anteriores
 // ✅ v3.0: MODO SOMENTE LEITURA - Temporada 2025 encerrada, dados consolidados do cache
 // ✅ v2.5: Detecção dinâmica de temporada (R1 + mercado aberto = temporada anterior)
 // ✅ v2.4: FIX - Container IDs múltiplos + caminho absoluto rodadas.js
@@ -139,6 +140,47 @@ function aguardarCarregamento(checkFunction) {
   });
 }
 
+// v3.1: Renderizar UI de aguardando dados
+function renderizarAguardandoDados(container) {
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="pontos-corridos-aguardando" style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 136, 0, 0.2);
+      min-height: 300px;
+      margin: 20px;
+    ">
+      <span class="material-icons" style="
+        font-size: 64px;
+        color: var(--laranja, #ff8800);
+        margin-bottom: 20px;
+      ">leaderboard</span>
+      <h2 style="
+        font-family: 'Russo One', sans-serif;
+        color: white;
+        font-size: 24px;
+        margin-bottom: 12px;
+      ">Aguardando Início do Campeonato</h2>
+      <p style="
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 16px;
+        max-width: 400px;
+        line-height: 1.5;
+      ">
+        A tabela de Pontos Corridos será atualizada assim que as primeiras rodadas forem concluídas.
+      </p>
+    </div>
+  `;
+}
+
 // ✅ FUNÇÃO PRINCIPAL CORRIGIDA - Usando nova interface
 export async function carregarPontosCorridos() {
   // ✅ v2.4: Buscar múltiplos IDs possíveis
@@ -167,13 +209,28 @@ export async function carregarPontosCorridos() {
     const status = await getStatusMercadoCache();
     let rodadaAtual = status.rodada_atual || 1;
     const mercadoAberto = status.status_mercado === 1;
+    const temporadaAPI = status.temporada || new Date().getFullYear();
+    const anoAtual = new Date().getFullYear();
     const RODADA_FINAL_CAMPEONATO = status.rodada_final || 38;
 
-    // ✅ v3.0: DETECÇÃO DE TEMPORADA ENCERRADA
-    // Quando rodada_atual = 1 e mercado aberto = nova temporada não começou
-    // Isso significa que a temporada 2025 está ENCERRADA e consolidada
+    // ✅ v3.1: DETECÇÃO DE TEMPORADA COM VERIFICAÇÃO DO ANO
+    // Só assumir "temporada anterior" se API retornar ano < atual
     if (rodadaAtual === 1 && mercadoAberto) {
-      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] 🔒 MODO SOMENTE LEITURA - Temporada 2025 encerrada");
+      // v3.1: Se API já retorna ano atual, NÃO há dados anteriores para esta liga
+      if (temporadaAPI >= anoAtual) {
+        console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] 🕐 Temporada ${temporadaAPI} iniciando - aguardando dados`);
+        estadoOrquestrador.temporadaEncerrada = false;
+        estadoOrquestrador.rodadaAtualBrasileirao = 0;
+        estadoOrquestrador.semDadosConsolidados = true;
+        estadoOrquestrador.aguardandoDados = true;
+        estadoOrquestrador.times = [];
+        estadoOrquestrador.confrontos = [];
+        renderizarAguardandoDados(container);
+        return;
+      }
+
+      // Pré-temporada real: API retorna ano anterior, podemos carregar dados consolidados
+      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] 🔒 MODO SOMENTE LEITURA - Temporada anterior encerrada");
       console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Carregando dados consolidados do cache...");
 
       estadoOrquestrador.temporadaEncerrada = true;

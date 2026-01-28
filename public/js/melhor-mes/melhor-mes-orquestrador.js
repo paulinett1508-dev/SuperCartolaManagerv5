@@ -1,5 +1,6 @@
-// MELHOR DO MÊS - ORQUESTRADOR v1.3 - CORRIGIDO
+// MELHOR DO MÊS - ORQUESTRADOR v1.4
 // public/js/melhor-mes/melhor-mes-orquestrador.js
+// v1.4: FIX CRÍTICO - Verifica aguardandoDados e mostra UI apropriada
 
 // ✅ IMPORTS DOS MÓDULOS
 let MelhorMesConfig, MelhorMesCore, MelhorMesUI;
@@ -110,6 +111,14 @@ export class MelhorMesOrquestrador {
       // Guardar dados para re-uso
       this.dadosProcessados = dadosProcessados;
 
+      // v1.4: Se aguardando dados, mostrar UI especial
+      if (dadosProcessados?.aguardandoDados) {
+        console.log("[MELHOR-MES-ORQUESTRADOR] 🕐 Aguardando início do campeonato");
+        this.renderizarAguardandoDados();
+        this.inicializado = true;
+        return dadosProcessados;
+      }
+
       // Renderizar interface
       if (this.ui?.renderizar && dadosProcessados) {
         this.ui.renderizar(dadosProcessados);
@@ -203,6 +212,54 @@ export class MelhorMesOrquestrador {
       );
       return [];
     }
+  }
+
+  // v1.4: Renderizar UI de aguardando dados
+  renderizarAguardandoDados() {
+    const container = document.getElementById("melhorMesContent") ||
+                       document.getElementById("modulo-content") ||
+                       document.getElementById("dynamic-content-area");
+
+    if (!container) {
+      console.warn("[MELHOR-MES-ORQUESTRADOR] Container não encontrado para UI de aguardando");
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="melhor-mes-aguardando" style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 136, 0, 0.2);
+        min-height: 300px;
+        margin: 20px;
+      ">
+        <span class="material-icons" style="
+          font-size: 64px;
+          color: var(--laranja, #ff8800);
+          margin-bottom: 20px;
+        ">emoji_events</span>
+        <h2 style="
+          font-family: 'Russo One', sans-serif;
+          color: white;
+          font-size: 24px;
+          margin-bottom: 12px;
+        ">Aguardando Início do Campeonato</h2>
+        <p style="
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 16px;
+          max-width: 400px;
+          line-height: 1.5;
+        ">
+          O ranking de Melhor do Mês será atualizado assim que as primeiras rodadas forem concluídas.
+        </p>
+      </div>
+    `;
   }
 
   // DIAGNÓSTICO COMPLETO

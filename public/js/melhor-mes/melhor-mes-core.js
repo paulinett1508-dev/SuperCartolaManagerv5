@@ -1,7 +1,8 @@
-// MELHOR DO MÊS - CORE BUSINESS LOGIC v1.3
+// MELHOR DO MÊS - CORE BUSINESS LOGIC v1.4
 // public/js/melhor-mes/melhor-mes-core.js
 // v1.2: Detecção dinâmica de temporada (R1 + mercado aberto = temporada anterior)
 // v1.3: Propagação de temporada para getRankingRodadaEspecifica (fix pré-temporada 2026)
+// v1.4: FIX CRÍTICO - Verifica se API já retorna ano atual antes de buscar dados
 
 import { getRankingRodadaEspecifica } from "../rodadas.js";
 import {
@@ -61,6 +62,18 @@ export class MelhorMesCore {
     }
 
     console.log(`[MELHOR-MES-CORE] ✅ Liga ID validado: ${this.ligaId}`);
+
+    // v1.4: Se aguardando dados, não processar edições
+    if (this.aguardandoDados || this.ultimaRodadaCompleta === 0) {
+      console.log("[MELHOR-MES-CORE] 🕐 Aguardando início do campeonato - nenhuma rodada completa ainda");
+      this.dadosProcessados = {
+        resultados: {},
+        dadosBasicos,
+        aguardandoDados: true,
+        timestamp: Date.now(),
+      };
+      return this.dadosProcessados;
+    }
 
     await this.processarTodasEdicoes();
 
@@ -124,30 +137,42 @@ export class MelhorMesCore {
 
       const mercadoStatus = await response.json();
 
-      // v1.3: Detecção dinâmica de temporada com propagação correta
-      // Se rodada 1 e mercado aberto, nova temporada não iniciou - usar dados da anterior
+      // v1.4: Detecção dinâmica de temporada com verificação do ano atual
       const rodadaAtual = mercadoStatus.rodada_atual || 1;
       const mercadoAberto = mercadoStatus.status_mercado === 1;
       const temporadaAPI = mercadoStatus.temporada || new Date().getFullYear();
+      const anoAtual = new Date().getFullYear();
       const RODADA_FINAL_CAMPEONATO = mercadoStatus.rodada_final || 38;
 
       if (rodadaAtual === 1 && mercadoAberto) {
-        // v1.3: API ainda retorna temporada anterior durante pré-temporada
-        this.temporadaParaBusca = temporadaAPI;
-        console.log(`[MELHOR-MES-CORE] Nova temporada não iniciou - usando dados da temporada ${this.temporadaParaBusca} (38 rodadas)`);
-        this.ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO;
-        this.temporadaAnterior = true;
+        // v1.4: Verificar se API retorna ano ANTERIOR ao atual (pré-temporada real)
+        if (temporadaAPI < anoAtual) {
+          // Pré-temporada: API ainda retorna 2025, podemos buscar dados de 2025
+          this.temporadaParaBusca = temporadaAPI;
+          console.log(`[MELHOR-MES-CORE] Pré-temporada ${anoAtual}: usando dados da temporada ${this.temporadaParaBusca} (38 rodadas)`);
+          this.ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO;
+          this.temporadaAnterior = true;
+        } else {
+          // Nova temporada iniciando: API já retorna ano atual, mas sem rodadas ainda
+          this.temporadaParaBusca = temporadaAPI;
+          console.log(`[MELHOR-MES-CORE] Temporada ${temporadaAPI} iniciando - aguardando primeira rodada`);
+          this.ultimaRodadaCompleta = 0; // ZERO = sem dados
+          this.temporadaAnterior = false;
+          this.aguardandoDados = true;
+        }
       } else {
         this.temporadaParaBusca = temporadaAPI;
         this.ultimaRodadaCompleta = rodadaAtual > 0 ? rodadaAtual - 1 : 0;
         this.temporadaAnterior = false;
+        this.aguardandoDados = false;
       }
     } catch (error) {
       console.warn(
-        "[MELHOR-MES-CORE] Erro ao buscar mercado, usando rodada 38:",
+        "[MELHOR-MES-CORE] Erro ao buscar mercado, usando valores seguros:",
         error,
       );
-      this.ultimaRodadaCompleta = 38;
+      this.ultimaRodadaCompleta = 0; // v1.4: Usar 0 em vez de 38 para evitar loop
+      this.aguardandoDados = true;
     }
 
     dadosBasicos = {

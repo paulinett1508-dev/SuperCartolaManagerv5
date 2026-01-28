@@ -1,5 +1,68 @@
 # Tarefas Pendentes
 
+## 🚨 URGENTE - PRIORIDADE MÁXIMA (28/01/2026)
+
+### [BUG-CRITICAL-001] Módulos fazendo requisições em loop para temporada não iniciada
+
+**Status:** ✅ CORRIGIDO (28/01/2026)
+
+**Problema Original:**
+O sistema estava fazendo CENTENAS de requisições desnecessárias tentando buscar dados de rodadas 1-38 da temporada 2026, que ainda não começou.
+
+**Causa Raiz (IDENTIFICADA):**
+A função `detectarTemporadaStatus()` retornava `ultimaRodadaCompleta: 38` quando `rodadaAtual === 1 && mercadoAberto`, assumindo pré-temporada com dados de 2025. Porém:
+1. Se API Cartola já retorna `temporada: 2026`, NÃO há dados de 2025 para buscar
+2. O sistema tentava buscar 38 rodadas de 2026 que não existem
+
+**Correções Aplicadas:**
+
+| Arquivo | Versão | Correção |
+|---------|--------|----------|
+| `top10.js` | v3.3 → v3.4 | Verificar `temporadaAPI >= anoAtual` antes de assumir dados |
+| `artilheiro-campeao.js` | v4.5 → v4.6 | Remover `\|\| 38` fallback, usar `\|\| 1` + cálculo seguro de rodadaFim |
+| `melhor-mes-core.js` | v1.3 → v1.4 | Verificar temporada da API + retornar `aguardandoDados: true` |
+| `melhor-mes-orquestrador.js` | v1.3 → v1.4 | Renderizar UI de aguardando quando `aguardandoDados: true` |
+| `pontos-corridos-orquestrador.js` | v3.0 → v3.1 | Verificar temporada + renderizar UI de aguardando |
+| `mata-mata-orquestrador.js` | v1.3 → v1.4 | Verificar temporada em ambos os pontos de detecção |
+| `luva-de-ouro-orquestrador.js` | v2.1 | Já tinha proteção correta (verificava `temporadaAPI < anoAtual`) |
+
+**Lógica Corrigida:**
+```javascript
+// ANTES (errado):
+if (rodadaAtual === 1 && mercadoAberto) {
+    ultimaRodadaCompleta = 38; // Assumia dados da temporada anterior
+}
+
+// DEPOIS (correto):
+if (rodadaAtual === 1 && mercadoAberto) {
+    if (temporadaAPI < anoAtual) {
+        // Pré-temporada real: API ainda retorna 2025, buscar 38 rodadas
+        ultimaRodadaCompleta = 38;
+    } else {
+        // Nova temporada: API já retorna 2026, NÃO há dados
+        ultimaRodadaCompleta = 0;
+        aguardandoDados = true;
+    }
+}
+```
+
+**UI "Aguardando Início" adicionada a:**
+- ✅ Top 10 (Mitos/Micos)
+- ✅ Artilheiro Campeão
+- ✅ Luva de Ouro
+- ✅ Pontos Corridos
+- ✅ Melhor Mês
+- ✅ Mata-Mata
+
+**FASE 2 - Desativar Módulos Opcionais por Default:**
+> Status: 📋 PENDENTE - A ser implementado na próxima sessão
+
+Objetivo: Garantir que novas ligas não ativam módulos opcionais automaticamente.
+- Módulos essenciais (sempre ativos): Parciais/Rodadas, Ranking Geral, Fluxo Financeiro
+- Módulos opcionais (desativados até admin habilitar): Top 10, Artilheiro, Luva, Pontos Corridos, Melhor Mês, Mata-Mata, Campinho, Dicas
+
+---
+
 ## ✅ CORRIGIDO (27/01/2026)
 
 ### [UI-001] Auditoria Design Extrato Individual - Redução de Verbosidade

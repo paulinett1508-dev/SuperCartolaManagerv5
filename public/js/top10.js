@@ -1,8 +1,10 @@
-// TOP10.JS - MÓDULO DE MITOS E MICOS v3.2
+// TOP10.JS - MÓDULO DE MITOS E MICOS v3.4
 // ✅ v2.0: Fix rodada 38 (CAMPEONATO_ENCERRADO)
 // ✅ v3.0: SaaS Dinamico - usa configs do endpoint /api/ligas/:id/configuracoes
 // ✅ v3.1: Detecção automática de temporada passada (remove hardcode 2025)
 // ✅ v3.2: Propagação de temporada para cache e API (fix pré-temporada 2026)
+// ✅ v3.3: UI "Aguardando Início do Campeonato" quando sem dados
+// ✅ v3.4: FIX CRÍTICO - Não assume dados anteriores se API já retorna ano atual
 // ✅ Usando imports dinâmicos para compatibilidade com rodadas.js
 
 import { fetchLigaConfig } from "./rodadas/rodadas-config.js";
@@ -87,24 +89,42 @@ async function getMercadoStatus() {
 }
 
 /**
- * v3.2: Detecta se estamos visualizando temporada passada
- * Retorna { isTemporadaPassada, ultimaRodadaCompleta, temporadaParaBusca }
+ * v3.4: Detecta se estamos visualizando temporada passada
+ * Retorna { isTemporadaPassada, ultimaRodadaCompleta, temporadaParaBusca, aguardandoDados }
+ *
+ * FIX CRÍTICO: Não assume que há dados da temporada anterior se API já retorna ano atual
  */
 function detectarTemporadaStatus(status) {
     const rodadaAtual = status.rodada_atual || 1;
     const statusMercado = status.status_mercado;
     const mercadoAberto = statusMercado === 1;
     const temporadaAPI = status.temporada || new Date().getFullYear();
+    const anoAtual = new Date().getFullYear();
 
-    // Se mercado está na rodada 1 com status "aberto", nova temporada ainda não começou
-    // Usar dados da temporada anterior (todas as 38 rodadas)
+    // Se mercado está na rodada 1 com status "aberto"
     if (rodadaAtual === 1 && mercadoAberto) {
-        const temporadaAnterior = temporadaAPI; // API ainda retorna 2025
-        console.log(`[TOP10] Detecção automática: nova temporada não iniciou - usando 38 rodadas da temporada ${temporadaAnterior}`);
+        // CASO 1: API retorna ano ANTERIOR ao atual (ex: Janeiro/2026, API ainda diz 2025)
+        // Isso significa que o Cartola ainda não "virou" para a nova temporada
+        // Podemos buscar dados completos da temporada passada
+        if (temporadaAPI < anoAtual) {
+            console.log(`[TOP10] Pré-temporada ${anoAtual}: buscando 38 rodadas de ${temporadaAPI}`);
+            return {
+                isTemporadaPassada: true,
+                ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO,
+                temporadaParaBusca: temporadaAPI,
+                aguardandoDados: false
+            };
+        }
+
+        // CASO 2: API já retorna o ANO ATUAL (ex: API diz 2026)
+        // Temporada nova, mas ainda sem rodadas disputadas
+        // NÃO há dados para buscar - mostrar "Aguardando Início"
+        console.log(`[TOP10] Temporada ${temporadaAPI} iniciando - aguardando primeira rodada`);
         return {
-            isTemporadaPassada: true,
-            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO,
-            temporadaParaBusca: temporadaAnterior
+            isTemporadaPassada: false,
+            ultimaRodadaCompleta: 0,  // ZERO = sem dados
+            temporadaParaBusca: temporadaAPI,
+            aguardandoDados: true
         };
     }
 
@@ -114,7 +134,8 @@ function detectarTemporadaStatus(status) {
         return {
             isTemporadaPassada: false,
             ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO,
-            temporadaParaBusca: temporadaAPI
+            temporadaParaBusca: temporadaAPI,
+            aguardandoDados: false
         };
     }
 
@@ -131,7 +152,8 @@ function detectarTemporadaStatus(status) {
     return {
         isTemporadaPassada: false,
         ultimaRodadaCompleta,
-        temporadaParaBusca: temporadaAPI
+        temporadaParaBusca: temporadaAPI,
+        aguardandoDados: false
     };
 }
 
@@ -346,11 +368,13 @@ async function carregarDadosTop10() {
         if (!status || !status.rodada_atual)
             throw new Error("Não foi possível obter a rodada atual");
 
-        // ✅ v3.2: Detecção dinâmica de temporada com temporadaParaBusca
-        const { isTemporadaPassada, ultimaRodadaCompleta, temporadaParaBusca } = detectarTemporadaStatus(status);
+        // ✅ v3.4: Detecção dinâmica de temporada com flag aguardandoDados
+        const { isTemporadaPassada, ultimaRodadaCompleta, temporadaParaBusca, aguardandoDados } = detectarTemporadaStatus(status);
 
-        if (ultimaRodadaCompleta === 0) {
-            console.log("[TOP10] Nenhuma rodada completa ainda.");
+        // ✅ v3.4: Se aguardandoDados=true OU ultimaRodadaCompleta=0, mostrar UI de aguardando
+        if (aguardandoDados || ultimaRodadaCompleta === 0) {
+            console.log("[TOP10] 🕐 Aguardando início do campeonato - nenhuma rodada completa ainda.");
+            renderizarAguardandoDados();
             return;
         }
 
@@ -539,6 +563,63 @@ function renderizarErro(mensagem) {
     if (containerMicos) containerMicos.innerHTML = erroHTML;
 }
 
+/**
+ * v3.3: Renderiza mensagem de aguardando dados quando campeonato ainda não iniciou
+ */
+function renderizarAguardandoDados() {
+    const containerMitos = document.getElementById("top10MitosTable");
+    const containerMicos = document.getElementById("top10MicosTable");
+
+    const aguardandoHTML = `
+        <div class="aguardando-dados-container" style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 136, 0, 0.2);
+            min-height: 200px;
+        ">
+            <span class="material-icons" style="
+                font-size: 48px;
+                color: var(--laranja, #ff8800);
+                margin-bottom: 16px;
+                animation: pulse 2s ease-in-out infinite;
+            ">hourglass_empty</span>
+
+            <h3 style="
+                font-family: 'Russo One', sans-serif;
+                font-size: 1.25rem;
+                color: var(--text-primary, #ffffff);
+                margin: 0 0 8px 0;
+            ">Aguardando Início do Campeonato</h3>
+
+            <p style="
+                font-family: 'Inter', sans-serif;
+                font-size: 0.9rem;
+                color: var(--text-secondary, #94a3b8);
+                margin: 0;
+                max-width: 280px;
+            ">Os dados de Mitos e Micos estarão disponíveis após a primeira rodada ser finalizada.</p>
+        </div>
+
+        <style>
+            @keyframes pulse {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.6; transform: scale(1.05); }
+            }
+        </style>
+    `;
+
+    if (containerMitos) containerMitos.innerHTML = aguardandoHTML;
+    if (containerMicos) containerMicos.innerHTML = aguardandoHTML.replace('Mitos e Micos', 'Micos');
+
+    console.log("[TOP10] ✅ Renderizado estado de aguardando dados");
+}
+
 // ==============================
 // EXPORTAÇÕES DE COMPATIBILIDADE
 // ==============================
@@ -585,4 +666,4 @@ if (typeof window !== "undefined") {
     window.getTop10Data = getTop10Data;
 }
 
-console.log("[TOP10] Módulo v3.2 carregado (temporada propagada para cache e API)");
+console.log("[TOP10] Módulo v3.3 carregado (UI aguardando dados + temporada propagada para cache e API)");
