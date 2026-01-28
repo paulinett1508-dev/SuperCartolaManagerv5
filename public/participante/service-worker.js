@@ -1,16 +1,17 @@
 // =====================================================================
-// service-worker.js - Service Worker do PWA v3.4 (HOME REDESIGN)
+// service-worker.js - Service Worker do PWA v3.7 (RODADAS EXPANDABLE)
 // Destino: /participante/service-worker.js
+// ✅ v3.7: RODADAS REDESIGN - Grupos expansíveis + slider horizontal
 // ✅ v3.6: PUSH NOTIFICATIONS - Handlers de push, click e close
 // ✅ v3.5: HOME PREMIUM UI - Cores hardcoded, fonte 72px, match cards azul
 // ✅ v3.3: SALDO INICIAL FIX - Força reload para correções de saldo
 // ✅ v3.2: FORCE CACHE CLEAR - Limpar cache antigo que causava erros
 // ✅ v3.1: Network-First com cache fallback (FIX fetch failures)
 // ✅ v3.0: Força limpeza de caches antigos
-// BUILD: 2026-01-25T20:00:00Z
+// BUILD: 2026-01-28T12:00:00Z
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v13-push-notifications";
+const CACHE_NAME = "super-cartola-v14-rodadas-expandable";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
@@ -116,8 +117,20 @@ self.addEventListener("fetch", (event) => {
 
 // ✅ Mensagem para forçar atualização
 self.addEventListener("message", (event) => {
-    if (event.data && event.data.type === "SKIP_WAITING") {
+    if (!event.data) return;
+    if (event.data.type === "SKIP_WAITING") {
         self.skipWaiting();
+        return;
+    }
+    if (event.data.type === "FORCE_UPDATE") {
+        event.waitUntil(
+            self.clients.matchAll({ type: "window", includeUncontrolled: true })
+                .then((clientList) => {
+                    clientList.forEach((client) => {
+                        client.postMessage({ type: "FORCE_UPDATE" });
+                    });
+                })
+        );
     }
 });
 
@@ -183,10 +196,23 @@ self.addEventListener("push", (event) => {
         ],
     };
 
-    // Exibir notificação
-    event.waitUntil(
-        self.registration.showNotification(payload.title, options)
-    );
+    const forceUpdate = payload?.data?.forceUpdate === true;
+
+    // Se for push de atualização forçada, avisa clientes imediatamente
+    if (forceUpdate) {
+        event.waitUntil(
+            self.clients.matchAll({ type: "window", includeUncontrolled: true })
+                .then((clientList) => {
+                    clientList.forEach((client) => {
+                        client.postMessage({ type: "FORCE_UPDATE" });
+                    });
+                })
+        );
+        return;
+    }
+
+    // Exibir notificação normal
+    event.waitUntil(self.registration.showNotification(payload.title, options));
 });
 
 // ✅ Clique na Notificação

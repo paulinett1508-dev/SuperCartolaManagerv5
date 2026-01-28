@@ -23,8 +23,8 @@ let estadoParciais = {
     autoRefresh: {
         ativo: false,
         timer: null,
-        intervalMs: 20000,
-        minMs: 15000,
+        intervalMs: 30000,
+        minMs: 30000,
         maxMs: 120000,
         step: 1.6,
         slowStep: 1.3,
@@ -37,9 +37,9 @@ let estadoParciais = {
 };
 
 const AUTO_REFRESH_DEFAULTS = {
-    minMs: 15000,
+    minMs: 30000,    // 30s mínimo (API Cartola tem rate limit)
     maxMs: 120000,
-    baseMs: 20000,
+    baseMs: 30000,   // Base 30s para evitar 503
 };
 
 // Aplicar config global inicial (pode ser sobrescrito antes de iniciar)
@@ -471,7 +471,7 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
 // =====================================================================
 // PROCESSAR TIMES COM LIMITE DE CONCORRÊNCIA
 // =====================================================================
-async function processarTimesComLimite(times, rodada, atletasPontuados, limite = 8) {
+async function processarTimesComLimite(times, rodada, atletasPontuados, limite = 4) {
     const resultados = [];
     let index = 0;
     let ativos = 0;

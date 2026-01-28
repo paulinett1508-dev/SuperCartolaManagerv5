@@ -1,23 +1,16 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v4.6 SaaS DYNAMIC
+// PARTICIPANTE-RODADAS.JS - v5.0 EXPANDABLE NAVIGATION
+// ✅ v5.0: Redesign completo - Grupos expansíveis + Slider + Card Destaque
 // ✅ v4.6: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v4.5: Removido LIGAS_CONFIG hardcoded - configs vêm do servidor
 // ✅ v4.4: CACHE-FIRST - Carregamento instantâneo do IndexedDB
-// ✅ v4.3: Cards coloridos por saldo financeiro
-//    - VERDE: valorFinanceiro > 0 (ganhou na rodada)
-//    - VERMELHO: valorFinanceiro < 0 (perdeu na rodada)
-//    - NEUTRO: valorFinanceiro = 0 (não ganhou nem perdeu)
-//    - MITO: Verde intenso com brilho (1º lugar)
-//    - MICO: Vermelho intenso com brilho (último lugar)
-// ✅ v4.0: Todos os cálculos movidos para o backend
 // =====================================================================
 
-if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v4.6 SaaS DYNAMIC...");
+if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v5.0 EXPANDABLE...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
 
-// ✅ v4.0: Valores movidos para o backend - frontend apenas exibe
 // Estado do módulo
 let todasRodadasCache = [];
 let meuTimeId = null;
@@ -25,9 +18,18 @@ let ligaId = null;
 let rodadaSelecionada = null;
 let rodadaAtualCartola = 38;
 let parciaisInfo = null;
+let grupoExpandido = null; // Qual grupo está expandido
+
+// Configuração dos grupos de rodadas
+const GRUPOS_CONFIG = [
+    { id: '1turno-a', nome: '1º Turno', subtitulo: 'Rodadas 1-10', inicio: 1, fim: 10, icon: 'looks_one' },
+    { id: '1turno-b', nome: '1º Turno', subtitulo: 'Rodadas 11-19', inicio: 11, fim: 19, icon: 'filter_1' },
+    { id: '2turno-a', nome: '2º Turno', subtitulo: 'Rodadas 20-29', inicio: 20, fim: 29, icon: 'looks_two' },
+    { id: '2turno-b', nome: '2º Turno', subtitulo: 'Rodadas 30-38', inicio: 30, fim: 38, icon: 'filter_2' },
+];
 
 // =====================================================================
-// FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION (v4.4 CACHE-FIRST)
+// FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
 // =====================================================================
 export async function inicializarRodadasParticipante({
     participante,
@@ -35,7 +37,7 @@ export async function inicializarRodadasParticipante({
     timeId,
 }) {
     if (window.Log)
-        Log.info("[PARTICIPANTE-RODADAS] 🚀 Inicializando v4.6 (CACHE-FIRST)...", {
+        Log.info("[PARTICIPANTE-RODADAS] 🚀 Inicializando v5.0 (EXPANDABLE)...", {
             ligaIdParam,
             timeId,
         });
@@ -43,7 +45,7 @@ export async function inicializarRodadasParticipante({
     ligaId = ligaIdParam;
     meuTimeId = timeId;
 
-    // ✅ v4.6: Aguardar DOM estar renderizado (double RAF)
+    // Aguardar DOM estar renderizado (double RAF)
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     const cache = window.ParticipanteCache;
@@ -59,16 +61,14 @@ export async function inicializarRodadasParticipante({
             usouCache = true;
             if (window.Log) Log.info("[PARTICIPANTE-RODADAS] ⚡ INSTANT LOAD - dados do cache!");
 
-            // Agrupar e renderizar IMEDIATAMENTE
             const rodadasAgrupadas = agruparRodadasPorNumero(rodadasCache);
             todasRodadasCache = rodadasAgrupadas;
 
             mostrarLoading(false);
-            renderizarGridCompacto(rodadasAgrupadas);
+            renderizarInterface(rodadasAgrupadas);
         }
     }
 
-    // Se não tem cache, mostrar loading
     if (!usouCache) {
         mostrarLoading(true);
     }
@@ -85,19 +85,19 @@ export async function inicializarRodadasParticipante({
         if (window.Log)
             Log.info("[PARTICIPANTE-RODADAS] 📊 Parciais:", parciaisInfo);
 
-        // 3. Buscar rodadas consolidadas (JÁ COM CÁLCULOS DO BACKEND)
+        // 3. Buscar rodadas consolidadas
         const response = await fetch(
             `/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`,
         );
         if (!response.ok) {
             if (!usouCache) throw new Error(`Erro HTTP ${response.status}`);
-            return; // Se já usou cache, não mostrar erro
+            return;
         }
 
         const rodadas = await response.json();
         if (window.Log)
             Log.info(
-                `[PARTICIPANTE-RODADAS] 📊 ${rodadas.length} registros recebidos (backend calculado)`,
+                `[PARTICIPANTE-RODADAS] 📊 ${rodadas.length} registros recebidos`,
             );
 
         // 4. Atualizar cache com dados frescos
@@ -105,7 +105,7 @@ export async function inicializarRodadasParticipante({
             cache.setRodadas(ligaId, rodadas);
         }
 
-        // 5. Agrupar rodadas por número (SEM recalcular - dados vêm do backend)
+        // 5. Agrupar rodadas
         const rodadasAgrupadas = agruparRodadasPorNumero(rodadas);
         todasRodadasCache = rodadasAgrupadas;
 
@@ -116,14 +116,12 @@ export async function inicializarRodadasParticipante({
             return;
         }
 
-        // 6. Só re-renderizar se não usou cache (ou pode re-renderizar sempre para garantir dados frescos)
-        if (!usouCache) {
-            renderizarGridCompacto(rodadasAgrupadas);
-        }
+        // 6. Renderizar interface completa
+        renderizarInterface(rodadasAgrupadas);
 
-        // 7. Se parciais disponíveis, destacar rodada atual
+        // 7. Se parciais disponíveis, atualizar card de destaque
         if (parciaisInfo?.disponivel) {
-            destacarRodadaEmAndamento(parciaisInfo.rodada);
+            atualizarCardDestaque(parciaisInfo);
         }
     } catch (error) {
         if (window.Log) Log.error("[PARTICIPANTE-RODADAS] ❌ Erro:", error);
@@ -159,7 +157,7 @@ async function buscarRodadaAtual() {
 }
 
 // =====================================================================
-// AGRUPAMENTO - SIMPLIFICADO (Backend faz os cálculos)
+// AGRUPAMENTO
 // =====================================================================
 function agruparRodadasPorNumero(rodadas) {
     const rodadasMap = new Map();
@@ -178,20 +176,14 @@ function agruparRodadasPorNumero(rodadas) {
         }
 
         const rodadaData = rodadasMap.get(rodadaNum);
+        rodadaData.participantes.push({ ...r });
 
-        // Adicionar participante (já enriquecido pelo backend)
-        rodadaData.participantes.push({
-            ...r,
-            // Backend já calculou: posicao, valorFinanceiro, totalParticipantesAtivos
-        });
-
-        // Se é o meu time, guardar informações
         const timeId = r.timeId || r.time_id;
         if (String(timeId) === String(meuTimeId)) {
             rodadaData.meusPontos = r.pontos || 0;
             rodadaData.jogou = !r.rodadaNaoJogada;
-            rodadaData.posicaoFinanceira = r.posicao; // ✅ Vem do backend
-            rodadaData.valorFinanceiro = r.valorFinanceiro; // ✅ Vem do backend
+            rodadaData.posicaoFinanceira = r.posicao;
+            rodadaData.valorFinanceiro = r.valorFinanceiro;
         }
     });
 
@@ -199,145 +191,345 @@ function agruparRodadasPorNumero(rodadas) {
 }
 
 // =====================================================================
-// RENDERIZAÇÃO DO GRID COMPACTO
+// RENDERIZAR INTERFACE COMPLETA
 // =====================================================================
-function renderizarGridCompacto(rodadas) {
-    const container = document.getElementById("rodadasCardsGrid");
-    if (!container) {
-        if (window.Log)
-            Log.error("[PARTICIPANTE-RODADAS] ❌ Container não encontrado");
+function renderizarInterface(rodadas) {
+    // 1. Renderizar Card de Destaque (se houver rodada ao vivo)
+    renderizarCardDestaque(rodadas);
+
+    // 2. Renderizar Slider Horizontal
+    renderizarSlider(rodadas);
+
+    // 3. Renderizar Grupos Expansíveis
+    renderizarGrupos(rodadas);
+
+    // 4. Renderizar Card de Desempenho
+    renderizarCardDesempenho(rodadas);
+
+    // 5. Mostrar container de grupos
+    const container = document.getElementById('rodadasGruposContainer');
+    if (container) container.style.display = 'flex';
+
+    // 6. Auto-expandir grupo da rodada atual
+    autoExpandirGrupoAtual();
+}
+
+// =====================================================================
+// CARD DE DESTAQUE (RODADA AO VIVO)
+// =====================================================================
+function renderizarCardDestaque(rodadas) {
+    const card = document.getElementById('rodadaDestaqueCard');
+    if (!card) return;
+
+    const isParcial = parciaisInfo?.disponivel;
+    const rodadaAtual = isParcial ? parciaisInfo.rodada : rodadaAtualCartola;
+
+    if (!isParcial) {
+        card.style.display = 'none';
         return;
     }
 
-    const rodadasMap = new Map();
-    rodadas.forEach((r) => rodadasMap.set(r.numero, r));
+    // Mostrar card
+    card.style.display = 'block';
+    card.classList.add('ao-vivo');
 
-    let html = "";
+    // Preencher dados
+    document.getElementById('destaqueNumero').textContent = rodadaAtual;
+    document.getElementById('destaqueBadgeText').textContent = 'AO VIVO';
+    document.getElementById('destaqueTitulo').textContent = 'Acompanhe em tempo real';
+
+    // Click handler
+    card.onclick = () => selecionarRodada(rodadaAtual, true);
+}
+
+function atualizarCardDestaque(parciais) {
+    const card = document.getElementById('rodadaDestaqueCard');
+    if (!card || !parciais?.disponivel) return;
+
+    card.style.display = 'block';
+    card.classList.add('ao-vivo');
+
+    document.getElementById('destaqueNumero').textContent = parciais.rodada;
+
+    // Atualizar posição se disponível
+    const minhaPosicao = ParciaisModule.obterMinhaPosicaoParcial?.();
+    if (minhaPosicao) {
+        const pontosEl = document.getElementById('destaquePontos');
+        const posicaoEl = document.getElementById('destaquePosicao');
+
+        if (pontosEl) {
+            pontosEl.innerHTML = `
+                <span class="material-symbols-outlined">sports_soccer</span>
+                <span>${minhaPosicao.pontos?.toFixed(2) || '--'} pts</span>
+            `;
+        }
+        if (posicaoEl) {
+            posicaoEl.innerHTML = `
+                <span class="material-symbols-outlined">leaderboard</span>
+                <span>${minhaPosicao.posicao || '--'}º lugar</span>
+            `;
+        }
+    }
+}
+
+// =====================================================================
+// SLIDER HORIZONTAL
+// =====================================================================
+function renderizarSlider(rodadas) {
+    const container = document.getElementById('rodadasSliderContainer');
+    const slider = document.getElementById('rodadasSlider');
+    if (!container || !slider) return;
+
+    const rodadasMap = new Map();
+    rodadas.forEach(r => rodadasMap.set(r.numero, r));
+
+    let html = '';
     for (let i = 1; i <= 38; i++) {
         const rodada = rodadasMap.get(i);
         const isParcial = parciaisInfo?.disponivel && i === parciaisInfo.rodada;
-        html += criarCardCompacto(i, rodada, isParcial);
+        const isFuturo = i > rodadaAtualCartola;
+        const isAtual = i === rodadaAtualCartola;
+        const temDados = rodada && rodada.participantes.length > 0;
+        const valorFinanceiro = rodada?.valorFinanceiro;
+
+        let classes = ['slider-rodada-card'];
+        if (isParcial) classes.push('atual');
+        else if (isFuturo) classes.push('futuro');
+        else if (isAtual && !isParcial) classes.push('atual');
+
+        if (valorFinanceiro > 0) classes.push('saldo-positivo');
+        else if (valorFinanceiro < 0) classes.push('saldo-negativo');
+
+        let pontosTexto = '';
+        if (isParcial) {
+            pontosTexto = '⏳';
+        } else if (temDados && rodada.jogou && rodada.meusPontos > 0) {
+            pontosTexto = rodada.meusPontos.toFixed(0);
+        }
+
+        const badgeLive = isParcial ? '<span class="slider-badge-live"></span>' : '';
+
+        html += `
+            <div class="${classes.join(' ')}" data-rodada="${i}" onclick="window.selecionarRodadaSlider(${i}, ${isParcial})">
+                ${badgeLive}
+                <span class="slider-numero">${i}</span>
+                ${pontosTexto ? `<span class="slider-pontos">${pontosTexto}</span>` : ''}
+            </div>
+        `;
     }
 
-    container.innerHTML = html;
+    slider.innerHTML = html;
+    container.style.display = 'block';
 
-    const btnContainer = document.getElementById("btnVerJogadores");
-    if (btnContainer) {
-        btnContainer.style.display = "block";
-    }
-
-    // Renderizar card de desempenho MITOS/MICOS
-    renderizarCardDesempenho(rodadas);
-
-    // Event listeners
-    container
-        .querySelectorAll(".rodada-card-compacto:not(.futuro)")
-        .forEach((card) => {
-            card.addEventListener("click", () => {
-                const rodadaNum = parseInt(card.dataset.rodada);
-                const isParcial = card.classList.contains("parcial");
-                selecionarRodada(rodadaNum, isParcial);
-            });
-        });
+    // Scroll para rodada atual
+    setTimeout(() => {
+        const rodadaAtual = slider.querySelector(`.slider-rodada-card.atual`) ||
+                           slider.querySelector(`[data-rodada="${rodadaAtualCartola}"]`);
+        if (rodadaAtual) {
+            rodadaAtual.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+    }, 100);
 }
 
-function criarCardCompacto(numero, rodada, isParcial = false) {
-    const isFuturo = numero > rodadaAtualCartola;
-    const temDados = rodada && rodada.participantes.length > 0;
-    const jogou = rodada?.jogou || false;
-    const pontos = rodada?.meusPontos;
+window.selecionarRodadaSlider = function(numero, isParcial) {
+    // Atualizar seleção visual no slider
+    document.querySelectorAll('.slider-rodada-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    const card = document.querySelector(`.slider-rodada-card[data-rodada="${numero}"]`);
+    if (card && !card.classList.contains('futuro')) {
+        card.classList.add('selected');
+        selecionarRodada(numero, isParcial);
+    }
+};
 
-    // ✅ v4.3: Pegar valorFinanceiro corretamente (pode ser null/undefined)
-    const valorFinanceiro = rodada?.valorFinanceiro;
-    const temValorFinanceiro = valorFinanceiro !== null && valorFinanceiro !== undefined;
+// =====================================================================
+// GRUPOS EXPANSÍVEIS
+// =====================================================================
+function renderizarGrupos(rodadas) {
+    const container = document.getElementById('rodadasGruposContainer');
+    if (!container) return;
 
-    let classes = ["rodada-card-compacto"];
-    let tipoDestaque = null; // 'mito' ou 'mico'
+    const rodadasMap = new Map();
+    rodadas.forEach(r => rodadasMap.set(r.numero, r));
 
-    if (isParcial) {
-        classes.push("parcial", "em-andamento");
-    } else if (isFuturo) {
-        classes.push("futuro");
-    } else if (!temDados && !isParcial) {
-        classes.push("futuro");
-    } else if (jogou) {
-        classes.push("jogou");
+    let html = '';
 
-        // ✅ v4.3: Cores baseadas no saldo financeiro
-        // Verde = ganhou (valor > 0), Vermelho = perdeu (valor < 0), Neutro = empate/zero
-        if (temValorFinanceiro) {
-            if (valorFinanceiro > 0) {
-                classes.push("saldo-positivo");
-            } else if (valorFinanceiro < 0) {
-                classes.push("saldo-negativo");
-            } else {
-                classes.push("saldo-neutro");
-            }
-        } else {
-            classes.push("saldo-neutro");
-        }
+    GRUPOS_CONFIG.forEach(grupo => {
+        // Calcular stats do grupo
+        let mitos = 0;
+        let micos = 0;
+        let rodadasJogadas = 0;
+        let contemRodadaAtual = false;
 
-        // ✅ v4.1: Corrigir lógica de MITO/MICO
-        // Usar posicaoFinanceira do meu time + total de participantes ATIVOS
-        if (rodada.posicaoFinanceira) {
-            // Calcular total de participantes ativos na rodada
-            // Prioridade: campo totalParticipantesAtivos > contagem de participantes
-            const totalParticipantes =
-                rodada.participantes[0]?.totalParticipantesAtivos ||
-                rodada.participantes.filter(p => p.ativo !== false).length ||
-                rodada.participantes.length;
+        for (let i = grupo.inicio; i <= grupo.fim; i++) {
+            const rodada = rodadasMap.get(i);
+            if (!rodada || !rodada.jogou) continue;
 
-            // MITO = posição 1
-            if (rodada.posicaoFinanceira === 1) {
-                classes.push("mito");
-                tipoDestaque = "mito";
-            }
-            // MICO = última posição (apenas se houver mais de 1 participante)
-            else if (
-                rodada.posicaoFinanceira === totalParticipantes &&
-                totalParticipantes > 1
-            ) {
-                classes.push("mico");
-                tipoDestaque = "mico";
+            rodadasJogadas++;
+
+            const totalParticipantes = rodada.participantes[0]?.totalParticipantesAtivos ||
+                                       rodada.participantes.filter(p => p.ativo !== false).length;
+
+            if (rodada.posicaoFinanceira === 1) mitos++;
+            else if (rodada.posicaoFinanceira === totalParticipantes && totalParticipantes > 1) micos++;
+
+            // Verificar se contém rodada atual/parcial
+            if (parciaisInfo?.disponivel && i === parciaisInfo.rodada) {
+                contemRodadaAtual = true;
+            } else if (i === rodadaAtualCartola) {
+                contemRodadaAtual = true;
             }
         }
+
+        // Renderizar grupo
+        html += `
+            <div class="rodadas-grupo" id="grupo-${grupo.id}" data-grupo="${grupo.id}">
+                <div class="grupo-header" onclick="window.toggleGrupo('${grupo.id}')">
+                    <div class="grupo-header-left">
+                        <div class="grupo-icon">
+                            <span class="material-symbols-outlined">${grupo.icon}</span>
+                        </div>
+                        <div>
+                            <div class="grupo-title">${grupo.nome}</div>
+                            <div class="grupo-subtitle">${grupo.subtitulo}${contemRodadaAtual ? ' • Atual' : ''}</div>
+                        </div>
+                    </div>
+                    <div class="grupo-header-right">
+                        <div class="grupo-stats">
+                            ${mitos > 0 ? `<span class="grupo-stat mitos"><span class="material-symbols-outlined">emoji_events</span>${mitos}</span>` : ''}
+                            ${micos > 0 ? `<span class="grupo-stat micos"><span class="material-symbols-outlined">thumb_down</span>${micos}</span>` : ''}
+                        </div>
+                        <span class="material-symbols-outlined grupo-chevron">expand_more</span>
+                    </div>
+                </div>
+                <div class="grupo-content">
+                    <div class="rodadas-mini-grid" id="grid-${grupo.id}">
+                        ${renderizarMiniCards(grupo.inicio, grupo.fim, rodadasMap)}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function renderizarMiniCards(inicio, fim, rodadasMap) {
+    let html = '';
+
+    for (let i = inicio; i <= fim; i++) {
+        const rodada = rodadasMap.get(i);
+        const isParcial = parciaisInfo?.disponivel && i === parciaisInfo.rodada;
+        const isFuturo = i > rodadaAtualCartola;
+        const temDados = rodada && rodada.participantes.length > 0;
+        const jogou = rodada?.jogou || false;
+        const pontos = rodada?.meusPontos;
+        const valorFinanceiro = rodada?.valorFinanceiro;
+
+        let classes = ['rodada-mini-card'];
+        let tipoDestaque = null;
+
+        if (isParcial) {
+            classes.push('parcial');
+        } else if (isFuturo || (!temDados && !isParcial)) {
+            classes.push('futuro');
+        } else if (jogou) {
+            // Cores por saldo
+            if (valorFinanceiro > 0) classes.push('saldo-positivo');
+            else if (valorFinanceiro < 0) classes.push('saldo-negativo');
+
+            // MITO/MICO
+            if (rodada.posicaoFinanceira) {
+                const totalParticipantes = rodada.participantes[0]?.totalParticipantesAtivos ||
+                                          rodada.participantes.filter(p => p.ativo !== false).length;
+
+                if (rodada.posicaoFinanceira === 1) {
+                    classes.push('mito');
+                    tipoDestaque = 'mito';
+                } else if (rodada.posicaoFinanceira === totalParticipantes && totalParticipantes > 1) {
+                    classes.push('mico');
+                    tipoDestaque = 'mico';
+                }
+            }
+        }
+
+        // Formatar pontos
+        let pontosTexto = '';
+        if (isParcial) pontosTexto = '⏳';
+        else if (temDados && jogou && pontos > 0) pontosTexto = pontos.toFixed(0);
+        else if (temDados && !jogou) pontosTexto = 'N/J';
+
+        const badgeAoVivo = isParcial ? '<span class="badge-mini-ao-vivo">●</span>' : '';
+        let badgeDestaque = '';
+        if (tipoDestaque === 'mito') {
+            badgeDestaque = '<span class="badge-mini-destaque"><span class="material-symbols-outlined">emoji_events</span></span>';
+        } else if (tipoDestaque === 'mico') {
+            badgeDestaque = '<span class="badge-mini-destaque"><span class="material-symbols-outlined">thumb_down</span></span>';
+        }
+
+        html += `
+            <div class="${classes.join(' ')}" data-rodada="${i}" onclick="window.selecionarRodadaMini(${i}, ${isParcial})">
+                ${badgeAoVivo}
+                ${badgeDestaque}
+                <span class="mini-card-numero">${i}</span>
+                ${pontosTexto ? `<span class="mini-card-pontos">${pontosTexto}</span>` : ''}
+            </div>
+        `;
+    }
+
+    return html;
+}
+
+window.selecionarRodadaMini = function(numero, isParcial) {
+    const card = document.querySelector(`.rodada-mini-card[data-rodada="${numero}"]`);
+    if (card && !card.classList.contains('futuro')) {
+        // Atualizar seleção visual
+        document.querySelectorAll('.rodada-mini-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+
+        // Atualizar slider também
+        document.querySelectorAll('.slider-rodada-card').forEach(c => c.classList.remove('selected'));
+        const sliderCard = document.querySelector(`.slider-rodada-card[data-rodada="${numero}"]`);
+        if (sliderCard) sliderCard.classList.add('selected');
+
+        selecionarRodada(numero, isParcial);
+    }
+};
+
+window.toggleGrupo = function(grupoId) {
+    const grupo = document.getElementById(`grupo-${grupoId}`);
+    if (!grupo) return;
+
+    const wasExpanded = grupo.classList.contains('expanded');
+
+    // Fechar todos os grupos
+    document.querySelectorAll('.rodadas-grupo').forEach(g => {
+        g.classList.remove('expanded');
+    });
+
+    // Se não estava expandido, expandir
+    if (!wasExpanded) {
+        grupo.classList.add('expanded');
+        grupoExpandido = grupoId;
+
+        // Scroll suave para o grupo
+        setTimeout(() => {
+            grupo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
     } else {
-        classes.push("nao-jogou");
+        grupoExpandido = null;
     }
+};
 
-    // Formatar pontos
-    let pontosTexto = "";
-    if (isParcial) {
-        pontosTexto = "⏳";
-    } else if (temDados && jogou && pontos !== null && pontos > 0) {
-        pontosTexto = pontos.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
-    } else if (temDados && !jogou) {
-        pontosTexto = "N/J";
+function autoExpandirGrupoAtual() {
+    // Encontrar qual grupo contém a rodada atual
+    const rodadaAlvo = parciaisInfo?.disponivel ? parciaisInfo.rodada : rodadaAtualCartola;
+
+    const grupo = GRUPOS_CONFIG.find(g => rodadaAlvo >= g.inicio && rodadaAlvo <= g.fim);
+    if (grupo) {
+        window.toggleGrupo(grupo.id);
     }
-
-    const badgeAoVivo = isParcial ? '<span class="badge-ao-vivo">●</span>' : "";
-
-    // Badge de destaque MITO/MICO com Material Icon
-    let badgeDestaque = "";
-    if (tipoDestaque === "mito") {
-        badgeDestaque =
-            '<span class="badge-destaque"><span class="material-symbols-outlined">emoji_events</span></span>';
-    } else if (tipoDestaque === "mico") {
-        badgeDestaque =
-            '<span class="badge-destaque"><span class="material-symbols-outlined">thumb_down</span></span>';
-    }
-
-    return `
-        <div class="${classes.join(" ")}" data-rodada="${numero}">
-            ${badgeAoVivo}
-            ${badgeDestaque}
-            <span class="card-numero">${numero}</span>
-            ${pontosTexto ? `<span class="card-pontos">${pontosTexto}</span>` : ""}
-        </div>
-    `;
 }
 
 // =====================================================================
@@ -347,7 +539,6 @@ function renderizarCardDesempenho(rodadas) {
     const card = document.getElementById("cardDesempenhoMitosMicos");
     if (!card) return;
 
-    // Calcular estatísticas usando dados do backend
     let totalMitos = 0;
     let totalMicos = 0;
     let ultimoMito = null;
@@ -359,7 +550,6 @@ function renderizarCardDesempenho(rodadas) {
 
         rodadasJogadas++;
 
-        // ✅ v4.0: Usar totalParticipantesAtivos do backend
         const totalParticipantes =
             rodada.participantes[0]?.totalParticipantesAtivos ||
             rodada.participantes.length;
@@ -376,71 +566,21 @@ function renderizarCardDesempenho(rodadas) {
         }
     });
 
-    // Calcular percentuais
     const totalOcorrencias = totalMitos + totalMicos;
-    const percentMito =
-        totalOcorrencias > 0
-            ? Math.round((totalMitos / totalOcorrencias) * 100)
-            : 0;
-    const percentMico =
-        totalOcorrencias > 0
-            ? Math.round((totalMicos / totalOcorrencias) * 100)
-            : 0;
+    const percentMito = totalOcorrencias > 0 ? Math.round((totalMitos / totalOcorrencias) * 100) : 0;
+    const percentMico = totalOcorrencias > 0 ? Math.round((totalMicos / totalOcorrencias) * 100) : 0;
 
-    // Atualizar DOM
-    document.getElementById("desempBadgeRodadas").textContent =
-        `${rodadasJogadas} RODADAS`;
+    document.getElementById("desempBadgeRodadas").textContent = `${rodadasJogadas} RODADAS`;
     document.getElementById("desempMitosCount").textContent = totalMitos;
     document.getElementById("desempMicosCount").textContent = totalMicos;
-    document.getElementById("desempMitoPercent").textContent =
-        `${percentMito}%`;
-    document.getElementById("desempMicoPercent").textContent =
-        `${percentMico}%`;
+    document.getElementById("desempMitoPercent").textContent = `${percentMito}%`;
+    document.getElementById("desempMicoPercent").textContent = `${percentMico}%`;
     document.getElementById("progressMito").style.width = `${percentMito}%`;
     document.getElementById("progressMico").style.width = `${percentMico}%`;
-    document.getElementById("desempUltimoMito").textContent = ultimoMito
-        ? `Rodada ${ultimoMito}`
-        : "Nenhum";
-    document.getElementById("desempUltimoMico").textContent = ultimoMico
-        ? `Rodada ${ultimoMico}`
-        : "Nenhum";
+    document.getElementById("desempUltimoMito").textContent = ultimoMito ? `Rodada ${ultimoMito}` : "Nenhum";
+    document.getElementById("desempUltimoMico").textContent = ultimoMico ? `Rodada ${ultimoMico}` : "Nenhum";
 
-    // Mostrar card
     card.style.display = "block";
-
-    if (window.Log)
-        Log.info(
-            `[PARTICIPANTE-RODADAS] 📊 Desempenho: ${totalMitos} MITOS, ${totalMicos} MICOS em ${rodadasJogadas} rodadas`,
-        );
-}
-
-// =====================================================================
-// DESTACAR RODADA EM ANDAMENTO
-// =====================================================================
-function destacarRodadaEmAndamento(rodada) {
-    const card = document.querySelector(
-        `.rodada-card-compacto[data-rodada="${rodada}"]`,
-    );
-    if (card) {
-        card.classList.add("parcial", "em-andamento");
-
-        if (!card.querySelector(".badge-ao-vivo")) {
-            const badge = document.createElement("span");
-            badge.className = "badge-ao-vivo";
-            badge.textContent = "●";
-            card.prepend(badge);
-        }
-
-        const pontosEl = card.querySelector(".card-pontos");
-        if (pontosEl) {
-            pontosEl.textContent = "⏳";
-        } else {
-            const span = document.createElement("span");
-            span.className = "card-pontos";
-            span.textContent = "⏳";
-            card.appendChild(span);
-        }
-    }
 }
 
 // =====================================================================
@@ -448,29 +588,11 @@ function destacarRodadaEmAndamento(rodada) {
 // =====================================================================
 async function selecionarRodada(numeroRodada, isParcial = false) {
     if (window.Log)
-        Log.info(
-            `[PARTICIPANTE-RODADAS] 📌 Selecionando rodada ${numeroRodada} (parcial: ${isParcial})`,
-        );
+        Log.info(`[PARTICIPANTE-RODADAS] 📌 Selecionando rodada ${numeroRodada} (parcial: ${isParcial})`);
 
     rodadaSelecionada = numeroRodada;
     ParciaisModule.pararAutoRefresh?.();
     atualizarIndicadorAutoRefresh({ ativo: false });
-
-    document.querySelectorAll(".rodada-card-compacto").forEach((card) => {
-        card.classList.remove("selected");
-    });
-
-    const cardSelecionado = document.querySelector(
-        `.rodada-card-compacto[data-rodada="${numeroRodada}"]`,
-    );
-    if (cardSelecionado) {
-        cardSelecionado.classList.add("selected");
-    }
-
-    const btnTexto = document.getElementById("btnJogadoresTexto");
-    if (btnTexto) {
-        btnTexto.textContent = `Ver Meus Jogadores da Rodada ${numeroRodada}`;
-    }
 
     const detalhamento = document.getElementById("rodadaDetalhamento");
     if (detalhamento) {
@@ -487,19 +609,17 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
         `;
     }
 
-    const isRodadaParcial =
-        parciaisInfo?.disponivel && numeroRodada === parciaisInfo.rodada;
+    const isRodadaParcial = parciaisInfo?.disponivel && numeroRodada === parciaisInfo.rodada;
 
     if (isRodadaParcial) {
         await carregarERenderizarParciais(numeroRodada);
         ParciaisModule.iniciarAutoRefresh?.((dados) => {
             if (rodadaSelecionada !== numeroRodada) return;
             renderizarParciaisDados(numeroRodada, dados);
+            atualizarCardDestaque(parciaisInfo);
         }, atualizarIndicadorAutoRefresh);
     } else {
-        const rodadaData = todasRodadasCache.find(
-            (r) => r.numero === numeroRodada,
-        );
+        const rodadaData = todasRodadasCache.find((r) => r.numero === numeroRodada);
         if (!rodadaData || rodadaData.participantes.length === 0) {
             if (rankingContainer) {
                 rankingContainer.innerHTML = `
@@ -538,21 +658,17 @@ async function carregarERenderizarParciais(numeroRodada) {
 
     try {
         const dados = await ParciaisModule.carregarParciais();
-
         renderizarParciaisDados(numeroRodada, dados);
     } catch (error) {
         if (window.Log)
-            Log.error(
-                "[PARTICIPANTE-RODADAS] Erro ao carregar parciais:",
-                error,
-            );
+            Log.error("[PARTICIPANTE-RODADAS] Erro ao carregar parciais:", error);
         const rankingContainer = document.getElementById("rankingListPro");
         if (rankingContainer) {
             rankingContainer.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #ef4444;">
                     <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">error_outline</span>
                     <p>Erro ao carregar parciais</p>
-                    <button onclick="selecionarRodada(${numeroRodada}, true)" 
+                    <button onclick="selecionarRodada(${numeroRodada}, true)"
                             style="margin-top: 16px; padding: 10px 20px; background: #E65100; color: white; border: none; border-radius: 8px; cursor: pointer;">
                         Tentar Novamente
                     </button>
@@ -591,10 +707,7 @@ function renderizarParciaisDados(numeroRodada, dados) {
         }
 
         if (resumo) {
-            const infoInativos =
-                inativos.length > 0
-                    ? ` • ${inativos.length} inativo${inativos.length > 1 ? "s" : ""}`
-                    : "";
+            const infoInativos = inativos.length > 0 ? ` • ${inativos.length} inativo${inativos.length > 1 ? "s" : ""}` : "";
             resumo.innerHTML = `0 participantes • Sua posição: ${minhaPosicao?.posicao || "-"}º${infoInativos}`;
         }
 
@@ -617,15 +730,9 @@ function renderizarParciaisDados(numeroRodada, dados) {
 
     if (resumo) {
         const horaAtualizacao = dados?.atualizadoEm
-            ? new Date(dados.atualizadoEm).toLocaleTimeString("pt-BR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-              })
+            ? new Date(dados.atualizadoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
             : "--:--";
-        const infoInativos =
-            inativos.length > 0
-                ? ` • ${inativos.length} inativo${inativos.length > 1 ? "s" : ""}`
-                : "";
+        const infoInativos = inativos.length > 0 ? ` • ${inativos.length} inativo${inativos.length > 1 ? "s" : ""}` : "";
         resumo.innerHTML = `${dados?.totalTimes || participantes.length} participantes • Sua posição: ${minhaPosicao?.posicao || "-"}º${infoInativos}
             <span style="color: #6b7280; font-size: 11px;"> • Atualizado às ${horaAtualizacao}</span>`;
     }
@@ -634,11 +741,7 @@ function renderizarParciaisDados(numeroRodada, dados) {
 // =====================================================================
 // DETALHAMENTO DA RODADA
 // =====================================================================
-function renderizarDetalhamentoRodada(
-    rodadaData,
-    isParcial = false,
-    inativos = [],
-) {
+function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = []) {
     const titulo = document.getElementById("rodadaTitulo");
     if (titulo) {
         if (isParcial) {
@@ -649,27 +752,19 @@ function renderizarDetalhamentoRodada(
     }
 
     const todosParticipantes = rodadaData.participantes || [];
-
-    // ✅ v3.6: Separar ativos de inativos CONSIDERANDO A RODADA SELECIONADA
-    // Regra: Se rodada < rodada_desistencia, participante era ATIVO nessa rodada
     let participantesAtivos = [];
     let participantesInativos = inativos.length > 0 ? inativos : [];
     const rodadaNum = rodadaData.numero;
 
     if (inativos.length === 0) {
-        // Separar baseado no campo ativo E na rodada
         todosParticipantes.forEach((p) => {
             if (p.ativo === false && p.rodada_desistencia) {
-                // Inativo atualmente, mas verifica se era ativo NESTA rodada
                 if (rodadaNum < p.rodada_desistencia) {
-                    // Era ativo nessa rodada (antes de desistir)
                     participantesAtivos.push(p);
                 } else {
-                    // Já era inativo nessa rodada
                     participantesInativos.push(p);
                 }
             } else if (p.ativo === false && !p.rodada_desistencia) {
-                // Inativo sem rodada definida (fallback)
                 participantesInativos.push(p);
             } else {
                 participantesAtivos.push(p);
@@ -685,159 +780,102 @@ function renderizarDetalhamentoRodada(
 
         let minhaPosicao = rodadaData.posicaoFinanceira;
         if (minhaPosicao == null) {
-            const ordenados = [...participantesAtivos].sort(
-                (a, b) => (b.pontos || 0) - (a.pontos || 0),
-            );
-            const meuIndex = ordenados.findIndex(
-                (p) => String(p.timeId || p.time_id) === String(meuTimeId),
-            );
+            const ordenados = [...participantesAtivos].sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+            const meuIndex = ordenados.findIndex((p) => String(p.timeId || p.time_id) === String(meuTimeId));
             minhaPosicao = meuIndex >= 0 ? meuIndex + 1 : "-";
         }
 
-        const infoInativos =
-            participantesInativos.length > 0
-                ? ` • ${participantesInativos.length} inativo${participantesInativos.length > 1 ? "s" : ""}`
-                : "";
+        const infoInativos = participantesInativos.length > 0 ? ` • ${participantesInativos.length} inativo${participantesInativos.length > 1 ? "s" : ""}` : "";
         resumo.textContent = `${totalAtivos} participantes • Sua posição: ${minhaPosicao}º${infoInativos}`;
     }
 
-    // Ordenar participantes ativos por pontuação
-    const participantesOrdenados = [...participantesAtivos].sort(
-        (a, b) => (b.pontos || 0) - (a.pontos || 0),
-    );
-
+    const participantesOrdenados = [...participantesAtivos].sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
     const totalParticipantes = participantesOrdenados.length;
     const container = document.getElementById("rankingListPro");
 
     if (!container) return;
 
-    // Renderizar ranking de ATIVOS
-    let html = participantesOrdenados
-        .map((participante, index) => {
-            const timeId = participante.timeId || participante.time_id;
-            const isMeuTime = String(timeId) === String(meuTimeId);
+    let html = participantesOrdenados.map((participante, index) => {
+        const timeId = participante.timeId || participante.time_id;
+        const isMeuTime = String(timeId) === String(meuTimeId);
+        const posicao = participante.posicao || index + 1;
+        const valorFinanceiro = participante.valorFinanceiro || 0;
 
-            // ✅ v4.0: Usar posição e valorFinanceiro do backend
-            const posicao = participante.posicao || index + 1;
-            const valorFinanceiro = participante.valorFinanceiro || 0;
+        const valorFormatado = Math.abs(valorFinanceiro).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
 
-            const valorFormatado = Math.abs(valorFinanceiro).toLocaleString(
-                "pt-BR",
-                {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                },
-            );
+        const financeiroTexto = valorFinanceiro > 0 ? `+R$ ${valorFormatado}` : valorFinanceiro < 0 ? `-R$ ${valorFormatado}` : "R$ 0,00";
+        const financeiroClass = valorFinanceiro > 0 ? "positivo" : valorFinanceiro < 0 ? "negativo" : "neutro";
 
-            const financeiroTexto =
-                valorFinanceiro > 0
-                    ? `+R$ ${valorFormatado}`
-                    : valorFinanceiro < 0
-                      ? `-R$ ${valorFormatado}`
-                      : "R$ 0,00";
+        let posicaoClass = "pos-default";
+        if (posicao === 1) posicaoClass = "pos-1";
+        else if (posicao === 2) posicaoClass = "pos-2";
+        else if (posicao === 3) posicaoClass = "pos-3";
+        else if (posicao > totalParticipantes - 3) posicaoClass = "pos-danger";
 
-            const financeiroClass =
-                valorFinanceiro > 0
-                    ? "positivo"
-                    : valorFinanceiro < 0
-                      ? "negativo"
-                      : "neutro";
+        const pontosFormatados = Number(participante.pontos || 0).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
 
-            let posicaoClass = "pos-default";
-            if (posicao === 1) posicaoClass = "pos-1";
-            else if (posicao === 2) posicaoClass = "pos-2";
-            else if (posicao === 3) posicaoClass = "pos-3";
-            else if (posicao > totalParticipantes - 3)
-                posicaoClass = "pos-danger";
+        const nomeTime = participante.nome || participante.nome_time || "N/D";
+        const naoJogouBadge = participante.rodadaNaoJogada ? '<span class="badge-nao-jogou">N/E</span>' : "";
 
-            const pontosFormatados = Number(
-                participante.pontos || 0,
-            ).toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            });
-
-            const nomeTime =
-                participante.nome || participante.nome_time || "N/D";
-
-            const naoJogouBadge = participante.rodadaNaoJogada
-                ? '<span class="badge-nao-jogou">N/E</span>'
-                : "";
-
-            return `
-                <div class="ranking-item-pro ${isMeuTime ? "meu-time" : ""}">
-                    <div class="posicao-badge-pro ${posicaoClass}">${posicao}º</div>
-                    <div class="ranking-info-pro">
-                        <div class="ranking-nome-time">${nomeTime} ${naoJogouBadge}</div>
-                        <div class="ranking-nome-cartola">${participante.nome_cartola || "N/D"}</div>
-                    </div>
-                    <div class="ranking-stats-pro">
-                        <div class="ranking-pontos-pro">${pontosFormatados}</div>
-                        <div class="ranking-financeiro-pro ${financeiroClass}">${financeiroTexto}</div>
-                    </div>
+        return `
+            <div class="ranking-item-pro ${isMeuTime ? "meu-time" : ""}">
+                <div class="posicao-badge-pro ${posicaoClass}">${posicao}º</div>
+                <div class="ranking-info-pro">
+                    <div class="ranking-nome-time">${nomeTime} ${naoJogouBadge}</div>
+                    <div class="ranking-nome-cartola">${participante.nome_cartola || "N/D"}</div>
                 </div>
-            `;
-        })
-        .join("");
+                <div class="ranking-stats-pro">
+                    <div class="ranking-pontos-pro">${pontosFormatados}</div>
+                    <div class="ranking-financeiro-pro ${financeiroClass}">${financeiroTexto}</div>
+                </div>
+            </div>
+        `;
+    }).join("");
 
-    // ✅ v3.6: Adicionar seção de INATIVOS (só para rodadas >= rodada_desistencia)
     if (participantesInativos.length > 0) {
-        html += renderizarSecaoInativos(
-            participantesInativos,
-            rodadaData.numero,
-        );
+        html += renderizarSecaoInativos(participantesInativos, rodadaData.numero);
     }
 
-    container.innerHTML =
-        html ||
-        '<div style="text-align: center; padding: 40px; color: #6b7280;">Nenhum dado disponível</div>';
+    container.innerHTML = html || '<div style="text-align: center; padding: 40px; color: #6b7280;">Nenhum dado disponível</div>';
 
-    // Botão de atualizar para parciais
     if (isParcial) {
-        container.insertAdjacentHTML(
-            "beforeend",
-            `
+        container.insertAdjacentHTML("beforeend", `
             <div style="text-align: center; padding: 20px;">
-                <button onclick="selecionarRodada(${rodadaData.numero}, true)" 
-                        class="btn-atualizar-parciais">
+                <button onclick="selecionarRodada(${rodadaData.numero}, true)" class="btn-atualizar-parciais">
                     <span class="material-icons">refresh</span>
                     Atualizar Parciais
                 </button>
             </div>
-        `,
-        );
+        `);
     }
 }
 
 // =====================================================================
-// RENDERIZAR SEÇÃO DE INATIVOS (Escala de cinza)
+// RENDERIZAR SEÇÃO DE INATIVOS
 // =====================================================================
 function renderizarSecaoInativos(inativos, rodadaNum) {
     if (!inativos || inativos.length === 0) return "";
 
-    // Ordenar por pontos (decrescente)
-    const inativosOrdenados = [...inativos].sort(
-        (a, b) => (b.pontos || 0) - (a.pontos || 0),
-    );
+    const inativosOrdenados = [...inativos].sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
 
-    const items = inativosOrdenados
-        .map((p) => {
-            const nomeTime = p.nome || p.nome_time || "N/D";
-            const nomeCartola = p.nome_cartola || "N/D";
-            const rodadaDesist = p.rodada_desistencia;
-            const rodadaInfo = rodadaDesist
-                ? `Saiu na R${rodadaDesist}`
-                : "Inativo";
+    const items = inativosOrdenados.map((p) => {
+        const nomeTime = p.nome || p.nome_time || "N/D";
+        const nomeCartola = p.nome_cartola || "N/D";
+        const rodadaDesist = p.rodada_desistencia;
+        const rodadaInfo = rodadaDesist ? `Saiu na R${rodadaDesist}` : "Inativo";
 
-            const pontosFormatados = Number(p.pontos || 0).toLocaleString(
-                "pt-BR",
-                {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                },
-            );
+        const pontosFormatados = Number(p.pontos || 0).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
 
-            return `
+        return `
             <div class="ranking-item-pro inativo">
                 <div class="posicao-badge-pro pos-inativo">
                     <span class="material-icons" style="font-size: 14px;">person_off</span>
@@ -852,8 +890,7 @@ function renderizarSecaoInativos(inativos, rodadaNum) {
                 </div>
             </div>
         `;
-        })
-        .join("");
+    }).join("");
 
     return `
         <div class="secao-inativos">
@@ -872,20 +909,23 @@ function renderizarSecaoInativos(inativos, rodadaNum) {
 window.voltarParaCards = function () {
     ParciaisModule.pararAutoRefresh?.();
     atualizarIndicadorAutoRefresh({ ativo: false });
+
     const detalhamento = document.getElementById("rodadaDetalhamento");
     if (detalhamento) {
         detalhamento.style.display = "none";
     }
 
-    document.querySelectorAll(".rodada-card-compacto").forEach((card) => {
+    // Limpar seleções
+    document.querySelectorAll(".rodada-mini-card, .slider-rodada-card").forEach((card) => {
         card.classList.remove("selected");
     });
 
     rodadaSelecionada = null;
 
-    const gridContainer = document.querySelector(".rodadas-grid-container");
-    if (gridContainer) {
-        gridContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Scroll para o slider
+    const slider = document.getElementById('rodadasSliderContainer');
+    if (slider) {
+        slider.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 };
 
@@ -936,37 +976,35 @@ function mostrarToast(msg) {
 // =====================================================================
 function mostrarLoading(show) {
     const loading = document.getElementById("rodadasLoading");
-    const grid = document.querySelector(".rodadas-grid-container");
+    const grupos = document.getElementById("rodadasGruposContainer");
+    const slider = document.getElementById("rodadasSliderContainer");
 
     if (loading) loading.style.display = show ? "flex" : "none";
-    if (grid) grid.style.display = show ? "none" : "block";
+    if (grupos) grupos.style.display = show ? "none" : "flex";
+    if (slider) slider.style.display = show ? "none" : "block";
 }
 
 function mostrarEstadoVazio(show) {
     const empty = document.getElementById("rodadasEmpty");
-    const grid = document.querySelector(".rodadas-grid-container");
+    const grupos = document.getElementById("rodadasGruposContainer");
 
     if (empty) empty.style.display = show ? "flex" : "none";
-    if (grid) grid.style.display = show ? "none" : "block";
+    if (grupos) grupos.style.display = show ? "none" : "flex";
 }
 
 function mostrarErro(mensagem) {
-    const container = document.getElementById("rodadasCardsGrid");
+    const container = document.getElementById("rodadasGruposContainer");
     if (container) {
         container.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ef4444;">
+            <div style="text-align: center; padding: 40px; color: #ef4444;">
                 <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">error_outline</span>
                 <h3 style="margin-bottom: 8px;">Erro ao Carregar</h3>
                 <p style="color: #9ca3af;">${mensagem}</p>
             </div>
         `;
+        container.style.display = "flex";
     }
-
-    const grid = document.querySelector(".rodadas-grid-container");
-    if (grid) grid.style.display = "block";
 }
 
 if (window.Log)
-    Log.info(
-        "[PARTICIPANTE-RODADAS] ✅ Módulo v4.4 carregado (CACHE-FIRST + Cores por Saldo)",
-    );
+    Log.info("[PARTICIPANTE-RODADAS] ✅ Módulo v5.0 carregado (EXPANDABLE NAVIGATION)");

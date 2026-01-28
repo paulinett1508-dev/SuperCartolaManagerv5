@@ -77,7 +77,10 @@
       "Skill(Refactor-Monolith)",
       "Bash(fuser:*)",
       "Bash(LIGA_ID=\"684cb1c8af923da7c7df51de\")",
-      "Bash(LIGA_ID=\"684cb1c8af923da7c7df51de\" echo \"=== 3. TIMES DA LIGA \\(Super Cartola\\) ===\" curl -s \"http://localhost:5000/api/ligas/$LIGA_ID/times\")"
+      "Bash(LIGA_ID=\"684cb1c8af923da7c7df51de\" echo \"=== 3. TIMES DA LIGA \\(Super Cartola\\) ===\" curl -s \"http://localhost:5000/api/ligas/$LIGA_ID/times\")",
+      "Bash(for file in public/participante/js/modules/participante-boas-vindas.js public/participante/js/participante-navigation.js public/participante/js/participante-quick-bar.js public/participante/js/splash-screen.js)",
+      "Bash(do node --check:*)",
+      "Bash(done)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -158,7 +158,7 @@ async function garantirRodadaConsolidada(rodada) {
 export function iniciarSchedulerConsolidacao() {
     if (schedulerAtivo) {
         console.log("[SCHEDULER] ⚠️ Scheduler já está ativo");
-        return;
+        return null;
     }
 
     console.log("[SCHEDULER] 🚀 Iniciando scheduler de consolidação...");
@@ -170,10 +170,13 @@ export function iniciarSchedulerConsolidacao() {
     // Configurar intervalo (30 minutos)
     const INTERVALO = 30 * 60 * 1000; // 30 minutos em ms
 
-    setInterval(verificarEConsolidar, INTERVALO);
+    const intervalId = setInterval(verificarEConsolidar, INTERVALO);
 
     schedulerAtivo = true;
     console.log("[SCHEDULER] ✅ Scheduler ativo!");
+    
+    // Retornar intervalId para permitir clearInterval durante graceful shutdown
+    return intervalId;
 }
 
 // ============================================================================

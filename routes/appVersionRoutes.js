@@ -16,6 +16,7 @@ import APP_VERSION, {
 import { CURRENT_SEASON, SEASON_CONFIG } from "../config/seasons.js";
 
 const router = express.Router();
+const SERVER_BOOT = new Date().toISOString();
 
 // =====================================================================
 // DETECÇÃO DE CLIENTE
@@ -98,6 +99,8 @@ router.get("/check-version", (req, res) => {
     // Adicionar metadata de detecção (útil para debug)
     versionData.clientDetected = clientType;
     versionData.timestamp = new Date().toISOString();
+    versionData.serverBoot = SERVER_BOOT;
+    versionData.serverUptimeSec = Math.floor(process.uptime());
 
     res.json(versionData);
 });
@@ -108,17 +111,17 @@ router.get("/check-version", (req, res) => {
 
 // GET /api/app/versao - Retorna versão do PARTICIPANTE (compatibilidade v1/v2)
 router.get("/versao", (req, res) => {
-    res.json(PARTICIPANTE_VERSION);
+    res.json({ ...PARTICIPANTE_VERSION, serverBoot: SERVER_BOOT });
 });
 
 // GET /api/app/versao/participante - Versão específica do app mobile
 router.get("/versao/participante", (req, res) => {
-    res.json(PARTICIPANTE_VERSION);
+    res.json({ ...PARTICIPANTE_VERSION, serverBoot: SERVER_BOOT });
 });
 
 // GET /api/app/versao/admin - Versão específica do painel admin
 router.get("/versao/admin", (req, res) => {
-    res.json(ADMIN_VERSION);
+    res.json({ ...ADMIN_VERSION, serverBoot: SERVER_BOOT });
 });
 
 // =====================================================================
@@ -175,6 +178,7 @@ router.get("/versao/debug", (req, res) => {
             admin: ADMIN_VERSION,
             global: APP_VERSION
         },
+        serverBoot: SERVER_BOOT,
         scope: {
             loaded: VERSION_SCOPE !== null,
             triggers: VERSION_SCOPE?.version_triggers?.rules?.length || 0

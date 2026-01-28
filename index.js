@@ -2,7 +2,16 @@ import cron from "node-cron";
 import compression from "compression";
 // Executar scraper de jogos Globo Esporte diariamente às 6h (horário do servidor)
 import { exec } from "child_process";
-cron.schedule("0 6 * * *", () => {
+
+// ====================================================================
+// 🔄 RECURSOS GLOBAIS PARA GRACEFUL SHUTDOWN
+// ====================================================================
+let httpServer = null;
+const cronJobs = [];
+let consolidacaoIntervalId = null;
+let rateLimitCleanupIntervalId = null;
+
+const cronGloboScraper = cron.schedule("0 6 * * *", () => {
   console.log("[CRON] Executando atualização de jogos do Globo Esporte...");
   exec("node scripts/save-jogos-globo.js", (err, stdout, stderr) => {
     if (err) {
@@ -13,6 +22,7 @@ cron.schedule("0 6 * * *", () => {
     if (stderr) console.error("[CRON] save-jogos-globo.js (stderr):", stderr.trim());
   });
 });
+cronJobs.push(cronGloboScraper);
 // Também executa na inicialização para garantir cache atualizado
 exec("node scripts/save-jogos-globo.js", (err, stdout, stderr) => {
   if (err) {
@@ -66,7 +76,7 @@ import connectDB from "./config/database.js";
 import passport, { setupReplitAuthRoutes } from "./config/replit-auth.js";
 
 // 🛡️ SEGURANÇA
-import { setupSecurity, authRateLimiter } from "./middleware/security.js";
+import { setupSecurity, authRateLimiter, getRateLimitCleanupIntervalId } from "./middleware/security.js";
 
 // 📦 VERSIONAMENTO AUTO
 import { APP_VERSION } from "./config/appVersion.js";
@@ -481,7 +491,10 @@ app.use((err, req, res, next) => {
 // Inicialização do Servidor
 if (process.env.NODE_ENV !== "test") {
   try {
-    app.listen(PORT, "0.0.0.0", () => {
+    httpServer = app.listen(PORT, "0.0.0.0", () => {
+      // Capturar intervalId do rate limiting após inicialização
+      rateLimitCleanupIntervalId = getRateLimitCleanupIntervalId();
+      
       // Log de inicialização sempre visível (usa console original)
       const startupLog = IS_PRODUCTION ? originalConsole.log : console.log;
 
@@ -541,7 +554,7 @@ mongoose.connection.once("open", async () => {
       console.log(
         "[SERVER] 🚀 Iniciando scheduler de consolidação em produção...",
       );
-      iniciarSchedulerConsolidacao();
+      consolidacaoIntervalId = iniciarSchedulerConsolidacao();
     }, 10000);
   } else {
     console.log(
@@ -576,7 +589,7 @@ mongoose.connection.once("open", async () => {
   ];
 
   horariosEscalacao.forEach(horario => {
-    cron.schedule(horario, async () => {
+    const cronEscalacao = cron.schedule(horario, async () => {
       console.log("[CRON] Verificando escalações pendentes...");
       try {
         await cronEscalacaoPendente();
@@ -584,8 +597,86 @@ mongoose.connection.once("open", async () => {
         console.error("[CRON] Erro ao verificar escalações:", erro.message);
       }
     });
+    cronJobs.push(cronEscalacao);
   });
   console.log("[SERVER] 🔔 Cron de escalação pendente agendado (sex 18h, sab 14h/16h, dom 14h)");
 });
+
+// ====================================================================
+// 🛑 GRACEFUL SHUTDOWN - Fecha recursos antes de encerrar processo
+// ====================================================================
+async function gracefulShutdown(signal) {
+  const logShutdown = IS_PRODUCTION ? originalConsole.log : console.log;
+  logShutdown(`\n[SHUTDOWN] Recebido sinal ${signal}, encerrando gracefully...`);
+  
+  const SHUTDOWN_TIMEOUT = 10000; // 10 segundos
+  let forcedExit = false;
+  
+  // Força encerramento após timeout
+  const forceExitTimer = setTimeout(() => {
+    forcedExit = true;
+    const logError = IS_PRODUCTION ? originalConsole.error : console.error;
+    logError("[SHUTDOWN] ⚠️ Timeout excedido, forçando encerramento...");
+    process.exit(1);
+  }, SHUTDOWN_TIMEOUT);
+  
+  try {
+    // 1. Parar de aceitar novas conexões HTTP
+    if (httpServer) {
+      logShutdown("[SHUTDOWN] Fechando servidor HTTP...");
+      await new Promise((resolve) => {
+        httpServer.close(resolve);
+      });
+      logShutdown("[SHUTDOWN] ✅ Servidor HTTP fechado");
+    }
+    
+    // 2. Parar todos os cron jobs
+    if (cronJobs.length > 0) {
+      logShutdown(`[SHUTDOWN] Parando ${cronJobs.length} cron jobs...`);
+      cronJobs.forEach(job => job.stop());
+      logShutdown("[SHUTDOWN] ✅ Cron jobs parados");
+    }
+    
+    // 3. Limpar timer de consolidação
+    if (consolidacaoIntervalId) {
+      logShutdown("[SHUTDOWN] Parando scheduler de consolidação...");
+      clearInterval(consolidacaoIntervalId);
+      logShutdown("[SHUTDOWN] ✅ Scheduler de consolidação parado");
+    }
+    
+    // 4. Limpar timer de rate limiting
+    if (rateLimitCleanupIntervalId) {
+      logShutdown("[SHUTDOWN] Parando limpeza de rate limiting...");
+      clearInterval(rateLimitCleanupIntervalId);
+      logShutdown("[SHUTDOWN] ✅ Rate limiting cleanup parado");
+    }
+    
+    // 5. Fechar conexão MongoDB
+    if (mongoose.connection.readyState === 1) {
+      logShutdown("[SHUTDOWN] Fechando conexão MongoDB...");
+      await mongoose.connection.close();
+      logShutdown("[SHUTDOWN] ✅ MongoDB desconectado");
+    }
+    
+    clearTimeout(forceExitTimer);
+    
+    if (!forcedExit) {
+      logShutdown("[SHUTDOWN] 🎉 Encerramento graceful completo");
+      process.exit(0);
+    }
+  } catch (erro) {
+    const logError = IS_PRODUCTION ? originalConsole.error : console.error;
+    logError("[SHUTDOWN] ❌ Erro durante shutdown:", erro);
+    clearTimeout(forceExitTimer);
+    process.exit(1);
+  }
+}
+
+// ====================================================================
+// 📡 SIGNAL HANDLERS - Intercepta sinais de encerramento
+// ====================================================================
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGQUIT", () => gracefulShutdown("SIGQUIT"));
 
 export default app;

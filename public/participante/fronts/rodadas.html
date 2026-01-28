@@ -1,15 +1,15 @@
-<!-- PARTICIPANTE RODADAS - Template v2.0 -->
-<!-- Fragmento HTML para inserção via navegação -->
+<!-- PARTICIPANTE RODADAS - Template v4.0 -->
+<!-- Redesign: Navegação expansível com foco em tempo real -->
 <style>
 /* ============================================
-   RODADAS PARTICIPANTE v3.8 - Russo One Brand
-   Cores mapeadas para tokens globais (_app-tokens.css)
-   Fonts loaded from parent index.html
+   RODADAS PARTICIPANTE v4.0 - Expandable Navigation
+   Design: Grupos expansíveis + Slider horizontal
    ============================================ */
 
 :root {
     --rodadas-font-brand: var(--app-font-brand, 'Russo One', sans-serif);
     --rodadas-font-body: 'Inter', -apple-system, sans-serif;
+    --rodadas-font-mono: 'JetBrains Mono', monospace;
     --rodadas-primary: var(--app-primary, #f97316);
     --rodadas-primary-dark: var(--app-primary-dark, #ea580c);
     --rodadas-surface: var(--app-surface, #1a1a1a);
@@ -26,109 +26,1028 @@
     --rodadas-bg-success: #0D1F18;
     --rodadas-bg-danger: #1F0D0D;
     --rodadas-gold: var(--app-gold, #ffd700);
-    --rodadas-gold-dark: #ffb700;
     --rodadas-silver: var(--app-silver, #c0c0c0);
-    --rodadas-silver-dark: #a0a0a0;
     --rodadas-bronze: var(--app-bronze, #cd7f32);
-    --rodadas-bronze-dark: #b06c2a;
 }
-.rodadas-participante-container { padding: 16px; padding-bottom: 100px; font-family: var(--rodadas-font-body); }
-.rodadas-header-pro { text-align: center; margin-bottom: 16px; }
-.rodadas-title-row { display: flex; align-items: center; justify-content: center; gap: 12px; }
-.rodadas-icon { font-size: 32px; color: var(--rodadas-primary); }
-.rodadas-header-pro h2 { font-family: var(--rodadas-font-brand); font-size: 24px; font-weight: 400; letter-spacing: 0.5px; color: var(--rodadas-primary); margin: 0; }
-.rodadas-subtitle { color: var(--rodadas-text-muted); font-size: 14px; margin-top: 8px; }
-.auto-refresh-indicator { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; color: var(--rodadas-success); background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35); }
-.auto-refresh-indicator .material-symbols-outlined { font-size: 14px; animation: spin-rodadas 1.6s linear infinite; }
-.rodadas-ano-selector { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
-.ano-btn { padding: 10px 24px; background: var(--rodadas-surface-elevated); border: none; border-radius: 8px; color: var(--rodadas-text-muted); font-family: var(--rodadas-font-brand); font-size: 13px; font-weight: 400; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease; }
-.ano-btn:hover { background: var(--rodadas-surface-hover); }
-.ano-btn.active { background: var(--rodadas-primary); color: var(--rodadas-text-white); }
-.ano-btn.disabled { opacity: 0.4; cursor: not-allowed; }
-.card-desempenho-mitos-micos { background: linear-gradient(135deg, var(--rodadas-surface) 0%, var(--rodadas-surface-elevated) 100%); border-radius: 16px; padding: 16px; margin-top: 16px; border: 1px solid var(--rodadas-border); }
-.desempenho-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: var(--rodadas-primary); font-weight: 600; font-size: 14px; }
-.desempenho-header .material-symbols-outlined { font-size: 20px; }
-.badge-rodadas { margin-left: auto; background: rgba(249, 115, 22, 0.2); color: var(--rodadas-primary); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-.desempenho-stats { display: flex; gap: 12px; }
-.stat-mito, .stat-mico { flex: 1; background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-.stat-icon-wrapper { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-.stat-icon-wrapper.mito { background: rgba(34, 197, 94, 0.2); color: var(--rodadas-success); }
-.stat-icon-wrapper.mico { background: rgba(239, 68, 68, 0.2); color: var(--rodadas-danger); }
-.stat-icon-wrapper .material-symbols-outlined { font-size: 20px; }
-.stat-info { display: flex; align-items: baseline; gap: 8px; }
-.stat-label { color: var(--rodadas-text-dim); font-family: var(--rodadas-font-brand); font-size: 10px; font-weight: 400; letter-spacing: 0.5px; }
-.stat-value { color: var(--rodadas-text-white); font-family: var(--rodadas-font-brand); font-size: 24px; font-weight: 400; }
-.stat-progress { display: flex; align-items: center; gap: 8px; }
-.progress-bar { flex: 1; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; overflow: hidden; }
-.progress-bar.mito .progress-fill { background: var(--rodadas-success); }
-.progress-bar.mico .progress-fill { background: var(--rodadas-danger); }
-.progress-fill { height: 100%; transition: width 0.5s ease; }
-.progress-text { color: var(--rodadas-text-dim); font-size: 11px; min-width: 32px; }
-.stat-ultimo { color: var(--rodadas-text-dim); font-size: 11px; }
-.rodadas-loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: var(--rodadas-text-muted); }
-.loading-spinner-rodadas { width: 40px; height: 40px; border: 3px solid var(--rodadas-border); border-top-color: var(--rodadas-primary); border-radius: 50%; animation: spin-rodadas 0.8s linear infinite; }
-@keyframes spin-rodadas { to { transform: rotate(360deg); } }
-.rodadas-grid-container { display: block; }
-.rodadas-grid-compacto { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-@media (min-width: 480px) { .rodadas-grid-compacto { grid-template-columns: repeat(8, 1fr); } }
-.rodada-card-compacto { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--rodadas-surface-elevated); border-radius: 10px; cursor: pointer; transition: all 0.2s ease; position: relative; border: 2px solid transparent; }
-.rodada-card-compacto:hover:not(.futuro) { transform: scale(1.05); background: var(--rodadas-surface-hover); }
-.rodada-card-compacto.selected { border-color: var(--rodadas-primary); background: rgba(249, 115, 22, 0.15); }
-.rodada-card-compacto.futuro { opacity: 0.3; cursor: not-allowed; }
-.rodada-card-compacto.saldo-neutro { background: var(--rodadas-surface-elevated); border-color: transparent; }
-.rodada-card-compacto.saldo-positivo { background: var(--rodadas-bg-success); border-color: var(--rodadas-success); }
-.rodada-card-compacto.saldo-negativo { background: var(--rodadas-bg-danger); border-color: var(--rodadas-danger); }
-.rodada-card-compacto.mito { background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.1) 100%); border-color: var(--rodadas-success); box-shadow: 0 0 12px rgba(34, 197, 94, 0.3); }
-.rodada-card-compacto.mico { background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.1) 100%); border-color: var(--rodadas-danger); box-shadow: 0 0 12px rgba(239, 68, 68, 0.3); }
-.rodada-card-compacto.parcial { background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.05) 100%); border-color: var(--rodadas-success); animation: pulse-parcial 2s infinite; }
-@keyframes pulse-parcial { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-.card-numero { font-family: var(--rodadas-font-brand); font-size: 16px; font-weight: 400; color: var(--rodadas-text-white); }
-.card-pontos { font-family: var(--rodadas-font-brand); font-size: 10px; font-weight: 400; color: var(--rodadas-text-muted); margin-top: 2px; letter-spacing: -0.3px; }
-.badge-destaque { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1; }
-.badge-destaque .material-symbols-outlined { font-size: 14px; }
-.rodada-card-compacto.mito .badge-destaque { background: linear-gradient(135deg, var(--rodadas-success), var(--rodadas-success-dark)); box-shadow: 0 2px 6px rgba(34, 197, 94, 0.5); }
-.rodada-card-compacto.mito .badge-destaque .material-symbols-outlined { color: var(--rodadas-text-white); }
-.rodada-card-compacto.mico .badge-destaque { background: linear-gradient(135deg, var(--rodadas-danger), var(--rodadas-danger-dark)); box-shadow: 0 2px 6px rgba(239, 68, 68, 0.5); }
-.rodada-card-compacto.mico .badge-destaque .material-symbols-outlined { color: var(--rodadas-text-white); }
-.badge-ao-vivo { position: absolute; top: 2px; left: 2px; color: var(--rodadas-success); font-size: 8px; animation: blink 1s infinite; }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-.rodadas-ver-jogadores { margin-top: 16px; }
-.rodadas-ver-jogadores button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 12px; color: var(--rodadas-primary); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
-.rodadas-ver-jogadores button:hover { background: rgba(249, 115, 22, 0.25); }
-.rodadas-ver-jogadores button .material-symbols-outlined { font-size: 20px; }
-.rodadas-empty-state { text-align: center; padding: 60px 20px; color: var(--rodadas-text-dim); }
-.rodadas-empty-state .material-symbols-outlined { font-size: 64px; color: #404040; margin-bottom: 16px; display: block; }
-.rodadas-empty-state h3 { color: var(--rodadas-text-muted); font-size: 18px; margin-bottom: 8px; }
-.rodada-detalhamento-pro { margin-top: 24px; background: var(--rodadas-surface); border-radius: 16px; overflow: hidden; border: 1px solid var(--rodadas-border); }
-.detalhamento-header-pro { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: linear-gradient(135deg, var(--rodadas-primary) 0%, var(--rodadas-primary-dark) 100%); }
-.detalhamento-info h3 { font-family: var(--rodadas-font-brand); color: var(--rodadas-text-white); font-size: 18px; font-weight: 400; letter-spacing: 0.3px; margin: 0 0 4px 0; }
-.rodada-resumo { color: rgba(255, 255, 255, 0.85); font-size: 13px; margin: 0; }
-.btn-voltar-pro { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: rgba(0, 0, 0, 0.2); border: none; border-radius: 8px; color: var(--rodadas-text-white); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
-.btn-voltar-pro:hover { background: rgba(0, 0, 0, 0.3); }
-.btn-voltar-pro .material-symbols-outlined { font-size: 18px; }
-.ranking-container-pro { padding: 16px; max-height: 60vh; overflow-y: auto; }
-.ranking-list-pro { display: flex; flex-direction: column; gap: 8px; }
-.ranking-item-pro { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--rodadas-surface-elevated); border-radius: 12px; transition: background 0.2s; }
-.ranking-item-pro:hover { background: var(--rodadas-surface-hover); }
-.ranking-item-pro.meu-time { background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.3); }
-.ranking-item-pro.inativo { opacity: 0.5; }
-.posicao-badge-pro { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-family: var(--rodadas-font-brand); font-weight: 400; font-size: 14px; background: var(--rodadas-surface-hover); color: var(--rodadas-text-white); }
-.posicao-badge-pro.pos-1 { background: linear-gradient(135deg, var(--rodadas-gold), var(--rodadas-gold-dark)); color: #000; }
-.posicao-badge-pro.pos-2 { background: linear-gradient(135deg, var(--rodadas-silver), var(--rodadas-silver-dark)); color: #000; }
-.posicao-badge-pro.pos-3 { background: linear-gradient(135deg, var(--rodadas-bronze), var(--rodadas-bronze-dark)); color: #000; }
-.posicao-badge-pro.pos-danger { background: rgba(239, 68, 68, 0.2); color: var(--rodadas-danger); }
-.ranking-info-pro { flex: 1; min-width: 0; }
-.ranking-nome-time { font-weight: 600; color: var(--rodadas-text-white); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ranking-nome-cartola { font-size: 12px; color: var(--rodadas-text-muted); }
-.ranking-stats-pro { text-align: right; }
-.ranking-pontos-pro { font-family: var(--rodadas-font-brand); font-weight: 400; color: var(--rodadas-text-white); font-size: 14px; letter-spacing: -0.3px; }
-.ranking-financeiro-pro { font-size: 12px; }
-.ranking-financeiro-pro.positivo { color: var(--rodadas-success); }
-.ranking-financeiro-pro.negativo { color: var(--rodadas-danger); }
-.ranking-financeiro-pro.neutro { color: var(--rodadas-text-dim); }
-.toast-desenvolvimento { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; background: var(--rodadas-surface-hover); color: var(--rodadas-text-white); padding: 12px 20px; border-radius: 12px; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 1000; }
-.toast-desenvolvimento.show { opacity: 1; visibility: visible; }
-.toast-desenvolvimento .material-symbols-outlined { font-size: 18px; color: var(--rodadas-primary); }
+
+.rodadas-participante-container {
+    padding: 16px;
+    padding-bottom: 100px;
+    font-family: var(--rodadas-font-body);
+}
+
+/* === HEADER === */
+.rodadas-header-pro {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.rodadas-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.rodadas-icon {
+    font-size: 32px;
+    color: var(--rodadas-primary);
+}
+
+.rodadas-header-pro h2 {
+    font-family: var(--rodadas-font-brand);
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    color: var(--rodadas-primary);
+    margin: 0;
+}
+
+.rodadas-subtitle {
+    color: var(--rodadas-text-muted);
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+/* === RODADA DESTAQUE (AO VIVO / ATUAL) === */
+.rodada-destaque-card {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
+    border: 2px solid var(--rodadas-success);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.rodada-destaque-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.2);
+}
+
+.rodada-destaque-card.ao-vivo {
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(34, 197, 94, 0.5); }
+}
+
+.destaque-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: var(--rodadas-success);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.destaque-badge .material-symbols-outlined {
+    font-size: 14px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.destaque-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.destaque-numero {
+    width: 64px;
+    height: 64px;
+    background: rgba(34, 197, 94, 0.2);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.destaque-numero .numero {
+    font-family: var(--rodadas-font-brand);
+    font-size: 28px;
+    color: var(--rodadas-text-white);
+    line-height: 1;
+}
+
+.destaque-numero .label {
+    font-size: 10px;
+    color: var(--rodadas-success);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.destaque-info {
+    flex: 1;
+}
+
+.destaque-info h3 {
+    font-family: var(--rodadas-font-brand);
+    font-size: 18px;
+    color: var(--rodadas-text-white);
+    margin: 0 0 4px 0;
+}
+
+.destaque-info .stats {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--rodadas-text-muted);
+}
+
+.destaque-info .stats span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.destaque-info .stats .material-symbols-outlined {
+    font-size: 16px;
+}
+
+.destaque-arrow {
+    color: var(--rodadas-text-muted);
+    transition: transform 0.3s;
+}
+
+.rodada-destaque-card:hover .destaque-arrow {
+    transform: translateX(4px);
+}
+
+/* === SELETOR DE TEMPORADA === */
+.rodadas-ano-selector {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.ano-btn {
+    padding: 10px 24px;
+    background: var(--rodadas-surface-elevated);
+    border: none;
+    border-radius: 8px;
+    color: var(--rodadas-text-muted);
+    font-family: var(--rodadas-font-brand);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ano-btn:hover {
+    background: var(--rodadas-surface-hover);
+}
+
+.ano-btn.active {
+    background: var(--rodadas-primary);
+    color: var(--rodadas-text-white);
+}
+
+.ano-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* === GRUPOS EXPANSÍVEIS === */
+.rodadas-grupos-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rodadas-grupo {
+    background: var(--rodadas-surface);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--rodadas-border);
+    transition: all 0.3s ease;
+}
+
+.rodadas-grupo.expanded {
+    border-color: var(--rodadas-primary);
+}
+
+.grupo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.grupo-header:hover {
+    background: var(--rodadas-surface-elevated);
+}
+
+.grupo-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.grupo-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--rodadas-surface-elevated);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rodadas-primary);
+}
+
+.grupo-icon .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.grupo-title {
+    font-family: var(--rodadas-font-brand);
+    font-size: 16px;
+    color: var(--rodadas-text-white);
+}
+
+.grupo-subtitle {
+    font-size: 12px;
+    color: var(--rodadas-text-muted);
+    margin-top: 2px;
+}
+
+.grupo-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.grupo-stats {
+    display: flex;
+    gap: 8px;
+}
+
+.grupo-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.grupo-stat.mitos {
+    color: var(--rodadas-success);
+}
+
+.grupo-stat.micos {
+    color: var(--rodadas-danger);
+}
+
+.grupo-stat .material-symbols-outlined {
+    font-size: 14px;
+}
+
+.grupo-chevron {
+    color: var(--rodadas-text-muted);
+    transition: transform 0.3s ease;
+}
+
+.rodadas-grupo.expanded .grupo-chevron {
+    transform: rotate(180deg);
+}
+
+/* === GRID DE RODADAS (dentro do grupo expandido) === */
+.grupo-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.3s ease;
+}
+
+.rodadas-grupo.expanded .grupo-content {
+    max-height: 600px;
+    padding: 0 16px 16px 16px;
+}
+
+.rodadas-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+@media (min-width: 400px) {
+    .rodadas-mini-grid {
+        grid-template-columns: repeat(10, 1fr);
+    }
+}
+
+/* === CARDS DE RODADA (MINI) === */
+.rodada-mini-card {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--rodadas-surface-elevated);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    border: 2px solid transparent;
+}
+
+.rodada-mini-card:hover:not(.futuro) {
+    transform: scale(1.08);
+    background: var(--rodadas-surface-hover);
+}
+
+.rodada-mini-card.selected {
+    border-color: var(--rodadas-primary);
+    background: rgba(249, 115, 22, 0.15);
+}
+
+.rodada-mini-card.futuro {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.rodada-mini-card.saldo-positivo {
+    background: var(--rodadas-bg-success);
+    border-color: var(--rodadas-success);
+}
+
+.rodada-mini-card.saldo-negativo {
+    background: var(--rodadas-bg-danger);
+    border-color: var(--rodadas-danger);
+}
+
+.rodada-mini-card.mito {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.1) 100%);
+    border-color: var(--rodadas-success);
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+}
+
+.rodada-mini-card.mico {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.1) 100%);
+    border-color: var(--rodadas-danger);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+}
+
+.rodada-mini-card.parcial {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.05) 100%);
+    border-color: var(--rodadas-success);
+    animation: pulse-parcial 2s infinite;
+}
+
+@keyframes pulse-parcial {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.mini-card-numero {
+    font-family: var(--rodadas-font-brand);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--rodadas-text-white);
+}
+
+.mini-card-pontos {
+    font-family: var(--rodadas-font-mono);
+    font-size: 9px;
+    color: var(--rodadas-text-muted);
+    margin-top: 1px;
+}
+
+.badge-mini-destaque {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.badge-mini-destaque .material-symbols-outlined {
+    font-size: 10px;
+    color: #fff;
+}
+
+.rodada-mini-card.mito .badge-mini-destaque {
+    background: var(--rodadas-success);
+}
+
+.rodada-mini-card.mico .badge-mini-destaque {
+    background: var(--rodadas-danger);
+}
+
+.badge-mini-ao-vivo {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    color: var(--rodadas-success);
+    font-size: 6px;
+    animation: blink 1s infinite;
+}
+
+/* === SLIDER HORIZONTAL DE RODADAS === */
+.rodadas-slider-container {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.rodadas-slider-label {
+    font-size: 12px;
+    color: var(--rodadas-text-muted);
+    margin-bottom: 8px;
+    padding-left: 4px;
+}
+
+.rodadas-slider {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 4px;
+    scrollbar-width: none;
+}
+
+.rodadas-slider::-webkit-scrollbar {
+    display: none;
+}
+
+.slider-rodada-card {
+    flex: 0 0 auto;
+    width: 56px;
+    height: 72px;
+    background: var(--rodadas-surface-elevated);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    scroll-snap-align: center;
+    transition: all 0.2s ease;
+    position: relative;
+    border: 2px solid transparent;
+}
+
+.slider-rodada-card:hover:not(.futuro) {
+    background: var(--rodadas-surface-hover);
+}
+
+.slider-rodada-card.selected {
+    border-color: var(--rodadas-primary);
+    background: rgba(249, 115, 22, 0.15);
+    transform: scale(1.05);
+}
+
+.slider-rodada-card.atual {
+    border-color: var(--rodadas-success);
+    background: rgba(34, 197, 94, 0.15);
+}
+
+.slider-rodada-card.futuro {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.slider-rodada-card.saldo-positivo {
+    background: var(--rodadas-bg-success);
+}
+
+.slider-rodada-card.saldo-negativo {
+    background: var(--rodadas-bg-danger);
+}
+
+.slider-numero {
+    font-family: var(--rodadas-font-brand);
+    font-size: 18px;
+    color: var(--rodadas-text-white);
+}
+
+.slider-pontos {
+    font-family: var(--rodadas-font-mono);
+    font-size: 10px;
+    color: var(--rodadas-text-muted);
+    margin-top: 2px;
+}
+
+.slider-badge-live {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    background: var(--rodadas-success);
+    border-radius: 50%;
+    animation: blink 1s infinite;
+}
+
+/* === CARD DE DESEMPENHO === */
+.card-desempenho-mitos-micos {
+    background: linear-gradient(135deg, var(--rodadas-surface) 0%, var(--rodadas-surface-elevated) 100%);
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 20px;
+    border: 1px solid var(--rodadas-border);
+}
+
+.desempenho-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    color: var(--rodadas-primary);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.desempenho-header .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.badge-rodadas {
+    margin-left: auto;
+    background: rgba(249, 115, 22, 0.2);
+    color: var(--rodadas-primary);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.desempenho-stats {
+    display: flex;
+    gap: 12px;
+}
+
+.stat-mito, .stat-mico {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-icon-wrapper.mito {
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--rodadas-success);
+}
+
+.stat-icon-wrapper.mico {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--rodadas-danger);
+}
+
+.stat-icon-wrapper .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.stat-info {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.stat-label {
+    color: var(--rodadas-text-dim);
+    font-family: var(--rodadas-font-brand);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    color: var(--rodadas-text-white);
+    font-family: var(--rodadas-font-brand);
+    font-size: 24px;
+    font-weight: 400;
+}
+
+.stat-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar.mito .progress-fill {
+    background: var(--rodadas-success);
+}
+
+.progress-bar.mico .progress-fill {
+    background: var(--rodadas-danger);
+}
+
+.progress-fill {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.progress-text {
+    color: var(--rodadas-text-dim);
+    font-size: 11px;
+    min-width: 32px;
+}
+
+.stat-ultimo {
+    color: var(--rodadas-text-dim);
+    font-size: 11px;
+}
+
+/* === DETALHAMENTO DA RODADA === */
+.rodada-detalhamento-pro {
+    margin-top: 20px;
+    background: var(--rodadas-surface);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--rodadas-border);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.detalhamento-header-pro {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--rodadas-primary) 0%, var(--rodadas-primary-dark) 100%);
+}
+
+.detalhamento-info h3 {
+    font-family: var(--rodadas-font-brand);
+    color: var(--rodadas-text-white);
+    font-size: 18px;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+    margin: 0 0 4px 0;
+}
+
+.rodada-resumo {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+    margin: 0;
+}
+
+.auto-refresh-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--rodadas-success);
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.auto-refresh-indicator .material-symbols-outlined {
+    font-size: 14px;
+    animation: spin-rodadas 1.6s linear infinite;
+}
+
+.btn-voltar-pro {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    border-radius: 8px;
+    color: var(--rodadas-text-white);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-voltar-pro:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.btn-voltar-pro .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.ranking-container-pro {
+    padding: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.ranking-list-pro {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ranking-item-pro {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--rodadas-surface-elevated);
+    border-radius: 12px;
+    transition: background 0.2s;
+}
+
+.ranking-item-pro:hover {
+    background: var(--rodadas-surface-hover);
+}
+
+.ranking-item-pro.meu-time {
+    background: rgba(249, 115, 22, 0.15);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.ranking-item-pro.inativo {
+    opacity: 0.5;
+}
+
+.posicao-badge-pro {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-family: var(--rodadas-font-brand);
+    font-weight: 400;
+    font-size: 14px;
+    background: var(--rodadas-surface-hover);
+    color: var(--rodadas-text-white);
+}
+
+.posicao-badge-pro.pos-1 {
+    background: linear-gradient(135deg, var(--rodadas-gold), #ffb700);
+    color: #000;
+}
+
+.posicao-badge-pro.pos-2 {
+    background: linear-gradient(135deg, var(--rodadas-silver), #a0a0a0);
+    color: #000;
+}
+
+.posicao-badge-pro.pos-3 {
+    background: linear-gradient(135deg, var(--rodadas-bronze), #b06c2a);
+    color: #000;
+}
+
+.posicao-badge-pro.pos-danger {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--rodadas-danger);
+}
+
+.ranking-info-pro {
+    flex: 1;
+    min-width: 0;
+}
+
+.ranking-nome-time {
+    font-weight: 600;
+    color: var(--rodadas-text-white);
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ranking-nome-cartola {
+    font-size: 12px;
+    color: var(--rodadas-text-muted);
+}
+
+.ranking-stats-pro {
+    text-align: right;
+}
+
+.ranking-pontos-pro {
+    font-family: var(--rodadas-font-brand);
+    font-weight: 400;
+    color: var(--rodadas-text-white);
+    font-size: 14px;
+    letter-spacing: -0.3px;
+}
+
+.ranking-financeiro-pro {
+    font-size: 12px;
+}
+
+.ranking-financeiro-pro.positivo {
+    color: var(--rodadas-success);
+}
+
+.ranking-financeiro-pro.negativo {
+    color: var(--rodadas-danger);
+}
+
+.ranking-financeiro-pro.neutro {
+    color: var(--rodadas-text-dim);
+}
+
+/* === ESTADOS === */
+.rodadas-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--rodadas-text-muted);
+}
+
+.loading-spinner-rodadas {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--rodadas-border);
+    border-top-color: var(--rodadas-primary);
+    border-radius: 50%;
+    animation: spin-rodadas 0.8s linear infinite;
+}
+
+@keyframes spin-rodadas {
+    to { transform: rotate(360deg); }
+}
+
+.rodadas-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--rodadas-text-dim);
+}
+
+.rodadas-empty-state .material-symbols-outlined {
+    font-size: 64px;
+    color: #404040;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.rodadas-empty-state h3 {
+    color: var(--rodadas-text-muted);
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+/* === TOAST === */
+.toast-desenvolvimento {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--rodadas-surface-hover);
+    color: var(--rodadas-text-white);
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.toast-desenvolvimento.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.toast-desenvolvimento .material-symbols-outlined {
+    font-size: 18px;
+    color: var(--rodadas-primary);
+}
+
+/* === BADGES ADICIONAIS === */
+.badge-parcial {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--rodadas-success);
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin-left: 8px;
+}
+
+.badge-nao-jogou {
+    padding: 2px 6px;
+    background: rgba(107, 114, 128, 0.2);
+    color: var(--rodadas-text-dim);
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+.btn-atualizar-parciais {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(249, 115, 22, 0.15);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: 8px;
+    color: var(--rodadas-primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-atualizar-parciais:hover {
+    background: rgba(249, 115, 22, 0.25);
+}
+
+.btn-atualizar-parciais .material-icons {
+    font-size: 18px;
+}
+
+/* === SEÇÃO INATIVOS === */
+.secao-inativos {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--rodadas-border);
+}
+
+.secao-inativos-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--rodadas-text-dim);
+}
+
+.secao-inativos-header .material-icons {
+    font-size: 16px;
+}
+
+.ranking-inativo-info {
+    font-size: 10px;
+    color: var(--rodadas-text-dim);
+}
+
+.posicao-badge-pro.pos-inativo {
+    background: rgba(107, 114, 128, 0.2);
+    color: var(--rodadas-text-dim);
+}
 </style>
 
 <div class="rodadas-participante-container">
@@ -140,9 +1059,43 @@
         <p class="rodadas-subtitle">Acompanhe seu desempenho em cada rodada</p>
     </div>
 
+    <!-- Card Destaque: Rodada Atual/Ao Vivo -->
+    <div id="rodadaDestaqueCard" class="rodada-destaque-card" style="display: none;">
+        <div class="destaque-badge">
+            <span class="material-symbols-outlined">stream</span>
+            <span id="destaqueBadgeText">AO VIVO</span>
+        </div>
+        <div class="destaque-content">
+            <div class="destaque-numero">
+                <span id="destaqueNumero" class="numero">--</span>
+                <span class="label">Rodada</span>
+            </div>
+            <div class="destaque-info">
+                <h3 id="destaqueTitulo">Rodada em Andamento</h3>
+                <div class="stats">
+                    <span id="destaquePontos">
+                        <span class="material-symbols-outlined">sports_soccer</span>
+                        <span>-- pts</span>
+                    </span>
+                    <span id="destaquePosicao">
+                        <span class="material-symbols-outlined">leaderboard</span>
+                        <span>--º lugar</span>
+                    </span>
+                </div>
+            </div>
+            <span class="material-symbols-outlined destaque-arrow">chevron_right</span>
+        </div>
+    </div>
+
     <div class="rodadas-ano-selector">
-        <button class="ano-btn active">2025</button>
-        <!-- Botão 2026 será adicionado quando admin disparar nova temporada -->
+        <button class="ano-btn active" data-ano="2026">2026</button>
+        <button class="ano-btn" data-ano="2025">2025</button>
+    </div>
+
+    <!-- Slider Horizontal de Rodadas -->
+    <div id="rodadasSliderContainer" class="rodadas-slider-container" style="display: none;">
+        <div class="rodadas-slider-label">Navegação rápida</div>
+        <div id="rodadasSlider" class="rodadas-slider"></div>
     </div>
 
     <div id="rodadasLoading" class="rodadas-loading-state">
@@ -150,32 +1103,25 @@
         <p>Carregando rodadas...</p>
     </div>
 
-    <div class="rodadas-grid-container" style="display: none">
-        <div id="rodadasCardsGrid" class="rodadas-grid-compacto"></div>
-        <div id="btnVerJogadores" class="rodadas-ver-jogadores" style="display: none">
-            <button onclick="window.mostrarEmDesenvolvimento('Detalhamento de jogadores')">
-                <span class="material-symbols-outlined">groups</span>
-                <span id="btnJogadoresTexto">Ver Meus Jogadores da Rodada</span>
-            </button>
-        </div>
-    </div>
+    <!-- Grupos Expansíveis -->
+    <div id="rodadasGruposContainer" class="rodadas-grupos-container" style="display: none;"></div>
 
-    <div id="rodadasEmpty" class="rodadas-empty-state" style="display: none">
+    <div id="rodadasEmpty" class="rodadas-empty-state" style="display: none;">
         <span class="material-symbols-outlined">calendar_today</span>
         <h3>Nenhuma rodada disponível</h3>
         <p>As rodadas aparecerão aqui quando o campeonato começar</p>
     </div>
 
-    <div id="rodadaDetalhamento" class="rodada-detalhamento-pro" style="display: none">
+    <div id="rodadaDetalhamento" class="rodada-detalhamento-pro" style="display: none;">
         <div class="detalhamento-header-pro">
-        <div class="detalhamento-info">
-            <h3 id="rodadaTitulo">Rodada X</h3>
-            <p id="rodadaResumo" class="rodada-resumo"></p>
-            <div id="autoRefreshIndicator" class="auto-refresh-indicator" style="display: none;">
-                <span class="material-symbols-outlined">autorenew</span>
-                <span id="autoRefreshText">Auto-refresh ativo</span>
+            <div class="detalhamento-info">
+                <h3 id="rodadaTitulo">Rodada X</h3>
+                <p id="rodadaResumo" class="rodada-resumo"></p>
+                <div id="autoRefreshIndicator" class="auto-refresh-indicator" style="display: none;">
+                    <span class="material-symbols-outlined">autorenew</span>
+                    <span id="autoRefreshText">Auto-refresh ativo</span>
+                </div>
             </div>
-        </div>
             <button class="btn-voltar-pro" onclick="window.voltarParaCards()">
                 <span class="material-symbols-outlined">arrow_back</span>
                 Voltar
@@ -186,7 +1132,7 @@
         </div>
     </div>
 
-    <div id="cardDesempenhoMitosMicos" class="card-desempenho-mitos-micos" style="display: none">
+    <div id="cardDesempenhoMitosMicos" class="card-desempenho-mitos-micos" style="display: none;">
         <div class="desempenho-header">
             <span class="material-symbols-outlined">insights</span>
             <span>Seu Desempenho</span>

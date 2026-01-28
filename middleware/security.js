@@ -12,7 +12,7 @@ const RATE_LIMIT_MAX_REQUESTS = 500; // ✅ FIX: aumentado de 100 para 500 (app 
 const RATE_LIMIT_AUTH_MAX = 10; // máx tentativas de login por minuto
 
 // Limpar contadores antigos periodicamente
-setInterval(() => {
+const rateLimitCleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, data] of requestCounts.entries()) {
     if (now - data.startTime > RATE_LIMIT_WINDOW) {
@@ -20,6 +20,11 @@ setInterval(() => {
     }
   }
 }, RATE_LIMIT_WINDOW);
+
+// Exportar intervalId para graceful shutdown
+export function getRateLimitCleanupIntervalId() {
+  return rateLimitCleanupInterval;
+}
 
 /**
  * Rate Limiter genérico
