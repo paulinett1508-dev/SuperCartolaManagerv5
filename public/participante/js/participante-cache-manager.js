@@ -266,22 +266,29 @@ class ParticipanteCacheManager {
 
     // ----- RODADAS -----
 
-    setRodadas(ligaId, dados) {
-        this.setMemory(`rodadas_${ligaId}`, dados);
+    // ✅ v2.2: Rodadas com segregação por temporada (similar ao ranking)
+    setRodadas(ligaId, dados, temporada = null) {
+        const temp = temporada || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const key = `${ligaId}_${temp}`;
+        this.setMemory(`rodadas_${key}`, dados);
         if (window.OfflineCache) {
-            window.OfflineCache.set('rodadas', ligaId, dados);
+            window.OfflineCache.set('rodadas', key, dados);
         }
     }
 
-    getRodadas(ligaId) {
-        return this.getMemory(`rodadas_${ligaId}`);
+    getRodadas(ligaId, temporada = null) {
+        const temp = temporada || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const key = `${ligaId}_${temp}`;
+        return this.getMemory(`rodadas_${key}`);
     }
 
-    async getRodadasAsync(ligaId, fetchFn = null, onUpdate = null) {
+    async getRodadasAsync(ligaId, fetchFn = null, onUpdate = null, temporada = null) {
+        const temp = temporada || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const key = `${ligaId}_${temp}`;
         if (fetchFn) {
-            return this.getWithFallback('rodadas', ligaId, fetchFn, onUpdate);
+            return this.getWithFallback('rodadas', key, fetchFn, onUpdate);
         }
-        return this.getPersistent('rodadas', ligaId, true);
+        return this.getPersistent('rodadas', key, true);
     }
 
     // ----- MÓDULOS ATIVOS -----
@@ -369,7 +376,7 @@ class ParticipanteCacheManager {
             this.getRodadasAsync(ligaId, async () => {
                 const res = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38&temporada=${temporada}`);
                 return res.ok ? res.json() : [];
-            })
+            }, null, temporada)
         );
 
         await Promise.all(promises);

@@ -92,7 +92,7 @@ class ModuleConfigPDF {
             return { success: true, arquivo: nomeArquivo };
 
         } catch (error) {
-            console.error('[MODULE-CONFIG-PDF] Erro:', error);
+            console.error('[MODULE-CONFIG-PDF] Erro:', error?.message || error, error?.stack || '');
             throw error;
         }
     }
@@ -164,12 +164,16 @@ class ModuleConfigPDF {
      * Inicializa o documento PDF
      */
     inicializarPDF() {
-        // Verificar se jsPDF está disponível
-        if (typeof jsPDF === 'undefined') {
+        // Verificar se jsPDF está disponível (CDN UMD usa window.jspdf.jsPDF)
+        const jsPDFCtor = (typeof jsPDF !== 'undefined')
+            ? jsPDF
+            : (window.jspdf && window.jspdf.jsPDF);
+
+        if (!jsPDFCtor) {
             throw new Error('jsPDF não está carregado. Adicione a biblioteca ao projeto.');
         }
 
-        this.doc = new jsPDF({
+        this.doc = new jsPDFCtor({
             orientation: 'portrait',
             unit: 'mm',
             format: 'a4'
@@ -706,8 +710,8 @@ window.exportarParametrizacoesPDF = async function(ligaId) {
         }
 
     } catch (error) {
-        console.error('[EXPORT-PDF] Erro:', error);
-        alert('Erro ao gerar PDF: ' + error.message);
+        console.error('[EXPORT-PDF] Erro:', error?.message || error, error?.stack || '');
+        alert('Erro ao gerar PDF: ' + (error?.message || 'Erro desconhecido'));
 
         const btn = document.getElementById('btnExportarPDF');
         if (btn) {

@@ -14,6 +14,7 @@ if (window.Log) Log.info("[PARTICIPANTE-TOP10] Carregando módulo v5.2...");
 // CONFIGURAÇÃO DINÂMICA DO CAMPEONATO
 // =====================================================================
 const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão (constante)
+const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
 
 /**
  * v5.1: Detecta se estamos visualizando temporada passada
@@ -130,7 +131,8 @@ export async function inicializarTop10Participante({
     // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
     if (cache && window.OfflineCache) {
         try {
-            const top10Cache = await window.OfflineCache.get('top10', ligaId, true);
+            const cacheKey = `${ligaId}_${TEMPORADA_ATUAL}`;
+            const top10Cache = await window.OfflineCache.get('top10', cacheKey, true);
             if (top10Cache && top10Cache.mitos && top10Cache.micos) {
                 usouCache = true;
                 dadosCache = top10Cache;
@@ -140,7 +142,7 @@ export async function inicializarTop10Participante({
                     Log.info(`[PARTICIPANTE-TOP10] ⚡ Cache IndexedDB: ${top10Cache.mitos.length} mitos, ${top10Cache.micos.length} micos`);
 
                 renderizarTabelasTop10(top10Cache.mitos, top10Cache.micos, timeId, valoresBonusOnus);
-                renderizarCardResumo(top10Cache.mitos, top10Cache.micos, timeId, valoresBonusOnus);
+                await renderizarCardResumo(top10Cache.mitos, top10Cache.micos, timeId, valoresBonusOnus, ligaId);
             }
         } catch (e) {
             if (window.Log) Log.warn("[PARTICIPANTE-TOP10] ⚠️ Erro ao ler cache:", e);
@@ -172,7 +174,7 @@ export async function inicializarTop10Participante({
         }
 
         // FASE 2: ATUALIZAÇÃO EM BACKGROUND (Fetch API)
-        const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${ultimaRodadaCompleta}`;
+        const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${ultimaRodadaCompleta}&temporada=${TEMPORADA_ATUAL}`;
         if (window.Log)
             Log.info("[PARTICIPANTE-TOP10] 📡 Buscando API:", cacheUrl);
 
@@ -212,7 +214,8 @@ export async function inicializarTop10Participante({
         // ✅ v4.7: Salvar no IndexedDB para próxima visita
         if (window.OfflineCache && mitos.length > 0) {
             try {
-                await window.OfflineCache.set('top10', ligaId, { mitos, micos });
+                const cacheKey = `${ligaId}_${TEMPORADA_ATUAL}`;
+                await window.OfflineCache.set('top10', cacheKey, { mitos, micos });
                 if (window.Log) Log.info("[PARTICIPANTE-TOP10] 💾 Cache IndexedDB atualizado");
             } catch (e) {
                 if (window.Log) Log.warn("[PARTICIPANTE-TOP10] ⚠️ Erro ao salvar cache:", e);
@@ -227,7 +230,7 @@ export async function inicializarTop10Participante({
 
         if (dadosMudaram) {
             renderizarTabelasTop10(mitos, micos, timeId, valoresBonusOnus);
-            renderizarCardResumo(mitos, micos, timeId, valoresBonusOnus);
+            await renderizarCardResumo(mitos, micos, timeId, valoresBonusOnus, ligaId);
             if (usouCache && window.Log) {
                 Log.info("[PARTICIPANTE-TOP10] 🔄 Re-renderizado com dados frescos");
             }
@@ -514,13 +517,9 @@ function gerarLinhaTabela(
 }
 
 // =====================================================================
-// CARD RESUMO DESEMPENHO (TOP 10 Histórico - Bônus/Ônus)
+// CARD RESUMO DESEMPENHO (MITO/MICO = 1º/Último da rodada)
 // =====================================================================
-// NOTA: Este card mostra quantas vezes o usuário aparece no TOP 10 HISTÓRICO
-// de maiores/menores pontuações do campeonato (gera bônus/ônus financeiro).
-// É DIFERENTE do módulo Rodadas que conta quantas vezes foi 1º/último na rodada.
-// =====================================================================
-function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
+async function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus, ligaId) {
     const card = document.getElementById("top10ResumoCard");
     if (!card) return;
 
@@ -531,31 +530,41 @@ function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
     let countMicos = 0;
     let totalOnus = 0;
 
-    // Verificar MITOS - apenas TOP 10 gera bônus
-    mitos.forEach((item, index) => {
-        const timeIdNum = Number(item.timeId || item.time_id);
-        if (timeIdNum === meuTimeIdNum && item.ativo !== false) {
-            const posicao = index + 1;
-            // Só conta para bônus se estiver no TOP 10
-            if (posicao <= 10) {
-                countMitos++;
-                totalBonus += valoresBonusOnus.mitos[posicao] || 0;
-            }
-        }
-    });
+    const rodadas = await obterRodadasParaResumo(ligaId);
+    if (rodadas && rodadas.length > 0) {
+        const resultado = calcularMitosMicosPorRodada(rodadas, meuTimeIdNum);
+        countMitos = resultado.countMitos;
+        countMicos = resultado.countMicos;
 
-    // Verificar MICOS - apenas TOP 10 gera ônus
-    micos.forEach((item, index) => {
-        const timeIdNum = Number(item.timeId || item.time_id);
-        if (timeIdNum === meuTimeIdNum && item.ativo !== false) {
-            const posicao = index + 1;
-            // Só conta para ônus se estiver no TOP 10
-            if (posicao <= 10) {
-                countMicos++;
-                totalOnus += Math.abs(valoresBonusOnus.micos[posicao] || 0);
+        const valorMito = obterValorConfig(valoresBonusOnus.mitos, 1);
+        const valorMico = Math.abs(obterValorConfig(valoresBonusOnus.micos, 1));
+
+        totalBonus = countMitos * valorMito;
+        totalOnus = countMicos * valorMico;
+    } else {
+        // Fallback: manter comportamento anterior se não houver rodadas
+        mitos.forEach((item, index) => {
+            const timeIdNum = Number(item.timeId || item.time_id);
+            if (timeIdNum === meuTimeIdNum && item.ativo !== false) {
+                const posicao = index + 1;
+                if (posicao <= 10) {
+                    countMitos++;
+                    totalBonus += valoresBonusOnus.mitos[posicao] || 0;
+                }
             }
-        }
-    });
+        });
+
+        micos.forEach((item, index) => {
+            const timeIdNum = Number(item.timeId || item.time_id);
+            if (timeIdNum === meuTimeIdNum && item.ativo !== false) {
+                const posicao = index + 1;
+                if (posicao <= 10) {
+                    countMicos++;
+                    totalOnus += Math.abs(valoresBonusOnus.micos[posicao] || 0);
+                }
+            }
+        });
+    }
 
     const saldo = totalBonus - totalOnus;
 
@@ -581,8 +590,78 @@ function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
 
     if (window.Log)
         Log.info(
-            `[PARTICIPANTE-TOP10] 📊 Resumo TOP 10 Histórico: ${countMitos} MITOS (+R$${totalBonus}), ${countMicos} MICOS (-R$${totalOnus}), Saldo: R$${saldo}`,
+            `[PARTICIPANTE-TOP10] 📊 Resumo MITO/MICO (rodadas): ${countMitos} MITOS (+R$${totalBonus}), ${countMicos} MICOS (-R$${totalOnus}), Saldo: R$${saldo}`,
         );
+}
+
+async function obterRodadasParaResumo(ligaId) {
+    if (!ligaId) return [];
+
+    const cache = window.ParticipanteCache;
+    const temporada = TEMPORADA_ATUAL;
+
+    if (cache && cache.getRodadasAsync) {
+        return cache.getRodadasAsync(ligaId, async () => {
+            const res = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38&temporada=${temporada}`);
+            return res.ok ? res.json() : [];
+        }, null, temporada);
+    }
+
+    try {
+        const res = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38&temporada=${temporada}`);
+        return res.ok ? res.json() : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function calcularMitosMicosPorRodada(rodadas, meuTimeIdNum) {
+    const mapa = new Map();
+
+    rodadas.forEach((r) => {
+        const rodadaNum = Number(r.rodada);
+        if (!mapa.has(rodadaNum)) {
+            mapa.set(rodadaNum, {
+                totalAtivos: 0,
+                ativosCount: 0,
+                minhaPosicao: null,
+                jogou: false,
+            });
+        }
+
+        const entry = mapa.get(rodadaNum);
+
+        if (!entry.totalAtivos && r.totalParticipantesAtivos) {
+            entry.totalAtivos = r.totalParticipantesAtivos;
+        }
+
+        if (r.rodadaNaoJogada !== true) {
+            entry.ativosCount++;
+        }
+
+        const timeIdNum = Number(r.timeId || r.time_id);
+        if (timeIdNum === meuTimeIdNum) {
+            entry.minhaPosicao = r.posicao;
+            entry.jogou = r.rodadaNaoJogada !== true;
+        }
+    });
+
+    let countMitos = 0;
+    let countMicos = 0;
+
+    mapa.forEach((entry) => {
+        const totalAtivos = entry.totalAtivos || entry.ativosCount;
+        if (!entry.jogou || !entry.minhaPosicao || totalAtivos === 0) return;
+        if (entry.minhaPosicao === 1) countMitos++;
+        else if (totalAtivos > 1 && entry.minhaPosicao === totalAtivos) countMicos++;
+    });
+
+    return { countMitos, countMicos };
+}
+
+function obterValorConfig(valores, posicao) {
+    if (!valores) return 0;
+    return valores[posicao] || valores[String(posicao)] || 0;
 }
 
 // =====================================================================

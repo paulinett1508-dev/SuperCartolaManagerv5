@@ -19,6 +19,7 @@ let rodadaSelecionada = null;
 let rodadaAtualCartola = 38;
 let parciaisInfo = null;
 let grupoExpandido = null; // Qual grupo está expandido
+const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
 
 // Configuração dos grupos de rodadas
 const GRUPOS_CONFIG = [
@@ -53,7 +54,9 @@ export async function inicializarRodadasParticipante({
     // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
     // =========================================================================
     if (cache) {
-        const rodadasCache = await (cache.getRodadasAsync ? cache.getRodadasAsync(ligaId) : cache.getRodadas(ligaId));
+        const rodadasCache = await (cache.getRodadasAsync
+            ? cache.getRodadasAsync(ligaId, null, null, TEMPORADA_ATUAL)
+            : cache.getRodadas(ligaId, TEMPORADA_ATUAL));
 
         if (rodadasCache && Array.isArray(rodadasCache) && rodadasCache.length > 0) {
             usouCache = true;
@@ -85,7 +88,7 @@ export async function inicializarRodadasParticipante({
 
         // 3. Buscar rodadas consolidadas
         const response = await fetch(
-            `/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`,
+            `/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38&temporada=${TEMPORADA_ATUAL}`,
         );
         if (!response.ok) {
             if (!usouCache) throw new Error(`Erro HTTP ${response.status}`);
@@ -100,7 +103,7 @@ export async function inicializarRodadasParticipante({
 
         // 4. Atualizar cache com dados frescos
         if (cache) {
-            cache.setRodadas(ligaId, rodadas);
+            cache.setRodadas(ligaId, rodadas, TEMPORADA_ATUAL);
         }
 
         // 5. Agrupar rodadas
@@ -170,6 +173,9 @@ function agruparRodadasPorNumero(rodadas) {
 
         const rodadaData = rodadasMap.get(rodadaNum);
         rodadaData.participantes.push({ ...r });
+        if (!rodadaData.totalParticipantesAtivos && r.totalParticipantesAtivos) {
+            rodadaData.totalParticipantesAtivos = r.totalParticipantesAtivos;
+        }
 
         const timeId = r.timeId || r.time_id;
         if (String(timeId) === String(meuTimeId)) {
@@ -181,6 +187,14 @@ function agruparRodadasPorNumero(rodadas) {
     });
 
     return Array.from(rodadasMap.values()).sort((a, b) => a.numero - b.numero);
+}
+
+function getTotalParticipantesAtivos(rodada) {
+    if (!rodada) return 0;
+    if (rodada.totalParticipantesAtivos) return rodada.totalParticipantesAtivos;
+    if (!Array.isArray(rodada.participantes)) return 0;
+    const ativos = rodada.participantes.filter((p) => p.rodadaNaoJogada !== true);
+    return ativos.length || rodada.participantes.length;
 }
 
 // =====================================================================
@@ -300,8 +314,7 @@ function renderizarGrupos(rodadas) {
 
             rodadasJogadas++;
 
-            const totalParticipantes = rodada.participantes[0]?.totalParticipantesAtivos ||
-                                       rodada.participantes.filter(p => p.ativo !== false).length;
+            const totalParticipantes = getTotalParticipantesAtivos(rodada);
 
             if (rodada.posicaoFinanceira === 1) mitos++;
             else if (rodada.posicaoFinanceira === totalParticipantes && totalParticipantes > 1) micos++;
@@ -373,8 +386,7 @@ function renderizarMiniCards(inicio, fim, rodadasMap) {
 
             // MITO/MICO
             if (rodada.posicaoFinanceira) {
-                const totalParticipantes = rodada.participantes[0]?.totalParticipantesAtivos ||
-                                          rodada.participantes.filter(p => p.ativo !== false).length;
+                const totalParticipantes = getTotalParticipantesAtivos(rodada);
 
                 if (rodada.posicaoFinanceira === 1) {
                     classes.push('mito');
@@ -482,9 +494,7 @@ function renderizarCardDesempenho(rodadas) {
 
         rodadasJogadas++;
 
-        const totalParticipantes =
-            rodada.participantes[0]?.totalParticipantesAtivos ||
-            rodada.participantes.length;
+        const totalParticipantes = getTotalParticipantesAtivos(rodada);
 
         if (rodada.posicaoFinanceira === 1) {
             totalMitos++;

@@ -217,7 +217,7 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         [liga, ranking, rodadas, extratoData] = await Promise.all([
             cache.getLigaAsync ? cache.getLigaAsync(ligaId) : cache.getLiga(ligaId),
             cache.getRankingAsync ? cache.getRankingAsync(ligaId, null, null, temporadaCacheBV) : cache.getRanking(ligaId, temporadaCacheBV),
-            cache.getRodadasAsync ? cache.getRodadasAsync(ligaId) : cache.getRodadas(ligaId),
+            cache.getRodadasAsync ? cache.getRodadasAsync(ligaId, null, null, temporadaCacheBV) : cache.getRodadas(ligaId, temporadaCacheBV),
             deveBuscarExtratoDoCacheLocal
                 ? (cache.getExtratoAsync ? cache.getExtratoAsync(ligaId, timeId) : cache.getExtrato(ligaId, timeId))
                 : Promise.resolve(null) // ✅ Renovados: ignorar cache local de extrato
@@ -261,7 +261,7 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         if (cache) {
             cache.setLiga(ligaId, ligaFresh);
             cache.setRanking(ligaId, rankingFresh, temporada);
-            cache.setRodadas(ligaId, rodadasFresh);
+            cache.setRodadas(ligaId, rodadasFresh, temporada);
         }
 
         // Buscar extrato

@@ -164,7 +164,7 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         [liga, ranking, rodadas, extratoData] = await Promise.all([
             cache.getLigaAsync ? cache.getLigaAsync(ligaId) : cache.getLiga(ligaId),
             cache.getRankingAsync ? cache.getRankingAsync(ligaId, null, null, temporadaCacheHome) : cache.getRanking(ligaId, temporadaCacheHome),
-            cache.getRodadasAsync ? cache.getRodadasAsync(ligaId) : cache.getRodadas(ligaId),
+            cache.getRodadasAsync ? cache.getRodadasAsync(ligaId, null, null, temporadaCacheHome) : cache.getRodadas(ligaId, temporadaCacheHome),
             deveBuscarExtratoDoCacheLocal
                 ? (cache.getExtratoAsync ? cache.getExtratoAsync(ligaId, timeId) : cache.getExtrato(ligaId, timeId))
                 : Promise.resolve(null)
@@ -202,7 +202,7 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         if (cache) {
             cache.setLiga(ligaId, ligaFresh);
             cache.setRanking(ligaId, rankingFresh, temporadaCacheHome);
-            cache.setRodadas(ligaId, rodadasFresh);
+            cache.setRodadas(ligaId, rodadasFresh, temporadaCacheHome);
         }
 
         // Buscar extrato
@@ -324,7 +324,7 @@ async function buscarDadosHomeFresh(ligaId, timeId) {
     if (cache) {
         if (ligaFresh) cache.setLiga(ligaId, ligaFresh);
         cache.setRanking(ligaId, rankingFresh, temporada);
-        cache.setRodadas(ligaId, rodadasFresh);
+        cache.setRodadas(ligaId, rodadasFresh, temporada);
     }
 
     const minhasRodadasTemp = (rodadasFresh || []).filter(
