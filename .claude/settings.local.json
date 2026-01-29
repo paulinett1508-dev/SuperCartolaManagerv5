@@ -81,7 +81,8 @@
       "Bash(for file in public/participante/js/modules/participante-boas-vindas.js public/participante/js/participante-navigation.js public/participante/js/participante-quick-bar.js public/participante/js/splash-screen.js)",
       "Bash(do node --check:*)",
       "Bash(done)",
-      "Bash(for file in controllers/rankingTurnoController.js controllers/rankingGeralCacheController.js services/rankingTurnoService.js services/parciaisRankingService.js public/js/ranking.js)"
+      "Bash(for file in controllers/rankingTurnoController.js controllers/rankingGeralCacheController.js services/rankingTurnoService.js services/parciaisRankingService.js public/js/ranking.js)",
+      "Bash(for file in public/js/ranking.js services/parciaisRankingService.js services/rankingTurnoService.js)"
     ]
   },
   "enableAllProjectMcpServers": true,

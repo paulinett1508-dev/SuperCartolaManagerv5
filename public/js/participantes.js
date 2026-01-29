@@ -4,6 +4,7 @@
 
 const urlParams = new URLSearchParams(window.location.search);
 const ligaId = urlParams.get("id");
+const CAMPINHO_TARGET_KEY = 'scm_campinho_target';
 
 // ✅ DEBOUNCE: Evitar cliques duplicados
 let operacaoEmAndamento = false;
@@ -48,6 +49,24 @@ async function inicializarTemporadas() {
         console.warn("[TEMPORADAS] Erro ao inicializar:", error);
         tabsContainer.style.display = "none";
     }
+}
+
+function abrirCampinhoParticipante(timeId) {
+    if (!timeId) return;
+
+    const target = {
+        timeId,
+        ligaId,
+    };
+
+    try {
+        localStorage.setItem(CAMPINHO_TARGET_KEY, JSON.stringify(target));
+    } catch (error) {
+        console.warn('[PARTICIPANTES] Não foi possível gravar o alvo do campinho no localStorage:', error);
+    }
+
+    const campinhoUrl = `${window.location.origin}/participante`;
+    window.open(campinhoUrl, '_blank');
 }
 
 // Renderiza as abas de temporada
@@ -757,27 +776,34 @@ async function carregarParticipantesComBrasoes() {
 // ✅ EVENT DELEGATION HANDLER
 async function handleCardClick(e) {
     const btn = e.target.closest("[data-action]");
-    if (!btn) return;
+    if (btn) {
+        const action = btn.dataset.action;
+        const timeId = btn.dataset.timeId;
 
-    const action = btn.dataset.action;
-    const timeId = btn.dataset.timeId;
-
-    if (action === "toggle-status") {
-        const estaAtivo = btn.dataset.ativo === "true";
-        await toggleStatusParticipante(timeId, estaAtivo, btn);
-    } else if (action === "gerenciar-senha") {
-        const nome = btn.dataset.nome;
-        await gerenciarSenhaParticipante(timeId, nome);
-    } else if (action === "ver-api-cartola") {
-        const nome = btn.dataset.nome;
-        const timeNome = btn.dataset.timeNome;
-        await verDadosApiCartola(timeId, nome, timeNome, btn);
-    } else if (action === "validar-id") {
-        const nome = btn.dataset.nome;
-        await validarIdParticipante(timeId, nome, btn);
+        if (action === "toggle-status") {
+            const estaAtivo = btn.dataset.ativo === "true";
+            await toggleStatusParticipante(timeId, estaAtivo, btn);
+        } else if (action === "gerenciar-senha") {
+            const nome = btn.dataset.nome;
+            await gerenciarSenhaParticipante(timeId, nome);
+        } else if (action === "ver-api-cartola") {
+            const nome = btn.dataset.nome;
+            const timeNome = btn.dataset.timeNome;
+            await verDadosApiCartola(timeId, nome, timeNome, btn);
+        } else if (action === "validar-id") {
+            const nome = btn.dataset.nome;
+            await validarIdParticipante(timeId, nome, btn);
         } else if (action === "financeiro" || action === "ver-financeiro") {
             const nome = btn.dataset.nome;
             await verExtratoFinanceiroParticipante(timeId, nome, btn);
+        }
+
+        return;
+    }
+
+    const card = e.target.closest(".participante-card");
+    if (card && card.dataset && card.dataset.timeId) {
+        abrirCampinhoParticipante(card.dataset.timeId);
     }
 }
 // Exibe o extrato financeiro do participante

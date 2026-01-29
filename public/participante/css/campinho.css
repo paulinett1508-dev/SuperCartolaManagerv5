@@ -10,6 +10,330 @@
     padding-bottom: 100px;
 }
 
+.campinho-screen {
+    padding: 24px 32px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.campinho-screen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.campinho-title-block h1 {
+    font-family: 'Russo One', sans-serif;
+    font-size: 28px;
+    margin: 0;
+    color: #fff;
+}
+
+.campinho-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.campinho-formation {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.campinho-title-label {
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 11px;
+    margin: 0 0 6px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.campinho-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.campinho-market-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.campinho-market-pill {
+    background: #ff4500;
+    color: #fff;
+    padding: 6px 18px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.campinho-market-rodada {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 4px;
+    letter-spacing: 0.8px;
+}
+
+.campinho-header-patrimonio,
+.campinho-header-saldo {
+    text-align: right;
+}
+
+.campinho-header-patrimonio p,
+.campinho-header-saldo p {
+    margin: 0;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.campinho-header-patrimonio strong,
+.campinho-header-saldo strong {
+    display: block;
+    font-size: 18px;
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    color: #fff;
+}
+
+.campinho-screen-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 24px;
+    align-items: start;
+}
+
+.campinho-field-panel {
+    background: rgba(15, 23, 42, 0.85);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.campinho-field-wrapper {
+    width: 100%;
+}
+
+.campinho-field-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.campinho-points {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.campinho-points strong {
+    font-size: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    color: #fff;
+}
+
+.campinho-lineup-panel {
+    background: rgba(4, 7, 17, 0.9);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 18px;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+}
+
+.campinho-lineup-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.campinho-lineup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.campinho-lineup-label {
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+}
+
+.campinho-lineup-header h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.campinho-lineup-balance {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    color: #fff;
+}
+
+.campinho-lineup-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 520px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.campinho-lineup-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.campinho-lineup-section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.campinho-lineup-section-count {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.campinho-lineup-section-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.campinho-lineup-player {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.025);
+    gap: 10px;
+    font-size: 14px;
+}
+
+.campinho-lineup-player.capitao {
+    border: 1px solid rgba(251, 191, 36, 0.6);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+}
+
+.campinho-lineup-player.reserva {
+    border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.campinho-lineup-player-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.pos-label {
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    width: 32px;
+}
+
+.lineup-player-name {
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.campinho-lineup-player-badges {
+    display: flex;
+    gap: 4px;
+}
+
+.campinho-lineup-player-badge {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #000;
+}
+
+.campinho-lineup-player-badge.captain {
+    background: #fbbf24;
+}
+
+.campinho-lineup-player-badge.luxo {
+    background: linear-gradient(135deg, #a855f7, #f59e0b);
+}
+
+.lineup-player-price {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+}
+
+.campinho-lineup-banco .campinho-lineup-player {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.campinho-lineup-panel::-webkit-scrollbar,
+.campinho-lineup-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.campinho-lineup-panel::-webkit-scrollbar-thumb,
+.campinho-lineup-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+}
+
+@media (max-width: 1024px) {
+    .campinho-screen-body {
+        grid-template-columns: 1fr;
+    }
+
+    .campinho-lineup-panel {
+        width: 100%;
+        min-width: unset;
+        max-width: 100%;
+    }
+}
+
 /* === HEADER DO CAMPINHO === */
 .campinho-header {
     padding: 16px;
@@ -308,62 +632,6 @@
     color: #000;
 }
 
-/* === SEÇÃO DE RESERVAS === */
-.campinho-reservas {
-    margin: 0 16px;
-    padding: 16px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.08);
-}
-
-.campinho-reservas-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.campinho-reservas-header .material-icons {
-    color: #a855f7;
-    font-size: 20px;
-}
-
-.campinho-reservas-header span {
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.7);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.campinho-reservas-header .count {
-    margin-left: auto;
-    font-size: 11px;
-    color: rgba(255,255,255,0.4);
-}
-
-.campinho-reservas-lista {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-}
-
-/* Reservas com visual mais discreto */
-.campinho-reservas .campinho-jogador-avatar {
-    width: 38px;
-    height: 38px;
-    opacity: 0.85;
-}
-
-.campinho-reservas .campinho-jogador-avatar img {
-    width: 22px;
-    height: 22px;
-}
-
 /* === MITO / MICO (alta/baixa pontuação) === */
 .campinho-jogador.is-mito .campinho-jogador-avatar {
     animation: mito-pulse 2s ease-in-out infinite;
@@ -504,12 +772,13 @@
 /* === LEGENDA === */
 .campinho-legenda {
     display: flex;
-    justify-content: center;
-    gap: 16px;
-    padding: 12px 16px;
-    margin: 16px;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 8px 14px;
+    margin: 0;
     background: rgba(255,255,255,0.03);
-    border-radius: 8px;
+    border-radius: 12px;
+    flex-wrap: wrap;
 }
 
 .campinho-legenda-item {

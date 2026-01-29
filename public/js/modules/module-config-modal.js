@@ -19,25 +19,35 @@ class ModuleConfigModal {
      * Inicializa modal com dados de um módulo específico
      */
     async init(ligaId, modulo) {
+        console.log(`[MODULE-CONFIG-MODAL] Inicializando modal - Liga: ${ligaId}, Módulo: ${modulo}`);
         this.ligaId = ligaId;
         this.currentModule = modulo;
 
         try {
             // Buscar wizard do backend
+            console.log(`[MODULE-CONFIG-MODAL] Passo 1: Buscando wizard...`);
             this.wizardData = await this.fetchWizard(modulo);
+            console.log(`[MODULE-CONFIG-MODAL] ✅ Wizard carregado`);
+
             this._injectExtratoIntegrationQuestions();
             this._injectMelhorMesIntervalsQuestion();
 
             // Buscar config existente (se houver)
+            console.log(`[MODULE-CONFIG-MODAL] Passo 2: Buscando config existente...`);
             const configAtual = await this.fetchConfig(ligaId, modulo);
             this.userAnswers = configAtual?.wizard_respostas || {};
+            console.log(`[MODULE-CONFIG-MODAL] ✅ Config carregada`);
 
             // Renderizar modal
+            console.log(`[MODULE-CONFIG-MODAL] Passo 3: Renderizando modal...`);
             this.render();
+            console.log(`[MODULE-CONFIG-MODAL] Passo 4: Exibindo modal...`);
             this.show();
+            console.log(`[MODULE-CONFIG-MODAL] ✅ Modal exibido`);
         } catch (error) {
-            console.error('[MODULE-CONFIG-MODAL] Erro ao inicializar:', error);
-            this.showError('Erro ao carregar wizard de configuração');
+            console.error('[MODULE-CONFIG-MODAL] ❌ Erro ao inicializar:', error);
+            console.error('[MODULE-CONFIG-MODAL] Stack trace:', error.stack);
+            this.showError(`Erro ao carregar configuração: ${error.message}`);
         }
     }
 
@@ -134,9 +144,18 @@ class ModuleConfigModal {
      * Busca definição do wizard do backend
      */
     async fetchWizard(modulo) {
+        console.log(`[MODULE-CONFIG-MODAL] Buscando wizard para: ${modulo}`);
         const response = await fetch(`/api/modulos/${modulo}/wizard`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        console.log(`[MODULE-CONFIG-MODAL] Response status: ${response.status}`);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`[MODULE-CONFIG-MODAL] Erro ao buscar wizard: ${response.status}`, errorText);
+            throw new Error(`Erro ${response.status}: ${errorText}`);
+        }
+
         const data = await response.json();
+        console.log(`[MODULE-CONFIG-MODAL] Wizard recebido:`, data);
         return data.wizard || data;
     }
 

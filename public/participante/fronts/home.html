@@ -201,20 +201,20 @@
 
 /* === CARD STATUS DO TIME (Split Layout) === */
 .home-team-card {
-    background: #1c1c1e;
-    border-radius: 16px;
-    padding: 20px;
-    margin: 0 16px 16px;
-    border: 1px solid var(--home-card-border, rgba(255,255,255,0.08));
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    background: linear-gradient(180deg, rgba(28,28,30,0.95), rgba(15,15,17,0.95));
+    border-radius: 14px;
+    padding: 16px;
+    margin: 0 16px 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
 }
 
 .home-team-card-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
-    gap: 12px;
+    margin-bottom: 10px;
+    gap: 8px;
 }
 
 .home-team-card-meta {
@@ -226,8 +226,8 @@
 
 .home-team-card-name {
     font-family: var(--app-font-brand);
-    font-size: 16px;
-    color: var(--app-text-primary);
+    font-size: 15px;
+    color: #f5f5f5;
     letter-spacing: 0.3px;
     margin: 0;
 }
@@ -240,43 +240,37 @@
 
 .home-zone-chip {
     border: 1px solid rgba(255,255,255,0.2);
-    padding: 4px 12px;
+    padding: 3px 10px;
     border-radius: 999px;
-    font-size: 10px;
+    font-size: 9px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
     white-space: nowrap;
+    color: rgba(255,255,255,0.75);
+    background: rgba(255,255,255,0.03);
 }
 
 .home-stat-actions {
-    margin-top: 16px;
+    margin-top: 14px;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .home-update-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.65);
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    padding: 6px 0;
 }
 
 .home-update-btn:hover {
-    border-color: rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.home-update-btn:active {
-    transform: scale(0.97);
-    background: rgba(255, 255, 255, 0.15);
+    color: var(--app-primary);
 }
 
 .home-team-card.zona-premiacao {
@@ -313,8 +307,8 @@
 
 .home-stats-split {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 12px;
     align-items: center;
 }
 
@@ -325,25 +319,25 @@
 }
 
 .home-stat-label {
-    font-size: 11px;
-    color: var(--app-text-muted);
+    font-size: 10px;
+    color: rgba(255,255,255,0.65);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-    font-weight: 500;
+    letter-spacing: 0.6px;
+    margin-bottom: 2px;
+    font-weight: 600;
 }
 
 .home-stat-value {
     font-family: 'Russo One', var(--app-font-brand), sans-serif;
-    font-size: 72px;
-    font-weight: 800;
+    font-size: 48px;
+    font-weight: 700;
     color: #ffffff;
     line-height: 1;
-    letter-spacing: -2px;
+    letter-spacing: -1px;
 }
 
 .home-stat-value.text-accent {
-    color: #FF5500;
+    color: #FF914D;
 }
 
 .home-stat-hint {

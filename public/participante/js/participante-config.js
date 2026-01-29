@@ -39,6 +39,7 @@ const BADGES_CONFIG = {
     top10_mico_2025: { icon: "💀", nome: "Top Mico", cor: "#ef4444" },
     artilheiro: { icon: "⚽", nome: "Artilheiro", cor: "#3b82f6" },
     luva_ouro: { icon: "🧤", nome: "Luva Ouro", cor: "#f59e0b" },
+    capitao_luxo: { icon: "🎖️", nome: "Capitão Luxo", cor: "#8b5cf6" },
     melhor_mes: { icon: "📅", nome: "Melhor Mês", cor: "#8b5cf6" },
     mata_mata_campeao: { icon: "⚔️", nome: "Mata-Mata", cor: "#ec4899" },
 };

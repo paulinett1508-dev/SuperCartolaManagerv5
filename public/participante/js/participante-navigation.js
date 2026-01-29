@@ -279,6 +279,7 @@ class ParticipanteNavigation {
                 mataMata: false,
                 artilheiro: false,
                 luvaOuro: false,
+                capitao: false,
             });
         }
     }
@@ -709,6 +710,7 @@ class ParticipanteNavigation {
             "mata-mata": "Mata-Mata",
             artilheiro: "Artilheiro Campeão",
             "luva-ouro": "Luva de Ouro",
+            capitao: "Capitão de Luxo",
             configuracoes: "Configurações",
         };
         return nomes[moduloId] || moduloId;
@@ -867,7 +869,8 @@ class ParticipanteNavigation {
             'pontos-corridos': 'Pontos Corridos',
             'mata-mata': 'Mata-Mata',
             'artilheiro': 'Artilheiro',
-            'luva-ouro': 'Luva de Ouro'
+            'luva-ouro': 'Luva de Ouro',
+            'capitao': 'Capitão de Luxo'
         };
 
         const nomeModulo = nomesModulos[moduloId] || moduloId;

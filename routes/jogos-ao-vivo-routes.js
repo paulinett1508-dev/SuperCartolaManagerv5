@@ -170,6 +170,22 @@ async function buscarJogosDoDia() {
       timeout: 10000
     });
 
+    // ✅ Verificar HTTP status ANTES de processar JSON
+    if (!response.ok) {
+      console.error(`[JOGOS-DIA] API-Football retornou HTTP ${response.status}: ${response.statusText}`);
+
+      // Status específicos
+      if (response.status === 403) {
+        console.warn('[JOGOS-DIA] Acesso negado (403) - API suspensa ou key inválida');
+      } else if (response.status === 429) {
+        console.warn('[JOGOS-DIA] Limite de requisições atingido (429)');
+      } else if (response.status === 401) {
+        console.warn('[JOGOS-DIA] Não autorizado (401) - API key inválida');
+      }
+
+      return { jogos: [], temAoVivo: false };
+    }
+
     const data = await response.json();
 
     if (data.errors && Object.keys(data.errors).length > 0) {
@@ -638,6 +654,7 @@ router.get('/', async (req, res) => {
     }
 
     // 2º Tentar: API-Football (principal - 100 req/dia)
+    console.log('[JOGOS-DIA] Tentando API-Football (principal)...');
     const { jogos, temAoVivo } = await buscarJogosDoDia();
 
     if (jogos.length > 0) {
@@ -649,6 +666,8 @@ router.get('/', async (req, res) => {
 
       const stats = calcularEstatisticas(jogos);
 
+      console.log(`[JOGOS-DIA] ✅ API-Football retornou ${jogos.length} jogos`);
+
       return res.json({
         jogos,
         fonte: 'api-football',
@@ -659,6 +678,7 @@ router.get('/', async (req, res) => {
     }
 
     // 3º Tentar: SoccerDataAPI (fallback - 75 req/dia)
+    console.warn('[JOGOS-DIA] ⚠️ API-Football falhou/vazia. Acionando fallback SoccerDataAPI...');
     const soccerData = await buscarJogosSoccerDataAPI();
 
     if (soccerData.jogos.length > 0) {
@@ -670,7 +690,7 @@ router.get('/', async (req, res) => {
 
       const stats = calcularEstatisticas(soccerData.jogos);
 
-      console.log(`[JOGOS-DIA] Usando SoccerDataAPI (${soccerData.jogos.length} jogos)`);
+      console.log(`[JOGOS-DIA] ✅ SoccerDataAPI retornou ${soccerData.jogos.length} jogos`);
 
       return res.json({
         jogos: soccerData.jogos,
@@ -683,11 +703,12 @@ router.get('/', async (req, res) => {
     }
 
     // 4º Cache stale (APIs falharam mas temos cache antigo válido até 30min)
+    console.warn('[JOGOS-DIA] ⚠️ SoccerDataAPI também falhou/vazia. Tentando cache stale...');
     if (cacheStaleValido) {
       const stats = calcularEstatisticas(cacheJogosDia);
       const idadeMinutos = Math.round((agora - cacheTimestamp) / 60000);
 
-      console.warn(`[JOGOS-DIA] Usando cache stale (${idadeMinutos}min atrás)`);
+      console.warn(`[JOGOS-DIA] ✅ Usando cache stale (${idadeMinutos}min atrás) - Fonte: ${cacheFonte}`);
 
       return res.json({
         jogos: cacheJogosDia,
@@ -703,7 +724,14 @@ router.get('/', async (req, res) => {
     }
 
     // 5º Fallback final: Globo Esporte (apenas agenda)
+    console.warn('[JOGOS-DIA] ⚠️ Cache stale expirado/vazio. Tentando fallback final: Globo Esporte...');
     const jogosGlobo = await buscarJogosGlobo();
+
+    if (jogosGlobo.length > 0) {
+      console.log(`[JOGOS-DIA] ✅ Globo Esporte retornou ${jogosGlobo.length} jogos (apenas agenda)`);
+    } else {
+      console.warn('[JOGOS-DIA] ⚠️ Nenhuma fonte disponível. Sem jogos brasileiros hoje.');
+    }
 
     return res.json({
       jogos: jogosGlobo,

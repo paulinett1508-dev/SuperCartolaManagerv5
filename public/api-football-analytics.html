@@ -753,17 +753,26 @@
             // Carregar status da API
             async function carregarStatus() {
                 try {
+                    // Guard: verifica se ainda estamos na página correta
+                    const fluxoEl = document.getElementById('fluxo-fallback');
+                    if (!fluxoEl) {
+                        console.warn('[API-Football] Elementos não encontrados, página mudou');
+                        return;
+                    }
+
                     const response = await fetch('/api/jogos-ao-vivo/status');
                     const data = await response.json();
 
                     // Fluxo de fallback
-                    if (data.fluxo) {
-                        document.getElementById('fluxo-fallback').textContent = data.fluxo;
+                    if (data.fluxo && fluxoEl) {
+                        fluxoEl.textContent = data.fluxo;
                     }
 
                     // === API-Football ===
                     const apiFootball = data.fontes?.['api-football'];
                     const statusApiFootball = document.getElementById('api-football-status');
+
+                    if (!statusApiFootball) return; // Guard: elemento não existe
 
                     if (apiFootball?.configurado) {
                         statusApiFootball.innerHTML = `
@@ -786,41 +795,53 @@
                     const limite = apiFootball?.requisicoes?.limite || 100;
                     const percentual = (atual / limite) * 100;
 
-                    document.getElementById('api-football-requests').textContent = atual;
-                    document.getElementById('api-football-limite').textContent = `de ${limite} disponiveis`;
-
+                    const requestsEl = document.getElementById('api-football-requests');
+                    const limiteEl = document.getElementById('api-football-limite');
                     const progressEl = document.getElementById('api-football-progress');
-                    progressEl.style.width = `${percentual}%`;
 
-                    progressEl.classList.remove('green', 'yellow', 'red');
-                    if (percentual < 50) {
-                        progressEl.classList.add('green');
-                        document.getElementById('api-football-limite').className = 'stat-card-sub success';
-                    } else if (percentual < 80) {
-                        progressEl.classList.add('yellow');
-                        document.getElementById('api-football-limite').className = 'stat-card-sub warning';
-                    } else {
-                        progressEl.classList.add('red');
-                        document.getElementById('api-football-limite').className = 'stat-card-sub danger';
+                    if (requestsEl) requestsEl.textContent = atual;
+                    if (limiteEl) limiteEl.textContent = `de ${limite} disponiveis`;
+
+                    if (progressEl) {
+                        progressEl.style.width = `${percentual}%`;
+                        progressEl.classList.remove('green', 'yellow', 'red');
+
+                        if (percentual < 50) {
+                            progressEl.classList.add('green');
+                            if (limiteEl) limiteEl.className = 'stat-card-sub success';
+                        } else if (percentual < 80) {
+                            progressEl.classList.add('yellow');
+                            if (limiteEl) limiteEl.className = 'stat-card-sub warning';
+                        } else {
+                            progressEl.classList.add('red');
+                            if (limiteEl) limiteEl.className = 'stat-card-sub danger';
+                        }
                     }
 
                     // Plano e Conta API-Football
-                    document.getElementById('api-football-plano').textContent = apiFootball?.plano || 'Free';
-                    document.getElementById('api-football-conta').textContent = `Conta: ${apiFootball?.conta || '-'}`;
+                    const planoEl = document.getElementById('api-football-plano');
+                    const contaEl = document.getElementById('api-football-conta');
+                    if (planoEl) planoEl.textContent = apiFootball?.plano || 'Free';
+                    if (contaEl) contaEl.textContent = `Conta: ${apiFootball?.conta || '-'}`;
 
                     // Alerta API-Football
                     const alertaEl = document.getElementById('api-football-alerta');
-                    if (apiFootball?.alerta) {
-                        alertaEl.textContent = apiFootball.alerta;
-                        alertaEl.style.color = percentual >= 100 ? '#ef4444' : '#f59e0b';
-                    } else {
-                        alertaEl.textContent = 'Nenhum';
-                        alertaEl.style.color = '#10b981';
+                    if (alertaEl) {
+                        if (apiFootball?.alerta) {
+                            alertaEl.textContent = apiFootball.alerta;
+                            alertaEl.style.color = percentual >= 100 ? '#ef4444' : '#f59e0b';
+                        } else {
+                            alertaEl.textContent = 'Nenhum';
+                            alertaEl.style.color = '#10b981';
+                        }
                     }
 
                     // === SoccerDataAPI ===
                     const soccerData = data.fontes?.['soccerdata'];
                     const statusSoccerData = document.getElementById('soccerdata-status');
+                    const soccerdataInfo = document.getElementById('soccerdata-info');
+
+                    if (!statusSoccerData) return; // Guard: elemento não existe
 
                     if (soccerData?.configurado) {
                         statusSoccerData.innerHTML = `
@@ -829,8 +850,10 @@
                                 Configurada
                             </span>
                         `;
-                        document.getElementById('soccerdata-info').textContent = 'Pronta como fallback';
-                        document.getElementById('soccerdata-info').style.color = '#10b981';
+                        if (soccerdataInfo) {
+                            soccerdataInfo.textContent = 'Pronta como fallback';
+                            soccerdataInfo.style.color = '#10b981';
+                        }
                     } else {
                         statusSoccerData.innerHTML = `
                             <span class="status-badge offline">
@@ -838,45 +861,61 @@
                                 Nao configurada
                             </span>
                         `;
-                        document.getElementById('soccerdata-info').textContent = soccerData?.aviso || 'API key nao definida';
-                        document.getElementById('soccerdata-info').style.color = '#f59e0b';
+                        if (soccerdataInfo) {
+                            soccerdataInfo.textContent = soccerData?.aviso || 'API key nao definida';
+                            soccerdataInfo.style.color = '#f59e0b';
+                        }
                     }
 
                     // === Cache ===
                     const cache = data.cache;
                     if (cache) {
+                        const cacheStatusEl = document.getElementById('cache-status');
+                        const cacheIdadeEl = document.getElementById('cache-idade');
+                        const cacheTtlEl = document.getElementById('cache-ttl');
+                        const cacheJogosEl = document.getElementById('cache-jogos');
+
+                        if (!cacheStatusEl) return; // Guard: elementos não existem
+
                         // Fonte atual do cache
                         const fonteMap = {
                             'api-football': 'API-Football',
                             'soccerdata': 'SoccerDataAPI',
                             'globo': 'Globo Esporte'
                         };
-                        document.getElementById('cache-status').textContent = fonteMap[cache.fonte] || cache.fonte || '-';
+                        if (cacheStatusEl) {
+                            cacheStatusEl.textContent = fonteMap[cache.fonte] || cache.fonte || '-';
+                        }
 
                         // Idade do cache
-                        if (cache.idadeMinutos !== null) {
-                            const idadeText = cache.stale
-                                ? `${cache.idadeMinutos} min (stale)`
-                                : `${cache.idadeMinutos} min`;
-                            document.getElementById('cache-idade').textContent = idadeText;
-                            document.getElementById('cache-idade').style.color = cache.stale ? '#f59e0b' : '#9ca3af';
-                        } else {
-                            document.getElementById('cache-idade').textContent = 'Sem cache';
+                        if (cacheIdadeEl) {
+                            if (cache.idadeMinutos !== null) {
+                                const idadeText = cache.stale
+                                    ? `${cache.idadeMinutos} min (stale)`
+                                    : `${cache.idadeMinutos} min`;
+                                cacheIdadeEl.textContent = idadeText;
+                                cacheIdadeEl.style.color = cache.stale ? '#f59e0b' : '#9ca3af';
+                            } else {
+                                cacheIdadeEl.textContent = 'Sem cache';
+                            }
                         }
 
                         // TTL
-                        document.getElementById('cache-ttl').textContent = cache.ttlAtual || '-';
-                        document.getElementById('cache-jogos').textContent = `${cache.jogosEmCache || 0} jogos em cache`;
+                        if (cacheTtlEl) cacheTtlEl.textContent = cache.ttlAtual || '-';
+                        if (cacheJogosEl) cacheJogosEl.textContent = `${cache.jogosEmCache || 0} jogos em cache`;
                     }
 
                 } catch (error) {
                     console.error('Erro ao carregar status:', error);
-                    document.getElementById('api-football-status').innerHTML = `
-                        <span class="status-badge offline">
-                            <span class="dot"></span>
-                            Erro
-                        </span>
-                    `;
+                    const statusEl = document.getElementById('api-football-status');
+                    if (statusEl) {
+                        statusEl.innerHTML = `
+                            <span class="status-badge offline">
+                                <span class="dot"></span>
+                                Erro
+                            </span>
+                        `;
+                    }
                 }
             }
 
@@ -948,17 +987,43 @@
                 }
             }
 
+            // Variável global para armazenar o interval ID
+            let autoRefreshInterval = null;
+
+            // Função para limpar o interval quando sair da página
+            function cleanupApiFootballPage() {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                    console.log('[API-Football] Auto-refresh limpo');
+                }
+            }
+
             // Inicializar
             document.addEventListener("DOMContentLoaded", () => {
                 loadLayout();
                 carregarStatus();
                 carregarJogos();
 
+                // Limpar interval anterior se existir
+                cleanupApiFootballPage();
+
                 // Auto-refresh a cada 60 segundos
-                setInterval(() => {
+                autoRefreshInterval = setInterval(() => {
                     carregarStatus();
                     carregarJogos();
                 }, 60000);
+
+                // Limpar interval quando navegar para outra página (SPA)
+                // Detecta quando elementos principais desaparecem
+                const observer = new MutationObserver(() => {
+                    if (!document.getElementById('fluxo-fallback')) {
+                        cleanupApiFootballPage();
+                        observer.disconnect();
+                    }
+                });
+
+                observer.observe(document.body, { childList: true, subtree: true });
             });
             } // guard
         </script>

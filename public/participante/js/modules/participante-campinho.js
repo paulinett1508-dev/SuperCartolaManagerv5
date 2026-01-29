@@ -173,7 +173,7 @@ function calcularPontosTotais(data) {
 
     return atletas.reduce((total, a) => {
         const atletaId = Number(a.atleta_id ?? a.atletaId ?? a.id);
-        let pontos = parseFloat(a.pontos_atual ?? a.pontos_num ?? a.pontos || 0) || 0;
+        let pontos = parseFloat(a.pontos_atual ?? a.pontos_num ?? (a.pontos || 0)) || 0;
         if (atletaId && Number(capitaoId) && atletaId === Number(capitaoId)) pontos *= 2;
         else if (atletaId && Number(reservaLuxoId) && atletaId === Number(reservaLuxoId) && pontos !== 0) pontos *= 1.5;
         return total + pontos;
@@ -279,6 +279,7 @@ function normalizarAtletas(rawJson, atletasPontuados) {
         const pontosRaw = parseFloat(atleta.pontos_num ?? atleta.pontos ?? 0) || 0;
         const pontosAtual = Number(pontuado.pontos_num ?? pontuado.pontos ?? pontuado.pontuacao ?? 0);
         const valorPontos = Number.isFinite(pontosAtual) && pontosAtual !== 0 ? pontosAtual : pontosRaw;
+        const preco = Number(atleta.preco_num ?? atleta.preco ?? atleta.valor ?? 0) || 0;
         return {
             ...atleta,
             atleta_id: atletaId,
@@ -287,7 +288,8 @@ function normalizarAtletas(rawJson, atletasPontuados) {
             posicao_id: atleta.posicao_id ?? atleta.posicaoId ?? atleta.posicao ?? 0,
             status_id: atleta.status_id ?? atleta.statusId ?? atleta.status ?? 1,
             apelido: atleta.apelido || atleta.nome || atleta.nick || 'Jogador',
-            clube_id: atleta.clube_id ?? atleta.clubeId ?? 'default'
+            clube_id: atleta.clube_id ?? atleta.clubeId ?? 'default',
+            preco
         };
     });
 }
@@ -352,32 +354,75 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
     const titulares = escalacao.titulares || escalacao.atletas || [];
     const reservas = escalacao.reservas || [];
     const pontosTotais = escalacao.pontos || calcularPontosTotais(escalacao);
+    const grupos = agruparTitulares(titulares);
+    const gruposAdversario = temAdversario ? agruparTitulares(adversario.titulares || adversario.atletas || []) : null;
+    const formacao = `${grupos.defensores.length || 0}-${grupos.meias.length || 0}-${grupos.atacantes.length || 0}`;
+    const patrimonio = Number(escalacao.patrimonio ?? escalacao.patrimonio_total ?? 0) || 0;
+    const saldo = Number(escalacao.saldo ?? escalacao.saldo_total ?? 0) || 0;
+    const rodadaLabel = escalacao.rodada ?? '--';
 
     return `
-        <div class="campinho-wrapper">
-            <!-- Header -->
-            <div class="campinho-header">
-                <div class="campinho-header-info">
-                    <h2>${escalacao.nome_cartoleiro || 'Sua Escalação'}</h2>
-                    <p class="rodada">Rodada ${escalacao.rodada || '--'}</p>
+        <div class="campinho-wrapper campinho-screen">
+            <header class="campinho-screen-header">
+                <div class="campinho-title-block">
+                    <p class="campinho-title-label">Escalação</p>
+                    <div class="campinho-title-row">
+                        <h1>${escalacao.nome_cartoleiro || 'Sua Escalação'}</h1>
+                        <span class="campinho-formation">${formacao}</span>
+                    </div>
                 </div>
-                <div class="campinho-header-pontos">
-                    <p class="valor">${pontosTotais.toFixed(2)}</p>
-                    <p class="label">Pontos</p>
+                <div class="campinho-header-actions">
+                    <div class="campinho-market-group">
+                        <span class="campinho-market-pill">Mercado Fechado</span>
+                        <span class="campinho-market-rodada">Rodada ${rodadaLabel}</span>
+                    </div>
+                    <div class="campinho-header-patrimonio">
+                        <p>Meu Time</p>
+                        <strong>${formatarCartoletas(patrimonio)}</strong>
+                    </div>
+                    <div class="campinho-header-saldo">
+                        <p>Saldo</p>
+                        <strong>${formatarCartoletas(saldo)}</strong>
+                    </div>
                 </div>
+            </header>
+
+            <div class="campinho-screen-body">
+                <section class="campinho-field-panel">
+                    <div class="campinho-field-wrapper">
+                        ${renderizarCampo(grupos, escalacao.capitao_id, escalacao.reserva_luxo_id, 'meu-time')}
+                    </div>
+                    <div class="campinho-field-footer">
+                        <div class="campinho-points">
+                            <span>Pontos totais</span>
+                            <strong>${pontosTotais.toFixed(2)}</strong>
+                        </div>
+                        ${renderizarLegenda()}
+                    </div>
+                </section>
+                <aside class="campinho-lineup-panel">
+                    <div class="campinho-lineup-card">
+                        <div class="campinho-lineup-header">
+                            <div>
+                                <p class="campinho-lineup-label">Meu Campinho</p>
+                                <h3>Rodada ${rodadaLabel}</h3>
+                            </div>
+                            <div class="campinho-lineup-balance">${formatarCartoletas(patrimonio)}</div>
+                        </div>
+                        <div class="campinho-lineup-body">
+                            ${renderizarListaPorPosicao('GOL', grupos.goleiros, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                            ${renderizarListaPorPosicao('LAT', grupos.laterais, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                            ${renderizarListaPorPosicao('ZAG', grupos.zagueiros, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                            ${renderizarListaPorPosicao('MEI', grupos.meias, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                            ${renderizarListaPorPosicao('ATA', grupos.atacantes, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                            ${renderizarListaPorPosicao('TEC', grupos.tecnicos, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                            ${reservas.length > 0 ? renderizarReservas(reservas, escalacao.capitao_id, escalacao.reserva_luxo_id) : ''}
+                        </div>
+                    </div>
+                </aside>
             </div>
 
-            <!-- Campo Principal com Titulares -->
-            ${renderizarCampo(titulares, escalacao.capitao_id, escalacao.reserva_luxo_id, 'meu-time')}
-
-            <!-- Legenda de Posições -->
-            ${renderizarLegenda()}
-
-            <!-- Banco de Reservas -->
-            ${reservas.length > 0 ? renderizarReservas(reservas, escalacao.capitao_id, escalacao.reserva_luxo_id) : ''}
-
             ${confronto ? `
-                <!-- Card de Confronto -->
                 <div class="campinho-confronto-card">
                     <div class="campinho-confronto-header">
                         <span class="material-icons">${confronto.tipo === 'mata-mata' ? 'sports_kabaddi' : 'leaderboard'}</span>
@@ -396,72 +441,140 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                     </div>
                 </div>
 
-                ${temAdversario ? `
-                    <!-- Header Adversário -->
-                    <div class="campinho-header" style="margin-top: 8px;">
-                        <div class="campinho-header-info">
-                            <h2 style="color: #f87171;">${adversario.nome_cartoleiro || confronto.adversario?.nome || 'Adversário'}</h2>
-                            <p class="rodada">Escalação</p>
+                    ${temAdversario ? `
+                        <div class="campinho-header campinho-adversario-header">
+                            <div class="campinho-header-info">
+                                <h2 style="color: #f87171;">${adversario.nome_cartoleiro || confronto.adversario?.nome || 'Adversário'}</h2>
+                                <p class="rodada">Escalação</p>
+                            </div>
+                            <div class="campinho-header-pontos">
+                                <p class="valor" style="color: #f87171;">${(adversario.pontos || calcularPontosTotais(adversario)).toFixed(2)}</p>
+                                <p class="label">Pontos</p>
+                            </div>
                         </div>
-                        <div class="campinho-header-pontos">
-                            <p class="valor" style="color: #f87171;">${(adversario.pontos || calcularPontosTotais(adversario)).toFixed(2)}</p>
-                            <p class="label">Pontos</p>
-                        </div>
-                    </div>
 
-                    <!-- Campo do Adversário -->
-                    ${renderizarCampo(adversario.titulares || adversario.atletas || [], adversario.capitao_id, adversario.reserva_luxo_id, 'adversario', true)}
+                        ${renderizarCampo(gruposAdversario || agruparTitulares(adversario.titulares || adversario.atletas || []), adversario.capitao_id, adversario.reserva_luxo_id, 'adversario', true)}
+                    ` : ''}
                 ` : ''}
-            ` : ''}
+            </div>
+        `;
+    }
+
+function agruparTitulares(atletas) {
+    const lista = Array.isArray(atletas) ? atletas : [];
+    const groups = {
+        goleiros: [],
+        laterais: [],
+        zagueiros: [],
+        meias: [],
+        atacantes: [],
+        tecnicos: [],
+        defensores: []
+    };
+
+    lista.filter(a => Number(a.status_id) !== 2).forEach((atleta) => {
+        const pos = Number(atleta.posicao_id ?? atleta.posicaoId ?? atleta.posicao);
+        if (pos === 1) groups.goleiros.push(atleta);
+        else if (pos === 2) groups.laterais.push(atleta);
+        else if (pos === 3) groups.zagueiros.push(atleta);
+        else if (pos === 4) groups.meias.push(atleta);
+        else if (pos === 5) groups.atacantes.push(atleta);
+        else if (pos === 6) groups.tecnicos.push(atleta);
+    });
+
+    groups.defensores = [...groups.laterais, ...groups.zagueiros];
+    return groups;
+}
+
+function formatarCartoletas(valor) {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero)) return 'C$ 0.00';
+    return `C$ ${numero.toFixed(2)}`;
+}
+
+function renderizarListaPorPosicao(label, atletas, capitaoId, reservaLuxoId) {
+    if (!Array.isArray(atletas) || atletas.length === 0) return '';
+    return `
+        <div class="campinho-lineup-section">
+            <div class="campinho-lineup-section-title">
+                <span>${label}</span>
+                <span class="campinho-lineup-section-count">(${atletas.length})</span>
+            </div>
+            <div class="campinho-lineup-section-body">
+                ${atletas.map(a => renderizarLinhaLista(a, capitaoId, reservaLuxoId)).join('')}
+            </div>
         </div>
     `;
 }
 
-function renderizarCampo(atletas, capitaoId, reservaLuxoId, id, isAdversario = false) {
-    if (!atletas || atletas.length === 0) {
+function renderizarLinhaLista(atleta, capitaoId, reservaLuxoId) {
+    if (!atleta) return '';
+    const atletaId = Number(atleta.atleta_id ?? atleta.atletaId ?? atleta.id);
+    const posAbrev = POSICOES[atleta.posicao_id ?? atleta.posicaoId ?? atleta.posicao]?.abrev || '---';
+    const nome = atleta.apelido || atleta.nome || 'Jogador';
+    const nomeAbrev = nome.length > 17 ? `${nome.slice(0, 16)}.` : nome;
+    const isCapitao = Number(capitaoId) && atletaId === Number(capitaoId);
+    const isReservaLuxo = Number(reservaLuxoId) && atletaId === Number(reservaLuxoId);
+    const badges = [];
+    if (isCapitao) badges.push('<span class="campinho-lineup-player-badge captain">C</span>');
+    if (isReservaLuxo) badges.push('<span class="campinho-lineup-player-badge luxo">L</span>');
+
+    return `
+        <div class="campinho-lineup-player ${isCapitao ? 'capitao' : ''} ${isReservaLuxo ? 'reserva' : ''}">
+            <div class="campinho-lineup-player-info">
+                <span class="pos-label">${posAbrev}</span>
+                <span class="lineup-player-name">${nomeAbrev}</span>
+                ${badges.length ? `<div class="campinho-lineup-player-badges">${badges.join('')}</div>` : ''}
+            </div>
+            <span class="lineup-player-price">${formatarCartoletas(atleta.preco)}</span>
+        </div>
+    `;
+}
+
+function renderizarReservas(reservas, capitaoId, reservaLuxoId) {
+    if (!Array.isArray(reservas) || reservas.length === 0) return '';
+    return `
+        <div class="campinho-lineup-section campinho-lineup-banco">
+            <div class="campinho-lineup-section-title">
+                <span>Banco de Reservas</span>
+                <span class="campinho-lineup-section-count">(${reservas.length})</span>
+            </div>
+            <div class="campinho-lineup-section-body">
+                ${reservas.map(a => renderizarLinhaLista(a, capitaoId, reservaLuxoId)).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderizarCampo(grupos, capitaoId, reservaLuxoId, id, isAdversario = false) {
+    const gols = grupos?.goleiros || [];
+    const defensoresCampo = grupos?.defensores?.length ? grupos.defensores : [...(grupos?.laterais || []), ...(grupos?.zagueiros || [])];
+    const meias = grupos?.meias || [];
+    const atacantes = grupos?.atacantes || [];
+    const tecnicos = grupos?.tecnicos || [];
+
+    const temJogadores = gols.length || defensoresCampo.length || meias.length || atacantes.length || tecnicos.length;
+    if (!temJogadores) {
         return '<div class="campinho-empty"><p>Sem dados de escalação</p></div>';
     }
-
-    // Organizar atletas por posicao (excluir reservas se houver status_id)
-    const titularesOnly = atletas.filter(a => a.status_id !== 2);
-
-    const goleiros = titularesOnly.filter(a => (a.posicao_id || a.posicaoId || a.posicao) === 1);
-    const defensores = titularesOnly.filter(a => {
-        const pos = a.posicao_id || a.posicaoId || a.posicao;
-        return pos === 2 || pos === 3;
-    });
-    const meias = titularesOnly.filter(a => (a.posicao_id || a.posicaoId || a.posicao) === 4);
-    const atacantes = titularesOnly.filter(a => (a.posicao_id || a.posicaoId || a.posicao) === 5);
-    const tecnicos = titularesOnly.filter(a => (a.posicao_id || a.posicaoId || a.posicao) === 6);
 
     const classeAdversario = isAdversario ? 'adversario' : '';
 
     return `
         <div id="campinho-${id}" class="campinho-field ${classeAdversario}">
-            <!-- Área pequena do goleiro (visual) -->
             <div class="campinho-gol-area"></div>
-
-            <!-- Goleiro (topo do campo) -->
             <div class="campinho-linha" style="margin-top: 60px;">
-                ${goleiros.map(a => renderizarJogador(a, capitaoId, reservaLuxoId)).join('')}
+                ${gols.map(a => renderizarJogador(a, capitaoId, reservaLuxoId)).join('')}
             </div>
-
-            <!-- Defensores -->
             <div class="campinho-linha">
-                ${defensores.map(a => renderizarJogador(a, capitaoId, reservaLuxoId)).join('')}
+                ${defensoresCampo.map(a => renderizarJogador(a, capitaoId, reservaLuxoId)).join('')}
             </div>
-
-            <!-- Meias -->
             <div class="campinho-linha">
                 ${meias.map(a => renderizarJogador(a, capitaoId, reservaLuxoId)).join('')}
             </div>
-
-            <!-- Atacantes -->
             <div class="campinho-linha">
                 ${atacantes.map(a => renderizarJogador(a, capitaoId, reservaLuxoId)).join('')}
             </div>
-
-            <!-- Tecnico (embaixo do campo) -->
             <div class="campinho-linha" style="margin-bottom: 10px;">
                 ${tecnicos.map(a => renderizarJogador(a, capitaoId, reservaLuxoId)).join('')}
             </div>
@@ -478,7 +591,7 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
     const atletaId = atleta.atleta_id || atleta.atletaId || atleta.id;
 
     // Pontuação
-    let pontos = parseFloat(atleta.pontos_atual ?? atleta.pontos_num ?? atleta.pontos || 0);
+    let pontos = parseFloat(atleta.pontos_atual ?? atleta.pontos_num ?? (atleta.pontos || 0));
     const isCapitao = atletaId === capitaoId;
     const isReservaLuxo = atletaId === reservaLuxoId;
 
@@ -517,23 +630,6 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
             </div>
             <span class="campinho-jogador-nome">${nomeAbrev}</span>
             <span class="campinho-jogador-pos">${posicao.abrev}</span>
-        </div>
-    `;
-}
-
-function renderizarReservas(reservas, capitaoId, reservaLuxoId) {
-    if (!reservas || reservas.length === 0) return '';
-
-    return `
-        <div class="campinho-reservas">
-            <div class="campinho-reservas-header">
-                <span class="material-icons">event_seat</span>
-                <span>Banco de Reservas</span>
-                <span class="count">(${reservas.length})</span>
-            </div>
-            <div class="campinho-reservas-lista">
-                ${reservas.map(a => renderizarJogador(a, capitaoId, reservaLuxoId)).join('')}
-            </div>
         </div>
     `;
 }
