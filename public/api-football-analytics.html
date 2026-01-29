@@ -371,69 +371,6 @@
                         </div>
                     </div>
 
-                    <!-- Stats Row - API-Football -->
-                    <div style="margin-bottom: 8px; color: #9ca3af; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
-                        <span class="material-icons" style="font-size: 16px; color: #ef4444;">block</span>
-                        API-Football (REMOVIDA - Usuário Banido)
-                    </div>
-                    <div class="stats-row">
-                        <!-- Status API-Football -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-card-icon green">
-                                    <span class="material-icons">check_circle</span>
-                                </div>
-                                <span class="stat-card-label">Status</span>
-                            </div>
-                            <div id="api-football-status">
-                                <span class="status-badge offline">
-                                    <span class="dot"></span>
-                                    Verificando...
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Requests API-Football -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-card-icon orange">
-                                    <span class="material-icons">speed</span>
-                                </div>
-                                <span class="stat-card-label">Requests Hoje</span>
-                            </div>
-                            <div class="stat-card-value" id="api-football-requests">-</div>
-                            <div class="stat-card-sub" id="api-football-limite">de 100 disponiveis</div>
-                            <div class="progress-container">
-                                <div class="progress-bar">
-                                    <div class="progress-fill green" id="api-football-progress" style="width: 0%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Plano API-Football -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-card-icon blue">
-                                    <span class="material-icons">card_membership</span>
-                                </div>
-                                <span class="stat-card-label">Plano</span>
-                            </div>
-                            <div class="stat-card-value" id="api-football-plano">-</div>
-                            <div class="stat-card-sub" id="api-football-conta">Conta: -</div>
-                        </div>
-
-                        <!-- Alerta API-Football -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-card-icon yellow">
-                                    <span class="material-icons">notifications</span>
-                                </div>
-                                <span class="stat-card-label">Alerta</span>
-                            </div>
-                            <div class="stat-card-value" style="font-size: 1rem;" id="api-football-alerta">-</div>
-                        </div>
-                    </div>
-
                     <!-- Stats Row - SoccerDataAPI -->
                     <div style="margin-bottom: 8px; margin-top: 24px; color: #9ca3af; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
                         <span class="material-icons" style="font-size: 16px; color: #10b981;">looks_one</span>
@@ -766,66 +703,6 @@
                     // Fluxo de fallback
                     if (data.fluxo && fluxoEl) {
                         fluxoEl.textContent = data.fluxo;
-                    }
-
-                    // === API-Football (REMOVIDA) ===
-                    const apiFootball = data.fontes?.['api-football'] || {};
-                    const statusApiFootball = document.getElementById('api-football-status');
-
-                    if (statusApiFootball) {
-                        statusApiFootball.innerHTML = `
-                            <span class="status-badge offline">
-                                <span class="dot"></span>
-                                Removida / bloqueada
-                            </span>
-                            <p style="margin: 6px 0 0; font-size: 0.8rem; color: #fca5a5;">
-                                ${apiFootball.alerta || 'API-Football banida (usuário bloqueado)'}
-                            </p>
-                        `;
-                    }
-
-                    // Requests API-Football
-                    const atual = apiFootball?.requisicoes?.atual ?? 0;
-                    const limite = apiFootball?.requisicoes?.limite ?? 0;
-                    const percentual = limite > 0 ? Math.min((atual / limite) * 100, 100) : 100;
-
-                    const requestsEl = document.getElementById('api-football-requests');
-                    const limiteEl = document.getElementById('api-football-limite');
-                    const progressEl = document.getElementById('api-football-progress');
-
-                    if (requestsEl) requestsEl.textContent = limite > 0 ? atual : '—';
-                    if (limiteEl) limiteEl.textContent = limite > 0 ? `de ${limite} disponiveis` : 'API REMOVIDA';
-
-                    if (progressEl) {
-                        progressEl.style.width = `${percentual}%`;
-                        progressEl.classList.remove('green', 'yellow', 'red');
-
-                        if (!limite || percentual >= 100) {
-                            progressEl.classList.add('red');
-                            if (limiteEl) limiteEl.className = 'stat-card-sub danger';
-                        } else if (percentual < 50) {
-                            progressEl.classList.add('green');
-                            if (limiteEl) limiteEl.className = 'stat-card-sub success';
-                        } else if (percentual < 80) {
-                            progressEl.classList.add('yellow');
-                            if (limiteEl) limiteEl.className = 'stat-card-sub warning';
-                        } else {
-                            progressEl.classList.add('red');
-                            if (limiteEl) limiteEl.className = 'stat-card-sub danger';
-                        }
-                    }
-
-                    // Plano e Conta API-Football
-                    const planoEl = document.getElementById('api-football-plano');
-                    const contaEl = document.getElementById('api-football-conta');
-                    if (planoEl) planoEl.textContent = apiFootball?.plano || 'REMOVIDA';
-                    if (contaEl) contaEl.textContent = apiFootball?.conta ? `Conta: ${apiFootball.conta}` : 'Conta: banida';
-
-                    // Alerta API-Football
-                    const alertaEl = document.getElementById('api-football-alerta');
-                    if (alertaEl) {
-                        alertaEl.textContent = apiFootball?.alerta || 'Usuário banido / acesso bloqueado';
-                        alertaEl.style.color = '#ef4444';
                     }
 
                     // === SoccerDataAPI ===

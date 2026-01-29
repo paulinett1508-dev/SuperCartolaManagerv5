@@ -916,6 +916,13 @@ function renderizarHome(container, data, ligaId) {
     container.innerHTML = `
         <!-- Grid de Atalhos -->
         <section class="home-action-grid">
+            <!-- Botão Participantes (SEMPRE VISÍVEL) -->
+            <button class="home-action-item" onclick="window.abrirParticipantes2026 && window.abrirParticipantes2026()">
+                <div class="home-action-icon">
+                    <span class="material-icons">groups</span>
+                </div>
+                <span class="home-action-label">Participantes</span>
+            </button>
             ${premiumShortcuts}
             ${cartolaProHTML}
         </section>

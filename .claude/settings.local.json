@@ -94,7 +94,9 @@
       "Bash(then echo \"✅ Servidor reiniciado com sucesso!\")",
       "Bash(if curl -s \"http://localhost:5000/api/calendario-rodadas/2026/1/status\")",
       "Bash(else echo \"⚠️ Servidor não respondeu\")",
-      "Bash(if curl -s \"http://localhost:5000/api/cartola/mercado/status\")"
+      "Bash(if curl -s \"http://localhost:5000/api/cartola/mercado/status\")",
+      "Bash(then echo \"✅ Servidor reiniciado com sucesso!\" echo \"\" echo \"📊 Status do Mercado:\" curl -s \"http://localhost:5000/api/cartola/mercado/status\")",
+      "Bash(then echo \"✅ Servidor reiniciado com sucesso!\" echo \"\" echo \"🔍 Processos Node ativos:\" ps aux)"
     ]
   },
   "enableAllProjectMcpServers": true,
