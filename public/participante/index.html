@@ -2335,6 +2335,11 @@
                         return;
                     }
 
+                    // Ordenar alfabeticamente pelo nome do participante
+                    participantes.sort((a, b) =>
+                        (a.nome_cartola || '').localeCompare(b.nome_cartola || '', 'pt-BR')
+                    );
+
                     // Atualizar subtitulo
                     subtitulo.textContent = `${participantes.length} participantes`;
                     console.log(`[PARTICIPANTES] ${participantes.length} carregados (fonte: ${fonte})`);
