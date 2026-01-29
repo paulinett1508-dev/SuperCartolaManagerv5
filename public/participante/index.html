@@ -2304,6 +2304,7 @@
                             participantes = data.participantes
                                 .filter(p => p.ativo !== false && p.status !== 'nao_participa')
                                 .map(p => ({
+                                    time_id: p.time_id,
                                     nome_cartola: p.nome_cartoleiro || p.nome_cartola || 'Sem nome',
                                     nome_time: p.nome_time || 'Sem time',
                                     clube_id: p.clube_id || 'default'
@@ -2322,6 +2323,7 @@
                             participantes = liga.participantes
                                 .filter(p => p.ativo !== false)
                                 .map(p => ({
+                                    time_id: p.time_id,
                                     nome_cartola: p.nome_cartola || p.nome_cartoleiro || 'Sem nome',
                                     nome_time: p.nome_time || 'Sem time',
                                     clube_id: p.clube_id || 'default'
@@ -2345,11 +2347,15 @@
                     console.log(`[PARTICIPANTES] ${participantes.length} carregados (fonte: ${fonte})`);
 
                     // Renderizar lista com escudo do time do coracao
+                    // ✅ v2.1: Clique abre escalação do participante
                     lista.innerHTML = participantes.map(p => {
                         const clubeId = p.clube_id || 'default';
                         const escudoUrl = `/escudos/${clubeId}.png`;
+                        const nomeEscapado = (p.nome_cartola || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        const timeEscapado = (p.nome_time || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
                         return `
-                            <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                            <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all"
+                                 onclick="abrirEscalacaoParticipante(${p.time_id}, '${nomeEscapado}', '${timeEscapado}')">
                                 <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                     <img src="${escudoUrl}"
                                          alt="Escudo"
@@ -2360,6 +2366,7 @@
                                     <p class="text-sm font-semibold text-white truncate">${p.nome_cartola}</p>
                                     <p class="text-xs text-white/50 truncate">${p.nome_time}</p>
                                 </div>
+                                <span class="material-icons text-white/30 text-lg">chevron_right</span>
                             </div>
                         `;
                     }).join('');
@@ -2380,6 +2387,285 @@
             window.fecharParticipantes2026 = fecharParticipantes2026;
 
             console.log('[PARTICIPANTES] Modal Participantes 2026 carregado');
+        </script>
+
+        <!-- Modal Escalacao Participante -->
+        <div id="modal-escalacao-participante" class="fixed inset-0 z-50 hidden opacity-0 transition-opacity duration-300"
+             style="background: rgba(0,0,0,0.9); backdrop-filter: blur(8px); z-index: 10001;">
+            <div id="escalacao-card" class="absolute inset-x-4 top-1/2 -translate-y-1/2 max-w-md mx-auto bg-[#0f1012] rounded-2xl border border-white/10 shadow-2xl overflow-hidden scale-95 opacity-0 transition-all duration-300 max-h-[85vh] flex flex-col">
+
+                <!-- Header Fixo -->
+                <div class="sticky top-0 bg-[#0f1012] border-b border-white/10 z-10">
+                    <div class="h-1 w-full bg-gradient-to-r from-primary to-orange-400"></div>
+                    <div class="p-4 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div id="escalacao-escudo" class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                                <span class="material-icons text-xl text-primary">sports_soccer</span>
+                            </div>
+                            <div>
+                                <h2 id="escalacao-nome" class="text-lg font-bold text-white" style="font-family: 'Russo One', sans-serif;">Escalacao</h2>
+                                <p id="escalacao-subtitulo" class="text-xs text-white/50">Carregando...</p>
+                            </div>
+                        </div>
+                        <button onclick="fecharEscalacaoParticipante()" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                            <span class="material-icons text-white/60">close</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Conteudo da Escalacao (Scroll) -->
+                <div id="escalacao-conteudo" class="flex-1 overflow-y-auto p-4">
+                    <div class="flex items-center justify-center py-8">
+                        <div class="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Footer com Pontuacao Total -->
+                <div id="escalacao-footer" class="sticky bottom-0 bg-[#0f1012] border-t border-white/10 p-3 hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-white/60">Pontuacao Total</span>
+                        <span id="escalacao-pontos-total" class="text-xl font-bold text-primary" style="font-family: 'JetBrains Mono', monospace;">0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        // =====================================================================
+        // MODAL ESCALACAO PARTICIPANTE - v1.0
+        // =====================================================================
+
+        const POSICOES_CARTOLA = {
+            1: { nome: 'Goleiro', abrev: 'GOL', icone: 'sports_soccer', ordem: 1 },
+            2: { nome: 'Lateral', abrev: 'LAT', icone: 'directions_run', ordem: 3 },
+            3: { nome: 'Zagueiro', abrev: 'ZAG', icone: 'shield', ordem: 2 },
+            4: { nome: 'Meia', abrev: 'MEI', icone: 'sync_alt', ordem: 4 },
+            5: { nome: 'Atacante', abrev: 'ATA', icone: 'sports_score', ordem: 5 },
+            6: { nome: 'Tecnico', abrev: 'TEC', icone: 'person', ordem: 6 }
+        };
+
+        let escalacaoCache = {};
+
+        async function abrirEscalacaoParticipante(timeId, nomeCartola, nomeTime) {
+            const modal = document.getElementById('modal-escalacao-participante');
+            const card = document.getElementById('escalacao-card');
+            const conteudo = document.getElementById('escalacao-conteudo');
+            const footer = document.getElementById('escalacao-footer');
+            const nomeEl = document.getElementById('escalacao-nome');
+            const subtituloEl = document.getElementById('escalacao-subtitulo');
+            const escudoEl = document.getElementById('escalacao-escudo');
+
+            if (!modal || !card) return;
+
+            // Configurar header
+            nomeEl.textContent = nomeCartola || 'Escalacao';
+            subtituloEl.textContent = nomeTime || 'Carregando...';
+            footer.classList.add('hidden');
+            escudoEl.innerHTML = '<span class="material-icons text-xl text-primary">sports_soccer</span>';
+
+            // Mostrar loading
+            conteudo.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-12">
+                    <div class="animate-spin w-10 h-10 border-3 border-primary border-t-transparent rounded-full mb-4"></div>
+                    <p class="text-sm text-white/50">Buscando escalacao...</p>
+                </div>
+            `;
+
+            // Abrir modal
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                card.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+
+            try {
+                // 1. Buscar status do mercado
+                const statusRes = await fetch('/api/cartola/mercado-status');
+                const status = await statusRes.json();
+                const rodadaAtual = status.rodada_atual || 1;
+                const mercadoAberto = status.status_mercado === 1;
+
+                // 2. Verificar se mercado esta aberto
+                if (mercadoAberto) {
+                    conteudo.innerHTML = renderizarMercadoAberto(rodadaAtual);
+                    subtituloEl.textContent = `Rodada ${rodadaAtual} - Mercado Aberto`;
+                    return;
+                }
+
+                // 3. Buscar escalacao
+                subtituloEl.textContent = `${nomeTime} - Rodada ${rodadaAtual}`;
+
+                const cacheKey = `${timeId}_${rodadaAtual}`;
+                let escalacao = escalacaoCache[cacheKey];
+
+                if (!escalacao) {
+                    const escalaRes = await fetch(`/api/cartola/time/${timeId}/${rodadaAtual}/escalacao`);
+                    if (!escalaRes.ok) {
+                        throw new Error('Escalacao nao disponivel');
+                    }
+                    escalacao = await escalaRes.json();
+                    escalacaoCache[cacheKey] = escalacao;
+                }
+
+                // 4. Renderizar escalacao
+                if (!escalacao.atletas || escalacao.atletas.length === 0) {
+                    conteudo.innerHTML = renderizarSemEscalacao();
+                    return;
+                }
+
+                // Atualizar escudo se disponivel
+                if (escalacao.url_escudo_png) {
+                    escudoEl.innerHTML = `<img src="${escalacao.url_escudo_png}" class="w-8 h-8 object-contain" onerror="this.parentElement.innerHTML='<span class=\\'material-icons text-xl text-primary\\'>sports_soccer</span>'">`;
+                }
+
+                conteudo.innerHTML = renderizarEscalacaoCompleta(escalacao);
+
+                // Mostrar footer com pontuacao total
+                const pontosTotal = escalacao.atletas.reduce((acc, a) => {
+                    const pts = parseFloat(a.pontos_num) || 0;
+                    return acc + (a.atleta_id === escalacao.capitao_id ? pts * 2 : pts);
+                }, 0);
+
+                document.getElementById('escalacao-pontos-total').textContent = pontosTotal.toFixed(2);
+                footer.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('[ESCALACAO] Erro:', error);
+                conteudo.innerHTML = renderizarErroEscalacao(error.message);
+            }
+        }
+
+        function fecharEscalacaoParticipante() {
+            const modal = document.getElementById('modal-escalacao-participante');
+            const card = document.getElementById('escalacao-card');
+
+            if (!modal || !card) return;
+
+            modal.classList.add('opacity-0');
+            card.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Fechar ao clicar fora
+        document.getElementById('modal-escalacao-participante')?.addEventListener('click', function(e) {
+            if (e.target === this) fecharEscalacaoParticipante();
+        });
+
+        // =====================================================================
+        // FUNCOES DE RENDERIZACAO
+        // =====================================================================
+
+        function renderizarMercadoAberto(rodada) {
+            return `
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <span class="material-icons text-4xl text-green-400">storefront</span>
+                    </div>
+                    <p class="text-white text-lg font-medium mb-2">Mercado Aberto</p>
+                    <p class="text-white/50 text-sm mb-4">A escalacao sera exibida apos o fechamento do mercado</p>
+                    <p class="text-xs text-white/30">Rodada ${rodada}</p>
+                </div>
+            `;
+        }
+
+        function renderizarSemEscalacao() {
+            return `
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                        <span class="material-icons text-4xl text-yellow-400">sports_soccer</span>
+                    </div>
+                    <p class="text-white text-lg font-medium mb-2">Sem Escalacao</p>
+                    <p class="text-white/50 text-sm">Este participante nao escalou nesta rodada</p>
+                </div>
+            `;
+        }
+
+        function renderizarErroEscalacao(mensagem) {
+            return `
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                        <span class="material-icons text-4xl text-red-400">error_outline</span>
+                    </div>
+                    <p class="text-white text-lg font-medium mb-2">Erro ao Carregar</p>
+                    <p class="text-white/50 text-sm">${mensagem || 'Nao foi possivel carregar a escalacao'}</p>
+                </div>
+            `;
+        }
+
+        function renderizarEscalacaoCompleta(escalacao) {
+            const atletas = escalacao.atletas || [];
+            const capitaoId = escalacao.capitao_id;
+
+            // Agrupar por posicao
+            const porPosicao = {};
+            atletas.forEach(a => {
+                const posId = a.posicao_id;
+                if (!porPosicao[posId]) porPosicao[posId] = [];
+                porPosicao[posId].push(a);
+            });
+
+            // Ordenar posicoes (GOL, ZAG, LAT, MEI, ATA, TEC)
+            const ordemPosicoes = [1, 3, 2, 4, 5, 6];
+
+            let html = '<div class="space-y-4">';
+
+            ordemPosicoes.forEach(posId => {
+                const jogadores = porPosicao[posId];
+                if (!jogadores || jogadores.length === 0) return;
+
+                const posInfo = POSICOES_CARTOLA[posId] || { nome: 'Outros', abrev: '?', icone: 'person' };
+
+                html += `
+                    <div>
+                        <div class="flex items-center gap-2 mb-2 px-1">
+                            <span class="material-icons text-sm text-primary">${posInfo.icone}</span>
+                            <span class="text-xs font-bold text-white/60 uppercase tracking-wider">${posInfo.nome}</span>
+                        </div>
+                        <div class="space-y-2">
+                `;
+
+                jogadores.forEach(jogador => {
+                    const isCapitao = jogador.atleta_id === capitaoId;
+                    const pontos = parseFloat(jogador.pontos_num) || 0;
+                    const pontosExibir = isCapitao ? pontos * 2 : pontos;
+                    const corPontos = pontos > 0 ? 'text-green-400' : pontos < 0 ? 'text-red-400' : 'text-white/50';
+                    const clubeId = jogador.clube_id || 'default';
+
+                    html += `
+                        <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 ${isCapitao ? 'ring-2 ring-yellow-500/50' : ''}">
+                            <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+                                <img src="/escudos/${clubeId}.png"
+                                     alt="Clube"
+                                     class="w-7 h-7 object-contain"
+                                     onerror="this.src='/escudos/default.png'">
+                                ${isCapitao ? `<div class="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center"><span class="text-[10px] font-bold text-black">C</span></div>` : ''}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-white truncate">${jogador.apelido || 'Jogador'}</p>
+                                <p class="text-xs text-white/40">${posInfo.abrev}${isCapitao ? ' - Capitao (2x)' : ''}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold ${corPontos}" style="font-family: 'JetBrains Mono', monospace;">${pontosExibir.toFixed(2)}</p>
+                                ${isCapitao && pontos !== 0 ? `<p class="text-[10px] text-yellow-500/70">(${pontos.toFixed(2)} x2)</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div></div>';
+            });
+
+            html += '</div>';
+            return html;
+        }
+
+        // Expor globalmente
+        window.abrirEscalacaoParticipante = abrirEscalacaoParticipante;
+        window.fecharEscalacaoParticipante = fecharEscalacaoParticipante;
+
+        console.log('[ESCALACAO] Modal Escalacao Participante v1.0 carregado');
         </script>
 
         <!-- Modal Regras 2026 -->

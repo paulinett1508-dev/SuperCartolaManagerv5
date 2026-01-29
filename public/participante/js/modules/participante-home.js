@@ -29,6 +29,10 @@ let mercadoStatus = null;
 const CLUBES_CACHE_KEY = 'cartola_clubes_cache_v1';
 const CLUBES_CACHE_TTL = 12 * 60 * 60 * 1000; // 12h
 
+const HOME_AUTO_REFRESH_MS = 60000; // 60s
+let homeAutoRefreshId = null;
+let homeAutoRefreshEmAndamento = false;
+
 // =====================================================================
 // FUNCAO PRINCIPAL
 // =====================================================================
@@ -97,7 +101,9 @@ export async function inicializarHomeParticipante(params) {
         return;
     }
 
+    pararAutoRefreshHome();
     await carregarDadosERenderizar(ligaId, timeId, participante);
+    iniciarAutoRefreshHome(ligaId, timeId, participante);
 }
 
 window.inicializarHomeParticipante = inicializarHomeParticipante;
@@ -249,6 +255,142 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 
     // Carregar jogos em background
     carregarEExibirJogos();
+}
+
+// =====================================================================
+// AUTO-REFRESH DOS CARDS (PONTOS / POSICAO / SALDO)
+// =====================================================================
+function iniciarAutoRefreshHome(ligaId, timeId, participante) {
+    pararAutoRefreshHome();
+
+    if (!document.getElementById('home-container')) return;
+
+    homeAutoRefreshId = setInterval(() => {
+        if (document.hidden) return;
+        if (window.moduloAtualParticipante && window.moduloAtualParticipante !== 'home') {
+            pararAutoRefreshHome();
+            return;
+        }
+        atualizarCardsHome(ligaId, timeId, participante);
+    }, HOME_AUTO_REFRESH_MS);
+}
+
+function pararAutoRefreshHome() {
+    if (homeAutoRefreshId) {
+        clearInterval(homeAutoRefreshId);
+        homeAutoRefreshId = null;
+    }
+}
+
+async function atualizarCardsHome(ligaId, timeId, participante) {
+    if (homeAutoRefreshEmAndamento) return;
+    if (!document.getElementById('home-container')) return;
+
+    homeAutoRefreshEmAndamento = true;
+    try {
+        const dadosFresh = await buscarDadosHomeFresh(ligaId, timeId);
+        if (!dadosFresh) return;
+
+        const meuTimeIdNum = Number(timeId);
+        const dadosRender = processarDadosParaRender(
+            dadosFresh.liga,
+            dadosFresh.ranking,
+            dadosFresh.rodadas,
+            dadosFresh.extrato,
+            meuTimeIdNum,
+            participante
+        );
+
+        atualizarCardsHomeUI(dadosRender);
+    } catch (error) {
+        if (window.Log) Log.warn("PARTICIPANTE-HOME", "Falha no auto-refresh:", error);
+    } finally {
+        homeAutoRefreshEmAndamento = false;
+    }
+}
+
+async function buscarDadosHomeFresh(ligaId, timeId) {
+    const cache = window.ParticipanteCache;
+    const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+
+    const [ligaFresh, rankingFresh, rodadasFresh] = await Promise.all([
+        fetch(`/api/ligas/${ligaId}`).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`/api/ligas/${ligaId}/ranking?temporada=${temporada}`).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38&temporada=${temporada}`).then(r => r.ok ? r.json() : null).catch(() => null)
+    ]);
+
+    if (!Array.isArray(rankingFresh) || !Array.isArray(rodadasFresh)) return null;
+
+    if (cache) {
+        if (ligaFresh) cache.setLiga(ligaId, ligaFresh);
+        cache.setRanking(ligaId, rankingFresh, temporada);
+        cache.setRodadas(ligaId, rodadasFresh);
+    }
+
+    const minhasRodadasTemp = (rodadasFresh || []).filter(
+        (r) => Number(r.timeId) === Number(timeId) || Number(r.time_id) === Number(timeId)
+    );
+    const ultimaRodadaNum = minhasRodadasTemp.length > 0
+        ? Math.max(...minhasRodadasTemp.map(r => r.rodada))
+        : 1;
+
+    let extratoFresh = null;
+    const temporadaExtrato = participanteRenovado ? TEMPORADA_ATUAL : TEMPORADA_FINANCEIRA;
+
+    try {
+        const resCache = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaNum}&temporada=${temporadaExtrato}`);
+        if (resCache.ok) {
+            const cacheData = await resCache.json();
+            extratoFresh = {
+                saldo_atual: cacheData?.resumo?.saldo_final ?? cacheData?.resumo?.saldo ?? 0,
+                resumo: cacheData?.resumo || {}
+            };
+        }
+    } catch (e) {
+        const resFallback = await fetch(`/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`);
+        extratoFresh = resFallback.ok ? await resFallback.json() : null;
+    }
+
+    if (cache && extratoFresh) {
+        cache.setExtrato(ligaId, timeId, extratoFresh);
+    }
+
+    return {
+        liga: ligaFresh || {},
+        ranking: rankingFresh,
+        rodadas: rodadasFresh,
+        extrato: extratoFresh
+    };
+}
+
+function atualizarCardsHomeUI(data) {
+    const pontosEl = document.getElementById('home-stat-pontos');
+    const pontosHintEl = document.getElementById('home-stat-pontos-hint');
+    const posicaoEl = document.getElementById('home-stat-posicao');
+    const posicaoHintEl = document.getElementById('home-stat-posicao-hint');
+    const saldoEl = document.getElementById('home-saldo-value');
+
+    if (!pontosEl && !posicaoEl && !saldoEl) return;
+
+    const {
+        saldoFormatado,
+        saldoClass,
+        pontosDisplay,
+        posicaoDisplay,
+        hintPontos,
+        hintPosicao
+    } = calcularValoresCards(data);
+
+    if (pontosEl) pontosEl.textContent = pontosDisplay;
+    if (pontosHintEl) pontosHintEl.textContent = hintPontos;
+    if (posicaoEl) posicaoEl.textContent = posicaoDisplay;
+    if (posicaoHintEl) posicaoHintEl.innerHTML = hintPosicao;
+
+    if (saldoEl) {
+        saldoEl.textContent = saldoFormatado;
+        saldoEl.classList.remove('positive', 'negative');
+        if (saldoClass) saldoEl.classList.add(saldoClass);
+    }
 }
 
 // =====================================================================
@@ -493,6 +635,45 @@ function corParaRGB(cor) {
     return null;
 }
 
+function calcularValoresCards(data) {
+    const {
+        posicao,
+        totalParticipantes,
+        pontosTotal,
+        rodadaAtual,
+        posicaoAnterior,
+        saldoFinanceiro
+    } = data;
+
+    let variacaoHTML = "";
+    if (posicao && posicaoAnterior) {
+        const diff = posicaoAnterior - posicao;
+        if (diff > 0) variacaoHTML = `<span class="home-variation-up">+${diff}</span>`;
+        else if (diff < 0) variacaoHTML = `<span class="home-variation-down">${diff}</span>`;
+    }
+
+    const saldoAbs = Math.abs(saldoFinanceiro);
+    const saldoFormatado = saldoFinanceiro >= 0
+        ? `R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+        : `-R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+    const saldoClass = saldoFinanceiro > 0 ? "positive" : saldoFinanceiro < 0 ? "negative" : "";
+
+    const aguardandoRodada = rodadaAtual === 0;
+    const posicaoDisplay = aguardandoRodada ? "--" : (posicao ? `${posicao}` : "--");
+    const pontosDisplay = aguardandoRodada ? "0" : formatarPontos(pontosTotal).split(",")[0];
+    const hintPosicao = aguardandoRodada ? "Aguardando 1ª rodada" : `de ${totalParticipantes}${variacaoHTML}`;
+    const hintPontos = aguardandoRodada ? "Aguardando 1ª rodada" : "total acumulado";
+
+    return {
+        saldoFormatado,
+        saldoClass,
+        pontosDisplay,
+        posicaoDisplay,
+        hintPosicao,
+        hintPontos
+    };
+}
+
 // =====================================================================
 // RENDERIZACAO PRINCIPAL
 // =====================================================================
@@ -513,22 +694,15 @@ function renderizarHome(container, data, ligaId) {
 
     const iniciais = getIniciais(nomeCartola);
     const isPremium = participantePremium;
-    const isRenovado = participanteRenovado;
 
-    // Variacao de posicao
-    let variacaoHTML = "";
-    if (posicao && posicaoAnterior) {
-        const diff = posicaoAnterior - posicao;
-        if (diff > 0) variacaoHTML = `<span class="home-variation-up">+${diff}</span>`;
-        else if (diff < 0) variacaoHTML = `<span class="home-variation-down">${diff}</span>`;
-    }
-
-    // Saldo formatado
-    const saldoAbs = Math.abs(saldoFinanceiro);
-    const saldoFormatado = saldoFinanceiro >= 0
-        ? `R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
-        : `-R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-    const saldoClass = saldoFinanceiro > 0 ? "positive" : saldoFinanceiro < 0 ? "negative" : "";
+    const {
+        saldoFormatado,
+        saldoClass,
+        pontosDisplay,
+        posicaoDisplay,
+        hintPontos,
+        hintPosicao
+    } = calcularValoresCards(data);
 
     // FAB do Mercado
     const mercadoAberto = mercadoStatus?.status_mercado === 1;
@@ -559,13 +733,6 @@ function renderizarHome(container, data, ligaId) {
                 <span class="home-action-label">Cartola PRO</span>
             </button>
         ` : "";
-
-    // Valores para display
-    const aguardandoRodada = isRenovado || rodadaAtual === 0;
-    const posicaoDisplay = aguardandoRodada ? "--" : (posicao ? `${posicao}` : "--");
-    const pontosDisplay = aguardandoRodada ? "0" : formatarPontos(pontosTotal).split(",")[0];
-    const hintPosicao = aguardandoRodada ? "Aguardando 1ª rodada" : `de ${totalParticipantes}${variacaoHTML}`;
-    const hintPontos = aguardandoRodada ? "Aguardando 1ª rodada" : "total acumulado";
 
     container.innerHTML = `
         <!-- Header Premium -->
@@ -623,14 +790,14 @@ function renderizarHome(container, data, ligaId) {
             <div class="home-stats-split">
                 <div class="home-stat-block">
                     <span class="home-stat-label">Pontos</span>
-                    <span class="home-stat-value text-accent">${pontosDisplay}</span>
-                    <span class="home-stat-hint">${hintPontos}</span>
+                    <span id="home-stat-pontos" class="home-stat-value text-accent">${pontosDisplay}</span>
+                    <span id="home-stat-pontos-hint" class="home-stat-hint">${hintPontos}</span>
                 </div>
                 <div class="home-stat-divider"></div>
                 <div class="home-stat-block">
                     <span class="home-stat-label">Posicao</span>
-                    <span class="home-stat-value">${posicaoDisplay}</span>
-                    <span class="home-stat-hint">${hintPosicao}</span>
+                    <span id="home-stat-posicao" class="home-stat-value">${posicaoDisplay}</span>
+                    <span id="home-stat-posicao-hint" class="home-stat-hint">${hintPosicao}</span>
                 </div>
             </div>
         </section>
@@ -643,7 +810,7 @@ function renderizarHome(container, data, ligaId) {
                 </div>
                 <div class="home-finance-info">
                     <span class="home-finance-label">Saldo Financeiro</span>
-                    <span class="home-finance-value ${saldoClass}">${saldoFormatado}</span>
+                    <span id="home-saldo-value" class="home-finance-value ${saldoClass}">${saldoFormatado}</span>
                 </div>
             </div>
             <div class="home-finance-arrow">
