@@ -25,6 +25,8 @@
 // v2.2: Debounce e controle de navegações duplicadas
 // =====================================================================
 
+const CAMPINHO_TARGET_KEY = 'scm_campinho_target';
+
 if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação v4.3...');
 
 class ParticipanteNavigation {
@@ -49,6 +51,7 @@ class ParticipanteNavigation {
             "luva-ouro": "/participante/fronts/luva-ouro.html",
             campinho: "/participante/fronts/campinho.html",
             dicas: "/participante/fronts/dicas.html",
+            capitao: "/participante/fronts/capitao.html",
             configuracoes: "/participante/fronts/configuracoes.html",
         };
 
@@ -57,6 +60,7 @@ class ParticipanteNavigation {
         this._ultimaNavegacao = 0;
         this._debounceMs = 100; // ✅ v3.0: Reduzido para 100ms (super responsivo)
         this._navegacaoEmAndamento = null; // ID da navegação atual (para cancelar se necessário)
+        this._campinhoTarget = null;
     }
 
     async inicializar() {
@@ -71,6 +75,8 @@ class ParticipanteNavigation {
 
         // Aguardar dados do participante
         await this.aguardarDadosParticipante();
+
+        this._campinhoTarget = this._extrairCampinhoTarget();
 
         // ✅ v4.2: CORREÇÃO CRÍTICA - Garantir que auth realmente carregou dados
         if (!this.participanteData || !this.participanteData.ligaId) {
@@ -114,6 +120,8 @@ class ParticipanteNavigation {
             sessionStorage.getItem("participante_modulo_atual") ||
             "home";
 
+        const moduloInicial = this._campinhoTarget ? 'campinho' : moduloSalvo;
+
         // ✅ Sincronizar botão ativo do menu com módulo salvo
         if (moduloSalvo) {
             const navButtons = document.querySelectorAll(".nav-item-modern");
@@ -129,7 +137,30 @@ class ParticipanteNavigation {
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
         // Navegar para módulo (salvo ou inicial)
-        await this.navegarPara(moduloSalvo);
+        await this.navegarPara(moduloInicial);
+    }
+
+    _extrairCampinhoTarget() {
+        if (typeof localStorage === "undefined") return null;
+        const raw = localStorage.getItem(CAMPINHO_TARGET_KEY);
+        if (!raw) return null;
+
+        localStorage.removeItem(CAMPINHO_TARGET_KEY);
+
+        try {
+            const parsed = JSON.parse(raw);
+            if (!parsed?.timeId) return null;
+            const target = { ...parsed };
+            if (!target.ligaId && this.participanteData?.ligaId) {
+                target.ligaId = this.participanteData.ligaId;
+            }
+            if (target.ligaId && this.participanteData?.ligaId && target.ligaId !== this.participanteData.ligaId) {
+                return null;
+            }
+            return target;
+        } catch (error) {
+            return null;
+        }
     }
 
     async aguardarDadosParticipante() {
@@ -716,6 +747,7 @@ class ParticipanteNavigation {
             "luva-ouro": "/participante/js/modules/participante-luva-ouro.js",
             campinho: "/participante/js/modules/participante-campinho.js",
             dicas: "/participante/js/modules/participante-dicas.js",
+            capitao: "/participante/js/modules/participante-capitao.js",
             configuracoes: "/participante/js/modules/participante-notifications.js",
         };
 
@@ -742,12 +774,23 @@ class ParticipanteNavigation {
                     if (moduloJS[funcName]) {
                         if (window.Log) Log.debug('PARTICIPANTE-NAV', `🚀 Executando: ${funcName}()`);
                         try {
-                            if (this.participanteData) {
-                                await moduloJS[funcName]({
-                                    participante: this.participanteData,
-                                    ligaId: this.participanteData.ligaId,
-                                    timeId: this.participanteData.timeId,
-                                });
+                            const payload = this.participanteData
+                                ? {
+                                      participante: this.participanteData,
+                                      ligaId: this.participanteData.ligaId,
+                                      timeId: this.participanteData.timeId,
+                                  }
+                                : {};
+
+                            if (modulo === 'campinho' && this._campinhoTarget) {
+                                payload.timeId = this._campinhoTarget.timeId;
+                                payload.ligaId = this._campinhoTarget.ligaId || payload.ligaId;
+                                delete payload.participante;
+                                this._campinhoTarget = null;
+                            }
+
+                            if (Object.keys(payload).length > 0) {
+                                await moduloJS[funcName](payload);
                             } else {
                                 await moduloJS[funcName]();
                             }

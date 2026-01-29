@@ -165,6 +165,11 @@ export async function inicializarRankingParticipante(params, timeIdParam) {
 
     if (window.Log) Log.debug('PARTICIPANTE-RANKING', 'Dados:', { ligaId, timeId });
 
+    // ✅ FEAT-026: Subscribe em eventos Matchday
+    if (window.MatchdayService) {
+        subscribeMatchdayEvents();
+    }
+
     // ✅ v3.9: Aguardar DOM estar renderizado (double RAF)
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
@@ -210,6 +215,35 @@ export async function inicializarRankingParticipante(params, timeIdParam) {
         if (window.Log) Log.error('PARTICIPANTE-RANKING', 'Erro:', error);
         container.innerHTML = renderizarErro();
     }
+}
+
+// ✅ FEAT-026: Integração Matchday
+function subscribeMatchdayEvents() {
+    if (!window.MatchdayService) return;
+
+    // Recarregar ranking quando parciais atualizarem
+    window.MatchdayService.on('data:parciais', (data) => {
+        if (window.Log) Log.info('PARTICIPANTE-RANKING', '🔄 Parciais atualizadas - recarregando');
+        carregarRanking(estadoRanking.turnoAtivo);
+    });
+
+    // Feedback visual quando matchday inicia
+    window.MatchdayService.on('matchday:start', () => {
+        if (window.Log) Log.info('PARTICIPANTE-RANKING', '🟢 MATCHDAY ATIVO');
+        const container = document.getElementById('rankingLista');
+        if (container) {
+            container.classList.add('matchday-active');
+        }
+    });
+
+    // Remover classe quando encerrar
+    window.MatchdayService.on('matchday:stop', () => {
+        if (window.Log) Log.info('PARTICIPANTE-RANKING', '🔴 MATCHDAY ENCERRADO');
+        const container = document.getElementById('rankingLista');
+        if (container) {
+            container.classList.remove('matchday-active');
+        }
+    });
 }
 
 window.inicializarRankingParticipante = inicializarRankingParticipante;

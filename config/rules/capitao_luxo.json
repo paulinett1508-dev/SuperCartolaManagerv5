@@ -3,12 +3,12 @@
   "nome": "Capitão de Luxo",
   "descricao": "Ranking baseado exclusivamente na pontuação do capitão escalado em cada rodada. Premia quem soube escolher os melhores capitães.",
   "tipo": "ranking_estatistico",
-  "status": "planejado",
+  "status": "ativo",
   "versao": "1.0.0",
 
   "configuracao": {
     "ligas_habilitadas": ["684cb1c8af923da7c7df51de", "684d821cf1a7ae16d1f89572"],
-    "modulo_ativo": false,
+    "modulo_ativo": true,
     "temporada": 2025
   },
 

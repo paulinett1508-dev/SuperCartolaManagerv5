@@ -126,6 +126,10 @@ import acertosFinanceirosRoutes from "./routes/acertos-financeiros-routes.js";
 import tesourariaRoutes from "./routes/tesouraria-routes.js";
 import ajustesRoutes from "./routes/ajustes-routes.js";
 
+// ✅ FEAT-026 & FEAT-027: Matchday + Capitão de Luxo
+import matchdayRoutes from "./routes/matchday-routes.js";
+import capitaoRoutes from "./routes/capitao-routes.js";
+
 // 🔄 Renovação de Temporada
 import ligaRulesRoutes from "./routes/liga-rules-routes.js";
 import inscricoesRoutes from "./routes/inscricoes-routes.js";
@@ -371,6 +375,13 @@ app.use(express.static("public"));
 // Rotas da API
 app.use("/api/jogos-hoje", jogosHojeRoutes);
 app.use("/api/live-results", liveResultsRoutes);
+
+// ✅ FEAT-026: Modo Matchday
+app.use('/api/matchday', matchdayRoutes);
+
+// ✅ FEAT-027: Capitão de Luxo
+app.use('/api/capitao', capitaoRoutes);
+
 app.use("/api/jogos-hoje-globo", jogosHojeGloboRoutes); // NOVA ROTA
 app.use("/api/jogos-ao-vivo", jogosAoVivoRoutes); // API-Football
 app.use("/api/ligas", ligaRoutes);
