@@ -1,6 +1,7 @@
 // =====================================================
-// MÓDULO: RANKING PARTICIPANTE - v3.9 PRO (CACHE-FIRST)
+// MÓDULO: RANKING PARTICIPANTE - v3.10 PRO (TEMPORADA FIX)
 // Usa API de snapshots /api/ranking-turno
+// ✅ v3.10: FIX - Temporada dinâmica (corrigir hardcode 2025) + passar temporada na API
 // ✅ v3.9: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v3.8: CACHE-FIRST - Carregamento instantâneo do IndexedDB
 // ✅ v3.7: Separação de participantes inativos (desistentes)
@@ -8,7 +9,7 @@
 // ✅ v3.5: Card Seu Desempenho ao final + Vezes Líder
 // =====================================================
 
-if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Módulo v3.9 PRO (CACHE-FIRST) carregando...');
+if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Módulo v3.10 PRO (TEMPORADA FIX) carregando...');
 
 // ==============================
 // CONSTANTES
@@ -360,9 +361,12 @@ async function carregarRanking(turno) {
     try {
         if (window.Log) Log.debug('PARTICIPANTE-RANKING', 'Buscando turno ' + turno + ' da API...');
 
+        // ✅ v3.10: Passar temporada correta na API
+        const temporadaAPI = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+
         // Buscar turno principal
         const response = await fetch(
-            "/api/ranking-turno/" + ligaId + "?turno=" + turno,
+            "/api/ranking-turno/" + ligaId + "?turno=" + turno + "&temporada=" + temporadaAPI,
         );
         const data = await response.json();
 
@@ -432,11 +436,14 @@ async function carregarPosicoesTurnos() {
     if (!ligaId || !timeId) return;
 
     try {
+        // ✅ v3.10: Passar temporada correta em todas as chamadas
+        const temporadaAPI = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+
         // Buscar 1º e 2º turno + rodadas em paralelo
         const [resp1, resp2, respRodadas] = await Promise.all([
-            fetch("/api/ranking-turno/" + ligaId + "?turno=1"),
-            fetch("/api/ranking-turno/" + ligaId + "?turno=2"),
-            fetch("/api/rodadas/" + ligaId + "/rodadas?inicio=1&fim=38"),
+            fetch("/api/ranking-turno/" + ligaId + "?turno=1&temporada=" + temporadaAPI),
+            fetch("/api/ranking-turno/" + ligaId + "?turno=2&temporada=" + temporadaAPI),
+            fetch("/api/rodadas/" + ligaId + "/rodadas?inicio=1&fim=38&temporada=" + temporadaAPI),
         ]);
 
         const [data1, data2, dataRodadas] = await Promise.all([
@@ -543,8 +550,10 @@ function criarCardLider(lider, turnoLabel, rodadaAtual) {
         estadoRanking.temporadaEncerrada &&
         estadoRanking.turnoAtivo === "geral";
     const titulo = isCampeao ? "CAMPEÃO" : "LÍDER " + turnoLabel.toUpperCase();
+    // ✅ v3.10: Usar temporada dinâmica do config (remover hardcode 2025)
+    const temporadaAtualConfig = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
     const subtitulo = isCampeao
-        ? "Temporada 2025 encerrada"
+        ? "Temporada " + temporadaAtualConfig + " encerrada"
         : "até a " + (rodadaAtual || "?") + "ª rodada";
     const mensagem = isCampeao
         ? lider.nome_time + " é o grande campeão do Super Cartola!"

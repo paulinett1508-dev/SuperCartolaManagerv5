@@ -1,6 +1,7 @@
 // =====================================================================
-// service-worker.js - Service Worker do PWA v3.7 (RODADAS EXPANDABLE)
+// service-worker.js - Service Worker do PWA v3.8 (RANKING TEMPORADA FIX)
 // Destino: /participante/service-worker.js
+// ✅ v3.8: RANKING FIX - Corrigir temporada 2025 hardcoded para dinâmica
 // ✅ v3.7: RODADAS REDESIGN - Grupos expansíveis + slider horizontal
 // ✅ v3.6: PUSH NOTIFICATIONS - Handlers de push, click e close
 // ✅ v3.5: HOME PREMIUM UI - Cores hardcoded, fonte 72px, match cards azul
@@ -8,10 +9,10 @@
 // ✅ v3.2: FORCE CACHE CLEAR - Limpar cache antigo que causava erros
 // ✅ v3.1: Network-First com cache fallback (FIX fetch failures)
 // ✅ v3.0: Força limpeza de caches antigos
-// BUILD: 2026-01-28T12:00:00Z
+// BUILD: 2026-01-29T10:00:00Z
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v14-rodadas-expandable";
+const CACHE_NAME = "super-cartola-v15-ranking-fix";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
