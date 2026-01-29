@@ -43,6 +43,7 @@
 | **Refactor-Monolith** | "refatorar arquivo grande", "separar em módulos" |
 | **skill-creator** | "criar skill", "fazer skill", criar/atualizar skills customizadas |
 | **skill-installer** | "instalar skill", listar e instalar skills do catálogo |
+| **restart-server** | "reiniciar servidor", "restart", aplicar mudanças backend |
 | **system-scribe** | "explicar módulo X", "como funciona Y?" |
 
 ### Skills do High Senior Protocol (4)
