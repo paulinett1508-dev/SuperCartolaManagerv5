@@ -82,7 +82,19 @@
       "Bash(do node --check:*)",
       "Bash(done)",
       "Bash(for file in controllers/rankingTurnoController.js controllers/rankingGeralCacheController.js services/rankingTurnoService.js services/parciaisRankingService.js public/js/ranking.js)",
-      "Bash(for file in public/js/ranking.js services/parciaisRankingService.js services/rankingTurnoService.js)"
+      "Bash(for file in public/js/ranking.js services/parciaisRankingService.js services/rankingTurnoService.js)",
+      "Bash(for i in {1..15})",
+      "Bash(do)",
+      "Bash(if curl -s \"http://localhost:3000/api/cartola/mercado/status\")",
+      "Bash(then)",
+      "Bash(break)",
+      "Bash(fi)",
+      "Bash(then echo \"✅ Servidor reiniciado com sucesso!\" curl -s \"http://localhost:3000/api/cartola/mercado/status\")",
+      "Bash(do sleep 1)",
+      "Bash(then echo \"✅ Servidor reiniciado com sucesso!\")",
+      "Bash(if curl -s \"http://localhost:5000/api/calendario-rodadas/2026/1/status\")",
+      "Bash(else echo \"⚠️ Servidor não respondeu\")",
+      "Bash(if curl -s \"http://localhost:5000/api/cartola/mercado/status\")"
     ]
   },
   "enableAllProjectMcpServers": true,

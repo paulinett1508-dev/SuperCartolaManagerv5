@@ -106,6 +106,7 @@ import timesAdminRoutes from "./routes/times-admin.js";
 import rodadasRoutes from "./routes/rodadas-routes.js";
 import rodadasCacheRoutes from "./routes/rodadasCacheRoutes.js";
 import rodadasCorrecaoRoutes from "./routes/rodadasCorrecaoRoutes.js";
+import calendarioRodadasRoutes from "./routes/calendario-rodadas-routes.js";
 import golsRoutes from "./routes/gols.js";
 import artilheiroCampeaoRoutes from "./routes/artilheiro-campeao-routes.js";
 import luvaDeOuroRoutes from "./routes/luva-de-ouro-routes.js";
@@ -137,6 +138,7 @@ import quitacaoRoutes from "./routes/quitacao-routes.js";
 
 // 🧩 Configuração de Módulos por Liga
 import moduleConfigRoutes from "./routes/module-config-routes.js";
+import rulesRoutes from "./routes/rules-routes.js";
 
 // 📦 DATA LAKE dos Participantes
 import dataLakeRoutes from "./routes/data-lake-routes.js";
@@ -393,6 +395,7 @@ app.use("/api/time", timesRoutes);
 app.use("/api/rodadas", rodadasRoutes);
 app.use("/api/rodadas-cache", rodadasCacheRoutes);
 app.use("/api/rodadas-correcao", rodadasCorrecaoRoutes);
+app.use("/api/calendario-rodadas", calendarioRodadasRoutes);
 app.use("/api/gols", golsRoutes);
 app.use("/api/artilheiro-campeao", artilheiroCampeaoRoutes);
 app.use("/api/luva-de-ouro", luvaDeOuroRoutes);
@@ -423,6 +426,10 @@ app.use("/api/quitacao", quitacaoRoutes);
 // 🧩 Configuração de Módulos
 app.use("/api", moduleConfigRoutes);
 console.log("[SERVER] 🔄 Sistema de Renovação de Temporada registrado");
+
+// 📚 Regras estáticas (JSON)
+app.use("/api/rules", rulesRoutes);
+console.log("[SERVER] 🧾 Rotas de regras estáticas registradas em /api/rules");
 
 // 📦 DATA LAKE dos Participantes
 app.use("/api/data-lake", dataLakeRoutes);

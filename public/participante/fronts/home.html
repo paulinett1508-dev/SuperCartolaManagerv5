@@ -1,11 +1,40 @@
-<!-- PARTICIPANTE HOME - Template Premium v1.0 -->
+<!-- PARTICIPANTE HOME - Template Ultra Clean v2.0 -->
 <!-- Fragmento HTML (sem doctype/html/body) para insercao via navegacao -->
-<!-- Baseado nos componentes Mobile Premium do SKILL.md v3.2 -->
-<div id="home-container" class="pb-28">
+<!-- Inspirado em design mobile-first ultra clean com Design System Black & Orange -->
+<div id="home-container" class="relative min-h-screen pb-28">
+    <!-- Header Premium com Avatar -->
+    <header id="home-header-premium" class="home-header-premium">
+        <div class="home-header-content">
+            <!-- Avatar com Iniciais -->
+            <div class="home-user-section">
+                <div class="home-avatar-circle">
+                    <span class="home-avatar-initials">?</span>
+                    <div class="home-team-badge">
+                        <span class="material-icons">shield</span>
+                    </div>
+                </div>
+                <div class="home-user-info">
+                    <h1 class="home-user-name">Carregando...</h1>
+                    <div id="home-badge-premium-placeholder"></div>
+                </div>
+            </div>
+            <!-- Notificações (futuro) -->
+            <button class="home-btn-icon" aria-label="Menu" onclick="window.participanteNav?.navegarPara('configuracoes')">
+                <span class="material-icons">more_vert</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Saudação -->
+    <div id="home-greeting">
+        <h2 class="text-2xl font-bold leading-tight tracking-tight text-white">Carregando...</h2>
+        <p id="home-subtitle" class="text-base font-medium text-white/70">Aguarde...</p>
+    </div>
+
     <!-- Conteudo renderizado via JS -->
     <div class="flex flex-col items-center justify-center py-16">
         <div class="w-10 h-10 border-4 border-zinc-700 border-t-orange-500 rounded-full animate-spin mb-4"></div>
-        <p class="text-sm text-gray-400">Carregando...</p>
+        <p class="text-sm text-gray-400">Carregando dados...</p>
     </div>
 </div>
 
@@ -146,7 +175,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
-    padding: 48px 16px 16px;
+    padding: 16px 16px 24px;
 }
 
 .home-action-item {
@@ -202,9 +231,9 @@
 /* === CARD STATUS DO TIME (Split Layout) === */
 .home-team-card {
     background: rgba(15, 16, 20, 0.9);
-    border-radius: 16px;
-    padding: 24px 20px;
-    margin: 0 16px 16px;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 16px 16px;
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: 0 4px 12px rgba(0,0,0,0.45);
     backdrop-filter: blur(6px);
@@ -230,30 +259,6 @@
     display: none; /* Ocultar badge de zona */
 }
 
-.home-stat-actions {
-    margin-top: 12px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
-
-.home-update-btn {
-    background: rgba(255,255,255,0.08);
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 11px;
-    letter-spacing: 0.4px;
-    font-weight: 600;
-    border: none;
-    color: #fff;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.home-update-btn:hover {
-    background: rgba(255,255,255,0.18);
-}
-
 .home-team-card.zona-premiacao {
     box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2);
 }
@@ -273,21 +278,21 @@
 .home-stats-split {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
+    gap: 16px;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 0;
 }
 
 .home-stat-block {
     display: flex;
     flex-direction: column;
     text-align: center;
-    gap: 8px;
+    gap: 4px;
     align-items: center;
 }
 
 .home-stat-label {
-    font-size: 10px;
+    font-size: 9px;
     color: rgba(255,255,255,0.65);
     text-transform: uppercase;
     letter-spacing: 0.6px;
@@ -297,7 +302,7 @@
 
 .home-stat-value {
     font-family: 'Russo One', var(--app-font-brand), sans-serif;
-    font-size: 48px;
+    font-size: 32px;
     font-weight: 700;
     color: #ffffff;
     line-height: 1;
@@ -309,9 +314,9 @@
 }
 
 .home-stat-hint {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--app-text-dim);
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .home-stat-divider {
@@ -410,82 +415,6 @@
 .home-finance-arrow .material-icons {
     font-size: 20px;
     color: var(--app-text-dim);
-}
-
-/* === FAB DO MERCADO === */
-.home-fab-mercado {
-    position: fixed;
-    bottom: 96px;
-    right: 16px;
-    z-index: 40;
-}
-
-.home-fab-btn {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 9999px;
-    padding: 10px 24px 10px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 180px;
-    cursor: pointer;
-    box-shadow: 0 10px 30px rgba(46, 204, 113, 0.45);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.home-fab-btn:active {
-    transform: scale(0.95);
-    box-shadow: 0 6px 20px rgba(46, 204, 113, 0.35);
-}
-
-.home-fab-btn:hover {
-    transform: scale(1.03);
-    box-shadow: 0 12px 35px rgba(46, 204, 113, 0.5);
-}
-
-.home-fab-icon {
-    width: 32px;
-    height: 32px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.home-fab-icon .material-icons {
-    font-size: 16px;
-    color: #fff;
-}
-
-.home-fab-content {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.home-fab-timer {
-    font-size: 10px;
-    color: rgba(255,255,255,0.8);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    line-height: 1.2;
-}
-
-.home-fab-status {
-    font-family: var(--app-font-brand);
-    font-size: 13px;
-    color: #fff;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* FAB Fechado (vermelho) */
-.home-fab-btn.closed {
-    background: linear-gradient(135deg, var(--app-danger), #c0392b);
-    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
 }
 
 /* === CARD DE JOGO (Match Card) === */
@@ -718,7 +647,7 @@
     }
 
     .home-stat-value {
-        font-size: 80px;
+        font-size: 36px;
     }
 }
 
@@ -860,4 +789,106 @@
 .home-finance-value .projected-badge {
     font-weight: 500;
 }
+
+/* === GRID DE 3 STATS (Rodadas/Participantes/Faltam) === */
+.home-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 0 16px;
+    margin-bottom: 16px;
+}
+
+.home-stats-grid-item {
+    background: #1c1c1e;
+    border-radius: 12px;
+    padding: 16px 12px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.home-stats-grid-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.home-stats-grid-value {
+    font-family: 'Russo One', var(--app-font-brand), sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.home-stats-grid-value.accent {
+    color: #ff6d00;
+}
+
+/* === CARD DE DICA === */
+.home-tip-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(255, 109, 0, 0.1);
+    border: 1px solid rgba(255, 109, 0, 0.25);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 0 16px 16px;
+}
+
+.home-tip-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 109, 0, 0.2);
+    border-radius: 8px;
+}
+
+.home-tip-icon .material-icons {
+    font-size: 18px;
+    color: #ff6d00;
+}
+
+.home-tip-content {
+    flex: 1;
+}
+
+.home-tip-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 4px;
+}
+
+.home-tip-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.7);
+}
+
+/* === SAUDAÇÃO === */
+#home-greeting {
+    padding: 16px 16px 0 !important;
+}
+
+#home-greeting h2 {
+    font-family: var(--app-font-base);
+}
+
+#home-greeting .emoji {
+    display: inline-block;
+    margin-left: 4px;
+}
+
 </style>

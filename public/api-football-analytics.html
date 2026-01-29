@@ -357,7 +357,7 @@
                         </div>
                         <div>
                             <h1>APIs Jogos ao Vivo</h1>
-                            <p>Monitoramento de uso e status das APIs de jogos ao vivo (API-Football + SoccerDataAPI)</p>
+                            <p>Monitoramento de uso e status das APIs de jogos ao vivo (SoccerDataAPI Principal + Fallbacks)</p>
                         </div>
                     </header>
 
@@ -373,8 +373,8 @@
 
                     <!-- Stats Row - API-Football -->
                     <div style="margin-bottom: 8px; color: #9ca3af; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
-                        <span class="material-icons" style="font-size: 16px; color: #10b981;">looks_one</span>
-                        API-Football (Principal)
+                        <span class="material-icons" style="font-size: 16px; color: #ef4444;">block</span>
+                        API-Football (REMOVIDA - Usuário Banido)
                     </div>
                     <div class="stats-row">
                         <!-- Status API-Football -->
@@ -436,8 +436,8 @@
 
                     <!-- Stats Row - SoccerDataAPI -->
                     <div style="margin-bottom: 8px; margin-top: 24px; color: #9ca3af; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
-                        <span class="material-icons" style="font-size: 16px; color: #f59e0b;">looks_two</span>
-                        SoccerDataAPI (Fallback 1)
+                        <span class="material-icons" style="font-size: 16px; color: #10b981;">looks_one</span>
+                        SoccerDataAPI (PRINCIPAL)
                     </div>
                     <div class="stats-row">
                         <!-- Status SoccerDataAPI -->
@@ -657,24 +657,24 @@
                                 <tbody>
                                     <tr>
                                         <td><span style="background:#10b981;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">1</span></td>
-                                        <td style="font-weight: 600;">API-Football</td>
-                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">v3.football.api-sports.io</code></td>
-                                        <td>100 req/dia</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span style="background:#f59e0b;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">2</span></td>
                                         <td style="font-weight: 600;">SoccerDataAPI</td>
                                         <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">api.soccerdataapi.com</code></td>
                                         <td>75 req/dia</td>
                                     </tr>
+                                    <tr style="opacity: 0.5;">
+                                        <td><span style="background:#ef4444;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">❌</span></td>
+                                        <td style="font-weight: 600; text-decoration: line-through;">API-Football</td>
+                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">DESABILITADA (banido)</code></td>
+                                        <td>-</td>
+                                    </tr>
                                     <tr>
-                                        <td><span style="background:#3b82f6;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">3</span></td>
+                                        <td><span style="background:#3b82f6;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">2</span></td>
                                         <td style="font-weight: 600;">Cache Stale</td>
                                         <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">Ultimo cache valido</code></td>
                                         <td>Max 30 min</td>
                                     </tr>
                                     <tr>
-                                        <td><span style="background:#6b7280;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">4</span></td>
+                                        <td><span style="background:#6b7280;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">3</span></td>
                                         <td style="font-weight: 600;">Globo Esporte</td>
                                         <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">Scraper (agenda)</code></td>
                                         <td>Ilimitado</td>
@@ -706,7 +706,7 @@
                                         </tr>
                                         <tr>
                                             <td style="color: #9ca3af;">Total Requests/dia</td>
-                                            <td style="color: #10b981; font-weight: 600;">175 (100 + 75)</td>
+                                            <td style="color: #10b981; font-weight: 600;">75 (SoccerDataAPI)</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -756,7 +756,7 @@
                     // Guard: verifica se ainda estamos na página correta
                     const fluxoEl = document.getElementById('fluxo-fallback');
                     if (!fluxoEl) {
-                        console.warn('[API-Football] Elementos não encontrados, página mudou');
+                        console.warn('[Jogos-Dia] Elementos não encontrados, página mudou');
                         return;
                     }
 
@@ -768,45 +768,42 @@
                         fluxoEl.textContent = data.fluxo;
                     }
 
-                    // === API-Football ===
-                    const apiFootball = data.fontes?.['api-football'];
+                    // === API-Football (REMOVIDA) ===
+                    const apiFootball = data.fontes?.['api-football'] || {};
                     const statusApiFootball = document.getElementById('api-football-status');
 
-                    if (!statusApiFootball) return; // Guard: elemento não existe
-
-                    if (apiFootball?.configurado) {
-                        statusApiFootball.innerHTML = `
-                            <span class="status-badge online">
-                                <span class="dot"></span>
-                                Configurada
-                            </span>
-                        `;
-                    } else {
+                    if (statusApiFootball) {
                         statusApiFootball.innerHTML = `
                             <span class="status-badge offline">
                                 <span class="dot"></span>
-                                Nao configurada
+                                Removida / bloqueada
                             </span>
+                            <p style="margin: 6px 0 0; font-size: 0.8rem; color: #fca5a5;">
+                                ${apiFootball.alerta || 'API-Football banida (usuário bloqueado)'}
+                            </p>
                         `;
                     }
 
                     // Requests API-Football
-                    const atual = apiFootball?.requisicoes?.atual || 0;
-                    const limite = apiFootball?.requisicoes?.limite || 100;
-                    const percentual = (atual / limite) * 100;
+                    const atual = apiFootball?.requisicoes?.atual ?? 0;
+                    const limite = apiFootball?.requisicoes?.limite ?? 0;
+                    const percentual = limite > 0 ? Math.min((atual / limite) * 100, 100) : 100;
 
                     const requestsEl = document.getElementById('api-football-requests');
                     const limiteEl = document.getElementById('api-football-limite');
                     const progressEl = document.getElementById('api-football-progress');
 
-                    if (requestsEl) requestsEl.textContent = atual;
-                    if (limiteEl) limiteEl.textContent = `de ${limite} disponiveis`;
+                    if (requestsEl) requestsEl.textContent = limite > 0 ? atual : '—';
+                    if (limiteEl) limiteEl.textContent = limite > 0 ? `de ${limite} disponiveis` : 'API REMOVIDA';
 
                     if (progressEl) {
                         progressEl.style.width = `${percentual}%`;
                         progressEl.classList.remove('green', 'yellow', 'red');
 
-                        if (percentual < 50) {
+                        if (!limite || percentual >= 100) {
+                            progressEl.classList.add('red');
+                            if (limiteEl) limiteEl.className = 'stat-card-sub danger';
+                        } else if (percentual < 50) {
                             progressEl.classList.add('green');
                             if (limiteEl) limiteEl.className = 'stat-card-sub success';
                         } else if (percentual < 80) {
@@ -821,19 +818,14 @@
                     // Plano e Conta API-Football
                     const planoEl = document.getElementById('api-football-plano');
                     const contaEl = document.getElementById('api-football-conta');
-                    if (planoEl) planoEl.textContent = apiFootball?.plano || 'Free';
-                    if (contaEl) contaEl.textContent = `Conta: ${apiFootball?.conta || '-'}`;
+                    if (planoEl) planoEl.textContent = apiFootball?.plano || 'REMOVIDA';
+                    if (contaEl) contaEl.textContent = apiFootball?.conta ? `Conta: ${apiFootball.conta}` : 'Conta: banida';
 
                     // Alerta API-Football
                     const alertaEl = document.getElementById('api-football-alerta');
                     if (alertaEl) {
-                        if (apiFootball?.alerta) {
-                            alertaEl.textContent = apiFootball.alerta;
-                            alertaEl.style.color = percentual >= 100 ? '#ef4444' : '#f59e0b';
-                        } else {
-                            alertaEl.textContent = 'Nenhum';
-                            alertaEl.style.color = '#10b981';
-                        }
+                        alertaEl.textContent = apiFootball?.alerta || 'Usuário banido / acesso bloqueado';
+                        alertaEl.style.color = '#ef4444';
                     }
 
                     // === SoccerDataAPI ===
@@ -851,7 +843,7 @@
                             </span>
                         `;
                         if (soccerdataInfo) {
-                            soccerdataInfo.textContent = 'Pronta como fallback';
+                            soccerdataInfo.textContent = 'Fonte principal ativa';
                             soccerdataInfo.style.color = '#10b981';
                         }
                     } else {
@@ -879,7 +871,8 @@
 
                         // Fonte atual do cache
                         const fonteMap = {
-                            'api-football': 'API-Football',
+                            'api-football': 'API-Football (REMOVIDA)',
+                            'cache-stale': 'Cache Stale',
                             'soccerdata': 'SoccerDataAPI',
                             'globo': 'Globo Esporte'
                         };
@@ -931,13 +924,19 @@
                     // Contador (com null checks)
                     const countEl = document.getElementById('jogos-ao-vivo');
                     const fonteEl = document.getElementById('jogos-fonte');
+                    const fonteFriendly = {
+                        'soccerdata': 'SoccerDataAPI',
+                        'cache-stale': 'Cache Stale',
+                        'globo': 'Globo Esporte',
+                        'api-football': 'API-Football (REMOVIDA)'
+                    }[data.fonte] || data.fonte || '-';
                     if (countEl) countEl.textContent = data.jogos?.length || 0;
-                    if (fonteEl) fonteEl.textContent = `Fonte: ${data.fonte || '-'}`;
+                    if (fonteEl) fonteEl.textContent = `Fonte: ${fonteFriendly}`;
 
                     // Lista de jogos (usa jogos-andamento como container principal)
                     const container = document.getElementById('jogos-andamento');
                     if (!container) {
-                        console.warn('[API-Football] Container jogos-andamento nao encontrado');
+                        console.warn('[Jogos-Dia] Container jogos-andamento nao encontrado');
                         return;
                     }
 
@@ -995,7 +994,7 @@
                 if (autoRefreshInterval) {
                     clearInterval(autoRefreshInterval);
                     autoRefreshInterval = null;
-                    console.log('[API-Football] Auto-refresh limpo');
+                    console.log('[Jogos-Dia] Auto-refresh limpo');
                 }
             }
 

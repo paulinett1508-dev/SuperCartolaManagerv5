@@ -148,33 +148,30 @@ Os IDs de estaduais **variam entre temporadas** na API-Football. Por isso, são 
 
 ## 3. Arquitetura de Fallback
 
-O sistema possui **4 camadas de fallback** para garantir resiliência:
+O sistema agora opera com **3 camadas resilientes**, porque a API-Football foi removida do fluxo (usuário banido). O tráfego principal parte direto para o SoccerDataAPI e só usa cache/globo quando necessário.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    FLUXO DE DADOS                           │
+│                    FLUXO DE DADOS ATUAL                     │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  1. API-Football (Principal)                                │
-│     └─ 100 req/dia (free) │ Tempo real │ Todos os dados    │
-│            │                                                │
-│            ▼ (falha ou cota esgotada)                       │
-│                                                             │
-│  2. SoccerDataAPI (Fallback 1)                              │
+│  1. SoccerDataAPI (Principal)                               │
 │     └─ 75 req/dia (free) │ Tempo real │ Dados básicos      │
 │            │                                                │
-│            ▼ (falha ou cota esgotada)                       │
+│            ▼ (falha, cota ou indisponível)                  │
 │                                                             │
-│  3. Cache Stale (Fallback 2)                                │
+│  2. Cache Stale (Fallback 1)                                │
 │     └─ Último cache válido │ Máx 30 min │ Com aviso        │
 │            │                                                │
 │            ▼ (cache muito antigo ou vazio)                  │
 │                                                             │
-│  4. Globo Esporte (Fallback Final)                          │
+│  3. Globo Esporte (Fallback Final)                          │
 │     └─ Scraper │ Ilimitado │ Apenas agenda (sem placar)    │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+> ⚠️ API-Football foi banida e permanece **DESABILITADA**; o sistema não faz mais requisições a ela e exibe o alerta de bloqueio em todos os painéis.
 
 ### TTL do Cache
 
@@ -191,37 +188,55 @@ O sistema possui **4 camadas de fallback** para garantir resiliência:
 ### Variáveis Obrigatórias
 
 ```env
-# API-Football (Principal)
-# Obter em: https://www.api-football.com/
-API_FOOTBALL_KEY=sua_chave_aqui
-
-# SoccerDataAPI (Opcional - Fallback)
+# SoccerDataAPI (Principal da arquitetura atual)
 # Obter em: https://rapidapi.com/soccerdata/api/soccerdata
 SOCCERDATA_API_KEY=sua_chave_aqui
 ```
+
+> ⚠️ A API-Football está bloqueada e não faz parte da arquitetura. Não é necessário manter nenhuma `API_FOOTBALL_KEY` ativa.
 
 ### Verificar Configuração
 
 ```bash
 # Via endpoint de status
 curl https://supercartolamanager.com.br/api/jogos-ao-vivo/status
+```
 
-# Resposta esperada
+**Resposta esperada (exemplo simplificado):**
+```json
 {
+  "fluxo": "✅ SoccerDataAPI (PRINCIPAL) → Cache Stale (30min) → Globo",
   "fontes": {
     "api-football": {
-      "configurado": true,       # ← DEVE ser true
+      "configurado": false,
+      "tipo": "🚫 REMOVIDA",
+      "alerta": "Usuário banido / API desabilitada",
       "requisicoes": {
-        "atual": 45,
-        "limite": 100
+        "atual": 0,
+        "limite": 0
       }
     },
     "soccerdata": {
-      "configurado": true        # ← Recomendado
+      "configurado": true,
+      "tipo": "🟢 PRINCIPAL",
+      "limite": "75 req/dia (free)",
+      "mensagem": "Fonte principal ativa"
+    },
+    "cache-stale": {
+      "ativo": false,
+      "tipo": "fallback-1",
+      "maxIdade": "30 min"
     },
     "globo": {
-      "configurado": true        # ← Sempre true (scraper)
+      "configurado": true,
+      "tipo": "fallback-final",
+      "descricao": "Scraper de agenda"
     }
+  },
+  "cache": {
+    "temJogosAoVivo": true,
+    "fonte": "soccerdata",
+    "ttlAtual": "2 min"
   }
 }
 ```
@@ -250,7 +265,7 @@ Retorna jogos do dia.
       "horario": "16:00"
     }
   ],
-  "fonte": "api-football",
+  "fonte": "soccerdata",
   "aoVivo": true,
   "estatisticas": { ... }
 }
@@ -275,41 +290,41 @@ Detalhes de uma partida (gols, cartões, escalações).
 ### Problema: "Jogos não aparecem"
 
 **Checklist:**
-1. [ ] API_FOOTBALL_KEY está configurada?
-2. [ ] Cota da API não esgotou? (verificar `/status`)
-3. [ ] Existem jogos brasileiros hoje? (verificar ge.globo.com)
-4. [ ] Cache está stale? (invalidar via `/invalidar`)
+1. [ ] `SOCCERDATA_API_KEY` está configurada no `.env`?
+2. [ ] Limite diário do SoccerDataAPI (75 req/dia) está disponível? (ver `/api/jogos-ao-vivo/status`)
+3. [ ] Existem jogos brasileiros para o dia atual? (consultar globo.com ou outro calendário oficial)
+4. [ ] Cache stale não passou de 30 min? (usar `/api/jogos-ao-vivo/invalidar` para forçar refresh)
 
 **Comandos de debug:**
 ```bash
-# 1. Verificar status das APIs
+# 1. Verificar status e fluxo
 curl /api/jogos-ao-vivo/status
 
 # 2. Forçar refresh
 curl /api/jogos-ao-vivo/invalidar
 
-# 3. Buscar jogos
+# 3. Buscar jogos atualizados
 curl /api/jogos-ao-vivo
 ```
 
 ### Problema: "Só mostra jogos do Brasileirão"
 
-**Causa:** Isso NÃO deveria acontecer. O filtro é `country === 'brazil'`, não por liga específica.
+**Causa:** Isso NÃO deveria acontecer, pois o filtro é `country === 'brazil'` a partir dos dados do SoccerDataAPI.
 
 **Verificar:**
-1. A API-Football está retornando os estaduais?
-2. O campo `league.country` está correto nos dados?
+1. O SoccerDataAPI está retornando o campo `league.country === 'brazil'` corretamente para estaduais?
+2. O campo `league.name` está sendo mapeado corretamente em `formatarNomeLiga()`?
 
 ### Problema: "Cota da API esgotou"
 
 **Solução:**
-1. Sistema usa SoccerDataAPI automaticamente
-2. Se SoccerDataAPI também esgotou, usa cache stale
-3. Se cache muito antigo, usa Globo (sem placares)
+1. O fluxo troca automaticamente para cache stale (máx 30 min) quando SoccerDataAPI falhar.
+2. Se cache stale também expirar, o fallback final é o scraper do Globo (agenda apenas).
+3. Verificar `/api/jogos-ao-vivo/status` para confirmar `cache.stale` e `globo` ativos.
 
 **Prevenção:**
-- Aumentar TTL do cache se necessário
-- Contratar plano pago da API-Football
+- Monitorar o uso diário do SoccerDataAPI (75 req/dia).
+- Garantir que o cache seja invalidado periodicamente (`/invalidar`) para limpar dados obsoletos.
 
 ---
 

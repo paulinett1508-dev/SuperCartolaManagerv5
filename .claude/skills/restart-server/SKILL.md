@@ -27,15 +27,15 @@ echo "🚀 Servidor iniciando em background (PID: $!)..."
 echo "⏳ Aguardando servidor inicializar..."
 for i in {1..15}; do
   sleep 1
-  curl -s "http://localhost:3000/api/cartola/mercado/status" 2>/dev/null > /dev/null && break
+  curl -s "http://localhost:5000/api/cartola/mercado/status" 2>/dev/null > /dev/null && break
 done
 ```
 
 ### Passo 4: Verificar status
 ```bash
-if curl -s "http://localhost:3000/api/cartola/mercado/status" 2>/dev/null > /dev/null; then
+if curl -s "http://localhost:5000/api/cartola/mercado/status" 2>/dev/null > /dev/null; then
   echo "✅ Servidor reiniciado com sucesso!"
-  echo "📊 Status: $(curl -s "http://localhost:3000/api/cartola/mercado/status" | head -50)"
+  echo "📊 Status: $(curl -s "http://localhost:5000/api/cartola/mercado/status" | head -50)"
 else
   echo "⚠️ Servidor não respondeu após 15s"
   echo "📋 Últimas linhas do log:"
@@ -69,8 +69,8 @@ cat /tmp/server.log
 # Ver processos Node ativos
 ps aux | grep node
 
-# Porta 3000 ocupada?
-lsof -i :3000
+# Porta 5000 ocupada?
+lsof -i :5000
 
 # Matar tudo e tentar novamente
 pkill -9 node && npm run dev

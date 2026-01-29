@@ -58,7 +58,7 @@ export async function obterJogosAoVivo() {
 
         return {
             jogos: data.jogos || [],
-            fonte: data.fonte || 'api-football',
+            fonte: data.fonte || 'soccerdata',
             aoVivo: data.aoVivo || false,
             estatisticas: data.estatisticas || {},
             mensagem: data.mensagem || null
@@ -100,10 +100,10 @@ function isJogoAgendado(jogo) {
 /**
  * Renderiza card de jogos do dia - v5.6 (Campeonatos expandíveis)
  * @param {Array} jogos - Lista de jogos
- * @param {string} fonte - Fonte dos dados (api-football, globo)
+ * @param {string} fonte - Fonte dos dados (soccerdata, cache-stale, globo)
  * @param {boolean} aoVivo - Se ha jogos ao vivo
  */
-export function renderizarJogosAoVivo(jogos, fonte = 'api-football', aoVivo = false) {
+export function renderizarJogosAoVivo(jogos, fonte = 'soccerdata', aoVivo = false) {
     if (!jogos || !jogos.length) return '';
 
     // ✅ v5.6: Agenda do dia (agendados) em bloco separado
@@ -120,9 +120,11 @@ export function renderizarJogosAoVivo(jogos, fonte = 'api-football', aoVivo = fa
     }, {});
 
     // Fonte dos dados para footer
-    const fonteTexto = fonte === 'api-football' ? 'API-Football'
-        : fonte === 'soccerdata' ? 'SoccerData'
-        : 'Globo Esporte';
+    const fonteTexto = fonte === 'soccerdata' ? 'SoccerDataAPI'
+        : fonte === 'cache-stale' ? 'Cache Stale'
+        : fonte === 'globo' ? 'Globo Esporte'
+        : fonte === 'api-football' ? 'API-Football (REMOVIDA)'
+        : 'Fonte desconhecida';
 
     return `
     <div class="jogos-ao-vivo mx-4 mb-8 space-y-3">

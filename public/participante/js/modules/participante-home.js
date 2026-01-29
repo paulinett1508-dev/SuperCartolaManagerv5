@@ -452,7 +452,13 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
         if (meuTimeAnterior) posicaoAnterior = meuTimeAnterior.posicao;
     }
 
-    const saldoFinanceiro = extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0;
+    // ✅ Calcular saldo baseado nas rodadas (fonte da verdade - mesma regra do modal)
+    const saldoCalculadoPorRodadas = minhasRodadas.reduce((total, rodada) => {
+        return total + (parseFloat(rodada.valorFinanceiro || rodada.ganho_rodada || 0));
+    }, 0);
+
+    // Usar saldo calculado das rodadas (prioridade) ou fallback para cache do extrato
+    const saldoFinanceiro = saldoCalculadoPorRodadas || (extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0);
 
     // ✅ v1.1 FIX: Buscar dados do participante com fallback robusto
     // A navegação passa camelCase (nomeTime, nomeCartola) mas outros módulos usam snake_case
@@ -718,6 +724,84 @@ function renderShortcutButton(label, icon, onClick, enabled) {
 }
 
 // =====================================================================
+// ATUALIZAR HEADER PREMIUM
+// =====================================================================
+function atualizarHeaderPremium(nomeTime, nomeCartola, iniciais, isPremium, clubeId) {
+    const header = document.getElementById('home-header-premium');
+    if (!header) return;
+
+    const avatarInitials = header.querySelector('.home-avatar-initials');
+    if (avatarInitials) {
+        avatarInitials.textContent = iniciais;
+    }
+
+    const userName = header.querySelector('.home-user-name');
+    if (userName) {
+        userName.textContent = nomeTime;
+    }
+
+    // Badge Premium
+    const badgePlaceholder = document.getElementById('home-badge-premium-placeholder');
+    if (badgePlaceholder && isPremium) {
+        badgePlaceholder.innerHTML = `
+            <div class="home-badge-premium">
+                <span class="material-icons badge-icon">star</span>
+                <span>Premium</span>
+            </div>
+        `;
+    }
+
+    // Substituir botão do canto por refresh (mais discreto)
+    const headerBtn = header.querySelector('.home-btn-icon');
+    if (headerBtn) {
+        headerBtn.setAttribute('title', 'Atualizar dados');
+        headerBtn.setAttribute('onclick', '(window.RefreshButton?.showModal && window.RefreshButton.showModal()) || window.location.reload()');
+        const icon = headerBtn.querySelector('.material-icons');
+        if (icon) {
+            icon.textContent = 'refresh';
+        }
+    }
+
+    // Aplicar cor do clube ao badge
+    if (clubeId) {
+        aplicarCorBadgeClube(clubeId);
+    }
+}
+
+// =====================================================================
+// ATUALIZAR SAUDAÇÃO
+// =====================================================================
+function atualizarSaudacao(nomeCartola, nomeLiga, rodadaAtual, totalRodadas) {
+    const greeting = document.getElementById('home-greeting');
+    if (!greeting) return;
+
+    const primeiroNome = nomeCartola.split(' ')[0];
+    const emoji = getGreetingEmoji();
+
+    const greetingH2 = greeting.querySelector('h2');
+    if (greetingH2) {
+        greetingH2.innerHTML = `Olá, ${primeiroNome}! <span class="emoji">${emoji}</span>`;
+    }
+
+    const subtitle = document.getElementById('home-subtitle');
+    if (subtitle) {
+        if (rodadaAtual === 0) {
+            subtitle.textContent = `${nomeLiga} • Aguardando 1ª rodada`;
+        } else {
+            subtitle.textContent = `${nomeLiga} • Rodada ${rodadaAtual}`;
+        }
+    }
+}
+
+function getGreetingEmoji() {
+    const hour = new Date().getHours();
+    if (hour < 6) return '🌙';
+    if (hour < 12) return '☀️';
+    if (hour < 18) return '👋';
+    return '🌙';
+}
+
+// =====================================================================
 // RENDERIZACAO PRINCIPAL
 // =====================================================================
 function renderizarHome(container, data, ligaId) {
@@ -738,6 +822,14 @@ function renderizarHome(container, data, ligaId) {
     const iniciais = getIniciais(nomeCartola);
     const isPremium = participantePremium;
 
+    // Atualizar header premium
+    atualizarHeaderPremium(nomeTime, nomeCartola, iniciais, isPremium, clubeId);
+
+    // Atualizar saudação
+    const totalRodadas = 38;
+    const rodadasFaltam = Math.max(0, totalRodadas - rodadaAtual);
+    atualizarSaudacao(nomeCartola, nomeLiga, rodadaAtual, totalRodadas);
+
     const {
         saldoFormatado,
         saldoClass,
@@ -750,14 +842,6 @@ function renderizarHome(container, data, ligaId) {
         zonaBg,
         zonaClass
     } = calcularValoresCards(data);
-
-    // FAB do Mercado
-    const mercadoAberto = mercadoStatus?.status_mercado === 1;
-    const fabClass = mercadoAberto ? "" : "closed";
-    const fabStatus = mercadoAberto ? `Aberto R${mercadoStatus?.rodada_atual || 1}` : "Fechado";
-    const fabTimer = mercadoStatus?.fechamento
-        ? calcularTempoRestante(mercadoStatus.fechamento)
-        : "";
 
     // Clube do coração (escudo + nome do clube)
     const nomeClube = getNomeClubePorId(clubeId);
@@ -799,41 +883,41 @@ function renderizarHome(container, data, ligaId) {
 
     const cardStyleAttr = zonaBg ? `style="--home-card-border:${zonaBg}; --home-card-accent:${zonaCor};"` : "";
 
+    // Grid de Stats (2 colunas - removido Participantes)
+    const rodadaDisplay = Math.max(1, rodadaAtual); // Nunca mostrar 0
+    const rodadasRestantes = Math.max(0, totalRodadas - rodadaDisplay);
+
+    const statsGridHTML = `
+        <section class="home-stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="home-stats-grid-item">
+                <span class="home-stats-grid-label">Rodada</span>
+                <span class="home-stats-grid-value">${rodadaDisplay}</span>
+            </div>
+            <div class="home-stats-grid-item">
+                <span class="home-stats-grid-label">Faltam</span>
+                <span class="home-stats-grid-value accent">${rodadasRestantes}</span>
+            </div>
+        </section>
+    `;
+
+    // Card de Dica
+    const tipCardHTML = `
+        <div class="home-tip-card">
+            <div class="home-tip-icon">
+                <span class="material-icons">lightbulb</span>
+            </div>
+            <div class="home-tip-content">
+                <p class="home-tip-title">Dica</p>
+                <p class="home-tip-text">Acompanhe seu extrato financeiro para entender sua evolução na liga!</p>
+            </div>
+        </div>
+    `;
+
     container.innerHTML = `
         <!-- Grid de Atalhos -->
         <section class="home-action-grid">
             ${premiumShortcuts}
-            <button class="home-action-item" onclick="window.abrirParticipantes2026 && window.abrirParticipantes2026()">
-                <div class="home-action-icon">
-                    <span class="material-icons">groups</span>
-                </div>
-                <span class="home-action-label">Participantes</span>
-            </button>
             ${cartolaProHTML}
-        </section>
-
-        <!-- Card Status do Time -->
-        <section class="home-team-card ${zonaClass}" ${cardStyleAttr}>
-            <div class="home-stats-split">
-                <div class="home-stat-block">
-                    <span class="home-stat-label">Pontos</span>
-                    <span id="home-stat-pontos" class="home-stat-value" style="color:${zonaCor};">${pontosDisplay}</span>
-                    <span id="home-stat-pontos-hint" class="home-stat-hint">${hintPontos}</span>
-                </div>
-                <div class="home-stat-divider"></div>
-                <div class="home-stat-block">
-                    <span class="home-stat-label">Posicao</span>
-                    <span id="home-stat-posicao" class="home-stat-value">${posicaoDisplay}</span>
-                    <span id="home-stat-posicao-hint" class="home-stat-hint">${hintPosicao}</span>
-                </div>
-            </div>
-            <div class="home-stat-actions">
-                <button class="home-update-btn" type="button"
-                        onclick="(window.RefreshButton?.showModal && window.RefreshButton.showModal()) || window.location.reload()">
-                    <span class="material-symbols-outlined">refresh</span>
-                    Atualizar dados
-                </button>
-            </div>
         </section>
 
         <!-- Card Saldo Financeiro -->
@@ -852,22 +936,37 @@ function renderizarHome(container, data, ligaId) {
             </div>
         </section>
 
+        <!-- Grid de 3 Stats -->
+        ${statsGridHTML}
+
+        <!-- Card Status do Time -->
+        <section class="home-team-card ${zonaClass}" ${cardStyleAttr}>
+            <div class="home-stats-split">
+                <div class="home-stat-block">
+                    <span class="home-stat-label">Pontos</span>
+                    <span id="home-stat-pontos" class="home-stat-value" style="color:${zonaCor};">${pontosDisplay}</span>
+                    <span id="home-stat-pontos-hint" class="home-stat-hint">${hintPontos}</span>
+                </div>
+                <div class="home-stat-divider"></div>
+                <div class="home-stat-block">
+                    <span class="home-stat-label">Posicao</span>
+                    <span id="home-stat-posicao" class="home-stat-value">${posicaoDisplay}</span>
+                    <span id="home-stat-posicao-hint" class="home-stat-hint">${hintPosicao}</span>
+                </div>
+            </div>
+        </section>
+
         <!-- Jogos do Dia -->
         <div id="home-jogos-placeholder"></div>
 
-        <!-- FAB do Mercado -->
-        <div class="home-fab-mercado">
-            <button class="home-fab-btn ${fabClass}" onclick="window.open('https://cartolafc.globo.com', '_blank')">
-                <div class="home-fab-icon">
-                    <span class="material-icons">storefront</span>
-                </div>
-                <div class="home-fab-content">
-                    <span class="home-fab-timer">${fabTimer}</span>
-                    <span class="home-fab-status">${fabStatus}</span>
-                </div>
-            </button>
-        </div>
+        <!-- Card de Dica -->
+        ${tipCardHTML}
     `;
+
+    // Aplicar cor do clube ao badge do header (após renderizar)
+    if (clubeId) {
+        requestAnimationFrame(() => aplicarCorBadgeClube(clubeId));
+    }
 }
 
 // =====================================================================
@@ -966,7 +1065,7 @@ function atualizarCardsHomeComParciais() {
     }
 
     if (posicaoHintEl) {
-        posicaoHintEl.innerHTML = `de ${minhaPosicao.totalTimes} <span class="live-badge-mini">AO VIVO</span>`;
+        posicaoHintEl.innerHTML = `de ${minhaPosicao.totalTimes}`;
     }
 
     // Atualizar card de pontos (pontos da rodada parcial)
@@ -979,7 +1078,7 @@ function atualizarCardsHomeComParciais() {
     }
 
     if (pontosHintEl) {
-        pontosHintEl.innerHTML = `parcial rodada <span class="live-badge-mini">AO VIVO</span>`;
+        pontosHintEl.textContent = 'parcial da rodada';
     }
 
     // Atualizar saldo projetado
@@ -1118,8 +1217,6 @@ function renderizarJogosHome(jogos, fonte, aoVivo, totalJogos) {
             ${verMaisBtn}
         </section>
     `;
-
-    aplicarCorBadgeClube(clubeId);
 }
 
 // =====================================================================

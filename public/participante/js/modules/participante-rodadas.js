@@ -10,6 +10,8 @@ if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v5.0 EX
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
+// Importar módulo de polling inteligente
+import * as PollingInteligenteModule from "./participante-rodadas-polling.js";
 
 // Estado do módulo
 let todasRodadasCache = [];
@@ -582,6 +584,7 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
 
     rodadaSelecionada = numeroRodada;
     ParciaisModule.pararAutoRefresh?.();
+    PollingInteligenteModule.parar?.();
     atualizarIndicadorAutoRefresh({ ativo: false });
 
     const detalhamento = document.getElementById("rodadaDetalhamento");
@@ -603,10 +606,19 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
 
     if (isRodadaParcial) {
         await carregarERenderizarParciais(numeroRodada);
-        ParciaisModule.iniciarAutoRefresh?.((dados) => {
-            if (rodadaSelecionada !== numeroRodada) return;
-            renderizarParciaisDados(numeroRodada, dados);
-        }, atualizarIndicadorAutoRefresh);
+
+        // ✅ FEAT-026: Usar Polling Inteligente baseado em calendário
+        PollingInteligenteModule.inicializar({
+            temporada: TEMPORADA_ATUAL,
+            rodada: numeroRodada,
+            ligaId: ligaId,
+            timeId: meuTimeId,
+            onUpdate: (dados) => {
+                if (rodadaSelecionada !== numeroRodada) return;
+                renderizarParciaisDados(numeroRodada, dados);
+            },
+            onStatus: atualizarIndicadorAutoRefresh
+        });
     } else {
         const rodadaData = todasRodadasCache.find((r) => r.numero === numeroRodada);
         if (!rodadaData || rodadaData.participantes.length === 0) {
@@ -897,6 +909,7 @@ function renderizarSecaoInativos(inativos, rodadaNum) {
 // =====================================================================
 window.voltarParaCards = function () {
     ParciaisModule.pararAutoRefresh?.();
+    PollingInteligenteModule.parar?.();
     atualizarIndicadorAutoRefresh({ ativo: false });
 
     const detalhamento = document.getElementById("rodadaDetalhamento");

@@ -131,7 +131,7 @@ const STATUS_AGENDADO = ['NS', 'TBD'];
 let cacheJogosDia = null;
 let cacheTimestamp = 0;
 let cacheTemJogosAoVivo = false;
-let cacheFonte = 'api-football'; // Fonte do cache atual
+let cacheFonte = 'soccerdata'; // ✅ Fonte do cache atual (SoccerDataAPI agora é PRINCIPAL)
 let cacheDataReferencia = null;  // ✅ v3.5: Data de referência do cache (YYYY-MM-DD)
 
 // TTL dinâmico baseado em jogos ao vivo
@@ -150,217 +150,18 @@ function getDataHoje() {
 }
 
 /**
- * Busca todos os jogos do dia da API-Football
+ * ❌ API-FOOTBALL REMOVIDA - Usuário banido
+ * Função desativada. SoccerDataAPI agora é a fonte principal.
  */
-async function buscarJogosDoDia() {
-  const apiKey = process.env.API_FOOTBALL_KEY;
-  if (!apiKey) {
-    console.warn('[JOGOS-DIA] API_FOOTBALL_KEY não configurada');
-    return { jogos: [], temAoVivo: false };
-  }
-
-  try {
-    const dataHoje = getDataHoje();
-    const url = `https://v3.football.api-sports.io/fixtures?date=${dataHoje}`;
-
-    console.log(`[JOGOS-DIA] Buscando jogos de ${dataHoje}...`);
-
-    const response = await fetch(url, {
-      headers: { 'x-apisports-key': apiKey },
-      timeout: 10000
-    });
-
-    // ✅ Verificar HTTP status ANTES de processar JSON
-    if (!response.ok) {
-      console.error(`[JOGOS-DIA] API-Football retornou HTTP ${response.status}: ${response.statusText}`);
-
-      // Status específicos
-      if (response.status === 403) {
-        console.warn('[JOGOS-DIA] Acesso negado (403) - API suspensa ou key inválida');
-      } else if (response.status === 429) {
-        console.warn('[JOGOS-DIA] Limite de requisições atingido (429)');
-      } else if (response.status === 401) {
-        console.warn('[JOGOS-DIA] Não autorizado (401) - API key inválida');
-      }
-
-      return { jogos: [], temAoVivo: false };
-    }
-
-    const data = await response.json();
-
-    if (data.errors && Object.keys(data.errors).length > 0) {
-      console.error('[JOGOS-DIA] Erro API:', data.errors);
-      return { jogos: [], temAoVivo: false };
-    }
-
-    // ┌──────────────────────────────────────────────────────────────────────┐
-    // │ FILTRO DE JOGOS - REGRA DE NEGÓCIO FUNDAMENTAL                       │
-    // │ Documentação: docs/JOGOS-DO-DIA-API.md                               │
-    // ├──────────────────────────────────────────────────────────────────────┤
-    // │ ESCOPO: TODOS os jogos brasileiros (não apenas Brasileirão)          │
-    // │                                                                      │
-    // │ INCLUI:                                                              │
-    // │   - Brasileirão Séries A, B, C, D                                    │
-    // │   - Copa do Brasil                                                   │
-    // │   - TODOS os Estaduais (Cariocão, Paulistão, Mineirão, etc.)        │
-    // │   - Copinha, Supercopa                                               │
-    // │                                                                      │
-    // │ POR QUE? Brasileirão não acontece todos os dias. Estaduais ocupam   │
-    // │ o calendário quando não há jogos nacionais. Usuários querem ver     │
-    // │ QUALQUER jogo brasileiro relevante do dia.                          │
-    // │                                                                      │
-    // │ ⚠️  NÃO ALTERAR para filtrar por liga_id ou nome de competição!     │
-    // │     Isso quebraria a exibição de estaduais e outros torneios.       │
-    // └──────────────────────────────────────────────────────────────────────┘
-    const jogosBrasil = (data.response || []).filter(jogo => {
-      const pais = jogo.league?.country?.toLowerCase();
-      return pais === 'brazil';  // ← Filtra por PAÍS, não por liga específica
-    });
-
-    console.log(`[JOGOS-DIA] ${jogosBrasil.length} jogos brasileiros encontrados`);
-
-    // Debug: mostrar ligas encontradas
-    const ligasEncontradas = [...new Set(jogosBrasil.map(j => `${j.league.id}:${j.league.name}`))];
-    console.log(`[JOGOS-DIA] Ligas:`, ligasEncontradas.slice(0, 10));
-
-    // Mapear jogos - v3.1 com formatação inteligente de nomes
-    const jogos = jogosBrasil.map(jogo => ({
-      id: jogo.fixture.id,
-      mandante: jogo.teams.home.name,
-      visitante: jogo.teams.away.name,
-      logoMandante: jogo.teams.home.logo,
-      logoVisitante: jogo.teams.away.logo,
-      // Placar separado para formatacao flexivel
-      golsMandante: jogo.goals.home ?? 0,
-      golsVisitante: jogo.goals.away ?? 0,
-      placar: `${jogo.goals.home ?? 0} x ${jogo.goals.away ?? 0}`,
-      // Placar do primeiro tempo
-      placarHT: jogo.score?.halftime?.home !== null
-        ? `(${jogo.score.halftime.home}-${jogo.score.halftime.away})`
-        : null,
-      tempo: jogo.fixture.status.elapsed ? `${jogo.fixture.status.elapsed}'` : '',
-      tempoExtra: jogo.fixture.status.extra || null,
-      status: mapearStatus(jogo.fixture.status.short),
-      statusRaw: jogo.fixture.status.short,
-      liga: getNomeLiga(jogo.league.id, jogo.league.name),
-      ligaId: jogo.league.id,
-      ligaOriginal: jogo.league.name,
-      ligaLogo: jogo.league.logo,
-      // Estadio
-      estadio: jogo.fixture.venue?.name || null,
-      cidade: jogo.fixture.venue?.city || null,
-      // Horario
-      horario: new Date(jogo.fixture.date).toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'America/Sao_Paulo'
-      }),
-      timestamp: new Date(jogo.fixture.date).getTime()
-    }));
-
-    // Ordenar: Ao vivo primeiro, depois agendados por horário, depois encerrados
-    jogos.sort((a, b) => {
-      const aVivo = STATUS_AO_VIVO.includes(a.statusRaw) ? 0 : 1;
-      const bVivo = STATUS_AO_VIVO.includes(b.statusRaw) ? 0 : 1;
-
-      if (aVivo !== bVivo) return aVivo - bVivo;
-
-      const aEncerrado = STATUS_ENCERRADO.includes(a.statusRaw) ? 1 : 0;
-      const bEncerrado = STATUS_ENCERRADO.includes(b.statusRaw) ? 1 : 0;
-
-      if (aEncerrado !== bEncerrado) return aEncerrado - bEncerrado;
-
-      // Mesmo grupo: ordenar por horário
-      return a.timestamp - b.timestamp;
-    });
-
-    const temAoVivo = jogos.some(j => STATUS_AO_VIVO.includes(j.statusRaw));
-
-    return { jogos, temAoVivo };
-  } catch (err) {
-    console.error('[JOGOS-DIA] Erro ao buscar:', err.message);
-    return { jogos: [], temAoVivo: false };
-  }
-}
+// async function buscarJogosDoDia() { ... CÓDIGO REMOVIDO ... }
 
 /**
- * Busca eventos de um jogo especifico (gols, cartoes, substituicoes)
- * Endpoint: GET /api/jogos-ao-vivo/:fixtureId/eventos
+ * ❌ API-FOOTBALL REMOVIDA - Eventos de jogo desabilitados
+ * Endpoint: GET /api/jogos-ao-vivo/:fixtureId/eventos (DESABILITADO)
  */
 async function buscarEventosJogo(fixtureId) {
-  const apiKey = process.env.API_FOOTBALL_KEY;
-  if (!apiKey) return { eventos: [] };
-
-  try {
-    const url = `https://v3.football.api-sports.io/fixtures?id=${fixtureId}`;
-    const response = await fetch(url, {
-      headers: { 'x-apisports-key': apiKey },
-      timeout: 10000
-    });
-
-    const data = await response.json();
-    const fixture = data.response?.[0];
-    if (!fixture) return { eventos: [] };
-
-    // Mapear eventos
-    const eventos = (fixture.events || []).map(e => ({
-      tempo: e.time.elapsed,
-      tempoExtra: e.time.extra || null,
-      tipo: mapearTipoEvento(e.type, e.detail),
-      tipoRaw: e.type,
-      detalhe: e.detail,
-      time: e.team.name,
-      timeId: e.team.id,
-      timeLogo: e.team.logo,
-      jogador: e.player?.name || null,
-      jogadorId: e.player?.id || null,
-      assistencia: e.assist?.name || null
-    }));
-
-    // Extrair lineups se disponiveis
-    const escalacoes = fixture.lineups?.map(l => ({
-      timeId: l.team.id,
-      time: l.team.name,
-      formacao: l.formation,
-      tecnico: l.coach?.name || null,
-      titulares: l.startXI?.map(p => ({
-        nome: p.player.name,
-        numero: p.player.number,
-        posicao: p.player.pos
-      })) || []
-    })) || [];
-
-    // Estatisticas
-    const estatisticas = fixture.statistics?.map(s => ({
-      timeId: s.team.id,
-      time: s.team.name,
-      stats: s.statistics?.reduce((acc, stat) => {
-        acc[stat.type] = stat.value;
-        return acc;
-      }, {}) || {}
-    })) || [];
-
-    return {
-      eventos,
-      escalacoes,
-      estatisticas,
-      resumoStats: extrairResumoStats(fixture.statistics),
-      fixture: {
-        id: fixture.fixture.id,
-        arbitro: fixture.fixture.referee,
-        estadio: fixture.fixture.venue?.name,
-        cidade: fixture.fixture.venue?.city
-      },
-      liga: {
-        nome: getNomeLiga(fixture.league?.id, fixture.league?.name),
-        logo: fixture.league?.logo,
-        rodada: fixture.league?.round
-      }
-    };
-  } catch (err) {
-    console.error('[JOGOS-EVENTOS] Erro:', err.message);
-    return { eventos: [] };
-  }
+  console.warn('[JOGOS-DIA] Eventos desabilitados - API-Football removida');
+  return { eventos: [], mensagem: 'Feature desabilitada (API-Football removida)' };
 }
 
 /**
@@ -653,32 +454,8 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // 2º Tentar: API-Football (principal - 100 req/dia)
-    console.log('[JOGOS-DIA] Tentando API-Football (principal)...');
-    const { jogos, temAoVivo } = await buscarJogosDoDia();
-
-    if (jogos.length > 0) {
-      cacheJogosDia = jogos;
-      cacheTimestamp = agora;
-      cacheTemJogosAoVivo = temAoVivo;
-      cacheFonte = 'api-football';
-      cacheDataReferencia = dataHoje; // ✅ v3.5: Salvar data de referência
-
-      const stats = calcularEstatisticas(jogos);
-
-      console.log(`[JOGOS-DIA] ✅ API-Football retornou ${jogos.length} jogos`);
-
-      return res.json({
-        jogos,
-        fonte: 'api-football',
-        aoVivo: temAoVivo,
-        estatisticas: stats,
-        quantidade: jogos.length
-      });
-    }
-
-    // 3º Tentar: SoccerDataAPI (fallback - 75 req/dia)
-    console.warn('[JOGOS-DIA] ⚠️ API-Football falhou/vazia. Acionando fallback SoccerDataAPI...');
+    // 2º Tentar: SoccerDataAPI (PRINCIPAL - API-Football REMOVIDA)
+    console.log('[JOGOS-DIA] Buscando jogos via SoccerDataAPI (principal)...');
     const soccerData = await buscarJogosSoccerDataAPI();
 
     if (soccerData.jogos.length > 0) {
@@ -754,7 +531,6 @@ router.get('/', async (req, res) => {
 
 // GET /api/jogos-ao-vivo/status
 router.get('/status', async (req, res) => {
-  const apiFootballKey = process.env.API_FOOTBALL_KEY;
   const soccerDataKey = process.env.SOCCERDATA_API_KEY;
   const agora = Date.now();
 
@@ -764,30 +540,38 @@ router.get('/status', async (req, res) => {
   const cacheStale = cacheIdadeMs && cacheIdadeMs > (cacheTemJogosAoVivo ? CACHE_TTL_AO_VIVO : CACHE_TTL_SEM_JOGOS);
 
   const resultado = {
-    fluxo: 'API-Football → SoccerDataAPI → Cache Stale (30min) → Globo',
+    fluxo: '✅ SoccerDataAPI (PRINCIPAL) → Cache Stale (30min) → Globo',
+    observacao: 'API-Football REMOVIDA (usuário banido) — todo o tráfego migrou para SoccerDataAPI',
     fontes: {
       'api-football': {
-        ordem: 1,
-        configurado: !!apiFootballKey,
-        tipo: 'principal',
-        limite: '100 req/dia (free)'
+        ordem: 0,
+        configurado: false,
+        tipo: '🚫 REMOVIDA',
+        descricao: 'API-Football foi banida e não participa mais do fluxo',
+        alerta: 'Bloqueada / Usuário banido',
+        plano: 'REMOVIDA',
+        conta: 'Banida',
+        requisicoes: {
+          atual: 0,
+          limite: 0
+        }
       },
       'soccerdata': {
-        ordem: 2,
+        ordem: 1,
         configurado: !!soccerDataKey,
-        tipo: 'fallback-1',
+        tipo: '🟢 PRINCIPAL',
         limite: '75 req/dia (free)',
-        descricao: 'Fallback quando API-Football esgota'
+        descricao: 'Fonte principal de dados'
       },
       'cache-stale': {
-        ordem: 3,
+        ordem: 2,
         ativo: cacheStale && cacheJogosDia?.length > 0,
-        tipo: 'fallback-2',
+        tipo: 'fallback-1',
         maxIdade: '30 min',
-        descricao: 'Ultimo cache valido quando ambas APIs falharem'
+        descricao: 'Ultimo cache valido quando SoccerDataAPI falhar'
       },
       'globo': {
-        ordem: 4,
+        ordem: 3,
         configurado: true,
         tipo: 'fallback-final',
         limite: 'Ilimitado (scraper)',
@@ -805,41 +589,13 @@ router.get('/status', async (req, res) => {
     }
   };
 
-  // Buscar status da API-Football se configurada
-  if (apiFootballKey) {
-    try {
-      const response = await fetch('https://v3.football.api-sports.io/status', {
-        headers: { 'x-apisports-key': apiFootballKey }
-      });
-      const data = await response.json();
-
-      resultado.fontes['api-football'].conta = data.response?.account?.firstname || 'Free';
-      resultado.fontes['api-football'].plano = data.response?.subscription?.plan || 'Free';
-      resultado.fontes['api-football'].requisicoes = {
-        atual: data.response?.requests?.current || 0,
-        limite: data.response?.requests?.limit_day || 100
-      };
-
-      // Verificar se cota está acabando
-      const atual = data.response?.requests?.current || 0;
-      const limite = data.response?.requests?.limit_day || 100;
-      const percentual = (atual / limite) * 100;
-
-      if (percentual >= 100) {
-        resultado.fontes['api-football'].alerta = 'Cota esgotada! Usando SoccerDataAPI.';
-      } else if (percentual >= 90) {
-        resultado.fontes['api-football'].alerta = 'Cota quase esgotada (>90%)';
-      } else if (percentual >= 75) {
-        resultado.fontes['api-football'].alerta = 'Cota acima de 75%';
-      }
-    } catch (err) {
-      resultado.fontes['api-football'].erro = err.message;
-    }
-  }
-
   // Info do SoccerDataAPI
   if (!soccerDataKey) {
-    resultado.fontes['soccerdata'].aviso = 'SOCCERDATA_API_KEY nao configurada';
+    resultado.fontes['soccerdata'].aviso = '⚠️ SOCCERDATA_API_KEY nao configurada - Configure URGENTE!';
+    resultado.fontes['soccerdata'].statusCritico = true;
+  } else {
+    resultado.fontes['soccerdata'].statusOk = true;
+    resultado.fontes['soccerdata'].mensagem = '✅ Configurado e operacional';
   }
 
   res.json(resultado);
