@@ -32,10 +32,11 @@ async function buscarStatusMercado() {
 
 /**
  * Busca atletas pontuados da rodada atual
+ * ✅ FIX: Endpoint correto é /atletas/pontuados (SEM número da rodada)
  */
-async function buscarAtletasPontuados(rodada) {
+async function buscarAtletasPontuados() {
     try {
-        const response = await axios.get(`${CARTOLA_API_BASE}/atletas/pontuados/${rodada}`, {
+        const response = await axios.get(`${CARTOLA_API_BASE}/atletas/pontuados`, {
             timeout: REQUEST_TIMEOUT,
             headers: {
                 ...CARTOLA_HEADERS,
@@ -116,32 +117,37 @@ export async function buscarRankingParcial(ligaId) {
         const rodadaAtual = statusMercado.rodada_atual;
         const mercadoAberto = statusMercado.status_mercado === 1; // 1 = aberto, 2 = fechado
 
-        console.log(`${LOG_PREFIX} Rodada: ${rodadaAtual}, Mercado: ${mercadoAberto ? 'ABERTO' : 'FECHADO'}`);
+        console.log(`${LOG_PREFIX} 📊 Status mercado - Rodada: ${rodadaAtual}, Mercado: ${mercadoAberto ? 'ABERTO (1)' : 'FECHADO (2)'}, Status: ${statusMercado.status_mercado}`);
 
         // Se mercado aberto, não há parciais (rodada não iniciou)
         if (mercadoAberto) {
             console.log(`${LOG_PREFIX} ℹ️ Mercado aberto - sem parciais disponíveis`);
-            return {
+            const resultado = {
                 disponivel: false,
                 motivo: "mercado_aberto",
                 rodada: rodadaAtual,
                 message: "O mercado está aberto. Aguarde o início da rodada para ver as parciais.",
             };
+            console.log(`${LOG_PREFIX} 📤 Retornando:`, resultado);
+            return resultado;
         }
 
-        // 2. Buscar atletas pontuados
-        const atletasPontuados = await buscarAtletasPontuados(rodadaAtual);
+        // 2. Buscar atletas pontuados (endpoint não requer número da rodada)
+        const atletasPontuados = await buscarAtletasPontuados();
         const numAtletasPontuados = Object.keys(atletasPontuados).length;
 
-        console.log(`${LOG_PREFIX} Atletas pontuados: ${numAtletasPontuados}`);
+        console.log(`${LOG_PREFIX} ⚽ Atletas pontuados disponíveis: ${numAtletasPontuados}`);
 
         if (numAtletasPontuados === 0) {
-            return {
+            console.log(`${LOG_PREFIX} ⚠️ Nenhum atleta pontuado ainda - retornando tela de aguardando jogos`);
+            const resultado = {
                 disponivel: false,
                 motivo: "sem_pontuacao",
                 rodada: rodadaAtual,
                 message: "Aguardando os jogos começarem para computar os pontos.",
             };
+            console.log(`${LOG_PREFIX} 📤 Retornando:`, resultado);
+            return resultado;
         }
 
         // 3. Buscar liga e participantes

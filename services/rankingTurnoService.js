@@ -70,8 +70,17 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
 
     // ✅ v3.0: Se não há dados consolidados, tentar buscar parciais em tempo real
     if (!snapshot && turno === "geral") {
-        console.log(`${LOG_PREFIX} 🔴 Sem dados consolidados, buscando parciais em tempo real...`);
+        console.log(`${LOG_PREFIX} 🔴 Sem dados consolidados, buscando parciais em tempo real... (Temporada: ${temporada})`);
         const parciais = await buscarRankingParcial(ligaId);
+
+        // 🔍 DEBUG: Log do retorno de parciais
+        console.log(`${LOG_PREFIX} 📊 Resposta de parciais:`, parciais ? {
+            disponivel: parciais.disponivel,
+            motivo: parciais.motivo,
+            rodada: parciais.rodada,
+            message: parciais.message,
+            total_times: parciais.total_times,
+        } : 'NULL');
 
         if (parciais && parciais.disponivel) {
             console.log(`${LOG_PREFIX} ✅ Parciais encontradas: ${parciais.total_times} times`);
@@ -90,9 +99,9 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
                 message: parciais.message,
             };
         } else if (parciais) {
-            console.log(`${LOG_PREFIX} ℹ️ Parciais não disponíveis: ${parciais.motivo}`);
+            console.log(`${LOG_PREFIX} ⚠️ Parciais não disponíveis: ${parciais.motivo} - Retornando tela contextualizada`);
             // Retornar info sobre o estado
-            return {
+            const resultado = {
                 ligaId: ligaObjectId,
                 turno: "geral",
                 temporada,
@@ -104,6 +113,12 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
                 parcial: false,
                 message: parciais.message,
             };
+            console.log(`${LOG_PREFIX} 📤 Retornando ao controller:`, {
+                status: resultado.status,
+                message: resultado.message,
+                ranking_length: resultado.ranking.length,
+            });
+            return resultado;
         }
     }
 

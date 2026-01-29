@@ -244,14 +244,26 @@ async function carregarRankingGeral(turnoParam = null) {
 
         const data = await response.json();
 
+        // 🔍 DEBUG: Log completo da resposta
+        console.log(`[RANKING] 📡 Resposta da API:`, {
+            success: data.success,
+            status: data.status,
+            turno: data.turno,
+            ranking_length: data.ranking?.length || 0,
+            message: data.message,
+            parcial: data.parcial,
+        });
+
         if (!data.success || !data.ranking) {
             // Pode ser pré-temporada ou dados ainda não consolidados
+            console.log(`[RANKING] ⚠️ Sem dados - success: ${data.success}, ranking: ${!!data.ranking}`);
             mostrarSemDados(rankingContainer, temporada, data?.message, data?.status);
             return;
         }
 
         // Se ranking está vazio, mostrar estado sem dados
         if (data.ranking.length === 0) {
+            console.log(`[RANKING] ℹ️ Ranking vazio - exibindo tela contextualizada`);
             mostrarSemDados(rankingContainer, temporada, data?.message, data?.status);
             return;
         }
