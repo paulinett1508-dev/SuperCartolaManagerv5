@@ -2594,25 +2594,38 @@
             `;
         }
 
+        // v2.0: Renderiza titulares + reservas com destaque Reserva de Luxo
         function renderizarEscalacaoCompleta(escalacao) {
-            const atletas = escalacao.atletas || [];
+            // Usa arrays separados se disponíveis (v2), fallback para atletas (v1)
+            const titulares = escalacao.titulares || escalacao.atletas || [];
+            const reservas = escalacao.reservas || [];
             const capitaoId = escalacao.capitao_id;
-
-            // Agrupar por posicao
-            const porPosicao = {};
-            atletas.forEach(a => {
-                const posId = a.posicao_id;
-                if (!porPosicao[posId]) porPosicao[posId] = [];
-                porPosicao[posId].push(a);
-            });
+            const reservaLuxoId = escalacao.reserva_luxo_id;
 
             // Ordenar posicoes (GOL, ZAG, LAT, MEI, ATA, TEC)
             const ordemPosicoes = [1, 3, 2, 4, 5, 6];
 
             let html = '<div class="space-y-4">';
 
+            // ========== TITULARES ==========
+            html += `
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="material-icons text-primary">stadium</span>
+                    <span class="text-sm font-bold text-white uppercase tracking-wider">Titulares</span>
+                    <span class="text-xs text-white/40">(${titulares.length})</span>
+                </div>
+            `;
+
+            // Agrupar titulares por posicao
+            const titularesPorPosicao = {};
+            titulares.forEach(a => {
+                const posId = a.posicao_id;
+                if (!titularesPorPosicao[posId]) titularesPorPosicao[posId] = [];
+                titularesPorPosicao[posId].push(a);
+            });
+
             ordemPosicoes.forEach(posId => {
-                const jogadores = porPosicao[posId];
+                const jogadores = titularesPorPosicao[posId];
                 if (!jogadores || jogadores.length === 0) return;
 
                 const posInfo = POSICOES_CARTOLA[posId] || { nome: 'Outros', abrev: '?', icone: 'person' };
@@ -2627,45 +2640,114 @@
                 `;
 
                 jogadores.forEach(jogador => {
-                    const isCapitao = jogador.atleta_id === capitaoId;
-                    const pontos = parseFloat(jogador.pontos_num) || 0;
-                    const pontosExibir = isCapitao ? pontos * 2 : pontos;
-                    const corPontos = pontos > 0 ? 'text-green-400' : pontos < 0 ? 'text-red-400' : 'text-white/50';
-                    const clubeId = jogador.clube_id || 'default';
-
-                    html += `
-                        <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 ${isCapitao ? 'ring-2 ring-yellow-500/50' : ''}">
-                            <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
-                                <img src="/escudos/${clubeId}.png"
-                                     alt="Clube"
-                                     class="w-7 h-7 object-contain"
-                                     onerror="this.src='/escudos/default.png'">
-                                ${isCapitao ? `<div class="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center"><span class="text-[10px] font-bold text-black">C</span></div>` : ''}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-white truncate">${jogador.apelido || 'Jogador'}</p>
-                                <p class="text-xs text-white/40">${posInfo.abrev}${isCapitao ? ' - Capitao (2x)' : ''}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-lg font-bold ${corPontos}" style="font-family: 'JetBrains Mono', monospace;">${pontosExibir.toFixed(2)}</p>
-                                ${isCapitao && pontos !== 0 ? `<p class="text-[10px] text-yellow-500/70">(${pontos.toFixed(2)} x2)</p>` : ''}
-                            </div>
-                        </div>
-                    `;
+                    html += renderizarJogador(jogador, capitaoId, reservaLuxoId);
                 });
 
                 html += '</div></div>';
             });
 
+            // ========== RESERVAS ==========
+            if (reservas.length > 0) {
+                html += `
+                    <div class="mt-6 pt-4 border-t border-white/10">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-icons text-purple-400">event_seat</span>
+                            <span class="text-sm font-bold text-white uppercase tracking-wider">Banco de Reservas</span>
+                            <span class="text-xs text-white/40">(${reservas.length})</span>
+                        </div>
+                        <div class="space-y-2">
+                `;
+
+                // Agrupar reservas por posicao
+                const reservasPorPosicao = {};
+                reservas.forEach(a => {
+                    const posId = a.posicao_id;
+                    if (!reservasPorPosicao[posId]) reservasPorPosicao[posId] = [];
+                    reservasPorPosicao[posId].push(a);
+                });
+
+                ordemPosicoes.forEach(posId => {
+                    const jogadores = reservasPorPosicao[posId];
+                    if (!jogadores || jogadores.length === 0) return;
+
+                    jogadores.forEach(jogador => {
+                        html += renderizarJogador(jogador, capitaoId, reservaLuxoId, true);
+                    });
+                });
+
+                html += '</div></div>';
+            }
+
             html += '</div>';
             return html;
+        }
+
+        // Renderiza card de um jogador (titular ou reserva)
+        function renderizarJogador(jogador, capitaoId, reservaLuxoId, isReserva = false) {
+            const isCapitao = jogador.atleta_id === capitaoId;
+            const isReservaLuxo = jogador.atleta_id === reservaLuxoId;
+            const pontos = parseFloat(jogador.pontos_num) || 0;
+
+            // Capitao 2x, Reserva Luxo 1.5x (se entrou em campo)
+            let pontosExibir = pontos;
+            let multiplicador = '';
+            if (isCapitao) {
+                pontosExibir = pontos * 2;
+                multiplicador = '2x';
+            } else if (isReservaLuxo && pontos !== 0) {
+                // Reserva de Luxo só multiplica se entrou (pontos != 0)
+                pontosExibir = pontos * 1.5;
+                multiplicador = '1.5x';
+            }
+
+            const corPontos = pontos > 0 ? 'text-green-400' : pontos < 0 ? 'text-red-400' : 'text-white/50';
+            const clubeId = jogador.clube_id || 'default';
+            const posInfo = POSICOES_CARTOLA[jogador.posicao_id] || { nome: 'Outros', abrev: '?', icone: 'person' };
+
+            // Estilos especiais
+            let ringClass = '';
+            let badgeHtml = '';
+            let infoExtra = '';
+
+            if (isCapitao) {
+                ringClass = 'ring-2 ring-yellow-500/50';
+                badgeHtml = `<div class="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center"><span class="text-[10px] font-bold text-black">C</span></div>`;
+                infoExtra = ' - Capitao (2x)';
+            } else if (isReservaLuxo) {
+                ringClass = 'ring-2 ring-purple-500/50';
+                badgeHtml = `<div class="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-purple-500 to-amber-400 rounded-full flex items-center justify-center"><span class="text-[10px] font-bold text-black">L</span></div>`;
+                infoExtra = ' - Luxo (1.5x)';
+            }
+
+            // Fundo mais escuro para reservas
+            const bgClass = isReserva ? 'bg-white/3' : 'bg-white/5';
+
+            return `
+                <div class="flex items-center gap-3 p-3 rounded-xl ${bgClass} border border-white/10 ${ringClass}">
+                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+                        <img src="/escudos/${clubeId}.png"
+                             alt="Clube"
+                             class="w-7 h-7 object-contain"
+                             onerror="this.src='/escudos/default.png'">
+                        ${badgeHtml}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-white truncate">${jogador.apelido || 'Jogador'}</p>
+                        <p class="text-xs text-white/40">${posInfo.abrev}${infoExtra}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-bold ${corPontos}" style="font-family: 'JetBrains Mono', monospace;">${pontosExibir.toFixed(2)}</p>
+                        ${multiplicador && pontos !== 0 ? `<p class="text-[10px] ${isCapitao ? 'text-yellow-500/70' : 'text-purple-400/70'}">(${pontos.toFixed(2)} x${multiplicador.replace('x','')})</p>` : ''}
+                    </div>
+                </div>
+            `;
         }
 
         // Expor globalmente
         window.abrirEscalacaoParticipante = abrirEscalacaoParticipante;
         window.fecharEscalacaoParticipante = fecharEscalacaoParticipante;
 
-        console.log('[ESCALACAO] Modal Escalacao Participante v1.0 carregado');
+        console.log('[ESCALACAO] Modal Escalacao Participante v2.0 carregado (c/ Reservas + Luxo)');
         </script>
 
         <!-- Modal Regras 2026 -->

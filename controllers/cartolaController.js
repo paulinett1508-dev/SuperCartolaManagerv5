@@ -76,6 +76,7 @@ export async function obterPontuacao(req, res) {
 }
 
 // Nova função para buscar escalação de um time para a rodada atual
+// v2.0: Separa titulares e reservas + retorna reserva_luxo_id
 export async function obterEscalacao(req, res) {
   const { id, rodada } = req.params;
   try {
@@ -92,14 +93,24 @@ export async function obterEscalacao(req, res) {
     if (!response.ok) {
       throw new Error(`Erro ${response.status}: ${response.statusText}`);
     }
-    const time = await response.json();
+    const data = await response.json();
+
+    // Separar titulares e reservas pelo status_id
+    // status_id: 2 = Reserva, outros = Titular
+    const atletas = data.atletas || [];
+    const titulares = atletas.filter(a => a.status_id !== 2);
+    const reservas = atletas.filter(a => a.status_id === 2);
+
     res.status(200).json({
-      time_id: time.time.time_id,
-      nome: time.time.nome,
-      nome_cartoleiro: time.time.nome_cartola,
-      url_escudo_png: time.time.url_escudo_png,
-      atletas: time.atletas,
-      capitao_id: time.capitao_id,
+      time_id: data.time.time_id,
+      nome: data.time.nome,
+      nome_cartoleiro: data.time.nome_cartola,
+      url_escudo_png: data.time.url_escudo_png,
+      atletas: atletas,           // Todos (retrocompatibilidade)
+      titulares: titulares,       // Apenas titulares
+      reservas: reservas,         // Apenas reservas
+      capitao_id: data.capitao_id,
+      reserva_luxo_id: data.reserva_luxo_id || null,
     });
   } catch (error) {
     console.error(
