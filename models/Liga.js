@@ -109,6 +109,7 @@ const ligaSchema = new mongoose.Schema({
             mataMata: false,
             artilheiro: false,
             luvaOuro: false,
+            capitaoLuxo: false,
             campinho: false,
             dicas: false,
         },

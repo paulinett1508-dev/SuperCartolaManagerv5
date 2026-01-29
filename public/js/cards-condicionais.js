@@ -147,7 +147,7 @@ function isTemporadaHistorica() {
  * Módulos que NUNCA existiram em 2025 (em nenhuma liga)
  * Estes são sempre ocultados em temporadas históricas
  */
-const MODULOS_2026_ONLY = ['tiro-certo', 'bolao-copa', 'resta-um', 'capitao-luxo'];
+const MODULOS_2026_ONLY = ['tiro-certo', 'bolao-copa', 'resta-um'];
 
 /**
  * Mapeamento de chave de modulos_ativos -> data-module do card HTML
@@ -159,6 +159,8 @@ const MODULO_TO_CARD_MAP = {
     'artilheiroCampeao': 'artilheiro-campeao',
     'luvaOuro': 'luva-de-ouro',
     'luva_ouro': 'luva-de-ouro',
+    'capitaoLuxo': 'capitao-luxo',
+    'capitao_luxo': 'capitao-luxo',
     'top10': 'top10',
     'melhorMes': 'melhor-mes',
     'melhor_mes': 'melhor-mes',
