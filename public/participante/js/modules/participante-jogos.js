@@ -825,8 +825,94 @@ window.fecharModalJogo = function() {
     if (container) container.innerHTML = '';
 };
 
-if (window.Log) Log.info('PARTICIPANTE-JOGOS', 'Modulo v5.3 carregado (seções separadas)');
+/**
+ * Abre modal com TODOS os jogos do dia
+ * Chamado pelo botão "Ver Mais" do módulo home
+ */
+window.abrirModalJogos = async function() {
+    console.log('[JOGOS] abrirModalJogos chamado');
 
-// ✅ DEBUG: Confirmar que versão 5.3 está ativa no console
-console.log('[JOGOS-DEBUG] ✅ Versão 5.3 carregada. Seções Em Andamento/Encerrados ativas.');
-console.log('[JOGOS-DEBUG] expandirJogo disponível:', typeof window.expandirJogo);
+    let container = document.getElementById('modal-jogos-lista');
+    if (!container) {
+        const div = document.createElement('div');
+        div.id = 'modal-jogos-lista';
+        document.body.appendChild(div);
+        container = div;
+    }
+
+    // Buscar jogos atualizados
+    const { jogos, fonte, aoVivo } = await obterJogosAoVivo();
+
+    if (!jogos || jogos.length === 0) {
+        container.innerHTML = `
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+                <div class="bg-gray-900 rounded-xl p-6 max-w-sm w-full text-center">
+                    <span class="material-icons text-5xl text-gray-600 mb-4">sports_soccer</span>
+                    <h3 class="text-lg font-brand text-white mb-2">Sem jogos</h3>
+                    <p class="text-sm text-gray-400 mb-6">Nenhum jogo encontrado para hoje.</p>
+                    <button onclick="window.fecharModalJogosLista()"
+                            class="px-6 py-2 bg-primary rounded-lg text-white font-medium">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // Renderizar modal com todos os jogos
+    const jogosHTML = renderizarJogosAoVivo(jogos, fonte, aoVivo);
+
+    container.innerHTML = `
+        <div class="fixed inset-0 z-50 bg-black/80 overflow-y-auto">
+            <div class="min-h-screen flex flex-col">
+                <!-- Header fixo -->
+                <div class="sticky top-0 z-10 bg-black/95 backdrop-blur border-b border-gray-800 px-4 py-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="material-icons text-primary">sports_soccer</span>
+                            <h2 class="text-lg font-brand text-white">Jogos do Dia</h2>
+                        </div>
+                        <button onclick="window.fecharModalJogosLista()"
+                                class="p-2 rounded-lg hover:bg-gray-800 transition-colors">
+                            <span class="material-icons text-white">close</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Conteúdo scrollável -->
+                <div class="flex-1 pb-6">
+                    ${jogosHTML}
+                </div>
+
+                <!-- Footer fixo -->
+                <div class="sticky bottom-0 bg-gradient-to-t from-black via-black/95 to-transparent px-4 py-4">
+                    <button onclick="window.fecharModalJogosLista()"
+                            class="w-full px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-white font-medium transition-colors">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    console.log('[JOGOS] Modal de lista renderizado com', jogos.length, 'jogos');
+};
+
+/**
+ * Fecha modal de lista de jogos
+ */
+window.fecharModalJogosLista = function() {
+    const container = document.getElementById('modal-jogos-lista');
+    if (container) container.innerHTML = '';
+};
+
+if (window.Log) Log.info('PARTICIPANTE-JOGOS', 'Modulo v5.6 carregado (modal de listagem completa)');
+
+// ✅ DEBUG: Confirmar funções globais disponíveis
+console.log('[JOGOS-DEBUG] ✅ Versão 5.6 carregada.');
+console.log('[JOGOS-DEBUG] Funções disponíveis:', {
+    expandirJogo: typeof window.expandirJogo,
+    abrirModalJogos: typeof window.abrirModalJogos,
+    fecharModalJogosLista: typeof window.fecharModalJogosLista
+});
