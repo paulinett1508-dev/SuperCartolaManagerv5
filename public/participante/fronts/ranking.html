@@ -215,8 +215,8 @@
     /* ===== HEADER DA TABELA ===== */
     .ranking-table-header {
         display: grid;
-        grid-template-columns: 90px 1fr 110px;
-        padding: 14px 16px;
+        grid-template-columns: 56px 1fr 85px;
+        padding: 10px 12px;
         background: var(--rank-surface-light);
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
@@ -256,8 +256,8 @@
     /* ===== ITEM DO RANKING ===== */
     .ranking-item {
         display: grid;
-        grid-template-columns: 90px 1fr 110px;
-        padding: 14px 16px;
+        grid-template-columns: 56px 1fr 85px;
+        padding: 10px 12px;
         align-items: center;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         transition: background 0.2s ease;
@@ -319,7 +319,7 @@
     .posicao-container {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
     }
 
     .ranking-posicao {
@@ -333,11 +333,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         font-family: var(--rank-font-brand);
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 400;
         background: var(--rank-surface-light);
         color: var(--rank-text-secondary);
@@ -345,13 +345,13 @@
 
     .ranking-escudo-wrap {
         position: relative;
-        width: 36px;
-        height: 36px;
+        width: 28px;
+        height: 28px;
     }
 
     .ranking-escudo {
-        width: 36px;
-        height: 36px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         object-fit: cover;
         border: 1px solid rgba(255, 255, 255, 0.15);
@@ -362,8 +362,8 @@
         position: absolute;
         bottom: -2px;
         right: -2px;
-        width: 16px;
-        height: 16px;
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
         object-fit: cover;
         border: 1px solid rgba(0, 0, 0, 0.4);
@@ -414,7 +414,7 @@
 
     .time-nome,
     .ranking-cartola {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
         color: var(--rank-text);
         white-space: nowrap;
@@ -424,7 +424,7 @@
 
     .time-cartoleiro,
     .ranking-time {
-        font-size: 12px;
+        font-size: 11px;
         color: var(--rank-text-secondary);
         white-space: nowrap;
         overflow: hidden;
@@ -435,7 +435,7 @@
     .pontos-valor,
     .ranking-pontos-valor {
         font-family: var(--rank-font-brand);
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 400;
         letter-spacing: -0.3px;
         color: var(--rank-text);
@@ -446,7 +446,7 @@
         display: flex;
         flex-direction: column;
         align-items: flex-end;
-        gap: 6px;
+        gap: 4px;
     }
 
     .ranking-live-badge {
