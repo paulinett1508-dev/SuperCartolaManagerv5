@@ -701,6 +701,22 @@ function calcularValoresCards(data) {
     };
 }
 
+function renderShortcutButton(label, icon, onClick, enabled) {
+    const classes = enabled ? "" : " home-action-disabled";
+    const handler = enabled ? `onclick="${onClick}"` : "";
+    const disabledAttr = enabled ? "" : "disabled";
+    const title = enabled ? "" : 'title="Disponível apenas para participante Premium"';
+
+    return `
+        <button class="home-action-item${classes}" ${handler} ${disabledAttr} ${title}>
+            <div class="home-action-icon">
+                <span class="material-icons">${icon}</span>
+            </div>
+            <span class="home-action-label">${label}</span>
+        </button>
+    `;
+}
+
 // =====================================================================
 // RENDERIZACAO PRINCIPAL
 // =====================================================================
@@ -743,9 +759,10 @@ function renderizarHome(container, data, ligaId) {
         ? calcularTempoRestante(mercadoStatus.fechamento)
         : "";
 
-    // Escudo do clube
+    // Clube do coração (escudo + nome do clube)
+    const nomeClube = getNomeClubePorId(clubeId);
     const escudoHTML = clubeId
-        ? `<img src="/escudos/${clubeId}.png" alt="Escudo" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'material-icons\\'>shield</span>'">`
+        ? `<img src="/escudos/${clubeId}.png" alt="${nomeClube}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'material-icons\\'>shield</span>'">`
         : `<span class="material-icons">shield</span>`;
 
     // Badge Premium
@@ -765,22 +782,12 @@ function renderizarHome(container, data, ligaId) {
             </button>
         ` : "";
 
-    const cardStyleAttr = zonaBg ? `style="--home-card-border:${zonaBg}; --home-card-accent:${zonaCor};"` : "";
-
-    container.innerHTML = `
-        <!-- Grid de Atalhos -->
-        <section class="home-action-grid">
+    const premiumShortcuts = isPremium ? `
             <button class="home-action-item" onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()">
                 <div class="home-action-icon">
                     <span class="material-icons">emoji_events</span>
                 </div>
-                <span class="home-action-label">Premiacoes</span>
-            </button>
-            <button class="home-action-item" onclick="window.abrirParticipantes2026 && window.abrirParticipantes2026()">
-                <div class="home-action-icon">
-                    <span class="material-icons">groups</span>
-                </div>
-                <span class="home-action-label">Participantes</span>
+                <span class="home-action-label">Premiações</span>
             </button>
             <button class="home-action-item" onclick="window.abrirRegras2026 && window.abrirRegras2026()">
                 <div class="home-action-icon">
@@ -788,21 +795,36 @@ function renderizarHome(container, data, ligaId) {
                 </div>
                 <span class="home-action-label">Regras</span>
             </button>
+        ` : "";
+
+    const cardStyleAttr = zonaBg ? `style="--home-card-border:${zonaBg}; --home-card-accent:${zonaCor};"` : "";
+
+    container.innerHTML = `
+        <!-- Grid de Atalhos -->
+        <section class="home-action-grid">
+            ${premiumShortcuts}
+            <button class="home-action-item" onclick="window.abrirParticipantes2026 && window.abrirParticipantes2026()">
+                <div class="home-action-icon">
+                    <span class="material-icons">groups</span>
+                </div>
+                <span class="home-action-label">Participantes</span>
+            </button>
             ${cartolaProHTML}
         </section>
 
         <!-- Card Status do Time -->
         <section class="home-team-card ${zonaClass}" ${cardStyleAttr}>
-            <div class="home-team-card-top">
-                <div class="home-team-card-meta">
-                    <div class="home-team-shield">
-                        ${escudoHTML}
-                    </div>
-                    <div>
-                        <p class="home-team-card-name">${nomeTime}</p>
-                        <span class="home-team-card-subtitle">${nomeCartola} • ${nomeLiga}</span>
-                    </div>
+            <!-- Clube do Coração -->
+            <div class="home-club-heart">
+                <div class="home-club-shield-large">
+                    ${escudoHTML}
                 </div>
+                <div class="home-club-info">
+                    <span class="home-club-label">Time do Coração</span>
+                    <p class="home-club-name">${nomeClube}</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-between mb-3">
                 <span class="home-zone-chip" style="border-color:${zonaCor}; color:${zonaCor};">${zonaTexto}</span>
             </div>
             <div class="home-stats-split">
@@ -1145,6 +1167,30 @@ function getTeamColor(nome) {
     }
 
     return "#4b5563";
+}
+
+// Mapa simplificado de IDs de clubes para nomes
+function getNomeClubePorId(clubeId) {
+    const clubes = {
+        262: "Flamengo",
+        263: "Botafogo",
+        264: "Corinthians",
+        265: "Grêmio",
+        266: "Palmeiras",
+        267: "Santos",
+        275: "Bahia",
+        276: "Fluminense",
+        277: "Vasco",
+        282: "São Paulo",
+        283: "Atlético-MG",
+        284: "Internacional",
+        285: "Athletico-PR",
+        293: "Cruzeiro",
+        294: "Fortaleza",
+        356: "Bragantino"
+    };
+
+    return clubes[Number(clubeId)] || "Seu Time";
 }
 
 // Parar auto-refresh quando sair da tela
