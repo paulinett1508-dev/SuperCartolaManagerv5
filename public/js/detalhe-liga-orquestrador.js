@@ -558,7 +558,7 @@ class DetalheLigaOrquestrador {
 
     // Verifica se módulo é 2026 (em breve)
     isModule2026(module) {
-        const modules2026 = ["tiro-certo", "bolao-copa", "resta-um", "capitao-luxo"];
+        const modules2026 = ["tiro-certo", "bolao-copa", "resta-um"];
         return modules2026.includes(module);
     }
 

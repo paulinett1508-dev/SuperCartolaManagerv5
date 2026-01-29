@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capitão Luxo - Carregando...</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0f0f0f;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .loading-container {
+            text-align: center;
+        }
+        .spinner {
+            border: 3px solid rgba(139, 92, 246, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #8b5cf6;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #8b5cf6;
+            margin: 0 0 8px 0;
+        }
+        p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <div class="spinner"></div>
+        <h2>Capitão de Luxo</h2>
+        <p>Redirecionando para o módulo...</p>
+    </div>
+
+    <script>
+        // Extrair ligaId e temporada da URL ou cache
+        const urlParams = new URLSearchParams(window.location.search);
+        const ligaId = urlParams.get('id') ||
+                       urlParams.get('ligaId') ||
+                       localStorage.getItem('ligaIdAtual') ||
+                       window.ligaIdAtual;
+
+        const temporada = urlParams.get('temporada') ||
+                          window.temporadaAtual ||
+                          new Date().getFullYear();
+
+        // Log para debug
+        console.log('[CAPITAO-LUXO] Redirect:', { ligaId, temporada });
+
+        // Validar ligaId antes de redirecionar
+        if (!ligaId) {
+            document.querySelector('p').textContent = '❌ Liga não identificada. Voltando...';
+            setTimeout(() => {
+                window.history.back();
+            }, 2000);
+        } else {
+            // Redirecionar para view de participante (funcional)
+            setTimeout(() => {
+                window.location.href = `/participante/fronts/capitao.html?ligaId=${ligaId}&temporada=${temporada}`;
+            }, 500);
+        }
+    </script>
+</body>
+</html>
