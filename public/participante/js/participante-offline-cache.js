@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE-OFFLINE-CACHE.JS - Sistema de Cache Persistente v2.2
+// PARTICIPANTE-OFFLINE-CACHE.JS - Sistema de Cache Persistente v2.3
 // =====================================================================
+// v2.3: FIX Ranking cache segregado por temporada (evita dados de anos anteriores)
 // v2.2: FIX Race condition no init() - reutiliza Promise se já em andamento
 // v2.1: Novos stores para artilheiro, luvaOuro, melhorMes
 // v2.0: Temporada encerrada = Cache PERMANENTE (dados imutáveis)
@@ -8,7 +9,7 @@
 // Estratégia: Stale-While-Revalidate (mostra cache, atualiza em background)
 // =====================================================================
 
-if (window.Log) Log.info('OFFLINE-CACHE', 'Carregando sistema v2.2...');
+if (window.Log) Log.info('OFFLINE-CACHE', 'Carregando sistema v2.3...');
 
 const OfflineCache = {
     DB_NAME: 'SuperCartolaOffline',
@@ -384,16 +385,22 @@ const OfflineCache = {
 
     /**
      * Salvar ranking da liga
+     * ✅ v2.3: Incluir temporada na chave para segregação correta
      */
-    async saveRanking(ligaId, data) {
-        return this.set('ranking', ligaId, data);
+    async saveRanking(ligaId, data, temporada = null) {
+        const temp = temporada || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const key = `${ligaId}_${temp}`;
+        return this.set('ranking', key, data);
     },
 
     /**
      * Buscar ranking com fallback
+     * ✅ v2.3: Incluir temporada na chave
      */
-    async getRankingWithFallback(ligaId, fetchFn, onUpdate) {
-        return this.getWithFallback('ranking', ligaId, fetchFn, onUpdate);
+    async getRankingWithFallback(ligaId, fetchFn, onUpdate, temporada = null) {
+        const temp = temporada || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const key = `${ligaId}_${temp}`;
+        return this.getWithFallback('ranking', key, fetchFn, onUpdate);
     },
 
     /**

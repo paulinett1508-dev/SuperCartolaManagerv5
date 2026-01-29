@@ -210,10 +210,13 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         } catch (e) {
             ligaRules = null;
         }
+        // ✅ v9.1: Temporada para segregar cache de ranking
+        const temporadaCacheBV = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+
         // Buscar do cache persistente (IndexedDB) - INSTANTÂNEO
         [liga, ranking, rodadas, extratoData] = await Promise.all([
             cache.getLigaAsync ? cache.getLigaAsync(ligaId) : cache.getLiga(ligaId),
-            cache.getRankingAsync ? cache.getRankingAsync(ligaId) : cache.getRanking(ligaId),
+            cache.getRankingAsync ? cache.getRankingAsync(ligaId, null, null, temporadaCacheBV) : cache.getRanking(ligaId, temporadaCacheBV),
             cache.getRodadasAsync ? cache.getRodadasAsync(ligaId) : cache.getRodadas(ligaId),
             deveBuscarExtratoDoCacheLocal
                 ? (cache.getExtratoAsync ? cache.getExtratoAsync(ligaId, timeId) : cache.getExtrato(ligaId, timeId))
@@ -257,7 +260,7 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         // Atualizar cache com dados frescos
         if (cache) {
             cache.setLiga(ligaId, ligaFresh);
-            cache.setRanking(ligaId, rankingFresh);
+            cache.setRanking(ligaId, rankingFresh, temporada);
             cache.setRodadas(ligaId, rodadasFresh);
         }
 

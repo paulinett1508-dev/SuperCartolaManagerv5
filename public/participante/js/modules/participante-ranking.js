@@ -9,7 +9,7 @@
 // ✅ v3.5: Card Seu Desempenho ao final + Vezes Líder
 // =====================================================
 
-if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Módulo v3.10 PRO (TEMPORADA FIX) carregando...');
+if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Módulo v3.11 PRO (CACHE TEMPORADA FIX) carregando...');
 
 // ==============================
 // CONSTANTES
@@ -319,9 +319,12 @@ async function carregarRanking(turno) {
     let usouCache = false;
     let dadosCache = null;
 
+    // ✅ v3.11: Usar temporada na chave do cache para evitar dados de temporadas antigas
+    const temporadaCache = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+
     if (cache && turno === "geral") {
-        // Tentar buscar do cache persistente
-        const rankingCache = await (cache.getRankingAsync ? cache.getRankingAsync(ligaId) : cache.getRanking(ligaId));
+        // Tentar buscar do cache persistente (segregado por temporada)
+        const rankingCache = await (cache.getRankingAsync ? cache.getRankingAsync(ligaId, null, null, temporadaCache) : cache.getRanking(ligaId, temporadaCache));
 
         if (rankingCache && Array.isArray(rankingCache) && rankingCache.length > 0) {
             usouCache = true;
@@ -392,8 +395,9 @@ async function carregarRanking(turno) {
         }
 
         // Atualizar cache com dados frescos (apenas turno geral)
+        // ✅ v3.11: Passar temporada para segregar cache por ano
         if (cache && turno === "geral") {
-            cache.setRanking(ligaId, data.ranking);
+            cache.setRanking(ligaId, data.ranking, temporadaCache);
         }
 
         estadoRanking.dadosAtuais = data;
@@ -1634,4 +1638,4 @@ window.mostrarPremiacaoPro = async function (posicaoClicada) {
     document.body.appendChild(modal);
 };
 
-if (window.Log) Log.info('PARTICIPANTE-RANKING', '✅ Módulo v3.9 PRO carregado (CACHE-FIRST + Fix Container Refresh)');
+if (window.Log) Log.info('PARTICIPANTE-RANKING', '✅ Módulo v3.11 PRO carregado (CACHE TEMPORADA FIX)');

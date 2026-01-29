@@ -2290,45 +2290,35 @@
                         return;
                     }
 
-                    // Tentar buscar participantes renovados (inscricoes)
+                    // ✅ v2.0 FIX: Usar mesma API do admin para consistência
+                    // Buscar participantes ativos da temporada (exclui nao_participa automaticamente)
                     let participantes = [];
-                    let fonte = 'inscricoes';
+                    let fonte = 'api';
+                    const temporada = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
 
                     try {
-                        const response = await fetch(`/api/inscricoes/${ligaId}/2026?status=renovado`);
+                        const response = await fetch(`/api/ligas/${ligaId}/participantes?temporada=${temporada}`);
                         const data = await response.json();
-                        if (data.success && data.inscricoes?.length) {
-                            participantes = data.inscricoes.map(p => ({
-                                nome_cartola: p.dados_participante?.nome_cartoleiro || p.dados_participante?.nome_cartola || 'Sem nome',
-                                nome_time: p.dados_participante?.nome_time || 'Sem time',
-                                clube_id: p.clube_id || 'default'
-                            }));
+                        if (data.participantes?.length) {
+                            // Filtrar apenas ativos (renovado ou novo) - mesmo filtro do admin
+                            participantes = data.participantes
+                                .filter(p => p.ativo !== false && p.status !== 'nao_participa')
+                                .map(p => ({
+                                    nome_cartola: p.nome_cartoleiro || p.nome_cartola || 'Sem nome',
+                                    nome_time: p.nome_time || 'Sem time',
+                                    clube_id: p.clube_id || 'default'
+                                }));
+                            fonte = data.fonte || 'api';
                         }
                     } catch (err) {
-                        console.warn('[PARTICIPANTES] API inscricoes falhou, usando fallback');
+                        console.warn('[PARTICIPANTES] API participantes falhou, usando fallback');
                     }
 
-                    // FALLBACK: Buscar de liga.participantes se nao houver inscricoes
+                    // FALLBACK: Buscar de liga.participantes se API falhar
                     if (!participantes.length) {
-                        fonte = 'liga';
-                        // Tentar cache local primeiro
-                        let liga = window.participanteAuth?.liga;
-
-                        // Se nao tiver no cache, buscar da API de participantes
-                        if (!liga?.participantes?.length) {
-                            const ligaResponse = await fetch(`/api/ligas/${ligaId}/participantes?temporada=2026`);
-                            const ligaData = await ligaResponse.json();
-                            // A API retorna { participantes: [...] }
-                            if (ligaData.participantes?.length) {
-                                participantes = ligaData.participantes
-                                    .filter(p => p.ativo !== false)
-                                    .map(p => ({
-                                        nome_cartola: p.nome_cartola || p.nome_cartoleiro || 'Sem nome',
-                                        nome_time: p.nome_time || 'Sem time',
-                                        clube_id: p.clube_id || 'default'
-                                    }));
-                            }
-                        } else if (liga?.participantes?.length) {
+                        fonte = 'liga-cache';
+                        const liga = window.participanteAuth?.liga;
+                        if (liga?.participantes?.length) {
                             participantes = liga.participantes
                                 .filter(p => p.ativo !== false)
                                 .map(p => ({

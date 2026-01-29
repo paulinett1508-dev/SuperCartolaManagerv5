@@ -7,7 +7,7 @@
 // Estratégia: Cache-First com Stale-While-Revalidate
 // =====================================================================
 
-if (window.Log) Log.info('CACHE-MANAGER', '🚀 Carregando sistema v2.0...');
+if (window.Log) Log.info('CACHE-MANAGER', '🚀 Carregando sistema v2.1...');
 
 const CACHE_PREFIX = 'participante_cache_';
 const MEMORY_TTL = 5 * 60 * 1000; // 5 minutos (cache memória mais curto)
@@ -217,22 +217,29 @@ class ParticipanteCacheManager {
 
     // ----- RANKING -----
 
-    setRanking(ligaId, dados) {
-        this.setMemory(`ranking_${ligaId}`, dados);
+    // ✅ v2.1: Ranking com segregação por temporada
+    setRanking(ligaId, dados, temporada = null) {
+        const temp = temporada || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const key = `${ligaId}_${temp}`;
+        this.setMemory(`ranking_${key}`, dados);
         if (window.OfflineCache) {
-            window.OfflineCache.saveRanking(ligaId, dados);
+            window.OfflineCache.saveRanking(ligaId, dados, temp);
         }
     }
 
-    getRanking(ligaId) {
-        return this.getMemory(`ranking_${ligaId}`);
+    getRanking(ligaId, temporada = null) {
+        const temp = temporada || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const key = `${ligaId}_${temp}`;
+        return this.getMemory(`ranking_${key}`);
     }
 
-    async getRankingAsync(ligaId, fetchFn = null, onUpdate = null) {
+    async getRankingAsync(ligaId, fetchFn = null, onUpdate = null, temporada = null) {
+        const temp = temporada || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const key = `${ligaId}_${temp}`;
         if (fetchFn) {
-            return this.getWithFallback('ranking', ligaId, fetchFn, onUpdate);
+            return this.getWithFallback('ranking', key, fetchFn, onUpdate);
         }
-        return this.getPersistent('ranking', ligaId, true);
+        return this.getPersistent('ranking', key, true);
     }
 
     // ----- EXTRATO -----
@@ -349,12 +356,12 @@ class ParticipanteCacheManager {
         // ✅ v9.0: Passar temporada para segregar dados por ano
         const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
 
-        // Ranking
+        // Ranking - ✅ v2.1: Passar temporada para segregar cache
         promises.push(
             this.getRankingAsync(ligaId, async () => {
                 const res = await fetch(`/api/ligas/${ligaId}/ranking?temporada=${temporada}`);
                 return res.ok ? res.json() : [];
-            })
+            }, null, temporada)
         );
 
         // Rodadas

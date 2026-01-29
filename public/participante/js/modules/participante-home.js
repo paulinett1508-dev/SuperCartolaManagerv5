@@ -149,12 +149,15 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     // Buscar dados do cache ou API
     let liga = null, ranking = [], rodadas = [], extratoData = null;
 
+    // ✅ v9.1: Temporada para segregar cache
+    const temporadaCacheHome = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+
     if (cache) {
         const deveBuscarExtratoDoCacheLocal = !participanteRenovado;
 
         [liga, ranking, rodadas, extratoData] = await Promise.all([
             cache.getLigaAsync ? cache.getLigaAsync(ligaId) : cache.getLiga(ligaId),
-            cache.getRankingAsync ? cache.getRankingAsync(ligaId) : cache.getRanking(ligaId),
+            cache.getRankingAsync ? cache.getRankingAsync(ligaId, null, null, temporadaCacheHome) : cache.getRanking(ligaId, temporadaCacheHome),
             cache.getRodadasAsync ? cache.getRodadasAsync(ligaId) : cache.getRodadas(ligaId),
             deveBuscarExtratoDoCacheLocal
                 ? (cache.getExtratoAsync ? cache.getExtratoAsync(ligaId, timeId) : cache.getExtrato(ligaId, timeId))
@@ -192,7 +195,7 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 
         if (cache) {
             cache.setLiga(ligaId, ligaFresh);
-            cache.setRanking(ligaId, rankingFresh);
+            cache.setRanking(ligaId, rankingFresh, temporadaCacheHome);
             cache.setRodadas(ligaId, rodadasFresh);
         }
 
@@ -254,7 +257,8 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeIdNum, participante) {
     const meuTime = ranking?.find((t) => Number(t.timeId) === meuTimeIdNum);
     const posicao = meuTime ? meuTime.posicao : null;
-    const totalParticipantes = ranking?.length || 0;
+    // ✅ v1.2: Fallback para liga.participantes em pré-temporada (consistente com boas-vindas)
+    const totalParticipantes = ranking?.length || liga?.participantes?.filter(p => p.ativo !== false)?.length || liga?.times?.length || 0;
 
     const minhasRodadas = (rodadas || []).filter(
         (r) => Number(r.timeId) === meuTimeIdNum || Number(r.time_id) === meuTimeIdNum
