@@ -46,7 +46,7 @@ async function auditarCaches(db) {
     // 2. Agrupar por chave unica (time_id + liga_id + temporada)
     const grupos = {};
     for (const cache of caches) {
-        const chave = `${cache.time_id}|${cache.liga_id}|${cache.temporada || 2025}`;
+        const chave = `${cache.time_id}|${cache.liga_id}|${cache.temporada || 2026}`;
         if (!grupos[chave]) {
             grupos[chave] = [];
         }

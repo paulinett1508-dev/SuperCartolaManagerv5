@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import NodeCache from "node-cache";
+import { SEASON_CONFIG } from "../config/seasons.js";
 
 // Cache para otimizar requisições (TTL: 5 minutos)
 const cache = new NodeCache({ stdTTL: 300 });
@@ -171,7 +172,7 @@ async function detectarUltimaRodadaComDados() {
     // Estratégia 3: Fallback baseado na data atual (estimativa)
     if (ultimaRodadaComDados === 1) {
       const agora = new Date();
-      const inicioTemporada = new Date('2025-04-12'); // Data estimada do início da temporada 2025
+      const inicioTemporada = SEASON_CONFIG.dataInicio || new Date('2026-01-28');
       const diasDesdeInicio = Math.floor((agora - inicioTemporada) / (1000 * 60 * 60 * 24));
       const rodadaEstimada = Math.max(1, Math.min(Math.floor(diasDesdeInicio / 7) + 1, 38));
       
@@ -195,7 +196,7 @@ async function detectarUltimaRodadaComDados() {
     
     // Fallback final: estimativa baseada na data atual
     const agora = new Date();
-    const inicioTemporada = new Date('2025-04-12'); // Ajustar conforme início real da temporada
+    const inicioTemporada = SEASON_CONFIG.dataInicio || new Date('2026-01-28');
     const diasDesdeInicio = Math.floor((agora - inicioTemporada) / (1000 * 60 * 60 * 24));
     const rodadaEstimada = Math.max(1, Math.min(Math.floor(diasDesdeInicio / 7) + 1, 38));
     

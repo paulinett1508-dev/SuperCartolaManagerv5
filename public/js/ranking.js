@@ -1,4 +1,5 @@
-// 🔧 RANKING.JS - v2.5 COM MATERIAL ICONS FORÇADO
+// 🔧 RANKING.JS - v2.6 COM MATERIAL ICONS FORÇADO
+// v2.6: Mensagem contextualizada para pré-temporada (azul + ícone calendário)
 // v2.5: Multi-Temporada - tela de pré-temporada quando não há dados
 // v2.4: Refatorado para SaaS - usa totalParticipantes em vez de liga ID hardcoded
 // Visual diferenciado para inativos + filtros 1º/2º turno/Geral
@@ -245,18 +246,21 @@ async function carregarRankingGeral(turnoParam = null) {
 
         if (!data.success || !data.ranking) {
             // Pode ser pré-temporada ou dados ainda não consolidados
-            mostrarSemDados(rankingContainer, temporada, data?.message);
+            mostrarSemDados(rankingContainer, temporada, data?.message, data?.status);
             return;
         }
 
         // Se ranking está vazio, mostrar estado sem dados
         if (data.ranking.length === 0) {
-            mostrarSemDados(rankingContainer, temporada, data?.message);
+            mostrarSemDados(rankingContainer, temporada, data?.message, data?.status);
             return;
         }
 
+        // ✅ v2.6: Detectar se são dados parciais (rodada em andamento)
+        const isParcial = data.parcial === true || data.status === "parcial";
+
         console.log(
-            `[RANKING] ✅ Ranking recebido: ${data.total_times} participantes`,
+            `[RANKING] ✅ Ranking recebido: ${data.total_times} participantes ${isParcial ? '(PARCIAL)' : ''}`,
         );
         console.log(
             `[RANKING] 📊 Turno: ${data.turno} | Status: ${data.status}`,
@@ -264,6 +268,11 @@ async function carregarRankingGeral(turnoParam = null) {
         console.log(
             `[RANKING] 📋 Rodadas: ${data.rodada_inicio}-${data.rodada_fim} (atual: ${data.rodada_atual})`,
         );
+
+        // Guardar info de parcial no estado
+        estadoRankingAdmin.isParcial = isParcial;
+        estadoRankingAdmin.rodadaAtual = data.rodada_atual;
+        estadoRankingAdmin.mensagemParcial = data.message;
 
         // Buscar status de inatividade
         const timeIds = data.ranking.map((p) => p.timeId);
@@ -338,6 +347,8 @@ async function carregarRankingGeral(turnoParam = null) {
             data.status,
             data.rodada_inicio,
             data.rodada_fim,
+            isParcial,
+            data.message,
         );
         rankingContainer.innerHTML = tabelaHTML;
 
@@ -466,20 +477,59 @@ function mostrarPreTemporada(container, temporada) {
 // ==============================
 // MOSTRAR ESTADO SEM DADOS
 // ==============================
-function mostrarSemDados(container, temporada, motivo) {
-    console.log(`[RANKING] ℹ️ Sem dados consolidados - temporada ${temporada}`);
+function mostrarSemDados(container, temporada, motivo, status) {
+    console.log(`[RANKING] ℹ️ Sem dados - temporada ${temporada}, status: ${status}, motivo: ${motivo}`);
 
-    const detalhe = motivo || "Aguarde a consolidação das rodadas para exibir a classificação.";
+    // Detectar o tipo de estado baseado no status e motivo
+    let titulo, icone, corGradient, corShadow, corBgBox, corBorderBox, detalhe;
+
+    if (status === "mercado_aberto") {
+        // Mercado aberto - rodada ainda não começou
+        titulo = "Mercado Aberto";
+        icone = "storefront";
+        corGradient = "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)";
+        corShadow = "rgba(34, 197, 94, 0.3)";
+        corBgBox = "rgba(34, 197, 94, 0.1)";
+        corBorderBox = "rgba(34, 197, 94, 0.3)";
+        detalhe = motivo || `O mercado está aberto. O Ranking será atualizado assim que a rodada iniciar e os primeiros pontos forem computados.`;
+    } else if (status === "sem_pontuacao") {
+        // Rodada começou mas jogos ainda não pontuaram
+        titulo = "Aguardando Jogos";
+        icone = "sports_soccer";
+        corGradient = "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)";
+        corShadow = "rgba(245, 158, 11, 0.3)";
+        corBgBox = "rgba(245, 158, 11, 0.1)";
+        corBorderBox = "rgba(245, 158, 11, 0.3)";
+        detalhe = motivo || `A rodada está em andamento. Aguarde os primeiros jogos começarem para ver as pontuações.`;
+    } else if (!motivo || motivo.includes("Nenhum dado") || status === "aguardando") {
+        // Pré-temporada - nenhuma rodada ainda
+        titulo = `Aguardando Temporada ${temporada}`;
+        icone = "event_upcoming";
+        corGradient = "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)";
+        corShadow = "rgba(59, 130, 246, 0.3)";
+        corBgBox = "rgba(59, 130, 246, 0.1)";
+        corBorderBox = "rgba(59, 130, 246, 0.3)";
+        detalhe = `O Ranking Geral estará disponível assim que a <strong>Rodada 1</strong> do Brasileirão ${temporada} iniciar e os primeiros pontos forem computados.`;
+    } else {
+        // Outro erro ou estado desconhecido
+        titulo = "Classificação indisponível";
+        icone = "hourglass_empty";
+        corGradient = "linear-gradient(135deg, #6b7280 0%, #4b5563 100%)";
+        corShadow = "rgba(107, 114, 128, 0.3)";
+        corBgBox = "rgba(107, 114, 128, 0.1)";
+        corBorderBox = "rgba(107, 114, 128, 0.3)";
+        detalhe = motivo || "Aguarde os primeiros pontos serem computados para exibir a classificação.";
+    }
 
     container.innerHTML = `
         <div style="max-width: 520px; margin: 0 auto; text-align: center; padding: 40px 20px;">
-            <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(34, 197, 94, 0.3);">
-                <span class="material-icons" style="font-size: 40px; color: #fff;">hourglass_empty</span>
+            <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: ${corGradient}; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px ${corShadow};">
+                <span class="material-icons" style="font-size: 40px; color: #fff;">${icone}</span>
             </div>
 
-            <h2 style="font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0 0 8px;">Classificação indisponível</h2>
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0 0 8px;">${titulo}</h2>
             <p style="color: #cbd5f5; margin: 0 0 16px;">Temporada ${temporada}</p>
-            <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 16px; color: #e2e8f0;">
+            <div style="background: ${corBgBox}; border: 1px solid ${corBorderBox}; border-radius: 12px; padding: 16px; color: #e2e8f0;">
                 ${detalhe}
             </div>
             <div style="margin-top: 24px;">
@@ -698,15 +748,23 @@ function criarTabelaRanking(
     status = "",
     rodadaInicio = 1,
     rodadaFim = 38,
+    isParcial = false,
+    mensagemParcial = "",
 ) {
     const temInativos = participantes.some((p) => p.ativo === false);
     const turnoLabel = turno === "geral" ? "Geral" : `${turno}º Turno`;
-    const statusLabel =
-        status === "consolidado"
-            ? '<span style="color:#22c55e; font-size:0.8em;"><span class="material-icons" style="font-size:14px; vertical-align:middle;">check_circle</span> Consolidado</span>'
-            : status === "em_andamento"
-              ? '<span style="color:#facc15; font-size:0.8em;"><span class="material-icons" style="font-size:14px; vertical-align:middle;">schedule</span> Em andamento</span>'
-              : "";
+
+    // ✅ v2.6: Badge de status com suporte a parciais
+    let statusLabel;
+    if (isParcial || status === "parcial") {
+        statusLabel = '<span style="color:#ef4444; font-size:0.8em; display:inline-flex; align-items:center; gap:4px; background:rgba(239,68,68,0.15); padding:4px 10px; border-radius:20px; animation:pulse 2s infinite;"><span class="material-icons" style="font-size:14px;">sensors</span> AO VIVO</span>';
+    } else if (status === "consolidado") {
+        statusLabel = '<span style="color:#22c55e; font-size:0.8em;"><span class="material-icons" style="font-size:14px; vertical-align:middle;">check_circle</span> Consolidado</span>';
+    } else if (status === "em_andamento") {
+        statusLabel = '<span style="color:#facc15; font-size:0.8em;"><span class="material-icons" style="font-size:14px; vertical-align:middle;">schedule</span> Em andamento</span>';
+    } else {
+        statusLabel = "";
+    }
 
     // ✅ NOVO: Obter líder e participante logado
     const ativos = participantes.filter((p) => p.ativo !== false);
@@ -721,8 +779,24 @@ function criarTabelaRanking(
         turnoLabel,
     );
 
+    // ✅ v2.6: Barra de info para parciais
+    const infoParcialHTML = isParcial ? `
+        <div style="background: linear-gradient(90deg, rgba(239,68,68,0.15) 0%, rgba(239,68,68,0.05) 100%); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+            <span class="material-icons" style="color: #ef4444; font-size: 20px; animation: pulse 2s infinite;">sensors</span>
+            <div style="flex: 1;">
+                <div style="color: #fff; font-weight: 600; font-size: 0.9rem;">Ranking Parcial - Rodada ${ultimaRodada}</div>
+                <div style="color: #9ca3af; font-size: 0.8rem;">${mensagemParcial || 'Dados em tempo real. Posições podem mudar durante a rodada.'}</div>
+            </div>
+        </div>
+    ` : '';
+
     return `
         <style>
+            /* ✅ v2.6: Animação para badge AO VIVO */
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.6; }
+            }
             /* ✅ NOVO: Card Destaque do Líder */
             .card-lider-destaque {
                 background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
@@ -1093,6 +1167,9 @@ function criarTabelaRanking(
                 ${turnoLabel} (Rodadas ${rodadaInicio}-${rodadaFim}) ${statusLabel}
             </div>
 
+            <!-- ✅ v2.6: INFO PARCIAIS (se rodada em andamento) -->
+            ${infoParcialHTML}
+
             <!-- ✅ NOVO: CARD DO LÍDER -->
             ${cardLiderHTML}
 
@@ -1296,5 +1373,5 @@ window.modulosCarregados.ranking = {
 };
 
 console.log(
-    "✅ [RANKING] Módulo v2.5 carregado - Multi-Temporada + tela pré-temporada",
+    "✅ [RANKING] Módulo v2.6 carregado - Mensagem pré-temporada contextualizada",
 );

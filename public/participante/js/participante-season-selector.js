@@ -11,8 +11,8 @@ if (window.Log) Log.info("SEASON-SELECTOR", "🗓️ Carregando seletor de tempo
 class SeasonSelector {
     constructor() {
         this.STORAGE_KEY = "participante_temporada_selecionada";
-        this.temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2025;
-        this.temporadaAnterior = window.ParticipanteConfig?.PREVIOUS_SEASON || 2024;
+        this.temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
+        this.temporadaAnterior = window.ParticipanteConfig?.PREVIOUS_SEASON || 2025;
         this.temporadaSelecionada = this.carregarPreferencia();
         this.listeners = [];
     }

@@ -55,10 +55,13 @@ export async function getRankingTurno(req, res) {
             rodada_atual: snapshot.rodada_atual,
             rodada_inicio: snapshot.rodada_inicio,
             rodada_fim: snapshot.rodada_fim,
-            total_times: snapshot.ranking.length,
+            total_times: snapshot.ranking?.length || 0,
             consolidado_em: snapshot.consolidado_em,
             atualizado_em: snapshot.atualizado_em,
-            ranking: snapshot.ranking,
+            ranking: snapshot.ranking || [],
+            // ✅ v3.0: Adicionar campos para parciais em tempo real
+            parcial: snapshot.parcial || false,
+            message: snapshot.message || null,
         });
     } catch (error) {
         console.error(`${LOG_PREFIX} ❌ Erro:`, error);

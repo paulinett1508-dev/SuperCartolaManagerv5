@@ -159,8 +159,9 @@ export const RodadaDetector = {
         try {
             console.log("🔍 [DETECTOR] Calculando por data...");
 
-            // Data aproximada de início do Brasileirão 2025
-            const inicioTemporada = new Date("2025-04-13");
+            // Data de início do Brasileirão 2026 (usar config global se disponível)
+            const dataConfig = window.SEASON_CONFIG?.dataInicio || window.ParticipanteConfig?.DATA_INICIO_TEMPORADA;
+            const inicioTemporada = dataConfig ? new Date(dataConfig) : new Date("2026-01-28");
             const agora = new Date();
 
             // Calcular diferença em semanas

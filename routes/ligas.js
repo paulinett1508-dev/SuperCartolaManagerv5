@@ -778,7 +778,7 @@ router.get("/:id/temporadas", async (req, res) => {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    const temporadaBase = liga.temporada || 2025;
+    const temporadaBase = liga.temporada || CURRENT_SEASON;
 
     // Buscar temporadas com inscrições
     const temporadasInscricoes = await InscricaoTemporada.distinct("temporada", {
@@ -812,7 +812,7 @@ router.get("/:id/participantes", async (req, res) => {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    const temporadaLiga = liga.temporada || 2025;
+    const temporadaLiga = liga.temporada || CURRENT_SEASON;
     const temporadaFiltro = temporada ? parseInt(temporada) : temporadaLiga;
 
     let participantes = [];

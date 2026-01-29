@@ -3,22 +3,25 @@ import RankingGeralCache from "../models/RankingGeralCache.js";
 import Rodada from "../models/Rodada.js";
 import mongoose from "mongoose";
 import { obterDadosRodada } from '../utils/smartDataFetcher.js';
+import { CURRENT_SEASON } from '../config/seasons.js';
 
 /**
  * Buscar ranking consolidado (com fallback para cálculo se necessário)
  */
 export async function buscarRankingConsolidado(req, res) {
   const { ligaId } = req.params;
-  const { force = false } = req.query;
+  const { force = false, temporada: temporadaParam } = req.query;
+  const temporada = parseInt(temporadaParam) || CURRENT_SEASON;
 
   try {
     if (!mongoose.Types.ObjectId.isValid(ligaId)) {
       return res.status(400).json({ error: "ID de liga inválido" });
     }
 
-    // Determinar rodada final (última rodada com dados)
-    const ultimaRodadaComDados = await Rodada.findOne({ 
-      ligaId: new mongoose.Types.ObjectId(ligaId) 
+    // Determinar rodada final (última rodada com dados DA TEMPORADA)
+    const ultimaRodadaComDados = await Rodada.findOne({
+      ligaId: new mongoose.Types.ObjectId(ligaId),
+      temporada
     })
       .sort({ rodada: -1 })
       .select("rodada")
@@ -29,9 +32,10 @@ export async function buscarRankingConsolidado(req, res) {
       return res.status(200).json({
         cached: false,
         rodadaFinal: 0,
+        temporada,
         ranking: [],
         atualizadoEm: null,
-        message: "Nenhuma rodada encontrada para esta liga",
+        message: "Nenhuma rodada encontrada para esta liga nesta temporada",
       });
     }
 
@@ -41,14 +45,16 @@ export async function buscarRankingConsolidado(req, res) {
     if (!force) {
       const cacheExistente = await RankingGeralCache.findOne({
         ligaId: new mongoose.Types.ObjectId(ligaId),
-        rodadaFinal
+        rodadaFinal,
+        temporada
       }).lean();
 
       if (cacheExistente) {
-        console.log(`[RANKING-CACHE] ✅ Cache encontrado para liga ${ligaId} rodada ${rodadaFinal}`);
+        console.log(`[RANKING-CACHE] ✅ Cache encontrado para liga ${ligaId} rodada ${rodadaFinal} temporada ${temporada}`);
         return res.status(200).json({
           cached: true,
           rodadaFinal,
+          temporada,
           ranking: cacheExistente.ranking,
           atualizadoEm: cacheExistente.atualizadoEm
         });
@@ -56,18 +62,20 @@ export async function buscarRankingConsolidado(req, res) {
     }
 
     // Cache miss ou forçado - calcular e armazenar
-    console.log(`[RANKING-CACHE] 🔄 Calculando ranking consolidado para liga ${ligaId}...`);
-    const rankingCalculado = await calcularRankingConsolidado(ligaId, rodadaFinal);
+    console.log(`[RANKING-CACHE] 🔄 Calculando ranking consolidado para liga ${ligaId} temporada ${temporada}...`);
+    const rankingCalculado = await calcularRankingConsolidado(ligaId, rodadaFinal, temporada);
 
     // Salvar no cache
     await RankingGeralCache.findOneAndUpdate(
-      { 
-        ligaId: new mongoose.Types.ObjectId(ligaId), 
-        rodadaFinal 
+      {
+        ligaId: new mongoose.Types.ObjectId(ligaId),
+        rodadaFinal,
+        temporada
       },
       {
         ligaId: new mongoose.Types.ObjectId(ligaId),
         rodadaFinal,
+        temporada,
         ranking: rankingCalculado,
         atualizadoEm: new Date()
       },
@@ -79,6 +87,7 @@ export async function buscarRankingConsolidado(req, res) {
     return res.status(200).json({
       cached: false,
       rodadaFinal,
+      temporada,
       ranking: rankingCalculado,
       atualizadoEm: new Date()
     });
@@ -95,15 +104,16 @@ export async function buscarRankingConsolidado(req, res) {
 /**
  * Calcular ranking usando agregação MongoDB (RÁPIDO)
  */
-async function calcularRankingConsolidado(ligaId, rodadaFinal) {
+async function calcularRankingConsolidado(ligaId, rodadaFinal, temporada) {
   const ligaObjectId = new mongoose.Types.ObjectId(ligaId);
 
   const pipeline = [
-    // Filtrar apenas rodadas da liga e até a rodada final
+    // Filtrar apenas rodadas da liga, temporada e até a rodada final
     {
       $match: {
         ligaId: ligaObjectId,
-        rodada: { $lte: rodadaFinal }
+        rodada: { $lte: rodadaFinal },
+        temporada
       }
     },
     // Agrupar por time e somar pontos
@@ -160,6 +170,7 @@ async function calcularRankingConsolidado(ligaId, rodadaFinal) {
  */
 export async function invalidarCacheRanking(req, res) {
   const { ligaId } = req.params;
+  const temporada = parseInt(req.query.temporada) || CURRENT_SEASON;
 
   try {
     if (!mongoose.Types.ObjectId.isValid(ligaId)) {
@@ -167,13 +178,15 @@ export async function invalidarCacheRanking(req, res) {
     }
 
     const resultado = await RankingGeralCache.deleteMany({
-      ligaId: new mongoose.Types.ObjectId(ligaId)
+      ligaId: new mongoose.Types.ObjectId(ligaId),
+      temporada
     });
 
-    console.log(`[RANKING-CACHE] 🗑️ Cache invalidado: ${resultado.deletedCount} registros removidos`);
+    console.log(`[RANKING-CACHE] 🗑️ Cache invalidado: ${resultado.deletedCount} registros removidos (temporada ${temporada})`);
 
     return res.status(200).json({
       message: "Cache de ranking invalidado com sucesso",
+      temporada,
       registrosRemovidos: resultado.deletedCount
     });
 
@@ -184,9 +197,9 @@ export async function invalidarCacheRanking(req, res) {
 }
 
 // Função para calcular ranking completo de uma rodada específica
-export async function calcularRankingCompleto(ligaId, rodadaFinal) {
-    console.log(`[RANKING-COMPLETO] Calculando ranking até rodada ${rodadaFinal} da liga ${ligaId}`);
-    return await calcularRankingConsolidado(ligaId, rodadaFinal);
+export async function calcularRankingCompleto(ligaId, rodadaFinal, temporada = CURRENT_SEASON) {
+    console.log(`[RANKING-COMPLETO] Calculando ranking até rodada ${rodadaFinal} da liga ${ligaId} temporada ${temporada}`);
+    return await calcularRankingConsolidado(ligaId, rodadaFinal, temporada);
 }
 
 // New function to integrate snapshot system

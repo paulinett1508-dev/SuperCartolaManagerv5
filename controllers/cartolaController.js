@@ -168,6 +168,7 @@ export async function getMercadoStatus(req, res) {
       status_mercado: data.status_mercado,
       mercado_aberto: data.status_mercado === 1, // 1 = ABERTO, 2 = FECHADO
       fechamento: data.fechamento,
+      temporada: data.temporada, // ✅ Passar temporada para o frontend
     });
   } catch (error) {
     console.error(
@@ -176,12 +177,13 @@ export async function getMercadoStatus(req, res) {
     );
 
     // Retornar dados de fallback em vez de erro 503
-    console.log("[CARTOLA-CONTROLLER] Retornando fallback (rodada 38)");
+    console.log("[CARTOLA-CONTROLLER] Retornando fallback (temporada 2026)");
     res.status(200).json({
-      rodada_atual: SEASON_CONFIG.LAST_ROUND,
+      rodada_atual: 1, // ✅ Início da temporada 2026
       status_mercado: 2,
       mercado_aberto: false,
       fechamento: null,
+      temporada: SEASON_CONFIG.SEASON_YEAR, // ✅ Temporada atual (2026)
       fallback: true,
       message: "API Cartola indisponível, usando dados padrão"
     });

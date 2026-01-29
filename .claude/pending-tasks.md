@@ -1,5 +1,608 @@
 # Tarefas Pendentes
 
+## 🚨 CRÍTICO - RANKING GERAL NÃO FUNCIONA (29/01/2026)
+
+### [BUG-CRITICAL-003] Ranking Geral não exibe dados corretamente
+
+**Status:** 🔴 CRÍTICO - EM INVESTIGAÇÃO
+
+**Problema Reportado:**
+O módulo Ranking Geral não está funcionando como esperado:
+1. **Liga Super Cartola** - Mostrava dados de 2025 na temporada 2026 (cache contaminado - CORRIGIDO)
+2. **Liga Os Fuleros** - Não mostra nada, módulo não reflete pontos do módulo Rodada
+
+**Situação Atual (29/01/2026):**
+- API retorna `status: "sem_pontuacao"` com `message: "Aguardando os jogos começarem..."`
+- Mercado está FECHADO (`status_mercado: 2`)
+- Rodada 1 ainda não tem atletas pontuados (jogos não começaram)
+- Frontend deveria exibir mensagem contextualizada "Aguardando Jogos" (amarelo)
+
+**O que foi feito:**
+1. ✅ Limpeza de caches contaminados (`rankingturnos`, `rankinggeralcaches`)
+2. ✅ Adicionado filtro `temporada` em `rankingGeralCacheController.js`
+3. ✅ Criado `parciaisRankingService.js` para calcular ranking em tempo real
+4. ✅ Atualizado `rankingTurnoService.js` v3.0 com fallback para parciais
+5. ✅ Adicionado campos `message` e `parcial` em `rankingTurnoController.js`
+6. ✅ Atualizado `ranking.js` v2.6 com `mostrarSemDados()` contextualizado
+
+**O que ainda NÃO funciona:**
+- [ ] Usuário reporta que ainda não funciona como deveria
+- [ ] Verificar se frontend está recebendo e tratando `status` e `message`
+- [ ] Verificar se `mostrarSemDados()` está sendo chamada com parâmetros corretos
+- [ ] Testar quando jogos começarem (atletas pontuados disponíveis)
+
+**Arquivos envolvidos:**
+| Arquivo | Função |
+|---------|--------|
+| `controllers/rankingTurnoController.js` | API `/api/ranking-turno/:ligaId` |
+| `services/rankingTurnoService.js` | Lógica de busca ranking por turno |
+| `services/parciaisRankingService.js` | Cálculo de parciais em tempo real |
+| `public/js/ranking.js` | Frontend do Ranking Geral |
+
+**Fluxo esperado:**
+```
+1. Frontend chama /api/ranking-turno/:ligaId?turno=geral&temporada=2026
+2. Backend verifica se há snapshot consolidado → NÃO (temporada nova)
+3. Backend chama buscarRankingParcial()
+4. Parciais verifica mercado → FECHADO
+5. Parciais verifica atletas pontuados → ZERO (jogos não começaram)
+6. Retorna {status: "sem_pontuacao", message: "Aguardando jogos..."}
+7. Frontend exibe tela amarela "Aguardando Jogos"
+```
+
+**Próximos passos:**
+1. Verificar console do navegador para erros JS
+2. Verificar Network tab - resposta da API
+3. Adicionar console.log no frontend para debug
+4. Testar novamente quando Rodada 1 tiver atletas pontuados
+
+**Prioridade:** 🔴 MÁXIMA - Brasileirão começou, módulo principal não funciona
+
+---
+
+## 🔥 PARA PRÓXIMA SESSÃO (29/01/2026)
+
+### [FEAT-026] Sistema de Polling Inteligente para Módulo Rodadas - Calendário Real de Jogos
+
+**Status:** 📋 PENDENTE
+
+**Contexto:**
+A 1ª rodada do Brasileirão 2026 começou:
+- 28/01: Atlético-MG x Palmeiras (19h), Internacional x Athletico (19h), São Paulo x Flamengo (21h30)
+- 29/01: Mirassol x Vasco (20h), Botafogo x Cruzeiro (21h30)
+
+**Problema Atual:**
+O módulo "Rodadas" faz refresh automático a cada 30s, independentemente de haver jogos em andamento, desperdiçando recursos e carregando o servidor.
+
+**Solução Proposta:**
+
+#### 1. Repositório de Calendário Local (Cache/IndexedDB)
+- Armazenar horários oficiais das partidas por rodada
+- Fonte: API oficial CBF ou scraping de VEJA/GE
+- Atualizar calendário a cada hora ou quando CBF publicar alterações
+- Usar fuso de Brasília para cálculos
+
+#### 2. Gerenciador de Rodadas (Smart Polling)
+- Calcular próximo "evento esperado" (início de jogo) baseado no calendário
+- Pausar polling quando não há partidas ativas
+- Reativar polling ~10min antes do próximo jogo
+- Usar `setTimeout` ajustado para horário do próximo evento
+
+#### 3. Estado e Lógica
+```javascript
+// Gerenciador de estado
+const rodadaManager = {
+  ultimaRodadaCompleta: null,
+  proximoJogo: null, // { data, horario, partida }
+  filaPartidas: [],  // Jogos do dia
+  pollingAtivo: false,
+  timer: null
+};
+
+// Fluxo principal
+function inicializarGerenciadorRodadas() {
+  1. Buscar calendário da rodada atual
+  2. Identificar próximo jogo
+  3. Se jogo em andamento → ativar polling
+  4. Se não → calcular timeout até próximo jogo
+  5. Registrar setTimeout para próximo evento
+}
+
+function ativarPolling() {
+  // Liga fetches: parciais, caches, etc.
+  // Feedback visual: "🔴 Ao vivo - Atualizando a cada 30s"
+}
+
+function pausarPolling() {
+  // Desliga fetches pesados
+  // Feedback visual: "⏸️ Sem jogos - Aguardando próxima partida"
+}
+```
+
+#### 4. Feedback Visual
+- **Ativo (jogos ao vivo):** Bolinha piscando verde + "Atualizando a cada 30s"
+- **Pausado (sem jogos):** Bolinha cinza + "Próximo jogo: 03/02 às 19h"
+- **Aguardando rodada:** Ícone relógio + "Rodada 2 começa em 03/02"
+
+#### 5. Job Noturno/Webhook (Extra)
+- Webhook MCP/Perplexity para notificar alterações na tabela
+- Job noturno que refresha calendário às 2h da madrugada
+- Recalibrar próximo disparo quando receber atualização
+
+#### 6. Implementação Técnica
+
+**Arquivos a criar/modificar:**
+- `public/js/rodadas/rodadas-calendar-manager.js` (NOVO) - Gerenciador de calendário
+- `public/js/rodadas/rodadas-polling-manager.js` (NOVO) - Lógica de polling inteligente
+- `public/js/rodadas.js` (MODIFICAR) - Integrar com novos gerenciadores
+- `routes/calendario-routes.js` (NOVO) - API para buscar/atualizar calendário
+- `models/CalendarioRodada.js` (NOVO) - Schema MongoDB para horários
+- `scripts/sync-calendario-cbf.js` (NOVO) - Job para sincronizar com CBF/GE
+
+**Estrutura do calendário:**
+```javascript
+{
+  temporada: 2026,
+  rodada: 1,
+  partidas: [
+    {
+      data: "2026-01-28",
+      horario: "19:00",
+      time_casa: "Atlético-MG",
+      time_fora: "Palmeiras",
+      status: "encerrado" | "ao_vivo" | "agendado"
+    },
+    // ...
+  ],
+  atualizado_em: ISODate("2026-01-28T15:30:00Z")
+}
+```
+
+#### 7. Fluxo de Uso
+
+```
+[App carrega módulo Rodadas]
+    ↓
+[Busca calendário da rodada atual no IndexedDB]
+    ↓
+[Calendário em cache?]
+    ├── NÃO → Fetch do backend → Salva no IndexedDB
+    └── SIM → Usa cache local
+    ↓
+[Calcula próximo evento]
+    ├── Jogo em andamento AGORA → Ativa polling 30s
+    ├── Jogo começa em <10min → Ativa polling preventivo
+    └── Sem jogos próximos → Pausa até próximo evento
+    ↓
+[setTimeout para próximo evento]
+    ↓
+[Quando dispara → Reavalia estado e decide polling]
+```
+
+#### 8. Casos de Borda
+- Adiamento de jogo → Job noturno atualiza calendário
+- Mudança de horário → Webhook recalibra timer
+- App fechado/aberto → Re-calcula próximo evento ao abrir
+- Rodada sem jogos (Data FIFA) → Mostra "Rodada pausada"
+
+#### 9. Benefícios
+- ✅ Redução de ~90% nas requisições desnecessárias
+- ✅ Melhor UX (usuário sabe quando há jogos)
+- ✅ Economia de recursos servidor
+- ✅ Feedback transparente sobre estado do sistema
+- ✅ Sempre sincronizado com calendário oficial
+
+**Prioridade:** ALTA - Brasileirão 2026 JÁ COMEÇOU
+
+**Referências:**
+- VEJA: https://veja.abril.com.br (cobertura rodada 1)
+- GE/CBF: Tabela oficial atualizada
+- API-Football: Já integrada para jogos ao vivo
+
+---
+
+### [BUG-CRITICAL-002] Seção "Jogos do Dia" Desapareceu do App Participante
+
+**Status:** 🔴 CRÍTICO - INVESTIGAÇÃO PENDENTE
+
+**Problema Reportado:**
+A seção "Jogos do Dia" (separada em "Ao Vivo" e "Encerrados") sumiu completamente do app do participante.
+
+**Histórico - O que DEVERIA estar funcionando:**
+
+Segundo `.claude/pending-tasks.md` linhas 802-820:
+- **SPEC v5.3** implementada em `public/participante/js/modules/participante-jogos.js`
+- Seção separada em "Em Andamento" (jogos ao vivo + agendados) e "Encerrados" (FT, AET, PEN)
+- Visual diferenciado: borda laranja (Em Andamento) vs cinza (Encerrados)
+- Integrado com `jogos-ao-vivo-routes.js`
+
+**Investigação Necessária - Checklist Completo:**
+
+#### 1. Verificação de Arquivos Core
+- [ ] `public/participante/js/modules/participante-jogos.js` existe?
+- [ ] Versão atual vs esperada (v5.3)?
+- [ ] Função `renderizarJogosAoVivo()` está presente?
+- [ ] Função `renderizarSecaoJogos()` existe?
+- [ ] Imports/exports corretos?
+
+#### 2. Integração com Navegação SPA
+- [ ] `public/participante/js/modules/participante-navigation.js` carrega o módulo?
+- [ ] Rota registrada corretamente no SPA v3.0?
+- [ ] `type="module"` sendo removido prematuramente? (BUG-004/005 histórico)
+- [ ] Scripts sendo limpos pelo SPA após 100ms?
+
+#### 3. Backend/API
+- [ ] `routes/jogos-ao-vivo-routes.js` existe e está ativo?
+- [ ] Rota registrada em `index.js`?
+- [ ] Endpoint `/api/jogos-ao-vivo` responde?
+- [ ] API-Football key válida?
+- [ ] Cache funcionando (2min/10min)?
+
+#### 4. Frontend - Renderização
+- [ ] Container HTML existe em `public/participante/index.html`?
+- [ ] ID correto (`#jogos-container` ou similar)?
+- [ ] CSS carregado? (`participante-styles.css`)
+- [ ] JavaScript executado sem erros? (verificar console)
+
+#### 5. Erros Silenciosos
+- [ ] Verificar console do navegador (erros JS)
+- [ ] Network tab - requisição para `/api/jogos-ao-vivo` feita?
+- [ ] Resposta do backend (200 OK vs 404/500)?
+- [ ] Logs do servidor (`console.log` em `jogos-ao-vivo-routes.js`)
+
+#### 6. Casos Específicos
+- [ ] Módulo desabilitado em `Liga.modulos_ativos`? (não deveria, é módulo base)
+- [ ] Condição temporal? (só mostra quando há jogos?)
+- [ ] Filtro de liga/temporada bloqueando?
+- [ ] IndexedDB cache corrompido?
+
+#### 7. Reversão de Código
+- [ ] Comparar com último commit funcional
+- [ ] Git blame em `participante-jogos.js`
+- [ ] Verificar se foi acidentalmente sobrescrito
+
+**Plano de Ação (Ordem de Prioridade):**
+
+1. **FASE 1 - Diagnóstico Rápido (5 min)**
+   ```bash
+   # Verificar se arquivo existe
+   ls -lh public/participante/js/modules/participante-jogos.js
+
+   # Verificar versão
+   grep "VERSION\|v5\." public/participante/js/modules/participante-jogos.js
+
+   # Testar endpoint
+   curl http://localhost:3000/api/jogos-ao-vivo
+   ```
+
+2. **FASE 2 - Console/Network (2 min)**
+   - Abrir app participante no navegador
+   - F12 → Console → Verificar erros
+   - F12 → Network → Verificar requisição `/api/jogos-ao-vivo`
+
+3. **FASE 3 - Code Inspection (10 min)**
+   - Ler `participante-navigation.js` - verificar se módulo "jogos" está registrado
+   - Ler `participante-jogos.js` - verificar funções `renderizarJogosAoVivo()` e `renderizarSecaoJogos()`
+   - Verificar `index.html` - container HTML presente?
+
+4. **FASE 4 - Git History (5 min)**
+   ```bash
+   git log --oneline --all -- public/participante/js/modules/participante-jogos.js
+   git show <hash>:public/participante/js/modules/participante-jogos.js
+   ```
+
+5. **FASE 5 - Restoration (se necessário)**
+   - Se código foi sobrescrito → restaurar do commit funcional
+   - Se módulo desabilitado → reativar em `modulos_ativos`
+   - Se rota não registrada → adicionar em `index.js`
+
+**Arquivos Críticos a Auditar:**
+
+| Arquivo | O que verificar |
+|---------|-----------------|
+| `public/participante/js/modules/participante-jogos.js` | Existe? Versão v5.3? Funções presentes? |
+| `public/participante/js/modules/participante-navigation.js` | Módulo "jogos" registrado? |
+| `public/participante/index.html` | Container HTML (`#jogos-container`)? |
+| `routes/jogos-ao-vivo-routes.js` | Rota ativa? Endpoint funciona? |
+| `index.js` | Rota registrada (`app.use('/api/jogos-ao-vivo', ...)`)? |
+
+**Possíveis Causas Raiz (Hipóteses):**
+
+| Hipótese | Probabilidade | Como verificar |
+|----------|---------------|----------------|
+| Script removido pelo SPA | 🟡 Média | Ver BUG-004/005 - `type="module"` removido após 100ms? |
+| Rota não registrada | 🟢 Alta | Verificar `index.js` - linha de registro da rota |
+| Módulo desabilitado | 🔴 Baixa | Checar `Liga.modulos_ativos.jogos` no MongoDB |
+| Arquivo sobrescrito | 🟡 Média | Git log + git diff |
+| Erro JS silencioso | 🟢 Alta | Console do navegador |
+| API-Football erro | 🟡 Média | Network tab - status 500/403? |
+
+**Prioridade:** 🔴 CRÍTICA - Feature visível sumiu sem explicação
+
+**Impacto:** Alto - Usuários não conseguem ver jogos do dia (feature importante durante rodadas)
+
+**Tempo Estimado:** 30-60 min (diagnóstico + correção)
+
+---
+
+### [FEAT-027] Enriquecer Listagem de Participantes no Módulo Rodadas
+
+**Status:** 📋 PENDENTE
+
+**Objetivo:**
+Tornar a lista de participantes no módulo "Rodadas" mais informativa e visual, mostrando progresso em tempo real dos atletas que já jogaram e aplicando valores financeiros configurados pelo admin.
+
+**Requisitos Funcionais:**
+
+#### 1. Contador de Atletas que Já Jogaram
+**Formato:** `X/12 jogaram` ou `X/12 ⚽`
+
+- Mostrar quantos dos 12 atletas escalados pelo participante já tiveram seus jogos encerrados
+- Atualizar em tempo real conforme jogos vão encerrando
+- Estados possíveis:
+  - `0/12` (nenhum jogo começou) - texto cinza
+  - `6/12` (em andamento) - texto laranja/amarelo
+  - `12/12` (todos jogaram) - texto verde + ✅
+
+**Lógica de cálculo:**
+```javascript
+// Para cada participante na rodada
+const atletasEscalados = 12; // fixo (11 + técnico)
+let atletasQueJogaram = 0;
+
+// Iterar sobre os 12 atletas do time
+for (const atleta of timeParticipante.atletas) {
+  const clube = atleta.clube_id;
+  const jogoDoClube = buscarJogoDoClube(clube, rodadaAtual);
+
+  if (jogoDoClube && jogoDoClube.status === 'encerrado') {
+    atletasQueJogaram++;
+  }
+}
+
+// Renderizar: "6/12 jogaram" com cor baseada no progresso
+```
+
+#### 2. Detalhes Visuais do Participante
+
+**A. Escudo do Time do Coração**
+- Exibir escudo pequeno (32x32px) ao lado do nome do participante
+- Source: `/public/escudos/{clube_id}.png`
+- Fallback: `/public/escudos/default.png` se clube não encontrado
+- Usar campo `timeCoracao` ou `clube_coracao_id` do participante
+
+**B. Avatar/Foto do Participante (opcional)**
+- Se disponível: `foto_perfil` da API Cartola
+- Tamanho: 40x40px, circular
+- Se não disponível: iniciais do nome em círculo colorido
+
+**Layout proposto:**
+```html
+<div class="participante-card">
+  <div class="participante-visual">
+    <img src="/escudos/{clube_id}.png" class="escudo-coracao" />
+    <img src="{foto_perfil}" class="avatar-participante" />
+  </div>
+  <div class="participante-info">
+    <span class="nome-time">{nome_time}</span>
+    <span class="cartoleiro">{nome_cartoleiro}</span>
+  </div>
+  <div class="participante-stats">
+    <span class="atletas-jogaram">6/12 ⚽</span>
+    <span class="pontos">{pontos} pts</span>
+  </div>
+  <div class="participante-valor">
+    <span class="valor-rodada">R$ {valor}</span>
+  </div>
+</div>
+```
+
+#### 3. Valores Financeiros da Liga (CRÍTICO)
+
+**Fonte de Dados:** `ModuleConfig` collection
+```javascript
+// Buscar config do módulo Rodadas para a liga
+const configRodadas = await ModuleConfig.findOne({
+  liga_id: ligaId,
+  temporada: temporadaAtual,
+  modulo: 'rodadas'
+});
+
+// Estrutura esperada:
+{
+  liga_id: ObjectId("..."),
+  temporada: 2026,
+  modulo: "rodadas",
+  config: {
+    valor_g10: 5.00,      // Bônus top 10 da rodada
+    valor_z10: -3.00,     // Ônus bottom 10 da rodada
+    valor_campeao: 20.00, // Campeão da rodada
+    valor_vice: 10.00     // Vice da rodada
+  },
+  ativo: true
+}
+```
+
+**Regras de Exibição:**
+- **Durante a rodada (em andamento):** Mostrar valor POTENCIAL baseado na posição atual
+  - Top 1: `+R$ 20,00` (campeão)
+  - Top 2: `+R$ 10,00` (vice)
+  - Top 3-10: `+R$ 5,00` (G10)
+  - Bottom 10: `-R$ 3,00` (Z10)
+  - Meio da tabela (11-20): `R$ 0,00`
+
+- **Rodada encerrada:** Mostrar valor DEFINITIVO
+  - Texto em verde (positivo) ou vermelho (negativo)
+  - Ícone ✅ se bônus, ❌ se ônus
+
+**Comportamento Dinâmico:**
+```javascript
+function calcularValorRodada(participante, posicao, configRodadas) {
+  const { valor_g10, valor_z10, valor_campeao, valor_vice } = configRodadas.config;
+  const totalParticipantes = ranking.length;
+
+  // Campeão
+  if (posicao === 1) return { valor: valor_campeao, tipo: 'campeao' };
+
+  // Vice
+  if (posicao === 2) return { valor: valor_vice, tipo: 'vice' };
+
+  // G10 (top 3-10)
+  if (posicao >= 3 && posicao <= 10) return { valor: valor_g10, tipo: 'g10' };
+
+  // Z10 (bottom 10)
+  if (posicao > totalParticipantes - 10) return { valor: valor_z10, tipo: 'z10' };
+
+  // Meio da tabela
+  return { valor: 0, tipo: 'neutro' };
+}
+```
+
+#### 4. Integração com Sistema de Regras
+
+**Collections Envolvidas:**
+- `ModuleConfig` - Configuração financeira do módulo Rodadas
+- `ligarules` - Regras gerais da liga (fallback)
+- `times` - Dados dos participantes (escudo, foto)
+- `rodadas` - Dados das rodadas (pontos, posição)
+
+**Endpoint Backend:**
+```javascript
+// GET /api/rodadas/:ligaId/:temporada/:numero
+// Retornar estrutura enriquecida:
+{
+  rodada: 1,
+  status: "em_andamento" | "encerrada",
+  participantes: [
+    {
+      time_id: 13935277,
+      nome_time: "China Guardiola FC",
+      nome_cartoleiro: "Enderson",
+      escudo_coracao: "/escudos/262.png", // Flamengo
+      foto_perfil: "https://...",
+      pontos: 78.45,
+      posicao: 3,
+      atletas_jogaram: 8,
+      atletas_total: 12,
+      valor_financeiro: {
+        valor: 5.00,
+        tipo: "g10",
+        confirmado: false // true se rodada encerrada
+      }
+    },
+    // ...
+  ],
+  config_valores: {
+    valor_g10: 5.00,
+    valor_z10: -3.00,
+    valor_campeao: 20.00,
+    valor_vice: 10.00
+  }
+}
+```
+
+#### 5. UX/UI - Elementos Visuais
+
+**A. Card de Participante na Lista:**
+```css
+.participante-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #1e293b; /* bg-slate-800 */
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.escudo-coracao {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+}
+
+.atletas-jogaram {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+}
+
+.atletas-jogaram.completo {
+  color: #10b981; /* green-500 */
+}
+
+.atletas-jogaram.parcial {
+  color: #f59e0b; /* amber-500 */
+}
+
+.atletas-jogaram.pendente {
+  color: #6b7280; /* gray-500 */
+}
+
+.valor-rodada.positivo {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.valor-rodada.negativo {
+  color: #ef4444; /* red-500 */
+  font-weight: 600;
+}
+```
+
+**B. Barra de Progresso de Jogos (Opcional):**
+```html
+<div class="progresso-jogos">
+  <div class="barra-progresso" style="width: 66.6%"></div>
+</div>
+<!-- 8/12 = 66.6% -->
+```
+
+#### 6. Arquivos a Modificar/Criar
+
+**Backend:**
+- `controllers/rodadaController.js` - Adicionar lógica de cálculo de atletas jogados
+- `routes/rodadas.js` - Endpoint enriquecido com valores financeiros
+- `services/rodadaEnriquecidoService.js` (NOVO) - Lógica de enriquecimento de dados
+
+**Frontend:**
+- `public/js/rodadas.js` - Consumir endpoint enriquecido
+- `public/participante/js/modules/participante-rodadas.js` - Renderizar cards enriquecidos
+- `public/css/participante-styles.css` - Estilos dos novos elementos
+
+**Models (verificar):**
+- `ModuleConfig` - Garantir schema correto para config de rodadas
+- `times` - Verificar campos `clube_coracao_id`, `foto_perfil`
+
+#### 7. Casos de Borda
+
+- **Config não existe:** Usar valores padrão (R$ 5 / -R$ 3 / R$ 20 / R$ 10)
+- **Escudo não encontrado:** Fallback para `/escudos/default.png`
+- **Foto perfil indisponível:** Mostrar iniciais do nome
+- **Liga sem time do coração cadastrado:** Não mostrar escudo
+- **Rodada com menos de 20 participantes:** Ajustar Z10 proporcionalmente
+
+#### 8. Testes de Validação
+
+- [ ] Valores exibidos batem com `ModuleConfig` do MongoDB
+- [ ] Escudos carregam corretamente
+- [ ] Contador de atletas atualiza em tempo real
+- [ ] Valores mudam de cor (verde/vermelho) conforme posição
+- [ ] Rodada encerrada "trava" os valores (não mudam mais)
+- [ ] Fallbacks funcionam (sem escudo, sem foto, sem config)
+
+**Prioridade:** 🟡 ALTA - Melhoria de UX importante, alinhamento com regras financeiras
+
+**Impacto:** Médio-Alto - Transparência financeira + feedback visual melhorado
+
+**Dependências:**
+- `ModuleConfig` deve estar populado pelo admin (painel de configuração)
+- Campo `clube_coracao_id` ou `timeCoracao` deve existir em `times`
+- API de jogos ao vivo deve retornar status dos jogos
+
+**Estimativa:** 2-3 horas (backend + frontend + testes)
+
+---
+
 ## 🚨 URGENTE - PRIORIDADE MÁXIMA (28/01/2026)
 
 ### [BUG-CRITICAL-001] Módulos fazendo requisições em loop para temporada não iniciada

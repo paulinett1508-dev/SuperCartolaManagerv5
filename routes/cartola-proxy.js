@@ -10,8 +10,8 @@ const CARTOLA_API_BASE = "https://api.cartola.globo.com";
 // HELPER: Calcular rodada atual dinamicamente
 // =====================================================================
 function calcularRodadaAtual() {
-    // Temporada 2025: R1 começou em 29/03/2025
-    const inicioTemporada = new Date("2025-03-29T00:00:00-03:00");
+    // Usar data de início da temporada do config
+    const inicioTemporada = SEASON_CONFIG.dataInicio || new Date("2026-01-28T00:00:00-03:00");
     const agora = new Date();
 
     // Cada rodada dura ~7 dias em média

@@ -214,8 +214,7 @@ function renderizarInterface(rodadas) {
     const container = document.getElementById('rodadasGruposContainer');
     if (container) container.style.display = 'flex';
 
-    // 5. Auto-expandir grupo da rodada atual
-    autoExpandirGrupoAtual();
+    // 5. Deixar todos os grupos colapsados; participante decide ao tocar
 }
 
 // =====================================================================

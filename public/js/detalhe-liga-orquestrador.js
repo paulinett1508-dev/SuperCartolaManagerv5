@@ -25,7 +25,7 @@ class DetalheLigaOrquestrador {
     // Detecta se é temporada histórica e configura o contexto global
     async detectarTemporadaHistorica() {
         try {
-                const response = await fetch('/api/cartola/mercado-status');
+            const response = await fetch('/api/cartola/mercado/status');
                 if (response.ok) {
                     const mercado = await response.json();
                     const temporadaAtual = mercado.temporada || new Date().getFullYear();

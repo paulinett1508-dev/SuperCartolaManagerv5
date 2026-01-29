@@ -6,6 +6,7 @@ import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import InscricaoTemporada from "../models/InscricaoTemporada.js";
 import axios from "axios";
 import { hasAccessToLiga } from "../middleware/tenant.js";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const buscarCartoleiroPorId = async (req, res) => {
   const { id } = req.params;
@@ -115,7 +116,7 @@ const listarLigas = async (req, res) => {
     const ligasEnriquecidas = ligas.map(liga => {
       const ligaIdStr = String(liga._id);
       const temporadasExtrato = temporadasMap[ligaIdStr] || [];
-      const temporadaAtual = liga.temporada || 2025;
+      const temporadaAtual = liga.temporada || CURRENT_SEASON;
 
       // Combina temporada atual com temporadas dos extratos (sem duplicatas)
       const todasTemporadas = [...new Set([temporadaAtual, ...temporadasExtrato])].sort((a, b) => b - a);
@@ -891,7 +892,7 @@ const buscarConfiguracoes = async (req, res) => {
       success: true,
       liga_id: ligaIdParam,
       liga_nome: liga.nome,
-      temporada: liga.temporada || 2025,
+      temporada: liga.temporada || CURRENT_SEASON,
       total_participantes: liga.times?.length || 0,
       atualizado_em: liga.atualizadaEm,
 

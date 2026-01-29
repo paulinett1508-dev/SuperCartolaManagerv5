@@ -796,7 +796,7 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
 
         // 🐛 DEBUG: Log dos totais calculados
         // ✅ v8.8.1: Calcular primeiraTemporada antes do response para logar
-        const primeiraTemporada = liga.criadaEm ? new Date(liga.criadaEm).getFullYear() : (liga.temporada || 2025);
+        const primeiraTemporada = liga.criadaEm ? new Date(liga.criadaEm).getFullYear() : (liga.temporada || CURRENT_SEASON);
 
         console.log(`[TESOURARIA-API] 📊 TOTAIS para liga ${ligaId}:`);
         console.log(`  Total participantes: ${participantes.length}`);

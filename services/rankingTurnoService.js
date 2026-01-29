@@ -1,9 +1,11 @@
 // services/rankingTurnoService.js
+// ✅ v3.0: Suporte a parciais em tempo real (rodada em andamento)
 // ✅ v2.0: Suporte a participantes inativos (separação no ranking)
 import RankingTurno from "../models/RankingTurno.js";
 import Rodada from "../models/Rodada.js";
 import Liga from "../models/Liga.js";
 import mongoose from "mongoose";
+import { buscarRankingParcial } from "./parciaisRankingService.js";
 
 const LOG_PREFIX = "[RANKING-TURNO-SERVICE]";
 
@@ -64,6 +66,45 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
             rodadaAtual,
             temporada,
         );
+    }
+
+    // ✅ v3.0: Se não há dados consolidados, tentar buscar parciais em tempo real
+    if (!snapshot && turno === "geral") {
+        console.log(`${LOG_PREFIX} 🔴 Sem dados consolidados, buscando parciais em tempo real...`);
+        const parciais = await buscarRankingParcial(ligaId);
+
+        if (parciais && parciais.disponivel) {
+            console.log(`${LOG_PREFIX} ✅ Parciais encontradas: ${parciais.total_times} times`);
+            // Retornar no formato esperado pelo controller
+            return {
+                ligaId: ligaObjectId,
+                turno: "geral",
+                temporada,
+                status: "parcial",
+                rodada_inicio: 1,
+                rodada_fim: 38,
+                rodada_atual: parciais.rodada,
+                ranking: parciais.ranking,
+                parcial: true,
+                atualizado_em: parciais.atualizado_em,
+                message: parciais.message,
+            };
+        } else if (parciais) {
+            console.log(`${LOG_PREFIX} ℹ️ Parciais não disponíveis: ${parciais.motivo}`);
+            // Retornar info sobre o estado
+            return {
+                ligaId: ligaObjectId,
+                turno: "geral",
+                temporada,
+                status: parciais.motivo || "aguardando",
+                rodada_inicio: 1,
+                rodada_fim: 38,
+                rodada_atual: parciais.rodada || 0,
+                ranking: [],
+                parcial: false,
+                message: parciais.message,
+            };
+        }
     }
 
     return snapshot;
