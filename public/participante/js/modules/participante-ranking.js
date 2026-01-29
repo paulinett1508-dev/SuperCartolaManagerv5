@@ -1476,73 +1476,105 @@ function mostrarToast(mensagem) {
 }
 
 // ===== MODAL DE PREMIAÇÕES =====
-window.mostrarPremiacaoPro = function (posicaoClicada) {
+window.mostrarPremiacaoPro = async function (posicaoClicada) {
     const existente = document.getElementById("modalPremiacoes");
     if (existente) existente.remove();
 
-    const premiacoes = [
-        {
-            posicao: 1,
-            label: "CAMPEÃO",
-            icon: "emoji_events",
-            cor: RANK_COLORS.gold,
-        },
-        {
-            posicao: 2,
-            label: "2º LUGAR",
-            icon: "military_tech",
-            cor: RANK_COLORS.silver,
-        },
-        {
-            posicao: 3,
-            label: "3º LUGAR",
-            icon: "military_tech",
-            cor: RANK_COLORS.bronze,
-        },
-    ];
+    const configRodada = await obterConfigRankingRodada();
+    const valores = configRodada?.valores || {};
+    const rodadaRef = configRodada?.rodadaRef || estadoRanking.rodadaAtual || "?";
+    const faseLabel = configRodada?.temporal
+        ? configRodada?.fase === "fase1"
+            ? "Fase 1"
+            : "Fase 2"
+        : null;
+
+    const posicoes = Object.keys(valores)
+        .map((p) => parseInt(p, 10))
+        .filter((p) => !Number.isNaN(p))
+        .sort((a, b) => a - b);
+
+    if (posicoes.length > 0 && !posicoes.includes(posicaoClicada)) {
+        posicoes.push(posicaoClicada);
+        posicoes.sort((a, b) => a - b);
+    }
 
     const modal = document.createElement("div");
     modal.id = "modalPremiacoes";
 
-    let premiacoesHTML = premiacoes
-        .map(function (p) {
-            const isDestaque = p.posicao === posicaoClicada;
-            const bgColor =
-                p.posicao === 1
-                    ? RANK_COLORS.goldBg
-                    : p.posicao === 2
-                      ? RANK_COLORS.silverBg
-                      : RANK_COLORS.bronzeBg;
-            const borderColor = isDestaque ? p.cor : "transparent";
-            return (
-                '<div class="premiacao-item ' +
-                (isDestaque ? "destaque" : "") +
-                '" style="background: ' +
-                bgColor +
-                "; border: 2px solid " +
-                borderColor +
-                ';">' +
-                '<div class="premiacao-icon" style="background: ' +
-                p.cor +
-                '20;">' +
-                '<span class="material-icons" style="color: ' +
-                p.cor +
-                ';">' +
-                p.icon +
-                "</span>" +
-                "</div>" +
-                '<div class="premiacao-info">' +
-                '<div class="premiacao-label" style="color: ' +
-                p.cor +
-                ';">' +
-                p.label +
-                "</div>" +
-                '<div class="premiacao-valor">Premiação: (função sendo desenvolvida)</div>' +
-                "</div>" +
-                "</div>"
-            );
-        })
-        .join("");
+    let premiacoesHTML = "";
+    if (posicoes.length === 0) {
+        premiacoesHTML =
+            '<div class="premiacao-vazio">' +
+            '<span class="material-icons">info</span>' +
+            "<p>Sem valores financeiros configurados para esta rodada.</p>" +
+            "</div>";
+    } else {
+        premiacoesHTML = posicoes
+            .map(function (posicao) {
+                const valor = valores[posicao] || valores[String(posicao)] || 0;
+                const isDestaque = posicao === posicaoClicada;
+                const cor =
+                    posicao === 1
+                        ? RANK_COLORS.gold
+                        : posicao === 2
+                          ? RANK_COLORS.silver
+                          : posicao === 3
+                            ? RANK_COLORS.bronze
+                            : RANK_COLORS.primary;
+                const bgColor =
+                    posicao === 1
+                        ? RANK_COLORS.goldBg
+                        : posicao === 2
+                          ? RANK_COLORS.silverBg
+                          : posicao === 3
+                            ? RANK_COLORS.bronzeBg
+                            : "rgba(255,255,255,0.03)";
+                const borderColor = isDestaque ? cor : "transparent";
+                const label =
+                    posicao === 1
+                        ? "CAMPEÃO"
+                        : posicao === 2
+                          ? "2º LUGAR"
+                          : posicao === 3
+                            ? "3º LUGAR"
+                            : `${posicao}º LUGAR`;
+                return (
+                    '<div class="premiacao-item ' +
+                    (isDestaque ? "destaque" : "") +
+                    '" style="background: ' +
+                    bgColor +
+                    "; border: 2px solid " +
+                    borderColor +
+                    ';">' +
+                    '<div class="premiacao-icon" style="background: ' +
+                    cor +
+                    '20;">' +
+                    '<span class="material-icons" style="color: ' +
+                    cor +
+                    ';">' +
+                    (posicao === 1
+                        ? "emoji_events"
+                        : posicao <= 3
+                          ? "military_tech"
+                          : "payments") +
+                    "</span>" +
+                    "</div>" +
+                    '<div class="premiacao-info">' +
+                    '<div class="premiacao-label" style="color: ' +
+                    cor +
+                    ';">' +
+                    label +
+                    "</div>" +
+                    '<div class="premiacao-valor">' +
+                    formatarMoedaBR(valor) +
+                    "</div>" +
+                    "</div>" +
+                    "</div>"
+                );
+            })
+            .join("");
+    }
 
     modal.innerHTML =
         "<style>" +
@@ -1551,23 +1583,23 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
         "@keyframes fadeInUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }" +
         "@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }" +
         "@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }" +
-        "#modalPremiacoes .modal-content { background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%); border-radius: 20px; padding: 28px 24px; max-width: 400px; width: 100%; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); animation: slideUp 0.3s ease; }" +
-        "#modalPremiacoes .modal-header { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 24px; }" +
+        "#modalPremiacoes .modal-content { background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%); border-radius: 20px; padding: 28px 24px; max-width: 420px; width: 100%; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); animation: slideUp 0.3s ease; }" +
+        "#modalPremiacoes .modal-header { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; }" +
         "#modalPremiacoes .modal-header .material-icons { font-size: 28px; color: " +
         RANK_COLORS.gold +
         "; }" +
         "#modalPremiacoes .modal-header h2 { font-size: 20px; font-weight: 700; color: #fff; margin: 0; }" +
+        "#modalPremiacoes .premiacao-subtitle { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 18px; }" +
         "#modalPremiacoes .premiacao-item { display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 14px; margin-bottom: 12px; transition: transform 0.2s ease; }" +
         "#modalPremiacoes .premiacao-item.destaque { transform: scale(1.02); }" +
         "#modalPremiacoes .premiacao-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }" +
-        "#modalPremiacoes .premiacao-icon .material-icons { font-size: 28px; }" +
+        "#modalPremiacoes .premiacao-icon .material-icons { font-size: 26px; }" +
         "#modalPremiacoes .premiacao-info { flex: 1; text-align: left; }" +
         "#modalPremiacoes .premiacao-label { font-size: 14px; font-weight: 700; margin-bottom: 4px; }" +
-        "#modalPremiacoes .premiacao-valor { font-size: 14px; font-weight: 500; color: #9ca3af; font-style: italic; }" +
-        "#modalPremiacoes .dev-notice { margin-top: 20px; padding: 16px; background: rgba(255, 92, 0, 0.1); border: 1px solid rgba(255, 92, 0, 0.3); border-radius: 12px; }" +
-        "#modalPremiacoes .dev-notice-icon { margin-bottom: 8px; }" +
-        "#modalPremiacoes .dev-notice-icon .material-icons { font-size: 32px; color: #ff5c00; }" +
-        "#modalPremiacoes .dev-notice-text { font-size: 13px; color: #ff5c00; font-weight: 500; }" +
+        "#modalPremiacoes .premiacao-valor { font-size: 14px; font-weight: 600; color: #e5e7eb; }" +
+        "#modalPremiacoes .premiacao-vazio { padding: 16px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }" +
+        "#modalPremiacoes .premiacao-vazio .material-icons { font-size: 20px; margin-bottom: 6px; }" +
+        "#modalPremiacoes .premiacao-nota { margin-top: 18px; padding: 12px 14px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; font-size: 12px; color: rgba(255,255,255,0.55); }" +
         "#modalPremiacoes .btn-fechar { margin-top: 20px; padding: 12px 32px; background: " +
         RANK_COLORS.primary +
         "; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }" +
@@ -1578,11 +1610,12 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
         '<span class="material-icons">emoji_events</span>' +
         "<h2>Premiações da Liga</h2>" +
         "</div>" +
-        premiacoesHTML +
-        '<div class="dev-notice">' +
-        '<div class="dev-notice-icon"><span class="material-icons">engineering</span></div>' +
-        '<div class="dev-notice-text">Os valores de premiação serão configurados pelo administrador da liga</div>' +
+        '<div class="premiacao-subtitle">Rodada ' +
+        rodadaRef +
+        (faseLabel ? " • " + faseLabel : "") +
         "</div>" +
+        premiacoesHTML +
+        '<div class="premiacao-nota">Valores definidos no módulo de gerenciamento da liga (ranking de rodada).</div>' +
         '<button class="btn-fechar" onclick="document.getElementById(\'modalPremiacoes\').remove()">Fechar</button>' +
         "</div>";
 

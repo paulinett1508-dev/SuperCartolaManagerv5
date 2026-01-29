@@ -215,7 +215,7 @@
     /* ===== HEADER DA TABELA ===== */
     .ranking-table-header {
         display: grid;
-        grid-template-columns: 70px 1fr 90px;
+        grid-template-columns: 90px 1fr 110px;
         padding: 14px 16px;
         background: var(--rank-surface-light);
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -256,7 +256,7 @@
     /* ===== ITEM DO RANKING ===== */
     .ranking-item {
         display: grid;
-        grid-template-columns: 70px 1fr 90px;
+        grid-template-columns: 90px 1fr 110px;
         padding: 14px 16px;
         align-items: center;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -293,7 +293,8 @@
         border-left: 4px solid var(--rank-primary);
     }
 
-    .ranking-item.meu-time .time-nome {
+    .ranking-item.meu-time .time-nome,
+    .ranking-item.meu-time .ranking-cartola {
         color: var(--rank-primary);
     }
 
@@ -308,13 +309,22 @@
     }
 
     .ranking-item.zona-rebaixamento .time-nome,
-    .ranking-item.zona-rebaixamento .pontos-valor {
+    .ranking-item.zona-rebaixamento .ranking-cartola,
+    .ranking-item.zona-rebaixamento .pontos-valor,
+    .ranking-item.zona-rebaixamento .ranking-pontos-valor {
         opacity: 0.8;
     }
 
     /* ===== POSIÇÃO ===== */
     .posicao-container {
         display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .ranking-posicao {
+        display: flex;
+        flex-direction: column;
         align-items: center;
         gap: 6px;
     }
@@ -331,6 +341,33 @@
         font-weight: 400;
         background: var(--rank-surface-light);
         color: var(--rank-text-secondary);
+    }
+
+    .ranking-escudo-wrap {
+        position: relative;
+        width: 36px;
+        height: 36px;
+    }
+
+    .ranking-escudo {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .ranking-clube-escudo {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        background: #111;
     }
 
     /* Badges coloridos do pódio */
@@ -367,14 +404,16 @@
     }
 
     /* ===== INFO DO TIME ===== */
-    .time-info-container {
+    .time-info-container,
+    .ranking-info {
         display: flex;
         flex-direction: column;
         gap: 2px;
         min-width: 0;
     }
 
-    .time-nome {
+    .time-nome,
+    .ranking-cartola {
         font-size: 14px;
         font-weight: 600;
         color: var(--rank-text);
@@ -383,7 +422,8 @@
         text-overflow: ellipsis;
     }
 
-    .time-cartoleiro {
+    .time-cartoleiro,
+    .ranking-time {
         font-size: 12px;
         color: var(--rank-text-secondary);
         white-space: nowrap;
@@ -392,13 +432,47 @@
     }
 
     /* ===== PONTOS ===== */
-    .pontos-valor {
+    .pontos-valor,
+    .ranking-pontos-valor {
         font-family: var(--rank-font-brand);
         font-size: 15px;
         font-weight: 400;
         letter-spacing: -0.3px;
         color: var(--rank-text);
         text-align: right;
+    }
+
+    .ranking-pontos {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+    }
+
+    .ranking-live-badge {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 999px;
+        letter-spacing: 0.2px;
+        background: rgba(148, 163, 184, 0.15);
+        color: rgba(148, 163, 184, 0.9);
+        text-transform: uppercase;
+    }
+
+    .ranking-live-badge.is-loading {
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .ranking-live-badge.is-live {
+        background: rgba(34, 197, 94, 0.18);
+        color: #4ade80;
+    }
+
+    .ranking-live-badge.is-off {
+        background: rgba(148, 163, 184, 0.12);
+        color: rgba(148, 163, 184, 0.7);
     }
 
     /* ===== LOADING ===== */
@@ -457,7 +531,7 @@
     @media (max-width: 360px) {
         .ranking-table-header,
         .ranking-item {
-            grid-template-columns: 60px 1fr 75px;
+            grid-template-columns: 74px 1fr 90px;
             padding: 12px;
         }
 
@@ -480,6 +554,16 @@
             height: 24px;
             font-size: 10px;
         }
+
+        .ranking-escudo-wrap {
+            width: 30px;
+            height: 30px;
+        }
+
+        .ranking-escudo {
+            width: 30px;
+            height: 30px;
+        }
     }
 
     @media (min-width: 768px) {
@@ -500,7 +584,7 @@
 
         .ranking-table-header,
         .ranking-item {
-            grid-template-columns: 80px 1fr 120px;
+            grid-template-columns: 100px 1fr 130px;
             padding: 16px 20px;
         }
 
