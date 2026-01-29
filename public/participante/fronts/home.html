@@ -203,51 +203,31 @@
 .home-team-card {
     background: rgba(15, 16, 20, 0.9);
     border-radius: 16px;
-    padding: 14px 18px;
-    margin: 0 16px 12px;
+    padding: 24px 20px;
+    margin: 0 16px 16px;
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: 0 4px 12px rgba(0,0,0,0.45);
     backdrop-filter: blur(6px);
 }
 
 .home-team-card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    gap: 10px;
+    display: none; /* Ocultar completamente */
 }
 
 .home-team-card-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
+    display: none;
 }
 
 .home-team-card-name {
-    font-family: var(--app-font-brand);
-    font-size: 14px;
-    color: #f1f1f1;
-    letter-spacing: 0.3px;
-    margin: 0;
+    display: none;
 }
 
 .home-team-card-subtitle {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.55);
-    display: block;
+    display: none;
 }
 
 .home-zone-chip {
-    border: none;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    white-space: nowrap;
-    background: rgba(0,0,0,0.4);
+    display: none; /* Ocultar badge de zona */
 }
 
 .home-stat-actions {
@@ -286,91 +266,24 @@
     box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
 }
 .home-team-shield {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--app-surface-hover);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: none; /* Ocultar shield */
 }
 
-.home-team-shield .material-icons {
-    font-size: 18px;
-    color: var(--app-text-muted);
-}
-
-.home-team-shield img {
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
-}
-
-/* === CLUBE DO CORACAO (NEW) === */
-.home-club-heart {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.home-club-shield-large {
-    width: 56px;
-    height: 56px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, rgba(255, 109, 0, 0.2), rgba(255, 109, 0, 0.05));
-    border: 1px solid rgba(255, 109, 0, 0.3);
-    padding: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.home-club-shield-large img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.home-club-shield-large .material-icons {
-    font-size: 28px;
-    color: #ff6d00;
-}
-
-.home-club-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.home-club-label {
-    font-size: 10px;
-    color: rgba(255,255,255,0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    font-weight: 500;
-}
-
-.home-club-name {
-    font-family: var(--app-font-brand);
-    font-size: 16px;
-    color: #ffffff;
-    letter-spacing: 0.3px;
-}
 
 .home-stats-split {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 24px;
     align-items: center;
+    margin-bottom: 16px;
 }
 
 .home-stat-block {
     display: flex;
     flex-direction: column;
-    text-align: left;
-    gap: 4px;
+    text-align: center;
+    gap: 8px;
+    align-items: center;
 }
 
 .home-stat-label {
@@ -384,11 +297,11 @@
 
 .home-stat-value {
     font-family: 'Russo One', var(--app-font-brand), sans-serif;
-    font-size: 28px;
+    font-size: 48px;
     font-weight: 700;
     color: #ffffff;
     line-height: 1;
-    letter-spacing: -0.5px;
+    letter-spacing: -1px;
 }
 
 .home-stat-value.text-accent {
@@ -402,9 +315,7 @@
 }
 
 .home-stat-divider {
-    width: 1px;
-    height: 60px;
-    background: var(--app-border);
+    display: none; /* Remover divider */
 }
 
 .home-zone-badge {

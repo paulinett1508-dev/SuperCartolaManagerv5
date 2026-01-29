@@ -814,19 +814,6 @@ function renderizarHome(container, data, ligaId) {
 
         <!-- Card Status do Time -->
         <section class="home-team-card ${zonaClass}" ${cardStyleAttr}>
-            <!-- Clube do Coração -->
-            <div class="home-club-heart">
-                <div class="home-club-shield-large">
-                    ${escudoHTML}
-                </div>
-                <div class="home-club-info">
-                    <span class="home-club-label">Time do Coração</span>
-                    <p class="home-club-name">${nomeClube}</p>
-                </div>
-            </div>
-            <div class="flex items-center justify-between mb-3">
-                <span class="home-zone-chip" style="border-color:${zonaCor}; color:${zonaCor};">${zonaTexto}</span>
-            </div>
             <div class="home-stats-split">
                 <div class="home-stat-block">
                     <span class="home-stat-label">Pontos</span>
