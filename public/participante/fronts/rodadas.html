@@ -69,127 +69,6 @@
     margin-top: 8px;
 }
 
-/* === RODADA DESTAQUE (AO VIVO / ATUAL) === */
-.rodada-destaque-card {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
-    border: 2px solid var(--rodadas-success);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.rodada-destaque-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.2);
-}
-
-.rodada-destaque-card.ao-vivo {
-    animation: pulse-glow 2s infinite;
-}
-
-@keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
-    50% { box-shadow: 0 0 30px rgba(34, 197, 94, 0.5); }
-}
-
-.destaque-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px;
-    background: var(--rodadas-success);
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #fff;
-    text-transform: uppercase;
-}
-
-.destaque-badge .material-symbols-outlined {
-    font-size: 14px;
-    animation: blink 1s infinite;
-}
-
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-}
-
-.destaque-content {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.destaque-numero {
-    width: 64px;
-    height: 64px;
-    background: rgba(34, 197, 94, 0.2);
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.destaque-numero .numero {
-    font-family: var(--rodadas-font-brand);
-    font-size: 28px;
-    color: var(--rodadas-text-white);
-    line-height: 1;
-}
-
-.destaque-numero .label {
-    font-size: 10px;
-    color: var(--rodadas-success);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.destaque-info {
-    flex: 1;
-}
-
-.destaque-info h3 {
-    font-family: var(--rodadas-font-brand);
-    font-size: 18px;
-    color: var(--rodadas-text-white);
-    margin: 0 0 4px 0;
-}
-
-.destaque-info .stats {
-    display: flex;
-    gap: 16px;
-    font-size: 13px;
-    color: var(--rodadas-text-muted);
-}
-
-.destaque-info .stats span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.destaque-info .stats .material-symbols-outlined {
-    font-size: 16px;
-}
-
-.destaque-arrow {
-    color: var(--rodadas-text-muted);
-    transition: transform 0.3s;
-}
-
-.rodada-destaque-card:hover .destaque-arrow {
-    transform: translateX(4px);
-}
-
 /* === SELETOR DE TEMPORADA === */
 .rodadas-ano-selector {
     display: flex;
@@ -459,6 +338,11 @@
 
 .rodada-mini-card.mico .badge-mini-destaque {
     background: var(--rodadas-danger);
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
 }
 
 .badge-mini-ao-vivo {
@@ -1059,33 +943,6 @@
         <p class="rodadas-subtitle">Acompanhe seu desempenho em cada rodada</p>
     </div>
 
-    <!-- Card Destaque: Rodada Atual/Ao Vivo -->
-    <div id="rodadaDestaqueCard" class="rodada-destaque-card" style="display: none;">
-        <div class="destaque-badge">
-            <span class="material-symbols-outlined">stream</span>
-            <span id="destaqueBadgeText">AO VIVO</span>
-        </div>
-        <div class="destaque-content">
-            <div class="destaque-numero">
-                <span id="destaqueNumero" class="numero">--</span>
-                <span class="label">Rodada</span>
-            </div>
-            <div class="destaque-info">
-                <h3 id="destaqueTitulo">Rodada em Andamento</h3>
-                <div class="stats">
-                    <span id="destaquePontos">
-                        <span class="material-symbols-outlined">sports_soccer</span>
-                        <span>-- pts</span>
-                    </span>
-                    <span id="destaquePosicao">
-                        <span class="material-symbols-outlined">leaderboard</span>
-                        <span>--º lugar</span>
-                    </span>
-                </div>
-            </div>
-            <span class="material-symbols-outlined destaque-arrow">chevron_right</span>
-        </div>
-    </div>
 
 
     <!-- Slider Horizontal de Rodadas -->

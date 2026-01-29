@@ -116,11 +116,6 @@ export async function inicializarRodadasParticipante({
 
         // 6. Renderizar interface completa
         renderizarInterface(rodadasAgrupadas);
-
-        // 7. Se parciais disponíveis, atualizar card de destaque
-        if (parciaisInfo?.disponivel) {
-            atualizarCardDestaque(parciaisInfo);
-        }
     } catch (error) {
         if (window.Log) Log.error("[PARTICIPANTE-RODADAS] ❌ Erro:", error);
         if (!usouCache) {
@@ -192,82 +187,21 @@ function agruparRodadasPorNumero(rodadas) {
 // RENDERIZAR INTERFACE COMPLETA
 // =====================================================================
 function renderizarInterface(rodadas) {
-    // 1. Renderizar Card de Destaque (se houver rodada ao vivo)
-    renderizarCardDestaque(rodadas);
-
-    // 2. Renderizar Slider Horizontal
+    // 1. Renderizar Slider Horizontal
     renderizarSlider(rodadas);
 
-    // 3. Renderizar Grupos Expansíveis
+    // 2. Renderizar Grupos Expansíveis
     renderizarGrupos(rodadas);
 
-    // 4. Renderizar Card de Desempenho
+    // 3. Renderizar Card de Desempenho
     renderizarCardDesempenho(rodadas);
 
-    // 5. Mostrar container de grupos
+    // 4. Mostrar container de grupos
     const container = document.getElementById('rodadasGruposContainer');
     if (container) container.style.display = 'flex';
 
-    // 6. Auto-expandir grupo da rodada atual
+    // 5. Auto-expandir grupo da rodada atual
     autoExpandirGrupoAtual();
-}
-
-// =====================================================================
-// CARD DE DESTAQUE (RODADA AO VIVO)
-// =====================================================================
-function renderizarCardDestaque(rodadas) {
-    const card = document.getElementById('rodadaDestaqueCard');
-    if (!card) return;
-
-    const isParcial = parciaisInfo?.disponivel;
-    const rodadaAtual = isParcial ? parciaisInfo.rodada : rodadaAtualCartola;
-
-    if (!isParcial) {
-        card.style.display = 'none';
-        return;
-    }
-
-    // Mostrar card
-    card.style.display = 'block';
-    card.classList.add('ao-vivo');
-
-    // Preencher dados
-    document.getElementById('destaqueNumero').textContent = rodadaAtual;
-    document.getElementById('destaqueBadgeText').textContent = 'AO VIVO';
-    document.getElementById('destaqueTitulo').textContent = 'Acompanhe em tempo real';
-
-    // Click handler
-    card.onclick = () => selecionarRodada(rodadaAtual, true);
-}
-
-function atualizarCardDestaque(parciais) {
-    const card = document.getElementById('rodadaDestaqueCard');
-    if (!card || !parciais?.disponivel) return;
-
-    card.style.display = 'block';
-    card.classList.add('ao-vivo');
-
-    document.getElementById('destaqueNumero').textContent = parciais.rodada;
-
-    // Atualizar posição se disponível
-    const minhaPosicao = ParciaisModule.obterMinhaPosicaoParcial?.();
-    if (minhaPosicao) {
-        const pontosEl = document.getElementById('destaquePontos');
-        const posicaoEl = document.getElementById('destaquePosicao');
-
-        if (pontosEl) {
-            pontosEl.innerHTML = `
-                <span class="material-symbols-outlined">sports_soccer</span>
-                <span>${minhaPosicao.pontos?.toFixed(2) || '--'} pts</span>
-            `;
-        }
-        if (posicaoEl) {
-            posicaoEl.innerHTML = `
-                <span class="material-symbols-outlined">leaderboard</span>
-                <span>${minhaPosicao.posicao || '--'}º lugar</span>
-            `;
-        }
-    }
 }
 
 // =====================================================================
@@ -614,7 +548,6 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
         ParciaisModule.iniciarAutoRefresh?.((dados) => {
             if (rodadaSelecionada !== numeroRodada) return;
             renderizarParciaisDados(numeroRodada, dados);
-            atualizarCardDestaque(parciaisInfo);
         }, atualizarIndicadorAutoRefresh);
     } else {
         const rodadaData = todasRodadasCache.find((r) => r.numero === numeroRodada);
