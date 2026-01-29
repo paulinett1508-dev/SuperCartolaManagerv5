@@ -1,18 +1,18 @@
 // =====================================================================
-// PARTICIPANTE-HOME.JS - v1.1 (Premium Components)
+// PARTICIPANTE-HOME.JS - v1.2 (Parciais em Tempo Real)
 // =====================================================================
+import { getZonaInfo } from "./zona-utils.js";
+import * as ParciaisModule from "./participante-rodada-parcial.js";
+// v1.2: Integração com parciais em tempo real + Saldo projetado
+//       - Removido header premium (badge com nome)
+//       - Card central reflete pontos/posição parciais (AO VIVO)
+//       - Saldo financeiro mostra projeção baseada na posição
 // v1.1: FIX - Double RAF para garantir container no DOM após refresh
 // v1.0: Nova Home com componentes premium baseados no SKILL.md v3.2
-//       - Header com Avatar e Badge Premium
-//       - Grid de Atalhos 4 colunas
-//       - Card Status do Time (split Pontos/Posicao)
-//       - Card Saldo Financeiro
-//       - FAB do Mercado com timer
-//       - Lista de Jogos do Dia
 // =====================================================================
 
 if (window.Log)
-    Log.info("PARTICIPANTE-HOME", "Carregando modulo v1.1 (Fix Refresh)...");
+    Log.info("PARTICIPANTE-HOME", "Carregando modulo v1.2 (Parciais Tempo Real)...");
 
 // Configuracao de temporada
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -32,6 +32,12 @@ const CLUBES_CACHE_TTL = 12 * 60 * 60 * 1000; // 12h
 const HOME_AUTO_REFRESH_MS = 60000; // 60s
 let homeAutoRefreshId = null;
 let homeAutoRefreshEmAndamento = false;
+
+// Estado de parciais
+let dadosParciais = null;
+let configRankingRodada = null;
+let parciaisAtivos = false;
+let saldoOriginal = 0;
 
 // =====================================================================
 // FUNCAO PRINCIPAL
@@ -239,6 +245,12 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         );
         renderizarHome(container, dadosFresh, ligaId);
 
+        // Guardar saldo original para cálculos parciais
+        saldoOriginal = dadosFresh.saldoFinanceiro || 0;
+
+        // Inicializar parciais se disponíveis
+        await inicializarParciaisHome(ligaId, timeId, dadosFresh);
+
         if (window.Log) Log.info("PARTICIPANTE-HOME", "Dados carregados e cacheados");
 
     } catch (error) {
@@ -280,6 +292,15 @@ function pararAutoRefreshHome() {
         clearInterval(homeAutoRefreshId);
         homeAutoRefreshId = null;
     }
+
+    // Parar parciais também
+    if (ParciaisModule?.pararAutoRefresh) {
+        ParciaisModule.pararAutoRefresh();
+    }
+
+    // Limpar estado de parciais
+    dadosParciais = null;
+    parciaisAtivos = false;
 }
 
 async function atualizarCardsHome(ligaId, timeId, participante) {
@@ -378,7 +399,11 @@ function atualizarCardsHomeUI(data) {
         pontosDisplay,
         posicaoDisplay,
         hintPontos,
-        hintPosicao
+        hintPosicao,
+        zonaTexto,
+        zonaCor,
+        zonaBg,
+        zonaClass
     } = calcularValoresCards(data);
 
     if (pontosEl) pontosEl.textContent = pontosDisplay;
@@ -406,13 +431,17 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
         (r) => Number(r.timeId) === meuTimeIdNum || Number(r.time_id) === meuTimeIdNum
     );
 
-    const pontosTotal = minhasRodadas.reduce((total, rodada) => {
+    const pontosCalcRodadas = minhasRodadas.reduce((total, rodada) => {
         return total + (parseFloat(rodada.pontos) || 0);
     }, 0);
 
     const rodadasOrdenadas = [...minhasRodadas].sort((a, b) => b.rodada - a.rodada);
+    const pontosRanking = parseFloat(meuTime?.pontos ?? meuTime?.pontos_total ?? meuTime?.pontos_totais ?? meuTime?.pontuacao ?? meuTime?.pontos_corridos ?? 0) || 0;
+    const pontosTotal = pontosRanking > 0 ? pontosRanking : pontosCalcRodadas;
     const ultimaRodada = rodadasOrdenadas[0];
-    const rodadaAtual = ultimaRodada ? ultimaRodada.rodada : 0;
+    const rodadaAtualByRodadas = ultimaRodada ? Number(ultimaRodada.rodada) : 0;
+    const rodadasDoRanking = Number(meuTime?.rodadas ?? meuTime?.rodada ?? meuTime?.rodadas_jogadas ?? 0) || 0;
+    const rodadaAtual = Math.max(rodadaAtualByRodadas, rodadasDoRanking);
 
     // Posicao anterior
     let posicaoAnterior = null;
@@ -486,18 +515,6 @@ function getIniciais(nome) {
         return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
     }
     return nome.substring(0, 2).toUpperCase();
-}
-
-function getZonaInfo(posicao, total) {
-    if (!posicao || !total)
-        return { texto: "Aguardando", cor: "var(--app-primary)", icon: "schedule", bg: "var(--app-primary-muted)" };
-
-    const percentual = (posicao / total) * 100;
-    if (percentual <= 33)
-        return { texto: "Zona de Premiacao", cor: "var(--app-success-light)", icon: "emoji_events", bg: "var(--app-success-muted)" };
-    if (percentual <= 66)
-        return { texto: "Zona Neutra", cor: "var(--app-warning)", icon: "remove", bg: "var(--app-warning-muted)" };
-    return { texto: "Zona de Risco", cor: "var(--app-danger)", icon: "warning", bg: "var(--app-danger-muted)" };
 }
 
 async function verificarStatusRenovacao(ligaId, timeId) {
@@ -664,13 +681,23 @@ function calcularValoresCards(data) {
     const hintPosicao = aguardandoRodada ? "Aguardando 1ª rodada" : `de ${totalParticipantes}${variacaoHTML}`;
     const hintPontos = aguardandoRodada ? "Aguardando 1ª rodada" : "total acumulado";
 
+    const zona = getZonaInfo(posicao, totalParticipantes);
+    const zonaTexto = zona.texto || "Zona Neutra";
+    const zonaCor = zona.cor || "var(--app-primary)";
+    const zonaBg = zona.bg || "rgba(255,255,255,0.08)";
+    const zonaClass = zona.zonaClass || "zona-neutra";
+
     return {
         saldoFormatado,
         saldoClass,
         pontosDisplay,
         posicaoDisplay,
         hintPosicao,
-        hintPontos
+        hintPontos,
+        zonaTexto,
+        zonaCor,
+        zonaBg,
+        zonaClass
     };
 }
 
@@ -701,7 +728,11 @@ function renderizarHome(container, data, ligaId) {
         pontosDisplay,
         posicaoDisplay,
         hintPontos,
-        hintPosicao
+        hintPosicao,
+        zonaTexto,
+        zonaCor,
+        zonaBg,
+        zonaClass
     } = calcularValoresCards(data);
 
     // FAB do Mercado
@@ -734,28 +765,9 @@ function renderizarHome(container, data, ligaId) {
             </button>
         ` : "";
 
-    container.innerHTML = `
-        <!-- Header Premium -->
-        <header class="home-header-premium">
-            <div class="home-header-content">
-                <div class="home-user-section">
-                    <div class="home-avatar-circle">
-                        <span class="home-avatar-initials">${iniciais}</span>
-                        <span class="home-team-badge" aria-hidden="true">
-                            <span class="material-icons">shield</span>
-                        </span>
-                    </div>
-                    <div class="home-user-info">
-                        <h1 class="home-user-name">${nomeCartola}</h1>
-                        ${badgePremiumHTML}
-                    </div>
-                </div>
-                <button class="home-btn-icon" onclick="window.participanteNav?.navegarPara('boas-vindas')" aria-label="Notificacoes">
-                    <span class="material-icons">notifications</span>
-                </button>
-            </div>
-        </header>
+    const cardStyleAttr = zonaBg ? `style="--home-card-border:${zonaBg}; --home-card-accent:${zonaCor};"` : "";
 
+    container.innerHTML = `
         <!-- Grid de Atalhos -->
         <section class="home-action-grid">
             <button class="home-action-item" onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()">
@@ -780,17 +792,23 @@ function renderizarHome(container, data, ligaId) {
         </section>
 
         <!-- Card Status do Time -->
-        <section class="home-team-card">
-            <div class="home-team-header">
-                <h2 class="home-team-name">${nomeTime}</h2>
-                <div class="home-team-shield">
-                    ${escudoHTML}
+        <section class="home-team-card ${zonaClass}" ${cardStyleAttr}>
+            <div class="home-team-card-top">
+                <div class="home-team-card-meta">
+                    <div class="home-team-shield">
+                        ${escudoHTML}
+                    </div>
+                    <div>
+                        <p class="home-team-card-name">${nomeTime}</p>
+                        <span class="home-team-card-subtitle">${nomeCartola} • ${nomeLiga}</span>
+                    </div>
                 </div>
+                <span class="home-zone-chip" style="border-color:${zonaCor}; color:${zonaCor};">${zonaTexto}</span>
             </div>
             <div class="home-stats-split">
                 <div class="home-stat-block">
                     <span class="home-stat-label">Pontos</span>
-                    <span id="home-stat-pontos" class="home-stat-value text-accent">${pontosDisplay}</span>
+                    <span id="home-stat-pontos" class="home-stat-value" style="color:${zonaCor};">${pontosDisplay}</span>
                     <span id="home-stat-pontos-hint" class="home-stat-hint">${hintPontos}</span>
                 </div>
                 <div class="home-stat-divider"></div>
@@ -799,6 +817,13 @@ function renderizarHome(container, data, ligaId) {
                     <span id="home-stat-posicao" class="home-stat-value">${posicaoDisplay}</span>
                     <span id="home-stat-posicao-hint" class="home-stat-hint">${hintPosicao}</span>
                 </div>
+            </div>
+            <div class="home-stat-actions">
+                <button class="home-update-btn" type="button"
+                        onclick="(window.RefreshButton?.showModal && window.RefreshButton.showModal()) || window.location.reload()">
+                    <span class="material-symbols-outlined">refresh</span>
+                    Atualizar dados
+                </button>
             </div>
         </section>
 
@@ -856,6 +881,133 @@ function calcularTempoRestante(fechamento) {
 
     const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     return `Fecha em ${minutos}min`;
+}
+
+// =====================================================================
+// SISTEMA DE PARCIAIS EM TEMPO REAL
+// =====================================================================
+
+async function inicializarParciaisHome(ligaId, timeId, dadosRender) {
+    try {
+        // Verificar se o módulo de parciais está disponível
+        if (!ParciaisModule?.inicializarParciais) {
+            if (window.Log) Log.debug("PARTICIPANTE-HOME", "Módulo de parciais não disponível");
+            return;
+        }
+
+        // Verificar se há rodada em andamento
+        const statusParciais = await ParciaisModule.inicializarParciais(ligaId, timeId);
+
+        if (!statusParciais?.disponivel) {
+            if (window.Log) Log.debug("PARTICIPANTE-HOME", "Parciais indisponíveis:", statusParciais?.motivo);
+            parciaisAtivos = false;
+            return;
+        }
+
+        // Buscar configuração do ranking da rodada
+        configRankingRodada = await buscarConfigRankingRodada(ligaId);
+
+        // Carregar dados parciais
+        dadosParciais = await ParciaisModule.carregarParciais();
+
+        if (dadosParciais) {
+            parciaisAtivos = true;
+            atualizarCardsHomeComParciais();
+
+            // Iniciar auto-refresh de parciais
+            ParciaisModule.iniciarAutoRefresh((novosDados) => {
+                dadosParciais = novosDados;
+                atualizarCardsHomeComParciais();
+            });
+
+            if (window.Log) Log.info("PARTICIPANTE-HOME", "Parciais ativados - rodada em andamento");
+        }
+    } catch (error) {
+        if (window.Log) Log.warn("PARTICIPANTE-HOME", "Erro ao inicializar parciais:", error);
+        parciaisAtivos = false;
+    }
+}
+
+async function buscarConfigRankingRodada(ligaId) {
+    try {
+        const response = await fetch(`/api/ligas/${ligaId}`);
+        if (!response.ok) return null;
+
+        const liga = await response.json();
+        return liga?.configuracoes?.ranking_rodada || null;
+    } catch (error) {
+        if (window.Log) Log.warn("PARTICIPANTE-HOME", "Erro ao buscar config ranking:", error);
+        return null;
+    }
+}
+
+function atualizarCardsHomeComParciais() {
+    if (!parciaisAtivos || !dadosParciais) return;
+
+    // Obter minha posição parcial
+    const minhaPosicao = ParciaisModule.obterMinhaPosicaoParcial?.() || null;
+    if (!minhaPosicao) return;
+
+    // Atualizar card de posição
+    const posicaoEl = document.getElementById('home-stat-posicao');
+    const posicaoHintEl = document.getElementById('home-stat-posicao-hint');
+
+    if (posicaoEl) {
+        posicaoEl.textContent = minhaPosicao.posicao;
+    }
+
+    if (posicaoHintEl) {
+        posicaoHintEl.innerHTML = `de ${minhaPosicao.totalTimes} <span class="live-badge-mini">AO VIVO</span>`;
+    }
+
+    // Atualizar card de pontos (pontos da rodada parcial)
+    const pontosEl = document.getElementById('home-stat-pontos');
+    const pontosHintEl = document.getElementById('home-stat-pontos-hint');
+
+    if (pontosEl) {
+        const pontosParciais = Math.floor(minhaPosicao.pontos || 0);
+        pontosEl.textContent = pontosParciais.toLocaleString('pt-BR');
+    }
+
+    if (pontosHintEl) {
+        pontosHintEl.innerHTML = `parcial rodada <span class="live-badge-mini">AO VIVO</span>`;
+    }
+
+    // Atualizar saldo projetado
+    atualizarSaldoProjetado(minhaPosicao.posicao);
+}
+
+function getValorRankingPosicao(config, posicao) {
+    if (!config?.valores) return 0;
+    return config.valores[posicao] || config.valores[String(posicao)] || 0;
+}
+
+function atualizarSaldoProjetado(posicaoParcial) {
+    if (!configRankingRodada) return;
+
+    const saldoEl = document.getElementById('home-saldo-value');
+    if (!saldoEl) return;
+
+    // Calcular impacto da posição parcial
+    const impacto = getValorRankingPosicao(configRankingRodada, posicaoParcial);
+    const saldoProjetado = saldoOriginal + impacto;
+
+    // Formatar valor
+    const abs = Math.abs(saldoProjetado);
+    const formatted = saldoProjetado >= 0
+        ? `R$ ${abs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+        : `-R$ ${abs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+    // Atualizar UI com indicador de projeção
+    saldoEl.innerHTML = `${formatted} <span class="projected-badge">projetado</span>`;
+
+    // Atualizar classes de cor
+    saldoEl.className = 'home-finance-value';
+    if (saldoProjetado > 0) {
+        saldoEl.classList.add('positive');
+    } else if (saldoProjetado < 0) {
+        saldoEl.classList.add('negative');
+    }
 }
 
 // =====================================================================

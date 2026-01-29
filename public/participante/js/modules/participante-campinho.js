@@ -1,6 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-CAMPINHO.JS - v2.0 (CAMPINHO VIRTUAL PREMIUM)
+// PARTICIPANTE-CAMPINHO.JS - v2.1 (CAMPINHO VIRTUAL PREMIUM)
 // =====================================================================
+// ✅ v2.1: Fallback offline - Usa atletas salvos na collection rodadas
+//          quando API Cartola FC está indisponível
 // ✅ v2.0: Redesign completo com visual de campo de futebol real
 //          - Cores por posição (GOL laranja, DEF azul, MEI verde, ATA vermelho)
 //          - Capitão destacado com badge "C" amarelo
@@ -10,7 +12,7 @@
 //          - Integra com confrontos (Pontos Corridos, Mata-mata)
 // =====================================================================
 
-if (window.Log) Log.info("PARTICIPANTE-CAMPINHO", "🔄 Carregando módulo v2.0...");
+if (window.Log) Log.info("PARTICIPANTE-CAMPINHO", "🔄 Carregando módulo v2.1...");
 
 // Mapeamento de posicoes do Cartola
 const POSICOES = {
@@ -58,11 +60,12 @@ export async function inicializarCampinhoParticipante(params) {
     container.innerHTML = renderizarLoading();
 
     try {
-        // Buscar dados necessarios
-        const [escalacao, confrontos, statusMercado] = await Promise.all([
-            buscarEscalacaoCompleta(ligaId, timeId),
-            buscarConfrontos(ligaId, timeId),
-            buscarStatusMercado()
+        const statusMercado = await buscarStatusMercado();
+        const rodadaAtual = statusMercado?.rodada_atual || 1;
+
+        const [escalacao, confrontos] = await Promise.all([
+            buscarEscalacaoCompleta(ligaId, timeId, rodadaAtual),
+            buscarConfrontos(ligaId, timeId)
         ]);
 
         dadosEscalacao = escalacao;
@@ -98,20 +101,24 @@ export async function inicializarCampinhoParticipante(params) {
 // =====================================================================
 // FUNCOES DE BUSCA DE DADOS
 // =====================================================================
-async function buscarEscalacaoCompleta(ligaId, timeId) {
-    try {
-        // Primeiro, pegar rodada atual
-        const statusRes = await fetch('/api/cartola/mercado/status');
-        const status = await statusRes.json();
-        const rodada = status.rodada_atual || 1;
+async function buscarEscalacaoCompleta(ligaId, timeId, rodada = 1) {
+    const rodadaAtual = Number(rodada) || 1;
+    const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
 
-        // Usar novo endpoint que separa titulares/reservas
-        const cartolaRes = await fetch(`/api/cartola/time/${timeId}/${rodada}/escalacao`);
+    try {
+        const atletasPontuados = await tentarBuscarAtletasPontuados();
+        const rawEscalacao = await carregarEscalacaoDoDataLake(timeId, rodadaAtual, temporada, atletasPontuados.atletas || {});
+        if (rawEscalacao) {
+            return rawEscalacao;
+        }
+
+        // Fallback furrom Cartola (porque o dump ainda não existe)
+        const cartolaRes = await fetch(`/api/cartola/time/${timeId}/${rodadaAtual}/escalacao`);
         if (cartolaRes.ok) {
             const data = await cartolaRes.json();
             return {
                 timeId,
-                rodada,
+                rodada: rodadaAtual,
                 atletas: data.atletas || [],
                 titulares: data.titulares || data.atletas || [],
                 reservas: data.reservas || [],
@@ -124,8 +131,8 @@ async function buscarEscalacaoCompleta(ligaId, timeId) {
             };
         }
 
-        // Fallback: buscar do registro de rodadas
-        const response = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=${rodada}&fim=${rodada}`);
+        // Fallback extra: usar cache de rodadas
+        const response = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=${rodadaAtual}&fim=${rodadaAtual}`);
         if (!response.ok) return null;
 
         const rodadas = await response.json();
@@ -135,14 +142,18 @@ async function buscarEscalacaoCompleta(ligaId, timeId) {
 
         if (!rodadaTime) return null;
 
+        const atletas = rodadaTime.atletas || [];
+        const titulares = atletas.filter(a => a.status_id !== 2);
+        const reservas = atletas.filter(a => a.status_id === 2);
+
         return {
             timeId,
-            rodada,
-            atletas: rodadaTime.atletas || [],
-            titulares: rodadaTime.atletas || [],
-            reservas: [],
-            capitao_id: rodadaTime.capitao_id,
-            reserva_luxo_id: null,
+            rodada: rodadaAtual,
+            atletas: atletas,
+            titulares: titulares,
+            reservas: reservas,
+            capitao_id: rodadaTime.capitao_id || null,
+            reserva_luxo_id: rodadaTime.reserva_luxo_id || null,
             pontos: rodadaTime.pontos,
             patrimonio: rodadaTime.patrimonio
         };
@@ -154,14 +165,17 @@ async function buscarEscalacaoCompleta(ligaId, timeId) {
 }
 
 function calcularPontosTotais(data) {
-    const atletas = data.atletas || data.titulares || [];
-    const capitaoId = data.capitao_id;
-    const reservaLuxoId = data.reserva_luxo_id;
+    const atletas = data?.titulares || data?.atletas || [];
+    const capitaoId = data?.capitao_id;
+    const reservaLuxoId = data?.reserva_luxo_id;
+
+    if (!Array.isArray(atletas)) return 0;
 
     return atletas.reduce((total, a) => {
-        let pontos = parseFloat(a.pontos_num || a.pontos || 0);
-        if (a.atleta_id === capitaoId) pontos *= 2;
-        else if (a.atleta_id === reservaLuxoId && pontos !== 0) pontos *= 1.5;
+        const atletaId = Number(a.atleta_id ?? a.atletaId ?? a.id);
+        let pontos = parseFloat(a.pontos_atual ?? a.pontos_num ?? a.pontos || 0) || 0;
+        if (atletaId && Number(capitaoId) && atletaId === Number(capitaoId)) pontos *= 2;
+        else if (atletaId && Number(reservaLuxoId) && atletaId === Number(reservaLuxoId) && pontos !== 0) pontos *= 1.5;
         return total + pontos;
     }, 0);
 }
@@ -206,6 +220,76 @@ async function buscarConfrontos(ligaId, timeId) {
         if (window.Log) Log.debug("PARTICIPANTE-CAMPINHO", "Sem confrontos ativos");
         return null;
     }
+}
+
+async function tentarBuscarAtletasPontuados() {
+    try {
+        const response = await fetch('/api/cartola-proxy/atletas/pontuados');
+        if (!response.ok) return { atletas: {} };
+        return await response.json();
+    } catch (error) {
+        if (window.Log) Log.warn("PARTICIPANTE-CAMPINHO", "Falha ao buscar atletas pontuados:", error);
+        return { atletas: {} };
+    }
+}
+
+async function carregarEscalacaoDoDataLake(timeId, rodada, temporada, atletasPontuados) {
+    try {
+        const response = await fetch(`/api/data-lake/raw/${timeId}?rodada=${rodada}&temporada=${temporada}`);
+        if (!response.ok) return null;
+        const payload = await response.json();
+        const rawJson = payload?.dump_atual?.raw_json;
+        if (!rawJson) return null;
+        return construirEscalacaoFromRaw(rawJson, timeId, rodada, atletasPontuados);
+    } catch (error) {
+        if (window.Log) Log.debug("PARTICIPANTE-CAMPINHO", "Data Lake indisponível:", error);
+        return null;
+    }
+}
+
+function construirEscalacaoFromRaw(rawJson, timeId, rodada, atletasPontuados) {
+    if (!rawJson) return null;
+    const atletasNormalizados = normalizarAtletas(rawJson, atletasPontuados);
+    const titulares = atletasNormalizados.filter(a => Number(a.status_id) !== 2);
+    const reservas = atletasNormalizados.filter(a => Number(a.status_id) === 2);
+    const capitainId = rawJson.capitao_id ?? rawJson.capitaoId ?? rawJson.capitao;
+    const reservaLuxoId = rawJson.reserva_luxo_id ?? rawJson.reservaLuxoId ?? rawJson.reserva_luxo;
+
+    return {
+        timeId,
+        rodada,
+        atletas: atletasNormalizados,
+        titulares,
+        reservas,
+        capitao_id: capitainId,
+        reserva_luxo_id: reservaLuxoId,
+        pontos: rawJson.pontos ?? calcularPontosTotais({ titulares, capitao_id: capitainId, reserva_luxo_id: reservaLuxoId }),
+        patrimonio: rawJson.patrimonio,
+        nome: rawJson.nome ?? rawJson.time?.nome ?? rawJson.nome_cartoleiro ?? 'Sua Escalação',
+        nome_cartoleiro: rawJson.nome_cartoleiro ?? rawJson.time?.nome_cartoleiro ?? rawJson.cartoleiro_nome ?? 'Cartoleiro'
+    };
+}
+
+function normalizarAtletas(rawJson, atletasPontuados) {
+    const atletasPayload = rawJson?.atletas || rawJson?.atletas_obj || {};
+    const lista = Array.isArray(atletasPayload) ? atletasPayload : Object.values(atletasPayload || {});
+    return lista.map((atleta) => {
+        const atletaId = Number(atleta.atleta_id ?? atleta.atletaId ?? atleta.id);
+        const pontuado = atletasPontuados?.[String(atletaId)] ?? atletasPontuados?.[atletaId] ?? {};
+        const pontosRaw = parseFloat(atleta.pontos_num ?? atleta.pontos ?? 0) || 0;
+        const pontosAtual = Number(pontuado.pontos_num ?? pontuado.pontos ?? pontuado.pontuacao ?? 0);
+        const valorPontos = Number.isFinite(pontosAtual) && pontosAtual !== 0 ? pontosAtual : pontosRaw;
+        return {
+            ...atleta,
+            atleta_id: atletaId,
+            pontos_raw: pontosRaw,
+            pontos_atual: valorPontos,
+            posicao_id: atleta.posicao_id ?? atleta.posicaoId ?? atleta.posicao ?? 0,
+            status_id: atleta.status_id ?? atleta.statusId ?? atleta.status ?? 1,
+            apelido: atleta.apelido || atleta.nome || atleta.nick || 'Jogador',
+            clube_id: atleta.clube_id ?? atleta.clubeId ?? 'default'
+        };
+    });
 }
 
 async function buscarStatusMercado() {
@@ -394,7 +478,7 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
     const atletaId = atleta.atleta_id || atleta.atletaId || atleta.id;
 
     // Pontuação
-    let pontos = parseFloat(atleta.pontos_num || atleta.pontos || 0);
+    let pontos = parseFloat(atleta.pontos_atual ?? atleta.pontos_num ?? atleta.pontos || 0);
     const isCapitao = atletaId === capitaoId;
     const isReservaLuxo = atletaId === reservaLuxoId;
 
@@ -406,7 +490,7 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
     // Classes especiais
     const isMito = pontos > MITO_THRESHOLD;
     const isMico = pontos < MICO_THRESHOLD;
-    const classePontos = pontos > 0 ? 'positivo' : pontos < 0 ? 'negativo' : 'neutro';
+    const classePontos = pontosExibir > 0 ? 'positivo' : pontosExibir < 0 ? 'negativo' : 'neutro';
 
     let classes = ['campinho-jogador'];
     if (isCapitao) classes.push('is-capitao');

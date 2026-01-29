@@ -314,10 +314,15 @@ function renderizarGrupos(rodadas) {
 
             rodadasJogadas++;
 
-            const totalParticipantes = getTotalParticipantesAtivos(rodada);
-
-            if (rodada.posicaoFinanceira === 1) mitos++;
-            else if (rodada.posicaoFinanceira === totalParticipantes && totalParticipantes > 1) micos++;
+            const destaqueRodada = obterMitoMicoDaRodada(rodada);
+            if (destaqueRodada) {
+                if (compararTimeIds(destaqueRodada.mito?.timeId, meuTimeId)) {
+                    mitos++;
+                }
+                if (compararTimeIds(destaqueRodada.mico?.timeId, meuTimeId)) {
+                    micos++;
+                }
+            }
 
             // Verificar se contém rodada atual/parcial
             if (parciaisInfo?.disponivel && i === parciaisInfo.rodada) {
@@ -375,28 +380,27 @@ function renderizarMiniCards(inicio, fim, rodadasMap) {
         let classes = ['rodada-mini-card'];
         let tipoDestaque = null;
 
-        if (isParcial) {
-            classes.push('parcial');
-        } else if (isFuturo || (!temDados && !isParcial)) {
-            classes.push('futuro');
-        } else if (jogou) {
-            // Cores por saldo
-            if (valorFinanceiro > 0) classes.push('saldo-positivo');
-            else if (valorFinanceiro < 0) classes.push('saldo-negativo');
+            if (isParcial) {
+                classes.push('parcial');
+            } else if (isFuturo || (!temDados && !isParcial)) {
+                classes.push('futuro');
+            } else if (jogou) {
+                // Cores por saldo
+                if (valorFinanceiro > 0) classes.push('saldo-positivo');
+                else if (valorFinanceiro < 0) classes.push('saldo-negativo');
 
-            // MITO/MICO
-            if (rodada.posicaoFinanceira) {
-                const totalParticipantes = getTotalParticipantesAtivos(rodada);
+                const destaqueRodada = obterMitoMicoDaRodada(rodada);
+                const isMito = destaqueRodada && compararTimeIds(destaqueRodada.mito?.timeId, meuTimeId);
+                const isMico = destaqueRodada && compararTimeIds(destaqueRodada.mico?.timeId, meuTimeId);
 
-                if (rodada.posicaoFinanceira === 1) {
+                if (isMito) {
                     classes.push('mito');
                     tipoDestaque = 'mito';
-                } else if (rodada.posicaoFinanceira === totalParticipantes && totalParticipantes > 1) {
+                } else if (isMico) {
                     classes.push('mico');
                     tipoDestaque = 'mico';
                 }
             }
-        }
 
         // Formatar pontos
         let pontosTexto = '';
@@ -494,17 +498,17 @@ function renderizarCardDesempenho(rodadas) {
 
         rodadasJogadas++;
 
-        const totalParticipantes = getTotalParticipantesAtivos(rodada);
-
-        if (rodada.posicaoFinanceira === 1) {
-            totalMitos++;
-            ultimoMito = rodada.numero;
-        } else if (
-            rodada.posicaoFinanceira === totalParticipantes &&
-            totalParticipantes > 1
-        ) {
-            totalMicos++;
-            ultimoMico = rodada.numero;
+        const destaqueRodada = obterMitoMicoDaRodada(rodada);
+        if (destaqueRodada) {
+            const numeroRodada = obterNumeroRodada(rodada);
+            if (compararTimeIds(destaqueRodada.mito?.timeId, meuTimeId)) {
+                totalMitos++;
+                ultimoMito = numeroRodada;
+            }
+            if (compararTimeIds(destaqueRodada.mico?.timeId, meuTimeId)) {
+                totalMicos++;
+                ultimoMico = numeroRodada;
+            }
         }
     });
 
@@ -523,6 +527,51 @@ function renderizarCardDesempenho(rodadas) {
     document.getElementById("desempUltimoMico").textContent = ultimoMico ? `Rodada ${ultimoMico}` : "Nenhum";
 
     card.style.display = "block";
+}
+
+function obterNumeroRodada(rodada) {
+    return rodada?.numero ?? rodada?.rodada ?? rodada?.rodadaNumero ?? null;
+}
+
+function compararTimeIds(a, b) {
+    if (a === undefined || a === null || b === undefined || b === null) return false;
+    return String(a) === String(b);
+}
+
+function obterMitoMicoDaRodada(rodada) {
+    if (!rodada || !Array.isArray(rodada.participantes) || rodada.participantes.length === 0) {
+        return null;
+    }
+
+    const participantesAtivos = rodada.participantes.filter((p) => p.ativo !== false);
+    if (participantesAtivos.length === 0) {
+        return null;
+    }
+
+    const ordenados = [...participantesAtivos].sort((a, b) => {
+        const pontosA = parseFloat(a.pontos || 0);
+        const pontosB = parseFloat(b.pontos || 0);
+        if (pontosB === pontosA) {
+            const idA = String(a.timeId ?? a.time_id ?? a.id ?? "");
+            const idB = String(b.timeId ?? b.time_id ?? b.id ?? "");
+            return idA.localeCompare(idB);
+        }
+        return pontosB - pontosA;
+    });
+
+    const primeiro = ordenados[0];
+    const ultimo = ordenados[ordenados.length - 1];
+
+    return {
+        mito: {
+            timeId: primeiro?.timeId ?? primeiro?.time_id,
+            pontos: parseFloat(primeiro?.pontos || 0)
+        },
+        mico: {
+            timeId: ultimo?.timeId ?? ultimo?.time_id,
+            pontos: parseFloat(ultimo?.pontos || 0)
+        }
+    };
 }
 
 // =====================================================================

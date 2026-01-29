@@ -35,6 +35,8 @@
 // v9.0+: Filtros por liga, dados reais das APIs
 // =====================================================================
 
+import { getZonaInfo } from "./zona-utils.js";
+
 if (window.Log) Log.info("HISTORICO", "Hall da Fama v12.12 carregando...");
 
 // Estado do modulo
@@ -1226,8 +1228,13 @@ async function renderizarDadosTempoReal(ligaId) {
         const rodadasJogadas = ranking?.rodadas || (pc ? (pc.vitorias + pc.empates + pc.derrotas) : 0);
         const saldoHistorico = extrato?.saldo ?? 0;
         const saldoClass = saldoHistorico > 0 ? 'positive' : saldoHistorico < 0 ? 'negative' : '';
+        const zona = getZonaInfo(posicaoReal === '-' ? null : Number(posicaoReal), totalParticipantes);
 
         let html = `
+            <div class="zona-label ${zona.zonaClass}">
+                <span class="material-icons">insights</span>
+                <span>${zona.zonaTexto}</span>
+            </div>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="material-icons stat-icon">emoji_events</div>
@@ -1235,10 +1242,10 @@ async function renderizarDadosTempoReal(ligaId) {
                     <div class="stat-value">${posicaoReal}º</div>
                     <div class="stat-subtitle">${totalParticipantes ? `de ${totalParticipantes} participantes` : 'Ranking Geral'}</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card ${zona.zonaClass}">
                     <div class="material-icons stat-icon">analytics</div>
                     <div class="stat-label">Pontuacao Total</div>
-                    <div class="stat-value">${formatarPontosCompletos(pontosReais)}</div>
+                    <div class="stat-value" style="color:${zona.zonaCor};">${formatarPontosCompletos(pontosReais)}</div>
                     <div class="stat-subtitle">${rodadasJogadas} rodadas</div>
                 </div>
                 <div class="stat-card stat-card-clickable" onclick="window.abrirModalDetalhesFinanceiros('${ligaId}', ${timeId}, ${temporadaTempoReal}, ${saldoHistorico})" title="Clique para ver detalhes">

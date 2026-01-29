@@ -26,6 +26,18 @@ const RodadaSchema = new mongoose.Schema({
   posicao: { type: Number }, // Posição no ranking (considerando ativos)
   valorFinanceiro: { type: Number, default: 0 }, // Valor de bônus/ônus
   totalParticipantesAtivos: { type: Number }, // Total de ativos nesta rodada
+
+  // ✅ v3.1: Escalação completa para fallback offline (Campinho)
+  atletas: [{
+    atleta_id: { type: Number },
+    apelido: { type: String },
+    posicao_id: { type: Number },
+    clube_id: { type: Number },
+    pontos_num: { type: Number },
+    status_id: { type: Number }, // 2 = reserva, outros = titular
+  }],
+  capitao_id: { type: Number },
+  reserva_luxo_id: { type: Number },
 });
 
 export default mongoose.model("Rodada", RodadaSchema);

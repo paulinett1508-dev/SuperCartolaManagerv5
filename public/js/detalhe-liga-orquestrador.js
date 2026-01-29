@@ -25,15 +25,15 @@ class DetalheLigaOrquestrador {
     // Detecta se é temporada histórica e configura o contexto global
     async detectarTemporadaHistorica() {
         try {
-            const response = await fetch('/api/cartola/mercado-status');
-            if (response.ok) {
-                const mercado = await response.json();
-                const temporadaAtual = mercado.temporada || new Date().getFullYear();
-                this.isTemporadaHistorica = this.temporada < temporadaAtual;
+                const response = await fetch('/api/cartola/mercado-status');
+                if (response.ok) {
+                    const mercado = await response.json();
+                    const temporadaAtual = mercado.temporada || new Date().getFullYear();
+                    this.isTemporadaHistorica = this.temporada < temporadaAtual;
 
-                // Expor globalmente para uso em módulos
-                window.temporadaAtual = this.temporada;
-                window.isTemporadaHistorica = this.isTemporadaHistorica;
+                    // Expor o contexto correto para os módulos (sempre usar temporada corrente)
+                    window.temporadaAtual = temporadaAtual;
+                    window.isTemporadaHistorica = this.isTemporadaHistorica;
 
                 // Mostrar badge e aplicar modo histórico
                 if (this.isTemporadaHistorica) {
@@ -46,8 +46,8 @@ class DetalheLigaOrquestrador {
             }
         } catch (error) {
             console.warn('[ORQUESTRADOR] Erro ao detectar temporada:', error);
-            // Fallback: assumir temporada atual
-            window.temporadaAtual = this.temporada;
+            const fallbackSeason = new Date().getFullYear();
+            window.temporadaAtual = fallbackSeason;
             window.isTemporadaHistorica = false;
         }
     }

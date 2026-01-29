@@ -211,14 +211,14 @@ class ParticipanteNavigation {
             // ✅ v2.1: PRIMEIRO tentar usar dados da liga do Auth (já carregados)
             if (window.participanteAuth && window.participanteAuth.ligaDataCache) {
                 const liga = window.participanteAuth.ligaDataCache;
-                this.modulosAtivos = liga.modulos_ativos || {};
+                this.modulosAtivos = this._desativarPontosCorridos(liga.modulos_ativos || {});
                 if (window.Log) Log.debug('PARTICIPANTE-NAV', '💾 Módulos obtidos do cache Auth (sem requisição)');
                 return;
             }
 
             // ✅ v2.1: Se Auth já passou os dados via evento, usar ligaData
             if (this._ligaDataFromEvent) {
-                this.modulosAtivos = this._ligaDataFromEvent.modulos_ativos || {};
+                this.modulosAtivos = this._desativarPontosCorridos(this._ligaDataFromEvent.modulos_ativos || {});
                 if (window.Log) Log.debug('PARTICIPANTE-NAV', '💾 Módulos obtidos via evento Auth');
                 return;
             }
@@ -233,12 +233,12 @@ class ParticipanteNavigation {
             }
 
             const liga = await response.json();
-            this.modulosAtivos = liga.modulos_ativos || {};
+            this.modulosAtivos = this._desativarPontosCorridos(liga.modulos_ativos || {});
 
             if (window.Log) Log.debug('PARTICIPANTE-NAV', '📋 Módulos ativos recebidos (API)');
         } catch (error) {
             if (window.Log) Log.error('PARTICIPANTE-NAV', '❌ Erro ao buscar módulos:', error);
-            this.modulosAtivos = {
+            this.modulosAtivos = this._desativarPontosCorridos({
                 extrato: true,
                 ranking: true,
                 rodadas: true,
@@ -248,8 +248,13 @@ class ParticipanteNavigation {
                 mataMata: false,
                 artilheiro: false,
                 luvaOuro: false,
-            };
+            });
         }
+    }
+
+    _desativarPontosCorridos(modulos = {}) {
+        modulos.pontosCorridos = false;
+        return modulos;
     }
 
     renderizarMenuDinamico() {
@@ -603,7 +608,7 @@ class ParticipanteNavigation {
             if (window.Log) Log.info('PARTICIPANTE-NAV', `✅ Módulo ${moduloId} carregado`);
 
             // ✅ v2.4: Adicionar botão de atualização manual (temporada encerrada)
-            if (window.RefreshButton?.shouldShow()) {
+            if (moduloId !== 'home' && window.RefreshButton?.shouldShow()) {
                 window.RefreshButton.addTo(container, { text: 'Atualizar Dados' });
             }
 

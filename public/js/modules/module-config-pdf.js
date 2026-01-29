@@ -69,30 +69,52 @@ class ModuleConfigPDF {
      */
     async gerarRelatorio(ligaId) {
         try {
-            // 1. Carregar dados
+            console.log('[PDF] 1. Carregando dados...');
             await this.carregarDados(ligaId);
+            console.log('[PDF] 1. OK - Dados carregados:', this.ligaData?.nome);
 
-            // 2. Inicializar PDF
+            console.log('[PDF] 2. Inicializando PDF...');
             this.inicializarPDF();
+            console.log('[PDF] 2. OK - PDF inicializado');
 
-            // 3. Desenhar conteúdo
+            console.log('[PDF] 3. Desenhando capa...');
             this.desenharCapa();
+            console.log('[PDF] 3. OK - Capa desenhada');
+
+            console.log('[PDF] 4. Nova página...');
             this.novaPagina();
+            console.log('[PDF] 4. OK');
+
+            console.log('[PDF] 5. Resumo módulos...');
             this.desenharResumoModulos();
+            console.log('[PDF] 5. OK');
+
+            console.log('[PDF] 6. Detalhes módulos...');
             this.desenharDetalhesModulos();
+            console.log('[PDF] 6. OK');
+
+            console.log('[PDF] 7. Módulos desativados...');
             this.desenharModulosDesativados();
+            console.log('[PDF] 7. OK');
 
-            // 4. Rodapé final
+            console.log('[PDF] 8. Rodapé final...');
             this.desenharRodapeFinal();
+            console.log('[PDF] 8. OK');
 
-            // 5. Salvar
+            console.log('[PDF] 9. Salvando...');
             const nomeArquivo = `parametrizacoes_${this.ligaData.nome.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
             this.doc.save(nomeArquivo);
+            console.log('[PDF] 9. OK - Arquivo salvo:', nomeArquivo);
 
             return { success: true, arquivo: nomeArquivo };
 
         } catch (error) {
-            console.error('[MODULE-CONFIG-PDF] Erro:', error?.message || error, error?.stack || '');
+            console.error('[MODULE-CONFIG-PDF] Erro completo:', {
+                message: error?.message,
+                name: error?.name,
+                stack: error?.stack,
+                error: error
+            });
             throw error;
         }
     }

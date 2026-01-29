@@ -163,6 +163,37 @@
     margin-bottom: 30px;
 }
 
+.zona-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 10px;
+}
+.zona-label .material-icons {
+    font-size: 16px;
+}
+
+.zona-premiacao {
+    border-color: rgba(16, 185, 129, 0.8);
+    color: #10b981;
+}
+
+.zona-neutra {
+    border-color: rgba(249, 115, 22, 0.4);
+    color: #f97316;
+}
+
+.zona-risco {
+    border-color: rgba(239, 68, 68, 0.8);
+    color: #ef4444;
+}
+
 .stat-card {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -175,6 +206,16 @@
     background: rgba(255, 69, 0, 0.1);
     border-color: rgba(255, 69, 0, 0.3);
     transform: translateY(-2px);
+}
+
+.stat-card.zona-premiacao {
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+}
+
+.stat-card.zona-risco {
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
 }
 
 /* v12.8: Card clicável para detalhes financeiros */

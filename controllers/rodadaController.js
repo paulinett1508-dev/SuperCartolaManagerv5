@@ -1,6 +1,7 @@
 // =====================================================================
-// rodadaController.js v3.0.0 - SaaS DINÂMICO: Configs do banco de dados
+// rodadaController.js v3.1.0 - SaaS DINÂMICO: Configs do banco de dados
 // Busca dados da API do Cartola e calcula posições
+// v3.1.0: Salva atletas na rodada para fallback offline (Campinho)
 // v3.0.0: Configurações dinâmicas via liga.configuracoes (White Label)
 // v2.9.3: Circuit Breaker de fim de temporada implementado
 // =====================================================================
@@ -311,6 +312,17 @@ async function processarRodada(
           mapaClubeId[time.timeId] = clubeIdApi;
         }
 
+        // ✅ v3.1: Extrair atletas para fallback offline (Campinho)
+        const atletasRaw = dados.atletas || [];
+        const atletas = atletasRaw.map(a => ({
+          atleta_id: a.atleta_id,
+          apelido: a.apelido,
+          posicao_id: a.posicao_id,
+          clube_id: a.clube?.id || a.clube_id,
+          pontos_num: a.pontos_num || 0,
+          status_id: a.status_id || 0,
+        }));
+
         dadosRodada.push({
           timeId: time.timeId,
           nome_cartola: dados.time?.nome_cartola || "N/D",
@@ -319,6 +331,10 @@ async function processarRodada(
           clube_id: clubeIdFinal,
           pontos: dados.pontos || 0,
           ativo: time.ativo !== false,
+          // ✅ v3.1: Dados de escalação para fallback
+          atletas: atletas,
+          capitao_id: dados.capitao_id || null,
+          reserva_luxo_id: dados.reserva_luxo_id || null,
         });
 
         console.log(
@@ -401,6 +417,10 @@ async function processarRodada(
           valorFinanceiro: time.valorFinanceiro,
           totalParticipantesAtivos: timesAtivos.length,
           rodadaNaoJogada: time.rodadaNaoJogada || false,
+          // ✅ v3.1: Escalação para fallback offline (Campinho)
+          atletas: time.atletas || [],
+          capitao_id: time.capitao_id || null,
+          reserva_luxo_id: time.reserva_luxo_id || null,
         },
         { upsert: true, new: true, setDefaultsOnInsert: true },
       );
