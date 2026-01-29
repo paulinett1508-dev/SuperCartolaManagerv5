@@ -22,10 +22,8 @@ let grupoExpandido = null; // Qual grupo está expandido
 
 // Configuração dos grupos de rodadas
 const GRUPOS_CONFIG = [
-    { id: '1turno-a', nome: '1º Turno', subtitulo: 'Rodadas 1-10', inicio: 1, fim: 10, icon: 'looks_one' },
-    { id: '1turno-b', nome: '1º Turno', subtitulo: 'Rodadas 11-19', inicio: 11, fim: 19, icon: 'filter_1' },
-    { id: '2turno-a', nome: '2º Turno', subtitulo: 'Rodadas 20-29', inicio: 20, fim: 29, icon: 'looks_two' },
-    { id: '2turno-b', nome: '2º Turno', subtitulo: 'Rodadas 30-38', inicio: 30, fim: 38, icon: 'filter_2' },
+    { id: '1turno', nome: '1º Turno', subtitulo: 'Rodadas 1-19', inicio: 1, fim: 19, icon: 'looks_one' },
+    { id: '2turno', nome: '2º Turno', subtitulo: 'Rodadas 20-38', inicio: 20, fim: 38, icon: 'looks_two' },
 ];
 
 // =====================================================================
