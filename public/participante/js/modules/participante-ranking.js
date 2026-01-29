@@ -93,6 +93,33 @@ function truncarPontos(valor) {
     });
 }
 
+function formatarMoedaBR(valor) {
+    const num = Number(valor) || 0;
+    const abs = Math.abs(num).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+    if (num > 0) return `+R$ ${abs}`;
+    if (num < 0) return `-R$ ${abs}`;
+    return `R$ ${abs}`;
+}
+
+function getEscudoTimeUrl(time) {
+    const escudo =
+        time?.escudo ||
+        time?.url_escudo_png ||
+        time?.url_escudo_svg ||
+        "";
+    if (escudo) return escudo;
+    if (time?.clube_id) return `/escudos/${time.clube_id}.png`;
+    return "/escudos/default.png";
+}
+
+function getEscudoClubeUrl(time) {
+    if (!time?.clube_id) return "";
+    return `/escudos/${time.clube_id}.png`;
+}
+
 // Estado do módulo
 let estadoRanking = {
     ligaId: null,
@@ -107,6 +134,11 @@ let estadoRanking = {
     vezesLider: 0,
     temporadaEncerrada: false, // ✅ v3.6: Flag de temporada encerrada
     rodadaAtual: null,
+    statusMercado: null,
+    configRankingRodada: null,
+    liveCountsRodada: null,
+    liveCounts: {},
+    liveCountsLoading: false,
 };
 
 export async function inicializarRankingParticipante(params, timeIdParam) {
@@ -192,6 +224,7 @@ async function detectarStatusTemporada() {
             const statusMercado = mercado.status_mercado;
 
             estadoRanking.rodadaAtual = rodadaAtual;
+            estadoRanking.statusMercado = statusMercado;
 
             // Temporada encerrada: status_mercado = 6 OU (rodada >= 38 E mercado fechado)
             estadoRanking.temporadaEncerrada =
@@ -206,6 +239,68 @@ async function detectarStatusTemporada() {
         }
     } catch (error) {
         if (window.Log) Log.warn('PARTICIPANTE-RANKING', '⚠️ Erro ao detectar status:', error);
+    }
+}
+
+async function obterConfigRankingRodada() {
+    const ligaId = estadoRanking.ligaId;
+    if (!ligaId) return null;
+
+    const rodadaAtual = estadoRanking.rodadaAtual || 1;
+    if (
+        estadoRanking.configRankingRodada &&
+        estadoRanking.configRankingRodada.rodadaRef === rodadaAtual
+    ) {
+        return estadoRanking.configRankingRodada;
+    }
+
+    try {
+        const response = await fetch(`/api/ligas/${ligaId}/configuracoes`);
+        if (!response.ok) return null;
+        const data = await response.json();
+
+        const config =
+            data?.configuracoes?.ranking_rodada || data?.ranking_rodada || null;
+
+        if (!config) {
+            estadoRanking.configRankingRodada = {
+                valores: {},
+                totalParticipantes: data?.total_participantes || 0,
+                rodadaRef: rodadaAtual,
+                temporal: false,
+            };
+            return estadoRanking.configRankingRodada;
+        }
+
+        if (config.temporal) {
+            const rodadaTransicao = config.rodada_transicao || 30;
+            const fase = rodadaAtual < rodadaTransicao ? "fase1" : "fase2";
+            const faseConfig = config[fase] || {};
+
+            estadoRanking.configRankingRodada = {
+                valores: faseConfig.valores || {},
+                faixas: faseConfig.faixas || null,
+                totalParticipantes: faseConfig.total_participantes || 0,
+                temporal: true,
+                fase,
+                rodadaTransicao,
+                rodadaRef: rodadaAtual,
+            };
+            return estadoRanking.configRankingRodada;
+        }
+
+        estadoRanking.configRankingRodada = {
+            valores: config.valores || {},
+            faixas: config.faixas || null,
+            totalParticipantes: config.total_participantes || 0,
+            temporal: false,
+            rodadaRef: rodadaAtual,
+        };
+        return estadoRanking.configRankingRodada;
+    } catch (error) {
+        if (window.Log)
+            Log.warn("PARTICIPANTE-RANKING", "Erro ao buscar config rodada:", error);
+        return null;
     }
 }
 
@@ -704,15 +799,20 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
             let iconePosicao = posicao + "º";
             if (posicao === 1)
                 iconePosicao =
-                    '<span class="material-icons" style="font-size:18px; color:#ffd700;">emoji_events</span>';
+                    '<span class="material-icons podio-icon">emoji_events</span>';
             else if (posicao === 2)
                 iconePosicao =
-                    '<span class="material-icons" style="font-size:16px; color:#c0c0c0;">military_tech</span>';
+                    '<span class="material-icons podio-icon">military_tech</span>';
             else if (posicao === 3)
                 iconePosicao =
-                    '<span class="material-icons" style="font-size:16px; color:#cd7f32;">military_tech</span>';
+                    '<span class="material-icons podio-icon">military_tech</span>';
 
             const pontosFormatados = truncarPontos(time.pontos);
+            const escudoUrl = getEscudoTimeUrl(time);
+            const clubeEscudoUrl = getEscudoClubeUrl(time);
+            const mostrarClube =
+                clubeEscudoUrl &&
+                !escudoUrl.includes(`/escudos/${time.clube_id}.png`);
 
             return (
                 '<div class="' +
@@ -721,7 +821,19 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
                 posicao +
                 ')">' +
                 '<div class="ranking-posicao">' +
+                '<div class="posicao-badge">' +
                 iconePosicao +
+                "</div>" +
+                '<div class="ranking-escudo-wrap">' +
+                '<img class="ranking-escudo" src="' +
+                escudoUrl +
+                '" onerror="this.src=\'/escudos/default.png\'" alt="Escudo">' +
+                (mostrarClube
+                    ? '<img class="ranking-clube-escudo" src="' +
+                      clubeEscudoUrl +
+                      '" onerror="this.style.display=\'none\'" alt="Clube">'
+                    : "") +
+                "</div>" +
                 "</div>" +
                 '<div class="ranking-info">' +
                 '<div class="ranking-cartola">' +
@@ -735,7 +847,12 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
                 "</div>" +
                 "</div>" +
                 '<div class="ranking-pontos">' +
+                '<div class="ranking-pontos-valor">' +
                 pontosFormatados +
+                "</div>" +
+                '<div class="ranking-live-badge is-loading" data-time-id="' +
+                time.timeId +
+                '">—</div>' +
                 "</div>" +
                 "</div>"
             );
@@ -752,14 +869,30 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
                 const rodadaDesistencia = time.rodada_desistencia || "?";
 
                 const pontosFormatados = truncarPontos(time.pontos);
+                const escudoUrl = getEscudoTimeUrl(time);
+                const clubeEscudoUrl = getEscudoClubeUrl(time);
+                const mostrarClube =
+                    clubeEscudoUrl &&
+                    !escudoUrl.includes(`/escudos/${time.clube_id}.png`);
 
                 return (
                     '<div class="ranking-item inativo' +
                     (isMeuTime ? " meu-time" : "") +
                     '">' +
                     '<div class="ranking-posicao inativo-pos">' +
+                    '<div class="posicao-badge">' +
                     posicaoGrupo +
-                    "º" +
+                    "º</div>" +
+                    '<div class="ranking-escudo-wrap">' +
+                    '<img class="ranking-escudo" src="' +
+                    escudoUrl +
+                    '" onerror="this.src=\'/escudos/default.png\'" alt="Escudo">' +
+                    (mostrarClube
+                        ? '<img class="ranking-clube-escudo" src="' +
+                          clubeEscudoUrl +
+                          '" onerror="this.style.display=\'none\'" alt="Clube">'
+                        : "") +
+                    "</div>" +
                     "</div>" +
                     '<div class="ranking-info">' +
                     '<div class="ranking-cartola">' +
@@ -776,7 +909,9 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
                     "</div>" +
                     "</div>" +
                     '<div class="ranking-pontos inativo-pontos">' +
+                    '<div class="ranking-pontos-valor">' +
                     pontosFormatados +
+                    "</div>" +
                     "</div>" +
                     "</div>"
                 );
@@ -808,6 +943,8 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
         '<div class="card-desempenho-container">' +
         cardSeuDesempenhoHTML +
         "</div>";
+
+    carregarJogadoresEmCampo(ativos);
 }
 
 // ===== INJETAR ESTILOS =====
@@ -1113,6 +1250,12 @@ function injetarEstilosCards() {
         .ranking-pontos.inativo-pontos {
             color: #9ca3af;
         }
+        .ranking-escudo {
+            filter: grayscale(0.2);
+        }
+        .ranking-item.inativo .ranking-escudo {
+            filter: grayscale(1) opacity(0.7);
+        }
         .tag-inativo {
             display: inline-block;
             margin-left: 8px;
@@ -1135,6 +1278,152 @@ function injetarEstilosCards() {
         }
     `;
     document.head.appendChild(style);
+}
+
+async function carregarJogadoresEmCampo(ranking) {
+    if (!Array.isArray(ranking) || ranking.length === 0) return;
+    if (estadoRanking.liveCountsLoading) return;
+
+    const rodadaAtual = estadoRanking.rodadaAtual || 1;
+    const statusMercado = estadoRanking.statusMercado;
+
+    const badges = document.querySelectorAll(".ranking-live-badge");
+    if (!badges.length) return;
+
+    if (statusMercado !== 2) {
+        badges.forEach((badge) => {
+            badge.textContent = "0 em campo";
+            badge.classList.remove("is-loading", "is-live");
+            badge.classList.add("is-off");
+        });
+        return;
+    }
+
+    if (estadoRanking.liveCountsRodada === rodadaAtual) {
+        atualizarBadgesJogadoresEmCampo(estadoRanking.liveCounts);
+        return;
+    }
+
+    estadoRanking.liveCountsLoading = true;
+
+    try {
+        const response = await fetch(
+            `/api/cartola/atletas/pontuados?_t=${Date.now()}`,
+            {
+                cache: "no-store",
+                headers: { "Cache-Control": "no-cache" },
+            },
+        );
+
+        const data = response.ok ? await response.json() : null;
+        const atletasPontuados = data?.atletas || {};
+
+        if (!Object.keys(atletasPontuados).length) {
+            badges.forEach((badge) => {
+                badge.textContent = "0 em campo";
+                badge.classList.remove("is-loading", "is-live");
+                badge.classList.add("is-off");
+            });
+            return;
+        }
+
+        const timeIds = ranking
+            .map((t) => t.timeId)
+            .filter((tid) => tid !== undefined && tid !== null);
+
+        const resultados = await processarComLimite(
+            timeIds,
+            6,
+            (timeId) =>
+                contarJogadoresEmCampo(timeId, rodadaAtual, atletasPontuados),
+        );
+
+        const liveCounts = {};
+        resultados.forEach((item) => {
+            if (!item) return;
+            liveCounts[String(item.timeId)] = item.emCampo;
+        });
+
+        estadoRanking.liveCounts = liveCounts;
+        estadoRanking.liveCountsRodada = rodadaAtual;
+        atualizarBadgesJogadoresEmCampo(liveCounts);
+    } catch (error) {
+        if (window.Log)
+            Log.warn("PARTICIPANTE-RANKING", "Erro ao buscar ao vivo:", error);
+    } finally {
+        estadoRanking.liveCountsLoading = false;
+    }
+}
+
+function atualizarBadgesJogadoresEmCampo(liveCounts = {}) {
+    const badges = document.querySelectorAll(".ranking-live-badge");
+    badges.forEach((badge) => {
+        const timeId = badge.dataset.timeId;
+        const count = liveCounts[String(timeId)] ?? 0;
+        badge.textContent = `${count} em campo`;
+        badge.classList.remove("is-loading");
+        badge.classList.toggle("is-live", count > 0);
+        badge.classList.toggle("is-off", count === 0);
+    });
+}
+
+async function contarJogadoresEmCampo(timeId, rodada, atletasPontuados) {
+    const response = await fetch(
+        `/api/cartola/time/id/${timeId}/${rodada}?_t=${Date.now()}`,
+        {
+            cache: "no-store",
+            headers: { "Cache-Control": "no-cache" },
+        },
+    );
+
+    if (!response.ok) {
+        return { timeId, emCampo: 0 };
+    }
+
+    const dadosEscalacao = await response.json();
+    const atletas = Array.isArray(dadosEscalacao.atletas)
+        ? dadosEscalacao.atletas
+        : [];
+    const reservas = Array.isArray(dadosEscalacao.reservas)
+        ? dadosEscalacao.reservas
+        : [];
+
+    let emCampo = 0;
+    atletas.concat(reservas).forEach((atleta) => {
+        const parcial = atletasPontuados[atleta.atleta_id];
+        if (parcial?.entrou_em_campo || parcial?.pontuacao !== 0) {
+            emCampo += 1;
+        }
+    });
+
+    return { timeId, emCampo };
+}
+
+async function processarComLimite(items, limite, worker) {
+    const resultados = [];
+    let index = 0;
+    let ativos = 0;
+
+    return new Promise((resolve) => {
+        const iniciar = () => {
+            while (ativos < limite && index < items.length) {
+                const item = items[index++];
+                ativos += 1;
+                worker(item)
+                    .then((res) => resultados.push(res))
+                    .catch(() => {})
+                    .finally(() => {
+                        ativos -= 1;
+                        if (index >= items.length && ativos === 0) {
+                            resolve(resultados);
+                        } else {
+                            iniciar();
+                        }
+                    });
+            }
+        };
+        iniciar();
+    });
 }
 
 // ===== ERRO =====
