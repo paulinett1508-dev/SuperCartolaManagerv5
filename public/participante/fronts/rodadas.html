@@ -51,7 +51,7 @@
 
 .rodadas-icon {
     font-size: 32px;
-    color: var(--rodadas-primary);
+    color: var(--rodadas-text-muted);
 }
 
 .rodadas-header-pro h2 {
@@ -59,7 +59,7 @@
     font-size: 24px;
     font-weight: 400;
     letter-spacing: 0.5px;
-    color: var(--rodadas-primary);
+    color: var(--rodadas-text-white);
     margin: 0;
 }
 
@@ -105,124 +105,60 @@
     cursor: not-allowed;
 }
 
-/* === GRUPOS EXPANSÍVEIS === */
+/* === CONTAINER DE RODADAS === */
 .rodadas-grupos-container {
+    padding: 0 4px;
+}
+
+/* === LEGENDA === */
+.rodadas-legenda {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 12px;
-}
-
-.rodadas-grupo {
-    background: var(--rodadas-surface);
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid var(--rodadas-border);
-    transition: all 0.3s ease;
-}
-
-.rodadas-grupo.expanded {
-    border-color: var(--rodadas-primary);
-}
-
-.grupo-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.grupo-header:hover {
-    background: var(--rodadas-surface-elevated);
-}
-
-.grupo-header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.grupo-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--rodadas-surface-elevated);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
     justify-content: center;
-    color: var(--rodadas-primary);
+    padding: 12px 0 4px;
 }
 
-.grupo-icon .material-symbols-outlined {
-    font-size: 20px;
-}
-
-.grupo-title {
-    font-family: var(--rodadas-font-brand);
-    font-size: 16px;
-    color: var(--rodadas-text-white);
-}
-
-.grupo-subtitle {
-    font-size: 12px;
-    color: var(--rodadas-text-muted);
-    margin-top: 2px;
-}
-
-.grupo-header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.grupo-stats {
-    display: flex;
-    gap: 8px;
-}
-
-.grupo-stat {
+.legenda-item {
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.grupo-stat.mitos {
-    color: var(--rodadas-success);
-}
-
-.grupo-stat.micos {
-    color: var(--rodadas-danger);
-}
-
-.grupo-stat .material-symbols-outlined {
-    font-size: 14px;
-}
-
-.grupo-chevron {
+    font-size: 10px;
     color: var(--rodadas-text-muted);
-    transition: transform 0.3s ease;
 }
 
-.rodadas-grupo.expanded .grupo-chevron {
-    transform: rotate(180deg);
+.legenda-cor {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
 }
 
-/* === GRID DE RODADAS (dentro do grupo expandido) === */
-.grupo-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease, padding 0.3s ease;
+.legenda-cor.saldo-positivo {
+    background: var(--rodadas-bg-success);
+    border: 1px solid var(--rodadas-success);
 }
 
-.rodadas-grupo.expanded .grupo-content {
-    max-height: 600px;
-    padding: 0 16px 16px 16px;
+.legenda-cor.saldo-negativo {
+    background: var(--rodadas-bg-danger);
+    border: 1px solid var(--rodadas-danger);
+}
+
+.legenda-cor.mito {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1));
+    border: 1px solid var(--rodadas-success);
+    box-shadow: 0 0 4px rgba(34, 197, 94, 0.3);
+}
+
+.legenda-cor.mico {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.1));
+    border: 1px solid var(--rodadas-danger);
+    box-shadow: 0 0 4px rgba(239, 68, 68, 0.3);
+}
+
+.legenda-cor.futuro {
+    background: var(--rodadas-surface-elevated);
+    border: 1px solid var(--rodadas-border);
+    opacity: 0.3;
 }
 
 .rodadas-mini-grid {
@@ -314,6 +250,21 @@
     margin-top: 1px;
 }
 
+.mini-card-financeiro {
+    font-family: var(--rodadas-font-mono);
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.mini-card-financeiro.positivo {
+    color: var(--rodadas-success);
+}
+
+.mini-card-financeiro.negativo {
+    color: var(--rodadas-danger);
+}
+
 .badge-mini-destaque {
     position: absolute;
     top: -4px;
@@ -354,102 +305,6 @@
     animation: blink 1s infinite;
 }
 
-/* === SLIDER HORIZONTAL DE RODADAS === */
-.rodadas-slider-container {
-    margin-bottom: 20px;
-    position: relative;
-}
-
-.rodadas-slider-label {
-    font-size: 12px;
-    color: var(--rodadas-text-muted);
-    margin-bottom: 8px;
-    padding-left: 4px;
-}
-
-.rodadas-slider {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    padding: 8px 4px;
-    scrollbar-width: none;
-}
-
-.rodadas-slider::-webkit-scrollbar {
-    display: none;
-}
-
-.slider-rodada-card {
-    flex: 0 0 auto;
-    width: 56px;
-    height: 72px;
-    background: var(--rodadas-surface-elevated);
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    scroll-snap-align: center;
-    transition: all 0.2s ease;
-    position: relative;
-    border: 2px solid transparent;
-}
-
-.slider-rodada-card:hover:not(.futuro) {
-    background: var(--rodadas-surface-hover);
-}
-
-.slider-rodada-card.selected {
-    border-color: var(--rodadas-primary);
-    background: rgba(249, 115, 22, 0.15);
-    transform: scale(1.05);
-}
-
-.slider-rodada-card.atual {
-    border-color: var(--rodadas-success);
-    background: rgba(34, 197, 94, 0.15);
-}
-
-.slider-rodada-card.futuro {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.slider-rodada-card.saldo-positivo {
-    background: var(--rodadas-bg-success);
-}
-
-.slider-rodada-card.saldo-negativo {
-    background: var(--rodadas-bg-danger);
-}
-
-.slider-numero {
-    font-family: var(--rodadas-font-brand);
-    font-size: 18px;
-    color: var(--rodadas-text-white);
-}
-
-.slider-pontos {
-    font-family: var(--rodadas-font-mono);
-    font-size: 10px;
-    color: var(--rodadas-text-muted);
-    margin-top: 2px;
-}
-
-.slider-badge-live {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 8px;
-    height: 8px;
-    background: var(--rodadas-success);
-    border-radius: 50%;
-    animation: blink 1s infinite;
-}
-
 /* === CARD DE DESEMPENHO === */
 .card-desempenho-mitos-micos {
     background: linear-gradient(135deg, var(--rodadas-surface) 0%, var(--rodadas-surface-elevated) 100%);
@@ -464,7 +319,7 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
-    color: var(--rodadas-primary);
+    color: var(--rodadas-text-white);
     font-weight: 600;
     font-size: 14px;
 }
@@ -475,8 +330,8 @@
 
 .badge-rodadas {
     margin-left: auto;
-    background: rgba(249, 115, 22, 0.2);
-    color: var(--rodadas-primary);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--rodadas-text-muted);
     padding: 4px 10px;
     border-radius: 12px;
     font-size: 11px;
@@ -606,7 +461,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px;
-    background: linear-gradient(135deg, var(--rodadas-primary) 0%, var(--rodadas-primary-dark) 100%);
+    background: var(--rodadas-surface-elevated);
+    border-bottom: 1px solid var(--rodadas-border);
 }
 
 .detalhamento-info h3 {
@@ -944,12 +800,6 @@
     </div>
 
 
-
-    <!-- Slider Horizontal de Rodadas -->
-    <div id="rodadasSliderContainer" class="rodadas-slider-container" style="display: none;">
-        <div class="rodadas-slider-label">Navegação rápida</div>
-        <div id="rodadasSlider" class="rodadas-slider"></div>
-    </div>
 
     <div id="rodadasLoading" class="rodadas-loading-state">
         <div class="loading-spinner-rodadas"></div>

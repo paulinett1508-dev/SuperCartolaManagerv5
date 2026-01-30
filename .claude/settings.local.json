@@ -96,7 +96,8 @@
       "Bash(else echo \"⚠️ Servidor não respondeu\")",
       "Bash(if curl -s \"http://localhost:5000/api/cartola/mercado/status\")",
       "Bash(then echo \"✅ Servidor reiniciado com sucesso!\" echo \"\" echo \"📊 Status do Mercado:\" curl -s \"http://localhost:5000/api/cartola/mercado/status\")",
-      "Bash(then echo \"✅ Servidor reiniciado com sucesso!\" echo \"\" echo \"🔍 Processos Node ativos:\" ps aux)"
+      "Bash(then echo \"✅ Servidor reiniciado com sucesso!\" echo \"\" echo \"🔍 Processos Node ativos:\" ps aux)",
+      "Skill(fact-checker)"
     ]
   },
   "enableAllProjectMcpServers": true,

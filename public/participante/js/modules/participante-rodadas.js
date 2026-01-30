@@ -1,6 +1,6 @@
 // =====================================================================
 // PARTICIPANTE-RODADAS.JS - v5.0 EXPANDABLE NAVIGATION
-// ✅ v5.0: Redesign completo - Grupos expansíveis + Slider + Card Destaque
+// ✅ v5.1: Grid único de rodadas + Card Destaque
 // ✅ v4.6: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v4.5: Removido LIGAS_CONFIG hardcoded - configs vêm do servidor
 // ✅ v4.4: CACHE-FIRST - Carregamento instantâneo do IndexedDB
@@ -20,14 +20,7 @@ let ligaId = null;
 let rodadaSelecionada = null;
 let rodadaAtualCartola = 38;
 let parciaisInfo = null;
-let grupoExpandido = null; // Qual grupo está expandido
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
-
-// Configuração dos grupos de rodadas
-const GRUPOS_CONFIG = [
-    { id: '1turno', nome: '1º Turno', subtitulo: 'Rodadas 1-19', inicio: 1, fim: 19, icon: 'looks_one' },
-    { id: '2turno', nome: '2º Turno', subtitulo: 'Rodadas 20-38', inicio: 20, fim: 38, icon: 'looks_two' },
-];
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -203,95 +196,19 @@ function getTotalParticipantesAtivos(rodada) {
 // RENDERIZAR INTERFACE COMPLETA
 // =====================================================================
 function renderizarInterface(rodadas) {
-    // 1. Renderizar Slider Horizontal
-    renderizarSlider(rodadas);
-
-    // 2. Renderizar Grupos Expansíveis
+    // 1. Renderizar Grid de Rodadas
     renderizarGrupos(rodadas);
 
-    // 3. Renderizar Card de Desempenho
+    // 2. Renderizar Card de Desempenho
     renderizarCardDesempenho(rodadas);
 
-    // 4. Mostrar container de grupos
+    // 3. Mostrar container
     const container = document.getElementById('rodadasGruposContainer');
     if (container) container.style.display = 'flex';
-
-    // 5. Deixar todos os grupos colapsados; participante decide ao tocar
 }
 
 // =====================================================================
-// SLIDER HORIZONTAL
-// =====================================================================
-function renderizarSlider(rodadas) {
-    const container = document.getElementById('rodadasSliderContainer');
-    const slider = document.getElementById('rodadasSlider');
-    if (!container || !slider) return;
-
-    const rodadasMap = new Map();
-    rodadas.forEach(r => rodadasMap.set(r.numero, r));
-
-    let html = '';
-    for (let i = 1; i <= 38; i++) {
-        const rodada = rodadasMap.get(i);
-        const isParcial = parciaisInfo?.disponivel && i === parciaisInfo.rodada;
-        const isFuturo = i > rodadaAtualCartola;
-        const isAtual = i === rodadaAtualCartola;
-        const temDados = rodada && rodada.participantes.length > 0;
-        const valorFinanceiro = rodada?.valorFinanceiro;
-
-        let classes = ['slider-rodada-card'];
-        if (isParcial) classes.push('atual');
-        else if (isFuturo) classes.push('futuro');
-        else if (isAtual && !isParcial) classes.push('atual');
-
-        if (valorFinanceiro > 0) classes.push('saldo-positivo');
-        else if (valorFinanceiro < 0) classes.push('saldo-negativo');
-
-        let pontosTexto = '';
-        if (isParcial) {
-            pontosTexto = '⏳';
-        } else if (temDados && rodada.jogou && rodada.meusPontos > 0) {
-            pontosTexto = rodada.meusPontos.toFixed(0);
-        }
-
-        const badgeLive = isParcial ? '<span class="slider-badge-live"></span>' : '';
-
-        html += `
-            <div class="${classes.join(' ')}" data-rodada="${i}" onclick="window.selecionarRodadaSlider(${i}, ${isParcial})">
-                ${badgeLive}
-                <span class="slider-numero">${i}</span>
-                ${pontosTexto ? `<span class="slider-pontos">${pontosTexto}</span>` : ''}
-            </div>
-        `;
-    }
-
-    slider.innerHTML = html;
-    container.style.display = 'block';
-
-    // Scroll para rodada atual
-    setTimeout(() => {
-        const rodadaAtual = slider.querySelector(`.slider-rodada-card.atual`) ||
-                           slider.querySelector(`[data-rodada="${rodadaAtualCartola}"]`);
-        if (rodadaAtual) {
-            rodadaAtual.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        }
-    }, 100);
-}
-
-window.selecionarRodadaSlider = function(numero, isParcial) {
-    // Atualizar seleção visual no slider
-    document.querySelectorAll('.slider-rodada-card').forEach(card => {
-        card.classList.remove('selected');
-    });
-    const card = document.querySelector(`.slider-rodada-card[data-rodada="${numero}"]`);
-    if (card && !card.classList.contains('futuro')) {
-        card.classList.add('selected');
-        selecionarRodada(numero, isParcial);
-    }
-};
-
-// =====================================================================
-// GRUPOS EXPANSÍVEIS
+// GRID DE RODADAS
 // =====================================================================
 function renderizarGrupos(rodadas) {
     const container = document.getElementById('rodadasGruposContainer');
@@ -300,70 +217,18 @@ function renderizarGrupos(rodadas) {
     const rodadasMap = new Map();
     rodadas.forEach(r => rodadasMap.set(r.numero, r));
 
-    let html = '';
-
-    GRUPOS_CONFIG.forEach(grupo => {
-        // Calcular stats do grupo
-        let mitos = 0;
-        let micos = 0;
-        let rodadasJogadas = 0;
-        let contemRodadaAtual = false;
-
-        for (let i = grupo.inicio; i <= grupo.fim; i++) {
-            const rodada = rodadasMap.get(i);
-            if (!rodada || !rodada.jogou) continue;
-
-            rodadasJogadas++;
-
-            const destaqueRodada = obterMitoMicoDaRodada(rodada);
-            if (destaqueRodada) {
-                if (compararTimeIds(destaqueRodada.mito?.timeId, meuTimeId)) {
-                    mitos++;
-                }
-                if (compararTimeIds(destaqueRodada.mico?.timeId, meuTimeId)) {
-                    micos++;
-                }
-            }
-
-            // Verificar se contém rodada atual/parcial
-            if (parciaisInfo?.disponivel && i === parciaisInfo.rodada) {
-                contemRodadaAtual = true;
-            } else if (i === rodadaAtualCartola) {
-                contemRodadaAtual = true;
-            }
-        }
-
-        // Renderizar grupo
-        html += `
-            <div class="rodadas-grupo" id="grupo-${grupo.id}" data-grupo="${grupo.id}">
-                <div class="grupo-header" onclick="window.toggleGrupo('${grupo.id}')">
-                    <div class="grupo-header-left">
-                        <div class="grupo-icon">
-                            <span class="material-symbols-outlined">${grupo.icon}</span>
-                        </div>
-                        <div>
-                            <div class="grupo-title">${grupo.nome}</div>
-                            <div class="grupo-subtitle">${grupo.subtitulo}${contemRodadaAtual ? ' • Atual' : ''}</div>
-                        </div>
-                    </div>
-                    <div class="grupo-header-right">
-                        <div class="grupo-stats">
-                            ${mitos > 0 ? `<span class="grupo-stat mitos"><span class="material-symbols-outlined">emoji_events</span>${mitos}</span>` : ''}
-                            ${micos > 0 ? `<span class="grupo-stat micos"><span class="material-symbols-outlined">thumb_down</span>${micos}</span>` : ''}
-                        </div>
-                        <span class="material-symbols-outlined grupo-chevron">expand_more</span>
-                    </div>
-                </div>
-                <div class="grupo-content">
-                    <div class="rodadas-mini-grid" id="grid-${grupo.id}">
-                        ${renderizarMiniCards(grupo.inicio, grupo.fim, rodadasMap)}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-
-    container.innerHTML = html;
+    container.innerHTML = `
+        <div class="rodadas-mini-grid" id="grid-todas">
+            ${renderizarMiniCards(1, 38, rodadasMap)}
+        </div>
+        <div class="rodadas-legenda">
+            <span class="legenda-item"><span class="legenda-cor saldo-positivo"></span>Ganhou</span>
+            <span class="legenda-item"><span class="legenda-cor saldo-negativo"></span>Perdeu</span>
+            <span class="legenda-item"><span class="legenda-cor mito"></span>Mito</span>
+            <span class="legenda-item"><span class="legenda-cor mico"></span>Mico</span>
+            <span class="legenda-item"><span class="legenda-cor futuro"></span>Futuro</span>
+        </div>
+    `;
 }
 
 function renderizarMiniCards(inicio, fim, rodadasMap) {
@@ -409,6 +274,13 @@ function renderizarMiniCards(inicio, fim, rodadasMap) {
         else if (temDados && jogou && pontos > 0) pontosTexto = pontos.toFixed(0);
         else if (temDados && !jogou) pontosTexto = 'N/J';
 
+        // Formatar valor financeiro
+        let financeiroTexto = '';
+        if (jogou && valorFinanceiro != null && valorFinanceiro !== 0) {
+            const abs = Math.abs(valorFinanceiro);
+            financeiroTexto = valorFinanceiro > 0 ? `+${abs.toFixed(0)}` : `-${abs.toFixed(0)}`;
+        }
+
         const badgeAoVivo = isParcial ? '<span class="badge-mini-ao-vivo">●</span>' : '';
         let badgeDestaque = '';
         if (tipoDestaque === 'mito') {
@@ -423,6 +295,7 @@ function renderizarMiniCards(inicio, fim, rodadasMap) {
                 ${badgeDestaque}
                 <span class="mini-card-numero">${i}</span>
                 ${pontosTexto ? `<span class="mini-card-pontos">${pontosTexto}</span>` : ''}
+                ${financeiroTexto ? `<span class="mini-card-financeiro ${valorFinanceiro > 0 ? 'positivo' : 'negativo'}">${financeiroTexto}</span>` : ''}
             </div>
         `;
     }
@@ -437,49 +310,10 @@ window.selecionarRodadaMini = function(numero, isParcial) {
         document.querySelectorAll('.rodada-mini-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
 
-        // Atualizar slider também
-        document.querySelectorAll('.slider-rodada-card').forEach(c => c.classList.remove('selected'));
-        const sliderCard = document.querySelector(`.slider-rodada-card[data-rodada="${numero}"]`);
-        if (sliderCard) sliderCard.classList.add('selected');
-
         selecionarRodada(numero, isParcial);
     }
 };
 
-window.toggleGrupo = function(grupoId) {
-    const grupo = document.getElementById(`grupo-${grupoId}`);
-    if (!grupo) return;
-
-    const wasExpanded = grupo.classList.contains('expanded');
-
-    // Fechar todos os grupos
-    document.querySelectorAll('.rodadas-grupo').forEach(g => {
-        g.classList.remove('expanded');
-    });
-
-    // Se não estava expandido, expandir
-    if (!wasExpanded) {
-        grupo.classList.add('expanded');
-        grupoExpandido = grupoId;
-
-        // Scroll suave para o grupo
-        setTimeout(() => {
-            grupo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 100);
-    } else {
-        grupoExpandido = null;
-    }
-};
-
-function autoExpandirGrupoAtual() {
-    // Encontrar qual grupo contém a rodada atual
-    const rodadaAlvo = parciaisInfo?.disponivel ? parciaisInfo.rodada : rodadaAtualCartola;
-
-    const grupo = GRUPOS_CONFIG.find(g => rodadaAlvo >= g.inicio && rodadaAlvo <= g.fim);
-    if (grupo) {
-        window.toggleGrupo(grupo.id);
-    }
-}
 
 // =====================================================================
 // CARD DE DESEMPENHO MITOS/MICOS
@@ -584,7 +418,7 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
 
     rodadaSelecionada = numeroRodada;
     ParciaisModule.pararAutoRefresh?.();
-    PollingInteligenteModule.parar?.();
+    PollingInteligenteModule.pararPollingInteligente?.();
     atualizarIndicadorAutoRefresh({ ativo: false });
 
     const detalhamento = document.getElementById("rodadaDetalhamento");
@@ -608,7 +442,7 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
         await carregarERenderizarParciais(numeroRodada);
 
         // ✅ FEAT-026: Usar Polling Inteligente baseado em calendário
-        PollingInteligenteModule.inicializar({
+        PollingInteligenteModule.inicializarPollingInteligente({
             temporada: TEMPORADA_ATUAL,
             rodada: numeroRodada,
             ligaId: ligaId,
@@ -909,7 +743,7 @@ function renderizarSecaoInativos(inativos, rodadaNum) {
 // =====================================================================
 window.voltarParaCards = function () {
     ParciaisModule.pararAutoRefresh?.();
-    PollingInteligenteModule.parar?.();
+    PollingInteligenteModule.pararPollingInteligente?.();
     atualizarIndicadorAutoRefresh({ ativo: false });
 
     const detalhamento = document.getElementById("rodadaDetalhamento");
@@ -918,16 +752,16 @@ window.voltarParaCards = function () {
     }
 
     // Limpar seleções
-    document.querySelectorAll(".rodada-mini-card, .slider-rodada-card").forEach((card) => {
+    document.querySelectorAll(".rodada-mini-card").forEach((card) => {
         card.classList.remove("selected");
     });
 
     rodadaSelecionada = null;
 
-    // Scroll para o slider
-    const slider = document.getElementById('rodadasSliderContainer');
-    if (slider) {
-        slider.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Scroll para o grid
+    const grid = document.getElementById('rodadasGruposContainer');
+    if (grid) {
+        grid.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 };
 
@@ -979,11 +813,9 @@ function mostrarToast(msg) {
 function mostrarLoading(show) {
     const loading = document.getElementById("rodadasLoading");
     const grupos = document.getElementById("rodadasGruposContainer");
-    const slider = document.getElementById("rodadasSliderContainer");
 
     if (loading) loading.style.display = show ? "flex" : "none";
     if (grupos) grupos.style.display = show ? "none" : "flex";
-    if (slider) slider.style.display = show ? "none" : "block";
 }
 
 function mostrarEstadoVazio(show) {

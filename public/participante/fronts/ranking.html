@@ -1,14 +1,13 @@
-<!-- PARTICIPANTE RANKING - Interface Profissional v3.0 -->
+<!-- PARTICIPANTE RANKING - Mobile-First Compacto v4.0 -->
 <div class="ranking-participante-pro">
-    <!-- Header do Ranking -->
+    <!-- Header Compacto -->
     <div class="ranking-header-pro">
         <div class="header-row">
             <div class="header-content">
-                <div class="header-title">
+                <h2 class="header-title">
                     <span class="material-icons icon-trophy">emoji_events</span>
-                    <h2>Ranking Geral</h2>
-                </div>
-                <p class="header-subtitle">Classificação completa da liga</p>
+                    Ranking Geral
+                </h2>
             </div>
             <button
                 class="btn-share"
@@ -21,22 +20,13 @@
         </div>
     </div>
 
-    <!-- Tabs de Filtro -->
-    <div class="ranking-tabs">
-        <div class="tabs-container">
-            <button class="tab-btn" data-turno="1">1º turno</button>
-            <button class="tab-btn" data-turno="2">2º turno</button>
-            <button class="tab-btn active" data-turno="geral">Geral</button>
-        </div>
-    </div>
-
     <!-- Container da Tabela -->
     <div class="ranking-card-pro">
         <!-- Cabeçalho da Tabela -->
         <div class="ranking-table-header">
             <div class="col-pos">Pos</div>
             <div class="col-time">Time</div>
-            <div class="col-pontos">Pontos</div>
+            <div class="col-pontos">Pts</div>
         </div>
 
         <!-- Lista de Times -->
@@ -53,7 +43,7 @@
 <div id="rankingCardDesempenho" class="ranking-card-desempenho-container"></div>
 
 <style>
-    /* ===== RANKING PROFISSIONAL v3.3 - Russo One Brand ===== */
+    /* ===== RANKING MOBILE-FIRST v4.0 - Hierarquia G12/Z12 ===== */
     /* Fonts loaded from parent index.html */
 
     /* Variáveis - Mapeadas para tokens globais (_app-tokens.css) */
@@ -61,6 +51,7 @@
         /* Fontes - HERDADAS do _app-tokens.css */
         --rank-font-brand: var(--app-font-brand, 'Russo One', sans-serif);
         --rank-font-body: var(--app-font-base, 'Inter', -apple-system, sans-serif);
+        --rank-font-mono: var(--app-font-mono, 'JetBrains Mono', monospace);
         --rank-primary: var(--app-primary, #ff5c00);
         --rank-primary-light: var(--app-primary-light, #f97316);
         --rank-primary-alpha-15: rgba(255, 92, 0, 0.15);
@@ -77,12 +68,14 @@
         --rank-text-secondary: var(--app-text-secondary, rgba(255, 255, 255, 0.6));
         --rank-text-muted: var(--app-text-muted, rgba(255, 255, 255, 0.4));
         --rank-gold: var(--app-gold, #facc15);
-        --rank-gold-bg: var(--app-gold-muted, rgba(250, 204, 21, 0.1));
+        --rank-gold-bg: var(--app-gold-muted, rgba(250, 204, 21, 0.08));
         --rank-silver: var(--app-silver, #a1a1aa);
-        --rank-silver-bg: var(--app-silver-muted, rgba(161, 161, 170, 0.1));
+        --rank-silver-bg: var(--app-silver-muted, rgba(161, 161, 170, 0.08));
         --rank-bronze: var(--app-bronze, #d97706);
-        --rank-bronze-bg: var(--app-bronze-muted, rgba(217, 119, 6, 0.1));
-        --rank-danger: var(--app-danger-muted, rgba(239, 68, 68, 0.15));
+        --rank-bronze-bg: var(--app-bronze-muted, rgba(217, 119, 6, 0.08));
+        --rank-green: var(--app-success, #22c55e);
+        --rank-green-bg: rgba(34, 197, 94, 0.08);
+        --rank-danger: var(--app-danger-muted, rgba(239, 68, 68, 0.12));
         --rank-danger-border: var(--app-danger, #ef4444);
         --rank-danger-light: #fca5a5;
         --rank-danger-alpha-40: rgba(239, 68, 68, 0.4);
@@ -90,54 +83,44 @@
 
     .ranking-participante-pro {
         font-family: var(--rank-font-body);
-        padding: 16px 0;
+        padding: 12px 0 80px;
+        min-height: 100vh;
     }
 
-    /* ===== HEADER ===== */
+    /* ===== HEADER COMPACTO ===== */
     .ranking-header-pro {
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         padding: 0 16px;
     }
 
     .header-row {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
         gap: 12px;
     }
 
     .header-content {
         flex: 1;
+        min-width: 0;
     }
 
     .header-title {
+        font-family: var(--rank-font-brand);
+        font-size: 20px;
+        font-weight: 400;
+        letter-spacing: 0.5px;
+        margin: 0;
+        color: var(--rank-text);
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 4px;
+        gap: 8px;
     }
 
     .header-title .icon-trophy {
-        font-size: 32px;
+        font-size: 24px;
         color: var(--rank-gold);
-    }
-
-    .header-title h2 {
-        font-family: var(--rank-font-brand);
-        font-size: 22px;
-        font-weight: 400; /* Russo One só tem peso 400 */
-        letter-spacing: 0.5px;
-        margin: 0;
-        background: linear-gradient(90deg, var(--rank-primary), var(--rank-primary-light));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .header-subtitle {
-        font-size: 14px;
-        color: var(--rank-text-secondary);
-        margin: 0;
+        flex-shrink: 0;
     }
 
     /* Botão Share */
@@ -162,45 +145,6 @@
     .btn-share:active {
         transform: scale(0.95);
         background: var(--rank-primary-alpha-25);
-    }
-
-    /* ===== TABS DE FILTRO ===== */
-    .ranking-tabs {
-        padding: 0 16px;
-        margin-bottom: 16px;
-    }
-
-    .tabs-container {
-        display: flex;
-        background: var(--rank-surface);
-        border-radius: 10px;
-        padding: 4px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .tab-btn {
-        flex: 1;
-        padding: 10px 12px;
-        border: none;
-        background: transparent;
-        font-family: var(--rank-font-brand);
-        font-size: 12px;
-        font-weight: 400;
-        letter-spacing: 0.3px;
-        color: var(--rank-text-secondary);
-        cursor: pointer;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }
-
-    .tab-btn:active {
-        transform: scale(0.98);
-    }
-
-    .tab-btn.active {
-        background: var(--rank-primary);
-        color: var(--rank-text-white);
-        box-shadow: 0 2px 8px var(--rank-primary-alpha-30);
     }
 
     /* ===== CARD CONTAINER ===== */
@@ -253,14 +197,15 @@
         border-radius: 4px;
     }
 
-    /* ===== ITEM DO RANKING ===== */
+    /* ===== ITEM DO RANKING (COMPACTO) ===== */
     .ranking-item {
         display: grid;
-        grid-template-columns: 56px 1fr 85px;
-        padding: 10px 12px;
+        grid-template-columns: 48px 1fr 70px;
+        padding: 8px 12px;
         align-items: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        transition: background 0.2s ease;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        transition: background 0.15s ease;
+        position: relative;
     }
 
     .ranking-item:last-child {
@@ -271,124 +216,125 @@
         background: rgba(255, 255, 255, 0.05);
     }
 
-    /* ===== PÓDIO (1º, 2º, 3º) ===== */
+    /* ===== PÓDIO (1º, 2º, 3º) - DESTACADO ===== */
     .ranking-item.podio-1 {
         background: var(--rank-gold-bg);
-        border-left: 4px solid var(--rank-gold);
+        border-left: 3px solid var(--rank-gold);
     }
 
     .ranking-item.podio-2 {
         background: var(--rank-silver-bg);
-        border-left: 4px solid var(--rank-silver);
+        border-left: 3px solid var(--rank-silver);
     }
 
     .ranking-item.podio-3 {
         background: var(--rank-bronze-bg);
-        border-left: 4px solid var(--rank-bronze);
+        border-left: 3px solid var(--rank-bronze);
+    }
+
+    /* ===== ZONA G12 (4º-12º) - PREMIAÇÃO ===== */
+    .ranking-item.zona-g12 {
+        background: var(--rank-green-bg);
+        border-left: 2px solid var(--rank-green);
     }
 
     /* ===== MEU TIME ===== */
     .ranking-item.meu-time {
         background: var(--rank-primary-alpha-15);
-        border-left: 4px solid var(--rank-primary);
+        border-left: 3px solid var(--rank-primary);
+        box-shadow: 0 0 0 1px var(--rank-primary-alpha-20);
     }
 
     .ranking-item.meu-time .time-nome,
     .ranking-item.meu-time .ranking-cartola {
         color: var(--rank-primary);
+        font-weight: 600;
     }
 
-    /* ===== ZONA DE REBAIXAMENTO ===== */
-    .ranking-item.zona-rebaixamento {
+    /* ===== ZONA Z12 (ÚLTIMAS 12 POSIÇÕES) - DESCENSO ===== */
+    .ranking-item.zona-z12 {
         background: var(--rank-danger);
+        border-left: 2px solid var(--rank-danger-border);
     }
 
-    .ranking-item.zona-rebaixamento .posicao-badge {
+    .ranking-item.zona-z12 .posicao-badge {
         background: var(--rank-danger-alpha-40);
         color: var(--rank-danger-light);
     }
 
-    .ranking-item.zona-rebaixamento .time-nome,
-    .ranking-item.zona-rebaixamento .ranking-cartola,
-    .ranking-item.zona-rebaixamento .pontos-valor,
-    .ranking-item.zona-rebaixamento .ranking-pontos-valor {
-        opacity: 0.8;
+    .ranking-item.zona-z12 .time-nome,
+    .ranking-item.zona-z12 .ranking-cartola,
+    .ranking-item.zona-z12 .pontos-valor {
+        opacity: 0.85;
     }
 
-    /* ===== POSIÇÃO ===== */
+    /* ===== POSIÇÃO (COMPACTA) ===== */
     .posicao-container {
         display: flex;
         align-items: center;
-        gap: 4px;
+        justify-content: center;
+        gap: 6px;
     }
 
     .ranking-posicao {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 6px;
+        justify-content: center;
+        gap: 4px;
     }
 
     .posicao-badge {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        font-family: var(--rank-font-brand);
-        font-size: 11px;
-        font-weight: 400;
+        min-width: 28px;
+        height: 28px;
+        padding: 0 6px;
+        border-radius: 6px;
+        font-family: var(--rank-font-mono);
+        font-size: 12px;
+        font-weight: 600;
         background: var(--rank-surface-light);
         color: var(--rank-text-secondary);
-    }
-
-    .ranking-escudo-wrap {
-        position: relative;
-        width: 28px;
-        height: 28px;
-    }
-
-    .ranking-escudo {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        background: rgba(255, 255, 255, 0.05);
-    }
-
-    .ranking-clube-escudo {
-        position: absolute;
-        bottom: -2px;
-        right: -2px;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 1px solid rgba(0, 0, 0, 0.4);
-        background: #111;
     }
 
     /* Badges coloridos do pódio */
     .podio-1 .posicao-badge {
         background: var(--rank-gold);
         color: var(--rank-text-dark);
+        font-size: 14px;
     }
 
     .podio-2 .posicao-badge {
         background: var(--rank-silver);
         color: var(--rank-text-dark);
+        font-size: 13px;
     }
 
     .podio-3 .posicao-badge {
         background: var(--rank-bronze);
         color: var(--rank-text-white);
+        font-size: 13px;
+    }
+
+    /* Badge zona G12 */
+    .zona-g12 .posicao-badge {
+        background: var(--rank-green-bg);
+        color: var(--rank-green);
+        border: 1px solid var(--rank-green);
+    }
+
+    /* Badge zona Z12 */
+    .zona-z12 .posicao-badge {
+        background: var(--rank-danger);
+        color: var(--rank-danger-light);
+        border: 1px solid var(--rank-danger-border);
     }
 
     /* Ícone do pódio */
     .podio-icon {
-        font-size: 18px;
+        font-size: 20px;
+        line-height: 1;
     }
 
     .podio-1 .podio-icon {
@@ -403,13 +349,50 @@
         color: var(--rank-bronze);
     }
 
-    /* ===== INFO DO TIME ===== */
+    .ranking-escudo-wrap {
+        position: relative;
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+
+    .ranking-escudo {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .ranking-clube-escudo {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        background: #111;
+    }
+
+    /* ===== INFO DO TIME (COMPACTA) ===== */
     .time-info-container,
     .ranking-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .time-dados {
         display: flex;
         flex-direction: column;
         gap: 2px;
         min-width: 0;
+        flex: 1;
     }
 
     .time-nome,
@@ -420,6 +403,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-height: 1.3;
     }
 
     .time-cartoleiro,
@@ -429,17 +413,33 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-height: 1.2;
     }
 
-    /* ===== PONTOS ===== */
+    /* ===== PONTOS (MONO) ===== */
     .pontos-valor,
     .ranking-pontos-valor {
-        font-family: var(--rank-font-brand);
+        font-family: var(--rank-font-mono);
         font-size: 14px;
-        font-weight: 400;
-        letter-spacing: -0.3px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
         color: var(--rank-text);
         text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Destaque pontos do pódio */
+    .podio-1 .pontos-valor {
+        color: var(--rank-gold);
+        font-size: 15px;
+    }
+
+    .podio-2 .pontos-valor {
+        color: var(--rank-silver);
+    }
+
+    .podio-3 .pontos-valor {
+        color: var(--rank-bronze);
     }
 
     .ranking-pontos {
@@ -527,42 +527,79 @@
         margin: 0;
     }
 
+    /* ===== DIVIDERS DE ZONA ===== */
+    .zona-divider {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.02);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        margin: 4px 0;
+    }
+
+    .zona-divider .material-icons {
+        font-size: 16px;
+        color: var(--rank-text-muted);
+    }
+
+    .zona-divider span {
+        font-size: 10px;
+        color: var(--rank-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .zona-divider.g12-end {
+        border-bottom-color: var(--rank-green);
+    }
+
+    .zona-divider.g12-end .material-icons {
+        color: var(--rank-green);
+    }
+
+    .zona-divider.g12-end span {
+        color: var(--rank-green);
+    }
+
+    .zona-divider.z12-start {
+        border-top-color: var(--rank-danger-border);
+    }
+
+    .zona-divider.z12-start .material-icons {
+        color: var(--rank-danger-light);
+    }
+
+    .zona-divider.z12-start span {
+        color: var(--rank-danger-light);
+    }
+
     /* ===== RESPONSIVO ===== */
     @media (max-width: 360px) {
         .ranking-table-header,
         .ranking-item {
-            grid-template-columns: 74px 1fr 90px;
-            padding: 12px;
+            grid-template-columns: 42px 1fr 65px;
+            padding: 7px 10px;
         }
 
-        .header-title h2 {
-            font-size: 20px;
+        .header-title {
+            font-size: 18px;
         }
 
-        .tab-btn {
+        .time-nome {
             font-size: 12px;
-            padding: 8px 10px;
         }
 
-        .time-nome,
         .pontos-valor {
             font-size: 13px;
         }
 
         .posicao-badge {
-            width: 24px;
+            min-width: 24px;
             height: 24px;
-            font-size: 10px;
-        }
-
-        .ranking-escudo-wrap {
-            width: 30px;
-            height: 30px;
-        }
-
-        .ranking-escudo {
-            width: 30px;
-            height: 30px;
+            font-size: 11px;
         }
     }
 
@@ -572,11 +609,6 @@
             margin: 0 auto;
         }
 
-        .ranking-tabs {
-            max-width: 600px;
-            margin: 0 auto 16px;
-        }
-
         .ranking-header-pro {
             max-width: 600px;
             margin: 0 auto 16px;
@@ -584,17 +616,83 @@
 
         .ranking-table-header,
         .ranking-item {
-            grid-template-columns: 100px 1fr 130px;
-            padding: 16px 20px;
+            grid-template-columns: 60px 1fr 90px;
+            padding: 10px 16px;
         }
 
-        .time-nome,
+        .time-nome {
+            font-size: 14px;
+        }
+
         .pontos-valor {
             font-size: 15px;
         }
     }
 
-    /* v3.2: Card Desempenho ao final */
+    /* ===== BADGES E ESTADOS ===== */
+    .badge-inativo {
+        display: inline-flex;
+        align-items: center;
+        font-size: 9px;
+        background: var(--rank-danger-border);
+        color: #fff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .badge-voce {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 9px;
+        background: var(--rank-primary);
+        color: #fff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .badge-voce .material-icons {
+        font-size: 10px;
+    }
+
+    .ranking-item.inativo {
+        opacity: 0.4;
+        background: rgba(0, 0, 0, 0.3) !important;
+        border-left: 2px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* ===== EMPTY/LOADING STATES ===== */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+        min-height: 300px;
+    }
+
+    .empty-state .material-icons {
+        font-size: 48px;
+        color: var(--rank-text-muted);
+        margin-bottom: 16px;
+    }
+
+    .empty-state p {
+        color: var(--rank-text-secondary);
+        margin: 4px 0;
+        max-width: 320px;
+    }
+
+    /* v3.2: Card Desempenho ao final (MANTIDO PARA COMPATIBILIDADE) */
     .ranking-card-desempenho-container {
         padding: 0 12px;
         margin-top: 16px;

@@ -8,49 +8,47 @@
 
 import mongoose from "mongoose";
 import Rodada from "../models/Rodada.js";
-import { SEASON_CONFIG } from "../config/seasons.js";
+import Time from "../models/Time.js"; // Importar modelo Time
+import ModuleConfig from "../models/ModuleConfig.js"; // Importar ModuleConfig
+import { calcularTamanhoIdealMataMata } from "../utils/tournamentUtils.js"; // Importar nova função
+import mataMataRules from "../config/rules/mata_mata.json" assert { type: "json" }; // Importar regras padrão
+import { CURRENT_SEASON } from "../config/seasons.js";
+import _ from 'lodash';
+
 
 // ============================================================================
-// CONFIGURAÇÃO DAS EDIÇÕES (sincronizado com mata-mata-config.js)
+// CONFIGURAÇÃO DINÂMICA
 // ============================================================================
 
-const EDICOES_MATA_MATA = [
-    {
-        id: 1,
-        nome: "1ª Edição",
-        rodadaInicial: 3,  // ✅ FIX: Era 2, mas R2 é só definição. Competição começa R3
-        rodadaFinal: 7,
-        rodadaDefinicao: 2,
-    },
-    {
-        id: 2,
-        nome: "2ª Edição",
-        rodadaInicial: 10, // ✅ FIX: Era 9, mas R9 é só definição. Competição começa R10
-        rodadaFinal: 14,
-        rodadaDefinicao: 9,
-    },
-    {
-        id: 3,
-        nome: "3ª Edição",
-        rodadaInicial: 16, // ✅ FIX: Era 15, mas R15 é só definição. Competição começa R16
-        rodadaFinal: 21,
-        rodadaDefinicao: 15,
-    },
-    {
-        id: 4,
-        nome: "4ª Edição",
-        rodadaInicial: 22, // ✅ OK: R21 é definição, R22 é início
-        rodadaFinal: 26,
-        rodadaDefinicao: 21,
-    },
-    {
-        id: 5,
-        nome: "5ª Edição",
-        rodadaInicial: 31, // ✅ OK: R30 é definição, R31 é início
-        rodadaFinal: 35,
-        rodadaDefinicao: 30,
-    },
-];
+/**
+ * Busca e mescla a configuração do mata-mata para uma liga específica.
+ * Carrega as regras padrão do JSON e sobrepõe com as configurações
+ * salvas no ModuleConfig para a liga.
+ */
+async function getMataMataConfig(ligaId) {
+    try {
+        const defaultConfig = _.cloneDeep(mataMataRules);
+
+        const moduleConfig = await ModuleConfig.findOne({
+            liga_id: ligaId,
+            temporada: CURRENT_SEASON,
+            modulo: 'mata_mata'
+        }).lean();
+
+        if (moduleConfig) {
+            // Mescla configurações, dando prioridade ao que está no DB
+            const mergedConfig = _.merge(defaultConfig, moduleConfig.configuracao_override || {});
+            return mergedConfig;
+        }
+
+        return defaultConfig;
+    } catch (error) {
+        console.error(`[MATA-BACKEND] Erro ao carregar configuração do mata-mata para liga ${ligaId}:`, error);
+        // Retorna o padrão em caso de erro para não quebrar a execução
+        return _.cloneDeep(mataMataRules);
+    }
+}
+
 
 // ============================================================================
 // FUNÇÕES AUXILIARES
@@ -130,12 +128,13 @@ function criarMapaPontos(ranking) {
 /**
  * Monta confrontos da 1ª Fase (1º vs 32º, 2º vs 31º, etc.)
  */
-function montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual) {
+function montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual, tamanhoTorneio) {
     const confrontos = [];
+    const metade = tamanhoTorneio / 2;
 
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < metade; i++) {
         const timeA = rankingBase[i];
-        const timeB = rankingBase[31 - i];
+        const timeB = rankingBase[tamanhoTorneio - 1 - i];
 
         if (!timeA || !timeB) continue;
 
@@ -154,7 +153,7 @@ function montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual) {
                 timeId: timeB.timeId,
                 nome: timeB.nome_time || timeB.nome_cartola,
                 pontos: pontosB,
-                rankR2: 32 - i,
+                rankR2: tamanhoTorneio - i,
             },
         });
     }
@@ -169,6 +168,7 @@ function montarConfrontosFase(
     vencedoresAnteriores,
     pontosRodadaAtual,
     numJogos,
+    tamanhoTorneio // Adicionado para referência
 ) {
     const confrontos = [];
 
@@ -253,27 +253,40 @@ function determinarVencedor(confronto) {
  * Calcula resultados financeiros de uma edição do Mata-Mata
  * Retorna array de { timeId, fase, rodadaPontos, valor }
  */
-async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual) {
+async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual, config) {
     const resultadosFinanceiros = [];
     const fases = ["primeira", "oitavas", "quartas", "semis", "final"];
 
     try {
+        // 1. Contar participantes ativos na liga
+        const totalParticipantes = await Time.countDocuments({ liga_id: ligaId, ativo: true });
+
+        // 2. Calcular tamanho ideal do torneio
+        const tamanhoTorneio = calcularTamanhoIdealMataMata(totalParticipantes);
+
+        if (tamanhoTorneio === 0) {
+            console.warn(`[MATA-BACKEND] Número de participantes (${totalParticipantes}) insuficiente para o mata-mata.`);
+            return [];
+        }
+
         // Buscar ranking da rodada de definição
         const rankingBase = await getRankingRodada(
             ligaId,
             edicao.rodadaDefinicao,
         );
 
-        // Exigir pelo menos 32 times para 1ª fase completa
-        if (!rankingBase || rankingBase.length < 32) {
+        // Exigir número de times do torneio para a 1ª fase
+        if (!rankingBase || rankingBase.length < tamanhoTorneio) {
             console.warn(
-                `[MATA-BACKEND] Ranking base insuficiente para ${edicao.nome}: ${rankingBase?.length || 0} times (esperado: 32)`,
+                `[MATA-BACKEND] Ranking base insuficiente para ${edicao.nome}: ${rankingBase?.length || 0} times (esperado: ${tamanhoTorneio})`,
             );
             return [];
         }
+        
+        const rankingClassificados = rankingBase.slice(0, tamanhoTorneio);
 
         console.log(
-            `[MATA-BACKEND] ${edicao.nome}: Ranking base com ${rankingBase.length} times`,
+            `[MATA-BACKEND] ${edicao.nome}: Torneio com ${tamanhoTorneio} times. Ranking base com ${rankingClassificados.length} times.`,
         );
 
         // Mapear rodadas de cada fase
@@ -285,7 +298,7 @@ async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual) {
             final: edicao.rodadaInicial + 4,
         };
 
-        let vencedoresAnteriores = rankingBase.map((r, idx) => ({
+        let vencedoresAnteriores = rankingClassificados.map((r, idx) => ({
             ...r,
             rankR2: idx + 1,
         }));
@@ -301,16 +314,7 @@ async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual) {
                 break;
             }
 
-            const numJogos =
-                fase === "primeira"
-                    ? 16
-                    : fase === "oitavas"
-                      ? 8
-                      : fase === "quartas"
-                        ? 4
-                        : fase === "semis"
-                          ? 2
-                          : 1;
+            const numJogos = Math.ceil(vencedoresAnteriores.length / 2);
 
             // Buscar pontos da rodada
             const rankingRodada = await getRankingRodada(
@@ -320,14 +324,12 @@ async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual) {
             const pontosRodada = criarMapaPontos(rankingRodada);
 
             // Montar confrontos
-            const confrontos =
-                fase === "primeira"
-                    ? montarConfrontosPrimeiraFase(rankingBase, pontosRodada)
-                    : montarConfrontosFase(
-                          vencedoresAnteriores,
-                          pontosRodada,
-                          numJogos,
-                      );
+            const confrontos = montarConfrontosFase(
+                vencedoresAnteriores,
+                pontosRodada,
+                numJogos,
+                tamanhoTorneio
+            );
 
             // Processar confrontos e determinar vencedores
             const proximosVencedores = [];
@@ -336,12 +338,16 @@ async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual) {
                 const { vencedor, perdedor } = determinarVencedor(confronto);
 
                 if (vencedor && perdedor) {
+                    // Usar valor da configuração
+                    const valorVitoria = config.financeiro.valores_por_fase[fase]?.vitoria || 10.0;
+                    const valorDerrota = config.financeiro.valores_por_fase[fase]?.derrota || -10.0;
+
                     // Registrar resultado financeiro do vencedor
                     resultadosFinanceiros.push({
                         timeId: String(vencedor.timeId),
                         fase: fase,
                         rodadaPontos: rodadaPontosNum,
-                        valor: 10.0,
+                        valor: valorVitoria,
                         edicao: edicao.id,
                     });
 
@@ -350,7 +356,7 @@ async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual) {
                         timeId: String(perdedor.timeId),
                         fase: fase,
                         rodadaPontos: rodadaPontosNum,
-                        valor: -10.0,
+                        valor: valorDerrota,
                         edicao: edicao.id,
                     });
 
@@ -387,10 +393,11 @@ export async function getResultadosMataMataCompleto(ligaId, rodadaAtual) {
         `[MATA-BACKEND] Calculando Mata-Mata para liga ${ligaId}, rodada ${rodadaAtual}`,
     );
 
+    const config = await getMataMataConfig(ligaId);
     const todosResultados = [];
 
     // Filtrar edições que já começaram
-    const edicoesProcessaveis = EDICOES_MATA_MATA.filter(
+    const edicoesProcessaveis = config.calendario.edicoes.filter(
         (edicao) => rodadaAtual > edicao.rodadaInicial,
     );
 
@@ -403,6 +410,7 @@ export async function getResultadosMataMataCompleto(ligaId, rodadaAtual) {
             ligaId,
             edicao,
             rodadaAtual,
+            config,
         );
         todosResultados.push(...resultadosEdicao);
     }
@@ -424,8 +432,10 @@ export async function calcularMataMataParaTime(
     rodadaNumero,
     rodadaAtual,
 ) {
+    const config = await getMataMataConfig(ligaId);
+
     // Verificar se a rodada faz parte de alguma edição
-    const edicao = EDICOES_MATA_MATA.find(
+    const edicao = config.calendario.edicoes.find(
         (e) => rodadaNumero >= e.rodadaInicial && rodadaNumero <= e.rodadaFinal,
     );
 
@@ -451,6 +461,7 @@ export async function calcularMataMataParaTime(
         ligaId,
         edicao,
         rodadaAtual,
+        config,
     );
 
     console.log(
