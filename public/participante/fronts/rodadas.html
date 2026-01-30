@@ -1,17 +1,17 @@
-<!-- PARTICIPANTE RODADAS - Template v4.0 -->
-<!-- Redesign: Navegação expansível com foco em tempo real -->
+<!-- PARTICIPANTE RODADAS - Template v6.0 -->
+<!-- Grid de rodadas + Detalhamento enriquecido -->
 <style>
 /* ============================================
-   RODADAS PARTICIPANTE v4.0 - Expandable Navigation
-   Design: Grupos expansíveis + Slider horizontal
+   RODADAS PARTICIPANTE v6.0 - Grid + Detail
+   Design System: Black & Orange (#FF4500)
    ============================================ */
 
 :root {
     --rodadas-font-brand: var(--app-font-brand, 'Russo One', sans-serif);
     --rodadas-font-body: 'Inter', -apple-system, sans-serif;
     --rodadas-font-mono: 'JetBrains Mono', monospace;
-    --rodadas-primary: var(--app-primary, #f97316);
-    --rodadas-primary-dark: var(--app-primary-dark, #ea580c);
+    --rodadas-primary: var(--app-primary, #FF4500);
+    --rodadas-primary-dark: var(--app-primary-dark, #CC3700);
     --rodadas-surface: var(--app-surface, #1a1a1a);
     --rodadas-surface-elevated: var(--app-surface-elevated, #262626);
     --rodadas-surface-hover: var(--app-surface-hover, #333);
@@ -51,7 +51,7 @@
 
 .rodadas-icon {
     font-size: 32px;
-    color: var(--rodadas-text-muted);
+    color: var(--rodadas-primary);
 }
 
 .rodadas-header-pro h2 {
@@ -105,60 +105,11 @@
     cursor: not-allowed;
 }
 
-/* === CONTAINER DE RODADAS === */
+/* === GRID DE RODADAS === */
 .rodadas-grupos-container {
-    padding: 0 4px;
-}
-
-/* === LEGENDA === */
-.rodadas-legenda {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 12px;
-    justify-content: center;
-    padding: 12px 0 4px;
-}
-
-.legenda-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 10px;
-    color: var(--rodadas-text-muted);
-}
-
-.legenda-cor {
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
-}
-
-.legenda-cor.saldo-positivo {
-    background: var(--rodadas-bg-success);
-    border: 1px solid var(--rodadas-success);
-}
-
-.legenda-cor.saldo-negativo {
-    background: var(--rodadas-bg-danger);
-    border: 1px solid var(--rodadas-danger);
-}
-
-.legenda-cor.mito {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1));
-    border: 1px solid var(--rodadas-success);
-    box-shadow: 0 0 4px rgba(34, 197, 94, 0.3);
-}
-
-.legenda-cor.mico {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.1));
-    border: 1px solid var(--rodadas-danger);
-    box-shadow: 0 0 4px rgba(239, 68, 68, 0.3);
-}
-
-.legenda-cor.futuro {
-    background: var(--rodadas-surface-elevated);
-    border: 1px solid var(--rodadas-border);
-    opacity: 0.3;
 }
 
 .rodadas-mini-grid {
@@ -195,7 +146,7 @@
 
 .rodada-mini-card.selected {
     border-color: var(--rodadas-primary);
-    background: rgba(249, 115, 22, 0.15);
+    background: rgba(255, 69, 0, 0.12);
 }
 
 .rodada-mini-card.futuro {
@@ -248,21 +199,6 @@
     font-size: 9px;
     color: var(--rodadas-text-muted);
     margin-top: 1px;
-}
-
-.mini-card-financeiro {
-    font-family: var(--rodadas-font-mono);
-    font-size: 8px;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.mini-card-financeiro.positivo {
-    color: var(--rodadas-success);
-}
-
-.mini-card-financeiro.negativo {
-    color: var(--rodadas-danger);
 }
 
 .badge-mini-destaque {
@@ -319,7 +255,7 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
-    color: var(--rodadas-text-white);
+    color: var(--rodadas-primary);
     font-weight: 600;
     font-size: 14px;
 }
@@ -330,8 +266,8 @@
 
 .badge-rodadas {
     margin-left: auto;
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--rodadas-text-muted);
+    background: rgba(255, 69, 0, 0.12);
+    color: var(--rodadas-primary);
     padding: 4px 10px;
     border-radius: 12px;
     font-size: 11px;
@@ -462,12 +398,12 @@
     align-items: center;
     padding: 16px;
     background: var(--rodadas-surface-elevated);
-    border-bottom: 1px solid var(--rodadas-border);
+    border-bottom: 2px solid var(--rodadas-primary);
 }
 
 .detalhamento-info h3 {
     font-family: var(--rodadas-font-brand);
-    color: var(--rodadas-text-white);
+    color: var(--rodadas-primary);
     font-size: 18px;
     font-weight: 400;
     letter-spacing: 0.3px;
@@ -475,7 +411,7 @@
 }
 
 .rodada-resumo {
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--rodadas-text-muted);
     font-size: 13px;
     margin: 0;
 }
@@ -504,8 +440,8 @@
     align-items: center;
     gap: 6px;
     padding: 10px 16px;
-    background: rgba(0, 0, 0, 0.2);
-    border: none;
+    background: var(--rodadas-surface-hover);
+    border: 1px solid var(--rodadas-border);
     border-radius: 8px;
     color: var(--rodadas-text-white);
     font-size: 13px;
@@ -515,7 +451,7 @@
 }
 
 .btn-voltar-pro:hover {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .btn-voltar-pro .material-symbols-outlined {
@@ -549,8 +485,8 @@
 }
 
 .ranking-item-pro.meu-time {
-    background: rgba(249, 115, 22, 0.15);
-    border: 1px solid rgba(249, 115, 22, 0.3);
+    background: rgba(255, 69, 0, 0.1);
+    border: 1px solid rgba(255, 69, 0, 0.25);
 }
 
 .ranking-item-pro.inativo {
@@ -635,7 +571,45 @@
 }
 
 .ranking-financeiro-pro.neutro {
-    color: var(--rodadas-text-dim);
+    color: var(--rodadas-text-white);
+}
+
+/* === ZONA LABELS (MITO, G2-G12, Z1-Z11, MICO) === */
+.zona-badge {
+    font-family: var(--rodadas-font-brand);
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.zona-badge.zona-mito {
+    background: linear-gradient(135deg, #FF4500 0%, #CC3700 100%);
+    color: #fff;
+}
+
+.zona-badge.zona-g {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--rodadas-success);
+}
+
+.zona-badge.zona-neutra {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--rodadas-text-muted);
+}
+
+.zona-badge.zona-z {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--rodadas-danger);
+}
+
+.zona-badge.zona-mico {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #fff;
 }
 
 /* === ESTADOS === */
@@ -741,8 +715,8 @@
     align-items: center;
     gap: 8px;
     padding: 10px 20px;
-    background: rgba(249, 115, 22, 0.15);
-    border: 1px solid rgba(249, 115, 22, 0.3);
+    background: rgba(255, 69, 0, 0.1);
+    border: 1px solid rgba(255, 69, 0, 0.2);
     border-radius: 8px;
     color: var(--rodadas-primary);
     font-size: 13px;
@@ -752,7 +726,69 @@
 }
 
 .btn-atualizar-parciais:hover {
-    background: rgba(249, 115, 22, 0.25);
+    background: rgba(255, 69, 0, 0.18);
+}
+
+/* === MEU RESUMO (summary card acima do ranking) === */
+.meu-resumo-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgba(255, 69, 0, 0.08);
+    border: 1px solid rgba(255, 69, 0, 0.2);
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.meu-resumo-posicao {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgba(255, 69, 0, 0.15);
+    color: var(--rodadas-primary);
+    font-family: var(--rodadas-font-brand);
+    font-size: 16px;
+}
+
+.meu-resumo-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.meu-resumo-nome {
+    font-weight: 600;
+    color: var(--rodadas-text-white);
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meu-resumo-detalhes {
+    font-size: 12px;
+    color: var(--rodadas-text-muted);
+    margin-top: 2px;
+}
+
+.meu-resumo-pontos {
+    text-align: right;
+}
+
+.meu-resumo-pontos-valor {
+    font-family: var(--rodadas-font-mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--rodadas-primary);
+}
+
+.meu-resumo-pontos-label {
+    font-size: 10px;
+    color: var(--rodadas-text-dim);
+    text-transform: uppercase;
 }
 
 .btn-atualizar-parciais .material-icons {
@@ -806,7 +842,7 @@
         <p>Carregando rodadas...</p>
     </div>
 
-    <!-- Grupos Expansíveis -->
+    <!-- Grid de Rodadas -->
     <div id="rodadasGruposContainer" class="rodadas-grupos-container" style="display: none;"></div>
 
     <div id="rodadasEmpty" class="rodadas-empty-state" style="display: none;">

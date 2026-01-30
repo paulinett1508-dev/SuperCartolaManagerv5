@@ -1,11 +1,16 @@
 // =====================================================================
-// PARTICIPANTE-RODADA-PARCIAL.JS - v2.2
+// PARTICIPANTE-RODADA-PARCIAL.JS - v3.0
+// ✅ v3.0: Dados enriquecidos (atletas, atletasEmCampo, capitao_id)
+//          Cache de escalação em memória (reduz requests por ciclo)
 // ✅ v2.2: Inativos aparecem em TODAS as rodadas
 // Exibe ranking parcial da rodada em andamento
 // CÁLCULO REAL: Busca atletas pontuados e calcula pontuação (igual admin)
 // =====================================================================
 
-if (window.Log) Log.info("[PARCIAIS] 📊 Carregando módulo v2.2...");
+if (window.Log) Log.info("[PARCIAIS] 📊 Carregando módulo v3.0...");
+
+// Cache de escalações em memória (escalação não muda durante a rodada)
+const _escalacaoCache = new Map();
 
 // Estado do módulo
 let estadoParciais = {
@@ -72,7 +77,10 @@ function aplicarConfigAutoRefresh() {
 // INICIALIZAÇÃO - Chamado pelo participante-rodadas.js
 // =====================================================================
 export async function inicializarParciais(ligaId, timeId) {
-    if (window.Log) Log.info("[PARCIAIS] 🚀 Inicializando v2.2...", { ligaId, timeId });
+    if (window.Log) Log.info("[PARCIAIS] 🚀 Inicializando v3.0...", { ligaId, timeId });
+
+    // Limpar cache de escalações ao reiniciar (nova rodada)
+    _escalacaoCache.clear();
 
     estadoParciais.ligaId = ligaId;
     estadoParciais.timeId = timeId;
@@ -347,40 +355,49 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
     }
 
     try {
-        const timestamp = Date.now();
+        // ✅ v3.0: Cache de escalação (não muda durante a rodada)
+        const cacheKey = `${timeId}_${rodada}`;
+        let dadosEscalacao = _escalacaoCache.get(cacheKey);
 
-        // Buscar escalação do time
-        const response = await fetch(
-            `/api/cartola/time/id/${timeId}/${rodada}?_t=${timestamp}`,
-            {
-                cache: "no-store",
-                headers: {
-                    "Cache-Control": "no-cache, no-store, must-revalidate",
-                    Pragma: "no-cache",
+        if (!dadosEscalacao) {
+            const timestamp = Date.now();
+            const response = await fetch(
+                `/api/cartola/time/id/${timeId}/${rodada}?_t=${timestamp}`,
+                {
+                    cache: "no-store",
+                    headers: {
+                        "Cache-Control": "no-cache, no-store, must-revalidate",
+                        Pragma: "no-cache",
+                    },
                 },
-            },
-        );
+            );
 
-        if (!response.ok) {
-            if (response.status === 404) {
-                return {
-                    timeId,
-                    nome_time: time.nome_time || time.nome || "N/D",
-                    nome_cartola: time.nome_cartola || time.cartoleiro || "N/D",
-                    escudo: time.url_escudo_png || time.escudo || null,
-                    pontos: 0,
-                    rodadaNaoJogada: true,
-                    ativo: true,
-                };
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return {
+                        timeId,
+                        nome_time: time.nome_time || time.nome || "N/D",
+                        nome_cartola: time.nome_cartola || time.cartoleiro || "N/D",
+                        escudo: time.url_escudo_png || time.escudo || null,
+                        pontos: 0,
+                        atletasEmCampo: 0,
+                        totalAtletas: 0,
+                        rodadaNaoJogada: true,
+                        ativo: true,
+                    };
+                }
+                throw new Error(`HTTP ${response.status}`);
             }
-            throw new Error(`HTTP ${response.status}`);
-        }
 
-        const dadosEscalacao = await response.json();
+            dadosEscalacao = await response.json();
+            _escalacaoCache.set(cacheKey, dadosEscalacao);
+        }
 
         // ✅ CALCULAR PONTUAÇÃO (igual ao admin)
         let pontos = 0;
+        let atletasEmCampo = 0;
         const posicoesQuePontuaram = new Set();
+        const atletasDetalhes = [];
 
         // Somar pontos dos TITULARES
         if (dadosEscalacao.atletas && Array.isArray(dadosEscalacao.atletas)) {
@@ -389,17 +406,30 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
                 const pontuacao = atletaPontuado?.pontuacao || 0;
                 const entrouEmCampo = atletaPontuado?.entrou_em_campo;
 
-                // Verificar se atleta entrou em campo
                 if (entrouEmCampo || pontuacao !== 0) {
                     posicoesQuePontuaram.add(atleta.posicao_id);
+                    atletasEmCampo++;
                 }
 
-                // Capitão pontua em dobro
-                if (atleta.atleta_id === dadosEscalacao.capitao_id) {
-                    pontos += pontuacao * 2;
-                } else {
-                    pontos += pontuacao;
+                let pontosEfetivos = pontuacao;
+                const isCapitao = atleta.atleta_id === dadosEscalacao.capitao_id;
+                if (isCapitao) {
+                    pontosEfetivos = pontuacao * 2;
                 }
+                pontos += pontosEfetivos;
+
+                atletasDetalhes.push({
+                    atleta_id: atleta.atleta_id,
+                    apelido: atleta.apelido || atletaPontuado?.apelido || '',
+                    posicao_id: atleta.posicao_id,
+                    clube_id: atleta.clube_id || atletaPontuado?.clube_id,
+                    pontos: pontuacao,
+                    pontos_efetivos: pontosEfetivos,
+                    entrou_em_campo: !!(entrouEmCampo || pontuacao !== 0),
+                    is_capitao: isCapitao,
+                    is_reserva: false,
+                    foto: atleta.foto || atletaPontuado?.foto || null,
+                });
             });
         }
 
@@ -409,22 +439,41 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
                 const atletaPontuado = atletasPontuados[atleta.atleta_id];
                 const pontuacao = atletaPontuado?.pontuacao || 0;
                 const entrouEmCampo = atletaPontuado?.entrou_em_campo;
+                let pontosEfetivos = 0;
+                let contribuiu = false;
 
-                // Reserva de luxo pontua 1.5x se entrou em campo
-                if (
-                    atleta.atleta_id === dadosEscalacao.reserva_luxo_id &&
-                    entrouEmCampo
-                ) {
-                    pontos += pontuacao * 1.5;
-                }
-                // Reserva comum substitui titular que não pontuou (só um por posição)
-                else if (
+                const isReservaLuxo = atleta.atleta_id === dadosEscalacao.reserva_luxo_id;
+
+                if (isReservaLuxo && entrouEmCampo) {
+                    pontosEfetivos = pontuacao * 1.5;
+                    pontos += pontosEfetivos;
+                    atletasEmCampo++;
+                    contribuiu = true;
+                } else if (
                     !posicoesQuePontuaram.has(atleta.posicao_id) &&
                     entrouEmCampo
                 ) {
-                    pontos += pontuacao;
+                    pontosEfetivos = pontuacao;
+                    pontos += pontosEfetivos;
                     posicoesQuePontuaram.add(atleta.posicao_id);
+                    atletasEmCampo++;
+                    contribuiu = true;
                 }
+
+                atletasDetalhes.push({
+                    atleta_id: atleta.atleta_id,
+                    apelido: atleta.apelido || atletaPontuado?.apelido || '',
+                    posicao_id: atleta.posicao_id,
+                    clube_id: atleta.clube_id || atletaPontuado?.clube_id,
+                    pontos: pontuacao,
+                    pontos_efetivos: pontosEfetivos,
+                    entrou_em_campo: !!(entrouEmCampo || pontuacao !== 0),
+                    is_capitao: false,
+                    is_reserva: true,
+                    is_reserva_luxo: isReservaLuxo,
+                    contribuiu,
+                    foto: atleta.foto || atletaPontuado?.foto || null,
+                });
             });
         }
 
@@ -439,6 +488,9 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
             time.escudo ||
             null;
 
+        const totalAtletas = (dadosEscalacao.atletas?.length || 0) +
+            (dadosEscalacao.reservas?.length || 0);
+
         return {
             timeId,
             nome_time: nomeTime,
@@ -450,6 +502,12 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
             rodadaNaoJogada:
                 !dadosEscalacao.atletas || dadosEscalacao.atletas.length === 0,
             ativo: true,
+            // ✅ v3.0: Dados enriquecidos
+            atletasEmCampo,
+            totalAtletas,
+            capitao_id: dadosEscalacao.capitao_id || null,
+            reserva_luxo_id: dadosEscalacao.reserva_luxo_id || null,
+            atletas: atletasDetalhes,
         };
     } catch (error) {
         if (window.Log) Log.warn(
@@ -462,6 +520,8 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
             nome_cartola: time.nome_cartola || "N/D",
             escudo: time.url_escudo_png || time.escudo || null,
             pontos: 0,
+            atletasEmCampo: 0,
+            totalAtletas: 0,
             erro: true,
             ativo: true,
         };
@@ -667,6 +727,23 @@ export function obterRodadaAtual() {
     return estadoParciais.rodadaAtual;
 }
 
+// =====================================================================
+// LIMPAR CACHE DE ESCALAÇÕES
+// =====================================================================
+export function limparCacheEscalacoes() {
+    _escalacaoCache.clear();
+    if (window.Log) Log.info("[PARCIAIS] 🗑️ Cache de escalações limpo");
+}
+
+// =====================================================================
+// OBTER ESCALAÇÃO CACHEADA DE UM TIME (para modal "Curiosar")
+// =====================================================================
+export function obterEscalacaoCacheada(timeId) {
+    const rodada = estadoParciais.rodadaAtual;
+    const cacheKey = `${timeId}_${rodada}`;
+    return _escalacaoCache.get(cacheKey) || null;
+}
+
 // Expor no window para debug e compatibilidade
 window.ParciaisModule = {
     inicializar: inicializarParciais,
@@ -678,8 +755,10 @@ window.ParciaisModule = {
     rodadaAtual: obterRodadaAtual,
     iniciarAutoRefresh,
     pararAutoRefresh,
+    limparCache: limparCacheEscalacoes,
+    obterEscalacaoCacheada,
 };
 
 if (window.Log) Log.info(
-    "[PARCIAIS] ✅ Módulo v2.2 carregado (inativos em todas as rodadas)",
+    "[PARCIAIS] ✅ Módulo v3.0 carregado (dados enriquecidos + cache escalação)",
 );

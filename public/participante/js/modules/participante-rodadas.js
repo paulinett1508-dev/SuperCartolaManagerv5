@@ -1,12 +1,15 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v5.0 EXPANDABLE NAVIGATION
-// ✅ v5.1: Grid único de rodadas + Card Destaque
+// PARTICIPANTE-RODADAS.JS - v6.0 CLEAN GRID + ENRICHED DETAIL
+// ✅ v6.0: Removido slider redundante, laranja sutil (#FF4500),
+//          detalhamento enriquecido com "Meu Resumo" card
+// ✅ v5.1: "Curiosar" + Badge "X/12 em campo"
+// ✅ v5.0: Redesign completo
 // ✅ v4.6: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v4.5: Removido LIGAS_CONFIG hardcoded - configs vêm do servidor
 // ✅ v4.4: CACHE-FIRST - Carregamento instantâneo do IndexedDB
 // =====================================================================
 
-if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v5.0 EXPANDABLE...");
+if (window.Log) Log.info("[PARTICIPANTE-RODADAS] Carregando modulo v6.0...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
@@ -31,7 +34,7 @@ export async function inicializarRodadasParticipante({
     timeId,
 }) {
     if (window.Log)
-        Log.info("[PARTICIPANTE-RODADAS] 🚀 Inicializando v5.0 (EXPANDABLE)...", {
+        Log.info("[PARTICIPANTE-RODADAS] Inicializando v6.0...", {
             ligaIdParam,
             timeId,
         });
@@ -197,7 +200,7 @@ function getTotalParticipantesAtivos(rodada) {
 // =====================================================================
 function renderizarInterface(rodadas) {
     // 1. Renderizar Grid de Rodadas
-    renderizarGrupos(rodadas);
+    renderizarGridRodadas(rodadas);
 
     // 2. Renderizar Card de Desempenho
     renderizarCardDesempenho(rodadas);
@@ -208,9 +211,9 @@ function renderizarInterface(rodadas) {
 }
 
 // =====================================================================
-// GRID DE RODADAS
+// GRID DE RODADAS (todas as rodadas, sem agrupamento por turno)
 // =====================================================================
-function renderizarGrupos(rodadas) {
+function renderizarGridRodadas(rodadas) {
     const container = document.getElementById('rodadasGruposContainer');
     if (!container) return;
 
@@ -218,15 +221,8 @@ function renderizarGrupos(rodadas) {
     rodadas.forEach(r => rodadasMap.set(r.numero, r));
 
     container.innerHTML = `
-        <div class="rodadas-mini-grid" id="grid-todas">
+        <div class="rodadas-mini-grid" id="grid-todas-rodadas" style="padding:0 4px;">
             ${renderizarMiniCards(1, 38, rodadasMap)}
-        </div>
-        <div class="rodadas-legenda">
-            <span class="legenda-item"><span class="legenda-cor saldo-positivo"></span>Ganhou</span>
-            <span class="legenda-item"><span class="legenda-cor saldo-negativo"></span>Perdeu</span>
-            <span class="legenda-item"><span class="legenda-cor mito"></span>Mito</span>
-            <span class="legenda-item"><span class="legenda-cor mico"></span>Mico</span>
-            <span class="legenda-item"><span class="legenda-cor futuro"></span>Futuro</span>
         </div>
     `;
 }
@@ -274,13 +270,6 @@ function renderizarMiniCards(inicio, fim, rodadasMap) {
         else if (temDados && jogou && pontos > 0) pontosTexto = pontos.toFixed(0);
         else if (temDados && !jogou) pontosTexto = 'N/J';
 
-        // Formatar valor financeiro
-        let financeiroTexto = '';
-        if (jogou && valorFinanceiro != null && valorFinanceiro !== 0) {
-            const abs = Math.abs(valorFinanceiro);
-            financeiroTexto = valorFinanceiro > 0 ? `+${abs.toFixed(0)}` : `-${abs.toFixed(0)}`;
-        }
-
         const badgeAoVivo = isParcial ? '<span class="badge-mini-ao-vivo">●</span>' : '';
         let badgeDestaque = '';
         if (tipoDestaque === 'mito') {
@@ -295,7 +284,6 @@ function renderizarMiniCards(inicio, fim, rodadasMap) {
                 ${badgeDestaque}
                 <span class="mini-card-numero">${i}</span>
                 ${pontosTexto ? `<span class="mini-card-pontos">${pontosTexto}</span>` : ''}
-                ${financeiroTexto ? `<span class="mini-card-financeiro ${valorFinanceiro > 0 ? 'positivo' : 'negativo'}">${financeiroTexto}</span>` : ''}
             </div>
         `;
     }
@@ -306,14 +294,13 @@ function renderizarMiniCards(inicio, fim, rodadasMap) {
 window.selecionarRodadaMini = function(numero, isParcial) {
     const card = document.querySelector(`.rodada-mini-card[data-rodada="${numero}"]`);
     if (card && !card.classList.contains('futuro')) {
-        // Atualizar seleção visual
         document.querySelectorAll('.rodada-mini-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
-
         selecionarRodada(numero, isParcial);
     }
 };
 
+// (Grupos expansíveis removidos na v5.1 - rodadas exibidas em grid único)
 
 // =====================================================================
 // CARD DE DESEMPENHO MITOS/MICOS
@@ -418,7 +405,7 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
 
     rodadaSelecionada = numeroRodada;
     ParciaisModule.pararAutoRefresh?.();
-    PollingInteligenteModule.pararPollingInteligente?.();
+    PollingInteligenteModule.parar?.();
     atualizarIndicadorAutoRefresh({ ativo: false });
 
     const detalhamento = document.getElementById("rodadaDetalhamento");
@@ -442,7 +429,7 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
         await carregarERenderizarParciais(numeroRodada);
 
         // ✅ FEAT-026: Usar Polling Inteligente baseado em calendário
-        PollingInteligenteModule.inicializarPollingInteligente({
+        PollingInteligenteModule.inicializar({
             temporada: TEMPORADA_ATUAL,
             rodada: numeroRodada,
             ligaId: ligaId,
@@ -574,6 +561,33 @@ function renderizarParciaisDados(numeroRodada, dados) {
 }
 
 // =====================================================================
+// ZONA LABELS - MITO, G2-G12, Neutro, Z1-Z11, MICO
+// =====================================================================
+function calcularZonaLabel(posicao, totalParticipantes, valorFinanceiro) {
+    if (!posicao || !totalParticipantes) return '';
+
+    // Derivar zona a partir do valorFinanceiro
+    if (valorFinanceiro > 0) {
+        // Zona de Ganho
+        if (posicao === 1) {
+            return '<span class="zona-badge zona-mito">MITO</span>';
+        }
+        return `<span class="zona-badge zona-g">G${posicao}</span>`;
+    } else if (valorFinanceiro < 0) {
+        // Zona de Risco - numerar de baixo pra cima
+        if (posicao === totalParticipantes) {
+            return '<span class="zona-badge zona-mico">MICO</span>';
+        }
+        // Z1 = primeiro da zona Z (mais perto do neutro), ZN = penúltimo
+        const zNum = totalParticipantes - posicao;
+        return `<span class="zona-badge zona-z">Z${zNum}</span>`;
+    }
+
+    // Neutro - sem label
+    return '';
+}
+
+// =====================================================================
 // DETALHAMENTO DA RODADA
 // =====================================================================
 function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = []) {
@@ -630,7 +644,50 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
 
     if (!container) return;
 
-    let html = participantesOrdenados.map((participante, index) => {
+    // === "MEU RESUMO" card no topo do detalhamento ===
+    let meuResumoHTML = '';
+    const meuPartIndex = participantesOrdenados.findIndex(
+        (p) => String(p.timeId || p.time_id) === String(meuTimeId)
+    );
+    if (meuPartIndex >= 0) {
+        const meuPart = participantesOrdenados[meuPartIndex];
+        const minhaPosicaoCalc = meuPart.posicao || meuPartIndex + 1;
+        const meusPontosCalc = Number(meuPart.pontos || 0);
+        const meusValor = meuPart.valorFinanceiro || 0;
+        const meusValorAbs = Math.abs(meusValor).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const meusValorTexto = meusValor > 0 ? `+R$ ${meusValorAbs}` : meusValor < 0 ? `-R$ ${meusValorAbs}` : '';
+        const meusValorCor = meusValor > 0 ? '#22c55e' : meusValor < 0 ? '#ef4444' : '#fff';
+        const meuNome = meuPart.nome || meuPart.nome_time || 'Meu Time';
+
+        // Detalhes extras: zona label + mito/mico
+        const meuZonaBadge = !isParcial ? calcularZonaLabel(minhaPosicaoCalc, totalParticipantes, meusValor) : '';
+        let detalhesExtra = meuZonaBadge;
+
+        // Em campo badge for parciais
+        const emCampoInfo = isParcial && meuPart.totalAtletas > 0
+            ? `<span style="margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:${meuPart.atletasEmCampo > 0 ? '#22c55e' : '#6b7280'}">${meuPart.atletasEmCampo}/${meuPart.totalAtletas} em campo</span>`
+            : '';
+
+        meuResumoHTML = `
+            <div class="meu-resumo-card">
+                <div class="meu-resumo-posicao">${minhaPosicaoCalc}&#186;</div>
+                <div class="meu-resumo-info">
+                    <div class="meu-resumo-nome">${meuNome}</div>
+                    <div class="meu-resumo-detalhes">
+                        ${detalhesExtra}
+                        ${!isParcial && meusValorTexto ? `<span style="color:${meusValorCor};font-family:'JetBrains Mono',monospace;font-size:12px;">${meusValorTexto}</span>` : ''}
+                        ${emCampoInfo}
+                    </div>
+                </div>
+                <div class="meu-resumo-pontos">
+                    <div class="meu-resumo-pontos-valor">${meusPontosCalc.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                    <div class="meu-resumo-pontos-label">pontos</div>
+                </div>
+            </div>
+        `;
+    }
+
+    let html = meuResumoHTML + participantesOrdenados.map((participante, index) => {
         const timeId = participante.timeId || participante.time_id;
         const isMeuTime = String(timeId) === String(meuTimeId);
         const posicao = participante.posicao || index + 1;
@@ -658,17 +715,32 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         const nomeTime = participante.nome || participante.nome_time || "N/D";
         const naoJogouBadge = participante.rodadaNaoJogada ? '<span class="badge-nao-jogou">N/E</span>' : "";
 
+        // ✅ v6.0: Badge de zona (MITO, G2-G12, Z1-Z11, MICO)
+        const zonaBadge = !isParcial ? calcularZonaLabel(posicao, totalParticipantes, valorFinanceiro) : '';
+
+        // ✅ v3.0: Badge "X/12 em campo" e clique para curiosar
+        const emCampo = participante.atletasEmCampo || 0;
+        const totalAtl = participante.totalAtletas || 0;
+        const badgeEmCampo = isParcial && totalAtl > 0
+            ? `<span class="badge-em-campo ${emCampo > 0 ? 'ativo' : ''}">${emCampo}/${totalAtl}</span>`
+            : "";
+
+        const curiosarAttr = isParcial && !participante.rodadaNaoJogada
+            ? `data-curiosar-time-id="${timeId}" style="cursor: pointer;"`
+            : "";
+
         return `
-            <div class="ranking-item-pro ${isMeuTime ? "meu-time" : ""}">
+            <div class="ranking-item-pro ${isMeuTime ? "meu-time" : ""}" ${curiosarAttr}>
                 <div class="posicao-badge-pro ${posicaoClass}">${posicao}º</div>
                 <div class="ranking-info-pro">
-                    <div class="ranking-nome-time">${nomeTime} ${naoJogouBadge}</div>
-                    <div class="ranking-nome-cartola">${participante.nome_cartola || "N/D"}</div>
+                    <div class="ranking-nome-time">${nomeTime} ${naoJogouBadge} ${badgeEmCampo}</div>
+                    <div class="ranking-nome-cartola">${participante.nome_cartola || "N/D"}${zonaBadge}</div>
                 </div>
                 <div class="ranking-stats-pro">
                     <div class="ranking-pontos-pro">${pontosFormatados}</div>
-                    <div class="ranking-financeiro-pro ${financeiroClass}">${financeiroTexto}</div>
+                    <div class="ranking-financeiro-pro ${financeiroClass}">${isParcial ? '' : financeiroTexto}</div>
                 </div>
+                ${isParcial ? '<span class="material-icons curiosar-icon" style="font-size:16px;color:#6b7280;margin-left:4px;">visibility</span>' : ''}
             </div>
         `;
     }).join("");
@@ -688,7 +760,181 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
                 </button>
             </div>
         `);
+
+        // ✅ v3.0: Event listener para "Curiosar" - clicar no card abre campinho
+        container.querySelectorAll("[data-curiosar-time-id]").forEach((el) => {
+            el.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const targetTimeId = el.getAttribute("data-curiosar-time-id");
+                if (targetTimeId) abrirCampinhoModal(targetTimeId, rodadaData.numero);
+            });
+        });
     }
+}
+
+// =====================================================================
+// MODAL "CURIOSAR" - VER ESCALAÇÃO DE OUTRO TIME
+// =====================================================================
+function abrirCampinhoModal(targetTimeId, rodada) {
+    if (window.Log) Log.info("[RODADAS] 👀 Curiosar time:", targetTimeId);
+
+    // Buscar dados enriquecidos do parciais (já em cache)
+    const dadosParciais = ParciaisModule.obterDados?.();
+    const timeDados = dadosParciais?.participantes?.find(
+        (p) => String(p.timeId) === String(targetTimeId)
+    );
+
+    // Buscar escalação cacheada completa
+    const escalacaoCacheada = ParciaisModule.obterEscalacaoCacheada?.(targetTimeId);
+
+    const nomeTime = timeDados?.nome_time || "Time";
+    const nomeCartola = timeDados?.nome_cartola || "";
+    const pontos = timeDados?.pontos || 0;
+    const emCampo = timeDados?.atletasEmCampo || 0;
+    const totalAtl = timeDados?.totalAtletas || 0;
+    const atletas = timeDados?.atletas || [];
+    const capitaoId = timeDados?.capitao_id;
+    const isMeuTime = String(targetTimeId) === String(meuTimeId);
+
+    const pontosFormatados = Number(pontos).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+
+    // Posições do Cartola
+    const POSICOES = {
+        1: { nome: 'GOL', cor: '#FF4500' },
+        2: { nome: 'LAT', cor: '#3b82f6' },
+        3: { nome: 'ZAG', cor: '#3b82f6' },
+        4: { nome: 'MEI', cor: '#22c55e' },
+        5: { nome: 'ATA', cor: '#ef4444' },
+        6: { nome: 'TEC', cor: '#6b7280' },
+    };
+
+    // Separar titulares e reservas
+    const titulares = atletas.filter(a => !a.is_reserva);
+    const reservas = atletas.filter(a => a.is_reserva);
+
+    // Renderizar lista de atletas
+    function renderAtleta(a) {
+        const pos = POSICOES[a.posicao_id] || { nome: '???', cor: '#6b7280' };
+        const pontosAtl = Number(a.pontos_efetivos || 0).toFixed(1);
+        const pontosClass = a.pontos_efetivos > 0 ? 'color:#22c55e' : a.pontos_efetivos < 0 ? 'color:#ef4444' : 'color:#6b7280';
+        const emCampoIcon = a.entrou_em_campo
+            ? '<span style="color:#22c55e;font-size:10px;">&#9679;</span>'
+            : '<span style="color:#374151;font-size:10px;">&#9679;</span>';
+        const capitaoBadge = a.is_capitao ? '<span style="background:#eab308;color:#000;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:bold;margin-left:4px;">C</span>' : '';
+        const reservaLuxoBadge = a.is_reserva_luxo ? '<span style="background:#a855f7;color:#fff;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:bold;margin-left:4px;">L</span>' : '';
+
+        return `
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1f2937;">
+                ${emCampoIcon}
+                <span style="background:${pos.cor};color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;min-width:30px;text-align:center;font-weight:bold;">${pos.nome}</span>
+                <span style="flex:1;font-size:13px;color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.apelido || 'Atleta'}${capitaoBadge}${reservaLuxoBadge}</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:bold;${pontosClass};min-width:40px;text-align:right;">${pontosAtl}</span>
+            </div>
+        `;
+    }
+
+    const titularesHTML = titulares.length > 0
+        ? titulares.map(renderAtleta).join("")
+        : '<div style="color:#6b7280;padding:8px;text-align:center;">Sem dados de escalação</div>';
+
+    const reservasHTML = reservas.length > 0
+        ? `<div style="margin-top:12px;padding-top:8px;border-top:1px solid #374151;">
+             <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;margin-bottom:4px;font-weight:bold;">Banco</div>
+             ${reservas.map(renderAtleta).join("")}
+           </div>`
+        : '';
+
+    // Criar modal
+    const existente = document.getElementById("campinhoModal");
+    if (existente) existente.remove();
+
+    const modal = document.createElement("div");
+    modal.id = "campinhoModal";
+    modal.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0.7);animation:fadeIn 0.2s ease;";
+
+    modal.innerHTML = `
+        <div style="background:#111827;border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:0;animation:slideUp 0.3s ease;">
+            <!-- Header -->
+            <div style="position:sticky;top:0;background:#111827;padding:16px 20px;border-bottom:1px solid #1f2937;display:flex;align-items:center;justify-content:space-between;z-index:1;">
+                <div>
+                    <div style="font-family:'Russo One',sans-serif;font-size:16px;color:#fff;">${nomeTime}</div>
+                    <div style="font-size:12px;color:#9ca3af;">${nomeCartola}${isMeuTime ? ' (Meu Time)' : ''}</div>
+                </div>
+                <button id="fecharCampinhoModal" style="background:none;border:none;color:#9ca3af;cursor:pointer;padding:8px;">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <!-- Stats -->
+            <div style="display:flex;gap:12px;padding:12px 20px;">
+                <div style="flex:1;background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
+                    <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;">Pontos</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:#ff5500;">${pontosFormatados}</div>
+                </div>
+                <div style="flex:1;background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
+                    <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;">Em Campo</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:${emCampo > 0 ? '#22c55e' : '#6b7280'};">${emCampo}/${totalAtl}</div>
+                </div>
+            </div>
+
+            <!-- Atletas -->
+            <div style="padding:8px 20px 24px;">
+                <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;margin-bottom:4px;font-weight:bold;">Titulares</div>
+                ${titularesHTML}
+                ${reservasHTML}
+            </div>
+        </div>
+    `;
+
+    // Estilos de animação
+    if (!document.getElementById("campinhoModalStyles")) {
+        const style = document.createElement("style");
+        style.id = "campinhoModalStyles";
+        style.textContent = `
+            @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            .badge-em-campo {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 10px;
+                padding: 2px 6px;
+                border-radius: 4px;
+                background: #1f2937;
+                color: #6b7280;
+                margin-left: 6px;
+                font-weight: bold;
+            }
+            .badge-em-campo.ativo {
+                background: rgba(34, 197, 94, 0.15);
+                color: #22c55e;
+                animation: pulseEmCampo 2s infinite;
+            }
+            @keyframes pulseEmCampo {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.6; }
+            }
+            .curiosar-icon {
+                transition: color 0.2s;
+            }
+            [data-curiosar-time-id]:hover .curiosar-icon,
+            [data-curiosar-time-id]:active .curiosar-icon {
+                color: #ff5500 !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    document.body.appendChild(modal);
+
+    // Fechar modal
+    document.getElementById("fecharCampinhoModal").addEventListener("click", () => {
+        modal.remove();
+    });
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) modal.remove();
+    });
 }
 
 // =====================================================================
@@ -743,7 +989,7 @@ function renderizarSecaoInativos(inativos, rodadaNum) {
 // =====================================================================
 window.voltarParaCards = function () {
     ParciaisModule.pararAutoRefresh?.();
-    PollingInteligenteModule.pararPollingInteligente?.();
+    PollingInteligenteModule.parar?.();
     atualizarIndicadorAutoRefresh({ ativo: false });
 
     const detalhamento = document.getElementById("rodadaDetalhamento");
@@ -841,4 +1087,4 @@ function mostrarErro(mensagem) {
 }
 
 if (window.Log)
-    Log.info("[PARTICIPANTE-RODADAS] ✅ Módulo v5.0 carregado (EXPANDABLE NAVIGATION)");
+    Log.info("[PARTICIPANTE-RODADAS] Modulo v6.0 carregado (CLEAN GRID + ENRICHED DETAIL)");
