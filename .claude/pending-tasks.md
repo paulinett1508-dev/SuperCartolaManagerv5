@@ -105,12 +105,12 @@ Ao clicar no card "Capitão de Luxo" na tela de detalhe da liga (admin), apareci
 6. ✅ `config/rules/capitao_luxo.json` — Atualizado para v1.1.0 com regras completas
 7. ✅ `config/definitions/capitao_luxo_def.json` — Status alterado para "implementado"
 
-**O que ainda NÃO funciona:**
 - [ ] JS do módulo não executa após o clique — console mostra `[ORQUESTRADOR] CLICK em: capitao-luxo` mas nenhum log subsequente do `case`
 - [ ] Verificar se `executeModuleScripts` realmente entra no `case "capitao-luxo"` (logs de debug foram adicionados)
-- [ ] Verificar se `import("/participante/js/modules/participante-capitao.js")` resolve corretamente
-- [ ] Verificar se `window.inicializarCapitaoParticipante` é setada após o import
-- [ ] Testar no navegador com DevTools aberto (Network + Console)
+- [ ] Confirmar se `import("/participante/js/modules/participante-capitao.js")` resolve corretamente; observar erros 404/500 no Network
+- [ ] Confirmar que `window.inicializarCapitaoParticipante` é setado após o import para o case conseguir renderizar o fragmento
+- [ ] Testar novamente no navegador com DevTools aberto (Network + Console) para garantir que o fluxo de carregamento completa
+- [ ] Revisar `public/participante/js/modules/participante-capitao.js` (a estrutura mudou) e garantir que a renderização espere o container injetado antes de chamar `carregarRanking`; o patch anterior falhou porque o trecho procurado não existe mais.
 
 **Arquivos envolvidos:**
 | Arquivo | Modificação |
