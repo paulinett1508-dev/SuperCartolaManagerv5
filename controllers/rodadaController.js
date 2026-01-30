@@ -11,6 +11,7 @@ import Time from "../models/Time.js";
 import Liga from "../models/Liga.js";
 import mongoose from "mongoose";
 import { isSeasonFinished, logBlockedOperation, SEASON_CONFIG } from "../utils/seasonGuard.js";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 // ✅ Converter ligaId para ObjectId
 function toLigaId(ligaId) {
@@ -269,11 +270,11 @@ async function processarRodada(
   let inseridas = 0;
   let atualizadas = 0;
 
-  // 1. VERIFICAR SE JÁ EXISTE
+  // 1. VERIFICAR SE JÁ EXISTE (✅ fix: filtrar por temporada para não colidir com dados antigos)
   if (!repopular) {
-    const existente = await Rodada.findOne({ ligaId: ligaIdObj, rodada }).lean();
+    const existente = await Rodada.findOne({ ligaId: ligaIdObj, rodada, temporada: CURRENT_SEASON }).lean();
     if (existente) {
-      console.log(`[PROCESSAR-RODADA] Rodada ${rodada} já existe (pulando)`);
+      console.log(`[PROCESSAR-RODADA] Rodada ${rodada} temporada ${CURRENT_SEASON} já existe (pulando)`);
       return { inseridas: 0, atualizadas: 0 };
     }
   }
@@ -403,11 +404,12 @@ async function processarRodada(
   for (const time of todosTimes) {
     try {
       const resultado = await Rodada.findOneAndUpdate(
-        { ligaId: ligaIdObj, rodada, timeId: time.timeId },
+        { ligaId: ligaIdObj, rodada, timeId: time.timeId, temporada: CURRENT_SEASON },
         {
           ligaId: ligaIdObj,
           rodada,
           timeId: time.timeId,
+          temporada: CURRENT_SEASON,
           nome_cartola: time.nome_cartola,
           nome_time: time.nome_time,
           escudo: time.escudo,
