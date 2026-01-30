@@ -1,5 +1,4 @@
 run = "npm start"
-onBoot = "curl -fsSL https://raw.githubusercontent.com/anthropics/anthropic-quickstarts/main/claude-code/install.sh | sh && echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc"
 modules = ["nodejs-20", "python-3.11"]
 
 [[ports]]
@@ -7,78 +6,12 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 9999
-externalPort = 3000
-
-[[ports]]
-localPort = 11148
+localPort = 45139
 externalPort = 3001
-exposeLocalhost = true
 
 [[ports]]
-localPort = 13776
-externalPort = 8099
-exposeLocalhost = true
-
-[[ports]]
-localPort = 15179
-externalPort = 3002
-exposeLocalhost = true
-
-[[ports]]
-localPort = 17453
-externalPort = 6000
-exposeLocalhost = true
-
-[[ports]]
-localPort = 19061
-externalPort = 4200
-exposeLocalhost = true
-
-[[ports]]
-localPort = 22262
-externalPort = 9000
-exposeLocalhost = true
-
-[[ports]]
-localPort = 23442
-externalPort = 8000
-exposeLocalhost = true
-
-[[ports]]
-localPort = 24912
-externalPort = 5173
-exposeLocalhost = true
-
-[[ports]]
-localPort = 26971
-externalPort = 8008
-exposeLocalhost = true
-
-[[ports]]
-localPort = 31046
-externalPort = 5000
-exposeLocalhost = true
-
-[[ports]]
-localPort = 31052
-externalPort = 8080
-exposeLocalhost = true
-
-[[ports]]
-localPort = 63602
-externalPort = 8081
-exposeLocalhost = true
-
-[[ports]]
-localPort = 64260
-externalPort = 3003
-exposeLocalhost = true
-
-[[ports]]
-localPort = 64700
-externalPort = 6800
-exposeLocalhost = true
+localPort = 46761
+externalPort = 3000
 
 [deployment]
 deploymentTarget = "gce"
@@ -115,10 +48,10 @@ args = "Super Cartola Server"
 name = "Super Cartola Server"
 author = "agent"
 
-[workflows.workflow.metadata]
-outputType = "webview"
-
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
