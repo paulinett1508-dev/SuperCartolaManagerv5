@@ -154,6 +154,9 @@ import { cronEscalacaoPendente } from "./services/notificationTriggers.js";
 // 🎯 Dicas Premium
 import dicasPremiumRoutes from "./routes/dicas-premium-routes.js";
 
+// 📰 Notícias personalizadas do time do coração
+import noticiasTimeRoutes from "./routes/noticias-time-routes.js";
+
 // 🔧 Modo Manutenção do App
 import manutencaoRoutes from "./routes/manutencao-routes.js";
 
@@ -451,6 +454,10 @@ console.log("[SERVER] 🔔 Rotas de Push Notifications registradas em /api/notif
 // 🎯 Dicas Premium
 app.use("/api/dicas-premium", dicasPremiumRoutes);
 console.log("[SERVER] 🎯 Rotas de Dicas Premium registradas em /api/dicas-premium");
+
+// 📰 Notícias do Time do Coração
+app.use("/api/noticias", noticiasTimeRoutes);
+console.log("[SERVER] 📰 Rotas de notícias personalizadas registradas em /api/noticias");
 
 // Rotas Adicionais (Controllers Diretos)
 app.get("/api/clubes", getClubes);
