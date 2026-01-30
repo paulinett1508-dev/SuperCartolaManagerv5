@@ -35,6 +35,9 @@ const ManutencaoScreen = {
         // Mostrar tela de manutenção
         tela.style.display = 'flex';
 
+        // Carregar notícias do time do coração automaticamente
+        this._carregarNoticias();
+
         if (window.Log) Log.info('MANUTENCAO', 'Tela de manutenção ativada');
     },
 
@@ -143,6 +146,31 @@ const ManutencaoScreen = {
                 btn.disabled = false;
                 btn.innerHTML = '<span class="material-icons" style="font-size:20px;">emoji_events</span> Ver Ranking e Última Rodada';
             }
+        }
+    },
+
+    async _carregarNoticias() {
+        try {
+            // Obter clube_id do participante autenticado
+            const clubeId = window.participanteAuth?.participante?.participante?.clube_id
+                         || window.participanteAuth?.participante?.clube_id
+                         || null;
+
+            if (!clubeId || !window.NoticiasTime) {
+                if (window.Log) Log.debug('MANUTENCAO', 'Notícias: sem clube_id ou componente não carregado');
+                return;
+            }
+
+            await window.NoticiasTime.renderizar({
+                clubeId,
+                containerId: 'manutencaoNoticias',
+                limite: 5,
+                modo: 'compacto'
+            });
+
+            if (window.Log) Log.info('MANUTENCAO', 'Notícias do time carregadas');
+        } catch (error) {
+            if (window.Log) Log.warn('MANUTENCAO', 'Erro ao carregar notícias:', error);
         }
     },
 

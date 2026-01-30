@@ -267,6 +267,9 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
 
     // Carregar jogos em background
     carregarEExibirJogos();
+
+    // Carregar notícias do time do coração em background
+    carregarNoticiasDoMeuTime(participante);
 }
 
 // =====================================================================
@@ -966,6 +969,9 @@ function renderizarHome(container, data, ligaId) {
         <!-- Jogos do Dia -->
         <div id="home-jogos-placeholder"></div>
 
+        <!-- Notícias do meu time -->
+        <div id="home-noticias-placeholder"></div>
+
         <!-- Card de Dica -->
         ${tipCardHTML}
     `;
@@ -1122,6 +1128,40 @@ function atualizarSaldoProjetado(posicaoParcial) {
         saldoEl.classList.add('positive');
     } else if (saldoProjetado < 0) {
         saldoEl.classList.add('negative');
+    }
+}
+
+// =====================================================================
+// CARREGAR NOTICIAS DO MEU TIME
+// =====================================================================
+async function carregarNoticiasDoMeuTime(participante) {
+    try {
+        const clubeId = participante?.clube_id || participante?.clubeId
+                     || window.participanteAuth?.participante?.participante?.clube_id
+                     || window.participanteAuth?.participante?.clube_id
+                     || null;
+
+        if (!clubeId) {
+            if (window.Log) Log.debug("PARTICIPANTE-HOME", "Notícias: sem clube_id");
+            return;
+        }
+
+        // Verificar se componente está disponível
+        if (!window.NoticiasTime) {
+            if (window.Log) Log.debug("PARTICIPANTE-HOME", "Notícias: componente não carregado");
+            return;
+        }
+
+        await window.NoticiasTime.renderizar({
+            clubeId,
+            containerId: 'home-noticias-placeholder',
+            limite: 5,
+            modo: 'completo'
+        });
+
+        if (window.Log) Log.info("PARTICIPANTE-HOME", "Notícias do time carregadas");
+    } catch (error) {
+        if (window.Log) Log.warn("PARTICIPANTE-HOME", "Erro ao carregar notícias:", error);
     }
 }
 
