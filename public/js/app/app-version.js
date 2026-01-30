@@ -136,6 +136,15 @@ const AppVersion = {
             if (!response.ok) return;
 
             const servidor = await response.json();
+
+            // Verificar modo manutenção
+            if (servidor.manutencao?.ativo && window.ManutencaoScreen) {
+                window.ManutencaoScreen.ativar();
+                return; // Não processar versão em modo manutenção
+            } else if (!servidor.manutencao?.ativo && window.ManutencaoScreen?.estaAtivo()) {
+                window.ManutencaoScreen.desativar();
+            }
+
             const versaoServidor = servidor.version;
             const bootServidor = servidor.serverBoot;
             const versaoLocal = localStorage.getItem(this.LOCAL_KEY);

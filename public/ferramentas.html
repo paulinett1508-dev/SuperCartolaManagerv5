@@ -172,6 +172,25 @@
                             </div>
                         </div>
 
+                        <!-- Modo Manutenção -->
+                        <div class="tool-card" id="manutencaoCard" onclick="toggleManutencao()">
+                            <div class="tool-card-bg-icon">
+                                <span class="material-icons">engineering</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <div class="tool-card-icon" style="position:relative;">
+                                    <span class="material-icons">engineering</span>
+                                    <span id="manutencaoStatusBadge" style="position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:#6b7280;border:2px solid #1f2937;"></span>
+                                </div>
+                                <h3>Modo Manutencao <span id="manutencaoStatusText" style="font-size:0.7rem;font-weight:400;color:#6b7280;">(carregando...)</span></h3>
+                                <p>Ative para bloquear o app do participante com aviso amigavel enquanto atualiza.</p>
+                                <span class="tool-card-link">
+                                    <span id="manutencaoActionText">Verificando</span>
+                                    <span class="material-icons">arrow_forward</span>
+                                </span>
+                            </div>
+                        </div>
+
                         <!-- API Football Analytics -->
                         <div class="tool-card" onclick="window.location.href='api-football-analytics.html'">
                             <div class="tool-card-bg-icon">
@@ -409,6 +428,65 @@
                 if (document.readyState !== 'loading' && window.location.pathname.includes('ferramentas.html')) {
                     initFerramentas();
                 }
+            }
+        </script>
+
+        <!-- Modo Manutenção - Toggle -->
+        <script>
+            let _manutencaoAtivo = false;
+
+            async function carregarStatusManutencao() {
+                try {
+                    const res = await fetch('/api/admin/manutencao');
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    _manutencaoAtivo = data.ativo;
+                    atualizarUIManutencao();
+                } catch (e) {
+                    console.warn('[FERRAMENTAS] Erro ao carregar status manutenção:', e);
+                }
+            }
+
+            function atualizarUIManutencao() {
+                const badge = document.getElementById('manutencaoStatusBadge');
+                const text = document.getElementById('manutencaoStatusText');
+                const action = document.getElementById('manutencaoActionText');
+                const card = document.getElementById('manutencaoCard');
+
+                if (badge) badge.style.background = _manutencaoAtivo ? '#ef4444' : '#22c55e';
+                if (text) {
+                    text.textContent = _manutencaoAtivo ? '(ATIVO)' : '(desativado)';
+                    text.style.color = _manutencaoAtivo ? '#ef4444' : '#22c55e';
+                }
+                if (action) action.textContent = _manutencaoAtivo ? 'Desativar' : 'Ativar';
+                if (card) card.style.borderColor = _manutencaoAtivo ? 'rgba(239,68,68,0.4)' : '';
+            }
+
+            async function toggleManutencao() {
+                const acao = _manutencaoAtivo ? 'desativar' : 'ativar';
+                const confirmar = confirm(_manutencaoAtivo
+                    ? 'Desativar modo manutenção? O app voltará ao normal.'
+                    : 'Ativar modo manutenção? O app mostrará a tela "Calma aê!" para todos os participantes.');
+
+                if (!confirmar) return;
+
+                try {
+                    const res = await fetch(`/api/admin/manutencao/${acao}`, { method: 'POST' });
+                    if (!res.ok) throw new Error('Falha na requisição');
+                    const data = await res.json();
+                    _manutencaoAtivo = data.ativo;
+                    atualizarUIManutencao();
+                    alert(_manutencaoAtivo ? 'Modo manutenção ATIVADO! Participantes verão a tela de aviso.' : 'Modo manutenção desativado. App voltou ao normal.');
+                } catch (e) {
+                    alert('Erro ao alterar modo manutenção: ' + e.message);
+                }
+            }
+
+            // Carregar status ao iniciar
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', carregarStatusManutencao);
+            } else {
+                carregarStatusManutencao();
             }
         </script>
 

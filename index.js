@@ -154,6 +154,9 @@ import { cronEscalacaoPendente } from "./services/notificationTriggers.js";
 // 🎯 Dicas Premium
 import dicasPremiumRoutes from "./routes/dicas-premium-routes.js";
 
+// 🔧 Modo Manutenção do App
+import manutencaoRoutes from "./routes/manutencao-routes.js";
+
 // 📦 Versionamento do App
 import appVersionRoutes from "./routes/appVersionRoutes.js";
 
@@ -349,6 +352,10 @@ console.log("[SERVER] 🔑 Rotas de autenticacao de clientes registradas");
 // 👁️ Rota de monitoramento de usuários online (admin)
 app.use("/api/admin/usuarios-online", usuariosOnlineRoutes);
 console.log("[SERVER] 👁️ Rota de usuários online registrada");
+
+// 🔧 Modo Manutenção do App
+app.use("/api/admin", manutencaoRoutes);
+console.log("[SERVER] 🔧 Rotas de modo manutenção registradas");
 
 // 🔐 Rotas de autenticação participante - ANTES do protegerRotas
 // Aplicar rate limiting específico para login (tradicional e Globo)

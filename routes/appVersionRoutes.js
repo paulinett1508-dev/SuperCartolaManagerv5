@@ -8,12 +8,27 @@
 // =====================================================================
 
 import express from "express";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import APP_VERSION, {
     PARTICIPANTE_VERSION,
     ADMIN_VERSION,
     VERSION_SCOPE
 } from "../config/appVersion.js";
 import { CURRENT_SEASON, SEASON_CONFIG } from "../config/seasons.js";
+
+const __filename_ver = fileURLToPath(import.meta.url);
+const __dirname_ver = path.dirname(__filename_ver);
+const MANUTENCAO_PATH = path.join(__dirname_ver, "..", "config", "manutencao.json");
+
+function lerEstadoManutencao() {
+    try {
+        return JSON.parse(fs.readFileSync(MANUTENCAO_PATH, "utf-8"));
+    } catch {
+        return { ativo: false };
+    }
+}
 
 const router = express.Router();
 const SERVER_BOOT = new Date().toISOString();
@@ -101,6 +116,11 @@ router.get("/check-version", (req, res) => {
     versionData.timestamp = new Date().toISOString();
     versionData.serverBoot = SERVER_BOOT;
     versionData.serverUptimeSec = Math.floor(process.uptime());
+
+    // Incluir estado de manutenção para o app participante
+    if (clientType === 'app') {
+        versionData.manutencao = lerEstadoManutencao();
+    }
 
     res.json(versionData);
 });
