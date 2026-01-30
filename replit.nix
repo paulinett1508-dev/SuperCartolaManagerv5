@@ -7,3 +7,8 @@
     pkgs.psmisc
   ];
 }
+{ pkgs }: {
+  deps = [
+    pkgs.wget
+  ];
+}
