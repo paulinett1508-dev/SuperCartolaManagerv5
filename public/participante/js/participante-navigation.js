@@ -759,8 +759,9 @@ class ParticipanteNavigation {
         const jsPath = modulosPaths[modulo];
         if (jsPath) {
             try {
-                // ✅ v4.1: Cache-busting para evitar erros por versão cacheada
-                const moduloJS = await import(`${jsPath}?v=${Date.now()}`);
+                // ✅ v4.4: FIX MOBILE - Removido ?v=Date.now() que impedia cache do SW
+                // Versionamento é controlado pelo Service Worker (cache name)
+                const moduloJS = await import(jsPath);
 
                 const moduloCamelCase = modulo
                     .split("-")

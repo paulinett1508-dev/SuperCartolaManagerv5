@@ -1,6 +1,7 @@
 // =====================================================================
-// service-worker.js - Service Worker do PWA v3.8 (RANKING TEMPORADA FIX)
+// service-worker.js - Service Worker do PWA v3.9 (MOBILE CONNECTION FIX)
 // Destino: /participante/service-worker.js
+// ✅ v3.9: FIX MOBILE - Normalizar query params no cache, preservar fallback offline
 // ✅ v3.8: RANKING FIX - Corrigir temporada 2025 hardcoded para dinâmica
 // ✅ v3.7: RODADAS REDESIGN - Grupos expansíveis + slider horizontal
 // ✅ v3.6: PUSH NOTIFICATIONS - Handlers de push, click e close
@@ -9,10 +10,10 @@
 // ✅ v3.2: FORCE CACHE CLEAR - Limpar cache antigo que causava erros
 // ✅ v3.1: Network-First com cache fallback (FIX fetch failures)
 // ✅ v3.0: Força limpeza de caches antigos
-// BUILD: 2026-01-29T10:00:00Z
+// BUILD: 2026-01-30T12:00:00Z
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v15-ranking-fix";
+const CACHE_NAME = "super-cartola-v16-mobile-fix";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
@@ -84,26 +85,30 @@ self.addEventListener("fetch", (event) => {
     const isCacheableAsset = CACHE_FIRST_EXTENSIONS.some(ext => url.pathname.endsWith(ext));
 
     if (isCacheableAsset) {
+        // ✅ FIX MOBILE: Normalizar URL removendo query params para cache consistente
+        const cleanUrl = new URL(url.pathname, url.origin).href;
+        const cleanRequest = new Request(cleanUrl, { mode: request.mode, credentials: request.credentials });
+
         event.respondWith(
             // Tenta da rede primeiro, fallback para cache se falhar
             fetch(request)
                 .then((networkResponse) => {
-                    // Sucesso na rede - cacheia e retorna
+                    // Sucesso na rede - cacheia com URL limpa (sem query params)
                     if (networkResponse && networkResponse.status === 200) {
                         const responseClone = networkResponse.clone();
                         caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(request, responseClone);
+                            cache.put(cleanRequest, responseClone);
                         });
                     }
                     return networkResponse;
                 })
                 .catch((fetchError) => {
-                    // Falha na rede - tenta buscar do cache
-                    return caches.match(request).then((cachedResponse) => {
+                    // Falha na rede - buscar do cache usando URL limpa
+                    return caches.match(cleanRequest).then((cachedResponse) => {
                         if (cachedResponse) {
                             return cachedResponse;
                         }
-                        
+
                         // Nem rede nem cache funcionaram
                         console.warn('[SW] Failed to fetch and no cache:', request.url);
                         throw new Error('Offline and no cache available');

@@ -85,7 +85,7 @@ class ParticipanteAuth {
             // Usar AbortController se disponível, senão fazer fetch simples
             if (typeof AbortController !== 'undefined') {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const timeoutId = setTimeout(() => controller.abort(), 20000); // ✅ FIX MOBILE: 20s (era 8s - insuficiente para 3G/4G lento)
 
                 response = await fetch("/api/participante/auth/session", {
                     credentials: "include",

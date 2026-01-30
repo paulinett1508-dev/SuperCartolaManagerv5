@@ -14,35 +14,35 @@ const AppVersion = {
     LOCAL_KEY: "app_version",
     LOCAL_BOOT_KEY: "app_server_boot",
     CLIENT_TYPE: "app", // Identificador do cliente (app = participante)
-    CACHE_TTL: 5000, // ✅ CHECK curto para atualização imediata
-    CHECK_INTERVAL_MS: 5000,
+    CACHE_TTL: 60000, // ✅ FIX MOBILE: 60s entre checks (era 5s - bombardeava rede mobile)
+    CHECK_INTERVAL_MS: 300000, // ✅ FIX MOBILE: 5min entre polls (era 5s - saturava conexões)
     lastCheck: 0, // Timestamp da última verificação
     isUpdating: false,
 
-    // ✅ EMERGENCY: Limpar todos os caches e SW (uma única vez)
+    // ✅ FIX MOBILE: Limpeza seletiva - remove apenas caches obsoletos, preserva SW ativo
     async limparCachesAntigos() {
-        const FLAG_KEY = 'sw_emergency_clean_v8';
+        const FLAG_KEY = 'sw_emergency_clean_v9';
         if (localStorage.getItem(FLAG_KEY)) {
             return; // Já foi feito
         }
 
         try {
-            // Unregister todos os Service Workers
-            if ('serviceWorker' in navigator) {
-                const registrations = await navigator.serviceWorker.getRegistrations();
-                for (const registration of registrations) {
-                    await registration.unregister();
-                }
+            // Limpar apenas caches com nomes antigos (não o atual do SW)
+            const CURRENT_SW_CACHE = 'super-cartola-v16-mobile-fix';
+            const cacheNames = await caches.keys();
+            const obsoletos = cacheNames.filter(name => name !== CURRENT_SW_CACHE);
+
+            if (obsoletos.length > 0) {
+                await Promise.all(obsoletos.map(name => caches.delete(name)));
+                if (window.Log) Log.info('APP-VERSION', `🧹 ${obsoletos.length} caches antigos removidos`);
             }
 
-            // Limpar TODOS os caches
-            const cacheNames = await caches.keys();
-            await Promise.all(cacheNames.map(name => caches.delete(name)));
+            // NÃO unregister o SW - ele cuida do próprio versionamento via activate event
 
             // Marcar como feito
             localStorage.setItem(FLAG_KEY, 'done');
-            
-            if (window.Log) Log.info('APP-VERSION', '🧹 Limpeza emergencial concluída');
+
+            if (window.Log) Log.info('APP-VERSION', '🧹 Limpeza seletiva concluída');
         } catch (error) {
             if (window.Log) Log.warn('APP-VERSION', 'Erro na limpeza:', error);
         }
