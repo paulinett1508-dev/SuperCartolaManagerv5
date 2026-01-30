@@ -344,10 +344,9 @@
                     // Definir funções de logo após injetar sidebar
                     definirFuncoesLogo();
 
-                    // v9.3 FIX: Usar carregarLigasLayout() do layout.html (COM temporadas)
-                    // A funcao carregarLigasSidebar() local foi removida
-                    if (typeof carregarLigasLayout === 'function') {
-                        carregarLigasLayout();
+                    // v9.4 FIX: Usar referência global explícita (evita shadowing)
+                    if (typeof window.carregarLigasLayout === 'function') {
+                        window.carregarLigasLayout();
                     }
                 } catch (error) {
                     console.error("Erro ao carregar layout:", error);

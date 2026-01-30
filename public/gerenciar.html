@@ -309,7 +309,7 @@
                 console.log("[GERENCIAR] Inicializando página...");
                 try {
                     await loadLayout();
-                    setTimeout(() => carregarListaLigas(), 100);
+                    await carregarListaLigas();
                 } finally {
                     window.__gerenciar_state.initRunning = false;
                 }

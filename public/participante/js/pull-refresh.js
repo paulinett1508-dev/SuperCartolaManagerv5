@@ -13,7 +13,7 @@
     // =====================================================================
     // FLAG DE TEMPORADA ENCERRADA
     // =====================================================================
-    const TEMPORADA_ENCERRADA = true; // 2025 - Campeonato finalizado
+    const TEMPORADA_ENCERRADA = false; // 2026 - Temporada ativa
 
     // Configuração
     const CONFIG = {

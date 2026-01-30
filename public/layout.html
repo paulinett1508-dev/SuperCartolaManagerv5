@@ -393,12 +393,16 @@
                     let ligas = !forceRefresh ? CacheManager.get(CacheManager.KEYS.LIGAS) : null;
 
                     if (ligas) {
-                        console.log('[LAYOUT] Ligas (cache hit)');
+                        console.log('[LAYOUT] Ligas (cache hit)', ligas.length);
                     } else {
                         console.log('[LAYOUT] Carregando ligas da API...');
                         const response = await fetch("/api/ligas");
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
                         ligas = await response.json();
                         CacheManager.set(CacheManager.KEYS.LIGAS, ligas, CacheManager.TTL.LIGAS);
+                        console.log('[LAYOUT] Ligas carregadas da API:', ligas.length);
                     }
 
                     if (!Array.isArray(ligas) || ligas.length === 0) {
@@ -1225,14 +1229,28 @@
                     setTimeout(carregarLigasLayout, 200);
                 }
             });
+
+            // ✅ v9.4 Safety net: se ligasList ainda mostra loading após 4s, forçar reload
+            setTimeout(() => {
+                const ligasList = document.getElementById("ligasList");
+                if (ligasList && ligasList.querySelector('.sidebar-ligas-loading')) {
+                    console.warn('[LAYOUT] Safety net: sidebar ainda em loading, forçando carregamento...');
+                    if (typeof window.carregarLigasLayout === 'function') {
+                        window.carregarLigasLayout(true);
+                    }
+                }
+            }, 4000);
             } else {
-                // ✅ v9.3 FIX: Scripts já carregados - RECARREGAR LIGAS diretamente
-                // Não chamar tentarInicializarLayout() pois a flag bloqueia
+                // ✅ v9.4 FIX: Scripts já carregados - RECARREGAR LIGAS diretamente
+                // IMPORTANTE: usar window.carregarLigasLayout (referência global explícita)
+                // para evitar shadowing por hoisting de function declaration no bloco if
                 console.log('[LAYOUT] Scripts já carregados, recarregando ligas...');
                 setTimeout(() => {
-                    // Recarregar ligas no sidebar (função que renderiza COM temporadas)
-                    if (typeof carregarLigasLayout === 'function') {
-                        carregarLigasLayout();
+                    // Recarregar ligas no sidebar (função global definida na 1a execução)
+                    if (typeof window.carregarLigasLayout === 'function') {
+                        window.carregarLigasLayout();
+                    } else {
+                        console.warn('[LAYOUT] carregarLigasLayout não disponível globalmente!');
                     }
                     // Atualizar navegação ativa
                     if (window.navigationSystem) {

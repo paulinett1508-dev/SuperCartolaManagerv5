@@ -46,12 +46,11 @@ export async function carregarLigas(forceRefresh = false) {
             );
         }
 
-        // Processar e enriquecer dados
+        // Processar e enriquecer dados (preserva campos já calculados pela API)
         const ligasProcessadas = ligas.map((liga) => ({
             ...liga,
-            timesCount: liga.times ? liga.times.length : 0,
-            status:
-                liga.times && liga.times.length > 0 ? "ativa" : "configurando",
+            timesCount: liga.timesCount ?? (liga.times ? liga.times.length : 0),
+            status: liga.status || (liga.times && liga.times.length > 0 ? "ativa" : "configurando"),
             ultimaAtualizacao:
                 liga.updatedAt || liga.criadaEm || new Date().toISOString(),
         }));
@@ -62,10 +61,11 @@ export async function carregarLigas(forceRefresh = false) {
                 new Date(b.ultimaAtualizacao) - new Date(a.ultimaAtualizacao),
         );
 
-        // Atualizar cache
+        // Atualizar cache (preserva TTL)
         ligasCache = {
             data: ligasProcessadas,
             timestamp: Date.now(),
+            TTL: ligasCache.TTL || 5 * 60 * 1000,
         };
 
         console.log(
