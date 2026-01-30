@@ -269,6 +269,156 @@ function mostrarErro(container, mensagem) {
     `;
 }
 
+// ===== EXPORT DE PDF / COMPARTILHAMENTO =====
+const PDF_CDN = {
+    html2canvas: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    jsPDF: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+};
+
+const scriptLoadPromises = {};
+function carregarScriptRanking(src, key) {
+    if (scriptLoadPromises[key]) return scriptLoadPromises[key];
+    if (document.querySelector(`script[data-ranking-script="${key}"]`)) {
+        scriptLoadPromises[key] = Promise.resolve();
+        return scriptLoadPromises[key];
+    }
+    scriptLoadPromises[key] = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.dataset.rankingScript = key;
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error(`Não foi possível carregar ${src}`));
+        document.head.appendChild(script);
+    });
+    return scriptLoadPromises[key];
+}
+
+async function ensureHtml2Canvas() {
+    if (window.html2canvas) return window.html2canvas;
+    await carregarScriptRanking(PDF_CDN.html2canvas, 'ranking-html2canvas');
+    if (!window.html2canvas) {
+        throw new Error('html2canvas não expôs o objeto global');
+    }
+    return window.html2canvas;
+}
+
+async function ensureJsPDF() {
+    const existing = window.jspdf?.jsPDF || window.jsPDF;
+    if (existing) return existing;
+    await carregarScriptRanking(PDF_CDN.jsPDF, 'ranking-jspdf');
+    const ctor = window.jspdf?.jsPDF || window.jsPDF;
+    if (!ctor) {
+        throw new Error('jsPDF não expôs o construtor esperado');
+    }
+    return ctor;
+}
+
+function mostrarToastRankingPDF(mensagem, tipo = 'info') {
+    document.querySelectorAll('.ranking-pdf-toast').forEach(el => el.remove());
+    const toast = document.createElement('div');
+    toast.className = `ranking-pdf-toast toast-${tipo}`;
+    toast.textContent = mensagem;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 200);
+    }, 2800);
+}
+
+async function compartilharRanking() {
+    const shareButton = document.querySelector('.btn-share');
+    if (shareButton) {
+        shareButton.disabled = true;
+        shareButton.classList.add('loading');
+    }
+
+    mostrarToastRankingPDF('Gerando PDF elegante do ranking…', 'info');
+
+    try {
+        const [html2canvasCtor, jsPDFCtor] = await Promise.all([
+            ensureHtml2Canvas(),
+            ensureJsPDF()
+        ]);
+
+        const target = document.querySelector('.ranking-participante-pro');
+        if (!target) {
+            throw new Error('Ranking não está disponível para captura');
+        }
+
+        const originalVisibility = shareButton?.style.visibility || '';
+        if (shareButton) {
+            shareButton.style.visibility = 'hidden';
+        }
+
+        const canvas = await html2canvasCtor(target, {
+            backgroundColor: '#090909',
+            scale: Math.min(2.8, Math.max(1.2, window.devicePixelRatio || 1)),
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            scrollY: -window.scrollY
+        });
+
+        if (shareButton) {
+            shareButton.style.visibility = originalVisibility;
+        }
+
+        const imageData = canvas.toDataURL('image/png');
+        const doc = new jsPDFCtor({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4',
+            compress: true
+        });
+
+        const pdfWidth = doc.internal.pageSize.getWidth();
+        const pdfHeight = doc.internal.pageSize.getHeight();
+        const margin = 12;
+
+        doc.setFillColor(9, 11, 14);
+        doc.rect(0, 0, pdfWidth, pdfHeight, 'F');
+        doc.setFillColor(21, 24, 33);
+        doc.rect(margin - 0.5, margin - 1, pdfWidth - margin * 2 + 1, 34, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(255, 173, 64);
+        doc.text('Ranking Geral', pdfWidth / 2, margin + 8, { align: 'center' });
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(190, 190, 202);
+        doc.text(`Super Cartola Manager • Temporada ${estadoRanking.temporada || new Date().getFullYear()}`, pdfWidth / 2, margin + 14, { align: 'center' });
+
+        const imageWidth = pdfWidth - margin * 2;
+        const imageHeight = (canvas.height / canvas.width) * imageWidth;
+        const availableHeight = pdfHeight - margin - (margin + 34) - 14;
+        const finalImageHeight = Math.min(imageHeight, Math.max(availableHeight, 0));
+        const imageY = margin + 38;
+
+        doc.addImage(imageData, 'PNG', margin, imageY, imageWidth, finalImageHeight, undefined, 'FAST');
+
+        doc.setFontSize(8);
+        doc.setTextColor(170, 170, 185);
+        doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, pdfWidth - margin, pdfHeight - 8, { align: 'right' });
+
+        const filename = `ranking-geral-${estadoRanking.temporada || '2026'}-${Date.now()}.pdf`;
+        doc.save(filename);
+
+        mostrarToastRankingPDF('PDF pronto! Confira sua pasta de downloads.', 'success');
+    } catch (error) {
+        console.error('[RANKING] Erro ao gerar PDF:', error);
+        mostrarToastRankingPDF('Erro ao gerar PDF. Tente novamente.', 'error');
+    } finally {
+        if (shareButton) {
+            shareButton.disabled = false;
+            shareButton.classList.remove('loading');
+        }
+    }
+}
+
+window.compartilharRanking = compartilharRanking;
+
 // ===== EXPORTS =====
 export { initRanking, carregarRanking };
 

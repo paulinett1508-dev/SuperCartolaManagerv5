@@ -147,6 +147,15 @@
         background: var(--rank-primary-alpha-25);
     }
 
+    .btn-share.loading {
+        pointer-events: none;
+        opacity: 0.5;
+    }
+
+    .btn-share.loading .material-icons {
+        animation: share-spin 1s linear infinite;
+    }
+
     /* ===== CARD CONTAINER ===== */
     .ranking-card-pro {
         background: var(--rank-surface);
@@ -652,5 +661,37 @@
             max-width: 600px;
             margin: 16px auto 0;
         }
+    }
+
+    .ranking-pdf-toast {
+        position: fixed;
+        right: 16px;
+        bottom: 20px;
+        background: rgba(15, 20, 30, 0.95);
+        color: #f8fafc;
+        padding: 10px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 0.85rem;
+        letter-spacing: 0.3px;
+        font-weight: 600;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 9999;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    .ranking-pdf-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .ranking-pdf-toast.toast-success {
+        border-color: rgba(34, 197, 94, 0.8);
+    }
+
+    .ranking-pdf-toast.toast-error {
+        border-color: rgba(239, 68, 68, 0.8);
     }
 </style>

@@ -526,13 +526,12 @@ class ParticipanteNavigation {
 
     confirmarSairApp() {
         if (window.Log) Log.info('PARTICIPANTE-NAV', '👋 Usuário confirmou sair do app');
-        // Tentar fechar a janela/aba
-        // Em PWA, isso pode não funcionar, então redirecionamos para uma página de "adeus"
-        try {
-            window.close();
-        } catch (e) {
-            // Se não conseguir fechar, volta ao histórico do navegador
-            history.go(-(this.historicoNavegacao.length + 1));
+        // ✅ v4.4: Fazer logout real (limpar sessão + redirecionar para login)
+        if (typeof logout === 'function') {
+            logout();
+        } else {
+            // Fallback: redirecionar direto para login
+            window.location.href = '/participante-login.html';
         }
     }
 
@@ -540,8 +539,10 @@ class ParticipanteNavigation {
         // ✅ v4.3: Bloqueio de pré-temporada DESATIVADO (temporada 2026 em andamento - Rodada 1+)
         // O verificarBloqueioPreTemporada só é ativado em pré-temporada (antes da rodada 1)
         // Mantemos o código para futuras pré-temporadas, mas desativado por padrão
+        // ✅ v4.4: Liga aposentada - bloqueio SEMPRE ativo (independe de pré-temporada)
+        const isLigaAposentada = window.isLigaAposentada === true;
         const isPreTemporada = window.ParticipanteConfig?.isPreparando?.() ?? false;
-        if (isPreTemporada && this.verificarBloqueioPreTemporada(moduloId)) {
+        if ((isLigaAposentada || isPreTemporada) && this.verificarBloqueioPreTemporada(moduloId)) {
             if (window.Log) Log.info('PARTICIPANTE-NAV', `🚫 Modulo bloqueado (pre-temporada): ${moduloId}`);
             this.mostrarModalBloqueioPreTemporada(moduloId);
             return;

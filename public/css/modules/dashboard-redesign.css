@@ -62,25 +62,29 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #1E1E1E;
-    border: 1px solid #333333;
-    color: #e5e7eb;
-    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(243, 244, 246, 0.9);
+    padding: 8px 14px;
     border-radius: 8px;
-    font-size: 0.875rem;
+    font-size: 0.78rem;
     font-weight: 500;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
+    box-shadow: none;
 }
 
 .btn-secondary-new:hover {
-    border-color: #FF5500;
-    background: #252525;
+    border-color: rgba(255, 85, 0, 0.5);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .btn-secondary-new .material-icons {
-    font-size: 18px;
+    font-size: 16px;
+    color: rgba(156, 163, 175, 0.85);
 }
 
 .btn-primary-new {
