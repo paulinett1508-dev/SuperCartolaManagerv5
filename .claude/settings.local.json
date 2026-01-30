@@ -99,7 +99,20 @@
       "Bash(git fetch:*)",
       "Bash(git rev-list:*)",
       "Bash(git stash:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(then echo \"Servidor reiniciado com sucesso!\" echo \"\" echo \"Testando rota de manutencao...\" curl -s \"http://localhost:5000/api/admin/manutencao\" echo \"\" echo \"\" echo \"Testando check-version com flag manutencao...\" curl -s -H \"x-client-type: app\" \"http://localhost:5000/api/app/check-version\")",
+      "Bash(then echo \"Servidor reiniciado com sucesso!\")",
+      "Bash(else echo \"Servidor nao respondeu\")",
+      "Bash(else)",
+      "Bash(__NEW_LINE_65542b62261a961f__ echo \"\")",
+      "Bash(__NEW_LINE_6f11d405e79e4083__ echo \"\")",
+      "Bash(__NEW_LINE_944080d30a4cbc7f__ echo \"\")",
+      "Bash(__NEW_LINE_7962750a1a081e7b__ echo \"\")",
+      "Bash(__NEW_LINE_d2847689aa43a136__ echo \"\")",
+      "Bash(__NEW_LINE_0ddcc0578c3079ad__ echo \"\")",
+      "Bash(__NEW_LINE_738694c910c4dc11__ echo \"\")",
+      "Bash(__NEW_LINE_7ec77db503f3a5c0__ echo \"\")",
+      "Bash(__NEW_LINE_1201d7a7a92b2178__ echo \"\")"
     ]
   },
   "enableAllProjectMcpServers": true,
