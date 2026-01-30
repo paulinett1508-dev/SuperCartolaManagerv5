@@ -31,9 +31,10 @@
 
 ## 🤖 Project Skills (Agentes Especializados)
 
-### Skills Auxiliares (10)
+### Skills Auxiliares (11)
 | Skill | Quando Usar |
 |-------|-------------|
+| **cartola-api** | Consultar endpoints, schemas, scouts, autenticação da API oficial do Cartola FC |
 | **code-inspector** | "auditar código", "security review", "OWASP check" |
 | **db-guardian** | Scripts DB, limpeza, manutenção, snapshots |
 | **fact-checker** | "verifique se", "confirme que", validar informações críticas |
