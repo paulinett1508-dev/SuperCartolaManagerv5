@@ -903,19 +903,6 @@ function renderizarHome(container, data, ligaId) {
         </section>
     `;
 
-    // Card de Dica
-    const tipCardHTML = `
-        <div class="home-tip-card">
-            <div class="home-tip-icon">
-                <span class="material-icons">lightbulb</span>
-            </div>
-            <div class="home-tip-content">
-                <p class="home-tip-title">Dica</p>
-                <p class="home-tip-text">Acompanhe seu extrato financeiro para entender sua evolução na liga!</p>
-            </div>
-        </div>
-    `;
-
     container.innerHTML = `
         <!-- Grid de Atalhos -->
         <section class="home-action-grid">
@@ -971,9 +958,6 @@ function renderizarHome(container, data, ligaId) {
 
         <!-- Notícias do meu time -->
         <div id="home-noticias-placeholder"></div>
-
-        <!-- Card de Dica -->
-        ${tipCardHTML}
     `;
 
     // Aplicar cor do clube ao badge do header (após renderizar)

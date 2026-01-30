@@ -1,7 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v4.10 (PARALELO MOBILE)
+// PARTICIPANTE-EXTRATO.JS - v4.11 (FIX RANKING RODADA NO EXTRATO)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v4.11: FIX CRÍTICO - Extrato não exibia ranking da rodada (bonusOnus)
+//          - Quando cache retornava 'inscricao-nova-temporada' com rodadas: []
+//            mas rodadaAtual >= 1, o frontend NÃO chamava endpoint de cálculo
+//          - Agora verifica rodadaAtual: só aceita pré-temporada se rodada < 1
+//          - Dupla proteção com backend v6.8 (que também verifica rodadas reais)
 // ✅ v4.10: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v4.9: PARALELO MOBILE - Requisições em paralelo (Promise.all)
 //          - Reduz tempo de carregamento de ~15s para ~5-8s em 4G
@@ -497,11 +502,15 @@ async function carregarExtrato(ligaId, timeId) {
                 });
 
             // ✅ v4.4: NOVA TEMPORADA - Se retornou dados de inscrição (rodadas vazias mas fonte válida)
-            if (cacheData.fonte === 'inscricao-nova-temporada' || 
-                (cacheData.cached && cacheData.resumo && cacheData.rodadas?.length === 0)) {
+            // ✅ v4.11 FIX: Só aceitar pré-temporada se rodadaAtual < 1 (campeonato não começou)
+            //   Quando rodadaAtual >= 1, forçar cálculo para incluir ranking da rodada no extrato
+            const ePreTemporadaReal = rodadaAtual < 1;
+            if ((cacheData.fonte === 'inscricao-nova-temporada' ||
+                (cacheData.cached && cacheData.resumo && cacheData.rodadas?.length === 0))
+                && ePreTemporadaReal) {
                 if (window.Log)
-                    Log.info("EXTRATO-PARTICIPANTE", "🆕 Nova temporada detectada - usando dados de inscrição");
-                
+                    Log.info("EXTRATO-PARTICIPANTE", "🆕 Nova temporada detectada (pré-temporada real) - usando dados de inscrição");
+
                 extratoData = {
                     ligaId: ligaId,
                     rodadas: [],
@@ -521,6 +530,13 @@ async function carregarExtrato(ligaId, timeId) {
                     temporada: temporada,
                 };
                 usouCacheBackend = true;
+            } else if (!ePreTemporadaReal && (cacheData.fonte === 'inscricao-nova-temporada' ||
+                (cacheData.cached && cacheData.resumo && cacheData.rodadas?.length === 0))) {
+                // ✅ v4.11: Temporada ativa com rodadas - NÃO aceitar dados de inscrição vazios
+                // O backend já corrigiu (v6.8), mas esta é a dupla proteção no frontend
+                if (window.Log)
+                    Log.info("EXTRATO-PARTICIPANTE", `⚡ Temporada ativa (rodada=${rodadaAtual}) - ignorando inscrição vazia, forçando cálculo`);
+                // NÃO setar extratoData → cairá no PASSO 2 (endpoint de cálculo)
             } else if (
                 cacheData.cached &&
                 cacheData.rodadas &&

@@ -1,5 +1,9 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v6.7 - REMOVIDO Botões de Limpeza Perigosos
+// extratoFinanceiroCacheController.js v6.8 - FIX RANKING RODADA NO EXTRATO
+// ✅ v6.8: FIX CRÍTICO - getExtratoCache retornava 'inscricao-nova-temporada' com rodadas: []
+//   - Mesmo quando rodadas REAIS já existiam no banco para a temporada
+//   - Agora verifica collection 'rodadas' antes de retornar pré-temporada
+//   - Se rodadas existem, retorna 404 para forçar cálculo pelo fluxoFinanceiroController
 // ✅ v6.7: REMOVIDO funções limparCacheLiga, limparCacheTime, limparTodosCaches
 //   - Causavam perda de dados IRRECUPERÁVEIS em temporadas históricas
 //   - Mantido apenas limparCachesCorrompidos para manutenção
@@ -642,6 +646,28 @@ export const getExtratoCache = async (req, res) => {
             const dadosSnapshot = await buscarExtratoDeSnapshots(ligaId, timeId, temporadaNum);
 
             if (dadosSnapshot) {
+                // ✅ v6.8 FIX: Se snapshot tem 0 rodadas mas rodadas REAIS existem no banco,
+                //   NÃO retornar snapshot vazio - deixar cair no endpoint de cálculo
+                if (dadosSnapshot.rodadas.length === 0 && temporadaNum >= CURRENT_SEASON) {
+                    const rodadasCol = mongoose.connection.db.collection('rodadas');
+                    const rodadaExisteSnap = await rodadasCol.findOne({
+                        temporada: temporadaNum,
+                        ligaId: String(ligaId),
+                        rodada: { $gt: 0 }
+                    });
+                    if (rodadaExisteSnap) {
+                        console.log(`[CACHE-CONTROLLER] ⚡ Snapshot vazio mas rodadas existem para temporada ${temporadaNum} - forçando cálculo`);
+                        return res.status(404).json({
+                            cached: false,
+                            message: "Snapshot vazio - rodadas existem, forçar cálculo",
+                            acertos: acertos,
+                            inativo: isInativo,
+                            rodadaDesistencia,
+                            extratoTravado: isInativo && rodadaDesistencia,
+                        });
+                    }
+                }
+
                 const camposAtivos = await buscarCamposManuais(ligaId, timeId, temporadaNum);
 
                 // ✅ v5.3 FIX: Calcular resumo COMPLETO a partir das rodadas (igual cache)
@@ -674,7 +700,29 @@ export const getExtratoCache = async (req, res) => {
             }
 
             // ✅ v6.0: Para temporada nova (2026+), criar extrato inicial com taxa de inscrição
+            // ✅ v6.8 FIX: Verificar se já existem rodadas REAIS antes de retornar pré-temporada
             if (temporadaNum >= CURRENT_SEASON) {
+                const rodadasCol = mongoose.connection.db.collection('rodadas');
+                const rodadaExiste = await rodadasCol.findOne({
+                    temporada: temporadaNum,
+                    ligaId: String(ligaId),
+                    rodada: { $gt: 0 }
+                });
+
+                if (rodadaExiste) {
+                    // Rodadas reais existem! Retornar 404 para forçar frontend a chamar
+                    // endpoint de cálculo (getExtratoFinanceiro) que criará cache com dados
+                    console.log(`[CACHE-CONTROLLER] ⚡ Rodadas existem para temporada ${temporadaNum} liga ${ligaId} - forçando cálculo (não pré-temporada)`);
+                    return res.status(404).json({
+                        cached: false,
+                        message: "Cache não encontrado - rodadas existem, forçar cálculo",
+                        acertos: acertos,
+                        inativo: isInativo,
+                        rodadaDesistencia,
+                        extratoTravado: isInativo && rodadaDesistencia,
+                    });
+                }
+
                 console.log(`[CACHE-CONTROLLER] 🆕 Criando extrato inicial para temporada ${temporadaNum}...`);
                 
                 // Buscar inscrição do participante para a nova temporada
@@ -1485,7 +1533,7 @@ export const estatisticasCache = async (req, res) => {
     }
 };
 
-console.log("[CACHE-CONTROLLER] ✅ v6.7 carregado (REMOVIDO funções de limpeza perigosas)");
+console.log("[CACHE-CONTROLLER] ✅ v6.8 carregado (FIX: rodadas existentes forçam cálculo)");
 
 // ✅ v5.6: Exportar funções auxiliares para uso em outros módulos (tesouraria, etc.)
 export {
