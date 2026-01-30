@@ -4,7 +4,7 @@
   "descricao": "Ranking baseado exclusivamente na pontuação dos capitães. Premia quem soube escolher os melhores capitães ao longo da temporada.",
   "categoria": "estatistico",
   "obrigatorio": false,
-  "status": "planejado",
+  "status": "implementado",
   "versao": "1.0.0",
 
   "restricoes": {

@@ -17,9 +17,7 @@
 
 <style>
 .capitao-container {
-  padding: 16px;
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .capitao-header {
@@ -46,6 +44,7 @@
   font-weight: 700;
   color: #fff;
   margin: 0;
+  font-family: 'Russo One', sans-serif;
 }
 
 .capitao-subtitulo {
@@ -58,6 +57,12 @@
   min-height: 200px;
 }
 
+.capitao-ranking-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .capitao-ranking-item {
   display: flex;
   align-items: center;
@@ -66,7 +71,6 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  margin-bottom: 8px;
 }
 
 .capitao-ranking-item.meu-time {
@@ -79,6 +83,7 @@
   text-align: center;
   font-weight: 700;
   color: #8b5cf6;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .capitao-info {
@@ -102,6 +107,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .capitao-badge {
@@ -113,7 +119,9 @@
   border-radius: 4px;
 }
 
-.loading, .empty, .error {
+.capitao-ranking-container .loading,
+.capitao-ranking-container .empty,
+.capitao-ranking-container .error {
   text-align: center;
   padding: 40px 20px;
   color: rgba(255, 255, 255, 0.6);

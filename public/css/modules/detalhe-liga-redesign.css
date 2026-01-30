@@ -280,6 +280,29 @@ body.temporada-historica [data-action="limpar-cache"] {
     color: #22c55e;
 }
 
+.detalhe-liga-redesign .module-card[data-module="capitao-luxo"] .module-icon {
+    background: rgba(139, 92, 246, 0.15);
+    color: #8b5cf6;
+}
+
+/* Card temático Capitão de Luxo */
+.detalhe-liga-redesign .module-card-capitao {
+    border-color: rgba(139, 92, 246, 0.25);
+}
+
+.detalhe-liga-redesign .module-card-capitao::before {
+    background: #8b5cf6;
+}
+
+.detalhe-liga-redesign .module-card-capitao:hover {
+    border-color: rgba(139, 92, 246, 0.5);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
+}
+
+.detalhe-liga-redesign .module-card-capitao:hover .module-arrow {
+    color: #8b5cf6;
+}
+
 /* Seta do card */
 .detalhe-liga-redesign .module-card .module-arrow {
     color: #4b5563;

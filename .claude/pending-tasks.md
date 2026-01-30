@@ -60,6 +60,79 @@ O módulo Ranking Geral não está funcionando como esperado:
 
 ---
 
+## ⚠️ CRÍTICO - MENU DO CAPITÃO DE LUXO NÃO APARECE (30/01/2026)
+
+### [FEAT-029] Exibir Capitão de Luxo na Quick Access Bar do participante
+
+**Status:** ⚠️ CRÍTICO - PENDENTE (próxima sessão)
+
+**Problema Reportado:**
+O módulo Capitão de Luxo está implementado no backend e nos arquivos do participante, mas nunca aparece nas opções do menu “ap” porque `participante-quick-bar.js` não gera um card para ele e o registro em `participante-navigation.js`/`detalhe-liga-orquestrador.js` não o exige como rota visível.
+
+**Passos necessários:**
+1. Garantir que `modulosAtivos.capitao` retorne `true` para ligas que adicionaram o módulo (API `/api/ligas/:id`, cache `participanteAuth.ligaDataCache` ou `participanteNav.modulosAtivos`).
+2. Incluir um card “Capitão de Luxo” em `renderizarMenuContent` (grupo “Prêmios & Estatísticas”) usando `renderCard('capitao', 'capitao', 'emoji_events', 'Capitão de Luxo')` e permitir clique se o módulo estiver ativo.
+3. Confirmar que `participante-navigation.js` e o orquestrador (`detalhe-liga-orquestrador.js`) reconhecem o módulo `capitao-luxo` para carregar o `participante-capitao.js`.
+4. Validar no app participante que o card aparece/reage corretamente, exibindo “Aguarde” apenas quando estiver desativado e abrindo o módulo quando ativo.
+
+**Criticidade:** O recurso já está pronto mas inacessível; a experiência fica incompleta para ligas que querem mostrar o ranking do capitão.
+
+**Referências:** `public/participante/js/participante-quick-bar.js`, `public/participante/js/participante-navigation.js`, `public/js/detalhe-liga-orquestrador.js`, `public/participante/js/participante-capitao.js`
+
+---
+
+## 🚨 URGENTE - CAPITÃO DE LUXO NÃO RENDERIZA NO ADMIN (30/01/2026)
+
+### [BUG-CRITICAL-004] Tela Capitão de Luxo não executa JS ao clicar no card (Admin)
+
+**Status:** 🟡 PARCIAL — UI/Card corrigidos, execução JS pendente de validação
+
+**Problema Original:**
+Ao clicar no card "Capitão de Luxo" na tela de detalhe da liga (admin), aparecia apenas "Redirecionado para o módulo..." e nada renderizava.
+
+**Causas Raiz Identificadas:**
+1. `public/fronts/capitao-luxo.html` era uma página HTML completa (`<!DOCTYPE>`, `<body>`, `<script>` com redirect) — **não** um fragmento injetável. Scripts em `innerHTML` não executam.
+2. Não existia `case "capitao-luxo"` no switch de `executeModuleScripts` em `detalhe-liga-orquestrador.js`.
+3. Card em `detalhe-liga.html` ainda tinha classe `module-card-2026` e badge "Em breve".
+4. `.capitao-container` tinha `max-width: 800px` causando layout verticalizado.
+
+**O que foi corrigido:**
+1. ✅ `public/fronts/capitao-luxo.html` — Reescrito como fragmento HTML injetável
+2. ✅ `public/js/detalhe-liga-orquestrador.js` — Adicionado `case "capitao-luxo"`, função `carregarModuloCapitaoLuxo()`, fallback HTML
+3. ✅ `public/detalhe-liga.html` — Card convertido de "Em breve" para módulo ativo com classe `module-card-capitao`
+4. ✅ `public/css/modules/detalhe-liga-redesign.css` — CSS tema roxo (#8b5cf6) para o card
+5. ✅ `public/participante/fronts/capitao.html` — CSS corrigido (`width: 100%`, tipografia)
+6. ✅ `config/rules/capitao_luxo.json` — Atualizado para v1.1.0 com regras completas
+7. ✅ `config/definitions/capitao_luxo_def.json` — Status alterado para "implementado"
+
+**O que ainda NÃO funciona:**
+- [ ] JS do módulo não executa após o clique — console mostra `[ORQUESTRADOR] CLICK em: capitao-luxo` mas nenhum log subsequente do `case`
+- [ ] Verificar se `executeModuleScripts` realmente entra no `case "capitao-luxo"` (logs de debug foram adicionados)
+- [ ] Verificar se `import("/participante/js/modules/participante-capitao.js")` resolve corretamente
+- [ ] Verificar se `window.inicializarCapitaoParticipante` é setada após o import
+- [ ] Testar no navegador com DevTools aberto (Network + Console)
+
+**Arquivos envolvidos:**
+| Arquivo | Modificação |
+|---------|-------------|
+| `public/fronts/capitao-luxo.html` | Reescrito (redirect → fragmento) |
+| `public/js/detalhe-liga-orquestrador.js` | case + loader + fallback + logs |
+| `public/detalhe-liga.html` | Card ativo com tema |
+| `public/css/modules/detalhe-liga-redesign.css` | CSS roxo do card |
+| `public/participante/fronts/capitao.html` | CSS width + tipografia |
+| `config/rules/capitao_luxo.json` | v1.1.0 completo |
+| `config/definitions/capitao_luxo_def.json` | Status implementado |
+
+**Próximos passos:**
+1. Abrir DevTools → Console, clicar no card e verificar logs `[ORQUESTRADOR]`
+2. Se não aparecem logs do case, o problema está no fluxo antes do switch (verificar `loadModuleHTML`)
+3. Se import falha, verificar path do arquivo e se Express serve `/participante/js/modules/`
+4. Após JS funcionar, validar que ranking carrega dados da API `/api/capitao/:ligaId/ranking`
+
+**Prioridade:** 🔴 ALTA — Módulo visível no admin mas não funcional
+
+---
+
 ## 🔥 PARA PRÓXIMA SESSÃO (29/01/2026)
 
 ### [FEAT-026] Sistema de Polling Inteligente para Módulo Rodadas - Calendário Real de Jogos

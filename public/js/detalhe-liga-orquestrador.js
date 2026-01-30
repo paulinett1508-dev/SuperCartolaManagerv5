@@ -382,6 +382,44 @@ class DetalheLigaOrquestrador {
                         console.error("[ORQUESTRADOR] Erro parciais:", error);
                     }
                     break;
+
+                case "capitao-luxo": {
+                    // ✅ LAZY LOADING - Só carrega quando clica
+                    console.log('[ORQUESTRADOR] Iniciando capitao-luxo...');
+                    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+                    try {
+                        if (!this.modules.capitaoLuxo) {
+                            console.log('[ORQUESTRADOR] Importando módulo capitao-luxo...');
+                            await carregarModuloCapitaoLuxo();
+                            console.log('[ORQUESTRADOR] Módulo capitao-luxo importado');
+                        }
+                        const capUrlParams = new URLSearchParams(window.location.search);
+                        const capLigaId = this.ligaId || capUrlParams.get('id') || window.ligaIdCache;
+                        console.log('[ORQUESTRADOR] capitao-luxo ligaId:', capLigaId);
+
+                        if (typeof window.inicializarCapitaoParticipante === "function") {
+                            await window.inicializarCapitaoParticipante({
+                                ligaId: capLigaId,
+                                timeId: null
+                            });
+                            console.log('[ORQUESTRADOR] capitao-luxo inicializado');
+                        } else {
+                            console.warn('[ORQUESTRADOR] window.inicializarCapitaoParticipante não encontrada');
+                        }
+                    } catch (error) {
+                        console.error("[ORQUESTRADOR] Erro capitao-luxo:", error);
+                        const capContainer = document.getElementById("capitaoRankingContainer");
+                        if (capContainer) {
+                            capContainer.innerHTML = `
+                                <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.6);">
+                                    <p><span class="material-icons" style="vertical-align: middle; color: #8b5cf6;">warning</span> Erro ao carregar Capitão de Luxo</p>
+                                    <p style="font-size: 12px;">${error.message}</p>
+                                </div>
+                            `;
+                        }
+                    }
+                    break;
+                }
             }
         } catch (error) {
             console.error(
@@ -411,6 +449,7 @@ class DetalheLigaOrquestrador {
             "fluxo-financeiro": `<div id="fluxo-financeiro-content"><div class="loading-state">Carregando fluxo financeiro...</div></div>`,
             participantes: `<div id="participantes-content"><div class="loading-state">Carregando participantes...</div></div>`,
             parciais: `<div id="parciais-content"><div class="loading-state">Carregando parciais...</div></div>`,
+            "capitao-luxo": `<div class="capitao-container"><div id="capitaoRankingContainer"><div class="loading-state">Carregando Capitão de Luxo...</div></div></div>`,
         };
 
         return (
@@ -1056,6 +1095,15 @@ async function carregarModuloLuvaDeOuro() {
         );
     }
     return window.orquestrador.modules.luvaDeOuro;
+}
+
+async function carregarModuloCapitaoLuxo() {
+    if (!window.orquestrador.modules.capitaoLuxo) {
+        window.orquestrador.modules.capitaoLuxo = await import(
+            "/participante/js/modules/participante-capitao.js"
+        );
+    }
+    return window.orquestrador.modules.capitaoLuxo;
 }
 
 async function carregarModuloFluxoFinanceiro() {

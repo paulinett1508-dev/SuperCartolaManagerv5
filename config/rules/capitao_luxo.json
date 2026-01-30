@@ -1,15 +1,15 @@
 {
   "id": "capitao_luxo",
   "nome": "Capitão de Luxo",
-  "descricao": "Ranking baseado exclusivamente na pontuação do capitão escalado em cada rodada. Premia quem soube escolher os melhores capitães.",
+  "descricao": "Ranking baseado exclusivamente na pontuação do capitão escalado em cada rodada. Premia quem soube escolher os melhores capitães ao longo da temporada.",
   "tipo": "ranking_estatistico",
   "status": "ativo",
-  "versao": "1.0.0",
+  "versao": "1.1.0",
 
   "configuracao": {
     "ligas_habilitadas": ["684cb1c8af923da7c7df51de", "684d821cf1a7ae16d1f89572"],
     "modulo_ativo": true,
-    "temporada": 2025
+    "temporada": 2026
   },
 
   "regras": {
@@ -17,17 +17,25 @@
       "metodo": "soma_pontuacao_capitao",
       "fonte_dados": "API Cartola (time/id/{timeId}/{rodada})",
       "identificacao_capitao": "campo capitao_id na escalação",
-      "pontuacao": "pontuacao_atleta * 2 (já aplicado pela API)"
+      "pontuacao": "pontuacao_atleta * 2 (já aplicado pela API)",
+      "nota": "A API Cartola retorna a pontuação do capitão já dobrada. NÃO multiplicar novamente."
     },
 
     "coleta": {
       "fonte": "API Cartola",
+      "endpoint_por_rodada": "/time/id/{timeId}/{rodada}",
+      "campo_capitao": "capitao_id",
       "dados_por_rodada": {
         "capitao_id": "ID do atleta capitão",
-        "capitao_nome": "Apelido do atleta",
-        "capitao_clube": "Clube do atleta",
+        "capitao_nome": "Apelido do atleta (atletas[capitao_id].apelido)",
+        "capitao_clube": "Clube do atleta (atletas[capitao_id].clube_id)",
         "pontuacao_base": "Pontuação sem bônus",
-        "pontuacao_capitao": "Pontuação com bônus x2"
+        "pontuacao_capitao": "Pontuação com bônus x2 (campo pontos do atleta)"
+      },
+      "parciais_tempo_real": {
+        "endpoint": "/atletas/pontuados",
+        "habilitado_quando": "mercado_fechado",
+        "nota": "Durante rodada ativa, usa endpoint ranking-live"
       }
     },
 
@@ -43,6 +51,12 @@
         "menor_pior_capitao",
         "posicao_ranking_geral"
       ]
+    },
+
+    "participantes_inativos": {
+      "incluir": true,
+      "limitar_rodadas": true,
+      "descricao": "Inativos têm rodadas limitadas até rodada_desistencia - 1"
     },
 
     "estatisticas": {
@@ -63,7 +77,15 @@
 
     "cache": {
       "collection": "capitaocaches",
-      "persistencia": true
+      "model": "CapitaoCaches",
+      "persistencia": true,
+      "campos_indexados": ["ligaId", "temporada", "timeId"]
+    },
+
+    "consolidacao": {
+      "endpoint": "POST /api/capitao/:ligaId/consolidar",
+      "permissao": "verificarAdmin",
+      "descricao": "Consolida ranking final da temporada e calcula posições/premiações"
     }
   },
 
@@ -114,19 +136,78 @@
   "ui": {
     "icone": "military_tech",
     "cor_tema": "#8b5cf6",
-    "descricao_participante": "Ranking de Capitães"
+    "cor_tema_rgb": "139, 92, 246",
+    "gradiente": "linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)",
+    "descricao_participante": "Ranking de Capitães",
+    "badge": {
+      "texto": "[C]",
+      "cor": "#fbbf24",
+      "bg": "rgba(251, 191, 36, 0.15)"
+    }
+  },
+
+  "navegacao": {
+    "module_id": "capitao-luxo",
+    "admin_card": "capitao-luxo",
+    "participante_card": "capitao",
+    "html_admin": "/fronts/capitao-luxo.html",
+    "html_participante": "/participante/fronts/capitao.html",
+    "js_modulo": "/participante/js/modules/participante-capitao.js",
+    "funcao_init": "inicializarCapitaoParticipante",
+    "bloqueado_pre_temporada": true
+  },
+
+  "api": {
+    "endpoints": [
+      {
+        "metodo": "GET",
+        "path": "/api/capitao/:ligaId/ranking",
+        "descricao": "Ranking consolidado da temporada",
+        "params": { "temporada": "query (opcional, default: ano atual)" },
+        "resposta": { "success": true, "ranking": [] }
+      },
+      {
+        "metodo": "GET",
+        "path": "/api/capitao/:ligaId/ranking-live",
+        "descricao": "Ranking em tempo real durante rodada ativa",
+        "resposta": { "success": true, "ranking": [], "live": true }
+      },
+      {
+        "metodo": "POST",
+        "path": "/api/capitao/:ligaId/consolidar",
+        "descricao": "Consolida ranking final (admin only)",
+        "permissao": "verificarAdmin"
+      }
+    ],
+    "routes_file": "routes/capitao-routes.js",
+    "controller": "controllers/capitaoController.js",
+    "service": "services/capitaoService.js"
   },
 
   "implementacao": {
-    "status": "pendente",
-    "requisitos": [
-      "Criar model CapitaoCaches",
-      "Criar controller capitaoController.js",
-      "Criar service capitaoService.js",
-      "Adicionar rotas em routes/",
-      "Criar frontend participante-capitao.js"
-    ],
-    "prioridade": "baixa"
+    "status": "implementado",
+    "arquivos": {
+      "backend": [
+        "models/CapitaoCaches.js",
+        "controllers/capitaoController.js",
+        "services/capitaoService.js",
+        "routes/capitao-routes.js"
+      ],
+      "frontend": [
+        "public/fronts/capitao-luxo.html",
+        "public/participante/fronts/capitao.html",
+        "public/participante/js/modules/participante-capitao.js"
+      ],
+      "config": [
+        "config/rules/capitao_luxo.json",
+        "config/definitions/capitao_luxo_def.json"
+      ]
+    },
+    "orquestrador": {
+      "case": "capitao-luxo",
+      "loader": "carregarModuloCapitaoLuxo()",
+      "fallback_html": true
+    }
   },
 
   "wizard": {
@@ -183,7 +264,8 @@
 
   "metadados": {
     "criado_em": "2025-12-14",
+    "atualizado_em": "2026-01-29",
     "autor": "Sistema",
-    "fonte": "Novo módulo - Especificação"
+    "fonte": "controllers/capitaoController.js, services/capitaoService.js, models/CapitaoCaches.js"
   }
 }

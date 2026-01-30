@@ -11,7 +11,7 @@ import Rodada from "../models/Rodada.js";
 import Time from "../models/Time.js"; // Importar modelo Time
 import ModuleConfig from "../models/ModuleConfig.js"; // Importar ModuleConfig
 import { calcularTamanhoIdealMataMata } from "../utils/tournamentUtils.js"; // Importar nova função
-import mataMataRules from "../config/rules/mata_mata.json" assert { type: "json" }; // Importar regras padrão
+import mataMataRules from "../config/rules/mata_mata.json" with { type: "json" }; // Importar regras padrão
 import { CURRENT_SEASON } from "../config/seasons.js";
 import _ from 'lodash';
 
