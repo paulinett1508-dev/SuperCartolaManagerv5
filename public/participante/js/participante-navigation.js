@@ -653,7 +653,7 @@ class ParticipanteNavigation {
 
             if (window.Log) Log.error('PARTICIPANTE-NAV', `❌ Erro ao carregar ${moduloId}:`, error);
 
-            this.mostrarErroCarregamento(container, moduloId, error.message);
+            this.mostrarErroCarregamento(container, moduloId, error);
         } finally {
             // ✅ v4.2: SEMPRE restaurar opacity e esconder overlays (evita UI travada)
             container.style.opacity = '1';
@@ -671,13 +671,15 @@ class ParticipanteNavigation {
 
     // ✅ NOVO: Função para mostrar erro de carregamento
     mostrarErroCarregamento(container, moduloId, mensagem) {
-        const mensagemErro = this.obterMensagemErroAmigavel({ message: mensagem });
+        const erroObj = typeof mensagem === 'string' ? { message: mensagem } : mensagem;
+        const mensagemErro = this.obterMensagemErroAmigavel(erroObj);
         container.innerHTML = `
             <div style="text-align: center; padding: 60px 20px; max-width: 500px; margin: 0 auto;">
                 <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); border-radius: 16px; padding: 40px; border: 2px solid rgba(239, 68, 68, 0.2);">
                     <span class="material-symbols-outlined" style="font-size: 64px; color: #facc15; margin-bottom: 20px; display: block;">warning</span>
                     <h3 style="color: #dc2626; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Ops! Algo deu errado</h3>
                     <p style="color: #999; margin-bottom: 24px; line-height: 1.6;">${mensagemErro}</p>
+                    <p style="color: #555; font-size: 11px; margin-bottom: 16px; word-break: break-all;">Detalhe: ${(erroObj.message || mensagem || 'desconhecido').substring(0, 200)}</p>
                     <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
                         <button onclick="window.participanteNav.navegarPara('${moduloId}', true)"
                                 style="background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
@@ -720,16 +722,26 @@ class ParticipanteNavigation {
     }
 
     obterMensagemErroAmigavel(error) {
-        const mensagem = error.message.toLowerCase();
+        const mensagem = (error.message || '').toLowerCase();
+        const nome = (error.name || '').toLowerCase();
 
         if (mensagem.includes("não foi encontrado") || mensagem.includes("404")) {
             return "Este módulo ainda não está disponível. Entre em contato com o administrador da liga.";
         }
-        if (mensagem.includes("network") || mensagem.includes("fetch")) {
-            return "Falha na conexão. Verifique sua internet e tente novamente.";
+        // ✅ v4.4: Distinguir timeout (AbortError) de erro de rede real
+        if (nome === 'aborterror' || mensagem.includes("aborted")) {
+            return "A conexão está lenta. Tente novamente em instantes.";
         }
         if (mensagem.includes("timeout")) {
             return "A requisição demorou muito. Tente novamente em instantes.";
+        }
+        // ✅ v4.4: Só mostrar "falha de conexão" para erros genuínos de rede
+        if (mensagem.includes("failed to fetch") || mensagem.includes("networkerror") || (mensagem.includes("network") && !mensagem.includes("module"))) {
+            return "Falha na conexão. Verifique sua internet e tente novamente.";
+        }
+        // ✅ v4.4: Erro de import de módulo (syntax error, dependência)
+        if (mensagem.includes("import") || mensagem.includes("module") || mensagem.includes("unexpected token") || mensagem.includes("syntax")) {
+            return `Erro ao carregar módulo. Limpe o cache do navegador e tente novamente. (${error.message})`;
         }
         return error.message || "Ocorreu um erro inesperado. Tente novamente.";
     }
@@ -805,6 +817,8 @@ class ParticipanteNavigation {
                             break;
                         } catch (error) {
                             if (window.Log) Log.error('PARTICIPANTE-NAV', `❌ Erro em ${funcName}():`, error);
+                            // ✅ v4.4: Propagar erro real para mostrar mensagem útil ao usuário
+                            throw error;
                         }
                     }
                 }
