@@ -13,8 +13,71 @@ import { verificarAdmin } from '../middleware/auth.js';
 import ModuleConfig, { MODULOS_DISPONIVEIS } from '../models/ModuleConfig.js';
 import { getRuleById, allRules } from '../config/rules/index.js';
 import { CURRENT_SEASON } from '../config/seasons.js';
+import Liga from '../models/Liga.js';
 
 const router = express.Router();
+
+// =============================================================================
+// PROPAGAÇÃO: moduleconfigs → liga.configuracoes (ranking_rodada)
+// =============================================================================
+
+/**
+ * Propaga valores_manual do moduleconfig para liga.configuracoes.ranking_rodada
+ * Necessário para que o backend (rodadaController) encontre os valores financeiros
+ */
+async function propagarRankingRodadaParaLiga(ligaId, wizardRespostas) {
+    const valoresManuais = wizardRespostas?.valores_manual;
+    if (!valoresManuais || Object.keys(valoresManuais).length === 0) {
+        console.warn('[MODULE-CONFIG] Sem valores_manual para propagar');
+        return false;
+    }
+
+    const valores = {};
+    let inicioCredito = null, fimCredito = null;
+    let inicioNeutro = null, fimNeutro = null;
+    let inicioDebito = null, fimDebito = null;
+
+    const posicoes = Object.keys(valoresManuais).map(Number).sort((a, b) => a - b);
+    const totalParticipantes = posicoes.length;
+
+    for (const pos of posicoes) {
+        const val = Number(valoresManuais[pos]) || 0;
+        valores[String(pos)] = val;
+
+        if (val > 0) {
+            if (inicioCredito === null) inicioCredito = pos;
+            fimCredito = pos;
+        } else if (val < 0) {
+            if (inicioDebito === null) inicioDebito = pos;
+            fimDebito = pos;
+        } else {
+            if (inicioNeutro === null) inicioNeutro = pos;
+            fimNeutro = pos;
+        }
+    }
+
+    const faixas = {
+        credito: { inicio: inicioCredito || 1, fim: fimCredito || 1 },
+        neutro: { inicio: inicioNeutro || (fimCredito || 0) + 1, fim: fimNeutro || (inicioDebito || totalParticipantes) - 1 },
+        debito: { inicio: inicioDebito || totalParticipantes, fim: fimDebito || totalParticipantes }
+    };
+
+    const rankingRodadaConfig = {
+        descricao: 'Bônus/ônus por posição na rodada',
+        configurado: true,
+        total_participantes: totalParticipantes,
+        valores,
+        faixas
+    };
+
+    const result = await Liga.updateOne(
+        { _id: ligaId },
+        { $set: { 'configuracoes.ranking_rodada': rankingRodadaConfig } }
+    );
+
+    console.log(`[MODULE-CONFIG] ranking_rodada propagado para liga ${ligaId}: ${totalParticipantes} posições, ${result.modifiedCount} doc atualizado`);
+    return result.modifiedCount > 0;
+}
 
 // =============================================================================
 // LISTAR MODULOS
@@ -177,6 +240,11 @@ router.post('/liga/:ligaId/modulos/:modulo/ativar', verificarAdmin, async (req, 
             temporada
         );
 
+        // Propagar ranking_rodada para liga.configuracoes (se aplicável)
+        if (modulo === 'ranking_rodada' && wizard_respostas?.valores_manual) {
+            await propagarRankingRodadaParaLiga(ligaId, wizard_respostas);
+        }
+
         console.log(`[MODULE-CONFIG] Modulo ${modulo} ativado para liga ${ligaId} por ${usuario}`);
 
         res.json({
@@ -282,6 +350,11 @@ router.put('/liga/:ligaId/modulos/:modulo/config', verificarAdmin, async (req, r
                 usuario,
                 temporada
             );
+
+            // Propagar ranking_rodada para liga.configuracoes
+            if (modulo === 'ranking_rodada' && wizard_respostas.valores_manual) {
+                await propagarRankingRodadaParaLiga(ligaId, wizard_respostas);
+            }
         }
 
         // Buscar config atualizada

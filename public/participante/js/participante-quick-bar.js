@@ -30,6 +30,10 @@ class QuickAccessBar {
             navItems: null
         };
 
+        this.statusMercado = null;
+        this.mercadoAberto = false;
+        this._ultimaStatusAtualizado = 0;
+
         // Touch state
         this._touchStartY = 0;
         this._isAnimating = false;
@@ -120,6 +124,37 @@ class QuickAccessBar {
     async carregarModulosAtivos() {
         if (window.participanteNav?.modulosAtivos) {
             this.modulosAtivos = window.participanteNav.modulosAtivos;
+        }
+    }
+
+    async atualizarStatusMercado(force = false) {
+        const agora = Date.now();
+        if (
+            !force &&
+            this._ultimaStatusAtualizado &&
+            agora - this._ultimaStatusAtualizado < 60000
+        ) {
+            return this.statusMercado;
+        }
+
+        let sucesso = false;
+        try {
+            const response = await fetch('/api/cartola/mercado/status');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const status = await response.json();
+            this.statusMercado = status;
+            this.mercadoAberto = status?.status_mercado === 1;
+            sucesso = true;
+            return status;
+        } catch (error) {
+            if (window.Log) Log.warn('QUICK-BAR', 'Erro ao carregar status do mercado', error);
+            return this.statusMercado;
+        } finally {
+            if (sucesso) {
+                this._ultimaStatusAtualizado = agora;
+            }
         }
     }
 
@@ -221,6 +256,25 @@ class QuickAccessBar {
             `;
         };
 
+        const escapeAttr = (value) =>
+            String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;');
+        const mercadoAberto = this.mercadoAberto === true;
+        const aoVivoMessageEnabled = 'Acompanhar a rodada atual em tempo real.';
+        const aoVivoMessageDisabled = 'Ao Vivo só fica ativo quando o mercado estiver fechado e a rodada estiver em andamento.';
+        const aoVivoTooltip = mercadoAberto ? aoVivoMessageDisabled : aoVivoMessageEnabled;
+        const aoVivoAttributes = [
+            'data-action="ao-vivo"',
+            `title="${escapeAttr(aoVivoTooltip)}"`,
+            `aria-label="${escapeAttr(aoVivoTooltip)}"`,
+            `aria-disabled="${mercadoAberto ? 'true' : 'false'}"`
+        ];
+        if (mercadoAberto) {
+            aoVivoAttributes.push('data-disabled="true"');
+            aoVivoAttributes.push(`data-disabled-message="${escapeAttr(aoVivoMessageDisabled)}"`);
+        }
+
         // Hall da Fama: ocultar completamente para ligas estreantes
         const hallDaFamaCard = isLigaEstreante ? '' : `
             <div class="menu-card" data-module="historico">
@@ -242,7 +296,8 @@ class QuickAccessBar {
                         <span class="material-icons">view_week</span>
                         <span class="menu-card-label">Rodadas</span>
                     </div>
-                    <div class="menu-card ao-vivo-card" data-action="ao-vivo">
+                    <div class="menu-card ao-vivo-card${mercadoAberto ? ' desativado' : ''}"
+                         ${aoVivoAttributes.join(' ')}>
                         <span class="material-icons">sensors</span>
                         <span class="menu-card-label">Ao Vivo</span>
                         <span class="live-indicator"></span>
@@ -326,6 +381,13 @@ class QuickAccessBar {
 
                 const module = card.dataset.module;
                 const action = card.dataset.action;
+                if (card.dataset.disabled === 'true') {
+                    const message =
+                        card.dataset.disabledMessage ||
+                        'Ao Vivo só fica ativo quando o mercado estiver fechado.';
+                    this.mostrarToast(message, 'info');
+                    return;
+                }
 
                 if (action === 'em-breve') {
                     this.mostrarToast('Em breve!');
@@ -380,14 +442,19 @@ class QuickAccessBar {
         this.menuAberto ? this.fecharMenu() : this.abrirMenu();
     }
 
-    abrirMenu() {
+    async abrirMenu() {
         if (this._isAnimating) return;
         this._isAnimating = true;
 
         const { menuOverlay, menuSheet } = this._dom;
 
-        // Lazy load menu content on first open
-        if (menuSheet && !menuSheet.querySelector('.menu-category')) {
+        try {
+            await this.atualizarStatusMercado();
+        } catch (error) {
+            if (window.Log) Log.warn('QUICK-BAR', 'Erro ao atualizar status antes do menu', error);
+        }
+
+        if (menuSheet) {
             menuSheet.innerHTML = this.renderizarMenuContent();
         }
 
@@ -434,13 +501,11 @@ class QuickAccessBar {
     async navegarParaAoVivo() {
         this.fecharMenu();
 
-        // Buscar status do mercado para saber a rodada atual
         try {
-            const response = await fetch('/api/cartola/mercado/status');
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            const status = await response.json();
+            const status =
+                (await this.atualizarStatusMercado(true)) ||
+                this.statusMercado ||
+                { status_mercado: 2 };
 
             if (window.Log) Log.info('QUICK-BAR', 'Status mercado:', status);
 

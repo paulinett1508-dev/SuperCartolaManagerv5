@@ -481,17 +481,6 @@ function renderizarConteudoRenovadoPreTemporada(container, extrato) {
             </div>
         </div>
 
-        <!-- Banner Temporada 2026 -->
-        <div class="bg-gradient-to-r from-primary/20 to-amber-500/20 rounded-xl p-4 border border-primary/30">
-            <div class="flex items-start gap-3">
-                <span class="material-icons text-primary text-xl mt-0.5">emoji_events</span>
-                <div>
-                    <p class="text-sm font-bold text-white">Temporada 2026</p>
-                    <p class="text-xs text-white/70 mt-1">Sua inscrição está confirmada! Aguardando o início do Brasileirão.</p>
-                </div>
-            </div>
-        </div>
-
         <!-- Modal TOP10 Info (mantido para compatibilidade) -->
         <div id="modalTop10Info" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4" onclick="this.classList.add('hidden'); this.classList.remove('flex');"></div>
 

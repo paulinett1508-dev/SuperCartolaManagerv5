@@ -120,7 +120,9 @@ class ParticipanteNavigation {
             sessionStorage.getItem("participante_modulo_atual") ||
             "home";
 
-        const moduloInicial = this._campinhoTarget ? 'campinho' : moduloSalvo;
+        // ✅ v4.4: Liga aposentada → direto para Hall da Fama
+        const moduloInicial = window.isLigaAposentada ? 'historico'
+            : this._campinhoTarget ? 'campinho' : moduloSalvo;
 
         // ✅ Sincronizar botão ativo do menu com módulo salvo
         if (moduloSalvo) {
@@ -829,6 +831,13 @@ class ParticipanteNavigation {
     verificarBloqueioPreTemporada(moduloId) {
         const config = window.ParticipanteConfig;
 
+        // ✅ v4.4: Liga aposentada - só permite Hall da Fama
+        if (window.isLigaAposentada) {
+            if (moduloId === 'historico') return false; // Liberado
+            if (window.Log) Log.info('PARTICIPANTE-NAV', `🏛️ Módulo ${moduloId} bloqueado - liga aposentada`);
+            return true;
+        }
+
         // ✅ v4.2: Liga estreante - bloquear Hall da Fama (sem historico para mostrar)
         if (window.isLigaEstreante && moduloId === 'historico') {
             if (window.Log) Log.info('PARTICIPANTE-NAV', '🚫 Hall da Fama bloqueado para liga estreante');
@@ -884,7 +893,34 @@ class ParticipanteNavigation {
         // Criar modal
         const modal = document.createElement('div');
         modal.id = 'modalBloqueioPreTemporada';
-        modal.innerHTML = `
+
+        // ✅ v4.4: Modal específico para liga aposentada
+        if (window.isLigaAposentada) {
+            modal.innerHTML = `
+                <div class="modal-bloqueio-overlay" onclick="window.participanteNav.fecharModalBloqueio()">
+                    <div class="modal-bloqueio-content modal-aposentada" onclick="event.stopPropagation()">
+                        <div class="modal-bloqueio-icon modal-aposentada-icon">
+                            <span class="material-symbols-outlined">emoji_events</span>
+                        </div>
+                        <h3 class="modal-bloqueio-titulo">Liga não renovada</h3>
+                        <p class="modal-bloqueio-texto">
+                            Essa liga <strong>não foi renovada</strong> para a temporada atual.
+                        </p>
+                        <div class="modal-bloqueio-dica">
+                            <span class="material-symbols-outlined">history</span>
+                            <span>Veja como foi sua última participação clicando abaixo</span>
+                        </div>
+                        <div class="modal-bloqueio-botoes">
+                            <button class="modal-bloqueio-btn primario" onclick="window.participanteNav.irParaHistorico()" style="flex:1">
+                                <span class="material-symbols-outlined">emoji_events</span>
+                                Ver Hall da Fama
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            modal.innerHTML = `
             <div class="modal-bloqueio-overlay" onclick="window.participanteNav.fecharModalBloqueio()">
                 <div class="modal-bloqueio-content" onclick="event.stopPropagation()">
                     <div class="modal-bloqueio-icon">
@@ -917,6 +953,7 @@ class ParticipanteNavigation {
                 </div>
             </div>
         `;
+        }
 
         // Adicionar estilos se nao existirem
         if (!document.getElementById('estilosModalBloqueio')) {
@@ -1067,6 +1104,18 @@ class ParticipanteNavigation {
                 .modal-bloqueio-btn.primario:active {
                     transform: scale(0.98);
                     filter: brightness(0.9);
+                }
+                /* v4.4: Liga aposentada - tema cinza/prata */
+                .modal-aposentada {
+                    border-color: rgba(156, 163, 175, 0.3) !important;
+                    box-shadow: 0 20px 60px rgba(107, 114, 128, 0.15) !important;
+                }
+                .modal-aposentada-icon {
+                    background: rgba(156, 163, 175, 0.15) !important;
+                }
+                .modal-aposentada-icon .material-symbols-outlined {
+                    color: #fbbf24 !important;
+                    font-size: 36px;
                 }
             `;
             document.head.appendChild(estilos);

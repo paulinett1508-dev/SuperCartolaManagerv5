@@ -112,7 +112,10 @@
       "Bash(__NEW_LINE_0ddcc0578c3079ad__ echo \"\")",
       "Bash(__NEW_LINE_738694c910c4dc11__ echo \"\")",
       "Bash(__NEW_LINE_7ec77db503f3a5c0__ echo \"\")",
-      "Bash(__NEW_LINE_1201d7a7a92b2178__ echo \"\")"
+      "Bash(__NEW_LINE_1201d7a7a92b2178__ echo \"\")",
+      "Bash(# Testar com refresh para forçar recálculo - verificar logs curl -s \"\"http://localhost:5000/api/fluxo-financeiro/684cb1c8af923da7c7df51de/extrato/13935277?temporada=2026&refresh=true\"\" | python3 -m json.tool)",
+      "Bash(# Verificar se Paulinett é encontrado como participante na liga curl -s \"\"http://localhost:5000/api/fluxo-financeiro/684cb1c8af923da7c7df51de/extrato/13935277?temporada=2026&refresh=true\"\" & # Check server log after request sleep 2 grep -i \"\"13935277\\\\|fluxo-controller\\\\|FLUXO\"\" /tmp/server.log)",
+      "Bash(# Verificar se times que NÃO funcionam têm o campo ligaId como ObjectId ou String nos dados de 2026 # Time que funciona \\(715731\\) vs que não funciona \\(13935277\\) curl -s \"\"http://localhost:5000/api/fluxo-financeiro/684cb1c8af923da7c7df51de/extrato/1649056?temporada=2026&refresh=true\"\")"
     ]
   },
   "enableAllProjectMcpServers": true,

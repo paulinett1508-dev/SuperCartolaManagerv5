@@ -1,5 +1,6 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v8.6.0 (SaaS DINÂMICO)
+ * FLUXO-FINANCEIRO-CONTROLLER v8.7.0 (SaaS DINÂMICO)
+ * ✅ v8.7.0: FIX CRÍTICO - Query de rodadas agora filtra por temporada (evita misturar 2025+2026)
  * ✅ v8.6.0: FIX PREVENTIVO - Query TOP10 agora filtra por temporada (evita cache errado)
  * ✅ v8.5.0: PROTEÇÃO DADOS HISTÓRICOS - resetarCampos/deletarCampos só permite temporada atual
  * ✅ v8.4.0: FIX CRÍTICO - Extrato 2026 não calcula rodadas (pré-temporada)
@@ -361,16 +362,22 @@ async function calcularFinanceiroDaRodada(
     timeId,
     rodadaNumero,
     rodadaAtual,
+    temporada,
 ) {
     const transacoes = [];
     let saldoRodada = 0;
     const ligaId = liga._id;
 
     // Buscar pontuações da rodada
-    const pontuacoes = await Rodada.find({
+    // ✅ v8.7.0 FIX: Filtrar por temporada para não misturar 2025 + 2026
+    const queryRodada = {
         ligaId: ligaId,
         rodada: rodadaNumero,
-    }).select("timeId pontos nome_time nome_cartola").lean();
+    };
+    if (temporada) queryRodada.temporada = temporada;
+
+    const pontuacoes = await Rodada.find(queryRodada)
+        .select("timeId pontos nome_time nome_cartola").lean();
 
     const minhaPontuacaoObj = pontuacoes.find(
         (p) => String(p.timeId) === String(timeId),
@@ -541,6 +548,7 @@ export const getExtratoFinanceiro = async (req, res) => {
                     timeId,
                     r,
                     rodadaAtualCartola,
+                    temporadaAtual,
                 );
 
                 if (resultado.transacoes.length > 0) {
@@ -949,11 +957,13 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                     r++
                 ) {
                     // rodadaNumero + 1 como rodadaAtual pois estamos consolidando até rodadaNumero
+                    // ✅ v8.7.0: Passa temporada para filtrar rodadas corretamente
                     const resultado = await calcularFinanceiroDaRodada(
                         liga,
                         timeId,
                         r,
                         rodadaNumero + 1,
+                        temporadaAtual,
                     );
 
                     if (resultado.transacoes.length > 0) {

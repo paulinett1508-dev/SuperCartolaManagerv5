@@ -663,14 +663,27 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         const meuZonaBadge = !isParcial ? calcularZonaLabel(minhaPosicaoCalc, totalParticipantes, meusValor) : '';
         let detalhesExtra = meuZonaBadge;
 
+        // ✅ v7.0: Ícone e estilo especial se eu sou MITO ou MICO
+        const meuIsMito = minhaPosicaoCalc === 1 && !isParcial;
+        const meuIsMico = minhaPosicaoCalc === totalParticipantes && totalParticipantes > 1 && !isParcial;
+        const meuResumoExtraClass = meuIsMito ? 'meu-resumo-mito' : meuIsMico ? 'meu-resumo-mico' : '';
+        const meuPosicaoIcon = meuIsMito
+            ? '<span class="material-icons" style="font-size:22px;color:#ffd700;">emoji_events</span>'
+            : `${minhaPosicaoCalc}&#186;`;
+        const meuStatusLabel = meuIsMito
+            ? '<div class="mito-icon-row"><span class="material-icons">star</span> REI DA RODADA</div>'
+            : meuIsMico
+            ? '<div class="mico-icon-row"><span class="material-icons">trending_down</span> PIOR DA RODADA</div>'
+            : '';
+
         // Em campo badge for parciais
         const emCampoInfo = isParcial && meuPart.totalAtletas > 0
             ? `<span style="margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:${meuPart.atletasEmCampo > 0 ? '#22c55e' : '#6b7280'}">${meuPart.atletasEmCampo}/${meuPart.totalAtletas} em campo</span>`
             : '';
 
         meuResumoHTML = `
-            <div class="meu-resumo-card">
-                <div class="meu-resumo-posicao">${minhaPosicaoCalc}&#186;</div>
+            <div class="meu-resumo-card ${meuResumoExtraClass}">
+                <div class="meu-resumo-posicao">${meuPosicaoIcon}</div>
                 <div class="meu-resumo-info">
                     <div class="meu-resumo-nome">${meuNome}</div>
                     <div class="meu-resumo-detalhes">
@@ -678,6 +691,7 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
                         ${!isParcial && meusValorTexto ? `<span style="color:${meusValorCor};font-family:'JetBrains Mono',monospace;font-size:12px;">${meusValorTexto}</span>` : ''}
                         ${emCampoInfo}
                     </div>
+                    ${meuStatusLabel}
                 </div>
                 <div class="meu-resumo-pontos">
                     <div class="meu-resumo-pontos-valor">${meusPontosCalc.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
@@ -701,11 +715,14 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         const financeiroTexto = valorFinanceiro > 0 ? `+R$ ${valorFormatado}` : valorFinanceiro < 0 ? `-R$ ${valorFormatado}` : "R$ 0,00";
         const financeiroClass = valorFinanceiro > 0 ? "positivo" : valorFinanceiro < 0 ? "negativo" : "neutro";
 
+        // ✅ v7.0: Classes visuais por zona financeira
+        const isMito = posicao === 1;
+        const isMico = posicao === totalParticipantes && totalParticipantes > 1;
         let posicaoClass = "pos-default";
-        if (posicao === 1) posicaoClass = "pos-1";
-        else if (posicao === 2) posicaoClass = "pos-2";
-        else if (posicao === 3) posicaoClass = "pos-3";
-        else if (posicao > totalParticipantes - 3) posicaoClass = "pos-danger";
+        if (isMito) posicaoClass = "pos-mito";
+        else if (isMico) posicaoClass = "pos-mico";
+        else if (valorFinanceiro > 0) posicaoClass = "pos-ganho";
+        else if (valorFinanceiro < 0) posicaoClass = "pos-danger";
 
         const pontosFormatados = Number(participante.pontos || 0).toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
@@ -729,12 +746,33 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
             ? `data-curiosar-time-id="${timeId}" style="cursor: pointer;"`
             : "";
 
+        // ✅ v7.0: Ícones especiais para MITO e MICO
+        let posicaoContent, itemExtraClass = '';
+        if (isMito && !isParcial) {
+            posicaoContent = '<span class="material-icons" style="font-size:20px;">emoji_events</span>';
+            itemExtraClass = 'item-mito';
+        } else if (isMico && !isParcial) {
+            posicaoContent = `${posicao}º`;
+            itemExtraClass = 'item-mico';
+        } else {
+            posicaoContent = `${posicao}º`;
+        }
+
+        // Label de destaque sob o nome do cartoleiro
+        let statusLabel = '';
+        if (isMito && !isParcial) {
+            statusLabel = `<div class="mito-icon-row"><span class="material-icons">star</span> REI DA RODADA</div>`;
+        } else if (isMico && !isParcial) {
+            statusLabel = `<div class="mico-icon-row"><span class="material-icons">trending_down</span> PIOR DA RODADA</div>`;
+        }
+
         return `
-            <div class="ranking-item-pro ${isMeuTime ? "meu-time" : ""}" ${curiosarAttr}>
-                <div class="posicao-badge-pro ${posicaoClass}">${posicao}º</div>
+            <div class="ranking-item-pro ${isMeuTime ? "meu-time" : ""} ${itemExtraClass}" ${curiosarAttr}>
+                <div class="posicao-badge-pro ${posicaoClass}">${posicaoContent}</div>
                 <div class="ranking-info-pro">
                     <div class="ranking-nome-time">${nomeTime} ${naoJogouBadge} ${badgeEmCampo}</div>
                     <div class="ranking-nome-cartola">${participante.nome_cartola || "N/D"}${zonaBadge}</div>
+                    ${statusLabel}
                 </div>
                 <div class="ranking-stats-pro">
                     <div class="ranking-pontos-pro">${pontosFormatados}</div>

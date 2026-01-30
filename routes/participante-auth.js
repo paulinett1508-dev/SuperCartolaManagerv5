@@ -617,7 +617,7 @@ router.get("/minhas-ligas", verificarSessaoParticipante, async (req, res) => {
         const ligas = await Liga.find({
             "participantes.time_id": parseInt(timeId),
         })
-            .select("_id nome descricao")
+            .select("_id nome descricao status ativa logo")
             .lean();
 
         res.json({
@@ -626,6 +626,9 @@ router.get("/minhas-ligas", verificarSessaoParticipante, async (req, res) => {
                 id: liga._id.toString(),
                 nome: liga.nome,
                 descricao: liga.descricao || "",
+                status: liga.status || (liga.ativa !== false ? 'ativa' : 'aposentada'),
+                ativa: liga.ativa !== false,
+                logo: liga.logo || null,
             })),
         });
     } catch (error) {

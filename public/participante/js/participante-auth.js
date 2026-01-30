@@ -264,6 +264,12 @@ class ParticipanteAuth {
             window.ligaPrimeiraTemporada = anoCriacao;
             if (window.Log) Log.info('PARTICIPANTE-AUTH', `📅 Liga estreante: ${window.isLigaEstreante} (criada em ${anoCriacao})`);
 
+            // ✅ v3.2: Detectar liga aposentada / não renovada
+            window.isLigaAposentada = (ligaData.status === 'aposentada' || ligaData.ativa === false);
+            if (window.isLigaAposentada) {
+                if (window.Log) Log.info('PARTICIPANTE-AUTH', '🏛️ Liga APOSENTADA - acesso restrito ao Hall da Fama');
+            }
+
 
             let participanteDataNaLiga = ligaData.participantes?.find(
                 (p) => String(p.time_id) === String(this.timeId),
@@ -598,22 +604,25 @@ class ParticipanteAuth {
                         </button>
                     </div>
                     <div class="liga-modal-body">
-                        ${ligas.map(liga => `
-                            <div class="liga-option ${liga.id === this.ligaId ? 'atual' : ''}"
+                        ${ligas.map(liga => {
+                            const isAposentada = liga.status === 'aposentada' || liga.ativa === false;
+                            return `
+                            <div class="liga-option ${liga.id === this.ligaId ? 'atual' : ''} ${isAposentada ? 'aposentada' : ''}"
                                  onclick="participanteAuth.selecionarLigaModal('${liga.id}')">
                                 <div class="liga-option-icon">
-                                    <span class="material-symbols-outlined">emoji_events</span>
+                                    <span class="material-symbols-outlined">${isAposentada ? 'history' : 'emoji_events'}</span>
                                 </div>
                                 <div class="liga-option-info">
                                     <div class="liga-option-nome">
                                         ${liga.nome}
                                         ${liga.id === this.ligaId ? '<span class="liga-option-atual-badge">ATUAL</span>' : ''}
+                                        ${isAposentada ? '<span class="liga-option-aposentada-badge">ENCERRADA</span>' : ''}
                                     </div>
-                                    <div class="liga-option-times">${liga.times || '?'} participantes</div>
+                                    <div class="liga-option-times">${isAposentada ? 'Apenas histórico disponível' : (liga.times || '?') + ' participantes'}</div>
                                 </div>
                                 <span class="material-symbols-outlined liga-option-check">check_circle</span>
                             </div>
-                        `).join('')}
+                        `;}).join('')}
                     </div>
                 </div>
             </div>

@@ -367,9 +367,10 @@
              */
             async function onCardClick(moduloKey) {
                 const config = MODULOS_CONFIG[moduloKey];
+                const estaAtivo = config.base || modulosState[moduloKey] !== false;
 
                 // Verificar se pode configurar
-                if (!config.base && !modulosState[moduloKey]) {
+                if (!estaAtivo) {
                     showMessage('Ative o módulo primeiro usando o toggle', 'warning');
                     return;
                 }
