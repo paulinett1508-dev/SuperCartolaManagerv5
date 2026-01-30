@@ -1114,11 +1114,8 @@ function criarTabelaRanking(
             .ranking-primeiro {
                 background: linear-gradient(90deg, rgba(255,215,0,0.15) 0%, transparent 100%);
             }
-            .ranking-segundo {
-                background: linear-gradient(90deg, rgba(192,192,192,0.1) 0%, transparent 100%);
-            }
-            .ranking-terceiro {
-                background: linear-gradient(90deg, rgba(205,127,50,0.1) 0%, transparent 100%);
+            .ranking-ultimo {
+                background: linear-gradient(90deg, rgba(220,38,38,0.15) 0%, transparent 100%);
             }
 
             /* INATIVOS */
@@ -1249,7 +1246,7 @@ function criarLinhaParticipante(
         timeIdLogado && String(participante.time_id) === timeIdLogado;
 
     const classeInativo = estaInativo ? "participante-inativo" : "";
-    const classeCSS = estaInativo ? "" : obterClassePosicao(index);
+    const classeCSS = estaInativo ? "" : obterClassePosicao(index, totalAtivos);
     const classeMinha = ehMinhaLinha ? "minha-linha" : "";
     const estiloEspecial = estaInativo
         ? ""
@@ -1303,15 +1300,14 @@ function criarLinhaParticipante(
 // ==============================
 // FUNÇÕES AUXILIARES
 // ==============================
-function obterClassePosicao(index) {
+function obterClassePosicao(index, totalAtivos) {
+    // Último colocado ativo = destaque vermelho
+    if (totalAtivos > 1 && index === totalAtivos - 1) return "ranking-ultimo";
     switch (index) {
         case 0:
             return "ranking-primeiro";
-        case 1:
-            return "ranking-segundo";
-        case 2:
-            return "ranking-terceiro";
         default:
+            if (index >= 1 && index <= 9) return "ranking-top10";
             return "";
     }
 }
@@ -1331,28 +1327,15 @@ async function obterConfigLiga(ligaId) {
 }
 
 function obterLabelPosicao(index, ligaId, totalParticipantes = 32) {
-    // v2.4: Usar totalParticipantes para determinar se e liga pequena
-    const isLigaPequena = totalParticipantes <= 6;
-
     switch (index) {
         case 0:
             return `<span class="trofeu-ouro" title="Campeão"><span class="material-icons" style="color:#ffd700;">emoji_events</span></span>`;
-        case 1:
-            return `<span class="trofeu-prata" title="Vice-Campeão"><span class="material-icons" style="color:#c0c0c0;">military_tech</span></span>`;
-        case 2:
-            return isLigaPequena
-                ? `${index + 1}º`
-                : `<span class="trofeu-bronze" title="Terceiro Lugar"><span class="material-icons" style="color:#cd7f32;">military_tech</span></span>`;
         default:
             return `${index + 1}º`;
     }
 }
 
 function obterEstiloEspecial(index, totalAtivos) {
-    const ultimoAtivo = totalAtivos - 1;
-    if (index === ultimoAtivo && totalAtivos >= 10) {
-        return "background:#8b0000;color:#fff;font-weight:bold;border-radius:4px;";
-    }
     return "";
 }
 

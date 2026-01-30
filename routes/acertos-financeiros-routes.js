@@ -20,6 +20,7 @@
  */
 
 import express from "express";
+import { verificarAdmin } from "../middleware/auth.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
@@ -188,7 +189,7 @@ router.get("/admin/:ligaId", async (req, res) => {
  * Registra um novo acerto financeiro (admin only)
  * ✅ v1.1.0: Troco automático quando pagamento > dívida
  */
-router.post("/:ligaId/:timeId", async (req, res) => {
+router.post("/:ligaId/:timeId", verificarAdmin, async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const {
@@ -372,7 +373,7 @@ router.post("/:ligaId/:timeId", async (req, res) => {
  * PUT /api/acertos/:id
  * Atualiza um acerto existente (admin only)
  */
-router.put("/:id", async (req, res) => {
+router.put("/:id", verificarAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
@@ -441,7 +442,7 @@ router.put("/:id", async (req, res) => {
  * DELETE /api/acertos/:id
  * Remove um acerto (soft delete - mantém histórico)
  */
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verificarAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { hardDelete = false } = req.query;

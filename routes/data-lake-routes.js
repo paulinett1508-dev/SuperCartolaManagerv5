@@ -1,5 +1,6 @@
 // ✅ routes/data-lake-routes.js - Rotas do Data Lake dos Participantes
 import express from "express";
+import { verificarAdmin } from "../middleware/auth.js";
 import {
   httpSincronizarComGlobo,
   httpSincronizarPorId,
@@ -33,7 +34,7 @@ const router = express.Router();
  *   "message": "..."
  * }
  */
-router.post("/sincronizar", httpSincronizarComGlobo);
+router.post("/sincronizar", verificarAdmin, httpSincronizarComGlobo);
 
 /**
  * POST /api/data-lake/sincronizar/:id
@@ -49,7 +50,7 @@ router.post("/sincronizar", httpSincronizarComGlobo);
  *   "rodada": 10              // Opcional
  * }
  */
-router.post("/sincronizar/:id", httpSincronizarPorId);
+router.post("/sincronizar/:id", verificarAdmin, httpSincronizarPorId);
 
 // =============================================================================
 // ROTAS DE ACESSO AOS DADOS RAW

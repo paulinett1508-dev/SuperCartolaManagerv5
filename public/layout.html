@@ -152,7 +152,7 @@
 
         <script>
             // === SISTEMA DE CACHE LOCALSTORAGE ===
-            // ✅ v9.1: Protecao contra redeclaracao em navegacao SPA
+            // ✅ v9.2: Fix - CacheManager acessível mesmo após re-injeção SPA
             if (typeof window._layoutCacheManager === 'undefined') {
             window._layoutCacheManager = true;
 
@@ -224,8 +224,24 @@
             window.verificarMenuSuperAdmin = async function() {
                 console.log('[LAYOUT] verificarMenuSuperAdmin() iniciado');
                 try {
+                    // ✅ v9.2: Usar window.CacheManager para funcionar após re-injeção SPA
+                    var _cm = window.CacheManager;
+                    if (!_cm || !_cm.KEYS) {
+                        console.warn('[LAYOUT] CacheManager não disponível, chamando API diretamente');
+                        const response = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
+                        if (!response.ok) return;
+                        var data = await response.json();
+                        const menuAdmin = document.getElementById('menuAdministradores');
+                        if (menuAdmin) {
+                            menuAdmin.style.cssText = data.isSuperAdmin
+                                ? 'display: flex !important;'
+                                : 'display: none !important;';
+                        }
+                        return;
+                    }
+
                     // Tentar cache primeiro
-                    let data = CacheManager.get(CacheManager.KEYS.SUPER_ADMIN);
+                    let data = _cm.get(_cm.KEYS.SUPER_ADMIN);
 
                     if (data) {
                         console.log('[LAYOUT] Super Admin (cache hit)');
@@ -234,7 +250,7 @@
                         const response = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
                         if (!response.ok) return;
                         data = await response.json();
-                        CacheManager.set(CacheManager.KEYS.SUPER_ADMIN, data, CacheManager.TTL.SUPER_ADMIN);
+                        _cm.set(_cm.KEYS.SUPER_ADMIN, data, _cm.TTL.SUPER_ADMIN);
                     }
 
                     const menuAdmin = document.getElementById('menuAdministradores');

@@ -10,6 +10,7 @@
  */
 
 import express from 'express';
+import { verificarAdmin } from '../middleware/auth.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -177,7 +178,7 @@ router.get('/:id', (req, res) => {
  * PUT /api/renovacoes/:id/status
  * Atualiza o status de renovação de um participante
  */
-router.put('/:id/status', (req, res) => {
+router.put('/:id/status', verificarAdmin, (req, res) => {
     try {
         const { id } = req.params;
         const { status, observacoes } = req.body;
@@ -241,7 +242,7 @@ router.put('/:id/status', (req, res) => {
  * POST /api/renovacoes/:id/pagamento
  * Registra um pagamento para um participante
  */
-router.post('/:id/pagamento', (req, res) => {
+router.post('/:id/pagamento', verificarAdmin, (req, res) => {
     try {
         const { id } = req.params;
         const { valor, observacoes } = req.body;
@@ -319,7 +320,7 @@ router.post('/:id/pagamento', (req, res) => {
  * PUT /api/renovacoes/bulk/status
  * Atualiza status de múltiplos participantes
  */
-router.put('/bulk/status', (req, res) => {
+router.put('/bulk/status', verificarAdmin, (req, res) => {
     try {
         const { ids, status, observacoes } = req.body;
 

@@ -9,6 +9,7 @@
  */
 
 import express from 'express';
+import { verificarAdmin } from '../middleware/auth.js';
 import ModuleConfig, { MODULOS_DISPONIVEIS } from '../models/ModuleConfig.js';
 import { getRuleById, allRules } from '../config/rules/index.js';
 import { CURRENT_SEASON } from '../config/seasons.js';
@@ -142,7 +143,7 @@ router.get('/liga/:ligaId/modulos/:modulo', async (req, res) => {
  * POST /api/liga/:ligaId/modulos/:modulo/ativar
  * Ativa um modulo para a liga com as configuracoes do wizard
  */
-router.post('/liga/:ligaId/modulos/:modulo/ativar', async (req, res) => {
+router.post('/liga/:ligaId/modulos/:modulo/ativar', verificarAdmin, async (req, res) => {
     try {
         const { ligaId, modulo } = req.params;
         const temporada = Number(req.body.temporada) || CURRENT_SEASON;
@@ -198,7 +199,7 @@ router.post('/liga/:ligaId/modulos/:modulo/ativar', async (req, res) => {
  * POST /api/liga/:ligaId/modulos/:modulo/desativar
  * Desativa um modulo para a liga
  */
-router.post('/liga/:ligaId/modulos/:modulo/desativar', async (req, res) => {
+router.post('/liga/:ligaId/modulos/:modulo/desativar', verificarAdmin, async (req, res) => {
     try {
         const { ligaId, modulo } = req.params;
         const temporada = Number(req.body.temporada) || CURRENT_SEASON;
@@ -255,7 +256,7 @@ router.post('/liga/:ligaId/modulos/:modulo/desativar', async (req, res) => {
  * PUT /api/liga/:ligaId/modulos/:modulo/config
  * Atualiza configuracao de um modulo (sem mudar status ativo/inativo)
  */
-router.put('/liga/:ligaId/modulos/:modulo/config', async (req, res) => {
+router.put('/liga/:ligaId/modulos/:modulo/config', verificarAdmin, async (req, res) => {
     try {
         const { ligaId, modulo } = req.params;
         const temporada = Number(req.body.temporada) || CURRENT_SEASON;

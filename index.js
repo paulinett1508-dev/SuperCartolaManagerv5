@@ -222,8 +222,29 @@ app.use(compression({
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Configuração CORS
-app.use(cors());
+// Configuração CORS - Restrito a origens autorizadas
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
+  : [];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permitir requests sem origin (mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    // Em desenvolvimento, permitir qualquer origem
+    if (IS_DEVELOPMENT) return callback(null, true);
+    // Permitir origens do mesmo domínio Replit (*.replit.dev)
+    if (origin.endsWith('.replit.dev') || origin.endsWith('.repl.co')) {
+      return callback(null, true);
+    }
+    // Verificar whitelist
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error('Origem não permitida pelo CORS'));
+  },
+  credentials: true
+}));
 
 // ====================================================================
 // DESABILITAR CACHE PARA HTML (evita problema de CDN/proxy)
@@ -307,7 +328,14 @@ if (IS_DEVELOPMENT) {
 // Configuração de Sessão com MongoDB Store (Persistência Real)
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "supercartolamanagerv5_secret_key",
+    secret: (() => {
+      const secret = process.env.SESSION_SECRET;
+      if (!secret && IS_PRODUCTION) {
+        console.error("[SERVER] ❌ SESSION_SECRET não definido em produção! Defina a variável de ambiente.");
+        process.exit(1);
+      }
+      return secret || "dev_only_secret_" + Date.now();
+    })(),
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({

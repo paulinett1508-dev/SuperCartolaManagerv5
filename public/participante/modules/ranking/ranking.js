@@ -116,22 +116,12 @@ function renderizarRanking(ranking, rodadaAtual) {
             `;
         }
 
-        // Divider fim da zona G12 (após 12º lugar)
-        if (!estaInativo && posicao === 13 && totalAtivos >= 24) {
+        // Divider fim do Top 10 (após 10º lugar)
+        if (!estaInativo && posicao === 11 && totalAtivos >= 15) {
             html += `
-                <div class="zona-divider g12-end">
-                    <span class="material-icons">workspace_premium</span>
-                    <span>Fim da zona de premiação (G12)</span>
-                </div>
-            `;
-        }
-
-        // Divider início da zona Z12 (últimas 12 posições)
-        if (!estaInativo && posicao === totalAtivos - 11 && totalAtivos >= 24) {
-            html += `
-                <div class="zona-divider z12-start">
-                    <span class="material-icons">trending_down</span>
-                    <span>Zona de descenso (Z12)</span>
+                <div class="zona-divider top10-end">
+                    <span class="material-icons">star</span>
+                    <span>Top 10</span>
                 </div>
             `;
         }
@@ -155,28 +145,22 @@ function criarItemRanking(participante, posicao, totalAtivos, participanteLogado
     if (estaInativo) {
         classes.push('inativo');
     } else {
-        // Pódio (1º, 2º, 3º)
+        // 1º lugar destacado
         if (posicao === 1) classes.push('podio-1');
-        else if (posicao === 2) classes.push('podio-2');
-        else if (posicao === 3) classes.push('podio-3');
-        // Zona G12 (4º ao 12º)
-        else if (posicao >= 4 && posicao <= 12) classes.push('zona-g12');
-        // Zona Z12 (últimas 12 posições)
-        else if (posicao > totalAtivos - 12) classes.push('zona-z12');
+        // Top 10 (2º ao 10º)
+        else if (posicao >= 2 && posicao <= 10) classes.push('zona-top10');
+        // Último colocado ativo = destaque vermelho
+        if (totalAtivos > 1 && posicao === totalAtivos) classes.push('ranking-ultimo');
     }
 
     if (ehMeuTime) classes.push('meu-time');
 
-    // Badge de posição
+    // Badge de posição - apenas 1º com troféu
     let badgePosicao;
     if (estaInativo) {
         badgePosicao = '<span class="posicao-badge">—</span>';
     } else if (posicao === 1) {
         badgePosicao = '<span class="material-icons podio-icon">emoji_events</span>';
-    } else if (posicao === 2) {
-        badgePosicao = '<span class="material-icons podio-icon">military_tech</span>';
-    } else if (posicao === 3) {
-        badgePosicao = '<span class="material-icons podio-icon">military_tech</span>';
     } else {
         badgePosicao = `<span class="posicao-badge">${posicao}º</span>`;
     }

@@ -142,22 +142,17 @@
 }
 
 /* === POSIÇÕES ESPECIAIS === */
+/* Apenas 1º lugar destacado (ouro) */
 .ranking-table tbody tr:nth-child(1) {
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 193, 7, 0.1) 100%) !important;
     border-left: 4px solid #ffd700;
     font-weight: 600;
 }
 
-.ranking-table tbody tr:nth-child(2) {
-    background: linear-gradient(135deg, rgba(192, 192, 192, 0.15) 0%, rgba(169, 169, 169, 0.1) 100%) !important;
-    border-left: 4px solid #c0c0c0;
-    font-weight: 600;
-}
-
-.ranking-table tbody tr:nth-child(3) {
-    background: linear-gradient(135deg, rgba(205, 127, 50, 0.15) 0%, rgba(184, 115, 51, 0.1) 100%) !important;
-    border-left: 4px solid #cd7f32;
-    font-weight: 600;
+/* Último lugar - destaque vermelho (via classe JS) */
+.ranking-table tbody tr.ranking-ultimo {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%) !important;
+    border-left: 4px solid #dc2626;
 }
 
 /* === BADGES DE PONTUAÇÃO === */

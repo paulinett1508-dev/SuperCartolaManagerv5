@@ -6,6 +6,7 @@
 // =====================================================================
 
 import express from "express";
+import { verificarAdmin } from "../middleware/auth.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -50,7 +51,7 @@ router.get("/manutencao", (req, res) => {
 });
 
 // POST /api/admin/manutencao/ativar - Ativa modo manutenção
-router.post("/manutencao/ativar", (req, res) => {
+router.post("/manutencao/ativar", verificarAdmin, (req, res) => {
     try {
         const estado = { ativo: true, ativadoEm: new Date().toISOString() };
         salvarEstado(estado);
@@ -63,7 +64,7 @@ router.post("/manutencao/ativar", (req, res) => {
 });
 
 // POST /api/admin/manutencao/desativar - Desativa modo manutenção
-router.post("/manutencao/desativar", (req, res) => {
+router.post("/manutencao/desativar", verificarAdmin, (req, res) => {
     try {
         const estado = { ativo: false };
         salvarEstado(estado);
@@ -76,7 +77,7 @@ router.post("/manutencao/desativar", (req, res) => {
 });
 
 // POST /api/admin/consolidar-rodada - Consolida última rodada para todas as ligas ativas
-router.post("/consolidar-rodada", async (req, res) => {
+router.post("/consolidar-rodada", verificarAdmin, async (req, res) => {
     const LOG = "[CONSOLIDAR-RODADA]";
     try {
         // 1. Buscar status do mercado
