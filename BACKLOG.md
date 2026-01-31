@@ -397,6 +397,64 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
     - `public/participante/js/modules/participante-premium.js` - Funcionalidades exclusivas
     - `routes/premium-routes.js` - APIs premium
   - **Dependências:** FEAT-004 (Head-to-Head), FEAT-005 (Gráficos), FEAT-008 (Exportar PDF)
+
+- [ ] [FEAT-017] **Módulo de Escalação Premium - Super Cartola Manager**
+  - **Descrição:** Módulo dedicado de visualização e gestão de escalação do Cartola FC
+  - **Acesso:** Exclusivo para participantes premium do sistema (não do Cartola FC)
+  - **Status:** Planejado - Implementação futura
+  - **Contexto:** Atualmente o sistema não possui módulo de escalação próprio. Este módulo será uma feature premium que permite gerenciar escalações dentro do Super Cartola Manager.
+
+  - **Funcionalidades Planejadas:**
+
+    **📋 Visualização de Escalação**
+    - Esquema tático visual (4-4-2, 4-3-3, etc.)
+    - Informações detalhadas de cada atleta (preço, valorização, média de pontos)
+    - Status do mercado (aberto/fechado) integrado via MarketGate
+    - Histórico de escalações por rodada
+
+    **⚡ Validações em Tempo Real**
+    - Verificação de budget disponível
+    - Alertas de atletas suspensos/lesionados
+    - Sugestões de substituições baseadas em performance
+    - Comparação com escalação de outras rodadas
+
+    **📊 Estatísticas Avançadas**
+    - Gráfico de valorização dos atletas ao longo da temporada
+    - Comparativo de desempenho: escalação atual vs média da liga
+    - ROI (Return on Investment) por atleta
+    - Análise de consistência do time
+
+    **🔔 Integração com Sistema**
+    - Notificações push quando mercado está prestes a fechar (via FEAT-003)
+    - Exportar histórico de escalações (PDF/Excel)
+    - Integração com módulo de Parciais para ver pontuação ao vivo
+
+  - **Arquivos a criar:**
+    - `public/participante/js/modules/participante-escalacao.js` - UI e lógica do módulo
+    - `public/participante/css/escalacao.css` - Estilos do campo tático
+    - `routes/escalacao-routes.js` - Endpoints de escalação
+    - `services/escalacaoService.js` - Lógica de negócio e validações
+
+  - **Integrações necessárias:**
+    - `utils/marketGate.js` - Para verificar se pode escalar
+    - `services/cartolaApiService.js` - Buscar dados da API Cartola FC
+    - `models/ParticipantePremium.js` - Controle de acesso premium
+    - `services/notificationTriggers.js` - Alertas de mercado fechando
+
+  - **Dependências:**
+    - FEAT-016 (Participante Premium) - Sistema de controle de acesso
+    - FEAT-003 (Notificações Push) - Alertas de mercado
+    - MarketGate - Status do mercado centralizado
+
+  - **Decisão de Design:**
+    - **Visualização apenas (MVP):** Primeiro passo seria mostrar escalação atual e histórico
+    - **Gestão completa (v2):** Permitir escalação diretamente no app (requer integração mais profunda com API Cartola)
+    - **Análise e sugestões (v3):** IA/ML para sugerir melhores escalações baseadas em histórico
+
+  - **Complexidade:** ALTA
+  - **Estimativa:** ~15-20 horas (MVP - visualização apenas)
+  - **Prioridade:** Média-baixa (após consolidação do sistema de premium)
+  - **Quando implementar:** 2026 (pós-temporada)
   - **Complexidade:** Alta
   - **Status:** Backlog - Implementar após funcionalidades base
 

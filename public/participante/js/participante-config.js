@@ -1,16 +1,18 @@
 // =====================================================================
 // PARTICIPANTE-CONFIG.JS - Configurações globais do App do Participante
 // =====================================================================
+// ✅ v2.0: Valores hardcoded agora são FALLBACKS
+//          Use SeasonStatusManager para dados dinâmicos em tempo real
 // ✅ v1.1 FIX: Removidos exports ES6 pois arquivo é carregado como script normal
 
 // Temporada atual (sincronizado com config/seasons.js do backend)
-// ✅ Atualizado para 2026 apos turn_key em 01/01/2026
+// ⚠️ FALLBACK ESTÁTICO - Para dados dinâmicos use SeasonStatusManager
 const CURRENT_SEASON = 2026;
 const PREVIOUS_SEASON = 2025;
 
 // Status da temporada: 'ativa' | 'preparando' | 'encerrada'
 // 'preparando' = Brasileirao nao iniciou, modulos bloqueados
-// ✅ 28/01/2026: Brasileirão iniciado - temporada ATIVA
+// ⚠️ FALLBACK ESTÁTICO - Use SeasonStatusManager.getStatus() para dinâmico
 const SEASON_STATUS = 'ativa';
 
 // Datas importantes da temporada 2026

@@ -1,18 +1,19 @@
 /**
- * Season Status Manager
+ * Season Status Manager - v2.0
  *
  * Centralizador de status da temporada - Fonte única da verdade
- * Consulta API /mercado/status do Cartola FC para determinar estado atual
+ * v2.0: Usa endpoint unificado /api/app/system-status (via MarketGate)
+ * v1.0: Consultava /api/cartola/mercado/status diretamente
  *
- * @version 1.0.0
- * @since 2026-01-28
+ * @version 2.0.0
+ * @since 2026-01-31
  */
 
 class SeasonStatusManager {
   constructor() {
     this.cache = null;
     this.lastFetch = null;
-    this.CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+    this.CACHE_TTL = 5 * 60 * 1000; // 5 minutos (sincronizado com backend)
     this.fetchPromise = null; // Previne múltiplas requisições simultâneas
   }
 
@@ -47,12 +48,13 @@ class SeasonStatusManager {
   }
 
   /**
-   * Busca dados da API Cartola (interna)
+   * Busca dados do endpoint unificado /api/app/system-status (v2.0)
+   * Este endpoint usa MarketGate backend e consolida mercado + temporada + cache
    * @private
    */
   async _fetchFromAPI() {
     try {
-      const response = await fetch('/api/cartola/mercado/status', {
+      const response = await fetch('/api/app/system-status', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -63,15 +65,29 @@ class SeasonStatusManager {
 
       const data = await response.json();
 
-      // Normalizar resposta
+      // Normalizar resposta do endpoint system-status
       return {
-        rodadaAtual: data.rodada_atual || 1,
-        statusMercado: data.status_mercado || 2,
-        mercadoAberto: data.status_mercado === 1,
-        temporada: data.temporada || 2026,
-        temporadaEncerrada: data.status_mercado === 6,
-        fechamento: data.fechamento || null,
-        _timestamp: new Date().toISOString()
+        rodadaAtual: data.mercado.rodada_atual || 1,
+        statusMercado: data.mercado.status_mercado || 2,
+        mercadoAberto: data.mercado.mercado_aberto === true,
+        temporada: data.mercado.temporada || data.temporada.atual || 2026,
+        temporadaEncerrada: data.mercado.temporada_encerrada === true,
+        fechamento: data.mercado.fechamento || null,
+
+        // Informações extras do novo endpoint
+        preTemporada: data.temporada.pre_temporada === true,
+        podeEscalar: data.permissoes.pode_escalar === true,
+        podeVerParciais: data.permissoes.pode_ver_parciais === true,
+        deveConsolidar: data.permissoes.deve_consolidar === true,
+
+        // Metadata
+        _timestamp: data._meta?.timestamp || new Date().toISOString(),
+        _cache: {
+          ativo: data.cache?.ativo || false,
+          ttl_segundos: data.cache?.ttl_segundos || 0,
+          stale: data.cache?.stale || false
+        },
+        _source: 'system-status-v2'
       };
     } catch (error) {
       console.error('[SEASON-STATUS] Erro ao buscar status:', error);
@@ -79,7 +95,7 @@ class SeasonStatusManager {
       // Fallback: retornar último cache conhecido ou defaults
       if (this.cache) {
         console.warn('[SEASON-STATUS] Usando último cache conhecido');
-        return this.cache;
+        return { ...this.cache, _stale: true };
       }
 
       // Defaults seguros
@@ -89,6 +105,10 @@ class SeasonStatusManager {
         mercadoAberto: false,
         temporada: 2026,
         temporadaEncerrada: false,
+        preTemporada: false,
+        podeEscalar: false,
+        podeVerParciais: false,
+        deveConsolidar: false,
         _fallback: true,
         _timestamp: new Date().toISOString()
       };
