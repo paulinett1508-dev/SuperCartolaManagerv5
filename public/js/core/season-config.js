@@ -4,17 +4,23 @@
  * Este arquivo espelha as configurações de temporada do backend
  * (config/seasons.js) para uso no frontend.
  *
- * IMPORTANTE: Quando virar o ano, atualize CURRENT_SEASON e SEASON_STATUS.
+ * ⚠️ IMPORTANTE: Estes valores são FALLBACKS estáticos.
+ * Para dados DINÂMICOS em tempo real, use:
+ *   - SeasonStatusManager (season-status-manager.js)
+ *   - Endpoint: /api/app/system-status
  *
- * @version 1.0.0
+ * QUANDO ATUALIZAR: Virada de ano ou mudança de status da temporada
+ *
+ * @version 2.0.0
  */
 
 // =============================================================================
-// TEMPORADA ATUAL - MUDE AQUI PARA VIRAR O ANO
+// TEMPORADA ATUAL - FALLBACK ESTÁTICO
 // =============================================================================
 export const CURRENT_SEASON = 2026;
 
 // Status da temporada: 'preparando' | 'ativa' | 'encerrada'
+// ⚠️ FALLBACK: Use SeasonStatusManager.getStatus() para dados dinâmicos
 export const SEASON_STATUS = 'ativa';
 
 // Última rodada do Brasileirão
@@ -74,23 +80,47 @@ export const getTemporadasDisponiveis = () => [
 ];
 
 // =============================================================================
-// BUSCAR CONFIG DO SERVIDOR (opcional - para sync automático)
+// BUSCAR CONFIG DO SERVIDOR - v2.0 (usa endpoint unificado)
 // =============================================================================
 
 let serverConfig = null;
 
 /**
  * Busca configurações de temporada do servidor
- * Útil para garantir sincronia com backend
+ * v2.0: Usa /api/app/system-status (endpoint unificado com MarketGate)
+ * v1.0: Usava /api/app/season-config (legado)
+ *
+ * ⚠️ RECOMENDAÇÃO: Para dados em tempo real do mercado/rodadas,
+ * use SeasonStatusManager ao invés desta função.
+ *
  * @returns {Promise<object>}
  */
 export async function fetchSeasonConfig() {
     if (serverConfig) return serverConfig;
 
     try {
-        const response = await fetch('/api/app/season-config');
+        // v2.0: Endpoint unificado
+        const response = await fetch('/api/app/system-status');
         if (response.ok) {
-            serverConfig = await response.json();
+            const data = await response.json();
+
+            // Converter para formato compatível com SEASON_CONFIG
+            serverConfig = {
+                current: data.temporada.atual,
+                status: data.temporada.status,
+                rodadaFinal: data.temporada.rodada_final,
+                encerrado: data.temporada.encerrada,
+                dataMercadoAbre: data.temporada.data_inicio,
+                dataPrimeiraRodada: data.temporada.data_inicio,
+                dataFim: data.temporada.data_fim,
+                historico: [],
+
+                // Extras do endpoint unificado
+                preTemporada: data.temporada.pre_temporada,
+                mercadoAberto: data.mercado.mercado_aberto,
+                rodadaAtual: data.mercado.rodada_atual
+            };
+
             return serverConfig;
         }
     } catch (error) {

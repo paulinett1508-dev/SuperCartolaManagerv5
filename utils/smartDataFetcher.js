@@ -1,12 +1,13 @@
 import RodadaSnapshot from "../models/RodadaSnapshot.js";
+import marketGate from "./marketGate.js";
 
 export const obterDadosRodada = async (
     ligaId,
     rodadaSolicitada,
     funcaoCalculoAoVivo,
 ) => {
-    // Busca status do mercado sem calcular nada
-    const statusMercado = await getStatusMercadoRapido();
+    // v2.0: Busca status via MarketGate (centralizado)
+    const statusMercado = await marketGate.fetchStatus();
     const rodadaAtual = statusMercado?.rodada_atual || 38;
 
     // 🛑 VERIFICAR SE JÁ ESTÁ CONSOLIDADA (PRIORIDADE MÁXIMA)
@@ -74,13 +75,11 @@ export const isRodadaConsolidada = async (ligaId, rodada) => {
     return !!snapshot;
 };
 
-// Função auxiliar leve para status
+// Função auxiliar leve para status (LEGADO - usar MarketGate diretamente)
+// v2.0: Migrado para usar MarketGate centralizado
 async function getStatusMercadoRapido() {
     try {
-        const response = await fetch(
-            "https://api.cartolafc.globo.com/mercado/status",
-        );
-        return await response.json();
+        return await marketGate.fetchStatus();
     } catch (error) {
         console.error("[SMART-FETCH] Erro ao buscar status:", error);
         return { rodada_atual: 38 }; // Fallback conservador

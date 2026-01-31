@@ -17,6 +17,7 @@ import APP_VERSION, {
     VERSION_SCOPE
 } from "../config/appVersion.js";
 import { CURRENT_SEASON, SEASON_CONFIG } from "../config/seasons.js";
+import marketGate from "../utils/marketGate.js";
 
 const __filename_ver = fileURLToPath(import.meta.url);
 const __dirname_ver = path.dirname(__filename_ver);
@@ -227,6 +228,116 @@ router.get("/season-config", (req, res) => {
         historico: SEASON_CONFIG.historico,
         timestamp: new Date().toISOString(),
     });
+});
+
+// =====================================================================
+// ENDPOINT UNIFICADO: /system-status
+// =====================================================================
+
+/**
+ * GET /api/app/system-status
+ * Endpoint unificado que retorna TUDO sobre o estado do sistema:
+ * - Status do mercado Cartola (via MarketGate)
+ * - Configurações de temporada
+ * - Informações de cache
+ * - Estado de pré-temporada
+ * - Permissões (pode escalar, tem parciais, etc)
+ *
+ * Substitui múltiplas chamadas fragmentadas por uma única requisição
+ */
+router.get("/system-status", async (req, res) => {
+    try {
+        // Buscar status completo do MarketGate
+        const fullStatus = await marketGate.getFullStatus();
+
+        // Detectar pré-temporada
+        const isPreTemporada = await marketGate.isPreTemporada();
+
+        // Montar resposta unificada
+        res.json({
+            // Status do mercado Cartola FC
+            mercado: {
+                rodada_atual: fullStatus.mercado.rodada_atual,
+                status_mercado: fullStatus.mercado.status_mercado,
+                mercado_aberto: fullStatus.mercado.mercado_aberto,
+                mercado_fechado: fullStatus.mercado.mercado_fechado,
+                rodada_encerrada: fullStatus.mercado.rodada_encerrada,
+                temporada: fullStatus.mercado.temporada,
+                temporada_encerrada: fullStatus.mercado.temporada_encerrada,
+                game_over: fullStatus.mercado.game_over || false,
+                fechamento: fullStatus.mercado.fechamento || null
+            },
+
+            // Temporada e configurações
+            temporada: {
+                atual: CURRENT_SEASON,
+                api: fullStatus.mercado.temporada,
+                status: SEASON_CONFIG.status,
+                rodada_final: SEASON_CONFIG.rodadaFinal,
+                encerrada: SEASON_CONFIG.status === 'encerrada',
+                pre_temporada: isPreTemporada,
+                data_inicio: SEASON_CONFIG.dataPrimeiraRodada,
+                data_fim: SEASON_CONFIG.dataFim
+            },
+
+            // Permissões e estados derivados
+            permissoes: {
+                pode_escalar: fullStatus.helpers.can_escalar,
+                pode_ver_parciais: fullStatus.helpers.can_show_parciais,
+                deve_consolidar: fullStatus.helpers.should_consolidate,
+                is_pre_temporada: fullStatus.helpers.is_pre_temporada
+            },
+
+            // Informações de cache
+            cache: {
+                ativo: fullStatus.cache.has_cache,
+                ttl_segundos: fullStatus.cache.ttl_seconds,
+                ttl_ms: fullStatus.cache.ttl_ms,
+                ultima_atualizacao: fullStatus.cache.last_update,
+                stale: fullStatus.mercado._stale || false,
+                fallback: fullStatus.mercado._fallback || false,
+                erro: fullStatus.mercado._error || null
+            },
+
+            // Metadata
+            _meta: {
+                timestamp: new Date().toISOString(),
+                server_uptime_sec: Math.floor(process.uptime()),
+                source: 'MarketGate',
+                version: '1.0'
+            }
+        });
+    } catch (error) {
+        console.error('[SYSTEM-STATUS] Erro ao buscar status:', error);
+        res.status(500).json({
+            error: 'Erro ao buscar status do sistema',
+            message: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+/**
+ * POST /api/app/system-status/clear-cache
+ * Limpa cache do MarketGate forçando nova busca na próxima requisição
+ * (Útil para debug e sincronização manual)
+ */
+router.post("/system-status/clear-cache", (req, res) => {
+    try {
+        marketGate.clearCache();
+        res.json({
+            success: true,
+            message: 'Cache do MarketGate limpo com sucesso',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('[SYSTEM-STATUS] Erro ao limpar cache:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 export default router;

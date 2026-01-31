@@ -277,6 +277,235 @@ _Próximas sprints - Impacto significativo no sistema_
   - **Dependências:** Acesso ao banco de dados via script, API de Search (MCP)
   - **Quando implementar:** Pré-temporada 2026
 
+- [ ] [FEAT-026] **App Mobile Admin - Gestão de Ligas pelo Celular** 📱
+  - **Descrição:** PWA/App mobile para administradores gerenciarem ligas pelo celular (evolução do painel admin web-only)
+  - **Status Atual:** Admin só pode gerenciar pelo desktop (painel web)
+  - **Impacto:** ALTO - Mobilidade, agilidade em decisões, gestão em tempo real
+  - **Complexidade:** ALTA (~20-25h)
+
+  **Problema Atual:**
+  - Admin precisa estar no computador para gerenciar ligas
+  - Não consegue tomar decisões rápidas durante rodadas
+  - Sem acesso ao Dashboard de Saúde do Sistema fora do escritório
+  - Não recebe alertas críticos no celular
+
+  **Solução Proposta:**
+  - PWA instalável para admin (igual ao app participante)
+  - Interface otimizada para mobile (touch-friendly)
+  - Dashboard de Saúde acessível no celular
+  - Ações críticas disponíveis (consolidação, acertos financeiros)
+  - Push notifications para admin (mercado fechou, erros críticos)
+
+  **Casos de Uso (MVP):**
+
+  1. **Dashboard Principal Mobile**
+     - Cards com resumo das ligas
+     - Rodada atual, participantes ativos
+     - Últimas consolidações
+     - Health score do sistema
+     - Atalhos rápidos
+
+  2. **Gestão de Ligas**
+     - Listar ligas gerenciadas
+     - Ver detalhes de liga (participantes, saldo, ranking)
+     - Ativar/desativar liga
+     - Ver módulos habilitados
+
+  3. **Consolidação Manual**
+     - Botão "Consolidar Rodada X"
+     - Ver status de consolidação em tempo real
+     - Histórico de consolidações por liga
+
+  4. **Acertos Financeiros**
+     - Registrar pagamento/recebimento rápido
+     - Aprovar quitações pendentes
+     - Ver saldo de participantes
+
+  5. **Dashboard de Saúde (Mobile)**
+     - Mesma funcionalidade da versão web
+     - Otimizado para telas pequenas
+     - Cards expansíveis (accordion)
+     - Indicadores visuais (🟢🟡🔴)
+
+  6. **Notificações Push para Admin**
+     - "Mercado Cartola fechou - Consolidação iniciada"
+     - "Health Score abaixo de 70 - Sistema degradado"
+     - "Erro na consolidação da Liga X"
+     - "Participante solicitou quitação"
+
+  **Arquitetura Proposta:**
+
+  ```
+  public/
+    └─ admin-mobile/
+       ├─ index.html              (Dashboard principal mobile)
+       ├─ manifest.json           (PWA manifest para instalação)
+       ├─ service-worker.js       (Cache + push notifications)
+       ├─ css/
+       │  └─ admin-mobile.css     (Estilos mobile-first)
+       └─ js/
+          ├─ admin-dashboard.js   (Dashboard principal)
+          ├─ admin-ligas.js       (Gestão de ligas)
+          ├─ admin-consolidacao.js (Consolidação manual)
+          ├─ admin-financeiro.js  (Acertos financeiros)
+          ├─ admin-notifications.js (Push notifications)
+          └─ admin-health.js      (Dashboard de saúde adaptado)
+
+  routes/
+    └─ admin-mobile-routes.js     (Endpoints específicos mobile)
+
+  models/
+    └─ AdminPushSubscription.js   (Subscriptions de push para admins)
+  ```
+
+  **Roadmap de Implementação:**
+
+  **FASE 1: Setup PWA Admin (4h)**
+  - [ ] Criar estrutura `public/admin-mobile/`
+  - [ ] Manifest.json com ícones e configurações
+  - [ ] Service Worker com cache offline
+  - [ ] Tela de login mobile
+  - [ ] Dashboard principal com cards responsivos
+
+  **FASE 2: Gestão de Ligas Mobile (5h)**
+  - [ ] Listar ligas gerenciadas
+  - [ ] Ver detalhes de liga (touch-optimized)
+  - [ ] Cards de participantes com scroll horizontal
+  - [ ] Botão flutuante para ações rápidas
+  - [ ] Busca/filtro de ligas
+
+  **FASE 3: Consolidação Mobile (4h)**
+  - [ ] Tela de consolidação manual
+  - [ ] Progress bar em tempo real
+  - [ ] Histórico de consolidações
+  - [ ] Logs de erros (se houver)
+  - [ ] Confirmação visual (toast/snackbar)
+
+  **FASE 4: Acertos Financeiros Mobile (3h)**
+  - [ ] Tela de registro de acerto rápido
+  - [ ] Formulário otimizado (teclado numérico, autocomplete)
+  - [ ] Lista de participantes com saldo
+  - [ ] Aprovar quitações pendentes
+  - [ ] Histórico de transações
+
+  **FASE 5: Dashboard Saúde Mobile (2h)**
+  - [ ] Adaptar dashboard-saude.html para mobile
+  - [ ] Cards expansíveis (accordion)
+  - [ ] Gráficos responsivos (Chart.js mobile)
+  - [ ] Auto-refresh com indicador visual
+  - [ ] Pull-to-refresh
+
+  **FASE 6: Push Notifications Admin (3h)**
+  - [ ] Model AdminPushSubscription
+  - [ ] Endpoints subscribe/unsubscribe
+  - [ ] Gatilhos de notificação:
+    - Consolidação completada/falhou
+    - Health score < 70
+    - Mercado fechou
+    - Erro crítico no sistema
+  - [ ] Tela de configuração de notificações
+
+  **FASE 7: Testes e Validação (2h)**
+  - [ ] Testar instalação como PWA (Android)
+  - [ ] Validar offline mode
+  - [ ] Testar em diferentes tamanhos de tela
+  - [ ] Validar push notifications
+  - [ ] Performance (Lighthouse)
+
+  **Diferencial vs Painel Web:**
+
+  | Feature | Painel Web (Desktop) | App Mobile Admin |
+  |---------|---------------------|------------------|
+  | **Acesso** | Apenas computador | Qualquer lugar 📱 |
+  | **Dashboard Saúde** | ✅ Sim | ✅ Sim (adaptado) |
+  | **Consolidação** | ✅ Sim | ✅ Sim (simplificado) |
+  | **Acertos Financeiros** | ✅ Sim | ✅ Sim (otimizado) |
+  | **Notificações Push** | ❌ Não | ✅ Sim |
+  | **Offline Mode** | ❌ Não | ✅ Sim (cache) |
+  | **Instalável** | ❌ Não | ✅ Sim (PWA) |
+  | **Ações Rápidas** | Limitado | ✅ Botões flutuantes |
+
+  **Tecnologias:**
+  - **Frontend:** HTML5, Vanilla JS (ES6 Modules), TailwindCSS
+  - **PWA:** Service Worker, Cache API, Push API
+  - **UI/UX:** Mobile-first design, Bottom navigation, FAB (Floating Action Button)
+  - **Backend:** Endpoints existentes + novos endpoints mobile-specific
+
+  **Mockup de UI (Sugestão):**
+
+  ```
+  ┌──────────────────────────────────┐
+  │  🏠 Dashboard Admin              │
+  ├──────────────────────────────────┤
+  │                                  │
+  │  🟢 Sistema Saudável (95)        │
+  │                                  │
+  │  ┌────────────────────────────┐  │
+  │  │ Liga SuperCartola          │  │
+  │  │ 12 participantes ativos    │  │
+  │  │ Rodada 5 consolidada ✅    │  │
+  │  └────────────────────────────┘  │
+  │                                  │
+  │  ┌────────────────────────────┐  │
+  │  │ Liga Sobral                │  │
+  │  │ 8 participantes ativos     │  │
+  │  │ Rodada 5 consolidada ✅    │  │
+  │  └────────────────────────────┘  │
+  │                                  │
+  │  📊 Últimas Ações:              │
+  │  • R5 consolidada - 15:30       │
+  │  • Pagamento aprovado - 14:20   │
+  │                                  │
+  ├──────────────────────────────────┤
+  │  [🏠] [💰] [⚙️] [🏥] [👤]       │ ← Bottom Nav
+  └──────────────────────────────────┘
+
+  Botão flutuante: [+] → Ações rápidas
+  ```
+
+  **Estimativa Total:** ~20-25 horas
+
+  | Fase | Tempo | Complexidade |
+  |------|-------|--------------|
+  | Setup PWA | 4h | Média |
+  | Gestão Ligas | 5h | Média |
+  | Consolidação | 4h | Alta |
+  | Acertos Financeiros | 3h | Média |
+  | Dashboard Saúde | 2h | Baixa |
+  | Push Notifications | 3h | Alta |
+  | Testes | 2h | Média |
+
+  **Checklist de Conclusão:**
+  - [ ] PWA instalável e funcional (Android/iOS)
+  - [ ] Dashboard principal com resumo de ligas
+  - [ ] Consolidação manual funcionando
+  - [ ] Acertos financeiros registráveis
+  - [ ] Dashboard de Saúde mobile-optimized
+  - [ ] Push notifications configuradas e testadas
+  - [ ] Offline mode com cache
+  - [ ] Bottom navigation implementada
+  - [ ] FAB com ações rápidas
+  - [ ] Lighthouse score > 90 (Performance)
+  - [ ] Testado em Chrome Android
+  - [ ] Testado em Safari iOS
+  - [ ] Documentação de uso criada
+
+  **Próximos Passos (Pós-MVP):**
+  - [ ] Gráficos de estatísticas (Chart.js)
+  - [ ] Exportar relatórios em PDF (mobile)
+  - [ ] Chat entre admin e participantes
+  - [ ] Aprovação de múltiplas quitações (batch)
+  - [ ] Widget de atalho na home screen
+  - [ ] Modo escuro/claro
+
+  **Dependências:**
+  - Sistema de autenticação admin (já existe)
+  - Dashboard de Saúde web (FEAT-026 implementado)
+  - Push Notifications (FEAT-003 - reutilizar infraestrutura)
+  - Endpoints de consolidação (já existem)
+
+  **Quando implementar:** Após temporada 2026 estabilizar (pós-rodada 10)
+
 ---
 
 ## 🟡 MÉDIA PRIORIDADE (Melhorias de UX, refatorações)
@@ -397,6 +626,64 @@ _Reavaliar periodicamente - Ideias interessantes mas sem cronograma_
     - `public/participante/js/modules/participante-premium.js` - Funcionalidades exclusivas
     - `routes/premium-routes.js` - APIs premium
   - **Dependências:** FEAT-004 (Head-to-Head), FEAT-005 (Gráficos), FEAT-008 (Exportar PDF)
+
+- [ ] [FEAT-017] **Módulo de Escalação Premium - Super Cartola Manager**
+  - **Descrição:** Módulo dedicado de visualização e gestão de escalação do Cartola FC
+  - **Acesso:** Exclusivo para participantes premium do sistema (não do Cartola FC)
+  - **Status:** Planejado - Implementação futura
+  - **Contexto:** Atualmente o sistema não possui módulo de escalação próprio. Este módulo será uma feature premium que permite gerenciar escalações dentro do Super Cartola Manager.
+
+  - **Funcionalidades Planejadas:**
+
+    **📋 Visualização de Escalação**
+    - Esquema tático visual (4-4-2, 4-3-3, etc.)
+    - Informações detalhadas de cada atleta (preço, valorização, média de pontos)
+    - Status do mercado (aberto/fechado) integrado via MarketGate
+    - Histórico de escalações por rodada
+
+    **⚡ Validações em Tempo Real**
+    - Verificação de budget disponível
+    - Alertas de atletas suspensos/lesionados
+    - Sugestões de substituições baseadas em performance
+    - Comparação com escalação de outras rodadas
+
+    **📊 Estatísticas Avançadas**
+    - Gráfico de valorização dos atletas ao longo da temporada
+    - Comparativo de desempenho: escalação atual vs média da liga
+    - ROI (Return on Investment) por atleta
+    - Análise de consistência do time
+
+    **🔔 Integração com Sistema**
+    - Notificações push quando mercado está prestes a fechar (via FEAT-003)
+    - Exportar histórico de escalações (PDF/Excel)
+    - Integração com módulo de Parciais para ver pontuação ao vivo
+
+  - **Arquivos a criar:**
+    - `public/participante/js/modules/participante-escalacao.js` - UI e lógica do módulo
+    - `public/participante/css/escalacao.css` - Estilos do campo tático
+    - `routes/escalacao-routes.js` - Endpoints de escalação
+    - `services/escalacaoService.js` - Lógica de negócio e validações
+
+  - **Integrações necessárias:**
+    - `utils/marketGate.js` - Para verificar se pode escalar
+    - `services/cartolaApiService.js` - Buscar dados da API Cartola FC
+    - `models/ParticipantePremium.js` - Controle de acesso premium
+    - `services/notificationTriggers.js` - Alertas de mercado fechando
+
+  - **Dependências:**
+    - FEAT-016 (Participante Premium) - Sistema de controle de acesso
+    - FEAT-003 (Notificações Push) - Alertas de mercado
+    - MarketGate - Status do mercado centralizado
+
+  - **Decisão de Design:**
+    - **Visualização apenas (MVP):** Primeiro passo seria mostrar escalação atual e histórico
+    - **Gestão completa (v2):** Permitir escalação diretamente no app (requer integração mais profunda com API Cartola)
+    - **Análise e sugestões (v3):** IA/ML para sugerir melhores escalações baseadas em histórico
+
+  - **Complexidade:** ALTA
+  - **Estimativa:** ~15-20 horas (MVP - visualização apenas)
+  - **Prioridade:** Média-baixa (após consolidação do sistema de premium)
+  - **Quando implementar:** 2026 (pós-temporada)
   - **Complexidade:** Alta
   - **Status:** Backlog - Implementar após funcionalidades base
 

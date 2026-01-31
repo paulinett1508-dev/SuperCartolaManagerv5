@@ -1,21 +1,21 @@
 import RodadaSnapshot from "../models/RodadaSnapshot.js";
 import Liga from "../models/Liga.js";
+import marketGate from "./marketGate.js";
 
 // ============================================================================
-// ⏰ SCHEDULER DE CONSOLIDAÇÃO AUTOMÁTICA
+// ⏰ SCHEDULER DE CONSOLIDAÇÃO AUTOMÁTICA - v2.0
 // Roda a cada 30 minutos verificando se alguma rodada fechou
+// v2.0: Usa MarketGate singleton ao invés de fetch direto
 // ============================================================================
 
 let ultimoStatusMercado = null;
 let schedulerAtivo = false;
 
-// Busca status do mercado Cartola
+// Busca status do mercado via MarketGate (centralizado)
 async function getStatusMercado() {
     try {
-        const response = await fetch(
-            "https://api.cartolafc.globo.com/mercado/status",
-        );
-        return await response.json();
+        const status = await marketGate.fetchStatus();
+        return status;
     } catch (error) {
         console.error(
             "[SCHEDULER] Erro ao buscar status mercado:",
