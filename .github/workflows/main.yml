@@ -1,21 +1,32 @@
-name: supercartolamanagerv5  # Nome visível na aba Actions
-
+name: supercartolamanagerv5
 on: 
-  push:    # Roda em todo push
+  push:
     branches: [ main, dev ]
-  pull_request:  # Roda em todo PR
+  pull_request:
     branches: [ main ]
 
 jobs:
   test:
-    runs-on: ubuntu-latest  # Máquina Linux grátis
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4  # Baixa seu código
-    - uses: actions/setup-node@v4  # Instala Node.js (20)
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
         node-version: 20
-        cache: 'npm'  # Cache pra acelerar
-    - run: npm ci  # Instala deps
-    - run: npm test  # Seus testes
-    - run: npm run lint  # Opcional: ESLint
-    - run: npm run build  # Build pra produção
+        cache: 'npm'
+    - run: npm ci
+    - run: npm test
+    - run: npm run lint
+    - run: npm run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+    - name: Trigger Replit Deploy
+      run: |
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -H "X-Replit-Signature: ${{ secrets.REPLIT_WEBHOOK_SECRET }}" \
+          https://replit.com/@paulinett1508/SuperCartolaManagerv5/__repl
