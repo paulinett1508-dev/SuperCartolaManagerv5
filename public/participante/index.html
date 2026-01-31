@@ -925,6 +925,30 @@
         </div>
 
         <!-- ✅ ERROR HANDLER GLOBAL v2 - Captura erros e revela app -->
+        <!-- ✅ FIX MOBILE v1: Forçar renovação do SW ANTES de qualquer script -->
+        <script>
+            (function() {
+                var FLAG = 'sw_force_v16_done';
+                if (!localStorage.getItem(FLAG) && 'serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(regs) {
+                        var hadOld = false;
+                        regs.forEach(function(reg) { reg.unregister(); hadOld = true; });
+                        if (hadOld) {
+                            caches.keys().then(function(names) {
+                                Promise.all(names.map(function(n) { return caches.delete(n); })).then(function() {
+                                    localStorage.setItem(FLAG, '1');
+                                    console.log('[SW-FIX] SW antigo removido, recarregando...');
+                                    window.location.reload(true);
+                                });
+                            });
+                        } else {
+                            localStorage.setItem(FLAG, '1');
+                        }
+                    });
+                }
+            })();
+        </script>
+
         <script>
             function __emergencyRevealApp() {
                 console.warn('[ERROR-HANDLER] Revelação de emergência do app');

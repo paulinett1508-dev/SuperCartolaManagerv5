@@ -771,9 +771,15 @@ class ParticipanteNavigation {
         const jsPath = modulosPaths[modulo];
         if (jsPath) {
             try {
-                // ✅ v4.4: FIX MOBILE - Removido ?v=Date.now() que impedia cache do SW
-                // Versionamento é controlado pelo Service Worker (cache name)
-                const moduloJS = await import(jsPath);
+                // ✅ v4.5: FIX MOBILE - Import com retry e cache-busting no fallback
+                let moduloJS;
+                try {
+                    moduloJS = await import(jsPath);
+                } catch (importError) {
+                    if (window.Log) Log.warn('PARTICIPANTE-NAV', `⚠️ Import falhou, retentando com cache-bust: ${importError.message}`);
+                    // Retry com cache-busting para bypass de SW/cache corrompido
+                    moduloJS = await import(`${jsPath}?v=${Date.now()}`);
+                }
 
                 const moduloCamelCase = modulo
                     .split("-")
