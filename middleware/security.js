@@ -33,13 +33,15 @@ export function rateLimiter(req, res, next) {
   // ✅ FIX: Excluir assets estáticos do rate limiting
   // Assets (CSS, JS, imagens, fontes) não devem contar no limite
   const path = req.path || req.url;
-  const isStaticAsset = /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|webp|map)$/i.test(path) ||
+  const isStaticAsset = /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|webp|map|html)$/i.test(path) ||
                         path.startsWith('/css/') ||
                         path.startsWith('/js/') ||
                         path.startsWith('/img/') ||
                         path.startsWith('/images/') ||
+                        path.startsWith('/escudos/') ||
                         path.startsWith('/participante/css/') ||
                         path.startsWith('/participante/js/') ||
+                        path.startsWith('/participante/html/') ||
                         path.startsWith('/participante/img/') ||
                         path.startsWith('/participante/images/') ||
                         path.startsWith('/fronts/');

@@ -771,15 +771,8 @@ class ParticipanteNavigation {
         const jsPath = modulosPaths[modulo];
         if (jsPath) {
             try {
-                // ✅ v4.5: FIX MOBILE - Import com retry e cache-busting no fallback
-                let moduloJS;
-                try {
-                    moduloJS = await import(jsPath);
-                } catch (importError) {
-                    if (window.Log) Log.warn('PARTICIPANTE-NAV', `⚠️ Import falhou, retentando com cache-bust: ${importError.message}`);
-                    // Retry com cache-busting para bypass de SW/cache corrompido
-                    moduloJS = await import(`${jsPath}?v=${Date.now()}`);
-                }
+                // ✅ v4.6: Import direto - SW não intercepta mais /js/modules/ (v4.0)
+                const moduloJS = await import(jsPath);
 
                 const moduloCamelCase = modulo
                     .split("-")
