@@ -150,6 +150,7 @@ import cartolaProRoutes from "./routes/cartola-pro-routes.js";
 import notificationsRoutes from "./routes/notifications-routes.js";
 import { cleanExpiredSubscriptions } from "./controllers/notificationsController.js";
 import { cronEscalacaoPendente } from "./services/notificationTriggers.js";
+import { verificarENotificarEscalacao, limparCacheNotificacoes } from "./services/smartEscalacaoNotifier.js";
 
 // 🎯 Dicas Premium
 import dicasPremiumRoutes from "./routes/dicas-premium-routes.js";
@@ -171,6 +172,7 @@ import activityTrackerMiddleware from "./middleware/activityTracker.js";
 import adminAuthRoutes from "./routes/admin-auth.js";
 import adminAuditoriaRoutes from "./routes/admin-auditoria-routes.js";
 import adminGestaoRoutes from "./routes/admin-gestao-routes.js";
+import systemHealthRoutes from "./routes/system-health-routes.js";
 import adminClienteAuthRoutes from "./routes/admin-cliente-auth.js";
 console.log("[DEBUG] adminAuthRoutes type:", typeof adminAuthRoutes);
 console.log(
@@ -396,6 +398,10 @@ console.log("[SERVER] 🔑 Rotas de autenticacao de clientes registradas");
 // 👁️ Rota de monitoramento de usuários online (admin)
 app.use("/api/admin/usuarios-online", usuariosOnlineRoutes);
 console.log("[SERVER] 👁️ Rota de usuários online registrada");
+
+// 🏥 Dashboard de Saúde do Sistema (admin)
+app.use("/api/admin/system-health", systemHealthRoutes);
+console.log("[SERVER] 🏥 Rota de dashboard de saúde registrada");
 
 // 🔧 Modo Manutenção do App
 app.use("/api/admin", manutencaoRoutes);
@@ -648,31 +654,30 @@ mongoose.connection.once("open", async () => {
   });
   console.log("[SERVER] 🔔 Cron de limpeza de push subscriptions agendado (seg 3h)");
 
-  // 🔔 CRON: Notificação de escalação pendente (FASE 5)
-  // Roda em horários típicos antes do fechamento do mercado Cartola:
-  // - Sexta às 18h (jogos de sexta-feira)
-  // - Sábado às 14h e 16h (jogos de sábado)
-  // - Domingo às 14h (jogos de domingo)
-  // O gatilho verifica se o mercado está aberto antes de notificar
-  const horariosEscalacao = [
-    "0 18 * * 5",   // Sexta às 18h
-    "0 14 * * 6",   // Sábado às 14h
-    "0 16 * * 6",   // Sábado às 16h
-    "0 14 * * 0"    // Domingo às 14h
-  ];
-
-  horariosEscalacao.forEach(horario => {
-    const cronEscalacao = cron.schedule(horario, async () => {
-      console.log("[CRON] Verificando escalações pendentes...");
-      try {
-        await cronEscalacaoPendente();
-      } catch (erro) {
-        console.error("[CRON] Erro ao verificar escalações:", erro.message);
-      }
-    });
-    cronJobs.push(cronEscalacao);
+  // 🔔 CRON: Notificação de escalação pendente v2.0 (INTELIGENTE)
+  // Sistema inteligente baseado em MarketGate que calcula horários dinâmicos
+  // Notifica 2h, 1h e 30min antes do fechamento REAL do mercado
+  // Roda a cada 15 minutos para detectar os intervalos corretos
+  const cronEscalacaoInteligente = cron.schedule("*/15 * * * *", async () => {
+    try {
+      await verificarENotificarEscalacao();
+    } catch (erro) {
+      console.error("[CRON] Erro ao verificar escalações:", erro.message);
+    }
   });
-  console.log("[SERVER] 🔔 Cron de escalação pendente agendado (sex 18h, sab 14h/16h, dom 14h)");
+  cronJobs.push(cronEscalacaoInteligente);
+  console.log("[SERVER] 🔔 Cron de escalação INTELIGENTE agendado (a cada 15min, notifica 2h/1h/30min antes)");
+
+  // 🔔 CRON: Limpeza de cache de notificações (diário às 4h)
+  const cronLimpezaCache = cron.schedule("0 4 * * *", async () => {
+    try {
+      limparCacheNotificacoes();
+    } catch (erro) {
+      console.error("[CRON] Erro na limpeza de cache:", erro.message);
+    }
+  });
+  cronJobs.push(cronLimpezaCache);
+  console.log("[SERVER] 🔔 Cron de limpeza de cache agendado (diário 4h)");
 });
 
 // ====================================================================
