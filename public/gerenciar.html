@@ -575,10 +575,18 @@
                 if (!window.currentLigaId) return;
 
                 try {
-                    const response = await fetch(`/api/ligas/${window.currentLigaId}/modulos/${moduloKey}`, {
+                    // Buscar estado atual dos módulos
+                    const ligaRes = await fetch(`/api/ligas/${window.currentLigaId}`);
+                    const ligaData = await ligaRes.json();
+                    const modulosAtuais = ligaData.modulos_ativos || {};
+
+                    // Atualizar apenas o módulo alterado
+                    modulosAtuais[moduloKey] = ativo;
+
+                    const response = await fetch(`/api/ligas/${window.currentLigaId}/modulos-ativos`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ativo })
+                        body: JSON.stringify({ modulos: modulosAtuais })
                     });
 
                     if (!response.ok) throw new Error('Erro ao atualizar módulo');

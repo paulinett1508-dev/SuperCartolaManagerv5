@@ -8,6 +8,15 @@ import axios from "axios";
 import { hasAccessToLiga } from "../middleware/tenant.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
 
+const safeAggregate = async (model, pipeline, label) => {
+  try {
+    return await model.aggregate(pipeline).allowDiskUse(true);
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao agregar (${label}):`, error.message || error);
+    return [];
+  }
+};
+
 const buscarCartoleiroPorId = async (req, res) => {
   const { id } = req.params;
 
@@ -43,7 +52,7 @@ const listarLigas = async (req, res) => {
 
     // ✅ v3.0: Buscar temporadas com dados para cada liga (multi-temporada no sidebar)
     // Agregação otimizada: normaliza liga_id para string (pode ser ObjectId ou String no banco)
-    const temporadasPorLiga = await ExtratoFinanceiroCache.aggregate([
+    const temporadasPorLiga = await safeAggregate(ExtratoFinanceiroCache, [
       {
         // Normalizar liga_id para string antes de agrupar
         $addFields: {
@@ -73,7 +82,7 @@ const listarLigas = async (req, res) => {
     // ✅ v4.2: Buscar contagem TOTAL de inscrições por liga/temporada (2026+)
     // Conta TODAS as inscrições (renovado, novo, nao_participa, pendente)
     // O sidebar mostra o total de participantes inscritos na temporada
-    const inscricoesPorLiga = await InscricaoTemporada.aggregate([
+    const inscricoesPorLiga = await safeAggregate(InscricaoTemporada, [
       {
         $group: {
           _id: { liga_id: "$liga_id", temporada: "$temporada" },
@@ -91,7 +100,7 @@ const listarLigas = async (req, res) => {
 
     // ✅ v4.1: Buscar participantes NOVOS (que entraram em 2026+) por liga
     // Esses NÃO devem ser contados em temporadas históricas
-    const novosPorLiga = await InscricaoTemporada.aggregate([
+    const novosPorLiga = await safeAggregate(InscricaoTemporada, [
       {
         $match: {
           status: 'novo',
