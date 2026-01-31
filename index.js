@@ -325,6 +325,19 @@ if (IS_DEVELOPMENT) {
   });
 }
 
+// ====================================================================
+// ⚡ SERVIR ASSETS ESTÁTICOS SEM SESSION (antes de MongoStore)
+// JS, CSS, imagens e fontes não precisam de session/MongoDB
+// HTML e diretórios seguem para o chain completo (session → protegerRotas)
+// ====================================================================
+const servePublicAssets = express.static("public");
+app.use((req, res, next) => {
+  if (/\.(js|mjs|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|map|webp|webmanifest)$/i.test(req.path)) {
+    return servePublicAssets(req, res, next);
+  }
+  next();
+});
+
 // Configuração de Sessão com MongoDB Store (Persistência Real)
 app.use(
   session({
