@@ -31,9 +31,10 @@
 
 ## 🤖 Project Skills (Agentes Especializados)
 
-### Skills Auxiliares (11)
+### Skills Auxiliares (12)
 | Skill | Quando Usar |
 |-------|-------------|
+| **ai-problems-detection** | Antes de implementar: detectar overengineering, código duplicado, reinvenção da roda, falta de docs, arquivos monolíticos |
 | **cartola-api** | Consultar endpoints, schemas, scouts, autenticação da API oficial do Cartola FC |
 | **code-inspector** | "auditar código", "security review", "OWASP check" |
 | **db-guardian** | Scripts DB, limpeza, manutenção, snapshots |
