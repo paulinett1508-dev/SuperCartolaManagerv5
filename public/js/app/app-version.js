@@ -137,10 +137,21 @@ const AppVersion = {
 
             const servidor = await response.json();
 
-            // Verificar modo manutenção
+            // Verificar modo manutenção (com suporte a whitelist)
             if (servidor.manutencao?.ativo && window.ManutencaoScreen) {
-                window.ManutencaoScreen.ativar();
-                return; // Não processar versão em modo manutenção
+                const whitelist = servidor.manutencao.whitelist || [];
+                const nomeCartola = window.participanteAuth?.participante?.participante?.nome_cartola
+                    || window.participanteAuth?.participante?.participante?.nome_time
+                    || '';
+                const isWhitelisted = whitelist.length > 0 && whitelist.some(nome =>
+                    nomeCartola.toLowerCase().includes(nome.toLowerCase())
+                );
+                if (!isWhitelisted) {
+                    window.ManutencaoScreen.ativar();
+                    return; // Não processar versão em modo manutenção
+                } else {
+                    if (window.Log) Log.info('APP-VERSION', `🔓 Whitelist: ${nomeCartola} liberado durante manutenção`);
+                }
             } else if (!servidor.manutencao?.ativo && window.ManutencaoScreen?.estaAtivo()) {
                 window.ManutencaoScreen.desativar();
             }
