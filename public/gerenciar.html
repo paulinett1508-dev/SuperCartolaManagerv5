@@ -512,8 +512,9 @@
                 `;
 
                 modulosBase.forEach(modulo => {
+                    const isAtivo = modulosAtivos[modulo.key] !== false;
                     html += `
-                        <div class="modulo-card base">
+                        <div class="modulo-card base ${isAtivo ? 'ativo' : 'inativo'}">
                             <div class="modulo-card-header">
                                 <div class="modulo-card-info">
                                     <div class="modulo-icon">
@@ -522,11 +523,16 @@
                                     <span class="modulo-title">${modulo.nome}</span>
                                 </div>
                                 <label class="toggle-switch">
-                                    <input type="checkbox" checked disabled>
+                                    <input
+                                        type="checkbox"
+                                        class="toggle-modulo"
+                                        data-modulo-key="${modulo.key}"
+                                        ${isAtivo ? 'checked' : ''}
+                                    >
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
-                            <p class="modulo-desc">Sempre ativo</p>
+                            <p class="modulo-desc">${isAtivo ? 'Base' : '<strong style="color:#ff5500">⚙ Em manutenção</strong>'}</p>
                         </div>
                     `;
                 });

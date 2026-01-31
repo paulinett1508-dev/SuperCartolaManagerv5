@@ -312,12 +312,24 @@ class ParticipanteNavigation {
             return modulosBase.includes(configKey);
         }
 
-        // Módulos base sempre ativos, outros dependem da configuração
+        // Módulos base sempre ativos no menu (aparecem, mas podem estar em manutenção)
         if (modulosBase.includes(configKey)) {
             return true;
         }
 
         return this.modulosAtivos[configKey] === true;
+    }
+
+    /**
+     * Verifica se um módulo base foi desativado pelo admin (em manutenção)
+     * Módulos opcionais desativados simplesmente não aparecem no menu.
+     * Módulos base desativados aparecem opaco com "Em manutenção".
+     */
+    isModuloEmManutencao(moduloId) {
+        const modulosBase = ["extrato", "ranking", "rodadas", "historico"];
+        if (!modulosBase.includes(moduloId)) return false;
+        if (!this.modulosAtivos) return false;
+        return this.modulosAtivos[moduloId] === false;
     }
 
     configurarEventListeners() {
@@ -536,6 +548,13 @@ class ParticipanteNavigation {
     }
 
     async navegarPara(moduloId, forcarReload = false, voltandoHistorico = false) {
+        // ✅ v4.7: Bloqueio de módulos em manutenção (admin desativou via toggle)
+        if (this.isModuloEmManutencao(moduloId)) {
+            if (window.Log) Log.info('PARTICIPANTE-NAV', `🔧 Modulo em manutenção: ${moduloId}`);
+            this.mostrarModalManutencaoModulo(moduloId);
+            return;
+        }
+
         // ✅ v4.3: Bloqueio de pré-temporada DESATIVADO (temporada 2026 em andamento - Rodada 1+)
         // O verificarBloqueioPreTemporada só é ativado em pré-temporada (antes da rodada 1)
         // Mantemos o código para futuras pré-temporadas, mas desativado por padrão
@@ -1145,6 +1164,38 @@ class ParticipanteNavigation {
         if (modal) {
             modal.remove();
         }
+    }
+
+    /**
+     * v4.7: Modal amigável para módulo em manutenção
+     */
+    mostrarModalManutencaoModulo(moduloId) {
+        const nomeModulo = this.obterNomeModulo(moduloId);
+        const existente = document.getElementById('modalManutencaoModulo');
+        if (existente) existente.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'modalManutencaoModulo';
+        modal.innerHTML = `
+            <div style="position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;animation:fadeIn .2s ease"
+                 onclick="document.getElementById('modalManutencaoModulo')?.remove()">
+                <div style="background:#1e293b;border-radius:20px;padding:32px 24px;max-width:340px;width:100%;text-align:center;border:1px solid rgba(255,85,0,0.2);box-shadow:0 20px 60px rgba(255,85,0,0.1)"
+                     onclick="event.stopPropagation()">
+                    <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,85,0,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                        <span class="material-symbols-outlined" style="font-size:32px;color:#ff5500">engineering</span>
+                    </div>
+                    <h3 style="color:#fff;font-family:'Russo One',sans-serif;font-size:18px;margin-bottom:8px">Em Manutenção</h3>
+                    <p style="color:#9ca3af;font-size:14px;line-height:1.5;margin-bottom:20px">
+                        O módulo <strong style="color:#ff5500">${nomeModulo}</strong> está passando por ajustes e estará disponível em breve.
+                    </p>
+                    <button onclick="document.getElementById('modalManutencaoModulo')?.remove()"
+                            style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#ff5500,#ff8800);color:#fff;font-size:14px;font-weight:600;cursor:pointer">
+                        Entendi
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
     }
 
     irParaHistorico() {

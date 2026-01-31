@@ -918,6 +918,22 @@ function renderizarHome(container, data, ligaId) {
         </section>
 
         <!-- Card Saldo Financeiro -->
+        ${window.participanteNav?.isModuloEmManutencao?.('extrato') ? `
+        <section class="home-finance-card" style="opacity:0.4;filter:grayscale(0.5);pointer-events:none">
+            <div class="home-finance-left">
+                <div class="home-finance-icon">
+                    <span class="material-icons">engineering</span>
+                </div>
+                <div class="home-finance-info">
+                    <span class="home-finance-label" style="color:#ff5500">Em Manutenção</span>
+                    <span class="home-finance-value" style="color:#666;font-size:13px">Financeiro em ajustes</span>
+                </div>
+            </div>
+            <div class="home-finance-arrow">
+                <span class="material-icons">block</span>
+            </div>
+        </section>
+        ` : `
         <section class="home-finance-card" onclick="window.participanteNav?.navegarPara('extrato')">
             <div class="home-finance-left">
                 <div class="home-finance-icon">
@@ -932,6 +948,7 @@ function renderizarHome(container, data, ligaId) {
                 <span class="material-icons">chevron_right</span>
             </div>
         </section>
+        `}
 
         <!-- Grid de 3 Stats -->
         ${statsGridHTML}

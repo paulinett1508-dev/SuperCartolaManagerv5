@@ -230,20 +230,39 @@ class QuickAccessBar {
         const modulosAtivos = this.modulosAtivos || {};
         const isLigaEstreante = window.isLigaEstreante || false;
 
-        // Módulos base sempre ativos (configurações agora está no header da tela Início)
+        // Módulos base sempre visíveis (configurações agora está no header da tela Início)
         const modulosBase = ['extrato', 'ranking', 'rodadas'];
 
         // Helper: verifica se módulo está ativo
         const isAtivo = (configKey) => {
             if (modulosBase.includes(configKey)) return true;
-            // Usar chave do config (camelCase) para verificar
             return modulosAtivos[configKey] === true;
+        };
+
+        // Helper: verifica se módulo base está em manutenção (admin desativou)
+        const isEmManutencao = (configKey) => {
+            return modulosBase.includes(configKey) && modulosAtivos[configKey] === false;
         };
 
         // Helper: renderiza card do módulo
         const renderCard = (moduleId, configKey, icon, label) => {
+            const manutencao = isEmManutencao(configKey);
             const ativo = isAtivo(configKey);
-            const aguarde = !ativo;
+            const aguarde = !ativo && !manutencao;
+
+            if (manutencao) {
+                return `
+                    <div class="menu-card manutencao"
+                         data-module="${moduleId}"
+                         data-disabled="true"
+                         data-disabled-message="O módulo ${label} está em manutenção."
+                         style="opacity:0.45;filter:grayscale(0.5)">
+                        <span class="material-icons">${icon}</span>
+                        <span class="menu-card-label">${label}</span>
+                        <span class="badge-aguarde" style="background:rgba(255,85,0,0.2);color:#ff5500">Em manutenção</span>
+                    </div>
+                `;
+            }
 
             return `
                 <div class="menu-card${aguarde ? ' aguarde' : ''}"
@@ -623,6 +642,21 @@ class QuickAccessBar {
     atualizarModulosAtivos(modulosAtivos) {
         this.modulosAtivos = modulosAtivos;
         if (window.Log) Log.debug('QUICK-BAR', 'Módulos atualizados');
+
+        // v4.7: Aplicar visual de manutenção nos botões da bottom nav
+        const modulosBase = ['extrato', 'ranking', 'rodadas'];
+        modulosBase.forEach(key => {
+            if (modulosAtivos[key] === false) {
+                const btn = document.querySelector(`.nav-item[data-page="${key}"]`);
+                if (btn) {
+                    btn.style.opacity = '0.35';
+                    btn.style.filter = 'grayscale(0.5)';
+                }
+            }
+        });
+
+        // Re-renderizar menu content com estados atualizados
+        this.renderizarMenuContent();
     }
 
     /**
