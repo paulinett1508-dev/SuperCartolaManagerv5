@@ -1,0 +1,21 @@
+name: supercartolamanagerv5  # Nome visível na aba Actions
+
+on: 
+  push:    # Roda em todo push
+    branches: [ main, dev ]
+  pull_request:  # Roda em todo PR
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest  # Máquina Linux grátis
+    steps:
+    - uses: actions/checkout@v4  # Baixa seu código
+    - uses: actions/setup-node@v4  # Instala Node.js (20)
+      with:
+        node-version: 20
+        cache: 'npm'  # Cache pra acelerar
+    - run: npm ci  # Instala deps
+    - run: npm test  # Seus testes
+    - run: npm run lint  # Opcional: ESLint
+    - run: npm run build  # Build pra produção
