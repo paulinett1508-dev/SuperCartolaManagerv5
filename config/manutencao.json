@@ -2,5 +2,5 @@
   "ativo": true,
   "ativadoEm": "2026-01-30T20:00:00Z",
   "mensagem": "Estamos aplicando melhorias no app. Voltamos em breve!",
-  "whitelist": ["Paulinett"]
+  "whitelist_timeIds": ["13935277"]
 }

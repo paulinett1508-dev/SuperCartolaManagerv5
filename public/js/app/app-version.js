@@ -137,20 +137,16 @@ const AppVersion = {
 
             const servidor = await response.json();
 
-            // Verificar modo manutenção (com suporte a whitelist)
+            // Verificar modo manutenção (whitelist por timeId)
             if (servidor.manutencao?.ativo && window.ManutencaoScreen) {
-                const whitelist = servidor.manutencao.whitelist || [];
-                const nomeCartola = window.participanteAuth?.participante?.participante?.nome_cartola
-                    || window.participanteAuth?.participante?.participante?.nome_time
-                    || '';
-                const isWhitelisted = whitelist.length > 0 && whitelist.some(nome =>
-                    nomeCartola.toLowerCase().includes(nome.toLowerCase())
-                );
+                const whitelistIds = servidor.manutencao.whitelist_timeIds || [];
+                const timeId = String(window.participanteAuth?.timeId || '');
+                const isWhitelisted = timeId && whitelistIds.includes(timeId);
                 if (!isWhitelisted) {
                     window.ManutencaoScreen.ativar();
-                    return; // Não processar versão em modo manutenção
+                    return;
                 } else {
-                    if (window.Log) Log.info('APP-VERSION', `🔓 Whitelist: ${nomeCartola} liberado durante manutenção`);
+                    if (window.Log) Log.info('APP-VERSION', `Whitelist: timeId ${timeId} liberado durante manutencao`);
                 }
             } else if (!servidor.manutencao?.ativo && window.ManutencaoScreen?.estaAtivo()) {
                 window.ManutencaoScreen.desativar();
