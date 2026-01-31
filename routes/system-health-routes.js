@@ -7,7 +7,7 @@ import express from 'express';
 import marketGate from '../utils/marketGate.js';
 import RodadaSnapshot from '../models/RodadaSnapshot.js';
 import Liga from '../models/Liga.js';
-import { isAdminAutorizado } from '../middleware/authMiddleware.js';
+import { verificarAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -49,7 +49,7 @@ async function testEndpointLatency(url, timeout = 5000) {
 // GET /api/admin/system-health
 // Retorna status completo do sistema para dashboard
 // =====================================================================
-router.get('/', isAdminAutorizado, async (req, res) => {
+router.get('/', verificarAdmin, async (req, res) => {
     try {
         console.log('[HEALTH] Gerando relatório de saúde do sistema...');
 
