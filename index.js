@@ -326,13 +326,18 @@ if (IS_DEVELOPMENT) {
 }
 
 // ====================================================================
-// 🛡️ SERVIR ARQUIVOS ESTÁTICOS (ANTES de session/passport)
-// Assets (.js, .css, .png) NÃO precisam de session/MongoDB
-// protegerRotas usa optional chaining (req.session?.) - funciona sem session
-// Páginas admin sem session → redirect para login (comportamento correto)
+// 🛡️ SERVIR ASSETS ESTÁTICOS (ANTES de session/passport)
+// Apenas assets (.js, .css, imagens, fontes) — NÃO precisam de session/MongoDB
+// Páginas HTML passam adiante para protegerRotas (que precisa de session)
 // ====================================================================
-app.use(protegerRotas);
-app.use(express.static("public"));
+const serveStaticAssets = express.static("public");
+app.use((req, res, next) => {
+  // HTML pages e diretórios precisam de session para auth (protegerRotas)
+  if (req.path.endsWith('.html') || req.path === '/' || req.path.endsWith('/')) {
+    return next();
+  }
+  serveStaticAssets(req, res, next);
+});
 
 // Configuração de Sessão com MongoDB Store (Persistência Real)
 app.use(
@@ -416,6 +421,10 @@ app.use("/api/participante/historico", participanteHistoricoRoutes);
 app.use("/api/app", appVersionRoutes);
 console.log("[SERVER] 📦 Rotas de versionamento registradas em /api/app");
 
+// 🛡️ MIDDLEWARE DE PROTEÇÃO DE ROTAS + SERVIR HTML (após session/passport)
+// protegerRotas precisa de req.session para verificar admin/participante
+app.use(protegerRotas);
+app.use(express.static("public"));
 
 // Rotas da API
 app.use("/api/jogos-hoje", jogosHojeRoutes);
