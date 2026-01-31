@@ -53,9 +53,23 @@ router.get("/manutencao", (req, res) => {
 // POST /api/admin/manutencao/ativar - Ativa modo manutenção
 router.post("/manutencao/ativar", verificarAdmin, (req, res) => {
     try {
-        const estado = { ativo: true, ativadoEm: new Date().toISOString() };
+        const estadoAtual = lerEstado();
+        const estado = {
+            ...estadoAtual,
+            ativo: true,
+            ativadoEm: new Date().toISOString(),
+        };
+        // Permitir atualizar whitelist e mensagem via body
+        if (req.body.whitelist_timeIds) {
+            estado.whitelist_timeIds = req.body.whitelist_timeIds;
+        }
+        if (req.body.mensagem) {
+            estado.mensagem = req.body.mensagem;
+        }
         salvarEstado(estado);
-        console.log("[MANUTENCAO] Modo manutenção ATIVADO");
+        console.log("[MANUTENCAO] Modo manutenção ATIVADO", {
+            whitelist: estado.whitelist_timeIds || [],
+        });
         res.json({ ok: true, ...estado });
     } catch (error) {
         console.error("[MANUTENCAO] Erro ao ativar:", error);
@@ -66,7 +80,11 @@ router.post("/manutencao/ativar", verificarAdmin, (req, res) => {
 // POST /api/admin/manutencao/desativar - Desativa modo manutenção
 router.post("/manutencao/desativar", verificarAdmin, (req, res) => {
     try {
-        const estado = { ativo: false };
+        const estadoAtual = lerEstado();
+        const estado = {
+            ...estadoAtual,
+            ativo: false,
+        };
         salvarEstado(estado);
         console.log("[MANUTENCAO] Modo manutenção DESATIVADO");
         res.json({ ok: true, ...estado });
