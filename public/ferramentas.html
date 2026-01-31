@@ -173,7 +173,7 @@
                         </div>
 
                         <!-- Modo Manutenção -->
-                        <div class="tool-card" id="manutencaoCard" onclick="toggleManutencao()">
+                        <div class="tool-card" id="manutencaoCard" onclick="abrirModalManutencao()">
                             <div class="tool-card-bg-icon">
                                 <span class="material-icons">engineering</span>
                             </div>
@@ -450,16 +450,57 @@
             }
         </script>
 
-        <!-- Modo Manutenção - Toggle -->
+        <!-- Modal Modo Manutenção -->
+        <div id="modalManutencao" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;">
+            <div style="background:#1f2937;border-radius:16px;padding:28px;max-width:480px;width:90%;position:relative;border:1px solid #374151;">
+                <button onclick="fecharModalManutencao()" style="position:absolute;top:12px;right:12px;background:none;border:none;color:#9ca3af;cursor:pointer;font-size:24px;">
+                    <span class="material-icons">close</span>
+                </button>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                    <span class="material-icons" style="font-size:32px;color:#f59e0b;">engineering</span>
+                    <div>
+                        <h3 style="font-family:'Russo One',sans-serif;color:#fff;margin:0;">Modo Manutencao</h3>
+                        <span id="modalManutencaoStatus" style="font-size:0.8rem;color:#6b7280;"></span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                    <label style="display:block;color:#d1d5db;font-size:0.85rem;margin-bottom:6px;font-weight:500;">Mensagem para participantes</label>
+                    <input id="manutencaoMensagem" type="text" placeholder="Estamos aplicando melhorias no app..."
+                        style="width:100%;padding:10px 12px;background:#111827;border:1px solid #374151;border-radius:8px;color:#fff;font-size:0.9rem;box-sizing:border-box;" />
+                </div>
+
+                <div style="margin-bottom:20px;">
+                    <label style="display:block;color:#d1d5db;font-size:0.85rem;margin-bottom:6px;font-weight:500;">
+                        Whitelist - IDs de times liberados
+                        <span style="color:#6b7280;font-weight:400;">(separar por virgula)</span>
+                    </label>
+                    <input id="manutencaoWhitelist" type="text" placeholder="Ex: 13935277, 12345678"
+                        style="width:100%;padding:10px 12px;background:#111827;border:1px solid #374151;border-radius:8px;color:#fff;font-size:0.9rem;box-sizing:border-box;" />
+                    <p style="color:#6b7280;font-size:0.75rem;margin:6px 0 0;">Participantes nesta lista NAO verao a tela "Calma ae!" e poderao usar o app normalmente.</p>
+                </div>
+
+                <div style="display:flex;gap:12px;">
+                    <button id="btnManutencaoToggle" onclick="toggleManutencao()" style="flex:1;padding:12px;border:none;border-radius:10px;font-family:'Russo One',sans-serif;font-size:0.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                    </button>
+                    <button onclick="fecharModalManutencao()" style="padding:12px 20px;background:#374151;color:#d1d5db;border:none;border-radius:10px;cursor:pointer;font-size:0.9rem;">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modo Manutenção - Lógica -->
         <script>
             let _manutencaoAtivo = false;
+            let _manutencaoData = {};
 
             async function carregarStatusManutencao() {
                 try {
                     const res = await fetch('/api/admin/manutencao');
                     if (!res.ok) return;
-                    const data = await res.json();
-                    _manutencaoAtivo = data.ativo;
+                    _manutencaoData = await res.json();
+                    _manutencaoAtivo = _manutencaoData.ativo;
                     atualizarUIManutencao();
                 } catch (e) {
                     console.warn('[FERRAMENTAS] Erro ao carregar status manutenção:', e);
@@ -477,27 +518,73 @@
                     text.textContent = _manutencaoAtivo ? '(ATIVO)' : '(desativado)';
                     text.style.color = _manutencaoAtivo ? '#ef4444' : '#22c55e';
                 }
-                if (action) action.textContent = _manutencaoAtivo ? 'Desativar' : 'Ativar';
+                if (action) action.textContent = _manutencaoAtivo ? 'Configurar' : 'Ativar';
                 if (card) card.style.borderColor = _manutencaoAtivo ? 'rgba(239,68,68,0.4)' : '';
             }
 
+            function abrirModalManutencao() {
+                const modal = document.getElementById('modalManutencao');
+                const statusEl = document.getElementById('modalManutencaoStatus');
+                const msgInput = document.getElementById('manutencaoMensagem');
+                const wlInput = document.getElementById('manutencaoWhitelist');
+                const btn = document.getElementById('btnManutencaoToggle');
+
+                // Preencher com dados atuais
+                msgInput.value = _manutencaoData.mensagem || '';
+                wlInput.value = (_manutencaoData.whitelist_timeIds || []).join(', ');
+
+                if (_manutencaoAtivo) {
+                    statusEl.innerHTML = '<span style="color:#ef4444;">&#9679;</span> ATIVO desde ' + new Date(_manutencaoData.ativadoEm).toLocaleString('pt-BR');
+                    btn.innerHTML = '<span class="material-icons">visibility_off</span> Desativar';
+                    btn.style.background = '#dc2626';
+                    btn.style.color = '#fff';
+                } else {
+                    statusEl.innerHTML = '<span style="color:#22c55e;">&#9679;</span> Desativado';
+                    btn.innerHTML = '<span class="material-icons">engineering</span> Ativar Manutencao';
+                    btn.style.background = '#f59e0b';
+                    btn.style.color = '#111827';
+                }
+
+                modal.style.display = 'flex';
+            }
+
+            function fecharModalManutencao() {
+                document.getElementById('modalManutencao').style.display = 'none';
+            }
+
+            // Fechar ao clicar fora
+            document.getElementById('modalManutencao').addEventListener('click', function(e) {
+                if (e.target === this) fecharModalManutencao();
+            });
+
             async function toggleManutencao() {
                 const acao = _manutencaoAtivo ? 'desativar' : 'ativar';
-                const confirmar = confirm(_manutencaoAtivo
-                    ? 'Desativar modo manutenção? O app voltará ao normal.'
-                    : 'Ativar modo manutenção? O app mostrará a tela "Calma aê!" para todos os participantes.');
+                const msgInput = document.getElementById('manutencaoMensagem');
+                const wlInput = document.getElementById('manutencaoWhitelist');
 
-                if (!confirmar) return;
+                const whitelist = wlInput.value.split(',').map(s => s.trim()).filter(Boolean);
+                const mensagem = msgInput.value.trim();
 
                 try {
-                    const res = await fetch(`/api/admin/manutencao/${acao}`, { method: 'POST' });
+                    const body = {};
+                    if (whitelist.length > 0) body.whitelist_timeIds = whitelist;
+                    if (mensagem) body.mensagem = mensagem;
+
+                    const res = await fetch(`/api/admin/manutencao/${acao}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body),
+                    });
                     if (!res.ok) throw new Error('Falha na requisição');
-                    const data = await res.json();
-                    _manutencaoAtivo = data.ativo;
+                    _manutencaoData = await res.json();
+                    _manutencaoAtivo = _manutencaoData.ativo;
                     atualizarUIManutencao();
-                    alert(_manutencaoAtivo ? 'Modo manutenção ATIVADO! Participantes verão a tela de aviso.' : 'Modo manutenção desativado. App voltou ao normal.');
+                    fecharModalManutencao();
+                    alert(_manutencaoAtivo
+                        ? 'Modo manutencao ATIVADO!' + (whitelist.length ? ` Whitelist: ${whitelist.join(', ')}` : '')
+                        : 'Modo manutencao desativado. App voltou ao normal.');
                 } catch (e) {
-                    alert('Erro ao alterar modo manutenção: ' + e.message);
+                    alert('Erro ao alterar modo manutencao: ' + e.message);
                 }
             }
 
