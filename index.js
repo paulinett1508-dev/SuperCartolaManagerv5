@@ -325,20 +325,6 @@ if (IS_DEVELOPMENT) {
   });
 }
 
-// ====================================================================
-// 🛡️ SERVIR ASSETS ESTÁTICOS (ANTES de session/passport)
-// Apenas assets (.js, .css, imagens, fontes) — NÃO precisam de session/MongoDB
-// Páginas HTML passam adiante para protegerRotas (que precisa de session)
-// ====================================================================
-const serveStaticAssets = express.static("public");
-app.use((req, res, next) => {
-  // HTML pages e diretórios precisam de session para auth (protegerRotas)
-  if (req.path.endsWith('.html') || req.path === '/' || req.path.endsWith('/')) {
-    return next();
-  }
-  serveStaticAssets(req, res, next);
-});
-
 // Configuração de Sessão com MongoDB Store (Persistência Real)
 app.use(
   session({
@@ -373,12 +359,6 @@ app.use(
 // 🔐 Inicializar Passport (Replit Auth)
 app.use(passport.initialize());
 app.use(passport.session());
-
-// ✅ Bypass de desenvolvimento: injeta sessão admin automaticamente
-app.use(injetarSessaoDevAdmin);
-
-// 👁️ Rastreamento de atividade (requer session para identificar participante)
-app.use(activityTrackerMiddleware);
 
 // Setup Replit Auth routes (synchronous registration with lazy OIDC discovery)
 setupReplitAuthRoutes(app);
@@ -421,9 +401,15 @@ app.use("/api/participante/historico", participanteHistoricoRoutes);
 app.use("/api/app", appVersionRoutes);
 console.log("[SERVER] 📦 Rotas de versionamento registradas em /api/app");
 
-// 🛡️ MIDDLEWARE DE PROTEÇÃO DE ROTAS + SERVIR HTML (após session/passport)
-// protegerRotas precisa de req.session para verificar admin/participante
+// 🛡️ MIDDLEWARE DE PROTEÇÃO DE ROTAS (antes de servir estáticos)
+// ✅ Bypass de desenvolvimento: injeta sessão admin automaticamente em NODE_ENV=development
+app.use(injetarSessaoDevAdmin);
 app.use(protegerRotas);
+
+// 👁️ MIDDLEWARE DE RASTREAMENTO DE ATIVIDADE (participantes)
+app.use(activityTrackerMiddleware);
+
+// Servir arquivos estáticos (Frontend)
 app.use(express.static("public"));
 
 // Rotas da API
