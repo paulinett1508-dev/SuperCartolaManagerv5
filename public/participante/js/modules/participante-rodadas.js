@@ -402,6 +402,8 @@ function obterMitoMicoDaRodada(rodada) {
 async function selecionarRodada(numeroRodada, isParcial = false) {
     if (window.Log)
         Log.info(`[PARTICIPANTE-RODADAS] 📌 Selecionando rodada ${numeroRodada} (parcial: ${isParcial})`);
+    if (window.Log)
+        Log.info(`[PARTICIPANTE-RODADAS] 📊 Cache: ${todasRodadasCache.length} rodadas em cache`);
 
     rodadaSelecionada = numeroRodada;
     ParciaisModule.pararAutoRefresh?.();
@@ -425,36 +427,71 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
 
     const isRodadaParcial = parciaisInfo?.disponivel && numeroRodada === parciaisInfo.rodada;
 
-    if (isRodadaParcial) {
-        await carregarERenderizarParciais(numeroRodada);
+    try {
+        if (isRodadaParcial) {
+            await carregarERenderizarParciais(numeroRodada);
 
-        // ✅ FEAT-026: Usar Polling Inteligente baseado em calendário
-        PollingInteligenteModule.inicializar({
-            temporada: TEMPORADA_ATUAL,
-            rodada: numeroRodada,
-            ligaId: ligaId,
-            timeId: meuTimeId,
-            onUpdate: (dados) => {
-                if (rodadaSelecionada !== numeroRodada) return;
-                renderizarParciaisDados(numeroRodada, dados);
-            },
-            onStatus: atualizarIndicadorAutoRefresh
-        });
-    } else {
-        const rodadaData = todasRodadasCache.find((r) => r.numero === numeroRodada);
-        if (!rodadaData || rodadaData.participantes.length === 0) {
-            if (rankingContainer) {
-                rankingContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #6b7280;">
-                        <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">inbox</span>
-                        <p>Dados desta rodada não disponíveis</p>
-                    </div>
-                `;
+            // ✅ FEAT-026: Usar Polling Inteligente baseado em calendário
+            PollingInteligenteModule.inicializar({
+                temporada: TEMPORADA_ATUAL,
+                rodada: numeroRodada,
+                ligaId: ligaId,
+                timeId: meuTimeId,
+                onUpdate: (dados) => {
+                    if (rodadaSelecionada !== numeroRodada) return;
+                    renderizarParciaisDados(numeroRodada, dados);
+                },
+                onStatus: atualizarIndicadorAutoRefresh
+            });
+        } else {
+            const rodadaData = todasRodadasCache.find((r) => r.numero === numeroRodada);
+            if (window.Log)
+                Log.info(`[PARTICIPANTE-RODADAS] 🔍 Rodada ${numeroRodada}: ${rodadaData ? rodadaData.participantes.length + ' participantes' : 'NÃO ENCONTRADA'}`);
+
+            if (!rodadaData || rodadaData.participantes.length === 0) {
+                // Fallback: buscar diretamente da API se cache falhou
+                if (window.Log) Log.warn(`[PARTICIPANTE-RODADAS] ⚠️ Cache vazio, buscando da API...`);
+                try {
+                    const res = await fetch(`/api/rodadas/${ligaId}/rodadas?rodada=${numeroRodada}&temporada=${TEMPORADA_ATUAL}`);
+                    if (res.ok) {
+                        const rodadas = await res.json();
+                        if (rodadas.length > 0) {
+                            const agrupadas = agruparRodadasPorNumero(rodadas);
+                            const dadosFresh = agrupadas.find(r => r.numero === numeroRodada);
+                            if (dadosFresh && dadosFresh.participantes.length > 0) {
+                                renderizarDetalhamentoRodada(dadosFresh, false);
+                                setTimeout(() => detalhamento?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                                return;
+                            }
+                        }
+                    }
+                } catch (fetchErr) {
+                    if (window.Log) Log.error(`[PARTICIPANTE-RODADAS] ❌ Fallback API falhou:`, fetchErr);
+                }
+
+                if (rankingContainer) {
+                    rankingContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #6b7280;">
+                            <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">inbox</span>
+                            <p>Dados desta rodada não disponíveis</p>
+                        </div>
+                    `;
+                }
+                return;
             }
-            return;
-        }
 
-        renderizarDetalhamentoRodada(rodadaData, false);
+            renderizarDetalhamentoRodada(rodadaData, false);
+        }
+    } catch (error) {
+        if (window.Log) Log.error(`[PARTICIPANTE-RODADAS] ❌ Erro ao selecionar rodada:`, error);
+        if (rankingContainer) {
+            rankingContainer.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #ef4444;">
+                    <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">error_outline</span>
+                    <p>Erro ao carregar rodada. Tente novamente.</p>
+                </div>
+            `;
+        }
     }
 
     setTimeout(() => {
