@@ -194,7 +194,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Conectar ao Banco de Dados (Otimizado)
-connectDB();
+await connectDB();
 
 // ====================================================================
 // 🛡️ MIDDLEWARES DE SEGURANÇA (PRIMEIRO!)
@@ -234,7 +234,7 @@ app.use(cors({
     // Em desenvolvimento, permitir qualquer origem
     if (IS_DEVELOPMENT) return callback(null, true);
     // Permitir origens do mesmo domínio Replit (*.replit.dev)
-    if (origin.endsWith('.replit.dev') || origin.endsWith('.repl.co')) {
+    if (origin.endsWith('.replit.dev') || origin.endsWith('.repl.co') || origin.endsWith('.replit.app')) {
       return callback(null, true);
     }
     // Verificar whitelist
@@ -325,6 +325,15 @@ if (IS_DEVELOPMENT) {
   });
 }
 
+// ====================================================================
+// 🛡️ SERVIR ARQUIVOS ESTÁTICOS (ANTES de session/passport)
+// Assets (.js, .css, .png) NÃO precisam de session/MongoDB
+// protegerRotas usa optional chaining (req.session?.) - funciona sem session
+// Páginas admin sem session → redirect para login (comportamento correto)
+// ====================================================================
+app.use(protegerRotas);
+app.use(express.static("public"));
+
 // Configuração de Sessão com MongoDB Store (Persistência Real)
 app.use(
   session({
@@ -359,6 +368,12 @@ app.use(
 // 🔐 Inicializar Passport (Replit Auth)
 app.use(passport.initialize());
 app.use(passport.session());
+
+// ✅ Bypass de desenvolvimento: injeta sessão admin automaticamente
+app.use(injetarSessaoDevAdmin);
+
+// 👁️ Rastreamento de atividade (requer session para identificar participante)
+app.use(activityTrackerMiddleware);
 
 // Setup Replit Auth routes (synchronous registration with lazy OIDC discovery)
 setupReplitAuthRoutes(app);
@@ -401,16 +416,6 @@ app.use("/api/participante/historico", participanteHistoricoRoutes);
 app.use("/api/app", appVersionRoutes);
 console.log("[SERVER] 📦 Rotas de versionamento registradas em /api/app");
 
-// 🛡️ MIDDLEWARE DE PROTEÇÃO DE ROTAS (antes de servir estáticos)
-// ✅ Bypass de desenvolvimento: injeta sessão admin automaticamente em NODE_ENV=development
-app.use(injetarSessaoDevAdmin);
-app.use(protegerRotas);
-
-// 👁️ MIDDLEWARE DE RASTREAMENTO DE ATIVIDADE (participantes)
-app.use(activityTrackerMiddleware);
-
-// Servir arquivos estáticos (Frontend)
-app.use(express.static("public"));
 
 // Rotas da API
 app.use("/api/jogos-hoje", jogosHojeRoutes);
