@@ -234,7 +234,7 @@ app.use(cors({
     // Em desenvolvimento, permitir qualquer origem
     if (IS_DEVELOPMENT) return callback(null, true);
     // Permitir origens do mesmo domínio Replit (*.replit.dev)
-    if (origin.endsWith('.replit.dev') || origin.endsWith('.repl.co') || origin.endsWith('.replit.app')) {
+    if (origin.endsWith('.replit.dev') || origin.endsWith('.repl.co') || origin.endsWith('.replit.app') || origin.endsWith('supercartolamanager.com.br')) {
       return callback(null, true);
     }
     // Verificar whitelist
