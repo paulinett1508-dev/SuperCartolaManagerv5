@@ -1,6 +1,7 @@
 // =====================================================================
-// service-worker.js - Service Worker do PWA v3.9 (MOBILE CONNECTION FIX)
+// service-worker.js - Service Worker do PWA v4.0 (MODULE IMPORT FIX)
 // Destino: /participante/service-worker.js
+// ✅ v4.0: FIX MOBILE MODULES - Não interceptar ES module imports (causa falha em mobile)
 // ✅ v3.9: FIX MOBILE - Normalizar query params no cache, preservar fallback offline
 // ✅ v3.8: RANKING FIX - Corrigir temporada 2025 hardcoded para dinâmica
 // ✅ v3.7: RODADAS REDESIGN - Grupos expansíveis + slider horizontal
@@ -13,7 +14,7 @@
 // BUILD: 2026-01-30T12:00:00Z
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v16-mobile-fix";
+const CACHE_NAME = "super-cartola-v17-module-fix";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
@@ -79,6 +80,12 @@ self.addEventListener("fetch", (event) => {
         url.pathname === '/participante/' ||
         url.pathname === '/participante') {
         return; // Deixa o navegador buscar normalmente
+    }
+
+    // ❌ NETWORK ONLY: ES Modules - respondWith() quebra dynamic import() em mobile
+    // Mobile browsers (Safari/iOS, Chrome Mobile) falham quando SW intercepta module requests
+    if (url.pathname.includes('/js/modules/')) {
+        return; // Deixa o navegador resolver imports diretamente
     }
 
     // ✅ NETWORK FIRST: Assets estáticos (CSS, JS, imagens, fontes)

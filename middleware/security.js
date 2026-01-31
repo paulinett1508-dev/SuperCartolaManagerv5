@@ -165,6 +165,7 @@ export function securityHeaders(req, res, next) {
         "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com data:",
         "img-src 'self' data: https: blob:",
         "connect-src 'self' https://api.cartolafc.globo.com https://*.globo.com https://cdn.jsdelivr.net",
+        "worker-src 'self'",
         "frame-ancestors 'self'",
         "base-uri 'self'",
         "form-action 'self'",

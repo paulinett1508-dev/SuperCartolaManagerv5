@@ -21,14 +21,14 @@ const AppVersion = {
 
     // ✅ FIX MOBILE: Limpeza seletiva - remove apenas caches obsoletos, preserva SW ativo
     async limparCachesAntigos() {
-        const FLAG_KEY = 'sw_emergency_clean_v9';
+        const FLAG_KEY = 'sw_emergency_clean_v10';
         if (localStorage.getItem(FLAG_KEY)) {
             return; // Já foi feito
         }
 
         try {
             // Limpar apenas caches com nomes antigos (não o atual do SW)
-            const CURRENT_SW_CACHE = 'super-cartola-v16-mobile-fix';
+            const CURRENT_SW_CACHE = 'super-cartola-v17-module-fix';
             const cacheNames = await caches.keys();
             const obsoletos = cacheNames.filter(name => name !== CURRENT_SW_CACHE);
 

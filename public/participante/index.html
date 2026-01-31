@@ -925,10 +925,10 @@
         </div>
 
         <!-- ✅ ERROR HANDLER GLOBAL v2 - Captura erros e revela app -->
-        <!-- ✅ FIX MOBILE v1: Forçar renovação do SW ANTES de qualquer script -->
+        <!-- ✅ FIX MOBILE v2: Forçar renovação do SW ANTES de qualquer script -->
         <script>
             (function() {
-                var FLAG = 'sw_force_v16_done';
+                var FLAG = 'sw_force_v17_done';
                 if (!localStorage.getItem(FLAG) && 'serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistrations().then(function(regs) {
                         var hadOld = false;
