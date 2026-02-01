@@ -1,342 +1,463 @@
-# AUDITORIA DO MÓDULO RANKING (Admin + Participante)
+# AUDITORIA COMPLETA — MÓDULOS DE RANKING
 
-**Data:** 2026-02-01
+**Data:** 2026-02-01 (v2 — separação correta dos módulos)
 **Auditor:** Claude Opus 4.5
-**Escopo:** Ranking Geral (acumulado) + Ranking por Turno + Ranking da Rodada (BANCO)
 **Branch:** `claude/audit-ranking-module-s1vtC`
 
----
-
-## RESUMO EXECUTIVO
-
-O módulo Ranking é composto por ~30 arquivos distribuídos em controllers, services, models, routes, frontend admin, frontend participante, configs e scripts utilitários. A auditoria identificou **27 achados** classificados por severidade.
-
-| Severidade | Quantidade |
-|------------|-----------|
-| CRÍTICO    | 4         |
-| ALTO       | 7         |
-| MÉDIO      | 9         |
-| BAIXO      | 7         |
+> **NOTA:** Este documento audita **dois módulos distintos** que possuem uma ligação crítica:
+> - **Módulo 1 — RANKING DE RODADAS** (card "Rodadas" no admin) — a **fonte de dados**
+> - **Módulo 2 — RANKING GERAL / CLASSIFICAÇÃO** (card "Classificação" no admin) — o **consumidor**
+>
+> O Ranking Geral é alimentado pelos dados produzidos pelo Ranking de Rodadas.
 
 ---
+---
 
-## ACHADOS CRÍTICOS
+# PARTE 1 — MÓDULO RANKING DE RODADAS
 
-### C1. Função `getRankingRodada` exportada mas SEM rota registrada (Código Morto / Dependência Solta)
+**Card admin:** "Rodadas" (`data-module="rodadas"`)
+**Carregamento:** Lazy (sob demanda)
+**Impacto financeiro:** SIM (sistema BANCO com zonas G/Z, MITO/MICO)
 
-**Arquivo:** `controllers/rankingGeralCacheController.js:206-221`
-**Problema:** A função `getRankingRodada` é exportada mas não está registrada em nenhum arquivo de rotas. Ela usa `obterDadosRodada` do `smartDataFetcher.js` (sistema de snapshots), mas nunca é chamada por nenhuma rota HTTP.
-**Impacto:** Código morto que importa dependências desnecessárias (`smartDataFetcher.js`), poluindo o controller e criando confusão sobre o que está ativo.
-**Ação:** Remover a função `getRankingRodada` e o import de `obterDadosRodada` do controller, ou registrar uma rota se ela for necessária.
+## 1.1 MAPA DE ARQUIVOS
 
-### C2. Rotas de escrita (DELETE/POST) SEM autenticação de admin
+```
+BACKEND
+├── routes/rodadas-routes.js              ← GET/POST /api/rodadas/:ligaId/rodadas
+├── routes/rodadasCacheRoutes.js          ← POST /api/rodadas-cache/:ligaId/recalcular + stats
+├── routes/rodadasCorrecaoRoutes.js       ← GET verificar + POST corrigir corrompidos
+├── routes/calendario-rodadas-routes.js   ← Calendário de jogos por rodada
+├── controllers/rodadasCacheController.js ← Recalcular posições + valor financeiro (286 linhas)
+└── controllers/rodadasCorrecaoController.js ← Reparar rodadas corrompidas (382 linhas)
 
+FRONTEND ADMIN
+├── public/fronts/rodadas.html            ← Template admin (v2.2)
+└── public/js/rodadas/
+    ├── rodadas-orquestrador.js           ← Orquestração do fluxo (638 linhas)
+    ├── rodadas-core.js                   ← Lógica de negócio (fetch, processamento)
+    ├── rodadas-ui.js                     ← Renderização de UI (941 linhas)
+    ├── rodadas-cache.js                  ← Camada de cache
+    └── rodadas-config.js                 ← Configs de BANCO, faixas G/Z, endpoints (v5.0)
+
+FRONTEND PARTICIPANTE
+├── public/participante/fronts/rodadas.html           ← Template mobile (v6.0, 990 linhas)
+└── public/participante/js/modules/participante-rodadas.js ← Módulo mobile (v6.0, 1166 linhas)
+
+CONFIG
+├── config/definitions/ranking_rodada_def.json  ← Definição do módulo
+└── config/rules/ranking_rodada.json            ← Regras financeiras (zonas G/Z)
+```
+
+## 1.2 ACHADOS
+
+### CRÍTICOS
+
+#### RR-C1. Rotas de escrita SEM autenticação de admin
+**Arquivos:** `routes/rodadasCacheRoutes.js`, `routes/rodadasCorrecaoRoutes.js`
+**Problema:** Nenhum middleware `verificarAdmin()` nas rotas:
+- `POST /api/rodadas-cache/:ligaId/recalcular` — recalcula posições e valores financeiros
+- `POST /api/rodadas-correcao/:ligaId/corrigir` — deleta e recria registros do banco
+- `POST /api/rodadas/:ligaId/rodadas` — popula rodadas da API Cartola
+
+Qualquer usuário autenticado pode executar operações que alteram dados financeiros.
+**Impacto:** Vulnerabilidade de autorização — participante pode recalcular valores BANCO ou corrigir rodadas.
+**Severidade:** CRÍTICO (segurança + integridade financeira)
+
+#### RR-C2. `abrirModalRecalcMini()` — função chamada no HTML mas INEXISTENTE no JS
+**Arquivo:** `public/fronts/rodadas.html:18`
+```html
+<button onclick="abrirModalRecalcMini()">
+```
+**Problema:** O botão "Recalcular" no template admin chama `abrirModalRecalcMini()`, mas essa função não existe em nenhum arquivo JS do projeto. Clicar no botão gera `ReferenceError: abrirModalRecalcMini is not defined`.
+**Impacto:** Feature administrativa completamente quebrada — admin não consegue recalcular posições pelo frontend.
+**Severidade:** CRÍTICO (funcionalidade core quebrada)
+
+#### RR-C3. Desempate NÃO implementado no Ranking da Rodada
+**Arquivo:** `config/rules/ranking_rodada.json:105-109` documenta desempate por `posicao_ranking_geral`.
+**Arquivo:** `controllers/rodadasCacheController.js:150-155` ordena apenas por `pontos DESC`.
+**Problema:** Em caso de empate de pontos numa rodada, a posição (e consequentemente o valor financeiro BANCO) é determinada pela ordem arbitrária do MongoDB, não pelo critério documentado.
+**Impacto:** Valores financeiros incorretos quando há empate — afeta diretamente o extrato.
+**Severidade:** CRÍTICO (impacto financeiro direto)
+
+---
+
+### ALTOS
+
+#### RR-A1. `rodadas-config.js` mantém IDs de liga hardcoded e fallbacks estáticos
+**Arquivo:** `public/js/rodadas/rodadas-config.js:97-100`
+```javascript
+export const LIGAS_CONFIG = {
+  SUPERCARTOLA: "684cb1c8af923da7c7df51de",
+  CARTOLEIROS_SOBRAL: "684d821cf1a7ae16d1f89572",
+};
+```
+**Problema:** Apesar de ter sistema dinâmico (v5.0 busca do servidor), os fallbacks síncronos em `getBancoPorRodada()`, `getFaixasPorRodada()`, `getTotalTimesPorRodada()` continuam usando IDs hardcoded e valores fixos para apenas 2 ligas.
+**Impacto:** Novas ligas não terão fallback correto. Viola princípio "Zero hardcode".
+
+#### RR-A2. `POSICAO_CONFIG` hardcoded para SuperCartola e Sobral apenas
+**Arquivo:** `public/js/rodadas/rodadas-config.js:285-341`
+**Problema:** Labels de posição (MITO, G2-G11, Z1-Z11, MICO) estão hardcoded para configurações específicas de 2 ligas. Uma nova liga com tamanho diferente não teria labels corretos.
+**Impacto:** Sistema BANCO visualmente incorreto para novas ligas.
+
+#### RR-A3. `getConfigRankingRodada` DUPLICADA entre controllers
 **Arquivos:**
-- `routes/ranking-geral-cache-routes.js` → `DELETE /:ligaId` (invalidar cache)
-- `routes/ranking-turno-routes.js` → `POST /:ligaId/consolidar` (reconsolidar) e `DELETE /:ligaId/cache` (limpar cache)
+- `controllers/rodadasCacheController.js:26-53`
+- `controllers/rodadasCorrecaoController.js:30-59`
+**Problema:** Função idêntica duplicada em dois controllers. Mudança em um não reflete no outro.
+**Impacto:** Risco de divergência na lógica de obtenção de configurações financeiras.
 
-**Problema:** Nenhuma dessas rotas tem middleware `verificarAdmin()`. Qualquer usuário autenticado (ou não, dependendo do `protegerRotas`) pode:
-- Invalidar o cache de ranking de qualquer liga
-- Forçar reconsolidação de turnos
-- Limpar cache de turnos
+#### RR-A4. Endpoints múltiplos para mesmos dados sem versioning
+**Arquivo:** `public/js/rodadas/rodadas-config.js:261-265`
+```javascript
+getEndpoints: (ligaId, rodadaNum) => [
+  `/api/rodadas/${ligaId}/rodadas?inicio=${rodadaNum}&fim=${rodadaNum}`,
+  `/api/ligas/${ligaId}/rodadas?rodada=${rodadaNum}`,
+  `/api/ligas/${ligaId}/ranking/${rodadaNum}`,
+],
+```
+**Problema:** 3 endpoints diferentes são tentados em cascata para obter a mesma informação. Não está claro qual é o canônico e quais são legados.
+**Impacto:** Dificuldade de manutenção; endpoints fantasma podem retornar dados em formato diferente.
 
-**Impacto:** Risco de abuso: um participante pode invalidar caches repetidamente causando carga no banco, ou reconsolidar dados indevidamente.
-**Ação:** Adicionar `verificarAdmin` como middleware nas rotas POST e DELETE.
+#### RR-A5. `window.voltarParaCards` é definido apenas no contexto participante
+**Arquivo:** `public/fronts/rodadas.html:95` → chama `window.voltarParaCards`
+**Arquivo definido:** `public/participante/js/modules/participante-rodadas.js:1065`
+**Problema:** No contexto admin, `window.voltarParaCards` pode não existir. O botão "Fechar" do relatório MITOS/MICOS faz fallback com `||` para ocultar o div, mas indica acoplamento entre código admin e participante.
 
-### C3. Inconsistência no fallback de temporada entre controllers
+---
 
-**Arquivos:**
-- `controllers/rankingGeralCacheController.js:14` → `parseInt(temporadaParam) || CURRENT_SEASON`
-- `controllers/rankingTurnoController.js:19` → `temporada ? parseInt(temporada, 10) : new Date().getFullYear()`
+### MÉDIOS
 
-**Problema:** O controller de ranking geral usa `CURRENT_SEASON` (2026) como fallback, enquanto o controller de turno usa `new Date().getFullYear()`. Se CURRENT_SEASON for atualizado manualmente para 2027 antes da virada do ano, os dois controllers apontariam para temporadas diferentes.
-**Impacto:** Possível inconsistência de dados entre as duas views de ranking.
-**Ação:** Padronizar ambos para usar `CURRENT_SEASON` do `config/seasons.js`.
+#### RR-M1. `STATUS_MERCADO_DEFAULT.temporada` usa `new Date().getFullYear()` em vez de `CURRENT_SEASON`
+**Arquivo:** `public/js/rodadas/rodadas-config.js:278`
+**Problema:** Inconsistência com o backend que usa `CURRENT_SEASON`. No frontend é avaliado em tempo de carregamento do módulo, ficando fixo.
 
-### C4. `reconsolidarTodosOsTurnos` NÃO filtra por temporada
+#### RR-M2. Controller de correção deleta registros antes de recriar — sem transação
+**Arquivo:** `controllers/rodadasCorrecaoController.js:200-250`
+**Problema:** A correção faz `deleteMany` dos corrompidos e depois tenta buscar da API Cartola e salvar. Se a API Cartola estiver offline entre o delete e o save, os dados são perdidos sem recovery.
+**Impacto:** Perda de dados se API Cartola falhar durante correção.
 
-**Arquivo:** `services/rankingTurnoService.js:268-294`
-**Problema:** A função `reconsolidarTodosOsTurnos` busca a última rodada sem filtrar por temporada:
+#### RR-M3. Cache IndexedDB do participante sem invalidação por temporada
+**Arquivo:** `public/participante/js/modules/participante-rodadas.js` (cache-first)
+**Problema:** O módulo carrega cache do IndexedDB na Phase 1 sem verificar se a temporada mudou. Dados de 2025 podem ser exibidos até o background fetch completar.
+
+#### RR-M4. Relatório MITOS/MICOS sem paginação — busca todas as 38 rodadas de uma vez
+**Arquivo:** `public/js/rodadas/rodadas-orquestrador.js:426-507`
+**Problema:** Faz fetch de todas as rodadas (1-38) em paralelo para gerar o relatório. Com 32 participantes × 38 rodadas = 1216 registros processados no frontend.
+**Impacto:** Possível lentidão em devices mobile ou conexões lentas.
+
+#### RR-M5. Participante pode "curiosar" escalação de qualquer time via `abrirCampinhoModal`
+**Arquivo:** `public/participante/js/modules/participante-rodadas.js:853-1013`
+**Problema:** O modal "Campinho" faz fetch direto da API Cartola (`/api/cartola/time/id/${timeId}/${rodada}`) sem validar se o participante tem permissão de ver o time alheio. Não é crítico (dados da API são públicos), mas permite inferir estratégias de outros participantes.
+
+#### RR-M6. Calendário de rodadas sem validação de temporada no frontend
+**Arquivo:** `routes/calendario-rodadas-routes.js`
+**Problema:** As rotas POST/PUT para salvar calendário não verificam se a temporada é a atual. Um admin poderia acidentalmente alterar calendários de temporadas passadas.
+
+---
+
+### BAIXOS
+
+#### RR-B1. `VERSAO_SISTEMA_FINANCEIRO` definida mas nunca comparada
+**Arquivo:** `public/js/rodadas/rodadas-config.js:9` → `"5.0.0"`
+**Problema:** A versão é exportada mas nunca é usada para invalidar cache ou comparar compatibilidade.
+
+#### RR-B2. Timeouts hardcoded em `TIMEOUTS_CONFIG`
+**Arquivo:** `public/js/rodadas/rodadas-config.js:343-348`
+**Problema:** Timeouts fixos (500ms render, 3s image, 8s API). Em redes lentas, 8s pode não ser suficiente.
+
+#### RR-B3. `console.log` em cada operação do módulo
+**Arquivos:** Todos os 5 JS do admin + controller + participante
+**Problema:** Dezenas de logs com emojis em cada operação. Poluição de console em produção.
+
+---
+
+## 1.3 RESUMO RANKING DE RODADAS
+
+| Severidade | Qtd | IDs |
+|------------|-----|-----|
+| CRÍTICO | 3 | RR-C1, RR-C2, RR-C3 |
+| ALTO | 5 | RR-A1 a RR-A5 |
+| MÉDIO | 6 | RR-M1 a RR-M6 |
+| BAIXO | 3 | RR-B1 a RR-B3 |
+| **TOTAL** | **17** | |
+
+---
+---
+
+# PARTE 2 — MÓDULO RANKING GERAL (CLASSIFICAÇÃO)
+
+**Card admin:** "Classificação" (`data-module="ranking-geral"`)
+**Carregamento:** Eager (sempre carregado com a página)
+**Impacto financeiro:** NÃO (apenas exibição)
+**Fonte de dados:** Collection `Rodada` (produzida pelo módulo Ranking de Rodadas)
+
+## 2.1 MAPA DE ARQUIVOS
+
+```
+BACKEND
+├── routes/ranking-geral-cache-routes.js      ← GET/DELETE /api/ranking-cache/:ligaId
+├── routes/ranking-turno-routes.js            ← GET/POST/DELETE /api/ranking-turno/:ligaId
+├── controllers/rankingGeralCacheController.js ← Ranking acumulado (pipeline MongoDB)
+├── controllers/rankingTurnoController.js     ← Ranking por turno (1/2/geral)
+├── services/rankingTurnoService.js           ← Consolidação + parciais
+├── services/parciaisRankingService.js        ← API Cartola para dados ao vivo
+├── models/RankingGeralCache.js               ← Cache do ranking acumulado
+└── models/RankingTurno.js                    ← Snapshots de ranking por turno
+
+FRONTEND ADMIN
+├── public/fronts/ranking-geral.html          ← Template admin (parcialmente morto)
+├── public/js/ranking.js                      ← Frontend admin (v2.6, 1373 linhas)
+└── public/css/modules/ranking-geral.css      ← CSS externo (parcialmente sobrescrito)
+
+FRONTEND PARTICIPANTE
+├── public/participante/fronts/ranking.html              ← Template mobile (v4.0)
+├── public/participante/modules/ranking/ranking.js       ← Módulo mobile (v4.0, 431 linhas)
+└── public/participante/js/modules/participante-ranking.js ← Inicializador
+
+CONFIG
+├── config/definitions/ranking_geral_def.json   ← Definição do módulo (NÃO consumida)
+└── config/rules/ranking_geral.json             ← Regras de cálculo (parcialmente consumidas)
+```
+
+## 2.2 ACHADOS
+
+### CRÍTICOS
+
+#### RG-C1. `reconsolidarTodosOsTurnos` NÃO filtra por temporada
+**Arquivo:** `services/rankingTurnoService.js:279`
 ```javascript
 const ultimaRodada = await Rodada.findOne({ ligaId: ligaObjectId })
     .sort({ rodada: -1 })
 ```
-Se existirem rodadas de 2025 com rodada 38 e a temporada 2026 estiver na rodada 5, o sistema vai usar rodadaAtual=38 da temporada antiga, consolidando erroneamente turnos como completos.
-**Impacto:** Dados de temporadas misturados, ranking incorreto.
-**Ação:** Adicionar filtro `temporada` na query. A função precisa receber o parâmetro `temporada` (atualmente não recebe).
+**Problema:** A query busca a última rodada **de qualquer temporada**. Se existirem rodadas de 2025 com `rodada: 38` e a temporada 2026 estiver na `rodada: 5`, o sistema usa `rodadaAtual=38`, marcando todos os turnos como "consolidado" erroneamente.
+**Impacto:** Ranking incorreto; turnos marcados como finalizados prematuramente; dados cruzados entre temporadas.
+**Severidade:** CRÍTICO
+
+#### RG-C2. Rotas de escrita SEM autenticação de admin
+**Arquivos:**
+- `routes/ranking-geral-cache-routes.js` → `DELETE /:ligaId`
+- `routes/ranking-turno-routes.js` → `POST /:ligaId/consolidar` + `DELETE /:ligaId/cache`
+
+**Problema:** Sem middleware `verificarAdmin()`. Qualquer usuário autenticado pode invalidar cache ou forçar reconsolidação de qualquer liga.
+**Severidade:** CRÍTICO (segurança)
+
+#### RG-C3. Inconsistência no fallback de temporada entre controllers
+**Arquivos:**
+- `controllers/rankingGeralCacheController.js:14` → `parseInt(temporadaParam) || CURRENT_SEASON` (2026)
+- `controllers/rankingTurnoController.js:19` → `new Date().getFullYear()` (dinâmico)
+- `services/rankingTurnoService.js:19` → `new Date().getFullYear()` (dinâmico)
+- `services/rankingTurnoService.js:136` → `new Date().getFullYear()` (dinâmico)
+
+**Problema:** 3 fontes diferentes de fallback de temporada. Se `CURRENT_SEASON` for ajustado para 2027 antes do ano virar, o `rankingGeralCacheController` aponta para 2027 enquanto os demais ficam em 2026.
+**Severidade:** CRÍTICO (integridade de dados)
+
+#### RG-C4. Função `getRankingRodada` exportada sem rota — código morto com import desnecessário
+**Arquivo:** `controllers/rankingGeralCacheController.js:5, 206-221`
+**Problema:** Importa `obterDadosRodada` de `smartDataFetcher.js` e exporta `getRankingRodada`, mas nenhuma rota registra essa função. O import de `smartDataFetcher` puxa dependências extras desnecessárias no startup.
+**Severidade:** CRÍTICO (dependência solta, confusão no codebase)
 
 ---
 
-## ACHADOS ALTOS
+### ALTOS
 
-### A1. Desempate NÃO implementado no backend
+#### RG-A1. Desempate NÃO implementado no backend
+**Arquivo:** `config/rules/ranking_geral.json:32-36` documenta 3 critérios de desempate.
+**Arquivo:** `controllers/rankingGeralCacheController.js:132` faz apenas `$sort: { pontos_totais: -1 }`.
+**Problema:** Participantes empatados ficam em ordem arbitrária do MongoDB.
+**Impacto:** Posições incorretas em caso de empate.
 
-**Arquivos:**
-- `config/rules/ranking_geral.json:32-36` define critérios de desempate: `maior_pontuacao_rodada_mais_recente`, `maior_numero_rodadas_jogadas`, `nome_cartola_alfabetico`
-- `controllers/rankingGeralCacheController.js:132-133` faz apenas `$sort: { pontos_totais: -1 }`
+#### RG-A2. Template HTML do admin conflita com JS gerado
+**Arquivo:** `public/fronts/ranking-geral.html` define tabs com `.turno-tab`.
+**Arquivo:** `public/js/ranking.js:1159-1225` sobrescreve o `innerHTML` completamente com `.ranking-turno-tab`.
+**Problema:**
+- FOUC — template aparece por milissegundos antes de ser substituído
+- Botão "Reconsolidar" (`#btnConsolidar`) no template é destruído — sem onclick handler
+- CSS do template para `.turno-tab` é inutilizado
+**Impacto:** Feature morta no template; manutenção confusa.
 
-**Problema:** A pipeline de agregação ordena apenas por `pontos_totais`. Os critérios de desempate documentados nas regras não são implementados.
-**Impacto:** Participantes empatados ficam em ordem arbitrária (ordem de inserção no MongoDB).
+#### RG-A3. `parametros_configuraveis` e `campos_exibicao` nunca consumidos
+**Arquivos:** `config/definitions/ranking_geral_def.json`
+**Problema:** Parâmetros como `exibir_variacao_posicao`, `exibir_media_pontos`, `destacar_lider` existem nos JSONs mas nenhum código os lê. São documentação morta.
+**Impacto:** Falsa impressão de configurabilidade.
 
-### A2. Desempate do Ranking da Rodada ignora critério documentado
-
-**Arquivo:** `config/rules/ranking_rodada.json:105-109` define desempate por `posicao_ranking_geral`.
-**Problema:** Não há nenhum código implementado que aplique este critério. O ranking da rodada é implicitamente parte do sistema BANCO/financeiro, mas a resolução de empates não é feita em lugar algum do código encontrado.
-
-### A3. `campos_exibicao` definidos mas NÃO consumidos
-
-**Arquivos:**
-- `config/definitions/ranking_geral_def.json:37-45` → define `variacao`, `media_pontos`
-- `config/definitions/ranking_rodada_def.json:68-75` → define `zona`, `valor_financeiro`
-
-**Problema:** Nenhum código frontend ou backend lê esses JSONs de definição para decidir o que exibir. As colunas são hardcoded no HTML/JS.
-**Impacto:** Os parâmetros configuráveis (`exibir_variacao_posicao`, `exibir_media_pontos`, `destacar_lider`) são documentação morta — nunca lidos.
-
-### A4. `parametros_configuraveis` nunca consumidos
-
-**Arquivos:** `config/definitions/ranking_geral_def.json` e `ranking_rodada_def.json`
-**Problema:** Parâmetros como `exibir_variacao_posicao: true` e `exibir_media_pontos: true` estão definidos, mas:
-- Variação de posição: O admin `ranking.js:1329` tem `obterLabelPosicao()` que mostra apenas troféu no 1º — sem setas de variação
-- Média de pontos: Nunca calculada nem exibida em nenhum frontend
-- `destacar_mito_mico`: O ranking da rodada não tem frontend próprio visível nesta auditoria
-
-### A5. Hardcode de liga IDs nos JSONs de regras
-
-**Arquivo:** `config/rules/ranking_geral.json:11` e `config/rules/ranking_rodada.json:29-30`
+#### RG-A4. Hardcode de liga IDs e temporada 2025 nos JSONs de regras
+**Arquivos:** `config/rules/ranking_geral.json:11,13`
 ```json
-"ligas_habilitadas": ["684cb1c8af923da7c7df51de", "684d821cf1a7ae16d1f89572"]
+"ligas_habilitadas": ["684cb1c8af923da7c7df51de", "684d821cf1a7ae16d1f89572"],
+"temporada": 2025
 ```
-**Problema:** IDs de liga hardcoded nos JSONs de configuração. Se novas ligas forem criadas, estas configs não se aplicam automaticamente.
-**Impacto:** Viola o princípio "Zero hardcode" documentado no CLAUDE.md para o sistema SaaS.
-
-### A6. Temporada hardcoded nos JSONs de regras
-
-**Arquivo:** `config/rules/ranking_geral.json:13` → `"temporada": 2025`
-**Problema:** A temporada está fixa em 2025, apesar de `CURRENT_SEASON` ser 2026.
-**Impacto:** Se algum código consumir este JSON (atualmente nenhum faz), usaria temporada errada.
-
-### A7. Template HTML do admin (`ranking-geral.html`) conflita com JS gerado
-
-**Arquivo:** `public/fronts/ranking-geral.html`
-**Problema:** O template define sua própria estrutura de tabs com classe `.turno-tab`, mas o `ranking.js` gera HTML completo que sobrescreve todo o `#ranking-geral` com sua própria estrutura usando classe `.ranking-turno-tab`. O template HTML é renderizado brevemente e depois completamente substituído.
-**Impacto:**
-- Flash of unstyled content (FOUC) — o template aparece por milissegundos antes de ser substituído
-- Botão "Reconsolidar" (`#btnConsolidar`) definido no template nunca funciona — é destruído quando `ranking.js` sobrescreve o innerHTML
-- CSS em `ranking-geral.html` para `.turno-tab` nunca é usado pelo JS (JS usa `.ranking-turno-tab`)
+**Problema:** IDs hardcoded + temporada defasada. Viola "Zero hardcode".
 
 ---
 
-## ACHADOS MÉDIOS
+### MÉDIOS
 
-### M1. Redundância de dados de status de inativos
-
+#### RG-M1. Fetch extra desnecessário para status de inativos
 **Arquivo:** `public/js/ranking.js:293-307`
-**Problema:** O admin ranking.js faz uma chamada extra `POST /api/times/batch/status` para obter status de inatividade, mesmo que o `rankingTurnoService.js` já retorne `ativo` e `rodada_desistencia` dentro de cada item do ranking. Os dados do backend são ignorados e sobrescritos.
-**Impacto:** Request desnecessário; fonte de verdade duplicada (Liga.participantes vs collection times); possível inconsistência se os dados divergirem.
+**Problema:** O frontend faz `POST /api/times/batch/status` para obter `ativo` e `rodada_desistencia`, mas o `rankingTurnoService.js` já retorna esses campos no array de ranking. Os dados do backend são ignorados e sobrescritos pelo resultado do fetch.
+**Impacto:** Request desnecessário; fonte de verdade duplicada (`Liga.participantes` vs collection `times`).
 
-### M2. `truncarPontos` inconsistente entre admin e participante
-
+#### RG-M2. `truncarPontos` inconsistente entre admin e participante
 **Arquivos:**
 - `public/js/ranking.js:31` → retorna `"105.45"` (ponto decimal)
-- `public/participante/modules/ranking/ranking.js:230` → retorna `"105,45"` (vírgula)
+- `public/participante/modules/ranking/ranking.js:230` → retorna `"105,45"` (vírgula brasileira)
+**Problema:** Despadronização visual entre as views.
 
-**Problema:** O admin usa ponto decimal, o participante usa vírgula. Não é necessariamente um bug (localização), mas é uma inconsistência visual entre as views.
-
-### M3. CSS duplicado e conflitante em 3 camadas
-
+#### RG-M3. CSS em 3 camadas conflitantes
 **Arquivos:**
-- `public/css/modules/ranking-geral.css` → estiliza via arquivo externo
-- `public/fronts/ranking-geral.html` → `<style>` inline no template
-- `public/js/ranking.js:807-1157` → `<style>` inline no JS gerado
+- `public/css/modules/ranking-geral.css` — arquivo externo
+- `public/fronts/ranking-geral.html` — `<style>` inline
+- `public/js/ranking.js:806-1157` — `<style>` gerado pelo JS
+**Problema:** JS sobrescreve innerHTML incluindo seu próprio `<style>`. Os outros 2 são efetivamente inúteis.
 
-**Problema:** 3 fontes de CSS para o mesmo módulo, com estilos conflitantes e `!important` em cascata. O CSS do arquivo externo estiliza `#ranking-geral`, o template HTML tem estilos para `.turno-tab`, e o JS gera seus próprios estilos completos.
-**Impacto:** Difícil manutenção; estilos se sobrepõem; o CSS do arquivo e do template são efetivamente inúteis já que o JS sobrescreve tudo.
-
-### M4. Estado global poluído no admin
-
+#### RG-M4. 3 variáveis globais redundantes
 **Arquivo:** `public/js/ranking.js:348-350`
 ```javascript
 window.rankingData = participantesFinais;
 window.rankingGeral = participantesFinais;
 window.ultimoRanking = participantesFinais;
 ```
-**Problema:** 3 variáveis globais com o mesmo dado. Não há evidência de que `ultimoRanking` ou `rankingGeral` sejam consumidas por outro módulo.
+**Problema:** Mesmo dado em 3 nomes. Sem evidência de consumo externo.
 
-### M5. `obterConfigLiga` definida mas nunca chamada
+#### RG-M5. `obterConfigLiga` definida mas nunca chamada
+**Arquivo:** `public/js/ranking.js:1316-1327` — código morto.
 
-**Arquivo:** `public/js/ranking.js:1316-1327`
-**Problema:** A função `obterConfigLiga(ligaId)` faz fetch para `/api/ligas/${ligaId}/configuracoes` mas nunca é chamada em nenhum lugar do código.
-**Impacto:** Código morto.
-
-### M6. Parciais só funcionam para turno "geral"
-
+#### RG-M6. Parciais só funcionam para turno "geral"
 **Arquivo:** `services/rankingTurnoService.js:72`
 ```javascript
 if (!snapshot && turno === "geral") {
 ```
-**Problema:** Se o turno for "1" ou "2" e não houver dados consolidados, o serviço retorna `null` sem tentar buscar parciais. A tela do participante e admin não terá nenhum dado para exibir no 1º ou 2º turno se a rodada estiver em andamento.
-**Impacto:** UX incompleta — parciais não aparecem nas views de turno específico.
+**Problema:** Turnos "1" e "2" sem dados retornam `null` — sem tentativa de parciais.
 
-### M7. View participante NÃO tem tabs de turno
+#### RG-M7. View participante SEM tabs de turno
+**Arquivo:** `public/participante/modules/ranking/ranking.js:34` → hardcoded `'geral'`.
+**Problema:** Participante não acessa visão de 1º/2º turno.
 
-**Arquivo:** `public/participante/fronts/ranking.html` e `public/participante/modules/ranking/ranking.js`
-**Problema:** O frontend participante sempre carrega `turno = 'geral'` (hardcoded na `initRanking`). Não há tabs para alternar entre 1º turno, 2º turno e geral como existe no admin.
-**Impacto:** Funcionalidade de turno inacessível para participantes.
-
-### M8. Ranking participante não exibe indicador de parciais (AO VIVO)
-
+#### RG-M8. View participante SEM indicador de parciais (AO VIVO)
 **Arquivo:** `public/participante/modules/ranking/ranking.js:79-85`
-**Problema:** O frontend participante ignora os campos `data.parcial` e `data.status === "parcial"`. Não há indicador visual de que os dados são parciais/ao vivo.
-**Impacto:** Participante pode pensar que o ranking mostrado é final quando na verdade é parcial.
+**Problema:** Ignora `data.parcial` e `data.status === "parcial"`. Participante pode interpretar dados parciais como finais.
 
-### M9. Botão "Reconsolidar" no template sem funcionalidade
-
-**Arquivo:** `public/fronts/ranking-geral.html:31-36`
-**Problema:** O botão `#btnConsolidar` existe no template HTML mas:
-1. Não tem onclick handler
-2. É destruído quando `ranking.js` sobrescreve o innerHTML
-3. Nenhum código associa um listener a ele
+#### RG-M9. Admin frontend re-ordena ranking localmente
+**Arquivo:** `public/js/ranking.js:340-341`
+```javascript
+ativos.sort((a, b) => b.pontos - a.pontos);
+```
+**Problema:** O backend já retorna o ranking ordenado com posições atribuídas. O frontend reordena e recalcula posições (index+1). Se o backend implementar desempate futuro, o frontend vai sobrescrever a ordem correta.
 
 ---
 
-## ACHADOS BAIXOS
+### BAIXOS
 
-### B1. Console.log excessivo em produção
-
-**Arquivos:** Todos os controllers, services e frontend JS
-**Problema:** Centenas de `console.log` com emojis (✅, ❌, 📊, etc.) em todo o módulo. Em produção, isto gera ruído desnecessário nos logs.
-
-### B2. `posicao_grupo` calculado mas nunca exibido
-
+#### RG-B1. `posicao_grupo` calculado no backend mas nunca exibido
 **Arquivo:** `services/rankingTurnoService.js:216-223`
-**Problema:** O campo `posicao_grupo` (posição dentro do grupo ativos/inativos) é calculado e salvo no banco, mas nenhum frontend o exibe.
 
-### B3. Campo `escudo` inconsistente entre sources
+#### RG-B2. Campo `escudo` salvo no banco mas ignorado pelo frontend
+Frontend usa `clube_id` → `/escudos/${clube_id}.png`. Campo `escudo` (URL do time Cartola) é armazenado mas nunca renderizado.
 
-**Problema:**
-- `Rodada.escudo` → URL do escudo do time Cartola
-- `parciaisRankingService.js:184` → usa `escalacao?.time?.url_escudo_png`
-- Frontend usa `/escudos/${clube_id}.png` → escudo do clube do coração
+#### RG-B3. `RankingTurno` model tem campos redundantes `ativo`/`inativo`
+**Arquivo:** `models/RankingTurno.js:54-55` — `inativo` é sempre `!ativo`.
 
-O campo `escudo` retornado pelo backend nunca é usado no frontend admin; o frontend sempre usa `clube_id` para montar o path do escudo.
-
-### B4. Tipo de `timeId` inconsistente
-
-**Problema:**
-- `RankingGeralCache.ranking.timeId` → `Number`
-- `RankingTurno.ranking.timeId` → `Number`
-- `Rodada.timeId` → `Number`
-- Frontend admin: `String(p.timeId) === String(timeId)` — converte para String para comparar
-
-A comparação sempre converte para String como defesa, mas indica que em algum ponto da cadeia o tipo pode ser inconsistente.
-
-### B5. Modelo `RankingTurno` tem campos redundantes `ativo` e `inativo`
-
-**Arquivo:** `models/RankingTurno.js:54-55`
-```javascript
-ativo: { type: Boolean, default: true },
-inativo: { type: Boolean, default: false },
-```
-**Problema:** `inativo` é sempre o oposto de `ativo`. Um dos campos é redundante.
-
-### B6. `calcularPontuacaoTime` não processa reserva de luxo
-
+#### RG-B4. `calcularPontuacaoTime` não processa reserva de luxo
 **Arquivo:** `services/parciaisRankingService.js:72-98`
-**Problema:** A função apenas verifica `capitao_id` para dobrar pontos, mas não trata a lógica do "reserva de luxo" (jogador que substitui titular que não entrou em campo). O cálculo parcial pode divergir do oficial da API Cartola.
+Apenas capitão é tratado. Substituição de titular ausente por reserva não é calculada. Parciais podem divergir do oficial.
 
-### B7. PDF export usa query selector para classe que não existe no mobile
+#### RG-B5. PDF export inclui espaço do botão share escondido
+**Arquivo:** `public/participante/modules/ranking/ranking.js:345-352`
+`visibility: hidden` oculta visualmente mas mantém espaço no PDF.
 
-**Arquivo:** `public/participante/modules/ranking/ranking.js:345`
+#### RG-B6. `obterParticipanteLogado` duplicada com lógica diferente entre admin e participante
+**Arquivos:**
+- `public/js/ranking.js:587-600` → busca em 4 fontes (window vars + sessionStorage + localStorage)
+- `public/participante/modules/ranking/ranking.js:211-224` → busca em `window.participanteAuth` primeiro, depois fallbacks
+**Problema:** Dois padrões diferentes para obter o mesmo dado.
+
+#### RG-B7. Console.log excessivo
+Todos os arquivos do módulo. Dezenas de logs com emojis em cada operação.
+
+---
+
+## 2.3 RESUMO RANKING GERAL (CLASSIFICAÇÃO)
+
+| Severidade | Qtd | IDs |
+|------------|-----|-----|
+| CRÍTICO | 4 | RG-C1 a RG-C4 |
+| ALTO | 4 | RG-A1 a RG-A4 |
+| MÉDIO | 9 | RG-M1 a RG-M9 |
+| BAIXO | 7 | RG-B1 a RG-B7 |
+| **TOTAL** | **24** | |
+
+---
+---
+
+# PARTE 3 — LIGAÇÃO ENTRE OS MÓDULOS
+
+## 3.1 Fluxo de Dados: Rodadas → Classificação
+
+```
+[API Cartola FC]
+    ↓ busca pontuações por rodada
+[Collection: Rodada]  ← dados individuais por time/rodada/temporada
+    ↓ fonte de verdade compartilhada
+    ├── [Módulo Rodadas] lê e exibe por rodada individual + calcula zona G/Z + valor BANCO
+    └── [Módulo Classificação] agrega (SUM) pontos de todas as rodadas → ranking acumulado
+```
+
+## 3.2 Achados na Ligação
+
+### LIG-1. CRÍTICO: Collection `Rodada` é a única ponte — sem contrato formal
+
+**Problema:** Ambos os módulos dependem da collection `Rodada` mas não há schema validation nem documentação formal do contrato de dados. Campos usados:
+- **Rodadas:** `ligaId`, `timeId`, `rodada`, `pontos`, `temporada`, `posicao`, `valorFinanceiro`, `nome_time`, `nome_cartola`, `clube_id`
+- **Classificação:** `ligaId`, `timeId`, `rodada`, `pontos`, `temporada`, `nome_time`, `nome_cartola`, `clube_id`, `escudo`
+
+Se o módulo Rodadas alterar o nome de um campo ou o formato de dados, o módulo Classificação quebrará silenciosamente.
+
+### LIG-2. ALTO: Módulo Classificação reordena dados que deveriam ser autoritativos
+
+**Problema:** O `rankingTurnoService.js` consolida dados da `Rodada`, calcula posições, e salva no `RankingTurno`. Mas o frontend admin (`ranking.js:340`) reordena os dados localmente. Se os dados de posição do backend divergirem da reordenação do frontend, o participante verá posição diferente do admin.
+
+### LIG-3. MÉDIO: Temporada não é passada na reconsolidação (Rodadas → Classificação)
+
+**Arquivo:** `controllers/rankingTurnoController.js:92`
 ```javascript
-const target = document.querySelector('.ranking-participante-pro');
+const resultados = await reconsolidarTodosOsTurnos(ligaId);
 ```
-**Problema:** Funciona porque o template tem essa classe, mas o PDF captura todo o container incluindo o header e botão share. O botão share é escondido via `visibility: hidden` mas ainda ocupa espaço no PDF.
+**Problema:** A rota de reconsolidação não passa a temporada para a função. A função usa `new Date().getFullYear()` internamente para `consolidarRankingTurno`, mas busca a última rodada sem filtro de temporada (RG-C1).
+
+### LIG-4. MÉDIO: Inativos determinados por fontes diferentes
+
+- **Módulo Rodadas** (`rodadasCacheController.js`) → usa `liga.participantes[].rodada_desistencia` para excluir de contagens
+- **Módulo Classificação** (`rankingTurnoService.js`) → usa `liga.participantes[].ativo` e `rodada_desistencia` para separar no ranking
+- **Frontend Admin Classificação** (`ranking.js`) → ignora os dados do backend e faz fetch extra de `/api/times/batch/status` (collection `times`)
+
+Três fontes diferentes para determinar quem é inativo: `Liga.participantes`, `times`, e dados inline do ranking. Podem divergir.
 
 ---
 
-## DEPENDÊNCIAS DO MÓDULO
+# RESUMO CONSOLIDADO
 
-### Backend
-| Arquivo | Depende de |
-|---------|-----------|
-| `rankingGeralCacheController.js` | `RankingGeralCache`, `Rodada`, `mongoose`, `smartDataFetcher` (morto), `CURRENT_SEASON` |
-| `rankingTurnoController.js` | `rankingTurnoService` |
-| `rankingTurnoService.js` | `RankingTurno`, `Rodada`, `Liga`, `mongoose`, `parciaisRankingService` |
-| `parciaisRankingService.js` | `axios`, `Liga`, `mongoose` (API Cartola externa) |
+| Módulo | Críticos | Altos | Médios | Baixos | Total |
+|--------|----------|-------|--------|--------|-------|
+| Ranking de Rodadas | 3 | 5 | 6 | 3 | **17** |
+| Ranking Geral (Classificação) | 4 | 4 | 9 | 7 | **24** |
+| Ligação entre módulos | 1 | 1 | 2 | 0 | **4** |
+| **TOTAL GERAL** | **8** | **10** | **17** | **10** | **45** |
 
-### Frontend Admin
-| Arquivo | Depende de |
-|---------|-----------|
-| `ranking.js` | `/api/ranking-turno/:ligaId`, `/api/times/batch/status`, `window.temporadaAtual`, `window.orquestrador`, Material Icons CDN |
+## PRIORIDADES DE CORREÇÃO
 
-### Frontend Participante
-| Arquivo | Depende de |
-|---------|-----------|
-| `participante-ranking.js` | `ranking.js` (dynamic import) |
-| `ranking.js` | `/api/ranking-turno/:ligaId`, `window.participanteAuth`, `window.temporadaAtual`, html2canvas CDN, jsPDF CDN |
+### P0 — Imediato (Segurança + Integridade)
+1. **RR-C1 + RG-C2:** Adicionar `verificarAdmin` em TODAS as rotas POST/DELETE de ambos os módulos
+2. **RR-C3:** Implementar desempate no ranking da rodada (afeta valores financeiros)
+3. **RG-C1 + LIG-3:** Corrigir `reconsolidarTodosOsTurnos` para filtrar por temporada
+4. **RG-C3:** Padronizar fallback de temporada para `CURRENT_SEASON`
 
-### Dependências Externas
-- **Google Fonts CDN** (Material Icons) — carregada programaticamente
-- **API Cartola** (`api.cartola.globo.com`) — para parciais em tempo real
-- **html2canvas CDN** / **jsPDF CDN** — para export PDF (participante)
+### P1 — Curto prazo (Funcionalidade Quebrada)
+5. **RR-C2:** Implementar `abrirModalRecalcMini()` ou corrigir o onclick do botão
+6. **RG-C4:** Remover `getRankingRodada` e import de `smartDataFetcher`
+7. **RG-A2:** Unificar template HTML com JS — eliminar template morto
 
----
-
-## MAPA DE ARQUIVOS AUDITADOS
-
-```
-controllers/
-├── rankingGeralCacheController.js    ← Ranking acumulado + getRankingRodada (MORTO)
-└── rankingTurnoController.js         ← Ranking por turno (1/2/geral)
-
-services/
-├── rankingTurnoService.js            ← Lógica de consolidação + parciais
-└── parciaisRankingService.js         ← API Cartola para dados ao vivo
-
-models/
-├── RankingGeralCache.js              ← Cache do ranking acumulado
-├── RankingTurno.js                   ← Snapshots de ranking por turno
-└── Rodada.js                         ← Dados fonte (pontos por rodada)
-
-routes/
-├── ranking-geral-cache-routes.js     ← GET/DELETE /api/ranking-cache/:ligaId
-└── ranking-turno-routes.js           ← GET/POST/DELETE /api/ranking-turno/:ligaId
-
-public/js/
-└── ranking.js                        ← Frontend admin (v2.6)
-
-public/fronts/
-└── ranking-geral.html                ← Template admin (parcialmente morto)
-
-public/css/modules/
-└── ranking-geral.css                 ← CSS admin (parcialmente sobrescrito)
-
-public/participante/modules/ranking/
-└── ranking.js                        ← Frontend participante (v4.0)
-
-public/participante/js/modules/
-└── participante-ranking.js           ← Inicializador participante
-
-public/participante/fronts/
-└── ranking.html                      ← Template participante mobile
-
-config/definitions/
-├── ranking_geral_def.json            ← Definição do módulo (NÃO consumida)
-└── ranking_rodada_def.json           ← Definição do módulo (NÃO consumida)
-
-config/rules/
-├── ranking_geral.json                ← Regras (parcialmente consumidas)
-└── ranking_rodada.json               ← Regras financeiras (consumidas pelo BANCO)
-```
-
----
-
-## RECOMENDAÇÕES PRIORITÁRIAS
-
-1. **Segurança (C2):** Adicionar `verificarAdmin` nas rotas de escrita (POST consolidar, DELETE cache)
-2. **Dados (C4):** Corrigir `reconsolidarTodosOsTurnos` para filtrar por temporada
-3. **Cleanup (C1):** Remover `getRankingRodada` e import morto de `smartDataFetcher`
-4. **Padronização (C3):** Unificar fallback de temporada para `CURRENT_SEASON` em ambos controllers
-5. **Frontend (A7/M3):** Unificar CSS em um único local; remover template HTML que é sobrescrito
-6. **Dados (M1):** Usar dados de inatividade que já vêm do backend em vez de fetch extra
-7. **UX (M7/M8):** Adicionar tabs de turno e indicador de parciais no frontend participante
+### P2 — Médio prazo (Qualidade + UX)
+8. **RG-M1:** Usar dados de inatividade do backend em vez de fetch extra
+9. **RG-M7 + RG-M8:** Tabs de turno + indicador AO VIVO no participante
+10. **LIG-4:** Unificar fonte de verdade para status de inativos
+11. **RR-A3:** Extrair `getConfigRankingRodada` para um service compartilhado
