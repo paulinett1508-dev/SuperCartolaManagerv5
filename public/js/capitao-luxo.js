@@ -300,7 +300,8 @@ const CapitaoLuxo = {
                     <td class="col-pos">${posicaoIcon}</td>
                     <td class="col-escudo">
                         <img src="${escudoSrc}" class="escudo-mini" alt=""
-                             onerror="this.src='/escudos/default.png'">
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline'">
+                        <span class="material-icons" style="display: none; font-size: 20px; color: #666;">emoji_events</span>
                     </td>
                     <td class="col-nome">
                         <span class="nome-cartola">${participante.nome_cartola || "---"}</span>

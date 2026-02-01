@@ -1,0 +1,23 @@
+<!-- =============================================
+     ARTILHEIRO CAMPEÃO - Admin View v5.0
+     Container mínimo - Layout renderizado via JS
+     CSS: /css/modules/artilheiro-campeao.css
+     JS: /js/artilheiro-campeao.js
+     ============================================= -->
+
+<div id="artilheiro-campeao-content">
+    <div id="artilheiro-loading" class="artilheiro-loading">
+        <div class="spinner"></div>
+        <p>Carregando Artilheiro Campeão...</p>
+    </div>
+</div>
+
+<!-- Auto-inicialização via orquestrador -->
+<script>
+    // Expor função de inicialização para o orquestrador
+    if (typeof window.inicializarArtilheiroCampeao === 'function') {
+        window.inicializarArtilheiroCampeao();
+    } else {
+        console.warn('⚠️ [ARTILHEIRO] Função de inicialização não encontrada. Aguardando carregamento do módulo...');
+    }
+</script>

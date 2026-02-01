@@ -236,7 +236,8 @@ function renderizarRanking(ranking) {
             <div class="${cardClasses}">
                 <div class="capitao-posicao">${posicaoIcon}</div>
                 <img src="${escudoSrc}" class="capitao-escudo" alt=""
-                     onerror="this.src='/escudos/default.png'">
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline'">
+                <span class="material-icons" style="display: none; font-size: 32px; color: #666;">emoji_events</span>
                 <div class="capitao-info">
                     <div class="capitao-nome">${participante.nome_cartola || '---'}</div>
                     <div class="capitao-time-nome">${participante.nome_time || ''}</div>
