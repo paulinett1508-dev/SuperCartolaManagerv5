@@ -9,6 +9,7 @@
 import Rodada from "../models/Rodada.js";
 import Time from "../models/Time.js";
 import Liga from "../models/Liga.js";
+import CartolaOficialDump from "../models/CartolaOficialDump.js";
 import mongoose from "mongoose";
 import { isSeasonFinished, logBlockedOperation, SEASON_CONFIG } from "../utils/seasonGuard.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
@@ -302,6 +303,26 @@ async function processarRodada(
 
       if (response.ok) {
         const dados = await response.json();
+
+        // ✅ v3.2: Salvar JSON completo no Data Lake (CartolaOficialDump)
+        try {
+          await CartolaOficialDump.salvarDump({
+            time_id: time.timeId,
+            temporada: CURRENT_SEASON,
+            rodada,
+            tipo_coleta: 'time_rodada',
+            raw_json: dados,
+            meta: {
+              url_origem: url,
+              http_status: response.status,
+              origem_trigger: 'processamento_rodada',
+              liga_id: ligaIdObj,
+            },
+          });
+        } catch (dumpErr) {
+          // Não bloquear o fluxo principal se o dump falhar
+          console.warn(`[PROCESSAR-RODADA] Erro ao salvar dump time ${time.timeId} rodada ${rodada}:`, dumpErr.message);
+        }
 
         // ✅ v2.4: clube_id da API OU do mapa de rodadas anteriores
         const clubeIdApi = dados.time?.time_id_do_coracao || null;

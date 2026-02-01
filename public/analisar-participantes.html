@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Analisar Participantes - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+        <!-- Design Tokens (SEMPRE PRIMEIRO) -->
+        <link rel="stylesheet" href="css/_admin-tokens.css" />
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <style>
+            /* ============================================================
+               ANALISAR PARTICIPANTES - v1.0
+               ============================================================ */
+
+            .analisar-page {
+                background: #121212;
+                min-height: 100vh;
+            }
+
+            .analisar-content {
+                padding: 20px 16px;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            /* Header */
+            .analisar-header {
+                background: #1a1a1a;
+                border-radius: 10px;
+                padding: 16px 18px;
+                margin-bottom: 16px;
+                border: 1px solid #2d2d2d;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .analisar-header-info h1 {
+                font-family: 'Russo One', sans-serif;
+                font-size: 1.2rem;
+                font-weight: 400;
+                color: #ffffff;
+                margin: 0 0 4px 0;
+            }
+
+            .analisar-header-info p {
+                font-size: 0.75rem;
+                color: #9ca3af;
+                margin: 0;
+            }
+
+            .btn-voltar {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 8px 14px;
+                background: #252525;
+                color: #9ca3af;
+                border: 1px solid #2d2d2d;
+                border-radius: 6px;
+                font-size: 0.75rem;
+                font-weight: 500;
+                text-decoration: none;
+                transition: all 0.2s ease;
+            }
+
+            .btn-voltar:hover {
+                background: #2d2d2d;
+                color: #FF5500;
+                border-color: #FF5500;
+            }
+
+            .btn-voltar .material-icons {
+                font-size: 16px;
+            }
+
+            /* Stats Cards */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+                margin-bottom: 16px;
+            }
+
+            .stat-card {
+                background: #1a1a1a;
+                border: 1px solid #2d2d2d;
+                border-radius: 10px;
+                padding: 14px;
+                text-align: center;
+                transition: border-color 0.2s;
+            }
+
+            .stat-card:hover {
+                border-color: #3d3d3d;
+            }
+
+            .stat-card .stat-icon {
+                font-size: 20px;
+                margin-bottom: 6px;
+                color: #9ca3af;
+            }
+
+            .stat-card .stat-value {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: #fff;
+                line-height: 1.2;
+            }
+
+            .stat-card .stat-label {
+                font-size: 0.7rem;
+                color: #6b7280;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-top: 2px;
+            }
+
+            .stat-card.alerta .stat-value { color: #f59e0b; }
+            .stat-card.perigo .stat-value { color: #ef4444; }
+            .stat-card.sucesso .stat-value { color: #22c55e; }
+            .stat-card.info .stat-value { color: #3b82f6; }
+
+            /* Filtros */
+            .filtros-bar {
+                background: #1a1a1a;
+                border: 1px solid #2d2d2d;
+                border-radius: 10px;
+                padding: 12px 14px;
+                margin-bottom: 16px;
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+
+            .filtro-grupo {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .filtro-grupo label {
+                font-size: 0.7rem;
+                color: #6b7280;
+                text-transform: uppercase;
+                font-weight: 600;
+                letter-spacing: 0.3px;
+                white-space: nowrap;
+            }
+
+            .filtro-select, .filtro-input {
+                background: #252525;
+                border: 1px solid #374151;
+                border-radius: 6px;
+                color: #fff;
+                font-size: 0.8rem;
+                padding: 6px 10px;
+                outline: none;
+                transition: border-color 0.2s;
+            }
+
+            .filtro-select:focus, .filtro-input:focus {
+                border-color: #FF5500;
+            }
+
+            .filtro-input {
+                min-width: 180px;
+            }
+
+            .filtro-separator {
+                width: 1px;
+                height: 24px;
+                background: #374151;
+            }
+
+            .btn-filtro-acao {
+                padding: 6px 12px;
+                background: #FF5500;
+                color: #fff;
+                border: none;
+                border-radius: 6px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                transition: background 0.2s;
+            }
+
+            .btn-filtro-acao:hover {
+                background: #e64d00;
+            }
+
+            .btn-filtro-acao .material-icons {
+                font-size: 14px;
+            }
+
+            .btn-filtro-secundario {
+                padding: 6px 12px;
+                background: #252525;
+                color: #9ca3af;
+                border: 1px solid #374151;
+                border-radius: 6px;
+                font-size: 0.75rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                transition: all 0.2s;
+            }
+
+            .btn-filtro-secundario:hover {
+                background: #2d2d2d;
+                color: #fff;
+                border-color: #FF5500;
+            }
+
+            .btn-filtro-secundario .material-icons {
+                font-size: 14px;
+            }
+
+            /* Tabela de Participantes */
+            .tabela-container {
+                background: #1a1a1a;
+                border: 1px solid #2d2d2d;
+                border-radius: 10px;
+                overflow: hidden;
+            }
+
+            .tabela-header {
+                padding: 12px 14px;
+                border-bottom: 1px solid #2d2d2d;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .tabela-header h3 {
+                font-family: 'Russo One', sans-serif;
+                font-size: 0.9rem;
+                color: #fff;
+                margin: 0;
+                font-weight: 400;
+            }
+
+            .tabela-count {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.75rem;
+                color: #FF5500;
+                background: rgba(255, 85, 0, 0.1);
+                padding: 2px 8px;
+                border-radius: 10px;
+            }
+
+            .tabela-scroll {
+                overflow-x: auto;
+                max-height: 65vh;
+                overflow-y: auto;
+            }
+
+            table.participantes-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.8rem;
+            }
+
+            .participantes-table thead {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .participantes-table th {
+                background: #252525;
+                color: #9ca3af;
+                font-weight: 600;
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                padding: 8px 10px;
+                text-align: left;
+                white-space: nowrap;
+                border-bottom: 1px solid #374151;
+            }
+
+            .participantes-table td {
+                padding: 8px 10px;
+                color: #d1d5db;
+                border-bottom: 1px solid #1f1f1f;
+                vertical-align: middle;
+            }
+
+            .participantes-table tbody tr:hover {
+                background: rgba(255, 85, 0, 0.04);
+            }
+
+            /* Célula com info do participante */
+            .participante-info {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .participante-escudo {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                background: #252525;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                overflow: hidden;
+            }
+
+            .participante-escudo img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .participante-escudo .material-icons {
+                font-size: 16px;
+                color: #6b7280;
+            }
+
+            .participante-nomes {
+                min-width: 0;
+            }
+
+            .participante-nomes .nome-cartola {
+                font-weight: 600;
+                color: #fff;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 180px;
+            }
+
+            .participante-nomes .nome-time {
+                font-size: 0.7rem;
+                color: #6b7280;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 180px;
+            }
+
+            /* Badges */
+            .badge-status {
+                font-size: 0.65rem;
+                padding: 2px 8px;
+                border-radius: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            .badge-ativo { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+            .badge-inativo { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+            .badge-com-senha { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+            .badge-sem-senha { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+            .badge-incompleto { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+            /* Time ID mono */
+            .time-id-mono {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.75rem;
+                color: #9ca3af;
+            }
+
+            /* Ações inline */
+            .acoes-cell {
+                display: flex;
+                gap: 4px;
+            }
+
+            .btn-acao-inline {
+                padding: 4px 6px;
+                background: #252525;
+                border: 1px solid #374151;
+                border-radius: 4px;
+                color: #9ca3af;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                transition: all 0.15s;
+            }
+
+            .btn-acao-inline:hover {
+                background: #2d2d2d;
+                color: #FF5500;
+                border-color: #FF5500;
+            }
+
+            .btn-acao-inline .material-icons {
+                font-size: 16px;
+            }
+
+            /* Liga badge */
+            .liga-badge {
+                font-size: 0.65rem;
+                background: #252525;
+                color: #9ca3af;
+                padding: 2px 6px;
+                border-radius: 4px;
+                white-space: nowrap;
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: inline-block;
+            }
+
+            /* Modal de Senha */
+            .modal-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 9999;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+            .modal-content {
+                background: #1f2937;
+                border-radius: 12px;
+                padding: 24px;
+                max-width: 420px;
+                width: 90%;
+                border: 1px solid #374151;
+            }
+
+            .modal-title {
+                font-family: 'Russo One', sans-serif;
+                font-size: 1rem;
+                color: #fff;
+                margin: 0 0 16px 0;
+                font-weight: 400;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .modal-title .material-icons {
+                color: #FF5500;
+            }
+
+            .modal-field {
+                margin-bottom: 12px;
+            }
+
+            .modal-field label {
+                display: block;
+                font-size: 0.75rem;
+                color: #9ca3af;
+                margin-bottom: 4px;
+                font-weight: 600;
+            }
+
+            .modal-field input {
+                width: 100%;
+                padding: 8px 12px;
+                background: #111827;
+                border: 1px solid #374151;
+                border-radius: 6px;
+                color: #fff;
+                font-size: 0.85rem;
+                box-sizing: border-box;
+            }
+
+            .modal-field input:focus {
+                border-color: #FF5500;
+                outline: none;
+            }
+
+            .modal-actions {
+                display: flex;
+                gap: 10px;
+                margin-top: 16px;
+            }
+
+            .modal-btn-primary {
+                flex: 1;
+                padding: 10px;
+                background: #FF5500;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                font-size: 0.85rem;
+            }
+
+            .modal-btn-primary:hover { background: #e64d00; }
+
+            .modal-btn-secondary {
+                padding: 10px 16px;
+                background: #374151;
+                color: #d1d5db;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 0.85rem;
+            }
+
+            .modal-btn-secondary:hover { background: #4b5563; }
+
+            /* Loading */
+            .loading-state {
+                text-align: center;
+                padding: 40px;
+                color: #6b7280;
+            }
+
+            .loading-spinner {
+                width: 28px;
+                height: 28px;
+                border: 3px solid #2d2d2d;
+                border-top-color: #FF5500;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+                margin: 0 auto 12px;
+            }
+
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+
+            /* Empty state */
+            .empty-state {
+                text-align: center;
+                padding: 40px;
+                color: #6b7280;
+            }
+
+            .empty-state .material-icons {
+                font-size: 48px;
+                margin-bottom: 8px;
+                color: #374151;
+            }
+
+            /* Resumo por liga (cards colapsáveis) */
+            .ligas-resumo {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                gap: 10px;
+                margin-bottom: 16px;
+            }
+
+            .liga-resumo-card {
+                background: #1a1a1a;
+                border: 1px solid #2d2d2d;
+                border-radius: 8px;
+                padding: 12px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .liga-resumo-card:hover {
+                border-color: #FF5500;
+            }
+
+            .liga-resumo-card.selected {
+                border-color: #FF5500;
+                background: rgba(255, 85, 0, 0.05);
+            }
+
+            .liga-resumo-nome {
+                font-weight: 600;
+                color: #fff;
+                font-size: 0.85rem;
+                margin-bottom: 6px;
+            }
+
+            .liga-resumo-stats {
+                display: flex;
+                gap: 12px;
+                font-size: 0.7rem;
+                color: #6b7280;
+            }
+
+            .liga-resumo-stats span {
+                display: flex;
+                align-items: center;
+                gap: 3px;
+            }
+
+            .liga-resumo-stats .material-icons {
+                font-size: 13px;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .stats-grid {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+
+                .filtros-bar {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .filtro-separator {
+                    display: none;
+                }
+
+                .filtro-input {
+                    min-width: auto;
+                    width: 100%;
+                }
+
+                .participante-nomes .nome-cartola,
+                .participante-nomes .nome-time {
+                    max-width: 120px;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="app-container">
+            <div id="sidebar-placeholder"></div>
+
+            <main class="app-main analisar-page">
+                <div class="analisar-content">
+                    <!-- Header -->
+                    <header class="analisar-header">
+                        <div class="analisar-header-info">
+                            <h1>Analisar Participantes</h1>
+                            <p>Gestao unificada: senhas, status, diagnostico e dados dos participantes</p>
+                        </div>
+                        <a href="ferramentas.html" class="btn-voltar">
+                            <span class="material-icons">arrow_back</span>
+                            Voltar
+                        </a>
+                    </header>
+
+                    <!-- Stats Dashboard -->
+                    <div class="stats-grid" id="statsGrid">
+                        <div class="stat-card">
+                            <div class="stat-icon"><span class="material-icons">people</span></div>
+                            <div class="stat-value" id="statTotal">-</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-card sucesso">
+                            <div class="stat-icon"><span class="material-icons">check_circle</span></div>
+                            <div class="stat-value" id="statAtivos">-</div>
+                            <div class="stat-label">Ativos</div>
+                        </div>
+                        <div class="stat-card perigo">
+                            <div class="stat-icon"><span class="material-icons">cancel</span></div>
+                            <div class="stat-value" id="statInativos">-</div>
+                            <div class="stat-label">Inativos</div>
+                        </div>
+                        <div class="stat-card info">
+                            <div class="stat-icon"><span class="material-icons">lock</span></div>
+                            <div class="stat-value" id="statComSenha">-</div>
+                            <div class="stat-label">Com Senha</div>
+                        </div>
+                        <div class="stat-card alerta">
+                            <div class="stat-icon"><span class="material-icons">lock_open</span></div>
+                            <div class="stat-value" id="statSemSenha">-</div>
+                            <div class="stat-label">Sem Senha</div>
+                        </div>
+                        <div class="stat-card perigo">
+                            <div class="stat-icon"><span class="material-icons">warning</span></div>
+                            <div class="stat-value" id="statIncompletos">-</div>
+                            <div class="stat-label">Incompletos</div>
+                        </div>
+                    </div>
+
+                    <!-- Resumo por Liga -->
+                    <div class="ligas-resumo" id="ligasResumo"></div>
+
+                    <!-- Filtros -->
+                    <div class="filtros-bar">
+                        <div class="filtro-grupo">
+                            <label>Liga</label>
+                            <select class="filtro-select" id="filtroLiga">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+
+                        <div class="filtro-grupo">
+                            <label>Status</label>
+                            <select class="filtro-select" id="filtroStatus">
+                                <option value="">Todos</option>
+                                <option value="ativo">Ativos</option>
+                                <option value="inativo">Inativos</option>
+                            </select>
+                        </div>
+
+                        <div class="filtro-grupo">
+                            <label>Senha</label>
+                            <select class="filtro-select" id="filtroSenha">
+                                <option value="">Todos</option>
+                                <option value="com">Com Senha</option>
+                                <option value="sem">Sem Senha</option>
+                            </select>
+                        </div>
+
+                        <div class="filtro-separator"></div>
+
+                        <div class="filtro-grupo" style="flex: 1;">
+                            <span class="material-icons" style="color: #6b7280; font-size: 18px;">search</span>
+                            <input type="text" class="filtro-input" id="filtroBusca" placeholder="Buscar por nome, time ou ID..." style="flex: 1;" />
+                        </div>
+
+                        <div class="filtro-separator"></div>
+
+                        <button class="btn-filtro-secundario" id="btnExportarCSV" title="Exportar lista">
+                            <span class="material-icons">download</span>
+                            CSV
+                        </button>
+
+                        <button class="btn-filtro-acao" id="btnSenhaLote" title="Definir senhas em lote">
+                            <span class="material-icons">vpn_key</span>
+                            Senhas em Lote
+                        </button>
+                    </div>
+
+                    <!-- Tabela -->
+                    <div class="tabela-container">
+                        <div class="tabela-header">
+                            <h3>Participantes</h3>
+                            <span class="tabela-count" id="tabelaCount">0</span>
+                        </div>
+                        <div class="tabela-scroll">
+                            <table class="participantes-table">
+                                <thead>
+                                    <tr>
+                                        <th>Participante</th>
+                                        <th>ID</th>
+                                        <th>Liga</th>
+                                        <th>Status</th>
+                                        <th>Senha</th>
+                                        <th>Dados</th>
+                                        <th>Acoes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaBody">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="loading-state">
+                                                <div class="loading-spinner"></div>
+                                                <div>Carregando participantes...</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Modal Editar Senha -->
+        <div class="modal-overlay" id="modalSenha">
+            <div class="modal-content">
+                <h3 class="modal-title">
+                    <span class="material-icons">vpn_key</span>
+                    Definir Senha
+                </h3>
+                <div id="modalSenhaInfo" style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 12px;"></div>
+                <div class="modal-field">
+                    <label>Nova Senha</label>
+                    <input type="text" id="modalSenhaInput" placeholder="Min. 3 caracteres" autocomplete="off" />
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn-primary" id="modalSenhaSalvar">Salvar</button>
+                    <button class="modal-btn-secondary" id="modalSenhaFechar">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Senha em Lote -->
+        <div class="modal-overlay" id="modalSenhaLote">
+            <div class="modal-content">
+                <h3 class="modal-title">
+                    <span class="material-icons">vpn_key</span>
+                    Senhas em Lote
+                </h3>
+                <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 12px;">
+                    Aplica uma senha padrao para todos os participantes <strong>sem senha definida</strong> no filtro atual.
+                </p>
+                <div class="modal-field">
+                    <label>Senha Padrao</label>
+                    <input type="text" id="modalLoteSenhaInput" placeholder="Ex: cartola2026" autocomplete="off" />
+                </div>
+                <div id="modalLotePreview" style="font-size: 0.75rem; color: #6b7280; margin-bottom: 8px;"></div>
+                <div class="modal-actions">
+                    <button class="modal-btn-primary" id="modalLoteSalvar">Aplicar</button>
+                    <button class="modal-btn-secondary" id="modalLoteFechar">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scripts -->
+        <script type="module">
+            // Layout loader (padrão do projeto)
+            async function loadLayout() {
+                try {
+                    const response = await fetch("layout.html");
+                    const layoutHtml = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, "text/html");
+
+                    const sidebar = doc.querySelector(".app-sidebar");
+                    if (sidebar) {
+                        document.getElementById("sidebar-placeholder")?.replaceWith(sidebar);
+                    }
+
+                    const scripts = doc.querySelectorAll("script");
+                    scripts.forEach((script) => {
+                        if (script.textContent.trim()) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
+                        }
+                    });
+
+                    setTimeout(() => {
+                        if (window.AccordionManager && !window.AccordionManager._initialized) {
+                            window.AccordionManager.init();
+                        }
+                        if (typeof window.verificarMenuSuperAdmin === 'function') {
+                            window.verificarMenuSuperAdmin();
+                        }
+                    }, 150);
+                } catch (error) {
+                    console.error("Erro ao carregar layout:", error);
+                }
+            }
+
+            loadLayout();
+        </script>
+
+        <script src="js/analisar-participantes.js"></script>
+    </body>
+</html>
