@@ -1001,7 +1001,9 @@ body.sidebar-collapsed .sidebar-toggle-btn {
 .app-sidebar.sidebar-collapsed .sidebar-liga-name,
 .app-sidebar.sidebar-collapsed .sidebar-liga-count,
 .app-sidebar.sidebar-collapsed .sidebar-user-info,
-.app-sidebar.sidebar-collapsed .sidebar-user-menu {
+.app-sidebar.sidebar-collapsed .sidebar-user-menu,
+.app-sidebar.sidebar-collapsed .sidebar-accordion-content,
+.app-sidebar.sidebar-collapsed .sidebar-section-bottom span:not(.material-icons) {
     display: none !important;
 }
 
@@ -1033,9 +1035,46 @@ body.sidebar-collapsed .sidebar-toggle-btn {
     padding: 12px;
 }
 
+/* Seção inferior colapsada */
+.app-sidebar.sidebar-collapsed .sidebar-section-bottom .sidebar-menu-item {
+    justify-content: center;
+    padding: 10px;
+    margin: 0 8px;
+    border: none;
+    background: transparent !important;
+}
+
 /* Ajustar main content quando sidebar está colapsado */
 body.sidebar-collapsed .app-main {
     margin-left: 80px;
+}
+
+/* Tooltips no sidebar colapsado */
+.app-sidebar.sidebar-collapsed .sidebar-accordion-header,
+.app-sidebar.sidebar-collapsed .sidebar-menu-item,
+.app-sidebar.sidebar-collapsed .sidebar-section-bottom .sidebar-app-link {
+    position: relative;
+}
+
+.app-sidebar.sidebar-collapsed .sidebar-accordion-header:hover::after,
+.app-sidebar.sidebar-collapsed .sidebar-menu-item:hover::after,
+.app-sidebar.sidebar-collapsed .sidebar-section-bottom .sidebar-app-link:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #1a1a1a;
+    color: #e5e7eb;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 1100;
+    border: 1px solid #333;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
 }
 
 /* Esconder toggle em mobile */
@@ -2268,6 +2307,12 @@ body.sidebar-collapsed .main-content {
     margin-left: 8px;
 }
 
+/* === SEÇÃO INFERIOR DO SIDEBAR (App Participante) === */
+.sidebar-section-bottom {
+    padding: 8px 12px;
+    border-top: 1px solid #1f1f1f;
+}
+
 /* === LINK DIRETO DO APP PARTICIPANTE === */
 .sidebar-app-link {
     background: linear-gradient(135deg, rgba(255, 85, 0, 0.1), rgba(255, 85, 0, 0.05)) !important;
@@ -2279,6 +2324,24 @@ body.sidebar-collapsed .main-content {
 .sidebar-app-link:hover {
     background: linear-gradient(135deg, rgba(255, 85, 0, 0.2), rgba(255, 85, 0, 0.1)) !important;
     border-color: rgba(255, 85, 0, 0.4);
+}
+
+/* === DIVISOR DENTRO DO SUBMENU (separa ações de ligas dinâmicas) === */
+.sidebar-submenu-divider {
+    height: 1px;
+    background: #1f1f1f;
+    margin: 6px 28px;
+}
+
+/* === SEÇÃO ADMIN (visual diferenciado) === */
+.sidebar-admin-section {
+    border-top: 1px solid rgba(255, 85, 0, 0.15);
+    margin-top: 4px;
+    padding-top: 4px;
+}
+
+.sidebar-admin-section .sidebar-accordion-title .material-icons {
+    color: #FF5500 !important;
 }
 
 /* ========================================
