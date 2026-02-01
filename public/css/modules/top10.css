@@ -33,10 +33,10 @@
 }
 
 .top10-titulo {
-  font: 800 28px "Inter", -apple-system, sans-serif;
+  font: 400 28px var(--font-family-brand, 'Russo One', sans-serif);
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.5px;
+  letter-spacing: 0.5px;
 }
 
 .top10-subtitulo {
@@ -88,10 +88,11 @@
 }
 
 .section-header h3 {
-  font: 700 16px "Inter", -apple-system, sans-serif;
+  font: 400 16px var(--font-family-brand, 'Russo One', sans-serif);
   color: var(--text-primary);
   margin: 0;
   flex-grow: 1;
+  letter-spacing: 0.5px;
 }
 
 .export-inline {
@@ -127,6 +128,14 @@
 
 .tabela-top10 thead {
   background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+}
+
+.tabela-top10 thead.thead-mitos {
+  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-light, #16a34a) 100%);
+}
+
+.tabela-top10 thead.thead-micos {
+  background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-dark) 100%);
 }
 
 .tabela-top10 thead th {
@@ -168,13 +177,13 @@
 }
 
 .tabela-top10 tbody tr:nth-child(2) {
-  background: rgba(192, 192, 192, 0.05);
-  border-left: 4px solid #c0c0c0;
+  background: var(--color-silver-muted);
+  border-left: 4px solid var(--color-silver);
 }
 
 .tabela-top10 tbody tr:nth-child(3) {
-  background: rgba(205, 127, 50, 0.05);
-  border-left: 4px solid #cd7f32;
+  background: var(--color-bronze-muted);
+  border-left: 4px solid var(--color-bronze);
 }
 
 /* === ESCUDOS E INFORMAÇÕES === */
@@ -230,6 +239,10 @@
 
 /* === RESPONSIVIDADE === */
 @media (max-width: 768px) {
+  .top10-grid-compacto {
+    grid-template-columns: 1fr;
+  }
+
   .top10-titulo {
     font-size: 22px;
   }

@@ -465,13 +465,13 @@ function gerarLinhaTabela(
     // Badge da posição
     let posicaoBadge = "";
     if (isInativo) {
-        posicaoBadge = `<span class="posicao-badge-top10 default" style="color: #6b7280;">—</span>`;
+        posicaoBadge = `<span class="posicao-badge-top10 default" style="color: var(--app-text-dim);">—</span>`;
     } else if (posicao === 1 && isMitos) {
         posicaoBadge = `<span class="posicao-badge-top10 gold"><span class="material-symbols-outlined">trophy</span></span>`;
     } else if (posicao === 1 && !isMitos) {
         posicaoBadge = `<span class="posicao-badge-top10 skull"><span class="material-symbols-outlined">skull</span></span>`;
     } else if (posicao <= 3 && isTop10) {
-        const medalColor = posicao === 2 ? "#C0C0C0" : "#CD7F32";
+        const medalColor = posicao === 2 ? "var(--app-silver)" : "var(--app-bronze)";
         posicaoBadge = `<span class="posicao-badge-top10 medal" style="color: ${medalColor};">${posicao}º</span>`;
     } else {
         posicaoBadge = `<span class="posicao-badge-top10 default">${posicao}º</span>`;
@@ -712,5 +712,5 @@ function mostrarEstadoVazio(show) {
 
 if (window.Log)
     Log.info(
-        "[PARTICIPANTE-TOP10] Módulo v5.1 carregado (detecção dinâmica de temporada)",
+        "[PARTICIPANTE-TOP10] Módulo v5.2 carregado (detecção dinâmica de temporada)",
     );
