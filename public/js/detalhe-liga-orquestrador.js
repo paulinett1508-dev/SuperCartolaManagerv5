@@ -384,31 +384,27 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "capitao-luxo": {
-                    // ✅ LAZY LOADING - Só carrega quando clica
+                    // ✅ v2.0: JS admin dedicado (capitao-luxo.js)
                     console.log('[ORQUESTRADOR] Iniciando capitao-luxo...');
                     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
                     try {
                         if (!this.modules.capitaoLuxo) {
-                            console.log('[ORQUESTRADOR] Importando módulo capitao-luxo...');
+                            console.log('[ORQUESTRADOR] Importando módulo capitao-luxo admin...');
                             await carregarModuloCapitaoLuxo();
                             console.log('[ORQUESTRADOR] Módulo capitao-luxo importado');
                         }
-                        const capUrlParams = new URLSearchParams(window.location.search);
-                        const capLigaId = this.ligaId || capUrlParams.get('id') || window.ligaIdCache;
-                        console.log('[ORQUESTRADOR] capitao-luxo ligaId:', capLigaId);
 
-                        if (typeof window.inicializarCapitaoParticipante === "function") {
-                            await window.inicializarCapitaoParticipante({
-                                ligaId: capLigaId,
-                                timeId: null
-                            });
-                            console.log('[ORQUESTRADOR] capitao-luxo inicializado');
+                        if (typeof window.inicializarCapitaoLuxoAdmin === "function") {
+                            await window.inicializarCapitaoLuxoAdmin();
+                            console.log('[ORQUESTRADOR] capitao-luxo admin inicializado');
+                        } else if (window.CapitaoLuxo?.inicializar) {
+                            await window.CapitaoLuxo.inicializar();
                         } else {
-                            console.warn('[ORQUESTRADOR] window.inicializarCapitaoParticipante não encontrada');
+                            console.warn('[ORQUESTRADOR] window.inicializarCapitaoLuxoAdmin não encontrada');
                         }
                     } catch (error) {
                         console.error("[ORQUESTRADOR] Erro capitao-luxo:", error);
-                        const capContainer = document.getElementById("capitaoRankingContainer");
+                        const capContainer = document.getElementById("capitao-luxo-content");
                         if (capContainer) {
                             capContainer.innerHTML = `
                                 <div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.6);">
@@ -449,7 +445,7 @@ class DetalheLigaOrquestrador {
             "fluxo-financeiro": `<div id="fluxo-financeiro-content"><div class="loading-state">Carregando fluxo financeiro...</div></div>`,
             participantes: `<div id="participantes-content"><div class="loading-state">Carregando participantes...</div></div>`,
             parciais: `<div id="parciais-content"><div class="loading-state">Carregando parciais...</div></div>`,
-            "capitao-luxo": `<div class="capitao-container"><div id="capitaoRankingContainer"><div class="loading-state">Carregando Capitão de Luxo...</div></div></div>`,
+            "capitao-luxo": `<div id="capitao-luxo-content"><div class="capitao-luxo-loading"><div class="spinner"></div><p>Carregando Capitão de Luxo...</p></div></div>`,
         };
 
         return (
@@ -1100,7 +1096,7 @@ async function carregarModuloLuvaDeOuro() {
 async function carregarModuloCapitaoLuxo() {
     if (!window.orquestrador.modules.capitaoLuxo) {
         window.orquestrador.modules.capitaoLuxo = await import(
-            "/participante/js/modules/participante-capitao.js"
+            "./capitao-luxo.js"
         );
     }
     return window.orquestrador.modules.capitaoLuxo;
