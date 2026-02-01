@@ -230,6 +230,7 @@ export async function quitarTemporada(req, res) {
 
         const admin = req.session?.admin?.email || req.session?.admin?.nome || 'admin';
 
+        // ✅ v2.0.0: Verificação de idempotência ANTES de processar
         // Buscar cache da temporada origem (pode não existir)
         const cacheOrigem = await ExtratoFinanceiroCache.findOne({
             liga_id: String(ligaId),
@@ -237,9 +238,9 @@ export async function quitarTemporada(req, res) {
             temporada: Number(temporada_origem)
         });
 
-        // Se existe cache, verificar se já foi quitado
+        // Se existe cache, verificar se já foi quitado (previne double-processing)
         if (cacheOrigem?.quitacao?.quitado) {
-            return res.status(400).json({
+            return res.status(409).json({
                 success: false,
                 error: 'Este extrato já foi quitado anteriormente',
                 quitacao: cacheOrigem.quitacao

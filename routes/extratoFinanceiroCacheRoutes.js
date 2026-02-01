@@ -6,6 +6,7 @@
 // =====================================================================
 
 import express from "express";
+import { verificarAdmin } from "../middleware/auth.js";
 import {
     getExtratoCache,
     salvarExtratoCache,
@@ -49,11 +50,13 @@ router.get("/:ligaId/stats", estatisticasCache);
 
 // Limpar caches corrompidos (todas as ligas)
 // DELETE /api/extrato-cache/corrompidos/limpar
-router.delete("/corrompidos/limpar", limparCachesCorrompidos);
+// 🔒 ADMIN ONLY - operação destrutiva requer autenticação
+router.delete("/corrompidos/limpar", verificarAdmin, limparCachesCorrompidos);
 
 // Limpar caches corrompidos de uma liga específica
 // DELETE /api/extrato-cache/:ligaId/corrompidos/limpar
-router.delete("/:ligaId/corrompidos/limpar", limparCachesCorrompidos);
+// 🔒 ADMIN ONLY - operação destrutiva requer autenticação
+router.delete("/:ligaId/corrompidos/limpar", verificarAdmin, limparCachesCorrompidos);
 
 // =====================================================================
 // ✅ v2.0: REMOVIDO - Rotas perigosas que causavam perda de dados

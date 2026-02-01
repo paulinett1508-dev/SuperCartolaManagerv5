@@ -90,6 +90,7 @@ const AcertoFinanceiroSchema = new Schema(
         timestamps: true,
         // createdAt = quando foi registrado no sistema
         // dataAcerto = quando o acerto realmente aconteceu
+        collection: 'acertofinanceiros',
     },
 );
 
@@ -97,14 +98,9 @@ const AcertoFinanceiroSchema = new Schema(
 AcertoFinanceiroSchema.index({ ligaId: 1, timeId: 1, temporada: 1 });
 AcertoFinanceiroSchema.index({ ligaId: 1, temporada: 1, dataAcerto: -1 });
 
-// Virtual para calcular impacto no saldo
-// pagamento = participante pagou = REDUZ saldo dele (se era credor, fica menos credor)
-// recebimento = participante recebeu = AUMENTA saldo dele (fica mais credor)
-AcertoFinanceiroSchema.virtual("impactoSaldo").get(function () {
-    // Se participante PAGOU, o saldo dele DIMINUI (ele tinha a receber, agora recebeu)
-    // Se participante RECEBEU, o saldo dele AUMENTA (ele recebeu mais do que devia)
-    return this.tipo === "pagamento" ? -this.valor : this.valor;
-});
+// ✅ v2.0.0: Virtual impactoSaldo REMOVIDO por contradizer calcularSaldoAcertos.
+// A lógica real é: PAGAMENTO aumenta saldo (quita dívida), RECEBIMENTO diminui saldo.
+// O virtual dizia o contrário e não era usado em nenhum lugar do código.
 
 // Método estático para buscar acertos de um time
 AcertoFinanceiroSchema.statics.buscarPorTime = async function (ligaId, timeId, temporada = CURRENT_SEASON) {
