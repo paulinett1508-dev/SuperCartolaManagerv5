@@ -11,7 +11,7 @@
         "public/layout.html",
         "public/gerenciar.html",
         "public/gerenciar-modulos.html",
-        "public/gerir-senhas-participantes.html",
+        "public/analisar-participantes.html",
         "public/ferramentas.html",
         "public/ferramentas-rodadas.html",
         "public/admin.html",

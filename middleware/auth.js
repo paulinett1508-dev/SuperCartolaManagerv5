@@ -45,7 +45,7 @@ export const PAGINAS_ADMIN = [
   "/editar-liga.html",
   "/ferramentas.html",
   "/ferramentas-rodadas.html",
-  "/gerir-senhas-participantes.html",
+  "/analisar-participantes.html",
   "/admin-consolidacao.html",
   "/gerenciar-modulos.html",
   "/layout.html",
