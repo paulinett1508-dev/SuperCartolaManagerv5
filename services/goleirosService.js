@@ -4,6 +4,7 @@
 
 import Goleiros from "../models/Goleiros.js";
 import fetch from "node-fetch";
+import { getNomeClube } from "../public/js/shared/clubes-data.js";
 import {
   buscarStatusParticipantes,
   obterUltimaRodadaValida,
@@ -243,39 +244,7 @@ async function buscarDadosTimeRodada(
 // ===== FUNÇÕES AUXILIARES =====
 
 function getClubeName(clubeId) {
-  const clubes = {
-    262: "Flamengo",
-    263: "Botafogo",
-    264: "Corinthians",
-    265: "Grêmio",
-    266: "Fluminense",
-    267: "Vasco",
-    268: "Cruzeiro",
-    269: "Atlético-MG",
-    270: "São Paulo",
-    271: "Santos",
-    272: "Palmeiras",
-    273: "Internacional",
-    275: "Palmeiras",
-    276: "São Paulo",
-    277: "Santos",
-    278: "Corinthians",
-    279: "Flamengo",
-    280: "Red Bull Bragantino",
-    281: "Atlético-GO",
-    282: "Ceará",
-    283: "Cruzeiro",
-    284: "Bahia",
-    285: "Sport",
-    286: "Vasco",
-    287: "Goiás",
-    288: "Coritiba",
-    289: "Avaí",
-    290: "Juventude",
-    354: "Ceará",
-    355: "Fortaleza",
-  };
-  return clubes[clubeId] || `Clube ${clubeId}`;
+  return getNomeClube(clubeId) || `Clube ${clubeId}`;
 }
 
 function getStatusName(statusId) {

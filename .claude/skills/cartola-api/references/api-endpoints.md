@@ -521,7 +521,7 @@ Todos os clubes do Brasileirão com dados completos.
 }
 ```
 
-**Clubes Brasileirão Série A (IDs comuns):**
+**Clubes Brasileirão Série A (IDs oficiais API Cartola):**
 | ID | Clube |
 |----|-------|
 | 262 | Flamengo |
@@ -533,16 +533,20 @@ Todos os clubes do Brasileirão com dados completos.
 | 275 | Palmeiras |
 | 276 | São Paulo |
 | 277 | Santos |
+| 280 | Bragantino |
 | 282 | Atlético-MG |
 | 283 | Cruzeiro |
 | 284 | Grêmio |
 | 285 | Internacional |
-| 286 | Coritiba |
-| 287 | Athletico-PR |
+| 286 | Juventude |
+| 287 | Vitória |
 | 290 | Goiás |
-| 293 | Cuiabá |
-| 354 | Bragantino |
+| 292 | Sport |
+| 293 | Athletico-PR |
+| 354 | Ceará |
 | 356 | Fortaleza |
+| 1371 | Cuiabá |
+| 2305 | Mirassol |
 
 ---
 

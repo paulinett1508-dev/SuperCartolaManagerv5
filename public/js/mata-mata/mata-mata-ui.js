@@ -7,6 +7,7 @@ import {
   getEdicaoMataMata,
   gerarTextoConfronto,
 } from "./mata-mata-config.js";
+import { getClubesNomeMap } from "/js/shared/clubes-data.js";
 
 // Função para renderizar a interface principal
 export function renderizarInterface(
@@ -306,20 +307,7 @@ export function renderRodadaPendente(containerId, rodadaPontosNum) {
 }
 
 // Mapa de times brasileiros para exibição
-const TIMES_BRASILEIROS = {
-  262: "Flamengo",
-  263: "Botafogo",
-  264: "Corinthians",
-  265: "Grêmio",
-  266: "Fluminense",
-  267: "Vasco",
-  275: "Palmeiras",
-  276: "São Paulo",
-  277: "Santos",
-  283: "Cruzeiro",
-  292: "Atlético-MG",
-  344: "Atlético-GO",
-};
+const TIMES_BRASILEIROS = getClubesNomeMap();
 
 // Função para renderizar banner do campeão
 export function renderBannerCampeao(

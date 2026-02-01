@@ -1,6 +1,8 @@
 // MÓDULO PARTICIPANTES - VERSÃO OTIMIZADA (Performance)
+// v2.16: Centralização clubes-data.js (2026-02-01)
 // v2.15: Exportar lista de participantes para PDF (2026-01-27)
 // v2.14: Cache-bust fix (2026-01-22)
+import { CLUBES as _CLUBES_SOURCE } from "/js/shared/clubes-data.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const ligaId = urlParams.get("id");
@@ -128,37 +130,13 @@ function atualizarVisibilidadeBotaoValidar() {
 // Torna função global para onclick
 window.selecionarTemporada = selecionarTemporada;
 
-// CONFIGURAÇÃO DOS BRASÕES (IDs oficiais da API Cartola)
-// Série A 2025 + principais times de outras séries
+// CONFIGURAÇÃO DOS BRASÕES - derivada da fonte centralizada (clubes-data.js)
+const _mapeamento = {};
+for (const [id, info] of Object.entries(_CLUBES_SOURCE)) {
+    _mapeamento[Number(id)] = { nome: info.nome, arquivo: `${id}.png` };
+}
 const CLUBES_CONFIG = {
-    MAPEAMENTO: {
-        // Série A 2025
-        262: { nome: "Flamengo", arquivo: "262.png" },
-        263: { nome: "Botafogo", arquivo: "263.png" },
-        264: { nome: "Corinthians", arquivo: "264.png" },
-        265: { nome: "Bahia", arquivo: "265.png" },
-        266: { nome: "Fluminense", arquivo: "266.png" },
-        267: { nome: "Vasco", arquivo: "267.png" },
-        275: { nome: "Palmeiras", arquivo: "275.png" },
-        276: { nome: "São Paulo", arquivo: "276.png" },
-        277: { nome: "Santos", arquivo: "277.png" },
-        280: { nome: "Bragantino", arquivo: "280.png" },
-        282: { nome: "Atlético-MG", arquivo: "282.png" },
-        283: { nome: "Cruzeiro", arquivo: "283.png" },
-        284: { nome: "Grêmio", arquivo: "284.png" },
-        285: { nome: "Internacional", arquivo: "285.png" },
-        286: { nome: "Juventude", arquivo: "286.png" },
-        287: { nome: "Vitória", arquivo: "287.png" },
-        290: { nome: "Goiás", arquivo: "290.png" },
-        292: { nome: "Sport", arquivo: "292.png" },
-        293: { nome: "Athletico-PR", arquivo: "293.png" },
-        354: { nome: "Ceará", arquivo: "354.png" },
-        356: { nome: "Fortaleza", arquivo: "356.png" },
-        1371: { nome: "Cuiabá", arquivo: "1371.png" },
-        2305: { nome: "Mirassol", arquivo: "2305.png" },
-        // Outros times populares
-        344: { nome: "Santa Cruz", arquivo: "344.png" },
-    },
+    MAPEAMENTO: _mapeamento,
     PATHS: {
         escudosLocal: "/escudos/",
         placeholder: "/escudos/placeholder.png",
