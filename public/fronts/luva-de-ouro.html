@@ -1,0 +1,23 @@
+<!-- =============================================
+     LUVA DE OURO - Admin View v1.0
+     Container mínimo - Layout renderizado via JS
+     CSS: /css/modules/luva-de-ouro.css
+     JS: /js/luva-de-ouro.js
+     ============================================= -->
+
+<div id="luva-de-ouro-content">
+    <div id="luva-de-ouro-loading" class="luva-de-ouro-loading">
+        <div class="spinner"></div>
+        <p>Carregando Luva de Ouro...</p>
+    </div>
+</div>
+
+<!-- Auto-inicialização via orquestrador -->
+<script>
+    // Expor função de inicialização para o orquestrador
+    if (typeof window.LuvaDeOuro?.inicializar === 'function') {
+        window.LuvaDeOuro.inicializar();
+    } else {
+        console.warn('⚠️ [LUVA-DE-OURO] Módulo não encontrado. Aguardando carregamento...');
+    }
+</script>

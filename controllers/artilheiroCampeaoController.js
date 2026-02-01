@@ -10,6 +10,7 @@
 import mongoose from "mongoose";
 import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
+import RankingGeralCache from "../models/RankingGeralCache.js";
 import {
     buscarStatusParticipantes,
     obterUltimaRodadaValida,
@@ -462,10 +463,37 @@ class ArtilheiroCampeaoController {
             }),
         );
 
-        // ✅ v4.3: Ordenar com ativos primeiro, depois inativos
+        // ✅ v5.1: Buscar ranking geral para usar como 3º critério de desempate
+        let posicaoRankingMap = {};
+        try {
+            const rankingGeralCache = await RankingGeralCache.findOne({
+                ligaId: new mongoose.Types.ObjectId(ligaId)
+            }).sort({ rodadaFinal: -1 }).lean();
+
+            if (rankingGeralCache && rankingGeralCache.ranking) {
+                rankingGeralCache.ranking.forEach((item, index) => {
+                    const timeIdStr = String(item.timeId || item.time_id || item.id);
+                    posicaoRankingMap[timeIdStr] = index + 1;
+                });
+                console.log(`📊 [ARTILHEIRO] Ranking geral carregado: ${Object.keys(posicaoRankingMap).length} posições`);
+            }
+        } catch (error) {
+            console.warn(`⚠️ [ARTILHEIRO] Erro ao buscar ranking geral:`, error.message);
+        }
+
+        // ✅ v5.1: Adicionar posição no ranking geral a cada participante
+        ranking.forEach(p => {
+            p.posicaoRankingGeral = posicaoRankingMap[String(p.timeId)] || 999;
+        });
+
+        // ✅ v5.1: Ordenar com 3 critérios: 1) Saldo de Gols, 2) Gols Pró, 3) Ranking Geral
         const sortFn = (a, b) => {
+            // 1º critério: Saldo de gols (maior primeiro)
+            if (b.saldoGols !== a.saldoGols) return b.saldoGols - a.saldoGols;
+            // 2º critério: Gols Pró (maior primeiro)
             if (b.golsPro !== a.golsPro) return b.golsPro - a.golsPro;
-            return b.saldoGols - a.saldoGols;
+            // 3º critério: Ranking Geral (menor posição = melhor)
+            return a.posicaoRankingGeral - b.posicaoRankingGeral;
         };
 
         return ordenarRankingComInativos(ranking, sortFn);

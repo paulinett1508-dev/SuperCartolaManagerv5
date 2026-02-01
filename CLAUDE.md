@@ -22,6 +22,31 @@
 | Corpo de texto | Inter | `font-family: 'Inter', -apple-system, sans-serif;` |
 | Valores numéricos | JetBrains Mono | `font-family: 'JetBrains Mono', monospace;` |
 
+### Cores dos Módulos (Identidade Visual)
+Cada módulo possui sua paleta de cores padronizada. **Sempre use variáveis CSS** (definidas em `/css/_admin-tokens.css`):
+
+| Módulo | Cor Primária | Variável CSS | Simbolismo |
+|--------|--------------|--------------|------------|
+| **Artilheiro Campeão** | Verde `#22c55e` | `--module-artilheiro-primary` | Gols / Vitória |
+| **Capitão de Luxo** | Roxo `#8b5cf6` | `--module-capitao-primary` | Liderança / Capitania |
+| **Luva de Ouro** | Azul Ciano `#0ea5e9` | `--module-luva-primary` | Defesa / Goleiros |
+
+**Exemplo de uso:**
+```css
+/* Header do módulo */
+.artilheiro-header {
+    background: var(--gradient-artilheiro);
+    border: 1px solid var(--module-artilheiro-border);
+}
+
+/* Backgrounds sutis */
+.capitao-card {
+    background: var(--module-capitao-muted);
+}
+```
+
+**⚠️ Regra:** NUNCA use cores hardcoded (`#22c55e`) diretamente. Sempre use as variáveis CSS para manter consistência e facilitar manutenção futura.
+
 ## 🛡️ Coding Standards
 - **Idempotency:** Financial functions MUST be idempotent (prevent double-charging)
 - **Safety:** Always validate `req.session.usuario` before sensitive actions

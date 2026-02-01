@@ -645,10 +645,19 @@ const ArtilheiroCampeao = {
             const ativos = ranking.filter((p) => p.ativo !== false);
             const inativos = ranking.filter((p) => p.ativo === false);
 
+            // ✅ v5.1: Ordenação com 3 critérios
+            // 1º: Saldo de gols (maior)
+            // 2º: Gols Pró (maior)
+            // 3º: Ranking Geral (melhor posição = menor número)
             ativos.sort((a, b) => {
                 if (b.saldoGols !== a.saldoGols)
                     return b.saldoGols - a.saldoGols;
-                return b.golsPro - a.golsPro;
+                if (b.golsPro !== a.golsPro)
+                    return b.golsPro - a.golsPro;
+                // 3º critério: ranking geral (menor é melhor)
+                const posA = a.posicaoRankingGeral || 999;
+                const posB = b.posicaoRankingGeral || 999;
+                return posA - posB;
             });
 
             inativos.sort(
