@@ -20,7 +20,8 @@
  */
 
 import express from "express";
-import { verificarAdmin } from "../middleware/auth.js";
+import mongoose from "mongoose";
+import { verificarAdmin, verificarAdminOuDono } from "../middleware/auth.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
@@ -68,8 +69,9 @@ async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = CURREN
 /**
  * GET /api/acertos/:ligaId/:timeId
  * Retorna os acertos financeiros de um participante
+ * 🔒 Admin ou dono do time
  */
-router.get("/:ligaId/:timeId", async (req, res) => {
+router.get("/:ligaId/:timeId", verificarAdminOuDono, async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const temporada = parseInt(req.query.temporada) || CURRENT_SEASON;
@@ -106,8 +108,9 @@ router.get("/:ligaId/:timeId", async (req, res) => {
 /**
  * GET /api/acertos/:ligaId/:timeId/saldo
  * Retorna apenas o saldo de acertos (para cálculo rápido)
+ * 🔒 Admin ou dono do time
  */
-router.get("/:ligaId/:timeId/saldo", async (req, res) => {
+router.get("/:ligaId/:timeId/saldo", verificarAdminOuDono, async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const temporada = parseInt(req.query.temporada) || CURRENT_SEASON;
@@ -132,8 +135,9 @@ router.get("/:ligaId/:timeId/saldo", async (req, res) => {
 /**
  * GET /api/acertos/admin/:ligaId
  * Retorna todos os acertos de uma liga (visão admin)
+ * 🔒 ADMIN ONLY
  */
-router.get("/admin/:ligaId", async (req, res) => {
+router.get("/admin/:ligaId", verificarAdmin, async (req, res) => {
     try {
         const { ligaId } = req.params;
         const temporada = parseInt(req.query.temporada) || CURRENT_SEASON;
@@ -187,6 +191,8 @@ router.get("/admin/:ligaId", async (req, res) => {
 /**
  * POST /api/acertos/:ligaId/:timeId
  * Registra um novo acerto financeiro (admin only)
+ * ✅ v2.0.0: Idempotência via janela de tempo (previne double-charging)
+ * ✅ v2.0.0: Transação MongoDB no troco automático
  * ✅ v1.1.0: Troco automático quando pagamento > dívida
  */
 router.post("/:ligaId/:timeId", verificarAdmin, async (req, res) => {
@@ -220,6 +226,32 @@ router.post("/:ligaId/:timeId", verificarAdmin, async (req, res) => {
             });
         }
 
+        const valorPagamento = parseFloat(valor);
+
+        // =========================================================================
+        // ✅ v2.0.0: IDEMPOTÊNCIA - Prevenir double-charging
+        // Verifica se já existe acerto idêntico nos últimos 60 segundos
+        // =========================================================================
+        const janelaIdempotencia = new Date(Date.now() - 60 * 1000); // 60 segundos
+        const acertoDuplicado = await AcertoFinanceiro.findOne({
+            ligaId,
+            timeId,
+            temporada: Number(temporada),
+            tipo,
+            valor: valorPagamento,
+            ativo: true,
+            createdAt: { $gte: janelaIdempotencia },
+        }).lean();
+
+        if (acertoDuplicado) {
+            console.warn(`[ACERTOS] ⚠️ Acerto duplicado detectado para time ${timeId} (idempotência)`);
+            return res.status(409).json({
+                success: false,
+                error: "Acerto duplicado detectado. Um acerto idêntico foi registrado há menos de 60 segundos.",
+                acertoExistente: acertoDuplicado._id,
+            });
+        }
+
         // ✅ v1.6.0 FIX: Buscar nome real do time se não fornecido ou genérico
         let nomeTimeFinal = nomeTime;
         const nomesGenericos = ['Participante', 'Time sem nome', '', null, undefined];
@@ -237,7 +269,6 @@ router.post("/:ligaId/:timeId", verificarAdmin, async (req, res) => {
             }
         }
 
-        const valorPagamento = parseFloat(valor);
         const dataAcertoFinal = dataAcerto ? new Date(dataAcerto) : new Date();
         let acertoTroco = null;
         let valorTroco = 0;
@@ -251,8 +282,6 @@ router.post("/:ligaId/:timeId", verificarAdmin, async (req, res) => {
             const saldoAntes = await calcularSaldoTotalParticipante(ligaId, timeId, temporada);
 
             // Dívida atual = valor absoluto do saldo negativo (se existir)
-            // Se saldo é -100, dívida = 100
-            // Se saldo é +50 (credor), dívida = 0
             const dividaAtual = saldoAntes.saldoTotal < 0 ? Math.abs(saldoAntes.saldoTotal) : 0;
 
             console.log(`[ACERTOS] Verificando troco para ${nomeTimeFinal}:`);
@@ -263,49 +292,60 @@ router.post("/:ligaId/:timeId", verificarAdmin, async (req, res) => {
             // Se há dívida e o pagamento excede a dívida
             if (dividaAtual > 0 && valorPagamento > dividaAtual) {
                 valorTroco = parseFloat((valorPagamento - dividaAtual).toFixed(2));
-
                 console.log(`[ACERTOS] ✅ TROCO DETECTADO: R$ ${valorTroco.toFixed(2)}`);
+            }
+        }
 
-                // Criar registro de troco como RECEBIMENTO (saldo positivo)
-                acertoTroco = new AcertoFinanceiro({
+        // =========================================================================
+        // ✅ v2.0.0: TRANSAÇÃO MongoDB - Salvar acerto + troco atomicamente
+        // Previne race condition onde acerto salva mas troco falha (ou vice-versa)
+        // =========================================================================
+        const session = await mongoose.startSession();
+        let novoAcerto;
+
+        try {
+            await session.withTransaction(async () => {
+                // Salvar acerto principal
+                novoAcerto = new AcertoFinanceiro({
                     ligaId,
                     timeId,
                     nomeTime: nomeTimeFinal,
                     temporada,
-                    tipo: "recebimento",
-                    valor: valorTroco,
-                    descricao: `TROCO - Pagamento a maior (Dívida: R$ ${dividaAtual.toFixed(2)})`,
+                    tipo,
+                    valor: valorPagamento,
+                    descricao: descricao || `Acerto financeiro - ${tipo}`,
                     metodoPagamento: metodoPagamento || "pix",
-                    comprovante: null,
-                    observacoes: `Gerado automaticamente. Pagamento original: R$ ${valorPagamento.toFixed(2)} - ${descricao || "Acerto financeiro"}`,
+                    comprovante: comprovante || null,
+                    observacoes: observacoes || null,
                     dataAcerto: dataAcertoFinal,
-                    registradoPor: "sistema_troco",
+                    registradoPor,
                 });
-            }
-        }
 
-        // Salvar o acerto principal
-        const novoAcerto = new AcertoFinanceiro({
-            ligaId,
-            timeId,
-            nomeTime: nomeTimeFinal,
-            temporada,
-            tipo,
-            valor: valorPagamento,
-            descricao: descricao || `Acerto financeiro - ${tipo}`,
-            metodoPagamento: metodoPagamento || "pix",
-            comprovante: comprovante || null,
-            observacoes: observacoes || null,
-            dataAcerto: dataAcertoFinal,
-            registradoPor,
-        });
+                await novoAcerto.save({ session });
 
-        await novoAcerto.save();
+                // Salvar troco se existir
+                if (valorTroco > 0) {
+                    acertoTroco = new AcertoFinanceiro({
+                        ligaId,
+                        timeId,
+                        nomeTime: nomeTimeFinal,
+                        temporada,
+                        tipo: "recebimento",
+                        valor: valorTroco,
+                        descricao: `TROCO - Pagamento a maior (Dívida: R$ ${(valorPagamento - valorTroco).toFixed(2)})`,
+                        metodoPagamento: metodoPagamento || "pix",
+                        comprovante: null,
+                        observacoes: `Gerado automaticamente. Pagamento original: R$ ${valorPagamento.toFixed(2)} - ${descricao || "Acerto financeiro"}`,
+                        dataAcerto: dataAcertoFinal,
+                        registradoPor: "sistema_troco",
+                    });
 
-        // Salvar troco se existir
-        if (acertoTroco) {
-            await acertoTroco.save();
-            console.log(`[ACERTOS] ✅ Troco de R$ ${valorTroco.toFixed(2)} salvo para ${nomeTimeFinal}`);
+                    await acertoTroco.save({ session });
+                    console.log(`[ACERTOS] ✅ Troco de R$ ${valorTroco.toFixed(2)} salvo para ${nomeTimeFinal}`);
+                }
+            });
+        } finally {
+            await session.endSession();
         }
 
         // =========================================================================
@@ -441,11 +481,11 @@ router.put("/:id", verificarAdmin, async (req, res) => {
 /**
  * DELETE /api/acertos/:id
  * Remove um acerto (soft delete - mantém histórico)
+ * ✅ v2.0.0: Removido hard delete por segurança - apenas soft delete
  */
 router.delete("/:id", verificarAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { hardDelete = false } = req.query;
 
         const acerto = await AcertoFinanceiro.findById(id);
 
@@ -456,17 +496,11 @@ router.delete("/:id", verificarAdmin, async (req, res) => {
             });
         }
 
-        if (hardDelete === "true") {
-            // Hard delete (remove definitivamente)
-            await AcertoFinanceiro.findByIdAndDelete(id);
-        } else {
-            // Soft delete (marca como inativo)
-            acerto.ativo = false;
-            await acerto.save();
-        }
+        // Soft delete (marca como inativo - mantém histórico para auditoria)
+        acerto.ativo = false;
+        await acerto.save();
 
-        // ✅ v1.4.0: NÃO deletar cache - acertos são calculados separadamente
-        console.log(`[ACERTOS] ✅ Acerto removido (cache preservado)`);
+        console.log(`[ACERTOS] ✅ Acerto ${id} desativado (soft delete, cache preservado)`);
 
         // Calcular novo saldo
         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(
@@ -477,7 +511,7 @@ router.delete("/:id", verificarAdmin, async (req, res) => {
 
         res.json({
             success: true,
-            message: hardDelete === "true" ? "Acerto removido permanentemente" : "Acerto desativado",
+            message: "Acerto desativado com sucesso",
             novoSaldo: saldoInfo,
         });
     } catch (error) {
@@ -489,8 +523,9 @@ router.delete("/:id", verificarAdmin, async (req, res) => {
 /**
  * GET /api/acertos/admin/:ligaId/resumo
  * Retorna resumo financeiro de todos os participantes da liga
+ * 🔒 ADMIN ONLY
  */
-router.get("/admin/:ligaId/resumo", async (req, res) => {
+router.get("/admin/:ligaId/resumo", verificarAdmin, async (req, res) => {
     try {
         const { ligaId } = req.params;
         const temporada = parseInt(req.query.temporada) || CURRENT_SEASON;

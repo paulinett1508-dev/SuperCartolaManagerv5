@@ -39,13 +39,14 @@ const FluxoFinanceiroCamposSchema = new Schema(
                 },
             },
         ],
-        updatedAt: {
-            type: Date,
-            default: Date.now,
-        },
+        // ✅ v2.0.0: Removido campo updatedAt manual (duplicava timestamps: true do Mongoose)
     },
     {
-        timestamps: true,
+        timestamps: {
+            createdAt: 'criado_em',
+            updatedAt: 'atualizado_em',
+        },
+        collection: 'fluxofinanceirocampos',
     },
 );
 

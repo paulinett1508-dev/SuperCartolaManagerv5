@@ -4,7 +4,7 @@
   "descricao": "Controle de mensalidades, pagamentos, acertos e saldo financeiro dos participantes.",
   "tipo": "financeiro",
   "status": "ativo",
-  "versao": "1.0.0",
+  "versao": "2.0.0",
   "configuracao": {
     "modulo_ativo": true,
     "temporada": 2026
@@ -20,8 +20,10 @@
         "mata_mata",
         "artilheiro_luva_ouro",
         "acertos_manuais",
-        "campos_editaveis"
-      ]
+        "campos_editaveis",
+        "ajustes_financeiros"
+      ],
+      "nota": "ajustes_financeiros = AjusteFinanceiro (sistema dinâmico 2026+, substitui campos_editaveis para novas temporadas)"
     },
     "moeda": "BRL",
     "precisao_decimal": 2,
@@ -29,6 +31,7 @@
     "permitir_exportacao": true
   },
   "campos_editaveis": {
+    "_nota": "LEGADO (temporadas <= 2025): 4 campos fixos via FluxoFinanceiroCampos. Para 2026+, usar ajustes_financeiros (AjusteFinanceiro) com campos dinâmicos ilimitados.",
     "campo1": {
       "label": "Campo Livre 1",
       "descricao": "Campo editável customizável",
@@ -53,6 +56,14 @@
       "tipo": "currency",
       "default": 0
     }
+  },
+  "ajustes_financeiros": {
+    "descricao": "Sistema dinâmico de ajustes (2026+). Quantidade ilimitada por participante, com auditoria completa.",
+    "modelo": "AjusteFinanceiro",
+    "collection": "ajustesfinanceiros",
+    "tipo_valor": "currency",
+    "permite_positivo": true,
+    "permite_negativo": true
   },
   "financeiro": {
     "impacto_direto": false,

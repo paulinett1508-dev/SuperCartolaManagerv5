@@ -16,6 +16,7 @@
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
+import AjusteFinanceiro from "../models/AjusteFinanceiro.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
 import {
     calcularResumoDeRodadas,
@@ -53,10 +54,11 @@ export async function calcularSaldoParticipante(ligaId, timeId, temporada = CURR
             ligaId
         );
 
-        // Buscar campos manuais
+        // ✅ v2.0.0 FIX: Buscar campos manuais COM filtro de temporada
         const camposDoc = await FluxoFinanceiroCampos.findOne({
             ligaId: String(ligaId),
             timeId: String(timeId),
+            temporada: Number(temporada),
         }).lean();
         const camposAtivos = camposDoc?.campos?.filter(c => c.valor !== 0) || [];
 
@@ -74,6 +76,7 @@ export async function calcularSaldoParticipante(ligaId, timeId, temporada = CURR
                 artilheiro: 0,
                 luvaOuro: 0,
                 campos: resumoCalculado.camposManuais || 0,
+                ajustes: 0, // ✅ v2.0.0: Novo campo para ajustes dinâmicos
             };
 
             // Calcular campos especiais do histórico legado
@@ -87,16 +90,34 @@ export async function calcularSaldoParticipante(ligaId, timeId, temporada = CURR
         // Usar saldo consolidado do cache (fallback)
         saldoConsolidado = cache?.saldo_consolidado || 0;
 
-        // Adicionar campos manuais separadamente (para manter compatibilidade)
+        // ✅ v2.0.0 FIX: Adicionar campos manuais COM filtro de temporada
         const camposDoc = await FluxoFinanceiroCampos.findOne({
             ligaId: String(ligaId),
             timeId: String(timeId),
+            temporada: Number(temporada),
         }).lean();
 
         if (camposDoc?.campos) {
             const saldoCampos = camposDoc.campos.reduce((acc, c) => acc + (c.valor || 0), 0);
             saldoConsolidado += saldoCampos;
         }
+    }
+
+    // =========================================================================
+    // ✅ v2.0.0: INTEGRAR AjusteFinanceiro (sistema dinâmico 2026+)
+    // AjusteFinanceiro substituiu os 4 campos fixos de FluxoFinanceiroCampos
+    // mas precisa ser contabilizado no saldo final.
+    // =========================================================================
+    const ajustesInfo = await AjusteFinanceiro.calcularTotal(
+        String(ligaId),
+        Number(timeId),
+        Number(temporada)
+    );
+    const saldoAjustes = ajustesInfo.total || 0;
+    saldoConsolidado += saldoAjustes;
+
+    if (breakdown) {
+        breakdown.ajustes = saldoAjustes;
     }
 
     // 2. Calcular saldo de acertos
@@ -112,10 +133,12 @@ export async function calcularSaldoParticipante(ligaId, timeId, temporada = CURR
     const resultado = {
         saldoTemporada: parseFloat(saldoConsolidado.toFixed(2)),
         saldoAcertos: acertosInfo.saldoAcertos,
+        saldoAjustes: parseFloat(saldoAjustes.toFixed(2)),
         totalPago: acertosInfo.totalPago,
         totalRecebido: acertosInfo.totalRecebido,
         saldoFinal: parseFloat(saldoFinal.toFixed(2)),
         quantidadeAcertos: acertosInfo.quantidadeAcertos,
+        quantidadeAjustes: ajustesInfo.quantidade,
     };
 
     if (breakdown) {
@@ -128,6 +151,7 @@ export async function calcularSaldoParticipante(ligaId, timeId, temporada = CURR
             artilheiro: parseFloat(breakdown.artilheiro.toFixed(2)),
             luvaOuro: parseFloat(breakdown.luvaOuro.toFixed(2)),
             campos: parseFloat(breakdown.campos.toFixed(2)),
+            ajustes: parseFloat(breakdown.ajustes.toFixed(2)),
         };
     }
 

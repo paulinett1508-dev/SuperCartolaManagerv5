@@ -371,12 +371,34 @@ InscricaoTemporadaSchema.methods.vaiParticipar = function() {
 
 /**
  * Calcula o saldo inicial baseado nos valores
- * Nota: Se pagou_inscricao = true, taxa não entra no cálculo
- * @returns {number}
+ * ✅ v2.0.0: Alinhado com LigaRules.calcularValorInscricao
+ *
+ * Lógica:
+ * - Se pagou_inscricao = true → taxa NÃO vira débito
+ * - Crédito (saldo_transferido) só abate a taxa se NÃO pagou inscrição
+ *   e é limitado ao valor da taxa (não pode ter crédito > taxa)
+ * - Dívida anterior sempre é carregada
+ *
+ * @returns {number} Saldo inicial (positivo = deve, negativo = crédito)
  */
 InscricaoTemporadaSchema.methods.calcularSaldoInicial = function() {
-    const taxa = this.pagou_inscricao ? 0 : (this.taxa_inscricao || 0);
-    return taxa + (this.divida_anterior || 0) - (this.saldo_transferido || 0);
+    const taxa = this.taxa_inscricao || 0;
+    const pagouInscricao = this.pagou_inscricao === true;
+    const saldoTransferido = this.saldo_transferido || 0;
+    const dividaAnterior = this.divida_anterior || 0;
+
+    // Taxa só vira dívida se NÃO pagou
+    const taxaComoDivida = pagouInscricao ? 0 : taxa;
+
+    // Crédito: só aplica se NÃO pagou inscrição e tem saldo positivo
+    // Limitado ao valor da taxa (alinhado com LigaRules)
+    let credito = 0;
+    if (saldoTransferido > 0 && !pagouInscricao) {
+        credito = Math.min(saldoTransferido, taxa);
+    }
+
+    // Total = taxa (se não pagou) + dívida anterior - crédito usado
+    return taxaComoDivida + dividaAnterior - credito;
 };
 
 /**

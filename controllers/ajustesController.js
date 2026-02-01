@@ -49,6 +49,7 @@ export async function listarAjustes(req, res) {
 /**
  * POST /api/ajustes/:ligaId/:timeId
  * Cria um novo ajuste financeiro
+ * ✅ v1.1.0: Idempotência via janela de tempo (previne duplicidade)
  */
 export async function criarAjuste(req, res) {
     try {
@@ -71,8 +72,30 @@ export async function criarAjuste(req, res) {
             });
         }
 
+        // ✅ v1.1.0: IDEMPOTÊNCIA - Prevenir ajuste duplicado
+        // Verifica se já existe ajuste com mesma descrição+valor nos últimos 60 segundos
+        const janelaIdempotencia = new Date(Date.now() - 60 * 1000);
+        const ajusteDuplicado = await AjusteFinanceiro.findOne({
+            liga_id: ligaId,
+            time_id: Number(timeId),
+            temporada,
+            descricao: descricao.trim(),
+            valor: Number(valor),
+            ativo: true,
+            criado_em: { $gte: janelaIdempotencia },
+        }).lean();
+
+        if (ajusteDuplicado) {
+            console.warn(`[AJUSTES] ⚠️ Ajuste duplicado detectado para time ${timeId} (idempotência)`);
+            return res.status(409).json({
+                success: false,
+                error: "Ajuste duplicado detectado. Um ajuste idêntico foi criado há menos de 60 segundos.",
+                ajusteExistente: ajusteDuplicado._id,
+            });
+        }
+
         // Obter email do admin (se disponível na sessão)
-        const criadoPor = req.session?.usuario?.email || req.user?.email || '';
+        const criadoPor = req.session?.admin?.email || req.session?.admin?.email || req.session?.usuario?.email || req.user?.email || '';
 
         const ajuste = await AjusteFinanceiro.criar({
             liga_id: ligaId,
@@ -141,7 +164,7 @@ export async function atualizarAjuste(req, res) {
         }
 
         // Obter email do admin
-        const atualizadoPor = req.session?.usuario?.email || req.user?.email || '';
+        const atualizadoPor = req.session?.admin?.email || req.session?.usuario?.email || req.user?.email || '';
 
         const ajuste = await AjusteFinanceiro.atualizar(id, {
             descricao: descricao?.trim(),
@@ -201,7 +224,7 @@ export async function removerAjuste(req, res) {
         const { id } = req.params;
 
         // Obter email do admin
-        const removidoPor = req.session?.usuario?.email || req.user?.email || '';
+        const removidoPor = req.session?.admin?.email || req.session?.usuario?.email || req.user?.email || '';
 
         const ajuste = await AjusteFinanceiro.remover(id, removidoPor);
 

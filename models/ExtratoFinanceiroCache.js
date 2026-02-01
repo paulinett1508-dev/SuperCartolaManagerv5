@@ -80,7 +80,11 @@ const ExtratoFinanceiroCacheSchema = new mongoose.Schema(
         },
     },
     {
-        timestamps: true,
+        timestamps: {
+            createdAt: 'criado_em',
+            updatedAt: 'atualizado_em',
+        },
+        collection: 'extratofinanceirocaches',
     },
 );
 
