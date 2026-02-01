@@ -3,6 +3,7 @@
 // =====================================================================
 import { getZonaInfo } from "./zona-utils.js";
 import * as ParciaisModule from "./participante-rodada-parcial.js";
+import { getClubesNomeMap } from "/js/shared/clubes-data.js";
 // v1.2: Integração com parciais em tempo real + Saldo projetado
 //       - Removido header premium (badge com nome)
 //       - Card central reflete pontos/posição parciais (AO VIVO)
@@ -1301,36 +1302,10 @@ function getTeamColor(nome) {
     return "#4b5563";
 }
 
-// Mapa simplificado de IDs de clubes para nomes
+// Mapa de IDs de clubes - fonte centralizada em clubes-data.js
+const _clubesNomeMap = getClubesNomeMap();
 function getNomeClubePorId(clubeId) {
-    const clubes = {
-        // IDs oficiais API Cartola (alinhado com CLUBES_CONFIG)
-        262: "Flamengo",
-        263: "Botafogo",
-        264: "Corinthians",
-        265: "Bahia",
-        266: "Fluminense",
-        267: "Vasco",
-        275: "Palmeiras",
-        276: "São Paulo",
-        277: "Santos",
-        280: "Bragantino",
-        282: "Atlético-MG",
-        283: "Cruzeiro",
-        284: "Grêmio",
-        285: "Internacional",
-        286: "Juventude",
-        287: "Vitória",
-        290: "Goiás",
-        292: "Sport",
-        293: "Athletico-PR",
-        354: "Ceará",
-        356: "Fortaleza",
-        1371: "Cuiabá",
-        2305: "Mirassol"
-    };
-
-    return clubes[Number(clubeId)] || "Seu Time";
+    return _clubesNomeMap[Number(clubeId)] || "Seu Time";
 }
 
 // Parar auto-refresh quando sair da tela
