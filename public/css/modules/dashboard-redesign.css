@@ -25,37 +25,226 @@
 .dashboard-header-content {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
-@media (min-width: 768px) {
-    .dashboard-header-content {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-    }
+/* Linha 1: Saudação + Status */
+.dashboard-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
-.dashboard-header-info h2 {
+.dashboard-header-greeting {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.dashboard-header-greeting h2 {
     font-family: var(--font-family-brand, 'Russo One', sans-serif);
-    font-size: 1.875rem;
+    font-size: 1.5rem;
     font-weight: 400;
     letter-spacing: 0.5px;
     color: #ffffff;
-    margin: 0 0 4px 0;
-    text-shadow: none;
+    margin: 0;
 }
 
-.dashboard-header-info p {
-    font-size: 0.875rem;
+.dashboard-header-separator {
+    color: #333;
+    font-size: 1.25rem;
+    font-weight: 300;
+    user-select: none;
+}
+
+.dashboard-header-mercado {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #d1d5db;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mercado-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6b7280;
+    flex-shrink: 0;
+}
+
+.mercado-dot.aberto {
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+    animation: mercado-pulse 2s ease-in-out infinite;
+}
+
+.mercado-dot.fechado {
+    background: #ef4444;
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+.mercado-dot.encerrado {
+    background: #f59e0b;
+}
+
+@keyframes mercado-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.dashboard-header-rodada {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
     color: #9ca3af;
-    margin: 0;
+}
+
+/* Linha 2: Barra de progresso */
+.dashboard-header-progress {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.progress-label {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.progress-label strong {
+    color: #d1d5db;
+}
+
+.progress-percent {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #FF5500;
+}
+
+.progress-bar-track {
+    height: 4px;
+    background: #1f1f1f;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #FF5500, #ff8c42);
+    border-radius: 4px;
+    transition: width 0.8s ease;
+}
+
+/* Linha 3: Alertas contextuais */
+.dashboard-header-alerts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dashboard-alert {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+
+.dashboard-alert:hover {
+    filter: brightness(1.2);
+    transform: translateY(-1px);
+}
+
+.dashboard-alert .material-icons {
+    font-size: 14px;
+}
+
+.dashboard-alert.alert-warning {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.dashboard-alert.alert-danger {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.dashboard-alert.alert-info {
+    background: rgba(59, 130, 246, 0.12);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+.dashboard-alert.alert-success {
+    background: rgba(34, 197, 94, 0.12);
+    color: #4ade80;
+    border-color: rgba(34, 197, 94, 0.2);
+}
+
+/* Botão compacto */
+.btn-sm {
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+}
+
+.btn-sm .material-icons {
+    font-size: 18px !important;
 }
 
 .dashboard-header-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+}
+
+/* Responsivo header */
+@media (max-width: 768px) {
+    .dashboard-header-greeting {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .dashboard-header-separator {
+        display: none;
+    }
+
+    .dashboard-header-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .dashboard-header-alerts {
+        flex-direction: column;
+    }
 }
 
 .btn-secondary-new {
@@ -1001,7 +1190,9 @@ body.sidebar-collapsed .sidebar-toggle-btn {
 .app-sidebar.sidebar-collapsed .sidebar-liga-name,
 .app-sidebar.sidebar-collapsed .sidebar-liga-count,
 .app-sidebar.sidebar-collapsed .sidebar-user-info,
-.app-sidebar.sidebar-collapsed .sidebar-user-menu {
+.app-sidebar.sidebar-collapsed .sidebar-user-menu,
+.app-sidebar.sidebar-collapsed .sidebar-accordion-content,
+.app-sidebar.sidebar-collapsed .sidebar-section-bottom span:not(.material-icons) {
     display: none !important;
 }
 
@@ -1033,9 +1224,46 @@ body.sidebar-collapsed .sidebar-toggle-btn {
     padding: 12px;
 }
 
+/* Seção inferior colapsada */
+.app-sidebar.sidebar-collapsed .sidebar-section-bottom .sidebar-menu-item {
+    justify-content: center;
+    padding: 10px;
+    margin: 0 8px;
+    border: none;
+    background: transparent !important;
+}
+
 /* Ajustar main content quando sidebar está colapsado */
 body.sidebar-collapsed .app-main {
     margin-left: 80px;
+}
+
+/* Tooltips no sidebar colapsado */
+.app-sidebar.sidebar-collapsed .sidebar-accordion-header,
+.app-sidebar.sidebar-collapsed .sidebar-menu-item,
+.app-sidebar.sidebar-collapsed .sidebar-section-bottom .sidebar-app-link {
+    position: relative;
+}
+
+.app-sidebar.sidebar-collapsed .sidebar-accordion-header:hover::after,
+.app-sidebar.sidebar-collapsed .sidebar-menu-item:hover::after,
+.app-sidebar.sidebar-collapsed .sidebar-section-bottom .sidebar-app-link:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #1a1a1a;
+    color: #e5e7eb;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 1100;
+    border: 1px solid #333;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
 }
 
 /* Esconder toggle em mobile */
@@ -1782,8 +2010,8 @@ body.sidebar-collapsed .main-content {
         padding: 16px !important;
     }
 
-    .dashboard-header-info h2 {
-        font-size: 1.5rem;
+    .dashboard-header-greeting h2 {
+        font-size: 1.25rem;
     }
 
     .dashboard-header-actions {
@@ -2268,6 +2496,12 @@ body.sidebar-collapsed .main-content {
     margin-left: 8px;
 }
 
+/* === SEÇÃO INFERIOR DO SIDEBAR (App Participante) === */
+.sidebar-section-bottom {
+    padding: 8px 12px;
+    border-top: 1px solid #1f1f1f;
+}
+
 /* === LINK DIRETO DO APP PARTICIPANTE === */
 .sidebar-app-link {
     background: linear-gradient(135deg, rgba(255, 85, 0, 0.1), rgba(255, 85, 0, 0.05)) !important;
@@ -2279,6 +2513,24 @@ body.sidebar-collapsed .main-content {
 .sidebar-app-link:hover {
     background: linear-gradient(135deg, rgba(255, 85, 0, 0.2), rgba(255, 85, 0, 0.1)) !important;
     border-color: rgba(255, 85, 0, 0.4);
+}
+
+/* === DIVISOR DENTRO DO SUBMENU (separa ações de ligas dinâmicas) === */
+.sidebar-submenu-divider {
+    height: 1px;
+    background: #1f1f1f;
+    margin: 6px 28px;
+}
+
+/* === SEÇÃO ADMIN (visual diferenciado) === */
+.sidebar-admin-section {
+    border-top: 1px solid rgba(255, 85, 0, 0.15);
+    margin-top: 4px;
+    padding-top: 4px;
+}
+
+.sidebar-admin-section .sidebar-accordion-title .material-icons {
+    color: #FF5500 !important;
 }
 
 /* ========================================

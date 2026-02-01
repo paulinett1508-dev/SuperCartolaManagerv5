@@ -21,22 +21,49 @@
             <main class="app-main dashboard-redesign">
                 <!-- Conteúdo da página -->
                 <div class="page-content">
-                    <!-- Header da Página -->
+                    <!-- Header Analítico -->
                     <header class="dashboard-header">
                         <div class="dashboard-header-content">
-                            <div class="dashboard-header-info">
-                                <h2>Visao Geral</h2>
-                                <p>Bem-vindo ao painel de controle das suas ligas.</p>
+                            <!-- Linha 1: Saudação + Status do Mercado -->
+                            <div class="dashboard-header-top">
+                                <div class="dashboard-header-greeting">
+                                    <h2 id="dashboardGreeting">Bom dia</h2>
+                                    <span class="dashboard-header-separator">|</span>
+                                    <div class="dashboard-header-mercado" id="dashboardMercado">
+                                        <span class="mercado-dot" id="mercadoDot"></span>
+                                        <span id="mercadoLabel">Carregando...</span>
+                                    </div>
+                                    <span class="dashboard-header-separator">|</span>
+                                    <div class="dashboard-header-rodada" id="dashboardRodada">
+                                        <span class="material-icons" style="font-size: 16px;">sports_soccer</span>
+                                        <span id="rodadaLabel">Rodada --</span>
+                                    </div>
+                                </div>
+                                <div class="dashboard-header-actions">
+                                    <button class="btn-secondary-new btn-sm" onclick="carregarDadosLigas()" title="Atualizar dados">
+                                        <span class="material-icons">refresh</span>
+                                    </button>
+                                    <a href="preencher-liga.html" class="btn-primary-new btn-sm">
+                                        <span class="material-icons">add</span>
+                                        Nova Liga
+                                    </a>
+                                </div>
                             </div>
-                            <div class="dashboard-header-actions">
-                                <button class="btn-secondary-new" onclick="carregarDadosLigas()">
-                                    <span class="material-icons">refresh</span>
-                                    Atualizar Dados
-                                </button>
-                                <a href="preencher-liga.html" class="btn-primary-new">
-                                    <span class="material-icons">add</span>
-                                    Nova Liga
-                                </a>
+
+                            <!-- Linha 2: Barra de progresso da temporada -->
+                            <div class="dashboard-header-progress" id="dashboardProgress">
+                                <div class="progress-info">
+                                    <span class="progress-label">Temporada <strong id="progressTemporada">--</strong></span>
+                                    <span class="progress-percent" id="progressPercent">--%</span>
+                                </div>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill" id="progressBarFill" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Linha 3: Alertas contextuais (aparecem se houver) -->
+                            <div class="dashboard-header-alerts" id="dashboardAlerts" style="display: none;">
+                                <!-- Preenchido dinamicamente -->
                             </div>
                         </div>
                     </header>
@@ -1197,6 +1224,7 @@
                         );
                         await loadLayout();
                         await carregarDadosLigas();
+                        carregarHeaderAnalitico();
                         iniciarAtualizacaoUsuariosOnline();
                     } else {
                         console.log("[DASHBOARD] Autenticacao falhou");
@@ -1235,6 +1263,131 @@
                 window.__painel_state.readyChecked = true;
                 if (document.readyState !== 'loading' && window.location.pathname.includes('painel.html')) {
                     initPainel();
+                }
+            }
+
+            // === HEADER ANALÍTICO ===
+            function atualizarSaudacao() {
+                const hora = new Date().getHours();
+                let saudacao = 'Boa noite';
+                if (hora >= 5 && hora < 12) saudacao = 'Bom dia';
+                else if (hora >= 12 && hora < 18) saudacao = 'Boa tarde';
+
+                const el = document.getElementById('dashboardGreeting');
+                if (el) {
+                    const nome = document.getElementById('userName')?.textContent || 'Admin';
+                    el.textContent = `${saudacao}, ${nome}`;
+                }
+            }
+
+            async function carregarHeaderAnalitico() {
+                try {
+                    // Buscar status do sistema (mercado + temporada) e manutenção em paralelo
+                    const [systemRes, manutRes] = await Promise.all([
+                        fetch('/api/app/system-status', { credentials: 'include' }),
+                        fetch('/api/admin/manutencao', { credentials: 'include' })
+                    ]);
+
+                    // Saudação contextual
+                    atualizarSaudacao();
+
+                    let sys = null;
+                    const alerts = [];
+
+                    // Status do Mercado
+                    if (systemRes.ok) {
+                        sys = await systemRes.json();
+                        const mercado = sys.mercado || {};
+                        const temporada = sys.temporada || {};
+
+                        // Dot + Label do mercado
+                        const dot = document.getElementById('mercadoDot');
+                        const label = document.getElementById('mercadoLabel');
+                        if (dot && label) {
+                            if (mercado.mercado_aberto) {
+                                dot.className = 'mercado-dot aberto';
+                                label.textContent = 'Mercado Aberto';
+                            } else if (mercado.temporada_encerrada || mercado.game_over) {
+                                dot.className = 'mercado-dot encerrado';
+                                label.textContent = 'Temporada Encerrada';
+                            } else {
+                                dot.className = 'mercado-dot fechado';
+                                label.textContent = 'Mercado Fechado';
+                            }
+                        }
+
+                        // Rodada
+                        const rodadaLabel = document.getElementById('rodadaLabel');
+                        const rodadaAtual = mercado.rodada_atual || 0;
+                        const rodadaFinal = temporada.rodada_final || 38;
+                        if (rodadaLabel) {
+                            rodadaLabel.textContent = `Rodada ${rodadaAtual} de ${rodadaFinal}`;
+                        }
+
+                        // Barra de progresso
+                        const tempoAtual = temporada.atual || mercado.temporada || new Date().getFullYear();
+                        const percent = rodadaFinal > 0 ? Math.round((rodadaAtual / rodadaFinal) * 100) : 0;
+
+                        const progressTemporada = document.getElementById('progressTemporada');
+                        const progressPercent = document.getElementById('progressPercent');
+                        const progressBarFill = document.getElementById('progressBarFill');
+
+                        if (progressTemporada) progressTemporada.textContent = tempoAtual;
+                        if (progressPercent) progressPercent.textContent = `${percent}%`;
+                        if (progressBarFill) progressBarFill.style.width = `${percent}%`;
+
+                        // Alerta de consolidação pendente
+                        if (sys.permissoes && sys.permissoes.deve_consolidar) {
+                            alerts.push({
+                                type: 'alert-warning',
+                                icon: 'sync_problem',
+                                text: 'Rodada pendente de consolidação',
+                                href: 'ferramentas.html'
+                            });
+                        }
+
+                        // Alerta de pré-temporada
+                        if (sys.permissoes && sys.permissoes.is_pre_temporada) {
+                            alerts.push({
+                                type: 'alert-info',
+                                icon: 'calendar_today',
+                                text: 'Pré-temporada em andamento',
+                                href: 'ferramentas.html'
+                            });
+                        }
+                    }
+
+                    // Alerta de manutenção
+                    if (manutRes.ok) {
+                        const manut = await manutRes.json();
+                        if (manut.ativo) {
+                            alerts.push({
+                                type: 'alert-danger',
+                                icon: 'engineering',
+                                text: 'Modo Manutenção ATIVO',
+                                href: 'ferramentas.html'
+                            });
+                        }
+                    }
+
+                    // Renderizar alertas
+                    const alertsContainer = document.getElementById('dashboardAlerts');
+                    if (alertsContainer && alerts.length > 0) {
+                        alertsContainer.style.display = 'flex';
+                        alertsContainer.innerHTML = alerts.map(a => `
+                            <a href="${a.href}" class="dashboard-alert ${a.type}">
+                                <span class="material-icons">${a.icon}</span>
+                                ${a.text}
+                            </a>
+                        `).join('');
+                    } else if (alertsContainer) {
+                        alertsContainer.style.display = 'none';
+                    }
+
+                } catch (error) {
+                    console.warn('[DASHBOARD] Erro ao carregar header analítico:', error);
+                    // Fallback: saudação sem dados do mercado
+                    atualizarSaudacao();
                 }
             }
 

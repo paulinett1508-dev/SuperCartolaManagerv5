@@ -71,36 +71,23 @@
 
             <!-- Navigation -->
             <nav class="sidebar-nav-new">
-                <!-- Links diretos (sempre visiveis) -->
+                <!-- Dashboard (link direto - sempre visivel) -->
                 <div class="sidebar-section-new">
                     <ul class="sidebar-menu-new">
                         <li>
-                            <a href="painel.html" class="sidebar-menu-item" data-page="painel.html">
+                            <a href="painel.html" class="sidebar-menu-item" data-page="painel.html" data-tooltip="Dashboard">
                                 <span class="material-icons">dashboard</span>
                                 <span>Dashboard</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="participante/index.html" class="sidebar-menu-item sidebar-app-link" target="_blank">
-                                <span class="material-icons">phone_android</span>
-                                <span>App Participante</span>
-                                <span class="material-icons" style="font-size: 14px; margin-left: auto; color: #9ca3af;">open_in_new</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="ferramentas.html" class="sidebar-menu-item" data-page="ferramentas.html">
-                                <span class="material-icons">build</span>
-                                <span>Ferramentas</span>
                             </a>
                         </li>
                     </ul>
                 </div>
 
                 <!-- ========================================
-                     LIGAS - Lista de Ligas Ativas
+                     LIGAS - Criar, Gerenciar e Lista Ativa
                      ======================================== -->
                 <div class="sidebar-accordion" data-accordion="ligas">
-                    <div class="sidebar-accordion-header">
+                    <div class="sidebar-accordion-header" data-tooltip="Ligas">
                         <div class="sidebar-accordion-title">
                             <span class="material-icons">emoji_events</span>
                             <span>Ligas</span>
@@ -108,6 +95,21 @@
                         <span class="material-icons sidebar-accordion-arrow">expand_more</span>
                     </div>
                     <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="criar-liga.html" class="sidebar-accordion-item" data-page="criar-liga.html">
+                                    <span class="material-icons">add_circle_outline</span>
+                                    <span>Criar Nova Liga</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="gerenciar.html" class="sidebar-accordion-item" data-page="gerenciar.html">
+                                    <span class="material-icons">tune</span>
+                                    <span>Gerenciar Ligas</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="sidebar-submenu-divider"></div>
                         <div id="ligasList">
                             <div class="sidebar-ligas-loading">
                                 <span class="material-icons">sync</span>
@@ -116,7 +118,155 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ========================================
+                     PARTICIPANTES
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="participantes">
+                    <div class="sidebar-accordion-header" data-tooltip="Participantes">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">groups</span>
+                            <span>Participantes</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="analisar-participantes.html" class="sidebar-accordion-item" data-page="analisar-participantes.html">
+                                    <span class="material-icons">person_search</span>
+                                    <span>Analisar Participantes</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="historico-acessos.html" class="sidebar-accordion-item" data-page="historico-acessos.html">
+                                    <span class="material-icons">history</span>
+                                    <span>Histórico de Acessos</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ========================================
+                     FINANCEIRO
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="financeiro">
+                    <div class="sidebar-accordion-header" data-tooltip="Financeiro">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">account_balance_wallet</span>
+                            <span>Financeiro</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="fluxo-financeiro.html" class="sidebar-accordion-item" data-page="fluxo-financeiro.html">
+                                    <span class="material-icons">swap_horiz</span>
+                                    <span>Fluxo Financeiro</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="auditoria-extratos.html" class="sidebar-accordion-item" data-page="auditoria-extratos.html">
+                                    <span class="material-icons">fact_check</span>
+                                    <span>Auditoria de Extratos</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ========================================
+                     OPERAÇÕES
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="operacoes">
+                    <div class="sidebar-accordion-header" data-tooltip="Operações">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">build</span>
+                            <span>Operações</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="ferramentas-rodadas.html" class="sidebar-accordion-item" data-page="ferramentas-rodadas.html">
+                                    <span class="material-icons">sports_score</span>
+                                    <span>Popular Rodadas</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="ferramentas.html" class="sidebar-accordion-item" data-page="ferramentas.html">
+                                    <span class="material-icons">hub</span>
+                                    <span>Hub de Ferramentas</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ========================================
+                     MONITORAMENTO
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="monitoramento">
+                    <div class="sidebar-accordion-header" data-tooltip="Monitoramento">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">monitoring</span>
+                            <span>Monitoramento</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="dashboard-saude.html" class="sidebar-accordion-item" data-page="dashboard-saude.html">
+                                    <span class="material-icons">health_and_safety</span>
+                                    <span>Saúde do Sistema</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="api-football-analytics.html" class="sidebar-accordion-item" data-page="api-football-analytics.html">
+                                    <span class="material-icons">analytics</span>
+                                    <span>API Football</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ========================================
+                     ADMINISTRAÇÃO (Super Admin Only)
+                     ======================================== -->
+                <div class="sidebar-accordion sidebar-admin-section" data-accordion="administracao" id="accordionAdmin" style="display: none;">
+                    <div class="sidebar-accordion-header" data-tooltip="Administração">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">shield</span>
+                            <span>Administração</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="admin-gestao.html" class="sidebar-accordion-item" data-page="admin-gestao.html">
+                                    <span class="material-icons">admin_panel_settings</span>
+                                    <span>Gestão de Admins</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </nav>
+
+            <!-- App Participante (link externo, antes do user section) -->
+            <div class="sidebar-section-bottom">
+                <a href="participante/index.html" class="sidebar-menu-item sidebar-app-link" target="_blank" data-tooltip="App Participante">
+                    <span class="material-icons">phone_android</span>
+                    <span>App Participante</span>
+                    <span class="material-icons" style="font-size: 14px; margin-left: auto; color: #9ca3af;">open_in_new</span>
+                </a>
+            </div>
 
             <!-- User Section com Menu Dropup -->
             <div class="sidebar-user-new" id="sidebarUserSection">
@@ -237,6 +387,12 @@
                                 ? 'display: flex !important;'
                                 : 'display: none !important;';
                         }
+                        const accordionAdmin = document.getElementById('accordionAdmin');
+                        if (accordionAdmin) {
+                            accordionAdmin.style.cssText = data.isSuperAdmin
+                                ? 'display: block !important;'
+                                : 'display: none !important;';
+                        }
                         return;
                     }
 
@@ -257,6 +413,12 @@
                     if (menuAdmin) {
                         menuAdmin.style.cssText = data.isSuperAdmin
                             ? 'display: flex !important;'
+                            : 'display: none !important;';
+                    }
+                    const accordionAdmin = document.getElementById('accordionAdmin');
+                    if (accordionAdmin) {
+                        accordionAdmin.style.cssText = data.isSuperAdmin
+                            ? 'display: block !important;'
                             : 'display: none !important;';
                     }
                 } catch (e) {
@@ -358,15 +520,28 @@
 
                     // Mapeamento de paginas para accordions
                     const pageToAccordion = {
-                        // Ligas (dashboard da liga)
+                        // Ligas
                         'detalhe-liga.html': 'ligas',
                         'editar-liga.html': 'ligas',
                         'preencher-liga.html': 'ligas',
                         'criar-liga.html': 'ligas',
                         'gerenciar.html': 'ligas',
-                        'ferramentas-rodadas.html': 'ligas',
-                        'fluxo-financeiro.html': 'ligas',
-                        'admin.html': 'ligas'
+                        'gerenciar-modulos.html': 'ligas',
+                        'admin.html': 'ligas',
+                        // Participantes
+                        'analisar-participantes.html': 'participantes',
+                        'historico-acessos.html': 'participantes',
+                        // Financeiro
+                        'fluxo-financeiro.html': 'financeiro',
+                        'auditoria-extratos.html': 'financeiro',
+                        // Operações
+                        'ferramentas-rodadas.html': 'operacoes',
+                        'ferramentas.html': 'operacoes',
+                        // Monitoramento
+                        'dashboard-saude.html': 'monitoramento',
+                        'api-football-analytics.html': 'monitoramento',
+                        // Administração
+                        'admin-gestao.html': 'administracao'
                     };
 
                     const accordionKey = pageToAccordion[currentPage];
@@ -1167,6 +1342,13 @@
                                 ? 'display: flex !important;'
                                 : 'display: none !important;';
                             console.log('[LAYOUT] Menu Administradores:', superData.isSuperAdmin ? 'VISÍVEL' : 'OCULTO');
+                        }
+                        // Mostrar/ocultar accordion de Administração no sidebar
+                        const accordionAdmin = document.getElementById('accordionAdmin');
+                        if (accordionAdmin) {
+                            accordionAdmin.style.cssText = superData.isSuperAdmin
+                                ? 'display: block !important;'
+                                : 'display: none !important;';
                         }
                     }
                 } catch (error) {
