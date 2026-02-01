@@ -1304,22 +1304,30 @@ function getTeamColor(nome) {
 // Mapa simplificado de IDs de clubes para nomes
 function getNomeClubePorId(clubeId) {
     const clubes = {
+        // IDs oficiais API Cartola (alinhado com CLUBES_CONFIG)
         262: "Flamengo",
         263: "Botafogo",
         264: "Corinthians",
-        265: "Grêmio",
-        266: "Palmeiras",
-        267: "Santos",
-        275: "Bahia",
-        276: "Fluminense",
-        277: "Vasco",
-        282: "São Paulo",
-        283: "Atlético-MG",
-        284: "Internacional",
-        285: "Athletico-PR",
-        293: "Cruzeiro",
-        294: "Fortaleza",
-        356: "Bragantino"
+        265: "Bahia",
+        266: "Fluminense",
+        267: "Vasco",
+        275: "Palmeiras",
+        276: "São Paulo",
+        277: "Santos",
+        280: "Bragantino",
+        282: "Atlético-MG",
+        283: "Cruzeiro",
+        284: "Grêmio",
+        285: "Internacional",
+        286: "Juventude",
+        287: "Vitória",
+        290: "Goiás",
+        292: "Sport",
+        293: "Athletico-PR",
+        354: "Ceará",
+        356: "Fortaleza",
+        1371: "Cuiabá",
+        2305: "Mirassol"
     };
 
     return clubes[Number(clubeId)] || "Seu Time";
