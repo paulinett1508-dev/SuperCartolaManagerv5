@@ -29,7 +29,7 @@ Cada módulo possui sua paleta de cores padronizada. **Sempre use variáveis CSS
 |--------|--------------|--------------|------------|
 | **Artilheiro Campeão** | Verde `#22c55e` | `--module-artilheiro-primary` | Gols / Vitória |
 | **Capitão de Luxo** | Roxo `#8b5cf6` | `--module-capitao-primary` | Liderança / Capitania |
-| **Luva de Ouro** | Azul Ciano `#0ea5e9` | `--module-luva-primary` | Defesa / Goleiros |
+| **Luva de Ouro** | Dourado `#ffd700` | `--module-luva-primary` | Luva de Ouro / Goleiros |
 
 **Exemplo de uso:**
 ```css

@@ -236,6 +236,34 @@
     --spinner-size-sm: 24px;
     --spinner-size-md: 40px;
     --spinner-size-lg: 56px;
+
+    /* ========================================
+       15. CORES DOS MÓDULOS (Identidade Visual)
+       ======================================== */
+
+    /* Artilheiro Campeão - Verde (representa gols/vitória) */
+    --module-artilheiro-primary: #22c55e;
+    --module-artilheiro-dark: #16a34a;
+    --module-artilheiro-light: #4ade80;
+    --module-artilheiro-muted: rgba(34, 197, 94, 0.1);
+    --module-artilheiro-border: rgba(34, 197, 94, 0.3);
+    --gradient-artilheiro: linear-gradient(135deg, var(--module-artilheiro-primary) 0%, var(--module-artilheiro-dark) 100%);
+
+    /* Capitão de Luxo - Roxo (representa capitania/liderança) */
+    --module-capitao-primary: #8b5cf6;
+    --module-capitao-dark: #7c3aed;
+    --module-capitao-light: #a78bfa;
+    --module-capitao-muted: rgba(139, 92, 246, 0.1);
+    --module-capitao-border: rgba(139, 92, 246, 0.3);
+    --gradient-capitao: linear-gradient(135deg, var(--module-capitao-primary) 0%, var(--module-capitao-dark) 100%);
+
+    /* Luva de Ouro - Dourado (representa a luva de ouro/goleiros) */
+    --module-luva-primary: #ffd700;
+    --module-luva-dark: #f0c000;
+    --module-luva-light: #ffe44d;
+    --module-luva-muted: rgba(255, 215, 0, 0.1);
+    --module-luva-border: rgba(255, 215, 0, 0.3);
+    --gradient-luva: linear-gradient(135deg, var(--module-luva-primary) 0%, var(--module-luva-dark) 100%);
 }
 
 /* ========================================
@@ -372,34 +400,6 @@
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
-
-/* ========================================
-   15. CORES DOS MÓDULOS (Identidade Visual)
-   ======================================== */
-
-/* Artilheiro Campeão - Verde (representa gols/vitória) */
---module-artilheiro-primary: #22c55e;
---module-artilheiro-dark: #16a34a;
---module-artilheiro-light: #4ade80;
---module-artilheiro-muted: rgba(34, 197, 94, 0.1);
---module-artilheiro-border: rgba(34, 197, 94, 0.3);
---gradient-artilheiro: linear-gradient(135deg, var(--module-artilheiro-primary) 0%, var(--module-artilheiro-dark) 100%);
-
-/* Capitão de Luxo - Roxo (representa capitania/liderança) */
---module-capitao-primary: #8b5cf6;
---module-capitao-dark: #7c3aed;
---module-capitao-light: #a78bfa;
---module-capitao-muted: rgba(139, 92, 246, 0.1);
---module-capitao-border: rgba(139, 92, 246, 0.3);
---gradient-capitao: linear-gradient(135deg, var(--module-capitao-primary) 0%, var(--module-capitao-dark) 100%);
-
-/* Luva de Ouro - Azul Ciano (representa defesa/goleiros) */
---module-luva-primary: #0ea5e9;
---module-luva-dark: #0284c7;
---module-luva-light: #38bdf8;
---module-luva-muted: rgba(14, 165, 233, 0.1);
---module-luva-border: rgba(14, 165, 233, 0.3);
---gradient-luva: linear-gradient(135deg, var(--module-luva-primary) 0%, var(--module-luva-dark) 100%);
 
 /* Uso recomendado:
    - Headers de módulos: background: var(--gradient-[modulo]);

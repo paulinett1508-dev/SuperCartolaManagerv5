@@ -1,9 +1,11 @@
-// controllers/luvaDeOuroController.js v2.0.0 - SaaS DINÂMICO
+// controllers/luvaDeOuroController.js v3.0.0 - SaaS DINÂMICO
+// v3.0.0: ranking-live, consolidar, temporada, desempate
 // v2.0.0: Configurações dinâmicas via liga.configuracoes (White Label)
 import {
   coletarDadosGoleiros,
   obterRankingGoleiros,
   detectarUltimaRodadaConcluida,
+  consolidarRodada,
 } from "../services/goleirosService.js";
 import Liga from "../models/Liga.js";
 
@@ -426,6 +428,84 @@ class LuvaDeOuroController {
       });
     } catch (error) {
       console.error("❌ [LUVA-OURO] Erro ao listar participantes:", error);
+      res.status(500).json({
+        success: false,
+        error: "Erro interno do servidor",
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  // GET /api/luva-de-ouro/:ligaId/ranking-live
+  static async getRankingLive(req, res) {
+    try {
+      const { ligaId } = req.params;
+
+      console.log(`🔥 [LUVA-OURO] Ranking LIVE (parciais) - Liga: ${ligaId}`);
+
+      // Validar liga
+      const validacao = await validarLigaLuvaOuro(ligaId);
+      if (!validacao.valid) {
+        return res.status(400).json({
+          success: false,
+          error: validacao.error,
+        });
+      }
+
+      // Obter ranking com forcar_coleta para parciais mais frescos
+      const resultado = await obterRankingGoleiros(ligaId, 1, null);
+
+      res.json({
+        success: true,
+        data: resultado,
+        live: true,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("❌ [LUVA-OURO] Erro no ranking live:", error);
+      res.status(500).json({
+        success: false,
+        error: "Erro interno do servidor",
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  // POST /api/luva-de-ouro/:ligaId/consolidar (admin only)
+  static async consolidarTemporada(req, res) {
+    try {
+      const { ligaId } = req.params;
+      const { rodada } = req.body || req.query;
+
+      console.log(`🔒 [LUVA-OURO] Consolidar rodada ${rodada} - Liga: ${ligaId}`);
+
+      // Validar liga
+      const validacao = await validarLigaLuvaOuro(ligaId);
+      if (!validacao.valid) {
+        return res.status(400).json({
+          success: false,
+          error: validacao.error,
+        });
+      }
+
+      if (!rodada) {
+        return res.status(400).json({
+          success: false,
+          error: 'Parâmetro "rodada" é obrigatório',
+        });
+      }
+
+      const resultado = await consolidarRodada(ligaId, rodada);
+
+      res.json({
+        success: true,
+        data: resultado,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("❌ [LUVA-OURO] Erro ao consolidar:", error);
       res.status(500).json({
         success: false,
         error: "Erro interno do servidor",

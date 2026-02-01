@@ -71,18 +71,20 @@ const goleirosSchema = new mongoose.Schema(
 );
 
 // Índices compostos para otimização
-goleirosSchema.index({ ligaId: 1, rodada: 1 });
+goleirosSchema.index({ ligaId: 1, temporada: 1, rodada: 1 });
 goleirosSchema.index({ ligaId: 1, participanteId: 1, rodada: 1 });
-goleirosSchema.index({ ligaId: 1, rodadaConcluida: 1 });
+goleirosSchema.index({ ligaId: 1, temporada: 1, rodadaConcluida: 1 });
 
-// Método estático para buscar ranking
+// Método estático para buscar ranking (v3.0: filtro temporada obrigatório)
 goleirosSchema.statics.buscarRanking = async function (
   ligaId,
   rodadaInicio = 1,
   rodadaFim = null,
+  temporada = null,
 ) {
   const matchQuery = {
     ligaId,
+    temporada: temporada || CURRENT_SEASON,
     rodadaConcluida: true,
     rodada: { $gte: rodadaInicio },
   };
@@ -129,10 +131,11 @@ goleirosSchema.statics.buscarRanking = async function (
   ]);
 };
 
-// Método estático para obter última rodada concluída
-goleirosSchema.statics.obterUltimaRodadaConcluida = async function (ligaId) {
+// Método estático para obter última rodada concluída (v3.0: filtro temporada)
+goleirosSchema.statics.obterUltimaRodadaConcluida = async function (ligaId, temporada = null) {
   const resultado = await this.findOne({
     ligaId,
+    temporada: temporada || CURRENT_SEASON,
     rodadaConcluida: true,
   })
     .sort({ rodada: -1 })
