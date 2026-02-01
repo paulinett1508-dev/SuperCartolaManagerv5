@@ -257,8 +257,9 @@ async function salvarCacheTop10(ligaId, rodada, mitos, micos, temporada = null) 
     try {
         // ✅ Determinar se é cache permanente (rodada consolidada)
         const status = await getMercadoStatus();
+        const campeonatoEncerrado = status && status.rodada_atual === RODADA_FINAL_CAMPEONATO && status.status_mercado !== 1;
         const isPermanent =
-            CAMPEONATO_ENCERRADO || (status && status.rodada_atual > rodada);
+            campeonatoEncerrado || (status && status.rodada_atual > rodada);
 
         const response = await fetch(`/api/top10/cache/${ligaId}`, {
             method: "POST",
@@ -497,13 +498,12 @@ function gerarTabelaHTML(dados, tipo, valoresBonusOnus) {
         return `<div class="error-state"><p class="error-message">Nenhum dado disponível para ${tipo}</p></div>`;
     }
 
-    const corHeader = tipo === "mitos" ? "var(--success)" : "var(--danger)";
     const valoresBonus =
         tipo === "mitos" ? valoresBonusOnus.mitos : valoresBonusOnus.micos;
 
     return `
         <table class="tabela-top10">
-            <thead style="background: linear-gradient(135deg, ${corHeader} 0%, ${tipo === "mitos" ? "#16a34a" : "#dc2626"} 100%);">
+            <thead class="thead-${tipo}">
                 <tr>
                     <th style="width: 40px;">Pos</th>
                     <th style="min-width: 120px; text-align: left;">Cartoleiro</th>
@@ -533,12 +533,12 @@ function gerarTabelaHTML(dados, tipo, valoresBonusOnus) {
                         return `
                         <tr class="${rowClass}">
                             <td style="text-align: center; font-weight: 700;">
-                                ${posicao === 1 ? (tipo === "mitos" ? '<span class="material-symbols-outlined" style="color: #ffd700;">crown</span>' : '<span class="material-symbols-outlined" style="color: #ef4444;">skull</span>') : posicao + "º"}
+                                ${posicao === 1 ? (tipo === "mitos" ? '<span class="material-symbols-outlined" style="color: var(--color-mito);">crown</span>' : '<span class="material-symbols-outlined" style="color: var(--color-mico);">skull</span>') : posicao + "º"}
                             </td>
                             <td style="text-align: left;">${item.nome_cartola || item.nome_cartoleiro || "N/D"}</td>
                             <td style="text-align: left;">${item.nome_time || "N/D"}</td>
                             <td style="text-align: center;">
-                                ${item.clube_id ? `<img src="/escudos/${item.clube_id}.png" alt="" class="time-escudo" onerror="this.style.display='none'"/>` : '<span class="material-symbols-outlined" style="color: #ef4444;">favorite</span>'}
+                                ${item.clube_id ? `<img src="/escudos/${item.clube_id}.png" alt="" class="time-escudo" onerror="this.style.display='none'"/>` : '<span class="material-symbols-outlined" style="color: var(--color-mico);">favorite</span>'}
                             </td>
                             <td style="text-align: center;" class="pontos-destaque">${(item.pontos ?? 0).toFixed(2)}</td>
                             <td style="text-align: center;">R${item.rodada ?? "?"}</td>
@@ -666,4 +666,4 @@ if (typeof window !== "undefined") {
     window.getTop10Data = getTop10Data;
 }
 
-console.log("[TOP10] Módulo v3.3 carregado (UI aguardando dados + temporada propagada para cache e API)");
+console.log("[TOP10] Módulo v3.4 carregado (UI aguardando dados + temporada propagada para cache e API)");

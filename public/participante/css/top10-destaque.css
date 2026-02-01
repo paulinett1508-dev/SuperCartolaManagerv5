@@ -40,24 +40,24 @@
 }
 
 .top10-destaque-wrapper.mitos .top10-badge-header {
-    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, transparent 100%);
-    color: #FFD700;
+    background: linear-gradient(90deg, var(--app-gold-muted, rgba(255, 215, 0, 0.15)) 0%, transparent 100%);
+    color: var(--app-gold);
     border-bottom: 1px solid rgba(255, 215, 0, 0.2);
 }
 
 .top10-destaque-wrapper.mitos .top10-badge-header .material-symbols-outlined {
-    color: #FFD700;
+    color: var(--app-gold);
     font-size: 18px;
 }
 
 .top10-destaque-wrapper.micos .top10-badge-header {
-    background: linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, transparent 100%);
-    color: #EF4444;
+    background: linear-gradient(90deg, var(--app-danger-muted, rgba(239, 68, 68, 0.15)) 0%, transparent 100%);
+    color: var(--app-danger);
     border-bottom: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .top10-destaque-wrapper.micos .top10-badge-header .material-symbols-outlined {
-    color: #EF4444;
+    color: var(--app-danger);
     font-size: 18px;
 }
 
@@ -86,7 +86,7 @@
     top: 0;
     bottom: 0;
     width: 3px;
-    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+    background: linear-gradient(180deg, var(--app-gold) 0%, var(--app-warning) 100%);
     opacity: 0.6;
 }
 
@@ -97,7 +97,7 @@
     top: 0;
     bottom: 0;
     width: 3px;
-    background: linear-gradient(180deg, #EF4444 0%, #DC2626 100%);
+    background: linear-gradient(180deg, var(--app-danger) 0%, var(--app-danger-dark) 100%);
     opacity: 0.6;
 }
 

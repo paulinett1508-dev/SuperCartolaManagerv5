@@ -17,29 +17,51 @@ const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão (constante
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
 
 /**
- * v5.1: Detecta se estamos visualizando temporada passada
- * Retorna { isTemporadaPassada, ultimaRodadaCompleta }
+ * v5.2: Detecta se estamos visualizando temporada passada
+ * Retorna { isTemporadaPassada, ultimaRodadaCompleta, temporadaParaBusca, aguardandoDados }
+ *
+ * FIX: Alinhado com lógica do admin (v3.4) - verifica temporadaAPI vs anoAtual
  */
 function detectarTemporadaStatus(status) {
     const rodadaAtual = status.rodada_atual || 1;
     const statusMercado = status.status_mercado;
     const mercadoAberto = statusMercado === 1;
+    const temporadaAPI = status.temporada || new Date().getFullYear();
+    const anoAtual = new Date().getFullYear();
 
     // Se mercado está na rodada 1 com status "aberto", nova temporada ainda não começou
     if (rodadaAtual === 1 && mercadoAberto) {
-        if (window.Log) Log.info("[PARTICIPANTE-TOP10] Detecção automática: nova temporada não iniciou - usando 38 rodadas da anterior");
+        // CASO 1: API retorna ano ANTERIOR ao atual (ex: Janeiro/2026, API ainda diz 2025)
+        // Podemos buscar dados completos da temporada passada
+        if (temporadaAPI < anoAtual) {
+            if (window.Log) Log.info(`[PARTICIPANTE-TOP10] Pré-temporada ${anoAtual}: buscando 38 rodadas de ${temporadaAPI}`);
+            return {
+                isTemporadaPassada: true,
+                ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO,
+                temporadaParaBusca: temporadaAPI,
+                aguardandoDados: false
+            };
+        }
+
+        // CASO 2: API já retorna o ANO ATUAL (ex: API diz 2026)
+        // Temporada nova, mas ainda sem rodadas disputadas
+        if (window.Log) Log.info(`[PARTICIPANTE-TOP10] Temporada ${temporadaAPI} iniciando - aguardando primeira rodada`);
         return {
-            isTemporadaPassada: true,
-            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO
+            isTemporadaPassada: false,
+            ultimaRodadaCompleta: 0,
+            temporadaParaBusca: temporadaAPI,
+            aguardandoDados: true
         };
     }
 
     // Se estamos na rodada 38 com mercado fechado, temporada atual encerrou
     if (rodadaAtual === RODADA_FINAL_CAMPEONATO && !mercadoAberto) {
-        if (window.Log) Log.info("[PARTICIPANTE-TOP10] Temporada atual encerrada - usando rodada 38");
+        if (window.Log) Log.info(`[PARTICIPANTE-TOP10] Temporada ${temporadaAPI} encerrada - usando rodada 38`);
         return {
             isTemporadaPassada: false,
-            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO
+            ultimaRodadaCompleta: RODADA_FINAL_CAMPEONATO,
+            temporadaParaBusca: temporadaAPI,
+            aguardandoDados: false
         };
     }
 
@@ -53,7 +75,9 @@ function detectarTemporadaStatus(status) {
 
     return {
         isTemporadaPassada: false,
-        ultimaRodadaCompleta
+        ultimaRodadaCompleta,
+        temporadaParaBusca: temporadaAPI,
+        aguardandoDados: false
     };
 }
 
@@ -158,8 +182,9 @@ export async function inicializarTop10Participante({
     }
 
     try {
-        // ✅ v5.1: Detecção dinâmica de temporada
+        // ✅ v5.2: Detecção dinâmica de temporada (alinhado com admin v3.4)
         let ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO; // fallback
+        let aguardandoDados = false;
 
         try {
             const resStatus = await fetch("/api/cartola/mercado/status");
@@ -167,10 +192,20 @@ export async function inicializarTop10Participante({
                 const status = await resStatus.json();
                 const resultado = detectarTemporadaStatus(status);
                 ultimaRodadaCompleta = resultado.ultimaRodadaCompleta;
+                aguardandoDados = resultado.aguardandoDados || false;
             }
         } catch (e) {
             if (window.Log)
                 Log.warn("[PARTICIPANTE-TOP10] Falha ao buscar mercado, usando fallback rodada 38");
+        }
+
+        // ✅ v5.2: Se aguardandoDados, mostrar estado vazio informativo
+        if (aguardandoDados || ultimaRodadaCompleta === 0) {
+            if (window.Log)
+                Log.info("[PARTICIPANTE-TOP10] 🕐 Aguardando início do campeonato");
+            mostrarLoading(false);
+            mostrarEstadoVazio(true);
+            return;
         }
 
         // FASE 2: ATUALIZAÇÃO EM BACKGROUND (Fetch API)
@@ -465,13 +500,13 @@ function gerarLinhaTabela(
     // Badge da posição
     let posicaoBadge = "";
     if (isInativo) {
-        posicaoBadge = `<span class="posicao-badge-top10 default" style="color: #6b7280;">—</span>`;
+        posicaoBadge = `<span class="posicao-badge-top10 default" style="color: var(--app-text-dim);">—</span>`;
     } else if (posicao === 1 && isMitos) {
         posicaoBadge = `<span class="posicao-badge-top10 gold"><span class="material-symbols-outlined">trophy</span></span>`;
     } else if (posicao === 1 && !isMitos) {
         posicaoBadge = `<span class="posicao-badge-top10 skull"><span class="material-symbols-outlined">skull</span></span>`;
     } else if (posicao <= 3 && isTop10) {
-        const medalColor = posicao === 2 ? "#C0C0C0" : "#CD7F32";
+        const medalColor = posicao === 2 ? "var(--app-silver)" : "var(--app-bronze)";
         posicaoBadge = `<span class="posicao-badge-top10 medal" style="color: ${medalColor};">${posicao}º</span>`;
     } else {
         posicaoBadge = `<span class="posicao-badge-top10 default">${posicao}º</span>`;
@@ -487,10 +522,11 @@ function gerarLinhaTabela(
     const valorFormatado =
         isInativo || !isTop10 ? "—" : isMitos ? `+${valorAbs}` : `-${valorAbs}`;
 
-    // ✅ v4.8: Escudo padronizado - usa apenas o brasão do time do cartoleiro
-    // NÃO usa clube_id (time do coração) como fallback
+    // ✅ v5.2: Escudo padronizado - prioriza local /escudos/ (como admin), fallback URL
     let escudoHTML = `<span class="escudo-placeholder"><span class="material-symbols-outlined">shield</span></span>`;
-    if (item.escudo && item.escudo.startsWith("http")) {
+    if (item.clube_id) {
+        escudoHTML = `<img src="/escudos/${item.clube_id}.png" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined\\'>shield</span>'"/>`;
+    } else if (item.escudo && item.escudo.startsWith("http")) {
         escudoHTML = `<img src="${item.escudo}" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined\\'>shield</span>'"/>`;
     }
 
@@ -508,7 +544,7 @@ function gerarLinhaTabela(
             <td class="rodada-badge">R${item.rodada ?? "?"}</td>
             <td class="${valorClass}">${valorFormatado}</td>
             <td>
-                <button class="btn-ver-time" onclick="window.abrirModalTop10('${item.nome_time}', ${item.rodada}, ${item.pontos})">
+                <button class="btn-ver-time" onclick="window.abrirModalTop10('${item.nome_time}', ${item.rodada}, ${item.pontos}, ${isMitos})">
                     <span class="material-symbols-outlined">visibility</span>
                 </button>
             </td>
@@ -667,16 +703,23 @@ function obterValorConfig(valores, posicao) {
 // =====================================================================
 // MODAL
 // =====================================================================
-window.abrirModalTop10 = function (nomeTime, rodada, pontos) {
+window.abrirModalTop10 = function (nomeTime, rodada, pontos, isMito) {
     const modal = document.getElementById("modalJogadores");
     const nomeEl = document.getElementById("modalTimeNome");
     const rodadaEl = document.getElementById("modalRodadaInfo");
     const pontosEl = document.getElementById("modalPontuacao");
+    const tipoEl = document.getElementById("modalTipoInfo");
 
     if (modal && nomeEl && rodadaEl && pontosEl) {
         nomeEl.textContent = nomeTime || "Time";
         rodadaEl.textContent = `Rodada ${rodada || "?"}`;
         pontosEl.textContent = (pontos || 0).toFixed(2);
+        if (tipoEl) {
+            tipoEl.textContent = isMito
+                ? `Maior pontuação da rodada ${rodada} (MITO)`
+                : `Menor pontuação da rodada ${rodada} (MICO)`;
+            tipoEl.style.color = isMito ? "var(--app-gold)" : "var(--app-danger)";
+        }
         modal.style.display = "flex";
     }
 };
@@ -712,5 +755,5 @@ function mostrarEstadoVazio(show) {
 
 if (window.Log)
     Log.info(
-        "[PARTICIPANTE-TOP10] Módulo v5.1 carregado (detecção dinâmica de temporada)",
+        "[PARTICIPANTE-TOP10] Módulo v5.2 carregado (detecção dinâmica de temporada)",
     );
