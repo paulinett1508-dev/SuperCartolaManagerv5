@@ -15,7 +15,7 @@
       "gerenciar-modulos.html",
       "ferramentas.html",
       "ferramentas-rodadas.html",
-      "gerir-senhas-participantes.html",
+      "analisar-participantes.html",
       "criar-liga.html",
       "editar-liga.html",
       "preencher-liga.html",
@@ -27,7 +27,7 @@
     "js_files": [
       "js/admin/**/*",
       "js/gerenciar-ligas.js",
-      "js/gerir-senhas-participantes.js",
+      "js/analisar-participantes.js",
       "js/criar-liga.js",
       "js/editar-liga.js",
       "js/liga-modificacoes.js",
@@ -62,7 +62,6 @@
       "js/parciais-scheduler.js"
     ],
     "css_files": [
-      "css/gerir-senhas-participantes.css",
       "css/modules/ferramentas.css",
       "css/modules/dashboard.css",
       "css/modules/dashboard-redesign.css",
