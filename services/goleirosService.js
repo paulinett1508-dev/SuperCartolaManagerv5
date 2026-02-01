@@ -1,10 +1,12 @@
-// ✅ services/goleirosService.js v2.0
-// Fix baseado na estrutura REAL da API do Cartola FC 2025
-// + Suporte a participantes inativos
+// ✅ services/goleirosService.js v3.0
+// v3.0: Participantes dinâmicos via Liga model, filtro temporada, desempate, sem hardcode
+// v2.0: Fix API 2025 + Suporte a inativos
 
 import Goleiros from "../models/Goleiros.js";
+import Liga from "../models/Liga.js";
+import { CURRENT_SEASON } from "../config/seasons.js";
 import fetch from "node-fetch";
-import { getNomeClube } from "../public/js/shared/clubes-data.js";
+import { getNomeClube } from "../utils/clubesData.js";
 import {
   buscarStatusParticipantes,
   obterUltimaRodadaValida,
@@ -12,7 +14,7 @@ import {
 } from "../utils/participanteHelper.js";
 
 console.log(
-  "[GOLEIROS-SERVICE] ✅ Serviço carregado com correções da API 2025 + suporte inativos",
+  "[GOLEIROS-SERVICE] ✅ Serviço v3.0 carregado - dinâmico, temporada, desempate",
 );
 
 // ===== CACHE DE ATLETAS PONTUADOS (para parciais) =====
@@ -259,137 +261,40 @@ function getStatusName(statusId) {
   return status[statusId] || "desconhecido";
 }
 
-// ===== FUNÇÃO CORRIGIDA: obterParticipantesLiga =====
+// ===== FUNÇÃO v3.0: obterParticipantesLiga (dinâmico via Liga model) =====
 async function obterParticipantesLiga(ligaId) {
-  console.log(`👥 [PARTICIPANTES] Buscando participantes da liga ${ligaId}`);
-
-  // ✅ CORREÇÃO: Fallback hardcoded para Liga Sobral
-  const participantesHardcoded = {
-    "684d821cf1a7ae16d1f89572": [
-      {
-        id: 1926323,
-        nome: "Daniel Barbosa",
-        nomeTime: "Daniel Barbosa",
-        clubeId: 262,
-        assinante: false,
-      },
-      {
-        id: 13935277,
-        nome: "Paulinett Miranda",
-        nomeTime: "Paulinett Miranda",
-        clubeId: 263,
-        assinante: false,
-      },
-      {
-        id: 14747183,
-        nome: "Carlos Henrique",
-        nomeTime: "Carlos Henrique",
-        clubeId: 264,
-        assinante: false,
-      },
-      {
-        id: 49149009,
-        nome: "Matheus Coutinho",
-        nomeTime: "Matheus Coutinho",
-        clubeId: 266,
-        assinante: false,
-      },
-      {
-        id: 49149388,
-        nome: "Junior Brasilino",
-        nomeTime: "Junior Brasilino",
-        clubeId: 267,
-        assinante: false,
-      },
-      {
-        id: 50180257,
-        nome: "Hivisson",
-        nomeTime: "Hivisson",
-        clubeId: 275,
-        assinante: false,
-      },
-    ],
-  };
-
-  // ✅ Se é Liga Sobral, usar dados hardcoded
-  if (participantesHardcoded[ligaId]) {
-    console.log(
-      `✅ [PARTICIPANTES] Usando dados hardcoded para liga ${ligaId}`,
-    );
-    const participantes = participantesHardcoded[ligaId];
-    console.log(
-      `✅ [PARTICIPANTES] ${participantes.length} participantes hardcoded:`,
-      participantes.map((p) => `${p.nome} (${p.id})`),
-    );
-    return participantes;
-  }
+  console.log(`👥 [PARTICIPANTES] Buscando participantes da liga ${ligaId} via MongoDB`);
 
   try {
-    const url = `https://api.cartolafc.globo.com/liga/${ligaId}`;
-    console.log(`📡 [PARTICIPANTES] URL: ${url}`);
+    // ✅ v3.0: Buscar participantes diretamente do model Liga (fonte de verdade)
+    const liga = await Liga.findById(ligaId).lean();
 
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        Accept: "application/json",
-      },
-      timeout: 10000,
-    });
-
-    console.log(`📊 [PARTICIPANTES] Response status: ${response.status}`);
-
-    if (!response.ok) {
-      console.log(
-        `⚠️ [PARTICIPANTES] API falhou, tentando fallback hardcoded...`,
-      );
-      if (participantesHardcoded[ligaId]) {
-        return participantesHardcoded[ligaId];
-      }
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    if (!liga) {
+      throw new Error(`Liga ${ligaId} não encontrada no MongoDB`);
     }
 
-    const dados = await response.json();
-    console.log(`📊 [PARTICIPANTES] Liga dados:`, {
-      nome: dados.nome,
-      totalTimes: dados.times ? dados.times.length : 0,
-    });
-
-    if (!dados.times || dados.times.length === 0) {
-      console.log(
-        `⚠️ [PARTICIPANTES] Sem dados da API, usando fallback hardcoded...`,
-      );
-      if (participantesHardcoded[ligaId]) {
-        return participantesHardcoded[ligaId];
-      }
-      throw new Error("Nenhum participante encontrado na liga");
+    if (!liga.participantes || liga.participantes.length === 0) {
+      throw new Error(`Liga "${liga.nome}" não tem participantes cadastrados`);
     }
 
-    const participantes = dados.times.map((time) => ({
-      id: time.time_id || time.id,
-      nome: time.nome_cartola || time.nome,
-      nomeTime: time.nome,
-      clubeId: time.clube_id,
-      assinante: time.assinante || false,
-    }));
+    const participantes = liga.participantes
+      .filter(p => p.ativo !== false) // Apenas ativos
+      .map(p => ({
+        id: p.time_id,
+        nome: p.nome_cartola || p.nome_time || `Time ${p.time_id}`,
+        nomeTime: p.nome_time || p.nome_cartola || "",
+        clubeId: p.clube_id || null,
+        assinante: p.assinante || false,
+      }));
 
     console.log(
-      `✅ [PARTICIPANTES] ${participantes.length} participantes encontrados:`,
+      `✅ [PARTICIPANTES] ${participantes.length} participantes ativos na liga "${liga.nome}":`,
       participantes.map((p) => `${p.nome} (${p.id})`),
     );
 
     return participantes;
   } catch (error) {
-    console.error(`❌ [PARTICIPANTES] Erro:`, error);
-
-    // ✅ Última tentativa: usar dados hardcoded
-    if (participantesHardcoded[ligaId]) {
-      console.log(
-        `🔄 [PARTICIPANTES] Usando dados hardcoded como último recurso`,
-      );
-      return participantesHardcoded[ligaId];
-    }
-
+    console.error(`❌ [PARTICIPANTES] Erro ao buscar do MongoDB:`, error.message);
     throw error;
   }
 }
@@ -801,27 +706,19 @@ export async function obterRankingGoleiros(
       }
     }
 
-    // Mapear participantes hardcoded com escudos corretos (baseado em participantes.js)
-    const participantesMap = {
-      1926323: { nome: "Daniel Barbosa", clubeId: 262 }, // Flamengo
-      13935277: { nome: "Paulinett Miranda", clubeId: 263 }, // Botafogo
-      14747183: { nome: "Carlos Henrique", clubeId: 264 }, // Corinthians
-      49149009: { nome: "Matheus Coutinho", clubeId: 266 }, // Fluminense
-      49149388: { nome: "Junior Brasilino", clubeId: 267 }, // Vasco
-      50180257: { nome: "Hivisson", clubeId: 275 }, // Palmeiras
-    };
+    // ✅ v3.0: Buscar participantes dinamicamente do model Liga
+    const participantes = await obterParticipantesLiga(ligaId);
 
     // ✅ NOVO: Buscar status de participantes (ativos/inativos)
-    const timeIds = Object.keys(participantesMap).map((id) => parseInt(id));
+    const timeIds = participantes.map((p) => p.id);
     const statusMap = await buscarStatusParticipantes(timeIds);
     console.log(`👥 [GOLEIROS-SERVICE] Status participantes:`, statusMap);
 
     // Gerar ranking
     const ranking = [];
 
-    for (const participanteId of Object.keys(participantesMap)) {
-      const timeId = parseInt(participanteId);
-      const participanteInfo = participantesMap[participanteId];
+    for (const participanteInfo of participantes) {
+      const timeId = participanteInfo.id;
       const nome = participanteInfo.nome;
       const clubeId = participanteInfo.clubeId;
 
@@ -891,8 +788,20 @@ export async function obterRankingGoleiros(
       );
     }
 
-    // ✅ NOVO: Ordenar com ativos primeiro, depois inativos
-    const sortFn = (a, b) => b.pontosTotais - a.pontosTotais;
+    // ✅ v3.0: Ordenar com critérios de desempate padronizados
+    // 1º pontosTotais DESC, 2º melhorRodada DESC (melhor goleiro single), 3º mediaPontos DESC
+    const sortFn = (a, b) => {
+      // 1º critério: maior pontuação total
+      if (b.pontosTotais !== a.pontosTotais) return b.pontosTotais - a.pontosTotais;
+      // 2º critério: melhor goleiro em uma rodada (single best)
+      const melhorA = a.rodadas?.reduce((max, r) => Math.max(max, r.pontos || 0), 0) || 0;
+      const melhorB = b.rodadas?.reduce((max, r) => Math.max(max, r.pontos || 0), 0) || 0;
+      if (melhorB !== melhorA) return melhorB - melhorA;
+      // 3º critério: maior média
+      const mediaA = a.rodadasJogadas > 0 ? a.pontosTotais / a.rodadasJogadas : 0;
+      const mediaB = b.rodadasJogadas > 0 ? b.pontosTotais / b.rodadasJogadas : 0;
+      return mediaB - mediaA;
+    };
     const rankingOrdenado = ordenarRankingComInativos(ranking, sortFn);
 
     // ✅ NOVO: Atribuir posições (null para inativos)
@@ -1080,6 +989,29 @@ async function obterDetalhesParticipante(
   }
 }
 
+// ===== FUNÇÃO v3.0: consolidarRodada =====
+export async function consolidarRodada(ligaId, rodada) {
+  console.log(`🔒 [GOLEIROS-SERVICE] Consolidando rodada ${rodada} da liga ${ligaId}`);
+
+  try {
+    const resultado = await Goleiros.updateMany(
+      { ligaId, rodada: parseInt(rodada), rodadaConcluida: false },
+      { $set: { rodadaConcluida: true } },
+    );
+
+    console.log(`✅ [GOLEIROS-SERVICE] Rodada ${rodada} consolidada: ${resultado.modifiedCount} registros atualizados`);
+
+    return {
+      success: true,
+      rodada: parseInt(rodada),
+      registrosAtualizados: resultado.modifiedCount,
+    };
+  } catch (error) {
+    console.error(`❌ [GOLEIROS-SERVICE] Erro ao consolidar rodada:`, error);
+    throw error;
+  }
+}
+
 console.log(
-  "[GOLEIROS-SERVICE] ✅ Serviço v2.0 carregado com suporte a inativos",
+  "[GOLEIROS-SERVICE] ✅ Serviço v3.0 carregado - dinâmico, temporada, desempate",
 );

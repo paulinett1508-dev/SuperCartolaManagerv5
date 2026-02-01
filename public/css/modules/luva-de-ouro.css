@@ -1,13 +1,33 @@
 /* =============================================
-   LUVA DE OURO - CSS v4.1.0
-   Tabela com Rodadas + Suporte a Inativos
+   LUVA DE OURO - CSS v5.0.0
+   Padronizado com Artilheiro Campeão e Capitão de Luxo
+   Cor identidade: Dourado (#ffd700)
    ============================================= */
+
+/* =============================================
+   MATERIAL ICONS SUPPORT
+   ============================================= */
+.luva-container .material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  vertical-align: middle;
+}
 
 /* Container principal */
 .luva-container {
   background: var(--bg-card, #1a1a2e);
   border-radius: 8px;
-  border: 1px solid rgba(14, 165, 233, 0.3);
+  border: 1px solid var(--module-luva-border, rgba(255, 215, 0, 0.3));
   overflow: hidden;
 }
 
@@ -19,7 +39,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  background: var(--gradient-luva, linear-gradient(135deg, #ffd700 0%, #f0c000 100%));
 }
 
 .luva-title {
@@ -28,11 +48,23 @@
   gap: 8px;
 }
 
-.luva-icon { font-size: 18px; }
+.luva-icon {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+}
 
 .luva-title h3 {
   margin: 0;
   font: 600 14px 'Russo One', sans-serif;
+  color: #1a1a1a;
+}
+
+.luva-badge {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font: 600 9px "Inter", sans-serif;
   color: #fff;
 }
 
@@ -47,8 +79,43 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+.luva-info-rodada .material-icons {
+  font-size: 14px;
+}
+
 /* =============================================
-   NAVEGAÇÃO DE RODADAS
+   LEGENDA UX
+   ============================================= */
+.luva-legenda {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--module-luva-border, rgba(255, 215, 0, 0.15));
+  flex-wrap: wrap;
+}
+
+.luva-legenda .legenda-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 10px "Inter", sans-serif;
+  color: #888;
+}
+
+.luva-legenda .legenda-cor {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.luva-legenda .legenda-cor.positivo { background: var(--module-luva-primary, #ffd700); }
+.luva-legenda .legenda-cor.negativo { background: #dc3545; }
+.luva-legenda .legenda-cor.parcial { background: #f39c12; }
+
+/* =============================================
+   NAVEGACAO DE RODADAS
    ============================================= */
 .luva-nav-container {
   display: flex;
@@ -57,7 +124,7 @@
   gap: 10px;
   padding: 8px 12px;
   background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(14, 165, 233, 0.2);
+  border-bottom: 1px solid var(--module-luva-border, rgba(255, 215, 0, 0.2));
 }
 
 .luva-nav-btn {
@@ -66,19 +133,28 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: rgba(14, 165, 233, 0.2);
-  border: 1px solid rgba(14, 165, 233, 0.4);
+  background: var(--module-luva-muted, rgba(255, 215, 0, 0.2));
+  border: 1px solid var(--module-luva-border, rgba(255, 215, 0, 0.4));
   border-radius: 4px;
-  color: #0ea5e9;
+  color: var(--module-luva-primary, #ffd700);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
+.luva-nav-btn .material-icons {
+  font-size: 16px;
+}
+
 .luva-nav-btn:hover {
-  background: rgba(14, 165, 233, 0.4);
-  border-color: #0ea5e9;
-  color: #fff;
+  background: rgba(255, 215, 0, 0.4);
+  border-color: var(--module-luva-primary, #ffd700);
+  color: #1a1a1a;
+}
+
+.luva-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .luva-nav-info {
@@ -89,7 +165,7 @@
 }
 
 /* =============================================
-   SEÇÃO DE CONTEÚDO
+   SECAO DE CONTEUDO
    ============================================= */
 .luva-content-section { padding: 12px; }
 
@@ -108,8 +184,8 @@
 
 .luva-subtitulo {
   font: 500 9px "Inter", sans-serif;
-  color: #0ea5e9;
-  background: rgba(14, 165, 233, 0.15);
+  color: var(--module-luva-primary, #ffd700);
+  background: var(--module-luva-muted, rgba(255, 215, 0, 0.15));
   padding: 3px 8px;
   border-radius: 8px;
 }
@@ -119,7 +195,7 @@
    ============================================= */
 .luva-table-container {
   border-radius: 6px;
-  border: 1px solid rgba(14, 165, 233, 0.2);
+  border: 1px solid var(--module-luva-border, rgba(255, 215, 0, 0.2));
   background: rgba(0, 0, 0, 0.1);
   overflow-x: auto;
 }
@@ -131,19 +207,25 @@
 }
 
 .luva-ranking-table thead {
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  background: var(--gradient-luva, linear-gradient(135deg, #ffd700 0%, #f0c000 100%));
   position: sticky;
   top: 0;
+  z-index: 10;
 }
 
 .luva-ranking-table thead th {
   padding: 8px 4px;
   text-align: center;
   font: 600 9px "Inter", sans-serif;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.8);
   text-transform: uppercase;
   letter-spacing: 0.2px;
   white-space: nowrap;
+}
+
+.luva-ranking-table thead th .material-icons {
+  font-size: 10px;
+  vertical-align: middle;
 }
 
 .luva-ranking-table thead th.col-nome {
@@ -175,7 +257,7 @@
 }
 
 .luva-ranking-table tbody tr:hover {
-  background: rgba(14, 165, 233, 0.1);
+  background: var(--module-luva-muted, rgba(255, 215, 0, 0.1));
 }
 
 /* Colunas fixas */
@@ -186,7 +268,7 @@
 
 /* Colunas de rodadas */
 .col-rodada { width: 55px; }
-.col-rodada-pts { 
+.col-rodada-pts {
   width: 55px;
   padding: 4px 2px !important;
   vertical-align: middle;
@@ -208,7 +290,7 @@
   text-overflow: ellipsis;
 }
 
-.col-rodada-pts.positivo .pts-valor { color: #0ea5e9; }
+.col-rodada-pts.positivo .pts-valor { color: var(--module-luva-primary, #ffd700); }
 .col-rodada-pts.negativo .pts-valor { color: #e74c3c; }
 .col-rodada-pts.zero .pts-valor { color: #888; }
 .col-rodada-pts.vazio .pts-valor { color: #444; }
@@ -230,7 +312,7 @@
   color: #888;
 }
 
-/* Badge de posição */
+/* Badge de posicao */
 .pos-badge {
   display: inline-flex;
   align-items: center;
@@ -244,7 +326,11 @@
   color: #fff;
 }
 
-/* Posições especiais */
+.pos-badge .material-icons {
+  font-size: 16px;
+}
+
+/* Posicoes especiais */
 .luva-ranking-row.pos-1 { background: rgba(255, 215, 0, 0.1); }
 .luva-ranking-row.pos-1 .pos-badge { background: linear-gradient(135deg, #ffd700, #f0c000); color: #1a1a1a; }
 
@@ -261,6 +347,12 @@
   object-fit: cover;
 }
 
+/* Escudo fallback com Material Icons */
+.col-escudo .material-icons {
+  font-size: 20px;
+  color: #666;
+}
+
 /* Participante */
 .participante-nome {
   font: 500 11px "Inter", sans-serif;
@@ -272,18 +364,22 @@
   max-width: 120px;
 }
 
+.participante-nome .material-icons {
+  font-size: 14px;
+}
+
 /* Pontos totais */
 .pontos-total {
   display: inline-block;
   padding: 3px 8px;
-  background: linear-gradient(135deg, #0ea5e9, #0ea5e9);
-  color: #fff;
+  background: var(--gradient-luva, linear-gradient(135deg, #ffd700, #f0c000));
+  color: #1a1a1a;
   border-radius: 4px;
   font: 700 11px "Inter", sans-serif;
 }
 
 /* =============================================
-   ESTATÍSTICAS
+   ESTATISTICAS
    ============================================= */
 .luva-stats-container { margin-top: 12px; }
 
@@ -310,8 +406,8 @@
 }
 
 .luva-stat-card.green {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(61, 107, 30, 0.08));
-  border: 1px solid rgba(14, 165, 233, 0.25);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.08));
+  border: 1px solid rgba(34, 197, 94, 0.25);
 }
 
 .stat-icon { font-size: 16px; margin-bottom: 2px; }
@@ -320,22 +416,193 @@
 .stat-detail { font: 400 9px "Inter", sans-serif; color: #666; margin-top: 1px; }
 
 /* =============================================
+   MINI DASHBOARD
+   ============================================= */
+.luva-mini-dashboard {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  padding: 0 10px;
+}
+
+.luva-mini-dashboard .mini-dash-card {
+  flex: 1;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 12px;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.luva-mini-dashboard .mini-dash-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.luva-mini-dashboard .mini-dash-icon {
+  font-size: 2rem;
+  opacity: 0.9;
+}
+
+.luva-mini-dashboard .mini-dash-icon.material-icons {
+  font-size: 32px;
+}
+
+.luva-mini-dashboard .mini-dash-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.luva-mini-dashboard .mini-dash-valor {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.luva-mini-dashboard .mini-dash-label {
+  font-size: 0.7rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.luva-mini-dashboard .mini-dash-nome {
+  font-size: 0.8rem;
+  color: #aaa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.luva-mini-dashboard .mini-dash-card.lider {
+  border-left: 3px solid var(--module-luva-primary, #ffd700);
+}
+
+.luva-mini-dashboard .mini-dash-card.lider .mini-dash-valor {
+  color: var(--module-luva-primary, #ffd700);
+}
+
+.luva-mini-dashboard .mini-dash-card.ativos {
+  border-left: 3px solid #3498db;
+}
+
+.luva-mini-dashboard .mini-dash-card.ativos .mini-dash-valor {
+  color: #3498db;
+}
+
+.luva-mini-dashboard .mini-dash-card.destaque {
+  border-left: 3px solid var(--module-luva-primary, #ffd700);
+}
+
+.luva-mini-dashboard .mini-dash-card.destaque .mini-dash-valor {
+  color: var(--module-luva-primary, #ffd700);
+}
+
+/* =============================================
+   BANNER RODADA FINAL
+   ============================================= */
+.luva-banner-final {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid var(--module-luva-primary, #ffd700);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.luva-banner-final.parcial-ativo {
+  animation: borderPulseLuva 2s infinite;
+}
+
+@keyframes borderPulseLuva {
+  0%, 100% { border-color: var(--module-luva-primary, #ffd700); box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3); }
+  50% { border-color: var(--module-luva-light, #ffe44d); box-shadow: 0 4px 20px rgba(255, 228, 77, 0.5); }
+}
+
+.luva-banner-final .banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.luva-banner-final .banner-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.luva-banner-final .banner-titulo {
+  color: var(--module-luva-primary, #ffd700);
+  font-size: 1.2rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.luva-banner-final .banner-status {
+  color: #aaa;
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.luva-banner-final .banner-status.pulsando {
+  color: var(--module-luva-light, #ffe44d);
+  animation: textPulseLuva 1.5s infinite;
+}
+
+@keyframes textPulseLuva {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.luva-banner-final .banner-lider {
+  background: var(--gradient-luva, linear-gradient(135deg, #ffd700, #f0c000));
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.luva-banner-final .banner-lider.campeao {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+.luva-banner-final .lider-label {
+  font-size: 0.65rem;
+  color: rgba(0, 0, 0, 0.7);
+  letter-spacing: 1px;
+}
+
+.luva-banner-final .lider-nome {
+  font: 700 0.85rem 'Inter', sans-serif;
+  color: #1a1a1a;
+}
+
+/* =============================================
    LOADING E ERRO
    ============================================= */
 .luva-loading {
   text-align: center;
-  padding: 20px;
-  color: #0ea5e9;
+  padding: 40px 20px;
+  color: var(--module-luva-primary, #ffd700);
 }
 
 .luva-loading .spinner {
-  width: 30px;
-  height: 30px;
-  border: 2px solid rgba(14, 165, 233, 0.2);
-  border-top-color: #0ea5e9;
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--module-luva-muted, rgba(255, 215, 0, 0.2));
+  border-top-color: var(--module-luva-primary, #ffd700);
   border-radius: 50%;
   animation: luva-spin 1s linear infinite;
-  margin: 0 auto 8px;
+  margin: 0 auto 12px;
 }
 
 .luva-loading p {
@@ -346,15 +613,97 @@
 
 .luva-erro {
   text-align: center;
-  padding: 20px;
+  padding: 30px 20px;
 }
 
-.luva-erro .erro-icon { font-size: 28px; margin-bottom: 8px; }
-.luva-erro .erro-msg { font: 600 12px "Inter", sans-serif; color: #dc3545; }
-.luva-erro .erro-detalhe { font: 400 11px "Inter", sans-serif; color: #777; margin-top: 4px; }
+.luva-erro .erro-icon,
+.luva-erro .material-icons.erro-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.luva-erro .erro-msg {
+  font: 600 13px "Inter", sans-serif;
+  color: #dc3545;
+}
+
+.luva-erro .erro-detalhe {
+  font: 400 11px "Inter", sans-serif;
+  color: #777;
+  margin-top: 5px;
+}
 
 @keyframes luva-spin {
   to { transform: rotate(360deg); }
+}
+
+/* =============================================
+   AGUARDANDO DADOS (inicio de temporada)
+   ============================================= */
+.luva-aguardando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 2rem;
+}
+
+.luva-aguardando-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.luva-aguardando-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: var(--gradient-luva, linear-gradient(135deg, #ffd700, #f0c000));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: luva-pulse-scale 2s infinite;
+}
+
+.luva-aguardando-icon .material-icons {
+  font-size: 40px;
+  color: #1a1a1a;
+}
+
+.luva-aguardando-title {
+  font-family: 'Russo One', sans-serif;
+  font-size: 1.5rem;
+  color: #fff;
+  margin-bottom: 0.75rem;
+}
+
+.luva-aguardando-desc {
+  color: #9ca3af;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.luva-aguardando-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--module-luva-muted, rgba(255, 215, 0, 0.1));
+  border: 1px solid var(--module-luva-border, rgba(255, 215, 0, 0.3));
+  border-radius: 8px;
+  color: var(--module-luva-primary, #ffd700);
+  font-size: 0.875rem;
+}
+
+.luva-aguardando-info .material-icons {
+  font-size: 18px;
+}
+
+@keyframes luva-pulse-scale {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
 }
 
 /* =============================================
@@ -380,15 +729,58 @@
     font-size: 10px;
   }
 
-  .luva-stats-grid { 
+  .luva-stats-grid {
     grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .luva-legenda {
+    gap: 10px;
+    padding: 6px 10px;
+  }
+
+  .luva-mini-dashboard {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .luva-mini-dashboard .mini-dash-card {
+    padding: 12px 15px;
+  }
+
+  .luva-mini-dashboard .mini-dash-valor {
+    font-size: 1.3rem;
+  }
+
+  .luva-mini-dashboard .mini-dash-nome {
+    max-width: 200px;
   }
 }
 
 @media (max-width: 500px) {
-  .luva-stats-grid { 
+  .luva-stats-grid {
     grid-template-columns: 1fr;
   }
+
+  .luva-legenda {
+    display: none;
+  }
+}
+
+/* =============================================
+   CELULAS CLICAVEIS
+   ============================================= */
+.col-rodada-pts.clicavel {
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.col-rodada-pts.clicavel:hover {
+  background: rgba(255, 215, 0, 0.3) !important;
+  transform: scale(1.1);
+  z-index: 5;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
 }
 
 /* =============================================
@@ -403,7 +795,7 @@
 }
 
 /* ========================================
-   SEÇÃO DE INATIVOS
+   SECAO DE INATIVOS
    ======================================== */
 .inativos-section {
   margin-top: 24px;
@@ -425,6 +817,10 @@
 .inativos-icon {
   font-size: 1.2em;
   opacity: 0.7;
+}
+
+.inativos-icon.material-icons {
+  font-size: 20px;
 }
 
 .inativos-header h4 {
@@ -467,15 +863,34 @@
    TABELA DE INATIVOS
    ======================================== */
 .inativos-table {
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .inativos-table thead {
-  background: linear-gradient(135deg, #444 0%, #333 100%) !important;
+  background: linear-gradient(135deg, #555 0%, #444 100%) !important;
 }
 
 .inativos-table thead th {
   color: #888 !important;
+}
+
+.inativos-table tbody tr.inativo {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.inativos-table .participante-nome {
+  color: #888;
+}
+
+/* Badge de desistencia */
+.desistencia-badge {
+  display: inline-block;
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+  font: 600 7px "Inter", sans-serif;
+  padding: 2px 5px;
+  border-radius: 8px;
+  margin-top: 2px;
 }
 
 /* ========================================
@@ -502,6 +917,12 @@
 .pos-inativo {
   color: #555 !important;
   font-style: italic;
+}
+
+/* Totais inativo (congelado) */
+.inativos-table .pontos-total {
+  opacity: 0.5;
+  text-decoration: line-through;
 }
 
 /* ========================================
@@ -541,35 +962,7 @@
 }
 
 /* ========================================
-   MODAL DE DETALHES - INATIVO
-   ======================================== */
-.modal-inativo .modal-header {
-  background: linear-gradient(135deg, #333 0%, #222 100%) !important;
-  border-bottom: 1px dashed #555;
-}
-
-.modal-inativo .modal-header h3 {
-  color: #888;
-}
-
-.valor-inativo {
-  text-decoration: line-through;
-  color: #666 !important;
-}
-
-.aviso-inativo {
-  background: rgba(220, 53, 69, 0.1);
-  border: 1px dashed rgba(220, 53, 69, 0.3);
-  color: #dc3545;
-  padding: 10px 14px;
-  border-radius: 8px;
-  margin: 12px 0;
-  font-size: 0.85em;
-  text-align: center;
-}
-
-/* ========================================
-   MODAL OVERLAY (base)
+   MODAL OVERLAY
    ======================================== */
 .modal-overlay {
   position: fixed;
@@ -583,7 +976,7 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  animation: fadeIn 0.2s ease;
+  animation: luva-fadeIn 0.2s ease;
 }
 
 .modal-content {
@@ -594,7 +987,8 @@
   max-height: 80vh;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  animation: slideUp 0.3s ease;
+  border: 1px solid var(--module-luva-border, rgba(255, 215, 0, 0.3));
+  animation: luva-slideUp 0.3s ease;
 }
 
 .modal-header {
@@ -628,7 +1022,7 @@
 }
 
 .modal-close:hover {
-  background: rgba(255, 77, 77, 0.3);
+  background: rgba(255, 215, 0, 0.3);
   transform: scale(1.1);
 }
 
@@ -669,7 +1063,7 @@
 }
 
 /* ========================================
-   HISTÓRICO
+   HISTORICO
    ======================================== */
 .historico-titulo {
   font-size: 0.9em;
@@ -716,8 +1110,8 @@
 }
 
 .hist-pontos.positivo {
-  background: rgba(46, 204, 113, 0.2);
-  color: #2ecc71;
+  background: rgba(255, 215, 0, 0.2);
+  color: var(--module-luva-primary, #ffd700);
 }
 
 .hist-pontos.negativo {
@@ -733,14 +1127,14 @@
 }
 
 /* ========================================
-   ANIMAÇÕES
+   ANIMACOES
    ======================================== */
-@keyframes fadeIn {
+@keyframes luva-fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes slideUp {
+@keyframes luva-slideUp {
   from {
     opacity: 0;
     transform: translateY(30px);
