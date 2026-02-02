@@ -1385,49 +1385,90 @@
                             </table>
                         </div>
                     </div>
+                    <!-- Modal Editar Senha -->
+                    <div class="modal-overlay" id="modalSenha">
+                        <div class="modal-content">
+                            <h3 class="modal-title">
+                                <span class="material-icons">vpn_key</span>
+                                Definir Senha
+                            </h3>
+                            <div id="modalSenhaInfo" style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 12px;"></div>
+                            <div class="modal-field">
+                                <label>Nova Senha</label>
+                                <input type="text" id="modalSenhaInput" placeholder="Min. 3 caracteres" autocomplete="off" />
+                            </div>
+                            <div class="modal-actions">
+                                <button class="modal-btn-primary" id="modalSenhaSalvar">Salvar</button>
+                                <button class="modal-btn-secondary" id="modalSenhaFechar">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Senha em Lote -->
+                    <div class="modal-overlay" id="modalSenhaLote">
+                        <div class="modal-content">
+                            <h3 class="modal-title">
+                                <span class="material-icons">vpn_key</span>
+                                Senhas em Lote
+                            </h3>
+                            <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 12px;">
+                                Aplica uma senha padrao para todos os participantes <strong>sem senha definida</strong> no filtro atual.
+                            </p>
+                            <div class="modal-field">
+                                <label>Senha Padrao</label>
+                                <input type="text" id="modalLoteSenhaInput" placeholder="Ex: cartola2026" autocomplete="off" />
+                            </div>
+                            <div id="modalLotePreview" style="font-size: 0.75rem; color: #6b7280; margin-bottom: 8px;"></div>
+                            <div class="modal-actions">
+                                <button class="modal-btn-primary" id="modalLoteSalvar">Aplicar</button>
+                                <button class="modal-btn-secondary" id="modalLoteFechar">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Modal Editar Senha -->
+                <div class="modal-overlay" id="modalSenha">
+                    <div class="modal-content">
+                        <h3 class="modal-title">
+                            <span class="material-icons">vpn_key</span>
+                            Definir Senha
+                        </h3>
+                        <div id="modalSenhaInfo" style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 12px;"></div>
+                        <div class="modal-field">
+                            <label>Nova Senha</label>
+                            <input type="text" id="modalSenhaInput" placeholder="Min. 3 caracteres" autocomplete="off" />
+                        </div>
+                        <div class="modal-actions">
+                            <button class="modal-btn-primary" id="modalSenhaSalvar">Salvar</button>
+                            <button class="modal-btn-secondary" id="modalSenhaFechar">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Senha em Lote -->
+                <div class="modal-overlay" id="modalSenhaLote">
+                    <div class="modal-content">
+                        <h3 class="modal-title">
+                            <span class="material-icons">vpn_key</span>
+                            Senhas em Lote
+                        </h3>
+                        <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 12px;">
+                            Aplica uma senha padrao para todos os participantes <strong>sem senha definida</strong> no filtro atual.
+                        </p>
+                        <div class="modal-field">
+                            <label>Senha Padrao</label>
+                            <input type="text" id="modalLoteSenhaInput" placeholder="Ex: cartola2026" autocomplete="off" />
+                        </div>
+                        <div id="modalLotePreview" style="font-size: 0.75rem; color: #6b7280; margin-bottom: 8px;"></div>
+                        <div class="modal-actions">
+                            <button class="modal-btn-primary" id="modalLoteSalvar">Aplicar</button>
+                            <button class="modal-btn-secondary" id="modalLoteFechar">Cancelar</button>
+                        </div>
+                    </div>
                 </div>
             </main>
-        </div>
-
-        <!-- Modal Editar Senha -->
-        <div class="modal-overlay" id="modalSenha">
-            <div class="modal-content">
-                <h3 class="modal-title">
-                    <span class="material-icons">vpn_key</span>
-                    Definir Senha
-                </h3>
-                <div id="modalSenhaInfo" style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 12px;"></div>
-                <div class="modal-field">
-                    <label>Nova Senha</label>
-                    <input type="text" id="modalSenhaInput" placeholder="Min. 3 caracteres" autocomplete="off" />
-                </div>
-                <div class="modal-actions">
-                    <button class="modal-btn-primary" id="modalSenhaSalvar">Salvar</button>
-                    <button class="modal-btn-secondary" id="modalSenhaFechar">Cancelar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Senha em Lote -->
-        <div class="modal-overlay" id="modalSenhaLote">
-            <div class="modal-content">
-                <h3 class="modal-title">
-                    <span class="material-icons">vpn_key</span>
-                    Senhas em Lote
-                </h3>
-                <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 12px;">
-                    Aplica uma senha padrao para todos os participantes <strong>sem senha definida</strong> no filtro atual.
-                </p>
-                <div class="modal-field">
-                    <label>Senha Padrao</label>
-                    <input type="text" id="modalLoteSenhaInput" placeholder="Ex: cartola2026" autocomplete="off" />
-                </div>
-                <div id="modalLotePreview" style="font-size: 0.75rem; color: #6b7280; margin-bottom: 8px;"></div>
-                <div class="modal-actions">
-                    <button class="modal-btn-primary" id="modalLoteSalvar">Aplicar</button>
-                    <button class="modal-btn-secondary" id="modalLoteFechar">Cancelar</button>
-                </div>
-            </div>
         </div>
 
         <!-- Scripts -->

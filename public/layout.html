@@ -932,10 +932,10 @@
                             document.head.appendChild(newStyle);
                         });
 
-                        // Extrair scripts inline da nova página (exceto layout.html)
+                        // Extrair scripts inline da nova página (exceto layout.html e layout loaders)
                         const newScripts = Array.from(doc.querySelectorAll('script:not([src])')).filter(s => {
                             const text = s.textContent || '';
-                            return !text.includes('CacheManager') && !text.includes('SPANavigation');
+                            return !text.includes('CacheManager') && !text.includes('SPANavigation') && !text.includes('loadLayout');
                         });
 
                         // Extrair scripts externos específicos da página
