@@ -210,16 +210,35 @@
                 -webkit-font-smoothing: antialiased;
             }
 
+            /* Scrollbar personalizada com cores do time do participante */
             ::-webkit-scrollbar {
-                width: 4px;
-                height: 4px;
+                width: 5px;
+                height: 5px;
             }
             ::-webkit-scrollbar-track {
                 background: #1c1c1c;
             }
             ::-webkit-scrollbar-thumb {
-                background: #ff5c00;
-                border-radius: 2px;
+                background: linear-gradient(
+                    180deg,
+                    var(--scrollbar-cor1, #ff5c00) 0%,
+                    var(--scrollbar-cor2, #ff5c00) 100%
+                );
+                border-radius: 3px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(
+                    180deg,
+                    var(--scrollbar-cor1, #ff5c00) 20%,
+                    var(--scrollbar-cor2, #ff5c00) 80%
+                );
+                filter: brightness(1.2);
+            }
+
+            /* Firefox */
+            * {
+                scrollbar-width: thin;
+                scrollbar-color: var(--scrollbar-cor1, #ff5c00) #1c1c1c;
             }
 
             @keyframes spin {
