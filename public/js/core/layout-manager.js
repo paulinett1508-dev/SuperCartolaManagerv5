@@ -103,7 +103,7 @@ export class LayoutManager {
             if (script.textContent.trim()) {
                 try {
                     const newScript = document.createElement("script");
-                    newScript.textContent = script.textContent;
+                    newScript.textContent = `(function(){${script.textContent}})();`;
                     document.head.appendChild(newScript);
                 } catch (error) {
                     console.error('Erro ao executar script do layout:', error);

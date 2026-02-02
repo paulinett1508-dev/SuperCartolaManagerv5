@@ -30,7 +30,7 @@ async function loadLayout() {
         scripts.forEach((script) => {
             if (script.textContent.trim()) {
                 const newScript = document.createElement("script");
-                newScript.textContent = script.textContent;
+                newScript.textContent = `(function(){${script.textContent}})();`;
                 document.head.appendChild(newScript);
             }
         });
