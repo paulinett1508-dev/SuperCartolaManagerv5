@@ -325,7 +325,7 @@
                         if (script.textContent.trim()) {
                             console.log("[PAINEL] Injetando script", index + 1, "- primeiros 100 chars:", script.textContent.substring(0, 100));
                             const newScript = document.createElement("script");
-                            newScript.textContent = script.textContent;
+                            newScript.textContent = `(function(){${script.textContent}})();`;
                             document.head.appendChild(newScript);
                         }
                     });
