@@ -258,7 +258,43 @@
         .col-brasao { width: 60px; text-align: center; }
         .col-clube { min-width: 180px; }
         .col-escudo { width: 50px; text-align: center; }
+        .col-premium { width: 70px; text-align: center; }
         .col-acoes { width: 100px; text-align: center; }
+
+        /* Toggle Premium Mini */
+        .toggle-switch-mini {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .toggle-switch-mini input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider-mini {
+            position: absolute;
+            inset: 0;
+            background: #333;
+            border-radius: 20px;
+            transition: background 0.2s;
+        }
+        .toggle-slider-mini::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 2px;
+            bottom: 2px;
+            background: #888;
+            border-radius: 50%;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .toggle-switch-mini input:checked + .toggle-slider-mini {
+            background: rgba(255, 85, 0, 0.3);
+        }
+        .toggle-switch-mini input:checked + .toggle-slider-mini::before {
+            transform: translateX(16px);
+            background: #ff5500;
+        }
 
         /* ============================================================
            AVATAR CIRCULAR (Brasao)
@@ -597,6 +633,7 @@
                                 <th class="col-brasao">Brasao</th>
                                 <th class="col-clube">Time do Coracao</th>
                                 <th class="col-escudo">Escudo</th>
+                                <th class="col-premium">Premium</th>
                                 <th class="col-acoes">Acoes</th>
                             </tr>
                         </thead>
