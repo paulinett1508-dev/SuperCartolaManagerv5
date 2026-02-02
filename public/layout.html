@@ -604,7 +604,6 @@
                         'auditoria-extratos.html': 'financeiro',
                         // Operações
                         'ferramentas-rodadas.html': 'operacoes',
-                        'ferramentas.html': 'operacoes',
                         // Monitoramento
                         'dashboard-saude.html': 'monitoramento',
                         'api-football-analytics.html': 'monitoramento',
@@ -829,7 +828,6 @@
                         "auditoria-extratos.html": { title: "Auditoria", subtitle: "Verificar Integridade dos Extratos" },
                         "admin-gestao.html": { title: "Administradores", subtitle: "Gerenciar Usuarios Admin" },
                         "historico-acessos.html": { title: "Historico de Acessos", subtitle: "Monitorar Acessos ao App" },
-                        "ferramentas.html": { title: "Ferramentas", subtitle: "Hub de Gestao" },
                         "analisar-participantes.html": { title: "Analisar Participantes", subtitle: "Gestao Unificada de Participantes" },
                     };
 
@@ -885,7 +883,6 @@
                 supportedPages: [
                     'painel.html',
                     'detalhe-liga.html',
-                    'ferramentas.html',
                     'ferramentas-rodadas.html',
                     'criar-liga.html',
                     'editar-liga.html',
@@ -1136,45 +1133,20 @@
                 event.preventDefault();
                 event.stopPropagation();
 
-                // Se estamos em ferramentas.html, usar função local
-                if (typeof consolidarRodada === 'function') {
-                    consolidarRodada();
-                } else {
-                    // Navegar para ferramentas.html e disparar ação
-                    if (SPANavigation.enabled) {
-                        SPANavigation.navigate('ferramentas.html').then(() => {
-                            setTimeout(() => {
-                                if (typeof consolidarRodada === 'function') {
-                                    consolidarRodada();
-                                }
-                            }, 500);
-                        });
-                    } else {
-                        window.location.href = 'ferramentas.html';
-                    }
-                }
+                // Redirecionar para Ferramentas (que agora está no Dashboard)
+                // Funções específicas devem ser chamadas diretamente ou via modal
+                alert('Funcionalidade "Consolidar Rodada" está disponível em Popular Rodadas.\n\nClique em OPERAÇÕES → Popular Rodadas para acessar.');
             };
 
             window.abrirModoManutencaoSidebar = function(event) {
                 event.preventDefault();
                 event.stopPropagation();
 
-                // Se estamos em ferramentas.html, usar função local
-                if (typeof abrirModalManutencao === 'function') {
-                    abrirModalManutencao();
+                // Navegar para Popular Rodadas onde está o Modo Manutenção
+                if (SPANavigation.enabled) {
+                    SPANavigation.navigate('ferramentas-rodadas.html');
                 } else {
-                    // Navegar para ferramentas.html e disparar ação
-                    if (SPANavigation.enabled) {
-                        SPANavigation.navigate('ferramentas.html').then(() => {
-                            setTimeout(() => {
-                                if (typeof abrirModalManutencao === 'function') {
-                                    abrirModalManutencao();
-                                }
-                            }, 500);
-                        });
-                    } else {
-                        window.location.href = 'ferramentas.html';
-                    }
+                    window.location.href = 'ferramentas-rodadas.html';
                 }
             };
 
@@ -1182,23 +1154,8 @@
                 event.preventDefault();
                 event.stopPropagation();
 
-                // Se estamos em ferramentas.html, usar função local
-                if (typeof window.abrirModalPesquisarTime === 'function') {
-                    window.abrirModalPesquisarTime();
-                } else {
-                    // Navegar para ferramentas.html e disparar ação
-                    if (SPANavigation.enabled) {
-                        SPANavigation.navigate('ferramentas.html').then(() => {
-                            setTimeout(() => {
-                                if (typeof window.abrirModalPesquisarTime === 'function') {
-                                    window.abrirModalPesquisarTime();
-                                }
-                            }, 500);
-                        });
-                    } else {
-                        window.location.href = 'ferramentas.html';
-                    }
-                }
+                // Redirecionar para página de gestão de liga
+                alert('Para adicionar participantes:\n\n1. Acesse LIGAS → Gerenciar Ligas\n2. Selecione a liga desejada\n3. Clique em "Participantes" na aba\n4. Use o botão "Adicionar Participante"');
             };
 
             // === TOGGLE SIDEBAR (DESKTOP) ===
