@@ -601,6 +601,165 @@
                 font-size: 13px;
             }
 
+            /* Modal Dump / Data Lake */
+            .modal-dump-content {
+                max-width: 520px;
+                width: 95%;
+            }
+
+            .modal-dump-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 16px;
+            }
+
+            .btn-fechar-dump {
+                background: none;
+                border: none;
+                color: #6b7280;
+                cursor: pointer;
+                padding: 4px;
+                border-radius: 4px;
+                transition: color 0.2s;
+            }
+
+            .btn-fechar-dump:hover {
+                color: #fff;
+            }
+
+            .dump-empty-state {
+                text-align: center;
+                padding: 32px 16px;
+            }
+
+            .dump-empty-state h4 {
+                font-family: 'Inter', sans-serif;
+                font-weight: 600;
+            }
+
+            .btn-sync-dump {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 20px;
+                background: #FF5500;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+
+            .btn-sync-dump:hover { background: #e64d00; }
+
+            .btn-sync-dump .material-icons { font-size: 18px; }
+
+            .dump-meta-bar {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 8px 10px;
+                background: #111827;
+                border-radius: 6px;
+                margin-bottom: 14px;
+                flex-wrap: wrap;
+            }
+
+            .dump-meta-item {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 0.7rem;
+                color: #6b7280;
+            }
+
+            .btn-sync-mini {
+                margin-left: auto;
+                background: none;
+                border: 1px solid #374151;
+                color: #9ca3af;
+                border-radius: 4px;
+                padding: 3px 6px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                transition: all 0.2s;
+            }
+
+            .btn-sync-mini:hover {
+                color: #FF5500;
+                border-color: #FF5500;
+            }
+
+            .dump-resumo-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 14px;
+            }
+
+            .dump-resumo-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px 10px;
+                background: #111827;
+                border-radius: 6px;
+            }
+
+            .dump-resumo-item .material-icons {
+                font-size: 20px;
+                color: #6b7280;
+            }
+
+            .dump-item-destaque {
+                border: 1px solid rgba(255, 85, 0, 0.3);
+            }
+
+            .dump-item-destaque .material-icons {
+                color: #FF5500;
+            }
+
+            .dump-label {
+                display: block;
+                font-size: 0.65rem;
+                color: #6b7280;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            .dump-value {
+                display: block;
+                font-size: 0.85rem;
+                color: #fff;
+                font-weight: 500;
+            }
+
+            .dump-rodadas {
+                padding: 10px;
+                background: #111827;
+                border-radius: 6px;
+            }
+
+            .dump-rodadas-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+
+            .dump-rodada-badge {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.7rem;
+                padding: 2px 8px;
+                background: #1f2937;
+                color: #9ca3af;
+                border-radius: 4px;
+                border: 1px solid #374151;
+            }
+
             /* Responsive */
             @media (max-width: 768px) {
                 .stats-grid {

@@ -218,6 +218,9 @@
             <button class="btn-acao-inline" title="${p.ativo ? "Desativar" : "Ativar"}" data-action="toggle" data-time-id="${p.timeId}" data-ativo="${p.ativo}">
               <span class="material-icons">${p.ativo ? "person_off" : "person_add"}</span>
             </button>
+            <button class="btn-acao-inline" title="Ver dados Data Lake" data-action="ver-dump" data-time-id="${p.timeId}" data-nome="${escapeHtml(p.nomeCartola)}" data-time-nome="${escapeHtml(p.nomeTime)}">
+              <span class="material-icons">cloud_sync</span>
+            </button>
           </div>
         </td>
       </tr>
@@ -252,6 +255,10 @@
       els.modalSenhaInput.value = "";
       els.modalSenha.classList.add("active");
       els.modalSenhaInput.focus();
+    }
+
+    if (action === "ver-dump") {
+      abrirModalDump(timeId, btn.dataset.nome, btn.dataset.timeNome);
     }
 
     if (action === "toggle") {
@@ -383,6 +390,184 @@
   }
 
   // =====================================================================
+  // DUMP / DATA LAKE
+  // =====================================================================
+
+  let dumpAtual = null;
+
+  async function abrirModalDump(timeId, nomeCartola, nomeTime) {
+    // Criar modal se nao existe
+    let modal = document.getElementById("modalDump");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.className = "modal-overlay";
+      modal.id = "modalDump";
+      document.body.appendChild(modal);
+    }
+
+    // Loading state
+    modal.innerHTML = `
+      <div class="modal-content modal-dump-content">
+        <div class="modal-dump-header">
+          <div>
+            <h3 class="modal-title" style="margin-bottom:2px;">
+              <span class="material-icons" style="color:#FF5500">cloud_sync</span>
+              ${escapeHtml(nomeCartola)}
+            </h3>
+            <span style="font-size:0.75rem;color:#6b7280;">${escapeHtml(nomeTime)} | ID: ${timeId}</span>
+          </div>
+          <button class="btn-fechar-dump" onclick="document.getElementById('modalDump').classList.remove('active')">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="modal-dump-body">
+          <div class="loading-state"><div class="loading-spinner"></div><div>Buscando dados...</div></div>
+        </div>
+      </div>
+    `;
+
+    modal.classList.add("active");
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.remove("active");
+    });
+
+    // Buscar dados
+    try {
+      const res = await fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50`);
+      const data = await res.json();
+      dumpAtual = { timeId, nomeCartola, nomeTime };
+      renderizarModalDump(modal, data, timeId, nomeCartola, nomeTime);
+    } catch (error) {
+      console.error("[ANALISAR] Erro ao buscar dump:", error);
+      modal.querySelector(".modal-dump-body").innerHTML = `
+        <div class="empty-state">
+          <span class="material-icons" style="font-size:48px;color:#ef4444;">wifi_off</span>
+          <div>Erro ao buscar dados: ${error.message}</div>
+        </div>
+      `;
+    }
+  }
+
+  function renderizarModalDump(modal, data, timeId, nomeCartola, nomeTime) {
+    const body = modal.querySelector(".modal-dump-body");
+
+    if (!data.success || !data.dump_atual) {
+      // Sem dados - estado vazio
+      body.innerHTML = `
+        <div class="dump-empty-state">
+          <span class="material-icons" style="font-size:64px;color:#4b5563;">cloud_off</span>
+          <h4 style="color:#9ca3af;margin:12px 0 6px;">Nenhum dump encontrado para este participante</h4>
+          <p style="font-size:0.75rem;color:#6b7280;max-width:380px;margin:0 auto 16px;">
+            Os dados sao coletados automaticamente durante o processamento de rodadas.
+            Use o <strong>Sync Cartola</strong> ou processe uma rodada para popular o Data Lake.
+          </p>
+          <button class="btn-sync-dump" data-time-id="${timeId}">
+            <span class="material-icons">download</span>
+            Buscar Dados da API Cartola
+          </button>
+        </div>
+      `;
+      body.querySelector(".btn-sync-dump")?.addEventListener("click", () => sincronizarDump(timeId, nomeCartola, nomeTime));
+      return;
+    }
+
+    // Tem dados - mostrar resumo
+    const dump = data.dump_atual;
+    const rawJson = dump.raw_json || {};
+    const time = rawJson.time || rawJson;
+    const atletas = rawJson.atletas || [];
+    const patrimonio = rawJson.patrimonio;
+    const pontos = data.pontos_total_temporada || rawJson.pontos || rawJson.pontos_campeonato;
+    const rodadas = data.rodadas_disponiveis || [];
+    const dataColeta = new Date(dump.data_coleta).toLocaleString("pt-BR");
+
+    body.innerHTML = `
+      <div class="dump-meta-bar">
+        <span class="dump-meta-item"><span class="material-icons" style="font-size:14px;">schedule</span> ${dataColeta}</span>
+        <span class="dump-meta-item"><span class="material-icons" style="font-size:14px;">category</span> ${dump.tipo_coleta}</span>
+        ${rodadas.length > 0 ? `<span class="dump-meta-item"><span class="material-icons" style="font-size:14px;">calendar_month</span> ${rodadas.length} rodadas</span>` : ""}
+        <button class="btn-sync-mini" data-time-id="${timeId}" title="Atualizar dados">
+          <span class="material-icons" style="font-size:16px;">refresh</span>
+        </button>
+      </div>
+      <div class="dump-resumo-grid">
+        <div class="dump-resumo-item">
+          <span class="material-icons">person</span>
+          <div><span class="dump-label">Cartoleiro</span><span class="dump-value">${escapeHtml(time.nome_cartola || nomeCartola)}</span></div>
+        </div>
+        <div class="dump-resumo-item">
+          <span class="material-icons">sports_soccer</span>
+          <div><span class="dump-label">Time</span><span class="dump-value">${escapeHtml(time.nome || nomeTime)}</span></div>
+        </div>
+        ${patrimonio !== undefined ? `
+        <div class="dump-resumo-item">
+          <span class="material-icons">account_balance</span>
+          <div><span class="dump-label">Patrimonio</span><span class="dump-value">C$ ${patrimonio.toFixed(2)}</span></div>
+        </div>` : ""}
+        ${pontos !== undefined ? `
+        <div class="dump-resumo-item dump-item-destaque">
+          <span class="material-icons">emoji_events</span>
+          <div><span class="dump-label">Pontos Total</span><span class="dump-value">${typeof pontos === 'number' ? pontos.toFixed(2) : pontos}</span></div>
+        </div>` : ""}
+        ${atletas.length > 0 ? `
+        <div class="dump-resumo-item">
+          <span class="material-icons">group</span>
+          <div><span class="dump-label">Atletas</span><span class="dump-value">${atletas.length} jogadores</span></div>
+        </div>` : ""}
+      </div>
+      ${rodadas.length > 0 ? `
+      <div class="dump-rodadas">
+        <span class="dump-label" style="margin-bottom:6px;display:block;">Rodadas disponiveis:</span>
+        <div class="dump-rodadas-grid">
+          ${rodadas.map(r => `<span class="dump-rodada-badge">${r}</span>`).join("")}
+        </div>
+      </div>` : ""}
+    `;
+
+    body.querySelector(".btn-sync-mini")?.addEventListener("click", () => sincronizarDump(timeId, nomeCartola, nomeTime));
+  }
+
+  async function sincronizarDump(timeId, nomeCartola, nomeTime) {
+    const modal = document.getElementById("modalDump");
+    const body = modal?.querySelector(".modal-dump-body");
+    if (!body) return;
+
+    body.innerHTML = `
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <div>Sincronizando com API Cartola...</div>
+      </div>
+    `;
+
+    try {
+      const res = await fetch(`/api/data-lake/sincronizar/${timeId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Erro ao sincronizar");
+      }
+
+      // Recarregar dados do dump
+      const rawRes = await fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50`);
+      const rawData = await rawRes.json();
+      renderizarModalDump(modal, rawData, timeId, nomeCartola, nomeTime);
+
+    } catch (error) {
+      console.error("[ANALISAR] Erro ao sincronizar:", error);
+      body.innerHTML = `
+        <div class="empty-state">
+          <span class="material-icons" style="font-size:48px;color:#ef4444;">error</span>
+          <div style="margin-bottom:12px;">Erro: ${escapeHtml(error.message)}</div>
+          <button class="btn-sync-dump" onclick="document.getElementById('modalDump').classList.remove('active')">Fechar</button>
+        </div>
+      `;
+    }
+  }
+
+  // =====================================================================
   // UTILS
   // =====================================================================
 
@@ -442,6 +627,16 @@
 
     // Exportar
     els.btnExportarCSV.addEventListener("click", exportarCSV);
+
+    // ESC para fechar modal dump
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        const modalDump = document.getElementById("modalDump");
+        if (modalDump?.classList.contains("active")) {
+          modalDump.classList.remove("active");
+        }
+      }
+    });
 
     // Carregar dados
     carregarResumo();
