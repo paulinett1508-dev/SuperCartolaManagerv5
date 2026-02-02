@@ -159,6 +159,9 @@ import dicasPremiumRoutes from "./routes/dicas-premium-routes.js";
 // 📰 Notícias personalizadas do time do coração
 import noticiasTimeRoutes from "./routes/noticias-time-routes.js";
 
+// 📊 Tabelas Esportivas (Brasileirão, jogos do time, etc)
+import tabelasEsportesRoutes from "./routes/tabelas-esportes-routes.js";
+
 // 🔧 Modo Manutenção do App
 import manutencaoRoutes from "./routes/manutencao-routes.js";
 
@@ -507,6 +510,10 @@ console.log("[SERVER] 🎯 Rotas de Dicas Premium registradas em /api/dicas-prem
 // 📰 Notícias do Time do Coração
 app.use("/api/noticias", noticiasTimeRoutes);
 console.log("[SERVER] 📰 Rotas de notícias personalizadas registradas em /api/noticias");
+
+// 📊 Tabelas Esportivas
+app.use("/api/tabelas", tabelasEsportesRoutes);
+console.log("[SERVER] 📊 Rotas de tabelas esportivas registradas em /api/tabelas");
 
 // Rotas Adicionais (Controllers Diretos)
 app.get("/api/clubes", getClubes);
