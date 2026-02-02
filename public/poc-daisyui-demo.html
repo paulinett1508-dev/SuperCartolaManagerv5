@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="cartola">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POC daisyUI - Super Cartola Manager</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind + daisyUI via CDN (POC only) -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        // Configurar tema customizado via CDN
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        russo: ['Russo One', 'sans-serif'],
+                        inter: ['Inter', '-apple-system', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            },
+            daisyui: {
+                themes: [
+                    {
+                        cartola: {
+                            "primary": "#3b82f6",
+                            "secondary": "#8b5cf6",
+                            "accent": "#22c55e",
+                            "neutral": "#1f2937",
+                            "base-100": "#111827",
+                            "base-200": "#1f2937",
+                            "base-300": "#374151",
+                            "info": "#0ea5e9",
+                            "success": "#22c55e",
+                            "warning": "#f59e0b",
+                            "error": "#ef4444",
+                            "base-content": "#f9fafb",
+                        }
+                    }
+                ]
+            }
+        }
+    </script>
+
+    <style>
+        /* Variáveis dos módulos mantidas */
+        :root {
+            --module-artilheiro-primary: #22c55e;
+            --module-capitao-primary: #8b5cf6;
+            --module-luva-primary: #ffd700;
+        }
+
+        /* Classes customizadas usando daisyUI */
+        .artilheiro-card {
+            border-left: 4px solid var(--module-artilheiro-primary);
+        }
+
+        .capitao-card {
+            border-left: 4px solid var(--module-capitao-primary);
+        }
+
+        .luva-card {
+            border-left: 4px solid var(--module-luva-primary);
+        }
+    </style>
+</head>
+<body class="bg-base-100 text-base-content min-h-screen">
+
+    <!-- Header -->
+    <header class="navbar bg-base-200 shadow-lg">
+        <div class="navbar-start">
+            <h1 class="text-2xl font-russo">
+                ⚽ Super Cartola Manager
+            </h1>
+        </div>
+        <div class="navbar-center">
+            <div class="badge badge-warning gap-2">
+                POC daisyUI
+            </div>
+        </div>
+        <div class="navbar-end">
+            <button class="btn btn-ghost btn-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="container mx-auto p-6 max-w-7xl">
+
+        <!-- Alert de POC -->
+        <div class="alert alert-info shadow-lg mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <h3 class="font-bold">Prova de Conceito - daisyUI</h3>
+                <div class="text-sm">Esta página demonstra componentes daisyUI aplicados ao projeto Super Cartola Manager</div>
+            </div>
+        </div>
+
+        <!-- Tabs de navegação -->
+        <div role="tablist" class="tabs tabs-boxed bg-base-200 mb-6">
+            <a role="tab" class="tab tab-active">Componentes</a>
+            <a role="tab" class="tab">Formulários</a>
+            <a role="tab" class="tab">Tabelas</a>
+            <a role="tab" class="tab">Módulos</a>
+        </div>
+
+        <!-- Grid de Cards dos Módulos -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+            <!-- Card Artilheiro Campeão -->
+            <div class="card bg-base-200 shadow-xl artilheiro-card">
+                <div class="card-body">
+                    <h2 class="card-title font-russo">
+                        🎯 Artilheiro Campeão
+                    </h2>
+                    <p class="font-inter text-sm opacity-80">
+                        Competição de artilharia mensal
+                    </p>
+                    <div class="stats shadow mt-4">
+                        <div class="stat place-items-center">
+                            <div class="stat-title text-xs">Gols do Líder</div>
+                            <div class="stat-value font-mono text-accent">12</div>
+                            <div class="stat-desc">Pedro - Flamengo</div>
+                        </div>
+                    </div>
+                    <div class="card-actions justify-end mt-4">
+                        <button class="btn btn-accent btn-sm">Ver Ranking</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Capitão de Luxo -->
+            <div class="card bg-base-200 shadow-xl capitao-card">
+                <div class="card-body">
+                    <h2 class="card-title font-russo">
+                        👑 Capitão de Luxo
+                    </h2>
+                    <p class="font-inter text-sm opacity-80">
+                        Competição de melhores capitães
+                    </p>
+                    <div class="stats shadow mt-4">
+                        <div class="stat place-items-center">
+                            <div class="stat-title text-xs">Pontos do Líder</div>
+                            <div class="stat-value font-mono text-secondary">245</div>
+                            <div class="stat-desc">Time ABC</div>
+                        </div>
+                    </div>
+                    <div class="card-actions justify-end mt-4">
+                        <button class="btn btn-secondary btn-sm">Ver Ranking</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Luva de Ouro -->
+            <div class="card bg-base-200 shadow-xl luva-card">
+                <div class="card-body">
+                    <h2 class="card-title font-russo">
+                        🧤 Luva de Ouro
+                    </h2>
+                    <p class="font-inter text-sm opacity-80">
+                        Competição de melhores goleiros
+                    </p>
+                    <div class="stats shadow mt-4">
+                        <div class="stat place-items-center">
+                            <div class="stat-title text-xs">Pontos do Líder</div>
+                            <div class="stat-value font-mono" style="color: #ffd700">156</div>
+                            <div class="stat-desc">Time XYZ</div>
+                        </div>
+                    </div>
+                    <div class="card-actions justify-end mt-4">
+                        <button class="btn btn-warning btn-sm">Ver Ranking</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção: Comparação Antes/Depois -->
+        <div class="divider font-russo text-xl">Comparação: Código Antes vs Depois</div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+            <!-- ANTES -->
+            <div class="card bg-base-300 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title text-error font-russo">❌ ANTES (Vanilla Tailwind)</h3>
+                    <div class="mockup-code text-xs">
+                        <pre data-prefix="1"><code>&lt;div class="bg-gray-800 rounded-lg</code></pre>
+                        <pre data-prefix="2"><code>  shadow-lg p-6 border-l-4</code></pre>
+                        <pre data-prefix="3"><code>  border-green-500"&gt;</code></pre>
+                        <pre data-prefix="4"><code>  &lt;h2 class="text-white text-xl</code></pre>
+                        <pre data-prefix="5"><code>    font-bold mb-2"&gt;</code></pre>
+                        <pre data-prefix="6"><code>    Artilheiro</code></pre>
+                        <pre data-prefix="7"><code>  &lt;/h2&gt;</code></pre>
+                        <pre data-prefix="8"><code>  &lt;button class="bg-green-600</code></pre>
+                        <pre data-prefix="9"><code>    hover:bg-green-700 text-white</code></pre>
+                        <pre data-prefix="10"><code>    px-4 py-2 rounded"&gt;</code></pre>
+                        <pre data-prefix="11"><code>    Ver</code></pre>
+                        <pre data-prefix="12"><code>  &lt;/button&gt;</code></pre>
+                        <pre data-prefix="13"><code>&lt;/div&gt;</code></pre>
+                    </div>
+                    <div class="badge badge-error gap-2 mt-2">
+                        13 linhas | 15 classes
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEPOIS -->
+            <div class="card bg-base-300 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title text-success font-russo">✅ DEPOIS (daisyUI)</h3>
+                    <div class="mockup-code text-xs">
+                        <pre data-prefix="1"><code>&lt;div class="card bg-base-200</code></pre>
+                        <pre data-prefix="2"><code>  artilheiro-card"&gt;</code></pre>
+                        <pre data-prefix="3"><code>  &lt;div class="card-body"&gt;</code></pre>
+                        <pre data-prefix="4"><code>    &lt;h2 class="card-title"&gt;</code></pre>
+                        <pre data-prefix="5"><code>      Artilheiro</code></pre>
+                        <pre data-prefix="6"><code>    &lt;/h2&gt;</code></pre>
+                        <pre data-prefix="7"><code>    &lt;button class="btn</code></pre>
+                        <pre data-prefix="8"><code>      btn-accent"&gt;</code></pre>
+                        <pre data-prefix="9"><code>      Ver</code></pre>
+                        <pre data-prefix="10"><code>    &lt;/button&gt;</code></pre>
+                        <pre data-prefix="11"><code>  &lt;/div&gt;</code></pre>
+                        <pre data-prefix="12"><code>&lt;/div&gt;</code></pre>
+                    </div>
+                    <div class="badge badge-success gap-2 mt-2">
+                        12 linhas | 7 classes | -53% classes
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulário de exemplo -->
+        <div class="divider font-russo text-xl">Exemplo: Formulário de Acerto Financeiro</div>
+
+        <div class="card bg-base-200 shadow-xl max-w-2xl mx-auto mb-8">
+            <div class="card-body">
+                <h2 class="card-title font-russo">💰 Registrar Acerto Financeiro</h2>
+
+                <form class="space-y-4">
+                    <!-- Select de Time -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-inter">Time</span>
+                        </label>
+                        <select class="select select-bordered w-full">
+                            <option disabled selected>Selecione o time</option>
+                            <option>Time A - Cartoleiro A</option>
+                            <option>Time B - Cartoleiro B</option>
+                            <option>Time C - Cartoleiro C</option>
+                        </select>
+                    </div>
+
+                    <!-- Tipo de Transação -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-inter">Tipo</span>
+                        </label>
+                        <div class="flex gap-4">
+                            <label class="label cursor-pointer gap-2">
+                                <input type="radio" name="tipo" class="radio radio-success" checked />
+                                <span class="label-text">Pagamento</span>
+                            </label>
+                            <label class="label cursor-pointer gap-2">
+                                <input type="radio" name="tipo" class="radio radio-error" />
+                                <span class="label-text">Recebimento</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Valor -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-inter">Valor (R$)</span>
+                        </label>
+                        <input
+                            type="number"
+                            placeholder="0.00"
+                            class="input input-bordered w-full font-mono"
+                            step="0.01"
+                        />
+                    </div>
+
+                    <!-- Descrição -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-inter">Descrição</span>
+                        </label>
+                        <textarea
+                            class="textarea textarea-bordered h-24"
+                            placeholder="Descrição do acerto..."
+                        ></textarea>
+                    </div>
+
+                    <!-- Checkbox de confirmação -->
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-3">
+                            <input type="checkbox" class="checkbox checkbox-primary" />
+                            <span class="label-text">Confirmo que os dados estão corretos</span>
+                        </label>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="card-actions justify-end gap-2 mt-6">
+                        <button type="button" class="btn btn-ghost">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            💾 Registrar Acerto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabela de exemplo -->
+        <div class="divider font-russo text-xl">Exemplo: Tabela de Ranking</div>
+
+        <div class="card bg-base-200 shadow-xl mb-8">
+            <div class="card-body">
+                <h2 class="card-title font-russo">🏆 Ranking Geral - Temporada 2025</h2>
+
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra">
+                        <thead>
+                            <tr>
+                                <th class="font-russo">Pos</th>
+                                <th class="font-russo">Time</th>
+                                <th class="font-russo">Cartoleiro</th>
+                                <th class="font-russo">Pontos</th>
+                                <th class="font-russo">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="hover">
+                                <th>1</th>
+                                <td class="font-inter font-semibold">Time Campeão FC</td>
+                                <td class="font-inter">João Silva</td>
+                                <td class="font-mono text-success">1.234,56</td>
+                                <td><span class="badge badge-success">Ativo</span></td>
+                            </tr>
+                            <tr class="hover">
+                                <th>2</th>
+                                <td class="font-inter font-semibold">Cartola Master</td>
+                                <td class="font-inter">Maria Santos</td>
+                                <td class="font-mono text-success">1.187,89</td>
+                                <td><span class="badge badge-success">Ativo</span></td>
+                            </tr>
+                            <tr class="hover">
+                                <th>3</th>
+                                <td class="font-inter font-semibold">Só Craque FC</td>
+                                <td class="font-inter">Pedro Costa</td>
+                                <td class="font-mono text-success">1.156,34</td>
+                                <td><span class="badge badge-success">Ativo</span></td>
+                            </tr>
+                            <tr class="hover">
+                                <th>4</th>
+                                <td class="font-inter font-semibold">Dream Team</td>
+                                <td class="font-inter">Ana Oliveira</td>
+                                <td class="font-mono text-warning">1.098,45</td>
+                                <td><span class="badge badge-warning">Pendente</span></td>
+                            </tr>
+                            <tr class="hover">
+                                <th>5</th>
+                                <td class="font-inter font-semibold">Resenha FC</td>
+                                <td class="font-inter">Carlos Lima</td>
+                                <td class="font-mono text-error">987,23</td>
+                                <td><span class="badge badge-error">Inadimplente</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Componentes diversos -->
+        <div class="divider font-russo text-xl">Componentes Úteis</div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+            <!-- Loading States -->
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body items-center text-center">
+                    <h3 class="card-title text-sm">Loading</h3>
+                    <div class="flex gap-3">
+                        <span class="loading loading-spinner loading-xs"></span>
+                        <span class="loading loading-spinner loading-sm"></span>
+                        <span class="loading loading-spinner loading-md"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Badges -->
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body items-center text-center">
+                    <h3 class="card-title text-sm">Badges</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <div class="badge badge-primary">Primary</div>
+                        <div class="badge badge-success">Success</div>
+                        <div class="badge badge-warning">Warning</div>
+                        <div class="badge badge-error">Error</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body items-center text-center">
+                    <h3 class="card-title text-sm">Alerts</h3>
+                    <div class="alert alert-success alert-sm">
+                        <span class="text-xs">Sucesso!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body items-center text-center">
+                    <h3 class="card-title text-sm">Stats</h3>
+                    <div class="stat">
+                        <div class="stat-value font-mono text-2xl">89%</div>
+                        <div class="stat-desc text-xs">Taxa aprovação</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas do POC -->
+        <div class="stats stats-vertical lg:stats-horizontal shadow w-full bg-base-200 mb-8">
+            <div class="stat">
+                <div class="stat-figure text-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Redução de CSS</div>
+                <div class="stat-value text-success font-mono">-53%</div>
+                <div class="stat-desc">Classes no código</div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-figure text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Componentes</div>
+                <div class="stat-value text-primary font-mono">60+</div>
+                <div class="stat-desc">Disponíveis no daisyUI</div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-figure text-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Dark Mode</div>
+                <div class="stat-value text-secondary font-mono">100%</div>
+                <div class="stat-desc">Nativo e automático</div>
+            </div>
+        </div>
+
+        <!-- Footer com decisão -->
+        <div class="card bg-gradient-to-r from-primary to-secondary text-primary-content shadow-2xl">
+            <div class="card-body text-center">
+                <h2 class="card-title justify-center text-3xl font-russo mb-4">
+                    🎯 Decisão: Aprovar POC?
+                </h2>
+                <p class="font-inter text-lg mb-6">
+                    Com base nos exemplos acima, o daisyUI demonstra:
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-base-100 bg-opacity-20 rounded-lg p-4">
+                        <div class="text-4xl mb-2">✅</div>
+                        <div class="font-bold">Código Limpo</div>
+                        <div class="text-sm opacity-80">Menos classes, mais semântica</div>
+                    </div>
+                    <div class="bg-base-100 bg-opacity-20 rounded-lg p-4">
+                        <div class="text-4xl mb-2">🎨</div>
+                        <div class="font-bold">Consistência</div>
+                        <div class="text-sm opacity-80">Design system unificado</div>
+                    </div>
+                    <div class="bg-base-100 bg-opacity-20 rounded-lg p-4">
+                        <div class="text-4xl mb-2">⚡</div>
+                        <div class="font-bold">Produtividade</div>
+                        <div class="text-sm opacity-80">Componentes prontos</div>
+                    </div>
+                </div>
+                <div class="card-actions justify-center gap-4">
+                    <button class="btn btn-success btn-lg gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Aprovar Implementação
+                    </button>
+                    <button class="btn btn-outline btn-lg">
+                        📊 Ver Métricas Completas
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer footer-center p-10 bg-base-200 text-base-content rounded mt-12">
+        <div>
+            <p class="font-russo text-xl">⚽ Super Cartola Manager</p>
+            <p class="font-inter">POC daisyUI - Desenvolvido com ❤️ e ⚡</p>
+            <p class="font-mono text-sm opacity-60">
+                daisyUI v4.12 | Tailwind CSS v3 | 2026
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
