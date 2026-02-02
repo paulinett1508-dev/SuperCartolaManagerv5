@@ -102,14 +102,20 @@
                                     <span>Criar Nova Liga</span>
                                 </a>
                             </li>
-                        </ul>
-                        <div class="sidebar-submenu-divider"></div>
-                        <!-- Sub-accordion: Gerenciar Ligas com Temporadas -->
-                        <div class="sidebar-sub-accordion" data-sub-accordion="gerenciar-ligas">
-                            <div class="sidebar-sub-accordion-header">
-                                <div class="sidebar-sub-accordion-title">
+                            <li>
+                                <a href="gerenciar.html" class="sidebar-accordion-item" data-page="gerenciar.html">
                                     <span class="material-icons">tune</span>
                                     <span>Gerenciar Ligas</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="sidebar-submenu-divider"></div>
+                        <!-- Sub-accordion: Temporadas -->
+                        <div class="sidebar-sub-accordion" data-sub-accordion="temporadas">
+                            <div class="sidebar-sub-accordion-header">
+                                <div class="sidebar-sub-accordion-title">
+                                    <span class="material-icons">calendar_today</span>
+                                    <span>Temporadas</span>
                                 </div>
                                 <span class="material-icons sidebar-sub-accordion-arrow">expand_more</span>
                             </div>
@@ -148,6 +154,18 @@
                                 <a href="historico-acessos.html" class="sidebar-accordion-item" data-page="historico-acessos.html">
                                     <span class="material-icons">history</span>
                                     <span>Histórico de Acessos</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="participante-dashboard.html" class="sidebar-accordion-item" target="_blank">
+                                    <span class="material-icons">dashboard</span>
+                                    <span>Área do Participante</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="sidebar-accordion-item" onclick="abrirAdicionarParticipanteSidebar(event)">
+                                    <span class="material-icons">group_add</span>
+                                    <span>Adicionar Participante</span>
                                 </a>
                             </li>
                         </ul>
@@ -203,9 +221,9 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#" class="sidebar-accordion-item" id="sidebarConsolidarRodada" onclick="abrirConsolidarRodadaSidebar(event)">
-                                    <span class="material-icons">sync</span>
-                                    <span>Consolidar Rodada</span>
+                                <a href="gerenciar.html" class="sidebar-accordion-item" data-page="gerenciar.html">
+                                    <span class="material-icons">widgets</span>
+                                    <span>Gerenciar Módulos</span>
                                 </a>
                             </li>
                             <li>
@@ -215,15 +233,9 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#" class="sidebar-accordion-item" onclick="abrirAdicionarParticipanteSidebar(event)">
-                                    <span class="material-icons">group_add</span>
-                                    <span>Adicionar Participante</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="gerenciar.html" class="sidebar-accordion-item" data-page="gerenciar.html">
-                                    <span class="material-icons">widgets</span>
-                                    <span>Gerenciar Módulos</span>
+                                <a href="#" class="sidebar-accordion-item" id="sidebarConsolidarRodada" onclick="abrirConsolidarRodadaSidebar(event)">
+                                    <span class="material-icons">sync</span>
+                                    <span>Consolidar Rodada</span>
                                 </a>
                             </li>
                         </ul>
@@ -231,28 +243,28 @@
                 </div>
 
                 <!-- ========================================
-                     MONITORAMENTO
+                     ANALYTICS
                      ======================================== -->
-                <div class="sidebar-accordion" data-accordion="monitoramento">
-                    <div class="sidebar-accordion-header" data-tooltip="Monitoramento">
+                <div class="sidebar-accordion" data-accordion="analytics">
+                    <div class="sidebar-accordion-header" data-tooltip="Analytics">
                         <div class="sidebar-accordion-title">
-                            <span class="material-icons">monitoring</span>
-                            <span>Monitoramento</span>
+                            <span class="material-icons">analytics</span>
+                            <span>Analytics</span>
                         </div>
                         <span class="material-icons sidebar-accordion-arrow">expand_more</span>
                     </div>
                     <div class="sidebar-accordion-content">
                         <ul class="sidebar-accordion-menu">
                             <li>
-                                <a href="dashboard-saude.html" class="sidebar-accordion-item" data-page="dashboard-saude.html">
-                                    <span class="material-icons">health_and_safety</span>
-                                    <span>Saúde do Sistema</span>
+                                <a href="api-football-analytics.html" class="sidebar-accordion-item" data-page="api-football-analytics.html">
+                                    <span class="material-icons">api</span>
+                                    <span>APIs</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="api-football-analytics.html" class="sidebar-accordion-item" data-page="api-football-analytics.html">
-                                    <span class="material-icons">analytics</span>
-                                    <span>API Football</span>
+                                <a href="dashboard-saude.html" class="sidebar-accordion-item" data-page="dashboard-saude.html">
+                                    <span class="material-icons">health_and_safety</span>
+                                    <span>Saúde</span>
                                 </a>
                             </li>
                         </ul>
@@ -260,13 +272,13 @@
                 </div>
 
                 <!-- ========================================
-                     ADMINISTRAÇÃO (Super Admin Only)
+                     ADMIN
                      ======================================== -->
                 <div class="sidebar-accordion sidebar-admin-section" data-accordion="administracao" id="accordionAdmin" style="display: none;">
-                    <div class="sidebar-accordion-header" data-tooltip="Administração">
+                    <div class="sidebar-accordion-header" data-tooltip="Admin">
                         <div class="sidebar-accordion-title">
-                            <span class="material-icons">shield</span>
-                            <span>Administração</span>
+                            <span class="material-icons">admin_panel_settings</span>
+                            <span>Admin</span>
                         </div>
                         <span class="material-icons sidebar-accordion-arrow">expand_more</span>
                     </div>
@@ -274,7 +286,7 @@
                         <ul class="sidebar-accordion-menu">
                             <li>
                                 <a href="admin-gestao.html" class="sidebar-accordion-item" data-page="admin-gestao.html">
-                                    <span class="material-icons">admin_panel_settings</span>
+                                    <span class="material-icons">shield</span>
                                     <span>Gestão de Admins</span>
                                 </a>
                             </li>
@@ -604,9 +616,9 @@
                         'auditoria-extratos.html': 'financeiro',
                         // Operações
                         'ferramentas-rodadas.html': 'operacoes',
-                        // Monitoramento
-                        'dashboard-saude.html': 'monitoramento',
-                        'api-football-analytics.html': 'monitoramento',
+                        // Analytics
+                        'dashboard-saude.html': 'analytics',
+                        'api-football-analytics.html': 'analytics',
                         // Administração
                         'admin-gestao.html': 'administracao'
                     };
