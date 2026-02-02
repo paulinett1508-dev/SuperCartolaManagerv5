@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v5.2 (Detecção Dinâmica de Temporada)
+// PARTICIPANTE-TOP10.JS - v5.3 (Fix temporada propagada corretamente)
 // =====================================================================
+// ✅ v5.3: FIX CRÍTICO - Usar temporadaParaBusca (do detectarTemporadaStatus) em vez de TEMPORADA_ATUAL
 // ✅ v5.2: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v5.1: Detecção automática de temporada passada (remove hardcode 2025)
 // ✅ v5.0: SaaS Dinamico - configs via endpoint /api/ligas/:id/configuracoes
@@ -8,7 +9,7 @@
 // ✅ v4.7: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v4.5: Destaque visual para os 10 primeiros (verdadeiro TOP 10)
 
-if (window.Log) Log.info("[PARTICIPANTE-TOP10] Carregando módulo v5.2...");
+if (window.Log) Log.info("[PARTICIPANTE-TOP10] Carregando módulo v5.3...");
 
 // =====================================================================
 // CONFIGURAÇÃO DINÂMICA DO CAMPEONATO
@@ -133,7 +134,7 @@ export async function inicializarTop10Participante({
     timeId,
 }) {
     if (window.Log)
-        Log.info("[PARTICIPANTE-TOP10] 🚀 Inicializando v5.2...", {
+        Log.info("[PARTICIPANTE-TOP10] 🚀 Inicializando v5.3...", {
             ligaId,
             timeId,
         });
@@ -143,19 +144,34 @@ export async function inicializarTop10Participante({
 
     meuTimeIdGlobal = timeId;
 
+    // ✅ v5.0: Obter valores dinamicamente da config (em paralelo)
+    const valoresBonusOnusPromise = getValoresBonusOnusAsync(ligaId);
+    let valoresBonusOnus = valoresBonusOnusPadrao; // fallback inicial
+
+    // ✅ v5.3: Detectar temporada correta ANTES de ler cache (alinhado com admin v3.4)
+    let temporadaParaCache = TEMPORADA_ATUAL; // fallback
+    let statusMercadoCache = null; // reusar na fase 2
+    try {
+        const resStatus = await fetch("/api/cartola/mercado/status");
+        if (resStatus.ok) {
+            statusMercadoCache = await resStatus.json();
+            const resultado = detectarTemporadaStatus(statusMercadoCache);
+            temporadaParaCache = resultado.temporadaParaBusca;
+        }
+    } catch (e) {
+        if (window.Log)
+            Log.warn("[PARTICIPANTE-TOP10] Falha ao detectar temporada para cache, usando fallback");
+    }
+
     // ✅ v4.7: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
     const cache = window.ParticipanteCache;
     let usouCache = false;
     let dadosCache = null;
 
-    // ✅ v5.0: Obter valores dinamicamente da config (em paralelo)
-    const valoresBonusOnusPromise = getValoresBonusOnusAsync(ligaId);
-    let valoresBonusOnus = valoresBonusOnusPadrao; // fallback inicial
-
     // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
     if (cache && window.OfflineCache) {
         try {
-            const cacheKey = `${ligaId}_${TEMPORADA_ATUAL}`;
+            const cacheKey = `${ligaId}_${temporadaParaCache}`;
             const top10Cache = await window.OfflineCache.get('top10', cacheKey, true);
             if (top10Cache && top10Cache.mitos && top10Cache.micos) {
                 usouCache = true;
@@ -166,7 +182,7 @@ export async function inicializarTop10Participante({
                     Log.info(`[PARTICIPANTE-TOP10] ⚡ Cache IndexedDB: ${top10Cache.mitos.length} mitos, ${top10Cache.micos.length} micos`);
 
                 renderizarTabelasTop10(top10Cache.mitos, top10Cache.micos, timeId, valoresBonusOnus);
-                await renderizarCardResumo(top10Cache.mitos, top10Cache.micos, timeId, valoresBonusOnus, ligaId);
+                await renderizarCardResumo(top10Cache.mitos, top10Cache.micos, timeId, valoresBonusOnus, ligaId, temporadaParaCache);
             }
         } catch (e) {
             if (window.Log) Log.warn("[PARTICIPANTE-TOP10] ⚠️ Erro ao ler cache:", e);
@@ -182,21 +198,16 @@ export async function inicializarTop10Participante({
     }
 
     try {
-        // ✅ v5.2: Detecção dinâmica de temporada (alinhado com admin v3.4)
+        // ✅ v5.3: Reusar detecção de temporada já feita acima (evita fetch duplicado)
         let ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO; // fallback
+        let temporadaParaBusca = temporadaParaCache; // já detectado acima
         let aguardandoDados = false;
 
-        try {
-            const resStatus = await fetch("/api/cartola/mercado/status");
-            if (resStatus.ok) {
-                const status = await resStatus.json();
-                const resultado = detectarTemporadaStatus(status);
-                ultimaRodadaCompleta = resultado.ultimaRodadaCompleta;
-                aguardandoDados = resultado.aguardandoDados || false;
-            }
-        } catch (e) {
-            if (window.Log)
-                Log.warn("[PARTICIPANTE-TOP10] Falha ao buscar mercado, usando fallback rodada 38");
+        if (statusMercadoCache) {
+            const resultado = detectarTemporadaStatus(statusMercadoCache);
+            ultimaRodadaCompleta = resultado.ultimaRodadaCompleta;
+            temporadaParaBusca = resultado.temporadaParaBusca;
+            aguardandoDados = resultado.aguardandoDados || false;
         }
 
         // ✅ v5.2: Se aguardandoDados, mostrar estado vazio informativo
@@ -209,7 +220,7 @@ export async function inicializarTop10Participante({
         }
 
         // FASE 2: ATUALIZAÇÃO EM BACKGROUND (Fetch API)
-        const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${ultimaRodadaCompleta}&temporada=${TEMPORADA_ATUAL}`;
+        const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${ultimaRodadaCompleta}&temporada=${temporadaParaBusca}`;
         if (window.Log)
             Log.info("[PARTICIPANTE-TOP10] 📡 Buscando API:", cacheUrl);
 
@@ -232,7 +243,7 @@ export async function inicializarTop10Participante({
         if (mitos.length === 0 || micos.length === 0) {
             if (window.Log)
                 Log.info("[PARTICIPANTE-TOP10] 📊 Calculando MITOS/MICOS...");
-            const resultado = await calcularMitosMicos(ligaId, ultimaRodadaCompleta);
+            const resultado = await calcularMitosMicos(ligaId, ultimaRodadaCompleta, temporadaParaBusca);
             mitos = resultado.mitos;
             micos = resultado.micos;
         }
@@ -249,7 +260,7 @@ export async function inicializarTop10Participante({
         // ✅ v4.7: Salvar no IndexedDB para próxima visita
         if (window.OfflineCache && mitos.length > 0) {
             try {
-                const cacheKey = `${ligaId}_${TEMPORADA_ATUAL}`;
+                const cacheKey = `${ligaId}_${temporadaParaBusca}`;
                 await window.OfflineCache.set('top10', cacheKey, { mitos, micos });
                 if (window.Log) Log.info("[PARTICIPANTE-TOP10] 💾 Cache IndexedDB atualizado");
             } catch (e) {
@@ -265,7 +276,7 @@ export async function inicializarTop10Participante({
 
         if (dadosMudaram) {
             renderizarTabelasTop10(mitos, micos, timeId, valoresBonusOnus);
-            await renderizarCardResumo(mitos, micos, timeId, valoresBonusOnus, ligaId);
+            await renderizarCardResumo(mitos, micos, timeId, valoresBonusOnus, ligaId, temporadaParaBusca);
             if (usouCache && window.Log) {
                 Log.info("[PARTICIPANTE-TOP10] 🔄 Re-renderizado com dados frescos");
             }
@@ -289,14 +300,14 @@ window.inicializarTop10Participante = inicializarTop10Participante;
 // =====================================================================
 // CALCULAR MITOS/MICOS (FALLBACK)
 // =====================================================================
-async function calcularMitosMicos(ligaId, rodadaAtual) {
+async function calcularMitosMicos(ligaId, rodadaAtual, temporada = null) {
     const mitos = [];
     const micos = [];
 
     try {
-        // ✅ v9.0: Passar temporada para segregar dados por ano
-        const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
-        const response = await fetch(`/api/ligas/${ligaId}/top10?temporada=${temporada}`);
+        // ✅ v5.3: Usar temporada passada como parâmetro (propagada do detectarTemporadaStatus)
+        const temporadaFinal = temporada || window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const response = await fetch(`/api/ligas/${ligaId}/top10?temporada=${temporadaFinal}`);
         if (!response.ok) return { mitos: [], micos: [] };
 
         const dados = await response.json();
@@ -555,7 +566,7 @@ function gerarLinhaTabela(
 // =====================================================================
 // CARD RESUMO DESEMPENHO (MITO/MICO = 1º/Último da rodada)
 // =====================================================================
-async function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus, ligaId) {
+async function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus, ligaId, temporada = null) {
     const card = document.getElementById("top10ResumoCard");
     if (!card) return;
 
@@ -566,7 +577,7 @@ async function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus, l
     let countMicos = 0;
     let totalOnus = 0;
 
-    const rodadas = await obterRodadasParaResumo(ligaId);
+    const rodadas = await obterRodadasParaResumo(ligaId, temporada);
     if (rodadas && rodadas.length > 0) {
         const resultado = calcularMitosMicosPorRodada(rodadas, meuTimeIdNum);
         countMitos = resultado.countMitos;
@@ -630,11 +641,11 @@ async function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus, l
         );
 }
 
-async function obterRodadasParaResumo(ligaId) {
+async function obterRodadasParaResumo(ligaId, temporadaParam = null) {
     if (!ligaId) return [];
 
     const cache = window.ParticipanteCache;
-    const temporada = TEMPORADA_ATUAL;
+    const temporada = temporadaParam || TEMPORADA_ATUAL;
 
     if (cache && cache.getRodadasAsync) {
         return cache.getRodadasAsync(ligaId, async () => {
@@ -755,5 +766,5 @@ function mostrarEstadoVazio(show) {
 
 if (window.Log)
     Log.info(
-        "[PARTICIPANTE-TOP10] Módulo v5.2 carregado (detecção dinâmica de temporada)",
+        "[PARTICIPANTE-TOP10] Módulo v5.3 carregado (temporada propagada corretamente do detectarTemporadaStatus)",
     );
