@@ -298,6 +298,7 @@ class EditarLigaManager {
                         index: index,
                         error: timeData.error,
                         status: p.status, // 'ativo', 'renovado', 'novo', etc.
+                        premium: !!p.premium,
                     };
                 }),
             );
@@ -384,6 +385,14 @@ class EditarLigaManager {
                          alt="Escudo"
                          style="display: ${time.timeDoCoracao ? "block" : "none"};"
                          onerror="this.src='/escudos/placeholder.png';">
+                </td>
+                <td class="col-premium">
+                    <label class="toggle-switch-mini" title="${time.premium ? 'Premium ativo' : 'Premium inativo'}">
+                        <input type="checkbox"
+                               ${time.premium ? "checked" : ""}
+                               onchange="editarLiga.togglePremium(${time.id}, this.checked)">
+                        <span class="toggle-slider-mini"></span>
+                    </label>
                 </td>
                 <td class="col-acoes">
                     <div class="action-buttons">
@@ -593,6 +602,29 @@ class EditarLigaManager {
             await this.carregarTimes();
         } catch (err) {
             this.showError(`Erro ao remover time: ${err.message}`);
+        }
+    }
+
+    async togglePremium(timeId, premium) {
+        try {
+            const res = await fetch(
+                `/api/ligas/${this.ligaId}/participantes/${timeId}/premium`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ premium }),
+                },
+            );
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.erro || res.statusText);
+            }
+
+            this.showSuccess(`Premium ${premium ? "ativado" : "desativado"} com sucesso!`);
+        } catch (err) {
+            this.showError(`Erro ao alterar premium: ${err.message}`);
+            await this.carregarTimes();
         }
     }
 

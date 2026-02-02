@@ -203,6 +203,50 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
   }
 });
 
+// Rota para toggle premium de participante
+router.patch("/:ligaId/participantes/:timeId/premium", async (req, res) => {
+  try {
+    const { ligaId, timeId } = req.params;
+    const { premium } = req.body;
+
+    if (typeof premium !== "boolean") {
+      return res.status(400).json({ erro: "Campo 'premium' deve ser boolean" });
+    }
+
+    const liga = await Liga.findById(ligaId);
+    if (!liga) {
+      return res.status(404).json({ erro: "Liga não encontrada" });
+    }
+
+    const timeIdNum = Number(timeId);
+    const participante = liga.participantes?.find(
+      (p) => Number(p.time_id) === timeIdNum,
+    );
+
+    if (!participante) {
+      return res.status(404).json({ erro: "Participante não encontrado nesta liga" });
+    }
+
+    participante.premium = premium;
+    await liga.save();
+
+    console.log(`[LIGAS] Premium ${premium ? 'ativado' : 'desativado'} para time ${timeId} na liga ${ligaId}`);
+
+    res.json({
+      success: true,
+      mensagem: `Premium ${premium ? "ativado" : "desativado"} com sucesso`,
+      participante: {
+        time_id: participante.time_id,
+        nome_cartola: participante.nome_cartola,
+        premium: participante.premium,
+      },
+    });
+  } catch (error) {
+    console.error("[LIGAS] Erro ao atualizar premium:", error);
+    res.status(500).json({ erro: "Erro ao atualizar premium: " + error.message });
+  }
+});
+
 // Rota: Buscar ranking da liga
 // ✅ v9.0: Filtra por temporada + participantes inativos
 router.get("/:id/ranking", async (req, res) => {
@@ -852,6 +896,7 @@ router.get("/:id/participantes", async (req, res) => {
           status: ativo ? "ativo" : "inativo",
           ativo,
           rodada_desistencia: inativoData?.rodada_inativo || null,
+          premium: !!p.premium,
         };
       });
 
@@ -886,6 +931,7 @@ router.get("/:id/participantes", async (req, res) => {
           ativo: insc.status === "renovado" || insc.status === "novo",
           pagou_inscricao: insc.pagou_inscricao || false,
           saldo_transferido: insc.saldo_transferido || 0,
+          premium: !!participanteLiga?.premium,
         };
       });
 
@@ -940,6 +986,7 @@ router.get("/:id/participantes", async (req, res) => {
               status: ativo ? "ativo" : "inativo",
               ativo,
               rodada_desistencia: inativoData?.rodada_inativo || null,
+              premium: !!p.premium,
             };
           });
 
@@ -970,6 +1017,7 @@ router.get("/:id/participantes", async (req, res) => {
             ativo: insc.status === "renovado" || insc.status === "novo",
             pagou_inscricao: insc.pagou_inscricao || false,
             saldo_transferido: insc.saldo_transferido || 0,
+            premium: !!participanteLiga?.premium,
           };
         });
 
