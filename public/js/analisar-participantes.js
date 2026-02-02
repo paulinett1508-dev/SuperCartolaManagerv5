@@ -429,7 +429,7 @@
       <div class="modal-content modal-dump-content">
         <div style="text-align:center;padding:40px;">
           <div class="loading-spinner"></div>
-          <div style="color:#888;font-size:0.85rem;margin-top:8px;">Buscando dados do Data Lake...</div>
+          <div style="color:#9ca3af;font-size:0.85rem;margin-top:8px;">Buscando dados do Data Lake...</div>
         </div>
       </div>
     `;
@@ -462,7 +462,7 @@
     if (!data.success || !data.dump_atual) {
       content.innerHTML = `
         <div class="dl-empty-state">
-          <span class="material-icons" style="font-size:64px;color:#ccc;">cloud_off</span>
+          <span class="material-icons" style="font-size:64px;color:#4b5563;">cloud_off</span>
           <h4>Nenhum dump encontrado</h4>
           <p>Os dados sao coletados durante o processamento de rodadas. Use o botao abaixo para buscar dados da API Cartola.</p>
           <button class="btn-sync-dump" data-time-id="${timeId}">
@@ -523,7 +523,7 @@
         </button>
         <div class="dl-header-label">${rodadaAtual ? 'Rodada ' + rodadaAtual : 'Dados do Time'}</div>
         <div class="dl-team-badge">
-          ${escudo ? `<img src="${escapeHtml(escudo)}" onerror="this.style.display='none'" alt="" />` : '<span class="material-icons" style="font-size:40px;color:#ccc;">shield</span>'}
+          ${escudo ? `<img src="${escapeHtml(escudo)}" onerror="this.style.display='none'" alt="" />` : '<span class="material-icons" style="font-size:40px;color:#4b5563;">shield</span>'}
           ${fotoPerfil ? `<img class="dl-foto-perfil" src="${escapeHtml(fotoPerfil)}" onerror="this.style.display='none'" alt="" />` : ''}
         </div>
         ${assinante ? '<div class="dl-pro-badge">PRO</div>' : ''}
@@ -664,7 +664,7 @@
         html += `
           <div class="dl-bench-player">
             <div class="dl-bench-jersey" style="background:${cor};position:relative;">
-              <img class="dl-jersey-badge" src="/escudos/${a.clube_id}.png" onerror="this.style.display='none'" style="position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:50%;border:1px solid #ddd;background:#fff;object-fit:contain;" />
+              <img class="dl-jersey-badge" src="/escudos/${a.clube_id}.png" onerror="this.style.display='none'" style="position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:50%;border:1px solid #374151;background:#252525;object-fit:contain;" />
             </div>
             <div class="dl-bench-info">
               <div class="dl-bench-name">${escapeHtml(a.apelido)}</div>
@@ -782,7 +782,7 @@
     content.innerHTML = `
       <div style="text-align:center;padding:40px;">
         <div class="loading-spinner"></div>
-        <div style="color:#888;font-size:0.85rem;margin-top:8px;">Carregando Rodada ${rodada}...</div>
+        <div style="color:#9ca3af;font-size:0.85rem;margin-top:8px;">Carregando Rodada ${rodada}...</div>
       </div>
     `;
 
@@ -835,7 +835,7 @@
     content.innerHTML = `
       <div style="text-align:center;padding:40px;">
         <div class="loading-spinner"></div>
-        <div style="color:#888;font-size:0.85rem;margin-top:8px;">Sincronizando Rodada ${rodada} com API Cartola...</div>
+        <div style="color:#9ca3af;font-size:0.85rem;margin-top:8px;">Sincronizando Rodada ${rodada} com API Cartola...</div>
       </div>
     `;
 
@@ -877,7 +877,7 @@
     content.innerHTML = `
       <div style="text-align:center;padding:40px;">
         <div class="loading-spinner"></div>
-        <div style="color:#888;font-size:0.85rem;margin-top:8px;">Sincronizando com API Cartola...</div>
+        <div style="color:#9ca3af;font-size:0.85rem;margin-top:8px;">Sincronizando com API Cartola...</div>
       </div>
     `;
 
