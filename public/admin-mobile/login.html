@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1e293b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>Login - Admin Mobile</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/admin-mobile/css/dark-mode.css">
+  <link rel="stylesheet" href="/admin-mobile/css/admin-mobile.css">
+  <link rel="stylesheet" href="/admin-mobile/css/components.css">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/admin-mobile/manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="/admin-mobile/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" href="/admin-mobile/icons/icon-192x192.png">
+
+  <style>
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-lg);
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    }
+
+    .login-logo {
+      font-size: 64px;
+      margin-bottom: var(--spacing-md);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    .login-title {
+      font-family: var(--font-russo);
+      font-size: 32px;
+      text-align: center;
+      margin-bottom: var(--spacing-xs);
+      background: linear-gradient(135deg, #3b82f6, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .login-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: var(--spacing-2xl);
+    }
+
+    .login-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(59, 130, 246, 0.2);
+      color: var(--accent-primary);
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .login-form {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-footer {
+      margin-top: var(--spacing-2xl);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .error-message {
+      margin-bottom: var(--spacing-md);
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-logo">🏆</div>
+    <div class="login-badge">Modo Admin</div>
+    <h1 class="login-title">SUPER CARTOLA<br>MANAGER</h1>
+    <p class="login-subtitle">Gerencie suas ligas pelo celular</p>
+
+    <div id="error-container"></div>
+
+    <form class="login-form" id="loginForm">
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          class="form-input"
+          placeholder="seu@email.com"
+          required
+          autocomplete="email"
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="senha">Senha</label>
+        <input
+          type="password"
+          id="senha"
+          class="form-input"
+          placeholder="••••••••"
+          required
+          autocomplete="current-password"
+        >
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="loginButton">
+        <span id="loginButtonText">Entrar como Admin</span>
+        <div id="loginButtonSpinner" class="spinner" style="display: none; width: 20px; height: 20px;"></div>
+      </button>
+
+      <div class="divider-text" style="margin-top: var(--spacing-lg);">ou</div>
+
+      <a href="/auth/replit" class="btn btn-secondary btn-block">
+        <span>🔐</span>
+        Entrar com Replit Auth
+      </a>
+    </form>
+
+    <div class="login-footer">
+      <p>App Mobile Admin v1.0.0</p>
+      <p>© 2026 Super Cartola Manager</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { login, checkAuth } from './js/auth.js';
+
+    // Verifica se já está autenticado
+    (async () => {
+      const token = localStorage.getItem('admin_token');
+      if (token) {
+        const isValid = await checkAuth();
+        if (isValid) {
+          window.location.href = '/admin-mobile/';
+          return;
+        }
+      }
+    })();
+
+    // Form submit
+    const loginForm = document.getElementById('loginForm');
+    const loginButton = document.getElementById('loginButton');
+    const loginButtonText = document.getElementById('loginButtonText');
+    const loginButtonSpinner = document.getElementById('loginButtonSpinner');
+    const errorContainer = document.getElementById('error-container');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+
+      // Loading state
+      loginButton.disabled = true;
+      loginButtonText.textContent = 'Entrando...';
+      loginButtonSpinner.style.display = 'block';
+      errorContainer.innerHTML = '';
+
+      try {
+        const success = await login(email, senha);
+
+        if (success) {
+          // Redireciona para dashboard
+          window.location.href = '/admin-mobile/';
+        } else {
+          throw new Error('Credenciais inválidas');
+        }
+      } catch (error) {
+        console.error('Erro no login:', error);
+        errorContainer.innerHTML = `
+          <div class="error-message">
+            ❌ ${error.message || 'Erro ao fazer login. Verifique suas credenciais.'}
+          </div>
+        `;
+      } finally {
+        // Reset button
+        loginButton.disabled = false;
+        loginButtonText.textContent = 'Entrar como Admin';
+        loginButtonSpinner.style.display = 'none';
+      }
+    });
+
+    // Registra Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/admin-mobile/service-worker.js')
+        .then(reg => console.log('Service Worker registered:', reg.scope))
+        .catch(err => console.error('Service Worker registration failed:', err));
+    }
+  </script>
+</body>
+</html>

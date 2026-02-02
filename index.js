@@ -178,6 +178,7 @@ import adminAuditoriaRoutes from "./routes/admin-auditoria-routes.js";
 import adminGestaoRoutes from "./routes/admin-gestao-routes.js";
 import systemHealthRoutes from "./routes/system-health-routes.js";
 import adminClienteAuthRoutes from "./routes/admin-cliente-auth.js";
+import adminMobileRoutes from "./routes/admin-mobile-routes.js";
 console.log("[DEBUG] adminAuthRoutes type:", typeof adminAuthRoutes);
 console.log(
   "[DEBUG] adminAuthRoutes.stack length:",
@@ -406,6 +407,10 @@ console.log("[SERVER] 👁️ Rota de usuários online registrada");
 // 🏥 Dashboard de Saúde do Sistema (admin)
 app.use("/api/admin/system-health", systemHealthRoutes);
 console.log("[SERVER] 🏥 Rota de dashboard de saúde registrada");
+
+// 📱 Admin Mobile - App PWA para administradores
+app.use("/api/admin/mobile", adminMobileRoutes);
+console.log("[SERVER] 📱 Rotas de Admin Mobile registradas");
 
 // 🔧 Modo Manutenção do App
 app.use("/api/admin", manutencaoRoutes);

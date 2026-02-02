@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1e293b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>Admin Mobile - Super Cartola Manager</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/admin-mobile/css/dark-mode.css">
+  <link rel="stylesheet" href="/admin-mobile/css/admin-mobile.css">
+  <link rel="stylesheet" href="/admin-mobile/css/components.css">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/admin-mobile/manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="/admin-mobile/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" href="/admin-mobile/icons/icon-192x192.png">
+</head>
+<body>
+  <!-- App Container -->
+  <div id="app">
+    <!-- Page Header (dinamicamente renderizado) -->
+    <header id="page-header" class="page-header" style="display: none;">
+      <h1 id="page-title" class="page-title">Dashboard</h1>
+    </header>
+
+    <!-- Page Content (SPA) -->
+    <main id="page-content" class="page-content">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a href="#/" class="bottom-nav-item active" data-route="/">
+        <div class="bottom-nav-icon">🏠</div>
+        <div class="bottom-nav-label">Início</div>
+      </a>
+      <a href="#/financeiro" class="bottom-nav-item" data-route="/financeiro">
+        <div class="bottom-nav-icon">💰</div>
+        <div class="bottom-nav-label">Financeiro</div>
+      </a>
+      <a href="#/consolidacao" class="bottom-nav-item" data-route="/consolidacao">
+        <div class="bottom-nav-icon">⚙️</div>
+        <div class="bottom-nav-label">Operações</div>
+      </a>
+      <a href="#/health" class="bottom-nav-item" data-route="/health">
+        <div class="bottom-nav-icon">🏥</div>
+        <div class="bottom-nav-label">Saúde</div>
+      </a>
+      <a href="#/profile" class="bottom-nav-item" data-route="/profile">
+        <div class="bottom-nav-icon">👤</div>
+        <div class="bottom-nav-label">Perfil</div>
+      </a>
+    </nav>
+
+    <!-- FAB (Floating Action Button) -->
+    <button id="fab" class="fab hidden">
+      <span>+</span>
+    </button>
+
+    <!-- FAB Menu -->
+    <div id="fab-menu" class="fab-menu">
+      <!-- Dinamicamente populado -->
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Modal Container -->
+  <div id="modal-container"></div>
+
+  <!-- App Script (ES6 Modules) -->
+  <script type="module" src="/admin-mobile/js/app.js"></script>
+
+  <script>
+    // Registra Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/admin-mobile/service-worker.js')
+          .then(registration => {
+            console.log('Service Worker registered:', registration.scope);
+
+            // Escuta mensagens do SW
+            navigator.serviceWorker.addEventListener('message', (event) => {
+              if (event.data && event.data.type === 'NAVIGATE') {
+                window.location.hash = event.data.url.replace('/admin-mobile', '');
+              }
+            });
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+
+    // Detecta quando app volta para foreground
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        console.log('App voltou para foreground');
+        // Dispara evento customizado para atualizar dados
+        window.dispatchEvent(new CustomEvent('app-foreground'));
+      }
+    });
+
+    // Detecta instalação do PWA
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      window.deferredPrompt = e;
+      console.log('PWA install prompt ready');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('PWA installed successfully');
+      window.deferredPrompt = null;
+    });
+  </script>
+</body>
+</html>
