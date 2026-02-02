@@ -3,7 +3,7 @@
     "mongo": {
       "command": "node",
       "args": ["mongo-server.js"],
-      "cwd": "/home/runner/workspace"
+      "cwd": "/home/user/SuperCartolaManagerv5"
     },
     "perplexity": {
       "command": "npx",

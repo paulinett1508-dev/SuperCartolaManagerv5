@@ -324,8 +324,17 @@ class ParticipanteNavigation {
      * Verifica se um módulo base foi desativado pelo admin (em manutenção)
      * Módulos opcionais desativados simplesmente não aparecem no menu.
      * Módulos base desativados aparecem opaco com "Em manutenção".
+     * v2.0: Agora também verifica modo manutenção com bloqueio pontual de módulos
      */
     isModuloEmManutencao(moduloId) {
+        // Verificar se módulo está bloqueado por modo manutenção pontual
+        if (window.participanteModulosBloqueados && Array.isArray(window.participanteModulosBloqueados)) {
+            if (window.participanteModulosBloqueados.includes(moduloId)) {
+                return true;
+            }
+        }
+
+        // Verificação original (módulos base desativados definitivamente)
         const modulosBase = ["extrato", "ranking", "rodadas", "historico"];
         if (!modulosBase.includes(moduloId)) return false;
         if (!this.modulosAtivos) return false;

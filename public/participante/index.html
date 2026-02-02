@@ -210,16 +210,35 @@
                 -webkit-font-smoothing: antialiased;
             }
 
+            /* Scrollbar personalizada com cores do time do participante */
             ::-webkit-scrollbar {
-                width: 4px;
-                height: 4px;
+                width: 5px;
+                height: 5px;
             }
             ::-webkit-scrollbar-track {
                 background: #1c1c1c;
             }
             ::-webkit-scrollbar-thumb {
-                background: #ff5c00;
-                border-radius: 2px;
+                background: linear-gradient(
+                    180deg,
+                    var(--scrollbar-cor1, #ff5c00) 0%,
+                    var(--scrollbar-cor2, #ff5c00) 100%
+                );
+                border-radius: 3px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(
+                    180deg,
+                    var(--scrollbar-cor1, #ff5c00) 20%,
+                    var(--scrollbar-cor2, #ff5c00) 80%
+                );
+                filter: brightness(1.2);
+            }
+
+            /* Firefox */
+            * {
+                scrollbar-width: thin;
+                scrollbar-color: var(--scrollbar-cor1, #ff5c00) #1c1c1c;
             }
 
             @keyframes spin {
@@ -865,7 +884,7 @@
         </div>
 
         <!-- =====================================================
-             TELA DE MANUTENÇÃO - "Calma aê!"
+             TELA DE MANUTENÇÃO - "Calma aê!" v2.0
              ===================================================== -->
         <div id="manutencaoScreen" style="display:none;position:fixed;inset:0;z-index:99999;background:#111827;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:20px;font-family:'Inter',-apple-system,sans-serif;">
             <!-- Card principal -->
@@ -873,23 +892,26 @@
                 <!-- Logo animado -->
                 <img src="/img/logo01-urubuplay.png" alt="Urubu Play" style="width:120px;height:120px;object-fit:contain;animation:manutBounce 2s ease-in-out infinite;margin-bottom:16px;border-radius:16px;">
 
-                <!-- Card com mensagem -->
-                <div style="background:#1f2937;border-radius:20px;padding:32px 24px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);border:1px solid #374151;">
-                    <h1 style="font-family:'Russo One',sans-serif;font-size:1.75rem;color:#fb923c;margin:0 0 8px;">
-                        Calma aê! 🛠️
+                <!-- Card com mensagem (customizável) -->
+                <div class="manutencao-header" style="background:linear-gradient(135deg,#f97316,#ea580c);border-radius:20px;padding:32px 24px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);border:1px solid #374151;">
+                    <!-- Imagem customizada (opcional) -->
+                    <div class="manutencao-imagem" style="display:none;"></div>
+
+                    <h1 style="font-family:'Russo One',sans-serif;font-size:1.75rem;color:white;margin:0 0 8px;">
+                        🛠️ Calma aê!
                     </h1>
-                    <p style="font-size:1.15rem;color:#d1d5db;margin:0 0 16px;line-height:1.5;">
-                        To atualizando o app 😁
+                    <p class="manutencao-mensagem" style="font-size:1.15rem;color:white;margin:0 0 16px;line-height:1.5;">
+                        Estamos aplicando melhorias no app. Voltamos em breve!
                     </p>
-                    <p style="font-size:0.9rem;color:#9ca3af;margin:0 0 24px;line-height:1.5;">
+                    <p style="font-size:0.9rem;color:rgba(255,255,255,0.8);margin:0 0 24px;line-height:1.5;">
                         Enquanto isso, veja quantos pontos você tem<br>e sua colocação. Clica aí embaixo! 👇
                     </p>
 
                     <!-- Botão -->
                     <button id="manutencaoBtnVer" onclick="window.ManutencaoScreen && ManutencaoScreen.carregarConteudo()"
-                        style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:14px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(249,115,22,0.4);font-family:'Inter',sans-serif;">
+                        style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(255,255,255,0.2);color:white;border:none;border-radius:14px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3);font-family:'Inter',sans-serif;backdrop-filter:blur(10px);">
                         <span class="material-icons" style="font-size:20px;">emoji_events</span>
-                        Ver Ranking e Última Rodada
+                        <span class="btn-text">Ver Ranking e Última Rodada</span>
                     </button>
                 </div>
 
@@ -1022,6 +1044,9 @@
 
         <!-- ✅ Botão de Atualização Manual (Temporada Encerrada) -->
         <script src="js/participante-refresh-button.js"></script>
+
+        <!-- ✅ Tabelas Esportivas (Brasileirão, Copa, etc) -->
+        <script src="js/tabelas-esportes.js"></script>
 
         <!-- ✅ Tela de Manutenção (antes do versionamento que a aciona) -->
         <script src="js/noticias-time.js"></script>

@@ -44,6 +44,55 @@ export const CLUBES = {
 };
 
 /**
+ * Cores dos clubes para personalização da UI (scrollbar, destaques)
+ * cor1 = cor primária do escudo, cor2 = cor secundária
+ * Nota: preto puro (#000) é substituído por #2a2a2a para visibilidade no dark mode
+ */
+export const CLUBES_CORES = {
+    // ─── Série A 2025/2026 ───
+    262:  { cor1: '#c4161c', cor2: '#1a1a1a' },   // Flamengo (Vermelho + Preto)
+    263:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Botafogo (Preto + Branco)
+    264:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Corinthians (Preto + Branco)
+    265:  { cor1: '#0056a8', cor2: '#e42527' },     // Bahia (Azul + Vermelho)
+    266:  { cor1: '#8b0042', cor2: '#006633' },     // Fluminense (Grená + Verde)
+    267:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Vasco (Preto + Branco)
+    275:  { cor1: '#006437', cor2: '#ffffff' },     // Palmeiras (Verde + Branco)
+    276:  { cor1: '#e42527', cor2: '#2a2a2a' },     // São Paulo (Vermelho + Preto)
+    277:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Santos (Preto + Branco)
+    280:  { cor1: '#e42527', cor2: '#ffffff' },     // Bragantino (Vermelho + Branco)
+    282:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Atlético-MG (Preto + Branco)
+    283:  { cor1: '#003399', cor2: '#ffffff' },     // Cruzeiro (Azul Royal + Branco)
+    284:  { cor1: '#0c2340', cor2: '#75c4e2' },     // Grêmio (Azul Escuro + Celeste)
+    285:  { cor1: '#e42527', cor2: '#ffffff' },     // Internacional (Vermelho + Branco)
+    286:  { cor1: '#006633', cor2: '#ffffff' },     // Juventude (Verde + Branco)
+    287:  { cor1: '#e42527', cor2: '#2a2a2a' },     // Vitória (Vermelho + Preto)
+    290:  { cor1: '#006633', cor2: '#ffffff' },     // Goiás (Verde + Branco)
+    292:  { cor1: '#e42527', cor2: '#2a2a2a' },     // Sport (Vermelho + Preto)
+    293:  { cor1: '#c4161c', cor2: '#2a2a2a' },     // Athletico-PR (Vermelho + Preto)
+    354:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Ceará (Preto + Branco)
+    356:  { cor1: '#003399', cor2: '#e42527' },     // Fortaleza (Azul + Vermelho)
+    1371: { cor1: '#006633', cor2: '#ffd700' },     // Cuiabá (Verde + Dourado)
+    2305: { cor1: '#ffd700', cor2: '#006633' },     // Mirassol (Amarelo + Verde)
+    // ─── Outros times populares ───
+    270:  { cor1: '#006633', cor2: '#ffffff' },     // Coritiba (Verde + Branco)
+    273:  { cor1: '#006633', cor2: '#ffffff' },     // América-MG (Verde + Branco)
+    274:  { cor1: '#006633', cor2: '#ffffff' },     // Chapecoense (Verde + Branco)
+    288:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Ponte Preta (Preto + Branco)
+    315:  { cor1: '#ffd700', cor2: '#2a2a2a' },     // Novorizontino (Amarelo + Preto)
+    344:  { cor1: '#e42527', cor2: '#2a2a2a' },     // Santa Cruz (Vermelho + Preto)
+    373:  { cor1: '#e42527', cor2: '#ffffff' },     // CRB (Vermelho + Branco)
+};
+
+/**
+ * Retorna as cores do clube pelo ID
+ * @param {number|string} clubeId
+ * @returns {{ cor1: string, cor2: string } | null}
+ */
+export function getCoresClubeById(clubeId) {
+    return CLUBES_CORES[Number(clubeId)] || null;
+}
+
+/**
  * Retorna o nome do clube pelo ID
  * @param {number|string} clubeId
  * @returns {string}

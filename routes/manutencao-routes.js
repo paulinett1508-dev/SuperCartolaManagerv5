@@ -11,6 +11,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import axios from "axios";
+import crypto from "crypto";
 import Liga from "../models/Liga.js";
 import Rodada from "../models/Rodada.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
@@ -19,6 +20,8 @@ import { consolidarRankingTurno } from "../services/rankingTurnoService.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CONFIG_PATH = path.join(__dirname, "..", "config", "manutencao.json");
+const TEMPLATES_PATH = path.join(__dirname, "..", "config", "manutencao-templates.json");
+const UPLOADS_DIR = path.join(__dirname, "..", "public", "uploads", "manutencao");
 
 const CARTOLA_API = "https://api.cartola.globo.com";
 const CARTOLA_HEADERS = { "User-Agent": "Super-Cartola-Manager/1.0.0", "Accept": "application/json" };
@@ -42,6 +45,25 @@ function lerEstado() {
  */
 function salvarEstado(estado) {
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(estado, null, 2), "utf-8");
+}
+
+/**
+ * Lê os templates disponíveis
+ */
+function lerTemplates() {
+    try {
+        const raw = fs.readFileSync(TEMPLATES_PATH, "utf-8");
+        return JSON.parse(raw);
+    } catch {
+        return { templates: [] };
+    }
+}
+
+/**
+ * Salva os templates
+ */
+function salvarTemplates(data) {
+    fs.writeFileSync(TEMPLATES_PATH, JSON.stringify(data, null, 2), "utf-8");
 }
 
 // GET /api/admin/manutencao - Status atual
@@ -84,12 +106,267 @@ router.post("/manutencao/desativar", verificarAdmin, (req, res) => {
         const estado = {
             ...estadoAtual,
             ativo: false,
+            desativadoEm: new Date().toISOString(),
         };
         salvarEstado(estado);
         console.log("[MANUTENCAO] Modo manutenção DESATIVADO");
         res.json({ ok: true, ...estado });
     } catch (error) {
         console.error("[MANUTENCAO] Erro ao desativar:", error);
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
+// POST /api/admin/manutencao/configurar - Configuração completa do modo manutenção
+router.post("/manutencao/configurar", verificarAdmin, (req, res) => {
+    try {
+        const {
+            ativo,
+            modo,
+            template_id,
+            customizacao,
+            controle_acesso,
+            modulos_bloqueados
+        } = req.body;
+
+        const estadoAtual = lerEstado();
+
+        // Aplicar template se informado
+        let novaConfig = { ...estadoAtual };
+
+        if (template_id) {
+            const templatesData = lerTemplates();
+            const template = templatesData.templates.find(t => t.id === template_id);
+            if (template) {
+                novaConfig.template_id = template_id;
+                novaConfig.customizacao = {
+                    titulo: template.titulo,
+                    mensagem: template.mensagem,
+                    emoji: template.emoji,
+                    imagem_url: template.imagem_url,
+                    cor_primaria: template.cor_primaria,
+                    cor_secundaria: template.cor_secundaria,
+                    gradiente: template.gradiente,
+                    mostrar_ranking: template.mostrar_ranking,
+                    mostrar_noticias: template.mostrar_noticias,
+                    mostrar_ultima_rodada: template.mostrar_ultima_rodada,
+                    icone_tipo: template.icone_tipo || "emoji"
+                };
+            }
+        }
+
+        // Sobrescrever com customizações específicas
+        if (customizacao) {
+            novaConfig.customizacao = {
+                ...novaConfig.customizacao,
+                ...customizacao
+            };
+        }
+
+        // Atualizar modo e estado
+        if (typeof ativo === 'boolean') {
+            novaConfig.ativo = ativo;
+            if (ativo) {
+                novaConfig.ativadoEm = new Date().toISOString();
+            } else {
+                novaConfig.desativadoEm = new Date().toISOString();
+            }
+        }
+
+        if (modo) {
+            novaConfig.modo = modo;
+        }
+
+        if (controle_acesso) {
+            novaConfig.controle_acesso = {
+                ...novaConfig.controle_acesso,
+                ...controle_acesso
+            };
+        }
+
+        if (modulos_bloqueados !== undefined) {
+            novaConfig.modulos_bloqueados = modulos_bloqueados;
+        }
+
+        salvarEstado(novaConfig);
+
+        console.log("[MANUTENCAO] Configuração atualizada:", {
+            ativo: novaConfig.ativo,
+            modo: novaConfig.modo,
+            template_id: novaConfig.template_id,
+            modulos_bloqueados: novaConfig.modulos_bloqueados,
+            controle_acesso: novaConfig.controle_acesso.modo_lista
+        });
+
+        res.json({ ok: true, ...novaConfig });
+    } catch (error) {
+        console.error("[MANUTENCAO] Erro ao configurar:", error);
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
+// GET /api/admin/manutencao/templates - Lista templates disponíveis
+router.get("/manutencao/templates", (req, res) => {
+    try {
+        const data = lerTemplates();
+        res.json({ ok: true, templates: data.templates || [] });
+    } catch (error) {
+        console.error("[MANUTENCAO] Erro ao listar templates:", error);
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
+// POST /api/admin/manutencao/templates/custom - Cria template customizado
+router.post("/manutencao/templates/custom", verificarAdmin, (req, res) => {
+    try {
+        const novoTemplate = req.body;
+
+        // Validação básica
+        if (!novoTemplate.id || !novoTemplate.nome) {
+            return res.status(400).json({
+                ok: false,
+                error: "Template precisa ter 'id' e 'nome'"
+            });
+        }
+
+        const data = lerTemplates();
+
+        // Verificar se ID já existe
+        const existe = data.templates.find(t => t.id === novoTemplate.id);
+        if (existe) {
+            return res.status(400).json({
+                ok: false,
+                error: "Template com este ID já existe. Use PUT para atualizar."
+            });
+        }
+
+        // Adicionar template
+        data.templates.push({
+            id: novoTemplate.id,
+            nome: novoTemplate.nome,
+            emoji: novoTemplate.emoji || "⚙️",
+            titulo: novoTemplate.titulo || "Modo Manutenção",
+            mensagem: novoTemplate.mensagem || "O app está temporariamente indisponível.",
+            cor_primaria: novoTemplate.cor_primaria || "#6b7280",
+            cor_secundaria: novoTemplate.cor_secundaria || "#4b5563",
+            gradiente: novoTemplate.gradiente || `linear-gradient(135deg, ${novoTemplate.cor_primaria || "#6b7280"} 0%, ${novoTemplate.cor_secundaria || "#4b5563"} 100%)`,
+            mostrar_ranking: novoTemplate.mostrar_ranking !== false,
+            mostrar_noticias: novoTemplate.mostrar_noticias !== false,
+            mostrar_ultima_rodada: novoTemplate.mostrar_ultima_rodada !== false,
+            imagem_url: novoTemplate.imagem_url || null,
+            icone_tipo: novoTemplate.icone_tipo || "emoji"
+        });
+
+        salvarTemplates(data);
+
+        console.log("[MANUTENCAO] Template customizado criado:", novoTemplate.id);
+        res.json({ ok: true, template: data.templates[data.templates.length - 1] });
+    } catch (error) {
+        console.error("[MANUTENCAO] Erro ao criar template:", error);
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
+// PUT /api/admin/manutencao/templates/:id - Atualiza template existente
+router.put("/manutencao/templates/:id", verificarAdmin, (req, res) => {
+    try {
+        const { id } = req.params;
+        const atualizacao = req.body;
+
+        const data = lerTemplates();
+        const index = data.templates.findIndex(t => t.id === id);
+
+        if (index === -1) {
+            return res.status(404).json({
+                ok: false,
+                error: "Template não encontrado"
+            });
+        }
+
+        // Atualizar template mantendo campos não informados
+        data.templates[index] = {
+            ...data.templates[index],
+            ...atualizacao,
+            id // Garantir que ID não muda
+        };
+
+        // Atualizar gradiente se cores foram alteradas
+        if (atualizacao.cor_primaria || atualizacao.cor_secundaria) {
+            const cor1 = atualizacao.cor_primaria || data.templates[index].cor_primaria;
+            const cor2 = atualizacao.cor_secundaria || data.templates[index].cor_secundaria;
+            data.templates[index].gradiente = `linear-gradient(135deg, ${cor1} 0%, ${cor2} 100%)`;
+        }
+
+        salvarTemplates(data);
+
+        console.log("[MANUTENCAO] Template atualizado:", id);
+        res.json({ ok: true, template: data.templates[index] });
+    } catch (error) {
+        console.error("[MANUTENCAO] Erro ao atualizar template:", error);
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
+// POST /api/admin/manutencao/upload-imagem - Upload de imagem customizada
+router.post("/manutencao/upload-imagem", verificarAdmin, (req, res) => {
+    try {
+        const { imagem, nome } = req.body;
+
+        if (!imagem) {
+            return res.status(400).json({
+                ok: false,
+                error: "Campo 'imagem' é obrigatório (base64)"
+            });
+        }
+
+        // Criar diretório se não existir
+        if (!fs.existsSync(UPLOADS_DIR)) {
+            fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+        }
+
+        // Extrair dados da imagem base64
+        const matches = imagem.match(/^data:image\/(\w+);base64,(.+)$/);
+        if (!matches) {
+            return res.status(400).json({
+                ok: false,
+                error: "Formato de imagem inválido. Use base64 com data:image/..."
+            });
+        }
+
+        const ext = matches[1];
+        const base64Data = matches[2];
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        // Validar tamanho (max 2MB)
+        if (buffer.length > 2 * 1024 * 1024) {
+            return res.status(400).json({
+                ok: false,
+                error: "Imagem muito grande. Máximo: 2MB"
+            });
+        }
+
+        // Gerar nome único
+        const hash = crypto.randomBytes(8).toString('hex');
+        const nomeArquivo = nome
+            ? `${nome.replace(/[^a-z0-9]/gi, '-')}-${hash}.${ext}`
+            : `manutencao-${hash}.${ext}`;
+
+        const caminhoCompleto = path.join(UPLOADS_DIR, nomeArquivo);
+
+        // Salvar arquivo
+        fs.writeFileSync(caminhoCompleto, buffer);
+
+        const url = `/uploads/manutencao/${nomeArquivo}`;
+
+        console.log("[MANUTENCAO] Imagem enviada:", url);
+        res.json({
+            ok: true,
+            url,
+            tamanho: buffer.length,
+            tipo: ext
+        });
+    } catch (error) {
+        console.error("[MANUTENCAO] Erro ao fazer upload:", error);
         res.status(500).json({ ok: false, error: error.message });
     }
 });
