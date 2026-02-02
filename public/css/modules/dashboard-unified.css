@@ -1,0 +1,419 @@
+/**
+ * DASHBOARD UNIFIED v1.0 - Fase 2
+ * Layout horizontal otimizado com seções colapsáveis
+ * Fusão: Dashboard + Saúde do Sistema + Atalhos Rápidos
+ */
+
+/* ============================================================
+   LAYOUT HORIZONTAL - Aproveitamento de Espaço
+   ============================================================ */
+
+.dashboard-redesign .page-content {
+    max-width: 1400px !important; /* Antes: ~800px */
+    margin: 0 auto;
+    padding: 24px 40px !important; /* Aumentado padding lateral */
+}
+
+/* Responsividade para tablets */
+@media (max-width: 1200px) {
+    .dashboard-redesign .page-content {
+        max-width: 100%;
+        padding: 20px 24px !important;
+    }
+}
+
+/* Responsividade para mobile */
+@media (max-width: 768px) {
+    .dashboard-redesign .page-content {
+        padding: 16px !important;
+    }
+}
+
+/* ============================================================
+   SEÇÃO SAÚDE DO SISTEMA - Colapsável
+   ============================================================ */
+
+.health-section {
+    background: #1a1a1a;
+    border-radius: 12px;
+    border: 1px solid #2d2d2d;
+    margin: 24px 0;
+    overflow: hidden;
+}
+
+.health-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease;
+}
+
+.health-section-header:hover {
+    background: #1f1f1f;
+}
+
+.health-section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.health-section-title .material-icons {
+    font-size: 20px;
+    color: #22c55e;
+}
+
+.health-section-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.health-score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.health-score-badge.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.health-score-badge.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.health-toggle-icon {
+    font-size: 20px !important;
+    color: #6b7280;
+    transition: transform 0.25s ease, color 0.15s ease;
+}
+
+.health-section-header:hover .health-toggle-icon {
+    color: #9ca3af;
+}
+
+.health-section.open .health-toggle-icon {
+    transform: rotate(180deg);
+    color: #FF5500;
+}
+
+/* Conteúdo colapsável */
+.health-section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.health-section.open .health-section-content {
+    max-height: 800px;
+    transition: max-height 0.4s ease-in;
+}
+
+.health-section-inner {
+    padding: 0 20px 20px 20px;
+}
+
+/* Grid de componentes */
+.health-components-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.health-component-card {
+    background: #121212;
+    border-radius: 10px;
+    border: 1px solid #2d2d2d;
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.health-component-card:hover {
+    border-color: rgba(255, 85, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.health-component-header {
+    display: flex;
+    align-items: center;
+    justify-content: between;
+    margin-bottom: 12px;
+}
+
+.health-component-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.health-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #6b7280;
+}
+
+.health-status-dot.online {
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+}
+
+.health-status-dot.degraded {
+    background: #fbbf24;
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.5);
+}
+
+.health-status-dot.offline {
+    background: #ef4444;
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+.health-component-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.health-component-icon {
+    font-size: 18px;
+    opacity: 0.6;
+}
+
+.health-component-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.health-detail-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.health-detail-label {
+    opacity: 0.8;
+}
+
+.health-detail-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: #d1d5db;
+}
+
+/* ============================================================
+   ATALHOS RÁPIDOS
+   ============================================================ */
+
+.quick-actions-section {
+    background: #1a1a1a;
+    border-radius: 12px;
+    border: 1px solid #2d2d2d;
+    padding: 20px;
+    margin: 24px 0;
+}
+
+.quick-actions-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.quick-actions-header .material-icons {
+    font-size: 20px;
+    color: #FF5500;
+}
+
+.quick-actions-title {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.quick-action-card {
+    background: #121212;
+    border-radius: 10px;
+    border: 1px solid #2d2d2d;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.quick-action-card:hover {
+    border-color: #FF5500;
+    background: rgba(255, 85, 0, 0.05);
+    transform: translateY(-2px);
+}
+
+.quick-action-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(255, 85, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.quick-action-icon .material-icons {
+    font-size: 20px;
+    color: #FF5500;
+}
+
+.quick-action-content {
+    flex: 1;
+}
+
+.quick-action-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 2px;
+}
+
+.quick-action-description {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+/* ============================================================
+   AJUSTES DE GRID - Mais Cards por Linha
+   ============================================================ */
+
+.dashboard-stats-new {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+    gap: 16px;
+}
+
+/* Desktop: até 5 cards por linha */
+@media (min-width: 1400px) {
+    .dashboard-stats-new {
+        grid-template-columns: repeat(5, 1fr) !important;
+    }
+}
+
+/* Tablet: 3 cards por linha */
+@media (max-width: 1024px) {
+    .dashboard-stats-new {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .health-components-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Mobile: 1 card por linha */
+@media (max-width: 640px) {
+    .dashboard-stats-new {
+        grid-template-columns: 1fr !important;
+    }
+
+    .quick-actions-grid,
+    .health-components-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-action-card {
+        padding: 12px;
+    }
+}
+
+/* ============================================================
+   LOADING E ESTADOS
+   ============================================================ */
+
+.health-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #6b7280;
+    gap: 12px;
+}
+
+.health-loading .material-icons {
+    font-size: 24px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.health-error {
+    padding: 20px;
+    text-align: center;
+    color: #f87171;
+}
+
+.health-error .material-icons {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+/* ============================================================
+   UTILITÁRIOS
+   ============================================================ */
+
+.wide-content {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 768px) {
+    .grid-2col {
+        grid-template-columns: 1fr;
+    }
+}
