@@ -393,6 +393,9 @@ class ParticipanteAuth {
                 }
             }
 
+            // Scrollbar personalizada com cores do time do participante
+            this._aplicarCoresScrollbar(clubeIdFinal);
+
             // Mostrar ou ocultar o botão de logout
             if (headerLogoutButton) {
                 headerLogoutButton.style.display = this.estaAutenticado()
@@ -417,6 +420,55 @@ class ParticipanteAuth {
                 headerLogoutButton.style.display = "none";
             }
         }
+    }
+
+    /**
+     * Aplica cores do time do participante na scrollbar do app
+     * Usa gradiente com as duas cores do escudo do clube
+     */
+    _aplicarCoresScrollbar(clubeId) {
+        // Mapeamento de cores por clube_id (cor1 = primária, cor2 = secundária)
+        const CLUBES_CORES = {
+            262:  { cor1: '#c4161c', cor2: '#1a1a1a' },   // Flamengo
+            263:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Botafogo
+            264:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Corinthians
+            265:  { cor1: '#0056a8', cor2: '#e42527' },     // Bahia
+            266:  { cor1: '#8b0042', cor2: '#006633' },     // Fluminense
+            267:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Vasco
+            275:  { cor1: '#006437', cor2: '#ffffff' },     // Palmeiras
+            276:  { cor1: '#e42527', cor2: '#2a2a2a' },     // São Paulo
+            277:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Santos
+            280:  { cor1: '#e42527', cor2: '#ffffff' },     // Bragantino
+            282:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Atlético-MG
+            283:  { cor1: '#003399', cor2: '#ffffff' },     // Cruzeiro
+            284:  { cor1: '#0c2340', cor2: '#75c4e2' },     // Grêmio
+            285:  { cor1: '#e42527', cor2: '#ffffff' },     // Internacional
+            286:  { cor1: '#006633', cor2: '#ffffff' },     // Juventude
+            287:  { cor1: '#e42527', cor2: '#2a2a2a' },     // Vitória
+            290:  { cor1: '#006633', cor2: '#ffffff' },     // Goiás
+            292:  { cor1: '#e42527', cor2: '#2a2a2a' },     // Sport
+            293:  { cor1: '#c4161c', cor2: '#2a2a2a' },     // Athletico-PR
+            354:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Ceará
+            356:  { cor1: '#003399', cor2: '#e42527' },     // Fortaleza
+            1371: { cor1: '#006633', cor2: '#ffd700' },     // Cuiabá
+            2305: { cor1: '#ffd700', cor2: '#006633' },     // Mirassol
+            270:  { cor1: '#006633', cor2: '#ffffff' },     // Coritiba
+            273:  { cor1: '#006633', cor2: '#ffffff' },     // América-MG
+            274:  { cor1: '#006633', cor2: '#ffffff' },     // Chapecoense
+            288:  { cor1: '#2a2a2a', cor2: '#ffffff' },     // Ponte Preta
+            315:  { cor1: '#ffd700', cor2: '#2a2a2a' },     // Novorizontino
+            344:  { cor1: '#e42527', cor2: '#2a2a2a' },     // Santa Cruz
+            373:  { cor1: '#e42527', cor2: '#ffffff' },     // CRB
+        };
+
+        const cores = clubeId ? CLUBES_CORES[Number(clubeId)] : null;
+        if (!cores) return;
+
+        const root = document.documentElement;
+        root.style.setProperty('--scrollbar-cor1', cores.cor1);
+        root.style.setProperty('--scrollbar-cor2', cores.cor2);
+
+        if (window.Log) Log.info('PARTICIPANTE-AUTH', `🎨 Scrollbar personalizada: ${cores.cor1} + ${cores.cor2} (clube ${clubeId})`);
     }
 
     async verificarMultiplasLigas() {
