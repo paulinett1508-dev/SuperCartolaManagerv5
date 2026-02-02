@@ -950,40 +950,40 @@
     initRefs();
 
     // Event listeners - filtros
-    els.filtroLiga.addEventListener("change", () => {
+    els.filtroLiga?.addEventListener("change", () => {
       ligaSelecionada = els.filtroLiga.value;
       if (resumoData) renderizarLigasResumo(resumoData.porLiga);
       carregarParticipantes();
     });
-    els.filtroStatus.addEventListener("change", carregarParticipantes);
-    els.filtroSenha.addEventListener("change", carregarParticipantes);
-    els.filtroBusca.addEventListener("input", debounceBusca);
+    els.filtroStatus?.addEventListener("change", carregarParticipantes);
+    els.filtroSenha?.addEventListener("change", carregarParticipantes);
+    els.filtroBusca?.addEventListener("input", debounceBusca);
 
     // Modal senha
-    els.modalSenhaSalvar.addEventListener("click", salvarSenhaModal);
-    els.modalSenhaFechar.addEventListener("click", fecharModalSenha);
-    els.modalSenha.addEventListener("click", (e) => {
+    els.modalSenhaSalvar?.addEventListener("click", salvarSenhaModal);
+    els.modalSenhaFechar?.addEventListener("click", fecharModalSenha);
+    els.modalSenha?.addEventListener("click", (e) => {
       if (e.target === els.modalSenha) fecharModalSenha();
     });
-    els.modalSenhaInput.addEventListener("keydown", (e) => {
+    els.modalSenhaInput?.addEventListener("keydown", (e) => {
       if (e.key === "Enter") salvarSenhaModal();
       if (e.key === "Escape") fecharModalSenha();
     });
 
     // Modal lote
-    els.btnSenhaLote.addEventListener("click", abrirModalLote);
-    els.modalLoteSalvar.addEventListener("click", aplicarSenhaLote);
-    els.modalLoteFechar.addEventListener("click", fecharModalLote);
-    els.modalSenhaLote.addEventListener("click", (e) => {
+    els.btnSenhaLote?.addEventListener("click", abrirModalLote);
+    els.modalLoteSalvar?.addEventListener("click", aplicarSenhaLote);
+    els.modalLoteFechar?.addEventListener("click", fecharModalLote);
+    els.modalSenhaLote?.addEventListener("click", (e) => {
       if (e.target === els.modalSenhaLote) fecharModalLote();
     });
-    els.modalLoteSenhaInput.addEventListener("keydown", (e) => {
+    els.modalLoteSenhaInput?.addEventListener("keydown", (e) => {
       if (e.key === "Enter") aplicarSenhaLote();
       if (e.key === "Escape") fecharModalLote();
     });
 
     // Exportar
-    els.btnExportarCSV.addEventListener("click", exportarCSV);
+    els.btnExportarCSV?.addEventListener("click", exportarCSV);
 
     // ESC para fechar modal dump
     document.addEventListener("keydown", (e) => {
