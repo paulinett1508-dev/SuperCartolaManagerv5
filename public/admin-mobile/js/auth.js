@@ -10,7 +10,8 @@ const USER_KEY = 'admin_user';
  */
 export async function login(email, senha) {
   try {
-    const response = await fetch('/auth/login', {
+    // Faz login usando autenticação email/senha (clientes admin)
+    const response = await fetch('/api/admin/cliente/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

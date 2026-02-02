@@ -5,7 +5,21 @@
 
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-change-in-prod';
+// ✅ SECURITY: JWT_SECRET obrigatório em produção
+const JWT_SECRET = (() => {
+  const secret = process.env.JWT_SECRET;
+  const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+  if (!secret && IS_PRODUCTION) {
+    console.error('[SECURITY] ❌ JWT_SECRET não definido em produção! Defina a variável de ambiente.');
+    console.error('[SECURITY] ❌ Sistema mobile será desabilitado por segurança.');
+    process.exit(1);
+  }
+
+  // Desenvolvimento: gera secret temporário (muda a cada restart)
+  return secret || `dev_only_secret_${Date.now()}`;
+})();
+
 const JWT_EXPIRATION = '24h';
 
 /**
