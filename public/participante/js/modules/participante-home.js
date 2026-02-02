@@ -269,6 +269,9 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     // Carregar jogos em background
     carregarEExibirJogos();
 
+    // Carregar seção Tabelas Esportivas em background
+    carregarTabelasEsportes(participante);
+
     // Carregar notícias do time do coração em background
     carregarNoticiasDoMeuTime(participante);
 }
@@ -988,6 +991,9 @@ function renderizarHome(container, data, ligaId) {
         <!-- Jogos do Dia -->
         <div id="home-jogos-placeholder"></div>
 
+        <!-- Tabelas Esportivas (Brasileirão, Copa, Libertadores, etc) -->
+        <div id="home-tabelas-placeholder"></div>
+
         <!-- Notícias do meu time -->
         <div id="home-noticias-placeholder"></div>
     `;
@@ -1144,6 +1150,38 @@ function atualizarSaldoProjetado(posicaoParcial) {
         saldoEl.classList.add('positive');
     } else if (saldoProjetado < 0) {
         saldoEl.classList.add('negative');
+    }
+}
+
+// =====================================================================
+// CARREGAR TABELAS ESPORTIVAS
+// =====================================================================
+async function carregarTabelasEsportes(participante) {
+    try {
+        const clubeId = participante?.clube_id || participante?.clubeId
+                     || window.participanteAuth?.participante?.participante?.clube_id
+                     || window.participanteAuth?.participante?.clube_id
+                     || null;
+
+        if (!clubeId) {
+            if (window.Log) Log.debug("PARTICIPANTE-HOME", "Tabelas: sem clube_id");
+            return;
+        }
+
+        // Verificar se componente está disponível
+        if (!window.TabelasEsportes) {
+            if (window.Log) Log.debug("PARTICIPANTE-HOME", "Tabelas: componente não carregado");
+            return;
+        }
+
+        await window.TabelasEsportes.renderizar({
+            containerId: 'home-tabelas-placeholder',
+            clubeId
+        });
+
+        if (window.Log) Log.info("PARTICIPANTE-HOME", "Tabelas esportivas carregadas");
+    } catch (error) {
+        if (window.Log) Log.warn("PARTICIPANTE-HOME", "Erro ao carregar tabelas:", error);
     }
 }
 
