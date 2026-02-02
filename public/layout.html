@@ -102,18 +102,24 @@
                                     <span>Criar Nova Liga</span>
                                 </a>
                             </li>
-                            <li>
-                                <a href="gerenciar.html" class="sidebar-accordion-item" data-page="gerenciar.html">
-                                    <span class="material-icons">tune</span>
-                                    <span>Gerenciar Ligas</span>
-                                </a>
-                            </li>
                         </ul>
                         <div class="sidebar-submenu-divider"></div>
-                        <div id="ligasList">
-                            <div class="sidebar-ligas-loading">
-                                <span class="material-icons">sync</span>
-                                Carregando...
+                        <!-- Sub-accordion: Gerenciar Ligas com Temporadas -->
+                        <div class="sidebar-sub-accordion" data-sub-accordion="gerenciar-ligas">
+                            <div class="sidebar-sub-accordion-header">
+                                <div class="sidebar-sub-accordion-title">
+                                    <span class="material-icons">tune</span>
+                                    <span>Gerenciar Ligas</span>
+                                </div>
+                                <span class="material-icons sidebar-sub-accordion-arrow">expand_more</span>
+                            </div>
+                            <div class="sidebar-sub-accordion-content">
+                                <div id="ligasList">
+                                    <div class="sidebar-ligas-loading">
+                                        <span class="material-icons">sync</span>
+                                        Carregando...
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -197,9 +203,27 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="ferramentas.html" class="sidebar-accordion-item" data-page="ferramentas.html">
-                                    <span class="material-icons">hub</span>
-                                    <span>Hub de Ferramentas</span>
+                                <a href="#" class="sidebar-accordion-item" id="sidebarConsolidarRodada" onclick="abrirConsolidarRodadaSidebar(event)">
+                                    <span class="material-icons">sync</span>
+                                    <span>Consolidar Rodada</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="sidebar-accordion-item" id="sidebarModoManutencao" onclick="abrirModoManutencaoSidebar(event)">
+                                    <span class="material-icons">engineering</span>
+                                    <span>Modo Manutenção</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="sidebar-accordion-item" onclick="abrirAdicionarParticipanteSidebar(event)">
+                                    <span class="material-icons">group_add</span>
+                                    <span>Adicionar Participante</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="gerenciar.html" class="sidebar-accordion-item" data-page="gerenciar.html">
+                                    <span class="material-icons">widgets</span>
+                                    <span>Gerenciar Módulos</span>
                                 </a>
                             </li>
                         </ul>
@@ -445,6 +469,7 @@
                 },
 
                 bindEvents() {
+                    // Bind accordions principais
                     const headers = document.querySelectorAll('.sidebar-accordion-header');
                     headers.forEach((header) => {
                         // Evitar duplicar event listeners
@@ -458,6 +483,33 @@
                             window.AccordionManager.toggle(accordion);
                         });
                     });
+
+                    // Bind sub-accordions (Fase 1: hierarquia aninhada)
+                    const subHeaders = document.querySelectorAll('.sidebar-sub-accordion-header');
+                    subHeaders.forEach((subHeader) => {
+                        if (subHeader.dataset.subAccordionBound) return;
+                        subHeader.dataset.subAccordionBound = 'true';
+
+                        subHeader.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const subAccordion = subHeader.closest('.sidebar-sub-accordion');
+                            window.AccordionManager.toggleSubAccordion(subAccordion);
+                        });
+                    });
+                },
+
+                toggleSubAccordion(subAccordion) {
+                    if (!subAccordion) return;
+                    const isOpen = subAccordion.classList.contains('open');
+
+                    if (isOpen) {
+                        subAccordion.classList.remove('open');
+                    } else {
+                        subAccordion.classList.add('open');
+                    }
+
+                    this.saveState();
                 },
 
                 toggle(accordion) {
@@ -489,10 +541,18 @@
 
                 saveState() {
                     const state = {};
+                    // Salvar estado dos accordions principais
                     document.querySelectorAll('.sidebar-accordion').forEach(acc => {
                         const key = acc.dataset.accordion;
                         if (key) {
                             state[key] = acc.classList.contains('open');
+                        }
+                    });
+                    // Salvar estado dos sub-accordions (Fase 1)
+                    document.querySelectorAll('.sidebar-sub-accordion').forEach(subAcc => {
+                        const key = subAcc.dataset.subAccordion;
+                        if (key) {
+                            state[`sub_${key}`] = subAcc.classList.contains('open');
                         }
                     });
                     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
@@ -504,10 +564,18 @@
                         if (!saved) return;
 
                         const state = JSON.parse(saved);
+                        // Restaurar accordions principais
                         document.querySelectorAll('.sidebar-accordion').forEach(acc => {
                             const key = acc.dataset.accordion;
                             if (key && state[key] === true) {
                                 acc.classList.add('open');
+                            }
+                        });
+                        // Restaurar sub-accordions (Fase 1)
+                        document.querySelectorAll('.sidebar-sub-accordion').forEach(subAcc => {
+                            const key = subAcc.dataset.subAccordion;
+                            if (key && state[`sub_${key}`] === true) {
+                                subAcc.classList.add('open');
                             }
                         });
                     } catch (e) {
@@ -1060,6 +1128,78 @@
                     window.location.href = "painel.html";
                 }
             }
+
+            // === FUNÇÕES DO SIDEBAR - ATALHOS (Fase 1) ===
+            // Estas funções são chamadas pelos itens do menu OPERAÇÕES
+
+            window.abrirConsolidarRodadaSidebar = function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                // Se estamos em ferramentas.html, usar função local
+                if (typeof consolidarRodada === 'function') {
+                    consolidarRodada();
+                } else {
+                    // Navegar para ferramentas.html e disparar ação
+                    if (SPANavigation.enabled) {
+                        SPANavigation.navigate('ferramentas.html').then(() => {
+                            setTimeout(() => {
+                                if (typeof consolidarRodada === 'function') {
+                                    consolidarRodada();
+                                }
+                            }, 500);
+                        });
+                    } else {
+                        window.location.href = 'ferramentas.html';
+                    }
+                }
+            };
+
+            window.abrirModoManutencaoSidebar = function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                // Se estamos em ferramentas.html, usar função local
+                if (typeof abrirModalManutencao === 'function') {
+                    abrirModalManutencao();
+                } else {
+                    // Navegar para ferramentas.html e disparar ação
+                    if (SPANavigation.enabled) {
+                        SPANavigation.navigate('ferramentas.html').then(() => {
+                            setTimeout(() => {
+                                if (typeof abrirModalManutencao === 'function') {
+                                    abrirModalManutencao();
+                                }
+                            }, 500);
+                        });
+                    } else {
+                        window.location.href = 'ferramentas.html';
+                    }
+                }
+            };
+
+            window.abrirAdicionarParticipanteSidebar = function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                // Se estamos em ferramentas.html, usar função local
+                if (typeof window.abrirModalPesquisarTime === 'function') {
+                    window.abrirModalPesquisarTime();
+                } else {
+                    // Navegar para ferramentas.html e disparar ação
+                    if (SPANavigation.enabled) {
+                        SPANavigation.navigate('ferramentas.html').then(() => {
+                            setTimeout(() => {
+                                if (typeof window.abrirModalPesquisarTime === 'function') {
+                                    window.abrirModalPesquisarTime();
+                                }
+                            }, 500);
+                        });
+                    } else {
+                        window.location.href = 'ferramentas.html';
+                    }
+                }
+            };
 
             // === TOGGLE SIDEBAR (DESKTOP) ===
             function toggleSidebar() {

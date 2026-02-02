@@ -2412,6 +2412,88 @@ body.sidebar-collapsed .main-content {
     font-size: 0.8rem;
 }
 
+/* ============================================================
+   SUB-ACCORDION v1.0 - Hierarquia Aninhada (Fase 1)
+   ============================================================ */
+
+/* Sub-accordion container */
+.sidebar-sub-accordion {
+    margin: 4px 0;
+}
+
+/* Header do sub-accordion */
+.sidebar-sub-accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px 8px 24px; /* Indentação para indicar nível */
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.sidebar-sub-accordion-header:hover {
+    background: #1a1a1a;
+}
+
+.sidebar-sub-accordion-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #9ca3af;
+}
+
+.sidebar-sub-accordion-header:hover .sidebar-sub-accordion-title {
+    color: #d1d5db;
+}
+
+.sidebar-sub-accordion-title .material-icons {
+    font-size: 16px;
+    color: #6b7280;
+    transition: color 0.15s ease;
+}
+
+.sidebar-sub-accordion-header:hover .sidebar-sub-accordion-title .material-icons {
+    color: #FF5500;
+}
+
+/* Seta do sub-accordion */
+.sidebar-sub-accordion-arrow {
+    font-size: 16px !important;
+    color: #6b7280;
+    transition: transform 0.25s ease, color 0.15s ease;
+}
+
+.sidebar-sub-accordion-header:hover .sidebar-sub-accordion-arrow {
+    color: #9ca3af;
+}
+
+.sidebar-sub-accordion.open .sidebar-sub-accordion-arrow {
+    transform: rotate(180deg);
+    color: #FF5500;
+}
+
+/* Conteúdo do sub-accordion */
+.sidebar-sub-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease-out;
+    padding-left: 12px; /* Indentação adicional para conteúdo */
+}
+
+.sidebar-sub-accordion.open .sidebar-sub-accordion-content {
+    max-height: 1000px; /* Maior para acomodar lista de ligas */
+    transition: max-height 0.35s ease-in;
+}
+
+/* Ajuste para ligas dentro do sub-accordion */
+.sidebar-sub-accordion-content .sidebar-temporada-group {
+    margin-left: 0; /* Remove margem extra */
+}
+
 /* Link de ação dentro do accordion (ex: "Criar Nova Liga") */
 .sidebar-accordion-action {
     display: flex;
