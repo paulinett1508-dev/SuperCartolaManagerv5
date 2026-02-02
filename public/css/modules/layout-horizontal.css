@@ -1,0 +1,377 @@
+/**
+ * LAYOUT HORIZONTAL v1.0 - Fase 3
+ * Classes utilitárias para layouts wide em todas as páginas admin
+ * Responsividade completa (desktop/tablet/mobile)
+ */
+
+/* ============================================================
+   CONTAINERS WIDE - Aproveitamento Horizontal
+   ============================================================ */
+
+.wide-content {
+    max-width: 1400px !important;
+    margin: 0 auto;
+    padding: 20px 40px !important;
+}
+
+.wide-content-full {
+    max-width: 1600px !important;
+    margin: 0 auto;
+    padding: 20px 40px !important;
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+    .wide-content,
+    .wide-content-full {
+        max-width: 100%;
+        padding: 20px 24px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .wide-content,
+    .wide-content-full {
+        padding: 16px !important;
+    }
+}
+
+/* ============================================================
+   GRID LAYOUTS - 2 Colunas
+   ============================================================ */
+
+.grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.grid-2col-asymmetric {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 24px;
+}
+
+.grid-2col-wide {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+/* Responsividade: mobile = 1 coluna */
+@media (max-width: 768px) {
+    .grid-2col,
+    .grid-2col-asymmetric,
+    .grid-2col-wide {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================
+   FORM LAYOUTS - Formulários em 2 Colunas
+   ============================================================ */
+
+.form-container-wide {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.form-grid-2col {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 24px;
+}
+
+.form-grid-3col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px 16px;
+}
+
+/* Item que ocupa coluna inteira */
+.form-col-span-2 {
+    grid-column: span 2;
+}
+
+.form-col-span-3 {
+    grid-column: span 3;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+    .form-grid-3col {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-col-span-3 {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-grid-2col,
+    .form-grid-3col {
+        grid-template-columns: 1fr;
+    }
+
+    .form-col-span-2,
+    .form-col-span-3 {
+        grid-column: span 1;
+    }
+}
+
+/* ============================================================
+   TABS LAYOUT - Tabs Lado a Lado
+   ============================================================ */
+
+.tabs-container-wide {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.tabs-horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-bottom: 2px solid #2d2d2d;
+    margin-bottom: 24px;
+}
+
+.tab-horizontal {
+    padding: 12px 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #9ca3af;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.tab-horizontal:hover {
+    color: #d1d5db;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.tab-horizontal.active {
+    color: #FF5500;
+    border-bottom-color: #FF5500;
+}
+
+/* Responsividade: mobile scroll horizontal */
+@media (max-width: 768px) {
+    .tabs-horizontal {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .tabs-horizontal::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+
+    .tab-horizontal {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+    }
+}
+
+/* ============================================================
+   CARD GRIDS - Cards em Grid Horizontal
+   ============================================================ */
+
+.card-grid-wide {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.card-grid-4col {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.card-grid-3col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+    .card-grid-4col {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+    .card-grid-4col {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card-grid-3col {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .card-grid-wide,
+    .card-grid-4col,
+    .card-grid-3col {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================
+   TABLE LAYOUTS - Tabelas Responsivas
+   ============================================================ */
+
+.table-container-wide {
+    max-width: 1400px;
+    margin: 0 auto;
+    overflow-x: auto;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================
+   SECTION LAYOUTS - Seções Lado a Lado
+   ============================================================ */
+
+.section-split {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 32px;
+}
+
+.section-split-equal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+}
+
+@media (max-width: 1024px) {
+    .section-split,
+    .section-split-equal {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================
+   UTILITY CLASSES - Espaçamento
+   ============================================================ */
+
+.spacing-wide {
+    padding: 24px 40px;
+}
+
+.spacing-normal {
+    padding: 20px;
+}
+
+.spacing-compact {
+    padding: 16px;
+}
+
+@media (max-width: 768px) {
+    .spacing-wide {
+        padding: 16px;
+    }
+}
+
+/* Gap utilities */
+.gap-sm {
+    gap: 12px;
+}
+
+.gap-md {
+    gap: 20px;
+}
+
+.gap-lg {
+    gap: 32px;
+}
+
+/* ============================================================
+   FLEXBOX UTILITIES
+   ============================================================ */
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+}
+
+.flex-row-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.flex-space-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .flex-row {
+        flex-direction: column;
+    }
+}
+
+/* ============================================================
+   SPECIFIC PAGE OVERRIDES
+   ============================================================ */
+
+/* Criar Liga: Form em 2 colunas */
+.criar-liga-page .app-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 40px;
+}
+
+/* Detalhe Liga: Content wide */
+.detalhe-liga-page .app-main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px 40px;
+}
+
+/* Analisar Participantes: Full wide */
+.analisar-participantes-page .app-main {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 20px 40px;
+}
+
+@media (max-width: 1200px) {
+    .criar-liga-page .app-main,
+    .detalhe-liga-page .app-main,
+    .analisar-participantes-page .app-main {
+        max-width: 100%;
+        padding: 20px 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .criar-liga-page .app-main,
+    .detalhe-liga-page .app-main,
+    .analisar-participantes-page .app-main {
+        padding: 16px;
+    }
+}

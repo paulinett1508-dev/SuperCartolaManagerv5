@@ -9,6 +9,7 @@
         <link rel="stylesheet" href="style.css" />
         <link rel="stylesheet" href="css/modules/dashboard.css" />
         <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-unified.css" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     </head>
@@ -158,6 +159,85 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- ========================================
+                         SAÚDE DO SISTEMA - Colapsável (Fase 2)
+                         ======================================== -->
+                    <section class="health-section" id="healthSection">
+                        <div class="health-section-header" onclick="toggleHealthSection()">
+                            <div class="health-section-title">
+                                <span class="material-icons">health_and_safety</span>
+                                <span>Saúde do Sistema</span>
+                            </div>
+                            <div class="health-section-meta">
+                                <div class="health-score-badge" id="healthScoreBadge">
+                                    <span id="healthScoreValue">--</span>
+                                </div>
+                                <span class="material-icons health-toggle-icon">expand_more</span>
+                            </div>
+                        </div>
+                        <div class="health-section-content">
+                            <div class="health-section-inner">
+                                <div id="healthComponentsContainer">
+                                    <div class="health-loading">
+                                        <span class="material-icons">hourglass_empty</span>
+                                        <span>Carregando status...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ========================================
+                         ATALHOS RÁPIDOS (Fase 2)
+                         ======================================== -->
+                    <section class="quick-actions-section">
+                        <div class="quick-actions-header">
+                            <span class="material-icons">bolt</span>
+                            <h3 class="quick-actions-title">Atalhos Rápidos</h3>
+                        </div>
+                        <div class="quick-actions-grid">
+                            <a href="ferramentas-rodadas.html" class="quick-action-card">
+                                <div class="quick-action-icon">
+                                    <span class="material-icons">sports_score</span>
+                                </div>
+                                <div class="quick-action-content">
+                                    <div class="quick-action-label">Popular Rodadas</div>
+                                    <div class="quick-action-description">Sincronizar dados da API</div>
+                                </div>
+                            </a>
+
+                            <a href="fluxo-financeiro.html" class="quick-action-card">
+                                <div class="quick-action-icon">
+                                    <span class="material-icons">swap_horiz</span>
+                                </div>
+                                <div class="quick-action-content">
+                                    <div class="quick-action-label">Fluxo Financeiro</div>
+                                    <div class="quick-action-description">Acertos e pagamentos</div>
+                                </div>
+                            </a>
+
+                            <a href="analisar-participantes.html" class="quick-action-card">
+                                <div class="quick-action-icon">
+                                    <span class="material-icons">person_search</span>
+                                </div>
+                                <div class="quick-action-content">
+                                    <div class="quick-action-label">Participantes</div>
+                                    <div class="quick-action-description">Análise e gestão</div>
+                                </div>
+                            </a>
+
+                            <a href="criar-liga.html" class="quick-action-card">
+                                <div class="quick-action-icon">
+                                    <span class="material-icons">add_circle_outline</span>
+                                </div>
+                                <div class="quick-action-content">
+                                    <div class="quick-action-label">Nova Liga</div>
+                                    <div class="quick-action-description">Criar competição</div>
+                                </div>
+                            </a>
+                        </div>
+                    </section>
 
                     <!-- Seção de Busca - ID MANTIDO -->
                     <div class="search-section-new">
@@ -1393,6 +1473,206 @@
 
             // Função global para retry
             window.carregarDadosLigas = carregarDadosLigas;
+        </script>
+
+        <!-- ========================================
+             SAÚDE DO SISTEMA - JavaScript (Fase 2)
+             ======================================== -->
+        <script>
+            // Toggle da seção de Saúde do Sistema
+            window.toggleHealthSection = function() {
+                const section = document.getElementById('healthSection');
+                if (!section) return;
+
+                const isOpen = section.classList.contains('open');
+
+                if (isOpen) {
+                    section.classList.remove('open');
+                    localStorage.setItem('health_section_open', 'false');
+                } else {
+                    section.classList.add('open');
+                    localStorage.setItem('health_section_open', 'true');
+
+                    // Carregar dados apenas na primeira abertura
+                    if (!section.dataset.loaded) {
+                        loadHealthData();
+                        section.dataset.loaded = 'true';
+                    }
+                }
+            };
+
+            // Carregar dados de saúde do sistema
+            async function loadHealthData() {
+                const container = document.getElementById('healthComponentsContainer');
+                if (!container) return;
+
+                try {
+                    const response = await fetch('/api/admin/system-health');
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.message || 'Erro ao carregar dados');
+                    }
+
+                    // Atualizar badge do health score
+                    updateHealthScoreBadge(data.health_score);
+
+                    // Renderizar componentes
+                    renderHealthComponents(data);
+
+                } catch (error) {
+                    console.error('[HEALTH] Erro ao carregar dados:', error);
+                    container.innerHTML = `
+                        <div class="health-error">
+                            <span class="material-icons">error</span>
+                            <div>Erro ao carregar status do sistema</div>
+                            <button onclick="loadHealthData()" style="margin-top: 12px; padding: 8px 16px; background: #FF5500; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                Tentar Novamente
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+
+            // Atualizar badge de health score
+            function updateHealthScoreBadge(score) {
+                const badge = document.getElementById('healthScoreBadge');
+                const valueEl = document.getElementById('healthScoreValue');
+
+                if (!badge || !valueEl) return;
+
+                valueEl.textContent = `${score}%`;
+
+                // Remover classes anteriores
+                badge.classList.remove('warning', 'danger');
+
+                // Adicionar classe baseada no score
+                if (score >= 80) {
+                    // Verde (padrão)
+                } else if (score >= 60) {
+                    badge.classList.add('warning');
+                } else {
+                    badge.classList.add('danger');
+                }
+            }
+
+            // Renderizar componentes de saúde
+            function renderHealthComponents(data) {
+                const container = document.getElementById('healthComponentsContainer');
+                if (!container) return;
+
+                const components = [
+                    {
+                        name: 'MarketGate',
+                        icon: '🎯',
+                        status: data.components?.marketGate?.status || 'unknown',
+                        details: [
+                            { label: 'Status', value: data.components?.marketGate?.status || '--' },
+                            { label: 'Última Consulta', value: data.components?.marketGate?.lastCheck || '--' }
+                        ]
+                    },
+                    {
+                        name: 'API Cartola FC',
+                        icon: '⚽',
+                        status: data.components?.cartolaApi?.status || 'unknown',
+                        details: [
+                            { label: 'Status', value: data.components?.cartolaApi?.status || '--' },
+                            { label: 'Rodada', value: data.components?.cartolaApi?.rodada_atual || '--' }
+                        ]
+                    },
+                    {
+                        name: 'API Jogos',
+                        icon: '🏟️',
+                        status: data.components?.jogosApi?.status || 'unknown',
+                        details: [
+                            { label: 'Status', value: data.components?.jogosApi?.status || '--' },
+                            { label: 'Requests', value: data.components?.jogosApi?.requests || '--' }
+                        ]
+                    },
+                    {
+                        name: 'Banco de Dados',
+                        icon: '💾',
+                        status: data.components?.database?.status || 'unknown',
+                        details: [
+                            { label: 'Status', value: data.components?.database?.status || '--' },
+                            { label: 'Collections', value: data.components?.database?.collections || '--' }
+                        ]
+                    },
+                    {
+                        name: 'Consolidação',
+                        icon: '⚙️',
+                        status: data.components?.consolidacao?.status || 'unknown',
+                        details: [
+                            { label: 'Última', value: data.components?.consolidacao?.lastRun || '--' },
+                            { label: 'Próxima', value: data.components?.consolidacao?.nextRun || '--' }
+                        ]
+                    },
+                    {
+                        name: 'Sistema',
+                        icon: '🖥️',
+                        status: 'online',
+                        details: [
+                            { label: 'Uptime', value: data.components?.system?.uptime || '--' },
+                            { label: 'Memória', value: data.components?.system?.memory || '--' }
+                        ]
+                    }
+                ];
+
+                const html = `
+                    <div class="health-components-grid">
+                        ${components.map(comp => `
+                            <div class="health-component-card">
+                                <div class="health-component-header">
+                                    <div class="health-component-status">
+                                        <span class="health-status-dot ${comp.status}"></span>
+                                        <span class="health-component-name">${comp.name}</span>
+                                    </div>
+                                    <span class="health-component-icon">${comp.icon}</span>
+                                </div>
+                                <div class="health-component-details">
+                                    ${comp.details.map(detail => `
+                                        <div class="health-detail-item">
+                                            <span class="health-detail-label">${detail.label}</span>
+                                            <span class="health-detail-value">${detail.value}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                container.innerHTML = html;
+            }
+
+            // Restaurar estado da seção ao carregar
+            document.addEventListener('DOMContentLoaded', function() {
+                const isOpen = localStorage.getItem('health_section_open') === 'true';
+                if (isOpen) {
+                    const section = document.getElementById('healthSection');
+                    if (section) {
+                        section.classList.add('open');
+                        // Carregar dados imediatamente se já estava aberto
+                        loadHealthData();
+                        section.dataset.loaded = 'true';
+                    }
+                }
+            });
+
+            // SPA: reinicializar ao navegar
+            window.addEventListener('spa:navigated', (e) => {
+                if (e.detail?.pageName === 'painel.html') {
+                    const isOpen = localStorage.getItem('health_section_open') === 'true';
+                    if (isOpen) {
+                        const section = document.getElementById('healthSection');
+                        if (section && !section.dataset.loaded) {
+                            section.classList.add('open');
+                            loadHealthData();
+                            section.dataset.loaded = 'true';
+                        }
+                    }
+                }
+            });
         </script>
 
         <!-- PROTECAO CLIENT-SIDE -->
