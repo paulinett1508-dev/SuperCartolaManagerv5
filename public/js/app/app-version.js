@@ -137,19 +137,58 @@ const AppVersion = {
 
             const servidor = await response.json();
 
-            // Verificar modo manutenção (whitelist por timeId)
+            // Verificar modo manutenção (whitelist/blacklist por timeId)
             if (servidor.manutencao?.ativo && window.ManutencaoScreen) {
-                const whitelistIds = servidor.manutencao.whitelist_timeIds || [];
+                const controleAcesso = servidor.manutencao.controle_acesso || {};
+                const modoLista = controleAcesso.modo_lista || 'whitelist';
                 const timeId = String(window.participanteAuth?.timeId || '');
-                const isWhitelisted = timeId && whitelistIds.includes(timeId);
-                if (!isWhitelisted) {
-                    window.ManutencaoScreen.ativar();
-                    return;
+
+                let deveMostrarManutencao = false;
+
+                if (modoLista === 'blacklist') {
+                    // Modo blacklist: bloquear apenas IDs na lista
+                    const blacklistIds = controleAcesso.blacklist_timeIds || [];
+                    deveMostrarManutencao = timeId && blacklistIds.includes(timeId);
+                    if (deveMostrarManutencao && window.Log) {
+                        Log.info('APP-VERSION', `Blacklist: timeId ${timeId} bloqueado`);
+                    }
                 } else {
-                    if (window.Log) Log.info('APP-VERSION', `Whitelist: timeId ${timeId} liberado durante manutencao`);
+                    // Modo whitelist: bloquear todos exceto IDs na lista
+                    const whitelistIds = controleAcesso.whitelist_timeIds || [];
+                    const isWhitelisted = timeId && whitelistIds.includes(timeId);
+                    deveMostrarManutencao = !isWhitelisted;
+                    if (isWhitelisted && window.Log) {
+                        Log.info('APP-VERSION', `Whitelist: timeId ${timeId} liberado durante manutencao`);
+                    }
+                }
+
+                // Verificar modo de bloqueio
+                const modo = servidor.manutencao.modo || 'global';
+
+                // Modo global: bloqueia tudo
+                if (modo === 'global' && deveMostrarManutencao) {
+                    window.ManutencaoScreen.ativar(servidor.manutencao);
+                    return;
+                }
+
+                // Modo usuarios: bloqueia apenas por controle de acesso
+                if (modo === 'usuarios' && deveMostrarManutencao) {
+                    window.ManutencaoScreen.ativar(servidor.manutencao);
+                    return;
+                }
+
+                // Modo modulos: será tratado no participante-navigation.js
+                // Aqui não bloqueia o app todo, apenas marca para bloqueio de módulos
+                if (modo === 'modulos') {
+                    if (window.participanteModulosBloqueados) {
+                        window.participanteModulosBloqueados = servidor.manutencao.modulos_bloqueados || [];
+                    } else {
+                        window.participanteModulosBloqueados = servidor.manutencao.modulos_bloqueados || [];
+                    }
                 }
             } else if (!servidor.manutencao?.ativo && window.ManutencaoScreen?.estaAtivo()) {
                 window.ManutencaoScreen.desativar();
+                window.participanteModulosBloqueados = [];
             }
 
             const versaoServidor = servidor.version;
