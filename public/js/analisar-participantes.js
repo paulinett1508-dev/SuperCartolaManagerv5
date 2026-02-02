@@ -390,13 +390,33 @@
   }
 
   // =====================================================================
-  // DUMP / DATA LAKE
+  // DUMP / DATA LAKE - Estilo Cartola/Globo
   // =====================================================================
 
+  const POSICOES = {
+    1: { nome: 'Goleiro', abreviacao: 'GOL' },
+    2: { nome: 'Lateral', abreviacao: 'LAT' },
+    3: { nome: 'Zagueiro', abreviacao: 'ZAG' },
+    4: { nome: 'Meia', abreviacao: 'MEI' },
+    5: { nome: 'Atacante', abreviacao: 'ATA' },
+    6: { nome: 'Tecnico', abreviacao: 'TEC' },
+  };
+
+  // Cores das camisas por clube (aproximadas)
+  const CORES_CLUBES = {
+    262: '#d42a2a', 263: '#111', 264: '#111', 265: '#0055a4',
+    266: '#7b2d3a', 267: '#111', 275: '#006437', 276: '#fff',
+    277: '#fff', 280: '#fff', 282: '#111', 283: '#003DA5',
+    284: '#0097d6', 285: '#d42a2a', 286: '#006633', 287: '#d42a2a',
+    290: '#006633', 292: '#d42a2a', 293: '#d42a2a', 354: '#111',
+    356: '#003DA5', 1371: '#006437', 2305: '#ffe600',
+  };
+
   let dumpAtual = null;
+  let dumpHistorico = [];
+  let dumpRodadaAtual = null;
 
   async function abrirModalDump(timeId, nomeCartola, nomeTime) {
-    // Criar modal se nao existe
     let modal = document.getElementById("modalDump");
     if (!modal) {
       modal = document.createElement("div");
@@ -405,23 +425,11 @@
       document.body.appendChild(modal);
     }
 
-    // Loading state
     modal.innerHTML = `
       <div class="modal-content modal-dump-content">
-        <div class="modal-dump-header">
-          <div>
-            <h3 class="modal-title" style="margin-bottom:2px;">
-              <span class="material-icons" style="color:#FF5500">cloud_sync</span>
-              ${escapeHtml(nomeCartola)}
-            </h3>
-            <span style="font-size:0.75rem;color:#6b7280;">${escapeHtml(nomeTime)} | ID: ${timeId}</span>
-          </div>
-          <button class="btn-fechar-dump" onclick="document.getElementById('modalDump').classList.remove('active')">
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-        <div class="modal-dump-body">
-          <div class="loading-state"><div class="loading-spinner"></div><div>Buscando dados...</div></div>
+        <div style="text-align:center;padding:40px;">
+          <div class="loading-spinner"></div>
+          <div style="color:#888;font-size:0.85rem;margin-top:8px;">Buscando dados do Data Lake...</div>
         </div>
       </div>
     `;
@@ -431,111 +439,445 @@
       if (e.target === modal) modal.classList.remove("active");
     });
 
-    // Buscar dados
     try {
       const res = await fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50`);
       const data = await res.json();
       dumpAtual = { timeId, nomeCartola, nomeTime };
-      renderizarModalDump(modal, data, timeId, nomeCartola, nomeTime);
+      dumpHistorico = data.historico || [];
+      renderizarDumpGlobo(modal, data, timeId, nomeCartola, nomeTime);
     } catch (error) {
       console.error("[ANALISAR] Erro ao buscar dump:", error);
-      modal.querySelector(".modal-dump-body").innerHTML = `
-        <div class="empty-state">
+      modal.querySelector(".modal-content").innerHTML = `
+        <div class="dl-empty-state">
           <span class="material-icons" style="font-size:48px;color:#ef4444;">wifi_off</span>
-          <div>Erro ao buscar dados: ${error.message}</div>
+          <div style="margin-top:8px;">Erro: ${error.message}</div>
         </div>
       `;
     }
   }
 
-  function renderizarModalDump(modal, data, timeId, nomeCartola, nomeTime) {
-    const body = modal.querySelector(".modal-dump-body");
+  function renderizarDumpGlobo(modal, data, timeId, nomeCartola, nomeTime) {
+    const content = modal.querySelector(".modal-content");
 
     if (!data.success || !data.dump_atual) {
-      // Sem dados - estado vazio
-      body.innerHTML = `
-        <div class="dump-empty-state">
-          <span class="material-icons" style="font-size:64px;color:#4b5563;">cloud_off</span>
-          <h4 style="color:#9ca3af;margin:12px 0 6px;">Nenhum dump encontrado para este participante</h4>
-          <p style="font-size:0.75rem;color:#6b7280;max-width:380px;margin:0 auto 16px;">
-            Os dados sao coletados automaticamente durante o processamento de rodadas.
-            Use o <strong>Sync Cartola</strong> ou processe uma rodada para popular o Data Lake.
-          </p>
+      content.innerHTML = `
+        <div class="dl-empty-state">
+          <span class="material-icons" style="font-size:64px;color:#ccc;">cloud_off</span>
+          <h4>Nenhum dump encontrado</h4>
+          <p>Os dados sao coletados durante o processamento de rodadas. Use o botao abaixo para buscar dados da API Cartola.</p>
           <button class="btn-sync-dump" data-time-id="${timeId}">
             <span class="material-icons">download</span>
             Buscar Dados da API Cartola
           </button>
         </div>
       `;
-      body.querySelector(".btn-sync-dump")?.addEventListener("click", () => sincronizarDump(timeId, nomeCartola, nomeTime));
+      content.querySelector(".btn-sync-dump")?.addEventListener("click", () => sincronizarDump(timeId, nomeCartola, nomeTime));
       return;
     }
 
-    // Tem dados - mostrar resumo
     const dump = data.dump_atual;
-    const rawJson = dump.raw_json || {};
-    const time = rawJson.time || rawJson;
-    const atletas = rawJson.atletas || [];
-    const patrimonio = rawJson.patrimonio;
-    const pontos = data.pontos_total_temporada || rawJson.pontos || rawJson.pontos_campeonato;
-    const rodadas = data.rodadas_disponiveis || [];
-    const dataColeta = new Date(dump.data_coleta).toLocaleString("pt-BR");
+    const raw = dump.raw_json || {};
+    const time = raw.time || {};
+    const atletas = raw.atletas || [];
+    const patrimonio = raw.patrimonio;
+    const pontos = raw.pontos;
+    const capitaoId = raw.capitao_id;
+    const rodadaAtual = dump.rodada || raw.rodada_atual || null;
+    const rodadasDisp = data.rodadas_disponiveis || [];
+    const pontosTotal = data.pontos_total_temporada;
+    const historico = data.historico || [];
+    const escudo = time.url_escudo_png || time.url_escudo_svg || '';
+    const fotoPerfil = time.foto_perfil || '';
+    const assinante = time.assinante || false;
+    const nomeTimeApi = time.nome || nomeTime;
+    const nomeCartolaApi = time.nome_cartola || nomeCartola;
+    const dataColeta = dump.data_coleta ? new Date(dump.data_coleta).toLocaleString("pt-BR") : '';
 
-    body.innerHTML = `
-      <div class="dump-meta-bar">
-        <span class="dump-meta-item"><span class="material-icons" style="font-size:14px;">schedule</span> ${dataColeta}</span>
-        <span class="dump-meta-item"><span class="material-icons" style="font-size:14px;">category</span> ${dump.tipo_coleta}</span>
-        ${rodadas.length > 0 ? `<span class="dump-meta-item"><span class="material-icons" style="font-size:14px;">calendar_month</span> ${rodadas.length} rodadas</span>` : ""}
-        <button class="btn-sync-mini" data-time-id="${timeId}" title="Atualizar dados">
-          <span class="material-icons" style="font-size:16px;">refresh</span>
+    // Separate titulares (first 12) and reservas
+    // In Cartola, the lineup has 12 players (11 starters + 1 coach)
+    // The bench is typically the 13th player onward
+    const titulares = atletas.slice(0, 12);
+    const reservas = atletas.slice(12);
+
+    // Find captain, best and worst scorer
+    let capitao = null;
+    let maiorPontuador = null;
+    let menorPontuador = null;
+
+    if (titulares.length > 0) {
+      for (const a of titulares) {
+        if (a.atleta_id === capitaoId) capitao = a;
+        if (!maiorPontuador || a.pontos_num > maiorPontuador.pontos_num) maiorPontuador = a;
+        if (!menorPontuador || a.pontos_num < menorPontuador.pontos_num) menorPontuador = a;
+      }
+    }
+
+    // Build the modal HTML
+    let html = '';
+
+    // Header
+    html += `
+      <div class="dl-header">
+        <button class="dl-close-btn" onclick="document.getElementById('modalDump').classList.remove('active')">
+          <span class="material-icons">close</span>
         </button>
+        <div class="dl-header-label">${rodadaAtual ? 'Rodada ' + rodadaAtual : 'Dados do Time'}</div>
+        <div class="dl-team-badge">
+          ${escudo ? `<img src="${escapeHtml(escudo)}" onerror="this.style.display='none'" alt="" />` : '<span class="material-icons" style="font-size:40px;color:#ccc;">shield</span>'}
+          ${fotoPerfil ? `<img class="dl-foto-perfil" src="${escapeHtml(fotoPerfil)}" onerror="this.style.display='none'" alt="" />` : ''}
+        </div>
+        ${assinante ? '<div class="dl-pro-badge">PRO</div>' : ''}
+        <div class="dl-team-name">${escapeHtml(nomeTimeApi)}</div>
+        <div class="dl-cartoleiro-name">${escapeHtml(nomeCartolaApi)}</div>
       </div>
-      <div class="dump-resumo-grid">
-        <div class="dump-resumo-item">
-          <span class="material-icons">person</span>
-          <div><span class="dump-label">Cartoleiro</span><span class="dump-value">${escapeHtml(time.nome_cartola || nomeCartola)}</span></div>
-        </div>
-        <div class="dump-resumo-item">
-          <span class="material-icons">sports_soccer</span>
-          <div><span class="dump-label">Time</span><span class="dump-value">${escapeHtml(time.nome || nomeTime)}</span></div>
-        </div>
-        ${patrimonio !== undefined ? `
-        <div class="dump-resumo-item">
-          <span class="material-icons">account_balance</span>
-          <div><span class="dump-label">Patrimonio</span><span class="dump-value">C$ ${patrimonio.toFixed(2)}</span></div>
-        </div>` : ""}
-        ${pontos !== undefined ? `
-        <div class="dump-resumo-item dump-item-destaque">
-          <span class="material-icons">emoji_events</span>
-          <div><span class="dump-label">Pontos Total</span><span class="dump-value">${typeof pontos === 'number' ? pontos.toFixed(2) : pontos}</span></div>
-        </div>` : ""}
-        ${atletas.length > 0 ? `
-        <div class="dump-resumo-item">
-          <span class="material-icons">group</span>
-          <div><span class="dump-label">Atletas</span><span class="dump-value">${atletas.length} jogadores</span></div>
-        </div>` : ""}
-      </div>
-      ${rodadas.length > 0 ? `
-      <div class="dump-rodadas">
-        <span class="dump-label" style="margin-bottom:6px;display:block;">Rodadas disponiveis:</span>
-        <div class="dump-rodadas-grid">
-          ${rodadas.map(r => `<span class="dump-rodada-badge">${r}</span>`).join("")}
-        </div>
-      </div>` : ""}
     `;
 
-    body.querySelector(".btn-sync-mini")?.addEventListener("click", () => sincronizarDump(timeId, nomeCartola, nomeTime));
+    // Sync bar
+    html += `
+      <div class="dl-sync-bar">
+        <span class="dl-sync-info">${dataColeta}</span>
+        <button class="dl-sync-btn" id="dlSyncBtn" data-time-id="${timeId}">
+          <span class="material-icons">refresh</span> Atualizar
+        </button>
+      </div>
+    `;
+
+    // Round slider (if we know the round)
+    if (rodadaAtual) {
+      const pct = ((rodadaAtual - 1) / 37 * 100).toFixed(1);
+      html += `
+        <div class="dl-round-bar">
+          <div class="dl-round-slider">
+            <div class="dl-round-track">
+              <div class="dl-round-fill" style="width:${pct}%"></div>
+              <div class="dl-round-ball" style="left:${pct}%">${rodadaAtual}</div>
+            </div>
+          </div>
+          <div class="dl-round-labels">
+            <span>1</span><span>38</span>
+          </div>
+          <div class="dl-round-cta">Veja como voce se saiu na <strong>Rodada ${rodadaAtual}</strong></div>
+        </div>
+      `;
+    }
+
+    html += '<div class="dl-body">';
+
+    // Score section (pontos + patrimonio)
+    if (pontos !== undefined || patrimonio !== undefined) {
+      html += '<div class="dl-score-section">';
+
+      if (pontos !== undefined) {
+        html += `
+          <div class="dl-score-row">
+            <div class="dl-score-left">
+              <div class="dl-score-icon"><span class="material-icons" style="font-size:36px;color:#3b82f6;">sports_soccer</span></div>
+              <div>
+                <div class="dl-score-label">Pontuacao${rodadaAtual ? ' Rodada ' + rodadaAtual : ''}</div>
+                <div class="dl-score-value">${typeof pontos === 'number' ? pontos.toFixed(2) : pontos}</div>
+              </div>
+            </div>
+            ${pontosTotal !== undefined && pontosTotal !== pontos ? `
+            <div class="dl-score-right">
+              <div class="dl-score-label">Total Temporada</div>
+              <div class="dl-score-value">${typeof pontosTotal === 'number' ? pontosTotal.toFixed(2) : pontosTotal}</div>
+            </div>` : ''}
+          </div>
+        `;
+      }
+
+      if (patrimonio !== undefined) {
+        html += `
+          <div class="dl-score-row">
+            <div class="dl-score-left">
+              <div class="dl-score-icon"><span class="material-icons" style="font-size:36px;color:#22c55e;">account_balance_wallet</span></div>
+              <div>
+                <div class="dl-score-label">Patrimonio</div>
+                <div class="dl-score-value">C$${patrimonio.toFixed(2)}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      html += '</div>';
+    }
+
+    // Player highlight cards (Capitao, Maior, Menor)
+    if (titulares.length > 0 && (capitao || maiorPontuador || menorPontuador)) {
+      html += '<div class="dl-players-section"><div class="dl-players-grid">';
+
+      if (capitao) {
+        html += renderPlayerCard('Capitao', capitao, true);
+      }
+      if (maiorPontuador) {
+        html += renderPlayerCard('Maior Pontuador', maiorPontuador, false, true);
+      }
+      if (menorPontuador) {
+        html += renderPlayerCard('Menor Pontuador', menorPontuador, false, false, true);
+      }
+
+      html += '</div></div>';
+    }
+
+    // Full lineup
+    if (titulares.length > 0) {
+      html += `
+        <div class="dl-lineup-section">
+          <div class="dl-lineup-title">Escalacao Completa</div>
+          <div class="dl-lineup-grid">
+      `;
+      for (const a of titulares) {
+        const isCap = a.atleta_id === capitaoId;
+        const pos = POSICOES[a.posicao_id] || { nome: '?', abreviacao: '?' };
+        const cor = CORES_CLUBES[a.clube_id] || '#555';
+        const scoreClass = a.pontos_num > 0 ? 'positive' : (a.pontos_num < 0 ? 'negative' : 'neutral');
+        let pontosDisplay = typeof a.pontos_num === 'number' ? a.pontos_num.toFixed(2) : (a.pontos_num || '0.00');
+        html += `
+          <div class="dl-lineup-player ${isCap ? 'is-captain' : ''}">
+            <div class="dl-bench-jersey" style="background:${cor}">
+              <img class="dl-jersey-badge" src="/escudos/${a.clube_id}.png" onerror="this.style.display='none'" />
+            </div>
+            <div class="dl-bench-info">
+              <div class="dl-bench-name">${escapeHtml(a.apelido)}${isCap ? ' <span style="color:#FF5500;font-size:0.6rem;">C</span>' : ''}</div>
+              <div class="dl-bench-pos">${pos.abreviacao}</div>
+            </div>
+            <div class="dl-bench-score dl-player-score ${scoreClass}">${pontosDisplay}</div>
+          </div>
+        `;
+      }
+      html += '</div></div>';
+    }
+
+    // Bench / Reservas
+    if (reservas.length > 0) {
+      html += `
+        <div class="dl-bench-section">
+          <div class="dl-bench-title">Banco de Reservas</div>
+          <div class="dl-bench-grid">
+      `;
+      for (const a of reservas) {
+        const pos = POSICOES[a.posicao_id] || { nome: '?', abreviacao: '?' };
+        const cor = CORES_CLUBES[a.clube_id] || '#888';
+        const scoreClass = a.pontos_num > 0 ? 'positive' : (a.pontos_num < 0 ? 'negative' : 'neutral');
+        let pontosDisplay = typeof a.pontos_num === 'number' ? a.pontos_num.toFixed(2) : (a.pontos_num || '0.00');
+        html += `
+          <div class="dl-bench-player">
+            <div class="dl-bench-jersey" style="background:${cor};position:relative;">
+              <img class="dl-jersey-badge" src="/escudos/${a.clube_id}.png" onerror="this.style.display='none'" style="position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:50%;border:1px solid #ddd;background:#fff;object-fit:contain;" />
+            </div>
+            <div class="dl-bench-info">
+              <div class="dl-bench-name">${escapeHtml(a.apelido)}</div>
+              <div class="dl-bench-pos">${pos.abreviacao}</div>
+            </div>
+            <div class="dl-bench-score dl-player-score ${scoreClass}">${pontosDisplay}</div>
+          </div>
+        `;
+      }
+      html += '</div></div>';
+    }
+
+    // Performance chart
+    if (historico.length > 0) {
+      const maxPontos = Math.max(...historico.map(h => Math.abs(h.pontos || 0)), 1);
+      html += `
+        <div class="dl-chart-section">
+          <div class="dl-chart-title">Sua performance rodada a rodada</div>
+          <div class="dl-chart-container">
+      `;
+      // Show all 38 rounds
+      for (let r = 1; r <= 38; r++) {
+        const h = historico.find(x => x.rodada === r);
+        const pts = h ? (h.pontos || 0) : 0;
+        const hasData = !!h;
+        const heightPct = hasData ? (Math.abs(pts) / maxPontos * 80 + 5) : 3;
+        const barClass = !hasData ? 'empty' : (r === rodadaAtual ? 'selected' : (pts >= 0 ? 'positive' : 'negative'));
+        html += `
+          <div class="dl-chart-bar-wrap" data-rodada="${r}" title="Rodada ${r}: ${hasData ? pts.toFixed(2) + ' pts' : 'sem dados'}">
+            ${hasData ? `<div class="dl-chart-tooltip">${pts.toFixed(0)}</div>` : ''}
+            <div class="dl-chart-bar ${barClass}" style="height:${heightPct}%"></div>
+          </div>
+        `;
+      }
+      html += '</div>';
+      html += '<div class="dl-chart-labels">';
+      for (let r = 1; r <= 38; r++) {
+        const isSelected = r === rodadaAtual;
+        html += `<div class="dl-chart-label ${isSelected ? 'selected' : ''}">${r}</div>`;
+      }
+      html += '</div></div>';
+    }
+
+    // Round selector
+    if (rodadasDisp.length > 0) {
+      html += `
+        <div class="dl-round-selector">
+          <select class="dl-round-select" id="dlRoundSelect">
+            <option value="">Selecionar rodada...</option>
+            ${rodadasDisp.map(r => `<option value="${r}" ${r === rodadaAtual ? 'selected' : ''}>Rodada ${r}${r === rodadaAtual ? ' (atual)' : ''}</option>`).join('')}
+          </select>
+        </div>
+      `;
+    }
+
+    html += '</div>'; // close dl-body
+
+    content.innerHTML = html;
+
+    // Event listeners
+    content.querySelector("#dlSyncBtn")?.addEventListener("click", () => sincronizarDump(timeId, nomeCartola, nomeTime));
+
+    content.querySelector("#dlRoundSelect")?.addEventListener("change", (e) => {
+      const rodada = parseInt(e.target.value);
+      if (rodada) carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
+    });
+
+    // Chart bar click to load round
+    content.querySelectorAll(".dl-chart-bar-wrap[data-rodada]").forEach(bar => {
+      bar.addEventListener("click", () => {
+        const rodada = parseInt(bar.dataset.rodada);
+        const h = dumpHistorico.find(x => x.rodada === rodada);
+        if (h) {
+          carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
+        } else if (rodada) {
+          if (confirm(`Rodada ${rodada} nao esta no Data Lake. Deseja sincronizar da API Cartola?`)) {
+            sincronizarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
+          }
+        }
+      });
+    });
+  }
+
+  function renderPlayerCard(label, atleta, isCaptain, isBest, isWorst) {
+    const pos = POSICOES[atleta.posicao_id] || { nome: '?', abreviacao: '?' };
+    const cor = CORES_CLUBES[atleta.clube_id] || '#555';
+    let pontosDisplay = typeof atleta.pontos_num === 'number' ? atleta.pontos_num.toFixed(2) : (atleta.pontos_num || '0.00');
+    const scoreClass = atleta.pontos_num > 0 ? 'positive' : (atleta.pontos_num < 0 ? 'negative' : 'neutral');
+
+    let thumbHtml = '';
+    if (isBest) thumbHtml = '<div class="dl-thumb-icon" style="color:#22c55e;">&#x1F44D;</div>';
+    if (isWorst) thumbHtml = '<div class="dl-thumb-icon" style="color:#ef4444;">&#x1F44E;</div>';
+
+    return `
+      <div class="dl-player-card">
+        <div class="dl-player-card-label">${escapeHtml(label)}</div>
+        <div class="dl-jersey" style="background:${cor}">
+          <div class="dl-jersey-badge"><img src="/escudos/${atleta.clube_id}.png" onerror="this.style.display='none'" /></div>
+          ${isCaptain ? '<div class="dl-captain-icon">C</div>' : ''}
+          ${thumbHtml}
+        </div>
+        <div class="dl-player-name">${escapeHtml(atleta.apelido)}</div>
+        <div class="dl-player-pos">${pos.nome}</div>
+        <div class="dl-player-score ${scoreClass}">${pontosDisplay}</div>
+        ${isCaptain ? '<div class="dl-captain-multiplier">Pontuacao em dobro</div>' : ''}
+      </div>
+    `;
+  }
+
+  async function carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada) {
+    const modal = document.getElementById("modalDump");
+    if (!modal) return;
+
+    const content = modal.querySelector(".modal-content");
+    content.innerHTML = `
+      <div style="text-align:center;padding:40px;">
+        <div class="loading-spinner"></div>
+        <div style="color:#888;font-size:0.85rem;margin-top:8px;">Carregando Rodada ${rodada}...</div>
+      </div>
+    `;
+
+    try {
+      const res = await fetch(`/api/data-lake/raw/${timeId}?rodada=${rodada}&historico=true&limit=50`);
+      const data = await res.json();
+
+      if (!data.success || !data.dump_atual) {
+        // No data for this round, offer to sync
+        content.innerHTML = `
+          <div class="dl-empty-state">
+            <span class="material-icons" style="font-size:48px;color:#f59e0b;">cloud_queue</span>
+            <h4>Rodada ${rodada} nao disponivel no Data Lake</h4>
+            <p>Os dados desta rodada ainda nao foram coletados. Clique abaixo para buscar da API Cartola.</p>
+            <button class="btn-sync-dump" id="dlSyncRodadaBtn">
+              <span class="material-icons">download</span>
+              Buscar Rodada ${rodada}
+            </button>
+            <br/><br/>
+            <button class="dl-sync-btn" id="dlBackBtn">
+              <span class="material-icons">arrow_back</span> Voltar
+            </button>
+          </div>
+        `;
+        content.querySelector("#dlSyncRodadaBtn")?.addEventListener("click", () => sincronizarRodadaDump(timeId, nomeCartola, nomeTime, rodada));
+        content.querySelector("#dlBackBtn")?.addEventListener("click", () => abrirModalDump(timeId, nomeCartola, nomeTime));
+        return;
+      }
+
+      dumpHistorico = data.historico || dumpHistorico;
+      renderizarDumpGlobo(modal, data, timeId, nomeCartola, nomeTime);
+    } catch (error) {
+      console.error("[ANALISAR] Erro ao carregar rodada:", error);
+      content.innerHTML = `
+        <div class="dl-empty-state">
+          <span class="material-icons" style="font-size:48px;color:#ef4444;">error</span>
+          <div style="margin-top:8px;">Erro: ${error.message}</div>
+          <br/>
+          <button class="dl-sync-btn" onclick="document.getElementById('modalDump').classList.remove('active')">Fechar</button>
+        </div>
+      `;
+    }
+  }
+
+  async function sincronizarRodadaDump(timeId, nomeCartola, nomeTime, rodada) {
+    const modal = document.getElementById("modalDump");
+    if (!modal) return;
+
+    const content = modal.querySelector(".modal-content");
+    content.innerHTML = `
+      <div style="text-align:center;padding:40px;">
+        <div class="loading-spinner"></div>
+        <div style="color:#888;font-size:0.85rem;margin-top:8px;">Sincronizando Rodada ${rodada} com API Cartola...</div>
+      </div>
+    `;
+
+    try {
+      const res = await fetch(`/api/data-lake/sincronizar/${timeId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rodada }),
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Erro ao sincronizar");
+      }
+
+      // Reload the round
+      await carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
+    } catch (error) {
+      console.error("[ANALISAR] Erro ao sincronizar rodada:", error);
+      content.innerHTML = `
+        <div class="dl-empty-state">
+          <span class="material-icons" style="font-size:48px;color:#ef4444;">error</span>
+          <div style="margin-top:8px;">Erro: ${escapeHtml(error.message)}</div>
+          <br/>
+          <button class="dl-sync-btn" id="dlBackBtn">
+            <span class="material-icons">arrow_back</span> Voltar
+          </button>
+        </div>
+      `;
+      content.querySelector("#dlBackBtn")?.addEventListener("click", () => abrirModalDump(timeId, nomeCartola, nomeTime));
+    }
   }
 
   async function sincronizarDump(timeId, nomeCartola, nomeTime) {
     const modal = document.getElementById("modalDump");
-    const body = modal?.querySelector(".modal-dump-body");
-    if (!body) return;
+    if (!modal) return;
 
-    body.innerHTML = `
-      <div class="loading-state">
+    const content = modal.querySelector(".modal-content");
+    content.innerHTML = `
+      <div style="text-align:center;padding:40px;">
         <div class="loading-spinner"></div>
-        <div>Sincronizando com API Cartola...</div>
+        <div style="color:#888;font-size:0.85rem;margin-top:8px;">Sincronizando com API Cartola...</div>
       </div>
     `;
 
@@ -550,17 +892,18 @@
         throw new Error(data.message || "Erro ao sincronizar");
       }
 
-      // Recarregar dados do dump
+      // Reload
       const rawRes = await fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50`);
       const rawData = await rawRes.json();
-      renderizarModalDump(modal, rawData, timeId, nomeCartola, nomeTime);
-
+      dumpHistorico = rawData.historico || [];
+      renderizarDumpGlobo(modal, rawData, timeId, nomeCartola, nomeTime);
     } catch (error) {
       console.error("[ANALISAR] Erro ao sincronizar:", error);
-      body.innerHTML = `
-        <div class="empty-state">
+      content.innerHTML = `
+        <div class="dl-empty-state">
           <span class="material-icons" style="font-size:48px;color:#ef4444;">error</span>
-          <div style="margin-bottom:12px;">Erro: ${escapeHtml(error.message)}</div>
+          <div style="margin-top:8px;">Erro: ${escapeHtml(error.message)}</div>
+          <br/>
           <button class="btn-sync-dump" onclick="document.getElementById('modalDump').classList.remove('active')">Fechar</button>
         </div>
       `;
