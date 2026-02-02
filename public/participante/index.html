@@ -2165,7 +2165,51 @@
             window.fecharParticipantes2026 = fecharParticipantes2026;
 
             console.log('[PARTICIPANTES] Modal Participantes 2026 carregado');
+
+            // Função global "Aguarde..." para cards não-premium
+            window.mostrarAguarde = function(nomeCard) {
+                const toast = document.createElement('div');
+                toast.className = 'aguarde-toast';
+                toast.innerHTML = `
+                    <span class="material-icons" style="font-size:20px;color:#ff6d00;">lock</span>
+                    <span><strong>${nomeCard}</strong> — Aguarde...</span>
+                `;
+                document.body.appendChild(toast);
+                requestAnimationFrame(() => toast.classList.add('aguarde-toast-show'));
+                setTimeout(() => {
+                    toast.classList.remove('aguarde-toast-show');
+                    setTimeout(() => toast.remove(), 350);
+                }, 2200);
+            };
         </script>
+
+        <style>
+            .aguarde-toast {
+                position: fixed;
+                bottom: 90px;
+                left: 50%;
+                transform: translateX(-50%) translateY(20px);
+                background: #1e1e1e;
+                border: 1px solid rgba(255, 109, 0, 0.3);
+                border-radius: 12px;
+                padding: 12px 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: #e0e0e0;
+                font-family: 'Inter', sans-serif;
+                font-size: 14px;
+                z-index: 99999;
+                opacity: 0;
+                transition: opacity 0.3s ease, transform 0.3s ease;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                pointer-events: none;
+            }
+            .aguarde-toast-show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        </style>
 
         <!-- Modal Escalacao Participante -->
         <div id="modal-escalacao-participante" class="fixed inset-0 z-50 hidden opacity-0 transition-opacity duration-300"

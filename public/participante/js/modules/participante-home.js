@@ -861,29 +861,43 @@ function renderizarHome(container, data, ligaId) {
         </div>
     ` : "";
 
-    const cartolaProHTML = isPremium ? `
-            <button class="home-action-item" onclick="window.abrirCartolaPro && window.abrirCartolaPro()">
+    const onClickCartolaPro = isPremium
+        ? `window.abrirCartolaPro && window.abrirCartolaPro()`
+        : `window.mostrarAguarde && window.mostrarAguarde('Cartola PRO')`;
+
+    const onClickPremiacoes = isPremium
+        ? `window.abrirPremiacoes2026 && window.abrirPremiacoes2026()`
+        : `window.mostrarAguarde && window.mostrarAguarde('Premiações')`;
+
+    const onClickRegras = isPremium
+        ? `window.abrirRegras2026 && window.abrirRegras2026()`
+        : `window.mostrarAguarde && window.mostrarAguarde('Regras')`;
+
+    const disabledStyle = isPremium ? '' : ' home-action-disabled';
+
+    const cartolaProHTML = `
+            <button class="home-action-item${disabledStyle}" onclick="${onClickCartolaPro}">
                 <div class="home-action-icon">
                     <span class="material-icons">workspace_premium</span>
                 </div>
                 <span class="home-action-label">Cartola PRO</span>
             </button>
-        ` : "";
+        `;
 
-    const premiumShortcuts = isPremium ? `
-            <button class="home-action-item" onclick="window.abrirPremiacoes2026 && window.abrirPremiacoes2026()">
+    const premiumShortcuts = `
+            <button class="home-action-item${disabledStyle}" onclick="${onClickPremiacoes}">
                 <div class="home-action-icon">
                     <span class="material-icons">emoji_events</span>
                 </div>
                 <span class="home-action-label">Premiações</span>
             </button>
-            <button class="home-action-item" onclick="window.abrirRegras2026 && window.abrirRegras2026()">
+            <button class="home-action-item${disabledStyle}" onclick="${onClickRegras}">
                 <div class="home-action-icon">
                     <span class="material-icons">description</span>
                 </div>
                 <span class="home-action-label">Regras</span>
             </button>
-        ` : "";
+        `;
 
     const cardStyleAttr = zonaBg ? `style="--home-card-border:${zonaBg}; --home-card-accent:${zonaCor};"` : "";
 
