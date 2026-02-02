@@ -75,14 +75,131 @@ async function getDashboard(req, res) {
     const db = req.app.locals.db;
     const adminEmail = req.admin.email;
 
-    // TODO FASE 2: Implementar lógica completa do dashboard
-    // Por enquanto, retorna mock data
+    // Busca ligas ativas
+    const ligas = await db.collection('ligas').find({
+      ativo: true
+    }).sort({ id: 1 }).toArray();
+
+    // Para cada liga, busca dados agregados
+    const ligasComDados = await Promise.all(
+      ligas.map(async (liga) => {
+        try {
+          // Busca participantes ativos
+          const participantes = await db.collection('times').find({
+            liga_id: liga.id,
+            ativo: true
+          }).toArray();
+
+          const participantesAtivos = participantes.length;
+          const participantesTotais = await db.collection('times').countDocuments({
+            liga_id: liga.id
+          });
+
+          // Busca última consolidação (via logs de atividade)
+          const ultimaConsolidacao = await db.collection('adminactivitylogs')
+            .find({
+              action: 'consolidacao_manual',
+              'details.ligaId': liga.id,
+              result: 'success'
+            })
+            .sort({ timestamp: -1 })
+            .limit(1)
+            .toArray();
+
+          let ultimaConsolidacaoData = null;
+          if (ultimaConsolidacao.length > 0) {
+            ultimaConsolidacaoData = {
+              rodada: ultimaConsolidacao[0].details?.rodada || 0,
+              timestamp: ultimaConsolidacao[0].timestamp,
+              status: 'success'
+            };
+          }
+
+          // Calcula saldo total da liga (soma dos saldos dos participantes)
+          const extratos = await db.collection('extratofinanceirocaches').find({
+            liga_id: liga.id,
+            temporada: liga.temporada || 2026
+          }).toArray();
+
+          let saldoTotal = 0;
+          let inadimplentes = 0;
+
+          extratos.forEach(extrato => {
+            const saldo = extrato.saldo_final || 0;
+            saldoTotal += saldo;
+            if (saldo < 0) {
+              inadimplentes++;
+            }
+          });
+
+          // Busca módulos ativos
+          const modulosAtivos = [];
+          if (liga.modulos_ativos) {
+            Object.entries(liga.modulos_ativos).forEach(([modulo, ativo]) => {
+              if (ativo) {
+                modulosAtivos.push(modulo);
+              }
+            });
+          }
+
+          return {
+            id: liga.id,
+            nome: liga.nome,
+            temporada: liga.temporada || 2026,
+            participantesAtivos,
+            participantesTotais,
+            rodadaAtual: liga.rodada_atual || 0,
+            ultimaConsolidacao: ultimaConsolidacaoData,
+            saldoTotal: parseFloat(saldoTotal.toFixed(2)),
+            inadimplentes,
+            modulosAtivos
+          };
+        } catch (ligaError) {
+          console.error(`[adminMobile] Erro ao processar liga ${liga.id}:`, ligaError);
+          return null;
+        }
+      })
+    );
+
+    // Remove ligas com erro
+    const ligasValidas = ligasComDados.filter(l => l !== null);
+
+    // Busca últimas 10 ações do admin
+    const ultimasAcoes = await db.collection('adminactivitylogs')
+      .find({})
+      .sort({ timestamp: -1 })
+      .limit(10)
+      .toArray();
+
+    const acoesFormatadas = ultimasAcoes.map(acao => {
+      const tipoMap = {
+        'consolidacao_manual': 'consolidacao',
+        'novo_acerto': 'acerto',
+        'aprovar_quitacao': 'quitacao',
+        'login': 'login'
+      };
+
+      return {
+        tipo: tipoMap[acao.action] || 'outro',
+        ligaNome: acao.details?.ligaNome || 'N/A',
+        rodada: acao.details?.rodada,
+        participante: acao.details?.participante,
+        valor: acao.details?.valor,
+        timestamp: acao.timestamp,
+        status: acao.result
+      };
+    });
+
+    // Health score (TODO: implementar lógica real de health check)
+    // Por enquanto, retorna mock
+    const healthScore = 95;
+    const healthStatus = healthScore >= 80 ? 'healthy' : healthScore >= 60 ? 'warning' : 'critical';
 
     res.json({
-      healthScore: 95,
-      healthStatus: 'healthy',
-      ligas: [],
-      ultimasAcoes: []
+      healthScore,
+      healthStatus,
+      ligas: ligasValidas,
+      ultimasAcoes: acoesFormatadas
     });
   } catch (error) {
     console.error('[adminMobile] Erro no getDashboard:', error);

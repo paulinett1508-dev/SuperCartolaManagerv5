@@ -189,6 +189,18 @@ p {
   display: none !important;
 }
 
+.text-success {
+  color: var(--accent-success) !important;
+}
+
+.text-danger {
+  color: var(--accent-danger) !important;
+}
+
+.text-warning {
+  color: var(--accent-warning) !important;
+}
+
 /* ========== LOADING STATES ========== */
 .loading {
   display: flex;
