@@ -142,6 +142,9 @@
                 };
             }
 
+            // Reset do estado de inicialização ao carregar o script
+            window.__gerenciar_state.initRunning = false;
+
             async function loadLayout() {
                 try {
                     const response = await fetch("layout.html");
@@ -326,11 +329,16 @@
             // ✅ FIX: Reinicializar após navegação SPA
             if (!window.__gerenciar_state.spaBound) {
                 window.__gerenciar_state.spaBound = true;
+                console.log('[GERENCIAR] Listener spa:navigated registrado');
                 window.addEventListener('spa:navigated', async (e) => {
+                    console.log('[GERENCIAR] Evento spa:navigated recebido:', e.detail);
                     const { pageName } = e.detail || {};
                     if (pageName === 'gerenciar.html') {
                         console.log('[GERENCIAR] Reinicializando após navegação SPA...');
+                        window.__gerenciar_state.initRunning = false; // Reset antes de inicializar
                         await initGerenciar();
+                    } else {
+                        console.log('[GERENCIAR] Página diferente, ignorando:', pageName);
                     }
                 });
             }
@@ -338,10 +346,26 @@
             // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
             if (!window.__gerenciar_state.readyChecked) {
                 window.__gerenciar_state.readyChecked = true;
+                console.log('[GERENCIAR] Verificando inicialização imediata, readyState:', document.readyState);
                 if (document.readyState !== 'loading' && window.location.pathname.includes('gerenciar.html')) {
+                    console.log('[GERENCIAR] DOM pronto, inicializando...');
+                    window.__gerenciar_state.initRunning = false; // Reset antes de inicializar
                     initGerenciar();
                 }
             }
+
+            // ✅ FALLBACK: Garantir inicialização após 500ms se ainda não ocorreu
+            setTimeout(() => {
+                if (window.location.pathname.includes('gerenciar.html')) {
+                    const container = document.getElementById('ligasContainer');
+                    const isLoading = container && container.querySelector('.loading-state');
+                    if (isLoading) {
+                        console.warn('[GERENCIAR] FALLBACK: Página ainda em loading, forçando inicialização...');
+                        window.__gerenciar_state.initRunning = false;
+                        initGerenciar();
+                    }
+                }
+            }, 500);
 
             // === MODAL DE MÓDULOS ===
             if (!window.__gerenciar_state.modalBound) {
