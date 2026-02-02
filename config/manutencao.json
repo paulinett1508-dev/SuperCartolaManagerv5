@@ -1,6 +1,26 @@
 {
-  "ativo": true,
-  "ativadoEm": "2026-01-30T20:00:00Z",
-  "mensagem": "Estamos aplicando melhorias no app. Voltamos em breve!",
-  "whitelist_timeIds": ["13935277"]
+  "ativo": false,
+  "modo": "global",
+  "template_id": "manutencao-tecnica",
+  "customizacao": {
+    "titulo": "Calma aê!",
+    "mensagem": "Estamos aplicando melhorias no app. Voltamos em breve!",
+    "emoji": "🛠️",
+    "imagem_url": null,
+    "cor_primaria": "#f97316",
+    "cor_secundaria": "#ea580c",
+    "gradiente": "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+    "mostrar_ranking": true,
+    "mostrar_noticias": true,
+    "mostrar_ultima_rodada": true,
+    "icone_tipo": "emoji"
+  },
+  "controle_acesso": {
+    "modo_lista": "whitelist",
+    "whitelist_timeIds": ["13935277"],
+    "blacklist_timeIds": []
+  },
+  "modulos_bloqueados": [],
+  "ativadoEm": null,
+  "desativadoEm": null
 }

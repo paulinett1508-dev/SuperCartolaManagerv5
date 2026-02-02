@@ -9,13 +9,20 @@ const ManutencaoScreen = {
     _ativo: false,
     _conteudoCarregado: false,
     _observer: null,
+    _config: null,
 
-    ativar() {
+    ativar(config = null) {
         if (this._ativo) return;
         this._ativo = true;
+        this._config = config;
 
         const tela = document.getElementById('manutencaoScreen');
         if (!tela) return;
+
+        // Aplicar customização se fornecida
+        if (config && config.customizacao) {
+            this._aplicarCustomizacao(tela, config.customizacao);
+        }
 
         // Esconder app normal
         const container = document.querySelector('.participante-container');
@@ -35,10 +42,66 @@ const ManutencaoScreen = {
         // Mostrar tela de manutenção
         tela.style.display = 'flex';
 
-        // Carregar notícias do time do coração automaticamente
-        this._carregarNoticias();
+        // Carregar notícias do time do coração automaticamente (se habilitado)
+        const mostrarNoticias = config?.customizacao?.mostrar_noticias !== false;
+        if (mostrarNoticias) {
+            this._carregarNoticias();
+        }
 
-        if (window.Log) Log.info('MANUTENCAO', 'Tela de manutenção ativada');
+        if (window.Log) Log.info('MANUTENCAO', 'Tela de manutenção ativada', config);
+    },
+
+    _aplicarCustomizacao(tela, custom) {
+        // Atualizar título
+        const titulo = tela.querySelector('h1');
+        if (titulo && custom.titulo) {
+            titulo.textContent = `${custom.emoji || '🛠️'} ${custom.titulo}`;
+        }
+
+        // Atualizar mensagem
+        const mensagem = tela.querySelector('.manutencao-mensagem');
+        if (mensagem && custom.mensagem) {
+            mensagem.textContent = custom.mensagem;
+        }
+
+        // Aplicar gradiente de cores
+        if (custom.gradiente) {
+            const header = tela.querySelector('.manutencao-header');
+            if (header) {
+                header.style.background = custom.gradiente;
+            }
+        }
+
+        // Exibir imagem se houver
+        if (custom.imagem_url) {
+            const imagemContainer = tela.querySelector('.manutencao-imagem');
+            if (imagemContainer) {
+                imagemContainer.innerHTML = `<img src="${custom.imagem_url}" alt="Banner" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-bottom:16px;">`;
+                imagemContainer.style.display = 'block';
+            }
+        }
+
+        // Controlar visibilidade de seções
+        const noticiasContainer = document.getElementById('manutencaoNoticias');
+        if (noticiasContainer) {
+            noticiasContainer.style.display = custom.mostrar_noticias !== false ? 'block' : 'none';
+        }
+
+        // Atualizar botão de acordo com as opções
+        const btn = document.getElementById('manutencaoBtnVer');
+        if (btn) {
+            const opcoes = [];
+            if (custom.mostrar_ranking !== false) opcoes.push('Ranking');
+            if (custom.mostrar_ultima_rodada !== false) opcoes.push('Última Rodada');
+
+            if (opcoes.length > 0) {
+                btn.style.display = 'inline-flex';
+                const texto = opcoes.join(' e ');
+                btn.querySelector('.btn-text').textContent = `Ver ${texto}`;
+            } else {
+                btn.style.display = 'none';
+            }
+        }
     },
 
     _esconderQuickBar() {

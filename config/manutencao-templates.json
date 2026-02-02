@@ -1,0 +1,79 @@
+{
+  "templates": [
+    {
+      "id": "manutencao-tecnica",
+      "nome": "Manutenção Técnica",
+      "emoji": "🛠️",
+      "titulo": "Calma aê!",
+      "mensagem": "Estamos aplicando melhorias no app. Voltamos em breve!",
+      "cor_primaria": "#f97316",
+      "cor_secundaria": "#ea580c",
+      "gradiente": "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+      "mostrar_ranking": true,
+      "mostrar_noticias": true,
+      "mostrar_ultima_rodada": true,
+      "imagem_url": null,
+      "icone_tipo": "emoji"
+    },
+    {
+      "id": "atualizacao-recursos",
+      "nome": "Atualização de Recursos",
+      "emoji": "✨",
+      "titulo": "Novidades chegando!",
+      "mensagem": "Estamos adicionando novos recursos incríveis. O app volta em instantes com surpresas!",
+      "cor_primaria": "#8b5cf6",
+      "cor_secundaria": "#7c3aed",
+      "gradiente": "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+      "mostrar_ranking": false,
+      "mostrar_noticias": true,
+      "mostrar_ultima_rodada": false,
+      "imagem_url": null,
+      "icone_tipo": "emoji"
+    },
+    {
+      "id": "emergencial",
+      "nome": "Manutenção Emergencial",
+      "emoji": "🚨",
+      "titulo": "Atenção!",
+      "mensagem": "Detectamos um problema e estamos trabalhando para resolver. Aguarde, voltaremos em breve.",
+      "cor_primaria": "#ef4444",
+      "cor_secundaria": "#dc2626",
+      "gradiente": "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+      "mostrar_ranking": true,
+      "mostrar_noticias": false,
+      "mostrar_ultima_rodada": true,
+      "imagem_url": null,
+      "icone_tipo": "emoji"
+    },
+    {
+      "id": "aviso-programado",
+      "nome": "Aviso Programado",
+      "emoji": "📅",
+      "titulo": "Manutenção Programada",
+      "mensagem": "Estamos realizando a manutenção programada. O app voltará ao normal em breve.",
+      "cor_primaria": "#3b82f6",
+      "cor_secundaria": "#2563eb",
+      "gradiente": "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+      "mostrar_ranking": true,
+      "mostrar_noticias": true,
+      "mostrar_ultima_rodada": true,
+      "imagem_url": null,
+      "icone_tipo": "emoji"
+    },
+    {
+      "id": "personalizado",
+      "nome": "Personalizado",
+      "emoji": "⚙️",
+      "titulo": "Modo Manutenção",
+      "mensagem": "O app está temporariamente indisponível.",
+      "cor_primaria": "#6b7280",
+      "cor_secundaria": "#4b5563",
+      "gradiente": "linear-gradient(135deg, #6b7280 0%, #4b5563 100%)",
+      "mostrar_ranking": true,
+      "mostrar_noticias": true,
+      "mostrar_ultima_rodada": true,
+      "imagem_url": null,
+      "icone_tipo": "emoji"
+    }
+  ]
+}
