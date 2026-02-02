@@ -1,5 +1,7 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v6.0 CLEAN GRID + ENRICHED DETAIL
+// PARTICIPANTE-RODADAS.JS - v7.0 CARTOLA-STYLE ESCALATION + CHART
+// ✅ v7.0: Minha Escalação estilo Cartola/Globo com escudos, capitão,
+//          reserva de luxo, banco de reservas, gráfico evolutivo
 // ✅ v6.0: Removido slider redundante, laranja sutil (#FF4500),
 //          detalhamento enriquecido com "Meu Resumo" card
 // ✅ v5.1: "Curiosar" + Badge "X/12 em campo"
@@ -9,7 +11,7 @@
 // ✅ v4.4: CACHE-FIRST - Carregamento instantâneo do IndexedDB
 // =====================================================================
 
-if (window.Log) Log.info("[PARTICIPANTE-RODADAS] Carregando modulo v6.0...");
+if (window.Log) Log.info("[PARTICIPANTE-RODADAS] Carregando modulo v7.0...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
@@ -202,10 +204,13 @@ function renderizarInterface(rodadas) {
     // 1. Renderizar Grid de Rodadas
     renderizarGridRodadas(rodadas);
 
-    // 2. Renderizar Card de Desempenho
+    // 2. Renderizar Gráfico Evolutivo (substitui Mitos/Micos)
+    renderizarGraficoEvolutivo(rodadas, null);
+
+    // 3. Renderizar Card de Desempenho (mantido como fallback)
     renderizarCardDesempenho(rodadas);
 
-    // 3. Mostrar container
+    // 4. Mostrar container
     const container = document.getElementById('rodadasGruposContainer');
     if (container) container.style.display = 'flex';
 }
@@ -394,6 +399,256 @@ function obterMitoMicoDaRodada(rodada) {
             pontos: parseFloat(ultimo?.pontos || 0)
         }
     };
+}
+
+// =====================================================================
+// POSIÇÕES E CORES - Cartola
+// =====================================================================
+const POSICOES_CARTOLA = {
+    1: { nome: 'GOL', slug: 'gol', cor: '#FF4500' },
+    2: { nome: 'LAT', slug: 'lat', cor: '#3b82f6' },
+    3: { nome: 'ZAG', slug: 'zag', cor: '#3b82f6' },
+    4: { nome: 'MEI', slug: 'mei', cor: '#22c55e' },
+    5: { nome: 'ATA', slug: 'ata', cor: '#ef4444' },
+    6: { nome: 'TEC', slug: 'tec', cor: '#6b7280' },
+};
+
+// =====================================================================
+// MINHA ESCALAÇÃO - Estilo Cartola/Globo
+// =====================================================================
+function renderizarMinhaEscalacao(rodadaData, isParcial) {
+    const container = document.getElementById('minhaEscalacaoContainer');
+    if (!container) return;
+
+    // Encontrar meus dados na rodada
+    const meuPart = rodadaData.participantes?.find(
+        p => String(p.timeId || p.time_id) === String(meuTimeId)
+    );
+
+    if (!meuPart || !meuPart.atletas || meuPart.atletas.length === 0) {
+        container.innerHTML = `
+            <div class="minha-escalacao-container">
+                <div class="me-sem-escalacao">
+                    <span class="material-icons">group_off</span>
+                    Escalação não disponível para esta rodada
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const atletas = meuPart.atletas || [];
+    const capitaoId = meuPart.capitao_id;
+    const reservaLuxoId = meuPart.reserva_luxo_id;
+
+    // Separar titulares e reservas
+    const titulares = atletas.filter(a => a.status_id !== 2);
+    const reservas = atletas.filter(a => a.status_id === 2);
+
+    // Estatísticas
+    const pontos = Number(meuPart.pontos || 0);
+    const posicao = meuPart.posicao || '-';
+    const totalPart = rodadaData.totalParticipantesAtivos || rodadaData.participantes?.length || 0;
+
+    // Detectar MITO (1º) e MICO (último) - apenas em rodadas finalizadas
+    const isMito = !isParcial && posicao === 1 && totalPart > 1;
+    const isMico = !isParcial && posicao === totalPart && totalPart > 1;
+
+    // Encontrar capitão, melhor e pior
+    const atletasComPontos = atletas.filter(a => a.pontos_num !== undefined && a.pontos_num !== null);
+    const capitao = atletasComPontos.find(a => a.atleta_id === capitaoId);
+    const melhor = atletasComPontos.length > 0
+        ? atletasComPontos.reduce((best, a) => (a.pontos_num || 0) > (best.pontos_num || 0) ? a : best)
+        : null;
+    const pior = atletasComPontos.length > 0
+        ? atletasComPontos.reduce((worst, a) => (a.pontos_num || 0) < (worst.pontos_num || 0) ? a : worst)
+        : null;
+
+    // Escudo do time do coração
+    const clubeId = meuPart.clube_id;
+    const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
+
+    // Nome do time
+    const nomeTime = meuPart.nome || meuPart.nome_time || 'Meu Time';
+    const nomeCartola = meuPart.nome_cartola || '';
+
+    // Pontos formatados
+    const pontosFormatados = pontos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // Classe e banner MITO/MICO
+    const statusClass = isMito ? 'me-mito' : isMico ? 'me-mico' : '';
+    const statusBanner = isMito
+        ? `<div class="me-status-banner mito">
+               <span class="material-icons">emoji_events</span>
+               Rei da Rodada
+               <span class="material-icons">emoji_events</span>
+           </div>`
+        : isMico
+        ? `<div class="me-status-banner mico">
+               <span class="material-icons">trending_down</span>
+               Pior da Rodada
+               <span class="material-icons">trending_down</span>
+           </div>`
+        : '';
+
+    container.innerHTML = `
+        <div class="minha-escalacao-container ${statusClass}">
+            ${statusBanner}
+            <!-- Header -->
+            <div class="me-header">
+                <img class="me-escudo" src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'">
+                <div class="me-header-info">
+                    <div class="me-time-nome">${nomeTime}</div>
+                    <div class="me-cartola-nome">${nomeCartola}</div>
+                </div>
+            </div>
+
+            <!-- Scores -->
+            <div class="me-scores">
+                <div class="me-score-card">
+                    <div class="me-score-label">Pontos</div>
+                    <div class="me-score-value pontos">${pontosFormatados}</div>
+                </div>
+                <div class="me-score-card">
+                    <div class="me-score-label">Posição</div>
+                    <div class="me-score-value posicao">${posicao}º <span style="font-size:12px;color:var(--rodadas-text-dim)">de ${totalPart}</span></div>
+                </div>
+            </div>
+
+            <!-- Destaques: Capitão, Melhor, Pior -->
+            ${renderDestaques(capitao, melhor, pior, capitaoId)}
+
+            <!-- Titulares -->
+            <div class="me-secao-titulo">
+                <span class="material-icons">sports_soccer</span>
+                Titulares (${titulares.length})
+            </div>
+            <div class="me-jogadores-grid">
+                ${titulares.map(a => renderJogadorCard(a, capitaoId, reservaLuxoId, false)).join('')}
+            </div>
+
+            <!-- Banco de Reservas -->
+            ${reservas.length > 0 ? `
+                <div class="me-banco-section">
+                    <div class="me-secao-titulo">
+                        <span class="material-icons">airline_seat_recline_normal</span>
+                        Banco (${reservas.length})
+                    </div>
+                    <div class="me-banco-grid">
+                        ${reservas.map(a => renderJogadorCard(a, capitaoId, reservaLuxoId, true)).join('')}
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function renderDestaques(capitao, melhor, pior, capitaoId) {
+    if (!capitao && !melhor && !pior) return '';
+
+    const renderDestaque = (atleta, tipo, icone, label) => {
+        if (!atleta) return `<div class="me-destaque-card ${tipo}"><div class="me-destaque-icon"><span class="material-icons">${icone}</span></div><div class="me-destaque-nome">-</div><div class="me-destaque-label">${label}</div></div>`;
+        const pts = Number(atleta.pontos_num || 0).toFixed(1);
+        return `
+            <div class="me-destaque-card ${tipo}">
+                <div class="me-destaque-icon"><span class="material-icons">${icone}</span></div>
+                <div class="me-destaque-nome">${atleta.apelido || 'Atleta'}</div>
+                <div class="me-destaque-label">${label}</div>
+                <div class="me-destaque-pontos">${pts}</div>
+            </div>
+        `;
+    };
+
+    return `
+        <div class="me-destaques">
+            ${renderDestaque(capitao, 'capitao', 'military_tech', 'Capitão')}
+            ${renderDestaque(melhor, 'melhor', 'trending_up', 'Melhor')}
+            ${renderDestaque(pior, 'pior', 'trending_down', 'Pior')}
+        </div>
+    `;
+}
+
+function renderJogadorCard(atleta, capitaoId, reservaLuxoId, isReserva) {
+    const pos = POSICOES_CARTOLA[atleta.posicao_id] || { nome: '???', slug: 'tec', cor: '#6b7280' };
+    const pontosNum = Number(atleta.pontos_num || 0);
+    const pontosStr = pontosNum.toFixed(1);
+    const pontosCls = pontosNum > 0 ? 'positivo' : pontosNum < 0 ? 'negativo' : '';
+    const isCapitao = atleta.atleta_id === capitaoId;
+    const isLuxo = atleta.atleta_id === reservaLuxoId;
+    const entrouEmCampo = isReserva && pontosNum !== 0;
+    const naoEntrou = isReserva && pontosNum === 0;
+
+    // Escudo do clube
+    const clubeId = atleta.clube_id;
+    const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
+
+    return `
+        <div class="me-jogador-card ${pontosCls} ${naoEntrou ? 'nao-entrou' : ''}">
+            <div class="me-jogador-escudo-wrap">
+                <img class="me-jogador-escudo" src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'">
+                <span class="me-jogador-pos-badge pos-${pos.slug}">${pos.nome}</span>
+                ${isCapitao ? '<span class="me-badge-capitao">C</span>' : ''}
+                ${isLuxo ? '<span class="me-badge-luxo">L</span>' : ''}
+                ${entrouEmCampo ? '<span class="me-badge-entrou"></span>' : ''}
+            </div>
+            <div class="me-jogador-nome">${atleta.apelido || 'Atleta'}</div>
+            <div class="me-jogador-pontos">${pontosStr}</div>
+        </div>
+    `;
+}
+
+// =====================================================================
+// GRÁFICO EVOLUTIVO DE DESEMPENHO
+// =====================================================================
+function renderizarGraficoEvolutivo(rodadas, rodadaSelecionadaNum) {
+    const chartContainer = document.getElementById('chartDesempenhoEvolutivo');
+    const barsContainer = document.getElementById('chartBarsContainer');
+    if (!chartContainer || !barsContainer) return;
+
+    // Buscar pontos do meu time em cada rodada
+    const meusDados = [];
+    let maxPontos = 0;
+
+    rodadas.forEach(rodada => {
+        const meuPart = rodada.participantes?.find(
+            p => String(p.timeId || p.time_id) === String(meuTimeId)
+        );
+        const pontos = meuPart ? Number(meuPart.pontos || 0) : 0;
+        const jogou = meuPart && !meuPart.rodadaNaoJogada;
+        meusDados.push({
+            rodada: rodada.numero,
+            pontos,
+            jogou,
+        });
+        if (Math.abs(pontos) > maxPontos) maxPontos = Math.abs(pontos);
+    });
+
+    if (meusDados.length === 0 || maxPontos === 0) {
+        chartContainer.style.display = 'none';
+        return;
+    }
+
+    const barHeight = 60; // px
+    let barsHTML = '';
+
+    meusDados.forEach(d => {
+        const isActive = d.rodada === rodadaSelecionadaNum;
+        const height = d.jogou ? Math.max(4, (Math.abs(d.pontos) / maxPontos) * barHeight) : 4;
+        const cls = !d.jogou ? 'nao-jogou' : d.pontos > 0 ? 'positivo' : d.pontos < 0 ? 'negativo' : 'neutro';
+
+        barsHTML += `<div class="me-chart-bar ${cls} ${isActive ? 'active' : ''}"
+            style="height:${height}px"
+            data-rodada="${d.rodada}"
+            title="R${d.rodada}: ${d.jogou ? d.pontos.toFixed(1) + ' pts' : 'Não jogou'}"
+            onclick="window.selecionarRodadaMini(${d.rodada}, false)"></div>`;
+    });
+
+    barsContainer.innerHTML = barsHTML;
+    chartContainer.style.display = 'block';
+
+    // Ocultar card antigo de Mitos/Micos
+    const cardMitosMicos = document.getElementById('cardDesempenhoMitosMicos');
+    if (cardMitosMicos) cardMitosMicos.style.display = 'none';
 }
 
 // =====================================================================
@@ -826,6 +1081,12 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
 
     container.innerHTML = html || '<div style="text-align: center; padding: 40px; color: #6b7280;">Nenhum dado disponível</div>';
 
+    // ✅ v7.0: Renderizar Minha Escalação estilo Cartola
+    renderizarMinhaEscalacao(rodadaData, isParcial);
+
+    // ✅ v7.0: Atualizar gráfico evolutivo
+    renderizarGraficoEvolutivo(todasRodadasCache, rodadaData.numero);
+
     if (isParcial) {
         container.insertAdjacentHTML("beforeend", `
             <div style="text-align: center; padding: 20px;">
@@ -1072,6 +1333,10 @@ window.voltarParaCards = function () {
         detalhamento.style.display = "none";
     }
 
+    // Limpar escalação
+    const escalacao = document.getElementById("minhaEscalacaoContainer");
+    if (escalacao) escalacao.innerHTML = '';
+
     // Limpar seleções
     document.querySelectorAll(".rodada-mini-card").forEach((card) => {
         card.classList.remove("selected");
@@ -1162,4 +1427,4 @@ function mostrarErro(mensagem) {
 }
 
 if (window.Log)
-    Log.info("[PARTICIPANTE-RODADAS] Modulo v6.0 carregado (CLEAN GRID + ENRICHED DETAIL)");
+    Log.info("[PARTICIPANTE-RODADAS] Modulo v7.0 carregado (CARTOLA-STYLE + CHART)");

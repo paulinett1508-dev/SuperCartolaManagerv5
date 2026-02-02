@@ -1,8 +1,8 @@
-<!-- PARTICIPANTE RODADAS - Template v6.0 -->
-<!-- Grid de rodadas + Detalhamento enriquecido -->
+<!-- PARTICIPANTE RODADAS - Template v7.0 -->
+<!-- Grid + Escalação Cartola + Gráfico Evolutivo -->
 <style>
 /* ============================================
-   RODADAS PARTICIPANTE v6.0 - Grid + Detail
+   RODADAS PARTICIPANTE v7.0 - Grid + Cartola
    Design System: Black & Orange (#FF4500)
    ============================================ */
 
@@ -913,6 +913,518 @@
     background: rgba(107, 114, 128, 0.2);
     color: var(--rodadas-text-dim);
 }
+
+/* ============================================
+   MINHA ESCALAÇÃO - Estilo Cartola/Globo
+   v7.0 - Dark Mode com Design Tokens
+   ============================================ */
+
+.minha-escalacao-container {
+    background: var(--rodadas-surface);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    border: 1px solid var(--rodadas-border);
+}
+
+/* Header com escudo e info do time */
+.me-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(255, 85, 0, 0.08) 0%, transparent 100%);
+    border-bottom: 1px solid var(--rodadas-border);
+}
+
+.me-escudo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--rodadas-surface-elevated);
+    padding: 4px;
+}
+
+.me-header-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.me-time-nome {
+    font-family: var(--rodadas-font-brand);
+    font-size: 16px;
+    color: var(--rodadas-text-white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.me-cartola-nome {
+    font-size: 12px;
+    color: var(--rodadas-text-muted);
+    margin-top: 2px;
+}
+
+.me-pro-badge {
+    background: var(--rodadas-primary);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Score cards */
+.me-scores {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 12px 16px;
+}
+
+.me-score-card {
+    background: var(--rodadas-surface-elevated);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+}
+
+.me-score-label {
+    font-size: 10px;
+    color: var(--rodadas-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.me-score-value {
+    font-family: var(--rodadas-font-mono);
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+.me-score-value.pontos {
+    color: var(--rodadas-primary);
+}
+
+.me-score-value.posicao {
+    color: var(--rodadas-text-white);
+}
+
+/* Destaque: Capitão, Melhor, Pior */
+.me-destaques {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 0 16px 12px;
+}
+
+.me-destaque-card {
+    background: var(--rodadas-surface-elevated);
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.me-destaque-card.capitao {
+    border-color: rgba(234, 179, 8, 0.3);
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, var(--rodadas-surface-elevated) 100%);
+}
+
+.me-destaque-card.melhor {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, var(--rodadas-surface-elevated) 100%);
+}
+
+.me-destaque-card.pior {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, var(--rodadas-surface-elevated) 100%);
+}
+
+.me-destaque-icon {
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+
+.me-destaque-card.capitao .me-destaque-icon { color: #eab308; }
+.me-destaque-card.melhor .me-destaque-icon { color: #22c55e; }
+.me-destaque-card.pior .me-destaque-icon { color: #ef4444; }
+
+.me-destaque-nome {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--rodadas-text-white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.me-destaque-label {
+    font-size: 9px;
+    color: var(--rodadas-text-dim);
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.me-destaque-pontos {
+    font-family: var(--rodadas-font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+.me-destaque-card.capitao .me-destaque-pontos { color: #eab308; }
+.me-destaque-card.melhor .me-destaque-pontos { color: #22c55e; }
+.me-destaque-card.pior .me-destaque-pontos { color: #ef4444; }
+
+/* Seção de escalação */
+.me-secao-titulo {
+    font-size: 11px;
+    color: var(--rodadas-text-dim);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 8px 16px 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.me-secao-titulo .material-icons {
+    font-size: 14px;
+}
+
+/* Grid de jogadores */
+.me-jogadores-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    padding: 8px 16px 12px;
+}
+
+@media (min-width: 400px) {
+    .me-jogadores-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+.me-jogador-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 2px;
+    border-radius: 8px;
+    position: relative;
+    transition: background 0.2s;
+}
+
+.me-jogador-card:hover {
+    background: var(--rodadas-surface-hover);
+}
+
+.me-jogador-card.negativo .me-jogador-pontos {
+    color: var(--rodadas-danger);
+}
+
+.me-jogador-card.positivo .me-jogador-pontos {
+    color: var(--rodadas-success);
+}
+
+/* Escudo do clube no lugar de "quadradinho" */
+.me-jogador-escudo-wrap {
+    position: relative;
+    width: 36px;
+    height: 36px;
+}
+
+.me-jogador-escudo {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--rodadas-surface-elevated);
+    border: 2px solid var(--rodadas-border);
+}
+
+/* Badge de posição sobre o escudo */
+.me-jogador-pos-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 4px;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.me-jogador-pos-badge.pos-gol { background: #FF4500; }
+.me-jogador-pos-badge.pos-lat { background: #3b82f6; }
+.me-jogador-pos-badge.pos-zag { background: #3b82f6; }
+.me-jogador-pos-badge.pos-mei { background: #22c55e; }
+.me-jogador-pos-badge.pos-ata { background: #ef4444; }
+.me-jogador-pos-badge.pos-tec { background: #6b7280; }
+
+/* Badge capitão */
+.me-badge-capitao {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, #ffd700, #eab308);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 900;
+    color: #000;
+    box-shadow: 0 0 6px rgba(234, 179, 8, 0.5);
+    z-index: 2;
+}
+
+/* Badge reserva de luxo */
+.me-badge-luxo {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, #a855f7, #8b5cf6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 900;
+    color: #fff;
+    box-shadow: 0 0 6px rgba(139, 92, 246, 0.5);
+    z-index: 2;
+}
+
+/* Badge "entrou em campo" para reserva */
+.me-badge-entrou {
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    width: 10px;
+    height: 10px;
+    background: #22c55e;
+    border-radius: 50%;
+    border: 1.5px solid var(--rodadas-surface);
+    z-index: 2;
+}
+
+.me-jogador-nome {
+    font-size: 9px;
+    color: var(--rodadas-text-muted);
+    text-align: center;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.me-jogador-pontos {
+    font-family: var(--rodadas-font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--rodadas-text-white);
+}
+
+/* Reserva não entrou = dimmed */
+.me-jogador-card.nao-entrou {
+    opacity: 0.4;
+}
+
+/* Seção Banco de Reservas */
+.me-banco-section {
+    border-top: 1px solid var(--rodadas-border);
+    padding-top: 4px;
+}
+
+.me-banco-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    padding: 8px 16px 12px;
+}
+
+/* Gráfico de desempenho evolutivo */
+.me-chart-container {
+    padding: 12px 16px 16px;
+    border-top: 1px solid var(--rodadas-border);
+}
+
+.me-chart-title {
+    font-size: 11px;
+    color: var(--rodadas-text-dim);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.me-chart-title .material-icons {
+    font-size: 14px;
+}
+
+.me-chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 60px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.me-chart-bars::-webkit-scrollbar {
+    display: none;
+}
+
+.me-chart-bar {
+    flex: 1;
+    min-width: 6px;
+    max-width: 14px;
+    border-radius: 3px 3px 0 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.me-chart-bar:hover {
+    opacity: 0.8;
+    transform: scaleY(1.05);
+    transform-origin: bottom;
+}
+
+.me-chart-bar.active {
+    outline: 2px solid var(--rodadas-primary);
+    outline-offset: 1px;
+}
+
+.me-chart-bar.positivo {
+    background: var(--rodadas-success);
+}
+
+.me-chart-bar.negativo {
+    background: var(--rodadas-danger);
+}
+
+.me-chart-bar.neutro {
+    background: var(--rodadas-text-dim);
+}
+
+.me-chart-bar.nao-jogou {
+    background: rgba(107, 114, 128, 0.2);
+}
+
+/* ====== MITO / MICO Destaque na Escalação ====== */
+
+/* MITO - 1º lugar (Rei da Rodada) */
+.minha-escalacao-container.me-mito {
+    border-color: rgba(255, 215, 0, 0.4);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.1), inset 0 0 40px rgba(255, 215, 0, 0.03);
+}
+
+.minha-escalacao-container.me-mito .me-header {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(34, 197, 94, 0.06) 50%, transparent 100%);
+    border-bottom-color: rgba(255, 215, 0, 0.2);
+}
+
+.me-status-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-family: var(--rodadas-font-brand);
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.me-status-banner.mito {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(34, 197, 94, 0.1) 50%, rgba(255, 215, 0, 0.15) 100%);
+    color: var(--rodadas-gold);
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.me-status-banner.mito .material-icons {
+    font-size: 20px;
+    color: var(--rodadas-gold);
+    animation: mito-shine 2s ease-in-out infinite;
+}
+
+@keyframes mito-shine {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.4); }
+}
+
+.minha-escalacao-container.me-mito .me-score-value.pontos {
+    color: var(--rodadas-gold);
+}
+
+.minha-escalacao-container.me-mito .me-escudo {
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+/* MICO - Último lugar (Pior da Rodada) */
+.minha-escalacao-container.me-mico {
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.08), inset 0 0 40px rgba(239, 68, 68, 0.03);
+}
+
+.minha-escalacao-container.me-mico .me-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 50%, transparent 100%);
+    border-bottom-color: rgba(239, 68, 68, 0.2);
+}
+
+.me-status-banner.mico {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.08) 50%, rgba(239, 68, 68, 0.12) 100%);
+    color: var(--rodadas-danger);
+    border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.me-status-banner.mico .material-icons {
+    font-size: 20px;
+    color: var(--rodadas-danger);
+}
+
+.minha-escalacao-container.me-mico .me-score-value.pontos {
+    color: var(--rodadas-danger);
+}
+
+.minha-escalacao-container.me-mico .me-escudo {
+    border: 2px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Sem escalação disponível */
+.me-sem-escalacao {
+    text-align: center;
+    padding: 24px 16px;
+    color: var(--rodadas-text-dim);
+    font-size: 13px;
+}
+
+.me-sem-escalacao .material-icons {
+    font-size: 32px;
+    margin-bottom: 8px;
+    display: block;
+}
 </style>
 
 <div class="rodadas-participante-container">
@@ -955,8 +1467,24 @@
                 Voltar
             </button>
         </div>
+        <!-- Minha Escalação - Estilo Cartola/Globo -->
+        <div id="minhaEscalacaoContainer"></div>
+
         <div class="ranking-container-pro">
             <div id="rankingListPro" class="ranking-list-pro"></div>
+        </div>
+    </div>
+
+    <!-- Gráfico Evolutivo de Desempenho -->
+    <div id="chartDesempenhoEvolutivo" style="display: none;">
+        <div class="minha-escalacao-container">
+            <div class="me-chart-container" style="border-top: none;">
+                <div class="me-chart-title">
+                    <span class="material-icons">show_chart</span>
+                    Desempenho por Rodada
+                </div>
+                <div id="chartBarsContainer" class="me-chart-bars"></div>
+            </div>
         </div>
     </div>
 
