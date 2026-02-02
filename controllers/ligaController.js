@@ -830,6 +830,8 @@ const buscarModulosAtivos = async (req, res) => {
         mataMata: !!config.mata_mata,
         artilheiro: !!config.artilheiro,
         luvaOuro: !!config.luva_ouro,
+        campinho: false,
+        dicas: false,
       };
     }
 

@@ -20,6 +20,8 @@ export const MODULOS_DEFAULTS = {
     melhorMes: false,       // Prêmio melhor do mês - OPCIONAL
     artilheiro: false,      // Prêmio artilheiro - OPCIONAL
     luvaOuro: false,        // Prêmio luva de ouro - OPCIONAL
+    campinho: false,        // Campinho virtual - OPCIONAL
+    dicas: false,           // Dicas de escalação - OPCIONAL
 };
 
 /**
@@ -37,6 +39,8 @@ export function aplicarDefaults(modulosAtivos = {}) {
         melhorMes: modulosAtivos.melhorMes ?? MODULOS_DEFAULTS.melhorMes,
         artilheiro: modulosAtivos.artilheiro ?? MODULOS_DEFAULTS.artilheiro,
         luvaOuro: modulosAtivos.luvaOuro ?? MODULOS_DEFAULTS.luvaOuro,
+        campinho: modulosAtivos.campinho ?? MODULOS_DEFAULTS.campinho,
+        dicas: modulosAtivos.dicas ?? MODULOS_DEFAULTS.dicas,
     };
 }
 
