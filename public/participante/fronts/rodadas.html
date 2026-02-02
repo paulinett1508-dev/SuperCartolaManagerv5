@@ -1331,6 +1331,87 @@
     background: rgba(107, 114, 128, 0.2);
 }
 
+/* ====== MITO / MICO Destaque na Escalação ====== */
+
+/* MITO - 1º lugar (Rei da Rodada) */
+.minha-escalacao-container.me-mito {
+    border-color: rgba(255, 215, 0, 0.4);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.1), inset 0 0 40px rgba(255, 215, 0, 0.03);
+}
+
+.minha-escalacao-container.me-mito .me-header {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(34, 197, 94, 0.06) 50%, transparent 100%);
+    border-bottom-color: rgba(255, 215, 0, 0.2);
+}
+
+.me-status-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-family: var(--rodadas-font-brand);
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.me-status-banner.mito {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(34, 197, 94, 0.1) 50%, rgba(255, 215, 0, 0.15) 100%);
+    color: var(--rodadas-gold);
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.me-status-banner.mito .material-icons {
+    font-size: 20px;
+    color: var(--rodadas-gold);
+    animation: mito-shine 2s ease-in-out infinite;
+}
+
+@keyframes mito-shine {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.4); }
+}
+
+.minha-escalacao-container.me-mito .me-score-value.pontos {
+    color: var(--rodadas-gold);
+}
+
+.minha-escalacao-container.me-mito .me-escudo {
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+/* MICO - Último lugar (Pior da Rodada) */
+.minha-escalacao-container.me-mico {
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.08), inset 0 0 40px rgba(239, 68, 68, 0.03);
+}
+
+.minha-escalacao-container.me-mico .me-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 50%, transparent 100%);
+    border-bottom-color: rgba(239, 68, 68, 0.2);
+}
+
+.me-status-banner.mico {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.08) 50%, rgba(239, 68, 68, 0.12) 100%);
+    color: var(--rodadas-danger);
+    border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.me-status-banner.mico .material-icons {
+    font-size: 20px;
+    color: var(--rodadas-danger);
+}
+
+.minha-escalacao-container.me-mico .me-score-value.pontos {
+    color: var(--rodadas-danger);
+}
+
+.minha-escalacao-container.me-mico .me-escudo {
+    border: 2px solid rgba(239, 68, 68, 0.4);
+}
+
 /* Sem escalação disponível */
 .me-sem-escalacao {
     text-align: center;

@@ -450,6 +450,10 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
     const posicao = meuPart.posicao || '-';
     const totalPart = rodadaData.totalParticipantesAtivos || rodadaData.participantes?.length || 0;
 
+    // Detectar MITO (1º) e MICO (último) - apenas em rodadas finalizadas
+    const isMito = !isParcial && posicao === 1 && totalPart > 1;
+    const isMico = !isParcial && posicao === totalPart && totalPart > 1;
+
     // Encontrar capitão, melhor e pior
     const atletasComPontos = atletas.filter(a => a.pontos_num !== undefined && a.pontos_num !== null);
     const capitao = atletasComPontos.find(a => a.atleta_id === capitaoId);
@@ -471,8 +475,25 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
     // Pontos formatados
     const pontosFormatados = pontos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+    // Classe e banner MITO/MICO
+    const statusClass = isMito ? 'me-mito' : isMico ? 'me-mico' : '';
+    const statusBanner = isMito
+        ? `<div class="me-status-banner mito">
+               <span class="material-icons">emoji_events</span>
+               Rei da Rodada
+               <span class="material-icons">emoji_events</span>
+           </div>`
+        : isMico
+        ? `<div class="me-status-banner mico">
+               <span class="material-icons">trending_down</span>
+               Pior da Rodada
+               <span class="material-icons">trending_down</span>
+           </div>`
+        : '';
+
     container.innerHTML = `
-        <div class="minha-escalacao-container">
+        <div class="minha-escalacao-container ${statusClass}">
+            ${statusBanner}
             <!-- Header -->
             <div class="me-header">
                 <img class="me-escudo" src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'">
