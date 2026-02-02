@@ -110,16 +110,14 @@
                             </li>
                         </ul>
                         <div class="sidebar-submenu-divider"></div>
-                        <!-- Sub-accordion: Temporadas -->
-                        <div class="sidebar-sub-accordion" data-sub-accordion="temporadas">
-                            <div class="sidebar-sub-accordion-header">
-                                <div class="sidebar-sub-accordion-title">
-                                    <span class="material-icons">calendar_today</span>
-                                    <span>Temporadas</span>
-                                </div>
-                                <span class="material-icons sidebar-sub-accordion-arrow">expand_more</span>
+                        <!-- Temporadas: item de menu com lista expansível -->
+                        <div class="sidebar-temporadas-wrapper">
+                            <div class="sidebar-accordion-item sidebar-temporadas-toggle" id="temporadasToggle">
+                                <span class="material-icons">calendar_today</span>
+                                <span>Temporadas</span>
+                                <span class="material-icons sidebar-temporadas-arrow">expand_more</span>
                             </div>
-                            <div class="sidebar-sub-accordion-content">
+                            <div class="sidebar-temporadas-list" id="temporadasList">
                                 <div id="ligasList">
                                     <div class="sidebar-ligas-loading">
                                         <span class="material-icons">sync</span>
@@ -480,6 +478,32 @@
                             window.AccordionManager.toggleSubAccordion(subAccordion);
                         });
                     });
+
+                    // Bind Temporadas toggle (item de menu expansível)
+                    const temporadasToggle = document.getElementById('temporadasToggle');
+                    if (temporadasToggle && !temporadasToggle.dataset.temporadasBound) {
+                        temporadasToggle.dataset.temporadasBound = 'true';
+
+                        temporadasToggle.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const wrapper = temporadasToggle.closest('.sidebar-temporadas-wrapper');
+                            if (wrapper) {
+                                wrapper.classList.toggle('open');
+                                // Save state
+                                localStorage.setItem('temporadas_open', wrapper.classList.contains('open'));
+                            }
+                        });
+
+                        // Restore state
+                        const temporadasOpen = localStorage.getItem('temporadas_open') === 'true';
+                        if (temporadasOpen) {
+                            const wrapper = document.querySelector('.sidebar-temporadas-wrapper');
+                            if (wrapper) {
+                                wrapper.classList.add('open');
+                            }
+                        }
+                    }
                 },
 
                 toggleSubAccordion(subAccordion) {

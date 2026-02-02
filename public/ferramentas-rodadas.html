@@ -9,6 +9,7 @@
         <link rel="stylesheet" href="css/_admin-tokens.css" />
         <link rel="stylesheet" href="style.css" />
         <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link rel="stylesheet" href="css/modules/layout-horizontal.css" />
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
         <style>
             /* ============================================================
@@ -22,8 +23,8 @@
             }
 
             .rodadas-content {
-                padding: 20px 16px;
-                max-width: 600px;
+                padding: 20px 40px;
+                max-width: 1200px;
                 margin: 0 auto;
             }
 
@@ -282,7 +283,18 @@
             }
 
             /* Responsive */
-            @media (max-width: 480px) {
+            @media (max-width: 1200px) {
+                .rodadas-content {
+                    max-width: 100%;
+                    padding: 20px 24px;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .rodadas-content {
+                    padding: 16px;
+                }
+
                 .rodadas-header {
                     flex-direction: column;
                     align-items: flex-start;
