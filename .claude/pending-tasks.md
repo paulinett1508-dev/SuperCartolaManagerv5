@@ -1,5 +1,160 @@
 # Tarefas Pendentes
 
+## 🔥 NOVA SESSÃO - PENDÊNCIAS PARA REVISÃO (02/02/2026)
+
+### [REFACTOR-002] Análise de Redundâncias no Sidebar
+
+**Status:** 📋 PENDENTE
+
+**Descrição:**
+Auditar o sidebar do sistema (admin e/ou participante) para identificar e remover redundâncias e opções sem sentido ou duplicadas.
+
+**Pontos a investigar:**
+- [ ] Mapear todas as opções do sidebar (admin e participante)
+- [ ] Identificar itens duplicados ou redundantes
+- [ ] Verificar itens que não levam a lugar nenhum ou não fazem sentido
+- [ ] Propor reorganização lógica do menu
+- [ ] Remover ou consolidar itens desnecessários
+
+**Arquivos envolvidos:**
+- Sidebar Admin: TBD
+- Sidebar Participante: `public/participante/index.html`, `participante-navigation.js`
+
+**Prioridade:** 🟡 MÉDIA
+
+---
+
+### [AUDIT-001] Auditar Módulo Pontos Corridos
+
+**Status:** 📋 PENDENTE
+
+**Descrição:**
+Revisar o módulo Pontos Corridos para garantir que está funcionando corretamente e habilitar para as ligas que devem utilizá-lo.
+
+**Tarefas:**
+- [ ] Testar módulo Pontos Corridos na temporada 2026
+- [ ] Verificar se cálculos estão corretos
+- [ ] Identificar quais ligas devem ter o módulo ativo
+- [ ] Habilitar `modulos_ativos.pontosCorridos` nas ligas corretas
+- [ ] Validar que módulo aparece corretamente no menu
+- [ ] Verificar integração com sistema financeiro (bônus/ônus)
+
+**Arquivos envolvidos:**
+- `public/js/pontos-corridos-orquestrador.js`
+- `controllers/pontosCorridosController.js`
+- `models/Liga.js`
+
+**Prioridade:** 🟡 MÉDIA
+
+---
+
+### [UX-001] Saúde do Sistema - Integrar ao Contexto do Admin
+
+**Status:** 📋 PENDENTE
+
+**Descrição:**
+Atualmente a opção "Saúde do Sistema" abre uma página separada. Deve ser convertida para abrir dentro do próprio contexto do ambiente do sistema (modal, sidebar dinâmico ou área de conteúdo principal).
+
+**Solução Proposta:**
+- Não abrir em nova página/aba
+- Carregar conteúdo via SPA (Single Page Application)
+- Renderizar em modal ou no content-area principal
+- Manter navegação fluida sem sair do contexto do admin
+
+**Arquivos envolvidos:**
+- Identificar rota/botão "Saúde do Sistema"
+- Arquivo HTML da página de Saúde
+- Orquestrador SPA do admin (`detalhe-liga-orquestrador.js`?)
+
+**Prioridade:** 🟡 MÉDIA
+
+---
+
+### [UX-002] Substituir window.alert por Modais Padronizados (Admin)
+
+**Status:** 📋 PENDENTE
+
+**Descrição:**
+Checar TODAS as mensagens estilo `window.alert`, `window.confirm`, `window.prompt` no painel admin e substituir por modais padronizados do sistema (mesma identidade visual).
+
+**Tarefas:**
+- [ ] Fazer grep/busca por `window.alert`, `alert(`, `confirm(`, `prompt(` em `public/js/**` e `public/admin/**`
+- [ ] Catalogar todas as ocorrências
+- [ ] Criar/usar modal padronizado reutilizável
+- [ ] Substituir todas as ocorrências
+- [ ] Validar UX/UI com design system do projeto
+
+**Padrão esperado:**
+```javascript
+// Antes (ruim):
+alert("Operação concluída!");
+
+// Depois (bom):
+mostrarModal({
+  titulo: "Sucesso",
+  mensagem: "Operação concluída!",
+  tipo: "success"
+});
+```
+
+**Prioridade:** 🟡 MÉDIA
+
+---
+
+### [FEAT-028] Revisar Card "Consolidar Rodada"
+
+**Status:** 📋 PENDENTE - INVESTIGAÇÃO
+
+**Descrição:**
+O card "Consolidar Rodada" existe no sistema, mas não está claro:
+- Se ainda faz sentido permanecer
+- O que realmente faz (função, lógica, impacto)
+- Se é redundante com outros processos automáticos
+
+**Investigação Necessária:**
+- [ ] Localizar o card "Consolidar Rodada" (admin? participante?)
+- [ ] Ler o código associado ao botão
+- [ ] Entender o que acontece ao clicar
+- [ ] Verificar se há processos automáticos que já fazem isso
+- [ ] Decidir se mantém, refatora ou remove
+- [ ] Documentar a decisão
+
+**Arquivos a investigar:**
+- Buscar por "Consolidar Rodada" em HTML e JS
+- Controllers relacionados a rodadas
+
+**Prioridade:** 🟡 MÉDIA
+
+---
+
+### [BUG-DATA-LAKE] Modal "Ver Dados Data Lake" - Alterações Não Implementadas
+
+**Status:** 🔴 CRÍTICO - REGRESSÃO
+
+**Descrição:**
+Todas as alterações solicitadas para o modal de "Ver dados Data Lake" não foram implementadas. É necessário:
+1. Identificar quais alterações foram solicitadas (histórico de sessão anterior?)
+2. Checar a lógica atual do modal
+3. Comparar com o que deveria estar implementado
+4. Aplicar as mudanças faltantes
+
+**Investigação Necessária:**
+- [ ] Buscar contexto histórico das alterações solicitadas
+- [ ] Localizar modal "Ver dados Data Lake" no código
+- [ ] Listar o que foi pedido vs o que está implementado
+- [ ] Identificar causa da não implementação (esquecimento, erro, conflito?)
+- [ ] Implementar as mudanças faltantes
+- [ ] Validar com usuário
+
+**Arquivos prováveis:**
+- Buscar por "Data Lake", "data-lake", "datalake" em frontend
+- Controllers relacionados a `CartolaOficialDump`
+- Modal/dialog no admin
+
+**Prioridade:** 🔴 ALTA - Feature não funciona conforme solicitado
+
+---
+
 ## 🚨 CRÍTICO - RANKING GERAL NÃO FUNCIONA (29/01/2026)
 
 ### [BUG-CRITICAL-003] Ranking Geral não exibe dados corretamente
