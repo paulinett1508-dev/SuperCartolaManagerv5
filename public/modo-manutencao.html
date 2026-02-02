@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Modo Manutenção - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+        <!-- Design Tokens (SEMPRE PRIMEIRO) -->
+        <link rel="stylesheet" href="css/_admin-tokens.css" />
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link rel="stylesheet" href="css/modules/layout-horizontal.css" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <style>
+            .manutencao-content {
+                padding: 20px 40px;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .manutencao-header {
+                background: var(--bg-card, #1a1a1a);
+                border-radius: 10px;
+                padding: 20px 24px;
+                margin-bottom: 24px;
+                border: 1px solid var(--border-color, #2d2d2d);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .manutencao-header-info h1 {
+                font-family: 'Russo One', sans-serif;
+                font-size: 1.5rem;
+                color: var(--text-white, #ffffff);
+                margin: 0 0 8px 0;
+            }
+
+            .manutencao-header-info p {
+                font-size: 0.85rem;
+                color: var(--text-muted, #9ca3af);
+                margin: 0;
+            }
+
+            .status-card {
+                background: var(--bg-card, #1a1a1a);
+                border: 1px solid var(--border-color, #2d2d2d);
+                border-radius: 10px;
+                padding: 24px;
+                margin-bottom: 20px;
+            }
+
+            .status-indicator {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 20px;
+                background: var(--bg-secondary, #252525);
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }
+
+            .status-icon {
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 32px;
+            }
+
+            .status-icon.ativo {
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+            }
+
+            .status-icon.inativo {
+                background: rgba(16, 185, 129, 0.1);
+                color: #10b981;
+            }
+
+            .status-info h2 {
+                font-family: 'Russo One', sans-serif;
+                font-size: 1.2rem;
+                color: var(--text-white, #ffffff);
+                margin: 0 0 8px 0;
+            }
+
+            .status-info p {
+                font-size: 0.85rem;
+                color: var(--text-muted, #9ca3af);
+                margin: 0;
+            }
+
+            .toggle-container {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 20px;
+                background: var(--bg-secondary, #252525);
+                border: 1px solid var(--border-subtle, #333);
+                border-radius: 8px;
+                margin-bottom: 16px;
+            }
+
+            .toggle-info {
+                flex: 1;
+            }
+
+            .toggle-info h3 {
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--text-white, #ffffff);
+                margin: 0 0 6px 0;
+            }
+
+            .toggle-info p {
+                font-size: 0.8rem;
+                color: var(--text-muted, #9ca3af);
+                margin: 0;
+            }
+
+            .btn-toggle {
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .btn-toggle.ativar {
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                color: white;
+            }
+
+            .btn-toggle.desativar {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+            }
+
+            .btn-toggle:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3);
+            }
+
+            .info-box {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 16px;
+                background: rgba(59, 130, 246, 0.05);
+                border: 1px solid rgba(59, 130, 246, 0.15);
+                border-radius: 8px;
+            }
+
+            .info-box .material-icons {
+                color: #3b82f6;
+                font-size: 20px;
+            }
+
+            .info-box-content {
+                flex: 1;
+            }
+
+            .info-box-content h4 {
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: var(--text-white, #ffffff);
+                margin: 0 0 8px 0;
+            }
+
+            .info-box-content p {
+                font-size: 0.8rem;
+                color: var(--text-muted, #9ca3af);
+                margin: 0;
+                line-height: 1.5;
+            }
+
+            .loading-spinner {
+                width: 24px;
+                height: 24px;
+                border: 3px solid var(--border-color, #2d2d2d);
+                border-top-color: var(--laranja, #FF5500);
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="app-container">
+            <div id="sidebar-placeholder"></div>
+
+            <main class="app-main">
+                <div class="manutencao-content">
+                    <!-- Header -->
+                    <header class="manutencao-header">
+                        <div class="manutencao-header-info">
+                            <h1>Modo Manutenção</h1>
+                            <p>Controle o acesso ao sistema</p>
+                        </div>
+                        <a href="painel.html" class="btn-voltar">
+                            <span class="material-icons">arrow_back</span>
+                            Voltar
+                        </a>
+                    </header>
+
+                    <!-- Status Card -->
+                    <div class="status-card">
+                        <div id="statusIndicator" class="status-indicator">
+                            <div class="status-icon inativo">
+                                <div class="loading-spinner"></div>
+                            </div>
+                            <div class="status-info">
+                                <h2>Carregando...</h2>
+                                <p>Verificando status do sistema</p>
+                            </div>
+                        </div>
+
+                        <div class="toggle-container">
+                            <div class="toggle-info">
+                                <h3>Ativar/Desativar Modo Manutenção</h3>
+                                <p>Quando ativado, apenas administradores terão acesso ao sistema</p>
+                            </div>
+                            <button id="btnToggle" class="btn-toggle" disabled>
+                                <span class="material-icons">hourglass_empty</span>
+                                Carregando...
+                            </button>
+                        </div>
+
+                        <div class="info-box">
+                            <span class="material-icons">info</span>
+                            <div class="info-box-content">
+                                <h4>Como funciona</h4>
+                                <p>
+                                    • <strong>Modo Ativo:</strong> Usuários regulares verão mensagem de manutenção<br>
+                                    • <strong>Modo Inativo:</strong> Sistema funcionando normalmente para todos<br>
+                                    • Administradores sempre têm acesso, independente do modo
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <script type="module">
+            let modoAtivo = false;
+
+            async function loadLayout() {
+                try {
+                    const response = await fetch("layout.html");
+                    const layoutHtml = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, "text/html");
+                    const sidebar = doc.querySelector(".app-sidebar");
+                    if (sidebar) {
+                        document.getElementById("sidebar-placeholder")?.replaceWith(sidebar);
+                    }
+
+                    const scripts = doc.querySelectorAll("script");
+                    scripts.forEach((script) => {
+                        if (script.textContent.trim()) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = `(function(){${script.textContent}})();`;
+                            document.head.appendChild(newScript);
+                        }
+                    });
+
+                    await waitForAccordionManager();
+                } catch (error) {
+                    console.error("[MODO-MANUTENCAO] Erro ao carregar layout:", error);
+                }
+            }
+
+            function waitForAccordionManager() {
+                return new Promise((resolve) => {
+                    let attempts = 0;
+                    const maxAttempts = 20;
+
+                    const check = () => {
+                        attempts++;
+                        if (window.AccordionManager) {
+                            if (!window.AccordionManager._initialized) {
+                                window.AccordionManager.init();
+                            }
+                            if (typeof window.verificarMenuSuperAdmin === 'function') {
+                                window.verificarMenuSuperAdmin();
+                            }
+                            resolve();
+                        } else if (attempts < maxAttempts) {
+                            setTimeout(check, 100);
+                        } else {
+                            resolve();
+                        }
+                    };
+                    check();
+                });
+            }
+
+            async function carregarStatus() {
+                try {
+                    const response = await fetch('/api/admin/modo-manutencao/status');
+                    const data = await response.json();
+                    modoAtivo = data.ativo || false;
+                    atualizarUI();
+                } catch (error) {
+                    console.error('[MODO-MANUTENCAO] Erro ao carregar status:', error);
+                    modoAtivo = false;
+                    atualizarUI();
+                }
+            }
+
+            function atualizarUI() {
+                const statusIndicator = document.getElementById('statusIndicator');
+                const btnToggle = document.getElementById('btnToggle');
+
+                if (modoAtivo) {
+                    statusIndicator.innerHTML = `
+                        <div class="status-icon ativo">
+                            <span class="material-icons">engineering</span>
+                        </div>
+                        <div class="status-info">
+                            <h2>Modo Manutenção ATIVO</h2>
+                            <p>Sistema acessível apenas para administradores</p>
+                        </div>
+                    `;
+                    btnToggle.className = 'btn-toggle desativar';
+                    btnToggle.innerHTML = `
+                        <span class="material-icons">check_circle</span>
+                        Desativar Manutenção
+                    `;
+                } else {
+                    statusIndicator.innerHTML = `
+                        <div class="status-icon inativo">
+                            <span class="material-icons">check_circle</span>
+                        </div>
+                        <div class="status-info">
+                            <h2>Sistema Operacional</h2>
+                            <p>Todos os usuários têm acesso normal</p>
+                        </div>
+                    `;
+                    btnToggle.className = 'btn-toggle ativar';
+                    btnToggle.innerHTML = `
+                        <span class="material-icons">engineering</span>
+                        Ativar Manutenção
+                    `;
+                }
+
+                btnToggle.disabled = false;
+            }
+
+            async function toggleModoManutencao() {
+                const btnToggle = document.getElementById('btnToggle');
+                btnToggle.disabled = true;
+                btnToggle.innerHTML = `
+                    <div class="loading-spinner"></div>
+                    Processando...
+                `;
+
+                try {
+                    const response = await fetch('/api/admin/modo-manutencao/toggle', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ativo: !modoAtivo })
+                    });
+
+                    if (!response.ok) throw new Error('Erro ao alterar modo');
+
+                    const data = await response.json();
+                    modoAtivo = data.ativo;
+                    atualizarUI();
+
+                    // Feedback
+                    const msg = modoAtivo ? 'Modo Manutenção ATIVADO' : 'Modo Manutenção DESATIVADO';
+                    alert(msg);
+                } catch (error) {
+                    console.error('[MODO-MANUTENCAO] Erro ao toggle:', error);
+                    alert('Erro ao alterar modo de manutenção: ' + error.message);
+                    btnToggle.disabled = false;
+                }
+            }
+
+            document.getElementById('btnToggle')?.addEventListener('click', toggleModoManutencao);
+
+            async function init() {
+                await loadLayout();
+                await carregarStatus();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        </script>
+    </body>
+</html>
