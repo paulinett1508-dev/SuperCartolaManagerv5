@@ -239,11 +239,152 @@ async function getLigaDetalhes(req, res) {
     const db = req.app.locals.db;
     const ligaId = parseInt(req.params.ligaId);
 
-    // TODO FASE 3: Implementar lógica completa
+    // Busca liga
+    const liga = await db.collection('ligas').findOne({ id: ligaId });
+
+    if (!liga) {
+      return res.status(404).json({
+        error: 'Liga não encontrada',
+        code: 'LIGA_NOT_FOUND'
+      });
+    }
+
+    // Busca participantes
+    const participantes = await db.collection('times').find({
+      liga_id: ligaId
+    }).sort({ nome_cartoleiro: 1 }).toArray();
+
+    const participantesAtivos = participantes.filter(p => p.ativo).length;
+    const participantesTotais = participantes.length;
+
+    // Busca extratos financeiros
+    const extratos = await db.collection('extratofinanceirocaches').find({
+      liga_id: ligaId,
+      temporada: liga.temporada || 2026
+    }).toArray();
+
+    // Mapeia extratos por time_id
+    const extratosMap = {};
+    extratos.forEach(extrato => {
+      extratosMap[extrato.time_id] = extrato;
+    });
+
+    // Busca ranking atual (pontoscorridoscaches)
+    const ranking = await db.collection('pontoscorridoscaches').find({
+      liga_id: ligaId,
+      temporada: liga.temporada || 2026
+    }).sort({ posicao: 1 }).toArray();
+
+    // Mapeia ranking por time_id
+    const rankingMap = {};
+    ranking.forEach(r => {
+      rankingMap[r.time_id] = r;
+    });
+
+    // Monta lista de participantes com dados completos
+    const participantesComDados = participantes.map(p => {
+      const extrato = extratosMap[p.id] || {};
+      const rank = rankingMap[p.id] || {};
+
+      return {
+        id: p.id,
+        nome: p.nome_cartoleiro,
+        nomeTime: p.nome_time,
+        ativo: p.ativo,
+        escudo: p.clube_id || '262',
+        saldo: extrato.saldo_final || 0,
+        inadimplente: (extrato.saldo_final || 0) < 0,
+        pontos: rank.pontos_total || 0,
+        posicao: rank.posicao || null,
+        patrimonio: rank.patrimonio || 0,
+        rodadasParticipadas: rank.rodadas_participadas || 0
+      };
+    });
+
+    // Calcula saldo total e inadimplentes
+    let saldoTotal = 0;
+    let inadimplentes = 0;
+    participantesComDados.forEach(p => {
+      saldoTotal += p.saldo;
+      if (p.inadimplente) inadimplentes++;
+    });
+
+    // Busca última consolidação
+    const ultimaConsolidacao = await db.collection('adminactivitylogs')
+      .find({
+        action: 'consolidacao_manual',
+        'details.ligaId': ligaId,
+        result: 'success'
+      })
+      .sort({ timestamp: -1 })
+      .limit(1)
+      .toArray();
+
+    let ultimaConsolidacaoData = null;
+    if (ultimaConsolidacao.length > 0) {
+      ultimaConsolidacaoData = {
+        rodada: ultimaConsolidacao[0].details?.rodada || 0,
+        timestamp: ultimaConsolidacao[0].timestamp,
+        status: 'success'
+      };
+    }
+
+    // Módulos ativos
+    const modulosAtivos = {};
+    if (liga.modulos_ativos) {
+      Object.entries(liga.modulos_ativos).forEach(([modulo, ativo]) => {
+        modulosAtivos[modulo] = ativo;
+      });
+    }
+
+    // Calcula estatísticas
+    const participantesComPontos = participantesComDados.filter(p => p.pontos > 0);
+    const mediaPontos = participantesComPontos.length > 0
+      ? participantesComPontos.reduce((sum, p) => sum + p.pontos, 0) / participantesComPontos.length
+      : 0;
+
+    const participantesComPatrimonio = participantesComDados.filter(p => p.patrimonio > 0);
+    const mediaPatrimonio = participantesComPatrimonio.length > 0
+      ? participantesComPatrimonio.reduce((sum, p) => sum + p.patrimonio, 0) / participantesComPatrimonio.length
+      : 0;
+
+    // Busca total de pagamentos e premiações
+    const acertos = await db.collection('acertofinanceiros').find({
+      ligaId: String(ligaId),
+      temporada: liga.temporada || 2026,
+      ativo: true
+    }).toArray();
+
+    let totalPagamentos = 0;
+    let totalPremiacoes = 0;
+
+    acertos.forEach(a => {
+      if (a.tipo === 'pagamento') {
+        totalPagamentos += a.valor;
+      } else {
+        totalPremiacoes += a.valor;
+      }
+    });
+
     res.json({
-      id: ligaId,
-      nome: 'Liga Teste',
-      participantes: []
+      id: liga.id,
+      nome: liga.nome,
+      temporada: liga.temporada || 2026,
+      ativo: liga.ativo,
+      rodadaAtual: liga.rodada_atual || 0,
+      participantesAtivos,
+      participantesTotais,
+      saldoTotal: parseFloat(saldoTotal.toFixed(2)),
+      inadimplentes,
+      ultimaConsolidacao: ultimaConsolidacaoData,
+      modulosAtivos,
+      participantes: participantesComDados,
+      estatisticas: {
+        totalPagamentos: parseFloat(totalPagamentos.toFixed(2)),
+        totalPremiacoes: parseFloat(totalPremiacoes.toFixed(2)),
+        mediaPontos: parseFloat(mediaPontos.toFixed(2)),
+        mediaPatrimonio: parseFloat(mediaPatrimonio.toFixed(2))
+      }
     });
   } catch (error) {
     console.error('[adminMobile] Erro no getLigaDetalhes:', error);
