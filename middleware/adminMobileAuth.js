@@ -4,6 +4,7 @@
  */
 
 import jwt from 'jsonwebtoken';
+import { isAdminAutorizado as isAdminAutorizadoCentral } from '../config/admin-config.js';
 
 // ✅ SECURITY: JWT_SECRET obrigatório em produção
 const JWT_SECRET = (() => {
@@ -71,14 +72,11 @@ async function validateAdminToken(req, res, next) {
       });
     }
 
-    // Verifica se é admin
+    // Verifica se é admin (usa função centralizada)
     const db = req.app.locals.db;
-    const admin = await db.collection('admins').findOne({ email: decoded.email });
+    const isAdmin = await isAdminAutorizadoCentral(decoded.email, db);
 
-    const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-    const isAdminEmail = adminEmails.includes(decoded.email);
-
-    if (!admin && !isAdminEmail) {
+    if (!isAdmin) {
       return res.status(403).json({
         error: 'Acesso negado',
         code: 'ACCESS_DENIED'
@@ -101,28 +99,10 @@ async function validateAdminToken(req, res, next) {
   }
 }
 
-/**
- * Helper: verifica se usuário é admin (sem JWT)
- * Usado apenas no endpoint de autenticação inicial
- */
-async function isAdminAutorizado(email, db) {
-  try {
-    const admin = await db.collection('admins').findOne({ email });
-
-    if (admin) {
-      return true;
-    }
-
-    const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-    return adminEmails.includes(email);
-  } catch (error) {
-    console.error('[adminMobileAuth] Erro ao verificar admin:', error);
-    return false;
-  }
-}
+// ✅ isAdminAutorizado removido (usar função centralizada de config/admin-config.js)
 
 export {
   generateToken,
   validateAdminToken,
-  isAdminAutorizado
+  isAdminAutorizadoCentral as isAdminAutorizado // Re-exporta para compatibilidade
 };

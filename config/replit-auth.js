@@ -8,94 +8,13 @@ import { Strategy } from "openid-client/passport";
 import passport from "passport";
 import memoize from "memoizee";
 import { getDB } from "./database.js";
+import { isAdminAutorizado, isSuperAdmin as checkSuperAdmin } from "./admin-config.js";
 
-// Fallback para variavel de ambiente (compatibilidade)
-const ADMIN_EMAILS_ENV = (process.env.ADMIN_EMAILS || "")
-  .split(",")
-  .map((e) => e.trim().toLowerCase())
-  .filter(e => e.length > 0);
+// ✅ Funções de verificação movidas para config/admin-config.js
+// isAdminAuthorizado → isAdminAutorizado (centralizada)
+// isSuperAdminCheck → isSuperAdmin (centralizada)
 
-/**
- * Verifica se email e admin autorizado
- * Primeiro verifica no banco, depois na variavel de ambiente
- */
-async function isAdminAuthorizado(email) {
-  if (!email) return false;
-  const emailLower = email.toLowerCase();
-
-  try {
-    const db = getDB();
-    if (db) {
-      // Verificar na collection admins
-      const admin = await db.collection("admins").findOne({
-        email: emailLower,
-        ativo: { $ne: false }
-      });
-
-      if (admin) {
-        console.log("[REPLIT-AUTH] ✅ Admin encontrado no banco:", emailLower);
-        return true;
-      }
-
-      // Se nao tem admins no banco, usar variavel de ambiente
-      const countAdmins = await db.collection("admins").countDocuments();
-      if (countAdmins === 0 && ADMIN_EMAILS_ENV.length > 0) {
-        console.log("[REPLIT-AUTH] 📋 Sem admins no banco, usando env");
-        return ADMIN_EMAILS_ENV.includes(emailLower);
-      }
-
-      // Se tem admins no banco mas email nao esta, negar
-      if (countAdmins > 0) {
-        console.log("[REPLIT-AUTH] ❌ Email nao encontrado nos admins do banco");
-        return false;
-      }
-    }
-  } catch (error) {
-    console.error("[REPLIT-AUTH] ⚠️ Erro ao verificar admin no banco:", error.message);
-  }
-
-  // Fallback para variavel de ambiente
-  if (ADMIN_EMAILS_ENV.length > 0) {
-    return ADMIN_EMAILS_ENV.includes(emailLower);
-  }
-
-  // Se nao tem restricao, permitir qualquer um (desenvolvimento)
-  console.log("[REPLIT-AUTH] ⚠️ Sem restricao de admin configurada");
-  return true;
-}
-
-/**
- * Verifica se o admin é superAdmin
- * SuperAdmin pode ver todas as ligas (bypass tenant filter)
- */
-async function isSuperAdminCheck(email) {
-  if (!email) return false;
-  const emailLower = email.toLowerCase();
-
-  // 1. Verificar na lista de emails da env (são sempre superAdmin)
-  if (ADMIN_EMAILS_ENV.includes(emailLower)) {
-    return true;
-  }
-
-  // 2. Verificar no banco se tem flag superAdmin
-  try {
-    const db = getDB();
-    if (db) {
-      const admin = await db.collection("admins").findOne({
-        email: emailLower,
-        superAdmin: true,
-        ativo: { $ne: false }
-      });
-      if (admin) {
-        return true;
-      }
-    }
-  } catch (error) {
-    console.error("[REPLIT-AUTH] Erro ao verificar superAdmin:", error.message);
-  }
-
-  return false;
-}
+// ✅ isSuperAdminCheck removida (usar checkSuperAdmin de config/admin-config.js)
 
 const getOidcConfig = memoize(
   async () => {
@@ -156,8 +75,9 @@ const verify = async (tokens, done) => {
       return done(null, false, { message: "Email não encontrado no perfil" });
     }
 
-    // Verificar se e admin autorizado (banco ou env)
-    const autorizado = await isAdminAuthorizado(email);
+    // Verificar se e admin autorizado (banco ou env) - usa função centralizada
+    const db = getDB();
+    const autorizado = await isAdminAutorizado(email, db);
     if (!autorizado) {
       console.log("[REPLIT-AUTH] ❌ Email não autorizado:", email);
       return done(null, false, { message: "Email não autorizado como administrador" });
@@ -165,8 +85,8 @@ const verify = async (tokens, done) => {
 
     console.log("[REPLIT-AUTH] ✅ Admin autorizado:", email);
 
-    // Verificar se é superAdmin (env ou banco)
-    const isSuperAdminUser = await isSuperAdminCheck(email);
+    // Verificar se é superAdmin (env ou banco) - usa função centralizada
+    const isSuperAdminUser = checkSuperAdmin(email);
     console.log("[REPLIT-AUTH] 👑 SuperAdmin:", isSuperAdminUser);
 
     const user = {

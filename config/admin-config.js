@@ -54,6 +54,54 @@ export function isAdminSuper(admin) {
     return isSuperAdmin(admin.email);
 }
 
+/**
+ * Verifica se um email é de admin autorizado (MongoDB + ENV)
+ * CENTRALIZADO: Todas as verificações de admin devem usar esta função
+ *
+ * @param {string} email - Email a verificar
+ * @param {Object} db - Instância do MongoDB
+ * @returns {Promise<boolean>}
+ */
+export async function isAdminAutorizado(email, db) {
+    if (!email) return false;
+
+    const emailLower = email.toLowerCase().trim();
+
+    try {
+        if (db) {
+            // 1. Verificar na collection admins (prioridade)
+            const admin = await db.collection('admins').findOne({
+                email: emailLower,
+                ativo: { $ne: false } // ✅ Verifica campo 'ativo'
+            });
+
+            if (admin) {
+                return true;
+            }
+
+            // 2. Se tem admins no banco mas email não está, negar
+            const countAdmins = await db.collection('admins').countDocuments();
+            if (countAdmins > 0) {
+                // Banco tem admins, mas esse email não está → NEGAR
+                return false;
+            }
+        }
+    } catch (error) {
+        console.error('[admin-config] Erro ao verificar admin no banco:', error.message);
+        // Em caso de erro no banco, continua para fallback
+    }
+
+    // 3. Fallback: verificar na variável de ambiente
+    // Usado quando banco está vazio ou indisponível
+    if (SUPER_ADMIN_EMAILS.length > 0) {
+        return SUPER_ADMIN_EMAILS.includes(emailLower);
+    }
+
+    // 4. Sem restrição configurada (modo desenvolvimento)
+    console.warn('[admin-config] ⚠️ Sem restrição de admin configurada');
+    return false; // ✅ SECURITY: Negar por padrão
+}
+
 // ============================================================================
 // CONFIGURAÇÕES PADRÃO PARA NOVAS LIGAS
 // ============================================================================
@@ -146,6 +194,7 @@ export default {
     PRIMARY_SUPER_ADMIN,
     isSuperAdmin,
     isAdminSuper,
+    isAdminAutorizado,
     DEFAULT_MODULOS_ATIVOS,
     DEFAULT_LIGA_CONFIG,
 };

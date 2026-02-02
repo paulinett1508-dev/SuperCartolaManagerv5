@@ -10,41 +10,15 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { getDB } from "../config/database.js";
-import { isSuperAdmin as checkSuperAdmin, SUPER_ADMIN_EMAILS } from "../config/admin-config.js";
+import {
+    isSuperAdmin as checkSuperAdmin,
+    isAdminSuper,
+    SUPER_ADMIN_EMAILS
+} from "../config/admin-config.js";
 
 const router = express.Router();
 
-const REPL_OWNER = process.env.REPL_OWNER || "";
-
-/**
- * Verifica se o admin logado é Super Admin
- * ✅ Agora usa configuração centralizada (config/admin-config.js)
- */
-function isSuperAdmin(sessionAdmin) {
-    if (!sessionAdmin) return false;
-
-    const email = sessionAdmin.email?.toLowerCase();
-    const nome = sessionAdmin.nome?.toLowerCase();
-    const claims = sessionAdmin.claims;
-
-    // 1. Verificar via config centralizada
-    if (checkSuperAdmin(email)) {
-        return true;
-    }
-
-    // 2. Verificar se é o REPL_OWNER (dono do Replit)
-    if (REPL_OWNER) {
-        const replOwnerLower = REPL_OWNER.toLowerCase();
-        if (nome === replOwnerLower) return true;
-        if (claims) {
-            const username = (claims.preferred_username || claims.name || claims.sub || "").toLowerCase();
-            if (username === replOwnerLower) return true;
-        }
-        if (email && email.startsWith(replOwnerLower + "@")) return true;
-    }
-
-    return false;
-}
+// ✅ isSuperAdmin removida (usar isAdminSuper de config/admin-config.js)
 
 console.log("[CLIENTE-AUTH] Rotas de autenticacao cliente carregadas");
 console.log("[CLIENTE-AUTH] Super Admins (via env):", SUPER_ADMIN_EMAILS);
@@ -72,7 +46,7 @@ router.post("/registrar", async (req, res) => {
         const db = getDB();
 
         // Verificar se quem está chamando é Super Admin
-        if (!isSuperAdmin(req.session?.admin)) {
+        if (!isAdminSuper(req.session?.admin)) {
             console.log("[CLIENTE-AUTH] Acesso negado para:", req.session?.admin?.email);
             return res.status(403).json({
                 success: false,
