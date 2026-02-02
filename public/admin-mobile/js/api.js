@@ -134,12 +134,12 @@ class API {
   /**
    * Consolidação
    */
-  async consolidarRodada(ligaId, rodada) {
-    return this.post('/consolidacao', { ligaId, rodada });
+  async consolidarRodada(ligaId, rodada, forcar = false) {
+    return this.post('/consolidacao', { ligaId, rodada, forcar });
   }
 
-  async getConsolidacaoStatus(jobId) {
-    return this.get(`/consolidacao/status/${jobId}`);
+  async getConsolidacaoStatus(ligaId, rodada) {
+    return this.get(`/consolidacao/status/${ligaId}/${rodada}`);
   }
 
   async getConsolidacaoHistorico(ligaId, params = {}) {

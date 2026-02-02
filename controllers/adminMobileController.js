@@ -401,43 +401,188 @@ async function getLigaDetalhes(req, res) {
  */
 async function consolidarRodada(req, res) {
   try {
-    const { ligaId, rodada } = req.body;
+    const { ligaId, rodada, forcar } = req.body;
+    const db = req.app.locals.db;
 
-    // TODO FASE 4: Implementar lógica completa
+    // Validações
+    if (!ligaId || !rodada) {
+      return res.status(400).json({
+        error: 'ligaId e rodada são obrigatórios',
+        code: 'MISSING_PARAMS'
+      });
+    }
+
+    const ligaIdNum = parseInt(ligaId);
+    const rodadaNum = parseInt(rodada);
+
+    if (isNaN(ligaIdNum) || isNaN(rodadaNum)) {
+      return res.status(400).json({
+        error: 'ligaId e rodada devem ser números válidos',
+        code: 'INVALID_PARAMS'
+      });
+    }
+
+    // Verifica se liga existe
+    const liga = await db.collection('ligas').findOne({ id: ligaIdNum });
+    if (!liga) {
+      return res.status(404).json({
+        error: 'Liga não encontrada',
+        code: 'LIGA_NOT_FOUND'
+      });
+    }
+
+    // Verifica se rodada já foi consolidada (a menos que forcar=true)
+    if (!forcar) {
+      const jaConsolidada = await db.collection('rodasnapshots').findOne({
+        liga_id: String(liga._id),
+        rodada: rodadaNum,
+        status: 'consolidada',
+        versao_schema: { $gte: 2 }
+      });
+
+      if (jaConsolidada) {
+        return res.json({
+          success: true,
+          jaConsolidada: true,
+          rodada: rodadaNum,
+          consolidadaEm: jaConsolidada.data_consolidacao,
+          message: 'Rodada já consolidada anteriormente'
+        });
+      }
+    }
+
+    // Importa dinamicamente o controller de consolidação para evitar dependências circulares
+    const { consolidarRodada: consolidarRodadaOriginal } = await import('./consolidacaoController.js');
+
+    // Cria um objeto req/res mockado para chamar o controller original
+    const mockReq = {
+      params: {
+        ligaId: String(liga._id),
+        rodada: String(rodadaNum)
+      },
+      query: {
+        forcar: forcar ? 'true' : 'false'
+      }
+    };
+
+    // Captura a resposta do controller original
+    let consolidacaoResult = null;
+    let consolidacaoError = null;
+    let statusCode = 200;
+
+    const mockRes = {
+      json: (data) => {
+        consolidacaoResult = data;
+        return mockRes;
+      },
+      status: (code) => {
+        statusCode = code;
+        return mockRes;
+      }
+    };
+
+    // Executa consolidação usando o controller existente
+    await consolidarRodadaOriginal(mockReq, mockRes);
+
+    // Registra ação no log de auditoria
+    await db.collection('adminactivitylogs').insertOne({
+      action: 'consolidacao_manual',
+      user: req.admin.email,
+      timestamp: new Date(),
+      details: {
+        ligaId: ligaIdNum,
+        ligaNome: liga.nome,
+        rodada: rodadaNum,
+        forcar: !!forcar
+      },
+      result: consolidacaoResult?.success ? 'success' : 'error',
+      error: consolidacaoError || null
+    });
+
+    // Retorna resultado
+    if (statusCode !== 200) {
+      return res.status(statusCode).json(consolidacaoResult);
+    }
+
     res.json({
-      jobId: `consolidacao-${ligaId}-${rodada}-${Date.now()}`,
-      ligaId,
-      rodada,
-      status: 'processing',
-      message: 'Consolidação iniciada'
+      success: consolidacaoResult?.success || false,
+      jaConsolidada: consolidacaoResult?.jaConsolidada || false,
+      rodada: rodadaNum,
+      ligaId: ligaIdNum,
+      ligaNome: liga.nome,
+      consolidadaEm: consolidacaoResult?.consolidadaEm || new Date().toISOString(),
+      message: consolidacaoResult?.jaConsolidada
+        ? 'Rodada já estava consolidada'
+        : 'Rodada consolidada com sucesso'
     });
   } catch (error) {
     console.error('[adminMobile] Erro no consolidarRodada:', error);
     res.status(500).json({
-      error: 'Erro ao iniciar consolidação',
+      error: 'Erro ao consolidar rodada: ' + error.message,
       code: 'INTERNAL_ERROR'
     });
   }
 }
 
 /**
- * GET /api/admin/mobile/consolidacao/status/:jobId
- * Status de consolidação em tempo real
+ * GET /api/admin/mobile/consolidacao/status/:ligaId/:rodada
+ * Status de consolidação de uma rodada específica
  */
 async function getConsolidacaoStatus(req, res) {
   try {
-    const { jobId } = req.params;
+    const { ligaId, rodada } = req.params;
+    const db = req.app.locals.db;
 
-    // TODO FASE 4: Implementar lógica completa
+    const ligaIdNum = parseInt(ligaId);
+    const rodadaNum = parseInt(rodada);
+
+    // Busca liga para obter _id do MongoDB
+    const liga = await db.collection('ligas').findOne({ id: ligaIdNum });
+    if (!liga) {
+      return res.status(404).json({
+        error: 'Liga não encontrada',
+        code: 'LIGA_NOT_FOUND'
+      });
+    }
+
+    // Busca snapshot consolidado
+    const snapshot = await db.collection('rodasnapshots').findOne({
+      liga_id: String(liga._id),
+      rodada: rodadaNum
+    });
+
+    if (!snapshot) {
+      return res.json({
+        ligaId: ligaIdNum,
+        rodada: rodadaNum,
+        status: 'nao_consolidada',
+        consolidada: false,
+        message: 'Rodada ainda não foi consolidada'
+      });
+    }
+
+    // Retorna detalhes do snapshot
     res.json({
-      jobId,
-      status: 'completed',
-      progress: 100
+      ligaId: ligaIdNum,
+      rodada: rodadaNum,
+      status: snapshot.status || 'consolidada',
+      consolidada: snapshot.status === 'consolidada',
+      versaoSchema: snapshot.versao_schema || 1,
+      dataConsolidacao: snapshot.data_consolidacao,
+      totalParticipantes: snapshot.dados_consolidados?.ranking_geral?.length || 0,
+      temRankingRodada: (snapshot.dados_consolidados?.ranking_rodada?.length || 0) > 0,
+      temFinanceiro: !!snapshot.dados_consolidados?.financeiro,
+      modulosProcessados: {
+        pontosCorridos: (snapshot.dados_consolidados?.confrontos_pontos_corridos?.length || 0) > 0,
+        mataMata: (snapshot.dados_consolidados?.confrontos_mata_mata?.length || 0) > 0,
+        top10: (snapshot.dados_consolidados?.top_10?.mitos?.length || 0) > 0,
+        artilheiro: !!snapshot.dados_consolidados?.artilheiro_campeao
+      }
     });
   } catch (error) {
     console.error('[adminMobile] Erro no getConsolidacaoStatus:', error);
     res.status(500).json({
-      error: 'Erro ao buscar status',
+      error: 'Erro ao buscar status: ' + error.message,
       code: 'INTERNAL_ERROR'
     });
   }
@@ -445,21 +590,110 @@ async function getConsolidacaoStatus(req, res) {
 
 /**
  * GET /api/admin/mobile/consolidacao/historico/:ligaId
- * Histórico de consolidações
+ * Histórico de consolidações de uma liga
+ * Query params: temporada, limit
  */
 async function getConsolidacaoHistorico(req, res) {
   try {
     const ligaId = parseInt(req.params.ligaId);
+    const db = req.app.locals.db;
 
-    // TODO FASE 4: Implementar lógica completa
+    // Query params opcionais
+    const temporada = req.query.temporada ? parseInt(req.query.temporada) : null;
+    const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+
+    // Busca liga
+    const liga = await db.collection('ligas').findOne({ id: ligaId });
+    if (!liga) {
+      return res.status(404).json({
+        error: 'Liga não encontrada',
+        code: 'LIGA_NOT_FOUND'
+      });
+    }
+
+    // Busca snapshots consolidados
+    const query = {
+      liga_id: String(liga._id),
+      status: 'consolidada'
+    };
+
+    // Filtra por temporada se especificado
+    if (temporada) {
+      query.temporada = temporada;
+    }
+
+    const snapshots = await db.collection('rodasnapshots')
+      .find(query)
+      .sort({ rodada: -1 }) // Mais recentes primeiro
+      .limit(limit)
+      .toArray();
+
+    // Formata histórico para resposta mobile
+    const historico = snapshots.map(snapshot => {
+      const rankingGeral = snapshot.dados_consolidados?.ranking_geral || [];
+      const rankingRodada = snapshot.dados_consolidados?.ranking_rodada || [];
+      const top10 = snapshot.dados_consolidados?.top_10 || {};
+
+      // Identifica campeão da rodada e lider geral
+      const campeaoRodada = rankingRodada[0] || null;
+      const liderGeral = rankingGeral[0] || null;
+
+      return {
+        rodada: snapshot.rodada,
+        temporada: snapshot.temporada || liga.temporada || 2026,
+        dataConsolidacao: snapshot.data_consolidacao,
+        versaoSchema: snapshot.versao_schema || 1,
+        totalParticipantes: rankingGeral.length,
+        campeaoRodada: campeaoRodada ? {
+          timeId: campeaoRodada.time_id,
+          nome: campeaoRodada.nome_time || campeaoRodada.nome,
+          pontos: campeaoRodada.pontos_rodada || campeaoRodada.pontos
+        } : null,
+        liderGeral: liderGeral ? {
+          timeId: liderGeral.time_id,
+          nome: liderGeral.nome_time || liderGeral.nome,
+          pontos: liderGeral.pontos_acumulados || liderGeral.pontos
+        } : null,
+        mito: top10.mitos?.[0] || null,
+        mico: top10.micos?.[0] || null,
+        modulosAtivos: {
+          pontosCorridos: (snapshot.dados_consolidados?.confrontos_pontos_corridos?.length || 0) > 0,
+          mataMata: (snapshot.dados_consolidados?.confrontos_mata_mata?.length || 0) > 0,
+          artilheiro: !!snapshot.dados_consolidados?.artilheiro_campeao,
+          luvaOuro: !!snapshot.dados_consolidados?.luva_ouro
+        }
+      };
+    });
+
+    // Busca informações de rodadas não consolidadas (se temporada atual)
+    const temporadaAtual = liga.temporada || 2026;
+    const rodadaAtual = liga.rodada_atual || 1;
+
+    let rodadasPendentes = [];
+    if (!temporada || temporada === temporadaAtual) {
+      const rodadasConsolidadas = snapshots.map(s => s.rodada);
+      rodadasPendentes = [];
+
+      for (let r = 1; r <= rodadaAtual; r++) {
+        if (!rodadasConsolidadas.includes(r)) {
+          rodadasPendentes.push(r);
+        }
+      }
+    }
+
     res.json({
       ligaId,
-      historico: []
+      ligaNome: liga.nome,
+      temporada: temporada || temporadaAtual,
+      totalConsolidadas: snapshots.length,
+      rodadaAtual,
+      rodadasPendentes,
+      historico
     });
   } catch (error) {
     console.error('[adminMobile] Erro no getConsolidacaoHistorico:', error);
     res.status(500).json({
-      error: 'Erro ao buscar histórico',
+      error: 'Erro ao buscar histórico: ' + error.message,
       code: 'INTERNAL_ERROR'
     });
   }

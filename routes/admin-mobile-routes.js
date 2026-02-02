@@ -55,10 +55,10 @@ router.get('/ligas/:ligaId', controller.getLigaDetalhes);
 router.post('/consolidacao', controller.consolidarRodada);
 
 /**
- * GET /api/admin/mobile/consolidacao/status/:jobId
- * Status em tempo real de consolidação
+ * GET /api/admin/mobile/consolidacao/status/:ligaId/:rodada
+ * Status de consolidação de uma rodada específica
  */
-router.get('/consolidacao/status/:jobId', controller.getConsolidacaoStatus);
+router.get('/consolidacao/status/:ligaId/:rodada', controller.getConsolidacaoStatus);
 
 /**
  * GET /api/admin/mobile/consolidacao/historico/:ligaId
