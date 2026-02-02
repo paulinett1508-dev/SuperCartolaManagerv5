@@ -380,16 +380,16 @@
                         console.warn('[LAYOUT] CacheManager não disponível, chamando API diretamente');
                         const response = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
                         if (!response.ok) return;
-                        var data = await response.json();
+                        const fallbackData = await response.json();
                         const menuAdmin = document.getElementById('menuAdministradores');
                         if (menuAdmin) {
-                            menuAdmin.style.cssText = data.isSuperAdmin
+                            menuAdmin.style.cssText = fallbackData.isSuperAdmin
                                 ? 'display: flex !important;'
                                 : 'display: none !important;';
                         }
                         const accordionAdmin = document.getElementById('accordionAdmin');
                         if (accordionAdmin) {
-                            accordionAdmin.style.cssText = data.isSuperAdmin
+                            accordionAdmin.style.cssText = fallbackData.isSuperAdmin
                                 ? 'display: block !important;'
                                 : 'display: none !important;';
                         }
