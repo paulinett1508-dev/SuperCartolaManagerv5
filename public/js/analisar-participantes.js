@@ -416,6 +416,11 @@
   let dumpHistorico = [];
   let dumpRodadaAtual = null;
 
+  function fecharModalDump() {
+    const modal = document.getElementById("modalDump");
+    if (modal) modal.classList.remove("active");
+  }
+
   async function abrirModalDump(timeId, nomeCartola, nomeTime) {
     let modal = document.getElementById("modalDump");
     if (!modal) {
@@ -423,6 +428,12 @@
       modal.className = "modal-overlay";
       modal.id = "modalDump";
       document.body.appendChild(modal);
+      // Event delegation: click overlay to close, click .dl-close-btn to close
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal || e.target.closest(".dl-close-btn")) {
+          fecharModalDump();
+        }
+      });
     }
 
     modal.innerHTML = `
@@ -435,9 +446,6 @@
     `;
 
     modal.classList.add("active");
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) modal.classList.remove("active");
-    });
 
     try {
       const res = await fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50`);
@@ -448,6 +456,9 @@
     } catch (error) {
       console.error("[ANALISAR] Erro ao buscar dump:", error);
       modal.querySelector(".modal-content").innerHTML = `
+        <button class="dl-close-btn" aria-label="Fechar">
+          <span class="material-icons">close</span>
+        </button>
         <div class="dl-empty-state">
           <span class="material-icons" style="font-size:48px;color:#ef4444;">wifi_off</span>
           <div style="margin-top:8px;">Erro: ${error.message}</div>
@@ -461,6 +472,9 @@
 
     if (!data.success || !data.dump_atual) {
       content.innerHTML = `
+        <button class="dl-close-btn" aria-label="Fechar">
+          <span class="material-icons">close</span>
+        </button>
         <div class="dl-empty-state">
           <span class="material-icons" style="font-size:64px;color:#4b5563;">cloud_off</span>
           <h4>Nenhum dump encontrado</h4>
@@ -518,7 +532,7 @@
     // Header
     html += `
       <div class="dl-header">
-        <button class="dl-close-btn" onclick="document.getElementById('modalDump').classList.remove('active')">
+        <button class="dl-close-btn" aria-label="Fechar">
           <span class="material-icons">close</span>
         </button>
         <div class="dl-header-label">${rodadaAtual ? 'Rodada ' + rodadaAtual : 'Dados do Time'}</div>
@@ -821,7 +835,7 @@
           <span class="material-icons" style="font-size:48px;color:#ef4444;">error</span>
           <div style="margin-top:8px;">Erro: ${error.message}</div>
           <br/>
-          <button class="dl-sync-btn" onclick="document.getElementById('modalDump').classList.remove('active')">Fechar</button>
+          <button class="dl-sync-btn" aria-label="Fechar">Fechar</button>
         </div>
       `;
     }
@@ -904,7 +918,7 @@
           <span class="material-icons" style="font-size:48px;color:#ef4444;">error</span>
           <div style="margin-top:8px;">Erro: ${escapeHtml(error.message)}</div>
           <br/>
-          <button class="btn-sync-dump" onclick="document.getElementById('modalDump').classList.remove('active')">Fechar</button>
+          <button class="btn-sync-dump" aria-label="Fechar">Fechar</button>
         </div>
       `;
     }
