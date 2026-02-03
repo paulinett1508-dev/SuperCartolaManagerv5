@@ -130,3 +130,8 @@ waitForPort = 3000
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[deployment]
+run = ["npm", "start"]
+
+onBoot = "npm run webhook &"
