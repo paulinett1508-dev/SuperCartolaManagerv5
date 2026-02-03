@@ -147,14 +147,20 @@ export function setupReplitAuthRoutes(app) {
   });
 
   app.get("/api/admin/auth/login", async (req, res, next) => {
-    console.log("[REPLIT-AUTH] 🚀 Iniciando login...");
+    console.log("[REPLIT-AUTH] ========================================");
+    console.log("[REPLIT-AUTH] 🚀 VERSÃO 2.0 - MOBILE REDIRECT FIX");
     console.log("[REPLIT-AUTH] 🚀 Hostname:", req.hostname);
+    console.log("[REPLIT-AUTH] 📍 Query string completa:", req.query);
+    console.log("[REPLIT-AUTH] 📍 req.query.redirect:", req.query.redirect);
 
     // ✅ Armazena redirect na sessão para usar no callback
     if (req.query.redirect) {
       req.session.redirectAfterLogin = req.query.redirect;
-      console.log("[REPLIT-AUTH] 📍 Redirect após login:", req.query.redirect);
+      console.log("[REPLIT-AUTH] ✅ REDIRECT SALVO NA SESSÃO:", req.query.redirect);
+    } else {
+      console.log("[REPLIT-AUTH] ⚠️ SEM REDIRECT - Usará padrão /painel.html");
     }
+    console.log("[REPLIT-AUTH] ========================================");
 
     try{
       const cfg = await getOidcConfig();
@@ -210,7 +216,11 @@ export function setupReplitAuthRoutes(app) {
         req.session.admin = req.user;
 
         // Pega o redirect da sessão (se existir) e limpa
+        console.log("[REPLIT-AUTH] ========================================");
+        console.log("[REPLIT-AUTH] 📍 CALLBACK - Verificando redirect...");
+        console.log("[REPLIT-AUTH] 📍 req.session.redirectAfterLogin:", req.session.redirectAfterLogin);
         const redirectTo = req.session.redirectAfterLogin || "/painel.html";
+        console.log("[REPLIT-AUTH] 📍 Redirect final escolhido:", redirectTo);
         delete req.session.redirectAfterLogin;
 
         req.session.save((saveErr) => {
@@ -219,7 +229,8 @@ export function setupReplitAuthRoutes(app) {
             return res.redirect("/?error=session");
           }
           console.log("[REPLIT-AUTH] ✅ Admin autenticado:", req.user.email);
-          console.log("[REPLIT-AUTH] 📍 Redirecionando para:", redirectTo);
+          console.log("[REPLIT-AUTH] 🚀 REDIRECIONANDO PARA:", redirectTo);
+          console.log("[REPLIT-AUTH] ========================================");
           res.redirect(redirectTo);
         });
       });
