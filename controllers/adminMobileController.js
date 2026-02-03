@@ -220,8 +220,29 @@ async function getLigas(req, res) {
     const db = req.app.locals.db || getDB();
     const { temporada, ativo } = req.query;
 
-    // TODO FASE 3: Implementar lógica completa
-    res.json({ ligas: [] });
+    // Monta filtro
+    const filtro = {};
+    if (ativo !== undefined) {
+      filtro.ativo = ativo === 'true';
+    } else {
+      filtro.ativo = true; // Padrão: apenas ativas
+    }
+    if (temporada) {
+      filtro.temporada = parseInt(temporada);
+    }
+
+    const ligas = await db.collection('ligas').find(filtro).sort({ id: 1 }).toArray();
+
+    // Retorna array de ligas com dados resumidos
+    const ligasFormatadas = ligas.map(liga => ({
+      id: liga.id,
+      nome: liga.nome,
+      temporada: liga.temporada || 2026,
+      ativo: liga.ativo,
+      rodadaAtual: liga.rodada_atual || 0
+    }));
+
+    res.json(ligasFormatadas);
   } catch (error) {
     console.error('[adminMobile] Erro no getLigas:', error);
     res.status(500).json({
@@ -706,16 +727,101 @@ async function getConsolidacaoHistorico(req, res) {
  */
 async function registrarAcerto(req, res) {
   try {
-    const { ligaId, timeId, tipo, valor, descricao, temporada } = req.body;
+    const { ligaId, timeId, tipo, valor, descricao, temporada, metodoPagamento } = req.body;
+    const db = req.app.locals.db || getDB();
 
-    // TODO FASE 5: Implementar lógica completa
-    res.status(201).json({
-      id: 'mock-id',
-      ligaId,
-      timeId,
+    // Validações
+    if (!ligaId || !timeId || !tipo || !valor) {
+      return res.status(400).json({
+        error: 'ligaId, timeId, tipo e valor são obrigatórios',
+        code: 'MISSING_PARAMS'
+      });
+    }
+
+    if (!['pagamento', 'recebimento'].includes(tipo)) {
+      return res.status(400).json({
+        error: 'tipo deve ser "pagamento" ou "recebimento"',
+        code: 'INVALID_TIPO'
+      });
+    }
+
+    const valorNum = parseFloat(valor);
+    if (isNaN(valorNum) || valorNum <= 0) {
+      return res.status(400).json({
+        error: 'valor deve ser um número positivo',
+        code: 'INVALID_VALOR'
+      });
+    }
+
+    // Verifica liga
+    const liga = await db.collection('ligas').findOne({ id: parseInt(ligaId) });
+    if (!liga) {
+      return res.status(404).json({ error: 'Liga não encontrada', code: 'LIGA_NOT_FOUND' });
+    }
+
+    // Verifica participante
+    const time = await db.collection('times').findOne({ id: parseInt(timeId), liga_id: parseInt(ligaId) });
+    if (!time) {
+      return res.status(404).json({ error: 'Participante não encontrado', code: 'TIME_NOT_FOUND' });
+    }
+
+    // Idempotência: verifica duplicata nos últimos 60s
+    const agora = new Date();
+    const duplicata = await db.collection('acertofinanceiros').findOne({
+      ligaId: String(ligaId),
+      timeId: String(timeId),
       tipo,
-      valor,
-      descricao
+      valor: valorNum,
+      ativo: true,
+      createdAt: { $gte: new Date(agora.getTime() - 60000) }
+    });
+
+    if (duplicata) {
+      return res.status(409).json({
+        error: 'Acerto duplicado detectado (mesma operação nos últimos 60s)',
+        code: 'DUPLICATE_ACERTO'
+      });
+    }
+
+    const tempAtual = temporada ? parseInt(temporada) : (liga.temporada || 2026);
+
+    const novoAcerto = {
+      ligaId: String(ligaId),
+      timeId: String(timeId),
+      nomeTime: time.nome_cartoleiro || time.nome_time,
+      temporada: tempAtual,
+      tipo,
+      valor: valorNum,
+      descricao: descricao || '',
+      metodoPagamento: metodoPagamento || 'pix',
+      registradoPor: req.admin.email,
+      dataAcerto: agora,
+      ativo: true,
+      createdAt: agora,
+      updatedAt: agora
+    };
+
+    const result = await db.collection('acertofinanceiros').insertOne(novoAcerto);
+
+    // Log de auditoria
+    await db.collection('adminactivitylogs').insertOne({
+      action: 'novo_acerto',
+      user: req.admin.email,
+      timestamp: agora,
+      details: {
+        ligaId: parseInt(ligaId),
+        ligaNome: liga.nome,
+        timeId: parseInt(timeId),
+        participante: novoAcerto.nomeTime,
+        tipo,
+        valor: valorNum
+      },
+      result: 'success'
+    });
+
+    res.status(201).json({
+      id: result.insertedId,
+      ...novoAcerto
     });
   } catch (error) {
     console.error('[adminMobile] Erro no registrarAcerto:', error);
@@ -733,11 +839,68 @@ async function registrarAcerto(req, res) {
 async function getAcertos(req, res) {
   try {
     const ligaId = parseInt(req.params.ligaId);
+    const db = req.app.locals.db || getDB();
+    const { temporada, limit, timeId } = req.query;
 
-    // TODO FASE 5: Implementar lógica completa
+    // Busca liga
+    const liga = await db.collection('ligas').findOne({ id: ligaId });
+    if (!liga) {
+      return res.status(404).json({ error: 'Liga não encontrada', code: 'LIGA_NOT_FOUND' });
+    }
+
+    const tempAtual = temporada ? parseInt(temporada) : (liga.temporada || 2026);
+    const limitNum = limit ? parseInt(limit) : 100;
+
+    const filtro = {
+      ligaId: String(ligaId),
+      temporada: tempAtual,
+      ativo: true
+    };
+
+    if (timeId) {
+      filtro.timeId = String(timeId);
+    }
+
+    const acertos = await db.collection('acertofinanceiros')
+      .find(filtro)
+      .sort({ createdAt: -1 })
+      .limit(limitNum)
+      .toArray();
+
+    // Calcula resumo
+    let totalPagamentos = 0;
+    let totalRecebimentos = 0;
+
+    acertos.forEach(a => {
+      if (a.tipo === 'pagamento') {
+        totalPagamentos += a.valor;
+      } else {
+        totalRecebimentos += a.valor;
+      }
+    });
+
     res.json({
       ligaId,
-      acertos: []
+      ligaNome: liga.nome,
+      temporada: tempAtual,
+      acertos: acertos.map(a => ({
+        id: a._id,
+        timeId: a.timeId,
+        nomeTime: a.nomeTime,
+        tipo: a.tipo,
+        valor: a.valor,
+        descricao: a.descricao,
+        metodoPagamento: a.metodoPagamento,
+        registradoPor: a.registradoPor,
+        dataAcerto: a.dataAcerto,
+        createdAt: a.createdAt
+      })),
+      resumo: {
+        totalPagamentos: parseFloat(totalPagamentos.toFixed(2)),
+        totalRecebimentos: parseFloat(totalRecebimentos.toFixed(2)),
+        saldo: parseFloat((totalPagamentos - totalRecebimentos).toFixed(2)),
+        totalOperacoes: acertos.length
+      }
     });
   } catch (error) {
     console.error('[adminMobile] Erro no getAcertos:', error);
@@ -754,8 +917,29 @@ async function getAcertos(req, res) {
  */
 async function getQuitacoesPendentes(req, res) {
   try {
-    // TODO FASE 5: Implementar lógica completa
-    res.json({ quitacoes: [] });
+    const db = req.app.locals.db || getDB();
+
+    // Busca quitações com status pendente
+    const quitacoes = await db.collection('quitacoes')
+      .find({ status: 'pendente' })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .toArray();
+
+    res.json({
+      quitacoes: quitacoes.map(q => ({
+        id: q._id,
+        ligaId: q.ligaId,
+        timeId: q.timeId,
+        nomeTime: q.nomeTime,
+        valor: q.valor,
+        comprovante: q.comprovante,
+        observacao: q.observacao,
+        status: q.status,
+        createdAt: q.createdAt
+      })),
+      total: quitacoes.length
+    });
   } catch (error) {
     console.error('[adminMobile] Erro no getQuitacoesPendentes:', error);
     res.status(500).json({
@@ -773,8 +957,44 @@ async function aprovarQuitacao(req, res) {
   try {
     const { id } = req.params;
     const { observacao } = req.body;
+    const db = req.app.locals.db || getDB();
+    const { ObjectId } = await import('mongodb');
 
-    // TODO FASE 5: Implementar lógica completa
+    const result = await db.collection('quitacoes').findOneAndUpdate(
+      { _id: new ObjectId(id), status: 'pendente' },
+      {
+        $set: {
+          status: 'aprovado',
+          observacao: observacao || '',
+          aprovadoPor: req.admin.email,
+          aprovadoEm: new Date(),
+          updatedAt: new Date()
+        }
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (!result) {
+      return res.status(404).json({
+        error: 'Quitação não encontrada ou já processada',
+        code: 'QUITACAO_NOT_FOUND'
+      });
+    }
+
+    // Log de auditoria
+    await db.collection('adminactivitylogs').insertOne({
+      action: 'aprovar_quitacao',
+      user: req.admin.email,
+      timestamp: new Date(),
+      details: {
+        quitacaoId: id,
+        ligaId: result.ligaId,
+        timeId: result.timeId,
+        valor: result.valor
+      },
+      result: 'success'
+    });
+
     res.json({
       id,
       status: 'aprovado',
@@ -797,8 +1017,37 @@ async function recusarQuitacao(req, res) {
   try {
     const { id } = req.params;
     const { motivo } = req.body;
+    const db = req.app.locals.db || getDB();
+    const { ObjectId } = await import('mongodb');
 
-    // TODO FASE 5: Implementar lógica completa
+    if (!motivo) {
+      return res.status(400).json({
+        error: 'motivo é obrigatório para recusar',
+        code: 'MISSING_MOTIVO'
+      });
+    }
+
+    const result = await db.collection('quitacoes').findOneAndUpdate(
+      { _id: new ObjectId(id), status: 'pendente' },
+      {
+        $set: {
+          status: 'recusado',
+          motivo,
+          recusadoPor: req.admin.email,
+          recusadoEm: new Date(),
+          updatedAt: new Date()
+        }
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (!result) {
+      return res.status(404).json({
+        error: 'Quitação não encontrada ou já processada',
+        code: 'QUITACAO_NOT_FOUND'
+      });
+    }
+
     res.json({
       id,
       status: 'recusado',
@@ -819,11 +1068,143 @@ async function recusarQuitacao(req, res) {
  */
 async function getHealth(req, res) {
   try {
-    // TODO FASE 6: Implementar lógica completa
-    res.json({
-      healthScore: 95,
+    const db = req.app.locals.db || getDB();
+    let healthScore = 100;
+    const components = [];
+
+    // 1. Database Status
+    try {
+      const dbStats = await db.command({ dbStats: 1 });
+      const collections = await db.listCollections().toArray();
+      components.push({
+        nome: 'Database',
+        icone: '🗄️',
+        status: 'healthy',
+        detalhes: `${collections.length} collections`,
+        valor: `${(dbStats.dataSize / 1024 / 1024).toFixed(1)} MB`
+      });
+    } catch {
+      healthScore -= 25;
+      components.push({
+        nome: 'Database',
+        icone: '🗄️',
+        status: 'critical',
+        detalhes: 'Sem conexão',
+        valor: null
+      });
+    }
+
+    // 2. Ligas ativas
+    try {
+      const ligasAtivas = await db.collection('ligas').countDocuments({ ativo: true });
+      const totalParticipantes = await db.collection('times').countDocuments({ ativo: true });
+      components.push({
+        nome: 'Ligas Ativas',
+        icone: '🏆',
+        status: ligasAtivas > 0 ? 'healthy' : 'warning',
+        detalhes: `${ligasAtivas} ligas, ${totalParticipantes} participantes`,
+        valor: String(ligasAtivas)
+      });
+      if (ligasAtivas === 0) healthScore -= 10;
+    } catch {
+      healthScore -= 10;
+      components.push({
+        nome: 'Ligas Ativas',
+        icone: '🏆',
+        status: 'warning',
+        detalhes: 'Erro ao verificar',
+        valor: null
+      });
+    }
+
+    // 3. Consolidação recente
+    try {
+      const ultimaConsolidacao = await db.collection('adminactivitylogs')
+        .find({ action: 'consolidacao_manual', result: 'success' })
+        .sort({ timestamp: -1 })
+        .limit(1)
+        .toArray();
+
+      const totalSnapshots = await db.collection('rodasnapshots').countDocuments({ status: 'consolidada' });
+
+      if (ultimaConsolidacao.length > 0) {
+        const horasAtras = Math.round((Date.now() - new Date(ultimaConsolidacao[0].timestamp).getTime()) / 3600000);
+        components.push({
+          nome: 'Consolidação',
+          icone: '⚙️',
+          status: horasAtras < 168 ? 'healthy' : 'warning',
+          detalhes: `Última: ${horasAtras}h atrás`,
+          valor: `${totalSnapshots} snapshots`
+        });
+        if (horasAtras >= 168) healthScore -= 15;
+      } else {
+        components.push({
+          nome: 'Consolidação',
+          icone: '⚙️',
+          status: 'warning',
+          detalhes: 'Nenhuma consolidação registrada',
+          valor: `${totalSnapshots} snapshots`
+        });
+        healthScore -= 15;
+      }
+    } catch {
+      healthScore -= 15;
+      components.push({
+        nome: 'Consolidação',
+        icone: '⚙️',
+        status: 'warning',
+        detalhes: 'Erro ao verificar',
+        valor: null
+      });
+    }
+
+    // 4. Financeiro - inadimplentes
+    try {
+      const extratosNegativos = await db.collection('extratofinanceirocaches')
+        .countDocuments({ saldo_final: { $lt: 0 } });
+      const totalExtratos = await db.collection('extratofinanceirocaches').countDocuments({});
+
+      components.push({
+        nome: 'Financeiro',
+        icone: '💰',
+        status: extratosNegativos === 0 ? 'healthy' : extratosNegativos <= 5 ? 'warning' : 'critical',
+        detalhes: extratosNegativos > 0 ? `${extratosNegativos} inadimplente(s)` : 'Nenhum inadimplente',
+        valor: `${totalExtratos} extratos`
+      });
+      if (extratosNegativos > 5) healthScore -= 10;
+    } catch {
+      components.push({
+        nome: 'Financeiro',
+        icone: '💰',
+        status: 'warning',
+        detalhes: 'Erro ao verificar',
+        valor: null
+      });
+    }
+
+    // 5. Sistema
+    const uptimeSeconds = process.uptime();
+    const hours = Math.floor(uptimeSeconds / 3600);
+    const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+    const memUsage = process.memoryUsage();
+    const memMB = (memUsage.rss / 1024 / 1024).toFixed(0);
+
+    components.push({
+      nome: 'Sistema',
+      icone: '🖥️',
       status: 'healthy',
-      components: []
+      detalhes: `Uptime: ${hours}h ${minutes}m`,
+      valor: `${memMB} MB RAM`
+    });
+
+    healthScore = Math.max(0, Math.min(100, healthScore));
+    const status = healthScore >= 80 ? 'healthy' : healthScore >= 60 ? 'warning' : 'critical';
+
+    res.json({
+      healthScore,
+      status,
+      components,
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error('[adminMobile] Erro no getHealth:', error);

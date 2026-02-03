@@ -53,6 +53,7 @@ class ParticipanteNavigation {
             dicas: "/participante/fronts/dicas.html",
             capitao: "/participante/fronts/capitao.html",
             configuracoes: "/participante/fronts/configuracoes.html",
+            "copa-times-sc": "/participante/fronts/copa-times-sc.html",
         };
 
         // ✅ v3.0: Controles simplificados (apenas debounce por tempo)
@@ -794,13 +795,16 @@ class ParticipanteNavigation {
             dicas: "/participante/js/modules/participante-dicas.js",
             capitao: "/participante/js/modules/participante-capitao.js",
             configuracoes: "/participante/js/modules/participante-notifications.js",
+            "copa-times-sc": "/participante/js/modules/participante-copa-sc.js",
         };
 
         const jsPath = modulosPaths[modulo];
         if (jsPath) {
             try {
                 // ✅ v4.6: Import direto - SW não intercepta mais /js/modules/ (v4.0)
-                const moduloJS = await import(jsPath);
+                // ✅ v4.7: Cache busting para forçar reload de módulos atualizados
+                const cacheBuster = `?v=${Date.now()}`;
+                const moduloJS = await import(jsPath + cacheBuster);
 
                 const moduloCamelCase = modulo
                     .split("-")

@@ -347,6 +347,11 @@ class QuickAccessBar {
                     Em Breve
                 </div>
                 <div class="menu-grid">
+                    <div class="menu-card copa-times-card" data-module="copa-times-sc">
+                        <span class="material-icons" style="color: #ffd700;">emoji_events</span>
+                        <span class="menu-card-label">Copa de Times SC</span>
+                        <span class="badge-aguarde" style="background:rgba(255,215,0,0.2);color:#ffd700;border:1px solid #ffd700;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:bold;">EM BREVE</span>
+                    </div>
                     <div class="menu-card disabled" data-action="em-breve">
                         <span class="material-icons">sports</span>
                         <span class="menu-card-label">Bolão Copa</span>

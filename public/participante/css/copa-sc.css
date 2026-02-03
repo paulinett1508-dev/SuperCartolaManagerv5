@@ -1,0 +1,367 @@
+/* =====================================================================
+   COPA DE TIMES SUPER CARTOLA - ESTILOS TEMÁTICOS
+   ===================================================================== */
+/* v1.0: Tema dourado/troféu para a Copa de Times SC
+   Cores principais: Dourado (#ffd700), Amarelo (#fbbf24), Laranja (#f97316)
+   Background: Dark mode (gray-900, slate-900)
+   Tipografia: Russo One (títulos), Inter (corpo), JetBrains Mono (valores)
+*/
+
+/* =====================================================================
+   VARIÁVEIS CSS - TEMA COPA SC
+   ===================================================================== */
+:root {
+    --copa-gold: #ffd700;
+    --copa-yellow: #fbbf24;
+    --copa-orange: #f97316;
+    --copa-dark: #0f172a;
+    --copa-gray: #1e293b;
+    --copa-light: #f8fafc;
+    --copa-shadow-gold: rgba(255, 215, 0, 0.3);
+    --copa-border-gold: rgba(255, 215, 0, 0.5);
+}
+
+/* =====================================================================
+   CONTAINER PRINCIPAL
+   ===================================================================== */
+#copa-times-sc-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* =====================================================================
+   GRADIENTES E BRILHOS
+   ===================================================================== */
+.copa-gradient-text {
+    background: linear-gradient(90deg, var(--copa-gold) 0%, var(--copa-yellow) 50%, var(--copa-orange) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.copa-glow-gold {
+    filter: drop-shadow(0 0 25px var(--copa-shadow-gold));
+}
+
+.copa-border-glow {
+    border-color: var(--copa-border-gold);
+    box-shadow: 0 0 20px var(--copa-shadow-gold);
+}
+
+/* =====================================================================
+   TROFÉU E ÍCONES
+   ===================================================================== */
+.copa-trophy-icon {
+    width: 128px;
+    height: 128px;
+    color: var(--copa-gold);
+    filter: drop-shadow(0 0 25px var(--copa-shadow-gold));
+}
+
+.copa-icon-large {
+    width: 48px;
+    height: 48px;
+    color: var(--copa-yellow);
+}
+
+.copa-icon-medium {
+    width: 32px;
+    height: 32px;
+    color: var(--copa-yellow);
+}
+
+.copa-icon-small {
+    width: 20px;
+    height: 20px;
+    color: var(--copa-yellow);
+}
+
+/* =====================================================================
+   BADGES E LABELS
+   ===================================================================== */
+.copa-badge-em-breve {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(251, 191, 36, 0.2);
+    border: 2px solid var(--copa-yellow);
+    border-radius: 9999px;
+    animation: pulse-gold 2s ease-in-out infinite;
+}
+
+.copa-badge-gold {
+    background: linear-gradient(135deg, var(--copa-gold) 0%, var(--copa-yellow) 100%);
+    color: #000;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.copa-badge-outline {
+    border: 2px solid var(--copa-gold);
+    color: var(--copa-gold);
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+/* =====================================================================
+   CARDS E CONTAINERS
+   ===================================================================== */
+.copa-card {
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 10px 40px var(--copa-shadow-gold);
+}
+
+.copa-card-stat {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid #374151;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.copa-card-stat:hover {
+    border-color: var(--copa-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px var(--copa-shadow-gold);
+}
+
+/* =====================================================================
+   BOTÕES
+   ===================================================================== */
+.copa-button-primary {
+    background: linear-gradient(135deg, var(--copa-gold) 0%, var(--copa-yellow) 100%);
+    color: #000;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: bold;
+    font-family: 'Russo One', sans-serif;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 5px 20px var(--copa-shadow-gold);
+}
+
+.copa-button-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px var(--copa-shadow-gold);
+}
+
+.copa-button-secondary {
+    background: transparent;
+    color: var(--copa-gold);
+    padding: 0.75rem 1.5rem;
+    border: 2px solid var(--copa-gold);
+    border-radius: 0.75rem;
+    font-weight: bold;
+    font-family: 'Russo One', sans-serif;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.copa-button-secondary:hover {
+    background: var(--copa-gold);
+    color: #000;
+}
+
+/* =====================================================================
+   TIPOGRAFIA
+   ===================================================================== */
+.copa-title-main {
+    font-family: 'Russo One', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.copa-title-section {
+    font-family: 'Russo One', sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    color: var(--copa-gold);
+}
+
+.copa-text-body {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #d1d5db;
+}
+
+.copa-text-highlight {
+    color: var(--copa-yellow);
+    font-weight: 600;
+}
+
+.copa-text-muted {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+/* =====================================================================
+   ANIMAÇÕES
+   ===================================================================== */
+@keyframes pulse-gold {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes bounce-slow {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.copa-animate-pulse {
+    animation: pulse-gold 2s ease-in-out infinite;
+}
+
+.copa-animate-bounce {
+    animation: bounce-slow 3s ease-in-out infinite;
+}
+
+.copa-shimmer {
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 215, 0, 0.3) 50%,
+        transparent 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 3s infinite;
+}
+
+/* =====================================================================
+   BACKGROUND PATTERNS
+   ===================================================================== */
+.copa-pattern-dots {
+    background-image: radial-gradient(circle at 2px 2px, var(--copa-gold) 1px, transparent 0);
+    background-size: 40px 40px;
+    opacity: 0.05;
+}
+
+.copa-pattern-grid {
+    background-image:
+        linear-gradient(var(--copa-border-gold) 1px, transparent 1px),
+        linear-gradient(90deg, var(--copa-border-gold) 1px, transparent 1px);
+    background-size: 50px 50px;
+    opacity: 0.05;
+}
+
+/* =====================================================================
+   RESPONSIVIDADE
+   ===================================================================== */
+@media (max-width: 768px) {
+    .copa-title-main {
+        font-size: 2rem;
+    }
+
+    .copa-title-section {
+        font-size: 1.5rem;
+    }
+
+    .copa-card {
+        padding: 1.5rem;
+    }
+
+    .copa-trophy-icon {
+        width: 96px;
+        height: 96px;
+    }
+}
+
+@media (max-width: 480px) {
+    .copa-title-main {
+        font-size: 1.75rem;
+    }
+
+    .copa-card {
+        padding: 1rem;
+    }
+
+    .copa-button-primary,
+    .copa-button-secondary {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* =====================================================================
+   ESTADOS ESPECIAIS
+   ===================================================================== */
+.copa-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.copa-loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Spinner de loading dourado */
+.copa-spinner {
+    border: 3px solid rgba(255, 215, 0, 0.2);
+    border-top-color: var(--copa-gold);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =====================================================================
+   UTILIDADES
+   ===================================================================== */
+.copa-divider {
+    border-top: 1px solid rgba(255, 215, 0, 0.2);
+    margin: 2rem 0;
+}
+
+.copa-shadow-soft {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.copa-shadow-medium {
+    box-shadow: 0 10px 20px var(--copa-shadow-gold);
+}
+
+.copa-shadow-strong {
+    box-shadow: 0 20px 40px var(--copa-shadow-gold);
+}

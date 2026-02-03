@@ -28,7 +28,9 @@ async function loadConsolidacaoPage(container) {
 
   try {
     // Busca ligas disponíveis
-    const ligas = await API.getLigas();
+    const response = await API.getLigas();
+    // Suporta tanto array direto quanto { ligas: [] }
+    const ligas = Array.isArray(response) ? response : (response.ligas || []);
 
     renderConsolidacaoPage(container, ligas);
 
