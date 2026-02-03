@@ -776,10 +776,11 @@ process.on("SIGQUIT", () => gracefulShutdown("SIGQUIT"));
 export default app;
 
 // Webhook para GitHub Actions
+import { exec } from 'child_process';
+
 app.post('/github-sync', express.json(), (req, res) => {
   console.log('🔔 Webhook do GitHub recebido:', req.body);
   
-  const { exec } = require('child_process');
   exec('bash scripts/sync-replit.sh', (error, stdout, stderr) => {
     if (error) {
       console.error('❌ Erro no sync:', error);
