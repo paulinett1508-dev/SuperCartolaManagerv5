@@ -31,6 +31,12 @@ export const ROTAS_PUBLICAS = [
   "/participante/fronts/",
   // ✅ Push Notifications - VAPID key precisa ser pública
   "/api/notifications/vapid-key",
+  // ✅ Admin Mobile - PWA para administradores
+  "/admin-mobile/manifest.json",
+  "/admin-mobile/service-worker.js",
+  "/admin-mobile/js/",
+  "/admin-mobile/css/",
+  "/admin-mobile/icons/",
 ];
 
 /**
@@ -48,6 +54,10 @@ export const PAGINAS_ADMIN = [
   "/analisar-participantes.html",
   "/admin-consolidacao.html",
   "/gerenciar-modulos.html",
+  // ✅ Admin Mobile - Páginas HTML do PWA
+  "/admin-mobile/",
+  "/admin-mobile/index.html",
+  "/admin-mobile/login.html",
   "/layout.html",
   // Páginas adicionadas (estavam sem proteção)
   "/admin-gestao.html",
@@ -132,8 +142,18 @@ export function protegerRotas(req, res, next) {
 
   // 2. Landing page (index.html ou /) - liberar
   if (url === "/" || url === "/index.html") {
-    // Se admin logado, redirecionar para painel
+    // ✅ Detectar se é mobile (via User-Agent ou Referer)
+    const referer = req.headers.referer || req.headers.referrer || '';
+    const userAgent = req.headers['user-agent'] || '';
+    const isMobileContext = referer.includes('/admin-mobile/') ||
+                           userAgent.toLowerCase().includes('mobile');
+
+    // Se admin logado, redirecionar conforme contexto
     if (req.session?.admin) {
+      // Se está em contexto mobile, não redirecionar (deixar frontend mobile controlar)
+      if (isMobileContext) {
+        return next();
+      }
       return res.redirect("/painel.html");
     }
     // Se participante logado, redirecionar para área participante

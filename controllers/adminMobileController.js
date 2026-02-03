@@ -11,15 +11,15 @@ import { generateToken, isAdminAutorizado } from '../middleware/adminMobileAuth.
  */
 async function authenticate(req, res) {
   try {
-    // Verifica se usuário está autenticado via session (Replit Auth)
-    if (!req.session || !req.session.usuario) {
+    // Verifica se usuário está autenticado via session (Replit Auth ou Email/Senha)
+    if (!req.session || !req.session.admin) {
       return res.status(401).json({
         error: 'Não autenticado',
         code: 'NOT_AUTHENTICATED'
       });
     }
 
-    const { email, nome } = req.session.usuario;
+    const { email, nome } = req.session.admin;
 
     // Verifica se é admin
     const db = req.app.locals.db;

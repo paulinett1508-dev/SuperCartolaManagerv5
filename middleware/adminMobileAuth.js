@@ -4,8 +4,23 @@
  */
 
 import jwt from 'jsonwebtoken';
+import { isAdminAutorizado as isAdminAutorizadoCentral } from '../config/admin-config.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-change-in-prod';
+// ✅ SECURITY: JWT_SECRET obrigatório em produção
+const JWT_SECRET = (() => {
+  const secret = process.env.JWT_SECRET;
+  const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+  if (!secret && IS_PRODUCTION) {
+    console.error('[SECURITY] ❌ JWT_SECRET não definido em produção! Defina a variável de ambiente.');
+    console.error('[SECURITY] ❌ Sistema mobile será desabilitado por segurança.');
+    process.exit(1);
+  }
+
+  // Desenvolvimento: gera secret temporário (muda a cada restart)
+  return secret || `dev_only_secret_${Date.now()}`;
+})();
+
 const JWT_EXPIRATION = '24h';
 
 /**
@@ -57,14 +72,11 @@ async function validateAdminToken(req, res, next) {
       });
     }
 
-    // Verifica se é admin
+    // Verifica se é admin (usa função centralizada)
     const db = req.app.locals.db;
-    const admin = await db.collection('admins').findOne({ email: decoded.email });
+    const isAdmin = await isAdminAutorizadoCentral(decoded.email, db);
 
-    const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-    const isAdminEmail = adminEmails.includes(decoded.email);
-
-    if (!admin && !isAdminEmail) {
+    if (!isAdmin) {
       return res.status(403).json({
         error: 'Acesso negado',
         code: 'ACCESS_DENIED'
@@ -87,28 +99,10 @@ async function validateAdminToken(req, res, next) {
   }
 }
 
-/**
- * Helper: verifica se usuário é admin (sem JWT)
- * Usado apenas no endpoint de autenticação inicial
- */
-async function isAdminAutorizado(email, db) {
-  try {
-    const admin = await db.collection('admins').findOne({ email });
-
-    if (admin) {
-      return true;
-    }
-
-    const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-    return adminEmails.includes(email);
-  } catch (error) {
-    console.error('[adminMobileAuth] Erro ao verificar admin:', error);
-    return false;
-  }
-}
+// ✅ isAdminAutorizado removido (usar função centralizada de config/admin-config.js)
 
 export {
   generateToken,
   validateAdminToken,
-  isAdminAutorizado
+  isAdminAutorizadoCentral as isAdminAutorizado // Re-exporta para compatibilidade
 };
