@@ -8,7 +8,7 @@ import { Strategy } from "openid-client/passport";
 import passport from "passport";
 import memoize from "memoizee";
 import { getDB } from "./database.js";
-import { isAdminAutorizado, isSuperAdmin as checkSuperAdmin } from "./admin-config.js";
+import { isAdminAutorizado, isSuperAdmin as checkSuperAdmin, SUPER_ADMIN_EMAILS } from "./admin-config.js";
 
 // ✅ Funções de verificação movidas para config/admin-config.js
 // isAdminAuthorizado → isAdminAutorizado (centralizada)
@@ -134,7 +134,7 @@ export function setupReplitAuthRoutes(app) {
         repl_id: process.env.REPL_ID ? "SET" : "NOT_SET",
         issuer_url: process.env.ISSUER_URL || "https://replit.com/oidc",
         callback_url: `https://${req.hostname}/api/oauth/callback`,
-        admin_emails_env: ADMIN_EMAILS_ENV.length > 0 ? ADMIN_EMAILS_ENV : "EMPTY",
+        admin_emails_env: SUPER_ADMIN_EMAILS.length > 0 ? SUPER_ADMIN_EMAILS : "EMPTY",
         oidc_config: cfg ? "LOADED" : "NOT_LOADED"
       });
     } catch (error) {
@@ -233,7 +233,14 @@ export function setupReplitAuthRoutes(app) {
         req.session.admin = req.user;
 
         // Pega o redirect da sessão (se existir) e limpa
-        const redirectTo = req.session.redirectAfterLogin || "/painel.html";
+        let redirectTo = req.session.redirectAfterLogin;
+        if (!redirectTo) {
+          // Detectar dispositivo mobile via User-Agent
+          const ua = req.headers["user-agent"] || "";
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+          redirectTo = isMobile ? "/admin-mobile/" : "/painel.html";
+          console.log("[REPLIT-AUTH] 📱 Mobile detectado:", isMobile);
+        }
         console.log("[REPLIT-AUTH] 🎯 Redirect escolhido:", redirectTo);
         console.log("[REPLIT-AUTH] 🎯 Usando fallback?", !req.session.redirectAfterLogin);
         delete req.session.redirectAfterLogin;
@@ -282,7 +289,7 @@ export function setupReplitAuthRoutes(app) {
   });
 
   console.log("[REPLIT-AUTH] ✅ Replit Auth configurado com sucesso");
-  console.log("[REPLIT-AUTH] 📧 Admins autorizados (env):", ADMIN_EMAILS_ENV.join(", ") || "Verificar banco de dados");
+  console.log("[REPLIT-AUTH] 📧 Admins autorizados (env):", SUPER_ADMIN_EMAILS.join(", ") || "Verificar banco de dados");
 }
 
 export async function isAuthenticated(req, res, next) {
