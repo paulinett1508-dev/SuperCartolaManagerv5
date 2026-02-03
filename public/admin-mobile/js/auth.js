@@ -20,7 +20,15 @@ export async function login(email, senha) {
     });
 
     if (!response.ok) {
-      throw new Error('Credenciais inválidas');
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.message || 'Credenciais inválidas');
+    }
+
+    const loginData = await response.json();
+
+    // Se senha provisória, retornar flag para o frontend tratar
+    if (loginData.senhaProvisoria) {
+      return { senhaProvisoria: true };
     }
 
     // Após login no backend, pega token JWT
@@ -47,6 +55,49 @@ export async function login(email, senha) {
     return true;
   } catch (error) {
     console.error('Erro no login:', error);
+    throw error;
+  }
+}
+
+/**
+ * Troca senha provisória e faz login completo
+ */
+export async function trocarSenhaELogar(novaSenha) {
+  try {
+    const response = await fetch('/api/admin/cliente/trocar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ novaSenha })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.message || 'Erro ao trocar senha');
+    }
+
+    // Senha trocada, agora pega JWT
+    const authResponse = await fetch('/api/admin/mobile/auth', {
+      method: 'POST',
+      credentials: 'include'
+    });
+
+    if (!authResponse.ok) {
+      const error = await authResponse.json();
+      throw new Error(error.error || 'Acesso negado');
+    }
+
+    const data = await authResponse.json();
+
+    localStorage.setItem(TOKEN_KEY, data.token);
+    localStorage.setItem(USER_KEY, JSON.stringify({
+      email: data.email,
+      nome: data.nome
+    }));
+
+    return true;
+  } catch (error) {
+    console.error('Erro ao trocar senha:', error);
     throw error;
   }
 }

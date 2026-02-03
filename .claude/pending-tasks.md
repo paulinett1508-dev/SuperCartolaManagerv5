@@ -1,5 +1,60 @@
 # Tarefas Pendentes
 
+## 🔥 ADMIN MOBILE APP - PENDÊNCIAS (03/02/2026)
+
+### [MOBILE-001] Remover emojis e aplicar padrão do app participante
+
+**Status:** 📋 PENDENTE
+
+**Descrição:**
+Remover todos os emojis do admin-mobile e alinhar o visual com o padrão já usado no app do participante (fontes, cores, componentes, ícones).
+
+**Arquivos envolvidos:**
+- `public/admin-mobile/` (todos os HTMLs, JS e CSS)
+
+---
+
+### [MOBILE-002] Corrigir erro em Operações > Consolidação
+
+**Status:** 📋 PENDENTE
+
+**Descrição:**
+Ao clicar em "Operações", a página de consolidação falha com:
+```
+TypeError: ligas.map is not a function
+    at renderConsolidacaoPage (consolidacao.js:68:21)
+    at loadConsolidacaoPage (consolidacao.js:33:5)
+```
+
+**Causa provável:** A resposta da API não retorna um array direto, pode estar encapsulada em `{ ligas: [...] }` ou similar.
+
+**Arquivos envolvidos:**
+- `public/admin-mobile/js/pages/consolidacao.js` (linhas 33, 40, 68)
+
+---
+
+### [MOBILE-003] Tela Início mostra "Nenhuma liga encontrada"
+
+**Status:** 📋 PENDENTE
+
+**Descrição:**
+O dashboard/início do admin-mobile exibe "Nenhuma liga encontrada" mesmo com ligas cadastradas. Investigar se a API retorna corretamente e se o frontend está consumindo a resposta no formato esperado.
+
+**Arquivos envolvidos:**
+- `public/admin-mobile/js/pages/` (dashboard ou home)
+- `controllers/adminMobileController.js` (endpoint de ligas/dashboard)
+
+---
+
+### [MOBILE-004] Implementar Fases 5 e 6 do App Admin
+
+**Status:** 📋 PENDENTE
+
+**Descrição:**
+Implementar as fases 5 e 6 do roadmap do app admin mobile. Verificar documentação de fases em `.claude/docs/` ou specs existentes para detalhes do escopo.
+
+---
+
 ## 🔥 NOVA SESSÃO - PENDÊNCIAS PARA REVISÃO (02/02/2026)
 
 ### [REFACTOR-002] Análise de Redundâncias no Sidebar

@@ -149,8 +149,31 @@
     </div>
   </div>
 
+  <!-- Modal Trocar Senha Provisória -->
+  <div id="modalTrocarSenha" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:var(--bg-secondary, #1e293b); border-radius:16px; padding:28px 24px; max-width:400px; width:100%; border:1px solid rgba(255,255,255,0.1);">
+      <h3 style="font-family:'Russo One',sans-serif; font-size:20px; margin-bottom:8px; color:#fff;">Troque sua Senha</h3>
+      <p style="color:#94a3b8; font-size:14px; margin-bottom:24px;">Você está usando uma senha provisória. Defina uma nova senha para continuar.</p>
+      <form id="formTrocarSenha">
+        <div class="form-group">
+          <label class="form-label" for="novaSenha">Nova Senha (mínimo 6 caracteres)</label>
+          <input type="password" id="novaSenha" class="form-input" placeholder="Digite nova senha" minlength="6" required autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="confirmarSenha">Confirmar Nova Senha</label>
+          <input type="password" id="confirmarSenha" class="form-input" placeholder="Confirme a senha" minlength="6" required autocomplete="new-password">
+        </div>
+        <div id="erroTrocarSenha" style="color:#ef4444; font-size:13px; margin-bottom:12px; display:none;"></div>
+        <button type="submit" class="btn btn-primary btn-block" id="btnTrocarSenha">
+          <span id="btnTrocarSenhaText">Definir Nova Senha</span>
+          <div id="btnTrocarSenhaSpinner" class="spinner" style="display:none; width:20px; height:20px;"></div>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <script type="module">
-    import { login, checkAuth } from './js/auth.js';
+    import { login, checkAuth, trocarSenhaELogar } from './js/auth.js';
 
     // Verifica se já está autenticado
     (async () => {
@@ -184,10 +207,19 @@
       errorContainer.innerHTML = '';
 
       try {
-        const success = await login(email, senha);
+        const result = await login(email, senha);
 
-        if (success) {
-          // Redireciona para dashboard
+        if (result && result.senhaProvisoria) {
+          // Mostrar modal de troca de senha
+          document.getElementById('modalTrocarSenha').style.display = 'flex';
+          // Reset button
+          loginButton.disabled = false;
+          loginButtonText.textContent = 'Entrar como Admin';
+          loginButtonSpinner.style.display = 'none';
+          return;
+        }
+
+        if (result === true) {
           window.location.href = '/admin-mobile/';
         } else {
           throw new Error('Credenciais inválidas');
@@ -200,10 +232,52 @@
           </div>
         `;
       } finally {
-        // Reset button
-        loginButton.disabled = false;
-        loginButtonText.textContent = 'Entrar como Admin';
-        loginButtonSpinner.style.display = 'none';
+        if (!document.getElementById('modalTrocarSenha').style.display.includes('flex')) {
+          loginButton.disabled = false;
+          loginButtonText.textContent = 'Entrar como Admin';
+          loginButtonSpinner.style.display = 'none';
+        }
+      }
+    });
+
+    // Handler troca de senha provisória
+    const formTrocarSenha = document.getElementById('formTrocarSenha');
+    formTrocarSenha.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const novaSenha = document.getElementById('novaSenha').value;
+      const confirmar = document.getElementById('confirmarSenha').value;
+      const erroEl = document.getElementById('erroTrocarSenha');
+      const btn = document.getElementById('btnTrocarSenha');
+      const btnText = document.getElementById('btnTrocarSenhaText');
+      const btnSpinner = document.getElementById('btnTrocarSenhaSpinner');
+
+      erroEl.style.display = 'none';
+
+      if (novaSenha !== confirmar) {
+        erroEl.textContent = 'As senhas não coincidem';
+        erroEl.style.display = 'block';
+        return;
+      }
+      if (novaSenha.length < 6) {
+        erroEl.textContent = 'A senha deve ter pelo menos 6 caracteres';
+        erroEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btnText.textContent = 'Salvando...';
+      btnSpinner.style.display = 'block';
+
+      try {
+        await trocarSenhaELogar(novaSenha);
+        window.location.href = '/admin-mobile/';
+      } catch (error) {
+        erroEl.textContent = error.message || 'Erro ao trocar senha';
+        erroEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Definir Nova Senha';
+        btnSpinner.style.display = 'none';
       }
     });
 
