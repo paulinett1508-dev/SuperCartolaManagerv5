@@ -802,7 +802,9 @@ class ParticipanteNavigation {
         if (jsPath) {
             try {
                 // ✅ v4.6: Import direto - SW não intercepta mais /js/modules/ (v4.0)
-                const moduloJS = await import(jsPath);
+                // ✅ v4.7: Cache busting para forçar reload de módulos atualizados
+                const cacheBuster = `?v=${Date.now()}`;
+                const moduloJS = await import(jsPath + cacheBuster);
 
                 const moduloCamelCase = modulo
                     .split("-")
