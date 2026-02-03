@@ -1140,9 +1140,114 @@
             // === FUNÇÕES DO SIDEBAR - ATALHOS (Fase 1) ===
             // Estas funções são chamadas pelos itens do menu OPERAÇÕES
 
+            function _injetarModalConsolidar() {
+                // Injetar HTML do modal
+                const modalHtml = `
+                <div id="consolidarRodadaModal" class="modal-consolidar" style="display: none;">
+                    <div class="modal-consolidar-overlay" onclick="fecharModalConsolidar()"></div>
+                    <div class="modal-consolidar-container">
+                        <div class="modal-consolidar-header">
+                            <div class="modal-consolidar-title-group">
+                                <span class="material-icons modal-consolidar-icon">sync</span>
+                                <h2>Consolidar Rodada</h2>
+                            </div>
+                            <button class="modal-consolidar-close" onclick="fecharModalConsolidar()">
+                                <span class="material-icons">close</span>
+                            </button>
+                        </div>
+                        <div class="modal-consolidar-body">
+                            <div class="modal-consolidar-info">
+                                <span class="material-icons" style="color: #3b82f6;">info</span>
+                                <p>Selecione as rodadas que deseja consolidar. Rodadas já consolidadas serão reprocessadas.</p>
+                            </div>
+                            <div id="consolidarLoading" class="modal-consolidar-loading">
+                                <div class="loading-spinner-consolidar"></div>
+                                <p>Carregando informações...</p>
+                            </div>
+                            <div id="consolidarContent" style="display: none;">
+                                <div class="modal-consolidar-status">
+                                    <div class="status-item">
+                                        <span class="status-label">Mercado:</span>
+                                        <span id="statusMercado" class="status-value">-</span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">Rodada Atual:</span>
+                                        <span id="rodadaAtual" class="status-value">-</span>
+                                    </div>
+                                </div>
+                                <div class="modal-consolidar-rodadas" id="listaRodadas"></div>
+                            </div>
+                        </div>
+                        <div class="modal-consolidar-footer">
+                            <button class="btn-modal-secondary-consolidar" onclick="fecharModalConsolidar()">
+                                <span class="material-icons">close</span>
+                                Cancelar
+                            </button>
+                            <button id="btnConsolidarSelecionadas" class="btn-modal-primary-consolidar" onclick="consolidarRodadasSelecionadas()" disabled>
+                                <span class="material-icons">sync</span>
+                                Consolidar Selecionadas
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                // Injetar estilos se ainda não existem
+                if (!document.querySelector('style[data-consolidar-modal]')) {
+                    const css = document.createElement('style');
+                    css.setAttribute('data-consolidar-modal', 'true');
+                    css.textContent = `
+                        .modal-consolidar { position:fixed; top:0; left:0; right:0; bottom:0; z-index:10000; display:flex; align-items:center; justify-content:center; }
+                        .modal-consolidar-overlay { position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); }
+                        .modal-consolidar-container { position:relative; background:var(--bg-card,#1a1a1a); border:1px solid var(--border-color,#2d2d2d); border-radius:12px; width:90%; max-width:700px; max-height:80vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.5); animation:modalSlideIn 0.3s ease-out; }
+                        @keyframes modalSlideIn { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+                        .modal-consolidar-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid var(--border-color,#2d2d2d); }
+                        .modal-consolidar-title-group { display:flex; align-items:center; gap:12px; }
+                        .modal-consolidar-icon { width:40px; height:40px; background:linear-gradient(135deg,#FF5500,#ff6b1a); border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:24px; }
+                        .modal-consolidar-title-group h2 { font-family:'Russo One',sans-serif; font-size:1.3rem; color:var(--text-white,#fff); margin:0; }
+                        .modal-consolidar-close { width:36px; height:36px; background:transparent; border:1px solid var(--border-color,#2d2d2d); border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s ease; color:var(--text-muted,#9ca3af); }
+                        .modal-consolidar-close:hover { background:var(--bg-secondary,#252525); border-color:var(--laranja,#FF5500); color:var(--laranja,#FF5500); }
+                        .modal-consolidar-body { flex:1; overflow-y:auto; padding:20px 24px; }
+                        .modal-consolidar-info { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; background:rgba(59,130,246,0.05); border:1px solid rgba(59,130,246,0.15); border-radius:8px; margin-bottom:20px; }
+                        .modal-consolidar-info p { margin:0; font-size:0.85rem; line-height:1.5; color:var(--text-muted,#9ca3af); }
+                        .modal-consolidar-loading { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; gap:16px; }
+                        .loading-spinner-consolidar { width:40px; height:40px; border:4px solid var(--border-color,#2d2d2d); border-top-color:var(--laranja,#FF5500); border-radius:50%; animation:spin 0.8s linear infinite; }
+                        .modal-consolidar-loading p { font-size:0.9rem; color:var(--text-muted,#9ca3af); margin:0; }
+                        .modal-consolidar-status { display:flex; gap:20px; padding:16px; background:var(--bg-secondary,#252525); border-radius:8px; margin-bottom:20px; }
+                        .status-item { display:flex; flex-direction:column; gap:4px; }
+                        .status-label { font-size:0.75rem; color:var(--text-dim,#6b7280); text-transform:uppercase; font-weight:600; }
+                        .status-value { font-size:0.95rem; color:var(--text-white,#fff); font-weight:600; }
+                        .modal-consolidar-rodadas { display:flex; flex-direction:column; gap:10px; }
+                        .rodada-item { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--bg-secondary,#252525); border:1px solid var(--border-color,#2d2d2d); border-radius:8px; transition:all 0.2s ease; cursor:pointer; }
+                        .rodada-item:hover { border-color:var(--laranja,#FF5500); background:var(--bg-elevated,#2a2a2a); }
+                        .rodada-item.consolidada { border-color:#10b981; }
+                        .rodada-item-info { display:flex; align-items:center; gap:12px; }
+                        .rodada-item-numero { width:40px; height:40px; background:var(--bg-darker,#0d0d0d); border:1px solid var(--border-color,#2d2d2d); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:'Russo One',sans-serif; font-size:1rem; color:var(--text-white,#fff); }
+                        .rodada-item.consolidada .rodada-item-numero { background:rgba(16,185,129,0.1); border-color:#10b981; color:#10b981; }
+                        .rodada-item-detalhes h4 { font-size:0.9rem; font-weight:600; color:var(--text-white,#fff); margin:0 0 4px 0; }
+                        .rodada-item-detalhes p { font-size:0.75rem; color:var(--text-muted,#9ca3af); margin:0; }
+                        .rodada-item-checkbox { display:flex; align-items:center; }
+                        .rodada-item-checkbox input[type="checkbox"] { width:20px; height:20px; accent-color:var(--laranja,#FF5500); cursor:pointer; }
+                        .modal-consolidar-footer { display:flex; align-items:center; justify-content:flex-end; gap:12px; padding:16px 24px; border-top:1px solid var(--border-color,#2d2d2d); }
+                        .btn-modal-secondary-consolidar, .btn-modal-primary-consolidar { padding:10px 20px; border:none; border-radius:8px; font-size:0.9rem; font-weight:600; cursor:pointer; transition:all 0.2s ease; display:flex; align-items:center; gap:8px; }
+                        .btn-modal-secondary-consolidar { background:var(--bg-secondary,#252525); color:var(--text-muted,#9ca3af); border:1px solid var(--border-color,#2d2d2d); }
+                        .btn-modal-secondary-consolidar:hover { background:var(--bg-elevated,#2a2a2a); border-color:var(--border-subtle,#333); }
+                        .btn-modal-primary-consolidar { background:linear-gradient(135deg,#FF5500 0%,#ff6b1a 100%); color:white; }
+                        .btn-modal-primary-consolidar:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 4px 12px rgba(255,85,0,0.3); }
+                        .btn-modal-primary-consolidar:disabled { opacity:0.5; cursor:not-allowed; }
+                    `;
+                    document.head.appendChild(css);
+                }
+            }
+
             window.abrirConsolidarRodadaSidebar = async function(event) {
                 event.preventDefault();
                 event.stopPropagation();
+
+                // Garantir que o modal existe no DOM (pode não existir quando carregado via loadLayout)
+                if (!document.getElementById('consolidarRodadaModal')) {
+                    _injetarModalConsolidar();
+                }
 
                 // Abrir modal de consolidação
                 const modal = document.getElementById('consolidarRodadaModal');
@@ -1233,7 +1338,7 @@
 
             window.fecharModalConsolidar = function() {
                 const modal = document.getElementById('consolidarRodadaModal');
-                modal.style.display = 'none';
+                if (modal) modal.style.display = 'none';
             };
 
             window.consolidarRodadasSelecionadas = async function() {
