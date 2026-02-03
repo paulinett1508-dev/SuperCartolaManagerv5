@@ -1,0 +1,37 @@
+name: Sync to Replit
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  notify-replit:
+    if: github.event_name == 'push' || (github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Trigger Replit Sync
+        run: |
+          echo "🚀 Sincronizando com Replit..."
+          
+          if [ -n "${{ secrets.REPLIT_WEBHOOK_URL }}" ]; then
+            curl -X POST "${{ secrets.REPLIT_WEBHOOK_URL }}" \
+              -H "Content-Type: application/json" \
+              -d '{"event": "github_sync", "branch": "main", "commit": "${{ github.sha }}"}'
+            echo "✅ Webhook enviado"
+          fi
+          
+      - name: Report Status
+        if: always()
+        run: |
+          echo "📊 Deploy Status:"
+          echo "  Branch: ${{ github.ref_name }}"
+          echo "  Commit: ${{ github.sha }}"
