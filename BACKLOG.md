@@ -277,6 +277,77 @@ _Próximas sprints - Impacto significativo no sistema_
   - **Dependências:** Acesso ao banco de dados via script, API de Search (MCP)
   - **Quando implementar:** Pré-temporada 2026
 
+- [ ] [FEAT-030] **Copa de Times Super Cartola - Competição do Segundo Turno** 🏆
+  - **Descrição:** Competição especial no formato Copa do Mundo realizada durante o segundo turno do Brasileirão
+  - **Status Atual:** Planejamento inicial - apenas anúncio visível no app
+  - **Período:** Segundo turno do Brasileirão (rodadas 20-38)
+  - **Impacto:** ALTO - Novo formato de competição, engajamento na reta final
+  - **Complexidade:** ALTA (~25-30h estimadas)
+
+  **MVP - FASE 1: Teaser (Implementar AGORA)**
+  - [ ] Adicionar botão "Copa de Times SC" no hub de menus participante
+  - [ ] Criar tela placeholder: `public/participante/fronts/copa-times-sc.html`
+  - [ ] Exibir mensagem: "Aguarde mais informações. Será realizado no segundo turno do Brasileirão"
+  - [ ] Badge "EM BREVE" no menu
+  - [ ] Design visual temático (troféu, cores douradas)
+
+  **Conceito da Competição (A definir):**
+  - **Formato:** Copa do Mundo (grupos + mata-mata)
+  - **Participação:** Todos os times da liga
+  - **Critérios:** A definir (classificação, sorteio, pontos acumulados)
+  - **Premiação:** A definir
+  - **Rodadas:** Segundo turno (após rodada 19)
+
+  **FASE 2: Planejamento Detalhado (Pré-rodada 19)**
+  - [ ] Definir regras completas (grupos, chaveamento, critérios)
+  - [ ] Criar collection `copa_times_sc` no MongoDB
+  - [ ] Projetar sistema de pontuação
+  - [ ] Definir premiações e incentivos
+  - [ ] Criar identidade visual completa
+
+  **FASE 3: Implementação Backend**
+  - [ ] Model `CopaTimesSC.js`
+  - [ ] Routes `copa-times-sc-routes.js`
+  - [ ] Controller com lógica de grupos/mata-mata
+  - [ ] Integração com pontos do Cartola FC
+  - [ ] Sistema de chaveamento automático
+
+  **FASE 4: Frontend Completo**
+  - [ ] Tela de grupos (tabelas de classificação)
+  - [ ] Bracket visual de mata-mata
+  - [ ] Confrontos em tempo real
+  - [ ] Histórico de partidas
+  - [ ] Estatísticas da competição
+
+  **FASE 5: Gamificação**
+  - [ ] Notificações de avanço de fase
+  - [ ] Badges especiais (Campeão Copa SC, Artilheiro Copa)
+  - [ ] Integração com Hall da Fama
+  - [ ] Troféu virtual para o campeão
+
+  **Inspirações:**
+  - Copa do Mundo FIFA (formato grupos + mata-mata)
+  - March Madness (bracket interativo)
+  - Champions League (prestígio e identidade visual)
+
+  **Arquivos a criar (FASE 1 - MVP):**
+  ```
+  public/participante/fronts/copa-times-sc.html           (tela teaser)
+  public/participante/js/modules/participante-copa-sc.js  (lógica futura)
+  public/participante/css/copa-sc.css                     (tema dourado/troféu)
+  ```
+
+  **Integração com sistema:**
+  - Menu lateral: adicionar item "Copa de Times SC 🏆"
+  - Quick bar: badge "EM BREVE"
+  - Dashboard: card de anúncio
+
+  **Complexidade:** Alta (feature completa, mas MVP é simples)
+  **Prioridade FASE 1:** Alta (teaser deve estar visível desde já)
+  **Prioridade FASE 2+:** Média (implementar até rodada 18)
+  **Estimativa FASE 1 (MVP Teaser):** ~2h
+  **Estimativa Total (Feature Completa):** ~25-30h
+
 - [ ] [FEAT-026] **App Mobile Admin - Gestão de Ligas pelo Celular** 📱
   - **Descrição:** PWA/App mobile para administradores gerenciarem ligas pelo celular (evolução do painel admin web-only)
   - **Status Atual:** Admin só pode gerenciar pelo desktop (painel web)
