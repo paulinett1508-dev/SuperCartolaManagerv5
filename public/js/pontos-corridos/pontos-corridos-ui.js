@@ -831,7 +831,7 @@ export function renderTabelaClassificacao(
         <div class="classificacao-info-principal">
           <h3 class="classificacao-titulo"><span class="material-icons" style="vertical-align: middle; margin-right: 8px; color: #ffd700;">emoji_events</span> Classificação Final</h3>
           <p class="classificacao-subtitulo">
-            Liga Pontos Corridos 2025 - Encerrada!
+            Liga Pontos Corridos ${PONTOS_CORRIDOS_CONFIG.temporada || new Date().getFullYear()} - Encerrada!
           </p>
         </div>
         <div class="classificacao-legenda">

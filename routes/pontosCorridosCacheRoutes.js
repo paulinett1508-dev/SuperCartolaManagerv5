@@ -6,8 +6,36 @@ import {
     lerCachePontosCorridos,
     obterConfrontosPontosCorridos
 } from "../controllers/pontosCorridosCacheController.js";
+import { buscarConfigSimplificada } from "../utils/moduleConfigHelper.js";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const router = express.Router();
+
+// Rota para BUSCAR CONFIGURAÇÃO do módulo (GET)
+// Ex: GET /api/pontos-corridos/config/684cb1c8af923da7c7df51de?temporada=2026
+router.get("/config/:ligaId", async (req, res) => {
+    try {
+        const { ligaId } = req.params;
+        const temporada = req.query.temporada ? Number(req.query.temporada) : CURRENT_SEASON;
+
+        console.log(`[API-PC-CONFIG] 🔍 Buscando config: Liga ${ligaId}, Temporada ${temporada}`);
+
+        const config = await buscarConfigSimplificada(ligaId, 'pontos_corridos', temporada);
+
+        res.json({
+            success: true,
+            config,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error("[API-PC-CONFIG] ❌ Erro ao buscar configuração:", error);
+        res.status(500).json({
+            success: false,
+            error: "Erro ao buscar configuração do módulo",
+            message: error.message
+        });
+    }
+});
 
 // Rota para BUSCAR CONFRONTOS completos (GET)
 // Ex: GET /api/pontos-corridos/684cb1c8af923da7c7df51de

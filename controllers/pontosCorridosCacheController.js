@@ -1,4 +1,5 @@
 // controllers/pontosCorridosCacheController.js
+// ✅ v3.0: Configuração dinâmica via ModuleConfig (sem hardcodes)
 // ✅ v2.1: Enriquecimento de dados ao ler cache (fix undefined)
 // ✅ v2.0: Integração com filtro de participantes inativos
 import PontosCorridosCache from "../models/PontosCorridosCache.js";
@@ -9,20 +10,42 @@ import {
     buscarStatusParticipantes,
     obterUltimaRodadaValida,
 } from "../utils/participanteHelper.js";
+import { buscarConfigSimplificada } from "../utils/moduleConfigHelper.js";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
-// Configuração do Pontos Corridos
-const PONTOS_CORRIDOS_CONFIG = {
-    rodadaInicial: 7,
-    criterios: {
-        empateTolerancia: 0.3,
-        goleadaMinima: 50.0,
-    },
-    financeiro: {
-        vitoria: 5.0,
-        empate: 3.0,
-        goleada: 7.0,
-    },
-};
+// ✅ v3.0: Função para buscar configuração dinâmica do módulo
+async function buscarConfigPontosCorridos(ligaId, temporada = CURRENT_SEASON) {
+    try {
+        const config = await buscarConfigSimplificada(ligaId, 'pontos_corridos', temporada);
+        console.log(`[CACHE-PC] 📋 Config carregada: rodada ${config.rodadaInicial}, source: ${config.source}`);
+        return config;
+    } catch (error) {
+        console.error('[CACHE-PC] ❌ Erro ao buscar config, usando defaults:', error.message);
+        // Fallback para defaults em caso de erro
+        return {
+            rodadaInicial: 7,
+            turnos: 1,
+            criterios: {
+                empateTolerancia: 0.3,
+                goleadaMinima: 50.0,
+            },
+            financeiro: {
+                vitoria: 5.0,
+                empate: 3.0,
+                derrota: -5.0,
+                goleada: 7.0,
+            },
+            pontuacao_tabela: {
+                vitoria: 3,
+                empate: 1,
+                derrota: 0,
+                bonus_goleada: 1
+            },
+            source: 'fallback',
+            temporada
+        };
+    }
+}
 
 // ✅ v2.1: Função para buscar dados enriquecidos dos times
 async function buscarDadosTimesEnriquecidos(ligaId) {
@@ -319,8 +342,12 @@ export const lerCachePontosCorridos = async (req, res) => {
 export const obterConfrontosPontosCorridos = async (
     ligaId,
     rodadaFiltro = null,
+    temporada = CURRENT_SEASON,
 ) => {
     try {
+        // 0. Buscar configuração do módulo
+        const config = await buscarConfigPontosCorridos(ligaId, temporada);
+
         // 1. Buscar status do mercado
         let mercadoStatus = { rodada_atual: 37, status_mercado: 1 };
         try {
@@ -340,7 +367,7 @@ export const obterConfrontosPontosCorridos = async (
         const rodadaAtualBrasileirao = mercadoStatus.rodada_atual;
         const mercadoFechado = mercadoStatus.status_mercado === 2;
         const rodadaAtualLiga =
-            rodadaAtualBrasileirao - PONTOS_CORRIDOS_CONFIG.rodadaInicial + 1;
+            rodadaAtualBrasileirao - config.rodadaInicial + 1;
 
         console.log(
             `[PONTOS-CORRIDOS] 📊 Mercado: ${mercadoFechado ? "FECHADO" : "ABERTO"}, Rodada BR: ${rodadaAtualBrasileirao}, Rodada Liga: ${rodadaAtualLiga}`,
@@ -394,6 +421,7 @@ export const obterConfrontosPontosCorridos = async (
                     rodadaAtualLiga,
                     rodadaAtualBrasileirao,
                     dadosPorRodada,
+                    config,
                 );
 
                 if (rodadaAoVivo) {
@@ -426,6 +454,7 @@ async function calcularRodadaComParciais(
     rodadaLiga,
     rodadaBrasileirao,
     dadosAnteriores,
+    config,
 ) {
     try {
         // 1. Buscar liga e times
@@ -541,7 +570,7 @@ async function calcularRodadaComParciais(
             const tid2 = String(jogo.timeB);
             const p1 = parciaisMap[tid1] || 0;
             const p2 = parciaisMap[tid2] || 0;
-            const resultado = calcularResultado(p1, p2);
+            const resultado = calcularResultado(p1, p2, config);
 
             // ✅ v2.0: Incluir status nos confrontos
             const status1 = statusMap[tid1] || { ativo: true };
@@ -580,6 +609,7 @@ async function calcularRodadaComParciais(
             confrontos,
             rodadaLiga,
             statusMap,
+            config,
         );
 
         return {
@@ -621,11 +651,11 @@ function gerarConfrontos(times) {
 }
 
 // Calcular resultado do confronto
-function calcularResultado(pontosA, pontosB) {
+function calcularResultado(pontosA, pontosB, config) {
     const diferenca = Math.abs(pontosA - pontosB);
-    const { empateTolerancia, goleadaMinima } =
-        PONTOS_CORRIDOS_CONFIG.criterios;
-    const fin = PONTOS_CORRIDOS_CONFIG.financeiro;
+    const { empateTolerancia, goleadaMinima } = config.criterios;
+    const fin = config.financeiro;
+    const bonusPontos = config.pontuacao_tabela?.bonus_goleada || 1;
 
     if (diferenca <= empateTolerancia) {
         return {
@@ -638,11 +668,12 @@ function calcularResultado(pontosA, pontosB) {
     }
 
     if (diferenca >= goleadaMinima) {
+        const pontosVitoria = 3 + bonusPontos; // 3 pts vitória + bônus goleada
         return pontosA > pontosB
             ? {
                   financeiroA: fin.goleada,
                   financeiroB: -fin.goleada,
-                  pontosA: 3,
+                  pontosA: pontosVitoria,
                   pontosB: 0,
                   tipo: "goleada",
               }
@@ -650,7 +681,7 @@ function calcularResultado(pontosA, pontosB) {
                   financeiroA: -fin.goleada,
                   financeiroB: fin.goleada,
                   pontosA: 0,
-                  pontosB: 3,
+                  pontosB: pontosVitoria,
                   tipo: "goleada",
               };
     }
@@ -680,6 +711,7 @@ function calcularClassificacaoAcumulada(
     confrontosRodadaAtual,
     rodadaAtual,
     statusMap = {},
+    config,
 ) {
     // Inicializar classificação
     const classificacao = {};
@@ -746,7 +778,7 @@ function calcularClassificacaoAcumulada(
         const p1 = Number(confronto.time1.pontos) || 0;
         const p2 = Number(confronto.time2.pontos) || 0;
 
-        const resultado = calcularResultado(p1, p2);
+        const resultado = calcularResultado(p1, p2, config);
 
         // Time 1
         if (classificacao[tid1]) {
@@ -757,7 +789,8 @@ function calcularClassificacaoAcumulada(
             classificacao[tid1].saldo_gols =
                 classificacao[tid1].gols_pro - classificacao[tid1].gols_contra;
             classificacao[tid1].financeiro += resultado.financeiroA;
-            if (resultado.pontosA === 3) {
+            if (resultado.pontosA >= 3) {
+                // Vitória (pode ser 3 ou 3+bonus)
                 classificacao[tid1].vitorias += 1;
                 if (resultado.tipo === "goleada") {
                     classificacao[tid1].pontosGoleada += 1;
@@ -778,7 +811,8 @@ function calcularClassificacaoAcumulada(
             classificacao[tid2].saldo_gols =
                 classificacao[tid2].gols_pro - classificacao[tid2].gols_contra;
             classificacao[tid2].financeiro += resultado.financeiroB;
-            if (resultado.pontosB === 3) {
+            if (resultado.pontosB >= 3) {
+                // Vitória (pode ser 3 ou 3+bonus)
                 classificacao[tid2].vitorias += 1;
                 if (resultado.tipo === "goleada") {
                     classificacao[tid2].pontosGoleada += 1;
@@ -882,5 +916,5 @@ export const obterClassificacaoGeral = async (ligaId) => {
 };
 
 console.log(
-    "[CACHE-PC] ✅ Controller v2.1 carregado (enriquecimento de dados)",
+    "[CACHE-PC] ✅ Controller v3.0 carregado (configuração dinâmica via ModuleConfig)",
 );

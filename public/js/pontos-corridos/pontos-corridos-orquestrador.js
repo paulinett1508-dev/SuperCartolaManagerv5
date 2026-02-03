@@ -1,6 +1,7 @@
-// PONTOS CORRIDOS ORQUESTRADOR - v3.1 Coordenador Principal
+// PONTOS CORRIDOS ORQUESTRADOR - v3.2 Coordenador Principal
+// ✅ v3.2: Configuração dinâmica via API (sem hardcodes)
 // ✅ v3.1: FIX CRÍTICO - Verifica temporada da API antes de assumir dados anteriores
-// ✅ v3.0: MODO SOMENTE LEITURA - Temporada 2025 encerrada, dados consolidados do cache
+// ✅ v3.0: MODO SOMENTE LEITURA - Temporada encerrada, dados consolidados do cache
 // ✅ v2.5: Detecção dinâmica de temporada (R1 + mercado aberto = temporada anterior)
 // ✅ v2.4: FIX - Container IDs múltiplos + caminho absoluto rodadas.js
 // ✅ v2.3: CORREÇÃO - Usar buscarTimesLiga (enriquecido) ao invés de cache
@@ -10,6 +11,7 @@ import {
   PONTOS_CORRIDOS_CONFIG,
   getLigaId,
   validarConfiguracao,
+  inicializarConfig,
 } from "./pontos-corridos-config.js";
 
 import {
@@ -201,6 +203,13 @@ export async function carregarPontosCorridos() {
   );
 
   try {
+    // ✅ v3.2: Inicializar configuração dinâmica ANTES de validar
+    const ligaId = getLigaId();
+    if (ligaId) {
+      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] 🔧 Inicializando configuração dinâmica...");
+      await inicializarConfig(ligaId);
+    }
+
     // Validar configuração
     const config = validarConfiguracao();
     estadoOrquestrador.ligaId = config.ligaId;
@@ -637,7 +646,7 @@ function setupCleanup() {
 setupCleanup();
 
 console.log(
-  "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo v3.0 carregado (modo somente leitura para temporada encerrada)",
+  "[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ Módulo v3.2 carregado (configuração dinâmica)",
 );
 
 // --- Funções de UI e Navegação ---
