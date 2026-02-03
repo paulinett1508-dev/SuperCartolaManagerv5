@@ -1,0 +1,89 @@
+{
+  "name": "super-cartola-manager",
+  "version": "1.0.2",
+  "description": "Gerenciador de Ligas Internas do Cartola FC - Versão Otimizada",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production node index.js",
+    "dev": "cross-env NODE_ENV=development node index.js",
+    "dev:full": "cross-env NODE_ENV=development node mongo-server.js & cross-env NODE_ENV=development nodemon index.js",
+    "restart:dev": "pkill -SIGTERM -f 'node.*index.js' || true && npm run dev",
+    "consolidar": "node scripts/consolidar-historico-urgente.js",
+    "test": "cross-env NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --detectOpenHandles --forceExit",
+    "test:watch": "cross-env NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --watch --detectOpenHandles",
+    "test:coverage": "cross-env NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --coverage --detectOpenHandles --forceExit",
+    "test:artilheiro": "cross-env NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest test/artilheiro.test.js --detectOpenHandles --forceExit",
+    "predeploy": "npm version patch --no-git-tag-version",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix"
+  },
+  "keywords": [
+    "cartola",
+    "manager",
+    "fantasy",
+    "futebol",
+    "otimizado",
+    "cache",
+    "performance"
+  ],
+  "author": "Super Cartola Team",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/parser": "^7.27.5",
+    "@babel/traverse": "^7.27.4",
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "axios": "^1.13.2",
+    "bcryptjs": "^3.0.3",
+    "cheerio": "^1.2.0",
+    "compression": "^1.8.1",
+    "connect-mongo": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "dotenv-cli": "^11.0.0",
+    "express": "^4.18.4",
+    "express-session": "^1.18.2",
+    "googleapis": "^150.0.1",
+    "jsonwebtoken": "^9.0.3",
+    "lodash": "^4.17.23",
+    "memoizee": "^0.4.17",
+    "mongodb": "^6.19.0",
+    "mongoose": "^7.6.1",
+    "node-cache": "^5.1.2",
+    "node-cron": "^4.2.1",
+    "node-fetch": "^3.3.2",
+    "openid-client": "^6.8.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "web-push": "^3.6.7",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {},
+    "testMatch": [
+      "**/test/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "controllers/**/*.js",
+      "models/**/*.js",
+      "services/**/*.js",
+      "utils/**/*.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ]
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
