@@ -150,6 +150,11 @@ export function setupReplitAuthRoutes(app) {
     console.log("[REPLIT-AUTH] 🚀 Iniciando login...");
     console.log("[REPLIT-AUTH] 🚀 Hostname:", req.hostname);
 
+    // ✅ Salvar redirect desejado na sessão (vem de ?redirect=)
+    const redirectTo = req.query.redirect || '/painel.html';
+    req.session.authRedirect = redirectTo;
+    console.log("[REPLIT-AUTH] 📍 Redirect após auth:", redirectTo);
+
     try {
       const cfg = await getOidcConfig();
       console.log("[REPLIT-AUTH] ✅ Config OIDC obtida para login");
@@ -208,7 +213,13 @@ export function setupReplitAuthRoutes(app) {
             return res.redirect("/?error=session");
           }
           console.log("[REPLIT-AUTH] ✅ Admin autenticado:", req.user.email);
-          res.redirect("/painel.html");
+
+          // ✅ Detectar origem para redirecionar corretamente
+          const redirectTo = req.session.authRedirect || '/painel.html';
+          delete req.session.authRedirect; // Limpar após uso
+
+          console.log("[REPLIT-AUTH] 🔄 Redirecionando para:", redirectTo);
+          res.redirect(redirectTo);
         });
       });
     } catch (error) {
