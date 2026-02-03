@@ -117,7 +117,9 @@
       "Bash(# Verificar se Paulinett é encontrado como participante na liga curl -s \"\"http://localhost:5000/api/fluxo-financeiro/684cb1c8af923da7c7df51de/extrato/13935277?temporada=2026&refresh=true\"\" & # Check server log after request sleep 2 grep -i \"\"13935277\\\\|fluxo-controller\\\\|FLUXO\"\" /tmp/server.log)",
       "Bash(# Verificar se times que NÃO funcionam têm o campo ligaId como ObjectId ou String nos dados de 2026 # Time que funciona \\(715731\\) vs que não funciona \\(13935277\\) curl -s \"\"http://localhost:5000/api/fluxo-financeiro/684cb1c8af923da7c7df51de/extrato/1649056?temporada=2026&refresh=true\"\")",
       "Bash(else echo \"⚠️ Servidor não respondeu após 15s\")",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(gh pr create:*)",
+      "Bash(/nix/store/sld6av6ri46fr8w5awmx2b63nljmn5km-gh-2.72.0/bin/gh pr create:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
