@@ -13,6 +13,8 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="css/modules/super-modal.css" />
+    <script src="js/super-modal.js"></script>
 
     <style>
         /* ✅ Namespace .saude-* para evitar conflitos CSS */
@@ -610,7 +612,7 @@
 
                 } catch (error) {
                     console.error('[Dashboard Saúde] Erro:', error);
-                    alert('Erro ao carregar dados: ' + error.message);
+                    SuperModal.toast.error('Erro ao carregar dados: ' + error.message);
                 } finally {
                     const refreshBtn = document.getElementById('refreshBtn');
                     if (refreshBtn) {

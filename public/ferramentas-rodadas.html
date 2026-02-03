@@ -11,6 +11,8 @@
         <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
         <link rel="stylesheet" href="css/modules/layout-horizontal.css" />
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <link rel="stylesheet" href="css/modules/super-modal.css" />
+        <script src="js/super-modal.js"></script>
         <style>
             /* ============================================================
                POPULAR RODADAS - Design Compacto v2.1
@@ -519,12 +521,12 @@
                 const forcarRepopular = document.getElementById("forcarRepopular")?.checked;
 
                 if (!ligaId) {
-                    alert("Selecione uma liga!");
+                    SuperModal.toast.warning("Selecione uma liga!");
                     return;
                 }
 
                 if (rodadaInicial < 1 || rodadaFinal > 38 || rodadaInicial > rodadaFinal) {
-                    alert("Intervalo de rodadas invalido!");
+                    SuperModal.toast.warning("Intervalo de rodadas invalido!");
                     return;
                 }
 

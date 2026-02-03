@@ -119,7 +119,11 @@
       "Bash(else echo \"⚠️ Servidor não respondeu após 15s\")",
       "Bash(bash:*)",
       "Bash(gh pr create:*)",
-      "Bash(/nix/store/sld6av6ri46fr8w5awmx2b63nljmn5km-gh-2.72.0/bin/gh pr create:*)"
+      "Bash(/nix/store/sld6av6ri46fr8w5awmx2b63nljmn5km-gh-2.72.0/bin/gh pr create:*)",
+      "Bash(for file in public/dashboard-saude.html public/css/_admin-tokens.css)",
+      "Skill(fact-checker)",
+      "Bash(mongo:*)",
+      "Bash(for file in public/admin/js/modulos-wizard.js)"
     ]
   },
   "enableAllProjectMcpServers": true,

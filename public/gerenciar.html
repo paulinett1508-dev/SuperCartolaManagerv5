@@ -11,6 +11,8 @@
         <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
         <link rel="stylesheet" href="css/modules/gerenciar.css" />
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <link rel="stylesheet" href="css/modules/super-modal.css" />
+        <script src="js/super-modal.js"></script>
     </head>
     <body>
         <div class="app-container">
@@ -276,7 +278,7 @@
             }
 
             window.excluirLiga = async function (id, nome) {
-                if (!confirm(`Excluir a liga "${nome}"?\n\nEsta ação é irreversível.`)) {
+                if (!await SuperModal.confirm({ title: 'Excluir liga', message: `Excluir a liga "${nome}"?\n\nEsta ação é irreversível.`, confirmText: 'Excluir', variant: 'danger' })) {
                     return;
                 }
 
@@ -284,7 +286,7 @@
                     await deletarLiga(id);
                     await carregarListaLigas();
                 } catch (error) {
-                    alert(`Erro ao excluir liga: ${error.message}`);
+                    SuperModal.toast.error(`Erro ao excluir liga: ${error.message}`);
                 }
             };
 
@@ -627,7 +629,7 @@
                     renderizarModulosModal(liga);
                 } catch (error) {
                     console.error('Erro ao atualizar módulo:', error);
-                    alert('Erro ao atualizar módulo. Tente novamente.');
+                    SuperModal.toast.error('Erro ao atualizar módulo. Tente novamente.');
                 }
             };
 

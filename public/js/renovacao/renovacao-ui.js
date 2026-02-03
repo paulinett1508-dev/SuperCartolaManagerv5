@@ -109,8 +109,9 @@ const RenovacaoUI = (function() {
             window.showNotification(message, type);
         } else if (typeof window.ToastManager !== 'undefined') {
             window.ToastManager.show(message, type);
-        } else {
-            alert(message);
+        } else if (window.SuperModal?.toast) {
+            const toastType = type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : 'info';
+            window.SuperModal.toast[toastType](message);
         }
     }
 
@@ -224,7 +225,11 @@ const RenovacaoUI = (function() {
     }
 
     async function alterarStatusLiga(novoStatus) {
-        if (!confirm(`Confirma ${novoStatus === 'aberto' ? 'ABRIR' : 'ENCERRAR'} as renovacoes?`)) {
+        const confirmou = await SuperModal.confirm({
+            title: 'Confirmar',
+            message: `Confirma ${novoStatus === 'aberto' ? 'ABRIR' : 'ENCERRAR'} as renovacoes?`
+        });
+        if (!confirmou) {
             return;
         }
 
@@ -379,14 +384,13 @@ const RenovacaoUI = (function() {
         // ✅ v1.1: Confirmação extra se NÃO pagou inscrição
         if (!pagouInscricao) {
             const taxa = document.getElementById('cardCalculo2026')?.dataset?.taxa || 180;
-            const confirmar = confirm(
-                `⚠️ ATENÇÃO: "Pagou a inscrição" está DESMARCADO!\n\n` +
-                `Isso criará um DÉBITO de R$ ${taxa} no extrato do participante.\n\n` +
-                `Tem certeza que o participante NÃO PAGOU a inscrição?\n\n` +
-                `Clique OK para confirmar a renovação COM DÉBITO.\n` +
-                `Clique Cancelar para voltar e marcar como pago.`
-            );
-            
+            const confirmar = await SuperModal.confirm({
+                title: 'Confirmar',
+                message: `ATENÇÃO: "Pagou a inscrição" está DESMARCADO!\n\nIsso criará um DÉBITO de R$ ${taxa} no extrato do participante.\n\nTem certeza que o participante NÃO PAGOU a inscrição?`,
+                variant: 'danger',
+                confirmText: 'Confirmar com Débito'
+            });
+
             if (!confirmar) {
                 return; // Usuário cancelou, volta para o modal
             }
@@ -1007,11 +1011,12 @@ const RenovacaoUI = (function() {
 
             // Confirmacao extra se inscricao PENDENTE (opcoes com "pendente" no nome)
             if (!payload.pagouInscricao) {
-                const confirmar = confirm(
-                    `ATENCAO: A inscricao esta marcada como PENDENTE!\n\n` +
-                    `Isso criara um DEBITO no extrato do participante.\n\n` +
-                    `Confirma que o participante NAO PAGOU a inscricao?`
-                );
+                const confirmar = await SuperModal.confirm({
+                    title: 'Confirmar',
+                    message: 'ATENCAO: A inscricao esta marcada como PENDENTE!\n\nIsso criara um DEBITO no extrato do participante.\n\nConfirma que o participante NAO PAGOU a inscricao?',
+                    variant: 'danger',
+                    confirmText: 'Confirmar com Débito'
+                });
                 if (!confirmar) return;
             }
 

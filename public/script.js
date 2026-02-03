@@ -7,9 +7,9 @@ const criarLigaDiv = document.getElementById("criarLiga");
 
 async function adicionarTime() {
   const id = inputTimeId.value.trim();
-  if (!id) return alert("Digite um ID de time!");
+  if (!id) { SuperModal.toast.warning("Digite um ID de time!"); return; }
   if (timesSelecionados.includes(id))
-    return alert("Esse time já foi adicionado!");
+    SuperModal.toast.warning("Esse time já foi adicionado!"); return;
 
   try {
     const res = await fetch(`/api/time/${id}`);
@@ -22,7 +22,7 @@ async function adicionarTime() {
     criarLigaDiv.style.display = "block";
     renderizarGaleria();
   } catch (err) {
-    alert(`Erro: ${err.message}`);
+    SuperModal.toast.error(`Erro: ${err.message}`);
   }
 }
 
@@ -71,11 +71,11 @@ function removerTime(index) {
 
 function criarLiga() {
   if (timesDetalhados.length === 0)
-    return alert("Adicione ao menos um time antes de criar a liga.");
+    SuperModal.toast.warning("Adicione ao menos um time antes de criar a liga."); return;
   try {
     localStorage.setItem("timesSelecionados", JSON.stringify(timesDetalhados));
     window.location.href = "/criar-liga.html";
   } catch (err) {
-    alert(`Erro ao salvar no localStorage: ${err.message}`);
+    SuperModal.toast.error(`Erro ao salvar no localStorage: ${err.message}`);
   }
 }

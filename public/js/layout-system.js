@@ -217,10 +217,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Limpar cache
     document.getElementById("btn-limpar-cache")?.addEventListener("click", async () => {
-      if (confirm("Tem certeza que deseja limpar todo o cache? Isso pode deixar o carregamento mais lento temporariamente.")) {
+      const confirmou = await SuperModal.confirm({
+        title: 'Limpar Cache',
+        message: 'Tem certeza que deseja limpar todo o cache? Isso pode deixar o carregamento mais lento temporariamente.',
+        variant: 'danger',
+        confirmText: 'Limpar Cache'
+      });
+      if (confirmou) {
         await window.cacheManager.clearAll();
-        alert("Cache limpo com sucesso! Recarregue a página.");
-        location.reload();
+        SuperModal.toast.success("Cache limpo com sucesso! Recarregando a página...");
+        setTimeout(() => location.reload(), 1000);
       }
     });
 });

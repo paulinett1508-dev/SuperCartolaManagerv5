@@ -1145,12 +1145,12 @@ window.fecharModalAuditoria = function () {
 };
 
 window.exportarAuditoriaPDF = async function (timeId) {
-    alert("Exportação PDF em desenvolvimento. TimeId: " + timeId);
+    SuperModal.toast.info("Exportação PDF em desenvolvimento. TimeId: " + timeId);
     // TODO: Implementar com jsPDF ou similar
 };
 
 window.exportarAuditoriaExcel = async function (timeId) {
-    alert("Exportação Excel em desenvolvimento. TimeId: " + timeId);
+    SuperModal.toast.info("Exportação Excel em desenvolvimento. TimeId: " + timeId);
     // TODO: Implementar com SheetJS ou similar
 };
 

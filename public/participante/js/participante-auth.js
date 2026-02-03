@@ -761,7 +761,7 @@ class ParticipanteAuth {
             window.location.reload();
         } catch (error) {
             if (window.Log) Log.error('PARTICIPANTE-AUTH', '❌ Erro ao trocar liga:', error);
-            alert("Erro ao trocar de liga. Tente novamente.");
+            SuperModal.toast.error("Erro ao trocar de liga. Tente novamente.");
         }
     }
 

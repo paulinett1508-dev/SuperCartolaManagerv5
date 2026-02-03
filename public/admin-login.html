@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="css/_admin-tokens.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Russo+One&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="css/modules/super-modal.css" />
+    <script src="js/super-modal.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -371,12 +373,12 @@
             const confirmarSenha = document.getElementById('confirmarSenha').value;
 
             if (novaSenha !== confirmarSenha) {
-                alert('As senhas nao coincidem');
+                SuperModal.toast.warning('As senhas nao coincidem');
                 return;
             }
 
             if (novaSenha.length < 6) {
-                alert('A senha deve ter pelo menos 6 caracteres');
+                SuperModal.toast.warning('A senha deve ter pelo menos 6 caracteres');
                 return;
             }
 
@@ -393,12 +395,12 @@
                     throw new Error(data.message);
                 }
 
-                alert('Senha alterada com sucesso!');
+                SuperModal.toast.success('Senha alterada com sucesso!');
                 document.getElementById('modalTrocarSenha').classList.remove('show');
                 window.location.href = '/painel.html';
 
             } catch (error) {
-                alert('Erro: ' + error.message);
+                SuperModal.toast.error('Erro: ' + error.message);
             }
             });
         }

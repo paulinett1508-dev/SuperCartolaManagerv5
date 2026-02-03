@@ -1236,7 +1236,7 @@ class ModuleConfigModal {
         if (typeof showMessage === 'function') {
             showMessage(message, 'error');
         } else {
-            alert(message);
+            SuperModal.toast.error(message);
         }
     }
 
@@ -1247,7 +1247,7 @@ class ModuleConfigModal {
         if (typeof showMessage === 'function') {
             showMessage(message, 'success');
         } else {
-            alert(message);
+            SuperModal.toast.success(message);
         }
     }
 }

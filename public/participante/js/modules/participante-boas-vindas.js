@@ -1108,7 +1108,7 @@ window.abrirCartolaPro = function() {
             })
             .catch(err => {
                 console.error('[CARTOLA-PRO] Erro ao carregar módulo:', err);
-                alert('Erro ao carregar Cartola PRO. Tente novamente.');
+                SuperModal.toast.error('Erro ao carregar Cartola PRO. Tente novamente.');
             });
     }
 };

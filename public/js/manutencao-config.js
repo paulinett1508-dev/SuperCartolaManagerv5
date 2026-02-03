@@ -221,7 +221,13 @@ const ManutencaoConfig = {
     },
 
     async ativar() {
-        if (!confirm('Tem certeza que deseja ATIVAR o modo manutenção?')) {
+        const confirmou = await SuperModal.confirm({
+            title: 'Ativar Modo Manutenção',
+            message: 'Tem certeza que deseja ATIVAR o modo manutenção?',
+            variant: 'danger',
+            confirmText: 'Ativar'
+        });
+        if (!confirmou) {
             return;
         }
 
@@ -251,7 +257,12 @@ const ManutencaoConfig = {
     },
 
     async desativar() {
-        if (!confirm('Tem certeza que deseja DESATIVAR o modo manutenção?')) {
+        const confirmou = await SuperModal.confirm({
+            title: 'Desativar Modo Manutenção',
+            message: 'Tem certeza que deseja DESATIVAR o modo manutenção?',
+            confirmText: 'Desativar'
+        });
+        if (!confirmou) {
             return;
         }
 
@@ -378,10 +389,10 @@ const ManutencaoConfig = {
     },
 
     mostrarSucesso(mensagem) {
-        alert('✅ ' + mensagem);
+        SuperModal.toast.success(mensagem);
     },
 
     mostrarErro(mensagem) {
-        alert('❌ ' + mensagem);
+        SuperModal.toast.error(mensagem);
     }
 };

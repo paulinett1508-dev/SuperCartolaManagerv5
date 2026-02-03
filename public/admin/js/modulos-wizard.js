@@ -389,7 +389,7 @@ async function handleSubmit(event) {
 
     } catch (error) {
         console.error('[MODULOS-WIZARD] Erro ao salvar:', error);
-        alert(`❌ Erro ao salvar configuração:\n\n${error.message}`);
+        SuperModal.toast.error(`Erro ao salvar configuração: ${error.message}`);
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     }

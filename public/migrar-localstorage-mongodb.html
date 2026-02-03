@@ -6,6 +6,9 @@
         <title>Migração LocalStorage → MongoDB</title>
         <!-- Design Tokens (SEMPRE PRIMEIRO) -->
         <link rel="stylesheet" href="css/_admin-tokens.css" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <link rel="stylesheet" href="css/modules/super-modal.css" />
+        <script src="js/super-modal.js"></script>
         <style>
             * {
                 margin: 0;
@@ -470,13 +473,13 @@
                     return;
                 }
 
-                const confirmacao = confirm(
-                    `Confirma a migração de ${dadosEncontrados.length} times para o MongoDB?\n\n` +
-                        `Esta operação NÃO apaga os dados do localStorage.`,
-                );
+                const confirmacao = await SuperModal.confirm({
+                    message: `Confirma a migracao de ${dadosEncontrados.length} times para o MongoDB?\n\nEsta operacao NAO apaga os dados do localStorage.`,
+                    confirmText: 'Migrar'
+                });
 
                 if (!confirmacao) {
-                    addLog("❌ Migração cancelada pelo usuário", "warning");
+                    addLog("Migracao cancelada pelo usuario", "warning");
                     return;
                 }
 
@@ -573,26 +576,26 @@
                 document.getElementById("btnLimpar").disabled = false;
 
                 // Recarregar após 3 segundos
-                setTimeout(() => {
-                    if (
-                        confirm(
-                            "Migração concluída! Deseja recarregar a página para verificar os dados?",
-                        )
-                    ) {
+                setTimeout(async () => {
+                    const recarregar = await SuperModal.confirm({
+                        message: 'Migracao concluida! Deseja recarregar a pagina para verificar os dados?',
+                        confirmText: 'Recarregar'
+                    });
+                    if (recarregar) {
                         window.location.reload();
                     }
                 }, 2000);
             };
 
-            window.limparLocalStorage = function () {
-                const confirmacao = confirm(
-                    "⚠️ ATENÇÃO: Esta ação irá APAGAR PERMANENTEMENTE todos os dados do Fluxo Financeiro do localStorage.\n\n" +
-                        "Certifique-se de que a migração foi bem-sucedida antes de prosseguir!\n\n" +
-                        "Deseja continuar?",
-                );
+            window.limparLocalStorage = async function () {
+                const confirmacao = await SuperModal.confirm({
+                    message: 'ATENCAO: Esta acao ira APAGAR PERMANENTEMENTE todos os dados do Fluxo Financeiro do localStorage.\n\nCertifique-se de que a migracao foi bem-sucedida antes de prosseguir!\n\nDeseja continuar?',
+                    variant: 'danger',
+                    confirmText: 'Apagar Dados'
+                });
 
                 if (!confirmacao) {
-                    addLog("❌ Limpeza cancelada", "warning");
+                    addLog("Limpeza cancelada", "warning");
                     return;
                 }
 
@@ -628,12 +631,12 @@
                 document.getElementById("btnMigrar").disabled = true;
                 document.getElementById("btnLimpar").disabled = true;
 
-                setTimeout(() => {
-                    if (
-                        confirm(
-                            "Limpeza concluída! Deseja recarregar a página?",
-                        )
-                    ) {
+                setTimeout(async () => {
+                    const recarregar = await SuperModal.confirm({
+                        message: 'Limpeza concluida! Deseja recarregar a pagina?',
+                        confirmText: 'Recarregar'
+                    });
+                    if (recarregar) {
                         window.location.reload();
                     }
                 }, 1500);

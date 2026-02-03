@@ -1449,7 +1449,7 @@ export class FluxoFinanceiroUI {
             const metodo = document.getElementById('acertoMetodo').value;
 
             if (!valor || isNaN(valor) || valor <= 0) {
-                alert('Informe um valor válido');
+                SuperModal.toast.warning('Informe um valor válido');
                 return;
             }
 
@@ -1482,7 +1482,7 @@ export class FluxoFinanceiroUI {
                 if (data.autoQuitacao?.ativada) {
                     msg += `\n\n${data.autoQuitacao.mensagem}`;
                 }
-                alert(msg);
+                SuperModal.toast.success(msg);
 
                 // ✅ v6.1 FIX: INVALIDAR CACHE DO EXTRATO APÓS O ACERTO
                 console.log(`[FLUXO-UI] 🔄 Invalidando cache de extrato para time ${timeIdAtual} após acerto.`);
@@ -1495,7 +1495,7 @@ export class FluxoFinanceiroUI {
                     window.recarregarFluxoFinanceiro();
                 }
             } catch (error) {
-                alert('Erro: ' + error.message);
+                SuperModal.toast.error('Erro: ' + error.message);
             }
         };
 
@@ -1614,7 +1614,7 @@ export class FluxoFinanceiroUI {
 
                 const acertos = data.acertos || [];
                 if (acertos.length === 0) {
-                    alert('Nenhum acerto registrado para este participante.');
+                    SuperModal.toast.info('Nenhum acerto registrado para este participante.');
                     return;
                 }
 
@@ -1628,9 +1628,9 @@ export class FluxoFinanceiroUI {
                     texto += `${dataFormatada} | ${tipoTexto} R$ ${a.valor.toFixed(2)} | ${a.descricao}\n`;
                 });
 
-                alert(texto);
+                SuperModal.toast.info(texto);
             } catch (error) {
-                alert('Erro ao carregar histórico: ' + error.message);
+                SuperModal.toast.error('Erro ao carregar histórico: ' + error.message);
             }
         };
 
@@ -3146,13 +3146,13 @@ window.recalcularTodosCache = async function () {
     const ligaId = window.obterLigaId?.();
 
     if (!ligaId) {
-        alert("Liga não identificada. Recarregue a página.");
+        SuperModal.toast.error("Liga não identificada. Recarregue a página.");
         return;
     }
 
     // Verificar se core está disponível
     if (!window.fluxoFinanceiroCore) {
-        alert("Módulo de cálculo não carregado. Recarregue a página.");
+        SuperModal.toast.error("Módulo de cálculo não carregado. Recarregue a página.");
         return;
     }
 
@@ -3162,13 +3162,16 @@ window.recalcularTodosCache = async function () {
     // Obter lista de participantes
     const participantes = cache?.participantes || [];
     if (participantes.length === 0) {
-        alert("Nenhum participante encontrado. Recarregue a página.");
+        SuperModal.toast.info("Nenhum participante encontrado. Recarregue a página.");
         return;
     }
 
-    const confirmacao = confirm(
-        `RECALCULAR TODOS OS CACHES\n\nIsso irá recalcular o extrato de ${participantes.length} participantes e salvar no cache.\n\nPode demorar alguns segundos.\n\nContinuar?`,
-    );
+    const confirmacao = await SuperModal.confirm({
+        title: 'Confirmar',
+        message: `Isso irá recalcular o extrato de ${participantes.length} participantes e salvar no cache.\n\nPode demorar alguns segundos.\n\nContinuar?`,
+        variant: 'danger',
+        confirmText: 'Recalcular'
+    });
 
     if (!confirmacao) return;
 
@@ -3253,12 +3256,12 @@ window.recalcularTodosCache = async function () {
         console.log(
             `[FLUXO-UI] ✅ Recálculo concluído: ${sucesso} ok, ${falha} falhas`,
         );
-        alert(
-            `Recálculo Concluído!\n\n${sucesso} caches atualizados\n${falha} falhas\n\nTodos os participantes verão dados atualizados.`,
+        SuperModal.toast.success(
+            `Recálculo Concluído! ${sucesso} caches atualizados, ${falha} falhas.`,
         );
     } catch (error) {
         console.error(`[FLUXO-UI] ❌ Erro ao recalcular:`, error);
-        alert(`Erro ao recalcular:\n${error.message}`);
+        SuperModal.toast.error(`Erro ao recalcular: ${error.message}`);
     } finally {
         // Restaurar botão
         if (btn) {
@@ -3287,7 +3290,7 @@ window.salvarCampoEditavel = async function (input) {
         await FluxoFinanceiroCampos.salvarValorCampo(timeId, campo, valor);
     } catch (error) {
         console.error(`[FLUXO-UI] ❌ Erro ao salvar campo:`, error);
-        alert(`Erro ao salvar valor: ${error.message}`);
+        SuperModal.toast.error(`Erro ao salvar valor: ${error.message}`);
         // Reverter visual para indicar erro
         input.classList.add("campo-erro");
     }
@@ -3322,7 +3325,7 @@ window.salvarNomeCampoEditavel = async function (input) {
         }, 1500);
     } catch (error) {
         console.error(`[FLUXO-UI] ❌ Erro ao salvar nome do campo:`, error);
-        alert(`Erro ao salvar nome do campo: ${error.message}`);
+        SuperModal.toast.error(`Erro ao salvar nome do campo: ${error.message}`);
     } finally {
         input.style.opacity = "1";
         input.disabled = false;
@@ -3570,7 +3573,7 @@ window.abrirAuditoria = async function (timeId) {
         // Verificar se existe instância global
         if (!window.fluxoFinanceiroUI || !window.fluxoFinanceiroUI.auditoria) {
             console.warn("[UI] Instância de auditoria não disponível");
-            alert("Sistema de auditoria não inicializado. Atualize a página.");
+            SuperModal.toast.info("Sistema de auditoria não inicializado. Atualize a página.");
             return;
         }
 
@@ -3602,7 +3605,7 @@ window.abrirAuditoria = async function (timeId) {
 
         if (!participante) {
             document.getElementById("auditoria-loading")?.remove();
-            alert("Participante não encontrado.");
+            SuperModal.toast.error("Participante não encontrado.");
             return;
         }
 
@@ -3626,7 +3629,7 @@ window.abrirAuditoria = async function (timeId) {
     } catch (error) {
         document.getElementById("auditoria-loading")?.remove();
         console.error("[UI] Erro ao abrir auditoria:", error);
-        alert("Erro ao gerar auditoria: " + error.message);
+        SuperModal.toast.error("Erro ao gerar auditoria: " + error.message);
     }
 };
 
@@ -3902,11 +3905,11 @@ window.salvarAjusteFinanceiro = async function(ligaId, timeId, temporada) {
 
     // Validações
     if (!descricao) {
-        alert('Descrição é obrigatória');
+        SuperModal.toast.warning('Descrição é obrigatória');
         return;
     }
     if (valorInput === 0) {
-        alert('Valor não pode ser zero');
+        SuperModal.toast.warning('Valor não pode ser zero');
         return;
     }
 
@@ -3950,7 +3953,7 @@ window.salvarAjusteFinanceiro = async function(ligaId, timeId, temporada) {
 
     } catch (error) {
         console.error('[AJUSTE] ❌ Erro:', error);
-        alert('Erro ao salvar ajuste: ' + error.message);
+        SuperModal.toast.error('Erro ao salvar ajuste: ' + error.message);
     }
 };
 
@@ -3975,11 +3978,11 @@ window.salvarAjuste = async function() {
 
     // Validacoes
     if (!descricao) {
-        alert('Descricao e obrigatoria');
+        SuperModal.toast.warning('Descricao e obrigatoria');
         return;
     }
     if (valorInput === 0) {
-        alert('Valor nao pode ser zero');
+        SuperModal.toast.warning('Valor nao pode ser zero');
         return;
     }
 
@@ -3992,7 +3995,7 @@ window.salvarAjuste = async function() {
     const timeId = window.fluxoFinanceiroUI?.participanteAtual?.time_id;
 
     if (!ligaId || !timeId) {
-        alert('Erro: Participante nao identificado');
+        SuperModal.toast.error('Erro: Participante nao identificado');
         return;
     }
 
@@ -4019,11 +4022,11 @@ window.salvarAjuste = async function() {
                 await window.atualizarExtratoModal();
             }
         } else {
-            alert('Erro ao salvar: ' + (result.error || 'Erro desconhecido'));
+            SuperModal.toast.error('Erro ao salvar: ' + (result.error || 'Erro desconhecido'));
         }
     } catch (error) {
         console.error('[AJUSTES] Erro ao salvar:', error);
-        alert('Erro de conexao ao salvar ajuste');
+        SuperModal.toast.error('Erro de conexao ao salvar ajuste');
     }
 };
 
@@ -4031,7 +4034,8 @@ window.salvarAjuste = async function() {
  * Remove ajuste existente
  */
 window.removerAjuste = async function(ajusteId) {
-    if (!confirm('Deseja remover este ajuste?')) return;
+    const confirmado = await SuperModal.confirm({ title: 'Confirmar', message: 'Deseja remover este ajuste?', variant: 'danger', confirmText: 'Remover' });
+    if (!confirmado) return;
 
     // Usar temporada do MODAL (não da lista principal)
     const temporadaModal = window.fluxoFinanceiroUI?.temporadaModalExtrato || 2026;
@@ -4049,11 +4053,11 @@ window.removerAjuste = async function(ajusteId) {
                 await window.atualizarExtratoModal();
             }
         } else {
-            alert('Erro ao remover: ' + (result.error || 'Erro desconhecido'));
+            SuperModal.toast.error('Erro ao remover: ' + (result.error || 'Erro desconhecido'));
         }
     } catch (error) {
         console.error('[AJUSTES] Erro ao remover:', error);
-        alert('Erro de conexao ao remover ajuste');
+        SuperModal.toast.error('Erro de conexao ao remover ajuste');
     }
 };
 
@@ -4071,7 +4075,7 @@ window.abrirNovoParticipante = function() {
     const temporada = window.temporadaAtual || 2026;
 
     if (!ligaId) {
-        alert('Liga não identificada');
+        SuperModal.toast.error('Liga não identificada');
         return;
     }
 
@@ -4383,12 +4387,12 @@ window.abrirNovoParticipante = function() {
         const query = input?.value.trim();
 
         if (tipo === 'nome' && (!query || query.length < 3)) {
-            alert('Digite pelo menos 3 caracteres para buscar');
+            SuperModal.toast.warning('Digite pelo menos 3 caracteres para buscar');
             return;
         }
 
         if (tipo === 'id' && (!query || isNaN(query))) {
-            alert('Digite um ID válido');
+            SuperModal.toast.warning('Digite um ID válido');
             return;
         }
 
@@ -4504,7 +4508,7 @@ window.abrirNovoParticipante = function() {
             const contato = document.getElementById('inputContatoManual')?.value.trim();
 
             if (!nome || nome.length < 2) {
-                alert('Informe o nome do participante');
+                SuperModal.toast.warning('Informe o nome do participante');
                 return;
             }
 
@@ -4520,7 +4524,7 @@ window.abrirNovoParticipante = function() {
         } else {
             // Busca - usar time selecionado
             if (!state.timeSelecionado) {
-                alert('Selecione um time primeiro');
+                SuperModal.toast.warning('Selecione um time primeiro');
                 return;
             }
             dadosTime = state.timeSelecionado;
@@ -4547,7 +4551,7 @@ window.abrirNovoParticipante = function() {
                 const msg = dadosTime.pendente_sincronizacao
                     ? 'Participante cadastrado! Pendente vincular ID do Cartola.'
                     : 'Novo participante cadastrado com sucesso!';
-                alert(msg);
+                SuperModal.toast.success(msg);
                 window.fecharModalNovoParticipante();
 
                 // Recarregar fluxo financeiro
@@ -4561,7 +4565,7 @@ window.abrirNovoParticipante = function() {
             }
         } catch (error) {
             console.error('[NOVO-PARTICIPANTE] Erro ao cadastrar:', error);
-            alert('Erro: ' + error.message);
+            SuperModal.toast.error('Erro: ' + error.message);
             btn.disabled = false;
             btn.innerHTML = '<span class="material-icons">person_add</span> Cadastrar';
         }
@@ -4843,11 +4847,11 @@ window.salvarAjuste = async function() {
 
     // Validacoes
     if (!descricao || descricao.length < 3) {
-        alert('Informe uma descricao valida (minimo 3 caracteres)');
+        SuperModal.toast.warning('Informe uma descricao valida (minimo 3 caracteres)');
         return;
     }
     if (isNaN(valor) || valor === 0) {
-        alert('Informe um valor valido (diferente de zero)');
+        SuperModal.toast.warning('Informe um valor valido (diferente de zero)');
         return;
     }
 
@@ -4887,7 +4891,7 @@ window.salvarAjuste = async function() {
 
     } catch (error) {
         console.error('[AJUSTES] Erro ao salvar:', error);
-        alert('Erro ao salvar ajuste: ' + error.message);
+        SuperModal.toast.error('Erro ao salvar ajuste: ' + error.message);
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<span class="material-icons" style="font-size: 16px;">save</span> Salvar';
@@ -4898,7 +4902,8 @@ window.salvarAjuste = async function() {
  * Remove ajuste com confirmacao
  */
 window.removerAjusteFinanceiro = async function(ajusteId, descricao) {
-    if (!confirm(`Remover ajuste "${descricao}"?`)) {
+    const confirmado = await SuperModal.confirm({ title: 'Confirmar', message: `Remover ajuste "${descricao}"?`, variant: 'danger', confirmText: 'Remover' });
+    if (!confirmado) {
         return;
     }
 
@@ -4919,7 +4924,7 @@ window.removerAjusteFinanceiro = async function(ajusteId, descricao) {
 
     } catch (error) {
         console.error('[AJUSTES] Erro ao remover:', error);
-        alert('Erro ao remover ajuste: ' + error.message);
+        SuperModal.toast.error('Erro ao remover ajuste: ' + error.message);
     }
 };
 

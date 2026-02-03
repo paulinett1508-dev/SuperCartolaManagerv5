@@ -274,7 +274,7 @@ export function fecharModalAuditoria() {
 export async function exportarExtratoPDF(timeId) {
     try {
         if (typeof window.jspdf === "undefined") {
-            alert("Biblioteca jsPDF nao carregada. Atualize a pagina.");
+            SuperModal.toast.info("Biblioteca jsPDF nao carregada. Atualize a pagina.");
             return;
         }
 
@@ -283,7 +283,7 @@ export async function exportarExtratoPDF(timeId) {
         const cache = window.fluxoFinanceiroCache;
 
         if (!extrato || !extrato.rodadas) {
-            alert("Extrato nao carregado. Selecione um participante primeiro.");
+            SuperModal.toast.warning("Extrato nao carregado. Selecione um participante primeiro.");
             return;
         }
 
@@ -602,7 +602,7 @@ export async function exportarExtratoPDF(timeId) {
         console.log(`[FLUXO-PDF] PDF gerado (${paginaAtual} pagina(s)): ${nomeArquivo}`);
     } catch (error) {
         console.error("[FLUXO-PDF] Erro ao gerar PDF:", error);
-        alert(`Erro ao gerar PDF: ${error.message}`);
+        SuperModal.toast.error(`Erro ao gerar PDF: ${error.message}`);
     }
 }
 
@@ -615,7 +615,7 @@ export async function exportarExtratoPDF(timeId) {
  */
 export async function exportarAuditoriaPDF() {
     if (!auditoriaAtual) {
-        alert('Nenhuma auditoria carregada para exportar.');
+        SuperModal.toast.info('Nenhuma auditoria carregada para exportar.');
         return;
     }
 

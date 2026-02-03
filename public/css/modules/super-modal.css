@@ -1,0 +1,381 @@
+/**
+ * SUPER MODAL - Sistema Unificado de Modais & Toasts
+ * ===================================================
+ * Substitui alert(), confirm() e prompt() nativos do navegador.
+ * Usa exclusivamente variáveis de _admin-tokens.css
+ */
+
+/* ========================================
+   TOAST - Container & Base
+   ======================================== */
+.super-toast-container {
+    position: fixed;
+    top: var(--space-5);
+    right: var(--space-5);
+    z-index: var(--z-toast);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    pointer-events: none;
+    max-width: 420px;
+    width: calc(100% - 40px);
+}
+
+.super-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--surface-card-elevated);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--color-info);
+    color: var(--text-primary);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-normal);
+    pointer-events: auto;
+    animation: super-toast-in 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+    opacity: 0;
+    transform: translateX(40px);
+}
+
+.super-toast.removing {
+    animation: super-toast-out 0.3s ease forwards;
+}
+
+.super-toast__icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.super-toast__content {
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+}
+
+.super-toast__close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px;
+    font-size: 18px;
+    line-height: 1;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.super-toast__close:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Progress bar */
+.super-toast__progress {
+    position: absolute;
+    bottom: 0;
+    left: 4px;
+    right: 0;
+    height: 3px;
+    border-radius: 0 0 var(--radius-md) 0;
+    transform-origin: left;
+    opacity: 0.6;
+}
+
+.super-toast {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Toast types */
+.super-toast--success {
+    border-left-color: var(--color-success);
+}
+.super-toast--success .super-toast__icon {
+    color: var(--color-success);
+}
+.super-toast--success .super-toast__progress {
+    background: var(--color-success);
+}
+
+.super-toast--error {
+    border-left-color: var(--color-danger);
+}
+.super-toast--error .super-toast__icon {
+    color: var(--color-danger);
+}
+.super-toast--error .super-toast__progress {
+    background: var(--color-danger);
+}
+
+.super-toast--warning {
+    border-left-color: var(--color-warning);
+}
+.super-toast--warning .super-toast__icon {
+    color: var(--color-warning);
+}
+.super-toast--warning .super-toast__progress {
+    background: var(--color-warning);
+}
+
+.super-toast--info {
+    border-left-color: var(--color-info);
+}
+.super-toast--info .super-toast__icon {
+    color: var(--color-info);
+}
+.super-toast--info .super-toast__progress {
+    background: var(--color-info);
+}
+
+/* ========================================
+   MODAL - Backdrop & Container
+   ======================================== */
+.super-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: var(--z-modal-backdrop);
+    animation: super-backdrop-in 0.25s ease forwards;
+}
+
+.super-modal-backdrop.removing {
+    animation: super-backdrop-out 0.2s ease forwards;
+}
+
+.super-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    z-index: var(--z-modal);
+    background: var(--surface-card-elevated);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    max-width: 440px;
+    width: calc(100% - 32px);
+    overflow: hidden;
+    animation: super-modal-in 0.3s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+
+.super-modal.removing {
+    animation: super-modal-out 0.2s ease forwards;
+}
+
+/* Modal icon header */
+.super-modal__icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-full);
+    margin: var(--space-6) auto var(--space-4);
+    font-size: 28px;
+}
+
+.super-modal--default .super-modal__icon-wrapper {
+    background: var(--color-primary-muted);
+    color: var(--color-primary);
+}
+
+.super-modal--danger .super-modal__icon-wrapper {
+    background: var(--color-danger-muted);
+    color: var(--color-danger);
+}
+
+.super-modal--warning .super-modal__icon-wrapper {
+    background: var(--color-warning-muted);
+    color: var(--color-warning);
+}
+
+.super-modal--info .super-modal__icon-wrapper {
+    background: var(--color-info-muted);
+    color: var(--color-info);
+}
+
+/* Modal body */
+.super-modal__body {
+    padding: 0 var(--space-6) var(--space-4);
+    text-align: center;
+}
+
+.super-modal__title {
+    font-family: var(--font-family-brand);
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2);
+    letter-spacing: var(--letter-spacing-wide);
+}
+
+.super-modal__message {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-md);
+    color: var(--text-muted);
+    line-height: var(--line-height-relaxed);
+    margin: 0;
+    white-space: pre-line;
+}
+
+/* Modal input (prompt) */
+.super-modal__input {
+    width: 100%;
+    margin-top: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--surface-card);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-md);
+    outline: none;
+    transition: border-color var(--transition-fast);
+    box-sizing: border-box;
+}
+
+.super-modal__input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-muted);
+}
+
+.super-modal__input::placeholder {
+    color: var(--text-disabled);
+}
+
+/* Modal footer / actions */
+.super-modal__actions {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-6) var(--space-6);
+}
+
+.super-modal__btn {
+    flex: 1;
+    padding: var(--space-3) var(--space-4);
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: var(--font-family-brand);
+    font-size: var(--font-size-md);
+    letter-spacing: var(--letter-spacing-wide);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-transform: uppercase;
+}
+
+.super-modal__btn--cancel {
+    background: var(--surface-card-hover);
+    color: var(--text-secondary);
+}
+
+.super-modal__btn--cancel:hover {
+    background: #444;
+}
+
+.super-modal__btn--confirm {
+    background: var(--gradient-primary);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-primary);
+}
+
+.super-modal__btn--confirm:hover {
+    background: var(--gradient-primary-hover);
+    box-shadow: var(--shadow-primary-lg);
+}
+
+.super-modal--danger .super-modal__btn--confirm {
+    background: var(--color-danger);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.super-modal--danger .super-modal__btn--confirm:hover {
+    background: var(--color-danger-dark);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes super-toast-in {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes super-toast-out {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(60px);
+    }
+}
+
+@keyframes super-backdrop-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes super-backdrop-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes super-modal-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes super-modal-out {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+}
+
+@keyframes super-progress-shrink {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 480px) {
+    .super-toast-container {
+        top: var(--space-3);
+        right: var(--space-3);
+        left: var(--space-3);
+        max-width: none;
+        width: auto;
+    }
+
+    .super-modal {
+        max-width: calc(100% - 24px);
+    }
+
+    .super-modal__actions {
+        flex-direction: column-reverse;
+    }
+}

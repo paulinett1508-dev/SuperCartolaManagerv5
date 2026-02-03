@@ -579,7 +579,13 @@ class EditarLigaManager {
     }
 
     async removerTime(index) {
-        if (!confirm("Tem certeza que deseja excluir este time da liga?")) {
+        const confirmouExcluir = await SuperModal.confirm({
+            title: 'Confirmar',
+            message: 'Tem certeza que deseja excluir este time da liga?',
+            variant: 'danger',
+            confirmText: 'Excluir'
+        });
+        if (!confirmouExcluir) {
             return;
         }
 
@@ -703,7 +709,11 @@ class EditarLigaManager {
     }
 
     async salvarTudo() {
-        if (!confirm("Tem certeza que deseja salvar todas as alterações?")) {
+        const confirmouSalvar = await SuperModal.confirm({
+            title: 'Confirmar',
+            message: 'Tem certeza que deseja salvar todas as alterações?'
+        });
+        if (!confirmouSalvar) {
             return;
         }
 

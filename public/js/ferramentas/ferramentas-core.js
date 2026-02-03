@@ -306,15 +306,15 @@ window.popularRodadas = async function (ligaId) {
 
 window.exportarDados = async function () {
     // Implementar exportação
-    alert("Funcionalidade de exportação será implementada");
+    SuperModal.toast.info("Funcionalidade de exportação será implementada");
 };
 
 window.importarDados = async function () {
     // Implementar importação
-    alert("Funcionalidade de importação será implementada");
+    SuperModal.toast.info("Funcionalidade de importação será implementada");
 };
 
 window.backupAutomatico = async function () {
     // Implementar backup automático
-    alert("Configuração de backup automático será implementada");
+    SuperModal.toast.info("Configuração de backup automático será implementada");
 };
