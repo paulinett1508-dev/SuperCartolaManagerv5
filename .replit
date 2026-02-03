@@ -1,13 +1,18 @@
-run = "npm start"
+run = "npm run dev"
 modules = ["nodejs-20"]
 
 [[ports]]
-localPort = 5000
+localPort = 3000
 externalPort = 80
 
 [[ports]]
+localPort = 5000
+externalPort = 5000
+exposeLocalhost = true
+
+[[ports]]
 localPort = 9999
-externalPort = 3000
+externalPort = 3001
 
 [[ports]]
 localPort = 11148
@@ -117,7 +122,7 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
-waitForPort = 5000
+waitForPort = 3000
 
 [workflows.workflow.metadata]
 outputType = "webview"
