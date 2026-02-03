@@ -284,12 +284,12 @@ _Próximas sprints - Impacto significativo no sistema_
   - **Impacto:** ALTO - Novo formato de competição, engajamento na reta final
   - **Complexidade:** ALTA (~25-30h estimadas)
 
-  **MVP - FASE 1: Teaser (Implementar AGORA)**
-  - [ ] Adicionar botão "Copa de Times SC" no hub de menus participante
-  - [ ] Criar tela placeholder: `public/participante/fronts/copa-times-sc.html`
-  - [ ] Exibir mensagem: "Aguarde mais informações. Será realizado no segundo turno do Brasileirão"
-  - [ ] Badge "EM BREVE" no menu
-  - [ ] Design visual temático (troféu, cores douradas)
+  **MVP - FASE 1: Teaser (Implementar AGORA)** ✅ IMPLEMENTADO
+  - [x] Adicionar botão "Copa de Times SC" no hub de menus participante
+  - [x] Criar tela placeholder: `public/participante/fronts/copa-times-sc.html`
+  - [x] Exibir mensagem: "Aguarde mais informações. Será realizado no segundo turno do Brasileirão"
+  - [x] Badge "EM BREVE" no menu
+  - [x] Design visual temático (troféu, cores douradas)
 
   **Conceito da Competição (A definir):**
   - **Formato:** Copa do Mundo (grupos + mata-mata)
@@ -330,11 +330,18 @@ _Próximas sprints - Impacto significativo no sistema_
   - March Madness (bracket interativo)
   - Champions League (prestígio e identidade visual)
 
-  **Arquivos a criar (FASE 1 - MVP):**
+  **Arquivos criados (FASE 1 - MVP):** ✅ CONCLUÍDO
   ```
-  public/participante/fronts/copa-times-sc.html           (tela teaser)
-  public/participante/js/modules/participante-copa-sc.js  (lógica futura)
-  public/participante/css/copa-sc.css                     (tema dourado/troféu)
+  ✅ public/participante/fronts/copa-times-sc.html           (tela teaser)
+  ✅ public/participante/js/modules/participante-copa-sc.js  (módulo básico v1.0)
+  ✅ public/participante/css/copa-sc.css                     (tema dourado/troféu)
+  ```
+
+  **Arquivos modificados (FASE 1 - MVP):**
+  ```
+  ✅ public/participante/js/participante-navigation.js  (adicionado módulo)
+  ✅ public/participante/js/participante-quick-bar.js   (card no menu)
+  ✅ public/participante/index.html                     (import CSS)
   ```
 
   **Integração com sistema:**
