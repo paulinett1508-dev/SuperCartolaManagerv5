@@ -634,26 +634,3 @@
 .progress-bar-warning {
   background: var(--accent-warning);
 }
-
-/* ========== PULL TO REFRESH ========== */
-.pull-to-refresh {
-  position: absolute;
-  top: -60px;
-  left: 0;
-  right: 0;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  transition: transform var(--transition-base);
-}
-
-.pull-to-refresh.visible {
-  transform: translateY(60px);
-}
-
-.pull-to-refresh-icon {
-  font-size: 24px;
-  animation: spin 1s linear infinite;
-}
