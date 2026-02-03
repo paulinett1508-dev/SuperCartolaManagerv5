@@ -1,10 +1,15 @@
 /**
- * MÓDULOS WIZARD - v1.0.0
+ * MÓDULOS WIZARD - v2.0.1
  * Gerenciador de configuração de módulos via wizard interativo
  * Carrega perguntas dinamicamente da API e gera formulário
+ *
+ * CHANGELOG v2.0.1 (2026-02-03):
+ * - ✅ FIX: Implementada lógica condicional para perguntas dependentes
+ * - ✅ FIX: Perguntas condicionais agora mostram/escondem dinamicamente
+ * - ✅ ENHANCEMENT: Logs detalhados para debugging
  */
 
-console.log('[MODULOS-WIZARD] 🧙 Inicializando wizard v1.0.0');
+console.log('[MODULOS-WIZARD] 🧙 Inicializando wizard v2.0.1');
 
 // ============================================================================
 // ESTADO GLOBAL
@@ -162,6 +167,9 @@ function renderizarWizard() {
     });
 
     console.log(`[MODULOS-WIZARD] ✅ ${state.wizard.perguntas.length} perguntas renderizadas`);
+
+    // Configurar lógica condicional
+    setupCondicionalLogic();
 }
 
 /**
@@ -171,6 +179,13 @@ function criarPerguntaElement(pergunta, index) {
     const div = document.createElement('div');
     div.className = 'bg-gray-800 rounded-lg p-6 border border-gray-700';
     div.dataset.perguntaId = pergunta.id;
+
+    // Marcar perguntas condicionais
+    if (pergunta.condicional) {
+        div.dataset.condicional = JSON.stringify(pergunta.condicional);
+        // Esconder inicialmente perguntas condicionais
+        div.style.display = 'none';
+    }
 
     // Header da pergunta
     const header = document.createElement('div');
@@ -441,6 +456,73 @@ async function salvarConfiguracao(respostas) {
 
     console.log('[MODULOS-WIZARD] ✅ Configuração salva com sucesso!');
     return data;
+}
+
+// ============================================================================
+// LÓGICA CONDICIONAL
+// ============================================================================
+
+/**
+ * Configura lógica para mostrar/esconder perguntas condicionais
+ */
+function setupCondicionalLogic() {
+    const container = document.getElementById('questions-container');
+    if (!container) return;
+
+    console.log('[MODULOS-WIZARD] 🔗 Configurando lógica condicional');
+
+    // Verificar estado inicial
+    atualizarPerguntasCondicionais();
+
+    // Listener para mudanças
+    container.addEventListener('change', (e) => {
+        const input = e.target;
+        const perguntaId = input.name;
+
+        console.log(`[MODULOS-WIZARD] 📝 Mudança detectada: ${perguntaId} = ${input.value}`);
+        atualizarPerguntasCondicionais();
+    });
+}
+
+/**
+ * Atualiza visibilidade de perguntas condicionais
+ */
+function atualizarPerguntasCondicionais() {
+    const container = document.getElementById('questions-container');
+    if (!container) return;
+
+    const todasPerguntas = container.querySelectorAll('[data-condicional]');
+
+    todasPerguntas.forEach(div => {
+        try {
+            const condicional = JSON.parse(div.dataset.condicional);
+            const campoInput = container.querySelector(`[name="${condicional.campo}"]`);
+
+            if (!campoInput) {
+                console.warn(`[MODULOS-WIZARD] Campo de controle não encontrado: ${condicional.campo}`);
+                return;
+            }
+
+            const valorAtual = campoInput.value;
+            const valorEsperado = String(condicional.valor);
+
+            if (valorAtual === valorEsperado) {
+                // Mostrar pergunta
+                div.style.display = 'block';
+                console.log(`[MODULOS-WIZARD] ✅ Mostrando: ${div.dataset.perguntaId} (${condicional.campo} === ${valorEsperado})`);
+            } else {
+                // Esconder e limpar
+                div.style.display = 'none';
+                const innerInput = div.querySelector('input, select, textarea');
+                if (innerInput && innerInput.value) {
+                    innerInput.value = '';
+                    console.log(`[MODULOS-WIZARD] ❌ Escondendo: ${div.dataset.perguntaId}`);
+                }
+            }
+        } catch (error) {
+            console.error('[MODULOS-WIZARD] Erro ao processar condicional:', error);
+        }
+    });
 }
 
 // ============================================================================
