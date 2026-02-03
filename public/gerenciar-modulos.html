@@ -358,7 +358,8 @@
                 }
             }
 
-            function showMessage(text, type) {
+            // Tornar showMessage global para que module-config-modal.js possa acessar
+            window.showMessage = function(text, type) {
                 const msg = document.getElementById('statusMessage');
                 const icon = type === 'success' ? 'check_circle' : type === 'warning' ? 'warning' : type === 'info' ? 'info' : 'error';
                 msg.innerHTML = `<span class="material-icons">${icon}</span> ${text}`;
@@ -369,7 +370,7 @@
                         msg.className = 'status-message';
                     }, 3000);
                 }
-            }
+            };
 
             /**
              * Verifica se módulo pode ser configurado
