@@ -775,9 +775,8 @@ process.on("SIGQUIT", () => gracefulShutdown("SIGQUIT"));
 
 export default app;
 
-// Webhook para GitHub Actions
-import { exec } from 'child_process';
 
+// Webhook para GitHub Actions
 app.post('/github-sync', express.json(), (req, res) => {
   console.log('🔔 Webhook do GitHub recebido:', req.body);
   
