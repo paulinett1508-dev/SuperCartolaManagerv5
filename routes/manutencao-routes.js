@@ -371,6 +371,21 @@ router.post("/manutencao/upload-imagem", verificarAdmin, (req, res) => {
     }
 });
 
+// GET /api/admin/rodadas/consolidadas - Lista rodadas que já foram consolidadas
+router.get("/rodadas/consolidadas", verificarAdmin, async (req, res) => {
+    try {
+        // Buscar rodadas distintas que existem na collection rodadas (para a temporada atual)
+        const rodadasDistintas = await Rodada.distinct("rodada", { temporada: CURRENT_SEASON });
+        const resultado = rodadasDistintas
+            .sort((a, b) => a - b)
+            .map(r => ({ rodada: r }));
+        res.json(resultado);
+    } catch (error) {
+        console.error("[RODADAS-CONSOLIDADAS] Erro:", error.message);
+        res.status(500).json([]);
+    }
+});
+
 // POST /api/admin/consolidar-rodada - Consolida última rodada para todas as ligas ativas
 router.post("/consolidar-rodada", verificarAdmin, async (req, res) => {
     const LOG = "[CONSOLIDAR-RODADA]";
