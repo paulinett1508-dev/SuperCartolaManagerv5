@@ -406,10 +406,6 @@ const RefreshButton = {
         if (window.OfflineCache?.TEMPORADA_ENCERRADA) {
             return true;
         }
-        // Verificar via PullRefresh
-        if (window.PullRefresh?.isTemporadaEncerrada?.()) {
-            return true;
-        }
         return false;
     }
 };

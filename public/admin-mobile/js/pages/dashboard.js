@@ -47,6 +47,33 @@ function renderDashboard(container, data) {
 
   container.innerHTML = `
     <div class="container">
+      <!-- Botão de Atualizar -->
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+        <button
+          onclick="window.location.reload()"
+          class="btn btn-ghost btn-sm"
+          style="
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          "
+          onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 0.25)'; this.style.color='rgba(255, 255, 255, 0.9)';"
+          onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='rgba(255, 255, 255, 0.15)'; this.style.color='rgba(255, 255, 255, 0.7)';"
+        >
+          <span style="font-size: 16px;">↻</span>
+          Atualizar
+        </button>
+      </div>
+
       <!-- Health Badge -->
       <div class="card" style="margin-bottom: var(--spacing-md);">
         <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -83,9 +110,6 @@ function renderDashboard(container, data) {
       ` : ''}
     </div>
   `;
-
-  // Setup pull-to-refresh
-  setupPullToRefresh(container);
 }
 
 function renderLigaCard(liga) {
@@ -191,62 +215,6 @@ function renderAcaoItem(acao) {
       ${acao.status === 'success' ? '<span style="font-size: 16px;">✅</span>' : '<span style="font-size: 16px;">❌</span>'}
     </div>
   `;
-}
-
-function setupPullToRefresh(container) {
-  let startY = 0;
-  let pullDistance = 0;
-  const threshold = 80;
-
-  let indicator = container.querySelector('.pull-to-refresh');
-  if (!indicator) {
-    indicator = document.createElement('div');
-    indicator.className = 'pull-to-refresh';
-    indicator.innerHTML = '<div class="pull-to-refresh-icon">↓</div>';
-    container.style.position = 'relative';
-    container.insertBefore(indicator, container.firstChild);
-  }
-
-  container.addEventListener('touchstart', (e) => {
-    if (window.scrollY === 0 && !refreshing) {
-      startY = e.touches[0].pageY;
-    }
-  });
-
-  container.addEventListener('touchmove', (e) => {
-    if (startY > 0 && !refreshing) {
-      pullDistance = e.touches[0].pageY - startY;
-      if (pullDistance > 0 && pullDistance < 150) {
-        indicator.style.transform = `translateY(${pullDistance}px)`;
-        indicator.querySelector('.pull-to-refresh-icon').style.transform =
-          `rotate(${pullDistance * 2}deg)`;
-      }
-    }
-  });
-
-  container.addEventListener('touchend', async () => {
-    if (pullDistance > threshold && !refreshing) {
-      refreshing = true;
-      indicator.classList.add('visible');
-      indicator.querySelector('.pull-to-refresh-icon').innerHTML = '⟳';
-
-      await loadDashboard(container, true);
-
-      setTimeout(() => {
-        indicator.classList.remove('visible');
-        indicator.style.transform = '';
-        indicator.querySelector('.pull-to-refresh-icon').innerHTML = '↓';
-        indicator.querySelector('.pull-to-refresh-icon').style.transform = '';
-        refreshing = false;
-      }, 300);
-    } else {
-      indicator.style.transform = '';
-      indicator.querySelector('.pull-to-refresh-icon').style.transform = '';
-    }
-
-    startY = 0;
-    pullDistance = 0;
-  });
 }
 
 function setupFAB() {
