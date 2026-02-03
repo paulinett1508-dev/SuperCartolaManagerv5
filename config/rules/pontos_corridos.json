@@ -88,17 +88,21 @@
     },
 
     "sistema_grupos": {
-      "habilitado": false,
-      "descricao": "FUTURO: Sistema de grupos/chaves com fases eliminatórias (Sprint 2)",
+      "habilitado": true,
+      "descricao": "Sistema de grupos/chaves com fases eliminatórias (Sprint 3 ✅)",
       "quantidade_grupos": 2,
       "min_times_por_grupo": 5,
       "criterio_divisao": "sorteio",
-      "classificados_por_grupo": 2
+      "classificados_por_grupo": 2,
+      "divisao": []
     },
 
     "fases_eliminatorias": {
-      "habilitado": false,
-      "descricao": "FUTURO: Playoffs após fase de grupos (Sprint 3)"
+      "habilitado": true,
+      "descricao": "Playoffs após fase de grupos (Sprint 3 ✅)",
+      "tipo": "ida_volta",
+      "criterio_desempate": "saldo_gols",
+      "bracket": []
     }
   },
 
@@ -228,6 +232,88 @@
         "step": 1,
         "required": false,
         "afeta": "regras_override.bonus_pontos_goleada"
+      },
+      {
+        "id": "formato",
+        "tipo": "select",
+        "label": "Formato do torneio",
+        "descricao": "Escolha entre torneio tradicional ou com grupos e playoffs",
+        "default": "round_robin",
+        "opcoes": [
+          {"value": "round_robin", "label": "Todos contra Todos (tradicional)"},
+          {"value": "grupos", "label": "Grupos + Playoffs (eliminatórias)"}
+        ],
+        "required": true,
+        "afeta": "regras_override.formato"
+      },
+      {
+        "id": "quantidade_grupos",
+        "tipo": "select",
+        "label": "Quantidade de grupos",
+        "descricao": "Quantos grupos dividir os times (mínimo 5 times por grupo)",
+        "default": 2,
+        "opcoes": [
+          {"value": 2, "label": "2 grupos"},
+          {"value": 4, "label": "4 grupos"}
+        ],
+        "required": false,
+        "condicional": {"campo": "formato", "valor": "grupos"},
+        "afeta": "regras_override.sistema_grupos.quantidade_grupos"
+      },
+      {
+        "id": "criterio_divisao",
+        "tipo": "select",
+        "label": "Como dividir os times em grupos?",
+        "descricao": "Sorteio aleatório ou por ranking (seed/serpentina)",
+        "default": "sorteio",
+        "opcoes": [
+          {"value": "sorteio", "label": "Sorteio aleatório"},
+          {"value": "ranking", "label": "Por ranking (seed)"}
+        ],
+        "required": false,
+        "condicional": {"campo": "formato", "valor": "grupos"},
+        "afeta": "regras_override.sistema_grupos.criterio_divisao"
+      },
+      {
+        "id": "classificados_por_grupo",
+        "tipo": "number",
+        "label": "Quantos classificam por grupo?",
+        "descricao": "Times que avançam para os playoffs de cada grupo",
+        "default": 2,
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "required": false,
+        "condicional": {"campo": "formato", "valor": "grupos"},
+        "afeta": "regras_override.sistema_grupos.classificados_por_grupo"
+      },
+      {
+        "id": "tipo_playoff",
+        "tipo": "select",
+        "label": "Tipo de playoff",
+        "descricao": "Confrontos de ida e volta ou jogo único?",
+        "default": "ida_volta",
+        "opcoes": [
+          {"value": "ida_volta", "label": "Ida e Volta"},
+          {"value": "jogo_unico", "label": "Jogo Único"}
+        ],
+        "required": false,
+        "condicional": {"campo": "formato", "valor": "grupos"},
+        "afeta": "regras_override.fases_eliminatorias.tipo"
+      },
+      {
+        "id": "criterio_desempate_playoff",
+        "tipo": "select",
+        "label": "Critério de desempate nos playoffs",
+        "descricao": "O que usar em caso de empate no agregado?",
+        "default": "saldo_gols",
+        "opcoes": [
+          {"value": "saldo_gols", "label": "Saldo de gols"},
+          {"value": "gols_fora", "label": "Gols fora de casa"}
+        ],
+        "required": false,
+        "condicional": {"campo": "formato", "valor": "grupos"},
+        "afeta": "regras_override.fases_eliminatorias.criterio_desempate"
       }
     ]
   },
