@@ -4,14 +4,17 @@
   "descricao": "Sistema de confrontos 1x1 em formato de liga, onde cada time enfrenta todos os outros ao longo da temporada.",
   "tipo": "competicao_confronto",
   "status": "ativo",
-  "versao": "2.1.0",
+  "versao": "3.0.0",
 
   "configuracao": {
-    "ligas_habilitadas": ["684cb1c8af923da7c7df51de"],
     "modulo_ativo": true,
-    "temporada": 2025,
-    "rodada_inicial": 7,
-    "formato": "round_robin"
+    "formato": "round_robin",
+    "defaults": {
+      "rodada_inicial": 7,
+      "turnos": 1,
+      "min_participantes": 4,
+      "max_participantes": 64
+    }
   },
 
   "regras": {
@@ -45,10 +48,10 @@
         "financeiro": -5.00
       },
       "goleada": {
-        "bonus_pontos": 0,
+        "bonus_pontos": 1,
         "bonus_financeiro": 2.00,
         "criterio": "diferenca_absoluta >= 50",
-        "descricao": "Vitória por 50+ pontos = goleada (+R$2 extra)"
+        "descricao": "Vitória por 50+ pontos = goleada (+1 pt bônus = 4 pts total + R$2 extra)"
       }
     },
 
@@ -82,6 +85,20 @@
       "collection": "pontoscorridoscaches",
       "ttl_minutos": 60,
       "dados_armazenados": ["classificacao", "confrontos"]
+    },
+
+    "sistema_grupos": {
+      "habilitado": false,
+      "descricao": "FUTURO: Sistema de grupos/chaves com fases eliminatórias (Sprint 2)",
+      "quantidade_grupos": 2,
+      "min_times_por_grupo": 5,
+      "criterio_divisao": "sorteio",
+      "classificados_por_grupo": 2
+    },
+
+    "fases_eliminatorias": {
+      "habilitado": false,
+      "descricao": "FUTURO: Playoffs após fase de grupos (Sprint 3)"
     }
   },
 
@@ -106,14 +123,27 @@
       {
         "id": "rodada_inicial",
         "tipo": "number",
-        "label": "Rodada inicial",
-        "descricao": "A partir de qual rodada comecam os confrontos",
+        "label": "Rodada inicial do Brasileirão",
+        "descricao": "A partir de qual rodada do Brasileirão começam os confrontos",
         "default": 7,
         "min": 1,
         "max": 38,
         "step": 1,
         "required": true,
-        "afeta": "configuracao.rodada_inicial"
+        "afeta": "regras_override.rodada_inicial"
+      },
+      {
+        "id": "turnos",
+        "tipo": "select",
+        "label": "Quantidade de turnos",
+        "descricao": "1 turno = todos contra todos uma vez. 2 turnos = ida e volta",
+        "default": 1,
+        "opcoes": [
+          {"value": 1, "label": "1 Turno (só ida)"},
+          {"value": 2, "label": "2 Turnos (ida e volta)"}
+        ],
+        "required": true,
+        "afeta": "regras_override.turnos"
       },
       {
         "id": "valor_vitoria",
@@ -164,16 +194,40 @@
         "afeta": "regras.resultado.tolerancia_empate"
       },
       {
+        "id": "limite_goleada",
+        "tipo": "number",
+        "label": "Diferença mínima para goleada (pts)",
+        "descricao": "Diferença de pontos necessária para considerar goleada",
+        "default": 50,
+        "min": 20,
+        "max": 100,
+        "step": 5,
+        "required": true,
+        "afeta": "regras_override.limite_goleada"
+      },
+      {
         "id": "bonus_goleada",
         "tipo": "number",
-        "label": "Bonus por goleada (R$)",
-        "descricao": "Valor extra ao vencer por 50+ pontos",
+        "label": "Bônus por goleada (R$)",
+        "descricao": "Valor financeiro extra ao vencer por goleada",
         "default": 2,
         "min": 0,
         "max": 20,
         "step": 0.5,
         "required": false,
         "afeta": "regras_override.bonus_goleada"
+      },
+      {
+        "id": "bonus_pontos_goleada",
+        "tipo": "number",
+        "label": "Bônus em pontos por goleada",
+        "descricao": "Pontos extras na tabela por goleada (ex: 1 = 4 pts total)",
+        "default": 1,
+        "min": 0,
+        "max": 3,
+        "step": 1,
+        "required": false,
+        "afeta": "regras_override.bonus_pontos_goleada"
       }
     ]
   },
