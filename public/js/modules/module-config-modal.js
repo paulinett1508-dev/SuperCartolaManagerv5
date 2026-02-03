@@ -312,7 +312,9 @@ class ModuleConfigModal {
         const required = pergunta.required ? 'required' : '';
 
         const options = (pergunta.options || []).map(opt => {
-            const selected = opt.valor === valorAtual ? 'selected' : '';
+            // FIX: Usa == para permitir coerção number/string (ex: 1 == "1")
+            // JSON pode ter valores numéricos, mas HTML input retorna strings
+            const selected = opt.valor == valorAtual ? 'selected' : '';
             return `<option value="${opt.valor}" ${selected}>${opt.label}</option>`;
         }).join('');
 
