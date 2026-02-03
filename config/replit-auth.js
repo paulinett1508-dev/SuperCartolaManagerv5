@@ -154,6 +154,20 @@ export function setupReplitAuthRoutes(app) {
     if (req.query.redirect) {
       req.session.redirectAfterLogin = req.query.redirect;
       console.log("[REPLIT-AUTH] 📍 Redirect após login:", req.query.redirect);
+
+      // ✅ CRÍTICO: Salvar sessão explicitamente antes de redirecionar
+      // Sem isso, saveUninitialized: false pode não persistir o redirect
+      await new Promise((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("[REPLIT-AUTH] ❌ Erro ao salvar redirect na sessão:", err);
+            reject(err);
+          } else {
+            console.log("[REPLIT-AUTH] ✅ Redirect salvo na sessão");
+            resolve();
+          }
+        });
+      });
     }
 
     try{
