@@ -149,11 +149,14 @@ export function setupReplitAuthRoutes(app) {
   app.get("/api/admin/auth/login", async (req, res, next) => {
     console.log("[REPLIT-AUTH] 🚀 Iniciando login...");
     console.log("[REPLIT-AUTH] 🚀 Hostname:", req.hostname);
+    console.log("[REPLIT-AUTH] 🔍 Session ID:", req.sessionID);
+    console.log("[REPLIT-AUTH] 🔍 Query redirect:", req.query.redirect || "NÃO FORNECIDO");
 
     // ✅ Armazena redirect na sessão para usar no callback
     if (req.query.redirect) {
       req.session.redirectAfterLogin = req.query.redirect;
       console.log("[REPLIT-AUTH] 📍 Redirect após login:", req.query.redirect);
+      console.log("[REPLIT-AUTH] 📍 Salvo em req.session.redirectAfterLogin:", req.session.redirectAfterLogin);
 
       // ✅ CRÍTICO: Salvar sessão explicitamente antes de redirecionar
       // Sem isso, saveUninitialized: false pode não persistir o redirect
@@ -163,11 +166,14 @@ export function setupReplitAuthRoutes(app) {
             console.error("[REPLIT-AUTH] ❌ Erro ao salvar redirect na sessão:", err);
             reject(err);
           } else {
-            console.log("[REPLIT-AUTH] ✅ Redirect salvo na sessão");
+            console.log("[REPLIT-AUTH] ✅ Redirect salvo na sessão com ID:", req.sessionID);
+            console.log("[REPLIT-AUTH] ✅ Valor salvo:", req.session.redirectAfterLogin);
             resolve();
           }
         });
       });
+    } else {
+      console.log("[REPLIT-AUTH] ⚠️ Nenhum redirect fornecido - usará fallback /painel.html");
     }
 
     try{
@@ -193,6 +199,8 @@ export function setupReplitAuthRoutes(app) {
     console.log("[REPLIT-AUTH] 📥 Callback recebido");
     console.log("[REPLIT-AUTH] 📥 Query params:", req.query);
     console.log("[REPLIT-AUTH] 📥 Hostname:", req.hostname);
+    console.log("[REPLIT-AUTH] 🔍 Session ID:", req.sessionID);
+    console.log("[REPLIT-AUTH] 🔍 redirectAfterLogin na sessão:", req.session?.redirectAfterLogin || "VAZIO");
 
     try {
       const cfg = await getOidcConfig();
@@ -208,6 +216,7 @@ export function setupReplitAuthRoutes(app) {
         console.log("[REPLIT-AUTH] 📥 Dentro do authenticate callback");
         console.log("[REPLIT-AUTH] 📥 err:", err);
         console.log("[REPLIT-AUTH] 📥 req.user:", req.user?.email || "null");
+        console.log("[REPLIT-AUTH] 🔍 Session após auth - redirectAfterLogin:", req.session?.redirectAfterLogin || "VAZIO");
 
         if (err) {
           console.error("[REPLIT-AUTH] ❌ Erro no callback:", err.message || err);
@@ -225,6 +234,8 @@ export function setupReplitAuthRoutes(app) {
 
         // Pega o redirect da sessão (se existir) e limpa
         const redirectTo = req.session.redirectAfterLogin || "/painel.html";
+        console.log("[REPLIT-AUTH] 🎯 Redirect escolhido:", redirectTo);
+        console.log("[REPLIT-AUTH] 🎯 Usando fallback?", !req.session.redirectAfterLogin);
         delete req.session.redirectAfterLogin;
 
         req.session.save((saveErr) => {
