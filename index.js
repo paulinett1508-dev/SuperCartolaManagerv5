@@ -83,6 +83,8 @@ import { APP_VERSION } from "./config/appVersion.js";
 
 // 📊 MODELS PARA SYNC DE ÍNDICES
 import ExtratoFinanceiroCache from "./models/ExtratoFinanceiroCache.js";
+import UserActivity from "./models/UserActivity.js";
+import AccessLog from "./models/AccessLog.js";
 import { readFile } from "fs/promises";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
