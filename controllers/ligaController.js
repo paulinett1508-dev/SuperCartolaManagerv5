@@ -4,6 +4,7 @@ import Time from "../models/Time.js";
 import Rodada from "../models/Rodada.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import InscricaoTemporada from "../models/InscricaoTemporada.js";
+import ModuleConfig from "../models/ModuleConfig.js";
 import axios from "axios";
 import { hasAccessToLiga } from "../middleware/tenant.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
@@ -842,6 +843,29 @@ const buscarModulosAtivos = async (req, res) => {
   }
 };
 
+/**
+ * Mapeia IDs de módulos do frontend para backend
+ * Frontend usa camelCase (extrato, pontosCorridos)
+ * Backend usa snake_case (extrato, pontos_corridos)
+ */
+const mapearModuloId = (moduloFrontend) => {
+  const mapeamento = {
+    extrato: "extrato",
+    ranking: "ranking_geral",
+    rodadas: "ranking_rodada",
+    top10: "top_10",
+    melhorMes: "melhor_mes",
+    pontosCorridos: "pontos_corridos",
+    mataMata: "mata_mata",
+    artilheiro: "artilheiro",
+    luvaOuro: "luva_ouro",
+    capitaoLuxo: "capitao_luxo",
+    campinho: "campinho",
+    dicas: "dicas",
+  };
+  return mapeamento[moduloFrontend] || moduloFrontend;
+};
+
 const atualizarModulosAtivos = async (req, res) => {
   const ligaIdParam = req.params.id;
   const { modulos } = req.body;
@@ -860,14 +884,96 @@ const atualizarModulosAtivos = async (req, res) => {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
+    // 1. Salvar no sistema antigo (manter compatibilidade)
     liga.modulos_ativos = modulos;
     liga.atualizadaEm = new Date();
     await liga.save();
+
+    // 2. Sincronizar com sistema novo (ModuleConfig)
+    console.log(
+      `[LIGAS] Sincronizando ${Object.keys(modulos).length} módulos com ModuleConfig...`,
+    );
+
+    const ligaId = ligaIdParam.toString();
+    const temporada = CURRENT_SEASON;
+    let sincronizados = 0;
+    let erros = 0;
+
+    for (const [moduloKey, ativo] of Object.entries(modulos)) {
+      try {
+        const moduloBackendId = mapearModuloId(moduloKey);
+
+        if (ativo) {
+          // Ativar módulo (criar se não existir)
+          const configExistente = await ModuleConfig.buscarConfig(
+            ligaId,
+            moduloBackendId,
+            temporada,
+          );
+
+          if (!configExistente) {
+            // Criar novo documento com config default
+            await ModuleConfig.ativarModulo(
+              ligaId,
+              moduloBackendId,
+              { wizard_respostas: {} },
+              "sistema_sync",
+              temporada,
+            );
+            console.log(
+              `[LIGAS] ✅ Módulo ${moduloBackendId} ativado e criado no ModuleConfig`,
+            );
+          } else if (!configExistente.ativo) {
+            // Reativar módulo existente
+            await ModuleConfig.ativarModulo(
+              ligaId,
+              moduloBackendId,
+              { wizard_respostas: configExistente.wizard_respostas || {} },
+              "sistema_sync",
+              temporada,
+            );
+            console.log(
+              `[LIGAS] ✅ Módulo ${moduloBackendId} reativado no ModuleConfig`,
+            );
+          }
+          sincronizados++;
+        } else {
+          // Desativar módulo
+          const desativado = await ModuleConfig.desativarModulo(
+            ligaId,
+            moduloBackendId,
+            "sistema_sync",
+            temporada,
+          );
+          if (desativado) {
+            console.log(
+              `[LIGAS] ⏸️  Módulo ${moduloBackendId} desativado no ModuleConfig`,
+            );
+            sincronizados++;
+          }
+        }
+      } catch (syncError) {
+        console.error(
+          `[LIGAS] ❌ Erro ao sincronizar módulo ${moduloKey}:`,
+          syncError.message,
+        );
+        erros++;
+      }
+    }
+
+    console.log(
+      `[LIGAS] Sincronização concluída: ${sincronizados} ok, ${erros} erros`,
+    );
 
     res.json({
       success: true,
       modulos: liga.modulos_ativos,
       mensagem: "Módulos atualizados com sucesso",
+      sincronizacao: {
+        total: Object.keys(modulos).length,
+        sincronizados,
+        erros,
+      },
     });
   } catch (err) {
     console.error("[LIGAS] Erro ao atualizar módulos:", err);
