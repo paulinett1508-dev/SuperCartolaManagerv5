@@ -37,7 +37,7 @@ export async function inicializarCopaTimesSC(params) {
         // Adicionar listeners se necessário
         setupEventListeners();
 
-        if (window.Log) Log.success("PARTICIPANTE-COPA-SC", "Tela teaser carregada com sucesso!");
+        if (window.Log) Log.info("PARTICIPANTE-COPA-SC", "✅ Tela teaser carregada com sucesso!");
 
     } catch (erro) {
         if (window.Log) Log.error("PARTICIPANTE-COPA-SC", "Erro ao inicializar:", erro);
@@ -129,4 +129,4 @@ export function getEstadoCopaSC() {
 // - inscreverParticipante() - FASE 3
 // - notificarAvancoDeFase() - FASE 5
 
-if (window.Log) Log.success("PARTICIPANTE-COPA-SC", "Módulo v1.0 (Teaser) carregado!");
+if (window.Log) Log.info("PARTICIPANTE-COPA-SC", "✅ Módulo v1.0 (Teaser) carregado!");

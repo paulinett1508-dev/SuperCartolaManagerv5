@@ -14,7 +14,7 @@
 // BUILD: 2026-01-30T12:00:00Z
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v17-module-fix";
+const CACHE_NAME = "super-cartola-v18-copa-sc";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
