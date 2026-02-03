@@ -336,6 +336,7 @@ class QuickAccessBar {
                 <div class="menu-grid">
                     ${renderCard('artilheiro', 'artilheiro', 'sports_soccer', 'Artilheiro')}
                     ${renderCard('luva-ouro', 'luvaOuro', 'sports_handball', 'Luva de Ouro')}
+                    ${renderCard('capitao', 'capitaoLuxo', 'emoji_events', 'Capitão de Luxo')}
                     ${renderCard('melhor-mes', 'melhorMes', 'calendar_month', 'Melhor do Mês')}
                     ${hallDaFamaCard}
                 </div>

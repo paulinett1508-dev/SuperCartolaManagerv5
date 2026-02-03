@@ -126,7 +126,8 @@
   "enabledMcpjsonServers": [
     "mongo",
     "perplexity",
-    "context7"
+    "context7",
+    "daisyui"
   ],
   "statusLine": {
     "type": "command",
