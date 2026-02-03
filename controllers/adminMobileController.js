@@ -4,6 +4,7 @@
  */
 
 import { generateToken, isAdminAutorizado } from '../middleware/adminMobileAuth.js';
+import { getDB } from '../config/database.js';
 
 /**
  * POST /api/admin/mobile/auth
@@ -22,7 +23,7 @@ async function authenticate(req, res) {
     const { email, nome } = req.session.admin;
 
     // Verifica se é admin
-    const db = req.app.locals.db;
+    const db = req.app.locals.db || getDB();
     const isAdmin = await isAdminAutorizado(email, db);
 
     if (!isAdmin) {
@@ -72,7 +73,7 @@ async function authenticate(req, res) {
  */
 async function getDashboard(req, res) {
   try {
-    const db = req.app.locals.db;
+    const db = req.app.locals.db || getDB();
     const adminEmail = req.admin.email;
 
     // Busca ligas ativas
@@ -216,7 +217,7 @@ async function getDashboard(req, res) {
  */
 async function getLigas(req, res) {
   try {
-    const db = req.app.locals.db;
+    const db = req.app.locals.db || getDB();
     const { temporada, ativo } = req.query;
 
     // TODO FASE 3: Implementar lógica completa
@@ -236,7 +237,7 @@ async function getLigas(req, res) {
  */
 async function getLigaDetalhes(req, res) {
   try {
-    const db = req.app.locals.db;
+    const db = req.app.locals.db || getDB();
     const ligaId = parseInt(req.params.ligaId);
 
     // Busca liga
@@ -402,7 +403,7 @@ async function getLigaDetalhes(req, res) {
 async function consolidarRodada(req, res) {
   try {
     const { ligaId, rodada, forcar } = req.body;
-    const db = req.app.locals.db;
+    const db = req.app.locals.db || getDB();
 
     // Validações
     if (!ligaId || !rodada) {
@@ -531,7 +532,7 @@ async function consolidarRodada(req, res) {
 async function getConsolidacaoStatus(req, res) {
   try {
     const { ligaId, rodada } = req.params;
-    const db = req.app.locals.db;
+    const db = req.app.locals.db || getDB();
 
     const ligaIdNum = parseInt(ligaId);
     const rodadaNum = parseInt(rodada);
@@ -596,7 +597,7 @@ async function getConsolidacaoStatus(req, res) {
 async function getConsolidacaoHistorico(req, res) {
   try {
     const ligaId = parseInt(req.params.ligaId);
-    const db = req.app.locals.db;
+    const db = req.app.locals.db || getDB();
 
     // Query params opcionais
     const temporada = req.query.temporada ? parseInt(req.query.temporada) : null;

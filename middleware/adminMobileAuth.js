@@ -5,6 +5,7 @@
 
 import jwt from 'jsonwebtoken';
 import { isAdminAutorizado as isAdminAutorizadoCentral } from '../config/admin-config.js';
+import { getDB } from '../config/database.js';
 
 // ✅ SECURITY: JWT_SECRET obrigatório em produção
 const JWT_SECRET = (() => {
@@ -73,7 +74,7 @@ async function validateAdminToken(req, res, next) {
     }
 
     // Verifica se é admin (usa função centralizada)
-    const db = req.app.locals.db;
+    const db = req.app.locals.db || getDB();
     const isAdmin = await isAdminAutorizadoCentral(decoded.email, db);
 
     if (!isAdmin) {
