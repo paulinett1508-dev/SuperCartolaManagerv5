@@ -142,19 +142,11 @@ export function protegerRotas(req, res, next) {
 
   // 2. Landing page (index.html ou /) - liberar
   if (url === "/" || url === "/index.html") {
-    // ✅ Detectar se é mobile (via User-Agent ou Referer)
-    const referer = req.headers.referer || req.headers.referrer || '';
-    const userAgent = req.headers['user-agent'] || '';
-    const isMobileContext = referer.includes('/admin-mobile/') ||
-                           userAgent.toLowerCase().includes('mobile');
-
-    // Se admin logado, redirecionar conforme contexto
+    // Se admin logado, redirecionar conforme contexto (mobile vs desktop)
     if (req.session?.admin) {
-      // Se está em contexto mobile, não redirecionar (deixar frontend mobile controlar)
-      if (isMobileContext) {
-        return next();
-      }
-      return res.redirect("/painel.html");
+      const ua = req.headers['user-agent'] || '';
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      return res.redirect(isMobile ? "/admin-mobile/" : "/painel.html");
     }
     // Se participante logado, redirecionar para área participante
     if (req.session?.participante) {
