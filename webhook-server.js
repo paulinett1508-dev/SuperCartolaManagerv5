@@ -1,5 +1,6 @@
-const express = require('express');
-const { exec } = require('child_process');
+import express from 'express';
+import { exec } from 'child_process';
+
 const app = express();
 
 app.use(express.json());
@@ -14,19 +15,26 @@ app.post('/github-sync', (req, res) => {
     }
     
     console.log('✅ Sync concluído:', stdout);
+    if (stderr) console.warn('⚠️ Warnings:', stderr);
+    
     res.json({ 
       success: true, 
-      message: 'Sync executado',
+      message: 'Sync executado com sucesso',
       timestamp: new Date().toISOString()
     });
   });
 });
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime() });
+  res.json({ 
+    status: 'ok', 
+    service: 'github-sync-webhook',
+    uptime: process.uptime()
+  });
 });
 
 const PORT = process.env.WEBHOOK_PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`🎣 Webhook rodando na porta ${PORT}`);
+  console.log(`🎣 Webhook server rodando na porta ${PORT}`);
+  console.log(`📡 Endpoint: http://localhost:${PORT}/github-sync`);
 });
