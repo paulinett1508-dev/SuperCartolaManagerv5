@@ -143,12 +143,18 @@ function adicionarTime(id, nome, cartoleiro, escudo) {
     }
 }
 
+// ✅ Expor função no escopo global para onclick no HTML
+window.adicionarTime = adicionarTime;
+
 // === REMOVER TIME ===
 function removerTime(id) {
     timesSelecionados = timesSelecionados.filter((t) => t.id != id);
     atualizarListaTimes();
     showAlert("Time removido!", "success");
 }
+
+// ✅ Expor função no escopo global para onclick no HTML
+window.removerTime = removerTime;
 
 // === ATUALIZAR LISTA ===
 function atualizarListaTimes() {
