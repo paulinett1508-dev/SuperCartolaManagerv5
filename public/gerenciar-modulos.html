@@ -250,7 +250,15 @@
                 try {
                     const response = await fetch(`/api/ligas/${ligaId}/modulos-ativos`);
                     const data = await response.json();
-                    modulosState = data.modulos;
+
+                    // Garantir que todas as keys do MODULOS_CONFIG existam em modulosState
+                    // Evita que undefined seja tratado como true no render
+                    const defaults = {};
+                    Object.keys(MODULOS_CONFIG).forEach(key => {
+                        defaults[key] = MODULOS_CONFIG[key].base ? true : false;
+                    });
+                    modulosState = { ...defaults, ...data.modulos };
+
                     renderModulos();
                 } catch (error) {
                     console.error('Erro ao carregar módulos:', error);

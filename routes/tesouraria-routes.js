@@ -69,158 +69,18 @@ import {
     calcularResumoDeRodadas,
     transformarTransacoesEmRodadas,
 } from "../controllers/extratoFinanceiroCacheController.js";
+// ✅ v3.0: Usar saldo-calculator como fonte única de verdade
+import {
+    calcularSaldoParticipante,
+    aplicarAjusteInscricaoBulk,
+} from "../utils/saldo-calculator.js";
 
 const router = express.Router();
 
 // =============================================================================
-// FUNÇÃO AUXILIAR: Calcular saldo completo de um participante
+// ✅ v3.0: calcularSaldoCompleto() REMOVIDO - usar calcularSaldoParticipante()
+// de utils/saldo-calculator.js (fonte única de verdade)
 // =============================================================================
-
-async function calcularSaldoCompleto(ligaId, timeId, temporada = CURRENT_SEASON) {
-    // ✅ v2.1 FIX: Usar mesma lógica do extrato individual (recalcular a partir das rodadas)
-    // Em vez de confiar no saldo_consolidado que pode estar desatualizado
-
-    // 1. Buscar cache e RECALCULAR a partir das rodadas (igual extrato individual)
-    // ✅ v2.2 FIX: Filtrar por temporada para evitar usar cache errado quando
-    // existem múltiplos caches (ex: 2025 e 2026) para o mesmo time
-    // ✅ v2.4 FIX: Tentar busca com String primeiro (documentos novos), depois ObjectId (antigos)
-    let cache = await ExtratoFinanceiroCache.findOne({
-        liga_id: String(ligaId),
-        time_id: Number(timeId),
-        temporada: Number(temporada),
-    }).lean();
-
-    // Fallback para busca com ObjectId (alguns documentos antigos usam ObjectId)
-    if (!cache) {
-        cache = await ExtratoFinanceiroCache.findOne({
-            liga_id: new mongoose.Types.ObjectId(ligaId),
-            time_id: Number(timeId),
-            temporada: Number(temporada),
-        }).lean();
-    }
-
-    // =========================================================================
-    // ✅ v2.26 FIX CRIT-002: Deduzir taxa de inscrição se não pagou diretamente
-    // Quando participante renovou mas não pagou a inscrição, o saldo inicial
-    // deve refletir o débito da taxa (saldo_anterior - taxa)
-    // =========================================================================
-    const tempNum = Number(temporada);
-    if (tempNum >= 2026) {
-        const inscricao = await InscricaoTemporada.findOne({
-            liga_id: String(ligaId),
-            time_id: Number(timeId),
-            temporada: tempNum
-        }).lean();
-
-        if (inscricao && inscricao.pagou_inscricao === false) {
-            const taxaInscricao = inscricao.taxa_inscricao || 180;
-            const saldoAnterior = inscricao.saldo_transferido || 0;
-
-            // IMPORTANTE: Saldo inicial = saldo anterior - taxa
-            // Ex: Saldo 2025 = +R$50, Taxa = R$180 → Saldo inicial 2026 = -R$130 (DEVE)
-            const saldoInicialCorrigido = saldoAnterior - taxaInscricao;
-
-            console.log(`[TESOURARIA] 📊 Ajuste de inscrição não paga:`);
-            console.log(`  - Saldo anterior: R$ ${saldoAnterior.toFixed(2)}`);
-            console.log(`  - Taxa inscrição: R$ ${taxaInscricao.toFixed(2)}`);
-            console.log(`  - Saldo inicial: R$ ${saldoInicialCorrigido.toFixed(2)}`);
-
-            // Injetar transação virtual de inscrição no cache
-            if (!cache) {
-                cache = {
-                    liga_id: String(ligaId),
-                    time_id: Number(timeId),
-                    temporada: tempNum,
-                    saldo_consolidado: saldoInicialCorrigido,
-                    historico_transacoes: []
-                };
-            }
-
-            // Adicionar transação de inscrição (virtual - não persiste no banco)
-            cache.historico_transacoes = cache.historico_transacoes || [];
-            cache.historico_transacoes.unshift({
-                tipo: 'INSCRICAO',
-                rodada: 0,
-                valor: -taxaInscricao,
-                descricao: `Taxa de inscrição ${tempNum}`,
-                data: inscricao.criado_em || new Date()
-            });
-
-            // Ajustar saldo consolidado
-            cache.saldo_consolidado = saldoInicialCorrigido;
-        }
-    }
-
-    // ✅ v2.4 FIX: Verificar se tem apenas transações especiais (rodada 0)
-    // Nesse caso, usar saldo_consolidado diretamente
-    const apenasTransacoesEspeciais = cache?.historico_transacoes?.length > 0 &&
-        cache.historico_transacoes.every(t => t.rodada === 0 || t.tipo);
-
-    let saldoConsolidado = 0;
-    let saldoCampos = 0;
-
-    if (apenasTransacoesEspeciais) {
-        // ✅ Temporada futura com apenas inscrição/legado - usar saldo_consolidado direto
-        saldoConsolidado = cache.saldo_consolidado || 0;
-        console.log(`[TESOURARIA] Usando saldo_consolidado direto para ${temporada}: ${saldoConsolidado}`);
-    } else {
-        // ✅ RECALCULAR usando as mesmas funções do extrato individual
-        const rodadasProcessadas = transformarTransacoesEmRodadas(
-            cache?.historico_transacoes || [],
-            ligaId
-        );
-
-        // 2. Campos manuais
-        // ✅ v2.16 FIX: Incluir temporada na query (segregação de dados entre temporadas)
-        const camposManuais = await FluxoFinanceiroCampos.findOne({
-            ligaId: String(ligaId),
-            timeId: String(timeId),
-            temporada: Number(temporada),
-        }).lean();
-        const camposAtivos = camposManuais?.campos?.filter(c => c.valor !== 0) || [];
-
-        // 3. Calcular resumo (igual extrato individual)
-        const resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
-        saldoConsolidado = resumoCalculado.saldo;
-        saldoCampos = resumoCalculado.camposManuais || 0;
-    }
-
-    // 4. Saldo da temporada (já inclui campos manuais no cálculo)
-    const saldoTemporada = saldoConsolidado;
-
-    // 5. Saldo de acertos
-    // ✅ v2.3 FIX: Usar Number para temporada (schema define temporada: Number)
-    const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(
-        String(ligaId),
-        String(timeId),
-        Number(temporada)
-    );
-
-    // ✅ v2.15: Buscar ajustes dinâmicos (temporada 2026+)
-    let saldoAjustes = 0;
-    let ajustesInfo = { total: 0, creditos: 0, debitos: 0, quantidade: 0 };
-    if (Number(temporada) >= 2026) {
-        ajustesInfo = await AjusteFinanceiro.calcularTotal(ligaId, timeId, Number(temporada));
-        saldoAjustes = ajustesInfo.total || 0;
-    }
-
-    // 6. Saldo final (inclui ajustes para 2026+)
-    const saldoFinal = saldoTemporada + acertosInfo.saldoAcertos + saldoAjustes;
-
-    return {
-        saldoConsolidado: parseFloat((saldoConsolidado - saldoCampos).toFixed(2)), // Sem campos manuais
-        saldoCampos: parseFloat(saldoCampos.toFixed(2)),
-        saldoTemporada: parseFloat(saldoTemporada.toFixed(2)),
-        saldoAcertos: acertosInfo.saldoAcertos,
-        totalPago: acertosInfo.totalPago,
-        totalRecebido: acertosInfo.totalRecebido,
-        // ✅ v2.15: Incluir ajustes no retorno
-        saldoAjustes: parseFloat(saldoAjustes.toFixed(2)),
-        ajustesInfo,
-        saldoFinal: parseFloat(saldoFinal.toFixed(2)),
-        quantidadeAcertos: acertosInfo.quantidadeAcertos,
-    };
-}
 
 // =============================================================================
 // GET /api/tesouraria/participantes
@@ -259,12 +119,23 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
         }
 
         // ✅ v2.0: Bulk queries para todos os dados
-        // ✅ v2.3 FIX: Usar Number para temporada (schema define temporada: Number)
-        const [todosExtratos, todosCampos, todosAcertos] = await Promise.all([
+        // ✅ v3.0: Adicionar InscricaoTemporada ao bulk query
+        const temporadaNum = Number(temporada);
+        const [todosExtratos, todosCampos, todosAcertos, todasInscricoes] = await Promise.all([
             ExtratoFinanceiroCache.find({ time_id: { $in: allTimeIds } }).lean(),
             FluxoFinanceiroCampos.find({ timeId: { $in: allTimeIds.map(String) } }).lean(),
-            AcertoFinanceiro.find({ temporada: Number(temporada), ativo: true }).lean()
+            AcertoFinanceiro.find({ temporada: temporadaNum, ativo: true }).lean(),
+            temporadaNum >= 2026
+                ? InscricaoTemporada.find({ temporada: temporadaNum }).lean()
+                : Promise.resolve([])
         ]);
+
+        // Mapa de inscrições por liga_time
+        const inscricoesMapAll = new Map();
+        todasInscricoes.forEach(i => {
+            const key = `${String(i.liga_id)}_${i.time_id}`;
+            inscricoesMapAll.set(key, i);
+        });
 
         // Criar mapas para acesso O(1) - chave composta liga_time
         const extratoMap = new Map();
@@ -348,15 +219,21 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                     saldoCampos = resumoCalculado.camposManuais || 0;
                 }
 
+                // ✅ v3.0: Aplicar ajuste de inscrição usando dados pré-carregados
+                if (temporadaNum >= 2026) {
+                    const inscricaoData = inscricoesMapAll.get(key);
+                    const ajusteInsc = aplicarAjusteInscricaoBulk(saldoConsolidado, inscricaoData, historico);
+                    saldoConsolidado = ajusteInsc.saldoAjustado;
+                }
+
                 // ✅ v2.0: Calcular breakdown por módulo (baseado no resumo calculado)
-                // ✅ v2.9: Adicionado 'acertos' ao breakdown
                 const breakdown = {
                     banco: resumoCalculado.bonus + resumoCalculado.onus,
                     pontosCorridos: resumoCalculado.pontosCorridos,
                     mataMata: resumoCalculado.mataMata,
                     top10: resumoCalculado.top10,
-                    melhorMes: 0, // Não está no resumoCalculado padrão
-                    artilheiro: 0, // Não está no resumoCalculado padrão
+                    melhorMes: 0,
+                    artilheiro: 0,
                     luvaOuro: 0, // Não está no resumoCalculado padrão
                     campos: saldoCampos,
                     acertos: 0, // Será preenchido abaixo
@@ -678,7 +555,6 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
             if (apenasTransacoesEspeciais) {
                 // ✅ v2.22: Para pré-temporada (só inscrição/legado), usar saldo_consolidado direto
                 saldoConsolidado = extrato?.saldo_consolidado || 0;
-                console.log(`[TESOURARIA] Participante ${timeId}: usando saldo_consolidado direto = ${saldoConsolidado}`);
             } else {
                 // ✅ v2.1 FIX: RECALCULAR usando mesmas funções do extrato individual
                 const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
@@ -687,8 +563,16 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
                 saldoCampos = resumoCalculado.camposManuais || 0;
             }
 
+            // ✅ v3.0: Aplicar ajuste de inscrição usando dados pré-carregados (sem N+1)
+            let inscricaoInfo = { taxaInscricao: 0, pagouInscricao: true, saldoAnteriorTransferido: 0 };
+            if (temporadaNum >= 2026) {
+                const inscricaoData = inscricoesMap.get(timeId);
+                const ajusteInsc = aplicarAjusteInscricaoBulk(saldoConsolidado, inscricaoData, historico);
+                saldoConsolidado = ajusteInsc.saldoAjustado;
+                inscricaoInfo = ajusteInsc;
+            }
+
             // ✅ v2.0: Calcular breakdown por módulo (baseado no resumo calculado)
-            // ✅ v2.9: Adicionado 'acertos' ao breakdown
             const breakdown = {
                 banco: resumoCalculado.bonus + resumoCalculado.onus,
                 pontosCorridos: resumoCalculado.pontosCorridos,
@@ -863,7 +747,7 @@ router.get("/participante/:ligaId/:timeId", verificarAdmin, async (req, res) => 
         // ✅ v2.15: Adicionar busca de ajustes dinâmicos (2026+)
         const [saldo, acertos, cache, inscricao, inscricaoProxima, ajustes] = await Promise.all([
             // Calcular saldo completo
-            calcularSaldoCompleto(ligaId, timeId, tempNum),
+            calcularSaldoParticipante(ligaId, timeId, tempNum),
             // Buscar histórico de acertos
             AcertoFinanceiro.buscarPorTime(ligaId, timeId, tempNum),
             // Buscar cache (para quitação)
@@ -1097,6 +981,26 @@ router.post("/acerto", verificarAdmin, async (req, res) => {
         const valorNumerico = parseFloat(valor);
         const dataAcertoFinal = dataAcerto ? new Date(dataAcerto) : new Date();
 
+        // ✅ v3.0: Idempotência - verificar duplicata nos últimos 60s
+        const sessentaSegundosAtras = new Date(Date.now() - 60000);
+        const duplicata = await AcertoFinanceiro.findOne({
+            ligaId: String(ligaId),
+            timeId: String(timeId),
+            tipo,
+            valor: valorNumerico,
+            temporada: String(temporada),
+            criado_em: { $gte: sessentaSegundosAtras },
+        }).lean();
+
+        if (duplicata) {
+            console.warn(`[TESOURARIA] ⚠️ Duplicata detectada para time ${timeId}: ${tipo} R$ ${valorNumerico}`);
+            return res.status(409).json({
+                success: false,
+                error: "Acerto duplicado detectado. Aguarde 60s antes de registrar outro idêntico.",
+                duplicata: { id: duplicata._id, criadoEm: duplicata.criado_em },
+            });
+        }
+
         // Buscar nome do time se não fornecido
         let nomeTimeFinal = nomeTime;
         if (!nomeTimeFinal) {
@@ -1114,7 +1018,7 @@ router.post("/acerto", verificarAdmin, async (req, res) => {
         let valorTroco = 0;
 
         if (tipo === "pagamento") {
-            const saldoAntes = await calcularSaldoCompleto(ligaId, timeId, temporada);
+            const saldoAntes = await calcularSaldoParticipante(ligaId, timeId, temporada);
             const dividaAtual = saldoAntes.saldoFinal < 0 ? Math.abs(saldoAntes.saldoFinal) : 0;
 
             console.log(`[TESOURARIA] Verificando troco para ${nomeTimeFinal}:`);
@@ -1174,13 +1078,13 @@ router.post("/acerto", verificarAdmin, async (req, res) => {
         // =========================================================================
         const tempNum = parseInt(temporada);
         if (tipo === "pagamento" && tempNum >= 2026) {
-            // Verificar se a descrição indica pagamento de inscrição
-            const ehPagamentoInscricao = descricao &&
+            // ✅ v3.0: Usar campo explícito OU fallback para detecção por texto
+            const ehPagamentoInscricaoFlag = req.body.ehPagamentoInscricao === true;
+            const ehPagamentoInscricaoTexto = descricao &&
                 (descricao.toLowerCase().includes("inscrição") ||
                  descricao.toLowerCase().includes("inscricao") ||
-                 descricao.toLowerCase().includes("taxa") ||
-                 descricao.toLowerCase().includes("renovação") ||
-                 descricao.toLowerCase().includes("renovacao"));
+                 descricao.toLowerCase().includes("taxa de inscrição"));
+            const ehPagamentoInscricao = ehPagamentoInscricaoFlag || ehPagamentoInscricaoTexto;
 
             if (ehPagamentoInscricao) {
                 // Buscar inscrição
@@ -1191,7 +1095,7 @@ router.post("/acerto", verificarAdmin, async (req, res) => {
                 });
 
                 if (inscricao) {
-                    const taxaInscricao = inscricao.taxa_inscricao || 180;
+                    const taxaInscricao = inscricao.taxa_inscricao || 0;
 
                     // Se o acerto cobre a taxa, marcar como pago
                     if (valorNumerico >= taxaInscricao) {
@@ -1223,7 +1127,7 @@ router.post("/acerto", verificarAdmin, async (req, res) => {
         console.log(`[TESOURARIA] ✅ Acerto registrado para time ${timeId} (cache preservado)`)
 
         // Calcular novo saldo
-        const novoSaldo = await calcularSaldoCompleto(ligaId, timeId, temporada);
+        const novoSaldo = await calcularSaldoParticipante(ligaId, timeId, temporada);
 
         // =====================================================================
         // ✅ v2.2: Campos manuais NÃO são zerados (mantém histórico completo)
@@ -1316,7 +1220,6 @@ router.post("/acerto", verificarAdmin, async (req, res) => {
 router.delete("/acerto/:id", verificarAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { hardDelete = false } = req.query;
 
         const acerto = await AcertoFinanceiro.findById(id);
 
@@ -1327,20 +1230,14 @@ router.delete("/acerto/:id", verificarAdmin, async (req, res) => {
             });
         }
 
-        if (hardDelete === "true") {
-            await AcertoFinanceiro.findByIdAndDelete(id);
-        } else {
-            acerto.ativo = false;
-            await acerto.save();
-        }
+        // ✅ v3.0: Sempre soft delete (preservar histórico para auditoria)
+        acerto.ativo = false;
+        await acerto.save();
 
-        // ✅ v2.5 FIX CRITICO: NÃO DELETAR CACHE DO EXTRATO
-        // Acertos são armazenados em coleção separada e integrados na consulta
-        // Ref: acertos-financeiros-routes.js v1.4.0
-        console.log(`[TESOURARIA] ✅ Acerto removido para time ${acerto.timeId} (cache preservado)`)
+        console.log(`[TESOURARIA] ✅ Acerto desativado para time ${acerto.timeId} (cache preservado)`)
 
         // Calcular novo saldo
-        const novoSaldo = await calcularSaldoCompleto(
+        const novoSaldo = await calcularSaldoParticipante(
             acerto.ligaId,
             acerto.timeId,
             acerto.temporada
@@ -1348,7 +1245,7 @@ router.delete("/acerto/:id", verificarAdmin, async (req, res) => {
 
         res.json({
             success: true,
-            message: hardDelete === "true" ? "Acerto removido permanentemente" : "Acerto desativado",
+            message: "Acerto desativado",
             novoSaldo: {
                 saldoTemporada: novoSaldo.saldoTemporada,
                 saldoAcertos: novoSaldo.saldoAcertos,
@@ -1385,7 +1282,7 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
             let qtdQuitados = 0;
 
             for (const participante of liga.participantes || []) {
-                const saldo = await calcularSaldoCompleto(ligaId, participante.time_id, temporada);
+                const saldo = await calcularSaldoParticipante(ligaId, participante.time_id, temporada);
 
                 if (saldo.saldoFinal < -0.01) {
                     // Devedor: saldo negativo (deve à liga)

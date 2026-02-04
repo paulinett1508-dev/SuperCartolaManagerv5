@@ -20,9 +20,9 @@ const AjusteFinanceiroSchema = new mongoose.Schema({
     // =========================================================================
     // IDENTIFICAÇÃO
     // =========================================================================
+    // ✅ v1.1: Mudado de ObjectId para Mixed para compatibilidade com dados String/ObjectId
     liga_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Liga",
+        type: mongoose.Schema.Types.Mixed,
         required: true,
         index: true
     },
@@ -108,8 +108,13 @@ AjusteFinanceiroSchema.index(
  * @returns {Promise<Array>}
  */
 AjusteFinanceiroSchema.statics.listarPorParticipante = async function(ligaId, timeId, temporada = CURRENT_SEASON) {
+    // ✅ v1.1: Query com $or para compatibilidade String/ObjectId
+    const ligaQuery = [];
+    try { ligaQuery.push(new mongoose.Types.ObjectId(ligaId)); } catch {}
+    ligaQuery.push(String(ligaId));
+
     return this.find({
-        liga_id: new mongoose.Types.ObjectId(ligaId),
+        liga_id: { $in: ligaQuery },
         time_id: Number(timeId),
         temporada: Number(temporada),
         ativo: true
@@ -124,10 +129,14 @@ AjusteFinanceiroSchema.statics.listarPorParticipante = async function(ligaId, ti
  * @returns {Promise<Object>} { total, creditos, debitos, quantidade }
  */
 AjusteFinanceiroSchema.statics.calcularTotal = async function(ligaId, timeId, temporada = CURRENT_SEASON) {
+    // ✅ v1.1: Query com $in para compatibilidade String/ObjectId
+    const ligaQuery = [String(ligaId)];
+    try { ligaQuery.push(new mongoose.Types.ObjectId(ligaId)); } catch {}
+
     const resultado = await this.aggregate([
         {
             $match: {
-                liga_id: new mongoose.Types.ObjectId(ligaId),
+                liga_id: { $in: ligaQuery },
                 time_id: Number(timeId),
                 temporada: Number(temporada),
                 ativo: true
@@ -170,8 +179,9 @@ AjusteFinanceiroSchema.statics.calcularTotal = async function(ligaId, timeId, te
  * @returns {Promise<Object>}
  */
 AjusteFinanceiroSchema.statics.criar = async function(dados) {
+    // ✅ v1.1: Armazenar como String para consistência
     const ajuste = new this({
-        liga_id: new mongoose.Types.ObjectId(dados.liga_id),
+        liga_id: String(dados.liga_id),
         time_id: Number(dados.time_id),
         temporada: Number(dados.temporada || CURRENT_SEASON),
         descricao: dados.descricao,

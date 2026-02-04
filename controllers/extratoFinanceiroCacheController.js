@@ -55,6 +55,7 @@ import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
 import RodadaSnapshot from "../models/RodadaSnapshot.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
+import AjusteFinanceiro from "../models/AjusteFinanceiro.js";
 import mongoose from "mongoose";
 // ✅ v5.9: Import getFinancialSeason para pegar temporada correta durante pré-temporada
 import { CURRENT_SEASON, getFinancialSeason } from "../config/seasons.js";
@@ -621,6 +622,13 @@ export const getExtratoCache = async (req, res) => {
         // ✅ v5.1: Buscar acertos financeiros em paralelo
         // ✅ v5.6 FIX: Passar temporada correta
         const acertosPromise = buscarAcertosFinanceiros(ligaId, timeId, temporadaNum);
+        // ✅ v7.0: Buscar ajustes financeiros (sistema dinâmico 2026+) em paralelo
+        const ajustesPromise = AjusteFinanceiro.calcularTotal(
+            String(ligaId), Number(timeId), Number(temporadaNum)
+        ).catch(() => ({ total: 0, quantidade: 0 }));
+        // ✅ v7.0: Buscar config da liga para enriquecer resposta (módulos + zonas)
+        const ligaPromise = Liga.findById(ligaId).select('modulos_ativos configuracoes.ranking_rodada participantes').lean()
+            .catch(() => null);
 
         // ✅ v5.7 FIX: Usar query nativa para evitar conversão de tipo pelo Mongoose
         // O schema define liga_id como ObjectId, mas alguns registros estão como String
@@ -635,8 +643,14 @@ export const getExtratoCache = async (req, res) => {
         });
         console.log('[CACHE-CONTROLLER] Cache encontrado via query nativa:', cache ? 'SIM' : 'NÃO');
 
-        // ✅ v5.1: Aguardar acertos
-        const acertos = await acertosPromise;
+        // ✅ v5.1: Aguardar acertos, ajustes e liga
+        const [acertos, ajustesInfo, ligaData] = await Promise.all([acertosPromise, ajustesPromise, ligaPromise]);
+        const saldoAjustesGlobal = ajustesInfo.total || 0;
+
+        // ✅ v7.0: Extrair config de zona e módulos ativos da liga
+        const zonaConfig = ligaData?.configuracoes?.ranking_rodada || null;
+        const modulosAtivos = ligaData?.modulos_ativos || {};
+        const totalParticipantes = ligaData?.participantes?.filter(p => p.ativo !== false)?.length || 0;
 
         // ✅ v5.0: Se não tem cache, tentar buscar dos snapshots
         // ✅ v6.1 FIX: Passar temporada para evitar retornar snapshot de temporada errada
@@ -750,7 +764,8 @@ export const getExtratoCache = async (req, res) => {
                     // ✅ v6.4 FIX CRÍTICO: Incluir acertos no saldo final
                     // Acertos já foram buscados acima, usar o saldo deles
                     const saldoAcertosIns = acertos?.resumo?.saldo ?? 0;
-                    const saldoFinalComAcertos = saldoInicial + saldoAcertosIns;
+                    // ✅ v7.0: Incluir ajustes dinâmicos no saldo
+                    const saldoFinalComAcertos = saldoInicial + saldoAcertosIns + saldoAjustesGlobal;
 
                     // ✅ v6.3 FIX: Calcular ganhos/perdas considerando crédito transferido
                     let totalGanhos = saldoTransferido > 0 ? saldoTransferido : 0;
@@ -778,6 +793,9 @@ export const getExtratoCache = async (req, res) => {
                         pagouInscricao: pagouInscricao,
                         // ✅ v6.3 FIX: Incluir saldo anterior para UI
                         saldoAnteriorTransferido: saldoTransferido,
+                        // ✅ v7.0: Incluir ajustes dinâmicos
+                        saldoAjustes: saldoAjustesGlobal,
+                        quantidadeAjustes: ajustesInfo.quantidade || 0,
                     };
 
                     console.log(`[CACHE-CONTROLLER] ✅ Extrato inicial: taxa=${taxaInscricao}, saldoTransferido=${saldoTransferido}, saldoInicial=${saldoInicial}, acertos=${saldoAcertosIns}, saldoFinal=${saldoFinalComAcertos}, status=${statusInscricao}`);
@@ -796,6 +814,16 @@ export const getExtratoCache = async (req, res) => {
                             taxaInscricao: taxaInscricao,
                             pagouInscricao: inscricao.pagou_inscricao || false,
                             saldoInicial: inscricao.saldo_inicial_temporada || 0,
+                        },
+                        // ✅ v7.0: Config da liga para extrato inteligente
+                        ligaConfig: {
+                            modulosAtivos,
+                            zonaConfig: zonaConfig ? {
+                                valores: zonaConfig.valores || {},
+                                faixas: zonaConfig.faixas || null,
+                                temporal: zonaConfig.temporal || false,
+                                totalParticipantes,
+                            } : null,
                         },
                         inativo: isInativo,
                         rodadaDesistencia,
@@ -884,7 +912,10 @@ export const getExtratoCache = async (req, res) => {
         const saldoAcertosCc = acertos?.resumo?.saldo ?? 0;
         resumoCalculado.saldo_temporada = resumoCalculado.saldo;
         resumoCalculado.saldo_acertos = saldoAcertosCc;
-        resumoCalculado.saldo = resumoCalculado.saldo + saldoAcertosCc;
+        // ✅ v7.0: Incluir ajustes dinâmicos (sistema 2026+)
+        resumoCalculado.saldoAjustes = saldoAjustesGlobal;
+        resumoCalculado.quantidadeAjustes = ajustesInfo.quantidade || 0;
+        resumoCalculado.saldo = resumoCalculado.saldo + saldoAcertosCc + saldoAjustesGlobal;
         resumoCalculado.saldo_final = resumoCalculado.saldo;
         resumoCalculado.saldo_atual = resumoCalculado.saldo;
 
@@ -902,6 +933,7 @@ export const getExtratoCache = async (req, res) => {
         }
 
         // ✅ v5.1: Adicionar acertos ao retorno
+        // ✅ v7.0: Incluir config da liga (módulos + zonas)
         res.json({
             cached: true,
             fonte: 'cache',
@@ -909,7 +941,17 @@ export const getExtratoCache = async (req, res) => {
             rodadas: rodadasConsolidadas,
             resumo: resumoCalculado,
             camposManuais: camposAtivos,
-            acertos: acertos, // ✅ v5.1: Incluir acertos
+            acertos: acertos,
+            // ✅ v7.0: Config da liga para extrato inteligente
+            ligaConfig: {
+                modulosAtivos,
+                zonaConfig: zonaConfig ? {
+                    valores: zonaConfig.valores || {},
+                    faixas: zonaConfig.faixas || null,
+                    temporal: zonaConfig.temporal || false,
+                    totalParticipantes,
+                } : null,
+            },
             metadados: cache.metadados,
             ultimaRodadaCalculada: cache.ultima_rodada_consolidada,
             updatedAt: cache.updatedAt,
@@ -1086,7 +1128,8 @@ export const verificarCacheValido = async (req, res) => {
         const temporadaNum = parseInt(temporada) || getFinancialSeason();
 
         // ✅ v5.7 FIX: Executar queries independentes em PARALELO
-        const [statusTime, statusTemporada, cacheExistente, acertos] = await Promise.all([
+        // ✅ v7.0: Incluir ajustes na busca paralela
+        const [statusTime, statusTemporada, cacheExistente, acertos, ajustesInfoVal] = await Promise.all([
             buscarStatusTime(ligaId, timeId),
             verificarTemporadaFinalizada(ligaId),
             ExtratoFinanceiroCache.findOne({
@@ -1095,6 +1138,8 @@ export const verificarCacheValido = async (req, res) => {
                 temporada: temporadaNum,
             }).lean(),
             buscarAcertosFinanceiros(ligaId, timeId),
+            AjusteFinanceiro.calcularTotal(String(ligaId), Number(timeId), Number(temporadaNum))
+                .catch(() => ({ total: 0, quantidade: 0 })),
         ]);
 
         const isInativo = statusTime.ativo === false;
@@ -1113,11 +1158,15 @@ export const verificarCacheValido = async (req, res) => {
         // ✅ v5.2 FIX: Acertos já buscados em paralelo acima
         const saldoAcertosVal = acertos?.resumo?.saldo ?? 0;
 
-        // Helper para adicionar acertos ao resumo
+        // Helper para adicionar acertos e ajustes ao resumo
+        const saldoAjustesVal = ajustesInfoVal.total || 0;
         const adicionarAcertosAoResumo = (resumo) => {
             resumo.saldo_temporada = resumo.saldo;
             resumo.saldo_acertos = saldoAcertosVal;
-            resumo.saldo = resumo.saldo + saldoAcertosVal;
+            // ✅ v7.0: Incluir ajustes dinâmicos
+            resumo.saldoAjustes = saldoAjustesVal;
+            resumo.quantidadeAjustes = ajustesInfoVal.quantidade || 0;
+            resumo.saldo = resumo.saldo + saldoAcertosVal + saldoAjustesVal;
             resumo.saldo_final = resumo.saldo;
             resumo.saldo_atual = resumo.saldo;
             return resumo;
@@ -1427,14 +1476,23 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
 
         // ✅ v5.2 FIX: Buscar acertos financeiros e incluir no saldo final
         // ✅ v5.6 FIX: Passar temporada para buscar acertos da temporada correta
-        const acertos = await buscarAcertosFinanceiros(ligaId, timeId, temporadaNum);
+        // ✅ v7.0: Buscar ajustes dinâmicos em paralelo
+        const [acertos, ajustesInfoLer] = await Promise.all([
+            buscarAcertosFinanceiros(ligaId, timeId, temporadaNum),
+            AjusteFinanceiro.calcularTotal(String(ligaId), Number(timeId), Number(temporadaNum))
+                .catch(() => ({ total: 0, quantidade: 0 })),
+        ]);
         const saldoAcertos = acertos?.resumo?.saldo ?? 0;
+        const saldoAjustesLer = ajustesInfoLer.total || 0;
 
-        // Adicionar saldo de acertos ao resumo
+        // Adicionar saldo de acertos e ajustes ao resumo
         const saldoTemporada = resumoCalculado.saldo; // Saldo SEM acertos (só rodadas + campos)
         resumoCalculado.saldo_temporada = saldoTemporada; // Preservar saldo original
         resumoCalculado.saldo_acertos = saldoAcertos;
-        resumoCalculado.saldo = saldoTemporada + saldoAcertos; // Saldo COM acertos
+        // ✅ v7.0: Incluir ajustes dinâmicos
+        resumoCalculado.saldoAjustes = saldoAjustesLer;
+        resumoCalculado.quantidadeAjustes = ajustesInfoLer.quantidade || 0;
+        resumoCalculado.saldo = saldoTemporada + saldoAcertos + saldoAjustesLer; // Saldo COM acertos + ajustes
         resumoCalculado.saldo_final = resumoCalculado.saldo;
         resumoCalculado.saldo_atual = resumoCalculado.saldo; // ✅ Usado pelo UI do App
 

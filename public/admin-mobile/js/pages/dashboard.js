@@ -123,7 +123,7 @@ function renderLigaCard(liga) {
     : '';
 
   return `
-    <div class="card card-clickable" onclick="window.router.navigate('/ligas', { ligaId: ${liga.id} })">
+    <div class="card card-clickable" onclick="window.router.navigate('/ligas', { ligaId: '${liga.id}' })">
       <div class="card-header">
         <div>
           <h3 class="card-title">${liga.nome}</h3>

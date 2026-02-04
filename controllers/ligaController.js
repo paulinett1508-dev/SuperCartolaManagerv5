@@ -816,23 +816,36 @@ const buscarModulosAtivos = async (req, res) => {
 
     let modulosAtivos;
 
+    // Defaults completos para todos os módulos conhecidos
+    const defaults = {
+      extrato: true,
+      ranking: true,
+      rodadas: true,
+      top10: false,
+      melhorMes: false,
+      pontosCorridos: false,
+      mataMata: false,
+      artilheiro: false,
+      luvaOuro: false,
+      capitaoLuxo: false,
+      campinho: false,
+      dicas: false,
+    };
+
     if (liga.modulos_ativos && Object.keys(liga.modulos_ativos).length > 0) {
-      modulosAtivos = liga.modulos_ativos;
+      // Merge: defaults + valores salvos (garantir todas as keys)
+      modulosAtivos = { ...defaults, ...liga.modulos_ativos };
     } else {
       const config = liga.configuracoes || {};
 
       modulosAtivos = {
-        extrato: true,
-        ranking: true,
-        rodadas: true,
+        ...defaults,
         top10: !!config.top10,
         melhorMes: !!config.melhor_mes,
         pontosCorridos: !!config.pontos_corridos,
         mataMata: !!config.mata_mata,
         artilheiro: !!config.artilheiro,
         luvaOuro: !!config.luva_ouro,
-        campinho: false,
-        dicas: false,
       };
     }
 
@@ -885,9 +898,11 @@ const atualizarModulosAtivos = async (req, res) => {
     }
 
     // 1. Salvar no sistema antigo (manter compatibilidade)
-    liga.modulos_ativos = modulos;
-    liga.atualizadaEm = new Date();
-    await liga.save();
+    // Usar updateOne com $set para bypass do change tracking do Mongoose Mixed type
+    await Liga.updateOne(
+      { _id: ligaIdParam },
+      { $set: { modulos_ativos: modulos, atualizadaEm: new Date() } },
+    );
 
     // 2. Sincronizar com sistema novo (ModuleConfig)
     console.log(
@@ -967,7 +982,7 @@ const atualizarModulosAtivos = async (req, res) => {
 
     res.json({
       success: true,
-      modulos: liga.modulos_ativos,
+      modulos: modulos,
       mensagem: "Módulos atualizados com sucesso",
       sincronizacao: {
         total: Object.keys(modulos).length,

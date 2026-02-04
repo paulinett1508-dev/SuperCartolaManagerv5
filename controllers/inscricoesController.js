@@ -22,74 +22,33 @@ import LigaRules from "../models/LigaRules.js";
 import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
+import { calcularSaldoParticipante, classificarSituacao } from "../utils/saldo-calculator.js";
+import crypto from "crypto";
 
 // =============================================================================
 // FUNÇÕES AUXILIARES
 // =============================================================================
 
 /**
- * Busca saldo final de um participante na temporada anterior
+ * Busca saldo final de um participante na temporada
+ * ✅ v2.0.0: Delegado para calcularSaldoParticipante (fonte única de verdade)
+ *
  * @param {string} ligaId - ID da liga
  * @param {number} timeId - ID do time
  * @param {number} temporada - Temporada a buscar
- * @returns {Promise<Object>} { saldoExtrato, saldoAcertos, saldoFinal, status }
+ * @returns {Promise<Object>} { saldoExtrato, saldoAcertos, camposManuais, saldoFinal, status }
  */
 export async function buscarSaldoTemporada(ligaId, timeId, temporada) {
-    const db = mongoose.connection.db;
-
-    // Buscar extrato
-    const extrato = await db.collection('extratofinanceirocaches').findOne({
-        $or: [
-            { liga_id: String(ligaId) },
-            { liga_id: new mongoose.Types.ObjectId(ligaId) }
-        ],
-        time_id: Number(timeId),
-        temporada: Number(temporada)
+    const resultado = await calcularSaldoParticipante(ligaId, timeId, temporada, {
+        recalcular: false, // Path rápido — usa cache consolidado
     });
-
-    // Buscar acertos
-    const acertos = await db.collection('acertofinanceiros').find({
-        ligaId: String(ligaId),
-        timeId: String(timeId),
-        temporada: Number(temporada),
-        ativo: true
-    }).toArray();
-
-    // ✅ v1.2: Buscar campos manuais
-    const camposManuais = await db.collection('fluxofinanceirocampos').findOne({
-        ligaId: String(ligaId),
-        timeId: String(timeId),
-        temporada: Number(temporada)
-    });
-
-    let totalCamposManuais = 0;
-    if (camposManuais?.campos) {
-        camposManuais.campos.forEach(c => {
-            totalCamposManuais += parseFloat(c.valor) || 0;
-        });
-    }
-
-    // Calcular saldo de acertos
-    let saldoAcertos = 0;
-    acertos.forEach(a => {
-        if (a.tipo === 'pagamento') saldoAcertos += a.valor || 0;
-        else if (a.tipo === 'recebimento') saldoAcertos -= a.valor || 0;
-    });
-
-    const saldoExtrato = extrato?.saldo_consolidado || 0;
-    const saldoFinal = saldoExtrato + saldoAcertos + totalCamposManuais;
-
-    // Determinar status
-    let status = 'quitado';
-    if (saldoFinal > 0.01) status = 'credor';
-    else if (saldoFinal < -0.01) status = 'devedor';
 
     return {
-        saldoExtrato,
-        saldoAcertos,
-        camposManuais: totalCamposManuais,
-        saldoFinal,
-        status
+        saldoExtrato: resultado.saldoTemporada,
+        saldoAcertos: resultado.saldoAcertos,
+        camposManuais: resultado.saldoAjustes,
+        saldoFinal: resultado.saldoFinal,
+        status: classificarSituacao(resultado.saldoFinal),
     };
 }
 
@@ -1194,7 +1153,7 @@ export async function processarBatchInscricoes(ligaId, temporada, timeIds, acao,
 
                 case 'gerar_senhas':
                     // Gerar senha aleatória
-                    const novaSenha = Math.random().toString(36).substring(2, 10);
+                    const novaSenha = crypto.randomBytes(4).toString('hex');
                     await Time.updateOne({ id: Number(timeId) }, { $set: { senha_acesso: novaSenha } });
                     await Liga.updateOne(
                         { _id: ligaId, "participantes.time_id": Number(timeId) },
