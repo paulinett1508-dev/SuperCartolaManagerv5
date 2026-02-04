@@ -14,6 +14,47 @@ const TEMPORADAS_CONFIG = {
 // Cache de escalações em memória (escalação não muda durante a rodada)
 const _escalacaoCache = new Map();
 
+/**
+ * FIX SEC-001: Helper para fetch com timeout e retry
+ */
+async function fetchComTimeoutERetry(url, options = {}, timeoutMs = 10000, maxRetries = 3) {
+    for (let tentativa = 0; tentativa < maxRetries; tentativa++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            // FIX SEC-002: Retry em rate limiting (429)
+            if (response.status === 429 && tentativa < maxRetries - 1) {
+                const delay = Math.pow(2, tentativa) * 1000; // Exponential backoff: 1s, 2s, 4s
+                console.warn(`[PARCIAIS] [SEC] Rate limited (429), aguardando ${delay}ms antes de retry ${tentativa + 1}/${maxRetries}`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue;
+            }
+
+            return response;
+        } catch (error) {
+            clearTimeout(timeoutId);
+
+            if (error.name === 'AbortError') {
+                console.warn(`[PARCIAIS] [SEC] Timeout (${timeoutMs}ms) em ${url}`);
+                if (tentativa < maxRetries - 1) {
+                    const delay = 1000 * (tentativa + 1);
+                    console.log(`[PARCIAIS] [SEC] Retry ${tentativa + 1}/${maxRetries} após ${delay}ms`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue;
+                }
+            }
+            throw error;
+        }
+    }
+}
+
 // Estado do módulo
 const estadoParciais = {
     ligaId: null,
@@ -36,6 +77,15 @@ const estadoParciais = {
         cycles: 0
     }
 };
+
+/**
+ * FIX PERF-001: Limpar cache de escalações ao mudar de rodada
+ */
+function limparCacheEscalacoes() {
+    const tamanhoAntes = _escalacaoCache.size;
+    _escalacaoCache.clear();
+    console.log(`[PARCIAIS] [PERF] Cache de escalações limpo (${tamanhoAntes} entradas removidas)`);
+}
 
 /**
  * Obter temporada selecionada da URL ou contexto global
@@ -180,20 +230,35 @@ async function buscarTimesLiga(ligaId) {
 async function buscarAtletasPontuados() {
     try {
         const timestamp = Date.now();
-        const response = await fetch(`/api/cartola/atletas/pontuados?_t=${timestamp}`, {
-            cache: "no-store",
-            headers: {
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache",
-                "Expires": "0"
-            }
-        });
+        // FIX SEC-001: Usar fetch com timeout e retry
+        const response = await fetchComTimeoutERetry(
+            `/api/cartola/atletas/pontuados?_t=${timestamp}`,
+            {
+                cache: "no-store",
+                headers: {
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0"
+                }
+            },
+            10000, // 10s timeout
+            3 // 3 tentativas
+        );
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
+        // FIX SEC-003: Validar Content-Type
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            console.warn('[PARCIAIS] [SEC] Resposta não é JSON');
+            return {};
+        }
+
         const data = await response.json();
-        if (!data.atletas) {
-            console.warn("[PARCIAIS] ⚠️ Sem atletas pontuados na resposta");
+
+        // FIX SEC-003: Validar estrutura da resposta
+        if (!data || typeof data !== 'object' || !data.atletas) {
+            console.warn("[PARCIAIS] ⚠️ Estrutura de resposta inválida");
             return {};
         }
 
@@ -223,13 +288,19 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
 
         if (!dadosEscalacao) {
             const timestamp = Date.now();
-            const response = await fetch(`/api/cartola/time/id/${timeId}/${rodada}?_t=${timestamp}`, {
-                cache: "no-store",
-                headers: {
-                    "Cache-Control": "no-cache, no-store, must-revalidate",
-                    "Pragma": "no-cache"
-                }
-            });
+            // FIX SEC-001: Usar fetch com timeout e retry
+            const response = await fetchComTimeoutERetry(
+                `/api/cartola/time/id/${timeId}/${rodada}?_t=${timestamp}`,
+                {
+                    cache: "no-store",
+                    headers: {
+                        "Cache-Control": "no-cache, no-store, must-revalidate",
+                        "Pragma": "no-cache"
+                    }
+                },
+                10000, // 10s timeout
+                3 // 3 tentativas
+            );
 
             if (!response.ok) {
                 if (response.status === 404) {
@@ -395,6 +466,12 @@ async function carregarParciais() {
             return;
         }
 
+        // FIX PERF-001: Limpar cache se rodada mudou
+        if (estadoParciais.rodadaAtual && estadoParciais.rodadaAtual !== status.rodada_atual) {
+            console.log(`[PARCIAIS] [PERF] Rodada mudou de ${estadoParciais.rodadaAtual} para ${status.rodada_atual}`);
+            limparCacheEscalacoes();
+        }
+
         estadoParciais.mercadoStatus = status;
         estadoParciais.rodadaAtual = status.rodada_atual;
 
@@ -409,8 +486,8 @@ async function carregarParciais() {
 
         // 3. Mostrar loading
         container.innerHTML = `
-            <div class="parciais-loading-estado">
-                <div class="spinner"></div>
+            <div class="parciais-loading-estado" role="status" aria-live="polite" aria-busy="true">
+                <div class="spinner" aria-hidden="true"></div>
                 <span>Calculando pontuações...</span>
             </div>
         `;
@@ -476,15 +553,15 @@ function mostrarUIErro(mensagem) {
     if (!container) return;
 
     container.innerHTML = `
-        <div class="parciais-encerrado">
-            <div class="parciais-encerrado-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
-                <span class="material-icons">error_outline</span>
+        <div class="parciais-encerrado" role="alert" aria-live="polite">
+            <div class="parciais-encerrado-icon" style="background: var(--gradient-error, linear-gradient(135deg, #ef4444 0%, #dc2626 100%));">
+                <span class="material-icons" aria-hidden="true">error_outline</span>
             </div>
             <h2 class="parciais-encerrado-title">Erro</h2>
             <p class="parciais-encerrado-subtitle">${mensagem}</p>
             <div class="parciais-encerrado-actions">
-                <button class="parciais-btn-ranking" onclick="window.carregarParciais()">
-                    <span class="material-icons">refresh</span>
+                <button class="parciais-btn-ranking" onclick="window.carregarParciais()" aria-label="Tentar carregar parciais novamente">
+                    <span class="material-icons" aria-hidden="true">refresh</span>
                     Tentar Novamente
                 </button>
             </div>
@@ -500,23 +577,23 @@ function mostrarUIMercadoAberto(rodada, temporada) {
     if (!container) return;
 
     container.innerHTML = `
-        <div class="parciais-encerrado">
-            <div class="parciais-encerrado-icon" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">
-                <span class="material-icons">storefront</span>
+        <div class="parciais-encerrado" role="status" aria-live="polite">
+            <div class="parciais-encerrado-icon" style="background: var(--gradient-success, linear-gradient(135deg, #22c55e 0%, #16a34a 100%));">
+                <span class="material-icons" aria-hidden="true">storefront</span>
             </div>
             <h2 class="parciais-encerrado-title">Mercado Aberto</h2>
             <p class="parciais-encerrado-subtitle">
                 Temporada ${temporada} - Próxima Rodada: ${rodada}
             </p>
             <div class="parciais-encerrado-info">
-                <span class="material-icons">info</span>
+                <span class="material-icons" aria-hidden="true">info</span>
                 <p>
                     Os parciais estarão disponíveis quando o mercado fechar e os jogos começarem.
                 </p>
             </div>
             <div class="parciais-encerrado-actions">
-                <button class="parciais-btn-ranking" onclick="window.orquestrador?.voltarParaCards()">
-                    <span class="material-icons">arrow_back</span>
+                <button class="parciais-btn-ranking" onclick="window.orquestrador?.voltarParaCards()" aria-label="Voltar para lista de módulos">
+                    <span class="material-icons" aria-hidden="true">arrow_back</span>
                     Voltar aos Módulos
                 </button>
             </div>
@@ -532,23 +609,23 @@ function mostrarUIAguardandoPontuacao(rodada, temporada) {
     if (!container) return;
 
     container.innerHTML = `
-        <div class="parciais-encerrado">
-            <div class="parciais-encerrado-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                <span class="material-icons">sports_soccer</span>
+        <div class="parciais-encerrado" role="status" aria-live="polite">
+            <div class="parciais-encerrado-icon" style="background: var(--gradient-warning, linear-gradient(135deg, #f59e0b 0%, #d97706 100%));">
+                <span class="material-icons" aria-hidden="true">sports_soccer</span>
             </div>
             <h2 class="parciais-encerrado-title">Rodada ${rodada} - Temporada ${temporada}</h2>
             <p class="parciais-encerrado-subtitle">
                 Aguardando início dos jogos
             </p>
             <div class="parciais-encerrado-info">
-                <span class="material-icons">info</span>
+                <span class="material-icons" aria-hidden="true">info</span>
                 <p>
                     As pontuações aparecerão assim que os jogos começarem.
                 </p>
             </div>
             <div class="parciais-encerrado-actions">
-                <button class="parciais-btn-ranking" onclick="window.carregarParciais()">
-                    <span class="material-icons">refresh</span>
+                <button class="parciais-btn-ranking" onclick="window.carregarParciais()" aria-label="Atualizar parciais">
+                    <span class="material-icons" aria-hidden="true">refresh</span>
                     Atualizar
                 </button>
             </div>
@@ -576,20 +653,20 @@ function renderizarRankingParcial(resultados, rodada, temporada) {
         <div class="parciais-ranking-wrapper">
             <div class="parciais-header">
                 <div class="parciais-header-info">
-                    <span class="parciais-badge-live">
-                        <span class="live-dot"></span>
+                    <span class="parciais-badge-live" role="status" aria-live="polite" aria-label="Pontuações ao vivo em tempo real">
+                        <span class="live-dot" aria-hidden="true"></span>
                         AO VIVO
                     </span>
                     <h2>Rodada ${rodada} - Temporada ${temporada}</h2>
                 </div>
                 <div class="parciais-header-actions">
-                    <span class="parciais-atualizado">Atualizado: ${atualizadoEm}</span>
-                    <button class="parciais-btn-refresh" onclick="window.carregarParciais()" title="Atualizar">
-                        <span class="material-icons">refresh</span>
+                    <span class="parciais-atualizado" aria-label="Horário da última atualização">Atualizado: ${atualizadoEm}</span>
+                    <button class="parciais-btn-refresh" onclick="window.carregarParciais()" title="Atualizar" aria-label="Atualizar pontuações agora">
+                        <span class="material-icons" aria-hidden="true">refresh</span>
                     </button>
                 </div>
             </div>
-            <div class="parciais-ranking-list">
+            <div class="parciais-ranking-list" role="list" aria-label="Classificação parcial ao vivo">
     `;
 
     resultados.forEach((time, idx) => {
@@ -600,18 +677,18 @@ function renderizarRankingParcial(resultados, rodada, temporada) {
         const naoJogou = time.rodadaNaoJogada ? ' nao-jogou' : '';
 
         html += `
-            <div class="parciais-ranking-item${naoJogou}">
-                <div class="parciais-posicao">
+            <div class="parciais-ranking-item${naoJogou}" role="listitem" aria-label="${posicao}º lugar - ${time.nome_time} com ${pontosTxt} pontos">
+                <div class="parciais-posicao" aria-hidden="true">
                     ${medalha || posicao}
                 </div>
                 <div class="parciais-time-info">
-                    <img src="${escudoUrl}" alt="" class="parciais-escudo" onerror="this.src='/escudos/default.png'">
+                    <img src="${escudoUrl}" alt="Escudo ${time.nome_time}" class="parciais-escudo" onerror="this.src='/escudos/default.png'">
                     <div class="parciais-time-nomes">
                         <span class="parciais-time-nome">${time.nome_time}</span>
                         <span class="parciais-cartola-nome">${time.nome_cartola}</span>
                     </div>
                 </div>
-                <div class="parciais-pontos ${time.pontos > 0 ? 'positivo' : time.pontos < 0 ? 'negativo' : ''}">
+                <div class="parciais-pontos ${time.pontos > 0 ? 'positivo' : time.pontos < 0 ? 'negativo' : ''}" aria-label="${pontosTxt} pontos">
                     ${pontosTxt}
                 </div>
             </div>
@@ -621,11 +698,13 @@ function renderizarRankingParcial(resultados, rodada, temporada) {
     html += `
             </div>
             <div class="parciais-footer">
-                <span>${resultados.length} participantes</span>
+                <span aria-label="Total de participantes">${resultados.length} participantes</span>
                 <button class="parciais-btn-auto ${estadoParciais.autoRefresh.ativo ? 'ativo' : ''}"
                         onclick="window.toggleAutoRefresh()"
-                        title="${estadoParciais.autoRefresh.ativo ? 'Parar auto-refresh' : 'Iniciar auto-refresh'}">
-                    <span class="material-icons">${estadoParciais.autoRefresh.ativo ? 'pause' : 'play_arrow'}</span>
+                        title="${estadoParciais.autoRefresh.ativo ? 'Parar auto-refresh' : 'Iniciar auto-refresh'}"
+                        aria-label="${estadoParciais.autoRefresh.ativo ? 'Pausar atualização automática' : 'Iniciar atualização automática'}"
+                        aria-pressed="${estadoParciais.autoRefresh.ativo}">
+                    <span class="material-icons" aria-hidden="true">${estadoParciais.autoRefresh.ativo ? 'pause' : 'play_arrow'}</span>
                     Auto-refresh
                 </button>
             </div>
@@ -742,6 +821,31 @@ function atualizarParciais() {
 }
 
 // =====================================================================
+// FIX PERF-002: PAUSAR AUTO-REFRESH QUANDO TAB INATIVA
+// =====================================================================
+let autoRefreshPausadoPorTab = false;
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // Tab ficou inativa
+        if (estadoParciais.autoRefresh.ativo) {
+            console.log('[PARCIAIS] [PERF] Tab inativa, pausando auto-refresh temporariamente');
+            autoRefreshPausadoPorTab = true;
+            pararAutoRefresh();
+        }
+    } else {
+        // Tab ficou ativa novamente
+        if (autoRefreshPausadoPorTab && estadoParciais.dadosParciais.length > 0) {
+            console.log('[PARCIAIS] [PERF] Tab ativa, retomando auto-refresh');
+            autoRefreshPausadoPorTab = false;
+            iniciarAutoRefresh();
+            // Atualizar imediatamente
+            carregarParciais();
+        }
+    }
+});
+
+// =====================================================================
 // EXPOR GLOBALMENTE
 // =====================================================================
 window.carregarParciais = carregarParciais;
@@ -751,4 +855,4 @@ window.toggleAutoRefresh = toggleAutoRefresh;
 window.pararAutoRefresh = pararAutoRefresh;
 window.estadoParciais = estadoParciais;
 
-console.log("[PARCIAIS] Módulo v5.0 carregado - Multi-Temporada + Ranking em Tempo Real");
+console.log("[PARCIAIS] Módulo v5.1 carregado - Multi-Temporada + Ranking em Tempo Real + Security & Performance Fixes");
