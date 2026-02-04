@@ -72,7 +72,6 @@ export const PAGINAS_ADMIN = [
  */
 export const PAGINAS_PARTICIPANTE = [
   "/participante/",
-  "/participante-dashboard.html",
 ];
 
 /**

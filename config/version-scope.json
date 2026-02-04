@@ -91,7 +91,6 @@
       "participante/**/*"
     ],
     "html_pages": [
-      "participante-dashboard.html",
       "participante-login.html",
       "convite.html"
     ],
