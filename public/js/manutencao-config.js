@@ -1,7 +1,28 @@
 /**
- * manutencao-config.js v1.0
+ * manutencao-config.js v1.1 - FIX TIMEOUT
  * Gerenciamento avançado do modo manutenção
  */
+
+// ✅ FIX: Helper para fetch com timeout
+async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        return response;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error(`Timeout: servidor não respondeu em ${timeoutMs / 1000}s`);
+        }
+        throw error;
+    }
+}
 
 const ManutencaoConfig = {
     estadoAtual: null,
@@ -20,7 +41,7 @@ const ManutencaoConfig = {
     },
 
     async carregarEstadoAtual() {
-        const response = await fetch('/api/admin/manutencao');
+        const response = await fetchWithTimeout('/api/admin/manutencao');
         if (!response.ok) throw new Error('Erro ao carregar estado');
         this.estadoAtual = await response.json();
         this.atualizarStatusIndicator();
@@ -28,7 +49,7 @@ const ManutencaoConfig = {
     },
 
     async carregarTemplates() {
-        const response = await fetch('/api/admin/manutencao/templates');
+        const response = await fetchWithTimeout('/api/admin/manutencao/templates');
         if (!response.ok) throw new Error('Erro ao carregar templates');
         const data = await response.json();
         this.templates = data.templates || [];
@@ -235,11 +256,11 @@ const ManutencaoConfig = {
             const config = this.coletarConfiguracao();
             config.ativo = true;
 
-            const response = await fetch('/api/admin/manutencao/configurar', {
+            const response = await fetchWithTimeout('/api/admin/manutencao/configurar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
-            });
+            }, 10000); // 10s timeout para operação de escrita
 
             if (!response.ok) {
                 const error = await response.json();
@@ -267,10 +288,10 @@ const ManutencaoConfig = {
         }
 
         try {
-            const response = await fetch('/api/admin/manutencao/desativar', {
+            const response = await fetchWithTimeout('/api/admin/manutencao/desativar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
-            });
+            }, 10000); // 10s timeout para operações de escrita
 
             if (!response.ok) {
                 const error = await response.json();
@@ -314,14 +335,14 @@ const ManutencaoConfig = {
                     const base64 = event.target.result;
 
                     // Fazer upload
-                    const response = await fetch('/api/admin/manutencao/upload-imagem', {
+                    const response = await fetchWithTimeout('/api/admin/manutencao/upload-imagem', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             imagem: base64,
                             nome: file.name.replace(/\.[^/.]+$/, '')
                         })
-                    });
+                    }, 15000); // 15s timeout para upload de imagem
 
                     if (!response.ok) {
                         const error = await response.json();

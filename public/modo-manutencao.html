@@ -310,16 +310,65 @@
             }
 
             async function carregarStatus() {
+                // ✅ FIX: Adicionar timeout de 5s
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
                 try {
-                    const response = await fetch('/api/admin/modo-manutencao/status');
+                    const response = await fetch('/api/admin/modo-manutencao/status', {
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
                     const data = await response.json();
                     modoAtivo = data.ativo || false;
                     atualizarUI();
                 } catch (error) {
+                    clearTimeout(timeoutId);
                     console.error('[MODO-MANUTENCAO] Erro ao carregar status:', error);
-                    modoAtivo = false;
-                    atualizarUI();
+
+                    // ✅ FIX: Mostrar erro na UI em vez de silenciar
+                    mostrarErroCarregamento(error);
                 }
+            }
+
+            function mostrarErroCarregamento(error) {
+                const statusIndicator = document.getElementById('statusIndicator');
+                const btnToggle = document.getElementById('btnToggle');
+
+                // Determinar mensagem de erro
+                let mensagem = 'Não foi possível conectar ao servidor';
+                if (error.name === 'AbortError') {
+                    mensagem = 'Timeout: servidor não respondeu em 5 segundos';
+                } else if (error.message) {
+                    mensagem = error.message;
+                }
+
+                statusIndicator.innerHTML = `
+                    <div class="status-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                        <span class="material-icons">error_outline</span>
+                    </div>
+                    <div class="status-info">
+                        <h2>Erro ao Carregar Status</h2>
+                        <p>${mensagem}</p>
+                    </div>
+                `;
+
+                btnToggle.className = 'btn-toggle ativar';
+                btnToggle.innerHTML = `
+                    <span class="material-icons">refresh</span>
+                    Tentar Novamente
+                `;
+                btnToggle.disabled = false;
+                btnToggle.onclick = () => {
+                    btnToggle.onclick = null; // Remover handler temporário
+                    document.getElementById('btnToggle').addEventListener('click', toggleModoManutencao);
+                    carregarStatus();
+                };
             }
 
             function atualizarUI() {
@@ -369,12 +418,19 @@
                     Processando...
                 `;
 
+                // ✅ FIX: Adicionar timeout de 10s para operação de escrita
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
                 try {
                     const response = await fetch('/api/admin/modo-manutencao/toggle', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ativo: !modoAtivo })
+                        body: JSON.stringify({ ativo: !modoAtivo }),
+                        signal: controller.signal
                     });
+
+                    clearTimeout(timeoutId);
 
                     if (!response.ok) throw new Error('Erro ao alterar modo');
 
@@ -390,9 +446,17 @@
                         SuperModal.toast.success(msg);
                     }
                 } catch (error) {
+                    clearTimeout(timeoutId);
                     console.error('[MODO-MANUTENCAO] Erro ao toggle:', error);
-                    SuperModal.toast.error('Erro ao alterar modo de manutencao: ' + error.message);
-                    btnToggle.disabled = false;
+
+                    // Mensagem específica para timeout
+                    let errorMsg = 'Erro ao alterar modo de manutencao: ' + error.message;
+                    if (error.name === 'AbortError') {
+                        errorMsg = 'Timeout: operação não completou em 10 segundos';
+                    }
+
+                    SuperModal.toast.error(errorMsg);
+                    atualizarUI(); // Restaurar UI anterior
                 }
             }
 
