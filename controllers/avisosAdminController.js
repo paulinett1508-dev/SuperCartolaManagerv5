@@ -4,7 +4,8 @@
  */
 
 import { getDB } from '../config/database.js';
-import { ObjectId } from 'mongodb';
+import mongoose from 'mongoose';
+const ObjectId = mongoose.Types.ObjectId;
 
 // ============================================
 // CRIAR AVISO

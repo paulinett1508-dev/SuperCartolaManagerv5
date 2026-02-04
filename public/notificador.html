@@ -231,10 +231,43 @@
             margin-bottom: 1rem;
             opacity: 0.3;
         }
+
+        .notificador-btn-voltar {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0.5rem 1rem;
+            background: var(--surface-card);
+            color: var(--text-muted);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .notificador-btn-voltar:hover {
+            background: var(--surface-card-hover);
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .notificador-btn-voltar .material-icons {
+            font-size: 18px;
+        }
     </style>
 </head>
 <body class="notificador-page">
     <div class="notificador-container">
+        <div style="margin-bottom: 1rem;">
+            <a href="painel.html" class="notificador-btn-voltar">
+                <span class="material-icons">arrow_back</span>
+                Voltar ao Painel
+            </a>
+        </div>
+
         <div class="notificador-header">
             <div>
                 <h1 class="notificador-title">
