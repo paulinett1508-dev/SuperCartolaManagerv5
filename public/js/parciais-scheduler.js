@@ -111,18 +111,22 @@ const ParciaisScheduler = {
   // ==============================
 
   async atualizarParciais() {
+    // Se o auto-refresh do parciais.js já está ativo, não duplicar
+    // O auto-refresh interno já roda a cada 30s - scheduler só atrapalha
+    if (window.estadoParciais?.autoRefresh?.ativo) {
+      console.log(
+        "⏭️ [PARCIAIS-SCHEDULER] Auto-refresh já ativo - pulando atualização duplicada",
+      );
+      this.estado.ultimaAtualizacao = new Date();
+      return;
+    }
+
     console.log(`🔄 [PARCIAIS-SCHEDULER] Atualizando parciais...`);
 
     try {
-      // Limpar cache para forçar busca fresca
-      const urlParams = new URLSearchParams(window.location.search);
-      const ligaId = urlParams.get("id");
-      const cacheKey = `parciais_${ligaId}`;
-      localStorage.removeItem(cacheKey);
-
-      // Chamar função de carregamento do módulo PARCIAIS SEM CACHE
+      // Chamar função de carregamento do módulo PARCIAIS
       if (window.carregarParciais) {
-        await window.carregarParciais(false); // ✅ false = não usar cache
+        await window.carregarParciais();
         this.estado.ultimaAtualizacao = new Date();
         console.log(`✅ [PARCIAIS-SCHEDULER] Parciais atualizadas`);
       } else {
