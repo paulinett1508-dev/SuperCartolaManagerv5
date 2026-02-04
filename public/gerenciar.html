@@ -73,6 +73,16 @@
                             <div class="loading-state">
                                 <div class="loading-spinner"></div>
                                 <div class="loading-text">Carregando ligas...</div>
+                                <!-- ✅ FIX CRIT-003: Timeout visual após 10s -->
+                                <div id="loadingTimeout" style="display: none; margin-top: 1.5rem; text-align: center;">
+                                    <p style="color: var(--text-muted, #9ca3af); font-size: 0.85rem; margin-bottom: 0.75rem;">
+                                        ⏱️ Está demorando mais que o esperado...
+                                    </p>
+                                    <button onclick="location.reload()" class="btn-criar">
+                                        <span class="material-icons">refresh</span>
+                                        Recarregar Página
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -130,31 +140,49 @@
 
             window.ligasData = [];
 
+            // ✅ FIX CRIT-002: Helper para timeout em fetch
+            async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+                try {
+                    const response = await fetch(url, {
+                        ...options,
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    return response;
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        throw new Error(`Timeout: servidor não respondeu em ${timeoutMs / 1000}s`);
+                    }
+                    throw error;
+                }
+            }
+
             // Opcional: configura tamanho dos blocos no grid de valores do modal
             // window.MODAL_GRID_CHUNK_SIZE = 8;
 
-            // ✅ Guards SPA para evitar dupla inicialização
+            // ✅ FIX CRIT-001: Sistema de guards simplificado e robusto
             if (!window.__gerenciar_state) {
                 window.__gerenciar_state = {
-                    initRunning: false,
-                    domBound: false,
-                    spaBound: false,
-                    inputBound: false,
-                    readyChecked: false,
-                    lastInitTimestamp: 0
+                    initialized: false,  // Página já foi inicializada alguma vez
+                    initRunning: false,  // Inicialização em andamento
+                    lastInitTimestamp: 0,
+                    eventHandlers: {}    // Armazenar handlers para cleanup
                 };
-                console.log('[GERENCIAR] Estado inicial criado');
             }
 
-            // Reset do estado de inicialização ao carregar o script
-            // ✅ FIX: Adicionar debounce para evitar múltiplas chamadas simultâneas
-            const agora = Date.now();
-            if (agora - window.__gerenciar_state.lastInitTimestamp < 100) {
-                console.warn('[GERENCIAR] Script recarregado muito rápido, aguardando...');
-            } else {
-                window.__gerenciar_state.initRunning = false;
-                console.log('[GERENCIAR] Guard resetado no carregamento do script');
-            }
+            const DEBOUNCE_MS = 500; // Debounce robusto de 500ms
+            const DEBUG = localStorage.getItem('debug-mode') === 'true';
+
+            // Logger com níveis (FIX IMPT-002)
+            const log = {
+                debug: (...args) => DEBUG && console.log('[GERENCIAR]', ...args),
+                warn: (...args) => console.warn('[GERENCIAR]', ...args),
+                error: (...args) => console.error('[GERENCIAR]', ...args)
+            };
 
             async function loadLayout() {
                 try {
@@ -299,9 +327,11 @@
                 }
             };
 
-            if (!window.__gerenciar_state.inputBound) {
-                window.__gerenciar_state.inputBound = true;
-                document.addEventListener("input", function (e) {
+            // ✅ FIX CRIT-001: Event listener de busca (mantido)
+            function setupSearchListener() {
+                if (window.__gerenciar_state.eventHandlers.search) return;
+
+                window.__gerenciar_state.eventHandlers.search = function (e) {
                     if (e.target.id === "searchInput") {
                         const searchTerm = e.target.value.toLowerCase();
                         const items = document.querySelectorAll(".liga-item");
@@ -313,28 +343,51 @@
                             item.style.display = visible ? "flex" : "none";
                         });
                     }
-                });
+                };
+
+                document.addEventListener("input", window.__gerenciar_state.eventHandlers.search);
             }
 
-            // Função de inicialização reutilizável
+            // ✅ FIX CRIT-001: Função de inicialização robusta e consolidada
             async function initGerenciar() {
-                const timestamp = Date.now();
-                if (window.__gerenciar_state.initRunning) {
-                    const elapsed = timestamp - window.__gerenciar_state.lastInitTimestamp;
-                    console.warn("[GERENCIAR] Inicialização já em andamento, ignorando... (elapsed:", elapsed, "ms)");
+                const now = Date.now();
+                const elapsed = now - window.__gerenciar_state.lastInitTimestamp;
+
+                // Debounce rigoroso
+                if (elapsed < DEBOUNCE_MS) {
+                    log.warn('Debounce ativo, ignorando inicialização (elapsed:', elapsed, 'ms)');
                     return;
                 }
+
+                // Guard simples
+                if (window.__gerenciar_state.initRunning) {
+                    log.warn('Inicialização já em andamento, ignorando...');
+                    return;
+                }
+
+                // Marcar como iniciando
                 window.__gerenciar_state.initRunning = true;
-                window.__gerenciar_state.lastInitTimestamp = timestamp;
-                console.log("[GERENCIAR] Inicializando página...");
+                window.__gerenciar_state.lastInitTimestamp = now;
+                log.debug('Inicializando página...');
+
                 try {
                     await loadLayout();
-                    console.log("[GERENCIAR] Layout carregado");
+                    log.debug('Layout carregado');
+
                     await carregarListaLigas();
-                    console.log("[GERENCIAR] Lista de ligas carregada");
-                    console.log("[GERENCIAR] ✅ Inicialização concluída com sucesso");
+                    log.debug('Lista de ligas carregada');
+
+                    // ✅ FIX CRIT-003: Remover timeout visual se existir
+                    const loadingTimeout = document.getElementById('loadingTimeout');
+                    if (loadingTimeout) {
+                        loadingTimeout.style.display = 'none';
+                    }
+
+                    window.__gerenciar_state.initialized = true;
+                    log.debug('✅ Inicialização concluída com sucesso');
                 } catch (error) {
-                    console.error("[GERENCIAR] ❌ Erro durante inicialização:", error);
+                    log.error('❌ Erro durante inicialização:', error);
+
                     // Mostrar erro ao usuário
                     const container = document.getElementById("ligasContainer");
                     if (container) {
@@ -355,78 +408,123 @@
                         `;
                     }
                 } finally {
-                    const duration = Date.now() - timestamp;
+                    // GARANTIR reset do guard mesmo em caso de erro
                     window.__gerenciar_state.initRunning = false;
-                    console.log("[GERENCIAR] Guard resetado para false (duração:", duration, "ms)");
+                    const duration = Date.now() - now;
+                    log.debug('Guard resetado (duração:', duration, 'ms)');
                 }
             }
 
-            if (!window.__gerenciar_state.domBound) {
-                window.__gerenciar_state.domBound = true;
-                document.addEventListener("DOMContentLoaded", async () => {
-                    if (!window.location.pathname.includes('gerenciar.html')) return;
-                    await initGerenciar();
-                });
-            }
+            // ✅ FIX CRIT-001: Sistema de inicialização consolidado e único
+            function setupGerenciarPage() {
+                // Prevenir múltiplas execuções
+                if (window.__gerenciar_setup_done) {
+                    log.debug('Setup já realizado, ignorando...');
+                    return;
+                }
+                window.__gerenciar_setup_done = true;
+                log.debug('Configurando página gerenciar.html...');
 
-            // ✅ FIX: Reinicializar após navegação SPA
-            if (!window.__gerenciar_state.spaBound) {
-                window.__gerenciar_state.spaBound = true;
-                console.log('[GERENCIAR] Listener spa:navigated registrado');
-                window.addEventListener('spa:navigated', async (e) => {
-                    console.log('[GERENCIAR] Evento spa:navigated recebido:', e.detail);
+                // Listener para navegação SPA
+                window.addEventListener('spa:navigated', (e) => {
                     const { pageName } = e.detail || {};
                     if (pageName === 'gerenciar.html') {
-                        console.log('[GERENCIAR] Reinicializando após navegação SPA...');
-                        // ✅ FIX CRÍTICO: Forçar reset do guard antes de reinicializar
-                        window.__gerenciar_state.initRunning = false;
-                        console.log('[GERENCIAR] Guard resetado, iniciando...');
-                        await initGerenciar();
-                    } else {
-                        console.log('[GERENCIAR] Página diferente, ignorando:', pageName);
-                    }
-                });
-            }
-
-            // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)
-            if (!window.__gerenciar_state.readyChecked) {
-                window.__gerenciar_state.readyChecked = true;
-                console.log('[GERENCIAR] Verificando inicialização imediata, readyState:', document.readyState);
-                if (document.readyState !== 'loading' && window.location.pathname.includes('gerenciar.html')) {
-                    console.log('[GERENCIAR] DOM pronto, inicializando...');
-                    window.__gerenciar_state.initRunning = false; // Reset antes de inicializar
-                    initGerenciar();
-                }
-            }
-
-            // ✅ FALLBACK: Garantir inicialização após 500ms se ainda não ocorreu
-            setTimeout(() => {
-                if (window.location.pathname.includes('gerenciar.html')) {
-                    const container = document.getElementById('ligasContainer');
-                    const isLoading = container && container.querySelector('.loading-state');
-                    if (isLoading) {
-                        console.warn('[GERENCIAR] FALLBACK: Página ainda em loading após 500ms!');
-                        console.warn('[GERENCIAR] Estado atual:', {
-                            initRunning: window.__gerenciar_state.initRunning,
-                            domBound: window.__gerenciar_state.domBound,
-                            spaBound: window.__gerenciar_state.spaBound,
-                            readyChecked: window.__gerenciar_state.readyChecked
-                        });
-                        // ✅ FIX CRÍTICO: Forçar reset e retry
-                        window.__gerenciar_state.initRunning = false;
-                        console.warn('[GERENCIAR] Forçando inicialização de emergência...');
+                        log.debug('Navegação SPA detectada, reinicializando...');
+                        window.__gerenciar_state.initRunning = false; // Reset guard
                         initGerenciar();
                     }
-                }
-            }, 500);
+                });
 
-            // === MODAL DE MÓDULOS ===
-            if (!window.__gerenciar_state.modalBound) {
-                window.__gerenciar_state.modalBound = true;
+                // Listener para cleanup ao sair (FIX IMPT-001)
+                window.addEventListener('spa:beforeNavigate', (e) => {
+                    if (e.detail?.from === 'gerenciar.html') {
+                        log.debug('Saindo da página, limpando listeners...');
+                        cleanupGerenciar();
+                    }
+                });
+
+                // Configurar listeners de busca
+                setupSearchListener();
+
+                // Inicializar se DOM já estiver pronto
+                if (document.readyState !== 'loading') {
+                    log.debug('DOM pronto, inicializando...');
+                    initGerenciar();
+                } else {
+                    document.addEventListener('DOMContentLoaded', () => {
+                        log.debug('DOMContentLoaded, inicializando...');
+                        initGerenciar();
+                    }, { once: true });
+                }
+
+                // ✅ FIX CRIT-003: Timeout visual após 10s
+                setTimeout(() => {
+                    const container = document.getElementById('ligasContainer');
+                    const isLoading = container?.querySelector('.loading-state');
+                    if (isLoading) {
+                        log.warn('Carregamento demorou mais que 10s, mostrando timeout visual...');
+                        const timeoutEl = document.getElementById('loadingTimeout');
+                        if (timeoutEl) {
+                            timeoutEl.style.display = 'block';
+                        }
+                    }
+                }, 10000);
+            }
+
+            // ✅ FIX IMPT-001: Função de cleanup completa
+            function cleanupGerenciar() {
+                const handlers = window.__gerenciar_state.eventHandlers;
+
+                // Remover event listener de busca
+                if (handlers.search) {
+                    document.removeEventListener('input', handlers.search);
+                    handlers.search = null;
+                }
+
+                // Remover event listeners do modal
+                if (handlers.modalClick) {
+                    document.removeEventListener('click', handlers.modalClick);
+                    handlers.modalClick = null;
+                }
+                if (handlers.modalChange) {
+                    document.removeEventListener('change', handlers.modalChange);
+                    handlers.modalChange = null;
+                }
+                if (handlers.modalOverlay) {
+                    document.removeEventListener('click', handlers.modalOverlay);
+                    handlers.modalOverlay = null;
+                }
+                if (handlers.modalEsc) {
+                    document.removeEventListener('keydown', handlers.modalEsc);
+                    handlers.modalEsc = null;
+                }
+
+                // Fechar modal se estiver aberto
+                const modal = document.getElementById('modulosModal');
+                if (modal && modal.style.display !== 'none') {
+                    window.fecharModalModulos();
+                }
+
+                // Resetar flags
+                window.__gerenciar_state.initialized = false;
+                window.__gerenciar_setup_done = false;
+
+                log.debug('Cleanup completo - todos listeners removidos');
+            }
+
+            // Executar setup se estivermos na página correta
+            if (window.location.pathname.includes('gerenciar.html')) {
+                setupGerenciarPage();
+            }
+
+            // ✅ FIX IMPT-001: Modal de módulos com event listeners gerenciáveis
+            function setupModalListeners() {
+                if (window.__gerenciar_state.eventHandlers.modalClick) return;
+
                 window.currentLigaId = null;
 
                 // Event delegation para botões de módulos
-                document.addEventListener('click', function(e) {
+                window.__gerenciar_state.eventHandlers.modalClick = function(e) {
                     const btnModulos = e.target.closest('.btn-modules');
                     if (btnModulos) {
                         e.preventDefault();
@@ -437,10 +535,10 @@
                             window.abrirModalModulos(ligaId, nomeLiga);
                         }
                     }
-                });
+                };
 
-                // Event delegation para toggles de módulos
-                document.addEventListener('change', function(e) {
+                // Event delegation para toggles
+                window.__gerenciar_state.eventHandlers.modalChange = function(e) {
                     if (e.target.classList.contains('toggle-modulo')) {
                         const moduloKey = e.target.dataset.moduloKey;
                         const ativo = e.target.checked;
@@ -448,26 +546,34 @@
                             window.toggleModuloModal(moduloKey, ativo);
                         }
                     }
-                });
+                };
 
-                // Fechar modal ao clicar no overlay (fora do conteúdo)
-                document.addEventListener('click', function(e) {
+                // Fechar modal ao clicar no overlay
+                window.__gerenciar_state.eventHandlers.modalOverlay = function(e) {
                     const modalOverlay = document.getElementById('modulosModal');
                     if (e.target === modalOverlay && modalOverlay.style.display !== 'none') {
                         window.fecharModalModulos();
                     }
-                });
+                };
 
                 // Fechar modal com ESC
-                document.addEventListener('keydown', function(e) {
+                window.__gerenciar_state.eventHandlers.modalEsc = function(e) {
                     if (e.key === 'Escape') {
                         const modal = document.getElementById('modulosModal');
                         if (modal && modal.style.display !== 'none') {
                             window.fecharModalModulos();
                         }
                     }
-                });
+                };
+
+                document.addEventListener('click', window.__gerenciar_state.eventHandlers.modalClick);
+                document.addEventListener('change', window.__gerenciar_state.eventHandlers.modalChange);
+                document.addEventListener('click', window.__gerenciar_state.eventHandlers.modalOverlay);
+                document.addEventListener('keydown', window.__gerenciar_state.eventHandlers.modalEsc);
             }
+
+            // Configurar listeners do modal
+            setupModalListeners();
 
             window.abrirModalModulos = async function(ligaId, nomeLiga) {
                 window.currentLigaId = ligaId;
@@ -488,8 +594,13 @@
                 modalContent.style.display = 'none';
 
                 try {
-                    // Carregar módulos da liga
-                    const response = await fetch(`/api/ligas/${ligaId}`);
+                    // ✅ FIX CRIT-002: Timeout de 8s no fetch
+                    const response = await fetchWithTimeout(`/api/ligas/${ligaId}`, {}, 8000);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
                     const liga = await response.json();
 
                     // Renderizar módulos
@@ -498,14 +609,20 @@
                     modalLoading.style.display = 'none';
                     modalContent.style.display = 'block';
                 } catch (error) {
-                    console.error('Erro ao carregar módulos:', error);
+                    log.error('Erro ao carregar módulos:', error);
+
+                    const isTimeout = error.message.includes('Timeout');
                     modalContent.innerHTML = `
                         <div class="empty-state">
                             <div class="empty-icon">
-                                <span class="material-icons">error_outline</span>
+                                <span class="material-icons">${isTimeout ? 'schedule' : 'error_outline'}</span>
                             </div>
-                            <div class="empty-title">Erro ao carregar</div>
-                            <div class="empty-subtitle">Não foi possível carregar os módulos</div>
+                            <div class="empty-title">${isTimeout ? 'Timeout' : 'Erro ao carregar'}</div>
+                            <div class="empty-subtitle">${error.message}</div>
+                            <button onclick="window.abrirModalModulos('${ligaId}', '${nomeLiga}')" class="btn-criar" style="margin-top: 1rem;">
+                                <span class="material-icons">refresh</span>
+                                Tentar Novamente
+                            </button>
                         </div>
                     `;
                     modalLoading.style.display = 'none';
@@ -658,29 +775,35 @@
                 if (!window.currentLigaId) return;
 
                 try {
-                    // Buscar estado atual dos módulos
-                    const ligaRes = await fetch(`/api/ligas/${window.currentLigaId}`);
+                    // ✅ FIX CRIT-002: Buscar estado atual com timeout
+                    const ligaRes = await fetchWithTimeout(`/api/ligas/${window.currentLigaId}`, {}, 8000);
                     const ligaData = await ligaRes.json();
                     const modulosAtuais = ligaData.modulos_ativos || {};
 
                     // Atualizar apenas o módulo alterado
                     modulosAtuais[moduloKey] = ativo;
 
-                    const response = await fetch(`/api/ligas/${window.currentLigaId}/modulos-ativos`, {
+                    // ✅ FIX CRIT-002: Atualizar com timeout de 10s (operação de escrita)
+                    const response = await fetchWithTimeout(`/api/ligas/${window.currentLigaId}/modulos-ativos`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ modulos: modulosAtuais })
-                    });
+                    }, 10000);
 
                     if (!response.ok) throw new Error('Erro ao atualizar módulo');
 
-                    // Recarregar dados
-                    const ligaResponse = await fetch(`/api/ligas/${window.currentLigaId}`);
+                    // ✅ FIX CRIT-002: Recarregar dados com timeout
+                    const ligaResponse = await fetchWithTimeout(`/api/ligas/${window.currentLigaId}`, {}, 8000);
                     const liga = await ligaResponse.json();
                     renderizarModulosModal(liga);
+
+                    SuperModal.toast.success('Módulo atualizado com sucesso!');
                 } catch (error) {
-                    console.error('Erro ao atualizar módulo:', error);
-                    SuperModal.toast.error('Erro ao atualizar módulo. Tente novamente.');
+                    log.error('Erro ao atualizar módulo:', error);
+                    const errorMsg = error.message.includes('Timeout')
+                        ? 'Timeout: servidor não respondeu a tempo'
+                        : 'Erro ao atualizar módulo';
+                    SuperModal.toast.error(errorMsg + '. Tente novamente.');
                 }
             };
 
