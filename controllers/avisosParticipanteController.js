@@ -28,11 +28,15 @@ export async function getAvisos(req, res) {
     const filtro = {
       ativo: true,
       sincronizadoComApp: true,
-      $or: [
-        { dataExpiracao: null },
-        { dataExpiracao: { $gte: agora } }
-      ],
       $and: [
+        // Condição 1: Não expirado
+        {
+          $or: [
+            { dataExpiracao: null },
+            { dataExpiracao: { $gte: agora } }
+          ]
+        },
+        // Condição 2: Segmentação (global, liga ou participante)
         {
           $or: [
             { ligaId: null }, // Global
