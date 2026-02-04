@@ -167,6 +167,10 @@ import tabelasEsportesRoutes from "./routes/tabelas-esportes-routes.js";
 // 🔧 Modo Manutenção do App
 import manutencaoRoutes from "./routes/manutencao-routes.js";
 
+// 📢 Avisos In-App (Notificador)
+import avisosAdminRoutes from "./routes/avisos-admin-routes.js";
+import avisosParticipanteRoutes from "./routes/avisos-participante-routes.js";
+
 // 📦 Versionamento do App
 import appVersionRoutes from "./routes/appVersionRoutes.js";
 
@@ -509,6 +513,12 @@ console.log("[SERVER] 📦 Data Lake dos Participantes registrado em /api/data-l
 // 🔔 Push Notifications
 app.use("/api/notifications", notificationsRoutes);
 console.log("[SERVER] 🔔 Rotas de Push Notifications registradas em /api/notifications");
+
+// 📢 Avisos In-App (Notificador)
+app.use("/api/admin/avisos", avisosAdminRoutes);
+console.log("[SERVER] 📢 Rotas de avisos admin registradas em /api/admin/avisos");
+app.use("/api/avisos", avisosParticipanteRoutes);
+console.log("[SERVER] 📢 Rotas de avisos participante registradas em /api/avisos");
 
 // 🎯 Dicas Premium
 app.use("/api/dicas-premium", dicasPremiumRoutes);

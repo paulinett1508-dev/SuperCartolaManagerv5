@@ -1,0 +1,50 @@
+/**
+ * Avisos - Estilos Participante
+ * Cards de avisos com scroll horizontal
+ */
+
+.avisos-container {
+  animation: fade-in-up 0.4s ease-out;
+}
+
+.avisos-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.avisos-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.aviso-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.aviso-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.aviso-card:active {
+  transform: scale(0.98);
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
