@@ -229,8 +229,10 @@ export const salvarCachePontosCorridos = async (req, res) => {
         if (classificacao) updateData.classificacao = classificacao;
         if (confrontos) updateData.confrontos = confrontos;
 
+        // ✅ AUDIT-FIX: Incluir temporada no filtro para segregação correta
+        const temporada = req.body.temporada || new Date().getFullYear();
         const result = await PontosCorridosCache.findOneAndUpdate(
-            { liga_id: ligaId, rodada_consolidada: rodada },
+            { liga_id: ligaId, rodada_consolidada: rodada, temporada: temporada },
             updateData,
             { new: true, upsert: true },
         );
@@ -257,9 +259,11 @@ export const salvarCachePontosCorridos = async (req, res) => {
 export const lerCachePontosCorridos = async (req, res) => {
     try {
         const { ligaId } = req.params;
-        const { rodada } = req.query;
+        const { rodada, temporada } = req.query;
 
+        // ✅ AUDIT-FIX: Incluir temporada no filtro
         const query = { liga_id: ligaId };
+        if (temporada) query.temporada = Number(temporada);
         if (rodada) query.rodada_consolidada = Number(rodada);
 
         const cache = await PontosCorridosCache.findOne(query).sort({
@@ -384,7 +388,8 @@ export const obterConfrontosPontosCorridos = async (
         const timesMap = await buscarDadosTimesEnriquecidos(ligaId);
 
         // 2. Buscar rodadas consolidadas do cache
-        const query = { liga_id: ligaId };
+        // ✅ AUDIT-FIX: Filtrar por temporada para evitar mistura de dados entre temporadas
+        const query = { liga_id: ligaId, temporada: temporada };
         if (rodadaFiltro) {
             query.rodada_consolidada = Number(rodadaFiltro);
         }
@@ -404,6 +409,19 @@ export const obterConfrontosPontosCorridos = async (
             permanent: cache.cache_permanente,
             updatedAt: cache.ultima_atualizacao,
         }));
+
+        // ✅ AUDIT-FIX: Se cache vazio, tentar reconstruir a partir das rodadas consolidadas
+        if (dadosPorRodada.length === 0) {
+            // Para temporadas passadas, sempre tentar reconstruir (rodadaAtualLiga pode ser negativo)
+            // Para temporada atual, só reconstruir se já começou (rodadaAtualLiga > 0)
+            const mercadoTemporada = mercadoStatus.temporada || new Date().getFullYear();
+            const isTemporadaPassada = temporada < mercadoTemporada;
+
+            if (isTemporadaPassada || rodadaAtualLiga > 0) {
+                console.log(`[PONTOS-CORRIDOS] 🔄 Cache vazio - tentando reconstruir de rodadas históricas (T${temporada}, passada=${isTemporadaPassada})...`);
+                dadosPorRodada = await reconstruirCacheDeRodadas(ligaId, temporada, config, timesMap);
+            }
+        }
 
         // 3. Se mercado fechado E rodada atual não está no cache (ou precisa atualização), calcular parciais ao vivo
         if (mercadoFechado && rodadaAtualLiga > 0) {
@@ -633,6 +651,156 @@ async function calcularRodadaComParciais(
             error,
         );
         return null;
+    }
+}
+
+// ✅ AUDIT-FIX: Reconstruir cache a partir das rodadas históricas (collection rodadas)
+async function reconstruirCacheDeRodadas(ligaId, temporada, config, timesMap) {
+    try {
+        // Buscar liga e times
+        const liga = await Liga.findById(ligaId).lean();
+        if (!liga) return [];
+
+        const times = liga.participantes || [];
+        if (times.length === 0) return [];
+
+        // Buscar rodadas históricas desta liga/temporada
+        const rodadasHistoricas = await Rodada.find({
+            ligaId: ligaId,
+            temporada: temporada
+        }).lean();
+
+        if (rodadasHistoricas.length === 0) {
+            console.log(`[PONTOS-CORRIDOS] ℹ️ Nenhuma rodada histórica encontrada para T${temporada}`);
+            return [];
+        }
+
+        // Agrupar por rodada brasileirão
+        const porRodadaBR = {};
+        rodadasHistoricas.forEach(r => {
+            if (!porRodadaBR[r.rodada]) porRodadaBR[r.rodada] = [];
+            porRodadaBR[r.rodada].push(r);
+        });
+
+        // Converter rodadas BR para rodadas da liga
+        const rodadasBR = Object.keys(porRodadaBR).map(Number).sort((a, b) => a - b);
+        const rodadasLiga = rodadasBR
+            .filter(br => br >= config.rodadaInicial)
+            .map(br => ({ br, liga: br - config.rodadaInicial + 1 }));
+
+        if (rodadasLiga.length === 0) {
+            console.log(`[PONTOS-CORRIDOS] ℹ️ Nenhuma rodada após rodadaInicial ${config.rodadaInicial}`);
+            return [];
+        }
+
+        console.log(`[PONTOS-CORRIDOS] 🔄 Reconstruindo ${rodadasLiga.length} rodadas de dados históricos...`);
+
+        // Gerar confrontos base (round-robin)
+        const confrontosBase = gerarConfrontos(times);
+
+        // Buscar status dos participantes
+        const statusMap = await buscarStatusParticipantes(times);
+
+        // Construir dados por rodada sequencialmente (cada uma depende da anterior)
+        const dadosPorRodada = [];
+
+        for (const { br, liga: rodadaLiga } of rodadasLiga) {
+            const jogosRodada = confrontosBase[rodadaLiga - 1];
+            if (!jogosRodada) continue;
+
+            // Montar mapa de pontos a partir da collection rodadas
+            const pontosRodada = {};
+            const timesDataMap = {};
+
+            (porRodadaBR[br] || []).forEach(r => {
+                const tid = String(r.timeId);
+                pontosRodada[tid] = r.pontos || 0;
+                timesDataMap[tid] = {
+                    nome: r.nome_time || `Time ${tid}`,
+                    nome_cartola: r.nome_cartola || '',
+                    escudo: r.escudo || '',
+                    ativo: true,
+                };
+            });
+
+            // Montar confrontos com resultados
+            const confrontos = [];
+            for (const jogo of jogosRodada) {
+                const tid1 = String(typeof jogo.timeA === 'object' ? jogo.timeA.time_id || jogo.timeA.id : jogo.timeA);
+                const tid2 = String(typeof jogo.timeB === 'object' ? jogo.timeB.time_id || jogo.timeB.id : jogo.timeB);
+                const p1 = pontosRodada[tid1] || 0;
+                const p2 = pontosRodada[tid2] || 0;
+                const resultado = calcularResultado(p1, p2, config);
+
+                confrontos.push({
+                    time1: {
+                        id: tid1,
+                        nome: timesDataMap[tid1]?.nome || timesMap[tid1]?.nome || `Time ${tid1}`,
+                        nome_cartola: timesDataMap[tid1]?.nome_cartola || timesMap[tid1]?.nome_cartola || '',
+                        escudo: timesDataMap[tid1]?.escudo || timesMap[tid1]?.escudo || '',
+                        pontos: Math.round(p1 * 100) / 100,
+                        ativo: true,
+                    },
+                    time2: {
+                        id: tid2,
+                        nome: timesDataMap[tid2]?.nome || timesMap[tid2]?.nome || `Time ${tid2}`,
+                        nome_cartola: timesDataMap[tid2]?.nome_cartola || timesMap[tid2]?.nome_cartola || '',
+                        escudo: timesDataMap[tid2]?.escudo || timesMap[tid2]?.escudo || '',
+                        pontos: Math.round(p2 * 100) / 100,
+                        ativo: true,
+                    },
+                    pontos1: resultado.pontosA,
+                    pontos2: resultado.pontosB,
+                    financeiro1: Math.round(resultado.financeiroA),
+                    financeiro2: Math.round(resultado.financeiroB),
+                    tipo: resultado.tipo,
+                });
+            }
+
+            // Calcular classificação acumulada
+            const classificacao = calcularClassificacaoAcumulada(
+                times,
+                { ...timesMap, ...timesDataMap },
+                dadosPorRodada,
+                confrontos,
+                rodadaLiga,
+                statusMap,
+                config,
+            );
+
+            const rodadaData = {
+                rodada: rodadaLiga,
+                confrontos,
+                classificacao,
+                permanent: true,
+                updatedAt: new Date(),
+            };
+
+            dadosPorRodada.push(rodadaData);
+
+            // Salvar no MongoDB para futuras consultas
+            try {
+                await PontosCorridosCache.findOneAndUpdate(
+                    { liga_id: ligaId, rodada_consolidada: rodadaLiga, temporada: temporada },
+                    {
+                        confrontos: confrontos,
+                        classificacao: classificacao,
+                        cache_permanente: true,
+                        ultima_atualizacao: new Date(),
+                        temporada: temporada,
+                    },
+                    { upsert: true, new: true }
+                );
+            } catch (saveErr) {
+                console.warn(`[PONTOS-CORRIDOS] ⚠️ Erro ao salvar cache rodada ${rodadaLiga}:`, saveErr.message);
+            }
+        }
+
+        console.log(`[PONTOS-CORRIDOS] ✅ Cache reconstruído: ${dadosPorRodada.length} rodadas salvas (T${temporada})`);
+        return dadosPorRodada;
+    } catch (error) {
+        console.error('[PONTOS-CORRIDOS] ❌ Erro ao reconstruir cache:', error.message);
+        return [];
     }
 }
 

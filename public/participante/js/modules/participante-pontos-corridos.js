@@ -143,8 +143,22 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
             } else if (window.Log) {
                 Log.info("[PONTOS-CORRIDOS] ✅ Dados iguais, mantendo renderização do cache");
             }
-        } else if (!usouCache) {
-            mostrarErro("Nenhum dado encontrado");
+        } else {
+            // ✅ AUDIT-FIX: API retornou 0 rodadas - limpar cache stale do IndexedDB
+            if (usouCache && window.OfflineCache) {
+                try {
+                    const cacheKey = `${estadoPC.ligaId}:${estadoPC.temporada}`;
+                    await window.OfflineCache.delete('pontosCorridos', cacheKey);
+                    if (window.Log) Log.warn(`[PONTOS-CORRIDOS] 🗑️ Cache stale removido (T${estadoPC.temporada})`);
+                } catch (e) { /* ignore */ }
+            }
+            // Limpar dados antigos do estado
+            estadoPC.dados = [];
+            // Verificar se é pré-temporada (rodada BR < rodada inicial do módulo)
+            const rodadaBR = estadoPC.mercadoRodada || 0;
+            const msgPreTemporada = `Temporada ${estadoPC.temporada} ainda não iniciou para o Pontos Corridos. Aguardando rodada ${rodadaBR > 0 ? `(atual: ${rodadaBR})` : ''} do Brasileirão.`;
+            const msgGenerico = "Nenhum dado encontrado para esta temporada. Os dados serão gerados quando houver rodadas disputadas.";
+            mostrarErro(rodadaBR < 7 ? msgPreTemporada : msgGenerico);
         }
     } catch (error) {
         if (window.Log) Log.error("[PONTOS-CORRIDOS] ❌ Erro:", error);
