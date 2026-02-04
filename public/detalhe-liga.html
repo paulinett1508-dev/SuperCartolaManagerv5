@@ -389,9 +389,38 @@
                     mostrarToastMini("error", "Valores inválidos");
                     return;
                 }
+
+                // ✅ CRIT-FIN-002: Elementos da barra de progresso
+                const progressContainer = document.getElementById("recalcProgress");
+                const progressText = document.getElementById("recalcProgressText");
+                const progressBar = document.getElementById("recalcProgressBar");
+
+                // Desabilitar botão e mostrar feedback inicial
                 btn.disabled = true;
                 btn.innerHTML =
                     '<div class="spinner-mini"></div>Recalculando...';
+
+                // Mostrar barra de progresso
+                progressContainer.style.display = "block";
+                progressText.textContent = "Processando recálculo...";
+                progressBar.style.width = "0%";
+
+                // ✅ CRIT-FIN-002: Warning após 20s
+                let warningTimeout = setTimeout(() => {
+                    progressText.innerHTML = '⏱️ <strong>Está demorando mais que o esperado...</strong> O servidor está processando muitas rodadas.';
+                    progressText.style.color = "#f59e0b"; // Amber-500
+                }, 20000);
+
+                // ✅ CRIT-FIN-002: Simulação de progresso (fake progress baseado em tempo)
+                let fakeProgress = 0;
+                const progressInterval = setInterval(() => {
+                    if (fakeProgress < 90) {
+                        fakeProgress += Math.random() * 10;
+                        if (fakeProgress > 90) fakeProgress = 90;
+                        progressBar.style.width = `${fakeProgress}%`;
+                    }
+                }, 1000);
+
                 try {
                     // ✅ FIX P0: Timeout de 30s para recálculo (CRIT-FIN-001)
                     const response = await fetchWithTimeout(
@@ -413,6 +442,16 @@
 
                     const resultado = await response.json();
                     if (resultado.success) {
+                        // ✅ CRIT-FIN-002: Completar progresso ao sucesso
+                        clearTimeout(warningTimeout);
+                        clearInterval(progressInterval);
+                        progressBar.style.width = "100%";
+                        progressText.textContent = `✅ ${resultado.totalRecalculados} registros recalculados`;
+                        progressText.style.color = "#10b981"; // Green-500
+
+                        // Aguardar 1s para usuário ver progresso completo
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+
                         fecharModalMini("modalRecalcMini");
                         mostrarToastMini(
                             "success",
@@ -424,6 +463,10 @@
                 } catch (error) {
                     console.error('[RECALC-CACHE] Erro:', error);
 
+                    // ✅ CRIT-FIN-002: Limpar timers
+                    clearTimeout(warningTimeout);
+                    clearInterval(progressInterval);
+
                     // Mensagem específica para timeout
                     let errorMsg = error.message;
                     if (error.message.includes('Timeout')) {
@@ -431,10 +474,26 @@
                         errorMsg = `Timeout: recálculo de ${totalRodadas} rodadas demorou mais que 30s. Tente um intervalo menor.`;
                     }
 
+                    // ✅ CRIT-FIN-002: Mostrar erro na área de progresso
+                    progressBar.style.width = "100%";
+                    progressBar.style.background = "#ef4444"; // Red-500
+                    progressText.innerHTML = `❌ <strong>Erro:</strong> ${errorMsg}`;
+                    progressText.style.color = "#ef4444";
+
                     mostrarToastMini("error", errorMsg);
                 } finally {
                     btn.disabled = false;
                     btn.innerHTML = "Executar";
+
+                    // ✅ CRIT-FIN-002: Esconder progresso após 3s (se houver erro)
+                    setTimeout(() => {
+                        if (progressContainer.style.display !== "none") {
+                            progressContainer.style.display = "none";
+                            progressBar.style.width = "0%";
+                            progressBar.style.background = "linear-gradient(90deg, #FF5500 0%, #FF8833 100%)";
+                            progressText.style.color = "var(--text-muted, #9ca3af)";
+                        }
+                    }, 3000);
                 }
             }
 
@@ -1043,6 +1102,19 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ✅ CRIT-FIN-002: Barra de progresso -->
+                <div id="recalcProgress" style="display: none; padding: 0 20px 15px 20px;">
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px;">
+                        <p id="recalcProgressText" style="color: var(--text-muted, #9ca3af); font-size: 0.85rem; margin: 0 0 8px 0; text-align: center;">
+                            Processando...
+                        </p>
+                        <div style="background: var(--bg-tertiary, #1a1a1a); height: 6px; border-radius: 3px; overflow: hidden;">
+                            <div id="recalcProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #FF5500 0%, #FF8833 100%); transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="modal-cache-footer">
                     <button
                         class="btn-mini btn-mini-cancel"
