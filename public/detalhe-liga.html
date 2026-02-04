@@ -351,6 +351,27 @@
                 setTimeout(() => toast.classList.remove("show"), 3500);
             }
 
+            // ✅ FIX P0: Helper para fetch com timeout (CRIT-FIN-001)
+            async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+                try {
+                    const response = await fetch(url, {
+                        ...options,
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    return response;
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        throw new Error(`Timeout: servidor não respondeu em ${timeoutMs / 1000}s`);
+                    }
+                    throw error;
+                }
+            }
+
             async function executarRecalcMini() {
                 const ligaId = obterLigaIdCache();
                 if (!ligaId) {
@@ -372,7 +393,8 @@
                 btn.innerHTML =
                     '<div class="spinner-mini"></div>Recalculando...';
                 try {
-                    const response = await fetch(
+                    // ✅ FIX P0: Timeout de 30s para recálculo (CRIT-FIN-001)
+                    const response = await fetchWithTimeout(
                         `/api/rodadas-cache/${ligaId}/recalcular`,
                         {
                             method: "POST",
@@ -382,9 +404,15 @@
                                 rodadaFim: fim,
                             }),
                         },
+                        30000 // 30s timeout para processar até 38 rodadas
                     );
+
+                    if (!response.ok) {
+                        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                    }
+
                     const resultado = await response.json();
-                    if (response.ok && resultado.success) {
+                    if (resultado.success) {
                         fecharModalMini("modalRecalcMini");
                         mostrarToastMini(
                             "success",
@@ -394,7 +422,16 @@
                         throw new Error(resultado.erro || "Erro ao recalcular");
                     }
                 } catch (error) {
-                    mostrarToastMini("error", error.message);
+                    console.error('[RECALC-CACHE] Erro:', error);
+
+                    // Mensagem específica para timeout
+                    let errorMsg = error.message;
+                    if (error.message.includes('Timeout')) {
+                        const totalRodadas = fim - inicio + 1;
+                        errorMsg = `Timeout: recálculo de ${totalRodadas} rodadas demorou mais que 30s. Tente um intervalo menor.`;
+                    }
+
+                    mostrarToastMini("error", errorMsg);
                 } finally {
                     btn.disabled = false;
                     btn.innerHTML = "Executar";
@@ -408,14 +445,21 @@
                     return;
                 }
                 try {
-                    const response = await fetch(
+                    // ✅ FIX P0: Timeout de 10s para limpeza (CRIT-FIN-001)
+                    const response = await fetchWithTimeout(
                         `/api/rodadas-cache/${ligaId}/limpar`,
                         {
                             method: "DELETE",
                         },
+                        10000 // 10s timeout para operação de limpeza
                     );
+
+                    if (!response.ok) {
+                        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                    }
+
                     const resultado = await response.json();
-                    if (response.ok && resultado.success) {
+                    if (resultado.success) {
                         fecharModalMini("modalLimparMini");
                         mostrarToastMini(
                             "success",
@@ -425,7 +469,15 @@
                         throw new Error(resultado.erro || "Erro ao limpar");
                     }
                 } catch (error) {
-                    mostrarToastMini("error", error.message);
+                    console.error('[LIMPAR-CACHE] Erro:', error);
+
+                    // Mensagem específica para timeout
+                    let errorMsg = error.message;
+                    if (error.message.includes('Timeout')) {
+                        errorMsg = 'Timeout: operação de limpeza demorou mais que 10s. Servidor pode estar processando em background.';
+                    }
+
+                    mostrarToastMini("error", errorMsg);
                 }
             }
         </script>
