@@ -1,5 +1,6 @@
 import express from "express";
 import { CURRENT_SEASON } from "../config/seasons.js";
+import { verificarAdmin } from "../middleware/auth.js";
 import {
     salvarCacheMataMata,
     lerCacheMataMata,
@@ -67,8 +68,9 @@ router.get("/cache/:ligaId/edicoes", async (req, res) => {
 // ============================================================================
 // 🔍 ROTA DE DEBUG - INSPECIONAR ESTRUTURA DO MONGODB
 // ⚠️ IMPORTANTE: Esta rota DEVE vir ANTES da rota com parâmetro :edicao
+// 🔒 Protegida: requer sessão admin
 // ============================================================================
-router.get("/debug/:ligaId", async (req, res) => {
+router.get("/debug/:ligaId", verificarAdmin, async (req, res) => {
     try {
         const { ligaId } = req.params;
 
@@ -228,16 +230,17 @@ router.get("/debug/:ligaId", async (req, res) => {
         res.json(analise);
     } catch (error) {
         console.error("[MATA-DEBUG] ❌ Erro:", error);
-        res.status(500).json({ error: error.message, stack: error.stack });
+        res.status(500).json({ error: error.message });
     }
 });
 
 // ============================================================================
 // 📦 ROTAS CRUD COM PARÂMETRO :edicao
 // ⚠️ IMPORTANTE: Estas rotas DEVEM vir DEPOIS das rotas específicas acima
+// 🔒 POST e DELETE protegidos: requerem sessão admin
 // ============================================================================
-router.post("/cache/:ligaId/:edicao", salvarCacheMataMata);
+router.post("/cache/:ligaId/:edicao", verificarAdmin, salvarCacheMataMata);
 router.get("/cache/:ligaId/:edicao", lerCacheMataMata);
-router.delete("/cache/:ligaId/:edicao", deletarCacheMataMata);
+router.delete("/cache/:ligaId/:edicao", verificarAdmin, deletarCacheMataMata);
 
 export default router;
