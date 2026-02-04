@@ -67,7 +67,8 @@ function salvarTemplates(data) {
 }
 
 // GET /api/admin/manutencao - Status atual
-router.get("/manutencao", (req, res) => {
+// FIX SEC-001: Proteger endpoint com verificarAdmin
+router.get("/manutencao", verificarAdmin, (req, res) => {
     const estado = lerEstado();
     res.json(estado);
 });
@@ -206,7 +207,8 @@ router.post("/manutencao/configurar", verificarAdmin, (req, res) => {
 });
 
 // GET /api/admin/manutencao/templates - Lista templates disponíveis
-router.get("/manutencao/templates", (req, res) => {
+// FIX SEC-002: Proteger endpoint com verificarAdmin
+router.get("/manutencao/templates", verificarAdmin, (req, res) => {
     try {
         const data = lerTemplates();
         res.json({ ok: true, templates: data.templates || [] });
@@ -333,9 +335,32 @@ router.post("/manutencao/upload-imagem", verificarAdmin, (req, res) => {
             });
         }
 
-        const ext = matches[1];
         const base64Data = matches[2];
         const buffer = Buffer.from(base64Data, 'base64');
+
+        // FIX SEC-003: Validar magic bytes (não confiar no header)
+        const magicBytes = buffer.slice(0, 8).toString('hex');
+        const validFormats = {
+            '89504e47': { ext: 'png', name: 'PNG' },           // PNG: 89 50 4E 47
+            'ffd8ffe0': { ext: 'jpg', name: 'JPEG' },         // JPEG/JFIF
+            'ffd8ffe1': { ext: 'jpg', name: 'JPEG' },         // JPEG/Exif
+            'ffd8ffe2': { ext: 'jpg', name: 'JPEG' },         // JPEG/Canon
+            'ffd8ffe3': { ext: 'jpg', name: 'JPEG' },         // JPEG/Samsung
+            'ffd8ffe8': { ext: 'jpg', name: 'JPEG' },         // JPEG/SPIFF
+            'ffd8ffdb': { ext: 'jpg', name: 'JPEG' }          // JPEG
+        };
+
+        const fileType = validFormats[magicBytes.slice(0, 8)];
+        if (!fileType) {
+            console.warn(`[MANUTENCAO] [SEC] Upload rejeitado - magic bytes inválidos: ${magicBytes.slice(0, 8)}`);
+            return res.status(400).json({
+                ok: false,
+                error: "Formato de arquivo inválido. Apenas PNG e JPEG são permitidos."
+            });
+        }
+
+        const ext = fileType.ext;
+        console.log(`[MANUTENCAO] [SEC] Upload validado: ${fileType.name} (magic bytes: ${magicBytes.slice(0, 8)})`);
 
         // Validar tamanho (max 2MB)
         if (buffer.length > 2 * 1024 * 1024) {
