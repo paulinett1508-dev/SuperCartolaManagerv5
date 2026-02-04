@@ -9,12 +9,14 @@ if (window.Log) Log.info("[PONTOS-CORRIDOS] 📊 Módulo v5.2 carregando...");
 const estadoPC = {
     ligaId: null,
     timeId: null,
+    temporada: null, // ✅ AUDIT-FIX: Adicionar campo temporada
     rodadaAtual: 1,
     rodadaSelecionada: 1,
     totalRodadas: 31,
     dados: [],
     viewMode: "confrontos",
     mercadoRodada: 1,
+    mercadoTemporada: null, // ✅ AUDIT-FIX: Temporada da API Cartola
     mercadoAberto: true,
     ligaEncerrou: false,
 };
@@ -33,6 +35,17 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
     estadoPC.ligaId = params.ligaId || participante.ligaId;
     estadoPC.timeId = params.timeId || participante.timeId;
 
+    // ✅ AUDIT-FIX: Buscar status mercado ANTES para obter temporada da API
+    await buscarStatusMercado();
+
+    // ✅ AUDIT-FIX: Inicializar temporada corretamente
+    estadoPC.temporada = params.temporada ||
+                         participante.temporada ||
+                         estadoPC.mercadoTemporada || // Da API Cartola
+                         new Date().getFullYear();
+
+    if (window.Log) Log.info(`[PONTOS-CORRIDOS] 📅 Temporada ativa: ${estadoPC.temporada}`);
+
     // ✅ v5.1: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
     let usouCache = false;
     let dadosCache = null;
@@ -40,7 +53,9 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
     // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
     if (window.OfflineCache) {
         try {
-            const pcCache = await window.OfflineCache.get('pontosCorridos', estadoPC.ligaId, true);
+            // ✅ AUDIT-FIX: Chave composta ligaId:temporada para evitar mistura de temporadas
+            const cacheKey = `${estadoPC.ligaId}:${estadoPC.temporada}`;
+            const pcCache = await window.OfflineCache.get('pontosCorridos', cacheKey, true);
             if (pcCache && Array.isArray(pcCache) && pcCache.length > 0) {
                 usouCache = true;
                 dadosCache = pcCache;
@@ -144,6 +159,8 @@ async function buscarStatusMercado() {
             const status = await response.json();
             estadoPC.mercadoRodada = status.rodada_atual || 1;
             estadoPC.mercadoAberto = status.status_mercado === 1;
+            estadoPC.mercadoTemporada = status.temporada; // ✅ AUDIT-FIX: Salvar temporada da API
+            if (window.Log) Log.info(`[PONTOS-CORRIDOS] 📅 Mercado: Temporada ${status.temporada}, Rodada ${status.rodada_atual}`);
         }
     } catch (e) {
         if (window.Log) Log.warn("[PONTOS-CORRIDOS] ⚠️ Falha ao buscar status do mercado");
@@ -151,9 +168,11 @@ async function buscarStatusMercado() {
 }
 
 async function carregarDados() {
-    const response = await fetch(`/api/pontos-corridos/${estadoPC.ligaId}`);
+    // ✅ AUDIT-FIX: Passar temporada na API
+    const response = await fetch(`/api/pontos-corridos/${estadoPC.ligaId}?temporada=${estadoPC.temporada}`);
     if (!response.ok) throw new Error("Falha ao carregar dados");
     const data = await response.json();
+    if (window.Log) Log.info(`[PONTOS-CORRIDOS] ✅ ${data.length} rodadas carregadas (temporada ${estadoPC.temporada})`);
     return Array.isArray(data) ? data : [];
 }
 
@@ -475,7 +494,7 @@ function renderizarBannerCampeao() {
                 <div class="text-center mb-3">
                     <span class="material-symbols-outlined text-yellow-400 animate-bounce-slow" style="font-size: 32px;">emoji_events</span>
                     <h3 class="text-yellow-400 font-bold text-sm tracking-wider">CAMPEÃO DA LIGA!</h3>
-                    <p class="text-white/50 text-[10px]">Pontos Corridos 2025</p>
+                    <p class="text-white/50 text-[10px]">Pontos Corridos ${estadoPC.temporada || new Date().getFullYear()}</p>
                 </div>
                 <div class="flex items-center justify-center gap-4 bg-black/30 rounded-xl p-3">
                     <div class="relative">

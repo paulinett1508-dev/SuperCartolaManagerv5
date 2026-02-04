@@ -25,7 +25,7 @@ let estadoPolling = {
 // =====================================================================
 // INICIALIZAR POLLING INTELIGENTE
 // =====================================================================
-export async function inicializarPollingInteligente({
+export async function inicializar({
     temporada,
     rodada,
     ligaId,
@@ -255,7 +255,7 @@ function notificarStatus(tipo) {
 // =====================================================================
 // PARAR POLLING INTELIGENTE (cleanup)
 // =====================================================================
-export function pararPollingInteligente() {
+export function parar() {
     if (window.Log) Log.info("[POLLING] 🛑 Parando polling inteligente...");
 
     desativarPolling();
@@ -271,7 +271,7 @@ export function pararPollingInteligente() {
 // =====================================================================
 // FORÇAR ATIVAÇÃO MANUAL (para debug/admin)
 // =====================================================================
-export function forcarAtivacaoPolling() {
+export function forcarAtivar() {
     if (window.Log) Log.info("[POLLING] 🔧 Forçando ativação manual do polling...");
     ativarPolling();
 }
@@ -279,7 +279,7 @@ export function forcarAtivacaoPolling() {
 // =====================================================================
 // FORÇAR DESATIVAÇÃO MANUAL
 // =====================================================================
-export function forcarDesativacaoPolling() {
+export function forcarDesativar() {
     if (window.Log) Log.info("[POLLING] 🔧 Forçando desativação manual do polling...");
     desativarPolling();
 }
@@ -287,7 +287,7 @@ export function forcarDesativacaoPolling() {
 // =====================================================================
 // OBTER STATUS ATUAL
 // =====================================================================
-export function obterStatus() {
+export function status() {
     return {
         ativo: estadoPolling.ativo,
         pollingAtivo: estadoPolling.pollingAtivo,
@@ -300,11 +300,11 @@ export function obterStatus() {
 
 // Expor no window para debug
 window.PollingInteligenteModule = {
-    inicializar: inicializarPollingInteligente,
-    parar: pararPollingInteligente,
-    forcarAtivar: forcarAtivacaoPolling,
-    forcarDesativar: forcarDesativacaoPolling,
-    status: obterStatus,
+    inicializar,
+    parar,
+    forcarAtivar,
+    forcarDesativar,
+    status,
 };
 
 if (window.Log) Log.info("[POLLING] ✅ Módulo v1.0 carregado");

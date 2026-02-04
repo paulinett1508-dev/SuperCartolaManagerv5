@@ -90,7 +90,7 @@ class Router {
     const titles = {
       '/': 'Dashboard',
       '/ligas': 'Ligas',
-      '/consolidacao': 'Consolidação',
+      '/consolidacao': 'Operações',
       '/financeiro': 'Financeiro',
       '/health': 'Saúde do Sistema',
       '/profile': 'Perfil'

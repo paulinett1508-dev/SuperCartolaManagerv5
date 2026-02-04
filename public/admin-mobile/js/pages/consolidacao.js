@@ -53,8 +53,30 @@ function renderConsolidacaoPage(container, ligas) {
           ←
         </button>
         <div style="flex: 1;">
-          <h2 class="card-title" style="margin: 0; font-size: 20px;">⚙️ Consolidação Manual</h2>
-          <p class="text-muted" style="margin: 0; font-size: 14px;">Consolidar rodadas finalizadas</p>
+          <h2 class="card-title" style="margin: 0; font-size: 20px;">⚙️ Operações</h2>
+          <p class="text-muted" style="margin: 0; font-size: 14px;">Consolidação e ferramentas administrativas</p>
+        </div>
+      </div>
+
+      <!-- Acesso Rápido -->
+      <div class="card" style="margin-bottom: var(--spacing-md); background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, rgba(249, 115, 22, 0.05) 100%); border: 1px solid rgba(251, 146, 60, 0.2);">
+        <h3 class="card-title" style="font-size: 14px; margin-bottom: 12px; color: #fb923c;">🔧 Ferramentas Administrativas</h3>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <a
+            href="/admin/operacoes/notificador.html"
+            target="_blank"
+            class="btn btn-secondary"
+            style="flex: 1; min-width: 140px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;"
+          >
+            📢 Notificador
+          </a>
+          <button
+            class="btn btn-ghost"
+            style="flex: 1; min-width: 140px; font-size: 13px; opacity: 0.5; cursor: not-allowed;"
+            disabled
+          >
+            🔜 Em breve
+          </button>
         </div>
       </div>
 
