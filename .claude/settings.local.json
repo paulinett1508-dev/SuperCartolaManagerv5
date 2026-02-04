@@ -154,7 +154,9 @@
       "Bash(then echo '✅ Servidor reiniciado com sucesso!')",
       "Bash(then echo '✅ Servidor reiniciado com sucesso!' echo echo '📊 Status do servidor:' curl -s http://localhost:5000/api/cartola/mercado/status)",
       "Bash(git restore:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(do sleep 1 if curl -s http://localhost:3000/health)",
+      "Bash(then echo \"✅ Servidor respondeu após $is\" break fi echo \"Tentativa $i/20...\" done)"
     ]
   },
   "enableAllProjectMcpServers": true,

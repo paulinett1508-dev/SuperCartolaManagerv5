@@ -38,19 +38,40 @@ router.get("/config/:ligaId", async (req, res) => {
 });
 
 // Rota para BUSCAR CONFRONTOS completos (GET)
-// Ex: GET /api/pontos-corridos/684cb1c8af923da7c7df51de
+// Ex: GET /api/pontos-corridos/684cb1c8af923da7c7df51de?temporada=2026
 router.get("/:ligaId", async (req, res) => {
     try {
         const { ligaId } = req.params;
-        const { rodada } = req.query; // opcional: filtrar por rodada específica
+        const { temporada, rodada } = req.query;
+
+        // ✅ AUDIT-FIX: Validar temporada obrigatória
+        if (!temporada) {
+            return res.status(400).json({
+                error: "Parâmetro 'temporada' é obrigatório",
+                exemplo: `/api/pontos-corridos/${ligaId}?temporada=2026`
+            });
+        }
+
+        const temporadaNum = parseInt(temporada);
+        if (isNaN(temporadaNum) || temporadaNum < 2020 || temporadaNum > 2030) {
+            return res.status(400).json({
+                error: "Temporada inválida (deve ser entre 2020-2030)",
+                recebido: temporada
+            });
+        }
+
+        console.log(`[API-PC] 🔍 Buscando confrontos: Liga ${ligaId}, Temporada ${temporadaNum}${rodada ? `, Rodada ${rodada}` : ''}`);
 
         // Buscar confrontos do cache ou calcular
-        const confrontos = await obterConfrontosPontosCorridos(ligaId, rodada);
+        const confrontos = await obterConfrontosPontosCorridos(ligaId, temporadaNum, rodada ? parseInt(rodada) : null);
 
         res.json(confrontos);
     } catch (error) {
-        console.error("[PONTOS-CORRIDOS] Erro ao buscar confrontos:", error);
-        res.status(500).json({ error: "Erro ao buscar confrontos" });
+        console.error("[API-PC] ❌ Erro ao buscar confrontos:", error.message);
+        res.status(500).json({
+            error: "Erro ao buscar confrontos",
+            message: error.message
+        });
     }
 });
 

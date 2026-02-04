@@ -341,10 +341,17 @@ export const lerCachePontosCorridos = async (req, res) => {
 // ✅ OBTER TODAS AS RODADAS PARA O PARTICIPANTE (COM PARCIAIS AO VIVO)
 export const obterConfrontosPontosCorridos = async (
     ligaId,
-    rodadaFiltro = null,
-    temporada = CURRENT_SEASON,
+    temporada, // ✅ AUDIT-FIX: Temporada obrigatória (sem default)
+    rodadaFiltro = null
 ) => {
     try {
+        // ✅ AUDIT-FIX: Validar temporada obrigatória
+        if (!temporada) {
+            throw new Error('Parâmetro temporada é obrigatório');
+        }
+
+        console.log(`[PONTOS-CORRIDOS] 📊 Buscando dados: Liga ${ligaId}, Temporada ${temporada}`);
+
         // 0. Buscar configuração do módulo
         const config = await buscarConfigPontosCorridos(ligaId, temporada);
 
@@ -439,11 +446,11 @@ export const obterConfrontosPontosCorridos = async (
         }
 
         console.log(
-            `[PONTOS-CORRIDOS] ✅ ${dadosPorRodada.length} rodadas carregadas: Liga ${ligaId}`,
+            `[PONTOS-CORRIDOS] ✅ ${dadosPorRodada.length} rodadas carregadas: Liga ${ligaId}, Temporada ${temporada}`,
         );
         return dadosPorRodada;
     } catch (error) {
-        console.error("[PONTOS-CORRIDOS] ❌ Erro ao obter dados:", error);
+        console.error(`[PONTOS-CORRIDOS] ❌ Erro ao obter dados (T${temporada}):`, error.message);
         return [];
     }
 };
