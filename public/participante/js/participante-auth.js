@@ -18,7 +18,7 @@ class ParticipanteAuth {
         // ✅ v2.1: Cache de dados da liga para evitar requisições duplicadas
         this.ligaDataCache = null;
         this.ligaDataCacheTime = null;
-        this.LIGA_CACHE_DURATION = 300000; // 5 minutos
+        this.LIGA_CACHE_DURATION = 30000; // 30 segundos (reduzido para atualização mais rápida de módulos)
     }
 
     async verificarAutenticacao() {
