@@ -37,6 +37,9 @@ export const ROTAS_PUBLICAS = [
   "/admin-mobile/js/",
   "/admin-mobile/css/",
   "/admin-mobile/icons/",
+  // ✅ Admin - Assets estáticos (CSS, JS)
+  "/admin/css/",
+  "/admin/js/",
 ];
 
 /**
@@ -65,6 +68,9 @@ export const PAGINAS_ADMIN = [
   "/auditoria-extratos.html",
   "/fluxo-financeiro.html",
   "/preencher-liga.html",
+  // ✅ Notificador - Sistema de avisos in-app
+  "/admin/operacoes/",
+  "/admin/operacoes/notificador.html",
 ];
 
 /**
