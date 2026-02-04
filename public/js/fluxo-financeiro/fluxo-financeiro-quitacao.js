@@ -90,7 +90,7 @@ async function enviarQuitacao(ligaId, timeId, payload) {
  */
 window.abrirModalQuitacao = async function(ligaId, timeId, saldoAtual, temporada, nomeParticipante = '') {
     if (!ligaId) {
-        alert('Liga não identificada');
+        SuperModal.toast.error('Liga não identificada');
         return;
     }
 
@@ -126,7 +126,7 @@ window.abrirModalQuitacao = async function(ligaId, timeId, saldoAtual, temporada
         document.getElementById('quitacao-content').style.display = 'block';
 
     } catch (error) {
-        alert(`Erro ao carregar dados: ${error.message}`);
+        SuperModal.toast.error(`Erro ao carregar dados: ${error.message}`);
         fecharModalQuitacao();
     }
 };
@@ -314,7 +314,7 @@ window.confirmarQuitacao = async function() {
     const observacao = document.getElementById('quitacao-observacao').value.trim();
 
     if (observacao.length < 5) {
-        alert('Observação é obrigatória (mínimo 5 caracteres)');
+        SuperModal.toast.warning('Observação é obrigatória (mínimo 5 caracteres)');
         document.getElementById('quitacao-observacao').focus();
         return;
     }
@@ -337,7 +337,8 @@ window.confirmarQuitacao = async function() {
         ? `Confirmar quitação ZERANDO o saldo?\n\nO participante iniciará ${proximaTemporada} sem pendências de ${quitacaoAtual.temporada}.`
         : `Confirmar quitação com legado de ${formatarMoeda(valorLegado)}?\n\nEste valor será carregado para ${proximaTemporada}.`;
 
-    if (!confirm(mensagem)) {
+    const confirmado = await SuperModal.confirm({ title: 'Confirmar Quitação', message: mensagem, variant: 'danger', confirmText: 'Confirmar' });
+    if (!confirmado) {
         return;
     }
 
@@ -361,7 +362,7 @@ window.confirmarQuitacao = async function() {
         await enviarQuitacao(quitacaoAtual.ligaId, quitacaoAtual.timeId, payload);
 
         // Sucesso
-        alert(`Temporada ${quitacaoAtual.temporada} quitada com sucesso!`);
+        SuperModal.toast.success(`Temporada ${quitacaoAtual.temporada} quitada com sucesso!`);
         fecharModalQuitacao();
 
         // Recarregar tabela
@@ -372,7 +373,7 @@ window.confirmarQuitacao = async function() {
         }
 
     } catch (error) {
-        alert(`Erro ao processar quitação: ${error.message}`);
+        SuperModal.toast.error(`Erro ao processar quitação: ${error.message}`);
 
         // Reabilitar botão
         const btnConfirmar = document.querySelector('#modal-quitacao-temporada .btn-confirmar');

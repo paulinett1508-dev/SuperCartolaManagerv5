@@ -73,37 +73,55 @@ async function atualizarEstatisticasCache() {
 }
 
 window.limparIndexedDB = async function() {
-    if (!confirm('Limpar todo o cache do navegador? Esta ação é irreversível.')) return;
+    const confirmou = await SuperModal.confirm({
+        title: 'Limpar Cache do Navegador',
+        message: 'Limpar todo o cache do navegador? Esta ação é irreversível.',
+        variant: 'danger',
+        confirmText: 'Limpar'
+    });
+    if (!confirmou) return;
 
     try {
         await window.cacheManager.clearAll();
-        alert('Cache do navegador limpo com sucesso!');
+        SuperModal.toast.success('Cache do navegador limpo com sucesso!');
         await atualizarEstatisticasCache();
     } catch (error) {
-        alert(`Erro ao limpar cache: ${error.message}`);
+        SuperModal.toast.error(`Erro ao limpar cache: ${error.message}`);
     }
 };
 
 window.invalidarCacheLigaCompleta = async function() {
-    if (!confirm('RESETAR todo o cache desta liga no servidor? Isso forçará recálculo na próxima consulta de qualquer participante.')) return;
+    const confirmou = await SuperModal.confirm({
+        title: 'Resetar Cache da Liga',
+        message: 'RESETAR todo o cache desta liga no servidor? Isso forçará recálculo na próxima consulta de qualquer participante.',
+        variant: 'danger',
+        confirmText: 'Resetar'
+    });
+    if (!confirmou) return;
 
     try {
         const ligaId = obterLigaId();
         const response = await fetch(`/api/extrato-cache/${ligaId}/cache`, { method: 'DELETE' });
 
         if (response.ok) {
-            alert('Cache da liga invalidado! Próximas consultas serão recalculadas.');
+            SuperModal.toast.success('Cache da liga invalidado! Próximas consultas serão recalculadas.');
             await atualizarEstatisticasCache();
         } else {
             throw new Error('Falha ao invalidar cache');
         }
     } catch (error) {
-        alert(`Erro: ${error.message}`);
+        SuperModal.toast.error(`Erro: ${error.message}`);
     }
 };
 
 window.recalcularTodosParticipantes = async function() {
-    if (!confirm('ATENÇÃO: Esta operação vai RECALCULAR TUDO DO ZERO para TODOS os participantes. Pode levar vários minutos. Continuar?')) return;
+    const confirmou = await SuperModal.confirm({
+        title: 'Recalcular Tudo do Zero',
+        message: 'ATENÇÃO: Esta operação vai RECALCULAR TUDO DO ZERO para TODOS os participantes. Pode levar vários minutos. Continuar?',
+        variant: 'danger',
+        confirmText: 'Recalcular Tudo'
+    });
+    if (!confirmou) return;
 
     const btn = event.target;
     btn.disabled = true;
@@ -132,10 +150,10 @@ window.recalcularTodosParticipantes = async function() {
             }
         }
 
-        alert(`Recálculo completo! ${processados} times processados.`);
+        SuperModal.toast.success(`Recálculo completo! ${processados} times processados.`);
         await atualizarEstatisticasCache();
     } catch (error) {
-        alert(`Erro: ${error.message}`);
+        SuperModal.toast.error(`Erro: ${error.message}`);
     } finally {
         btn.disabled = false;
         btn.textContent = 'RECALCULAR TUDO DO ZERO';

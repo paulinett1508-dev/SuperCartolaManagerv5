@@ -240,7 +240,7 @@
 
   let senhaEditando = null;
 
-  function handleAcao(e) {
+  async function handleAcao(e) {
     const btn = e.currentTarget;
     const action = btn.dataset.action;
     const timeId = btn.dataset.timeId;
@@ -267,17 +267,18 @@
 
       let rodadaDesistencia = null;
       if (!novoStatus) {
-        const input = prompt("Rodada de desistencia (opcional, pressione OK para deixar vazio):");
+        const input = await SuperModal.prompt({ title: 'Rodada de desistência', message: 'Rodada de desistencia (opcional, pressione OK para deixar vazio):' });
         if (input !== null && input.trim()) {
           rodadaDesistencia = parseInt(input.trim());
         }
       }
 
-      const confirmar = confirm(
-        novoStatus
+      const confirmar = await SuperModal.confirm({
+        title: 'Confirmar',
+        message: novoStatus
           ? `Reativar participante ${timeId}?`
           : `Desativar participante ${timeId}?`
-      );
+      });
 
       if (!confirmar) return;
 
@@ -286,7 +287,7 @@
           carregarParticipantes();
           carregarResumo();
         })
-        .catch((err) => alert("Erro: " + err.message));
+        .catch((err) => SuperModal.toast.error("Erro: " + err.message));
     }
   }
 
@@ -300,7 +301,7 @@
 
     const senha = els.modalSenhaInput.value.trim();
     if (senha.length < 3) {
-      alert("Senha deve ter pelo menos 3 caracteres");
+      SuperModal.toast.warning("Senha deve ter pelo menos 3 caracteres");
       return;
     }
 
@@ -310,7 +311,7 @@
         carregarParticipantes();
         carregarResumo();
       })
-      .catch((err) => alert("Erro ao salvar senha: " + err.message));
+      .catch((err) => SuperModal.toast.error("Erro ao salvar senha: " + err.message));
   }
 
   // Senha em lote
@@ -326,23 +327,24 @@
     els.modalSenhaLote.classList.remove("active");
   }
 
-  function aplicarSenhaLote() {
+  async function aplicarSenhaLote() {
     const senha = els.modalLoteSenhaInput.value.trim();
     if (senha.length < 3) {
-      alert("Senha deve ter pelo menos 3 caracteres");
+      SuperModal.toast.warning("Senha deve ter pelo menos 3 caracteres");
       return;
     }
 
     const semSenha = participantes.filter((p) => !p.temSenha);
     if (semSenha.length === 0) {
-      alert("Todos os participantes ja possuem senha");
+      SuperModal.toast.info("Todos os participantes ja possuem senha");
       fecharModalLote();
       return;
     }
 
-    const confirmar = confirm(
-      `Aplicar senha "${senha}" para ${semSenha.length} participante(s)?`
-    );
+    const confirmar = await SuperModal.confirm({
+      title: 'Confirmar',
+      message: `Aplicar senha "${senha}" para ${semSenha.length} participante(s)?`
+    });
     if (!confirmar) return;
 
     const lista = semSenha.map((p) => ({
@@ -353,18 +355,18 @@
 
     salvarSenhaLote(lista)
       .then((res) => {
-        alert(`${res.atualizados} senhas atualizadas, ${res.erros} erros`);
+        SuperModal.toast.success(`${res.atualizados} senhas atualizadas, ${res.erros} erros`);
         fecharModalLote();
         carregarParticipantes();
         carregarResumo();
       })
-      .catch((err) => alert("Erro: " + err.message));
+      .catch((err) => SuperModal.toast.error("Erro: " + err.message));
   }
 
   // Exportar CSV
   function exportarCSV() {
     if (participantes.length === 0) {
-      alert("Nenhum participante para exportar");
+      SuperModal.toast.info("Nenhum participante para exportar");
       return;
     }
 
@@ -748,13 +750,13 @@
 
     // Chart bar click to load round
     content.querySelectorAll(".dl-chart-bar-wrap[data-rodada]").forEach(bar => {
-      bar.addEventListener("click", () => {
+      bar.addEventListener("click", async () => {
         const rodada = parseInt(bar.dataset.rodada);
         const h = dumpHistorico.find(x => x.rodada === rodada);
         if (h) {
           carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
         } else if (rodada) {
-          if (confirm(`Rodada ${rodada} nao esta no Data Lake. Deseja sincronizar da API Cartola?`)) {
+          if (await SuperModal.confirm({ title: 'Confirmar', message: `Rodada ${rodada} nao esta no Data Lake. Deseja sincronizar da API Cartola?` })) {
             sincronizarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
           }
         }

@@ -48,6 +48,8 @@
             href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
             rel="stylesheet"
         />
+        <link rel="stylesheet" href="css/modules/super-modal.css" />
+        <script src="js/super-modal.js"></script>
         <style>
             /* Fallback Material Icons */
             @font-face {
@@ -194,7 +196,7 @@
             function abrirModalModulos() {
                 const ligaId = obterLigaIdCache();
                 if (!ligaId) {
-                    alert('Liga nao identificada');
+                    SuperModal.toast.warning('Liga nao identificada');
                     return;
                 }
 
@@ -1137,7 +1139,7 @@
                         if (id) {
                             window.location.href = `editar-liga.html?id=${id}`;
                         } else {
-                            alert('Liga não identificada');
+                            SuperModal.toast.warning('Liga nao identificada');
                         }
                     });
                 }
@@ -1151,7 +1153,7 @@
                         if (id) {
                             window.location.href = `preencher-liga.html?id=${id}`;
                         } else {
-                            alert('Liga não identificada');
+                            SuperModal.toast.warning('Liga nao identificada');
                         }
                     });
                 }
@@ -1165,7 +1167,7 @@
                         if (id) {
                             window.location.href = `auditoria-extratos.html?liga=${id}`;
                         } else {
-                            alert('Liga não identificada');
+                            SuperModal.toast.warning('Liga nao identificada');
                         }
                     });
                 }

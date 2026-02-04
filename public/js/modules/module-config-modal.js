@@ -312,7 +312,9 @@ class ModuleConfigModal {
         const required = pergunta.required ? 'required' : '';
 
         const options = (pergunta.options || []).map(opt => {
-            const selected = opt.valor === valorAtual ? 'selected' : '';
+            // FIX: Usa == para permitir coerção number/string (ex: 1 == "1")
+            // JSON pode ter valores numéricos, mas HTML input retorna strings
+            const selected = opt.valor == valorAtual ? 'selected' : '';
             return `<option value="${opt.valor}" ${selected}>${opt.label}</option>`;
         }).join('');
 
@@ -1233,10 +1235,14 @@ class ModuleConfigModal {
      * Exibe mensagem de erro
      */
     showError(message) {
-        if (typeof showMessage === 'function') {
-            showMessage(message, 'error');
+        if (typeof window.showMessage === 'function') {
+            window.showMessage(message, 'error');
+        } else if (typeof SuperModal !== 'undefined' && SuperModal.toast) {
+            SuperModal.toast.error(message);
         } else {
-            alert(message);
+            // Fallback absoluto: alert
+            console.error('[MODULE-CONFIG-MODAL]', message);
+            alert('Erro: ' + message);
         }
     }
 
@@ -1244,10 +1250,14 @@ class ModuleConfigModal {
      * Exibe mensagem de sucesso
      */
     showSuccess(message) {
-        if (typeof showMessage === 'function') {
-            showMessage(message, 'success');
+        if (typeof window.showMessage === 'function') {
+            window.showMessage(message, 'success');
+        } else if (typeof SuperModal !== 'undefined' && SuperModal.toast) {
+            SuperModal.toast.success(message);
         } else {
-            alert(message);
+            // Fallback absoluto: alert
+            console.log('[MODULE-CONFIG-MODAL]', message);
+            alert('Sucesso: ' + message);
         }
     }
 }

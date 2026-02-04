@@ -858,7 +858,7 @@ async function carregarMeuTime(container) {
 // =====================================================================
 export function colarTimeSugerido() {
     if (!dadosTimeSugerido || !dadosTimeSugerido.atletas) {
-        alert('Carregue a sugestão primeiro');
+        SuperModal.toast.warning('Carregue a sugestão primeiro');
         return;
     }
 

@@ -4,6 +4,7 @@ import Time from "../models/Time.js";
 import Rodada from "../models/Rodada.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import InscricaoTemporada from "../models/InscricaoTemporada.js";
+import ModuleConfig from "../models/ModuleConfig.js";
 import axios from "axios";
 import { hasAccessToLiga } from "../middleware/tenant.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
@@ -815,23 +816,36 @@ const buscarModulosAtivos = async (req, res) => {
 
     let modulosAtivos;
 
+    // Defaults completos para todos os módulos conhecidos
+    const defaults = {
+      extrato: true,
+      ranking: true,
+      rodadas: true,
+      top10: false,
+      melhorMes: false,
+      pontosCorridos: false,
+      mataMata: false,
+      artilheiro: false,
+      luvaOuro: false,
+      capitaoLuxo: false,
+      campinho: false,
+      dicas: false,
+    };
+
     if (liga.modulos_ativos && Object.keys(liga.modulos_ativos).length > 0) {
-      modulosAtivos = liga.modulos_ativos;
+      // Merge: defaults + valores salvos (garantir todas as keys)
+      modulosAtivos = { ...defaults, ...liga.modulos_ativos };
     } else {
       const config = liga.configuracoes || {};
 
       modulosAtivos = {
-        extrato: true,
-        ranking: true,
-        rodadas: true,
+        ...defaults,
         top10: !!config.top10,
         melhorMes: !!config.melhor_mes,
         pontosCorridos: !!config.pontos_corridos,
         mataMata: !!config.mata_mata,
         artilheiro: !!config.artilheiro,
         luvaOuro: !!config.luva_ouro,
-        campinho: false,
-        dicas: false,
       };
     }
 
@@ -840,6 +854,29 @@ const buscarModulosAtivos = async (req, res) => {
     console.error("[LIGAS] Erro ao buscar módulos ativos:", err);
     res.status(500).json({ erro: "Erro ao buscar módulos ativos" });
   }
+};
+
+/**
+ * Mapeia IDs de módulos do frontend para backend
+ * Frontend usa camelCase (extrato, pontosCorridos)
+ * Backend usa snake_case (extrato, pontos_corridos)
+ */
+const mapearModuloId = (moduloFrontend) => {
+  const mapeamento = {
+    extrato: "extrato",
+    ranking: "ranking_geral",
+    rodadas: "ranking_rodada",
+    top10: "top_10",
+    melhorMes: "melhor_mes",
+    pontosCorridos: "pontos_corridos",
+    mataMata: "mata_mata",
+    artilheiro: "artilheiro",
+    luvaOuro: "luva_ouro",
+    capitaoLuxo: "capitao_luxo",
+    campinho: "campinho",
+    dicas: "dicas",
+  };
+  return mapeamento[moduloFrontend] || moduloFrontend;
 };
 
 const atualizarModulosAtivos = async (req, res) => {
@@ -854,20 +891,131 @@ const atualizarModulosAtivos = async (req, res) => {
     return res.status(400).json({ erro: "Dados de módulos inválidos" });
   }
 
+  // ✅ FIX: Validar que módulos base não podem ser desativados
+  const MODULOS_BASE_OBRIGATORIOS = ['extrato', 'ranking', 'rodadas'];
+
+  for (const moduloBase of MODULOS_BASE_OBRIGATORIOS) {
+    if (modulos[moduloBase] === false) {
+      return res.status(400).json({
+        erro: `Módulo base "${moduloBase}" não pode ser desativado`,
+        moduloAfetado: moduloBase,
+      });
+    }
+  }
+
   try {
     const liga = await Liga.findById(ligaIdParam);
     if (!liga) {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    liga.modulos_ativos = modulos;
-    liga.atualizadaEm = new Date();
-    await liga.save();
+    // ✅ FIX: Forçar módulos base sempre ativos (garantia adicional)
+    const modulosComBaseForçada = {
+      ...modulos,
+      extrato: true,  // Sempre ativo
+      ranking: true,  // Sempre ativo
+      rodadas: true,  // Sempre ativo
+    };
+
+    // 1. Salvar no sistema antigo (manter compatibilidade)
+    // Usar updateOne com $set para bypass do change tracking do Mongoose Mixed type
+    await Liga.updateOne(
+      { _id: ligaIdParam },
+      { $set: { modulos_ativos: modulosComBaseForçada, atualizadaEm: new Date() } },
+    );
+
+    // 2. Sincronizar com sistema novo (ModuleConfig)
+    console.log(
+      `[LIGAS] Sincronizando ${Object.keys(modulosComBaseForçada).length} módulos com ModuleConfig...`,
+    );
+
+    const ligaId = ligaIdParam.toString();
+    const temporada = CURRENT_SEASON;
+    let sincronizados = 0;
+    let erros = 0;
+    let errosDetalhes = []; // ✅ FIX: Coletar detalhes dos erros
+
+    for (const [moduloKey, ativo] of Object.entries(modulosComBaseForçada)) {
+      try {
+        const moduloBackendId = mapearModuloId(moduloKey);
+
+        if (ativo) {
+          // Ativar módulo (criar se não existir)
+          const configExistente = await ModuleConfig.buscarConfig(
+            ligaId,
+            moduloBackendId,
+            temporada,
+          );
+
+          if (!configExistente) {
+            // Criar novo documento com config default
+            await ModuleConfig.ativarModulo(
+              ligaId,
+              moduloBackendId,
+              { wizard_respostas: {} },
+              "sistema_sync",
+              temporada,
+            );
+            console.log(
+              `[LIGAS] ✅ Módulo ${moduloBackendId} ativado e criado no ModuleConfig`,
+            );
+          } else if (!configExistente.ativo) {
+            // Reativar módulo existente
+            await ModuleConfig.ativarModulo(
+              ligaId,
+              moduloBackendId,
+              { wizard_respostas: configExistente.wizard_respostas || {} },
+              "sistema_sync",
+              temporada,
+            );
+            console.log(
+              `[LIGAS] ✅ Módulo ${moduloBackendId} reativado no ModuleConfig`,
+            );
+          }
+          sincronizados++;
+        } else {
+          // Desativar módulo
+          const desativado = await ModuleConfig.desativarModulo(
+            ligaId,
+            moduloBackendId,
+            "sistema_sync",
+            temporada,
+          );
+          if (desativado) {
+            console.log(
+              `[LIGAS] ⏸️  Módulo ${moduloBackendId} desativado no ModuleConfig`,
+            );
+            sincronizados++;
+          }
+        }
+      } catch (syncError) {
+        console.error(
+          `[LIGAS] ❌ Erro ao sincronizar módulo ${moduloKey}:`,
+          syncError.message,
+        );
+        erros++;
+        // ✅ FIX: Coletar detalhes do erro
+        errosDetalhes.push({
+          modulo: moduloKey,
+          erro: syncError.message,
+        });
+      }
+    }
+
+    console.log(
+      `[LIGAS] Sincronização concluída: ${sincronizados} ok, ${erros} erros`,
+    );
 
     res.json({
       success: true,
-      modulos: liga.modulos_ativos,
+      modulos: modulosComBaseForçada, // ✅ FIX: Retornar estado real (com base forçada)
       mensagem: "Módulos atualizados com sucesso",
+      sincronizacao: {
+        total: Object.keys(modulosComBaseForçada).length,
+        sincronizados,
+        erros,
+        detalhes: errosDetalhes, // ✅ FIX: Retornar detalhes dos erros
+      },
     });
   } catch (err) {
     console.error("[LIGAS] Erro ao atualizar módulos:", err);

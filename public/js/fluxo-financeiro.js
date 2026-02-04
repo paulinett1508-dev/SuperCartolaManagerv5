@@ -497,7 +497,7 @@ window.abrirAuditoria = async function (timeId) {
         );
     } catch (error) {
         console.error("[AUDITORIA] Erro:", error);
-        alert("Erro ao gerar auditoria: " + error.message);
+        SuperModal.toast.error("Erro ao gerar auditoria: " + error.message);
     } finally {
         loadingOverlay.remove();
     }
@@ -622,7 +622,7 @@ window.salvarCampoEditavelComRecalculo = async (timeId, nomeCampo, valor) => {
         );
     } catch (error) {
         console.error("[FLUXO] Erro ao salvar campo:", error);
-        alert("Erro ao salvar campo: " + error.message);
+        SuperModal.toast.error("Erro ao salvar campo: " + error.message);
 
         const input = document.getElementById(`input_${nomeCampo}`);
         if (input) {
@@ -660,7 +660,7 @@ window.desfazerCampo = async (timeId, nomeCampo) => {
         console.log(`[FLUXO] Campo ${nomeCampo} resetado`);
     } catch (error) {
         console.error("[FLUXO] Erro ao resetar campo:", error);
-        alert("Erro ao resetar campo: " + error.message);
+        SuperModal.toast.error("Erro ao resetar campo: " + error.message);
     }
 };
 
@@ -679,7 +679,7 @@ window.abrirModalAcerto = function (timeId, nomeTime) {
 
     const ligaId = obterLigaId();
     if (!ligaId) {
-        alert("Liga não identificada");
+        SuperModal.toast.error("Liga não identificada");
         return;
     }
 
@@ -1575,7 +1575,7 @@ async function inicializarModuloRenovacao() {
 window.abrirConfigRenovacao = function() {
     const ligaId = obterLigaId();
     if (!ligaId) {
-        alert("Liga não identificada");
+        SuperModal.toast.error("Liga não identificada");
         return;
     }
 
@@ -1595,7 +1595,7 @@ window.abrirConfigRenovacao = function() {
 window.abrirNovoParticipante = function() {
     const ligaId = obterLigaId();
     if (!ligaId) {
-        alert("Liga não identificada");
+        SuperModal.toast.error("Liga não identificada");
         return;
     }
 
@@ -1614,7 +1614,7 @@ window.abrirNovoParticipante = function() {
 window.abrirAcaoRenovacao = function(timeId, nomeTime, nomeCartoleiro, escudo) {
     const ligaId = obterLigaId();
     if (!ligaId) {
-        alert("Liga não identificada");
+        SuperModal.toast.error("Liga não identificada");
         return;
     }
 
@@ -1713,7 +1713,7 @@ window.abrirWhatsApp = function(contato, nome) {
     const numero = formatarTelefoneWhatsApp(contato);
 
     if (!numero) {
-        alert('Número de WhatsApp inválido: ' + contato);
+        SuperModal.toast.warning('Número de WhatsApp inválido: ' + contato);
         return;
     }
 

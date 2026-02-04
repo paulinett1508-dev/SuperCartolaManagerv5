@@ -7,6 +7,8 @@
     <!-- Design Tokens (SEMPRE PRIMEIRO) -->
     <link rel="stylesheet" href="css/_admin-tokens.css" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="css/modules/super-modal.css" />
+    <script src="js/super-modal.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -581,7 +583,7 @@
                 ? `RECONSOLIDAR rodadas ${inicio} a ${fim}?\n\nIsso ira recalcular TODOS os dados, mesmo os ja consolidados.`
                 : `Consolidar rodadas ${inicio} a ${fim}?`;
 
-            if (!confirm(confirmMsg)) return;
+            if (!await SuperModal.confirm({ title: 'Consolidar Rodadas', message: confirmMsg, confirmText: 'Consolidar', variant: forcar ? 'danger' : 'default' })) return;
 
             await executarConsolidacao(ligaId, prefix, inicio, fim, forcar);
         }
@@ -634,7 +636,7 @@
         // CONSOLIDAR TODAS AS LIGAS
         // ============================================================
         async function consolidarTodasLigas() {
-            if (!confirm(`Consolidar TODAS as ${ligasCarregadas.length} ligas?\n\nIsso pode demorar alguns minutos.`)) {
+            if (!await SuperModal.confirm({ title: 'Consolidar Todas', message: `Consolidar TODAS as ${ligasCarregadas.length} ligas?\n\nIsso pode demorar alguns minutos.`, confirmText: 'Consolidar Todas', variant: 'warning' })) {
                 return;
             }
 
@@ -654,7 +656,7 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
 
-            alert('Consolidacao de todas as ligas concluida!');
+            SuperModal.toast.success('Consolidacao de todas as ligas concluida!');
         }
 
         // ============================================================

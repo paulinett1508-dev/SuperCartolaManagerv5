@@ -710,7 +710,7 @@ window.exportarParametrizacoesPDF = async function(ligaId) {
     }
 
     if (!ligaId) {
-        alert('ID da liga não encontrado');
+        SuperModal.toast.warning('ID da liga não encontrado');
         return;
     }
 
@@ -733,7 +733,7 @@ window.exportarParametrizacoesPDF = async function(ligaId) {
 
     } catch (error) {
         console.error('[EXPORT-PDF] Erro:', error?.message || error, error?.stack || '');
-        alert('Erro ao gerar PDF: ' + (error?.message || 'Erro desconhecido'));
+        SuperModal.toast.error('Erro ao gerar PDF: ' + (error?.message || 'Erro desconhecido'));
 
         const btn = document.getElementById('btnExportarPDF');
         if (btn) {

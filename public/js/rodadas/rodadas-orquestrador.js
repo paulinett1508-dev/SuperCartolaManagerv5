@@ -499,8 +499,7 @@ export async function gerarRelatorioMitosMicos() {
     );
   } catch (error) {
     console.error("[RODADAS-ORQUESTRADOR] Erro ao gerar relatório:", error);
-    // Usar alert nativo para feedback imediato em caso de erro crítico
-    alert(`Erro ao gerar relatório: ${error.message}`);
+    SuperModal.toast.error(`Erro ao gerar relatório: ${error.message}`);
   } finally {
     RodadasUI.mostrarLoading(false);
   }

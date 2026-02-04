@@ -142,9 +142,9 @@
         "label": "Quantidade de turnos",
         "descricao": "1 turno = todos contra todos uma vez. 2 turnos = ida e volta",
         "default": 1,
-        "opcoes": [
-          {"value": 1, "label": "1 Turno (só ida)"},
-          {"value": 2, "label": "2 Turnos (ida e volta)"}
+        "options": [
+          {"valor": 1, "label": "1 Turno (só ida)"},
+          {"valor": 2, "label": "2 Turnos (ida e volta)"}
         ],
         "required": true,
         "afeta": "regras_override.turnos"
@@ -239,9 +239,9 @@
         "label": "Formato do torneio",
         "descricao": "Escolha entre torneio tradicional ou com grupos e playoffs",
         "default": "round_robin",
-        "opcoes": [
-          {"value": "round_robin", "label": "Todos contra Todos (tradicional)"},
-          {"value": "grupos", "label": "Grupos + Playoffs (eliminatórias)"}
+        "options": [
+          {"valor": "round_robin", "label": "Todos contra Todos (tradicional)"},
+          {"valor": "grupos", "label": "Grupos + Playoffs (eliminatórias)"}
         ],
         "required": true,
         "afeta": "regras_override.formato"
@@ -252,12 +252,13 @@
         "label": "Quantidade de grupos",
         "descricao": "Quantos grupos dividir os times (mínimo 5 times por grupo)",
         "default": 2,
-        "opcoes": [
-          {"value": 2, "label": "2 grupos"},
-          {"value": 4, "label": "4 grupos"}
+        "options": [
+          {"valor": 2, "label": "2 grupos"},
+          {"valor": 4, "label": "4 grupos"}
         ],
         "required": false,
-        "condicional": {"campo": "formato", "valor": "grupos"},
+        "dependeDe": "formato",
+        "condicao": "grupos",
         "afeta": "regras_override.sistema_grupos.quantidade_grupos"
       },
       {
@@ -266,12 +267,13 @@
         "label": "Como dividir os times em grupos?",
         "descricao": "Sorteio aleatório ou por ranking (seed/serpentina)",
         "default": "sorteio",
-        "opcoes": [
-          {"value": "sorteio", "label": "Sorteio aleatório"},
-          {"value": "ranking", "label": "Por ranking (seed)"}
+        "options": [
+          {"valor": "sorteio", "label": "Sorteio aleatório"},
+          {"valor": "ranking", "label": "Por ranking (seed)"}
         ],
         "required": false,
-        "condicional": {"campo": "formato", "valor": "grupos"},
+        "dependeDe": "formato",
+        "condicao": "grupos",
         "afeta": "regras_override.sistema_grupos.criterio_divisao"
       },
       {
@@ -293,12 +295,13 @@
         "label": "Tipo de playoff",
         "descricao": "Confrontos de ida e volta ou jogo único?",
         "default": "ida_volta",
-        "opcoes": [
-          {"value": "ida_volta", "label": "Ida e Volta"},
-          {"value": "jogo_unico", "label": "Jogo Único"}
+        "options": [
+          {"valor": "ida_volta", "label": "Ida e Volta"},
+          {"valor": "jogo_unico", "label": "Jogo Único"}
         ],
         "required": false,
-        "condicional": {"campo": "formato", "valor": "grupos"},
+        "dependeDe": "formato",
+        "condicao": "grupos",
         "afeta": "regras_override.fases_eliminatorias.tipo"
       },
       {
@@ -307,12 +310,13 @@
         "label": "Critério de desempate nos playoffs",
         "descricao": "O que usar em caso de empate no agregado?",
         "default": "saldo_gols",
-        "opcoes": [
-          {"value": "saldo_gols", "label": "Saldo de gols"},
-          {"value": "gols_fora", "label": "Gols fora de casa"}
+        "options": [
+          {"valor": "saldo_gols", "label": "Saldo de gols"},
+          {"valor": "gols_fora", "label": "Gols fora de casa"}
         ],
         "required": false,
-        "condicional": {"campo": "formato", "valor": "grupos"},
+        "dependeDe": "formato",
+        "condicao": "grupos",
         "afeta": "regras_override.fases_eliminatorias.criterio_desempate"
       }
     ]

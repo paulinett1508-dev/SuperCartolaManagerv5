@@ -14,6 +14,8 @@
         <link rel="stylesheet" href="css/modules/ferramentas-page.css" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <link rel="stylesheet" href="css/modules/super-modal.css" />
+        <script src="js/super-modal.js"></script>
     </head>
 
     <body>
@@ -582,11 +584,13 @@
                     _manutencaoAtivo = _manutencaoData.ativo;
                     atualizarUIManutencao();
                     fecharModalManutencao();
-                    alert(_manutencaoAtivo
-                        ? 'Modo manutencao ATIVADO!' + (whitelist.length ? ` Whitelist: ${whitelist.join(', ')}` : '')
-                        : 'Modo manutencao desativado. App voltou ao normal.');
+                    if (_manutencaoAtivo) {
+                        SuperModal.toast.success('Modo manutencao ATIVADO!' + (whitelist.length ? ` Whitelist: ${whitelist.join(', ')}` : ''));
+                    } else {
+                        SuperModal.toast.success('Modo manutencao desativado. App voltou ao normal.');
+                    }
                 } catch (e) {
-                    alert('Erro ao alterar modo manutencao: ' + e.message);
+                    SuperModal.toast.error('Erro ao alterar modo manutencao: ' + e.message);
                 }
             }
 
@@ -656,19 +660,15 @@
 
             async function consolidarRodada() {
                 if (!_consolidarInfo) {
-                    alert('Aguarde o carregamento do status do mercado.');
+                    SuperModal.toast.warning('Aguarde o carregamento do status do mercado.');
                     return;
                 }
 
                 const { rodadaConsolidar, rodadaAtual, status } = _consolidarInfo;
-                const confirmar = confirm(
-                    `Consolidar rodada ${rodadaConsolidar}?\n\n` +
-                    `Mercado: status ${status} | Rodada atual: ${rodadaAtual}\n\n` +
-                    `Isso vai:\n` +
-                    `• Popular dados dos times via API Cartola\n` +
-                    `• Consolidar ranking geral e 1º turno\n` +
-                    `• Para TODAS as ligas ativas 2026`
-                );
+                const confirmar = await SuperModal.confirm({
+                    message: `Consolidar rodada ${rodadaConsolidar}?\n\nMercado: status ${status} | Rodada atual: ${rodadaAtual}\n\nIsso vai:\n- Popular dados dos times via API Cartola\n- Consolidar ranking geral e 1o turno\n- Para TODAS as ligas ativas 2026`,
+                    confirmText: 'Consolidar'
+                });
 
                 if (!confirmar) return;
 
@@ -691,18 +691,18 @@
                     if (data.ok) {
                         let resumo = `Rodada ${data.rodadaConsolidada} consolidada!\n\n`;
                         for (const r of data.resultados || []) {
-                            resumo += `• ${r.liga}: ${r.times} times`;
+                            resumo += `- ${r.liga}: ${r.times} times`;
                             if (r.populada) resumo += ` (${r.totalInseridos} inseridos)`;
-                            else if (r.jaExistia) resumo += ' (já existia)';
-                            if (r.rankingConsolidado) resumo += ' ✓ ranking';
+                            else if (r.jaExistia) resumo += ' (ja existia)';
+                            if (r.rankingConsolidado) resumo += ' -> ranking';
                             resumo += '\n';
                         }
-                        alert(resumo);
+                        SuperModal.toast.success(resumo);
                     } else {
-                        alert('Erro: ' + (data.message || data.error || 'Falha desconhecida'));
+                        SuperModal.toast.error('Erro: ' + (data.message || data.error || 'Falha desconhecida'));
                     }
                 } catch (e) {
-                    alert('Erro ao consolidar: ' + e.message);
+                    SuperModal.toast.error('Erro ao consolidar: ' + e.message);
                 } finally {
                     if (card) { card.style.opacity = '1'; card.style.pointerEvents = ''; }
                     carregarStatusConsolidar();

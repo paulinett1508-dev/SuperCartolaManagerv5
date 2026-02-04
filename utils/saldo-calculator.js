@@ -4,19 +4,19 @@
  * Este módulo centraliza a lógica de cálculo de saldo para garantir
  * consistência entre todos os módulos do sistema.
  *
- * PROBLEMA RESOLVIDO:
- * - tesouraria-routes.js usava calcularSaldoCompleto() com recálculo
- * - acertos-financeiros-routes.js usava saldo_consolidado direto (desatualizado)
+ * FONTE ÚNICA DE VERDADE para cálculo de saldo.
+ * Tesouraria, extrato-cache, acertos-financeiros e inscrições
+ * TODOS devem usar estas funções.
  *
- * Agora ambos usam esta função unificada.
- *
- * @version 1.0.0
+ * @version 2.0.0
  */
 
+import mongoose from "mongoose";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import AjusteFinanceiro from "../models/AjusteFinanceiro.js";
+import InscricaoTemporada from "../models/InscricaoTemporada.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
 import {
     calcularResumoDeRodadas,
@@ -120,6 +120,82 @@ export async function calcularSaldoParticipante(ligaId, timeId, temporada = CURR
         breakdown.ajustes = saldoAjustes;
     }
 
+    // =========================================================================
+    // ✅ v2.0.0: INTEGRAR InscricaoTemporada (inscrição não paga + saldo anterior)
+    // Para temporada >= 2026, se a inscrição não foi paga E não está já no
+    // historico_transacoes, deduzir a taxa e somar saldo transferido.
+    // =========================================================================
+    let taxaInscricaoValor = 0;
+    let pagouInscricao = true;
+    let saldoAnteriorTransferido = 0;
+    let dividaAnterior = 0;
+
+    const tempNum = Number(temporada);
+    if (tempNum >= 2026) {
+        const inscricaoJaNoCache = cache?.historico_transacoes?.some(
+            t => t.tipo === 'INSCRICAO_TEMPORADA'
+        );
+
+        if (!inscricaoJaNoCache) {
+            // Buscar inscrição — InscricaoTemporada usa ObjectId para liga_id
+            let inscricao = null;
+            try {
+                inscricao = await InscricaoTemporada.findOne({
+                    liga_id: new mongoose.Types.ObjectId(ligaId),
+                    time_id: Number(timeId),
+                    temporada: tempNum
+                }).lean();
+            } catch {
+                // Fallback: busca com String (caso liga_id seja String no DB)
+                inscricao = await InscricaoTemporada.findOne({
+                    liga_id: String(ligaId),
+                    time_id: Number(timeId),
+                    temporada: tempNum
+                }).lean();
+            }
+
+            if (inscricao) {
+                pagouInscricao = inscricao.pagou_inscricao !== false;
+                taxaInscricaoValor = inscricao.taxa_inscricao || 0;
+                saldoAnteriorTransferido = inscricao.saldo_transferido || 0;
+                dividaAnterior = inscricao.divida_anterior || 0;
+
+                if (!pagouInscricao) {
+                    // Saldo inicial = saldo anterior - taxa - dívida anterior
+                    saldoConsolidado -= taxaInscricaoValor;
+                }
+
+                // Saldo transferido (pode ser positivo=crédito ou negativo=dívida)
+                if (saldoAnteriorTransferido !== 0) {
+                    saldoConsolidado += saldoAnteriorTransferido;
+                }
+
+                // Dívida anterior (sempre positivo no schema, mas é débito)
+                if (dividaAnterior > 0) {
+                    saldoConsolidado -= dividaAnterior;
+                }
+            }
+        } else {
+            // Inscrição já está no cache — extrair valores para o retorno
+            const tInscricao = cache.historico_transacoes.find(t => t.tipo === 'INSCRICAO_TEMPORADA');
+            const tSaldo = cache.historico_transacoes.find(t => t.tipo === 'SALDO_TEMPORADA_ANTERIOR');
+
+            if (tInscricao) {
+                taxaInscricaoValor = Math.abs(tInscricao.valor || 0);
+                pagouInscricao = false; // Se está no cache, é porque não pagou
+            }
+            if (tSaldo) {
+                saldoAnteriorTransferido = tSaldo.valor || 0;
+            }
+        }
+    }
+
+    if (breakdown) {
+        breakdown.taxaInscricao = taxaInscricaoValor;
+        breakdown.saldoAnteriorTransferido = saldoAnteriorTransferido;
+        breakdown.dividaAnterior = dividaAnterior;
+    }
+
     // 2. Calcular saldo de acertos
     const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(
         String(ligaId),
@@ -139,6 +215,11 @@ export async function calcularSaldoParticipante(ligaId, timeId, temporada = CURR
         saldoFinal: parseFloat(saldoFinal.toFixed(2)),
         quantidadeAcertos: acertosInfo.quantidadeAcertos,
         quantidadeAjustes: ajustesInfo.quantidade,
+        // ✅ v2.0.0: Dados de inscrição para transparência
+        taxaInscricao: parseFloat(taxaInscricaoValor.toFixed(2)),
+        pagouInscricao,
+        saldoAnteriorTransferido: parseFloat(saldoAnteriorTransferido.toFixed(2)),
+        dividaAnterior: parseFloat(dividaAnterior.toFixed(2)),
     };
 
     if (breakdown) {
@@ -152,10 +233,62 @@ export async function calcularSaldoParticipante(ligaId, timeId, temporada = CURR
             luvaOuro: parseFloat(breakdown.luvaOuro.toFixed(2)),
             campos: parseFloat(breakdown.campos.toFixed(2)),
             ajustes: parseFloat(breakdown.ajustes.toFixed(2)),
+            taxaInscricao: parseFloat(breakdown.taxaInscricao.toFixed(2)),
+            saldoAnteriorTransferido: parseFloat(breakdown.saldoAnteriorTransferido.toFixed(2)),
+            dividaAnterior: parseFloat(breakdown.dividaAnterior.toFixed(2)),
         };
     }
 
     return resultado;
+}
+
+/**
+ * Aplica ajuste de inscrição em dados pré-carregados (para paths bulk sem N+1)
+ *
+ * @param {number} saldoConsolidado - Saldo já calculado
+ * @param {object|null} inscricaoData - Documento InscricaoTemporada (ou null)
+ * @param {Array} historicoTransacoes - Array de transações do cache
+ * @returns {object} { saldoAjustado, taxaInscricao, pagouInscricao, saldoAnteriorTransferido, dividaAnterior }
+ */
+export function aplicarAjusteInscricaoBulk(saldoConsolidado, inscricaoData, historicoTransacoes = []) {
+    let saldo = saldoConsolidado;
+    let taxaInscricao = 0;
+    let pagouInscricao = true;
+    let saldoAnteriorTransferido = 0;
+    let dividaAnterior = 0;
+
+    if (!inscricaoData) {
+        return { saldoAjustado: saldo, taxaInscricao, pagouInscricao, saldoAnteriorTransferido, dividaAnterior };
+    }
+
+    const inscricaoJaNoCache = historicoTransacoes.some(
+        t => t.tipo === 'INSCRICAO_TEMPORADA'
+    );
+
+    if (!inscricaoJaNoCache) {
+        pagouInscricao = inscricaoData.pagou_inscricao !== false;
+        taxaInscricao = inscricaoData.taxa_inscricao || 0;
+        saldoAnteriorTransferido = inscricaoData.saldo_transferido || 0;
+        dividaAnterior = inscricaoData.divida_anterior || 0;
+
+        if (!pagouInscricao) {
+            saldo -= taxaInscricao;
+        }
+        if (saldoAnteriorTransferido !== 0) {
+            saldo += saldoAnteriorTransferido;
+        }
+        if (dividaAnterior > 0) {
+            saldo -= dividaAnterior;
+        }
+    }
+
+    return {
+        saldoAjustado: parseFloat(saldo.toFixed(2)),
+        taxaInscricao,
+        pagouInscricao,
+        saldoAnteriorTransferido,
+        dividaAnterior,
+    };
 }
 
 /**
@@ -195,5 +328,6 @@ export default {
     calcularSaldoCompleto,
     calcularSaldoTotalParticipante,
     calcularSaldoRapido,
+    aplicarAjusteInscricaoBulk,
     classificarSituacao,
 };

@@ -264,6 +264,14 @@
     --module-luva-muted: rgba(255, 215, 0, 0.1);
     --module-luva-border: rgba(255, 215, 0, 0.3);
     --gradient-luva: linear-gradient(135deg, var(--module-luva-primary) 0%, var(--module-luva-dark) 100%);
+
+    /* Dashboard de Saúde - Verde (representa saúde/monitoramento) */
+    --module-saude-primary: #10b981;
+    --module-saude-dark: #059669;
+    --module-saude-light: #34d399;
+    --module-saude-muted: rgba(16, 185, 129, 0.1);
+    --module-saude-border: rgba(16, 185, 129, 0.3);
+    --gradient-saude: linear-gradient(135deg, var(--module-saude-primary) 0%, var(--module-saude-dark) 100%);
 }
 
 /* ========================================

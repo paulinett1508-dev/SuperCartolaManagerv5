@@ -11,6 +11,8 @@
         <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
         <link rel="stylesheet" href="css/modules/gerenciar.css" />
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <link rel="stylesheet" href="css/modules/super-modal.css" />
+        <script src="js/super-modal.js"></script>
     </head>
     <body>
         <div class="app-container">
@@ -138,12 +140,21 @@
                     domBound: false,
                     spaBound: false,
                     inputBound: false,
-                    readyChecked: false
+                    readyChecked: false,
+                    lastInitTimestamp: 0
                 };
+                console.log('[GERENCIAR] Estado inicial criado');
             }
 
             // Reset do estado de inicialização ao carregar o script
-            window.__gerenciar_state.initRunning = false;
+            // ✅ FIX: Adicionar debounce para evitar múltiplas chamadas simultâneas
+            const agora = Date.now();
+            if (agora - window.__gerenciar_state.lastInitTimestamp < 100) {
+                console.warn('[GERENCIAR] Script recarregado muito rápido, aguardando...');
+            } else {
+                window.__gerenciar_state.initRunning = false;
+                console.log('[GERENCIAR] Guard resetado no carregamento do script');
+            }
 
             async function loadLayout() {
                 try {
@@ -276,7 +287,7 @@
             }
 
             window.excluirLiga = async function (id, nome) {
-                if (!confirm(`Excluir a liga "${nome}"?\n\nEsta ação é irreversível.`)) {
+                if (!await SuperModal.confirm({ title: 'Excluir liga', message: `Excluir a liga "${nome}"?\n\nEsta ação é irreversível.`, confirmText: 'Excluir', variant: 'danger' })) {
                     return;
                 }
 
@@ -284,7 +295,7 @@
                     await deletarLiga(id);
                     await carregarListaLigas();
                 } catch (error) {
-                    alert(`Erro ao excluir liga: ${error.message}`);
+                    SuperModal.toast.error(`Erro ao excluir liga: ${error.message}`);
                 }
             };
 
@@ -307,14 +318,46 @@
 
             // Função de inicialização reutilizável
             async function initGerenciar() {
-                if (window.__gerenciar_state.initRunning) return;
+                const timestamp = Date.now();
+                if (window.__gerenciar_state.initRunning) {
+                    const elapsed = timestamp - window.__gerenciar_state.lastInitTimestamp;
+                    console.warn("[GERENCIAR] Inicialização já em andamento, ignorando... (elapsed:", elapsed, "ms)");
+                    return;
+                }
                 window.__gerenciar_state.initRunning = true;
+                window.__gerenciar_state.lastInitTimestamp = timestamp;
                 console.log("[GERENCIAR] Inicializando página...");
                 try {
                     await loadLayout();
+                    console.log("[GERENCIAR] Layout carregado");
                     await carregarListaLigas();
+                    console.log("[GERENCIAR] Lista de ligas carregada");
+                    console.log("[GERENCIAR] ✅ Inicialização concluída com sucesso");
+                } catch (error) {
+                    console.error("[GERENCIAR] ❌ Erro durante inicialização:", error);
+                    // Mostrar erro ao usuário
+                    const container = document.getElementById("ligasContainer");
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="liga-list">
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <span class="material-icons">error_outline</span>
+                                    </div>
+                                    <div class="empty-title">Erro ao carregar</div>
+                                    <div class="empty-subtitle">${error.message}</div>
+                                    <button onclick="location.reload()" class="btn-criar">
+                                        <span class="material-icons">refresh</span>
+                                        Recarregar Página
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
                 } finally {
+                    const duration = Date.now() - timestamp;
                     window.__gerenciar_state.initRunning = false;
+                    console.log("[GERENCIAR] Guard resetado para false (duração:", duration, "ms)");
                 }
             }
 
@@ -335,7 +378,9 @@
                     const { pageName } = e.detail || {};
                     if (pageName === 'gerenciar.html') {
                         console.log('[GERENCIAR] Reinicializando após navegação SPA...');
-                        window.__gerenciar_state.initRunning = false; // Reset antes de inicializar
+                        // ✅ FIX CRÍTICO: Forçar reset do guard antes de reinicializar
+                        window.__gerenciar_state.initRunning = false;
+                        console.log('[GERENCIAR] Guard resetado, iniciando...');
                         await initGerenciar();
                     } else {
                         console.log('[GERENCIAR] Página diferente, ignorando:', pageName);
@@ -360,8 +405,16 @@
                     const container = document.getElementById('ligasContainer');
                     const isLoading = container && container.querySelector('.loading-state');
                     if (isLoading) {
-                        console.warn('[GERENCIAR] FALLBACK: Página ainda em loading, forçando inicialização...');
+                        console.warn('[GERENCIAR] FALLBACK: Página ainda em loading após 500ms!');
+                        console.warn('[GERENCIAR] Estado atual:', {
+                            initRunning: window.__gerenciar_state.initRunning,
+                            domBound: window.__gerenciar_state.domBound,
+                            spaBound: window.__gerenciar_state.spaBound,
+                            readyChecked: window.__gerenciar_state.readyChecked
+                        });
+                        // ✅ FIX CRÍTICO: Forçar reset e retry
                         window.__gerenciar_state.initRunning = false;
+                        console.warn('[GERENCIAR] Forçando inicialização de emergência...');
                         initGerenciar();
                     }
                 }
@@ -627,7 +680,7 @@
                     renderizarModulosModal(liga);
                 } catch (error) {
                     console.error('Erro ao atualizar módulo:', error);
-                    alert('Erro ao atualizar módulo. Tente novamente.');
+                    SuperModal.toast.error('Erro ao atualizar módulo. Tente novamente.');
                 }
             };
 

@@ -646,7 +646,7 @@ class AdminTesouraria {
         if (typeof window.abrirModalAcerto === 'function') {
             window.abrirModalAcerto(timeId, nomeTime);
         } else {
-            alert(`Registrar acerto para: ${nomeTime}\n\nModal de acerto nao disponivel. Implemente window.abrirModalAcerto(timeId, nomeTime)`);
+            SuperModal.toast.warning(`Modal de acerto não disponível para ${nomeTime}. Implemente window.abrirModalAcerto(timeId, nomeTime)`);
         }
     }
 
@@ -712,7 +712,7 @@ ACERTOS:
 SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
         `.trim();
 
-        alert(msg);
+        SuperModal.toast.info(msg);
     }
 
     /**
@@ -760,7 +760,7 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
 
         // Copiar para clipboard
         navigator.clipboard.writeText(relatorio).then(() => {
-            alert('Relatorio copiado para a area de transferencia!\n\nAgora e so colar no WhatsApp.');
+            SuperModal.toast.success('Relatorio copiado! Agora e so colar no WhatsApp.');
         }).catch(() => {
             // Fallback para browsers antigos
             const textarea = document.createElement('textarea');
@@ -769,7 +769,7 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
             textarea.select();
             document.execCommand('copy');
             document.body.removeChild(textarea);
-            alert('Relatorio copiado para a area de transferencia!');
+            SuperModal.toast.success('Relatorio copiado para a area de transferencia!');
         });
     }
 

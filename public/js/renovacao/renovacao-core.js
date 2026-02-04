@@ -331,7 +331,7 @@ const RenovacaoCore = (function() {
         const btnReverter = document.getElementById('btnReverter');
         if (btnReverter) {
             btnReverter.addEventListener('click', async () => {
-                if (confirm('Reverter inscricao para PENDENTE?')) {
+                if (await SuperModal.confirm({ title: 'Confirmar', message: 'Reverter inscricao para PENDENTE?', variant: 'danger', confirmText: 'Reverter' })) {
                     try {
                         await RenovacaoAPI.reverterInscricao(
                             state.ligaId,

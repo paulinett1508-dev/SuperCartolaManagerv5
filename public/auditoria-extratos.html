@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="css/modules/super-modal.css" />
+    <script src="js/super-modal.js"></script>
     <style>
         .audit-page { background: #121212; min-height: 100vh; }
         .audit-content { padding: 20px 16px; max-width: 1200px; margin: 0 auto; }
@@ -279,7 +281,7 @@
         async function executarAuditoria() {
             const ligaId = document.getElementById('ligaSelect').value;
             if (!ligaId) {
-                alert('Selecione uma liga primeiro');
+                SuperModal.toast.warning('Selecione uma liga primeiro');
                 return;
             }
 

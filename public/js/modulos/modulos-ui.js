@@ -190,7 +190,7 @@ const ModulosUI = (function() {
 
         } catch (error) {
             console.error('[MODULOS-UI] Erro ao abrir wizard:', error);
-            alert('Erro ao abrir configuracao: ' + error.message);
+            SuperModal.toast.error('Erro ao abrir configuracao: ' + error.message);
         }
     }
 
@@ -205,7 +205,7 @@ const ModulosUI = (function() {
         // Validar
         const validacao = ModulosWizard.validarWizard(form, perguntas);
         if (!validacao.valido) {
-            alert('Preencha todos os campos obrigatorios:\n\n' + validacao.erros.join('\n'));
+            SuperModal.toast.warning('Preencha todos os campos obrigatorios: ' + validacao.erros.join(', '));
             return;
         }
 
@@ -241,7 +241,7 @@ const ModulosUI = (function() {
 
         } catch (error) {
             console.error('[MODULOS-UI] Erro ao salvar wizard:', error);
-            alert('Erro ao salvar: ' + error.message);
+            SuperModal.toast.error('Erro ao salvar: ' + error.message);
 
             // Reabilitar botao
             const btnSalvar = document.getElementById('btnSalvarWizard');
@@ -301,7 +301,7 @@ const ModulosUI = (function() {
 
         } catch (error) {
             console.error('[MODULOS-UI] Erro ao desativar:', error);
-            alert('Erro ao desativar: ' + error.message);
+            SuperModal.toast.error('Erro ao desativar: ' + error.message);
 
             const btn = document.getElementById('btnConfirmarDesativar');
             if (btn) {

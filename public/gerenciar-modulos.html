@@ -250,7 +250,15 @@
                 try {
                     const response = await fetch(`/api/ligas/${ligaId}/modulos-ativos`);
                     const data = await response.json();
-                    modulosState = data.modulos;
+
+                    // Garantir que todas as keys do MODULOS_CONFIG existam em modulosState
+                    // Evita que undefined seja tratado como true no render
+                    const defaults = {};
+                    Object.keys(MODULOS_CONFIG).forEach(key => {
+                        defaults[key] = MODULOS_CONFIG[key].base ? true : false;
+                    });
+                    modulosState = { ...defaults, ...data.modulos };
+
                     renderModulos();
                 } catch (error) {
                     console.error('Erro ao carregar módulos:', error);
@@ -289,28 +297,24 @@
                             <label class="toggle-switch" onclick="event.stopPropagation();">
                                 <input type="checkbox"
                                        ${isAtivo ? 'checked' : ''}
+                                       ${config.base ? 'disabled' : ''}
                                        data-modulo="${key}">
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
-                        <div class="modulo-desc">${config.descricao}${config.base && !isAtivo ? ' <strong style="color:#ff5500">⚙ Em manutenção</strong>' : ''}</div>
+                        <div class="modulo-desc">
+                            ${config.descricao}
+                            ${config.base ? ' <span class="badge-always-active" style="color:#22c55e; font-weight: 600;">✓ Sempre Ativo</span>' : ''}
+                        </div>
                     `;
 
-                    // Evento de toggle (todos os módulos, incluindo base)
-                    {
+                    // ✅ FIX: Evento de toggle apenas para módulos opcionais (não base)
+                    if (!config.base) {
                         const toggle = card.querySelector('input[type="checkbox"]');
                         toggle.addEventListener('change', (e) => {
                             e.stopPropagation();
                             modulosState[key] = e.target.checked;
-                            if (config.base) {
-                                card.className = `modulo-card base ${e.target.checked ? 'ativo' : 'inativo'}`;
-                                const desc = card.querySelector('.modulo-desc');
-                                desc.innerHTML = e.target.checked
-                                    ? config.descricao
-                                    : `${config.descricao} <strong style="color:#ff5500">⚙ Em manutenção</strong>`;
-                            } else {
-                                card.className = `modulo-card ${e.target.checked ? 'ativo' : 'inativo'}`;
-                            }
+                            card.className = `modulo-card ${e.target.checked ? 'ativo' : 'inativo'}`;
                         });
                     }
 
@@ -340,6 +344,13 @@
 
                     if (!response.ok) throw new Error('Erro ao salvar');
 
+                    // ✅ FIX: Atualizar estado com resposta do servidor
+                    const data = await response.json();
+                    modulosState = data.modulos;
+
+                    // ✅ FIX: Re-renderizar cards para refletir novo estado
+                    renderModulos();
+
                     showMessage('Configurações salvas com sucesso!', 'success');
 
                     setTimeout(() => {
@@ -358,7 +369,8 @@
                 }
             }
 
-            function showMessage(text, type) {
+            // Tornar showMessage global para que module-config-modal.js possa acessar
+            window.showMessage = function(text, type) {
                 const msg = document.getElementById('statusMessage');
                 const icon = type === 'success' ? 'check_circle' : type === 'warning' ? 'warning' : type === 'info' ? 'info' : 'error';
                 msg.innerHTML = `<span class="material-icons">${icon}</span> ${text}`;
@@ -369,7 +381,7 @@
                         msg.className = 'status-message';
                     }, 3000);
                 }
-            }
+            };
 
             /**
              * Verifica se módulo pode ser configurado

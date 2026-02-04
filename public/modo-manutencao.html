@@ -11,6 +11,8 @@
         <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
         <link rel="stylesheet" href="css/modules/layout-horizontal.css" />
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <link rel="stylesheet" href="css/modules/super-modal.css" />
+        <script src="js/super-modal.js"></script>
         <style>
             .manutencao-content {
                 padding: 20px 40px;
@@ -381,11 +383,15 @@
                     atualizarUI();
 
                     // Feedback
-                    const msg = modoAtivo ? 'Modo Manutenção ATIVADO' : 'Modo Manutenção DESATIVADO';
-                    alert(msg);
+                    const msg = modoAtivo ? 'Modo Manutencao ATIVADO' : 'Modo Manutencao DESATIVADO';
+                    if (modoAtivo) {
+                        SuperModal.toast.warning(msg);
+                    } else {
+                        SuperModal.toast.success(msg);
+                    }
                 } catch (error) {
                     console.error('[MODO-MANUTENCAO] Erro ao toggle:', error);
-                    alert('Erro ao alterar modo de manutenção: ' + error.message);
+                    SuperModal.toast.error('Erro ao alterar modo de manutencao: ' + error.message);
                     btnToggle.disabled = false;
                 }
             }

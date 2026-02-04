@@ -11,6 +11,9 @@ const TEMPORADAS_CONFIG = {
     2026: { encerrada: false, totalRodadas: 38 }
 };
 
+// Cache de escalações em memória (escalação não muda durante a rodada)
+const _escalacaoCache = new Map();
+
 // Estado do módulo
 const estadoParciais = {
     ligaId: null,
@@ -24,8 +27,8 @@ const estadoParciais = {
     autoRefresh: {
         ativo: false,
         timer: null,
-        intervalMs: 20000,
-        minMs: 15000,
+        intervalMs: 30000,
+        minMs: 30000,
         maxMs: 120000,
         step: 1.6,
         slowStep: 1.3,
@@ -88,6 +91,7 @@ export async function inicializarParciais() {
 
     // Temporada ativa - carregar parciais normalmente
     console.log(`[PARCIAIS] Temporada ${temporada} ativa - carregando parciais...`);
+    _escalacaoCache.clear();
     await carregarParciais();
 }
 
@@ -213,30 +217,37 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
     }
 
     try {
-        const timestamp = Date.now();
-        const response = await fetch(`/api/cartola/time/id/${timeId}/${rodada}?_t=${timestamp}`, {
-            cache: "no-store",
-            headers: {
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache"
-            }
-        });
+        // Cache de escalação (não muda durante a rodada)
+        const cacheKey = `${timeId}_${rodada}`;
+        let dadosEscalacao = _escalacaoCache.get(cacheKey);
 
-        if (!response.ok) {
-            if (response.status === 404) {
-                return {
-                    timeId,
-                    nome_time: time.nome_time || time.nome || "N/D",
-                    nome_cartola: time.nome_cartola || time.cartoleiro || "N/D",
-                    escudo: time.url_escudo_png || time.escudo || null,
-                    pontos: 0,
-                    rodadaNaoJogada: true
-                };
+        if (!dadosEscalacao) {
+            const timestamp = Date.now();
+            const response = await fetch(`/api/cartola/time/id/${timeId}/${rodada}?_t=${timestamp}`, {
+                cache: "no-store",
+                headers: {
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache"
+                }
+            });
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return {
+                        timeId,
+                        nome_time: time.nome_time || time.nome || "N/D",
+                        nome_cartola: time.nome_cartola || time.cartoleiro || "N/D",
+                        escudo: time.url_escudo_png || time.escudo || null,
+                        pontos: 0,
+                        rodadaNaoJogada: true
+                    };
+                }
+                throw new Error(`HTTP ${response.status}`);
             }
-            throw new Error(`HTTP ${response.status}`);
+
+            dadosEscalacao = await response.json();
+            _escalacaoCache.set(cacheKey, dadosEscalacao);
         }
-
-        const dadosEscalacao = await response.json();
 
         // CALCULAR PONTUAÇÃO
         let pontos = 0;
@@ -639,7 +650,7 @@ function iniciarAutoRefresh() {
     estadoParciais.autoRefresh.ativo = true;
     estadoParciais.autoRefresh.failures = 0;
     estadoParciais.autoRefresh.cycles = 0;
-    estadoParciais.autoRefresh.intervalMs = 20000;
+    estadoParciais.autoRefresh.intervalMs = 30000;
 
     console.log("[PARCIAIS] ▶️ Auto-refresh iniciado");
     programarAutoRefresh();
@@ -738,5 +749,6 @@ window.atualizarParciais = atualizarParciais;
 window.inicializarParciais = inicializarParciais;
 window.toggleAutoRefresh = toggleAutoRefresh;
 window.pararAutoRefresh = pararAutoRefresh;
+window.estadoParciais = estadoParciais;
 
 console.log("[PARCIAIS] Módulo v5.0 carregado - Multi-Temporada + Ranking em Tempo Real");

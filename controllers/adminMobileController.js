@@ -76,31 +76,27 @@ async function getDashboard(req, res) {
     const db = req.app.locals.db || getDB();
     const adminEmail = req.admin.email;
 
-    // Busca ligas ativas
+    // Busca ligas ativas (campo real é "ativa", não "ativo")
     const ligas = await db.collection('ligas').find({
-      ativo: true
-    }).sort({ id: 1 }).toArray();
+      ativa: true
+    }).sort({ nome: 1 }).toArray();
 
     // Para cada liga, busca dados agregados
     const ligasComDados = await Promise.all(
       ligas.map(async (liga) => {
         try {
-          // Busca participantes ativos
-          const participantes = await db.collection('times').find({
-            liga_id: liga.id,
-            ativo: true
-          }).toArray();
+          // Participantes estão no array liga.participantes[], não na collection times
+          const todosParticipantes = liga.participantes || [];
+          const participantesTotais = todosParticipantes.length;
+          const participantesAtivos = todosParticipantes.filter(p => p.ativo !== false).length;
 
-          const participantesAtivos = participantes.length;
-          const participantesTotais = await db.collection('times').countDocuments({
-            liga_id: liga.id
-          });
+          const ligaIdStr = liga._id.toString();
 
           // Busca última consolidação (via logs de atividade)
           const ultimaConsolidacao = await db.collection('adminactivitylogs')
             .find({
               action: 'consolidacao_manual',
-              'details.ligaId': liga.id,
+              'details.ligaId': ligaIdStr,
               result: 'success'
             })
             .sort({ timestamp: -1 })
@@ -118,7 +114,7 @@ async function getDashboard(req, res) {
 
           // Calcula saldo total da liga (soma dos saldos dos participantes)
           const extratos = await db.collection('extratofinanceirocaches').find({
-            liga_id: liga.id,
+            liga_id: liga._id,
             temporada: liga.temporada || 2026
           }).toArray();
 
@@ -144,7 +140,7 @@ async function getDashboard(req, res) {
           }
 
           return {
-            id: liga.id,
+            id: liga._id.toString(),
             nome: liga.nome,
             temporada: liga.temporada || 2026,
             participantesAtivos,
@@ -220,25 +216,25 @@ async function getLigas(req, res) {
     const db = req.app.locals.db || getDB();
     const { temporada, ativo } = req.query;
 
-    // Monta filtro
+    // Monta filtro (campo real é "ativa", não "ativo")
     const filtro = {};
     if (ativo !== undefined) {
-      filtro.ativo = ativo === 'true';
+      filtro.ativa = ativo === 'true';
     } else {
-      filtro.ativo = true; // Padrão: apenas ativas
+      filtro.ativa = true; // Padrão: apenas ativas
     }
     if (temporada) {
       filtro.temporada = parseInt(temporada);
     }
 
-    const ligas = await db.collection('ligas').find(filtro).sort({ id: 1 }).toArray();
+    const ligas = await db.collection('ligas').find(filtro).sort({ nome: 1 }).toArray();
 
     // Retorna array de ligas com dados resumidos
     const ligasFormatadas = ligas.map(liga => ({
-      id: liga.id,
+      id: liga._id.toString(),
       nome: liga.nome,
       temporada: liga.temporada || 2026,
-      ativo: liga.ativo,
+      ativa: liga.ativa,
       rodadaAtual: liga.rodada_atual || 0
     }));
 
@@ -259,10 +255,16 @@ async function getLigas(req, res) {
 async function getLigaDetalhes(req, res) {
   try {
     const db = req.app.locals.db || getDB();
-    const ligaId = parseInt(req.params.ligaId);
+    const ligaId = req.params.ligaId;
 
-    // Busca liga
-    const liga = await db.collection('ligas').findOne({ id: ligaId });
+    // Busca liga por _id (ObjectId string)
+    let liga;
+    try {
+      const { ObjectId } = await import('mongodb');
+      liga = await db.collection('ligas').findOne({ _id: new ObjectId(ligaId) });
+    } catch {
+      liga = await db.collection('ligas').findOne({ _id: ligaId });
+    }
 
     if (!liga) {
       return res.status(404).json({
@@ -271,17 +273,14 @@ async function getLigaDetalhes(req, res) {
       });
     }
 
-    // Busca participantes
-    const participantes = await db.collection('times').find({
-      liga_id: ligaId
-    }).sort({ nome_cartoleiro: 1 }).toArray();
-
-    const participantesAtivos = participantes.filter(p => p.ativo).length;
-    const participantesTotais = participantes.length;
+    // Participantes estão no array liga.participantes[]
+    const todosParticipantes = liga.participantes || [];
+    const participantesAtivos = todosParticipantes.filter(p => p.ativo !== false).length;
+    const participantesTotais = todosParticipantes.length;
 
     // Busca extratos financeiros
     const extratos = await db.collection('extratofinanceirocaches').find({
-      liga_id: ligaId,
+      liga_id: liga._id,
       temporada: liga.temporada || 2026
     }).toArray();
 
@@ -293,7 +292,7 @@ async function getLigaDetalhes(req, res) {
 
     // Busca ranking atual (pontoscorridoscaches)
     const ranking = await db.collection('pontoscorridoscaches').find({
-      liga_id: ligaId,
+      liga_id: liga._id,
       temporada: liga.temporada || 2026
     }).sort({ posicao: 1 }).toArray();
 
@@ -303,19 +302,19 @@ async function getLigaDetalhes(req, res) {
       rankingMap[r.time_id] = r;
     });
 
-    // Monta lista de participantes com dados completos
-    const participantesComDados = participantes.map(p => {
-      const extrato = extratosMap[p.id] || {};
-      const rank = rankingMap[p.id] || {};
+    // Monta lista de participantes com dados completos (a partir de liga.participantes[])
+    const participantesComDados = todosParticipantes.map(p => {
+      const extrato = extratosMap[p.time_id] || {};
+      const rank = rankingMap[p.time_id] || {};
 
       return {
-        id: p.id,
-        nome: p.nome_cartoleiro,
+        id: p.time_id,
+        nome: p.nome_cartola || p.nome_cartoleiro,
         nomeTime: p.nome_time,
-        ativo: p.ativo,
+        ativo: p.ativo !== false,
         escudo: p.clube_id || '262',
-        saldo: extrato.saldo_final || 0,
-        inadimplente: (extrato.saldo_final || 0) < 0,
+        saldo: extrato.saldo_consolidado || extrato.saldo_final || 0,
+        inadimplente: (extrato.saldo_consolidado || extrato.saldo_final || 0) < 0,
         pontos: rank.pontos_total || 0,
         posicao: rank.posicao || null,
         patrimonio: rank.patrimonio || 0,
@@ -371,8 +370,9 @@ async function getLigaDetalhes(req, res) {
       : 0;
 
     // Busca total de pagamentos e premiações
+    const ligaIdStr = liga._id.toString();
     const acertos = await db.collection('acertofinanceiros').find({
-      ligaId: String(ligaId),
+      ligaId: ligaIdStr,
       temporada: liga.temporada || 2026,
       ativo: true
     }).toArray();
@@ -389,10 +389,10 @@ async function getLigaDetalhes(req, res) {
     });
 
     res.json({
-      id: liga.id,
+      id: ligaIdStr,
       nome: liga.nome,
       temporada: liga.temporada || 2026,
-      ativo: liga.ativo,
+      ativa: liga.ativa,
       rodadaAtual: liga.rodada_atual || 0,
       participantesAtivos,
       participantesTotais,
@@ -1096,8 +1096,10 @@ async function getHealth(req, res) {
 
     // 2. Ligas ativas
     try {
-      const ligasAtivas = await db.collection('ligas').countDocuments({ ativo: true });
-      const totalParticipantes = await db.collection('times').countDocuments({ ativo: true });
+      const ligasAtivas = await db.collection('ligas').countDocuments({ ativa: true });
+      // Participantes estão no array liga.participantes[], não como docs individuais em times
+      const allLigas = await db.collection('ligas').find({ ativa: true }).toArray();
+      const totalParticipantes = allLigas.reduce((sum, l) => sum + (l.participantes?.length || 0), 0);
       components.push({
         nome: 'Ligas Ativas',
         icone: '🏆',

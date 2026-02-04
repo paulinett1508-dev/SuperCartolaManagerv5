@@ -774,3 +774,23 @@ process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 process.on("SIGQUIT", () => gracefulShutdown("SIGQUIT"));
 
 export default app;
+
+
+// Webhook para GitHub Actions
+app.post('/github-sync', express.json(), (req, res) => {
+  console.log('🔔 Webhook do GitHub recebido:', req.body);
+  
+  exec('bash scripts/sync-replit.sh', (error, stdout, stderr) => {
+    if (error) {
+      console.error('❌ Erro no sync:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    
+    console.log('✅ Sync concluído:', stdout);
+    res.json({ 
+      success: true, 
+      message: 'Sync executado',
+      timestamp: new Date().toISOString()
+    });
+  });
+});

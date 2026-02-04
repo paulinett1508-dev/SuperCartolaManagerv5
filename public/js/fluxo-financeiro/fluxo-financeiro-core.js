@@ -1356,7 +1356,7 @@ window.forcarRefreshExtrato = async function (timeId) {
     // Temporadas anteriores são IMUTÁVEIS - dados congelados permanentemente
     if (temporadaAtual < TEMPORADA_CARTOLA) {
         console.warn(`[FLUXO-CORE] 🔒 Temporada ${temporadaAtual} é histórica - cache protegido (imutável)`);
-        alert(`Temporada ${temporadaAtual} está encerrada.\nOs dados são históricos e não podem ser recalculados.`);
+        SuperModal.toast.info(`Temporada ${temporadaAtual} está encerrada. Os dados são históricos e não podem ser recalculados.`);
         return;
     }
 

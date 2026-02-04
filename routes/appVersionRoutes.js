@@ -60,8 +60,7 @@ function detectClientType(req) {
     // 3. Referer (detecta origem da requisição)
     const referer = req.headers.referer || '';
     if (referer.includes('/participante/') ||
-        referer.includes('/participante-login') ||
-        referer.includes('/participante-dashboard')) {
+        referer.includes('/participante-login')) {
         return 'app';
     }
     if (referer.includes('/painel') ||

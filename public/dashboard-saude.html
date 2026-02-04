@@ -1,199 +1,649 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard de Saúde - Super Cartola Manager</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+
+    <!-- Design Tokens (SEMPRE PRIMEIRO) -->
+    <link rel="stylesheet" href="css/_admin-tokens.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="css/modules/super-modal.css" />
+    <script src="js/super-modal.js"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .status-indicator {
+        /* ✅ Namespace .saude-* para evitar conflitos CSS */
+        .saude-page {
+            background: var(--surface-bg);
+            min-height: 100vh;
+            font-family: var(--font-family-base);
+        }
+
+        .saude-content {
+            padding: 20px 16px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .saude-header {
+            margin-bottom: 2rem;
+        }
+
+        .saude-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .saude-title {
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.875rem;
+            font-weight: 400;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .saude-title-icon {
+            font-size: 2.25rem;
+        }
+
+        .saude-subtitle {
+            color: #9ca3af;
+            margin-top: 0.5rem;
+        }
+
+        .saude-refresh-btn {
+            padding: 0.5rem 1rem;
+            background: var(--gradient-saude);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition-normal);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .saude-refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .saude-refresh-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Loading */
+        .saude-loading {
+            text-align: center;
+            padding: 5rem 0;
+        }
+
+        .saude-spinner {
+            display: inline-block;
+            width: 4rem;
+            height: 4rem;
+            border: 4px solid var(--module-saude-muted);
+            border-top-color: var(--module-saude-primary);
+            border-radius: 50%;
+            animation: saude-spin 1s linear infinite;
+        }
+
+        @keyframes saude-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Animações de entrada */
+        @keyframes saude-fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes saude-fade-in-scale {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Health Score Card */
+        .saude-score-card {
+            background: var(--gradient-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border: 1px solid var(--module-saude-border);
+            box-shadow: var(--shadow-md);
+            animation: saude-fade-in-scale 0.5s ease-out;
+        }
+
+        .saude-score-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .saude-score-label {
+            font-size: 1.25rem;
+            color: #d1d5db;
+        }
+
+        .saude-last-update {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }
+
+        /* Components Grid */
+        .saude-components-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .saude-components-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .saude-components-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .saude-component-card {
+            background: var(--surface-card);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            border: 1px solid var(--border-subtle);
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: saude-fade-in-up 0.5s ease-out forwards;
+        }
+
+        .saude-component-card:nth-child(1) { animation-delay: 0.1s; }
+        .saude-component-card:nth-child(2) { animation-delay: 0.2s; }
+        .saude-component-card:nth-child(3) { animation-delay: 0.3s; }
+        .saude-component-card:nth-child(4) { animation-delay: 0.4s; }
+        .saude-component-card:nth-child(5) { animation-delay: 0.5s; }
+        .saude-component-card:nth-child(6) { animation-delay: 0.6s; }
+
+        .saude-component-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--module-saude-border);
+        }
+
+        .saude-component-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .saude-component-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .saude-component-icon {
+            font-size: 1.5rem;
+            color: var(--module-saude-primary);
+        }
+
+        .saude-component-details {
+            font-size: 0.875rem;
+        }
+
+        .saude-detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .saude-detail-label {
+            color: #9ca3af;
+        }
+
+        /* Status Indicators */
+        .saude-status-indicator {
             width: 12px;
             height: 12px;
             border-radius: 50%;
             display: inline-block;
             margin-right: 8px;
         }
-        .status-online { background-color: #10b981; }
-        .status-degraded { background-color: #f59e0b; }
-        .status-offline { background-color: #ef4444; }
-        .component-card {
-            transition: all 0.3s ease;
+
+        .saude-status-online {
+            background-color: var(--color-success);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
         }
-        .component-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        .saude-status-degraded {
+            background-color: var(--color-warning);
+            box-shadow: 0 0 8px rgba(234, 179, 8, 0.4);
         }
-        .pulse-animation {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        .saude-status-offline {
+            background-color: var(--color-danger);
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
+
+        /* Consolidações */
+        .saude-consolidacoes {
+            background: var(--surface-card);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            border: 1px solid var(--border-subtle);
+            animation: saude-fade-in-up 0.5s ease-out 0.7s backwards;
         }
+
+        .saude-consolidacoes-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .saude-consolidacao-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--surface-card-elevated);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.5rem;
+            transition: var(--transition-normal);
+        }
+
+        .saude-consolidacao-item:hover {
+            background: var(--surface-card-hover);
+            transform: translateX(4px);
+        }
+
+        .saude-consolidacao-liga {
+            font-weight: 500;
+        }
+
+        .saude-consolidacao-rodada {
+            color: #9ca3af;
+            margin-left: 0.5rem;
+        }
+
+        .saude-consolidacao-time {
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        /* Utility Classes */
+        .saude-hidden { display: none; }
+        .saude-text-green { color: #10b981; }
+        .saude-text-yellow { color: #fbbf24; }
+        .saude-text-red { color: #ef4444; }
+        .saude-text-gray { color: #9ca3af; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100">
-    <div class="min-h-screen p-6">
-        <!-- Header -->
-        <div class="max-w-7xl mx-auto mb-8">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-3xl font-bold text-white flex items-center gap-3">
-                        <span class="text-4xl">🏥</span>
-                        Dashboard de Saúde do Sistema
-                    </h1>
-                    <p class="text-gray-400 mt-2">Monitoramento em tempo real dos componentes críticos</p>
+<body>
+    <!-- ✅ Estrutura SPA correta -->
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+
+        <main class="app-main saude-page">
+            <div class="saude-content">
+                <!-- Header -->
+                <div class="saude-header">
+                    <div class="saude-header-top">
+                        <div>
+                            <h1 class="saude-title">
+                                <i class="material-icons saude-title-icon">local_hospital</i>
+                                Dashboard de Saúde do Sistema
+                            </h1>
+                            <p class="saude-subtitle">Monitoramento em tempo real dos componentes críticos</p>
+                        </div>
+                        <div>
+                            <button id="refreshBtn" class="saude-refresh-btn">
+                                <i class="material-icons">refresh</i>
+                                Atualizar
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="text-right">
-                    <button id="refreshBtn" onclick="loadHealthData()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-                        🔄 Atualizar
-                    </button>
+
+                <!-- Loading -->
+                <div id="loading" class="saude-loading">
+                    <div class="saude-spinner"></div>
+                    <p class="saude-subtitle" style="margin-top: 1rem;">Carregando status do sistema...</p>
                 </div>
-            </div>
-        </div>
 
-        <!-- Loading -->
-        <div id="loading" class="max-w-7xl mx-auto text-center py-20">
-            <div class="inline-block animate-spin rounded-full h-16 w-16 border-4 border-gray-700 border-t-blue-500"></div>
-            <p class="mt-4 text-gray-400">Carregando status do sistema...</p>
-        </div>
+                <!-- Health Score -->
+                <div id="healthScore" class="saude-score-card saude-hidden">
+                    <div class="saude-score-value" id="scoreValue">--</div>
+                    <div class="saude-score-label" id="scoreLabel">Calculando...</div>
+                    <div class="saude-last-update" id="lastUpdate">--</div>
+                </div>
 
-        <!-- Health Score -->
-        <div id="healthScore" class="max-w-7xl mx-auto mb-8 hidden">
-            <div class="bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg p-8 text-center">
-                <div class="text-6xl font-bold mb-2" id="scoreValue">--</div>
-                <div class="text-xl text-gray-300" id="scoreLabel">Calculando...</div>
-                <div class="mt-4 text-sm text-gray-400" id="lastUpdate">--</div>
-            </div>
-        </div>
+                <!-- Components Grid -->
+                <div id="components" class="saude-components-grid saude-hidden">
+                    <!-- MarketGate -->
+                    <div class="saude-component-card" id="marketGateCard">
+                        <div class="saude-component-header">
+                            <h3 class="saude-component-title">
+                                <span class="saude-status-indicator" id="marketGateIndicator"></span>
+                                MarketGate
+                            </h3>
+                            <i class="material-icons saude-component-icon">gps_fixed</i>
+                        </div>
+                        <div class="saude-component-details" id="marketGateDetails">
+                            <div class="saude-text-gray">Carregando...</div>
+                        </div>
+                    </div>
 
-        <!-- Components Grid -->
-        <div id="components" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
-            <!-- MarketGate -->
-            <div class="component-card bg-gray-800 rounded-lg p-6 border border-gray-700" id="marketGateCard">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold flex items-center">
-                        <span class="status-indicator" id="marketGateIndicator"></span>
-                        MarketGate
+                    <!-- Consolidação Automática -->
+                    <div class="saude-component-card" id="consolidacaoCard">
+                        <div class="saude-component-header">
+                            <h3 class="saude-component-title">
+                                <span class="saude-status-indicator" id="consolidacaoIndicator"></span>
+                                Consolidação
+                            </h3>
+                            <i class="material-icons saude-component-icon">settings</i>
+                        </div>
+                        <div class="saude-component-details" id="consolidacaoDetails">
+                            <div class="saude-text-gray">Carregando...</div>
+                        </div>
+                    </div>
+
+                    <!-- API Cartola -->
+                    <div class="saude-component-card" id="cartolaApiCard">
+                        <div class="saude-component-header">
+                            <h3 class="saude-component-title">
+                                <span class="saude-status-indicator" id="cartolaApiIndicator"></span>
+                                API Cartola FC
+                            </h3>
+                            <i class="material-icons saude-component-icon">sports_soccer</i>
+                        </div>
+                        <div class="saude-component-details" id="cartolaApiDetails">
+                            <div class="saude-text-gray">Carregando...</div>
+                        </div>
+                    </div>
+
+                    <!-- API Jogos -->
+                    <div class="saude-component-card" id="jogosApiCard">
+                        <div class="saude-component-header">
+                            <h3 class="saude-component-title">
+                                <span class="saude-status-indicator" id="jogosApiIndicator"></span>
+                                API Jogos do Dia
+                            </h3>
+                            <i class="material-icons saude-component-icon">stadium</i>
+                        </div>
+                        <div class="saude-component-details" id="jogosApiDetails">
+                            <div class="saude-text-gray">Carregando...</div>
+                        </div>
+                    </div>
+
+                    <!-- Database -->
+                    <div class="saude-component-card" id="databaseCard">
+                        <div class="saude-component-header">
+                            <h3 class="saude-component-title">
+                                <span class="saude-status-indicator" id="databaseIndicator"></span>
+                                Banco de Dados
+                            </h3>
+                            <i class="material-icons saude-component-icon">storage</i>
+                        </div>
+                        <div class="saude-component-details" id="databaseDetails">
+                            <div class="saude-text-gray">Carregando...</div>
+                        </div>
+                    </div>
+
+                    <!-- Sistema -->
+                    <div class="saude-component-card" id="sistemaCard">
+                        <div class="saude-component-header">
+                            <h3 class="saude-component-title">
+                                <span class="saude-status-indicator saude-status-online"></span>
+                                Sistema
+                            </h3>
+                            <i class="material-icons saude-component-icon">computer</i>
+                        </div>
+                        <div class="saude-component-details" id="sistemaDetails">
+                            <div class="saude-text-gray">Carregando...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Últimas Consolidações -->
+                <div id="consolidacoes" class="saude-consolidacoes saude-hidden">
+                    <h3 class="saude-consolidacoes-title">
+                        <i class="material-icons" style="vertical-align: middle; margin-right: 8px;">bar_chart</i>
+                        Últimas Consolidações
                     </h3>
-                    <span class="text-2xl">🎯</span>
-                </div>
-                <div class="space-y-2 text-sm" id="marketGateDetails">
-                    <div class="text-gray-400">Carregando...</div>
-                </div>
-            </div>
-
-            <!-- Consolidação Automática -->
-            <div class="component-card bg-gray-800 rounded-lg p-6 border border-gray-700" id="consolidacaoCard">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold flex items-center">
-                        <span class="status-indicator" id="consolidacaoIndicator"></span>
-                        Consolidação
-                    </h3>
-                    <span class="text-2xl">⚙️</span>
-                </div>
-                <div class="space-y-2 text-sm" id="consolidacaoDetails">
-                    <div class="text-gray-400">Carregando...</div>
+                    <div id="consolidacoesList">
+                        <!-- Será preenchido via JS -->
+                    </div>
                 </div>
             </div>
-
-            <!-- API Cartola -->
-            <div class="component-card bg-gray-800 rounded-lg p-6 border border-gray-700" id="cartolaApiCard">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold flex items-center">
-                        <span class="status-indicator" id="cartolaApiIndicator"></span>
-                        API Cartola FC
-                    </h3>
-                    <span class="text-2xl">⚽</span>
-                </div>
-                <div class="space-y-2 text-sm" id="cartolaApiDetails">
-                    <div class="text-gray-400">Carregando...</div>
-                </div>
-            </div>
-
-            <!-- API Jogos -->
-            <div class="component-card bg-gray-800 rounded-lg p-6 border border-gray-700" id="jogosApiCard">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold flex items-center">
-                        <span class="status-indicator" id="jogosApiIndicator"></span>
-                        API Jogos do Dia
-                    </h3>
-                    <span class="text-2xl">🏟️</span>
-                </div>
-                <div class="space-y-2 text-sm" id="jogosApiDetails">
-                    <div class="text-gray-400">Carregando...</div>
-                </div>
-            </div>
-
-            <!-- Database -->
-            <div class="component-card bg-gray-800 rounded-lg p-6 border border-gray-700" id="databaseCard">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold flex items-center">
-                        <span class="status-indicator" id="databaseIndicator"></span>
-                        Banco de Dados
-                    </h3>
-                    <span class="text-2xl">💾</span>
-                </div>
-                <div class="space-y-2 text-sm" id="databaseDetails">
-                    <div class="text-gray-400">Carregando...</div>
-                </div>
-            </div>
-
-            <!-- Sistema -->
-            <div class="component-card bg-gray-800 rounded-lg p-6 border border-gray-700" id="sistemaCard">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold flex items-center">
-                        <span class="status-indicator status-online"></span>
-                        Sistema
-                    </h3>
-                    <span class="text-2xl">🖥️</span>
-                </div>
-                <div class="space-y-2 text-sm" id="sistemaDetails">
-                    <div class="text-gray-400">Carregando...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Últimas Consolidações -->
-        <div id="consolidacoes" class="max-w-7xl mx-auto mt-8 hidden">
-            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                <h3 class="text-xl font-semibold mb-4">📊 Últimas Consolidações</h3>
-                <div id="consolidacoesList" class="space-y-2">
-                    <!-- Será preenchido via JS -->
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
 
-    <script>
-        let autoRefreshInterval = null;
+    <script type="module">
+        // ✅ Guard contra dupla inicialização
+        if (window.__dashboard_saude_guard) {
+            console.warn('[Dashboard Saúde] Já inicializado');
+        } else {
+            window.__dashboard_saude_guard = true;
 
-        async function loadHealthData() {
-            try {
-                document.getElementById('refreshBtn').disabled = true;
-                document.getElementById('refreshBtn').classList.add('opacity-50');
+            let autoRefreshInterval = null;
+            let db = null;
+            const DB_NAME = 'dashboard_saude_cache';
+            const STORE_NAME = 'health_data';
+            const CACHE_TTL = 30 * 1000; // 30 segundos
 
-                const response = await fetch('/api/admin/system-health');
-                const data = await response.json();
+            // ✅ Inicializar IndexedDB
+            async function initDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, 1);
 
-                if (!data.success) {
-                    throw new Error(data.message || 'Erro ao carregar dados');
+                    request.onerror = () => {
+                        console.error('[Dashboard Saúde] Erro ao abrir IndexedDB:', request.error);
+                        resolve(null); // Continua sem cache
+                    };
+
+                    request.onsuccess = () => {
+                        db = request.result;
+                        console.log('[Dashboard Saúde] IndexedDB inicializado');
+                        resolve(db);
+                    };
+
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                            console.log('[Dashboard Saúde] ObjectStore criado');
+                        }
+                    };
+                });
+            }
+
+            // ✅ Salvar no cache
+            async function saveToCache(data) {
+                if (!db) return;
+
+                try {
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const store = transaction.objectStore(STORE_NAME);
+
+                    const cacheEntry = {
+                        id: 'system_health',
+                        data: data,
+                        timestamp: Date.now(),
+                        ttl: CACHE_TTL
+                    };
+
+                    await store.put(cacheEntry);
+                    console.log('[Dashboard Saúde] Dados salvos no cache');
+                } catch (error) {
+                    console.error('[Dashboard Saúde] Erro ao salvar cache:', error);
+                }
+            }
+
+            // ✅ Carregar do cache
+            async function loadFromCache() {
+                if (!db) return null;
+
+                return new Promise((resolve) => {
+                    try {
+                        const transaction = db.transaction([STORE_NAME], 'readonly');
+                        const store = transaction.objectStore(STORE_NAME);
+                        const request = store.get('system_health');
+
+                        request.onsuccess = () => {
+                            const cached = request.result;
+
+                            // Verificar se cache expirou
+                            if (cached && (Date.now() - cached.timestamp) < cached.ttl) {
+                                console.log('[Dashboard Saúde] Cache válido encontrado');
+                                resolve(cached.data);
+                            } else {
+                                if (cached) {
+                                    console.log('[Dashboard Saúde] Cache expirado');
+                                }
+                                resolve(null);
+                            }
+                        };
+
+                        request.onerror = () => {
+                            console.error('[Dashboard Saúde] Erro ao ler cache');
+                            resolve(null);
+                        };
+                    } catch (error) {
+                        console.error('[Dashboard Saúde] Erro no loadFromCache:', error);
+                        resolve(null);
+                    }
+                });
+            }
+
+            // ✅ Limpar cache (opcional)
+            async function clearCache() {
+                if (!db) return;
+
+                try {
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const store = transaction.objectStore(STORE_NAME);
+                    await store.clear();
+                    console.log('[Dashboard Saúde] Cache limpo');
+                } catch (error) {
+                    console.error('[Dashboard Saúde] Erro ao limpar cache:', error);
+                }
+            }
+
+            // ✅ Função de cleanup (CRÍTICO para SPA)
+            function cleanupDashboardSaude() {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                    console.log('[Dashboard Saúde] Auto-refresh limpo');
+                }
+            }
+
+            async function loadHealthData(forceRefresh = false) {
+                // ✅ Guard: verifica se ainda estamos na página
+                const healthScoreEl = document.getElementById('healthScore');
+                if (!healthScoreEl) {
+                    console.warn('[Dashboard Saúde] Página mudou, abortando fetch');
+                    return;
                 }
 
+                try {
+                    const refreshBtn = document.getElementById('refreshBtn');
+                    if (refreshBtn) {
+                        refreshBtn.disabled = true;
+                    }
+
+                    // ✅ CACHE-FIRST: Tentar carregar do cache primeiro
+                    if (!forceRefresh) {
+                        const cachedData = await loadFromCache();
+                        if (cachedData) {
+                            console.log('[Dashboard Saúde] Renderizando do cache');
+                            renderData(cachedData);
+
+                            // Esconder loading se estava visível
+                            const loading = document.getElementById('loading');
+                            if (loading) loading.classList.add('saude-hidden');
+                        }
+                    }
+
+                    // ✅ Fetch fresh data (sempre, mesmo com cache)
+                    const response = await fetch('/api/admin/system-health');
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.message || 'Erro ao carregar dados');
+                    }
+
+                    // ✅ Salvar no cache
+                    await saveToCache(data);
+
+                    // ✅ Renderizar dados frescos
+                    renderData(data);
+
+                } catch (error) {
+                    console.error('[Dashboard Saúde] Erro:', error);
+                    SuperModal.toast.error('Erro ao carregar dados: ' + error.message);
+                } finally {
+                    const refreshBtn = document.getElementById('refreshBtn');
+                    if (refreshBtn) {
+                        refreshBtn.disabled = false;
+                    }
+                }
+            }
+
+            // ✅ Função de renderização centralizada
+            function renderData(data) {
                 // Esconder loading
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('healthScore').classList.remove('hidden');
-                document.getElementById('components').classList.remove('hidden');
-                document.getElementById('consolidacoes').classList.remove('hidden');
+                const loading = document.getElementById('loading');
+                if (loading) loading.classList.add('saude-hidden');
+
+                const score = document.getElementById('healthScore');
+                const components = document.getElementById('components');
+                const consolidacoes = document.getElementById('consolidacoes');
+
+                if (score) score.classList.remove('saude-hidden');
+                if (components) components.classList.remove('saude-hidden');
+                if (consolidacoes) consolidacoes.classList.remove('saude-hidden');
 
                 // Health Score
                 updateHealthScore(data.health_score);
 
                 // Last Update
                 const lastUpdate = new Date(data.timestamp).toLocaleString('pt-BR');
-                document.getElementById('lastUpdate').textContent = `Última atualização: ${lastUpdate}`;
+                const lastUpdateEl = document.getElementById('lastUpdate');
+                if (lastUpdateEl) {
+                    lastUpdateEl.textContent = `Última atualização: ${lastUpdate}`;
+                }
 
                 // Components
                 updateMarketGate(data.components.market_gate);
@@ -202,174 +652,229 @@
                 updateJogosApi(data.components.api_jogos);
                 updateDatabase(data.components.database);
                 updateSistema(data.components.sistema);
-
-            } catch (error) {
-                console.error('Erro ao carregar health data:', error);
-                alert('Erro ao carregar dados: ' + error.message);
-            } finally {
-                document.getElementById('refreshBtn').disabled = false;
-                document.getElementById('refreshBtn').classList.remove('opacity-50');
             }
-        }
 
-        function updateHealthScore(score) {
-            const scoreEl = document.getElementById('scoreValue');
-            const labelEl = document.getElementById('scoreLabel');
+            function updateHealthScore(score) {
+                const scoreEl = document.getElementById('scoreValue');
+                const labelEl = document.getElementById('scoreLabel');
 
-            scoreEl.textContent = score;
+                if (!scoreEl || !labelEl) return;
 
-            if (score >= 90) {
-                scoreEl.className = 'text-6xl font-bold mb-2 text-green-400';
-                labelEl.textContent = '🟢 Sistema Saudável';
-            } else if (score >= 70) {
-                scoreEl.className = 'text-6xl font-bold mb-2 text-yellow-400';
-                labelEl.textContent = '🟡 Sistema Degradado';
-            } else {
-                scoreEl.className = 'text-6xl font-bold mb-2 text-red-400';
-                labelEl.textContent = '🔴 Sistema Crítico';
-            }
-        }
+                scoreEl.textContent = score;
 
-        function updateMarketGate(data) {
-            const indicator = document.getElementById('marketGateIndicator');
-            const details = document.getElementById('marketGateDetails');
-
-            indicator.className = `status-indicator status-${data.status}`;
-
-            if (data.status === 'online') {
-                details.innerHTML = `
-                    <div class="flex justify-between"><span class="text-gray-400">Status:</span><span class="text-green-400">✅ Online</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Mercado:</span><span>${data.mercado_aberto ? '🟢 Aberto' : '🔴 Fechado'}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Rodada:</span><span>${data.rodada_atual}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Temporada:</span><span>${data.temporada}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Cache:</span><span>${data.cache.ativo ? `✅ ${data.cache.ttl_segundos}s` : '❌ Inativo'}</span></div>
-                    ${data.stale ? '<div class="text-yellow-400 text-xs mt-2">⚠️ Cache stale (usando último conhecido)</div>' : ''}
-                `;
-            } else {
-                details.innerHTML = `
-                    <div class="text-red-400">❌ Offline</div>
-                    <div class="text-gray-400 text-xs mt-2">${data.error || 'Erro desconhecido'}</div>
-                `;
-            }
-        }
-
-        function updateConsolidacao(data) {
-            const indicator = document.getElementById('consolidacaoIndicator');
-            const details = document.getElementById('consolidacaoDetails');
-
-            indicator.className = `status-indicator status-${data.status}`;
-
-            if (data.status === 'online') {
-                details.innerHTML = `
-                    <div class="flex justify-between"><span class="text-gray-400">Status:</span><span class="text-green-400">✅ Ativo</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Snapshots:</span><span>${data.total_snapshots}</span></div>
-                `;
-
-                // Atualizar lista de últimas consolidações
-                const listaEl = document.getElementById('consolidacoesList');
-                if (data.ultimas_consolidacoes && data.ultimas_consolidacoes.length > 0) {
-                    listaEl.innerHTML = data.ultimas_consolidacoes.map(c => {
-                        const time = new Date(c.timestamp).toLocaleString('pt-BR');
-                        return `
-                            <div class="flex justify-between items-center p-3 bg-gray-700 rounded">
-                                <div>
-                                    <span class="font-medium">${c.liga}</span>
-                                    <span class="text-gray-400 ml-2">R${c.rodada}</span>
-                                </div>
-                                <span class="text-gray-400 text-sm">${time}</span>
-                            </div>
-                        `;
-                    }).join('');
+                if (score >= 90) {
+                    scoreEl.className = 'saude-score-value saude-text-green';
+                    labelEl.innerHTML = '<i class="material-icons" style="vertical-align: middle;">check_circle</i> Sistema Saudável';
+                } else if (score >= 70) {
+                    scoreEl.className = 'saude-score-value saude-text-yellow';
+                    labelEl.innerHTML = '<i class="material-icons" style="vertical-align: middle;">warning</i> Sistema Degradado';
                 } else {
-                    listaEl.innerHTML = '<div class="text-gray-400 text-center py-4">Nenhuma consolidação recente</div>';
+                    scoreEl.className = 'saude-score-value saude-text-red';
+                    labelEl.innerHTML = '<i class="material-icons" style="vertical-align: middle;">error</i> Sistema Crítico';
                 }
-            } else {
+            }
+
+            function updateMarketGate(data) {
+                const indicator = document.getElementById('marketGateIndicator');
+                const details = document.getElementById('marketGateDetails');
+
+                if (!indicator || !details) return;
+
+                indicator.className = `saude-status-indicator saude-status-${data.status}`;
+
+                if (data.status === 'online') {
+                    const mercadoIcon = data.mercado_aberto ? 'lock_open' : 'lock';
+                    const mercadoClass = data.mercado_aberto ? 'saude-text-green' : 'saude-text-red';
+                    const cacheIcon = data.cache.ativo ? 'check_circle' : 'cancel';
+                    details.innerHTML = `
+                        <div class="saude-detail-row"><span class="saude-detail-label">Status:</span><span class="saude-text-green"><i class="material-icons" style="font-size:14px;vertical-align:middle;">check_circle</i> Online</span></div>
+                        <div class="saude-detail-row"><span class="saude-detail-label">Mercado:</span><span class="${mercadoClass}"><i class="material-icons" style="font-size:14px;vertical-align:middle;">${mercadoIcon}</i> ${data.mercado_aberto ? 'Aberto' : 'Fechado'}</span></div>
+                        <div class="saude-detail-row"><span class="saude-detail-label">Rodada:</span><span>${data.rodada_atual}</span></div>
+                        <div class="saude-detail-row"><span class="saude-detail-label">Temporada:</span><span>${data.temporada}</span></div>
+                        <div class="saude-detail-row"><span class="saude-detail-label">Cache:</span><span><i class="material-icons" style="font-size:14px;vertical-align:middle;">${cacheIcon}</i> ${data.cache.ativo ? `${data.cache.ttl_segundos}s` : 'Inativo'}</span></div>
+                        ${data.stale ? '<div class="saude-text-yellow" style="font-size:0.75rem;margin-top:0.5rem;"><i class="material-icons" style="font-size:12px;vertical-align:middle;">warning</i> Cache stale (usando último conhecido)</div>' : ''}
+                    `;
+                } else {
+                    details.innerHTML = `
+                        <div class="saude-text-red"><i class="material-icons" style="font-size:14px;vertical-align:middle;">error</i> Offline</div>
+                        <div class="saude-text-gray" style="font-size:0.75rem;margin-top:0.5rem;">${data.error || 'Erro desconhecido'}</div>
+                    `;
+                }
+            }
+
+            function updateConsolidacao(data) {
+                const indicator = document.getElementById('consolidacaoIndicator');
+                const details = document.getElementById('consolidacaoDetails');
+
+                if (!indicator || !details) return;
+
+                indicator.className = `saude-status-indicator saude-status-${data.status}`;
+
+                if (data.status === 'online') {
+                    details.innerHTML = `
+                        <div class="saude-detail-row"><span class="saude-detail-label">Status:</span><span class="saude-text-green"><i class="material-icons" style="font-size:14px;vertical-align:middle;">check_circle</i> Ativo</span></div>
+                        <div class="saude-detail-row"><span class="saude-detail-label">Snapshots:</span><span>${data.total_snapshots}</span></div>
+                    `;
+
+                    // Atualizar lista de últimas consolidações
+                    const listaEl = document.getElementById('consolidacoesList');
+                    if (listaEl && data.ultimas_consolidacoes && data.ultimas_consolidacoes.length > 0) {
+                        listaEl.innerHTML = data.ultimas_consolidacoes.map(c => {
+                            const time = new Date(c.timestamp).toLocaleString('pt-BR');
+                            return `
+                                <div class="saude-consolidacao-item">
+                                    <div>
+                                        <span class="saude-consolidacao-liga">${c.liga}</span>
+                                        <span class="saude-consolidacao-rodada">R${c.rodada}</span>
+                                    </div>
+                                    <span class="saude-consolidacao-time">${time}</span>
+                                </div>
+                            `;
+                        }).join('');
+                    } else if (listaEl) {
+                        listaEl.innerHTML = '<div class="saude-text-gray" style="text-align:center;padding:1rem;">Nenhuma consolidação recente</div>';
+                    }
+                } else {
+                    details.innerHTML = `
+                        <div class="saude-text-red"><i class="material-icons" style="font-size:14px;vertical-align:middle;">error</i> Offline</div>
+                        <div class="saude-text-gray" style="font-size:0.75rem;margin-top:0.5rem;">${data.error || 'Erro desconhecido'}</div>
+                    `;
+                }
+            }
+
+            function updateCartolaApi(data) {
+                const indicator = document.getElementById('cartolaApiIndicator');
+                const details = document.getElementById('cartolaApiDetails');
+
+                if (!indicator || !details) return;
+
+                indicator.className = `saude-status-indicator saude-status-${data.status}`;
+
+                if (data.status === 'online' || data.status === 'degraded') {
+                    const latencyClass = data.latency_ms < 1000 ? 'saude-text-green' : data.latency_ms < 2000 ? 'saude-text-yellow' : 'saude-text-red';
+                    const statusClass = data.status === 'online' ? 'saude-text-green' : 'saude-text-yellow';
+                    const statusIcon = data.status === 'online' ? 'check_circle' : 'warning';
+                    details.innerHTML = `
+                        <div class="saude-detail-row"><span class="saude-detail-label">Status:</span><span class="${statusClass}"><i class="material-icons" style="font-size:14px;vertical-align:middle;">${statusIcon}</i> ${data.status === 'online' ? 'Online' : 'Degradado'}</span></div>
+                        <div class="saude-detail-row"><span class="saude-detail-label">Latência:</span><span class="${latencyClass}">${data.latency_ms}ms</span></div>
+                        <div class="saude-detail-row"><span class="saude-detail-label">HTTP:</span><span>${data.http_status}</span></div>
+                    `;
+                } else {
+                    details.innerHTML = `
+                        <div class="saude-text-red"><i class="material-icons" style="font-size:14px;vertical-align:middle;">error</i> Offline</div>
+                        <div class="saude-text-gray" style="font-size:0.75rem;margin-top:0.5rem;">${data.error || 'Erro desconhecido'}</div>
+                    `;
+                }
+            }
+
+            function updateJogosApi(data) {
+                const indicator = document.getElementById('jogosApiIndicator');
+                const details = document.getElementById('jogosApiDetails');
+
+                if (!indicator || !details) return;
+
+                indicator.className = `saude-status-indicator saude-status-${data.status}`;
+
+                if (data.status === 'online') {
+                    details.innerHTML = `
+                        <div class="saude-detail-row"><span class="saude-detail-label">Status:</span><span class="saude-text-green"><i class="material-icons" style="font-size:14px;vertical-align:middle;">check_circle</i> Online</span></div>
+                        <div class="saude-detail-row"><span class="saude-detail-label">Fonte:</span><span>${data.fonte_ativa}</span></div>
+                        <div class="saude-detail-row"><span class="saude-detail-label">Cache TTL:</span><span>${Math.floor(data.cache_ttl / 1000)}s</span></div>
+                    `;
+                } else {
+                    details.innerHTML = `
+                        <div class="saude-text-red"><i class="material-icons" style="font-size:14px;vertical-align:middle;">error</i> Offline</div>
+                        <div class="saude-text-gray" style="font-size:0.75rem;margin-top:0.5rem;">${data.error || 'Erro desconhecido'}</div>
+                    `;
+                }
+            }
+
+            function updateDatabase(data) {
+                const indicator = document.getElementById('databaseIndicator');
+                const details = document.getElementById('databaseDetails');
+
+                if (!indicator || !details) return;
+
+                indicator.className = `saude-status-indicator saude-status-${data.status}`;
+
+                if (data.status === 'online' && data.connected) {
+                    details.innerHTML = `
+                        <div class="saude-detail-row"><span class="saude-detail-label">Status:</span><span class="saude-text-green"><i class="material-icons" style="font-size:14px;vertical-align:middle;">check_circle</i> Conectado</span></div>
+                        <div class="saude-detail-row"><span class="saude-detail-label">Rodadas:</span><span>${data.collections.rodadas_consolidadas}</span></div>
+                        <div class="saude-detail-row"><span class="saude-detail-label">Ligas:</span><span>${data.collections.ligas_ativas}</span></div>
+                    `;
+                } else {
+                    details.innerHTML = `<div class="saude-text-red"><i class="material-icons" style="font-size:14px;vertical-align:middle;">error</i> Desconectado</div>`;
+                }
+            }
+
+            function updateSistema(data) {
+                const details = document.getElementById('sistemaDetails');
+                if (!details) return;
+
                 details.innerHTML = `
-                    <div class="text-red-400">❌ Offline</div>
-                    <div class="text-gray-400 text-xs mt-2">${data.error || 'Erro desconhecido'}</div>
+                    <div class="saude-detail-row"><span class="saude-detail-label">Uptime:</span><span>${data.uptime_formatted}</span></div>
+                    <div class="saude-detail-row"><span class="saude-detail-label">Memória:</span><span>${data.memory_usage.heap_used_mb}MB / ${data.memory_usage.heap_total_mb}MB</span></div>
+                    <div class="saude-detail-row"><span class="saude-detail-label">Node:</span><span>${data.node_version}</span></div>
                 `;
             }
-        }
 
-        function updateCartolaApi(data) {
-            const indicator = document.getElementById('cartolaApiIndicator');
-            const details = document.getElementById('cartolaApiDetails');
+            // ✅ Inicialização com DOMContentLoaded
+            document.addEventListener("DOMContentLoaded", async () => {
+                cleanupDashboardSaude(); // Limpar qualquer interval anterior
 
-            indicator.className = `status-indicator status-${data.status}`;
+                // Inicializar IndexedDB
+                await initDB();
 
-            if (data.status === 'online' || data.status === 'degraded') {
-                const latencyColor = data.latency_ms < 1000 ? 'text-green-400' : data.latency_ms < 2000 ? 'text-yellow-400' : 'text-red-400';
-                details.innerHTML = `
-                    <div class="flex justify-between"><span class="text-gray-400">Status:</span><span class="${data.status === 'online' ? 'text-green-400' : 'text-yellow-400'}">✅ ${data.status === 'online' ? 'Online' : 'Degradado'}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Latência:</span><span class="${latencyColor}">${data.latency_ms}ms</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">HTTP:</span><span>${data.http_status}</span></div>
-                `;
-            } else {
-                details.innerHTML = `
-                    <div class="text-red-400">❌ Offline</div>
-                    <div class="text-gray-400 text-xs mt-2">${data.error || 'Erro desconhecido'}</div>
-                `;
-            }
-        }
+                // Carregar dados (cache-first)
+                loadHealthData();
 
-        function updateJogosApi(data) {
-            const indicator = document.getElementById('jogosApiIndicator');
-            const details = document.getElementById('jogosApiDetails');
+                // Auto-refresh a cada 30 segundos
+                autoRefreshInterval = setInterval(loadHealthData, 30000);
 
-            indicator.className = `status-indicator status-${data.status}`;
+                // Event listener para botão de refresh (força reload)
+                const refreshBtn = document.getElementById('refreshBtn');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', () => {
+                        loadHealthData(true); // forceRefresh = true
+                    });
+                }
 
-            if (data.status === 'online') {
-                details.innerHTML = `
-                    <div class="flex justify-between"><span class="text-gray-400">Status:</span><span class="text-green-400">✅ Online</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Fonte:</span><span>${data.fonte_ativa}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Cache TTL:</span><span>${Math.floor(data.cache_ttl / 1000)}s</span></div>
-                `;
-            } else {
-                details.innerHTML = `
-                    <div class="text-red-400">❌ Offline</div>
-                    <div class="text-gray-400 text-xs mt-2">${data.error || 'Erro desconhecido'}</div>
-                `;
-            }
-        }
+                // ✅ Cleanup automático quando sair da página (MutationObserver)
+                const observer = new MutationObserver(() => {
+                    if (!document.getElementById('healthScore')) {
+                        cleanupDashboardSaude();
+                        observer.disconnect();
+                    }
+                });
 
-        function updateDatabase(data) {
-            const indicator = document.getElementById('databaseIndicator');
-            const details = document.getElementById('databaseDetails');
+                observer.observe(document.body, { childList: true, subtree: true });
+            });
 
-            indicator.className = `status-indicator status-${data.status}`;
+            // ✅ Reinicialização após navegação SPA
+            window.addEventListener('spa:navigated', async (e) => {
+                if (e.detail?.pageName === 'dashboard-saude.html') {
+                    console.log('[Dashboard Saúde] Reinicializando após navegação SPA');
+                    cleanupDashboardSaude();
 
-            if (data.status === 'online' && data.connected) {
-                details.innerHTML = `
-                    <div class="flex justify-between"><span class="text-gray-400">Status:</span><span class="text-green-400">✅ Conectado</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Rodadas:</span><span>${data.collections.rodadas_consolidadas}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Ligas:</span><span>${data.collections.ligas_ativas}</span></div>
-                `;
-            } else {
-                details.innerHTML = `
-                    <div class="text-red-400">❌ Desconectado</div>
-                `;
-            }
-        }
+                    // Reinicializar DB se necessário
+                    if (!db) await initDB();
 
-        function updateSistema(data) {
-            const details = document.getElementById('sistemaDetails');
+                    loadHealthData();
+                    autoRefreshInterval = setInterval(loadHealthData, 30000);
+                }
+            });
 
-            details.innerHTML = `
-                <div class="flex justify-between"><span class="text-gray-400">Uptime:</span><span>${data.uptime_formatted}</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">Memória:</span><span>${data.memory_usage.heap_used_mb}MB / ${data.memory_usage.heap_total_mb}MB</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">Node:</span><span>${data.node_version}</span></div>
-            `;
-        }
-
-        // Auto-refresh a cada 30 segundos
-        function startAutoRefresh() {
-            autoRefreshInterval = setInterval(loadHealthData, 30000);
-        }
-
-        // Init
-        loadHealthData().then(() => {
-            startAutoRefresh();
-        });
+            // ✅ Expor funções úteis globalmente (para debug)
+            window.dashboardSaudeCache = {
+                clear: clearCache,
+                reload: () => loadHealthData(true),
+                status: () => ({
+                    dbActive: !!db,
+                    ttl: CACHE_TTL
+                })
+            };
+        } // fim guard
     </script>
 </body>
 </html>

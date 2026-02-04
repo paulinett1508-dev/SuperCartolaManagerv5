@@ -1593,6 +1593,65 @@ Ver documentação completa em: [docs/CONTEXT7-MCP-SETUP.md](docs/CONTEXT7-MCP-S
 
 ---
 
+## 🛠️ Skills e Ferramentas de Desenvolvimento
+
+_Scripts e ferramentas para análise, debug e gestão do projeto_
+
+- [x] [SKILL-001] **Análise de Branches do GitHub** 📊 ✅ IMPLEMENTADO v2.0 - 04/02/2026
+  - **Descrição:** Script inteligente para análise de branches do repositório GitHub com integração de Pull Requests e verificação de sincronização
+  - **Arquivo:** `scripts/analisar-branches-github.js`
+  - **Documentação:** `docs/SKILL-ANALISE-BRANCHES.md`
+  - **Workflow:** Claude Code Web → GitHub (PRs) → Replit (sincronização)
+  - **Funcionalidades v2.0:**
+    - ✅ **Integração com GitHub API** - Busca PRs automaticamente
+    - ✅ **Informações de Pull Request** - Número, status, autor, data de merge
+    - ✅ **Verificação de Sincronização** - Detecta branches desatualizadas no Replit
+    - ✅ **Alertas Críticos** - Avisa quando branch atual está atrasada/divergente
+    - ✅ Listagem de branches remotas com data e autor
+    - ✅ Identificação automática de status (Operante, Implementado, Pendente, Abortado)
+    - ✅ Inferência de funcionalidade esperada por padrões
+    - ✅ Filtro por intervalo de datas
+    - ✅ Filtro por status
+    - ✅ Modo detalhado com histórico de commits
+    - ✅ Estatísticas gerais (taxa de conclusão, distribuição)
+    - ✅ Cruzamento com BACKLOG.md
+  - **Uso:**
+    ```bash
+    # Listar todas as branches
+    node scripts/analisar-branches-github.js
+    
+    # Com informações de Pull Requests (NOVO v2.0)
+    node scripts/analisar-branches-github.js --prs
+    
+    # Verificar sincronização Replit ↔ GitHub (NOVO v2.0)
+    node scripts/analisar-branches-github.js --sync-check
+    
+    # Branches de janeiro de 2026 com PRs
+    node scripts/analisar-branches-github.js --desde 2026-01-01 --ate 2026-01-31 --prs
+    
+    # Branches pendentes com detalhes
+    node scripts/analisar-branches-github.js --status pendente --detalhes
+    
+    # Quick start
+    ./quick-start-branches.sh prs    # Com PRs
+    ./quick-start-branches.sh sync   # Sincronização
+    
+    # Ver ajuda completa
+    node scripts/analisar-branches-github.js --ajuda
+    ```
+  - **Status atual:** 100% funcional com integração PR e sync check
+  - **Impacto:** ALTO - Essencial para workflow Claude Code Web → GitHub → Replit
+  - **Complexidade:** MÉDIA-ALTA (~4h implementadas v1.0 + v2.0)
+  - **Changelog v2.0:**
+    - GitHub API integration via HTTPS
+    - PR linking (número, título, status, merge date)
+    - Sync checker (local vs remote comparison)
+    - Critical alerts for current branch
+    - Divergent branch detection
+    - Quick start commands: `prs` e `sync`
+
+---
+
 ## 🎯 Como Usar
 
 1. **Nova ideia surge?** → Adicione na seção apropriada com ID único
@@ -1604,4 +1663,4 @@ Ver documentação completa em: [docs/CONTEXT7-MCP-SETUP.md](docs/CONTEXT7-MCP-S
 
 ---
 
-_Última atualização: 25/01/2026 - FEAT-025 White Label adicionado ao backlog_
+_Última atualização: 04/02/2026 - SKILL-001 Análise de Branches adicionada_
