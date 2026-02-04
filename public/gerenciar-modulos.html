@@ -161,21 +161,24 @@
                     titulo: 'Capitão de Luxo',
                     descricao: 'Ranking dos melhores capitães',
                     base: false,
-                    backendId: 'capitao_luxo'
+                    backendId: 'capitao_luxo',
+                    status: 'active'  // ✅ Implementado no backend
                 },
                 campinho: {
                     icon: 'stadium',
                     titulo: 'Campinho Virtual',
                     descricao: 'Visualização da escalação no campo',
                     base: false,
-                    backendId: 'campinho'
+                    backendId: 'campinho',
+                    status: 'planned'  // ✅ FIX CRIT-001: Módulo em desenvolvimento
                 },
                 dicas: {
                     icon: 'lightbulb',
                     titulo: 'Dicas Premium',
                     descricao: 'Análises avançadas e sugestão de escalação',
                     base: false,
-                    backendId: 'dicas'
+                    backendId: 'dicas',
+                    status: 'planned'  // ✅ FIX CRIT-001: Módulo planejado
                 }
             };
 
@@ -292,12 +295,13 @@
                                 <span class="modulo-title">
                                     ${config.titulo}
                                     ${config.base ? '<span class="badge-base">Base</span>' : ''}
+                                    ${config.status === 'planned' ? '<span class="badge-planned" style="background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-left: 6px;">Em Breve</span>' : ''}
                                 </span>
                             </div>
                             <label class="toggle-switch" onclick="event.stopPropagation();">
                                 <input type="checkbox"
                                        ${isAtivo ? 'checked' : ''}
-                                       ${config.base ? 'disabled' : ''}
+                                       ${config.base || config.status === 'planned' ? 'disabled' : ''}
                                        data-modulo="${key}">
                                 <span class="toggle-slider"></span>
                             </label>
@@ -305,6 +309,7 @@
                         <div class="modulo-desc">
                             ${config.descricao}
                             ${config.base ? ' <span class="badge-always-active" style="color:#22c55e; font-weight: 600;">✓ Sempre Ativo</span>' : ''}
+                            ${config.status === 'planned' ? '<br><small style="color: #60a5fa; font-size: 0.75rem; margin-top: 4px; display: inline-block;">🚀 Módulo em desenvolvimento</small>' : ''}
                         </div>
                     `;
 
@@ -318,9 +323,15 @@
                         });
                     }
 
-                    // Evento de clique no card (para configuração)
-                    card.addEventListener('click', () => onCardClick(key));
-                    card.style.cursor = 'pointer';
+                    // ✅ FIX CRIT-001: Evento de clique apenas para módulos disponíveis
+                    if (config.status !== 'planned' && config.status !== 'deprecated') {
+                        card.addEventListener('click', () => onCardClick(key));
+                        card.style.cursor = 'pointer';
+                    } else {
+                        // Módulos planejados/deprecated não são clicáveis
+                        card.style.cursor = 'not-allowed';
+                        card.style.opacity = '0.7';
+                    }
 
                     if (config.base) {
                         baseGrid.appendChild(card);
@@ -402,6 +413,17 @@
                 const config = MODULOS_CONFIG[moduloKey];
                 const estaAtivo = config.base || modulosState[moduloKey] !== false;
 
+                // ✅ FIX CRIT-001: Verificar status do módulo antes de qualquer ação
+                if (config.status === 'planned') {
+                    showMessage('⏳ Este módulo está em desenvolvimento e será lançado em breve!', 'info');
+                    return;
+                }
+
+                if (config.status === 'deprecated') {
+                    showMessage('⚠️ Este módulo foi descontinuado', 'warning');
+                    return;
+                }
+
                 // Verificar se pode configurar
                 if (!estaAtivo) {
                     showMessage('Ative o módulo primeiro usando o toggle', 'warning');
@@ -419,7 +441,16 @@
                     await modal.init(ligaId, backendId); // ✅ Usa backendId
                 } catch (error) {
                     console.error('[GERENCIAR-MODULOS] Erro ao abrir modal:', error);
-                    showMessage('Erro ao carregar configuração', 'error');
+
+                    // ✅ FIX CRIT-001: Mensagem mais específica baseada no tipo de erro
+                    let errorMsg = 'Erro ao carregar configuração';
+                    if (error.message?.includes('400')) {
+                        errorMsg = 'Módulo não disponível para configuração. Verifique se está implementado no backend.';
+                    } else if (error.message?.includes('Timeout')) {
+                        errorMsg = 'Timeout: servidor não respondeu a tempo';
+                    }
+
+                    showMessage(errorMsg, 'error');
                 }
             }
 
