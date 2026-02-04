@@ -5,6 +5,15 @@
 
 ---
 
+## 🔥 PRÓXIMA SESSÃO - EXECUTAR IMEDIATAMENTE
+
+### [IMPL-028] Implementar Sistema de Avisos e Notificações
+**Comando:** `/code .claude/docs/SPEC-sistema-avisos-notificacoes.md`
+**Prioridade:** CRÍTICA
+**Descrição:** Implementar o sistema completo de avisos e notificações conforme especificação completa.
+
+---
+
 ## FEATURES - Alta Prioridade
 
 ### [FEAT-026] Polling Inteligente para Módulo Rodadas

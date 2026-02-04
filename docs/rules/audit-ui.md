@@ -261,5 +261,171 @@ Garantir conformidade com os padrões visuais do projeto: **Dark Mode First**, *
 
 ---
 
+## 11. **Sistema de Notificações e Avisos**
+
+### Estrutura Dual (Admin + Participante)
+
+**Admin - Módulo Notificador (Operações)**
+- [ ] Interface para criar/gerenciar avisos globais
+- [ ] Segmentação por liga/participante/temporada
+- [ ] Preview antes de publicar
+- [ ] Histórico de avisos enviados
+- [ ] Categorias: `info`, `warning`, `success`, `urgent`
+
+**Participante - Seção "Avisos" (Home)**
+- [ ] Cards horizontais em scroll (hide-scrollbar)
+- [ ] Badge de categoria com cores distintas
+- [ ] Limite de 5 avisos na home
+- [ ] Link "Ver todos" para tela dedicada
+- [ ] Auto-dismissal após 7 dias (configurável)
+
+### Estrutura de Card de Aviso
+
+```html
+<!-- Card Padrão -->
+<div class="aviso-card bg-gray-800 rounded-xl min-w-[240px] p-4 border-l-4"
+     data-categoria="success">
+    <div class="flex items-center gap-2 mb-2">
+        <span class="material-icons text-green-500">check_circle</span>
+        <p class="font-russo text-sm uppercase text-white">Rodada Confirmada</p>
+    </div>
+    <p class="text-gray-400 text-sm">
+        Sua escalação para o clássico foi salva com sucesso!
+    </p>
+</div>
+```
+
+### Cores por Categoria
+
+| Categoria | Border Color | Icon Color | Uso |
+|-----------|--------------|------------|-----|
+| **success** | `border-green-500` | `text-green-500` | Confirmações, sucesso |
+| **warning** | `border-yellow-500` | `text-yellow-500` | Alertas, prazos |
+| **info** | `border-blue-500` | `text-blue-500` | Informações gerais |
+| **urgent** | `border-red-500` | `text-red-500` | Ações críticas, erros |
+
+### Checklist de Implementação
+
+- [ ] Criar collection `avisos` no MongoDB
+- [ ] Schema: `{ titulo, mensagem, categoria, ligaId?, timeId?, dataExpiracao, lido: Boolean }`
+- [ ] Endpoint admin: `POST /api/admin/avisos/criar`
+- [ ] Endpoint participante: `GET /api/avisos?ligaId={id}&timeId={id}`
+- [ ] Marcar como lido: `POST /api/avisos/marcar-lido/:avisoId`
+- [ ] UI admin em `/admin/operacoes/notificador`
+- [ ] Componente `<AvisosList>` na home do participante
+
+---
+
+## 12. **Otimização de Cards e Espaçamento**
+
+### Princípio: Densidade Balanceada
+
+**Objetivo:** Maximizar informação visível sem sacrificar legibilidade (inspirado em dashboard mobile-first).
+
+### Cards Compactos - Stats e Métricas
+
+**Antes (Espaçoso):**
+```html
+<div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+    <h3 class="text-xl mb-4">Saldo Financeiro</h3>
+    <p class="text-3xl">R$ 150,00</p>
+</div>
+```
+
+**Depois (Compacto):**
+```html
+<div class="bg-gray-800 rounded-xl p-3 shadow-sm">
+    <div class="flex items-center gap-2 mb-1">
+        <span class="material-icons text-sm text-green-500">account_balance_wallet</span>
+        <p class="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Saldo</p>
+    </div>
+    <p class="font-jetbrains text-xl font-bold text-white">R$ 150</p>
+</div>
+```
+
+**Métricas aplicadas:**
+- Padding reduzido: `p-6` → `p-3`
+- Título menor: `text-xl` → `text-[10px] uppercase`
+- Ícone integrado (14-16px)
+- Border-radius aumentado: `rounded-lg` → `rounded-xl` (visual moderno)
+- Shadow sutil: `shadow-lg` → `shadow-sm`
+
+### Grid de Stats - Mobile First
+
+**4 Cards compactos (2x2 em mobile):**
+```html
+<div class="grid grid-cols-2 gap-3">
+    <!-- Card 1: Saldo -->
+    <div class="bg-gray-800 rounded-xl p-3">
+        <div class="flex items-center gap-1 mb-1">
+            <span class="material-icons text-green-500 text-sm">account_balance_wallet</span>
+        </div>
+        <p class="font-jetbrains text-lg font-bold">R$ 150</p>
+        <p class="text-[9px] uppercase text-gray-500 tracking-wide">Saldo</p>
+    </div>
+
+    <!-- Card 2: Posição -->
+    <div class="bg-gray-800 rounded-xl p-3">
+        <div class="flex items-center gap-1 mb-1">
+            <span class="material-icons text-orange-500 text-sm">emoji_events</span>
+        </div>
+        <p class="font-jetbrains text-lg font-bold">#3</p>
+        <p class="text-[9px] uppercase text-gray-500 tracking-wide">Posição</p>
+    </div>
+
+    <!-- Card 3: Pontos Rodada -->
+    <!-- Card 4: Falta -->
+</div>
+```
+
+### Checklist de Otimização
+
+- [ ] **Padding:** Reduzir de `p-6` para `p-3` ou `p-4`
+- [ ] **Gap:** Grid com `gap-3` (12px) ao invés de `gap-6`
+- [ ] **Tipografia Labels:** `text-[10px] uppercase tracking-wider`
+- [ ] **Números:** Manter legíveis (`text-xl` ou `text-2xl`)
+- [ ] **Ícones:** 14-16px (class `text-sm`)
+- [ ] **Altura mínima:** Remover `min-h-[150px]` de cards stat
+- [ ] **Grid responsivo:** `grid-cols-2 md:grid-cols-4`
+
+### Hierarquia Visual (Escala)
+
+| Elemento | Tamanho | Uso |
+|----------|---------|-----|
+| **Hero Stats** | `text-4xl` | Pontuação principal, destaque |
+| **Card Stats** | `text-xl` / `text-2xl` | Métricas importantes |
+| **Labels** | `text-[10px]` uppercase | Títulos de cards |
+| **Descrições** | `text-xs` / `text-sm` | Subtextos |
+| **Captions** | `text-[9px]` | Metadados, timestamps |
+
+---
+
+## 13. **Padrão de Carregamento Instantâneo**
+
+**Inspirado em:** Dashboard Saúde (IndexedDB cache-first)
+
+### Estratégia Cache-First
+
+```javascript
+// 1. Renderizar cache imediatamente (0ms)
+const cached = await loadFromCache();
+if (cached) renderUI(cached);
+
+// 2. Buscar dados frescos em background
+const fresh = await fetch('/api/data');
+saveToCache(fresh);
+renderUI(fresh); // Atualiza silenciosamente
+```
+
+### Checklist
+
+- [ ] Implementar IndexedDB para dados críticos (ranking, rodadas, extrato)
+- [ ] TTL configurável por tipo de dado (30s-5min)
+- [ ] Skeleton loading APENAS na primeira visita (sem cache)
+- [ ] Indicador visual sutil quando atualiza em background
+- [ ] Invalidação inteligente (rodada finalizada = limpar cache)
+
+---
+
 **Última atualização:** 04/02/2026
-**Versão:** 1.0.0
+**Versão:** 1.1.0
