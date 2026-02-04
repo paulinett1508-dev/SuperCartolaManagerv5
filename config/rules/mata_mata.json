@@ -45,7 +45,7 @@
         "id": 3,
         "nome": "3ª Edição",
         "rodadaInicial": 16,
-        "rodadaFinal": 21,
+        "rodadaFinal": 20,
         "rodadaDefinicao": 15,
         "fases": {
           "primeira": 16,
@@ -72,20 +72,6 @@
       {
         "id": 5,
         "nome": "5ª Edição",
-        "rodadaInicial": 31,
-        "rodadaFinal": 35,
-        "rodadaDefinicao": 30,
-        "fases": {
-          "primeira": 31,
-          "oitavas": 32,
-          "quartas": 33,
-          "semis": 34,
-          "final": 35
-        }
-      },
-      {
-        "id": 6,
-        "nome": "6ª Edição",
         "rodadaInicial": 27,
         "rodadaFinal": 31,
         "rodadaDefinicao": 26,
@@ -98,17 +84,17 @@
         }
       },
       {
-        "id": 7,
-        "nome": "7ª Edição",
-        "rodadaInicial": 36,
-        "rodadaFinal": 38,
-        "rodadaDefinicao": 35,
+        "id": 6,
+        "nome": "6ª Edição",
+        "rodadaInicial": 33,
+        "rodadaFinal": 37,
+        "rodadaDefinicao": 32,
         "fases": {
-          "primeira": 36,
-          "oitavas": 37,
-          "quartas": 37,
-          "semis": 38,
-          "final": 38
+          "primeira": 33,
+          "oitavas": 34,
+          "quartas": 35,
+          "semis": 36,
+          "final": 37
         }
       }
     ]

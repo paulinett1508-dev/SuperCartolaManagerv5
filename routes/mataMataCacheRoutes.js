@@ -10,6 +10,43 @@ import {
 
 const router = express.Router();
 
+// ============================================================================
+// Rate limiter especifico para operacoes de escrita do mata-mata
+// Mais restritivo que o global: 30 req/min por IP
+// ============================================================================
+const writeLimitCounts = new Map();
+const WRITE_LIMIT_WINDOW = 60 * 1000;
+const WRITE_LIMIT_MAX = 30;
+
+function mataMataWriteLimiter(req, res, next) {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+               req.headers['x-real-ip'] ||
+               req.ip || 'unknown';
+    const now = Date.now();
+
+    if (!writeLimitCounts.has(ip)) {
+        writeLimitCounts.set(ip, { count: 1, startTime: now });
+        return next();
+    }
+
+    const data = writeLimitCounts.get(ip);
+    if (now - data.startTime > WRITE_LIMIT_WINDOW) {
+        writeLimitCounts.set(ip, { count: 1, startTime: now });
+        return next();
+    }
+
+    data.count++;
+    if (data.count > WRITE_LIMIT_MAX) {
+        console.log(`[MATA-CACHE] 🚫 Rate limit de escrita excedido: ${ip}`);
+        return res.status(429).json({
+            error: "Muitas operações de escrita",
+            retryAfter: Math.ceil((WRITE_LIMIT_WINDOW - (now - data.startTime)) / 1000),
+        });
+    }
+
+    next();
+}
+
 // Middleware de validacao de params para rotas com :ligaId
 function validarLigaIdParam(req, res, next) {
     const { ligaId } = req.params;
@@ -255,8 +292,8 @@ router.get("/debug/:ligaId", verificarAdmin, validarLigaIdParam, async (req, res
 // ⚠️ IMPORTANTE: Estas rotas DEVEM vir DEPOIS das rotas específicas acima
 // 🔒 POST e DELETE protegidos: requerem sessão admin
 // ============================================================================
-router.post("/cache/:ligaId/:edicao", verificarAdmin, validarLigaIdParam, validarEdicaoParam, salvarCacheMataMata);
+router.post("/cache/:ligaId/:edicao", verificarAdmin, mataMataWriteLimiter, validarLigaIdParam, validarEdicaoParam, salvarCacheMataMata);
 router.get("/cache/:ligaId/:edicao", validarLigaIdParam, validarEdicaoParam, lerCacheMataMata);
-router.delete("/cache/:ligaId/:edicao", verificarAdmin, validarLigaIdParam, validarEdicaoParam, deletarCacheMataMata);
+router.delete("/cache/:ligaId/:edicao", verificarAdmin, mataMataWriteLimiter, validarLigaIdParam, validarEdicaoParam, deletarCacheMataMata);
 
 export default router;
