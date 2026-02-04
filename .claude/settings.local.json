@@ -123,7 +123,14 @@
       "Bash(for file in public/dashboard-saude.html public/css/_admin-tokens.css)",
       "Skill(fact-checker)",
       "Bash(mongo:*)",
-      "Bash(for file in public/admin/js/modulos-wizard.js)"
+      "Bash(for file in public/admin/js/modulos-wizard.js)",
+      "Bash(if curl -s http://localhost:5000/api/cartola/mercado/status)",
+      "Bash(then echo '✅ Servidor reiniciado com sucesso!' echo echo '📊 Status do Mercado Cartola:' curl -s http://localhost:5000/api/cartola/mercado/status)",
+      "Bash(mongosh:*)",
+      "Bash(for f in /home/runner/workspace/utils/saldo-calculator.js /home/runner/workspace/utils/type-helpers.js /home/runner/workspace/routes/tesouraria-routes.js /home/runner/workspace/controllers/extratoFinanceiroCacheController.js /home/runner/workspace/controllers/inscricoesController.js /home/runner/workspace/models/AjusteFinanceiro.js /home/runner/workspace/controllers/ligaController.js /home/runner/workspace/public/gerenciar-modulos.html)",
+      "Bash(do echo -n \"$f: \")",
+      "Bash(for f in /home/runner/workspace/utils/saldo-calculator.js /home/runner/workspace/utils/type-helpers.js /home/runner/workspace/routes/tesouraria-routes.js /home/runner/workspace/controllers/extratoFinanceiroCacheController.js /home/runner/workspace/controllers/inscricoesController.js /home/runner/workspace/models/AjusteFinanceiro.js)",
+      "Bash(for file in controllers/extratoFinanceiroCacheController.js controllers/inscricoesController.js controllers/ligaController.js controllers/adminMobileController.js models/AjusteFinanceiro.js routes/tesouraria-routes.js utils/saldo-calculator.js utils/type-helpers.js)"
     ]
   },
   "enableAllProjectMcpServers": true,
