@@ -35,6 +35,41 @@ export function isSuperAdmin(email) {
 }
 
 /**
+ * Rotas públicas que NÃO requerem autenticação admin
+ * Estas rotas são acessíveis por participantes
+ *
+ * ✅ v1.1: Whitelist para prevenir 403 Forbidden em rotas públicas
+ */
+const ROTAS_PUBLICAS_PARTICIPANTE = [
+    // GET /api/ligas/:id - Dados gerais da liga
+    /^\/api\/ligas\/[a-f0-9]{24}$/,
+    // GET /api/ligas/:id/ranking - Ranking geral
+    /^\/api\/ligas\/[a-f0-9]{24}\/ranking$/,
+    // GET /api/ligas/:id/ranking/:rodada - Ranking de rodada específica
+    /^\/api\/ligas\/[a-f0-9]{24}\/ranking\/\d+$/,
+    // GET /api/ligas/:id/rodadas - Todas rodadas
+    /^\/api\/ligas\/[a-f0-9]{24}\/rodadas$/,
+    // GET /api/ligas/:id/rodadas/:timeId - Rodadas de um time
+    /^\/api\/ligas\/[a-f0-9]{24}\/rodadas\/\d+$/,
+    // GET /api/ligas/:id/melhor-mes - Ranking mensal
+    /^\/api\/ligas\/[a-f0-9]{24}\/melhor-mes$/,
+    // GET /api/ligas/:id/melhor-mes/:timeId - Melhor mês do participante
+    /^\/api\/ligas\/[a-f0-9]{24}\/melhor-mes\/\d+$/,
+    // GET /api/ligas/:id/top10 - Top 10
+    /^\/api\/ligas\/[a-f0-9]{24}\/top10$/,
+    // GET /api/ligas/:id/mata-mata - Dados do Mata-Mata
+    /^\/api\/ligas\/[a-f0-9]{24}\/mata-mata$/,
+    // GET /api/ligas/:id/modulos-ativos - Configuração de módulos
+    /^\/api\/ligas\/[a-f0-9]{24}\/modulos-ativos$/,
+    // GET /api/ligas/:id/configuracoes - Configs da liga
+    /^\/api\/ligas\/[a-f0-9]{24}\/configuracoes$/,
+    // GET /api/ligas/:id/participantes - Lista de participantes (por temporada)
+    /^\/api\/ligas\/[a-f0-9]{24}\/participantes$/,
+    // GET /api/ligas/:id/temporadas - Temporadas disponíveis
+    /^\/api\/ligas\/[a-f0-9]{24}\/temporadas$/,
+];
+
+/**
  * Middleware que injeta filtro de tenant em req.tenantFilter
  *
  * Uso nos controllers:
@@ -45,7 +80,16 @@ export function isSuperAdmin(email) {
  * @param {Function} next
  */
 export function tenantFilter(req, res, next) {
-    // Se não está autenticado, não aplica filtro (outras rotas cuidam da autenticação)
+    // ✅ v1.1: Verificar se é rota pública (acessível por participantes)
+    const isRotaPublica = ROTAS_PUBLICAS_PARTICIPANTE.some(regex => regex.test(req.path));
+
+    if (isRotaPublica) {
+        req.tenantFilter = {};
+        req.isPublicRoute = true;
+        return next();
+    }
+
+    // Se não está autenticado como admin, não aplica filtro (outras rotas cuidam da autenticação)
     if (!req.session?.admin) {
         req.tenantFilter = {};
         return next();

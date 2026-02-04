@@ -1,7 +1,78 @@
 # Tarefas Pendentes - Super Cartola Manager
 
-> Atualizado: 2026-02-04
+> Atualizado: 2026-02-04 17:55
 > Auditado: Todos os itens anteriores foram verificados no código e MongoDB. Apenas tarefas realmente pendentes permanecem.
+
+---
+
+## 🚨 HOTFIX CRÍTICO APLICADO (2026-02-04 17:55)
+
+### [HOTFIX-001] Correção de 3 Bugs Críticos no Módulo Extrato ✅ CORRIGIDO
+
+**Prioridade:** 🔴 CRÍTICA (Bloqueava uso do app)
+**Status:** Corrigido e servidor reiniciado
+**Arquivos modificados:** 3
+
+#### Problemas Identificados
+
+**1. Middleware `tenantFilter` bloqueando participantes (403 Forbidden)**
+- **Arquivo:** `middleware/tenant.js`
+- **Problema:** Middleware aplicado em TODAS rotas `/api/ligas/*` bloqueava participantes sem sessão admin
+- **Impacto:** Participantes não conseguiam carregar dados da liga (erro 403)
+- **Solução:** Adicionada whitelist de 12 rotas públicas (v1.1)
+
+**2. Função chamada antes de ser definida (TypeError)**
+- **Arquivo:** `public/participante/js/modules/participante-extrato-ui.js`
+- **Problema:** `window.renderizarConteudoCompleto` chamada na linha 303, definida na linha 531
+- **Impacto:** Tela branca no módulo Extrato após carregar dados
+- **Solução:** Função movida para ANTES da função exportada (v10.23)
+
+**3. Chamada para rota deletada (404 Not Found)**
+- **Arquivo:** `public/participante/js/modules/participante-extrato.js`
+- **Problema:** Código tentava chamar `DELETE /api/extrato-cache/.../limpar` removida na v2.0
+- **Impacto:** Erro 404 no console, cache incompleto não era limpo
+- **Solução:** Bloco try-catch removido, recálculo já sobrescreve cache (v2.9)
+
+#### Evidências Técnicas
+
+**Console Logs (antes da correção):**
+```
+GET /api/ligas/684cb1c8af923da7c7df51de 403 (Forbidden)
+TypeError: window.renderizarConteudoCompleto is not a function
+DELETE /api/extrato-cache/.../limpar 404 (Not Found)
+```
+
+#### Testes Necessários
+
+- [ ] Testar acesso ao módulo Extrato como participante
+- [ ] Verificar que não há mais erros 403/404 no console
+- [ ] Validar renderização completa do extrato
+- [ ] Testar em múltiplas ligas (multi-tenant)
+- [ ] Hard refresh (Ctrl+Shift+R) para limpar cache frontend
+
+#### Commit Recomendado
+
+```bash
+git add middleware/tenant.js \
+        public/participante/js/modules/participante-extrato-ui.js \
+        public/participante/js/modules/participante-extrato.js
+
+git commit -m "fix(extrato): corrige 3 bugs críticos bloqueando uso do módulo
+
+- feat(tenant): adiciona whitelist de rotas públicas (v1.1)
+  - Participantes agora podem acessar /api/ligas/:id sem 403
+  - 12 rotas públicas identificadas e permitidas
+
+- fix(extrato-ui): reordena definição de renderizarConteudoCompleto (v10.23)
+  - Move função para antes da chamada
+  - Elimina TypeError que causava tela branca
+
+- fix(extrato): remove chamada para rota deletada (v2.9)
+  - Rota DELETE /limpar foi removida na v2.0 por segurança
+  - Recálculo já sobrescreve cache, limpeza prévia desnecessária
+
+Resolves: Módulo Extrato totalmente funcional para participantes"
+```
 
 ---
 

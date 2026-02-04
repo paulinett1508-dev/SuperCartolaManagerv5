@@ -599,20 +599,8 @@ async function carregarExtrato(ligaId, timeId) {
                         : "📡 Buscando endpoint de cálculo...",
                 );
 
-            // ✅ v2.8: Se cache incompleto, limpar antes de recalcular
-            if (precisaRecalculo) {
-                try {
-                    const urlLimpeza = `/api/extrato-cache/${ligaId}/times/${timeId}/limpar`;
-                    await fetch(urlLimpeza, { method: "DELETE" });
-                    if (window.Log)
-                        Log.debug(
-                            "EXTRATO-PARTICIPANTE",
-                            "🗑️ Cache antigo limpo",
-                        );
-                } catch (e) {
-                    // Ignora erro de limpeza
-                }
-            }
+            // ✅ v2.9: Removido chamada para rota deletada (DELETE /limpar foi removida na v2.0)
+            // O recálculo abaixo já sobrescreve o cache, então limpeza prévia é desnecessária
 
             const urlCalculo = `/api/fluxo-financeiro/${ligaId}/extrato/${timeId}?temporada=${temporada}`;
             const resCalculo = await fetch(urlCalculo);

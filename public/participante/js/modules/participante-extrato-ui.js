@@ -259,6 +259,219 @@ function preencherTodasRodadas(rodadasExistentes, totalRodadas = 38) {
     return todasRodadas;
 }
 
+// ===== RENDERIZAR CONTEÚDO COMPLETO =====
+// ✅ v10.23: Movido para ANTES da função exportada para evitar erro "function is not defined"
+window.renderizarConteudoCompleto = function renderizarConteudoCompleto(container, extrato) {
+    const resumoBase = extrato.resumo || {
+        saldo: 0,
+        totalGanhos: 0,
+        totalPerdas: 0,
+    };
+    // Detectar se é pré-temporada 2026
+    const temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
+    const temporadaSelecionada = window.seasonSelector?.getTemporadaSelecionada?.();
+    const isPreTemporada2026 = (temporadaSelecionada || temporadaAtual) >= 2026 && isPreTemporada(extrato.rodadas);
+
+    // Para 2026 pré-temporada, não processa campos manuais/editáveis
+    let camposManuais = [];
+    if (!isPreTemporada2026) {
+        camposManuais = extrato.camposManuais || extrato.camposEditaveis || [];
+    }
+
+    // Para 2026 pré-temporada, não processa POS
+    let rodadasSemPos = extrato.rodadas;
+    if (isPreTemporada2026) {
+        rodadasSemPos = extrato.rodadas.map(r => ({ ...r, posicao: null }));
+    }
+
+    // ✅ v8.7: resumo.saldo/totalGanhos/totalPerdas JÁ incluem campos manuais
+    // Não duplicar somando novamente!
+    const totalGanhosBase = resumoBase.totalGanhos || 0;
+    const totalPerdasBase = Math.abs(resumoBase.totalPerdas || 0);
+
+    // ✅ v10.1: Extrair acertos financeiros
+    const acertos = extrato.acertos || { lista: [], resumo: {} };
+    const listaAcertos = acertos.lista || [];
+    const resumoAcertos = acertos.resumo || {};
+
+    // ✅ v10.10 FIX CRÍTICO: NÃO somar acertos nos cards de Créditos/Débitos
+    // Os cards mostram apenas débitos/créditos da TEMPORADA (igual ao admin)
+    // Acertos (pagamentos/recebimentos) só afetam o SALDO FINAL, não os totais
+    // Motivo: Pagamento QUITA dívida, não cria novo débito
+    const totalGanhos = totalGanhosBase;
+    const totalPerdas = totalPerdasBase;
+
+    // ✅ v10.7: FIX CRÍTICO - Cálculo do saldo igual ao Inicio
+    // O Inicio usa: extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0
+    // Precisamos fazer o mesmo aqui para consistência
+
+    // Fonte primária: saldo_atual (já inclui acertos, calculado pelo backend)
+    // Fallback: saldo_final + saldo_acertos (cálculo manual)
+    const saldoAcertosCalculado =
+        resumoAcertos?.saldo ??           // De extrato.acertos.resumo.saldo
+        resumoBase?.saldo_acertos ??      // De resumo.saldo_acertos
+        extrato?.acertos?.resumo?.saldo ?? // Acesso direto
+        0;
+
+    // Usar saldo_atual se disponível (como faz o Inicio), senão calcular
+    const saldoTemporada = resumoBase.saldo_temporada ?? resumoBase.saldo_final ?? resumoBase.saldo ?? 0;
+    const saldoAcertos = saldoAcertosCalculado; // Alias para uso no bottom sheet
+    const saldo = resumoBase.saldo_atual ?? (saldoTemporada + saldoAcertos);
+
+    if (window.Log) Log.info("[EXTRATO-UI] 💰 Cálculo saldo:", {
+        saldo_atual: resumoBase.saldo_atual,
+        saldoTemporada,
+        saldoAcertosCalculado,
+        saldoFinal: saldo,
+        fonte: resumoBase.saldo_atual !== undefined ? "saldo_atual (backend)" : "calculado (temporada + acertos)"
+    });
+
+    const saldoPositivo = saldo >= 0;
+    const saldoFormatado = `R$ ${Math.abs(saldo).toFixed(2).replace(".", ",")}`;
+    const statusTexto = saldoPositivo ? "A RECEBER" : "A PAGAR";
+
+    // ✅ v10.22: Dados de inscrição para exibição no card
+    const taxaInscricao = resumoBase.taxaInscricao || 0;
+    const pagouInscricao = resumoBase.pagouInscricao === true;
+
+    const ligaId =
+        extrato.liga_id ||
+        extrato.ligaId ||
+        window.PARTICIPANTE_IDS?.ligaId ||
+        window.participanteData?.ligaId ||
+        "";
+
+    if (window.Log)
+        Log.info(
+            "[EXTRATO-UI] 🔍 LigaId:",
+            ligaId,
+            "| Campos manuais:",
+            camposManuais.length,
+        );
+
+    window.ligaIdAtual = ligaId;
+
+    // v8.8: Preencher todas as 38 rodadas (mesmo neutras) e ordenar decrescente
+    const rodadasCompletas = preencherTodasRodadas(rodadasSemPos, 38);
+    const rodadasOrdenadas = rodadasCompletas.sort(
+        (a, b) => b.rodada - a.rodada,
+    );
+
+    container.innerHTML = `
+        <!-- Card Saldo Principal -->
+        <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-3xl ${saldoPositivo ? "text-emerald-400" : "text-rose-400"}">account_balance_wallet</span>
+                    <div>
+                        <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
+                        <p class="text-2xl font-bold ${saldoPositivo ? "text-emerald-400" : "text-rose-400"}">${saldoPositivo ? "+" : "-"}${saldoFormatado}</p>
+                        ${taxaInscricao > 0 ? `
+                        <p class="text-xs mt-1 ${pagouInscricao ? 'text-emerald-400' : 'text-rose-400'}">
+                            Inscrição ${temporadaSelecionada || temporadaAtual}: R$ ${taxaInscricao.toFixed(2).replace('.', ',')} ${pagouInscricao ? 'C' : 'D'}
+                        </p>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="${saldoPositivo ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"} text-[10px] font-semibold px-2 py-1 rounded-full">${statusTexto}</span>
+                    <button id="btnRefreshExtrato" class="p-2 rounded-full bg-white/10 text-white/70 hover:bg-white/20 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined text-lg">sync</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards Ganhos/Perdas -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div onclick="window.mostrarDetalhamentoGanhos(event)" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="material-icons text-emerald-400 text-base flex-shrink-0">arrow_upward</span>
+                    <p class="text-xs text-white/70 uppercase truncate">Créditos</p>
+                </div>
+                <span class="text-sm font-bold text-emerald-400 whitespace-nowrap ml-1">+${totalGanhos.toFixed(2).replace(".", ",")}</span>
+            </div>
+            <div onclick="window.mostrarDetalhamentoPerdas(event)" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="material-icons text-rose-400 text-base flex-shrink-0">arrow_downward</span>
+                    <p class="text-xs text-white/70 uppercase truncate">Débitos</p>
+                </div>
+                <span class="text-sm font-bold text-rose-400 whitespace-nowrap ml-1">-${totalPerdas.toFixed(2).replace(".", ",")}</span>
+            </div>
+        </div>
+
+        <!-- ✅ v10.2: Botão MEUS ACERTOS (Pill discreto) -->
+        ${renderizarBotaoMeusAcertos(listaAcertos, saldoAcertos)}
+
+        <!-- Gráfico de Evolução -->
+        <div class="bg-surface-dark p-4 rounded-xl mb-4 border border-white/5">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">show_chart</span>
+                    <h3 class="text-sm font-bold text-white">Evolução Financeira</h3>
+                </div>
+                <div class="flex items-center gap-1 bg-white/5 p-1 rounded-lg text-xs">
+                    <button class="filtro-btn px-2 py-1 rounded-md bg-primary/80 text-white font-semibold" data-range="all">Tudo</button>
+                    <button class="filtro-btn px-2 py-1 rounded-md text-white/50 hover:text-white transition-colors" data-range="10">10R</button>
+                    <button class="filtro-btn px-2 py-1 rounded-md text-white/50 hover:text-white transition-colors" data-range="5">5R</button>
+                </div>
+            </div>
+            <div class="relative h-40">
+                <svg id="graficoSVG" class="absolute inset-0 w-full h-full" viewBox="0 0 300 160" preserveAspectRatio="none" fill="none">
+                    <defs>
+                        <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stop-color="#F97316" stop-opacity="0.3"></stop>
+                            <stop offset="100%" stop-color="#F97316" stop-opacity="0"></stop>
+                        </linearGradient>
+                    </defs>
+                    <line class="stroke-zinc-700/60" stroke-dasharray="2 2" x1="0" x2="300" y1="40" y2="40"></line>
+                    <line class="stroke-zinc-700/60" stroke-dasharray="2 2" x1="0" x2="300" y1="80" y2="80"></line>
+                    <line class="stroke-zinc-700/60" stroke-dasharray="2 2" x1="0" x2="300" y1="120" y2="120"></line>
+                    <path id="graficoArea" fill="url(#chartGradient)" d=""></path>
+                    <path id="graficoPath" fill="none" stroke="#F97316" stroke-width="2" d=""></path>
+                </svg>
+                <div id="graficoLabels" class="absolute inset-x-0 bottom-0 flex justify-between text-[10px] text-gray-500 px-1"></div>
+            </div>
+        </div>
+
+        <!-- Histórico por Rodada - v8.8: Espaçamento melhorado -->
+        <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="material-symbols-outlined text-primary text-xl">history</span>
+                <h3 class="text-base font-bold text-white">Histórico por Rodada</h3>
+                <span class="text-xs text-white/50 ml-auto">${rodadasOrdenadas.length} rodadas</span>
+            </div>
+            <div class="space-y-3">
+                ${renderizarCardsRodadas(rodadasOrdenadas, ligaId)}
+            </div>
+        </div>
+
+        <!-- Card Seu Desempenho -->
+        ${renderizarCardDesempenho(rodadasOrdenadas, ligaId)}
+
+        <!-- Modal TOP10 Info -->
+        <div id="modalTop10Info" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4" onclick="this.classList.add('hidden'); this.classList.remove('flex');">
+            <div onclick="event.stopPropagation()" class="bg-surface-dark rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+                <div class="p-4 border-b border-white/10">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <span class="material-icons text-yellow-400">emoji_events</span>
+                            Detalhe TOP 10
+                        </h3>
+                        <button class="text-white/50 hover:text-white" onclick="document.getElementById('modalTop10Info').classList.add('hidden'); document.getElementById('modalTop10Info').classList.remove('flex');">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="modalTop10Body" class="p-4"></div>
+            </div>
+        </div>
+
+        <!-- ✅ v10.2: Bottom Sheet MEUS ACERTOS -->
+        ${renderizarBottomSheetAcertos(listaAcertos, resumoAcertos, saldoTemporada, saldoAcertos)}
+    `;
+};
+
 // ===== EXPORTAR FUNÇÃO PRINCIPAL =====
 export async function renderizarExtratoParticipante(extrato, participanteId) {
     const container = document.getElementById("fluxoFinanceiroContent");
@@ -525,220 +738,6 @@ window.renderizarGraficoPreTemporada = function renderizarGraficoPreTemporada() 
         const x = startX + ((endX - startX) * (rodada - 1) / 37);
         return `<span style="position: absolute; left: ${(x / width) * 100}%; transform: translateX(-50%);">R${rodada}</span>`;
     }).join("");
-}
-
-// ===== RENDERIZAR CONTEÚDO COMPLETO =====
-window.renderizarConteudoCompleto = function renderizarConteudoCompleto(container, extrato) {
-    const resumoBase = extrato.resumo || {
-        saldo: 0,
-        totalGanhos: 0,
-        totalPerdas: 0,
-    };
-    // Detectar se é pré-temporada 2026
-    const temporadaAtual = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
-    const temporadaSelecionada = window.seasonSelector?.getTemporadaSelecionada?.();
-    const isPreTemporada2026 = (temporadaSelecionada || temporadaAtual) >= 2026 && isPreTemporada(extrato.rodadas);
-
-    // Para 2026 pré-temporada, não processa campos manuais/editáveis
-    let camposManuais = [];
-    if (!isPreTemporada2026) {
-        camposManuais = extrato.camposManuais || extrato.camposEditaveis || [];
-    }
-
-    // Para 2026 pré-temporada, não processa POS
-    let rodadasSemPos = extrato.rodadas;
-    if (isPreTemporada2026) {
-        rodadasSemPos = extrato.rodadas.map(r => ({ ...r, posicao: null }));
-    }
-
-    // ✅ v8.7: resumo.saldo/totalGanhos/totalPerdas JÁ incluem campos manuais
-    // Não duplicar somando novamente!
-    const totalGanhosBase = resumoBase.totalGanhos || 0;
-    const totalPerdasBase = Math.abs(resumoBase.totalPerdas || 0);
-
-    // ✅ v10.1: Extrair acertos financeiros
-    const acertos = extrato.acertos || { lista: [], resumo: {} };
-    const listaAcertos = acertos.lista || [];
-    const resumoAcertos = acertos.resumo || {};
-
-    // ✅ v10.10 FIX CRÍTICO: NÃO somar acertos nos cards de Créditos/Débitos
-    // Os cards mostram apenas débitos/créditos da TEMPORADA (igual ao admin)
-    // Acertos (pagamentos/recebimentos) só afetam o SALDO FINAL, não os totais
-    // Motivo: Pagamento QUITA dívida, não cria novo débito
-    const totalGanhos = totalGanhosBase;
-    const totalPerdas = totalPerdasBase;
-
-    // ✅ v10.7: FIX CRÍTICO - Cálculo do saldo igual ao Inicio
-    // O Inicio usa: extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0
-    // Precisamos fazer o mesmo aqui para consistência
-
-    // Fonte primária: saldo_atual (já inclui acertos, calculado pelo backend)
-    // Fallback: saldo_final + saldo_acertos (cálculo manual)
-    const saldoAcertosCalculado =
-        resumoAcertos?.saldo ??           // De extrato.acertos.resumo.saldo
-        resumoBase?.saldo_acertos ??      // De resumo.saldo_acertos
-        extrato?.acertos?.resumo?.saldo ?? // Acesso direto
-        0;
-
-    // Usar saldo_atual se disponível (como faz o Inicio), senão calcular
-    const saldoTemporada = resumoBase.saldo_temporada ?? resumoBase.saldo_final ?? resumoBase.saldo ?? 0;
-    const saldoAcertos = saldoAcertosCalculado; // Alias para uso no bottom sheet
-    const saldo = resumoBase.saldo_atual ?? (saldoTemporada + saldoAcertos);
-
-    if (window.Log) Log.info("[EXTRATO-UI] 💰 Cálculo saldo:", {
-        saldo_atual: resumoBase.saldo_atual,
-        saldoTemporada,
-        saldoAcertosCalculado,
-        saldoFinal: saldo,
-        fonte: resumoBase.saldo_atual !== undefined ? "saldo_atual (backend)" : "calculado (temporada + acertos)"
-    });
-
-    const saldoPositivo = saldo >= 0;
-    const saldoFormatado = `R$ ${Math.abs(saldo).toFixed(2).replace(".", ",")}`;
-    const statusTexto = saldoPositivo ? "A RECEBER" : "A PAGAR";
-
-    // ✅ v10.22: Dados de inscrição para exibição no card
-    const taxaInscricao = resumoBase.taxaInscricao || 0;
-    const pagouInscricao = resumoBase.pagouInscricao === true;
-
-    const ligaId =
-        extrato.liga_id ||
-        extrato.ligaId ||
-        window.PARTICIPANTE_IDS?.ligaId ||
-        window.participanteData?.ligaId ||
-        "";
-
-    if (window.Log)
-        Log.info(
-            "[EXTRATO-UI] 🔍 LigaId:",
-            ligaId,
-            "| Campos manuais:",
-            camposManuais.length,
-        );
-
-    window.ligaIdAtual = ligaId;
-
-    // v8.8: Preencher todas as 38 rodadas (mesmo neutras) e ordenar decrescente
-    const rodadasCompletas = preencherTodasRodadas(rodadasSemPos, 38);
-    const rodadasOrdenadas = rodadasCompletas.sort(
-        (a, b) => b.rodada - a.rodada,
-    );
-
-    container.innerHTML = `
-        <!-- Card Saldo Principal -->
-        <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-3xl ${saldoPositivo ? "text-emerald-400" : "text-rose-400"}">account_balance_wallet</span>
-                    <div>
-                        <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
-                        <p class="text-2xl font-bold ${saldoPositivo ? "text-emerald-400" : "text-rose-400"}">${saldoPositivo ? "+" : "-"}${saldoFormatado}</p>
-                        ${taxaInscricao > 0 ? `
-                        <p class="text-xs mt-1 ${pagouInscricao ? 'text-emerald-400' : 'text-rose-400'}">
-                            Inscrição ${temporadaSelecionada || temporadaAtual}: R$ ${taxaInscricao.toFixed(2).replace('.', ',')} ${pagouInscricao ? 'C' : 'D'}
-                        </p>
-                        ` : ''}
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="${saldoPositivo ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"} text-[10px] font-semibold px-2 py-1 rounded-full">${statusTexto}</span>
-                    <button id="btnRefreshExtrato" class="p-2 rounded-full bg-white/10 text-white/70 hover:bg-white/20 active:scale-95 transition-all">
-                        <span class="material-symbols-outlined text-lg">sync</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cards Ganhos/Perdas -->
-        <div class="grid grid-cols-2 gap-3 mb-3">
-            <div onclick="window.mostrarDetalhamentoGanhos(event)" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
-                <div class="flex items-center gap-2 min-w-0">
-                    <span class="material-icons text-emerald-400 text-base flex-shrink-0">arrow_upward</span>
-                    <p class="text-xs text-white/70 uppercase truncate">Créditos</p>
-                </div>
-                <span class="text-sm font-bold text-emerald-400 whitespace-nowrap ml-1">+${totalGanhos.toFixed(2).replace(".", ",")}</span>
-            </div>
-            <div onclick="window.mostrarDetalhamentoPerdas(event)" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
-                <div class="flex items-center gap-2 min-w-0">
-                    <span class="material-icons text-rose-400 text-base flex-shrink-0">arrow_downward</span>
-                    <p class="text-xs text-white/70 uppercase truncate">Débitos</p>
-                </div>
-                <span class="text-sm font-bold text-rose-400 whitespace-nowrap ml-1">-${totalPerdas.toFixed(2).replace(".", ",")}</span>
-            </div>
-        </div>
-
-        <!-- ✅ v10.2: Botão MEUS ACERTOS (Pill discreto) -->
-        ${renderizarBotaoMeusAcertos(listaAcertos, saldoAcertos)}
-
-        <!-- Gráfico de Evolução -->
-        <div class="bg-surface-dark p-4 rounded-xl mb-4 border border-white/5">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">show_chart</span>
-                    <h3 class="text-sm font-bold text-white">Evolução Financeira</h3>
-                </div>
-                <div class="flex items-center gap-1 bg-white/5 p-1 rounded-lg text-xs">
-                    <button class="filtro-btn px-2 py-1 rounded-md bg-primary/80 text-white font-semibold" data-range="all">Tudo</button>
-                    <button class="filtro-btn px-2 py-1 rounded-md text-white/50 hover:text-white transition-colors" data-range="10">10R</button>
-                    <button class="filtro-btn px-2 py-1 rounded-md text-white/50 hover:text-white transition-colors" data-range="5">5R</button>
-                </div>
-            </div>
-            <div class="relative h-40">
-                <svg id="graficoSVG" class="absolute inset-0 w-full h-full" viewBox="0 0 300 160" preserveAspectRatio="none" fill="none">
-                    <defs>
-                        <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="0%" stop-color="#F97316" stop-opacity="0.3"></stop>
-                            <stop offset="100%" stop-color="#F97316" stop-opacity="0"></stop>
-                        </linearGradient>
-                    </defs>
-                    <line class="stroke-zinc-700/60" stroke-dasharray="2 2" x1="0" x2="300" y1="40" y2="40"></line>
-                    <line class="stroke-zinc-700/60" stroke-dasharray="2 2" x1="0" x2="300" y1="80" y2="80"></line>
-                    <line class="stroke-zinc-700/60" stroke-dasharray="2 2" x1="0" x2="300" y1="120" y2="120"></line>
-                    <path id="graficoArea" fill="url(#chartGradient)" d=""></path>
-                    <path id="graficoPath" fill="none" stroke="#F97316" stroke-width="2" d=""></path>
-                </svg>
-                <div id="graficoLabels" class="absolute inset-x-0 bottom-0 flex justify-between text-[10px] text-gray-500 px-1"></div>
-            </div>
-        </div>
-
-        <!-- Histórico por Rodada - v8.8: Espaçamento melhorado -->
-        <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
-            <div class="flex items-center gap-2 mb-4">
-                <span class="material-symbols-outlined text-primary text-xl">history</span>
-                <h3 class="text-base font-bold text-white">Histórico por Rodada</h3>
-                <span class="text-xs text-white/50 ml-auto">${rodadasOrdenadas.length} rodadas</span>
-            </div>
-            <div class="space-y-3">
-                ${renderizarCardsRodadas(rodadasOrdenadas, ligaId)}
-            </div>
-        </div>
-
-        <!-- Card Seu Desempenho -->
-        ${renderizarCardDesempenho(rodadasOrdenadas, ligaId)}
-
-        <!-- Modal TOP10 Info -->
-        <div id="modalTop10Info" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4" onclick="this.classList.add('hidden'); this.classList.remove('flex');">
-            <div onclick="event.stopPropagation()" class="bg-surface-dark rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-                <div class="p-4 border-b border-white/10">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-base font-bold text-white flex items-center gap-2">
-                            <span class="material-icons text-yellow-400">emoji_events</span>
-                            Detalhe TOP 10
-                        </h3>
-                        <button class="text-white/50 hover:text-white" onclick="document.getElementById('modalTop10Info').classList.add('hidden'); document.getElementById('modalTop10Info').classList.remove('flex');">
-                            <span class="material-icons">close</span>
-                        </button>
-                    </div>
-                </div>
-                <div id="modalTop10Body" class="p-4"></div>
-            </div>
-        </div>
-
-        <!-- ✅ v10.2: Bottom Sheet MEUS ACERTOS -->
-        ${renderizarBottomSheetAcertos(listaAcertos, resumoAcertos, saldoTemporada, saldoAcertos)}
-        `;
-    }
-    container.innerHTML = html;
 }
 
 // ===== v10.0: CARDS DE RODADAS - NOVO DESIGN COM BARRA LATERAL =====
@@ -1706,3 +1705,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
 }
 
 if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.21 carregado (FIX SALDO INICIAL - considera crédito anterior)");
+}
