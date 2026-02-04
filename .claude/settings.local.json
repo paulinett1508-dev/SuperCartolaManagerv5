@@ -151,7 +151,10 @@
       "Bash(if curl -s \"http://localhost:3000/api/ligas\")",
       "Bash(__NEW_LINE_b9a19bd87e50430e__ if curl -s \"http://localhost:3000/api/ligas\")",
       "Bash(git merge:*)",
-      "Bash(then echo '✅ Servidor reiniciado com sucesso!')"
+      "Bash(then echo '✅ Servidor reiniciado com sucesso!')",
+      "Bash(then echo '✅ Servidor reiniciado com sucesso!' echo echo '📊 Status do servidor:' curl -s http://localhost:5000/api/cartola/mercado/status)",
+      "Bash(git restore:*)",
+      "Bash(git check-ignore:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
