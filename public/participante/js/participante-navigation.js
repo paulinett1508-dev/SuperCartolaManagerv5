@@ -245,14 +245,14 @@ class ParticipanteNavigation {
             // ✅ v2.1: PRIMEIRO tentar usar dados da liga do Auth (já carregados)
             if (window.participanteAuth && window.participanteAuth.ligaDataCache) {
                 const liga = window.participanteAuth.ligaDataCache;
-                this.modulosAtivos = this._desativarPontosCorridos(liga.modulos_ativos || {});
+                this.modulosAtivos = liga.modulos_ativos || {};
                 if (window.Log) Log.debug('PARTICIPANTE-NAV', '💾 Módulos obtidos do cache Auth (sem requisição)');
                 return;
             }
 
             // ✅ v2.1: Se Auth já passou os dados via evento, usar ligaData
             if (this._ligaDataFromEvent) {
-                this.modulosAtivos = this._desativarPontosCorridos(this._ligaDataFromEvent.modulos_ativos || {});
+                this.modulosAtivos = this._ligaDataFromEvent.modulos_ativos || {};
                 if (window.Log) Log.debug('PARTICIPANTE-NAV', '💾 Módulos obtidos via evento Auth');
                 return;
             }
@@ -267,12 +267,12 @@ class ParticipanteNavigation {
             }
 
             const liga = await response.json();
-            this.modulosAtivos = this._desativarPontosCorridos(liga.modulos_ativos || {});
+            this.modulosAtivos = liga.modulos_ativos || {};
 
             if (window.Log) Log.debug('PARTICIPANTE-NAV', '📋 Módulos ativos recebidos (API)');
         } catch (error) {
             if (window.Log) Log.error('PARTICIPANTE-NAV', '❌ Erro ao buscar módulos:', error);
-            this.modulosAtivos = this._desativarPontosCorridos({
+            this.modulosAtivos = {
                 extrato: true,
                 ranking: true,
                 rodadas: true,
@@ -283,13 +283,8 @@ class ParticipanteNavigation {
                 artilheiro: false,
                 luvaOuro: false,
                 capitao: false,
-            });
+            };
         }
-    }
-
-    _desativarPontosCorridos(modulos = {}) {
-        modulos.pontosCorridos = false;
-        return modulos;
     }
 
     renderizarMenuDinamico() {
