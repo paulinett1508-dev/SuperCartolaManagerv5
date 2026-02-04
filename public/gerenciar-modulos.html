@@ -340,6 +340,13 @@
 
                     if (!response.ok) throw new Error('Erro ao salvar');
 
+                    // ✅ FIX: Atualizar estado com resposta do servidor
+                    const data = await response.json();
+                    modulosState = data.modulos;
+
+                    // ✅ FIX: Re-renderizar cards para refletir novo estado
+                    renderModulos();
+
                     showMessage('Configurações salvas com sucesso!', 'success');
 
                     setTimeout(() => {
