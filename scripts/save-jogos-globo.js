@@ -1,5 +1,5 @@
 // scripts/save-jogos-globo.js
-// Executa o scraper e salva o resultado em data/jogos-globo.json
+// v2.0 - Executa o scraper SSR e salva o resultado em data/jogos-globo.json
 import obterJogosGloboEsporte from './scraper-jogos-globo.js';
 import fs from 'fs/promises';
 import path from 'path';

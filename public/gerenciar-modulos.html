@@ -464,6 +464,13 @@
                         }
                     }
                 });
+
+                // ✅ FIX: Recarregar estado após salvar configuração do modal
+                window.addEventListener('modulo-config-saved', async (e) => {
+                    console.log('[GERENCIAR-MODULOS] Configuração salva via modal, recarregando estado...');
+                    await loadModulos();
+                    showMessage('Módulo configurado e ativado com sucesso!', 'success');
+                });
             }
 
             // ✅ FIX: Inicializar se DOM já pronto (navegação SPA)

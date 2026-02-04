@@ -357,6 +357,33 @@ router.put('/liga/:ligaId/modulos/:modulo/config', verificarAdmin, async (req, r
             }
         }
 
+        // ✅ FIX: Sincronizar com liga.modulos_ativos para remover "Em manutenção"
+        // Mapear ID do módulo para frontend (extrato, ranking_geral → ranking, etc.)
+        const mapearModuloParaFrontend = (moduloBackend) => {
+            const mapeamento = {
+                'extrato': 'extrato',
+                'ranking_geral': 'ranking',
+                'ranking_rodada': 'rodadas',
+                'top_10': 'top10',
+                'melhor_mes': 'melhorMes',
+                'pontos_corridos': 'pontosCorridos',
+                'mata_mata': 'mataMata',
+                'artilheiro': 'artilheiro',
+                'luva_ouro': 'luvaOuro',
+                'capitao_luxo': 'capitaoLuxo',
+                'campinho': 'campinho',
+                'dicas': 'dicas'
+            };
+            return mapeamento[moduloBackend] || moduloBackend;
+        };
+
+        const moduloFrontendKey = mapearModuloParaFrontend(modulo);
+        await Liga.updateOne(
+            { _id: ligaId },
+            { $set: { [`modulos_ativos.${moduloFrontendKey}`]: true } }
+        );
+        console.log(`[MODULE-CONFIG] Sincronizado liga.modulos_ativos.${moduloFrontendKey} = true`);
+
         // Buscar config atualizada
         const configAtualizada = await ModuleConfig.buscarConfig(ligaId, modulo, temporada);
 

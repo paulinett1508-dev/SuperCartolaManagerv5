@@ -1,5 +1,7 @@
 // routes/jogos-ao-vivo-routes.js
-// v3.6 - Invalidação de cache por mudança de data
+// v4.0 - Agenda do dia via ge.globo.com + merge com livescores
+// ✅ v4.0: Busca agenda do dia do ge.globo.com (SSR data) e mescla com livescores
+//          Resolve: jogos agendados apareciam como "Sem jogos" quando SoccerDataAPI retornava vazio
 // ✅ v3.6: Cache invalida automaticamente quando data muda (virou o dia)
 //          Corrige bug: jogos de ontem apareciam hoje
 // ✅ v3.5: SoccerDataAPI - fallback entre API-Football e Cache Stale
@@ -16,6 +18,7 @@ import express from 'express';
 import fetch from 'node-fetch';
 import fs from 'fs/promises';
 import path from 'path';
+import obterJogosGloboEsporte, { obterJogosGloboMultiDatas } from '../scripts/scraper-jogos-globo.js';
 
 const router = express.Router();
 
@@ -139,8 +142,115 @@ const CACHE_TTL_AO_VIVO = 2 * 60 * 1000;    // 2 minutos se tem jogos ao vivo
 const CACHE_TTL_SEM_JOGOS = 10 * 60 * 1000; // 10 minutos se não tem jogos ao vivo
 const CACHE_STALE_MAX = 30 * 60 * 1000;     // 30 minutos máximo para cache stale
 
-// Path do scraper Globo (fallback)
+// Path do scraper Globo (fallback legado - arquivo JSON)
 const GLOBO_CACHE_PATH = path.join(process.cwd(), 'data', 'jogos-globo.json');
+
+// ✅ v4.0: Cache da agenda do dia (ge.globo.com SSR data)
+let cacheAgendaDia = null;
+let cacheAgendaTimestamp = 0;
+const CACHE_AGENDA_TTL = 2 * 60 * 60 * 1000; // 2 horas (agenda muda pouco)
+let cacheAgendaDataRef = null;
+
+// ✅ v4.1: Cache de jogos do mês (multi-datas ge.globo.com)
+let cacheMesDados = null;
+let cacheMesTimestamp = 0;
+const CACHE_MES_TTL = 4 * 60 * 60 * 1000; // 4 horas
+
+/**
+ * Busca agenda do dia do ge.globo.com (com cache de 2h)
+ * Retorna jogos no formato padrão (compatível com SoccerDataAPI)
+ */
+async function buscarAgendaDoDia() {
+  const agora = Date.now();
+  const dataHoje = getDataHoje();
+
+  // Invalidar cache se a data mudou
+  if (cacheAgendaDataRef && cacheAgendaDataRef !== dataHoje) {
+    cacheAgendaDia = null;
+    cacheAgendaTimestamp = 0;
+    cacheAgendaDataRef = null;
+  }
+
+  // Retornar cache válido
+  if (cacheAgendaDia && (agora - cacheAgendaTimestamp) < CACHE_AGENDA_TTL) {
+    return cacheAgendaDia;
+  }
+
+  try {
+    console.log('[JOGOS-DIA] Buscando agenda do dia via ge.globo.com...');
+    const jogos = await obterJogosGloboEsporte(dataHoje);
+    console.log(`[JOGOS-DIA] ✅ Agenda ge.globo.com: ${jogos.length} jogos`);
+
+    cacheAgendaDia = jogos;
+    cacheAgendaTimestamp = agora;
+    cacheAgendaDataRef = dataHoje;
+
+    return jogos;
+  } catch (err) {
+    console.error('[JOGOS-DIA] Erro ao buscar agenda ge.globo.com:', err.message);
+    // Retornar cache stale se disponível
+    if (cacheAgendaDia) return cacheAgendaDia;
+    return [];
+  }
+}
+
+/**
+ * Normaliza nome de time para comparação (lowercase, sem acentos)
+ */
+function normalizarNome(nome) {
+  if (!nome) return '';
+  return nome.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[-_]/g, ' ')
+    .trim();
+}
+
+/**
+ * Mescla jogos ao vivo (SoccerDataAPI) com agenda do dia (Globo)
+ * - Jogos ao vivo têm prioridade (dados mais ricos: placar, tempo, etc.)
+ * - Jogos da agenda que não existem no ao vivo são adicionados como agendados
+ *
+ * @param {Array} jogosAoVivo - Jogos da SoccerDataAPI (ao vivo + encerrados)
+ * @param {Array} jogosAgenda - Jogos da agenda ge.globo.com
+ * @returns {Array} Array mesclado sem duplicatas
+ */
+function mesclarJogos(jogosAoVivo, jogosAgenda) {
+  if (!jogosAgenda || jogosAgenda.length === 0) return jogosAoVivo;
+  if (!jogosAoVivo || jogosAoVivo.length === 0) return jogosAgenda;
+
+  // Criar set de jogos ao vivo normalizados para lookup
+  const aoVivoSet = new Set();
+  for (const j of jogosAoVivo) {
+    const key = normalizarNome(j.mandante) + ' x ' + normalizarNome(j.visitante);
+    aoVivoSet.add(key);
+  }
+
+  // Adicionar jogos da agenda que NÃO existem no ao vivo
+  const jogosExtras = [];
+  for (const j of jogosAgenda) {
+    const key = normalizarNome(j.mandante) + ' x ' + normalizarNome(j.visitante);
+    if (!aoVivoSet.has(key)) {
+      jogosExtras.push(j);
+    }
+  }
+
+  const mesclado = [...jogosAoVivo, ...jogosExtras];
+
+  // Re-ordenar: ao vivo primeiro, depois agendados, depois encerrados
+  mesclado.sort((a, b) => {
+    const aVivo = STATUS_AO_VIVO.includes(a.statusRaw) ? 0 : 1;
+    const bVivo = STATUS_AO_VIVO.includes(b.statusRaw) ? 0 : 1;
+    if (aVivo !== bVivo) return aVivo - bVivo;
+
+    const aEncerrado = STATUS_ENCERRADO.includes(a.statusRaw) ? 1 : 0;
+    const bEncerrado = STATUS_ENCERRADO.includes(b.statusRaw) ? 1 : 0;
+    if (aEncerrado !== bEncerrado) return aEncerrado - bEncerrado;
+
+    return (a.timestamp || 0) - (b.timestamp || 0);
+  });
+
+  return mesclado;
+}
 
 /**
  * Retorna a data atual no formato YYYY-MM-DD (timezone São Paulo)
@@ -405,13 +515,18 @@ router.delete('/cache', (req, res) => {
     qtdJogos: cacheJogosDia?.length || 0
   };
 
-  // Limpar todas as variáveis de cache
+  // Limpar todas as variáveis de cache (livescores + agenda + mês)
   cacheJogosDia = null;
   cacheTimestamp = 0;
   cacheTemJogosAoVivo = false;
   cacheDataReferencia = null;
+  cacheAgendaDia = null;
+  cacheAgendaTimestamp = 0;
+  cacheAgendaDataRef = null;
+  cacheMesDados = null;
+  cacheMesTimestamp = 0;
 
-  console.log('[JOGOS-DIA] Cache limpo manualmente');
+  console.log('[JOGOS-DIA] Cache limpo manualmente (livescores + agenda + mês)');
 
   res.json({
     sucesso: true,
@@ -454,33 +569,44 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // 2º Tentar: SoccerDataAPI (PRINCIPAL - API-Football REMOVIDA)
-    console.log('[JOGOS-DIA] Buscando jogos via SoccerDataAPI (principal)...');
-    const soccerData = await buscarJogosSoccerDataAPI();
+    // 2º Buscar SoccerDataAPI + Agenda do Globo em paralelo
+    console.log('[JOGOS-DIA] Buscando SoccerDataAPI + agenda ge.globo.com em paralelo...');
+    const [soccerData, jogosAgenda] = await Promise.all([
+      buscarJogosSoccerDataAPI(),
+      buscarAgendaDoDia()
+    ]);
 
-    if (soccerData.jogos.length > 0) {
-      cacheJogosDia = soccerData.jogos;
+    // 3º Mesclar livescores com agenda (livescores têm prioridade)
+    const jogosMesclados = mesclarJogos(soccerData.jogos, jogosAgenda);
+
+    if (jogosMesclados.length > 0) {
+      const temAoVivo = jogosMesclados.some(j => STATUS_AO_VIVO.includes(j.statusRaw));
+      const fontePrincipal = soccerData.jogos.length > 0 ? 'soccerdata+globo' : 'globo';
+
+      cacheJogosDia = jogosMesclados;
       cacheTimestamp = agora;
-      cacheTemJogosAoVivo = soccerData.temAoVivo;
-      cacheDataReferencia = dataHoje; // ✅ v3.5: Salvar data de referência
-      cacheFonte = 'soccerdata';
+      cacheTemJogosAoVivo = temAoVivo;
+      cacheDataReferencia = dataHoje;
+      cacheFonte = fontePrincipal;
 
-      const stats = calcularEstatisticas(soccerData.jogos);
+      const stats = calcularEstatisticas(jogosMesclados);
 
-      console.log(`[JOGOS-DIA] ✅ SoccerDataAPI retornou ${soccerData.jogos.length} jogos`);
+      console.log(`[JOGOS-DIA] ✅ Mesclado: ${soccerData.jogos.length} ao vivo + ${jogosAgenda.length} agenda = ${jogosMesclados.length} jogos`);
 
       return res.json({
-        jogos: soccerData.jogos,
-        fonte: 'soccerdata',
-        aoVivo: soccerData.temAoVivo,
+        jogos: jogosMesclados,
+        fonte: fontePrincipal,
+        aoVivo: temAoVivo,
         estatisticas: stats,
-        quantidade: soccerData.jogos.length,
-        mensagem: 'Dados via SoccerDataAPI (API-Football indisponível)'
+        quantidade: jogosMesclados.length,
+        mensagem: soccerData.jogos.length > 0
+          ? `Livescores + agenda (${soccerData.jogos.length} ao vivo, ${jogosMesclados.length - soccerData.jogos.length} agendados)`
+          : `Agenda do dia (${jogosMesclados.length} jogos programados)`
       });
     }
 
-    // 4º Cache stale (APIs falharam mas temos cache antigo válido até 30min)
-    console.warn('[JOGOS-DIA] ⚠️ SoccerDataAPI também falhou/vazia. Tentando cache stale...');
+    // 4º Cache stale (todas as fontes falharam mas temos cache antigo válido até 30min)
+    console.warn('[JOGOS-DIA] ⚠️ Todas as fontes falharam. Tentando cache stale...');
     if (cacheStaleValido) {
       const stats = calcularEstatisticas(cacheJogosDia);
       const idadeMinutos = Math.round((agora - cacheTimestamp) / 60000);
@@ -500,23 +626,23 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // 5º Fallback final: Globo Esporte (apenas agenda)
-    console.warn('[JOGOS-DIA] ⚠️ Cache stale expirado/vazio. Tentando fallback final: Globo Esporte...');
+    // 5º Fallback final: arquivo JSON estático (legado)
+    console.warn('[JOGOS-DIA] ⚠️ Cache stale expirado/vazio. Tentando fallback final: arquivo globo JSON...');
     const jogosGlobo = await buscarJogosGlobo();
 
     if (jogosGlobo.length > 0) {
-      console.log(`[JOGOS-DIA] ✅ Globo Esporte retornou ${jogosGlobo.length} jogos (apenas agenda)`);
+      console.log(`[JOGOS-DIA] ✅ Globo arquivo JSON retornou ${jogosGlobo.length} jogos`);
     } else {
       console.warn('[JOGOS-DIA] ⚠️ Nenhuma fonte disponível. Sem jogos brasileiros hoje.');
     }
 
     return res.json({
       jogos: jogosGlobo,
-      fonte: 'globo',
+      fonte: 'globo-arquivo',
       aoVivo: false,
       estatisticas: calcularEstatisticas(jogosGlobo),
       mensagem: jogosGlobo.length > 0
-        ? 'Dados do Globo Esporte (agenda)'
+        ? 'Dados do arquivo Globo (agenda legada)'
         : 'Sem jogos brasileiros hoje'
     });
 
@@ -540,8 +666,8 @@ router.get('/status', async (req, res) => {
   const cacheStale = cacheIdadeMs && cacheIdadeMs > (cacheTemJogosAoVivo ? CACHE_TTL_AO_VIVO : CACHE_TTL_SEM_JOGOS);
 
   const resultado = {
-    fluxo: '✅ SoccerDataAPI (PRINCIPAL) → Cache Stale (30min) → Globo',
-    observacao: 'API-Football REMOVIDA (usuário banido) — todo o tráfego migrou para SoccerDataAPI',
+    fluxo: '✅ SoccerDataAPI + Agenda ge.globo.com (PARALELO) → Cache Stale (30min) → Arquivo JSON',
+    observacao: 'v4.0: Agenda do dia via ge.globo.com SSR data resolve jogos agendados que SoccerDataAPI não retorna',
     fontes: {
       'api-football': {
         ordem: 0,
@@ -563,19 +689,31 @@ router.get('/status', async (req, res) => {
         limite: '75 req/dia (free)',
         descricao: 'Fonte principal de dados'
       },
-      'cache-stale': {
+      'globo-agenda': {
         ordem: 2,
+        configurado: true,
+        tipo: '🟢 PARALELO',
+        limite: 'Sem limite (scraper SSR)',
+        descricao: 'Agenda do dia via ge.globo.com (jogos agendados)',
+        cacheAgenda: {
+          jogosEmCache: cacheAgendaDia?.length || 0,
+          idadeMinutos: cacheAgendaTimestamp ? Math.round((agora - cacheAgendaTimestamp) / 60000) : null,
+          ttl: '2 horas'
+        }
+      },
+      'cache-stale': {
+        ordem: 3,
         ativo: cacheStale && cacheJogosDia?.length > 0,
         tipo: 'fallback-1',
         maxIdade: '30 min',
-        descricao: 'Ultimo cache valido quando SoccerDataAPI falhar'
+        descricao: 'Ultimo cache valido quando SoccerDataAPI + Agenda falharem'
       },
-      'globo': {
-        ordem: 3,
+      'globo-arquivo': {
+        ordem: 4,
         configurado: true,
         tipo: 'fallback-final',
-        limite: 'Ilimitado (scraper)',
-        descricao: 'Apenas agenda (sem placares ao vivo)'
+        limite: 'Arquivo JSON estático',
+        descricao: 'Legado: arquivo jogos-globo.json (backup)'
       }
     },
     cache: {
@@ -606,12 +744,66 @@ router.get('/invalidar', async (req, res) => {
   cacheJogosDia = null;
   cacheTimestamp = 0;
   cacheTemJogosAoVivo = false;
+  cacheAgendaDia = null;
+  cacheAgendaTimestamp = 0;
+  cacheAgendaDataRef = null;
+  cacheMesDados = null;
+  cacheMesTimestamp = 0;
 
   res.json({
     success: true,
-    mensagem: 'Cache invalidado. Próxima requisição buscará dados frescos.'
+    mensagem: 'Cache invalidado (livescores + agenda + mês). Próxima requisição buscará dados frescos.'
   });
 });
+
+// GET /api/jogos-ao-vivo/mes - Jogos do mês (multi-datas) filtrados por time
+router.get('/mes', async (req, res) => {
+  try {
+    const agora = Date.now();
+    const time = (req.query.time || '').trim().toLowerCase();
+
+    // Cache válido?
+    if (cacheMesDados && (agora - cacheMesTimestamp) < CACHE_MES_TTL) {
+      const filtrado = time ? filtrarJogosPorTime(cacheMesDados, time) : cacheMesDados;
+      return res.json({ jogos: filtrado, cache: true, fonte: 'globo-multidatas' });
+    }
+
+    console.log('[JOGOS-MES] Buscando jogos multi-datas via ge.globo.com...');
+    const dados = await obterJogosGloboMultiDatas();
+    const totalDatas = Object.keys(dados).length;
+    const totalJogos = Object.values(dados).reduce((sum, arr) => sum + arr.length, 0);
+    console.log(`[JOGOS-MES] ✅ ${totalJogos} jogos em ${totalDatas} datas`);
+
+    cacheMesDados = dados;
+    cacheMesTimestamp = agora;
+
+    const filtrado = time ? filtrarJogosPorTime(dados, time) : dados;
+    res.json({ jogos: filtrado, cache: false, fonte: 'globo-multidatas', totalDatas, totalJogos });
+  } catch (err) {
+    console.error('[JOGOS-MES] Erro:', err.message);
+    if (cacheMesDados) {
+      const time = (req.query.time || '').trim().toLowerCase();
+      const filtrado = time ? filtrarJogosPorTime(cacheMesDados, time) : cacheMesDados;
+      return res.json({ jogos: filtrado, cache: true, stale: true, fonte: 'globo-multidatas' });
+    }
+    res.status(500).json({ error: 'Erro ao buscar jogos do mês' });
+  }
+});
+
+function filtrarJogosPorTime(dadosMultiDatas, nomeTime) {
+  const nomeNorm = normalizarNome(nomeTime);
+  const resultado = {};
+  for (const [data, jogos] of Object.entries(dadosMultiDatas)) {
+    const filtrados = jogos.filter(j => {
+      return normalizarNome(j.mandante).includes(nomeNorm) ||
+             normalizarNome(j.visitante).includes(nomeNorm);
+    });
+    if (filtrados.length > 0) {
+      resultado[data] = filtrados;
+    }
+  }
+  return resultado;
+}
 
 // GET /api/jogos-ao-vivo/:fixtureId/eventos - Eventos de um jogo especifico
 router.get('/:fixtureId/eventos', async (req, res) => {

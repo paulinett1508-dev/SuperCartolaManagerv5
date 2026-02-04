@@ -1346,6 +1346,137 @@
     font-weight: 500;
 }
 
+/* ============================================ */
+/* v2.0: Jogos do Dia - Header e agrupamento    */
+/* ============================================ */
+.tabelas-dia-header {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.tabelas-dia-header-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tabelas-dia-titulo {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: var(--app-font-base, 'Inter', sans-serif);
+}
+
+.tabelas-dia-resumo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    padding-left: 26px;
+}
+
+.tabelas-dia-stat {
+    font-size: 0.62rem;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.tabelas-stat-live {
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tabelas-stat-enc {
+    color: #4b5563;
+}
+
+/* Liga group */
+.tabelas-liga-grupo {
+    border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.tabelas-liga-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.02);
+}
+
+.tabelas-liga-header-live {
+    background: rgba(239, 68, 68, 0.04);
+    border-left: 2px solid #ef4444;
+}
+
+.tabelas-liga-nome {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #d1d5db;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tabelas-liga-count {
+    font-size: 0.58rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* ============================================ */
+/* v2.0: Jogos do Mês                           */
+/* ============================================ */
+.tabelas-mes-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ffffff;
+    border-top: 2px solid rgba(255,109,0,0.2);
+    background: rgba(255,109,0,0.03);
+    font-family: var(--app-font-base, 'Inter', sans-serif);
+}
+
+.tabelas-mes-data-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #ff6d00;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(255,109,0,0.04);
+    border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.tabelas-mes-passado {
+    color: #6b7280;
+}
+
+.tabelas-card-mes {
+    padding: 8px 14px;
+}
+
+.tabelas-placar-sm {
+    font-family: var(--app-font-brand, 'Russo One', sans-serif);
+    font-size: 0.85rem;
+    color: #ffffff;
+    letter-spacing: 1px;
+}
+
+.tabelas-vs-sm {
+    font-family: var(--app-font-brand, 'Russo One', sans-serif);
+    font-size: 0.72rem;
+    color: #6b7280;
+}
+
 /* Responsivo: em telas menores, mostrar abreviação ao invés do nome */
 @media (max-width: 360px) {
     .tabelas-time-nome {
@@ -1355,6 +1486,11 @@
     .tabelas-tab {
         padding: 6px 10px;
         font-size: 0.68rem;
+    }
+
+    .tabelas-dia-resumo {
+        gap: 6px;
+        padding-left: 0;
     }
 }
 

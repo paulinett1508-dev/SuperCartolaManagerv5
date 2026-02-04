@@ -322,6 +322,10 @@ ModuleConfigSchema.statics.salvarRespostasWizard = async function(
     usuario = 'sistema',
     temporada = CURRENT_SEASON
 ) {
+    // ✅ FIX: Adicionar upsert para criar documento se não existir
+    // Quando usuário configura via modal sem ter ativado via toggle,
+    // o documento não existe e o update falha silenciosamente.
+    // Solução: criar com ativo=true automaticamente.
     return this.findOneAndUpdate(
         {
             liga_id: new mongoose.Types.ObjectId(ligaId),
@@ -331,10 +335,17 @@ ModuleConfigSchema.statics.salvarRespostasWizard = async function(
         {
             $set: {
                 wizard_respostas: respostas,
-                atualizado_por: usuario
+                atualizado_por: usuario,
+                ativo: true, // ✅ Ativar módulo ao configurar
+                ativado_em: new Date()
             }
         },
-        { new: true }
+        {
+            new: true,
+            upsert: true, // ✅ Criar se não existir
+            runValidators: true,
+            setDefaultsOnInsert: true
+        }
     );
 };
 

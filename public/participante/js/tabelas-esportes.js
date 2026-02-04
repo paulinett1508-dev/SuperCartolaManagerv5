@@ -1,7 +1,8 @@
 // =====================================================================
-// tabelas-esportes.js - Seção "Tabelas" na Home do Participante v1.0
+// tabelas-esportes.js - Seção "Tabelas" na Home do Participante v2.0
 // =====================================================================
-// Componente com abas: Meu Time | Brasileirão | Copa BR | Libertadores | Copa do Mundo
+// v2.0: "Jogos do Dia" com sub-categorias por liga + "Jogos do Mês" no Meu Time
+// Componente com abas: Meu Time | Jogos do Dia | Copa BR | Libertadores | Copa do Mundo
 // Exibe dados internamente (sem links externos)
 // =====================================================================
 
@@ -69,9 +70,9 @@ const TabelasEsportes = {
                                  onerror="this.style.display='none'">
                             <span>Meu Time</span>
                         </button>
-                        <button class="tabelas-tab" data-tab="brasileirao">
-                            <span class="material-icons" style="font-size:14px;">emoji_events</span>
-                            <span>Brasileirão</span>
+                        <button class="tabelas-tab" data-tab="jogos-dia">
+                            <span class="material-icons" style="font-size:14px;">today</span>
+                            <span>Jogos do Dia</span>
                         </button>
                         <button class="tabelas-tab" data-tab="copa-brasil">
                             <span class="material-icons" style="font-size:14px;">flag</span>
@@ -142,8 +143,8 @@ const TabelasEsportes = {
             case 'meu-time':
                 await this._carregarJogosMeuTime(conteudo);
                 break;
-            case 'brasileirao':
-                await this._carregarBrasileirao(conteudo);
+            case 'jogos-dia':
+                await this._carregarJogosDoDia(conteudo);
                 break;
             case 'copa-brasil':
                 this._renderAguarde(conteudo, 'Copa do Brasil', 'flag', '#22c55e');
@@ -158,31 +159,42 @@ const TabelasEsportes = {
     },
 
     // =================================================================
-    // ABA: MEU TIME - Jogos do dia do meu clube
+    // ABA: MEU TIME - Jogos do dia + Jogos do Mês
     // =================================================================
     async _carregarJogosMeuTime(conteudo) {
         try {
-            // Usar o endpoint de jogos ao vivo e filtrar pelo clube
-            const response = await fetch('/api/jogos-ao-vivo');
-            if (!response.ok) throw new Error('Falha ao buscar jogos');
+            // Buscar jogos do dia e jogos do mês em paralelo
+            const [resHoje, resMes] = await Promise.all([
+                fetch('/api/jogos-ao-vivo'),
+                fetch(`/api/jogos-ao-vivo/mes?time=${encodeURIComponent(this._clubeNome)}`)
+            ]);
 
-            const data = await response.json();
-            const todosJogos = data.jogos || [];
+            const dataHoje = resHoje.ok ? await resHoje.json() : { jogos: [] };
+            const dataMes = resMes.ok ? await resMes.json() : { jogos: {} };
+
+            const todosJogos = dataHoje.jogos || [];
             const nomeClube = this._clubeNome.toLowerCase();
 
-            // Filtrar jogos do meu clube
+            // Filtrar jogos do dia do meu clube
             const jogosMeuTime = todosJogos.filter(j => {
                 const mandante = (j.mandante || '').toLowerCase();
                 const visitante = (j.visitante || '').toLowerCase();
                 return mandante.includes(nomeClube) || visitante.includes(nomeClube);
             });
 
-            if (jogosMeuTime.length === 0) {
-                conteudo.innerHTML = this._renderSemJogosMeuTime(todosJogos.length);
-                return;
+            let html = '';
+
+            // Seção: Jogos de Hoje
+            if (jogosMeuTime.length > 0) {
+                html += this._renderJogosMeuTime(jogosMeuTime);
+            } else {
+                html += this._renderSemJogosMeuTime(todosJogos.length);
             }
 
-            conteudo.innerHTML = this._renderJogosMeuTime(jogosMeuTime);
+            // Seção: Jogos do Mês
+            html += this._renderJogosDoMes(dataMes.jogos || {});
+
+            conteudo.innerHTML = html;
         } catch (err) {
             console.error('[TABELAS] Erro jogos meu time:', err);
             conteudo.innerHTML = this._renderErro('Erro ao carregar jogos');
@@ -221,10 +233,117 @@ const TabelasEsportes = {
         `;
     },
 
+    /**
+     * Renderiza seção "Jogos do Mês" do time do coração
+     * @param {Object} jogosPorData - Mapa { "YYYY-MM-DD": [jogos] }
+     */
+    _renderJogosDoMes(jogosPorData) {
+        const datas = Object.keys(jogosPorData).sort();
+        const hoje = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+
+        // Filtrar apenas datas que NÃO são hoje (hoje já aparece acima)
+        const datasRestantes = datas.filter(d => d !== hoje);
+
+        if (datasRestantes.length === 0) {
+            return `
+                <div class="tabelas-mes-header">
+                    <span class="material-icons" style="font-size:16px;color:#ff6d00;">date_range</span>
+                    <span>Jogos do Mês</span>
+                </div>
+                <div class="tabelas-sem-jogos" style="padding:20px 16px;">
+                    <p class="tabelas-sem-jogos-sub">Nenhum outro jogo do ${this._clubeNome} encontrado nos próximos dias</p>
+                </div>
+            `;
+        }
+
+        let html = `
+            <div class="tabelas-mes-header">
+                <span class="material-icons" style="font-size:16px;color:#ff6d00;">date_range</span>
+                <span>Próximos Jogos</span>
+            </div>
+        `;
+
+        for (const data of datasRestantes) {
+            const jogos = jogosPorData[data];
+            const dataFormatada = this._formatarDataMes(data, hoje);
+            const isPassado = data < hoje;
+
+            html += `<div class="tabelas-mes-data-header ${isPassado ? 'tabelas-mes-passado' : ''}">
+                        <span class="material-icons" style="font-size:13px;">${isPassado ? 'event_available' : 'event'}</span>
+                        ${dataFormatada}
+                     </div>`;
+
+            html += `<div class="tabelas-jogos-lista">`;
+            for (const j of jogos) {
+                html += this._renderCardJogoMes(j, isPassado);
+            }
+            html += `</div>`;
+        }
+
+        return html;
+    },
+
+    /**
+     * Card compacto para jogos do mês (com placar para encerrados)
+     */
+    _renderCardJogoMes(jogo, isPassado) {
+        const isEncerrado = jogo.statusRaw === 'FT' || jogo.statusRaw === 'AET' || jogo.statusRaw === 'PEN' || isPassado;
+        const isAoVivo = ['1H','2H','HT','ET','P','BT','LIVE'].includes(jogo.statusRaw);
+        const temPlacar = isAoVivo || isEncerrado;
+
+        const statusBadge = isAoVivo
+            ? `<span class="tabelas-badge-live"><div class="tabelas-live-dot-sm"></div>${jogo.tempo || 'AO VIVO'}</span>`
+            : isEncerrado
+                ? `<span class="tabelas-badge-encerrado">Encerrado</span>`
+                : `<span class="tabelas-badge-horario">${jogo.horario || '--:--'}</span>`;
+
+        const centro = temPlacar
+            ? `<span class="tabelas-placar-sm">${jogo.golsMandante ?? 0} - ${jogo.golsVisitante ?? 0}</span>`
+            : `<span class="tabelas-vs-sm">VS</span>`;
+
+        return `
+            <div class="tabelas-card-jogo tabelas-card-mes ${isEncerrado ? 'tabelas-card-encerrado' : ''} ${isAoVivo ? 'tabelas-card-live' : ''}">
+                <div class="tabelas-campeonato-line">${jogo.liga || ''}</div>
+                <div class="tabelas-card-jogo-content">
+                    <div class="tabelas-time tabelas-time-casa">
+                        <span class="tabelas-time-nome">${jogo.mandante || '?'}</span>
+                    </div>
+                    <div class="tabelas-centro">
+                        ${statusBadge}
+                        ${centro}
+                    </div>
+                    <div class="tabelas-time tabelas-time-fora">
+                        <span class="tabelas-time-nome">${jogo.visitante || '?'}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    /**
+     * Formata data para exibição: "Ter, 05 Fev" / "Amanhã" / "Ontem"
+     */
+    _formatarDataMes(dataStr, hoje) {
+        const [ano, mes, dia] = dataStr.split('-').map(Number);
+        const data = new Date(ano, mes - 1, dia);
+        const [anoH, mesH, diaH] = hoje.split('-').map(Number);
+        const dataHoje = new Date(anoH, mesH - 1, diaH);
+
+        const diff = Math.round((data - dataHoje) / (1000 * 60 * 60 * 24));
+
+        if (diff === 1) return 'Amanhã';
+        if (diff === -1) return 'Ontem';
+
+        const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+        return `${diasSemana[data.getDay()]}, ${String(dia).padStart(2, '0')} ${meses[mes - 1]}`;
+    },
+
     // =================================================================
-    // ABA: BRASILEIRÃO - Jogos da rodada
+    // ABA: JOGOS DO DIA - Todos os jogos agrupados por liga
     // =================================================================
-    async _carregarBrasileirao(conteudo) {
+    async _carregarJogosDoDia(conteudo) {
         try {
             const response = await fetch('/api/jogos-ao-vivo');
             if (!response.ok) throw new Error('Falha ao buscar jogos');
@@ -232,66 +351,84 @@ const TabelasEsportes = {
             const data = await response.json();
             const todosJogos = data.jogos || [];
 
-            // Filtrar Brasileirão Série A
-            const jogosBrasileirao = todosJogos.filter(j => {
-                const liga = (j.liga || j.campeonato || '').toLowerCase();
-                return liga.includes('brasileirão a') ||
-                       liga.includes('serie a') ||
-                       liga.includes('série a') ||
-                       liga === 'brasileirão a';
-            });
-
-            if (jogosBrasileirao.length === 0) {
-                conteudo.innerHTML = this._renderSemJogosBrasileirao();
+            if (todosJogos.length === 0) {
+                conteudo.innerHTML = this._renderSemJogosDia();
                 return;
             }
 
-            conteudo.innerHTML = this._renderBrasileirao(jogosBrasileirao);
+            conteudo.innerHTML = this._renderJogosDoDia(todosJogos);
         } catch (err) {
-            console.error('[TABELAS] Erro Brasileirão:', err);
-            conteudo.innerHTML = this._renderErro('Erro ao carregar dados do Brasileirão');
+            console.error('[TABELAS] Erro Jogos do Dia:', err);
+            conteudo.innerHTML = this._renderErro('Erro ao carregar jogos');
         }
     },
 
-    _renderBrasileirao(jogos) {
-        // Separar por status
-        const aoVivo = jogos.filter(j => ['1H','2H','HT','ET','P','BT','LIVE'].includes(j.statusRaw));
-        const agendados = jogos.filter(j => ['NS','TBD'].includes(j.statusRaw));
-        const encerrados = jogos.filter(j => ['FT','AET','PEN'].includes(j.statusRaw));
+    /**
+     * Renderiza todos os jogos do dia agrupados por liga
+     */
+    _renderJogosDoDia(jogos) {
+        // Agrupar jogos por liga
+        const porLiga = {};
+        for (const j of jogos) {
+            const liga = j.liga || j.campeonato || 'Outros';
+            if (!porLiga[liga]) porLiga[liga] = [];
+            porLiga[liga].push(j);
+        }
+
+        // Ordenar ligas: priorizar as que têm jogos ao vivo, depois por quantidade
+        const ligasOrdenadas = Object.keys(porLiga).sort((a, b) => {
+            const aVivo = porLiga[a].some(j => ['1H','2H','HT','ET','P','BT','LIVE'].includes(j.statusRaw));
+            const bVivo = porLiga[b].some(j => ['1H','2H','HT','ET','P','BT','LIVE'].includes(j.statusRaw));
+            if (aVivo && !bVivo) return -1;
+            if (!aVivo && bVivo) return 1;
+            return porLiga[b].length - porLiga[a].length;
+        });
+
+        // Contar totais
+        const totalAoVivo = jogos.filter(j => ['1H','2H','HT','ET','P','BT','LIVE'].includes(j.statusRaw)).length;
+        const totalAgendados = jogos.filter(j => ['NS','TBD'].includes(j.statusRaw)).length;
+        const totalEncerrados = jogos.filter(j => ['FT','AET','PEN'].includes(j.statusRaw)).length;
 
         let html = `
-            <div class="tabelas-brasileirao-header">
-                <span style="font-size:18px;">🏆</span>
-                <span>Brasileirão Série A — Jogos de Hoje</span>
+            <div class="tabelas-dia-header">
+                <div class="tabelas-dia-header-top">
+                    <span class="material-icons" style="font-size:18px;color:#ff6d00;">sports_soccer</span>
+                    <span class="tabelas-dia-titulo">Jogos do Dia</span>
+                </div>
+                <div class="tabelas-dia-resumo">
+                    ${totalAoVivo > 0 ? `<span class="tabelas-dia-stat tabelas-stat-live"><div class="tabelas-live-dot-sm"></div>${totalAoVivo} ao vivo</span>` : ''}
+                    ${totalAgendados > 0 ? `<span class="tabelas-dia-stat">${totalAgendados} agendado${totalAgendados > 1 ? 's' : ''}</span>` : ''}
+                    ${totalEncerrados > 0 ? `<span class="tabelas-dia-stat tabelas-stat-enc">${totalEncerrados} encerrado${totalEncerrados > 1 ? 's' : ''}</span>` : ''}
+                </div>
             </div>
         `;
 
-        if (aoVivo.length > 0) {
-            html += `<div class="tabelas-secao-label tabelas-secao-aovivo">
-                        <div class="tabelas-live-dot"></div> Ao Vivo
-                     </div>`;
-            html += `<div class="tabelas-jogos-lista">${aoVivo.map(j => this._renderCardJogo(j)).join('')}</div>`;
-        }
+        for (const liga of ligasOrdenadas) {
+            const jogosLiga = porLiga[liga];
+            const temAoVivo = jogosLiga.some(j => ['1H','2H','HT','ET','P','BT','LIVE'].includes(j.statusRaw));
 
-        if (agendados.length > 0) {
-            html += `<div class="tabelas-secao-label">Agendados</div>`;
-            html += `<div class="tabelas-jogos-lista">${agendados.map(j => this._renderCardJogo(j)).join('')}</div>`;
-        }
-
-        if (encerrados.length > 0) {
-            html += `<div class="tabelas-secao-label tabelas-secao-encerrado">Encerrados</div>`;
-            html += `<div class="tabelas-jogos-lista">${encerrados.map(j => this._renderCardJogo(j)).join('')}</div>`;
+            html += `
+                <div class="tabelas-liga-grupo">
+                    <div class="tabelas-liga-header ${temAoVivo ? 'tabelas-liga-header-live' : ''}">
+                        <span class="tabelas-liga-nome">${liga}</span>
+                        <span class="tabelas-liga-count">${jogosLiga.length} jogo${jogosLiga.length > 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="tabelas-jogos-lista">
+                        ${jogosLiga.map(j => this._renderCardJogo(j)).join('')}
+                    </div>
+                </div>
+            `;
         }
 
         return html;
     },
 
-    _renderSemJogosBrasileirao() {
+    _renderSemJogosDia() {
         return `
             <div class="tabelas-sem-jogos">
-                <span style="font-size:40px;opacity:0.4;">🏆</span>
-                <p class="tabelas-sem-jogos-titulo">Sem jogos do Brasileirão hoje</p>
-                <p class="tabelas-sem-jogos-sub">A próxima rodada será exibida automaticamente no dia dos jogos</p>
+                <span class="material-icons" style="font-size:40px;opacity:0.4;color:#ff6d00;">sports_soccer</span>
+                <p class="tabelas-sem-jogos-titulo">Sem jogos programados para hoje</p>
+                <p class="tabelas-sem-jogos-sub">Os jogos serão exibidos automaticamente no dia em que ocorrerem</p>
             </div>
         `;
     },
@@ -378,4 +515,4 @@ const TabelasEsportes = {
 // Expor globalmente
 window.TabelasEsportes = TabelasEsportes;
 
-console.log('[TABELAS-ESPORTES] Componente v1.0 carregado');
+console.log('[TABELAS-ESPORTES] Componente v2.0 carregado');
