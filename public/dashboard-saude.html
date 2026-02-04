@@ -450,12 +450,12 @@
     </div>
 
     <script type="module">
-        // ✅ Guard contra dupla inicialização
-        if (window.__dashboard_saude_guard) {
-            console.warn('[Dashboard Saúde] Já inicializado');
-        } else {
-            window.__dashboard_saude_guard = true;
+        // ✅ Cleanup de instância anterior (SPA re-navigation)
+        if (window.__dashboard_saude_cleanup) {
+            window.__dashboard_saude_cleanup();
+        }
 
+        {
             let autoRefreshInterval = null;
             let db = null;
             const DB_NAME = 'dashboard_saude_cache';
@@ -819,9 +819,16 @@
                 `;
             }
 
-            // ✅ Inicialização com DOMContentLoaded
-            document.addEventListener("DOMContentLoaded", async () => {
-                cleanupDashboardSaude(); // Limpar qualquer interval anterior
+            // ✅ Expor cleanup global para SPA re-navigation
+            window.__dashboard_saude_cleanup = function() {
+                cleanupDashboardSaude();
+                console.log('[Dashboard Saúde] Cleanup executado (re-navigation)');
+            };
+
+            // ✅ Inicialização imediata (SPA já garante DOM pronto)
+            async function inicializarDashboard() {
+                console.log('[Dashboard Saúde] Inicializando...');
+                cleanupDashboardSaude();
 
                 // Inicializar IndexedDB
                 await initDB();
@@ -849,21 +856,15 @@
                 });
 
                 observer.observe(document.body, { childList: true, subtree: true });
-            });
+            }
 
-            // ✅ Reinicialização após navegação SPA
-            window.addEventListener('spa:navigated', async (e) => {
-                if (e.detail?.pageName === 'dashboard-saude.html') {
-                    console.log('[Dashboard Saúde] Reinicializando após navegação SPA');
-                    cleanupDashboardSaude();
-
-                    // Reinicializar DB se necessário
-                    if (!db) await initDB();
-
-                    loadHealthData();
-                    autoRefreshInterval = setInterval(loadHealthData, 30000);
-                }
-            });
+            // Executar imediatamente (DOM já está pronto via SPA ou DOMContentLoaded)
+            if (document.getElementById('healthScore')) {
+                inicializarDashboard();
+            } else {
+                // Fallback: navegação direta (não SPA)
+                document.addEventListener('DOMContentLoaded', inicializarDashboard, { once: true });
+            }
 
             // ✅ Expor funções úteis globalmente (para debug)
             window.dashboardSaudeCache = {
@@ -874,7 +875,7 @@
                     ttl: CACHE_TTL
                 })
             };
-        } // fim guard
+        } // fim bloco
     </script>
 </body>
 </html>

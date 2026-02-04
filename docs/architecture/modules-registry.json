@@ -1,0 +1,171 @@
+{
+  "top10": {
+    "name": "Top 10",
+    "category": "ranking",
+    "description": "Sistema de ranking dos 10 melhores da rodada",
+    "hasFinancial": false,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "low",
+    "files": {
+      "controller": "controllers/top10-controller.js",
+      "frontend": "public/js/admin/top10-management.js",
+      "view": "views/admin/top10.html"
+    },
+    "audits": ["ui", "security", "performance", "business"]
+  },
+  "artilheiro": {
+    "name": "Artilheiro Campeão",
+    "category": "competition",
+    "description": "Competição de apostas no artilheiro da temporada",
+    "hasFinancial": true,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "high",
+    "colorVar": "--module-artilheiro-primary",
+    "colorHex": "#22c55e",
+    "files": {
+      "controller": "controllers/artilheiro-controller.js",
+      "model": "models/ApostasArtilheiro.js",
+      "frontend": "public/js/admin/artilheiro-management.js",
+      "view": "views/admin/artilheiro.html"
+    },
+    "audits": ["financial", "ui", "security", "business", "performance"]
+  },
+  "luva-ouro": {
+    "name": "Luva de Ouro",
+    "category": "competition",
+    "description": "Competição de apostas no goleiro menos vazado",
+    "hasFinancial": true,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "high",
+    "colorVar": "--module-luva-primary",
+    "colorHex": "#ffd700",
+    "files": {
+      "controller": "controllers/luva-ouro-controller.js",
+      "model": "models/ApostasLuvaOuro.js",
+      "frontend": "public/js/admin/luva-ouro-management.js",
+      "view": "views/admin/luva-ouro.html"
+    },
+    "audits": ["financial", "ui", "security", "business", "performance"]
+  },
+  "capitao-luxo": {
+    "name": "Capitão de Luxo",
+    "category": "competition",
+    "description": "Competição de melhor capitão da rodada",
+    "hasFinancial": true,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "high",
+    "colorVar": "--module-capitao-primary",
+    "colorHex": "#8b5cf6",
+    "status": "planned",
+    "audits": ["financial", "ui", "security", "business"]
+  },
+  "melhor-mes": {
+    "name": "Melhor Mês",
+    "category": "ranking",
+    "description": "Ranking de melhor pontuador do mês",
+    "hasFinancial": false,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "medium",
+    "files": {
+      "controller": "controllers/melhor-mes-controller.js"
+    },
+    "audits": ["ui", "security", "business", "performance"]
+  },
+  "pontos-corridos": {
+    "name": "Pontos Corridos",
+    "category": "competition",
+    "description": "Campeonato por pontos corridos",
+    "hasFinancial": false,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "medium",
+    "audits": ["ui", "security", "business", "performance"]
+  },
+  "mata-mata": {
+    "name": "Mata-Mata",
+    "category": "competition",
+    "description": "Torneio eliminatório entre participantes",
+    "hasFinancial": false,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "high",
+    "audits": ["ui", "security", "business", "performance"]
+  },
+  "campinho": {
+    "name": "Campinho",
+    "category": "game",
+    "description": "Jogo de escalação tática",
+    "hasFinancial": false,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "medium",
+    "audits": ["ui", "security", "performance"]
+  },
+  "dicas": {
+    "name": "Dicas",
+    "category": "content",
+    "description": "Sistema de dicas e sugestões",
+    "hasFinancial": false,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "low",
+    "audits": ["ui", "security", "performance"]
+  },
+  "hall-fama": {
+    "name": "Hall da Fama",
+    "category": "ranking",
+    "description": "Histórico de campeões e conquistas",
+    "hasFinancial": false,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "low",
+    "audits": ["ui", "security", "performance"]
+  },
+  "extrato-financeiro": {
+    "name": "Extrato Financeiro",
+    "category": "financial",
+    "description": "Gestão de extratos e transações",
+    "hasFinancial": true,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "critical",
+    "files": {
+      "controller": "controllers/extrato-financeiro-controller.js",
+      "model": "models/ExtratoFinanceiro.js"
+    },
+    "audits": ["financial", "ui", "security", "business", "performance"]
+  },
+  "parciais": {
+    "name": "Parciais ao Vivo",
+    "category": "live",
+    "description": "Pontuação em tempo real durante rodada",
+    "hasFinancial": false,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "critical",
+    "files": {
+      "controller": "controllers/parciais-controller.js",
+      "frontend": "public/js/admin/parciais-ao-vivo.js"
+    },
+    "audits": ["ui", "security", "performance", "business"]
+  },
+  "inscricoes": {
+    "name": "Sistema de Inscrições",
+    "category": "financial",
+    "description": "Gestão de inscrições e renovações de temporada",
+    "hasFinancial": true,
+    "hasUI": true,
+    "hasAPI": true,
+    "complexity": "critical",
+    "files": {
+      "controller": "controllers/inscricoes-controller.js",
+      "model": "models/InscricoesTemporada.js"
+    },
+    "audits": ["financial", "ui", "security", "business", "performance"]
+  }
+}

@@ -135,7 +135,11 @@
       "Bash(for i in {1..10})",
       "Bash(do if curl -s \"http://localhost:3000\")",
       "Bash(then echo \"✅ Servidor respondeu!\")",
-      "Bash(then echo '✅ Servidor reiniciado com sucesso!' echo echo '📊 Status API Cartola:' curl -s http://localhost:5000/api/cartola/mercado/status)"
+      "Bash(then echo '✅ Servidor reiniciado com sucesso!' echo echo '📊 Status API Cartola:' curl -s http://localhost:5000/api/cartola/mercado/status)",
+      "Bash(for:*)",
+      "Bash(do basename \"$dir\")",
+      "Bash(__NEW_LINE_871e9fd38cce998d__ echo '📊 VERIFICAÇÃO FINAL DA ESTRUTURA' echo ================================= echo echo '✅ Skills organizadas:' ls -1 docs/skills/*/)",
+      "Bash(__NEW_LINE_d4e334368f0a6151__ echo \"📊 VERIFICAÇÃO FINAL DA ESTRUTURA\" echo \"=================================\" echo \"\" echo \"✅ Skills organizadas:\" find docs/skills/ -type f -name \"*.md\" ! -name \"README.md\")"
     ]
   },
   "enableAllProjectMcpServers": true,
