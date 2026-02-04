@@ -1,3 +1,5 @@
+import { renderizarAvisos } from './participante-avisos.js';
+
 // =====================================================================
 // PARTICIPANTE-BOAS-VINDAS.JS - v12.0 (Temporada 2026 Ativa)
 // =====================================================================
@@ -338,6 +340,9 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
                 renderizarBoasVindas(container, dadosFresh);
             }
         }
+
+        // ✅ v12.1: Renderizar avisos in-app
+        await renderizarAvisos(ligaId, timeId);
 
         if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Dados carregados e cacheados");
 
