@@ -23,12 +23,20 @@ export async function carregarLigas(forceRefresh = false) {
 
         console.log("🌐 Buscando ligas da API...");
 
+        // ✅ FIX: Adicionar timeout de 10s
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
         const res = await fetch("/api/ligas", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
             },
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
+        console.log("✅ Resposta recebida, status:", res.status);
 
         if (!res.ok) {
             const errorText = await res.text();
@@ -38,6 +46,7 @@ export async function carregarLigas(forceRefresh = false) {
         }
 
         const ligas = await res.json();
+        console.log("✅ JSON parseado, total de ligas:", ligas.length);
 
         // Validar estrutura dos dados
         if (!Array.isArray(ligas)) {
@@ -46,6 +55,7 @@ export async function carregarLigas(forceRefresh = false) {
             );
         }
 
+        console.log("🔄 Processando ligas...");
         // Processar e enriquecer dados (preserva campos já calculados pela API)
         const ligasProcessadas = ligas.map((liga) => ({
             ...liga,
@@ -73,7 +83,13 @@ export async function carregarLigas(forceRefresh = false) {
         );
         return ligasProcessadas;
     } catch (err) {
-        console.error("❌ Erro ao carregar ligas:", err.message);
+        // Tratamento específico para timeout
+        if (err.name === 'AbortError') {
+            console.error("⏱️ Timeout ao carregar ligas (10s)");
+            err.message = "Timeout: servidor não respondeu em 10 segundos";
+        } else {
+            console.error("❌ Erro ao carregar ligas:", err.message);
+        }
 
         // Exibir erro no DOM se elemento existir
         const errorDiv = document.getElementById("errorMessage");
