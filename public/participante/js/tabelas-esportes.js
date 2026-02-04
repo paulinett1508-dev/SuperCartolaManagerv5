@@ -245,10 +245,34 @@ const TabelasEsportes = {
         const datasRestantes = datas.filter(d => d !== hoje);
 
         if (datasRestantes.length === 0) {
+            // ✅ v2.1: Se não há jogos futuros, verificar se há jogos hoje.
+            const jogosHoje = jogosPorData[hoje] || [];
+            if (jogosHoje.length > 0) {
+                // Reutiliza a mesma lógica de renderização, mas para o dia atual.
+                let html = `
+                    <div class="tabelas-mes-header">
+                        <span class="material-icons" style="font-size:16px;color:#ff6d00;">today</span>
+                        <span>Jogos de Hoje</span>
+                    </div>
+                `;
+                const dataFormatada = this._formatarDataMes(hoje, hoje);
+                html += `<div class="tabelas-mes-data-header">
+                            <span class="material-icons" style="font-size:13px;">event</span>
+                            ${dataFormatada}
+                         </div>`;
+                html += `<div class="tabelas-jogos-lista">`;
+                for (const j of jogosHoje) {
+                    html += this._renderCardJogoMes(j, false);
+                }
+                html += `</div>`;
+                return html;
+            }
+
+            // Se não há jogos futuros nem hoje, exibe a mensagem padrão.
             return `
                 <div class="tabelas-mes-header">
                     <span class="material-icons" style="font-size:16px;color:#ff6d00;">date_range</span>
-                    <span>Jogos do Mês</span>
+                    <span>Próximos Jogos</span>
                 </div>
                 <div class="tabelas-sem-jogos" style="padding:20px 16px;">
                     <p class="tabelas-sem-jogos-sub">Nenhum outro jogo do ${this._clubeNome} encontrado nos próximos dias</p>

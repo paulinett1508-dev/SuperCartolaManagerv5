@@ -1,6 +1,9 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.21 FIX SALDO INICIAL
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.22 FIX CRÍTICO ESCOPO
 // =====================================================
+// ✅ v10.22: FIX CRÍTICO - renderizarBotaoMeusAcertos exposta em window scope
+//          - ReferenceError resolvido (função chamada antes de definida)
+//          - Bug bloqueador P0 que causava tela branca no app
 // ✅ v10.21: FIX SALDO INICIAL - Considera saldo anterior transferido
 //          - Saldo = crédito anterior - taxa (não apenas -taxa)
 //          - Créditos mostra valor do saldo transferido (não hardcoded 0)
@@ -905,8 +908,8 @@ function renderizarCardsRodadas(rodadas, ligaId) {
         .join("");
 }
 
-// ===== v10.3: BOTÃO MEUS ACERTOS (Pill corrigido) =====
-function renderizarBotaoMeusAcertos(listaAcertos, saldoAcertos) {
+// ===== v10.3: BOTÃO MEUS ACERTOS (Pill corrigido - window scope) =====
+window.renderizarBotaoMeusAcertos = function renderizarBotaoMeusAcertos(listaAcertos, saldoAcertos) {
     const temAcertos = listaAcertos && listaAcertos.length > 0;
     const qtdAcertos = listaAcertos?.length || 0;
 
@@ -1704,5 +1707,5 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     }
 }
 
-if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.21 carregado (FIX SALDO INICIAL - considera crédito anterior)");
+if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.22 carregado (FIX CRÍTICO renderizarBotaoMeusAcertos)");
 }
