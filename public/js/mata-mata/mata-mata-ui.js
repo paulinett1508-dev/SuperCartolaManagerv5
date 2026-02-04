@@ -9,6 +9,12 @@ import {
 } from "./mata-mata-config.js";
 import { getClubesNomeMap } from "/js/shared/clubes-data.js";
 
+// Escape HTML para prevenir XSS em dados de usuario
+function esc(str) {
+  if (!str) return "";
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 // Função para renderizar a interface principal
 export function renderizarInterface(
   container,
@@ -255,8 +261,8 @@ export function renderTabelaMataMata(
                   <div class="time-info">
                     <img src="/escudos/${c.timeA.clube_id}.png" class="escudo-img" onerror="this.style.display='none'">
                     <div class="time-details">
-                      <span class="time-nome">${c.timeA.nome_time}</span>
-                      <span class="time-cartoleiro">${c.timeA.nome_cartoleiro || c.timeA.nome_cartola || "—"}</span>
+                      <span class="time-nome">${esc(c.timeA.nome_time)}</span>
+                      <span class="time-cartoleiro">${esc(c.timeA.nome_cartoleiro || c.timeA.nome_cartola) || "—"}</span>
                     </div>
                   </div>
                 </td>
@@ -277,8 +283,8 @@ export function renderTabelaMataMata(
                   <div class="time-info">
                     <img src="/escudos/${c.timeB.clube_id}.png" class="escudo-img" onerror="this.style.display='none'">
                     <div class="time-details">
-                      <span class="time-nome">${c.timeB.nome_time}</span>
-                      <span class="time-cartoleiro">${c.timeB.nome_cartoleiro || c.timeB.nome_cartola || "—"}</span>
+                      <span class="time-nome">${esc(c.timeB.nome_time)}</span>
+                      <span class="time-cartoleiro">${esc(c.timeB.nome_cartoleiro || c.timeB.nome_cartola) || "—"}</span>
                     </div>
                   </div>
                 </td>
@@ -331,7 +337,7 @@ export function renderBannerCampeao(
     ? `
     <div class="campeao-time-coracao">
       <img src="/escudos/${campeao.clube_id}.png" onerror="this.style.display='none'">
-      <span>Torcedor ${timeCoracaoNome}</span>
+      <span>Torcedor ${esc(timeCoracaoNome)}</span>
     </div>
   `
     : "";
@@ -349,8 +355,8 @@ export function renderBannerCampeao(
                class="campeao-escudo" 
                onerror="this.src='/escudos/default.png'">
           <div class="campeao-detalhes">
-            <div class="campeao-time-nome">${campeao.nome_time}</div>
-            <div class="campeao-cartoleiro">${campeao.nome_cartoleiro || campeao.nome_cartola || "—"}</div>
+            <div class="campeao-time-nome">${esc(campeao.nome_time)}</div>
+            <div class="campeao-cartoleiro">${esc(campeao.nome_cartoleiro || campeao.nome_cartola) || "—"}</div>
             <div class="campeao-pontos">${campeao.pontos.toFixed(2).replace(".", ",")} pts</div>
             ${timeCoracaoHTML}
           </div>
@@ -362,7 +368,7 @@ export function renderBannerCampeao(
             <img src="/escudos/${viceCampeao.clube_id}.png" 
                  class="vice-escudo" 
                  onerror="this.src='/escudos/default.png'">
-            <span class="vice-nome">${viceCampeao.nome_time}</span>
+            <span class="vice-nome">${esc(viceCampeao.nome_time)}</span>
             <span class="vice-pontos">${viceCampeao.pontos.toFixed(2).replace(".", ",")} pts</span>
           </div>
         </div>

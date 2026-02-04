@@ -1,6 +1,8 @@
 // MATA-MATA CONFRONTOS - Lógica de Negócio
 // Responsável por: cálculo de confrontos, vencedores, pontos por rodada
 
+import { VALORES_FASE } from "./mata-mata-config.js";
+
 // Cache para getRankingRodadaEspecifica
 let getRankingRodadaEspecifica = null;
 let tentativasConexao = 0;
@@ -141,43 +143,47 @@ export function montarConfrontosFase(
     return confrontos;
 }
 
+// Função centralizada para determinar vencedor de um confronto
+// Retorna { vencedor, perdedor, lado } onde lado é "A" ou "B"
+// Critério: maior pontuação; empate = melhor ranking na rodada de definição (menor rankR2)
+export function determinarVencedor(confronto) {
+    const { timeA, timeB } = confronto;
+    const pontosAValidos = typeof timeA.pontos === "number";
+    const pontosBValidos = typeof timeB.pontos === "number";
+
+    let vencedor, perdedor, lado;
+
+    if (pontosAValidos && pontosBValidos) {
+        if (timeA.pontos > timeB.pontos) {
+            vencedor = timeA; perdedor = timeB; lado = "A";
+        } else if (timeB.pontos > timeA.pontos) {
+            vencedor = timeB; perdedor = timeA; lado = "B";
+        } else {
+            // Empate: desempate por ranking da rodada de definição
+            if (timeA.rankR2 < timeB.rankR2) {
+                vencedor = timeA; perdedor = timeB; lado = "A";
+            } else {
+                vencedor = timeB; perdedor = timeA; lado = "B";
+            }
+        }
+    } else {
+        // Pontos não disponíveis: usar ranking como fallback
+        if (timeA.rankR2 < timeB.rankR2) {
+            vencedor = timeA; perdedor = timeB; lado = "A";
+        } else {
+            vencedor = timeB; perdedor = timeA; lado = "B";
+        }
+    }
+
+    return { vencedor, perdedor, lado };
+}
+
 // Função para extrair vencedores dos confrontos
 export function extrairVencedores(confrontos) {
     const vencedores = [];
     confrontos.forEach((c) => {
-        let vencedor = null;
-        let vencedorDeterminado = null;
-
-        const pontosAValidos = typeof c.timeA.pontos === "number";
-        const pontosBValidos = typeof c.timeB.pontos === "number";
-
-        if (pontosAValidos && pontosBValidos) {
-            if (c.timeA.pontos > c.timeB.pontos) {
-                vencedor = c.timeA;
-                vencedorDeterminado = "A";
-            } else if (c.timeB.pontos > c.timeA.pontos) {
-                vencedor = c.timeB;
-                vencedorDeterminado = "B";
-            } else {
-                if (c.timeA.rankR2 < c.timeB.rankR2) {
-                    vencedor = c.timeA;
-                    vencedorDeterminado = "A";
-                } else {
-                    vencedor = c.timeB;
-                    vencedorDeterminado = "B";
-                }
-            }
-        } else {
-            if (c.timeA.rankR2 < c.timeB.rankR2) {
-                vencedor = c.timeA;
-                vencedorDeterminado = "A";
-            } else {
-                vencedor = c.timeB;
-                vencedorDeterminado = "B";
-            }
-        }
-
-        c.vencedorDeterminado = vencedorDeterminado;
+        const { vencedor, lado } = determinarVencedor(c);
+        c.vencedorDeterminado = lado;
 
         if (vencedor) {
             vencedor.jogoAnterior = c.jogo;
@@ -188,27 +194,18 @@ export function extrairVencedores(confrontos) {
 }
 
 // Função para calcular confrontos com valores financeiros
-export function calcularValoresConfronto(confrontos, isPending) {
+export function calcularValoresConfronto(confrontos, isPending, fase = "primeira") {
+    const valoresFase = VALORES_FASE[fase] || VALORES_FASE.primeira;
+
     confrontos.forEach((c) => {
         let vencedorDeterminado = null;
         if (!isPending) {
-            const pontosAValidos = typeof c.timeA.pontos === "number";
-            const pontosBValidos = typeof c.timeB.pontos === "number";
-            if (pontosAValidos && pontosBValidos) {
-                if (c.timeA.pontos > c.timeB.pontos) vencedorDeterminado = "A";
-                else if (c.timeB.pontos > c.timeA.pontos)
-                    vencedorDeterminado = "B";
-                else
-                    vencedorDeterminado =
-                        c.timeA.rankR2 < c.timeB.rankR2 ? "A" : "B";
-            } else {
-                vencedorDeterminado =
-                    c.timeA.rankR2 < c.timeB.rankR2 ? "A" : "B";
-            }
+            const { lado } = determinarVencedor(c);
+            vencedorDeterminado = lado;
         }
 
-        c.timeA.valor = isPending ? 0 : vencedorDeterminado === "A" ? 10 : -10;
-        c.timeB.valor = isPending ? 0 : vencedorDeterminado === "B" ? 10 : -10;
+        c.timeA.valor = isPending ? 0 : vencedorDeterminado === "A" ? valoresFase.vitoria : valoresFase.derrota;
+        c.timeB.valor = isPending ? 0 : vencedorDeterminado === "B" ? valoresFase.vitoria : valoresFase.derrota;
         c.vencedorDeterminado = vencedorDeterminado;
     });
 

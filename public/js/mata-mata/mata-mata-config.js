@@ -45,6 +45,18 @@ export const edicoes = [
   },
 ];
 
+// Valores financeiros por fase (espelho do config/rules/mata_mata.json)
+export const VALORES_FASE = {
+  primeira: { vitoria: 10.0, derrota: -10.0 },
+  oitavas:  { vitoria: 10.0, derrota: -10.0 },
+  quartas:  { vitoria: 10.0, derrota: -10.0 },
+  semis:    { vitoria: 10.0, derrota: -10.0 },
+  final:    { vitoria: 10.0, derrota: -10.0 },
+};
+
+// Tamanho padrao do torneio
+export const TAMANHO_TORNEIO_DEFAULT = 32;
+
 // Função para obter texto da rodada de pontos
 export function getRodadaPontosText(faseLabel, edicao) {
   const edicaoSelecionada = edicoes.find((e) => e.id === edicao);

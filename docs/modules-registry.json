@@ -90,11 +90,11 @@
     "name": "Mata-Mata",
     "category": "competition",
     "description": "Torneio eliminatório entre participantes",
-    "hasFinancial": false,
+    "hasFinancial": true,
     "hasUI": true,
     "hasAPI": true,
     "complexity": "high",
-    "audits": ["ui", "security", "business", "performance"]
+    "audits": ["financial", "ui", "security", "business", "performance"]
   },
   "campinho": {
     "name": "Campinho",

@@ -17,6 +17,7 @@ import {
   montarConfrontosPrimeiraFase,
   montarConfrontosFase,
   calcularValoresConfronto,
+  extrairVencedores as extrairVencedoresFunc,
 } from "./mata-mata-confrontos.js";
 import { setRankingFunction as setRankingFinanceiro } from "./mata-mata-financeiro.js";
 import {
@@ -55,6 +56,36 @@ const CACHE_CONFIG = {
 
 // Estado atual
 let edicaoAtual = null;
+
+// ✅ Cache de status do mercado (evita fetches duplicados)
+let mercadoStatusCache = null;
+let mercadoStatusTimestamp = 0;
+const MERCADO_CACHE_TTL = 60 * 1000; // 1 minuto
+
+async function getMercadoStatusCached() {
+  const now = Date.now();
+  if (mercadoStatusCache && (now - mercadoStatusTimestamp) < MERCADO_CACHE_TTL) {
+    return mercadoStatusCache;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const response = await fetch("/api/cartola/mercado/status", {
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      mercadoStatusCache = await response.json();
+      mercadoStatusTimestamp = now;
+      return mercadoStatusCache;
+    }
+  } catch (err) {
+    console.warn("[MATA-ORQUESTRADOR] Erro ao buscar status do mercado:", err.message);
+  }
+  return null;
+}
 
 // =====================================================================
 // ✅ NOVA FUNÇÃO: PERSISTIR FASE NO MONGODB
@@ -245,15 +276,9 @@ export async function carregarMataMata() {
   const ligaId = getLigaId();
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-    const response = await fetch("/api/cartola/mercado/status", {
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+    const data = await getMercadoStatusCached();
 
-    if (response.ok) {
-      const data = await response.json();
+    if (data) {
       let rodadaAtual = data.rodada_atual || 1;
       const mercadoAberto = data.status_mercado === 1;
       const temporadaAPI = data.temporada || new Date().getFullYear();
@@ -279,13 +304,17 @@ export async function carregarMataMata() {
       edicoes.forEach((edicao) => {
         edicao.ativo = rodadaAtual >= edicao.rodadaDefinicao;
       });
+    } else {
+      // Fallback: ativar todas as edições para temporada anterior
+      edicoes.forEach((edicao) => {
+        edicao.ativo = true;
+      });
     }
   } catch (error) {
     console.warn(
       "[MATA-ORQUESTRADOR] Erro ao verificar status do mercado:",
       error.message,
     );
-    // Fallback: ativar todas as edições para temporada anterior
     edicoes.forEach((edicao) => {
       edicao.ativo = true;
     });
@@ -406,15 +435,9 @@ async function carregarFase(fase, ligaId) {
     let rodada_atual = 1;
     let isTemporadaAnterior = false;
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-      const resMercado = await fetch("/api/cartola/mercado/status", {
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
+      const data = await getMercadoStatusCached();
 
-      if (resMercado.ok) {
-        const data = await resMercado.json();
+      if (data) {
         rodada_atual = data.rodada_atual || 1;
         const mercadoAberto = data.status_mercado === 1;
         const temporadaAPI = data.temporada || new Date().getFullYear();
@@ -423,18 +446,18 @@ async function carregarFase(fase, ligaId) {
 
         // v1.4: Detecção dinâmica de temporada com verificação do ano
         if (rodada_atual === 1 && mercadoAberto) {
-          // Se API já retorna ano atual, NÃO há dados
           if (temporadaAPI >= anoAtual) {
             console.log("[MATA-ORQUESTRADOR] Temporada iniciando - sem dados para calcular fases");
             rodada_atual = 0;
             isTemporadaAnterior = false;
           } else {
-            // Pré-temporada real: usar dados da anterior
             console.log("[MATA-ORQUESTRADOR] Pré-temporada - usando rodada 38 para cálculo de fases");
             rodada_atual = RODADA_FINAL_CAMPEONATO;
             isTemporadaAnterior = true;
           }
         }
+      } else {
+        rodada_atual = 0;
       }
     } catch (err) {
       console.warn("[MATA-ORQUESTRADOR] Erro ao buscar mercado, usando defaults seguros");
@@ -507,16 +530,7 @@ async function carregarFase(fase, ligaId) {
           );
         }
 
-        // ✅ MESMO COM CACHE LOCAL, GARANTIR QUE MONGODB TEM OS DADOS
-        await salvarFaseNoMongoDB(
-          ligaId,
-          edicaoAtual,
-          fase,
-          cachedConfrontos,
-          rodada_atual,
-        );
-
-        return; // ✅ RETORNA CEDO COM CACHE
+        return; // ✅ RETORNA CEDO COM CACHE (MongoDB já tem os dados se cache local existe)
       }
     }
 
@@ -576,7 +590,7 @@ async function carregarFase(fase, ligaId) {
     }
 
     // Calcular valores dos confrontos
-    calcularValoresConfronto(confrontos, isPending);
+    calcularValoresConfronto(confrontos, isPending, fase);
 
     // Renderizar tabela
     renderTabelaMataMata(
@@ -608,11 +622,8 @@ async function carregarFase(fase, ligaId) {
   }
 }
 
-// Função para extrair vencedores (importada de confrontos)
-async function extrairVencedores(confrontos) {
-  const { extrairVencedores: extrairVencedoresFunc } = await import(
-    "./mata-mata-confrontos.js"
-  );
+// Função wrapper para extrair vencedores (usa import estático)
+function extrairVencedores(confrontos) {
   return extrairVencedoresFunc(confrontos);
 }
 
@@ -622,6 +633,7 @@ function setupCleanup() {
     moduleCache.clear();
     pontosRodadaCache.clear();
     rankingBaseCache.clear();
+    mercadoStatusCache = null;
     rodadasCarregados = false;
     console.log("[MATA-ORQUESTRADOR] Cleanup executado");
   });

@@ -258,8 +258,8 @@ async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual, config) {
     const fases = ["primeira", "oitavas", "quartas", "semis", "final"];
 
     try {
-        // 1. Contar participantes ativos na liga
-        const totalParticipantes = await Time.countDocuments({ liga_id: ligaId, ativo: true });
+        // 1. Contar participantes ativos na liga (filtrado por temporada)
+        const totalParticipantes = await Time.countDocuments({ liga_id: ligaId, ativo: true, temporada: CURRENT_SEASON });
 
         // 2. Calcular tamanho ideal do torneio
         const tamanhoTorneio = calcularTamanhoIdealMataMata(totalParticipantes);

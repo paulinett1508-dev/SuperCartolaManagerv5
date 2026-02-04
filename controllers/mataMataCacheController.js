@@ -6,13 +6,31 @@ export const salvarCacheMataMata = async (req, res) => {
         const { ligaId, edicao } = req.params;
         const { rodada, dados } = req.body;
 
+        // Validar edicao como número válido
+        const edicaoNum = Number(edicao);
+        if (isNaN(edicaoNum) || edicaoNum < 1 || edicaoNum > 10) {
+            return res.status(400).json({ error: "Edição inválida (deve ser número entre 1 e 10)" });
+        }
+
         if (!rodada || !dados) {
             return res.status(400).json({ error: "Dados incompletos" });
         }
 
-        // Upsert: Salva ou Atualiza o estado desta edição
+        // Validar estrutura de dados do torneio
+        if (typeof dados !== 'object' || Array.isArray(dados)) {
+            return res.status(400).json({ error: "Dados do torneio devem ser um objeto" });
+        }
+
+        const fasesValidas = ['primeira', 'oitavas', 'quartas', 'semis', 'final', 'campeao'];
+        const chavesDados = Object.keys(dados);
+        const chavesInvalidas = chavesDados.filter(k => !fasesValidas.includes(k));
+        if (chavesInvalidas.length > 0) {
+            return res.status(400).json({ error: `Chaves inválidas nos dados: ${chavesInvalidas.join(', ')}` });
+        }
+
+        // Upsert: Salva ou Atualiza o estado desta edição (com temporada no filtro)
         await MataMataCache.findOneAndUpdate(
-            { liga_id: ligaId, edicao: Number(edicao) },
+            { liga_id: ligaId, edicao: edicaoNum, temporada: CURRENT_SEASON },
             {
                 rodada_atual: rodada,
                 dados_torneio: dados,

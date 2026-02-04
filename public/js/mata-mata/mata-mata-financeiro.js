@@ -1,11 +1,12 @@
 // MATA-MATA FINANCEIRO - Cálculos e Resultados Financeiros
 // Responsável por: cálculos de premiação, consolidação de resultados, fluxo financeiro
 
-import { edicoes, getLigaId } from "./mata-mata-config.js";
+import { edicoes, getLigaId, VALORES_FASE, TAMANHO_TORNEIO_DEFAULT } from "./mata-mata-config.js";
 import {
   getPontosDaRodada,
   montarConfrontosPrimeiraFase,
   montarConfrontosFase,
+  determinarVencedor,
 } from "./mata-mata-confrontos.js";
 
 // Cache para getRankingRodadaEspecifica
@@ -116,51 +117,22 @@ export async function getResultadosMataMata() {
             );
 
       const proximosVencedores = [];
+      const valoresFase = VALORES_FASE[fase] || VALORES_FASE.primeira;
       confrontosFase.forEach((c) => {
-        let vencedor = null;
-        let perdedor = null;
-
-        const pontosAValidos = typeof c.timeA.pontos === "number";
-        const pontosBValidos = typeof c.timeB.pontos === "number";
-
-        if (pontosAValidos && pontosBValidos) {
-          if (c.timeA.pontos > c.timeB.pontos) {
-            vencedor = c.timeA;
-            perdedor = c.timeB;
-          } else if (c.timeB.pontos > c.timeA.pontos) {
-            vencedor = c.timeB;
-            perdedor = c.timeA;
-          } else {
-            if (c.timeA.rankR2 < c.timeB.rankR2) {
-              vencedor = c.timeA;
-              perdedor = c.timeB;
-            } else {
-              vencedor = c.timeB;
-              perdedor = c.timeA;
-            }
-          }
-        } else {
-          if (c.timeA.rankR2 < c.timeB.rankR2) {
-            vencedor = c.timeA;
-            perdedor = c.timeB;
-          } else {
-            vencedor = c.timeB;
-            perdedor = c.timeA;
-          }
-        }
+        const { vencedor, perdedor } = determinarVencedor(c);
 
         if (vencedor) {
           resultadosFinanceiros.push({
             timeId: String(vencedor.timeId || vencedor.id),
             fase: fase,
             rodadaPontos: rodadaPontosNum,
-            valor: 10.0,
+            valor: valoresFase.vitoria,
           });
           resultadosFinanceiros.push({
             timeId: String(perdedor.timeId || perdedor.id),
             fase: fase,
             rodadaPontos: rodadaPontosNum,
-            valor: -10.0,
+            valor: valoresFase.derrota,
           });
           vencedor.jogoAnterior = c.jogo;
           proximosVencedores.push(vencedor);
@@ -295,7 +267,7 @@ export async function getResultadosMataMataFluxo(ligaIdParam = null) {
           });
         });
 
-        const arrecadadoEdicao = 32 * 10.0;
+        const arrecadadoEdicao = TAMANHO_TORNEIO_DEFAULT * VALORES_FASE.primeira.vitoria;
         const pagoEdicao = resultadosEdicao
           .filter((r) => r.valor > 0)
           .reduce((total, r) => total + r.valor, 0);
@@ -419,28 +391,9 @@ export async function calcularResultadosEdicaoFluxo(
             );
 
       const proximosVencedores = [];
+      const valoresFase = VALORES_FASE[fase] || VALORES_FASE.primeira;
       confrontosFase.forEach((c) => {
-        let vencedor = null;
-        let perdedor = null;
-
-        if (
-          typeof c.timeA.pontos === "number" &&
-          typeof c.timeB.pontos === "number"
-        ) {
-          if (c.timeA.pontos > c.timeB.pontos) {
-            vencedor = c.timeA;
-            perdedor = c.timeB;
-          } else if (c.timeB.pontos > c.timeA.pontos) {
-            vencedor = c.timeB;
-            perdedor = c.timeA;
-          } else {
-            vencedor = c.timeA.rankR2 < c.timeB.rankR2 ? c.timeA : c.timeB;
-            perdedor = vencedor === c.timeA ? c.timeB : c.timeA;
-          }
-        } else {
-          vencedor = c.timeA.rankR2 < c.timeB.rankR2 ? c.timeA : c.timeB;
-          perdedor = vencedor === c.timeA ? c.timeB : c.timeA;
-        }
+        const { vencedor, perdedor } = determinarVencedor(c);
 
         if (vencedor && perdedor) {
           resultadosFinanceiros.push({
@@ -451,7 +404,7 @@ export async function calcularResultadosEdicaoFluxo(
               `Time ${vencedor.timeId}`,
             fase: fase,
             rodadaPontos: rodadaPontosNum,
-            valor: 10.0,
+            valor: valoresFase.vitoria,
           });
           resultadosFinanceiros.push({
             timeId: String(perdedor.timeId || perdedor.id),
@@ -461,7 +414,7 @@ export async function calcularResultadosEdicaoFluxo(
               `Time ${perdedor.timeId}`,
             fase: fase,
             rodadaPontos: rodadaPontosNum,
-            valor: -10.0,
+            valor: valoresFase.derrota,
           });
 
           vencedor.jogoAnterior = c.jogo;

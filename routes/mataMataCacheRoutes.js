@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import { CURRENT_SEASON } from "../config/seasons.js";
 import { verificarAdmin } from "../middleware/auth.js";
 import {
@@ -9,11 +10,29 @@ import {
 
 const router = express.Router();
 
+// Middleware de validacao de params para rotas com :ligaId
+function validarLigaIdParam(req, res, next) {
+    const { ligaId } = req.params;
+    if (!ligaId || !mongoose.Types.ObjectId.isValid(ligaId)) {
+        return res.status(400).json({ error: "ligaId invalido" });
+    }
+    next();
+}
+
+// Middleware de validacao de params para rotas com :edicao
+function validarEdicaoParam(req, res, next) {
+    const edicao = Number(req.params.edicao);
+    if (!Number.isInteger(edicao) || edicao < 1 || edicao > 10) {
+        return res.status(400).json({ error: "edicao invalida (esperado: 1-10)" });
+    }
+    next();
+}
+
 // ============================================================================
 // 📋 ROTA PARA LISTAR TODAS AS EDIÇÕES DISPONÍVEIS NO CACHE
 // ⚠️ IMPORTANTE: Esta rota DEVE vir ANTES da rota com parâmetro :edicao
 // ============================================================================
-router.get("/cache/:ligaId/edicoes", async (req, res) => {
+router.get("/cache/:ligaId/edicoes", validarLigaIdParam, async (req, res) => {
     try {
         const { ligaId } = req.params;
         const { temporada } = req.query;
@@ -70,7 +89,7 @@ router.get("/cache/:ligaId/edicoes", async (req, res) => {
 // ⚠️ IMPORTANTE: Esta rota DEVE vir ANTES da rota com parâmetro :edicao
 // 🔒 Protegida: requer sessão admin
 // ============================================================================
-router.get("/debug/:ligaId", verificarAdmin, async (req, res) => {
+router.get("/debug/:ligaId", verificarAdmin, validarLigaIdParam, async (req, res) => {
     try {
         const { ligaId } = req.params;
 
@@ -222,9 +241,6 @@ router.get("/debug/:ligaId", verificarAdmin, async (req, res) => {
             }
         }
 
-        // Estrutura completa de todos os campos
-        analise.dados_torneio_completo = dadosTorneio;
-
         console.log("[MATA-DEBUG] ✅ Análise completa gerada");
 
         res.json(analise);
@@ -239,8 +255,8 @@ router.get("/debug/:ligaId", verificarAdmin, async (req, res) => {
 // ⚠️ IMPORTANTE: Estas rotas DEVEM vir DEPOIS das rotas específicas acima
 // 🔒 POST e DELETE protegidos: requerem sessão admin
 // ============================================================================
-router.post("/cache/:ligaId/:edicao", verificarAdmin, salvarCacheMataMata);
-router.get("/cache/:ligaId/:edicao", lerCacheMataMata);
-router.delete("/cache/:ligaId/:edicao", verificarAdmin, deletarCacheMataMata);
+router.post("/cache/:ligaId/:edicao", verificarAdmin, validarLigaIdParam, validarEdicaoParam, salvarCacheMataMata);
+router.get("/cache/:ligaId/:edicao", validarLigaIdParam, validarEdicaoParam, lerCacheMataMata);
+router.delete("/cache/:ligaId/:edicao", verificarAdmin, validarLigaIdParam, validarEdicaoParam, deletarCacheMataMata);
 
 export default router;
