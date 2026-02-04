@@ -63,7 +63,7 @@ function renderConsolidacaoPage(container, ligas) {
         <h3 class="card-title" style="font-size: 14px; margin-bottom: 12px; color: #fb923c;">🔧 Ferramentas Administrativas</h3>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <a
-            href="/admin/operacoes/notificador.html"
+            href="/notificador.html"
             target="_blank"
             class="btn btn-secondary"
             style="flex: 1; min-width: 140px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;"

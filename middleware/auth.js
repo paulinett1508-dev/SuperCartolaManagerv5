@@ -69,8 +69,7 @@ export const PAGINAS_ADMIN = [
   "/fluxo-financeiro.html",
   "/preencher-liga.html",
   // ✅ Notificador - Sistema de avisos in-app
-  "/admin/operacoes/",
-  "/admin/operacoes/notificador.html",
+  "/notificador.html",
 ];
 
 /**
