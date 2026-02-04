@@ -453,10 +453,9 @@
                     // Definir funções de logo após injetar sidebar
                     definirFuncoesLogo();
 
-                    // v9.4 FIX: Usar referência global explícita (evita shadowing)
-                    if (typeof window.carregarLigasLayout === 'function') {
-                        window.carregarLigasLayout();
-                    }
+                    // ✅ v9.5 FIX: Remoção de chamada duplicada
+                    // NavigationSystem do layout.html já chama carregarLigasLayout() automaticamente
+                    // Não chamar aqui para evitar dupla requisição
                 } catch (error) {
                     console.error("Erro ao carregar layout:", error);
                 }
