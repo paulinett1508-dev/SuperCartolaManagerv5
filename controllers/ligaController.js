@@ -891,30 +891,51 @@ const atualizarModulosAtivos = async (req, res) => {
     return res.status(400).json({ erro: "Dados de módulos inválidos" });
   }
 
+  // ✅ FIX: Validar que módulos base não podem ser desativados
+  const MODULOS_BASE_OBRIGATORIOS = ['extrato', 'ranking', 'rodadas'];
+
+  for (const moduloBase of MODULOS_BASE_OBRIGATORIOS) {
+    if (modulos[moduloBase] === false) {
+      return res.status(400).json({
+        erro: `Módulo base "${moduloBase}" não pode ser desativado`,
+        moduloAfetado: moduloBase,
+      });
+    }
+  }
+
   try {
     const liga = await Liga.findById(ligaIdParam);
     if (!liga) {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
+    // ✅ FIX: Forçar módulos base sempre ativos (garantia adicional)
+    const modulosComBaseForçada = {
+      ...modulos,
+      extrato: true,  // Sempre ativo
+      ranking: true,  // Sempre ativo
+      rodadas: true,  // Sempre ativo
+    };
+
     // 1. Salvar no sistema antigo (manter compatibilidade)
     // Usar updateOne com $set para bypass do change tracking do Mongoose Mixed type
     await Liga.updateOne(
       { _id: ligaIdParam },
-      { $set: { modulos_ativos: modulos, atualizadaEm: new Date() } },
+      { $set: { modulos_ativos: modulosComBaseForçada, atualizadaEm: new Date() } },
     );
 
     // 2. Sincronizar com sistema novo (ModuleConfig)
     console.log(
-      `[LIGAS] Sincronizando ${Object.keys(modulos).length} módulos com ModuleConfig...`,
+      `[LIGAS] Sincronizando ${Object.keys(modulosComBaseForçada).length} módulos com ModuleConfig...`,
     );
 
     const ligaId = ligaIdParam.toString();
     const temporada = CURRENT_SEASON;
     let sincronizados = 0;
     let erros = 0;
+    let errosDetalhes = []; // ✅ FIX: Coletar detalhes dos erros
 
-    for (const [moduloKey, ativo] of Object.entries(modulos)) {
+    for (const [moduloKey, ativo] of Object.entries(modulosComBaseForçada)) {
       try {
         const moduloBackendId = mapearModuloId(moduloKey);
 
@@ -973,6 +994,11 @@ const atualizarModulosAtivos = async (req, res) => {
           syncError.message,
         );
         erros++;
+        // ✅ FIX: Coletar detalhes do erro
+        errosDetalhes.push({
+          modulo: moduloKey,
+          erro: syncError.message,
+        });
       }
     }
 
@@ -982,12 +1008,13 @@ const atualizarModulosAtivos = async (req, res) => {
 
     res.json({
       success: true,
-      modulos: modulos,
+      modulos: modulosComBaseForçada, // ✅ FIX: Retornar estado real (com base forçada)
       mensagem: "Módulos atualizados com sucesso",
       sincronizacao: {
-        total: Object.keys(modulos).length,
+        total: Object.keys(modulosComBaseForçada).length,
         sincronizados,
         erros,
+        detalhes: errosDetalhes, // ✅ FIX: Retornar detalhes dos erros
       },
     });
   } catch (err) {
