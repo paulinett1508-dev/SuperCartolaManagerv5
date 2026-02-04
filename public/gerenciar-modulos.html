@@ -350,14 +350,26 @@
                 btn.disabled = true;
                 btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Salvando...';
 
+                // Forçar módulos base sempre ativos antes de enviar
+                Object.keys(MODULOS_CONFIG).forEach(key => {
+                    if (MODULOS_CONFIG[key].base) {
+                        modulosState[key] = true;
+                    }
+                });
+
                 try {
+                    console.log('[FRONTEND] Salvando módulos:', modulosState);
                     const response = await fetch(`/api/ligas/${ligaId}/modulos-ativos`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ modulos: modulosState })
                     });
 
-                    if (!response.ok) throw new Error('Erro ao salvar');
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('[FRONTEND] Erro do servidor:', errorData);
+                        throw new Error(errorData.erro || errorData.error || 'Erro ao salvar');
+                    }
 
                     // ✅ FIX: Atualizar estado com resposta do servidor
                     const data = await response.json();

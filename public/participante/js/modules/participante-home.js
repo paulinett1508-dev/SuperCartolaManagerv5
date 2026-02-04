@@ -266,9 +266,6 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         }
     }
 
-    // Carregar jogos em background
-    carregarEExibirJogos();
-
     // Carregar seção Tabelas Esportivas em background
     carregarTabelasEsportes(participante);
 
@@ -1219,153 +1216,11 @@ async function carregarNoticiasDoMeuTime(participante) {
     }
 }
 
-// =====================================================================
-// CARREGAR JOGOS
-// =====================================================================
-async function carregarEExibirJogos() {
-    try {
-        const mod = await import('./participante-jogos.js');
-        const result = await mod.obterJogosAoVivo();
-
-        window._jogosCache = result.jogos || [];
-
-        if (result.jogos && result.jogos.length > 0) {
-            const html = renderizarJogosHome(result.jogos.slice(0, 3), result.fonte, result.aoVivo, result.jogos.length);
-            const el = document.getElementById('home-jogos-placeholder');
-            if (el) {
-                el.innerHTML = html;
-            }
-
-            if (result.aoVivo) {
-                mod.iniciarAutoRefresh((novoResult) => {
-                    window._jogosCache = novoResult.jogos || [];
-                    const novoHtml = renderizarJogosHome(novoResult.jogos.slice(0, 3), novoResult.fonte, novoResult.aoVivo, novoResult.jogos.length);
-                    const container = document.getElementById('home-jogos-placeholder');
-                    if (container) {
-                        container.innerHTML = novoHtml;
-                    }
-                });
-            }
-        }
-    } catch (err) {
-        if (window.Log) Log.error("PARTICIPANTE-HOME", "Erro ao carregar jogos:", err);
-    }
-}
-
-// =====================================================================
-// RENDERIZAR JOGOS NA HOME
-// =====================================================================
-function renderizarJogosHome(jogos, fonte, aoVivo, totalJogos) {
-    if (!jogos || jogos.length === 0) return "";
-
-    const jogosHTML = jogos.map(jogo => {
-        const mandanteAbrev = jogo.mandante?.substring(0, 3).toUpperCase() || "???";
-        const visitanteAbrev = jogo.visitante?.substring(0, 3).toUpperCase() || "???";
-        const emAndamento = jogo.status === 'Em andamento' || jogo.minuto;
-
-        const centerContent = emAndamento
-            ? `<span class="home-match-score">${jogo.placar_mandante || 0} - ${jogo.placar_visitante || 0}</span>
-               <div class="home-match-live">
-                   <div class="home-match-live-dot"></div>
-                   <span class="home-match-live-text">${jogo.minuto || 'AO VIVO'}</span>
-               </div>`
-            : `<span class="home-match-vs">VS</span>
-               <span class="home-match-time">${jogo.horario || '--:--'}</span>`;
-
-        return `
-            <div class="home-match-card">
-                <div class="home-match-league">${jogo.campeonato || 'Campeonato'}</div>
-                <div class="home-match-content">
-                    <div class="home-match-team">
-                        <div class="home-team-badge" style="background: ${getTeamColor(jogo.mandante)};">
-                            <span>${mandanteAbrev}</span>
-                        </div>
-                        <span class="home-team-name-short">${jogo.mandante || 'Time A'}</span>
-                    </div>
-                    <div class="home-match-center">
-                        ${centerContent}
-                    </div>
-                    <div class="home-match-team">
-                        <div class="home-team-badge" style="background: ${getTeamColor(jogo.visitante)};">
-                            <span>${visitanteAbrev}</span>
-                        </div>
-                        <span class="home-team-name-short">${jogo.visitante || 'Time B'}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join("");
-
-    const verMaisBtn = totalJogos > 3 ? `
-        <button onclick="window.abrirModalJogos && window.abrirModalJogos()"
-                class="w-full mt-3 py-3 text-center text-sm font-medium text-primary border border-primary/30 rounded-xl active:scale-95 transition-transform">
-            Ver todos os ${totalJogos} jogos
-        </button>
-    ` : "";
-
-    return `
-        <section class="home-matches-section">
-            <div class="home-matches-header">
-                <div class="home-matches-title">
-                    <h3>Hoje</h3>
-                    <span class="material-icons">schedule</span>
-                </div>
-                <span class="home-matches-badge">${totalJogos} jogos</span>
-            </div>
-            <div class="home-matches-list">
-                ${jogosHTML}
-            </div>
-            ${verMaisBtn}
-        </section>
-    `;
-}
-
-// =====================================================================
-// COR DO TIME (heuristica simples)
-// =====================================================================
-function getTeamColor(nome) {
-    if (!nome) return "#4b5563";
-
-    const cores = {
-        "Flamengo": "#c8102e",
-        "Palmeiras": "#006437",
-        "Corinthians": "#000000",
-        "Sao Paulo": "#ff0000",
-        "Santos": "#ffffff",
-        "Botafogo": "#000000",
-        "Fluminense": "#7b2d3e",
-        "Vasco": "#000000",
-        "Cruzeiro": "#003399",
-        "Atletico": "#000000",
-        "Gremio": "#0066b3",
-        "Internacional": "#e4002b",
-        "Bahia": "#0033a0",
-        "Fortaleza": "#c8102e",
-        "Athletico": "#cc0000",
-        "Bragantino": "#ffffff",
-    };
-
-    for (const [time, cor] of Object.entries(cores)) {
-        if (nome.toLowerCase().includes(time.toLowerCase())) {
-            return cor;
-        }
-    }
-
-    return "#4b5563";
-}
-
 // Mapa de IDs de clubes - fonte centralizada em clubes-data.js
 const _clubesNomeMap = getClubesNomeMap();
 function getNomeClubePorId(clubeId) {
     return _clubesNomeMap[Number(clubeId)] || "Seu Time";
 }
-
-// Parar auto-refresh quando sair da tela
-window.addEventListener('participante-nav-change', () => {
-    import('./participante-jogos.js').then(mod => {
-        mod.pararAutoRefresh && mod.pararAutoRefresh();
-    }).catch(() => {});
-});
 
 if (window.Log)
     Log.info("PARTICIPANTE-HOME", "Modulo v1.0 carregado");

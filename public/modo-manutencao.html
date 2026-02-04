@@ -315,7 +315,7 @@
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
 
                 try {
-                    const response = await fetch('/api/admin/modo-manutencao/status', {
+                    const response = await fetch('/api/admin/manutencao', {
                         signal: controller.signal
                     });
                     clearTimeout(timeoutId);
@@ -423,10 +423,12 @@
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
 
                 try {
-                    const response = await fetch('/api/admin/modo-manutencao/toggle', {
+                    const novoEstado = !modoAtivo;
+                    const endpoint = novoEstado ? '/api/admin/manutencao/ativar' : '/api/admin/manutencao/desativar';
+                    const response = await fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ativo: !modoAtivo }),
+                        body: JSON.stringify({}),
                         signal: controller.signal
                     });
 

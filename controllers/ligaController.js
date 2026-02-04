@@ -883,25 +883,34 @@ const atualizarModulosAtivos = async (req, res) => {
   const ligaIdParam = req.params.id;
   const { modulos } = req.body;
 
+  // 🔍 DEBUG: Log do payload recebido
+  console.log('[DEBUG-MODULOS] Liga ID:', ligaIdParam);
+  console.log('[DEBUG-MODULOS] Payload recebido:', JSON.stringify(req.body, null, 2));
+  console.log('[DEBUG-MODULOS] Tipo de modulos:', typeof modulos);
+  console.log('[DEBUG-MODULOS] Módulos keys:', modulos ? Object.keys(modulos) : 'undefined');
+
   if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
+    console.log('[DEBUG-MODULOS] ❌ ID de liga inválido:', ligaIdParam);
     return res.status(400).json({ erro: "ID de liga inválido" });
   }
 
   if (!modulos || typeof modulos !== "object") {
+    console.log('[DEBUG-MODULOS] ❌ Dados de módulos inválidos');
     return res.status(400).json({ erro: "Dados de módulos inválidos" });
   }
 
   // ✅ FIX: Validar que módulos base não podem ser desativados
   const MODULOS_BASE_OBRIGATORIOS = ['extrato', 'ranking', 'rodadas'];
 
+  console.log('[DEBUG-MODULOS] Validando módulos base obrigatórios...');
   for (const moduloBase of MODULOS_BASE_OBRIGATORIOS) {
+    console.log(`[DEBUG-MODULOS] Verificando ${moduloBase}:`, modulos[moduloBase]);
     if (modulos[moduloBase] === false) {
-      return res.status(400).json({
-        erro: `Módulo base "${moduloBase}" não pode ser desativado`,
-        moduloAfetado: moduloBase,
-      });
+      console.log(`[DEBUG-MODULOS] ⚠️ Forçando módulo base: ${moduloBase} = true`);
+      modulos[moduloBase] = true;
     }
   }
+  console.log('[DEBUG-MODULOS] ✅ Validação de módulos base OK');
 
   try {
     const liga = await Liga.findById(ligaIdParam);

@@ -1,6 +1,10 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.22 FIX CRÍTICO ESCOPO
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.23 FIX DEFINITIVO
 // =====================================================
+// ✅ v10.23: FIX DEFINITIVO - renderizarBotaoMeusAcertos movida para ANTES de ser chamada
+//          - Função definida na linha ~187 (após funções auxiliares)
+//          - ReferenceError RESOLVIDO permanentemente
+//          - Bug bloqueador P0 que causava tela branca no app CORRIGIDO
 // ✅ v10.22: FIX CRÍTICO - renderizarBotaoMeusAcertos exposta em window scope
 //          - ReferenceError resolvido (função chamada antes de definida)
 //          - Bug bloqueador P0 que causava tela branca no app
@@ -61,7 +65,7 @@
 // ✅ v9.0: Redesign - Badge BANCO unificado com valor
 // ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
 
-if (window.Log) Log.info("[EXTRATO-UI] v10.19 FIX TELA BRANCA (condição sempre true)");
+if (window.Log) Log.info("[EXTRATO-UI] v10.23 FIX DEFINITIVO (renderizarBotaoMeusAcertos movida para cima)");
 
 // ===== v10.8: CACHE DE CONFIG DA LIGA =====
 let ligaConfigCache = null;
@@ -183,6 +187,41 @@ function getPosicaoZonaLabel(posicao, faixas) {
 
     // Zona Neutra: sem label
     return { label: null, tipo: "neutro" };
+}
+
+// ===== v10.23: BOTÃO MEUS ACERTOS (Movido para cima - FIX ReferenceError) =====
+// ⚠️ CRÍTICO: Esta função DEVE estar ANTES de renderizarConteudoCompleto()
+// Motivo: É chamada dentro da string template de renderizarConteudoCompleto (linha 407 e 618)
+window.renderizarBotaoMeusAcertos = function renderizarBotaoMeusAcertos(listaAcertos, saldoAcertos) {
+    const temAcertos = listaAcertos && listaAcertos.length > 0;
+    const qtdAcertos = listaAcertos?.length || 0;
+
+    // Determinar classe e texto do badge
+    let badgeClass = "badge-neutral";
+    let badgeTexto = "Nenhum";
+
+    if (temAcertos) {
+        if (saldoAcertos > 0) {
+            badgeClass = "badge-positive";
+            badgeTexto = `+R$ ${Math.abs(saldoAcertos).toFixed(0)}`;
+        } else if (saldoAcertos < 0) {
+            badgeClass = "badge-negative";
+            badgeTexto = `-R$ ${Math.abs(saldoAcertos).toFixed(0)}`;
+        } else {
+            badgeClass = "badge-positive";
+            badgeTexto = "Quitado";
+        }
+    }
+
+    return `
+        <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+            <button onclick="window.abrirBottomSheetAcertos()" class="btn-pill-acertos">
+                <span class="material-symbols-outlined pill-icon">receipt_long</span>
+                <span class="pill-text">Meus Acertos</span>
+                <span class="pill-badge ${badgeClass}">${temAcertos ? qtdAcertos : badgeTexto}</span>
+            </button>
+        </div>
+    `;
 }
 
 // ===== v10.8: CALCULAR POSIÇÃO NO TOP10 PELO VALOR (DINÂMICO) =====
@@ -907,39 +946,7 @@ function renderizarCardsRodadas(rodadas, ligaId) {
         })
         .join("");
 }
-
-// ===== v10.3: BOTÃO MEUS ACERTOS (Pill corrigido - window scope) =====
-window.renderizarBotaoMeusAcertos = function renderizarBotaoMeusAcertos(listaAcertos, saldoAcertos) {
-    const temAcertos = listaAcertos && listaAcertos.length > 0;
-    const qtdAcertos = listaAcertos?.length || 0;
-
-    // Determinar classe e texto do badge
-    let badgeClass = "badge-neutral";
-    let badgeTexto = "Nenhum";
-
-    if (temAcertos) {
-        if (saldoAcertos > 0) {
-            badgeClass = "badge-positive";
-            badgeTexto = `+R$ ${Math.abs(saldoAcertos).toFixed(0)}`;
-        } else if (saldoAcertos < 0) {
-            badgeClass = "badge-negative";
-            badgeTexto = `-R$ ${Math.abs(saldoAcertos).toFixed(0)}`;
-        } else {
-            badgeClass = "badge-positive";
-            badgeTexto = "Quitado";
-        }
-    }
-
-    return `
-        <div style="display: flex; justify-content: center; margin-bottom: 16px;">
-            <button onclick="window.abrirBottomSheetAcertos()" class="btn-pill-acertos">
-                <span class="material-symbols-outlined pill-icon">receipt_long</span>
-                <span class="pill-text">Meus Acertos</span>
-                <span class="pill-badge ${badgeClass}">${temAcertos ? qtdAcertos : badgeTexto}</span>
-            </button>
-        </div>
-    `;
-}
+// ===== v10.23: renderizarBotaoMeusAcertos foi movido para linha ~187 (antes de ser usado) =====
 
 // ===== v10.2: BOTTOM SHEET ACERTOS FINANCEIROS =====
 function renderizarBottomSheetAcertos(listaAcertos, resumoAcertos, saldoTemporada, saldoAcertos) {
