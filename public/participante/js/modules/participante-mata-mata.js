@@ -1,5 +1,6 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v7.0 (Cache-First IndexedDB)
+// PARTICIPANTE MATA-MATA v7.1 (Cache-First + Filtro Temporada)
+// ✅ v7.1: FIX - Filtro de temporada nas queries de cache
 // ✅ v7.0: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v6.9: FIX Escudo placeholder não usa mais logo do sistema
 // ✅ v6.8: FIX Comparação de tipos (string vs number) em timeId
@@ -7,6 +8,8 @@
 // Integrado com HTML template - Layout Cards + Correção "não está nesta fase"
 // Nota: Mata-mata não requer tratamento especial de inativos pois é por eliminação
 // =====================================================================
+
+import { CURRENT_SEASON } from "/js/config/seasons-client.js";
 
 const EDICOES_MATA_MATA = [
   { id: 1, nome: "1ª Edição", rodadaInicial: 3, rodadaFinal: 7 },   // FIX: R2 é definição, competição começa R3
@@ -201,7 +204,8 @@ async function carregarStatusMercado() {
 // =====================================================================
 async function carregarEdicoesDisponiveis(usouCache = false) {
   try {
-    const res = await fetch(`/api/mata-mata/cache/${estado.ligaId}/edicoes`);
+    const temporada = window.participanteAuth?.temporadaSelecionada || CURRENT_SEASON;
+    const res = await fetch(`/api/mata-mata/cache/${estado.ligaId}/edicoes?temporada=${temporada}`);
     if (!res.ok) throw new Error("Erro ao buscar edições");
 
     const data = await res.json();
@@ -274,7 +278,8 @@ async function carregarEdicoesDisponiveis(usouCache = false) {
 // =====================================================================
 async function carregarTodasFases(edicao) {
   try {
-    const res = await fetch(`/api/mata-mata/cache/${estado.ligaId}/${edicao}`);
+    const temporada = window.participanteAuth?.temporadaSelecionada || CURRENT_SEASON;
+    const res = await fetch(`/api/mata-mata/cache/${estado.ligaId}/${edicao}?temporada=${temporada}`);
     if (!res.ok) {
       if (window.Log) Log.warn(`[MATA-MATA] ⚠️ Resposta não OK: ${res.status}`);
       return;
@@ -480,8 +485,9 @@ async function carregarFase(edicao, fase) {
     let confrontos = estado.cacheConfrontos[cacheKey];
 
     if (!confrontos) {
+      const temporada = window.participanteAuth?.temporadaSelecionada || CURRENT_SEASON;
       const res = await fetch(
-        `/api/mata-mata/cache/${estado.ligaId}/${edicao}`,
+        `/api/mata-mata/cache/${estado.ligaId}/${edicao}?temporada=${temporada}`,
       );
       if (!res.ok) throw new Error("Erro ao buscar dados");
 

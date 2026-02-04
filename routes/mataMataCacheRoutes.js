@@ -1,4 +1,5 @@
 import express from "express";
+import { CURRENT_SEASON } from "../config/seasons.js";
 import {
     salvarCacheMataMata,
     lerCacheMataMata,
@@ -14,16 +15,21 @@ const router = express.Router();
 router.get("/cache/:ligaId/edicoes", async (req, res) => {
     try {
         const { ligaId } = req.params;
+        const { temporada } = req.query;
+        const temporadaFiltro = temporada ? parseInt(temporada) : CURRENT_SEASON;
 
         console.log(
-            `[MATA-CACHE] 📋 Listando edições disponíveis para liga ${ligaId}`,
+            `[MATA-CACHE] 📋 Listando edições disponíveis para liga ${ligaId}, temporada ${temporadaFiltro}`,
         );
 
         const MataMataCache = (await import("../models/MataMataCache.js"))
             .default;
 
-        // Buscar todas as edições desta liga
-        const edicoes = await MataMataCache.find({ liga_id: ligaId })
+        // Buscar edições APENAS da temporada especificada
+        const edicoes = await MataMataCache.find({
+            liga_id: ligaId,
+            temporada: temporadaFiltro
+        })
             .select("edicao rodada_atual ultima_atualizacao")
             .sort({ edicao: 1 })
             .lean();

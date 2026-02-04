@@ -1,4 +1,5 @@
 import MataMataCache from "../models/MataMataCache.js";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 export const salvarCacheMataMata = async (req, res) => {
     try {
@@ -33,10 +34,13 @@ export const salvarCacheMataMata = async (req, res) => {
 export const lerCacheMataMata = async (req, res) => {
     try {
         const { ligaId, edicao } = req.params;
+        const { temporada } = req.query;
+        const temporadaFiltro = temporada ? parseInt(temporada) : CURRENT_SEASON;
 
         const cache = await MataMataCache.findOne({
             liga_id: ligaId,
             edicao: Number(edicao),
+            temporada: temporadaFiltro
         });
 
         if (!cache) {
@@ -78,12 +82,15 @@ export const deletarCacheMataMata = async (req, res) => {
 // 🔒 FUNÇÃO PARA CONSOLIDAÇÃO DE SNAPSHOTS
 // ============================================================================
 
-export const obterConfrontosMataMata = async (ligaId, rodadaNumero) => {
+export const obterConfrontosMataMata = async (ligaId, rodadaNumero, temporada = CURRENT_SEASON) => {
     try {
-        console.log(`[MATA-CONSOLIDAÇÃO] Processando liga ${ligaId} até R${rodadaNumero}`);
-        
-        // Buscar todos os caches de Mata-Mata desta liga
-        const caches = await MataMataCache.find({ liga_id: ligaId }).sort({ edicao: 1 });
+        console.log(`[MATA-CONSOLIDAÇÃO] Processando liga ${ligaId} até R${rodadaNumero}, temporada ${temporada}`);
+
+        // Buscar caches APENAS da temporada especificada
+        const caches = await MataMataCache.find({
+            liga_id: ligaId,
+            temporada: temporada
+        }).sort({ edicao: 1 });
         
         if (caches.length === 0) {
             console.log('[MATA-CONSOLIDAÇÃO] Nenhum cache encontrado');

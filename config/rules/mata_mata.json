@@ -82,6 +82,34 @@
           "semis": 34,
           "final": 35
         }
+      },
+      {
+        "id": 6,
+        "nome": "6ª Edição",
+        "rodadaInicial": 27,
+        "rodadaFinal": 31,
+        "rodadaDefinicao": 26,
+        "fases": {
+          "primeira": 27,
+          "oitavas": 28,
+          "quartas": 29,
+          "semis": 30,
+          "final": 31
+        }
+      },
+      {
+        "id": 7,
+        "nome": "7ª Edição",
+        "rodadaInicial": 36,
+        "rodadaFinal": 38,
+        "rodadaDefinicao": 35,
+        "fases": {
+          "primeira": 36,
+          "oitavas": 37,
+          "quartas": 37,
+          "semis": 38,
+          "final": 38
+        }
       }
     ]
   },
