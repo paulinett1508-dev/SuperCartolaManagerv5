@@ -119,8 +119,10 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
             // ✅ v5.1: Salvar no IndexedDB para próxima visita
             if (window.OfflineCache) {
                 try {
-                    await window.OfflineCache.set('pontosCorridos', estadoPC.ligaId, dados);
-                    if (window.Log) Log.info("[PONTOS-CORRIDOS] 💾 Cache IndexedDB atualizado");
+                    // ✅ AUDIT-FIX: Chave composta ligaId:temporada
+                    const cacheKey = `${estadoPC.ligaId}:${estadoPC.temporada}`;
+                    await window.OfflineCache.set('pontosCorridos', cacheKey, dados);
+                    if (window.Log) Log.info(`[PONTOS-CORRIDOS] 💾 Cache IndexedDB atualizado (T${estadoPC.temporada})`);
                 } catch (e) {
                     if (window.Log) Log.warn("[PONTOS-CORRIDOS] ⚠️ Erro ao salvar cache:", e);
                 }
