@@ -170,7 +170,8 @@
                     descricao: 'Visualização da escalação no campo',
                     base: false,
                     backendId: 'campinho',
-                    status: 'planned'  // ✅ FIX CRIT-001: Módulo em desenvolvimento
+                    status: 'active',      // ✅ Módulo FUNCIONA no participante
+                    hasWizard: false       // ⚠️ Sem wizard de configuração (usa defaults)
                 },
                 dicas: {
                     icon: 'lightbulb',
@@ -296,6 +297,7 @@
                                     ${config.titulo}
                                     ${config.base ? '<span class="badge-base">Base</span>' : ''}
                                     ${config.status === 'planned' ? '<span class="badge-planned" style="background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-left: 6px;">Em Breve</span>' : ''}
+                                    ${config.hasWizard === false && !config.base ? '<span class="badge-no-config" style="background: #6b7280; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-left: 6px;">Sem Config</span>' : ''}
                                 </span>
                             </div>
                             <label class="toggle-switch" onclick="event.stopPropagation();">
@@ -310,6 +312,7 @@
                             ${config.descricao}
                             ${config.base ? ' <span class="badge-always-active" style="color:#22c55e; font-weight: 600;">✓ Sempre Ativo</span>' : ''}
                             ${config.status === 'planned' ? '<br><small style="color: #60a5fa; font-size: 0.75rem; margin-top: 4px; display: inline-block;">🚀 Módulo em desenvolvimento</small>' : ''}
+                            ${config.hasWizard === false && !config.base ? '<br><small style="color: #9ca3af; font-size: 0.75rem; margin-top: 4px; display: inline-block;">⚙️ Usa configurações padrão</small>' : ''}
                         </div>
                     `;
 
@@ -323,14 +326,15 @@
                         });
                     }
 
-                    // ✅ FIX CRIT-001: Evento de clique apenas para módulos disponíveis
-                    if (config.status !== 'planned' && config.status !== 'deprecated') {
-                        card.addEventListener('click', () => onCardClick(key));
-                        card.style.cursor = 'pointer';
-                    } else {
+                    // ✅ FIX CRIT-001: Evento de clique baseado em status e hasWizard
+                    if (config.status === 'planned' || config.status === 'deprecated') {
                         // Módulos planejados/deprecated não são clicáveis
                         card.style.cursor = 'not-allowed';
                         card.style.opacity = '0.7';
+                    } else {
+                        // Módulos ativos são clicáveis (mesmo sem wizard, para mostrar aviso)
+                        card.addEventListener('click', () => onCardClick(key));
+                        card.style.cursor = 'pointer';
                     }
 
                     if (config.base) {
@@ -421,6 +425,12 @@
 
                 if (config.status === 'deprecated') {
                     showMessage('⚠️ Este módulo foi descontinuado', 'warning');
+                    return;
+                }
+
+                // ✅ Verificar se módulo tem wizard de configuração
+                if (config.hasWizard === false) {
+                    showMessage('ℹ️ Este módulo funciona com configurações padrão. Use o toggle para ativar/desativar.', 'info');
                     return;
                 }
 
