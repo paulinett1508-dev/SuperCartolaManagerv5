@@ -7,10 +7,28 @@
 
 ## 🔥 PRÓXIMA SESSÃO - EXECUTAR IMEDIATAMENTE
 
-### [IMPL-028] Implementar Sistema de Avisos e Notificações
-**Comando:** `/code .claude/docs/SPEC-sistema-avisos-notificacoes.md`
-**Prioridade:** CRÍTICA
-**Descrição:** Implementar o sistema completo de avisos e notificações conforme especificação completa.
+### ~~[IMPL-028] Sistema de Avisos e Notificações~~ ✅ IMPLEMENTADO (2026-02-04)
+
+**Status:** Implementado e commitado
+**Branch:** `feat/sistema-avisos-notificacoes`
+**Commit:** `fb5e4ff`
+
+**Entregues:**
+- ✅ Backend completo (2 controllers, 2 routes)
+- ✅ Interface admin (notificador.html + notificador-management.js)
+- ✅ Interface participante (cards scroll horizontal)
+- ✅ Índices MongoDB otimizados
+- ✅ Multi-tenant seguro
+- ✅ TTL automático para expiração
+
+**Testes Pendentes:**
+- [ ] Testar CRUD admin completo
+- [ ] Validar publicação admin → participante
+- [ ] Verificar marcação como lido
+- [ ] Testar segmentação (global/liga/participante)
+- [ ] Validar scroll horizontal mobile
+
+**Próximo Passo:** Testar em produção e ajustar UX conforme feedback
 
 ---
 
