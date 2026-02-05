@@ -107,7 +107,7 @@ async function detectarEstadoTemporada() {
         }
 
         // Fallback: verificar via status do mercado
-        const response = await fetch('/api/mercado/status');
+        const response = await fetch('/api/cartola/mercado/status');
         if (response.ok) {
             const data = await response.json();
             const rodada = data.rodada_atual || 1;
