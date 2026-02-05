@@ -156,7 +156,16 @@
       "Bash(git restore:*)",
       "Bash(git check-ignore:*)",
       "Bash(do sleep 1 if curl -s http://localhost:3000/health)",
-      "Bash(then echo \"✅ Servidor respondeu após $is\" break fi echo \"Tentativa $i/20...\" done)"
+      "Bash(then echo \"✅ Servidor respondeu após $is\" break fi echo \"Tentativa $i/20...\" done)",
+      "WebFetch(domain:localhost)",
+      "Bash(then echo 'OK after $is' break fi done curl -s http://localhost:5000/api/cartola/mercado/status)",
+      "Bash(git -C /home/runner/workspace log --oneline --all --grep=pontos -- *pontos*)",
+      "Bash(git -C /home/runner/workspace diff --name-only HEAD~5..HEAD)",
+      "Bash(git -C /home/runner/workspace log -5 --oneline)",
+      "Bash(git -C /home/runner/workspace show --stat 9bd6832)",
+      "Bash(git -C /home/runner/workspace log --all --oneline --graph -- '*pontos*')",
+      "Bash(git -C /home/runner/workspace log -1 --format=\"%H %ai\" -- public/js/pontos-corridos/pontos-corridos-*.js)",
+      "Bash(git -C /home/runner/workspace log -1 --format=\"%H %ai\" -- public/participante/js/modules/participante-pontos-corridos.js)"
     ]
   },
   "enableAllProjectMcpServers": true,
