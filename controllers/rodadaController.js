@@ -340,9 +340,10 @@ async function processarRodada(
           atleta_id: a.atleta_id,
           apelido: a.apelido,
           posicao_id: a.posicao_id,
-          clube_id: a.clube?.id || a.clube_id,
+          clube_id: a.clube?.id || a.clube_id || null,
           pontos_num: a.pontos_num || 0,
           status_id: a.status_id || 0,
+          foto: a.foto || null,
         }));
 
         dadosRodada.push({

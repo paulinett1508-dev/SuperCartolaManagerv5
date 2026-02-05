@@ -446,6 +446,26 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
     const capitaoId = meuPart.capitao_id;
     const reservaLuxoId = meuPart.reserva_luxo_id;
 
+    // 🔍 DEBUG: Log atletas sem clube_id
+    const semClube = atletas.filter(a => !a.clube_id && !extrairClubeIdDaFoto(a.foto));
+    if (semClube.length > 0 && window.Log) {
+        Log.warn('[RODADAS] Atletas sem clube_id:', semClube.map(a => ({
+            id: a.atleta_id,
+            nome: a.apelido,
+            posicao: a.posicao_id,
+            foto: a.foto
+        })));
+    }
+
+    // Normalizar campo de pontos (pode ser pontos, pontos_num ou pontos_efetivos)
+    atletas.forEach(a => {
+        if (a.pontos_num === undefined && a.pontos !== undefined) {
+            a.pontos_num = a.pontos;
+        } else if (a.pontos_num === undefined && a.pontos_efetivos !== undefined) {
+            a.pontos_num = a.pontos_efetivos;
+        }
+    });
+
     // Separar titulares e reservas
     const titulares = atletas.filter(a => a.status_id !== 2);
     const reservas = atletas.filter(a => a.status_id === 2);
@@ -546,25 +566,39 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
                 <div class="me-campo">
                     <div class="me-campo-gol-area"></div>
                     <!-- Goleiro -->
-                    <div class="me-campo-linha" style="margin-top: 48px;">
+                    <div class="me-campo-linha" style="margin-top: 40px; margin-bottom: 10px;">
                         ${grupos.goleiros.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
                     </div>
-                    <!-- Defensores (LAT + ZAG) -->
-                    <div class="me-campo-linha">
-                        ${grupos.defensores.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
+                    <!-- Laterais -->
+                    ${grupos.laterais.length > 0 ? `
+                    <div class="me-campo-linha" style="margin-bottom: 8px;">
+                        ${grupos.laterais.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
                     </div>
+                    ` : ''}
+                    <!-- Zagueiros -->
+                    ${grupos.zagueiros.length > 0 ? `
+                    <div class="me-campo-linha" style="margin-bottom: 10px;">
+                        ${grupos.zagueiros.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
+                    </div>
+                    ` : ''}
                     <!-- Meias -->
-                    <div class="me-campo-linha">
+                    ${grupos.meias.length > 0 ? `
+                    <div class="me-campo-linha" style="margin-bottom: 10px;">
                         ${grupos.meias.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
                     </div>
+                    ` : ''}
                     <!-- Atacantes -->
-                    <div class="me-campo-linha">
+                    ${grupos.atacantes.length > 0 ? `
+                    <div class="me-campo-linha" style="margin-bottom: 10px;">
                         ${grupos.atacantes.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
                     </div>
+                    ` : ''}
                     <!-- Técnico -->
-                    <div class="me-campo-linha" style="margin-bottom: 8px;">
+                    ${grupos.tecnicos.length > 0 ? `
+                    <div class="me-campo-linha" style="margin-bottom: 6px;">
                         ${grupos.tecnicos.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
                     </div>
+                    ` : ''}
                 </div>
 
                 <!-- Legenda de posições -->
@@ -644,6 +678,21 @@ function renderDestaques(capitao, melhor, pior, capitaoId) {
     `;
 }
 
+// Helper para extrair clube_id da foto do atleta (fallback)
+function extrairClubeIdDaFoto(foto) {
+    if (!foto) return null;
+    // Foto formato: https://s.sde.globo.com/media/organizations/2024/04/11/ESCUDO.png
+    // ou: https://s3.glbimg.com/v1/AUTH_.../escudos/65x65/CLUBE_ID.png
+    const match = foto.match(/\/escudos\/\d+x\d+\/(\d+)\.png/);
+    if (match) return parseInt(match[1]);
+    
+    // Outro formato possível
+    const match2 = foto.match(/clube[_-]?(\d+)/i);
+    if (match2) return parseInt(match2[1]);
+    
+    return null;
+}
+
 // Renderizar jogador posicionado no campo
 function renderJogadorCampo(atleta, capitaoId, reservaLuxoId) {
     const pos = POSICOES_CARTOLA[atleta.posicao_id] || { nome: '???', slug: 'tec' };
@@ -655,7 +704,8 @@ function renderJogadorCampo(atleta, capitaoId, reservaLuxoId) {
     const isMito = pontosNum > MITO_JOGADOR;
     const isMico = pontosNum < MICO_JOGADOR;
 
-    const clubeId = atleta.clube_id;
+    // ✅ Melhorar obtenção do clube_id com múltiplos fallbacks
+    const clubeId = atleta.clube_id || extrairClubeIdDaFoto(atleta.foto) || null;
     const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
     const nome = atleta.apelido || 'Atleta';
     const nomeAbrev = nome.length > 9 ? nome.substring(0, 8) + '.' : nome;
@@ -695,7 +745,8 @@ function renderReservaCard(atleta, capitaoId, reservaLuxoId) {
     const entrouEmCampo = pontosNum !== 0;
     const naoEntrou = pontosNum === 0;
 
-    const clubeId = atleta.clube_id;
+    // ✅ Melhorar obtenção do clube_id com múltiplos fallbacks
+    const clubeId = atleta.clube_id || extrairClubeIdDaFoto(atleta.foto) || null;
     const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
     const nome = atleta.apelido || 'Atleta';
     const nomeAbrev = nome.length > 9 ? nome.substring(0, 8) + '.' : nome;
@@ -1084,10 +1135,12 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
             ? '<div class="mico-icon-row"><span class="material-icons">trending_down</span> PIOR DA RODADA</div>'
             : '';
 
-        // Em campo badge for parciais (show only titulares count, not reserves)
+        // Em campo badge for parciais - mostrar escalados + jogando ao vivo
         const titularesTotal = 12;
-        const emCampoInfo = isParcial && meuPart.totalAtletas > 0
-            ? `<span style="margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:${meuPart.atletasEmCampo > 0 ? '#22c55e' : '#6b7280'}">${Math.min(meuPart.atletasEmCampo, titularesTotal)}/${titularesTotal} em campo</span>`
+        const escalados = meuPart.atletas ? meuPart.atletas.filter(a => !a.is_reserva).length : 0;
+        const jogandoAoVivo = meuPart.atletas ? meuPart.atletas.filter(a => !a.is_reserva && a.entrou_em_campo).length : 0;
+        const emCampoInfo = isParcial && escalados > 0
+            ? `<span style="margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#9ca3af">${escalados}/12 <span style="color:#22c55e;font-weight:600;font-size:10px;margin-left:2px">${jogandoAoVivo}</span></span>`
             : '';
 
         meuResumoHTML = `
@@ -1144,10 +1197,11 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         // ✅ v6.0: Badge de zona (MITO, G2-G12, Z1-Z11, MICO)
         const zonaBadge = !isParcial ? calcularZonaLabel(posicao, totalParticipantes, valorFinanceiro) : '';
 
-        // ✅ v3.0: Badge "X/12 em campo" (titulares only, excludes reserves)
-        const emCampo = participante.atletasEmCampo || 0;
-        const badgeEmCampo = isParcial
-            ? `<span class="badge-em-campo ${emCampo > 0 ? 'ativo' : ''}">${Math.min(emCampo, 12)}/12</span>`
+        // ✅ Badge "X/12 em campo" - mostrar escalados + jogando ao vivo
+        const escalados = participante.atletas ? participante.atletas.filter(a => !a.is_reserva).length : 0;
+        const jogandoAoVivo = participante.atletas ? participante.atletas.filter(a => !a.is_reserva && a.entrou_em_campo).length : 0;
+        const badgeEmCampo = isParcial && escalados > 0
+            ? `<span class="badge-em-campo ${jogandoAoVivo > 0 ? 'ativo' : ''}">${escalados}/12 <span style="color:#22c55e;font-weight:600;font-size:9px;margin-left:2px">${jogandoAoVivo}</span></span>`
             : "";
 
         const curiosarAttr = isParcial && !participante.rodadaNaoJogada

@@ -32,7 +32,7 @@
 
 .rodadas-participante-container {
     padding: 16px;
-    padding-bottom: 100px;
+    padding-bottom: 180px;
     font-family: var(--rodadas-font-body);
 }
 
@@ -1096,22 +1096,22 @@
 .me-campo {
     position: relative;
     margin: 0 12px;
-    padding: 18px 8px 14px;
+    padding: 16px 8px;
     border-radius: 14px;
-    min-height: 320px;
+    min-height: 380px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    gap: 2px;
+    justify-content: flex-start;
+    gap: 0;
 
     /* Gramado */
     background:
         repeating-linear-gradient(
             0deg,
             transparent,
-            transparent 22px,
-            rgba(34, 197, 94, 0.04) 22px,
-            rgba(34, 197, 94, 0.04) 44px
+            transparent 20px,
+            rgba(34, 197, 94, 0.05) 20px,
+            rgba(34, 197, 94, 0.05) 40px
         ),
         linear-gradient(180deg, #0d2818 0%, #0a1f14 50%, #071510 100%);
 
@@ -1189,10 +1189,12 @@
     display: flex;
     flex-wrap: nowrap;
     justify-content: center;
-    gap: 4px;
+    align-items: center;
+    gap: 6px;
     position: relative;
     z-index: 2;
-    padding: 0 4px;
+    padding: 0 6px;
+    min-height: 52px;
 }
 
 /* Jogador individual no campo */
@@ -1200,9 +1202,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 48px;
-    max-width: 62px;
-    flex: 1;
+    justify-content: flex-start;
+    min-width: 52px;
+    max-width: 68px;
+    flex: 1 1 auto;
     animation: me-jogador-in 0.4s ease forwards;
     opacity: 0;
 }
@@ -1359,54 +1362,97 @@
 
 /* Seção Banco de Reservas */
 .me-banco-section {
-    border-top: 1px solid var(--rodadas-border);
-    padding: 8px 12px 12px;
+    border-top: 2px solid var(--rodadas-border);
+    padding: 12px 12px 12px;
+    background: linear-gradient(180deg, var(--rodadas-surface) 0%, var(--rodadas-surface-elevated) 100%);
+    margin-top: 8px;
 }
 
 .me-banco-titulo {
     font-size: 11px;
-    color: var(--rodadas-text-dim);
+    color: var(--rodadas-text-white);
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.5px;
-    padding: 4px 4px 8px;
+    padding: 0 4px 10px;
     display: flex;
     align-items: center;
     gap: 6px;
 }
 
 .me-banco-titulo .material-icons {
-    font-size: 14px;
+    font-size: 16px;
+    color: var(--rodadas-primary);
 }
 
 .me-banco-scroll {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: none;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rodadas-border) transparent;
 }
 
 .me-banco-scroll::-webkit-scrollbar {
-    display: none;
+    height: 4px;
+}
+
+.me-banco-scroll::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+}
+
+.me-banco-scroll::-webkit-scrollbar-thumb {
+    background: var(--rodadas-border);
+    border-radius: 2px;
 }
 
 .me-banco-jogador {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
-    min-width: 54px;
+    gap: 4px;
+    min-width: 62px;
     flex-shrink: 0;
+    padding: 8px;
+    background: var(--rodadas-surface-elevated);
+    border-radius: 10px;
+    border: 1px solid var(--rodadas-border);
+    transition: all 0.2s;
+}
+
+.me-banco-jogador:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.me-banco-jogador {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 62px;
+    flex-shrink: 0;
+    padding: 8px;
+    background: var(--rodadas-surface-elevated);
+    border-radius: 10px;
+    border: 1px solid var(--rodadas-border);
+    transition: all 0.2s;
+}
+
+.me-banco-jogador:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .me-banco-jogador.nao-entrou {
-    opacity: 0.4;
+    opacity: 0.5;
 }
 
 .me-banco-avatar {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1423,9 +1469,10 @@
 
 .me-banco-nome {
     font-size: 9px;
-    color: var(--rodadas-text-muted);
+    font-weight: 600;
+    color: var(--rodadas-text-white);
     text-align: center;
-    max-width: 54px;
+    max-width: 60px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1440,6 +1487,37 @@
 .me-banco-pts.positivo { color: var(--rodadas-success); }
 .me-banco-pts.negativo { color: var(--rodadas-danger); }
 .me-banco-pts.neutro { color: var(--rodadas-text-dim); }
+
+/* Badge "em campo" - melhoria visual */
+.badge-em-campo {
+    font-family: var(--rodadas-font-mono);
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 5px;
+    background: rgba(107, 114, 128, 0.2);
+    color: #6b7280;
+    margin-left: 6px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    vertical-align: middle;
+}
+
+.badge-em-campo.ativo {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    animation: pulseEmCampo 2s infinite;
+}
+
+.badge-em-campo-sub {
+    display: inline-flex;
+    align-items: center;
+    font-size: 9px;
+    color: #22c55e;
+    margin-left: 4px;
+    font-weight: 600;
+}
 
 /* Badge "entrou em campo" para reserva */
 .me-banco-badge-entrou {

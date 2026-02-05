@@ -165,6 +165,32 @@ export async function buscarRankingParcial(ligaId) {
         const participantesAtivos = liga.participantes.filter(p => p.ativo !== false);
         console.log(`${LOG_PREFIX} Processando ${participantesAtivos.length} participantes ativos`);
 
+        // ✅ v1.1: Buscar pontos acumulados das rodadas anteriores (1 até rodadaAtual-1)
+        const Rodada = (await import("../models/Rodada.js")).default;
+        const pontosAcumulados = {};
+
+        if (rodadaAtual > 1) {
+            console.log(`${LOG_PREFIX} 🔍 Buscando pontos acumulados das rodadas 1 a ${rodadaAtual - 1}...`);
+            const rodadasAnteriores = await Rodada.find({
+                ligaId: ligaObjectId,
+                rodada: { $gte: 1, $lt: rodadaAtual },
+            }).lean();
+
+            // Agrupar por timeId e somar pontos
+            rodadasAnteriores.forEach((registro) => {
+                const pontos = registro.rodadaNaoJogada ? 0 : registro.pontos || 0;
+                if (!pontosAcumulados[registro.timeId]) {
+                    pontosAcumulados[registro.timeId] = 0;
+                }
+                pontosAcumulados[registro.timeId] += pontos;
+            });
+
+            const numTimesComHistorico = Object.keys(pontosAcumulados).length;
+            console.log(`${LOG_PREFIX} 📊 Pontos acumulados de ${numTimesComHistorico} times nas rodadas anteriores`);
+        } else {
+            console.log(`${LOG_PREFIX} ℹ️ Rodada 1 - sem pontos acumulados`);
+        }
+
         // 4. Buscar escalação e calcular pontos de cada time
         const resultados = [];
 
@@ -177,13 +203,19 @@ export async function buscarRankingParcial(ligaId) {
                 const escalacao = await buscarEscalacaoTime(participante.time_id, rodadaAtual);
                 const { pontos, calculado } = calcularPontuacaoTime(escalacao, atletasPontuados);
 
+                // ✅ v1.1: Somar com pontos acumulados das rodadas anteriores
+                const pontosAnteriores = pontosAcumulados[participante.time_id] || 0;
+                const pontosTotais = pontosAnteriores + pontos;
+
                 return {
                     timeId: participante.time_id,
                     nome_time: escalacao?.time?.nome || participante.nome_time || "N/D",
                     nome_cartola: escalacao?.time?.nome_cartola || participante.nome_cartola || "N/D",
                     escudo: escalacao?.time?.url_escudo_png || participante.foto_time || "",
                     clube_id: escalacao?.time?.time_id || participante.clube_id,
-                    pontos: parseFloat(pontos.toFixed(2)),
+                    pontos: parseFloat(pontosTotais.toFixed(2)), // ✅ Pontos totais (acumulado + parcial)
+                    pontos_rodada_atual: parseFloat(pontos.toFixed(2)), // Pontos apenas da rodada atual
+                    pontos_acumulados: parseFloat(pontosAnteriores.toFixed(2)), // Pontos das rodadas anteriores
                     escalou: calculado,
                     ativo: participante.ativo !== false,
                 };
