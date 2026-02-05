@@ -59,7 +59,7 @@ Documentos técnicos de **arquitetura**, **design** e **decisões técnicas** do
 ### "Quero criar um novo módulo"
 1. `ARQUITETURA-MODULOS.md` - Entender estrutura
 2. `modules-registry.json` - Ver módulos existentes
-3. `/docs/skills/04-project-specific/module-auditor.md` - Skill de auditoria
+3. `/docs/skills/04-project-specific/AUDITOR-MODULE.md` - Skill de auditoria
 
 ### "Preciso integrar com Cartola FC"
 1. `API-CARTOLA-ESTADOS.md` - Estados possíveis

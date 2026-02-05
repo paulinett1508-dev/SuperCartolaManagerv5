@@ -35,7 +35,8 @@ docs/
 │   ├── 04-project-specific/           # ⚽ Específicas Super Cartola
 │   │   ├── cartola-api.md             #    Base API Cartola FC
 │   │   ├── cartola-api-references/    #    Docs de referência
-│   │   ├── module-auditor.md          #    Auditoria de módulos
+│   │   ├── AUDITOR-MODULE.md          #    Auditoria de módulos
+│   │   ├── cache-auditor.md           #    Auditoria de cache (3 ambientes)
 │   │   └── analise-branches.md        #    Análise de branches Git
 │   │
 │   └── 05-meta/                       # 🎓 Skills sobre Skills
@@ -97,7 +98,7 @@ docs/
 │   └── competitions/                  #    Formatos de disputa
 │
 ├── 📂 auditorias/                     # 🔬 Auditorias de Módulos
-│   └── (auditorias detalhadas usando module-auditor)
+│   └── (auditorias detalhadas usando auditor-module)
 │
 └── 📂 archives/                       # 📦 Documentos Históricos
     ├── 2025/                          #    Arquivos de 2025

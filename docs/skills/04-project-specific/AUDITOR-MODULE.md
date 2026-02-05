@@ -1,6 +1,6 @@
-# SKILL: Module Auditor (Auditor de Módulos)
+# SKILL: Auditor Module (Auditor de Módulos)
 
-## 📋 Visão Geral
+## Visão Geral
 
 Sistema inteligente e **agnóstico de IA** para auditoria automatizada de módulos do Super Cartola Manager. Valida conformidade com padrões de **segurança**, **UI/UX**, **performance**, **financeiro** e **regras de negócio**.
 
@@ -8,7 +8,7 @@ Sistema inteligente e **agnóstico de IA** para auditoria automatizada de módul
 
 ---
 
-## 🎯 Objetivos
+## Objetivos
 
 1. **Detectar problemas** antes de chegarem à produção
 2. **Garantir consistência** entre módulos
@@ -18,25 +18,26 @@ Sistema inteligente e **agnóstico de IA** para auditoria automatizada de módul
 
 ---
 
-## 🏗️ Arquitetura
+## Arquitetura
 
 ```
 docs/
-├── SKILL-MODULE-AUDITOR.md        # Esta skill (orquestrador)
-├── modules-registry.json          # Catálogo de módulos
+├── skills/04-project-specific/
+│   └── AUDITOR-MODULE.md             # Esta skill (orquestrador)
+├── modules-registry.json             # Catálogo de módulos
 ├── rules/
-│   ├── audit-financial.md         # Checklist financeiro
-│   ├── audit-ui.md                # Checklist UI/UX
-│   ├── audit-security.md          # Checklist segurança
-│   ├── audit-business.md          # Checklist regras de negócio
-│   └── audit-performance.md       # Checklist performance
+│   ├── audit-financial.md            # Checklist financeiro
+│   ├── audit-ui.md                   # Checklist UI/UX
+│   ├── audit-security.md            # Checklist segurança
+│   ├── audit-business.md            # Checklist regras de negócio
+│   └── audit-performance.md         # Checklist performance
 └── auditorias/
-    └── [relatórios gerados]       # Ex: AUDITORIA-TOP10-2026-02-04.md
+    └── [relatórios gerados]          # Ex: AUDITORIA-TOP10-2026-02-04.md
 ```
 
 ### Por que Skill Única?
 
-| ✅ Vantagem | ❌ Skills Individuais |
+| Vantagem | Skills Individuais |
 |------------|----------------------|
 | 1 arquivo central | 15+ arquivos duplicados |
 | Regras uniformes | Divergências inevitáveis |
@@ -46,19 +47,19 @@ docs/
 
 ---
 
-## 📚 Types de Auditoria
+## Types de Auditoria
 
 ### 1. **Financial** (Financeiro)
 **Quando aplicar:** Módulos com transações monetárias (Artilheiro, Luva de Ouro, Inscrições)
 
 **Verifica:**
-- ✅ Idempotência (previne cobrança duplicada)
-- ✅ Registro no `extratofinanceiro`
-- ✅ Validação de sessão (`req.session.usuario`)
-- ✅ Operações atômicas MongoDB
-- ✅ Auditoria "Follow the Money"
+- Idempotência (previne cobrança duplicada)
+- Registro no `extratofinanceiro`
+- Validação de sessão (`req.session.usuario`)
+- Operações atômicas MongoDB
+- Auditoria "Follow the Money"
 
-**Severidade:** 🔴 CRÍTICA (bugs financeiros = perda de confiança)
+**Severidade:** CRÍTICA (bugs financeiros = perda de confiança)
 
 ---
 
@@ -66,13 +67,13 @@ docs/
 **Quando aplicar:** Todos módulos com interface visual
 
 **Verifica:**
-- ✅ Dark Mode obrigatório (`bg-gray-900`)
-- ✅ Tipografia (Russo One, Inter, JetBrains Mono)
-- ✅ Cores por variáveis CSS (não hardcode `#22c55e`)
-- ✅ Responsividade mobile
-- ✅ Estados visuais (loading, error, empty)
+- Dark Mode obrigatório (`bg-gray-900`)
+- Tipografia (Russo One, Inter, JetBrains Mono)
+- Cores por variáveis CSS (não hardcode `#22c55e`)
+- Responsividade mobile
+- Estados visuais (loading, error, empty)
 
-**Severidade:** 🟠 ALTA (UX ruim = usuários abandonam)
+**Severidade:** ALTA (UX ruim = usuários abandonam)
 
 ---
 
@@ -80,13 +81,13 @@ docs/
 **Quando aplicar:** TODOS módulos (mandatory)
 
 **Verifica:**
-- ✅ OWASP Top 10 compliance
-- ✅ NoSQL injection prevention
-- ✅ XSS protection (`textContent` vs `innerHTML`)
-- ✅ Rate limiting em endpoints críticos
-- ✅ Validação de entrada (whitelist)
+- OWASP Top 10 compliance
+- NoSQL injection prevention
+- XSS protection (`textContent` vs `innerHTML`)
+- Rate limiting em endpoints críticos
+- Validação de entrada (whitelist)
 
-**Severidade:** 🔴 CRÍTICA (segurança compromete todo sistema)
+**Severidade:** CRÍTICA (segurança compromete todo sistema)
 
 ---
 
@@ -94,13 +95,13 @@ docs/
 **Quando aplicar:** Todos módulos
 
 **Verifica:**
-- ✅ Respeita `modulos_ativos` da liga
-- ✅ Filtra por `temporada`
-- ✅ Trata pré-temporada corretamente
-- ✅ Valida participantes ativos
-- ✅ Usa `ligarules` (não hardcode)
+- Respeita `modulos_ativos` da liga
+- Filtra por `temporada`
+- Trata pré-temporada corretamente
+- Valida participantes ativos
+- Usa `ligarules` (não hardcode)
 
-**Severidade:** 🟠 ALTA (bugs de negócio = resultados incorretos)
+**Severidade:** ALTA (bugs de negócio = resultados incorretos)
 
 ---
 
@@ -108,62 +109,62 @@ docs/
 **Quando aplicar:** Módulos com queries pesadas ou listas longas
 
 **Verifica:**
-- ✅ Queries têm índices MongoDB
-- ✅ Usa cache estratégico
-- ✅ Evita N+1 queries
-- ✅ Paginação em listas longas
-- ✅ `Promise.all()` para requisições paralelas
+- Queries têm índices MongoDB
+- Usa cache estratégico
+- Evita N+1 queries
+- Paginação em listas longas
+- `Promise.all()` para requisições paralelas
 
-**Severidade:** 🟡 MÉDIA (performance ruim = UX prejudicada)
+**Severidade:** MÉDIA (performance ruim = UX prejudicada)
 
 ---
 
-## 🚀 Como Usar
+## Como Usar
 
 ### Sintaxe
 
 ```bash
 # Auditoria completa (todas rules aplicáveis)
-/module-auditor <nome-modulo>
+/auditor-module <nome-modulo>
 
 # Auditoria específica
-/module-auditor <nome-modulo> --<tipo-audit>
+/auditor-module <nome-modulo> --<tipo-audit>
 
 # Comparar dois módulos
-/module-auditor compare <modulo1> <modulo2>
+/auditor-module compare <modulo1> <modulo2>
 
 # Auditar todos módulos de uma categoria
-/module-auditor --category <categoria>
+/auditor-module --category <categoria>
 
 # Gerar relatório detalhado
-/module-auditor <nome-modulo> --report
+/auditor-module <nome-modulo> --report
 ```
 
 ### Exemplos Práticos
 
 ```bash
 # Auditar Top 10 (todas rules aplicáveis)
-/module-auditor top10
+/auditor-module top10
 
 # Auditar Artilheiro apenas parte financeira
-/module-auditor artilheiro --financial
+/auditor-module artilheiro --financial
 
 # Auditar Luva de Ouro (UI + Security)
-/module-auditor luva-ouro --ui --security
+/auditor-module luva-ouro --ui --security
 
 # Comparar implementações
-/module-auditor compare artilheiro luva-ouro
+/auditor-module compare artilheiro luva-ouro
 
 # Auditar todos módulos de competição
-/module-auditor --category competition
+/auditor-module --category competition
 
 # Relatório completo com sugestões
-/module-auditor parciais --report
+/auditor-module parciais --report
 ```
 
 ---
 
-## 📖 Workflow de Auditoria
+## Workflow de Auditoria
 
 ### Passo 1: Identificar Módulo
 ```javascript
@@ -189,18 +190,18 @@ for (const rule of rules) {
 
 ### Passo 4: Gerar Relatório
 ```markdown
-# 📊 AUDITORIA: Top 10
+# AUDITORIA: Top 10
 **Data:** 04/02/2026
 **Módulo:** top10 (categoria: ranking)
 **Complexidade:** low
 
-## ✅ UI/UX: 8/10 checks passed
-- ✅ Dark mode aplicado
-- ✅ Tipografia correta
-- ⚠️  Falta variável CSS em badge (linha 45)
-- ❌ Sem responsividade em tabela (linha 78)
+## UI/UX: 8/10 checks passed
+- Dark mode aplicado
+- Tipografia correta
+- Falta variável CSS em badge (linha 45)
+- Sem responsividade em tabela (linha 78)
 
-## 🔧 Sugestões
+## Sugestões
 1. Linha 45: Trocar `#22c55e` por `var(--module-artilheiro-primary)`
 2. Linha 78: Adicionar classes `overflow-x-auto` e `md:overflow-visible`
 ```
@@ -212,7 +213,7 @@ docs/auditorias/AUDITORIA-TOP10-2026-02-04.md
 
 ---
 
-## 📊 Formato do Registry (`modules-registry.json`)
+## Formato do Registry (`modules-registry.json`)
 
 ```json
 {
@@ -220,9 +221,9 @@ docs/auditorias/AUDITORIA-TOP10-2026-02-04.md
     "name": "Nome Exibido",
     "category": "ranking | competition | financial | content | live | game",
     "description": "Breve descrição",
-    "hasFinancial": true | false,
-    "hasUI": true | false,
-    "hasAPI": true | false,
+    "hasFinancial": true,
+    "hasUI": true,
+    "hasAPI": true,
     "complexity": "low | medium | high | critical",
     "colorVar": "--module-*-primary",
     "colorHex": "#hexcolor",
@@ -251,19 +252,19 @@ docs/auditorias/AUDITORIA-TOP10-2026-02-04.md
 
 ---
 
-## 🎨 Formato das Rules (`docs/rules/audit-*.md`)
+## Formato das Rules (`docs/rules/audit-*.md`)
 
 Cada rule DEVE seguir este padrão:
 
 ```markdown
 # AUDIT RULE: <Nome> (<Tradução>)
 
-## 🎯 Objetivo
+## Objetivo
 Breve descrição do propósito desta auditoria.
 
 ---
 
-## ✅ Checklist de Auditoria
+## Checklist de Auditoria
 
 ### 1. **Item Principal**
 - [ ] Sub-check 1
@@ -276,15 +277,15 @@ Breve descrição do propósito desta auditoria.
 
 ---
 
-## 🚨 Red Flags Críticos
+## Red Flags Críticos
 
 | Problema | Severidade | Ação |
 |----------|-----------|------|
-| Descrição | 🔴/🟠/🟡 | Ação corretiva |
+| Descrição | CRÍTICO/ALTO/MÉDIO | Ação corretiva |
 
 ---
 
-## 📊 Exemplo Completo
+## Exemplo Completo
 \`\`\`javascript
 // Implementação de referência
 \`\`\`
@@ -297,18 +298,18 @@ Breve descrição do propósito desta auditoria.
 
 ---
 
-## 🚨 Severidades
+## Severidades
 
-| Emoji | Nível | Quando Usar | Ação |
-|-------|-------|-------------|------|
-| 🔴 | CRÍTICO | Segurança, financeiro, data loss | Bloquear merge |
-| 🟠 | ALTO | UX ruim, bugs funcionais | Corrigir antes de prod |
-| 🟡 | MÉDIO | Performance, code smell | Corrigir no sprint |
-| 🟢 | BAIXO | Nice to have, otimizações | Backlog |
+| Nível | Quando Usar | Ação |
+|-------|-------------|------|
+| CRÍTICO | Segurança, financeiro, data loss | Bloquear merge |
+| ALTO | UX ruim, bugs funcionais | Corrigir antes de prod |
+| MÉDIO | Performance, code smell | Corrigir no sprint |
+| BAIXO | Nice to have, otimizações | Backlog |
 
 ---
 
-## 📈 Métricas de Qualidade
+## Métricas de Qualidade
 
 ### Score de Conformidade
 ```
@@ -316,10 +317,10 @@ Score = (Checks Passed / Total Checks) * 100
 ```
 
 **Benchmarks:**
-- 🟢 **90-100%**: Excelente
-- 🟡 **70-89%**: Aceitável (revisar warnings)
-- 🟠 **50-69%**: Precisa melhorias
-- 🔴 **< 50%**: Crítico (não mergear)
+- **90-100%**: Excelente
+- **70-89%**: Aceitável (revisar warnings)
+- **50-69%**: Precisa melhorias
+- **< 50%**: Crítico (não mergear)
 
 ### Taxa de Cobertura de Auditorias
 ```
@@ -330,7 +331,7 @@ Cobertura = (Módulos Auditados / Total Módulos) * 100
 
 ---
 
-## 🔄 Quando Auditar
+## Quando Auditar
 
 ### 1. **Criação de Novo Módulo**
 Antes do primeiro merge, auditar completamente.
@@ -349,7 +350,7 @@ Validar correção + prevenir regressão.
 
 ---
 
-## 🛠️ Adicionar Novo Módulo ao Sistema
+## Adicionar Novo Módulo ao Sistema
 
 ### Passo 1: Adicionar ao Registry
 ```json
@@ -371,7 +372,7 @@ Validar correção + prevenir regressão.
 
 ### Passo 2: Executar Auditoria
 ```bash
-/module-auditor novo-modulo --report
+/auditor-module novo-modulo --report
 ```
 
 ### Passo 3: Corrigir Issues
@@ -379,7 +380,7 @@ Implementar sugestões do relatório.
 
 ### Passo 4: Re-auditar
 ```bash
-/module-auditor novo-modulo
+/auditor-module novo-modulo
 ```
 
 ### Passo 5: Documentar
@@ -387,44 +388,44 @@ Relatório final em `docs/auditorias/`.
 
 ---
 
-## 🤝 Agnóstico de IA
+## Agnóstico de IA
 
 Esta skill funciona com **qualquer assistente de IA**:
 
 ### Claude (Anthropic)
 ```
-/module-auditor top10
+/auditor-module top10
 ```
 
 ### ChatGPT (OpenAI)
 ```
-Por favor, execute a skill Module Auditor para o módulo top10
+Por favor, execute a skill Auditor Module para o módulo top10
 ```
 
 ### Gemini (Google)
 ```
-Audite o módulo top10 usando o Module Auditor
+Audite o módulo top10 usando o Auditor Module
 ```
 
 ### Cursor IDE
 ```
-@module-auditor analise artilheiro
+@auditor-module analise artilheiro
 ```
 
 ### Copilot (GitHub)
 ```
-#module-auditor security luva-ouro
+#auditor-module security luva-ouro
 ```
 
 **Requisito:** IA deve ter acesso ao contexto do projeto (CLAUDE.md, modules-registry.json, rules/).
 
 ---
 
-## 📚 Exemplos de Relatórios
+## Exemplos de Relatórios
 
 ### Relatório Completo
 ```markdown
-# 📊 AUDITORIA COMPLETA: Artilheiro Campeão
+# AUDITORIA COMPLETA: Artilheiro Campeão
 
 **Data:** 04/02/2026 15:30
 **Módulo:** artilheiro (categoria: competition)
@@ -433,60 +434,60 @@ Audite o módulo top10 usando o Module Auditor
 
 ---
 
-## 📋 Resumo Executivo
+## Resumo Executivo
 
 | Categoria | Score | Status |
 |-----------|-------|--------|
-| Financial | 10/10 | ✅ Aprovado |
-| UI/UX | 8/10 | ⚠️ Warnings |
-| Security | 9/10 | ⚠️ Warnings |
-| Business | 10/10 | ✅ Aprovado |
-| Performance | 7/10 | ⚠️ Melhorias |
+| Financial | 10/10 | Aprovado |
+| UI/UX | 8/10 | Warnings |
+| Security | 9/10 | Warnings |
+| Business | 10/10 | Aprovado |
+| Performance | 7/10 | Melhorias |
 
-**Score Geral:** 88/100 (🟡 Aceitável)
+**Score Geral:** 88/100 (Aceitável)
 
 ---
 
-## ✅ Financial: 10/10 checks passed
+## Financial: 10/10 checks passed
 
 ### Pontos Fortes
-- ✅ Idempotência implementada corretamente (linha 45)
-- ✅ Registro completo no extratofinanceiro
-- ✅ Validação de sessão presente
-- ✅ Operações atômicas (`findOneAndUpdate`)
+- Idempotência implementada corretamente (linha 45)
+- Registro completo no extratofinanceiro
+- Validação de sessão presente
+- Operações atômicas (`findOneAndUpdate`)
 
 ### Issues
 Nenhum issue crítico.
 
 ---
 
-## ⚠️ UI/UX: 8/10 checks passed
+## UI/UX: 8/10 checks passed
 
 ### Pontos Fortes
-- ✅ Dark mode aplicado
-- ✅ Tipografia Russo One em títulos
+- Dark mode aplicado
+- Tipografia Russo One em títulos
 
 ### Issues
-- 🟡 **Linha 156**: Cor hardcoded `#22c55e`
+- **Linha 156**: Cor hardcoded `#22c55e`
   - **Correção:** `background: var(--module-artilheiro-primary);`
-- 🟡 **Linha 203**: Sem responsividade em tabela
+- **Linha 203**: Sem responsividade em tabela
   - **Correção:** Adicionar `overflow-x-auto md:overflow-visible`
 
 ---
 
-## ⚠️ Security: 9/10 checks passed
+## Security: 9/10 checks passed
 
 ### Pontos Fortes
-- ✅ Autenticação validada
-- ✅ Inputs sanitizados
+- Autenticação validada
+- Inputs sanitizados
 
 ### Issues
-- 🟡 **Linha 89**: Falta rate limiting
+- **Linha 89**: Falta rate limiting
   - **Correção:** Adicionar `rateLimit` middleware
 
 ---
 
-## 🔧 Ações Recomendadas
+## Ações Recomendadas
 
 **Prioridade ALTA (antes de prod):**
 1. Adicionar rate limiting (security)
@@ -504,12 +505,12 @@ Nenhum issue crítico.
 
 ---
 
-## 🔗 Referências
+## Referências
 
 ### Documentação Interna
-- `CLAUDE.md` → Padrões gerais do projeto
-- `docs/SISTEMA-RENOVACAO-TEMPORADA.md` → Regras financeiras
-- `docs/ARQUITETURA-MODULOS.md` → Estrutura de módulos
+- `CLAUDE.md` - Padrões gerais do projeto
+- `docs/SISTEMA-RENOVACAO-TEMPORADA.md` - Regras financeiras
+- `docs/ARQUITETURA-MODULOS.md` - Estrutura de módulos
 
 ### Rules de Auditoria
 - `docs/rules/audit-financial.md`
@@ -519,11 +520,11 @@ Nenhum issue crítico.
 - `docs/rules/audit-performance.md`
 
 ### Registry
-- `docs/modules-registry.json` → Catálogo de módulos
+- `docs/modules-registry.json` - Catálogo de módulos
 
 ---
 
-## 🏆 Benefícios
+## Benefícios
 
 1. **Consistência**: Todos módulos seguem mesmos padrões
 2. **Qualidade**: Bugs detectados antes de produção
@@ -534,7 +535,7 @@ Nenhum issue crítico.
 
 ---
 
-**Última atualização:** 04/02/2026
-**Versão:** 1.0.0
+**Última atualização:** 05/02/2026
+**Versão:** 2.0.0
 **Autor:** Sistema Super Cartola Manager
 **Licença:** Uso interno do projeto

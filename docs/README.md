@@ -28,7 +28,7 @@ Agentes de IA especializados por função. Organizados em 5 categorias:
 | **01-core-workflow** | High Senior Protocol (Pesquisa → Spec → Code) | `workflow`, `pesquisa`, `spec`, `code` |
 | **02-specialists** | Especialistas técnicos | `code-inspector`, `db-guardian`, `frontend-crafter` |
 | **03-utilities** | Ferramentas auxiliares | `git-commit-push`, `fact-checker`, `ai-problems-detection` |
-| **04-project-specific** | Específicas do Super Cartola | `cartola-api`, `module-auditor` |
+| **04-project-specific** | Específicas do Super Cartola | `cartola-api`, `auditor-module`, `cache-auditor` |
 | **05-meta** | Skills sobre skills | `skill-creator`, `skill-installer` |
 
 **Ver:** [skills/README.md](./skills/README.md) para detalhes completos.
@@ -112,7 +112,7 @@ Exemplos: Fórmulas de cálculo, configurações de módulos, critérios de dese
 
 **Localização:** [`auditorias/`](./auditorias/)
 
-Auditorias profundas de implementação de módulos usando o **module-auditor**:
+Auditorias profundas de implementação de módulos usando o **auditor-module**:
 
 - Conformidade com `modules-registry.json`
 - Verificação de rotas, controllers, models

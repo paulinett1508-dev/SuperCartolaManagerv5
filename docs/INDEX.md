@@ -26,7 +26,7 @@
 - **Core Workflow:** workflow, pesquisa, spec, code
 - **Specialists:** code-inspector, db-guardian, frontend-crafter, league-architect, system-scribe
 - **Utilities:** ai-problems-detection, fact-checker, git-commit-push, Refactor-Monolith, replit-pull, restart-server, newsession
-- **Project-Specific:** cartola-api, module-auditor, analise-branches
+- **Project-Specific:** cartola-api, auditor-module, cache-auditor, analise-branches
 - **Meta:** skill-creator, skill-installer
 
 ### 📋 Specs - Especificações
@@ -89,7 +89,7 @@
 ```
 1. architecture/ARQUITETURA-MODULOS.md
 2. architecture/modules-registry.json
-3. skills/04-project-specific/module-auditor.md
+3. skills/04-project-specific/AUDITOR-MODULE.md
 ```
 
 ### Integrar API Externa

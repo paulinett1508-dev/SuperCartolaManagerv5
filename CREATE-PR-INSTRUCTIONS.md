@@ -31,13 +31,13 @@ Sincronizar branch `develop` com `main`, trazendo **30 commits** de melhorias, c
 ## 📦 Principais Mudanças
 
 ### 🆕 **Sistema de Auditoria Modular** (NOVO)
-- ✅ Skill Module Auditor agnóstica de IA
+- ✅ Skill Auditor Module agnóstica de IA
 - ✅ 5 Rules de auditoria (Financial, UI, Security, Business, Performance)
 - ✅ Catálogo de 13 módulos do sistema
 - ✅ Protótipo: Auditoria completa do Top10
 
 **Arquivos:**
-- `docs/SKILL-MODULE-AUDITOR.md`
+- `docs/skills/04-project-specific/AUDITOR-MODULE.md`
 - `docs/modules-registry.json`
 - `docs/rules/audit-*.md` (5 arquivos)
 
@@ -109,7 +109,7 @@ Sincronizar branch `develop` com `main`, trazendo **30 commits** de melhorias, c
 
 - `docs/auditorias/AUDITORIA-TOP10-PROTOTIPO-2026-02-04.md`
 - `docs/auditorias/AUDITORIA-GERENCIAR-MODULOS-BUG-EXTRATO-2026-02-04.md`
-- `docs/SKILL-MODULE-AUDITOR.md`
+- `docs/skills/04-project-specific/AUDITOR-MODULE.md`
 - `docs/WORKFLOW-CLAUDE-GITHUB-REPLIT.md`
 
 ---

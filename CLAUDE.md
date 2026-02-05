@@ -56,10 +56,12 @@ Cada módulo possui sua paleta de cores padronizada. **Sempre use variáveis CSS
 
 ## 🤖 Project Skills (Agentes Especializados)
 
-### Skills Auxiliares (12)
+### Skills Auxiliares (14)
 | Skill | Quando Usar |
 |-------|-------------|
 | **ai-problems-detection** | Antes de implementar: detectar overengineering, código duplicado, reinvenção da roda, falta de docs, arquivos monolíticos |
+| **auditor-module** | Auditoria completa de módulos (segurança, UI, financeiro, performance, negócio) |
+| **cache-auditor** | Auditoria de cache (3 modos: CACHE-APP --participante, CACHE-WEB --admin, CACHE-APP --admin) |
 | **cartola-api** | Consultar endpoints, schemas, scouts, autenticação da API oficial do Cartola FC |
 | **code-inspector** | "auditar código", "security review", "OWASP check" |
 | **db-guardian** | Scripts DB, limpeza, manutenção, snapshots |
@@ -127,6 +129,8 @@ Busca docs sempre atualizadas de frameworks/APIs (Mongoose, Express, MDN, OWASP)
 |---------|-----------|
 | `/analisar [jogador]` | Análise estratégica de jogadores Cartola |
 | `/audit-financa [nome]` | Auditoria financeira completa |
+| `/auditor-module [modulo]` | Auditoria de módulo (segurança, UI, financeiro, performance) |
+| `/cache-auditor [modo]` | Auditoria de cache (CACHE-APP --participante, CACHE-WEB --admin, CACHE-APP --admin) |
 | `/perplexity-search [termo]` | Pesquisa inteligente últimas 24-48h |
 | `/feature-scout [funcionalidade]` | Verifica se feature existe no código |
 | `/html-audit [arquivo]` | QA frontend - conformidade com padrões |

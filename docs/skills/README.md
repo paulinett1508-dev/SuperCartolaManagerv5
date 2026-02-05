@@ -72,7 +72,8 @@ Skills desenvolvidas especificamente para o Super Cartola Manager:
 | Skill | Função | Quando Usar |
 |-------|--------|-------------|
 | **cartola-api** | Base de conhecimento da API Cartola FC | Consultar endpoints, schemas, scouts, autenticação |
-| **module-auditor** | Auditoria de módulos do sistema | Validar implementação de novos módulos |
+| **auditor-module** | Auditoria de módulos do sistema | Validar implementação de novos módulos |
+| **cache-auditor** | Auditoria de cache (3 ambientes) | Detectar cache stale/morto, validar coerência, otimizar velocidade |
 | **analise-branches** | Análise de branches Git | Comparar branches, identificar divergências |
 
 ---
