@@ -303,9 +303,82 @@ export function getPosLabel(index, total, ligaId, rodada) {
   }
 }
 
+// HELPER PARA RENDERIZAR CARD (APP MODE)
+function renderizarCardApp(rank, index, posLabel, banco, isParcial = false) {
+  const escudoUrl = rank.clube_id
+    ? `/escudos/${rank.clube_id}.png`
+    : rank.escudo_url || '/img/escudo_default.png';
+
+  // Informações de Capitão (Mock ou Dados se disponíveis)
+  let captainName = "Capitão";
+  if (rank.atletas && rank.capitao_id) {
+     const cap = rank.atletas.find(a => a.atleta_id === rank.capitao_id);
+     if (cap) captainName = cap.apelido;
+  } else if (rank.capitao) {
+     captainName = rank.capitao;
+  }
+
+  // Jogadores jogaram
+  let playersPlayed = rank.jogadores_jogaram || 0;
+  if (!playersPlayed && rank.atletas) {
+      playersPlayed = rank.atletas.filter((a) => a.pontos_num !== 0).length;
+  }
+  const totalPlayers = 12;
+
+  // Pontuação
+  const scoreParcial = parseFloat(rank.pontos || 0).toFixed(2);
+  const scoreTotal = rank.totalPontos ? parseFloat(rank.totalPontos).toFixed(2) : null;
+  
+  // Patrimônio (se disponível)
+  const patrimonio = rank.patrimonio ? parseFloat(rank.patrimonio).toFixed(2) : null;
+
+  const bancoClass = banco > 0 ? "positive" : banco < 0 ? "negative" : "neutral";
+  const bancoSinal = banco > 0 ? "+" : "";
+  const bancoFormatted = banco.toFixed(2);
+  
+  // Variação de posição (simulada ou real)
+  const varPos = rank.variacao_posicao || 0;
+  let varPosIcon = '=';
+  let varPosClass = 'equal';
+  if(varPos > 0) { varPosIcon = '▲'; varPosClass = 'up'; }
+  if(varPos < 0) { varPosIcon = '▼'; varPosClass = 'down'; }
+
+  return `
+    <div class="ranking-card">
+      <div class="rc-pos">
+        <div class="rc-pos-num">${index + 1}</div>
+        <div class="rc-pos-idx ${varPosClass}">${varPosIcon}</div>
+      </div>
+      <img src="${escudoUrl}" class="rc-shield" onerror="this.src='/img/escudo_default.png'">
+      <div class="rc-team">
+        <div class="rc-info">
+          <div class="rc-team-name">${rank.nome_time || "Time Sem Nome"}</div>
+          <div class="rc-manager">${rank.nome_cartola || "Cartoleiro"}</div>
+          <div class="rc-captain">
+             <div class="rc-captain-icon">C</div> ${captainName}
+          </div>
+        </div>
+      </div>
+      <div class="rc-stats">
+        <div class="rc-score-box">
+           <div class="rc-score-main">${scoreParcial}</div>
+           ${scoreTotal ? `<div class="rc-score-total">Total: ${scoreTotal}</div>` : ''}
+        </div>
+        <div class="rc-finance-box">
+           ${patrimonio ? `<div class="rc-patrimony">$ ${patrimonio}</div>` : ''}
+           <div class="rc-variation ${bancoClass}">${bancoSinal}${bancoFormatted}</div>
+        </div>
+        <div class="rc-players ${playersPlayed > 0 ? 'playing' : ''}">
+           ${playersPlayed}<span class="rc-total-players">/12</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 // ✅ v2.3: EXIBIR RANKING - TABELAS CONTEXTUAIS POR RODADA
 export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
-  const rankingBody = getElement("rankingBody");
+  const rankingList = getElement("rankingList");
 
   // Validar se é array
   if (
@@ -317,7 +390,7 @@ export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
       "[RODADAS-UI] Dados inválidos recebidos:",
       typeof rankingsDaRodada,
     );
-    rankingBody.innerHTML = `<tr><td colspan="6">Nenhum dado encontrado para a rodada ${rodadaSelecionada}.</td></tr>`;
+    if(rankingList) rankingList.innerHTML = `<div style="padding:30px; text-align:center; color:#888;">Nenhum dado encontrado para a rodada ${rodadaSelecionada}.</div>`;
     limparExportContainer();
     return;
   }
@@ -353,7 +426,7 @@ export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
   );
 
   // Renderizar ativos
-  let tableHTML = ativos
+  let listHTML = ativos
     .map((rank, index) => {
       const banco =
         bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0;
@@ -365,58 +438,45 @@ export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
         rodadaSelecionada,
       );
 
-      const escudoUrl = rank.clube_id
-        ? `/escudos/${rank.clube_id}.png`
-        : rank.escudo_url || "";
-
-      return `
-        <tr>
-          <td>${posLabel}</td>
-          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
-          <td>${rank.nome_cartola || "N/D"}</td>
-          <td>${rank.nome_time || "N/D"}</td>
-          <td><strong>${parseFloat(rank.pontos || 0).toFixed(2)}</strong></td>
-          <td class="${banco > 0 ? "banco-positivo" : banco < 0 ? "banco-negativo" : "banco-neutro"}">
-            ${banco > 0 ? "+" : ""}${banco.toFixed(2)}
-          </td>
-        </tr>
-      `;
+      return renderizarCardApp(rank, index, posLabel, banco, false);
     })
     .join("");
 
   // Renderizar inativos (se houver)
   if (inativos.length > 0) {
-    tableHTML += `
-      <tr class="separador-inativos">
-        <td colspan="6" style="text-align: center; font-style: italic; color: #666; background: #1a1a1a;">
-          <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">warning</span> Participantes inativos na rodada ${rodadaSelecionada}
-        </td>
-      </tr>
+    listHTML += `
+      <div class="separador-inativos" style="padding: 10px; text-align: center; color: #666; font-size: 12px; background: rgba(0,0,0,0.2);">
+          <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">warning</span> Participantes inativos
+      </div>
     `;
 
-    inativos.forEach((rank) => {
-      const escudoUrl = rank.clube_id
-        ? `/escudos/${rank.clube_id}.png`
-        : rank.escudo_url || "";
-
-      tableHTML += `
-        <tr class="participante-inativo">
-          <td>—</td>
-          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
-          <td>${rank.nome_cartola || "N/D"} <span class="badge-inativo">INATIVO R${rank.rodada_desistencia || "?"}</span></td>
-          <td>${rank.nome_time || "N/D"}</td>
-          <td><strong>${parseFloat(rank.pontos || 0).toFixed(2)}</strong></td>
-          <td class="banco-neutro">—</td>
-        </tr>
-      `;
+    inativos.forEach((rank, index) => {
+        // Renderizar card simples para inativo
+        const escudoUrl = rank.clube_id ? `/escudos/${rank.clube_id}.png` : rank.escudo_url || "";
+        listHTML += `
+          <div class="ranking-card inativo" style="opacity: 0.6; filter: grayscale(1);">
+            <div class="rc-pos"><div class="rc-pos-num">-</div></div>
+            <img src="${escudoUrl}" class="rc-shield" onerror="this.src='/img/escudo_default.png'">
+            <div class="rc-team">
+               <div class="rc-info">
+                  <div class="rc-team-name">${rank.nome_time || "N/D"}</div>
+                  <div class="rc-manager">${rank.nome_cartola || "N/D"} (Inativo)</div>
+               </div>
+            </div>
+            <div class="rc-stats">
+               <div class="rc-score-main">${parseFloat(rank.pontos || 0).toFixed(2)}</div>
+            </div>
+          </div>
+        `;
     });
   }
 
-  rankingBody.innerHTML = tableHTML;
+  if(rankingList) rankingList.innerHTML = listHTML;
 
   // Renderizar container de export
   renderizarExportContainer(ativos, rodadaSelecionada, ligaId);
 }
+
 
 // EXIBIR RANKING COM PARCIAIS
 export function exibirRankingParciais(
@@ -424,10 +484,10 @@ export function exibirRankingParciais(
   rodadaSelecionada,
   ligaId,
 ) {
-  const rankingBody = getElement("rankingBody");
+  const rankingList = getElement("rankingList");
 
   if (!rankingsParciais || rankingsParciais.length === 0) {
-    rankingBody.innerHTML = `<tr><td colspan="6">Aguardando dados parciais...</td></tr>`;
+    if(rankingList) rankingList.innerHTML = `<div style="padding:30px; text-align:center; color:#888;">Aguardando dados parciais...</div>`;
     limparExportContainer();
     return;
   }
@@ -443,7 +503,7 @@ export function exibirRankingParciais(
   const bancoValores = getBancoPorRodada(ligaId, rodadaSelecionada);
   const totalAtivos = ativos.length;
 
-  let tableHTML = ativos
+  let listHTML = ativos
     .map((rank, index) => {
       const banco =
         bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0;
@@ -454,54 +514,40 @@ export function exibirRankingParciais(
         rodadaSelecionada,
       );
 
-      const escudoUrl = rank.clube_id
-        ? `/escudos/${rank.clube_id}.png`
-        : rank.escudo_url || "";
-
-      return `
-        <tr>
-          <td>${posLabel}</td>
-          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
-          <td>${rank.nome_cartola || "N/D"}</td>
-          <td>${rank.nome_time || "N/D"}</td>
-          <td><strong>${parseFloat(rank.totalPontos || 0).toFixed(2)}</strong> <span class="material-symbols-outlined" style="color:#facc15; font-size:12px; vertical-align: middle;">schedule</span></td>
-          <td class="${banco > 0 ? "banco-positivo" : banco < 0 ? "banco-negativo" : "banco-neutro"}">
-            ${banco > 0 ? "+" : ""}${banco.toFixed(2)}
-          </td>
-        </tr>
-      `;
+      // Pass true for isParcial
+      return renderizarCardApp(rank, index, posLabel, banco, true);
     })
     .join("");
 
   // Inativos
   if (inativos.length > 0) {
-    tableHTML += `
-      <tr class="separador-inativos">
-        <td colspan="6" style="text-align: center; font-style: italic; color: #666; background: #1a1a1a;">
-          <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">warning</span> Participantes inativos
-        </td>
-      </tr>
+    listHTML += `
+      <div class="separador-inativos" style="padding: 10px; text-align: center; color: #666; font-size: 12px; background: rgba(0,0,0,0.2);">
+          <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">warning</span> Participantes inativos
+      </div>
     `;
 
     inativos.forEach((rank) => {
-      const escudoUrl = rank.clube_id
-        ? `/escudos/${rank.clube_id}.png`
-        : rank.escudo_url || "";
-
-      tableHTML += `
-        <tr class="participante-inativo">
-          <td>—</td>
-          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
-          <td>${rank.nome_cartola || "N/D"} <span class="badge-inativo">INATIVO</span></td>
-          <td>${rank.nome_time || "N/D"}</td>
-          <td><strong>${parseFloat(rank.totalPontos || 0).toFixed(2)}</strong></td>
-          <td class="banco-neutro">—</td>
-        </tr>
-      `;
+        const escudoUrl = rank.clube_id ? `/escudos/${rank.clube_id}.png` : rank.escudo_url || "";
+        listHTML += `
+          <div class="ranking-card inativo" style="opacity: 0.6; filter: grayscale(1);">
+            <div class="rc-pos"><div class="rc-pos-num">-</div></div>
+            <img src="${escudoUrl}" class="rc-shield" onerror="this.src='/img/escudo_default.png'">
+            <div class="rc-team">
+               <div class="rc-info">
+                  <div class="rc-team-name">${rank.nome_time || "N/D"}</div>
+                  <div class="rc-manager">${rank.nome_cartola || "N/D"} (Inativo)</div>
+               </div>
+            </div>
+            <div class="rc-stats">
+               <div class="rc-score-main">${parseFloat(rank.totalPontos || 0).toFixed(2)}</div>
+            </div>
+          </div>
+        `;
     });
   }
 
-  rankingBody.innerHTML = tableHTML;
+  if(rankingList) rankingList.innerHTML = listHTML;
   limparExportContainer();
 }
 
@@ -510,37 +556,30 @@ export function exibirRankingParciais(
 // ==============================
 
 export function mostrarLoading(show) {
-  const rankingBody = getElement("rankingBody");
-  if (!rankingBody) return;
+  const rankingList = getElement("rankingList");
+  if (!rankingList) return;
 
   if (show) {
-    rankingBody.innerHTML = `
-      <tr>
-        <td colspan="6" style="text-align: center; padding: 40px;">
+    rankingList.innerHTML = `
+      <div style="padding: 40px; text-align: center;">
           <div class="spinner" style="margin: 0 auto 10px;"></div>
           Carregando dados...
-        </td>
-      </tr>
+      </div>
     `;
   }
 }
 
 export function mostrarMensagemRodada(mensagem, tipo = "info") {
-  const rankingBody = getElement("rankingBody");
-  if (!rankingBody) return;
+  const rankingList = getElement("rankingList");
+  if (!rankingList) return;
 
-  const estilos = {
-    info: "color: #3b82f6; background: rgba(59, 130, 246, 0.1);",
-    aviso: "color: #facc15; background: rgba(250, 204, 21, 0.1);",
-    erro: "color: #ef4444; background: rgba(239, 68, 68, 0.1);",
-  };
+  const cor = tipo === 'erro' ? '#ef4444' : (tipo === 'aviso' ? '#facc15' : '#3b82f6');
+  const bg = tipo === 'erro' ? 'rgba(239, 68, 68, 0.1)' : (tipo === 'aviso' ? 'rgba(250, 204, 21, 0.1)' : 'rgba(59, 130, 246, 0.1)');
 
-  rankingBody.innerHTML = `
-    <tr>
-      <td colspan="6" style="text-align: center; padding: 30px; ${estilos[tipo] || estilos.info} border-radius: 8px;">
+  rankingList.innerHTML = `
+    <div style="padding: 30px; text-align: center; margin: 10px; border-radius: 8px; color: ${cor}; background: ${bg};">
         ${mensagem}
-      </td>
-    </tr>
+    </div>
   `;
 
   limparExportContainer();

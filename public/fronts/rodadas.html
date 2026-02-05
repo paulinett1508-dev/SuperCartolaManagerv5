@@ -56,26 +56,28 @@
             </button>
         </div>
 
-        <!-- Container da Tabela -->
-        <div class="table-container">
+        <!-- App Mode Ranking List (Substituindo Tabela) -->
+        <div id="rankingListContainer">
+            <div class="ranking-header-bar">
+               <div class="ranking-filter">
+                 <span style="font-weight: 500; color: #fff;">Ranking Rodada</span>
+               </div>
+               <div class="ranking-order">
+                 <span style="opacity: 0.7">Ordem:</span> <span class="filter-active" style="color:#3b82f6; border-color:#3b82f6;">Pontos</span>
+               </div>
+            </div>
+
+            <div id="rankingList" class="ranking-list">
+                <div style="padding: 30px; text-align: center; color: var(--text-muted);">
+                    Selecione uma rodada para visualizar o ranking
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela Legada (Oculta) - Mantendo apenas se necessário referência JS mas o JS será atualizado -->
+        <div class="table-container" style="display: none;">
             <table class="ranking-table">
-                <thead>
-                    <tr>
-                        <th style="width: 45px; text-align: center">Pos</th>
-                        <th style="width: 35px; text-align: center"><span class="material-icons" style="font-size:16px; color:#e74c3c;">favorite</span></th>
-                        <th style="width: 35%; text-align: left">Cartoleiro</th>
-                        <th style="width: 35%; text-align: left">Time</th>
-                        <th style="width: 12%; text-align: center">Pontos</th>
-                        <th style="width: 13%; text-align: center">Banco</th>
-                    </tr>
-                </thead>
-                <tbody id="rankingBody">
-                    <tr>
-                        <td colspan="6" class="empty-state">
-                            Selecione uma rodada para visualizar o ranking
-                        </td>
-                    </tr>
-                </tbody>
+                <tbody id="rankingBody"></tbody>
             </table>
         </div>
     </div>

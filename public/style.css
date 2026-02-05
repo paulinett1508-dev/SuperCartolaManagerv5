@@ -1056,3 +1056,204 @@ button:focus, .btn:focus, input:focus, select:focus {
 }
 
 /* === FIM DO ARQUIVO === */
+/* === RODADAS APP MODE CARDS === */
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.ranking-card {
+  display: flex;
+  align-items: center;
+  padding: 12px 10px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-secondary);
+  gap: 8px;
+}
+
+.ranking-card:last-child {
+  border-bottom: none;
+}
+
+/* 1. Position */
+.rc-pos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  min-width: 25px;
+}
+
+.rc-pos-num {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.rc-pos-idx {
+  font-size: 10px;
+  font-weight: bold;
+}
+.rc-pos-idx.up { color: var(--success); }
+.rc-pos-idx.down { color: var(--danger); }
+.rc-pos-idx.equal { color: var(--text-muted); }
+
+/* 2. Team Info */
+.rc-team {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.rc-shield {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.rc-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.rc-team-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.rc-manager {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.rc-captain {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.rc-captain-icon {
+  background: var(--text-muted);
+  color: var(--bg-secondary);
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: bold;
+}
+
+/* 3. Stats */
+.rc-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: right;
+}
+
+.rc-score-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 55px;
+}
+
+.rc-score-main {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rc-score-total {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.rc-finance-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  display: none; 
+}
+
+@media (min-width: 380px) {
+  .rc-finance-box { display: flex; }
+}
+
+.rc-patrimony {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.rc-variation {
+  font-size: 11px;
+  font-weight: 600;
+}
+.rc-variation.positive { color: var(--success); }
+.rc-variation.negative { color: var(--danger); }
+
+.rc-players {
+  width: 26px;
+  height: 26px;
+  background: #3b82f6;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.rc-total-players {
+  font-size: 8px;
+  opacity: 0.7;
+}
+
+/* Header style for the sorting bar */
+.ranking-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-secondary);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ranking-filter {
+  display: flex;
+  gap: 10px;
+}
+.filter-active {
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--info);
+  padding-bottom: 2px;
+}
