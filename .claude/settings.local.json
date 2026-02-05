@@ -165,7 +165,8 @@
       "Bash(git -C /home/runner/workspace show --stat 9bd6832)",
       "Bash(git -C /home/runner/workspace log --all --oneline --graph -- '*pontos*')",
       "Bash(git -C /home/runner/workspace log -1 --format=\"%H %ai\" -- public/js/pontos-corridos/pontos-corridos-*.js)",
-      "Bash(git -C /home/runner/workspace log -1 --format=\"%H %ai\" -- public/participante/js/modules/participante-pontos-corridos.js)"
+      "Bash(git -C /home/runner/workspace log -1 --format=\"%H %ai\" -- public/participante/js/modules/participante-pontos-corridos.js)",
+      "Bash(do echo \"=== Disabling extrato for $LIGA_ID ===\" curl -s -X PUT \"localhost:3000/api/ligas/$LIGA_ID/modulos-ativos\" -H \"Content-Type: application/json\" -d '{\"\"\"\"modulos\"\"\"\": {\"\"\"\"extrato\"\"\"\": false, \"\"\"\"ranking\"\"\"\": true, \"\"\"\"rodadas\"\"\"\": true, \"\"\"\"historico\"\"\"\": true}}')"
     ]
   },
   "enableAllProjectMcpServers": true,
