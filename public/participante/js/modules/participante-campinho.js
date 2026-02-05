@@ -123,12 +123,16 @@ async function buscarEscalacaoCompleta(ligaId, timeId, rodada = 1) {
         const cartolaRes = await fetch(`/api/cartola/time/${timeId}/${rodadaAtual}/escalacao`);
         if (cartolaRes.ok) {
             const data = await cartolaRes.json();
+            const todosAtletas = data.atletas || [];
+            // Separar titulares/reservas com coerção de tipo
+            const tit = data.titulares || todosAtletas.filter(a => Number(a.status_id) !== 2);
+            const res = data.reservas || todosAtletas.filter(a => Number(a.status_id) === 2);
             return {
                 timeId,
                 rodada: rodadaAtual,
-                atletas: data.atletas || [],
-                titulares: data.titulares || data.atletas || [],
-                reservas: data.reservas || [],
+                atletas: todosAtletas,
+                titulares: tit,
+                reservas: res,
                 capitao_id: data.capitao_id,
                 reserva_luxo_id: data.reserva_luxo_id,
                 pontos: data.pontos || calcularPontosTotais(data),
@@ -150,8 +154,8 @@ async function buscarEscalacaoCompleta(ligaId, timeId, rodada = 1) {
         if (!rodadaTime) return null;
 
         const atletas = rodadaTime.atletas || [];
-        const titulares = atletas.filter(a => a.status_id !== 2);
-        const reservas = atletas.filter(a => a.status_id === 2);
+        const titulares = atletas.filter(a => Number(a.status_id) !== 2);
+        const reservas = atletas.filter(a => Number(a.status_id) === 2);
 
         return {
             timeId,
@@ -358,8 +362,9 @@ function renderizarAvisoMercadoAberto(status) {
 
 function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
     const temAdversario = adversario && (adversario.atletas?.length > 0 || adversario.titulares?.length > 0);
-    const titulares = escalacao.titulares || escalacao.atletas || [];
-    const reservas = escalacao.reservas || [];
+    const todosAtletas = escalacao.atletas || [];
+    const titulares = escalacao.titulares || todosAtletas.filter(a => Number(a.status_id) !== 2);
+    const reservas = escalacao.reservas?.length ? escalacao.reservas : todosAtletas.filter(a => Number(a.status_id) === 2);
     const pontosTotais = escalacao.pontos || calcularPontosTotais(escalacao);
     const grupos = agruparTitulares(titulares);
     const gruposAdversario = temAdversario ? agruparTitulares(adversario.titulares || adversario.atletas || []) : null;
