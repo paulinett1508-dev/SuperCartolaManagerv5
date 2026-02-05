@@ -946,6 +946,17 @@ const ManutencaoScreen = {
     // =====================================================================
     // Métodos compartilhados (Ranking Geral - lógica existente preservada)
     // =====================================================================
+    // =====================================================================
+    // DEV BYPASS: Login admin via Replit Auth para acessar app em manutenção
+    // =====================================================================
+    iniciarDevBypass() {
+        if (window.Log) Log.info('MANUTENCAO', 'Dev bypass iniciado - redirecionando para Replit Auth');
+        // Redirecionar para Replit Auth com retorno ao app participante
+        // Após login admin, a sessão terá req.session.admin + req.session.participante
+        // O endpoint /api/participante/manutencao/status detecta e libera
+        window.location.href = '/api/admin/auth/login?redirect=/participante/';
+    },
+
     async _carregarNoticias() {
         try {
             // Obter clube_id do participante autenticado

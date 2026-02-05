@@ -166,6 +166,7 @@ import tabelasEsportesRoutes from "./routes/tabelas-esportes-routes.js";
 
 // 🔧 Modo Manutenção do App
 import manutencaoRoutes from "./routes/manutencao-routes.js";
+import manutencaoParticipanteRoutes from "./routes/manutencao-participante-routes.js";
 
 // 📢 Avisos In-App (Notificador)
 import avisosAdminRoutes from "./routes/avisos-admin-routes.js";
@@ -427,6 +428,7 @@ console.log("[SERVER] 🔧 Rotas de modo manutenção registradas");
 app.use("/api/participante/auth/login", authRateLimiter);
 app.use("/api/participante/auth/globo/direct", authRateLimiter);
 app.use("/api/participante/auth", participanteAuthRoutes);
+app.use("/api/participante/manutencao", manutencaoParticipanteRoutes);
 app.use("/api/participante/historico", participanteHistoricoRoutes);
 
 // ====================================================================

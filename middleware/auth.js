@@ -16,6 +16,7 @@ export const ROTAS_PUBLICAS = [
   "/img/",
   "/api/admin/auth/",
   "/api/participante/auth/",
+  "/api/participante/manutencao/",
   "/api/oauth/callback",
   "/api/cartola/",
   "/api/configuracao/",
