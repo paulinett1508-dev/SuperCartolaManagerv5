@@ -218,8 +218,19 @@ export function limparCache() {
     if (window.Log) Log.info("[CALENDAR] 🗑️ Cache limpo");
 }
 
-// Expor no window para debug
+// Expor no window para debug E como export padrão
 window.CalendarModule = {
+    inicializar: inicializarCalendario,
+    buscarCompleto: buscarCalendarioCompleto,
+    deveAtivarPolling,
+    iniciarVerificacao: iniciarVerificacaoPeriodica,
+    pararVerificacao: pararVerificacaoPeriodica,
+    proximoJogo: obterProximoJogo,
+    limparCache,
+};
+
+// Export default para compatibilidade com import
+export default {
     inicializar: inicializarCalendario,
     buscarCompleto: buscarCalendarioCompleto,
     deveAtivarPolling,
