@@ -109,7 +109,11 @@ const CapitaoLuxo = {
         const rodada = this.estado.rodadaAtual || 1;
         const mercadoAberto = this.estado.mercadoAberto === true;
 
-        if (rodada <= 1 && mercadoAberto) {
+        // ✅ MELHORIA: Aguardar APENAS se:
+        //    1. Rodada = 1 (primeira rodada ainda não aconteceu)
+        //    2. Mercado aberto (rodada não começou ainda)
+        // ANTES: rodada <= 1 permitia travar na rodada 2 com mercado aberto
+        if (rodada === 1 && mercadoAberto) {
             return true;
         }
         return false;
@@ -141,11 +145,11 @@ const CapitaoLuxo = {
                     </div>
                     <h2 class="capitao-luxo-aguardando-title">Aguardando Início do Campeonato</h2>
                     <p class="capitao-luxo-aguardando-desc">
-                        O ranking de capitães será atualizado assim que a primeira rodada for concluída.
+                        O ranking de capitães será atualizado após a primeira rodada do campeonato ser finalizada.
                     </p>
                     <div class="capitao-luxo-aguardando-info">
                         <span class="material-icons">info</span>
-                        <span>Os dados de capitães serão coletados automaticamente após cada rodada.</span>
+                        <span>Os dados de capitães serão coletados automaticamente após cada rodada e consolidados pelo administrador.</span>
                     </div>
                 </div>
             </div>
@@ -382,7 +386,10 @@ const CapitaoLuxo = {
                     <div class="capitao-luxo-empty">
                         <span class="material-icons">military_tech</span>
                         <p>Sem dados de capitães disponíveis</p>
-                        <p style="font-size: 11px; margin-top: 8px;">O ranking será populado quando houver dados consolidados.</p>
+                        <p style="font-size: 11px; margin-top: 8px;">O ranking será populado após a consolidação dos dados das rodadas finalizadas.</p>
+                        <p style="font-size: 10px; margin-top: 4px; color: #888;">
+                            Administrador: Execute a consolidação via Admin > Capitão de Luxo > Consolidar Ranking
+                        </p>
                     </div>
                 </td>
             </tr>

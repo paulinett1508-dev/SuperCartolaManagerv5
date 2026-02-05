@@ -82,24 +82,29 @@ export async function getRankingCapitaoLive(req, res) {
 
 /**
  * POST /api/capitao/:ligaId/consolidar
- * Consolidar ranking de capitães (admin only - fim temporada)
+ * Consolidar ranking de capitães (admin only - incremental ou fim temporada)
+ * Body params:
+ *   - temporada: number (optional, default: ano atual)
+ *   - rodadaFinal: number (optional, default: 38)
  */
 export async function consolidarCapitaoTemporada(req, res) {
   try {
     const { ligaId } = req.params;
     const temporada = parseInt(req.body.temporada) || new Date().getFullYear();
+    const rodadaFinal = parseInt(req.body.rodadaFinal) || 38;
 
     if (!ligaId) {
       return res.status(400).json({ success: false, error: 'ligaId obrigatório' });
     }
 
-    const ranking = await capitaoService.consolidarRankingCapitao(ligaId, temporada);
+    const ranking = await capitaoService.consolidarRankingCapitao(ligaId, temporada, rodadaFinal);
 
     res.json({
       success: true,
-      message: 'Ranking consolidado com sucesso',
+      message: `Ranking consolidado com sucesso até rodada ${rodadaFinal}`,
       ranking,
-      temporada
+      temporada,
+      rodadaFinal
     });
   } catch (error) {
     console.error('[CAPITAO-CONTROLLER] Erro consolidarCapitaoTemporada:', error);
