@@ -153,7 +153,9 @@ const AppVersion = {
                     }
                 } else if (!timeId) {
                     // Auth ainda não completou - NÃO decidir manutenção sem saber quem é
-                    if (window.Log) Log.debug('APP-VERSION', 'Aguardando auth para verificar manutenção');
+                    // Resetar lastCheck para que a próxima chamada (pós-auth) NÃO seja bloqueada pelo TTL
+                    this.lastCheck = 0;
+                    if (window.Log) Log.debug('APP-VERSION', 'Aguardando auth para verificar manutenção (TTL resetado)');
                 } else {
                     let deveMostrarManutencao = false;
 
