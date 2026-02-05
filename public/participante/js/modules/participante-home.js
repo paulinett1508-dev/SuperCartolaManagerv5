@@ -445,7 +445,8 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
     const ultimaRodada = rodadasOrdenadas[0];
     const rodadaAtualByRodadas = ultimaRodada ? Number(ultimaRodada.rodada) : 0;
     const rodadasDoRanking = Number(meuTime?.rodadas ?? meuTime?.rodada ?? meuTime?.rodadas_jogadas ?? 0) || 0;
-    const rodadaAtual = Math.max(rodadaAtualByRodadas, rodadasDoRanking);
+    const rodadaMercado = Number(mercadoStatus?.rodada_atual ?? 0) || 0;
+    const rodadaAtual = Math.max(rodadaAtualByRodadas, rodadasDoRanking, rodadaMercado);
 
     // Posicao anterior
     let posicaoAnterior = null;

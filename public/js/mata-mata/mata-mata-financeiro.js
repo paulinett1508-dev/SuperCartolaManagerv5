@@ -1,7 +1,7 @@
 // MATA-MATA FINANCEIRO - Cálculos e Resultados Financeiros
 // Responsável por: cálculos de premiação, consolidação de resultados, fluxo financeiro
 
-import { edicoes, getLigaId, VALORES_FASE, TAMANHO_TORNEIO_DEFAULT } from "./mata-mata-config.js";
+import { edicoes, getLigaId, VALORES_FASE, TAMANHO_TORNEIO_DEFAULT, getFasesParaTamanho, FASE_NUM_JOGOS } from "./mata-mata-config.js";
 import {
   getPontosDaRodada,
   montarConfrontosPrimeiraFase,
@@ -11,10 +11,17 @@ import {
 
 // Cache para getRankingRodadaEspecifica
 let getRankingRodadaEspecifica = null;
+let tamanhoTorneio = TAMANHO_TORNEIO_DEFAULT;
 
 // Função para definir dependência externa
 export function setRankingFunction(func) {
   getRankingRodadaEspecifica = func;
+}
+
+// Função para definir tamanho do torneio
+export function setTamanhoTorneio(tamanho) {
+  tamanhoTorneio = tamanho;
+  console.log(`[MATA-FINANCEIRO] Tamanho do torneio definido: ${tamanho}`);
 }
 
 // Função para obter resultados financeiros do mata-mata
@@ -60,7 +67,7 @@ export async function getResultadosMataMata() {
   );
 
   const resultadosFinanceiros = [];
-  const fases = ["primeira", "oitavas", "quartas", "semis", "final"];
+  const fases = getFasesParaTamanho(tamanhoTorneio);
 
   try {
     const rodadaDefinicao = edicaoAtiva.rodadaDefinicao;
@@ -68,33 +75,21 @@ export async function getResultadosMataMata() {
       ligaId,
       rodadaDefinicao,
     );
-    if (!Array.isArray(rankingBase) || rankingBase.length < 32) {
+    if (!Array.isArray(rankingBase) || rankingBase.length < tamanhoTorneio) {
       throw new Error(`Ranking base da Rodada ${rodadaDefinicao} inválido.`);
     }
 
-    // Rodadas de cada fase baseadas no rodadaInicial (já corrigido no config)
-    // Estrutura: 1ªFase=R[inicial], Oitavas=R[inicial+1], Quartas=R[inicial+2], Semis=R[inicial+3], Final=R[inicial+4]
-    const rodadasFases = {
-      primeira: edicaoAtiva.rodadaInicial,
-      oitavas: edicaoAtiva.rodadaInicial + 1,
-      quartas: edicaoAtiva.rodadaInicial + 2,
-      semis: edicaoAtiva.rodadaInicial + 3,
-      final: edicaoAtiva.rodadaInicial + 4,
-    };
+    // Rodadas de cada fase baseadas no rodadaInicial (dinâmico por fases)
+    const rodadasFases = {};
+    fases.forEach((fase, idx) => {
+      rodadasFases[fase] = edicaoAtiva.rodadaInicial + idx;
+    });
 
     let vencedoresAnteriores = rankingBase;
+    const primeiraFase = fases[0];
     for (const fase of fases) {
       const rodadaPontosNum = rodadasFases[fase];
-      const numJogos =
-        fase === "primeira"
-          ? 16
-          : fase === "oitavas"
-            ? 8
-            : fase === "quartas"
-              ? 4
-              : fase === "semis"
-                ? 2
-                : 1;
+      const numJogos = FASE_NUM_JOGOS[fase] || 1;
 
       if (rodadaPontosNum > rodada_atual - 1) {
         console.log(
@@ -108,8 +103,8 @@ export async function getResultadosMataMata() {
         rodadaPontosNum,
       );
       const confrontosFase =
-        fase === "primeira"
-          ? montarConfrontosPrimeiraFase(rankingBase, pontosDaRodadaAtual)
+        fase === primeiraFase
+          ? montarConfrontosPrimeiraFase(rankingBase, pontosDaRodadaAtual, tamanhoTorneio)
           : montarConfrontosFase(
               vencedoresAnteriores,
               pontosDaRodadaAtual,
@@ -117,7 +112,7 @@ export async function getResultadosMataMata() {
             );
 
       const proximosVencedores = [];
-      const valoresFase = VALORES_FASE[fase] || VALORES_FASE.primeira;
+      const valoresFase = VALORES_FASE[fase] || VALORES_FASE[primeiraFase] || VALORES_FASE.primeira;
       confrontosFase.forEach((c) => {
         const { vencedor, perdedor } = determinarVencedor(c);
 
@@ -185,6 +180,23 @@ export async function getResultadosMataMataFluxo(ligaIdParam = null) {
     }
     
     console.log(`[MATA-FINANCEIRO] Processando liga: ${ligaId}`);
+
+    // Buscar tamanho do torneio se ainda não definido pelo orquestrador
+    if (tamanhoTorneio === TAMANHO_TORNEIO_DEFAULT) {
+      try {
+        const resConfig = await fetch(`/api/liga/${ligaId}/modulos/mata_mata`);
+        if (resConfig.ok) {
+          const configData = await resConfig.json();
+          const totalTimes = Number(configData?.config?.wizard_respostas?.total_times);
+          if (totalTimes && [8, 16, 32].includes(totalTimes)) {
+            tamanhoTorneio = totalTimes;
+            console.log(`[MATA-FINANCEIRO] Tamanho do torneio via API: ${tamanhoTorneio}`);
+          }
+        }
+      } catch (err) {
+        console.warn("[MATA-FINANCEIRO] Erro ao buscar config, usando default");
+      }
+    }
 
     let rodada_atual = 1;
     try {
@@ -267,7 +279,9 @@ export async function getResultadosMataMataFluxo(ligaIdParam = null) {
           });
         });
 
-        const arrecadadoEdicao = TAMANHO_TORNEIO_DEFAULT * VALORES_FASE.primeira.vitoria;
+        const faseInicial = getFasesParaTamanho(tamanhoTorneio)[0];
+        const valorVitoria = (VALORES_FASE[faseInicial] || VALORES_FASE.primeira).vitoria;
+        const arrecadadoEdicao = tamanhoTorneio * valorVitoria;
         const pagoEdicao = resultadosEdicao
           .filter((r) => r.valor > 0)
           .reduce((total, r) => total + r.valor, 0);
@@ -315,15 +329,13 @@ export async function calcularResultadosEdicaoFluxo(
 ) {
   try {
     const resultadosFinanceiros = [];
-    const fases = ["primeira", "oitavas", "quartas", "semis", "final"];
+    const fases = getFasesParaTamanho(tamanhoTorneio);
+    const primeiraFaseFluxo = fases[0];
 
-    const rodadasFases = {
-      primeira: edicao.rodadaInicial,
-      oitavas: edicao.rodadaInicial + 1,
-      quartas: edicao.rodadaInicial + 2,
-      semis: edicao.rodadaInicial + 3,
-      final: edicao.rodadaInicial + 4,
-    };
+    const rodadasFases = {};
+    fases.forEach((fase, idx) => {
+      rodadasFases[fase] = edicao.rodadaInicial + idx;
+    });
 
     // ✅ OTIMIZAÇÃO: Identificar quais rodadas precisam ser carregadas
     const rodadasNecessarias = fases
@@ -355,9 +367,9 @@ export async function calcularResultadosEdicaoFluxo(
       }
     }
 
-    if (!Array.isArray(rankingBase) || rankingBase.length < 32) {
+    if (!Array.isArray(rankingBase) || rankingBase.length < tamanhoTorneio) {
       console.error(
-        `[MATA-FINANCEIRO] Ranking base inválido para ${edicao.nome}`,
+        `[MATA-FINANCEIRO] Ranking base inválido para ${edicao.nome}: ${rankingBase?.length || 0}/${tamanhoTorneio}`,
       );
       return [];
     }
@@ -367,23 +379,14 @@ export async function calcularResultadosEdicaoFluxo(
       const rodadaPontosNum = rodadasFases[fase];
       if (rodadaPontosNum >= rodadaAtual) break;
 
-      const numJogos =
-        fase === "primeira"
-          ? 16
-          : fase === "oitavas"
-            ? 8
-            : fase === "quartas"
-              ? 4
-              : fase === "semis"
-                ? 2
-                : 1;
+      const numJogos = FASE_NUM_JOGOS[fase] || 1;
 
       // ✅ USAR CACHE PRÉ-CARREGADO
       const pontosDaRodadaAtual = pontosCache.get(rodadaPontosNum) || [];
 
       const confrontosFase =
-        fase === "primeira"
-          ? montarConfrontosPrimeiraFase(rankingBase, pontosDaRodadaAtual)
+        fase === primeiraFaseFluxo
+          ? montarConfrontosPrimeiraFase(rankingBase, pontosDaRodadaAtual, tamanhoTorneio)
           : montarConfrontosFase(
               vencedoresAnteriores,
               pontosDaRodadaAtual,

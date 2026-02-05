@@ -81,12 +81,13 @@ export async function getPontosDaRodada(ligaId, rodada) {
     }
 }
 
-// Função para montar confrontos da primeira fase
-export function montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual) {
+// Função para montar confrontos da primeira fase (dinâmico por tamanho)
+export function montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual, tamanhoTorneio = 32) {
+    const numJogos = tamanhoTorneio / 2;
     const confrontos = [];
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < numJogos; i++) {
         const timeA = rankingBase[i];
-        const timeB = rankingBase[31 - i];
+        const timeB = rankingBase[tamanhoTorneio - 1 - i];
         const pontosA = pontosRodadaAtual[timeA.timeId] ?? null;
         const pontosB = pontosRodadaAtual[timeB.timeId] ?? null;
 
@@ -102,7 +103,7 @@ export function montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual) {
                 ...timeB,
                 pontos: pontosB,
                 nome_cartoleiro: timeB.nome_cartoleiro || timeB.nome_cartola,
-                rankR2: 32 - i,
+                rankR2: tamanhoTorneio - i,
             },
         });
     }

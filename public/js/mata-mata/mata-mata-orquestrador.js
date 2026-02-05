@@ -10,6 +10,9 @@ import {
   getLigaId,
   getRodadaPontosText,
   getEdicaoMataMata,
+  getFasesParaTamanho,
+  TAMANHO_TORNEIO_DEFAULT,
+  FASE_NUM_JOGOS,
 } from "./mata-mata-config.js";
 import {
   setRankingFunction as setRankingConfronto,
@@ -19,7 +22,7 @@ import {
   calcularValoresConfronto,
   extrairVencedores as extrairVencedoresFunc,
 } from "./mata-mata-confrontos.js";
-import { setRankingFunction as setRankingFinanceiro } from "./mata-mata-financeiro.js";
+import { setRankingFunction as setRankingFinanceiro, setTamanhoTorneio as setTamanhoTorneioFinanceiro } from "./mata-mata-financeiro.js";
 import {
   renderizarInterface,
   renderLoadingState,
@@ -56,6 +59,7 @@ const CACHE_CONFIG = {
 
 // Estado atual
 let edicaoAtual = null;
+let tamanhoTorneio = TAMANHO_TORNEIO_DEFAULT;
 
 // ✅ Cache de status do mercado (evita fetches duplicados)
 let mercadoStatusCache = null;
@@ -275,6 +279,27 @@ export async function carregarMataMata() {
 
   const ligaId = getLigaId();
 
+  // Buscar tamanho do torneio configurado pela liga
+  try {
+    const resConfig = await fetch(`/api/liga/${ligaId}/modulos/mata_mata`);
+    if (resConfig.ok) {
+      const configData = await resConfig.json();
+      const totalTimes = Number(configData?.config?.wizard_respostas?.total_times);
+      if (totalTimes && [8, 16, 32].includes(totalTimes)) {
+        tamanhoTorneio = totalTimes;
+        console.log(`[MATA-ORQUESTRADOR] Tamanho do torneio configurado: ${tamanhoTorneio}`);
+      } else {
+        tamanhoTorneio = TAMANHO_TORNEIO_DEFAULT;
+        console.log(`[MATA-ORQUESTRADOR] Tamanho do torneio: ${tamanhoTorneio} (default)`);
+      }
+      setTamanhoTorneioFinanceiro(tamanhoTorneio);
+    }
+  } catch (err) {
+    console.warn("[MATA-ORQUESTRADOR] Erro ao buscar config do mata-mata, usando default:", err.message);
+    tamanhoTorneio = TAMANHO_TORNEIO_DEFAULT;
+    setTamanhoTorneioFinanceiro(tamanhoTorneio);
+  }
+
   try {
     const data = await getMercadoStatusCached();
 
@@ -320,7 +345,8 @@ export async function carregarMataMata() {
     });
   }
 
-  renderizarInterface(container, ligaId, handleEdicaoChange, handleFaseClick);
+  const fasesAtivas = getFasesParaTamanho(tamanhoTorneio);
+  renderizarInterface(container, ligaId, handleEdicaoChange, handleFaseClick, fasesAtivas);
 }
 
 // v1.4: Renderizar UI de aguardando dados
@@ -479,13 +505,13 @@ async function carregarFase(fase, ligaId) {
       `[MATA-ORQUESTRADOR] Ranking base recebido: ${rankingBase?.length || 0} times`,
     );
 
-    if (!Array.isArray(rankingBase) || rankingBase.length < 32) {
+    if (!Array.isArray(rankingBase) || rankingBase.length < tamanhoTorneio) {
       throw new Error(
-        `Ranking base inválido: ${rankingBase?.length || 0}/32 times encontrados`,
+        `Ranking base inválido: ${rankingBase?.length || 0}/${tamanhoTorneio} times encontrados`,
       );
     }
 
-    const faseInfo = getFaseInfo(edicaoAtual, edicaoSelecionada);
+    const faseInfo = getFaseInfo(edicaoAtual, edicaoSelecionada, tamanhoTorneio);
     const currentFaseInfo = faseInfo[fase.toLowerCase()];
     if (!currentFaseInfo) throw new Error(`Fase desconhecida: ${fase}`);
 
@@ -539,16 +565,18 @@ async function carregarFase(fase, ligaId) {
     if (prevFaseRodada) {
       let vencedoresAnteriores = rankingBase;
 
+      const fasesDoTorneio = getFasesParaTamanho(tamanhoTorneio);
+      const primeiraFaseKey = fasesDoTorneio[0];
+
       for (let r = edicaoSelecionada.rodadaInicial; r <= prevFaseRodada; r++) {
         // ✅ USAR CACHE LOCAL PARA EVITAR BUSCAS DUPLICADAS
         const pontosDaRodadaAnterior = await getPontosDaRodadaCached(ligaId, r);
-        const jogosFaseAnterior =
-          r === edicaoSelecionada.rodadaInicial
-            ? 16
-            : 32 / Math.pow(2, r - edicaoSelecionada.rodadaInicial + 1);
+        const idxRodada = r - edicaoSelecionada.rodadaInicial;
+        const faseAnterior = fasesDoTorneio[idxRodada];
+        const jogosFaseAnterior = FASE_NUM_JOGOS[faseAnterior] || 1;
         const confrontosAnteriores =
-          r === edicaoSelecionada.rodadaInicial
-            ? montarConfrontosPrimeiraFase(rankingBase, pontosDaRodadaAnterior)
+          r === edicaoSelecionada.rodadaInicial && faseAnterior === primeiraFaseKey
+            ? montarConfrontosPrimeiraFase(rankingBase, pontosDaRodadaAnterior, tamanhoTorneio)
             : montarConfrontosFase(
                 vencedoresAnteriores,
                 pontosDaRodadaAnterior,
@@ -564,9 +592,11 @@ async function carregarFase(fase, ligaId) {
       ? {}
       : await getPontosDaRodadaCached(ligaId, rodadaPontosNum);
 
+    const fasesDoTorneioCalc = getFasesParaTamanho(tamanhoTorneio);
+    const primeiraFaseCalc = fasesDoTorneioCalc[0];
     const confrontos =
-      fase === "primeira"
-        ? montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual)
+      fase === primeiraFaseCalc
+        ? montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual, tamanhoTorneio)
         : montarConfrontosFase(timesParaConfronto, pontosRodadaAtual, numJogos);
 
     // ✅ SALVAR NO CACHE LOCAL (apenas se rodada consolidada)
@@ -653,4 +683,4 @@ function setupCleanup() {
 // Inicialização do módulo
 setupCleanup();
 
-console.log("[MATA-ORQUESTRADOR] Módulo v1.3 carregado - Detecção dinâmica de temporada");
+console.log("[MATA-ORQUESTRADOR] Módulo v1.5 carregado - Suporte a torneios 8/16/32 times");

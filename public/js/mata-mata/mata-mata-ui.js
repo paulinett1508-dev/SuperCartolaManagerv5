@@ -6,6 +6,7 @@ import {
   getRodadaPontosText,
   getEdicaoMataMata,
   gerarTextoConfronto,
+  FASE_LABELS,
 } from "./mata-mata-config.js";
 import { getClubesNomeMap } from "/js/shared/clubes-data.js";
 
@@ -16,13 +17,15 @@ function esc(str) {
 }
 
 // Função para renderizar a interface principal
+// fases: array de fases ativas (ex: ["quartas", "semis", "final"] para 8 times)
 export function renderizarInterface(
   container,
   ligaId,
   onEdicaoChange,
   onFaseClick,
+  fases = ["primeira", "oitavas", "quartas", "semis", "final"],
 ) {
-  console.log("[MATA-UI] Renderizando interface...");
+  console.log(`[MATA-UI] Renderizando interface com fases: ${fases.join(", ")}`);
 
   const edicoesHtml = `
     <div class="edicao-selector">
@@ -33,7 +36,7 @@ export function renderizarInterface(
           .map(
             (edicao) => `
           <option value="${edicao.id}" ${!edicao.ativo ? "disabled" : ""}>
-            ${edicao.nome} (Rodadas ${edicao.rodadaInicial}-${edicao.rodadaFinal})
+            ${edicao.nome} (Rodadas ${edicao.rodadaInicial}-${edicao.rodadaInicial + fases.length - 1})
           </option>
         `,
           )
@@ -42,14 +45,14 @@ export function renderizarInterface(
     </div>
   `;
 
+  const botoesHtml = fases
+    .map((fase, idx) => `<button class="fase-btn${idx === 0 ? " active" : ""}" data-fase="${fase}">${FASE_LABELS[fase] || fase.toUpperCase()}</button>`)
+    .join("\n        ");
+
   const fasesHtml = `
     <div id="fase-nav-container" style="display:none;">
       <div class="fase-nav">
-        <button class="fase-btn active" data-fase="primeira">1ª FASE</button>
-        <button class="fase-btn" data-fase="oitavas">OITAVAS</button>
-        <button class="fase-btn" data-fase="quartas">QUARTAS</button>
-        <button class="fase-btn" data-fase="semis" id="semis-btn">SEMIS</button>
-        <button class="fase-btn" data-fase="final">FINAL</button>
+        ${botoesHtml}
       </div>
     </div>
     <div id="mataMataContent">
@@ -60,6 +63,9 @@ export function renderizarInterface(
   `;
 
   container.innerHTML = edicoesHtml + fasesHtml;
+
+  // Guardar primeira fase para uso no selector
+  container.dataset.primeiraFase = fases[0];
 
   // Setup event listeners
   setupEdicaoSelector(container, ligaId, onEdicaoChange);
@@ -85,21 +91,17 @@ function setupEdicaoSelector(container, ligaId, onEdicaoChange) {
       const faseNavContainer = document.getElementById("fase-nav-container");
       if (faseNavContainer) faseNavContainer.style.display = "block";
 
-      // Todas as edições têm SEMIS
-      const semisBtn = document.getElementById("semis-btn");
-      if (semisBtn) {
-        semisBtn.style.display = "inline-block";
-      }
-
+      // Ativar primeira fase disponível
+      const primeiraFase = container.dataset.primeiraFase || "primeira";
       container
         .querySelectorAll(".fase-btn")
         .forEach((btn) => btn.classList.remove("active"));
       const primeiraFaseBtn = container.querySelector(
-        '.fase-btn[data-fase="primeira"]',
+        `.fase-btn[data-fase="${primeiraFase}"]`,
       );
       if (primeiraFaseBtn) primeiraFaseBtn.classList.add("active");
 
-      onEdicaoChange(edicaoAtual, "primeira", ligaId);
+      onEdicaoChange(edicaoAtual, primeiraFase, ligaId);
     }, 300);
 
     window.addEventListener(

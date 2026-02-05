@@ -65,50 +65,61 @@ export const VALORES_FASE = {
 // Tamanho padrao do torneio
 export const TAMANHO_TORNEIO_DEFAULT = 32;
 
-// Função para obter texto da rodada de pontos
-export function getRodadaPontosText(faseLabel, edicao) {
-  const edicaoSelecionada = edicoes.find((e) => e.id === edicao);
-  if (!edicaoSelecionada) return "";
-  const rodadaBase = edicaoSelecionada.rodadaInicial;
+// Labels e número de jogos por fase
+export const FASE_LABELS = {
+  primeira: "1ª FASE",
+  oitavas: "OITAVAS",
+  quartas: "QUARTAS",
+  semis: "SEMIS",
+  final: "FINAL",
+};
 
-  // Todas as edições seguem a mesma estrutura
-  switch (faseLabel.toUpperCase()) {
-    case "1ª FASE":
-      return `Pontuação da Rodada ${rodadaBase}`;
-    case "OITAVAS":
-      return `Pontuação da Rodada ${rodadaBase + 1}`;
-    case "QUARTAS":
-      return `Pontuação da Rodada ${rodadaBase + 2}`;
-    case "SEMIS":
-      return `Pontuação da Rodada ${rodadaBase + 3}`;
-    case "FINAL":
-      return `Pontuação da Rodada ${rodadaBase + 4}`;
-    default:
-      return "";
-  }
+export const FASE_NUM_JOGOS = {
+  primeira: 16,
+  oitavas: 8,
+  quartas: 4,
+  semis: 2,
+  final: 1,
+};
+
+// Retorna as fases aplicáveis para o tamanho do torneio
+export function getFasesParaTamanho(tamanho) {
+  if (tamanho >= 32) return ["primeira", "oitavas", "quartas", "semis", "final"];
+  if (tamanho >= 16) return ["oitavas", "quartas", "semis", "final"];
+  if (tamanho >= 8)  return ["quartas", "semis", "final"];
+  return [];
 }
 
-// Função para obter número da rodada de pontos
-export function getRodadaPontosNum(fase, edicao) {
+// Função para obter texto da rodada de pontos (dinâmico por tamanho)
+export function getRodadaPontosText(faseLabel, edicao, tamanhoTorneio = TAMANHO_TORNEIO_DEFAULT) {
+  const edicaoSelecionada = edicoes.find((e) => e.id === edicao);
+  if (!edicaoSelecionada) return "";
+
+  const fases = getFasesParaTamanho(tamanhoTorneio);
+  // Mapear label para key
+  const labelToKey = {};
+  for (const key of Object.keys(FASE_LABELS)) {
+    labelToKey[FASE_LABELS[key]] = key;
+  }
+  const faseKey = labelToKey[faseLabel.toUpperCase()];
+  if (!faseKey) return "";
+
+  const idx = fases.indexOf(faseKey);
+  if (idx === -1) return "";
+
+  return `Pontuação da Rodada ${edicaoSelecionada.rodadaInicial + idx}`;
+}
+
+// Função para obter número da rodada de pontos (dinâmico por tamanho)
+export function getRodadaPontosNum(fase, edicao, tamanhoTorneio = TAMANHO_TORNEIO_DEFAULT) {
   const edicaoSelecionada = edicoes.find((e) => e.id === edicao);
   if (!edicaoSelecionada) return 0;
-  const rodadaBase = edicaoSelecionada.rodadaInicial;
 
-  // Todas as edições seguem a mesma estrutura
-  switch (fase.toLowerCase()) {
-    case "primeira":
-      return rodadaBase;
-    case "oitavas":
-      return rodadaBase + 1;
-    case "quartas":
-      return rodadaBase + 2;
-    case "semis":
-      return rodadaBase + 3;
-    case "final":
-      return rodadaBase + 4;
-    default:
-      return 0;
-  }
+  const fases = getFasesParaTamanho(tamanhoTorneio);
+  const idx = fases.indexOf(fase.toLowerCase());
+  if (idx === -1) return 0;
+
+  return edicaoSelecionada.rodadaInicial + idx;
 }
 
 // Função para obter nome da edição
@@ -130,40 +141,21 @@ export function gerarTextoConfronto(faseLabel) {
   return `Confronto da ${faseLabel}`;
 }
 
-// Função para gerar informações das fases
-export function getFaseInfo(edicaoAtual, edicaoSelecionada) {
-  return {
-    primeira: {
-      label: "1ª FASE",
-      pontosRodada: edicaoSelecionada.rodadaInicial,
-      numJogos: 16,
-      prevFaseRodada: null,
-    },
-    oitavas: {
-      label: "OITAVAS",
-      pontosRodada: edicaoSelecionada.rodadaInicial + 1,
-      numJogos: 8,
-      prevFaseRodada: edicaoSelecionada.rodadaInicial,
-    },
-    quartas: {
-      label: "QUARTAS",
-      pontosRodada: edicaoSelecionada.rodadaInicial + 2,
-      numJogos: 4,
-      prevFaseRodada: edicaoSelecionada.rodadaInicial + 1,
-    },
-    semis: {
-      label: "SEMIS",
-      pontosRodada: edicaoSelecionada.rodadaInicial + 3,
-      numJogos: 2,
-      prevFaseRodada: edicaoSelecionada.rodadaInicial + 2,
-    },
-    final: {
-      label: "FINAL",
-      pontosRodada: edicaoSelecionada.rodadaInicial + 4,
-      numJogos: 1,
-      prevFaseRodada: edicaoSelecionada.rodadaInicial + 3,
-    },
-  };
+// Função para gerar informações das fases (dinâmico por tamanho)
+export function getFaseInfo(edicaoAtual, edicaoSelecionada, tamanhoTorneio = TAMANHO_TORNEIO_DEFAULT) {
+  const fasesAtivas = getFasesParaTamanho(tamanhoTorneio);
+  const resultado = {};
+
+  fasesAtivas.forEach((fase, idx) => {
+    resultado[fase] = {
+      label: FASE_LABELS[fase],
+      pontosRodada: edicaoSelecionada.rodadaInicial + idx,
+      numJogos: FASE_NUM_JOGOS[fase],
+      prevFaseRodada: idx > 0 ? edicaoSelecionada.rodadaInicial + idx - 1 : null,
+    };
+  });
+
+  return resultado;
 }
 
 // Função para obter ID da liga
