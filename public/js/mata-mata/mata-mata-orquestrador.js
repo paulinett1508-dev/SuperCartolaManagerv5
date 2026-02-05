@@ -505,7 +505,7 @@ async function carregarFase(fase, ligaId) {
       return;
     }
 
-    if (rodada_atual < rodadaDefinicao) {
+    if (rodada_atual <= rodadaDefinicao) {
       contentElement.innerHTML = `
         <div class="mata-mata-aguardando-fase">
           <span class="material-symbols-outlined">schedule</span>
