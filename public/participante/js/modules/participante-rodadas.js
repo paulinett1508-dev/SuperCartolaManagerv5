@@ -446,17 +446,6 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
     const capitaoId = meuPart.capitao_id;
     const reservaLuxoId = meuPart.reserva_luxo_id;
 
-    // 🔍 DEBUG: Log atletas sem clube_id
-    const semClube = atletas.filter(a => !a.clube_id && !extrairClubeIdDaFoto(a.foto));
-    if (semClube.length > 0 && window.Log) {
-        Log.warn('[RODADAS] Atletas sem clube_id:', semClube.map(a => ({
-            id: a.atleta_id,
-            nome: a.apelido,
-            posicao: a.posicao_id,
-            foto: a.foto
-        })));
-    }
-
     // Normalizar campo de pontos (pode ser pontos, pontos_num ou pontos_efetivos)
     atletas.forEach(a => {
         if (a.pontos_num === undefined && a.pontos !== undefined) {
@@ -475,24 +464,6 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
     const posicao = meuPart.posicao || '-';
     const totalPart = rodadaData.totalParticipantesAtivos || rodadaData.participantes?.length || 0;
 
-    // Detectar MITO (1º) e MICO (último) - apenas em rodadas finalizadas
-    const isMito = !isParcial && posicao === 1 && totalPart > 1;
-    const isMico = !isParcial && posicao === totalPart && totalPart > 1;
-
-    // Encontrar capitão, melhor e pior
-    const atletasComPontos = atletas.filter(a => a.pontos_num !== undefined && a.pontos_num !== null);
-    const capitao = atletasComPontos.find(a => a.atleta_id === capitaoId);
-    const melhor = atletasComPontos.length > 0
-        ? atletasComPontos.reduce((best, a) => (a.pontos_num || 0) > (best.pontos_num || 0) ? a : best)
-        : null;
-    const pior = atletasComPontos.length > 0
-        ? atletasComPontos.reduce((worst, a) => (a.pontos_num || 0) < (worst.pontos_num || 0) ? a : worst)
-        : null;
-
-    // Escudo do time do coração
-    const clubeId = meuPart.clube_id;
-    const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
-
     // Nome do time
     const nomeTime = meuPart.nome || meuPart.nome_time || 'Meu Time';
     const nomeCartola = meuPart.nome_cartola || '';
@@ -500,180 +471,126 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
     // Pontos formatados
     const pontosFormatados = pontos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    // Classe e banner MITO/MICO
-    const statusClass = isMito ? 'me-mito' : isMico ? 'me-mico' : '';
-    const statusBanner = isMito
-        ? `<div class="me-status-banner mito">
-               <span class="material-icons">emoji_events</span>
-               Rei da Rodada
-               <span class="material-icons">emoji_events</span>
-           </div>`
-        : isMico
-        ? `<div class="me-status-banner mico">
-               <span class="material-icons">trending_down</span>
-               Pior da Rodada
-               <span class="material-icons">trending_down</span>
-           </div>`
+    // Posições do Cartola
+    const POSICOES = {
+        1: { nome: 'GOL', cor: '#FF4500' },
+        2: { nome: 'LAT', cor: '#3b82f6' },
+        3: { nome: 'ZAG', cor: '#3b82f6' },
+        4: { nome: 'MEI', cor: '#22c55e' },
+        5: { nome: 'ATA', cor: '#ef4444' },
+        6: { nome: 'TEC', cor: '#6b7280' },
+    };
+
+    // Renderizar atleta na tabela
+    function renderAtleta(a, isReserva = false) {
+        const pos = POSICOES[a.posicao_id] || { nome: '???', cor: '#6b7280' };
+        const pontosRaw = a.pontos_num ?? 0;
+        const pontosAtl = Number(pontosRaw).toFixed(1);
+        const pontosClass = pontosRaw > 0 ? 'color:#22c55e' : pontosRaw < 0 ? 'color:#ef4444' : 'color:#6b7280';
+        
+        // Status do jogo
+        const emCampo = a.entrou_em_campo;
+        const jogoEncerrado = !isParcial; // Se não é parcial, jogo já encerrou
+        const statusIcon = isParcial 
+            ? (emCampo ? '🟢' : '🔵') 
+            : '🔵'; // Todos azuis se jogo encerrou
+
+        const isCapitao = a.atleta_id === capitaoId;
+        const isLuxo = a.atleta_id === reservaLuxoId && isReserva;
+
+        const capitaoBadge = isCapitao ? '<span style="background:#eab308;color:#000;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">C</span>' : '';
+        const luxoBadge = isLuxo ? '<span style="background:#a855f7;color:#fff;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">L</span>' : '';
+
+        const clubeId = a.clube_id || extrairClubeIdDaFoto(a.foto) || null;
+        const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
+
+        const csAtl = a.variacao_num ?? 0;
+        const csClass = csAtl > 0 ? 'color:#22c55e' : csAtl < 0 ? 'color:#ef4444' : 'color:#6b7280';
+        const csTexto = csAtl > 0 ? `+${csAtl.toFixed(1)}` : csAtl.toFixed(1);
+
+        return `
+            <tr style="border-bottom:1px solid #1f2937;">
+                <td style="padding:8px 4px;text-align:center;">
+                    <span style="background:${pos.cor};color:#fff;font-size:9px;padding:3px 7px;border-radius:4px;font-weight:bold;">${pos.nome}</span>
+                </td>
+                <td style="padding:8px 4px;text-align:center;">
+                    <img src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;">
+                </td>
+                <td style="padding:8px 8px;font-size:13px;color:#e5e7eb;">
+                    ${a.apelido || 'Atleta'}${capitaoBadge}${luxoBadge}
+                </td>
+                <td style="padding:8px 4px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:bold;${pontosClass};">
+                    ${pontosAtl}
+                </td>
+                <td style="padding:8px 4px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;${csClass};">
+                    ${csTexto}
+                </td>
+                <td style="padding:8px 4px;text-align:center;font-size:14px;">
+                    ${statusIcon}
+                </td>
+            </tr>
+        `;
+    }
+
+    const titularesHTML = titulares.length > 0
+        ? titulares.map(a => renderAtleta(a, false)).join("")
+        : '<tr><td colspan="6" style="color:#6b7280;padding:12px;text-align:center;">Sem titulares</td></tr>';
+
+    const reservasHTML = reservas.length > 0
+        ? reservas.map(a => renderAtleta(a, true)).join("")
         : '';
 
-    // Agrupar titulares por posição para o campo
-    const grupos = agruparTitularesPorPosicao(titulares);
-    const formacao = `${grupos.defensores.length}-${grupos.meias.length}-${grupos.atacantes.length}`;
-
     container.innerHTML = `
-        <div class="minha-escalacao-container ${statusClass}">
-            ${statusBanner}
-
-            <!-- Toggle Header - Collapsible -->
-            <div class="me-toggle-header" id="meToggleHeader" onclick="window.toggleCampinho()">
-                <div class="me-toggle-header-left">
-                    <span class="material-icons">sports_soccer</span>
-                    <div>
-                        <div class="me-toggle-title">Minha Escalação</div>
-                        <div class="me-toggle-subtitle">${nomeTime} • ${formacao} • ${pontosFormatados} pts • ${posicao}º de ${totalPart}</div>
-                    </div>
-                </div>
-                <span class="material-icons me-toggle-chevron">expand_more</span>
+        <div class="minha-escalacao-container" style="background:#111827;border-radius:16px;overflow:hidden;margin-bottom:16px;border:1px solid #1f2937;">
+            <!-- Header -->
+            <div style="padding:16px;background:linear-gradient(135deg, rgba(255, 85, 0, 0.08) 0%, transparent 100%);border-bottom:1px solid #1f2937;">
+                <div style="font-family:'Russo One',sans-serif;font-size:16px;color:#fff;">${nomeTime}</div>
+                <div style="font-size:12px;color:#9ca3af;margin-top:2px;">${nomeCartola}</div>
             </div>
 
-            <!-- Collapsible Content -->
-            <div class="me-collapsible-content" id="meCollapsibleContent">
-                <!-- Header -->
-                <div class="me-header">
-                    <img class="me-escudo" src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'">
-                    <div class="me-header-info">
-                        <div class="me-time-nome">${nomeTime} <span style="font-family:var(--rodadas-font-mono);font-size:11px;color:var(--rodadas-text-dim);margin-left:4px;">${formacao}</span></div>
-                        <div class="me-cartola-nome">${nomeCartola}</div>
-                    </div>
+            <!-- Stats -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px;">
+                <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
+                    <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;">Pontos</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:#ff5500;">${pontosFormatados}</div>
                 </div>
-
-                <!-- Scores -->
-                <div class="me-scores">
-                    <div class="me-score-card">
-                        <div class="me-score-label">Pontos</div>
-                        <div class="me-score-value pontos">${pontosFormatados}</div>
-                    </div>
-                    <div class="me-score-card">
-                        <div class="me-score-label">Posição</div>
-                        <div class="me-score-value posicao">${posicao}º <span style="font-size:12px;color:var(--rodadas-text-dim)">de ${totalPart}</span></div>
-                    </div>
+                <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
+                    <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;">Posição</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:#fff;">${posicao}º <span style="font-size:12px;color:#6b7280;">/${totalPart}</span></div>
                 </div>
-
-                <!-- Destaques: Capitão, Melhor, Pior -->
-                ${renderDestaques(capitao, melhor, pior, capitaoId)}
-
-                <!-- Mini Campo de Futebol -->
-                <div class="me-campo">
-                    <div class="me-campo-gol-area"></div>
-                    <!-- Goleiro -->
-                    <div class="me-campo-linha" style="margin-top: 40px; margin-bottom: 10px;">
-                        ${grupos.goleiros.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
-                    </div>
-                    <!-- Laterais -->
-                    ${grupos.laterais.length > 0 ? `
-                    <div class="me-campo-linha" style="margin-bottom: 8px;">
-                        ${grupos.laterais.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
-                    </div>
-                    ` : ''}
-                    <!-- Zagueiros -->
-                    ${grupos.zagueiros.length > 0 ? `
-                    <div class="me-campo-linha" style="margin-bottom: 10px;">
-                        ${grupos.zagueiros.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
-                    </div>
-                    ` : ''}
-                    <!-- Meias -->
-                    ${grupos.meias.length > 0 ? `
-                    <div class="me-campo-linha" style="margin-bottom: 10px;">
-                        ${grupos.meias.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
-                    </div>
-                    ` : ''}
-                    <!-- Atacantes -->
-                    ${grupos.atacantes.length > 0 ? `
-                    <div class="me-campo-linha" style="margin-bottom: 10px;">
-                        ${grupos.atacantes.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
-                    </div>
-                    ` : ''}
-                    <!-- Técnico -->
-                    ${grupos.tecnicos.length > 0 ? `
-                    <div class="me-campo-linha" style="margin-bottom: 6px;">
-                        ${grupos.tecnicos.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
-                    </div>
-                    ` : ''}
-                </div>
-
-                <!-- Legenda de posições -->
-                <div class="me-campo-legenda">
-                    <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot gol"></span><span>GOL</span></div>
-                    <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot def"></span><span>DEF</span></div>
-                    <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot mei"></span><span>MEI</span></div>
-                    <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot ata"></span><span>ATA</span></div>
-                    <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot tec"></span><span>TEC</span></div>
-                </div>
-
-                <!-- Banco de Reservas -->
-                ${reservas.length > 0 ? `
-                    <div class="me-banco-section">
-                        <div class="me-banco-titulo">
-                            <span class="material-icons">airline_seat_recline_normal</span>
-                            Reservas (${reservas.length})
-                        </div>
-                        <div class="me-banco-scroll">
-                            ${reservas.map(a => renderReservaCard(a, capitaoId, reservaLuxoId)).join('')}
-                        </div>
-                    </div>
-                ` : ''}
             </div>
-        </div>
-    `;
-}
 
-// Agrupar titulares por posição para renderizar no campo
-function agruparTitularesPorPosicao(titulares) {
-    const grupos = {
-        goleiros: [],
-        laterais: [],
-        zagueiros: [],
-        meias: [],
-        atacantes: [],
-        tecnicos: [],
-        defensores: []
-    };
-
-    titulares.forEach(a => {
-        const pos = Number(a.posicao_id);
-        if (pos === 1) grupos.goleiros.push(a);
-        else if (pos === 2) grupos.laterais.push(a);
-        else if (pos === 3) grupos.zagueiros.push(a);
-        else if (pos === 4) grupos.meias.push(a);
-        else if (pos === 5) grupos.atacantes.push(a);
-        else if (pos === 6) grupos.tecnicos.push(a);
-    });
-
-    grupos.defensores = [...grupos.laterais, ...grupos.zagueiros];
-    return grupos;
-}
-
-function renderDestaques(capitao, melhor, pior, capitaoId) {
-    if (!capitao && !melhor && !pior) return '';
-
-    const renderDestaque = (atleta, tipo, icone, label) => {
-        if (!atleta) return `<div class="me-destaque-card ${tipo}"><div class="me-destaque-icon"><span class="material-icons">${icone}</span></div><div class="me-destaque-nome">-</div><div class="me-destaque-label">${label}</div></div>`;
-        const pts = Number(atleta.pontos_num || 0).toFixed(1);
-        return `
-            <div class="me-destaque-card ${tipo}">
-                <div class="me-destaque-icon"><span class="material-icons">${icone}</span></div>
-                <div class="me-destaque-nome">${atleta.apelido || 'Atleta'}</div>
-                <div class="me-destaque-label">${label}</div>
-                <div class="me-destaque-pontos">${pts}</div>
+            <!-- Tabela de Titulares -->
+            <div style="padding:8px 16px 16px;">
+                <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Titulares (${titulares.length})</div>
+                <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <thead>
+                        <tr style="border-bottom:2px solid #374151;color:#6b7280;font-size:10px;text-transform:uppercase;">
+                            <th style="padding:6px 4px;text-align:center;font-weight:600;">POS</th>
+                            <th style="padding:6px 4px;text-align:center;font-weight:600;">TIME</th>
+                            <th style="padding:6px 8px;text-align:left;font-weight:600;">JOGADOR</th>
+                            <th style="padding:6px 4px;text-align:right;font-weight:600;">PTS</th>
+                            <th style="padding:6px 4px;text-align:right;font-weight:600;">C$</th>
+                            <th style="padding:6px 4px;text-align:center;font-weight:600;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${titularesHTML}
+                    </tbody>
+                </table>
             </div>
-        `;
-    };
 
-    return `
-        <div class="me-destaques">
-            ${renderDestaque(capitao, 'capitao', 'military_tech', 'Capitão')}
-            ${renderDestaque(melhor, 'melhor', 'trending_up', 'Melhor')}
-            ${renderDestaque(pior, 'pior', 'trending_down', 'Pior')}
+            <!-- Tabela de Reservas -->
+            ${reservas.length > 0 ? `
+                <div style="padding:0 16px 16px;border-top:1px solid #374151;padding-top:16px;">
+                    <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Reservas (${reservas.length})</div>
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <tbody>
+                            ${reservasHTML}
+                        </tbody>
+                    </table>
+                </div>
+            ` : ''}
         </div>
     `;
 }
@@ -691,77 +608,6 @@ function extrairClubeIdDaFoto(foto) {
     if (match2) return parseInt(match2[1]);
     
     return null;
-}
-
-// Renderizar jogador posicionado no campo
-function renderJogadorCampo(atleta, capitaoId, reservaLuxoId) {
-    const pos = POSICOES_CARTOLA[atleta.posicao_id] || { nome: '???', slug: 'tec' };
-    const pontosNum = Number(atleta.pontos_num || 0);
-    const pontosStr = pontosNum.toFixed(1);
-    const pontosCls = pontosNum > 0 ? 'positivo' : pontosNum < 0 ? 'negativo' : 'neutro';
-    const isCapitao = atleta.atleta_id === capitaoId;
-    const isLuxo = atleta.atleta_id === reservaLuxoId;
-    const isMito = pontosNum > MITO_JOGADOR;
-    const isMico = pontosNum < MICO_JOGADOR;
-
-    // ✅ Melhorar obtenção do clube_id com múltiplos fallbacks
-    const clubeId = atleta.clube_id || extrairClubeIdDaFoto(atleta.foto) || null;
-    const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
-    const nome = atleta.apelido || 'Atleta';
-    const nomeAbrev = nome.length > 9 ? nome.substring(0, 8) + '.' : nome;
-
-    let classes = ['me-campo-jogador'];
-    if (isCapitao) classes.push('is-capitao');
-    if (isLuxo) classes.push('is-luxo');
-    if (isMito) classes.push('is-mito');
-    if (isMico) classes.push('is-mico');
-
-    let badgeHtml = '';
-    if (isCapitao) {
-        badgeHtml = '<span class="me-campo-badge-c">C</span>';
-    } else if (isLuxo) {
-        badgeHtml = '<span class="me-campo-badge-l">L</span>';
-    }
-
-    return `
-        <div class="${classes.join(' ')}">
-            <div class="me-campo-avatar pos-${pos.slug}">
-                <img src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'">
-                ${badgeHtml}
-                <span class="me-campo-pts ${pontosCls}">${pontosStr}</span>
-            </div>
-            <span class="me-campo-nome">${nomeAbrev}</span>
-        </div>
-    `;
-}
-
-// Renderizar reserva no banco (scroll horizontal)
-function renderReservaCard(atleta, capitaoId, reservaLuxoId) {
-    const pos = POSICOES_CARTOLA[atleta.posicao_id] || { nome: '???', slug: 'tec' };
-    const pontosNum = Number(atleta.pontos_num || 0);
-    const pontosStr = pontosNum.toFixed(1);
-    const pontosCls = pontosNum > 0 ? 'positivo' : pontosNum < 0 ? 'negativo' : 'neutro';
-    const isLuxo = atleta.atleta_id === reservaLuxoId;
-    const entrouEmCampo = pontosNum !== 0;
-    const naoEntrou = pontosNum === 0;
-
-    // ✅ Melhorar obtenção do clube_id com múltiplos fallbacks
-    const clubeId = atleta.clube_id || extrairClubeIdDaFoto(atleta.foto) || null;
-    const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
-    const nome = atleta.apelido || 'Atleta';
-    const nomeAbrev = nome.length > 9 ? nome.substring(0, 8) + '.' : nome;
-
-    return `
-        <div class="me-banco-jogador ${naoEntrou ? 'nao-entrou' : ''}">
-            <div class="me-banco-avatar pos-${pos.slug}" style="background:linear-gradient(135deg, ${pos.slug === 'gol' ? '#f97316,#c2410c' : pos.slug === 'lat' || pos.slug === 'zag' ? '#3b82f6,#1d4ed8' : pos.slug === 'mei' ? '#22c55e,#15803d' : pos.slug === 'ata' ? '#ef4444,#b91c1c' : '#a855f7,#7e22ce'});border:2px solid ${pos.slug === 'gol' ? '#fb923c' : pos.slug === 'lat' || pos.slug === 'zag' ? '#60a5fa' : pos.slug === 'mei' ? '#4ade80' : pos.slug === 'ata' ? '#f87171' : '#c084fc'};">
-                <img src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'" style="width:20px;height:20px;object-fit:contain;">
-                ${entrouEmCampo ? '<span class="me-banco-badge-entrou"></span>' : ''}
-                ${isLuxo ? '<span class="me-banco-badge-luxo">L</span>' : ''}
-            </div>
-            <span class="me-banco-nome">${nomeAbrev}</span>
-            <span class="me-banco-pts ${pontosCls}">${pontosStr}</span>
-        </div>
-    `;
 }
 
 // =====================================================================
