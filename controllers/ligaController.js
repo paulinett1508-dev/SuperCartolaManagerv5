@@ -733,7 +733,7 @@ const buscarConfrontosPontosCorridos = async (req, res) => {
     let rodadaAtual = 1;
     try {
       const resStatus = await axios.get(
-        "http://localhost:5000/api/mercado/status",
+        "http://localhost:5000/api/cartola/mercado/status",
       );
       if (resStatus.data && resStatus.data.rodada_atual) {
         rodadaAtual = resStatus.data.rodada_atual;

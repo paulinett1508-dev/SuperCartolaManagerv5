@@ -50,7 +50,7 @@ export async function inicializarCopaTimesSC(params) {
 // =====================================================================
 async function carregarInformacoesRodada() {
     try {
-        const response = await fetch('/api/mercado/status');
+        const response = await fetch('/api/cartola/mercado/status');
         if (!response.ok) throw new Error('Erro ao buscar status do mercado');
 
         const data = await response.json();
