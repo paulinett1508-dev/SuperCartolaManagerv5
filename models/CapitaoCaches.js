@@ -33,6 +33,15 @@ const capitaoCachesSchema = new mongoose.Schema({
 
   capitaes_distintos: { type: Number, default: 0 },
 
+  // Histórico por rodada
+  historico_rodadas: [{
+    rodada: Number,
+    atleta_nome: String,
+    pontuacao: Number,
+    parcial: { type: Boolean, default: false },
+    jogou: { type: Boolean, default: null }
+  }],
+
   // Posição final
   posicao_final: Number,
   premiacao_recebida: { type: Number, default: 0 },

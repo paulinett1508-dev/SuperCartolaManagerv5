@@ -232,6 +232,33 @@ function renderizarRanking(ranking) {
             ? '<span class="capitao-badge-captain">CAMPEÃO</span>'
             : '<span class="capitao-badge-captain">[C]</span>';
 
+        // Histórico por rodada (chips)
+        const historico = participante.historico_rodadas || [];
+        let historicoHtml = '';
+        if (historico.length > 0) {
+            const chips = historico.map(r => {
+                const pts = (r.pontuacao || 0).toFixed(1);
+                const isParcial = r.parcial === true;
+                const corPts = r.pontuacao >= 10 ? '#22c55e' : r.pontuacao >= 5 ? '#fbbf24' : r.pontuacao < 0 ? '#ef4444' : '#9ca3af';
+
+                let dotHtml = '';
+                if (isParcial) {
+                    if (r.jogou === false) {
+                        dotHtml = '<span class="cap-dot cap-dot-pending"></span>';
+                    } else if (r.pontuacao > 0) {
+                        dotHtml = '<span class="cap-dot cap-dot-positive"></span>';
+                    } else if (r.pontuacao < 0) {
+                        dotHtml = '<span class="cap-dot cap-dot-negative"></span>';
+                    } else {
+                        dotHtml = '<span class="cap-dot cap-dot-neutral"></span>';
+                    }
+                }
+
+                return `<span class="cap-chip${isParcial && r.jogou === false ? ' cap-chip-pending' : ''}"><span class="cap-chip-rod">R${r.rodada}</span> ${r.atleta_nome || '?'} <span style="color:${corPts}; font-family:var(--capitao-font-mono); font-weight:600;">${pts}</span>${dotHtml}</span>`;
+            }).join('');
+            historicoHtml = `<div class="cap-historico">${chips}</div>`;
+        }
+
         html += `
             <div class="${cardClasses}">
                 <div class="capitao-posicao">${posicaoIcon}</div>
@@ -241,6 +268,7 @@ function renderizarRanking(ranking) {
                 <div class="capitao-info">
                     <div class="capitao-nome">${participante.nome_cartola || '---'}</div>
                     <div class="capitao-time-nome">${participante.nome_time || ''}</div>
+                    ${historicoHtml}
                 </div>
                 <div class="capitao-stats">
                     <div class="capitao-stat">
@@ -325,7 +353,43 @@ function renderizarCardDesempenho(ranking) {
                 <div style="margin-top: 8px; font-size: 11px; color: var(--capitao-text-muted);">
                     Capitães distintos utilizados: <strong style="color: #e5e7eb;">${distintos}</strong>
                 </div>
+                ${_renderHistoricoDesempenho(meusDados.historico_rodadas)}
             </div>
+        </div>
+    `;
+}
+
+// =============================================
+// HELPER: HISTORICO CHIPS (para card desempenho)
+// =============================================
+function _renderHistoricoDesempenho(historico) {
+    if (!historico || historico.length === 0) return '';
+
+    const chips = historico.map(r => {
+        const pts = (r.pontuacao || 0).toFixed(1);
+        const isParcial = r.parcial === true;
+        const corPts = r.pontuacao >= 10 ? '#22c55e' : r.pontuacao >= 5 ? '#fbbf24' : r.pontuacao < 0 ? '#ef4444' : '#9ca3af';
+
+        let dotHtml = '';
+        if (isParcial) {
+            if (r.jogou === false) {
+                dotHtml = '<span class="cap-dot cap-dot-pending"></span>';
+            } else if (r.pontuacao > 0) {
+                dotHtml = '<span class="cap-dot cap-dot-positive"></span>';
+            } else if (r.pontuacao < 0) {
+                dotHtml = '<span class="cap-dot cap-dot-negative"></span>';
+            } else {
+                dotHtml = '<span class="cap-dot cap-dot-neutral"></span>';
+            }
+        }
+
+        return `<span class="cap-chip${isParcial && r.jogou === false ? ' cap-chip-pending' : ''}"><span class="cap-chip-rod">R${r.rodada}</span> ${r.atleta_nome || '?'} <span style="color:${corPts}; font-family:var(--capitao-font-mono); font-weight:600;">${pts}</span>${dotHtml}</span>`;
+    }).join('');
+
+    return `
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--capitao-border);">
+            <div style="font-size: 10px; color: var(--capitao-text-muted); margin-bottom: 6px;">Seus capitães por rodada:</div>
+            <div class="cap-historico">${chips}</div>
         </div>
     `;
 }

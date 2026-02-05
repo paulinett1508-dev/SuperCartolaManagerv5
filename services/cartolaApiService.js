@@ -414,7 +414,8 @@ class CartolaApiService {
         rodada: parseInt(rodada),
         atletas: [],
         pontos: response.data.pontos || 0,
-        patrimonio: response.data.patrimonio || 0
+        patrimonio: response.data.patrimonio || 0,
+        capitao_id: response.data.capitao_id || null
       };
 
       if (response.data.atletas && Array.isArray(response.data.atletas)) {

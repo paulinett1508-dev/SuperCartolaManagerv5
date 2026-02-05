@@ -250,7 +250,35 @@ const CapitaoLuxo = {
             const response = await fetch(url);
             const data = await response.json();
 
-            if (!data.success || !data.ranking || data.ranking.length === 0) {
+            // Verificar se dados precisam de (re)consolidação
+            const rankingVazio = !data.success || !data.ranking || data.ranking.length === 0;
+            const dadosZerados = !rankingVazio && data.ranking.every(r => (r.pontuacao_total || 0) === 0 && (r.rodadas_jogadas || 0) === 0);
+            const semHistorico = !rankingVazio && !dadosZerados && data.ranking.some(r => !r.historico_rodadas || r.historico_rodadas.length === 0);
+            const rodadaEmAndamento = !this.estado.mercadoAberto && !this.estado.temporadaEncerrada;
+
+            if (rankingVazio || dadosZerados || semHistorico || rodadaEmAndamento) {
+                if (dadosZerados) console.warn("⚠️ [CAPITAO-LUXO] Dados zerados, re-consolidando...");
+                if (semHistorico) console.warn("⚠️ [CAPITAO-LUXO] Histórico ausente, re-consolidando...");
+                if (rodadaEmAndamento) console.log("🔴 [CAPITAO-LUXO] Rodada em andamento, atualizando parciais...");
+
+                // Verificar se há rodadas finalizadas para auto-consolidar
+                const rodadaConsolidada = this.estado.mercadoAberto
+                    ? Math.max(0, this.estado.rodadaAtual - 1)
+                    : this.estado.rodadaAtual;
+
+                if (rodadaConsolidada > 0) {
+                    console.log(`🔄 [CAPITAO-LUXO] Cache vazio, auto-consolidando até rodada ${rodadaConsolidada}...`);
+                    this._mostrarConsolidando(rodadaConsolidada);
+
+                    const ranking = await this._autoConsolidar(ligaId, temporada, rodadaConsolidada);
+                    if (ranking && ranking.length > 0) {
+                        this.estado.ranking = ranking;
+                        this.renderizarTabela(ranking);
+                        this._renderizarBannerFinal();
+                        return;
+                    }
+                }
+
                 this.renderizarVazio();
                 return;
             }
@@ -264,6 +292,45 @@ const CapitaoLuxo = {
         } finally {
             this.estado.carregando = false;
         }
+    },
+
+    // ==============================
+    // AUTO-CONSOLIDAR (quando cache vazio)
+    // ==============================
+    async _autoConsolidar(ligaId, temporada, rodadaFinal) {
+        try {
+            const resp = await fetch(`/api/capitao/${ligaId}/consolidar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ temporada, rodadaFinal })
+            });
+            const result = await resp.json();
+            if (result.success && result.ranking && result.ranking.length > 0) {
+                console.log(`✅ [CAPITAO-LUXO] Auto-consolidação OK: ${result.ranking.length} participantes`);
+                return result.ranking;
+            }
+            console.warn(`⚠️ [CAPITAO-LUXO] Auto-consolidação retornou vazio`);
+            return null;
+        } catch (error) {
+            console.error(`❌ [CAPITAO-LUXO] Erro na auto-consolidação:`, error);
+            return null;
+        }
+    },
+
+    _mostrarConsolidando(rodada) {
+        const tbody = document.getElementById("capitaoLuxoRankingBody");
+        if (!tbody) return;
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align: center; padding: 40px; color: #fbbf24;">
+                    <div class="capitao-luxo-loading">
+                        <div class="spinner"></div>
+                        <p>Consolidando dados dos capitães até a rodada ${rodada}...</p>
+                        <p style="font-size: 11px; color: #888; margin-top: 8px;">Primeira vez pode demorar alguns segundos</p>
+                    </div>
+                </td>
+            </tr>
+        `;
     },
 
     // ==============================
@@ -299,8 +366,44 @@ const CapitaoLuxo = {
 
             const posicaoIcon = isPrimeiro ? "🥇" : isPodio2 ? "🥈" : isPodio3 ? "🥉" : `${posicao}º`;
 
+            // Histórico por rodada (chips)
+            const historico = participante.historico_rodadas || [];
+            let historicoHtml = "";
+            if (historico.length > 0) {
+                const chips = historico.map(r => {
+                    const pts = (r.pontuacao || 0).toFixed(1);
+                    const isParcial = r.parcial === true;
+                    const corPts = r.pontuacao >= 10 ? "#22c55e" : r.pontuacao >= 5 ? "#fbbf24" : r.pontuacao < 0 ? "#ef4444" : "#9ca3af";
+
+                    let indicador = "";
+                    let chipExtra = "";
+                    if (isParcial) {
+                        if (r.jogou === false) {
+                            // Ainda vai jogar - amarelo piscando
+                            indicador = '<span class="chip-dot dot-pending"></span>';
+                            chipExtra = " chip-parcial-pending";
+                        } else if (r.pontuacao > 0) {
+                            // Já jogou, pontuou positivo - verde
+                            indicador = '<span class="chip-dot dot-positive"></span>';
+                            chipExtra = " chip-parcial-done";
+                        } else if (r.pontuacao < 0) {
+                            // Já jogou, pontuou negativo - vermelho
+                            indicador = '<span class="chip-dot dot-negative"></span>';
+                            chipExtra = " chip-parcial-done";
+                        } else {
+                            // Já jogou mas 0 pts (nem banco) - branco
+                            indicador = '<span class="chip-dot dot-neutral"></span>';
+                            chipExtra = " chip-parcial-done";
+                        }
+                    }
+
+                    return `<span class="capitao-rodada-chip${chipExtra}"><span class="chip-rodada">R${r.rodada}</span> ${r.atleta_nome || "?"} <span style="color:${corPts}; font-family:'JetBrains Mono',monospace; font-weight:600;">${pts}</span>${indicador}</span>`;
+                }).join("");
+                historicoHtml = `<div class="capitao-historico-rodadas">${chips}</div>`;
+            }
+
             html += `
-                <tr class="${rowClass}" title="${participante.melhor_capitao?.atleta_nome ? `Melhor: ${participante.melhor_capitao.atleta_nome} (R${participante.melhor_capitao.rodada})` : ""}">
+                <tr class="${rowClass}">
                     <td class="col-pos">${posicaoIcon}</td>
                     <td class="col-escudo">
                         <img src="${escudoSrc}" class="escudo-mini" alt=""
@@ -310,6 +413,7 @@ const CapitaoLuxo = {
                     <td class="col-nome">
                         <span class="nome-cartola">${participante.nome_cartola || "---"}</span>
                         <span class="nome-time">${participante.nome_time || ""}</span>
+                        ${historicoHtml}
                     </td>
                     <td><span class="val-pts">${pontos}</span></td>
                     <td><span class="val-media">${media}</span></td>
@@ -386,10 +490,7 @@ const CapitaoLuxo = {
                     <div class="capitao-luxo-empty">
                         <span class="material-icons">military_tech</span>
                         <p>Sem dados de capitães disponíveis</p>
-                        <p style="font-size: 11px; margin-top: 8px;">O ranking será populado após a consolidação dos dados das rodadas finalizadas.</p>
-                        <p style="font-size: 10px; margin-top: 4px; color: #888;">
-                            Administrador: Execute a consolidação via Admin > Capitão de Luxo > Consolidar Ranking
-                        </p>
+                        <p style="font-size: 11px; margin-top: 8px;">O ranking será populado automaticamente após rodadas finalizadas.</p>
                     </div>
                 </td>
             </tr>

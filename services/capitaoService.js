@@ -6,10 +6,30 @@ import Liga from '../models/Liga.js';
 const LOG_PREFIX = '[CAPITAO-SERVICE]';
 
 /**
+ * Busca mapa de pontuados da rodada atual (parciais ao vivo)
+ * @returns {Object} { atletaId: { apelido, pontuacao } }
+ */
+async function buscarPontuadosRodada() {
+  try {
+    const response = await cartolaApiService.httpClient.get(
+      `${cartolaApiService.baseUrl}/atletas/pontuados`
+    );
+    if (!response.data || !response.data.atletas) return {};
+    return response.data.atletas; // { "68996": { apelido, pontuacao, ... }, ... }
+  } catch (error) {
+    console.warn(`${LOG_PREFIX} Erro ao buscar pontuados:`, error.message);
+    return {};
+  }
+}
+
+/**
  * Busca dados do capitão em uma rodada específica
+ * @param {number} timeId
+ * @param {number} rodada
+ * @param {Object} pontuadosMap - Mapa de pontuados (para rodada em andamento)
  * @returns {Object} { capitao_id, capitao_nome, pontuacao }
  */
-export async function buscarCapitaoRodada(timeId, rodada) {
+export async function buscarCapitaoRodada(timeId, rodada, pontuadosMap = null) {
   try {
     const escalacao = await cartolaApiService.obterDadosTimeRodada(timeId, rodada);
 
@@ -29,11 +49,30 @@ export async function buscarCapitaoRodada(timeId, rodada) {
       return { capitao_id: capitaoId, capitao_nome: 'Desconhecido', pontuacao: 0 };
     }
 
-    // Pontuação já vem dobrada pela API Cartola (capitão x2)
+    // pontos_num da API é o valor BRUTO → multiplicar por 1.5 (bônus capitão)
+    let pontuacao = (capitao.pontos || 0) * 1.5;
+    let nome = capitao.nome;
+    let jogou = null; // null = rodada finalizada, true/false = parcial
+
+    // Para rodada em andamento: suplementar com pontuados (parciais ao vivo)
+    if (pontuadosMap) {
+      const pontuado = pontuadosMap[String(capitaoId)];
+      if (pontuado) {
+        // Capitão já jogou - pontuação bruta x1.5 (bônus capitão)
+        pontuacao = (pontuado.pontuacao || 0) * 1.5;
+        nome = pontuado.apelido || nome;
+        jogou = true;
+      } else {
+        // Capitão ainda não jogou
+        jogou = false;
+      }
+    }
+
     return {
       capitao_id: capitaoId,
-      capitao_nome: capitao.nome,
-      pontuacao: capitao.pontos || 0
+      capitao_nome: nome,
+      pontuacao,
+      jogou
     };
   } catch (error) {
     console.error(`${LOG_PREFIX} Erro ao buscar capitão rodada ${rodada}:`, error);
@@ -43,15 +82,18 @@ export async function buscarCapitaoRodada(timeId, rodada) {
 
 /**
  * Calcula estatísticas de capitães para uma temporada
- * REUTILIZA parciaisRankingService.calcularPontuacaoTime (extrai capitao_id)
+ * @param {number} rodadaFinal - Última rodada a considerar
+ * @param {Object} pontuadosMap - Mapa de pontuados para rodada em andamento (opcional)
+ * @param {number} rodadaEmAndamento - Número da rodada em andamento (opcional)
  */
-export async function calcularEstatisticasCapitao(ligaId, temporada, timeId, rodadaFinal = 38) {
+export async function calcularEstatisticasCapitao(ligaId, temporada, timeId, rodadaFinal = 38, pontuadosMap = null, rodadaEmAndamento = null) {
   const estatisticas = {
     pontuacao_total: 0,
     rodadas_jogadas: 0,
     melhor_capitao: null,
     pior_capitao: null,
-    capitaes_distintos: 0
+    capitaes_distintos: 0,
+    historico_rodadas: []
   };
 
   const capitaesUsados = new Set();
@@ -60,13 +102,25 @@ export async function calcularEstatisticasCapitao(ligaId, temporada, timeId, rod
 
   // Buscar capitães de todas as rodadas
   for (let rodada = 1; rodada <= rodadaFinal; rodada++) {
-    const capitao = await buscarCapitaoRodada(timeId, rodada);
+    // Passar pontuadosMap apenas na rodada em andamento
+    const usarPontuados = (rodada === rodadaEmAndamento) ? pontuadosMap : null;
+    const capitao = await buscarCapitaoRodada(timeId, rodada, usarPontuados);
 
     if (!capitao.capitao_id) continue; // Não escalou
 
     estatisticas.rodadas_jogadas++;
     estatisticas.pontuacao_total += capitao.pontuacao;
     capitaesUsados.add(capitao.capitao_id);
+
+    // Histórico por rodada
+    const isParcial = (rodada === rodadaEmAndamento);
+    estatisticas.historico_rodadas.push({
+      rodada,
+      atleta_nome: capitao.capitao_nome,
+      pontuacao: capitao.pontuacao,
+      parcial: isParcial,
+      jogou: capitao.jogou
+    });
 
     // Melhor capitão
     if (capitao.pontuacao > melhorPontos) {
@@ -101,9 +155,6 @@ export async function calcularEstatisticasCapitao(ligaId, temporada, timeId, rod
 
 /**
  * Consolidar ranking de capitães (incremental ou fim de temporada)
- * @param {string} ligaId - ID da liga
- * @param {number} temporada - Ano da temporada
- * @param {number} rodadaFinal - Rodada final a consolidar (default: 38)
  */
 export async function consolidarRankingCapitao(ligaId, temporada, rodadaFinal = 38) {
   console.log(`${LOG_PREFIX} Consolidando ranking Capitão Luxo - Liga ${ligaId}, Temporada ${temporada}, até rodada ${rodadaFinal}`);
@@ -111,6 +162,26 @@ export async function consolidarRankingCapitao(ligaId, temporada, rodadaFinal = 
   const liga = await Liga.findById(ligaId).lean();
   if (!liga || !liga.participantes) {
     throw new Error('Liga não encontrada');
+  }
+
+  // Detectar rodada em andamento e buscar pontuados UMA vez
+  let pontuadosMap = null;
+  let rodadaEmAndamento = null;
+  try {
+    const statusResp = await cartolaApiService.httpClient.get(
+      `${cartolaApiService.baseUrl}/mercado/status`
+    );
+    const status = statusResp.data;
+    const mercadoFechado = status.status_mercado === 2;
+    if (mercadoFechado && status.rodada_atual === rodadaFinal) {
+      rodadaEmAndamento = status.rodada_atual;
+      console.log(`${LOG_PREFIX} Rodada ${rodadaEmAndamento} em andamento, buscando pontuados parciais...`);
+      pontuadosMap = await buscarPontuadosRodada();
+      const totalPontuados = Object.keys(pontuadosMap).length;
+      console.log(`${LOG_PREFIX} ${totalPontuados} atletas pontuados encontrados`);
+    }
+  } catch (err) {
+    console.warn(`${LOG_PREFIX} Erro ao detectar rodada em andamento:`, err.message);
   }
 
   const participantes = liga.participantes.filter(p => p.ativo !== false);
@@ -121,7 +192,9 @@ export async function consolidarRankingCapitao(ligaId, temporada, rodadaFinal = 
       ligaId,
       temporada,
       participante.time_id,
-      rodadaFinal
+      rodadaFinal,
+      pontuadosMap,
+      rodadaEmAndamento
     );
 
     dadosCapitaes.push({
