@@ -147,7 +147,13 @@ const AppVersion = {
                 const OWNER_TIME_ID = '13935277';
                 if (timeId === OWNER_TIME_ID) {
                     if (window.Log) Log.info('APP-VERSION', `Owner bypass: timeId ${timeId} sempre liberado`);
-                    // Pula toda lógica de manutenção, cai direto no version check
+                    // Desativar manutenção se já foi ativada por race condition
+                    if (window.ManutencaoScreen.estaAtivo()) {
+                        window.ManutencaoScreen.desativar();
+                    }
+                } else if (!timeId) {
+                    // Auth ainda não completou - NÃO decidir manutenção sem saber quem é
+                    if (window.Log) Log.debug('APP-VERSION', 'Aguardando auth para verificar manutenção');
                 } else {
                     let deveMostrarManutencao = false;
 
