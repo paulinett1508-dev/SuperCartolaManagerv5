@@ -100,10 +100,13 @@ export async function calcularEstatisticasCapitao(ligaId, temporada, timeId, rod
 }
 
 /**
- * Consolidar ranking de capitães (executar fim de temporada)
+ * Consolidar ranking de capitães (incremental ou fim de temporada)
+ * @param {string} ligaId - ID da liga
+ * @param {number} temporada - Ano da temporada
+ * @param {number} rodadaFinal - Rodada final a consolidar (default: 38)
  */
-export async function consolidarRankingCapitao(ligaId, temporada) {
-  console.log(`${LOG_PREFIX} Consolidando ranking Capitão Luxo - Liga ${ligaId}, Temporada ${temporada}`);
+export async function consolidarRankingCapitao(ligaId, temporada, rodadaFinal = 38) {
+  console.log(`${LOG_PREFIX} Consolidando ranking Capitão Luxo - Liga ${ligaId}, Temporada ${temporada}, até rodada ${rodadaFinal}`);
 
   const liga = await Liga.findById(ligaId).lean();
   if (!liga || !liga.participantes) {
@@ -117,7 +120,8 @@ export async function consolidarRankingCapitao(ligaId, temporada) {
     const stats = await calcularEstatisticasCapitao(
       ligaId,
       temporada,
-      participante.time_id
+      participante.time_id,
+      rodadaFinal
     );
 
     dadosCapitaes.push({
