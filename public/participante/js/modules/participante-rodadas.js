@@ -496,6 +496,53 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
         6: { nome: 'TEC', cor: '#6b7280' },
     };
 
+    // Função para determinar status do jogo baseado em data/hora
+    function obterStatusJogo(atleta) {
+        if (!isParcial) {
+            // Rodada finalizada - todos jogaram
+            return '🔵';
+        }
+
+        // Verificar se o atleta tem informação de jogo
+        const jogoInfo = atleta.jogo || {};
+        const dataJogo = jogoInfo.data_jogo || jogoInfo.data || null;
+        const horaJogo = jogoInfo.hora || null;
+        
+        if (!dataJogo) {
+            // Sem info de jogo, usar fallback baseado em entrou_em_campo
+            if (atleta.entrou_em_campo) {
+                return '🟢'; // Jogando ou já jogou
+            }
+            return '⚪'; // Padrão: ainda não começou
+        }
+
+        try {
+            // Construir data/hora do jogo
+            const [ano, mes, dia] = dataJogo.split('-').map(Number);
+            const [hora, minuto] = (horaJogo || '00:00').split(':').map(Number);
+            const dataHoraJogo = new Date(ano, mes - 1, dia, hora, minuto);
+            const agora = new Date();
+            
+            // Calcular diferença em minutos
+            const diffMinutos = (agora - dataHoraJogo) / (1000 * 60);
+            
+            if (diffMinutos < -10) {
+                // Jogo ainda não começou (mais de 10min antes)
+                return '⚪';
+            } else if (diffMinutos >= -10 && diffMinutos <= 120) {
+                // Jogo em andamento (10min antes até 2h depois)
+                return atleta.entrou_em_campo ? '🟢' : '⚪';
+            } else {
+                // Jogo encerrado (mais de 2h depois)
+                return '🔵';
+            }
+        } catch (err) {
+            // Erro ao processar data - fallback
+            if (window.Log) Log.warn('[RODADAS] Erro ao processar data do jogo:', err);
+            return atleta.entrou_em_campo ? '🟢' : '⚪';
+        }
+    }
+
     // Renderizar atleta na tabela
     function renderAtleta(a, isReserva = false) {
         const pos = POSICOES[a.posicao_id] || { nome: '???', cor: '#6b7280' };
@@ -503,12 +550,8 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
         const pontosAtl = Number(pontosRaw).toFixed(1);
         const pontosClass = pontosRaw > 0 ? 'color:#22c55e' : pontosRaw < 0 ? 'color:#ef4444' : 'color:#6b7280';
         
-        // Status do jogo
-        const emCampo = a.entrou_em_campo;
-        const jogoEncerrado = !isParcial; // Se não é parcial, jogo já encerrou
-        const statusIcon = isParcial 
-            ? (emCampo ? '🟢' : '🔵') 
-            : '🔵'; // Todos azuis se jogo encerrou
+        // Status do jogo baseado em data/hora
+        const statusIcon = obterStatusJogo(a);
 
         const isCapitao = a.atleta_id === capitaoId;
         const isLuxo = a.atleta_id === reservaLuxoId && isReserva;
