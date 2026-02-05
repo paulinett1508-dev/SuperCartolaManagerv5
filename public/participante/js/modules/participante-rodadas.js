@@ -459,6 +459,21 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
     const titulares = atletas.filter(a => a.status_id !== 2);
     const reservas = atletas.filter(a => a.status_id === 2);
 
+    // Ordenar titulares por posição: GOL → ZAG → LAT → MEI → ATA → TEC
+    const ordemPosicoes = { 1: 1, 3: 2, 2: 3, 4: 4, 5: 5, 6: 6 };
+    titulares.sort((a, b) => {
+        const ordemA = ordemPosicoes[a.posicao_id] || 99;
+        const ordemB = ordemPosicoes[b.posicao_id] || 99;
+        return ordemA - ordemB;
+    });
+
+    // Ordenar reservas também
+    reservas.sort((a, b) => {
+        const ordemA = ordemPosicoes[a.posicao_id] || 99;
+        const ordemB = ordemPosicoes[b.posicao_id] || 99;
+        return ordemA - ordemB;
+    });
+
     // Estatísticas
     const pontos = Number(meuPart.pontos || 0);
     const posicao = meuPart.posicao || '-';
@@ -582,8 +597,9 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
 
             <!-- Tabela de Reservas -->
             ${reservas.length > 0 ? `
-                <div style="padding:0 16px 16px;border-top:1px solid #374151;padding-top:16px;">
-                    <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Reservas (${reservas.length})</div>
+                <div style="margin:0 16px;border-top:2px solid #374151;"></div>
+                <div style="padding:16px 16px;">
+                    <div style="font-size:10px;color:#6b7280;text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
                     <table style="width:100%;border-collapse:collapse;font-size:13px;">
                         <tbody>
                             ${reservasHTML}
