@@ -33,6 +33,7 @@ async function buscarStatusMercado() {
 /**
  * Busca atletas pontuados da rodada atual
  * ✅ FIX: Endpoint correto é /atletas/pontuados (SEM número da rodada)
+ * ✅ v3.1: Retorna também partidas com data/hora dos jogos
  */
 async function buscarAtletasPontuados() {
     try {
@@ -43,10 +44,13 @@ async function buscarAtletasPontuados() {
                 "Cache-Control": "no-cache",
             },
         });
-        return response.data?.atletas || {};
+        return {
+            atletas: response.data?.atletas || {},
+            partidas: response.data?.partidas || {}
+        };
     } catch (error) {
         console.error(`${LOG_PREFIX} Erro ao buscar atletas pontuados:`, error.message);
-        return {};
+        return { atletas: {}, partidas: {} };
     }
 }
 
@@ -133,10 +137,13 @@ export async function buscarRankingParcial(ligaId) {
         }
 
         // 2. Buscar atletas pontuados (endpoint não requer número da rodada)
-        const atletasPontuados = await buscarAtletasPontuados();
+        const dadosApi = await buscarAtletasPontuados();
+        const atletasPontuados = dadosApi.atletas;
+        const partidasInfo = dadosApi.partidas;
         const numAtletasPontuados = Object.keys(atletasPontuados).length;
 
         console.log(`${LOG_PREFIX} ⚽ Atletas pontuados disponíveis: ${numAtletasPontuados}`);
+        console.log(`${LOG_PREFIX} 📅 Partidas da rodada: ${Object.keys(partidasInfo).length}`);
 
         if (numAtletasPontuados === 0) {
             console.log(`${LOG_PREFIX} ⚠️ Nenhum atleta pontuado ainda - retornando tela de aguardando jogos`);

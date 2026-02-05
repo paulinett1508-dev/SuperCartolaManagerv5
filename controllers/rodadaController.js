@@ -336,6 +336,8 @@ async function processarRodada(
 
         // ✅ v3.1: Extrair atletas para fallback offline (Campinho)
         const atletasRaw = dados.atletas || [];
+        const partidas = dados.partidas || {}; // Informações de partidas da rodada
+        
         const atletas = atletasRaw.map(a => ({
           atleta_id: a.atleta_id,
           apelido: a.apelido,
@@ -344,6 +346,9 @@ async function processarRodada(
           pontos_num: a.pontos_num || 0,
           status_id: a.status_id || 0,
           foto: a.foto || null,
+          entrou_em_campo: a.entrou_em_campo || false,
+          // Adicionar informação do jogo (data/hora da partida)
+          jogo: partidas[a.clube?.id] || partidas[a.clube_id] || null,
         }));
 
         dadosRodada.push({
