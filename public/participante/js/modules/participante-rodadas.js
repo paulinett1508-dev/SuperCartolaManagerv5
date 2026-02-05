@@ -1209,6 +1209,12 @@ function abrirCampinhoModal(targetTimeId, rodada) {
     const capitaoId = timeDados?.capitao_id || escalacaoCacheada?.capitao_id;
     const isMeuTime = String(targetTimeId) === String(meuTimeId);
 
+    // DEBUG: verificar estrutura dos atletas
+    if (window.Log && atletas.length > 0) {
+        Log.info("[RODADAS] 🔍 Exemplo de atleta:", atletas[0]);
+        Log.info("[RODADAS] 📊 Campos disponíveis:", Object.keys(atletas[0]));
+    }
+
     const pontosFormatados = Number(pontos).toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -1228,37 +1234,113 @@ function abrirCampinhoModal(targetTimeId, rodada) {
     const titulares = atletas.filter(a => !a.is_reserva && a.status_id !== 2);
     const reservas = atletas.filter(a => a.is_reserva || a.status_id === 2);
 
-    // Renderizar lista de atletas
-    function renderAtleta(a) {
+    // Ordenar titulares por posição: GOL → ZAG → LAT → MEI → ATA → TEC
+    const ordemPosicoes = { 1: 1, 3: 2, 2: 3, 4: 4, 5: 5, 6: 6 };
+    titulares.sort((a, b) => {
+        const ordemA = ordemPosicoes[a.posicao_id] || 99;
+        const ordemB = ordemPosicoes[b.posicao_id] || 99;
+        return ordemA - ordemB;
+    });
+
+    // Ordenar reservas também
+    reservas.sort((a, b) => {
+        const ordemA = ordemPosicoes[a.posicao_id] || 99;
+        const ordemB = ordemPosicoes[b.posicao_id] || 99;
+        return ordemA - ordemB;
+    });
+
+    // Função para determinar status do jogo baseado em data/hora
+    function obterStatusJogo(atleta) {
+        // Verificar se o atleta tem informação de jogo
+        const jogoInfo = atleta.jogo || {};
+        const dataJogo = jogoInfo.data_jogo || jogoInfo.data || null;
+        const horaJogo = jogoInfo.hora || null;
+        
+        if (!dataJogo) {
+            // Sem info de jogo, usar fallback baseado em entrou_em_campo
+            if (atleta.entrou_em_campo) {
+                return '🟢'; // Jogando ou já jogou
+            }
+            return '⚪'; // Padrão: ainda não começou
+        }
+
+        try {
+            // Construir data/hora do jogo
+            const [ano, mes, dia] = dataJogo.split('-').map(Number);
+            const [hora, minuto] = (horaJogo || '00:00').split(':').map(Number);
+            const dataHoraJogo = new Date(ano, mes - 1, dia, hora, minuto);
+            const agora = new Date();
+            
+            // Calcular diferença em minutos
+            const diffMinutos = (agora - dataHoraJogo) / (1000 * 60);
+            
+            if (diffMinutos < -10) {
+                // Jogo ainda não começou (mais de 10min antes)
+                return '⚪';
+            } else if (diffMinutos >= -10 && diffMinutos <= 120) {
+                // Jogo em andamento (10min antes até 2h depois)
+                return atleta.entrou_em_campo ? '🟢' : '⚪';
+            } else {
+                // Jogo encerrado (mais de 2h depois)
+                return '🔵';
+            }
+        } catch (err) {
+            // Erro ao processar data - fallback
+            if (window.Log) Log.warn('[RODADAS] Erro ao processar data do jogo:', err);
+            return atleta.entrou_em_campo ? '🟢' : '⚪';
+        }
+    }
+
+    // Renderizar atleta na tabela
+    function renderAtleta(a, isReserva = false) {
         const pos = POSICOES[a.posicao_id] || { nome: '???', cor: '#6b7280' };
         const pontosRaw = a.pontos_efetivos ?? a.pontos_num ?? 0;
         const pontosAtl = Number(pontosRaw).toFixed(1);
         const pontosClass = pontosRaw > 0 ? 'color:#22c55e' : pontosRaw < 0 ? 'color:#ef4444' : 'color:#6b7280';
-        const emCampoIcon = a.entrou_em_campo
-            ? '<span style="color:#22c55e;font-size:10px;">&#9679;</span>'
-            : '<span style="color:#374151;font-size:10px;">&#9679;</span>';
-        const capitaoBadge = a.is_capitao ? '<span style="background:#eab308;color:#000;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:bold;margin-left:4px;">C</span>' : '';
-        const reservaLuxoBadge = a.is_reserva_luxo ? '<span style="background:#a855f7;color:#fff;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:bold;margin-left:4px;">L</span>' : '';
+        
+        // Status do jogo baseado em data/hora
+        const statusIcon = obterStatusJogo(a);
+
+        const isCapitao = String(a.atleta_id) === String(capitaoId);
+        const capitaoBadge = isCapitao ? '<span style="background:#eab308;color:#000;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">C</span>' : '';
+
+        const clubeId = a.clube_id || extrairClubeIdDaFoto(a.foto) || null;
+        const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
+
+        const csAtl = a.variacao_num ?? 0;
+        const csClass = csAtl > 0 ? 'color:#22c55e' : csAtl < 0 ? 'color:#ef4444' : 'color:#6b7280';
+        const csTexto = csAtl > 0 ? `+${csAtl.toFixed(1)}` : csAtl.toFixed(1);
 
         return `
-            <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1f2937;">
-                ${emCampoIcon}
-                <span style="background:${pos.cor};color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;min-width:30px;text-align:center;font-weight:bold;">${pos.nome}</span>
-                <span style="flex:1;font-size:13px;color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.apelido || 'Atleta'}${capitaoBadge}${reservaLuxoBadge}</span>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:bold;${pontosClass};min-width:40px;text-align:right;">${pontosAtl}</span>
-            </div>
+            <tr style="border-bottom:1px solid #1f2937;">
+                <td style="padding:8px 4px;text-align:center;">
+                    <span style="background:${pos.cor};color:#fff;font-size:9px;padding:3px 7px;border-radius:4px;font-weight:bold;">${pos.nome}</span>
+                </td>
+                <td style="padding:8px 4px;text-align:center;">
+                    <img src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;">
+                </td>
+                <td style="padding:8px 8px;font-size:13px;color:#e5e7eb;">
+                    ${a.apelido || 'Atleta'}${capitaoBadge}
+                </td>
+                <td style="padding:8px 4px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:bold;${pontosClass};">
+                    ${pontosAtl}
+                </td>
+                <td style="padding:8px 4px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;${csClass};">
+                    ${csTexto}
+                </td>
+                <td style="padding:8px 4px;text-align:center;font-size:14px;">
+                    ${statusIcon}
+                </td>
+            </tr>
         `;
     }
 
     const titularesHTML = titulares.length > 0
-        ? titulares.map(renderAtleta).join("")
-        : '<div style="color:#6b7280;padding:8px;text-align:center;">Sem dados de escalação</div>';
+        ? titulares.map(a => renderAtleta(a, false)).join("")
+        : '<tr><td colspan="6" style="color:#6b7280;padding:12px;text-align:center;">Sem dados de escalação</td></tr>';
 
     const reservasHTML = reservas.length > 0
-        ? `<div style="margin-top:12px;padding-top:8px;border-top:1px solid #374151;">
-             <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;margin-bottom:4px;font-weight:bold;">Banco</div>
-             ${reservas.map(renderAtleta).join("")}
-           </div>`
+        ? reservas.map(a => renderAtleta(a, true)).join("")
         : '';
 
     // Criar modal
@@ -1294,12 +1376,40 @@ function abrirCampinhoModal(targetTimeId, rodada) {
                 </div>
             </div>
 
-            <!-- Atletas -->
-            <div style="padding:8px 20px 24px;">
-                <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;margin-bottom:4px;font-weight:bold;">Titulares</div>
-                ${titularesHTML}
-                ${reservasHTML}
+            <!-- Tabela de Titulares -->
+            <div style="padding:8px 20px 16px;">
+                <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Titulares (${titulares.length})</div>
+                <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <thead>
+                        <tr style="border-bottom:2px solid #374151;color:#6b7280;font-size:10px;text-transform:uppercase;">
+                            <th style="padding:6px 4px;text-align:center;font-weight:600;">POS</th>
+                            <th style="padding:6px 4px;text-align:center;font-weight:600;">TIME</th>
+                            <th style="padding:6px 8px;text-align:left;font-weight:600;">JOGADOR</th>
+                            <th style="padding:6px 4px;text-align:right;font-weight:600;">PTS</th>
+                            <th style="padding:6px 4px;text-align:right;font-weight:600;">C$</th>
+                            <th style="padding:6px 4px;text-align:center;font-weight:600;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${titularesHTML}
+                    </tbody>
+                </table>
             </div>
+
+            ${reservas.length > 0 ? `
+                <!-- Separador Visual -->
+                <div style="margin:0 20px;border-top:2px solid #374151;"></div>
+                
+                <!-- Tabela de Reservas -->
+                <div style="padding:16px 20px 24px;">
+                    <div style="font-size:10px;color:#6b7280;text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <tbody>
+                            ${reservasHTML}
+                        </tbody>
+                    </table>
+                </div>
+            ` : ''}
         </div>
     `;
 
