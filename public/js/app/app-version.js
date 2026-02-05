@@ -1,11 +1,11 @@
 // =====================================================================
-// app-version.js - Sistema de Versionamento v5.1
+// app-version.js - Sistema de Versionamento v5.2
 // =====================================================================
+// v5.2: Fix race condition manutenção vs auth
+//       - _manutencaoPendente flag bypassa TTL quando auth incompleto
+//       - init() guarda contra re-inicialização completa
 // v5.1: Modal obrigatório - Removido botão "Depois"
-//       - Participante é obrigado a clicar em "Atualizar"
 // v5.0: Suporte a versionamento separado Admin/App
-//       - Envia header x-client-type para identificar cliente
-//       - Usa endpoint /api/app/check-version
 // v4.1: Otimização - Remove polling de 5min, usa visibilitychange
 // v4.0: Modal de atualização RESTAURADO
 // =====================================================================
@@ -18,6 +18,8 @@ const AppVersion = {
     CHECK_INTERVAL_MS: 300000, // ✅ FIX MOBILE: 5min entre polls (era 5s - saturava conexões)
     lastCheck: 0, // Timestamp da última verificação
     isUpdating: false,
+    _initDone: false, // Guarda contra init() duplicado
+    _manutencaoPendente: false, // true = manutenção precisa ser reavaliada com timeId
 
     // ✅ FIX MOBILE: Limpeza seletiva - remove apenas caches obsoletos, preserva SW ativo
     async limparCachesAntigos() {
@@ -50,6 +52,13 @@ const AppVersion = {
 
     // ✅ Inicializar
     async init() {
+        if (this._initDone) {
+            // Chamada duplicada (ex: participante-auth após login)
+            // Apenas re-executar verificação de versão/manutenção
+            return this.verificarVersao();
+        }
+        this._initDone = true;
+
         // ✅ EMERGENCY: Limpar caches antigos UMA VEZ
         await this.limparCachesAntigos();
 
@@ -118,9 +127,9 @@ const AppVersion = {
 
     // ✅ Verificar versão no servidor
     async verificarVersao() {
-        // ✅ FIX: Cache de 1 minuto - não verificar se já verificou recentemente
         const agora = Date.now();
-        if (agora - this.lastCheck < this.CACHE_TTL) {
+        // Bypass TTL se manutenção pendente de avaliação (aguardando auth)
+        if (!this._manutencaoPendente && agora - this.lastCheck < this.CACHE_TTL) {
             if (window.Log) Log.debug('APP-VERSION', 'Verificação em cache, aguardando TTL');
             return;
         }
@@ -146,17 +155,19 @@ const AppVersion = {
                 // HARDCODE: Owner/Dev (Paulinett) NUNCA vê tela de manutenção
                 const OWNER_TIME_ID = '13935277';
                 if (timeId === OWNER_TIME_ID) {
+                    this._manutencaoPendente = false;
                     if (window.Log) Log.info('APP-VERSION', `Owner bypass: timeId ${timeId} sempre liberado`);
                     // Desativar manutenção se já foi ativada por race condition
                     if (window.ManutencaoScreen.estaAtivo()) {
                         window.ManutencaoScreen.desativar();
                     }
                 } else if (!timeId) {
-                    // Auth ainda não completou - NÃO decidir manutenção sem saber quem é
-                    // Resetar lastCheck para que a próxima chamada (pós-auth) NÃO seja bloqueada pelo TTL
-                    this.lastCheck = 0;
-                    if (window.Log) Log.debug('APP-VERSION', 'Aguardando auth para verificar manutenção (TTL resetado)');
+                    // Auth ainda não completou - marcar pendente para bypass TTL na próxima chamada
+                    this._manutencaoPendente = true;
+                    if (window.Log) Log.debug('APP-VERSION', 'Aguardando auth para verificar manutenção (pendente)');
                 } else {
+                    // timeId disponível - avaliar manutenção de verdade
+                    this._manutencaoPendente = false;
                     let deveMostrarManutencao = false;
 
                     if (modoLista === 'blacklist') {
@@ -181,29 +192,36 @@ const AppVersion = {
 
                     // Modo global: bloqueia tudo
                     if (modo === 'global' && deveMostrarManutencao) {
+                        if (window.Log) Log.warn('APP-VERSION', `Manutenção ativada para timeId ${timeId} (modo: ${modo})`);
                         window.ManutencaoScreen.ativar(servidor.manutencao);
                         return;
                     }
 
                     // Modo usuarios: bloqueia apenas por controle de acesso
                     if (modo === 'usuarios' && deveMostrarManutencao) {
+                        if (window.Log) Log.warn('APP-VERSION', `Manutenção ativada para timeId ${timeId} (modo: ${modo})`);
                         window.ManutencaoScreen.ativar(servidor.manutencao);
                         return;
                     }
 
+                    // Whitelisted/não bloqueado: desativar se estava ativo por race condition
+                    if (!deveMostrarManutencao && window.ManutencaoScreen.estaAtivo()) {
+                        if (window.Log) Log.info('APP-VERSION', `Whitelisted: desativando tela manutenção para timeId ${timeId}`);
+                        window.ManutencaoScreen.desativar();
+                    }
+
                     // Modo modulos: será tratado no participante-navigation.js
-                    // Aqui não bloqueia o app todo, apenas marca para bloqueio de módulos
                     if (modo === 'modulos') {
-                        if (window.participanteModulosBloqueados) {
-                            window.participanteModulosBloqueados = servidor.manutencao.modulos_bloqueados || [];
-                        } else {
-                            window.participanteModulosBloqueados = servidor.manutencao.modulos_bloqueados || [];
-                        }
+                        window.participanteModulosBloqueados = servidor.manutencao.modulos_bloqueados || [];
                     }
                 }
-            } else if (!servidor.manutencao?.ativo && window.ManutencaoScreen?.estaAtivo()) {
-                window.ManutencaoScreen.desativar();
-                window.participanteModulosBloqueados = [];
+            } else {
+                // Manutenção não ativa - limpar pendência e desativar se necessário
+                this._manutencaoPendente = false;
+                if (window.ManutencaoScreen?.estaAtivo()) {
+                    window.ManutencaoScreen.desativar();
+                    window.participanteModulosBloqueados = [];
+                }
             }
 
             const versaoServidor = servidor.version;
