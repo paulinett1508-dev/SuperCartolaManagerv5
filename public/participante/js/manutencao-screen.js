@@ -379,16 +379,22 @@ const ManutencaoScreen = {
         // Card do user (pontos da rodada)
         const userItem = rankingRodada.find(r => String(r.timeId) === String(timeIdLogado));
         if (userItem && (userItem.pontos_rodada_atual || 0) > 0) {
+            const userClubeId = userItem.clube_id || null;
+            const userEscudo = userClubeId ? `<img src="/escudos/${userClubeId}.png" alt="" style="width:28px;height:28px;object-fit:contain;border-radius:6px;" onerror="this.style.display='none'">` : '';
+            const userNome = userItem.nome_cartola || userItem.nome_time || '';
             html += `
-            <div style="background:linear-gradient(135deg,#1e3a5f,#172554);border-radius:14px;padding:16px;border:1px solid #2563eb40;margin-bottom:16px;display:flex;justify-content:space-around;text-align:center;">
-                <div>
-                    <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Posição Rodada</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#fbbf24;font-weight:700;">${userItem._posRodada}º</div>
-                </div>
-                <div style="width:1px;background:#374151;"></div>
-                <div>
-                    <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Pts Rodada</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#e5e7eb;font-weight:700;">${Number(userItem.pontos_rodada_atual || 0).toFixed(2)}</div>
+            <div style="background:linear-gradient(135deg,#1e3a5f,#172554);border-radius:14px;padding:16px;border:1px solid #2563eb40;margin-bottom:16px;">
+                ${userNome ? `<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:12px;">${userEscudo}<span style="font-size:0.85rem;color:#93c5fd;font-weight:600;">${userNome}</span></div>` : ''}
+                <div style="display:flex;justify-content:space-around;text-align:center;">
+                    <div>
+                        <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Posição Rodada</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#fbbf24;font-weight:700;">${userItem._posRodada}º</div>
+                    </div>
+                    <div style="width:1px;background:#374151;"></div>
+                    <div>
+                        <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Pts Rodada</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#e5e7eb;font-weight:700;">${Number(userItem.pontos_rodada_atual || 0).toFixed(2)}</div>
+                    </div>
                 </div>
             </div>`;
         }
@@ -436,7 +442,9 @@ const ManutencaoScreen = {
 
         rankingRodada.forEach((item, idx) => {
             const pos = item._posRodada;
-            const nome = item.nome_time || 'Time';
+            const nomeCartola = item.nome_cartola || item.nome_time || 'Time';
+            const nomeTime = item.nome_time || '';
+            const clubeId = item.clube_id || null;
             const pontosRodada = item.pontos_rodada_atual ?? 0;
             const isUser = String(item.timeId) === String(timeIdLogado);
             const escalouIcon = item.escalou ? '✅' : '❌';
@@ -451,10 +459,22 @@ const ManutencaoScreen = {
             else if (pos === 2) posDisplay = '🥈';
             else if (pos === 3) posDisplay = '🥉';
 
+            const escudoHtml = clubeId
+                ? `<img src="/escudos/${clubeId}.png" alt="" style="width:20px;height:20px;object-fit:contain;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">`
+                : '';
+
             html += `
                 <tr style="background:${bgColor};border-left:${borderLeft};">
                     <td style="padding:7px 6px;text-align:center;font-family:'JetBrains Mono',monospace;color:${textColor};font-weight:${fontWeight};">${posDisplay}</td>
-                    <td style="padding:7px 6px;color:${textColor};font-weight:${fontWeight};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">${nome}</td>
+                    <td style="padding:7px 6px;max-width:140px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            ${escudoHtml}
+                            <div style="min-width:0;">
+                                <div style="color:${textColor};font-weight:${fontWeight};font-size:0.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nomeCartola}</div>
+                                ${nomeTime && nomeTime !== nomeCartola ? `<div style="color:#6b7280;font-size:0.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nomeTime}</div>` : ''}
+                            </div>
+                        </div>
+                    </td>
                     <td style="padding:7px 6px;text-align:center;font-size:0.75rem;">${escalouIcon}</td>
                     <td style="padding:7px 6px;text-align:right;font-family:'JetBrains Mono',monospace;color:${textColor};font-weight:${fontWeight};">${Number(pontosRodada).toFixed(2)}</td>
                 </tr>`;
@@ -1052,21 +1072,27 @@ const ManutencaoScreen = {
         // Card com posição do user (se encontrado e tem pontos)
         const userItem = ranking.find(r => String(r.timeId) === String(timeIdLogado));
         if (userItem && temPontos) {
+            const userClubeId = userItem.clube_id || null;
+            const userEscudo = userClubeId ? `<img src="/escudos/${userClubeId}.png" alt="" style="width:28px;height:28px;object-fit:contain;border-radius:6px;" onerror="this.style.display='none'">` : '';
+            const userNome = userItem.nome_cartola || userItem.nome_time || '';
             html += `
-            <div style="background:linear-gradient(135deg,#1e3a5f,#172554);border-radius:14px;padding:16px;border:1px solid #2563eb40;margin-bottom:16px;display:flex;justify-content:space-around;text-align:center;">
-                <div>
-                    <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Sua posição</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#fbbf24;font-weight:700;">${userItem.posicao}º</div>
-                </div>
-                <div style="width:1px;background:#374151;"></div>
-                <div>
-                    <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Pontos</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#e5e7eb;font-weight:700;">${Number(userItem.pontos).toFixed(2)}</div>
-                </div>
-                <div style="width:1px;background:#374151;"></div>
-                <div>
-                    <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Rodada</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#e5e7eb;font-weight:700;">${rodadaAtual}</div>
+            <div style="background:linear-gradient(135deg,#1e3a5f,#172554);border-radius:14px;padding:16px;border:1px solid #2563eb40;margin-bottom:16px;">
+                ${userNome ? `<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:12px;">${userEscudo}<span style="font-size:0.85rem;color:#93c5fd;font-weight:600;">${userNome}</span></div>` : ''}
+                <div style="display:flex;justify-content:space-around;text-align:center;">
+                    <div>
+                        <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Sua posição</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#fbbf24;font-weight:700;">${userItem.posicao}º</div>
+                    </div>
+                    <div style="width:1px;background:#374151;"></div>
+                    <div>
+                        <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Pontos</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#e5e7eb;font-weight:700;">${Number(userItem.pontos).toFixed(2)}</div>
+                    </div>
+                    <div style="width:1px;background:#374151;"></div>
+                    <div>
+                        <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Rodada</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#e5e7eb;font-weight:700;">${rodadaAtual}</div>
+                    </div>
                 </div>
             </div>`;
         }
@@ -1098,7 +1124,9 @@ const ManutencaoScreen = {
 
         ranking.forEach((item, idx) => {
             const pos = item.posicao || (idx + 1);
-            const nome = item.nome_time || 'Time';
+            const nomeCartola = item.nome_cartola || item.nome_time || 'Time';
+            const nomeTime = item.nome_time || '';
+            const clubeId = item.clube_id || null;
             const pontos = item.pontos ?? 0;
             const isUser = String(item.timeId) === String(timeIdLogado);
 
@@ -1114,10 +1142,22 @@ const ManutencaoScreen = {
                 else if (pos === 3) posDisplay = '🥉';
             }
 
+            const escudoHtml = clubeId
+                ? `<img src="/escudos/${clubeId}.png" alt="" style="width:20px;height:20px;object-fit:contain;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">`
+                : '';
+
             html += `
                 <tr style="background:${bgColor};border-left:${borderLeft};">
                     <td style="padding:7px 6px;text-align:center;font-family:'JetBrains Mono',monospace;color:${textColor};font-weight:${fontWeight};">${posDisplay}</td>
-                    <td style="padding:7px 6px;color:${textColor};font-weight:${fontWeight};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${nome}</td>
+                    <td style="padding:7px 6px;max-width:180px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            ${escudoHtml}
+                            <div style="min-width:0;">
+                                <div style="color:${textColor};font-weight:${fontWeight};font-size:0.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nomeCartola}</div>
+                                ${nomeTime && nomeTime !== nomeCartola ? `<div style="color:#6b7280;font-size:0.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nomeTime}</div>` : ''}
+                            </div>
+                        </div>
+                    </td>
                     ${!todosZerados ? `<td style="padding:7px 6px;text-align:right;font-family:'JetBrains Mono',monospace;color:${textColor};font-weight:${fontWeight};">${Number(pontos).toFixed(2)}</td>` : ''}
                 </tr>`;
         });
