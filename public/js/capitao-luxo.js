@@ -90,7 +90,7 @@ const CapitaoLuxo = {
             }
 
             // Fallback: buscar status do mercado via API
-            const response = await fetch("/api/mercado/status");
+            const response = await fetch("/api/cartola/mercado/status");
             if (response.ok) {
                 const data = await response.json();
                 this.estado.rodadaAtual = data.rodada_atual || 1;
