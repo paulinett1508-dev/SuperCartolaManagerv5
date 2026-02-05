@@ -903,20 +903,35 @@
                     <p class="manutencao-mensagem" style="font-size:1.15rem;color:white;margin:0 0 16px;line-height:1.5;">
                         Estamos aplicando melhorias no app. Voltamos em breve!
                     </p>
-                    <p style="font-size:0.9rem;color:rgba(255,255,255,0.8);margin:0 0 24px;line-height:1.5;">
-                        Enquanto isso, veja quantos pontos você tem<br>e sua colocação. Clica aí embaixo! 👇
+                    <p style="font-size:0.9rem;color:rgba(255,255,255,0.8);margin:0 0 20px;line-height:1.5;">
+                        Enquanto isso, explore as opções abaixo! 👇
                     </p>
 
-                    <!-- Botão -->
-                    <button id="manutencaoBtnVer" onclick="window.ManutencaoScreen && ManutencaoScreen.carregarConteudo()"
-                        style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(255,255,255,0.2);color:white;border:none;border-radius:14px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3);font-family:'Inter',sans-serif;backdrop-filter:blur(10px);">
-                        <span class="material-icons" style="font-size:20px;">emoji_events</span>
-                        <span class="btn-text">Ver Ranking e Última Rodada</span>
-                    </button>
+                    <!-- 3 Botões -->
+                    <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
+                        <button id="manutencaoBtnRankingGeral" onclick="window.ManutencaoScreen && ManutencaoScreen.carregarRankingGeral()"
+                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.15);color:white;border:none;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3);font-family:'Inter',sans-serif;backdrop-filter:blur(10px);width:100%;text-align:left;">
+                            <span class="material-icons" style="font-size:22px;color:#fbbf24;">emoji_events</span>
+                            <span class="btn-text">Ranking Geral</span>
+                        </button>
+                        <button id="manutencaoBtnRankingRodada" onclick="window.ManutencaoScreen && ManutencaoScreen.carregarRankingRodada()"
+                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.15);color:white;border:none;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3);font-family:'Inter',sans-serif;backdrop-filter:blur(10px);width:100%;text-align:left;">
+                            <span class="material-icons" style="font-size:22px;color:#34d399;">leaderboard</span>
+                            <span class="btn-text">Ranking da Rodada</span>
+                        </button>
+                        <button id="manutencaoBtnDino" onclick="window.ManutencaoScreen && ManutencaoScreen.abrirDinoGame()"
+                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.15);color:white;border:none;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3);font-family:'Inter',sans-serif;backdrop-filter:blur(10px);width:100%;text-align:left;">
+                            <span style="font-size:22px;">⚽</span>
+                            <span class="btn-text">Cobrança de Pênalti</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Conteúdo dinâmico (ranking + rodada) -->
+                <!-- Conteúdo dinâmico (ranking) -->
                 <div id="manutencaoConteudo" style="display:none;margin-top:20px;text-align:left;"></div>
+
+                <!-- Container Dino Game -->
+                <div id="manutencaoDinoContainer" style="display:none;margin-top:20px;"></div>
 
                 <!-- Notícias do time do coração (carrega automaticamente) -->
                 <div id="manutencaoNoticias" style="margin-top:20px;text-align:left;"></div>
@@ -936,11 +951,15 @@
                     from { transform: rotate(0deg); }
                     to { transform: rotate(360deg); }
                 }
-                #manutencaoBtnVer:hover {
-                    transform: scale(1.03);
-                    box-shadow: 0 6px 20px rgba(249,115,22,0.5);
+                #manutencaoBtnRankingGeral:hover,
+                #manutencaoBtnRankingRodada:hover,
+                #manutencaoBtnDino:hover {
+                    transform: scale(1.02);
+                    background: rgba(255,255,255,0.25) !important;
                 }
-                #manutencaoBtnVer:active {
+                #manutencaoBtnRankingGeral:active,
+                #manutencaoBtnRankingRodada:active,
+                #manutencaoBtnDino:active {
                     transform: scale(0.98);
                 }
             </style>
