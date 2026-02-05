@@ -28,6 +28,13 @@ const POSICOES = {
 const MITO_THRESHOLD = 12;  // > 12 pontos = mito
 const MICO_THRESHOLD = -3;  // < -3 pontos = mico
 
+// Escape HTML para prevenir XSS
+function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // Estado do modulo
 let dadosEscalacao = null;
 let dadosAdversario = null;
@@ -356,6 +363,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
     const pontosTotais = escalacao.pontos || calcularPontosTotais(escalacao);
     const grupos = agruparTitulares(titulares);
     const gruposAdversario = temAdversario ? agruparTitulares(adversario.titulares || adversario.atletas || []) : null;
+    const totalEscalados = (grupos.goleiros.length + grupos.defensores.length + grupos.meias.length + grupos.atacantes.length + grupos.tecnicos.length);
     const formacao = `${grupos.defensores.length || 0}-${grupos.meias.length || 0}-${grupos.atacantes.length || 0}`;
     const patrimonio = Number(escalacao.patrimonio ?? escalacao.patrimonio_total ?? 0) || 0;
     const saldo = Number(escalacao.saldo ?? escalacao.saldo_total ?? 0) || 0;
@@ -367,7 +375,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                 <div class="campinho-title-block">
                     <p class="campinho-title-label">Escalação</p>
                     <div class="campinho-title-row">
-                        <h1>${escalacao.nome_cartoleiro || 'Sua Escalação'}</h1>
+                        <h1>${esc(escalacao.nome_cartoleiro) || 'Sua Escalação'}</h1>
                         <span class="campinho-formation">${formacao}</span>
                     </div>
                 </div>
@@ -396,6 +404,10 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                         <div class="campinho-points">
                             <span>Pontos totais</span>
                             <strong>${pontosTotais.toFixed(2)}</strong>
+                        </div>
+                        <div class="campinho-counter">
+                            <span>Escalados</span>
+                            <strong>${totalEscalados}/12</strong>
                         </div>
                         ${renderizarLegenda()}
                     </div>
@@ -444,7 +456,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                     ${temAdversario ? `
                         <div class="campinho-header campinho-adversario-header">
                             <div class="campinho-header-info">
-                                <h2 style="color: #f87171;">${adversario.nome_cartoleiro || confronto.adversario?.nome || 'Adversário'}</h2>
+                                <h2 style="color: #f87171;">${esc(adversario.nome_cartoleiro || confronto.adversario?.nome) || 'Adversário'}</h2>
                                 <p class="rodada">Escalação</p>
                             </div>
                             <div class="campinho-header-pontos">
@@ -523,7 +535,7 @@ function renderizarLinhaLista(atleta, capitaoId, reservaLuxoId) {
         <div class="campinho-lineup-player ${isCapitao ? 'capitao' : ''} ${isReservaLuxo ? 'reserva' : ''}">
             <div class="campinho-lineup-player-info">
                 <span class="pos-label">${posAbrev}</span>
-                <span class="lineup-player-name">${nomeAbrev}</span>
+                <span class="lineup-player-name">${esc(nomeAbrev)}</span>
                 ${badges.length ? `<div class="campinho-lineup-player-badges">${badges.join('')}</div>` : ''}
             </div>
             <span class="lineup-player-price">${formatarCartoletas(atleta.preco)}</span>
@@ -588,12 +600,12 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
     const posicaoId = atleta.posicao_id || atleta.posicaoId || atleta.posicao || 0;
     const posicao = POSICOES[posicaoId] || { nome: 'Outros', abrev: '?', cor: 'def' };
     const clubeId = atleta.clube_id || atleta.clubeId || 'default';
-    const atletaId = atleta.atleta_id || atleta.atletaId || atleta.id;
+    const atletaId = Number(atleta.atleta_id ?? atleta.atletaId ?? atleta.id);
 
     // Pontuação
     let pontos = parseFloat(atleta.pontos_atual ?? atleta.pontos_num ?? (atleta.pontos || 0));
-    const isCapitao = atletaId === capitaoId;
-    const isReservaLuxo = atletaId === reservaLuxoId;
+    const isCapitao = Number(capitaoId) && atletaId === Number(capitaoId);
+    const isReservaLuxo = Number(reservaLuxoId) && atletaId === Number(reservaLuxoId);
 
     // Multiplicadores
     let pontosExibir = pontos;
@@ -624,11 +636,11 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
             <div class="campinho-jogador-avatar pos-${posicao.cor}">
                 <img src="/escudos/${clubeId}.png"
                      onerror="this.src='/escudos/default.png'"
-                     alt="${nome}">
+                     alt="${esc(nome)}">
                 ${badgeHtml}
                 <span class="campinho-jogador-pontos ${classePontos}">${pontosExibir.toFixed(1)}</span>
             </div>
-            <span class="campinho-jogador-nome">${nomeAbrev}</span>
+            <span class="campinho-jogador-nome">${esc(nomeAbrev)}</span>
             <span class="campinho-jogador-pos">${posicao.abrev}</span>
         </div>
     `;

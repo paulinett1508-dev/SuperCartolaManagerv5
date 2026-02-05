@@ -152,6 +152,20 @@
     color: #fff;
 }
 
+.campinho-counter {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+}
+
+.campinho-counter strong {
+    font-size: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    color: #22c55e;
+}
+
 .campinho-lineup-panel {
     background: rgba(4, 7, 17, 0.9);
     border-radius: 20px;
