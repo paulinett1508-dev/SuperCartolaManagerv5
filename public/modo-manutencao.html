@@ -310,21 +310,30 @@
             }
 
             async function carregarStatus() {
+                console.log('[MODO-MANUTENCAO] Iniciando carregamento do status...');
+                
                 // ✅ FIX: Adicionar timeout de 5s
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
 
                 try {
+                    console.log('[MODO-MANUTENCAO] Fazendo fetch para /api/admin/manutencao');
                     const response = await fetch('/api/admin/manutencao', {
-                        signal: controller.signal
+                        signal: controller.signal,
+                        credentials: 'same-origin' // ✅ Garantir envio de cookies de sessão
                     });
                     clearTimeout(timeoutId);
 
+                    console.log('[MODO-MANUTENCAO] Response recebido, status:', response.status);
+
                     if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        const errorData = await response.json().catch(() => ({}));
+                        console.error('[MODO-MANUTENCAO] Resposta com erro:', errorData);
+                        throw new Error(`HTTP ${response.status}: ${errorData.message || response.statusText}`);
                     }
 
                     const data = await response.json();
+                    console.log('[MODO-MANUTENCAO] Dados recebidos:', data);
                     modoAtivo = data.ativo || false;
                     atualizarUI();
                 } catch (error) {
@@ -465,8 +474,12 @@
             document.getElementById('btnToggle')?.addEventListener('click', toggleModoManutencao);
 
             async function init() {
+                console.log('[MODO-MANUTENCAO] Iniciando página...');
+                console.log('[MODO-MANUTENCAO] Carregando layout...');
                 await loadLayout();
+                console.log('[MODO-MANUTENCAO] Layout carregado, carregando status...');
                 await carregarStatus();
+                console.log('[MODO-MANUTENCAO] Inicialização completa!');
             }
 
             if (document.readyState === 'loading') {

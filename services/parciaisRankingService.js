@@ -175,11 +175,13 @@ export async function buscarRankingParcial(ligaId) {
         // ✅ v1.1: Buscar pontos acumulados das rodadas anteriores (1 até rodadaAtual-1)
         const Rodada = (await import("../models/Rodada.js")).default;
         const pontosAcumulados = {};
+        const temporadaAtual = new Date().getFullYear(); // 2026
 
         if (rodadaAtual > 1) {
-            console.log(`${LOG_PREFIX} 🔍 Buscando pontos acumulados das rodadas 1 a ${rodadaAtual - 1}...`);
+            console.log(`${LOG_PREFIX} 🔍 Buscando pontos acumulados das rodadas 1 a ${rodadaAtual - 1} (temporada ${temporadaAtual})...`);
             const rodadasAnteriores = await Rodada.find({
                 ligaId: ligaObjectId,
+                temporada: temporadaAtual, // ✅ FIX: Filtrar apenas temporada atual
                 rodada: { $gte: 1, $lt: rodadaAtual },
             }).lean();
 

@@ -1,5 +1,5 @@
 {
-  "ativo": false,
+  "ativo": true,
   "modo": "global",
   "template_id": "manutencao-tecnica",
   "customizacao": {
@@ -17,10 +17,12 @@
   },
   "controle_acesso": {
     "modo_lista": "whitelist",
-    "whitelist_timeIds": ["13935277"],
+    "whitelist_timeIds": [
+      "13935277"
+    ],
     "blacklist_timeIds": []
   },
   "modulos_bloqueados": [],
-  "ativadoEm": null,
+  "ativadoEm": "2026-02-05T02:41:16.858Z",
   "desativadoEm": null
 }

@@ -279,11 +279,18 @@ const ManutencaoScreen = {
             }
 
             // 2) Fallback: ranking-turno (cache consolidado)
+            // ⚠️ IMPORTANTE: Só usar se estiver atualizado (rodada_atual >= rodada real)
             if (!dados) {
                 const rankingRes = await fetch(`/api/ranking-turno/${ligaId}?turno=geral&temporada=${temporada}`).then(r => r.ok ? r.json() : null);
-                if (rankingRes?.success && rankingRes.ranking?.length) {
+                
+                // Verificar se o cache está atualizado
+                const cacheAtualizado = rankingRes?.rodada_atual >= (parciaisRes?.rodada || 1);
+                
+                if (rankingRes?.success && rankingRes.ranking?.length && cacheAtualizado) {
                     dados = rankingRes;
                     console.log('[MANUTENCAO] Pontos carregados via ranking-turno:', rankingRes.ranking.length, 'times');
+                } else if (rankingRes && !cacheAtualizado) {
+                    console.warn('[MANUTENCAO] ⚠️ Ranking-turno desatualizado! Cache rodada:', rankingRes.rodada_atual, 'Real:', parciaisRes?.rodada);
                 }
             }
 
