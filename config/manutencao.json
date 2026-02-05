@@ -9,7 +9,7 @@
     "imagem_url": null,
     "cor_primaria": "#f97316",
     "cor_secundaria": "#ea580c",
-    "gradiente": "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+    "gradiente": null,
     "mostrar_ranking": true,
     "mostrar_noticias": true,
     "mostrar_ultima_rodada": true,

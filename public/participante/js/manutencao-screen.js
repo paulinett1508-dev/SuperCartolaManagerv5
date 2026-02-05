@@ -56,10 +56,13 @@ const ManutencaoScreen = {
     },
 
     _aplicarCustomizacao(tela, custom) {
-        // Atualizar título
+        // Atualizar título (cor primária como accent)
         const titulo = tela.querySelector('h1');
         if (titulo && custom.titulo) {
             titulo.textContent = `${custom.emoji || '🛠️'} ${custom.titulo}`;
+        }
+        if (titulo && custom.cor_primaria) {
+            titulo.style.color = custom.cor_primaria;
         }
 
         // Atualizar mensagem
@@ -68,12 +71,10 @@ const ManutencaoScreen = {
             mensagem.textContent = custom.mensagem;
         }
 
-        // Aplicar gradiente de cores
-        if (custom.gradiente) {
-            const header = tela.querySelector('.manutencao-header');
-            if (header) {
-                header.style.background = custom.gradiente;
-            }
+        // Aplicar cor primária como accent na borda do card (NÃO como fundo)
+        const header = tela.querySelector('.manutencao-header');
+        if (header && custom.cor_primaria) {
+            header.style.borderColor = custom.cor_primaria + '40'; // 25% opacity
         }
 
         // Exibir imagem se houver
@@ -556,7 +557,7 @@ const ManutencaoScreen = {
         let gols = 0;
         let cobradas = 0;
         let defesas = 0;
-        const maxDefesas = 3;
+        const totalCobradas = 5;
         let resultado = '';
         let resultTimer = 0;
         let chosenZone = -1;
@@ -813,7 +814,7 @@ const ManutencaoScreen = {
                         gols++;
                     }
                     resultTimer = 0;
-                    state = defesas >= maxDefesas ? 'gameover' : 'result';
+                    state = cobradas >= totalCobradas ? 'gameover' : 'result';
                 }
             }
 
@@ -839,22 +840,34 @@ const ManutencaoScreen = {
 
             // Game over
             if (state === 'gameover') {
-                px(0, 0, W, H, 'rgba(0,0,0,0.7)');
+                px(0, 0, W, H, 'rgba(0,0,0,0.75)');
+
+                // Rating por desempenho
+                let rating, ratingColor;
+                if (gols === 5) { rating = 'CRAQUE! ⭐'; ratingColor = '#fbbf24'; }
+                else if (gols === 4) { rating = 'Muito bom!'; ratingColor = '#22c55e'; }
+                else if (gols === 3) { rating = 'Bom!'; ratingColor = '#34d399'; }
+                else if (gols === 2) { rating = 'Precisa treinar...'; ratingColor = '#f59e0b'; }
+                else if (gols === 1) { rating = 'Perna de pau!'; ratingColor = '#f87171'; }
+                else { rating = 'Caneleiro!'; ratingColor = '#ef4444'; }
 
                 ctx.fillStyle = '#fb923c';
-                ctx.font = "bold 22px 'Russo One', sans-serif";
+                ctx.font = "bold 20px 'Russo One', sans-serif";
                 ctx.textAlign = 'center';
-                ctx.fillText('FIM DE JOGO', W / 2, H / 2 - 15);
+                ctx.fillText('FIM DE JOGO', W / 2, H / 2 - 25);
 
+                // Placar estilo scoreboard
                 ctx.fillStyle = '#fbbf24';
-                ctx.font = "bold 15px 'JetBrains Mono', monospace";
-                ctx.fillText(`${gols} gols em ${cobradas} cobranças`, W / 2, H / 2 + 10);
+                ctx.font = "bold 28px 'JetBrains Mono', monospace";
+                ctx.fillText(`${gols} / ${totalCobradas}`, W / 2, H / 2 + 8);
 
-                const pct = cobradas > 0 ? Math.round(gols / cobradas * 100) : 0;
+                ctx.fillStyle = ratingColor;
+                ctx.font = "bold 14px 'Russo One', sans-serif";
+                ctx.fillText(rating, W / 2, H / 2 + 30);
+
                 ctx.fillStyle = '#9ca3af';
-                ctx.font = "12px 'Inter', sans-serif";
-                ctx.fillText(`Aproveitamento: ${pct}%`, W / 2, H / 2 + 30);
-                ctx.fillText('Toque para jogar novamente', W / 2, H / 2 + 50);
+                ctx.font = "11px 'Inter', sans-serif";
+                ctx.fillText('Toque para jogar novamente', W / 2, H / 2 + 52);
             }
 
             // HUD
@@ -864,18 +877,44 @@ const ManutencaoScreen = {
                 ctx.fillStyle = '#22c55e';
                 ctx.textAlign = 'left';
                 ctx.fillText(`⚽ ${gols}`, 8, 13);
-                ctx.fillStyle = '#e5e7eb';
+
+                // Round dots (filled = played, hollow = remaining)
                 ctx.textAlign = 'center';
-                ctx.fillText(`Cobrança ${cobradas + (state === 'aiming' ? 1 : 0)}`, W / 2, 13);
+                const dotStartX = W / 2 - (totalCobradas * 14) / 2;
+                for (let i = 0; i < totalCobradas; i++) {
+                    const dx = dotStartX + i * 14 + 7;
+                    ctx.beginPath();
+                    ctx.arc(dx, 10, 4, 0, Math.PI * 2);
+                    if (i < cobradas) {
+                        // Played: green=gol, red=miss
+                        ctx.fillStyle = i < gols + defesas ? (i < cobradas - defesas + (cobradas <= gols ? 0 : 0) ? '#22c55e' : '#ef4444') : '#22c55e';
+                    } else {
+                        ctx.fillStyle = 'transparent';
+                    }
+                    // Simpler: just show filled for done, hollow for pending
+                    if (i < cobradas) {
+                        ctx.fillStyle = '#e5e7eb';
+                        ctx.fill();
+                    } else {
+                        ctx.strokeStyle = '#6b7280';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+
                 ctx.fillStyle = '#ef4444';
                 ctx.textAlign = 'right';
-                ctx.fillText(`❌ ${defesas}/${maxDefesas}`, W - 8, 13);
+                ctx.font = "bold 10px 'JetBrains Mono', monospace";
+                ctx.fillText(`❌ ${defesas}`, W - 8, 13);
             }
 
             // Score div
             const scoreEl = document.getElementById('dinoScore');
             if (scoreEl) {
-                scoreEl.textContent = `⚽ ${gols} gols | Cobrança ${cobradas + (state === 'aiming' ? 1 : 0)}`;
+                const atual = cobradas + (state === 'aiming' ? 1 : 0);
+                scoreEl.textContent = state === 'gameover'
+                    ? `⚽ ${gols} de ${totalCobradas} gols`
+                    : `⚽ ${gols} gols | Cobrança ${atual} de ${totalCobradas}`;
             }
 
             this._dinoAnimFrame = requestAnimationFrame(loop);

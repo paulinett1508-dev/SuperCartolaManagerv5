@@ -893,34 +893,34 @@
                 <img src="/img/logo01-urubuplay.png" alt="Urubu Play" style="width:120px;height:120px;object-fit:contain;animation:manutBounce 2s ease-in-out infinite;margin-bottom:16px;border-radius:16px;">
 
                 <!-- Card com mensagem (customizável) -->
-                <div class="manutencao-header" style="background:linear-gradient(135deg,#f97316,#ea580c);border-radius:20px;padding:32px 24px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);border:1px solid #374151;">
+                <div class="manutencao-header" style="background:#1f2937;border-radius:20px;padding:32px 24px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);border:1px solid rgba(249,115,22,0.25);">
                     <!-- Imagem customizada (opcional) -->
                     <div class="manutencao-imagem" style="display:none;"></div>
 
-                    <h1 style="font-family:'Russo One',sans-serif;font-size:1.75rem;color:white;margin:0 0 8px;">
+                    <h1 style="font-family:'Russo One',sans-serif;font-size:1.75rem;color:#f97316;margin:0 0 8px;">
                         🛠️ Calma aê!
                     </h1>
-                    <p class="manutencao-mensagem" style="font-size:1.15rem;color:white;margin:0 0 16px;line-height:1.5;">
+                    <p class="manutencao-mensagem" style="font-size:1.15rem;color:#e5e7eb;margin:0 0 16px;line-height:1.5;">
                         Estamos aplicando melhorias no app. Voltamos em breve!
                     </p>
-                    <p style="font-size:0.9rem;color:rgba(255,255,255,0.8);margin:0 0 20px;line-height:1.5;">
+                    <p style="font-size:0.9rem;color:#9ca3af;margin:0 0 20px;line-height:1.5;">
                         Enquanto isso, explore as opções abaixo! 👇
                     </p>
 
                     <!-- 3 Botões -->
                     <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
                         <button id="manutencaoBtnRankingGeral" onclick="window.ManutencaoScreen && ManutencaoScreen.carregarRankingGeral()"
-                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.15);color:white;border:none;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3);font-family:'Inter',sans-serif;backdrop-filter:blur(10px);width:100%;text-align:left;">
+                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.06);color:#e5e7eb;border:1px solid #374151;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;width:100%;text-align:left;">
                             <span class="material-icons" style="font-size:22px;color:#fbbf24;">emoji_events</span>
                             <span class="btn-text">Ranking Geral</span>
                         </button>
                         <button id="manutencaoBtnRankingRodada" onclick="window.ManutencaoScreen && ManutencaoScreen.carregarRankingRodada()"
-                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.15);color:white;border:none;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3);font-family:'Inter',sans-serif;backdrop-filter:blur(10px);width:100%;text-align:left;">
+                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.06);color:#e5e7eb;border:1px solid #374151;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;width:100%;text-align:left;">
                             <span class="material-icons" style="font-size:22px;color:#34d399;">leaderboard</span>
                             <span class="btn-text">Ranking da Rodada</span>
                         </button>
                         <button id="manutencaoBtnDino" onclick="window.ManutencaoScreen && ManutencaoScreen.abrirDinoGame()"
-                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.15);color:white;border:none;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3);font-family:'Inter',sans-serif;backdrop-filter:blur(10px);width:100%;text-align:left;">
+                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.06);color:#e5e7eb;border:1px solid #374151;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;width:100%;text-align:left;">
                             <span style="font-size:22px;">⚽</span>
                             <span class="btn-text">Cobrança de Pênalti</span>
                         </button>
@@ -955,7 +955,8 @@
                 #manutencaoBtnRankingRodada:hover,
                 #manutencaoBtnDino:hover {
                     transform: scale(1.02);
-                    background: rgba(255,255,255,0.25) !important;
+                    background: rgba(255,255,255,0.1) !important;
+                    border-color: #4b5563 !important;
                 }
                 #manutencaoBtnRankingGeral:active,
                 #manutencaoBtnRankingRodada:active,
