@@ -438,20 +438,21 @@
 .btn-voltar-pro {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 16px;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
     background: var(--rodadas-surface-hover);
     border: 1px solid var(--rodadas-border);
-    border-radius: 8px;
-    color: var(--rodadas-text-white);
-    font-size: 13px;
-    font-weight: 600;
+    border-radius: 50%;
+    color: var(--rodadas-text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-voltar-pro:hover {
     background: rgba(255, 255, 255, 0.1);
+    color: var(--rodadas-text-white);
 }
 
 .btn-voltar-pro .material-symbols-outlined {
@@ -610,8 +611,8 @@
 }
 
 .ranking-pontos-pro {
-    font-family: var(--rodadas-font-brand);
-    font-weight: 400;
+    font-family: var(--rodadas-font-mono);
+    font-weight: 700;
     color: var(--rodadas-text-white);
     font-size: 14px;
     letter-spacing: -0.3px;
@@ -635,11 +636,11 @@
 
 /* === ZONA LABELS (MITO, G2-G12, Z1-Z11, MICO) === */
 .zona-badge {
-    font-family: var(--rodadas-font-brand);
-    font-size: 9px;
-    font-weight: 400;
-    letter-spacing: 0.3px;
-    padding: 2px 6px;
+    font-family: var(--rodadas-font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
     border-radius: 4px;
     display: inline-block;
     margin-left: 6px;
@@ -649,26 +650,31 @@
 .zona-badge.zona-mito {
     background: linear-gradient(135deg, #FF4500 0%, #CC3700 100%);
     color: #fff;
+    box-shadow: 0 0 6px rgba(255, 69, 0, 0.3);
 }
 
 .zona-badge.zona-g {
-    background: rgba(34, 197, 94, 0.15);
+    background: rgba(34, 197, 94, 0.2);
     color: var(--rodadas-success);
+    border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .zona-badge.zona-neutra {
     background: rgba(255, 255, 255, 0.08);
     color: var(--rodadas-text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .zona-badge.zona-z {
-    background: rgba(239, 68, 68, 0.15);
+    background: rgba(239, 68, 68, 0.2);
     color: var(--rodadas-danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .zona-badge.zona-mico {
     background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
     color: #fff;
+    box-shadow: 0 0 6px rgba(220, 38, 38, 0.3);
 }
 
 /* === ESTADOS === */
@@ -1675,6 +1681,69 @@
     border: 2px solid rgba(239, 68, 68, 0.4);
 }
 
+/* === CAMPINHO COLLAPSIBLE === */
+.me-toggle-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+    background: var(--rodadas-surface-elevated);
+    border-bottom: 1px solid var(--rodadas-border);
+    transition: background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.me-toggle-header:hover {
+    background: var(--rodadas-surface-hover);
+}
+
+.me-toggle-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.me-toggle-header-left .material-icons {
+    font-size: 20px;
+    color: var(--rodadas-primary);
+}
+
+.me-toggle-title {
+    font-family: var(--rodadas-font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--rodadas-text-white);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.me-toggle-subtitle {
+    font-size: 11px;
+    color: var(--rodadas-text-muted);
+    margin-top: 1px;
+}
+
+.me-toggle-chevron {
+    font-size: 20px;
+    color: var(--rodadas-text-muted);
+    transition: transform 0.3s ease;
+}
+
+.me-toggle-header.expanded .me-toggle-chevron {
+    transform: rotate(180deg);
+}
+
+.me-collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+}
+
+.me-collapsible-content.expanded {
+    max-height: 2000px;
+}
+
 /* Sem escalação disponível */
 .me-sem-escalacao {
     text-align: center;
@@ -1725,9 +1794,8 @@
                     <span id="autoRefreshText">Auto-refresh ativo</span>
                 </div>
             </div>
-            <button class="btn-voltar-pro" onclick="window.voltarParaCards()">
-                <span class="material-symbols-outlined">arrow_back</span>
-                Voltar
+            <button class="btn-voltar-pro" onclick="window.voltarParaCards()" title="Fechar detalhamento">
+                <span class="material-symbols-outlined">close</span>
             </button>
         </div>
         <!-- Minha Escalação - Estilo Cartola/Globo -->

@@ -918,10 +918,9 @@ const atualizarModulosAtivos = async (req, res) => {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    // ✅ FIX: Forçar módulos base sempre ativos (garantia adicional)
+    // Módulos base: ranking e rodadas sempre ativos, extrato pode ser desativado (manutenção)
     const modulosComBaseForçada = {
       ...modulos,
-      extrato: true,  // Sempre ativo
       ranking: true,  // Sempre ativo
       rodadas: true,  // Sempre ativo
     };

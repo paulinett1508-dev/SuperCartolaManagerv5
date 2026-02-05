@@ -503,76 +503,92 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
     container.innerHTML = `
         <div class="minha-escalacao-container ${statusClass}">
             ${statusBanner}
-            <!-- Header -->
-            <div class="me-header">
-                <img class="me-escudo" src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'">
-                <div class="me-header-info">
-                    <div class="me-time-nome">${nomeTime} <span style="font-family:var(--rodadas-font-mono);font-size:11px;color:var(--rodadas-text-dim);margin-left:4px;">${formacao}</span></div>
-                    <div class="me-cartola-nome">${nomeCartola}</div>
-                </div>
-            </div>
 
-            <!-- Scores -->
-            <div class="me-scores">
-                <div class="me-score-card">
-                    <div class="me-score-label">Pontos</div>
-                    <div class="me-score-value pontos">${pontosFormatados}</div>
-                </div>
-                <div class="me-score-card">
-                    <div class="me-score-label">Posição</div>
-                    <div class="me-score-value posicao">${posicao}º <span style="font-size:12px;color:var(--rodadas-text-dim)">de ${totalPart}</span></div>
-                </div>
-            </div>
-
-            <!-- Destaques: Capitão, Melhor, Pior -->
-            ${renderDestaques(capitao, melhor, pior, capitaoId)}
-
-            <!-- Mini Campo de Futebol -->
-            <div class="me-campo">
-                <div class="me-campo-gol-area"></div>
-                <!-- Goleiro -->
-                <div class="me-campo-linha" style="margin-top: 48px;">
-                    ${grupos.goleiros.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
-                </div>
-                <!-- Defensores (LAT + ZAG) -->
-                <div class="me-campo-linha">
-                    ${grupos.defensores.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
-                </div>
-                <!-- Meias -->
-                <div class="me-campo-linha">
-                    ${grupos.meias.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
-                </div>
-                <!-- Atacantes -->
-                <div class="me-campo-linha">
-                    ${grupos.atacantes.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
-                </div>
-                <!-- Técnico -->
-                <div class="me-campo-linha" style="margin-bottom: 8px;">
-                    ${grupos.tecnicos.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
-                </div>
-            </div>
-
-            <!-- Legenda de posições -->
-            <div class="me-campo-legenda">
-                <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot gol"></span><span>GOL</span></div>
-                <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot def"></span><span>DEF</span></div>
-                <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot mei"></span><span>MEI</span></div>
-                <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot ata"></span><span>ATA</span></div>
-                <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot tec"></span><span>TEC</span></div>
-            </div>
-
-            <!-- Banco de Reservas -->
-            ${reservas.length > 0 ? `
-                <div class="me-banco-section">
-                    <div class="me-banco-titulo">
-                        <span class="material-icons">airline_seat_recline_normal</span>
-                        Reservas (${reservas.length})
-                    </div>
-                    <div class="me-banco-scroll">
-                        ${reservas.map(a => renderReservaCard(a, capitaoId, reservaLuxoId)).join('')}
+            <!-- Toggle Header - Collapsible -->
+            <div class="me-toggle-header" id="meToggleHeader" onclick="window.toggleCampinho()">
+                <div class="me-toggle-header-left">
+                    <span class="material-icons">sports_soccer</span>
+                    <div>
+                        <div class="me-toggle-title">Minha Escalação</div>
+                        <div class="me-toggle-subtitle">${nomeTime} • ${formacao} • ${pontosFormatados} pts • ${posicao}º de ${totalPart}</div>
                     </div>
                 </div>
-            ` : ''}
+                <span class="material-icons me-toggle-chevron">expand_more</span>
+            </div>
+
+            <!-- Collapsible Content -->
+            <div class="me-collapsible-content" id="meCollapsibleContent">
+                <!-- Header -->
+                <div class="me-header">
+                    <img class="me-escudo" src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'">
+                    <div class="me-header-info">
+                        <div class="me-time-nome">${nomeTime} <span style="font-family:var(--rodadas-font-mono);font-size:11px;color:var(--rodadas-text-dim);margin-left:4px;">${formacao}</span></div>
+                        <div class="me-cartola-nome">${nomeCartola}</div>
+                    </div>
+                </div>
+
+                <!-- Scores -->
+                <div class="me-scores">
+                    <div class="me-score-card">
+                        <div class="me-score-label">Pontos</div>
+                        <div class="me-score-value pontos">${pontosFormatados}</div>
+                    </div>
+                    <div class="me-score-card">
+                        <div class="me-score-label">Posição</div>
+                        <div class="me-score-value posicao">${posicao}º <span style="font-size:12px;color:var(--rodadas-text-dim)">de ${totalPart}</span></div>
+                    </div>
+                </div>
+
+                <!-- Destaques: Capitão, Melhor, Pior -->
+                ${renderDestaques(capitao, melhor, pior, capitaoId)}
+
+                <!-- Mini Campo de Futebol -->
+                <div class="me-campo">
+                    <div class="me-campo-gol-area"></div>
+                    <!-- Goleiro -->
+                    <div class="me-campo-linha" style="margin-top: 48px;">
+                        ${grupos.goleiros.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
+                    </div>
+                    <!-- Defensores (LAT + ZAG) -->
+                    <div class="me-campo-linha">
+                        ${grupos.defensores.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
+                    </div>
+                    <!-- Meias -->
+                    <div class="me-campo-linha">
+                        ${grupos.meias.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
+                    </div>
+                    <!-- Atacantes -->
+                    <div class="me-campo-linha">
+                        ${grupos.atacantes.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
+                    </div>
+                    <!-- Técnico -->
+                    <div class="me-campo-linha" style="margin-bottom: 8px;">
+                        ${grupos.tecnicos.map(a => renderJogadorCampo(a, capitaoId, reservaLuxoId)).join('')}
+                    </div>
+                </div>
+
+                <!-- Legenda de posições -->
+                <div class="me-campo-legenda">
+                    <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot gol"></span><span>GOL</span></div>
+                    <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot def"></span><span>DEF</span></div>
+                    <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot mei"></span><span>MEI</span></div>
+                    <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot ata"></span><span>ATA</span></div>
+                    <div class="me-campo-legenda-item"><span class="me-campo-legenda-dot tec"></span><span>TEC</span></div>
+                </div>
+
+                <!-- Banco de Reservas -->
+                ${reservas.length > 0 ? `
+                    <div class="me-banco-section">
+                        <div class="me-banco-titulo">
+                            <span class="material-icons">airline_seat_recline_normal</span>
+                            Reservas (${reservas.length})
+                        </div>
+                        <div class="me-banco-scroll">
+                            ${reservas.map(a => renderReservaCard(a, capitaoId, reservaLuxoId)).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
         </div>
     `;
 }
@@ -1068,9 +1084,10 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
             ? '<div class="mico-icon-row"><span class="material-icons">trending_down</span> PIOR DA RODADA</div>'
             : '';
 
-        // Em campo badge for parciais
+        // Em campo badge for parciais (show only titulares count, not reserves)
+        const titularesTotal = 12;
         const emCampoInfo = isParcial && meuPart.totalAtletas > 0
-            ? `<span style="margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:${meuPart.atletasEmCampo > 0 ? '#22c55e' : '#6b7280'}">${meuPart.atletasEmCampo}/${meuPart.totalAtletas} em campo</span>`
+            ? `<span style="margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:${meuPart.atletasEmCampo > 0 ? '#22c55e' : '#6b7280'}">${Math.min(meuPart.atletasEmCampo, titularesTotal)}/${titularesTotal} em campo</span>`
             : '';
 
         meuResumoHTML = `
@@ -1127,11 +1144,10 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         // ✅ v6.0: Badge de zona (MITO, G2-G12, Z1-Z11, MICO)
         const zonaBadge = !isParcial ? calcularZonaLabel(posicao, totalParticipantes, valorFinanceiro) : '';
 
-        // ✅ v3.0: Badge "X/12 em campo" e clique para curiosar
+        // ✅ v3.0: Badge "X/12 em campo" (titulares only, excludes reserves)
         const emCampo = participante.atletasEmCampo || 0;
-        const totalAtl = participante.totalAtletas || 0;
-        const badgeEmCampo = isParcial && totalAtl > 0
-            ? `<span class="badge-em-campo ${emCampo > 0 ? 'ativo' : ''}">${emCampo}/${totalAtl}</span>`
+        const badgeEmCampo = isParcial
+            ? `<span class="badge-em-campo ${emCampo > 0 ? 'ativo' : ''}">${Math.min(emCampo, 12)}/12</span>`
             : "";
 
         const curiosarAttr = isParcial && !participante.rodadaNaoJogada
@@ -1223,13 +1239,15 @@ function abrirCampinhoModal(targetTimeId, rodada) {
     // Buscar escalação cacheada completa
     const escalacaoCacheada = ParciaisModule.obterEscalacaoCacheada?.(targetTimeId);
 
-    const nomeTime = timeDados?.nome_time || "Time";
-    const nomeCartola = timeDados?.nome_cartola || "";
-    const pontos = timeDados?.pontos || 0;
-    const emCampo = timeDados?.atletasEmCampo || 0;
-    const totalAtl = timeDados?.totalAtletas || 0;
-    const atletas = timeDados?.atletas || [];
-    const capitaoId = timeDados?.capitao_id;
+    const nomeTime = timeDados?.nome_time || escalacaoCacheada?.nome_time || "Time";
+    const nomeCartola = timeDados?.nome_cartola || escalacaoCacheada?.nome_cartola || "";
+    const pontos = timeDados?.pontos || escalacaoCacheada?.pontos || 0;
+    const emCampo = timeDados?.atletasEmCampo || escalacaoCacheada?.atletasEmCampo || 0;
+    const totalAtl = 12; // Show only titulares count
+    const atletas = (timeDados?.atletas && timeDados.atletas.length > 0)
+        ? timeDados.atletas
+        : (escalacaoCacheada?.atletas || []);
+    const capitaoId = timeDados?.capitao_id || escalacaoCacheada?.capitao_id;
     const isMeuTime = String(targetTimeId) === String(meuTimeId);
 
     const pontosFormatados = Number(pontos).toLocaleString("pt-BR", {
@@ -1247,15 +1265,16 @@ function abrirCampinhoModal(targetTimeId, rodada) {
         6: { nome: 'TEC', cor: '#6b7280' },
     };
 
-    // Separar titulares e reservas
-    const titulares = atletas.filter(a => !a.is_reserva);
-    const reservas = atletas.filter(a => a.is_reserva);
+    // Separar titulares e reservas (support both is_reserva and status_id fields)
+    const titulares = atletas.filter(a => !a.is_reserva && a.status_id !== 2);
+    const reservas = atletas.filter(a => a.is_reserva || a.status_id === 2);
 
     // Renderizar lista de atletas
     function renderAtleta(a) {
         const pos = POSICOES[a.posicao_id] || { nome: '???', cor: '#6b7280' };
-        const pontosAtl = Number(a.pontos_efetivos || 0).toFixed(1);
-        const pontosClass = a.pontos_efetivos > 0 ? 'color:#22c55e' : a.pontos_efetivos < 0 ? 'color:#ef4444' : 'color:#6b7280';
+        const pontosRaw = a.pontos_efetivos ?? a.pontos_num ?? 0;
+        const pontosAtl = Number(pontosRaw).toFixed(1);
+        const pontosClass = pontosRaw > 0 ? 'color:#22c55e' : pontosRaw < 0 ? 'color:#ef4444' : 'color:#6b7280';
         const emCampoIcon = a.entrou_em_campo
             ? '<span style="color:#22c55e;font-size:10px;">&#9679;</span>'
             : '<span style="color:#374151;font-size:10px;">&#9679;</span>';
@@ -1312,7 +1331,7 @@ function abrirCampinhoModal(targetTimeId, rodada) {
                 </div>
                 <div style="flex:1;background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
                     <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;">Em Campo</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:${emCampo > 0 ? '#22c55e' : '#6b7280'};">${emCampo}/${totalAtl}</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:${emCampo > 0 ? '#22c55e' : '#6b7280'};">${Math.min(emCampo, totalAtl)}/${totalAtl}</div>
                 </div>
             </div>
 
@@ -1448,6 +1467,24 @@ window.voltarParaCards = function () {
     const grid = document.getElementById('rodadasGruposContainer');
     if (grid) {
         grid.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+};
+
+// =====================================================================
+// TOGGLE CAMPINHO (EXPAND/COLLAPSE)
+// =====================================================================
+window.toggleCampinho = function () {
+    const header = document.getElementById('meToggleHeader');
+    const content = document.getElementById('meCollapsibleContent');
+    if (!header || !content) return;
+
+    const isExpanded = content.classList.contains('expanded');
+    if (isExpanded) {
+        content.classList.remove('expanded');
+        header.classList.remove('expanded');
+    } else {
+        content.classList.add('expanded');
+        header.classList.add('expanded');
     }
 };
 
