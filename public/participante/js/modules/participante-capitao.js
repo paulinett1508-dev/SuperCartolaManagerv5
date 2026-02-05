@@ -107,7 +107,7 @@ async function detectarEstadoTemporada() {
         }
 
         // Fallback: verificar via status do mercado
-        const response = await fetch('/api/mercado/status');
+        const response = await fetch('/api/cartola/mercado/status');
         if (response.ok) {
             const data = await response.json();
             const rodada = data.rodada_atual || 1;
@@ -126,7 +126,7 @@ async function buscarDoCache() {
     try {
         if (!window.OfflineCache) return null;
         const key = `${CACHE_KEY_PREFIX}${estadoCapitao.ligaId}_${estadoCapitao.temporada}`;
-        const cached = await window.OfflineCache.get(key);
+        const cached = await window.OfflineCache.get('ranking', key);
         if (cached && cached.data && (Date.now() - cached.timestamp) < CACHE_TTL) {
             return cached.data;
         }
@@ -140,10 +140,7 @@ async function salvarNoCache(ranking) {
     try {
         if (!window.OfflineCache) return;
         const key = `${CACHE_KEY_PREFIX}${estadoCapitao.ligaId}_${estadoCapitao.temporada}`;
-        await window.OfflineCache.set(key, {
-            data: ranking,
-            timestamp: Date.now(),
-        });
+        await window.OfflineCache.set('ranking', key, ranking);
     } catch (error) {
         // Cache falhou, não é crítico
     }
