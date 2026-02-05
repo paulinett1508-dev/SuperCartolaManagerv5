@@ -310,6 +310,36 @@
     ]
   },
   {
+    "id": 346260,
+    "mandante": "Cruzeiro",
+    "visitante": "Coritiba",
+    "logoMandante": "https://s.sde.globo.com/media/organizations/2021/02/13/30_cruzeiro-2021.png",
+    "logoVisitante": "https://s.sde.globo.com/media/organizations/2017/03/29/coritiba30.png",
+    "golsMandante": 0,
+    "golsVisitante": 0,
+    "placar": "0 x 0",
+    "placarHT": null,
+    "tempo": "",
+    "tempoExtra": null,
+    "status": "Ao vivo",
+    "statusRaw": "LIVE",
+    "liga": "Campeonato Brasileiro",
+    "ligaId": null,
+    "ligaOriginal": "Campeonato Brasileiro",
+    "ligaLogo": null,
+    "estadio": "Mineirão",
+    "cidade": null,
+    "horario": "21:30",
+    "timestamp": 1770337800000,
+    "fonte": "globo",
+    "transmissao": [
+      "sportv",
+      "Premiere",
+      "globoplay",
+      "Cartola"
+    ]
+  },
+  {
     "id": 347344,
     "mandante": "Juventud",
     "visitante": "Universidad de Quito",
@@ -334,36 +364,6 @@
     "fonte": "globo",
     "transmissao": [
       "Paramount+"
-    ]
-  },
-  {
-    "id": 346260,
-    "mandante": "Cruzeiro",
-    "visitante": "Coritiba",
-    "logoMandante": "https://s.sde.globo.com/media/organizations/2021/02/13/30_cruzeiro-2021.png",
-    "logoVisitante": "https://s.sde.globo.com/media/organizations/2017/03/29/coritiba30.png",
-    "golsMandante": 0,
-    "golsVisitante": 0,
-    "placar": "0 x 0",
-    "placarHT": null,
-    "tempo": "",
-    "tempoExtra": null,
-    "status": "Agendado",
-    "statusRaw": "NS",
-    "liga": "Campeonato Brasileiro",
-    "ligaId": null,
-    "ligaOriginal": "Campeonato Brasileiro",
-    "ligaLogo": null,
-    "estadio": "Mineirão",
-    "cidade": null,
-    "horario": "21:30",
-    "timestamp": 1770337800000,
-    "fonte": "globo",
-    "transmissao": [
-      "sportv",
-      "Premiere",
-      "globoplay",
-      "Cartola"
     ]
   },
   {
