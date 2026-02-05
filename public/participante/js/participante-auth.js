@@ -57,8 +57,11 @@ class ParticipanteAuth {
                 this.verificarMultiplasLigas(),
             ]);
 
-            // ✅ SPLASH: Mostrar após auth válida (cache)
-            if (window.SplashScreen) {
+            // ✅ MANUTENÇÃO: Verificar antes de liberar o app
+            const emManutencao = await this._verificarManutencao();
+
+            // ✅ SPLASH: Mostrar após auth válida (cache) - apenas se não em manutenção
+            if (!emManutencao && window.SplashScreen) {
                 window.SplashScreen.show('autenticacao');
             }
 
@@ -151,8 +154,11 @@ class ParticipanteAuth {
                     .catch(e => { /* Ignorar erros de preload */ });
             }
 
-            // ✅ SPLASH: Mostrar após auth válida
-            if (window.SplashScreen) {
+            // ✅ MANUTENÇÃO: Verificar antes de liberar o app
+            const emManutencaoFetch = await this._verificarManutencao();
+
+            // ✅ SPLASH: Mostrar após auth válida - apenas se não em manutenção
+            if (!emManutencaoFetch && window.SplashScreen) {
                 window.SplashScreen.show('autenticacao');
             }
 
@@ -172,6 +178,42 @@ class ParticipanteAuth {
             this.verificandoAuth = false;
             this.redirecionarLogin();
             return false;
+        }
+    }
+
+    /**
+     * Verifica se o app está em modo manutenção.
+     * Se bloqueado, ativa a tela "Calma aê!" (ManutencaoScreen).
+     * Se dev bypass (admin logado via Replit Auth), libera normalmente.
+     * @returns {boolean} true se app está bloqueado por manutenção
+     */
+    async _verificarManutencao() {
+        try {
+            const res = await fetch('/api/participante/manutencao/status', { credentials: 'include' });
+            if (!res.ok) return false;
+
+            const data = await res.json();
+
+            if (data.ativo && data.bloqueado) {
+                if (window.ManutencaoScreen) {
+                    ManutencaoScreen.ativar(data);
+                    if (window.Log) Log.info('PARTICIPANTE-AUTH', '🔧 App em manutenção - splash ativada');
+                }
+                return true;
+            }
+
+            // Dev bypass ou whitelist - desativar splash se estava ativa
+            if (data.ativo && !data.bloqueado) {
+                if (window.ManutencaoScreen && ManutencaoScreen.estaAtivo()) {
+                    ManutencaoScreen.desativar();
+                    if (window.Log) Log.info('PARTICIPANTE-AUTH', '🔓 Manutenção: acesso liberado (devBypass ou whitelist)');
+                }
+            }
+
+            return false;
+        } catch (error) {
+            if (window.Log) Log.warn('PARTICIPANTE-AUTH', 'Erro ao verificar manutenção (ignorando):', error);
+            return false; // Em caso de erro, não bloquear
         }
     }
 
