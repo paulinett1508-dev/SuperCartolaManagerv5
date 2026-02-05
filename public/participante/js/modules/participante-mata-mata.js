@@ -1,6 +1,6 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v7.1 (Cache-First + Filtro Temporada)
-// ✅ v7.1: FIX - Filtro de temporada nas queries de cache
+// PARTICIPANTE MATA-MATA v7.2 (Cache-First + Parciais ao Vivo)
+// ✅ v7.2: FEAT - Parciais ao vivo na rodada de classificação
 // ✅ v7.0: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v6.9: FIX Escudo placeholder não usa mais logo do sistema
 // ✅ v6.8: FIX Comparação de tipos (string vs number) em timeId
@@ -105,6 +105,7 @@ let estado = {
   edicoesDisponiveis: [],
   cacheConfrontos: {},
   historicoParticipacao: {},
+  tamanhoTorneio: 8, // ✅ v7.2: Carregado da config do módulo
 };
 
 // =====================================================================
@@ -124,6 +125,19 @@ export async function inicializarMataMata(params) {
     if (window.Log) Log.error("[MATA-MATA] ❌ Liga ID não encontrado");
     renderErro("Sessão inválida. Faça login novamente.");
     return;
+  }
+
+  // ✅ v7.2: Carregar tamanho do torneio da config do módulo
+  try {
+    const configRes = await fetch(`/api/liga/${estado.ligaId}/modulos/mata_mata`);
+    if (configRes.ok) {
+      const configData = await configRes.json();
+      const totalTimes = configData?.config?.wizard_respostas?.total_times;
+      if (totalTimes) estado.tamanhoTorneio = Number(totalTimes);
+      if (window.Log) Log.info(`[MATA-MATA] ⚙️ Tamanho torneio: ${estado.tamanhoTorneio}`);
+    }
+  } catch (e) {
+    if (window.Log) Log.warn("[MATA-MATA] ⚠️ Config não carregada, usando default:", estado.tamanhoTorneio);
   }
 
   // ✅ v6.8: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
@@ -511,6 +525,11 @@ async function carregarFase(edicao, fase) {
     }
 
     if (!confrontos || confrontos.length === 0) {
+      // ✅ v7.2: Se é a primeira fase, mostrar opções de parciais
+      if (fase === "primeira") {
+        renderParciaisOptionsApp(container, edicao);
+        return;
+      }
       container.innerHTML = `
         <div class="mm-vazio">
           <span class="material-symbols-outlined">sports_mma</span>
@@ -947,6 +966,304 @@ function renderCardDesempenho() {
 }
 
 // =====================================================================
+// PARCIAIS AO VIVO (v7.2)
+// =====================================================================
+
+function renderParciaisOptionsApp(container, edicao) {
+  const edicaoConfig = EDICOES_MATA_MATA.find(e => e.id === edicao);
+  const edicaoNome = edicaoConfig ? edicaoConfig.nome : `${edicao}ª Edição`;
+
+  container.innerHTML = `
+    <div class="mm-vazio mm-parciais-menu">
+      <span class="material-symbols-outlined" style="font-size:40px;color:#f59e0b;">sports_score</span>
+      <h3>Rodada de Classificação</h3>
+      <p>As chaves serão definidas ao final da rodada.</p>
+      <div class="mm-parciais-actions">
+        <button class="mm-parciais-btn" id="btnParcClassificados">
+          <span class="material-symbols-outlined">leaderboard</span>
+          <span>Classificados da ${edicaoNome}</span>
+          <span class="mm-parciais-badge">PARCIAIS</span>
+        </button>
+        <button class="mm-parciais-btn" id="btnParcConfrontos">
+          <span class="material-symbols-outlined">account_tree</span>
+          <span>Confrontos da 1ª Fase</span>
+          <span class="mm-parciais-badge">PARCIAIS</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("btnParcClassificados")?.addEventListener("click", () => {
+    carregarClassificadosParciais(container, edicao);
+  });
+  document.getElementById("btnParcConfrontos")?.addEventListener("click", () => {
+    carregarConfrontosParciais(container, edicao);
+  });
+}
+
+async function carregarClassificadosParciais(container, edicao) {
+  container.innerHTML = `
+    <div class="mm-loading">
+      <div class="mm-spinner"></div>
+      <p>Buscando parciais...</p>
+    </div>`;
+
+  try {
+    const res = await fetch(`/api/matchday/parciais/${estado.ligaId}`);
+    const data = res.ok ? await res.json() : null;
+
+    if (!data || !data.disponivel) {
+      const msg = data?.message || "Parciais não disponíveis no momento.";
+      container.innerHTML = `
+        <div class="mm-vazio">
+          <span class="material-symbols-outlined">info</span>
+          <h3>${msg}</h3>
+          <div class="mm-parciais-voltar">
+            <button class="mm-parciais-voltar-btn" id="btnVoltarParc">← Voltar</button>
+          </div>
+        </div>`;
+      document.getElementById("btnVoltarParc")?.addEventListener("click", () => {
+        renderParciaisOptionsApp(container, edicao);
+      });
+      return;
+    }
+
+    const ranking = data.ranking || [];
+    const tamanho = estado.tamanhoTorneio;
+    const classificados = ranking.slice(0, tamanho);
+    const eliminados = ranking.slice(tamanho, tamanho + 5);
+    const edicaoConfig = EDICOES_MATA_MATA.find(e => e.id === edicao);
+    const edicaoNome = edicaoConfig ? edicaoConfig.nome : `${edicao}ª Edição`;
+    const meuTimeId = estado.timeId ? parseInt(estado.timeId) : null;
+
+    let html = `
+      <div class="mm-parciais-live-header">
+        <span class="mm-live-dot"></span>
+        <span class="mm-live-text">AO VIVO</span>
+        <span class="mm-live-info">Classificados — ${edicaoNome} (Rodada ${data.rodada})</span>
+      </div>
+      <p class="mm-parciais-sub">Top ${tamanho} classificam para o Mata-Mata</p>
+      <div class="mm-parciais-ranking">`;
+
+    classificados.forEach((t, i) => {
+      const isMeu = parseInt(t.timeId) === meuTimeId;
+      const isCutoff = i === tamanho - 1;
+      html += `
+        <div class="mm-parciais-rank-item ${isMeu ? "meu" : ""} ${isCutoff ? "cutoff" : ""}">
+          <span class="mm-parciais-pos">${i + 1}º</span>
+          <img class="mm-parciais-escudo" src="/escudos/${t.clube_id}.png" alt="" onerror="this.src='${ESCUDO_PLACEHOLDER}'">
+          <div class="mm-parciais-rank-info">
+            <span class="mm-parciais-rank-nome">${truncate(t.nome_time || "—", 16)}</span>
+            <span class="mm-parciais-rank-cartola">${truncate(t.nome_cartola || "—", 18)}</span>
+          </div>
+          <span class="mm-parciais-rank-pts">${t.pontos?.toFixed(2) || "0.00"}</span>
+        </div>`;
+    });
+
+    if (eliminados.length > 0) {
+      html += `<div class="mm-parciais-eliminados-label">Fora do corte</div>`;
+      eliminados.forEach((t, i) => {
+        html += `
+          <div class="mm-parciais-rank-item eliminado">
+            <span class="mm-parciais-pos">${tamanho + i + 1}º</span>
+            <img class="mm-parciais-escudo" src="/escudos/${t.clube_id}.png" alt="" onerror="this.src='${ESCUDO_PLACEHOLDER}'">
+            <div class="mm-parciais-rank-info">
+              <span class="mm-parciais-rank-nome">${truncate(t.nome_time || "—", 16)}</span>
+              <span class="mm-parciais-rank-cartola">${truncate(t.nome_cartola || "—", 18)}</span>
+            </div>
+            <span class="mm-parciais-rank-pts">${t.pontos?.toFixed(2) || "0.00"}</span>
+          </div>`;
+      });
+    }
+
+    html += `</div>
+      <div class="mm-parciais-voltar">
+        <button class="mm-parciais-voltar-btn" id="btnVoltarParc">← Voltar</button>
+      </div>`;
+
+    container.innerHTML = html;
+    document.getElementById("btnVoltarParc")?.addEventListener("click", () => {
+      renderParciaisOptionsApp(container, edicao);
+    });
+
+    if (window.Log) Log.info(`[MATA-MATA] 📊 Parciais classificados: ${classificados.length}/${ranking.length}`);
+  } catch (err) {
+    if (window.Log) Log.error("[MATA-MATA] Erro parciais:", err);
+    container.innerHTML = `
+      <div class="mm-vazio">
+        <span class="material-symbols-outlined">error_outline</span>
+        <h3>Erro ao buscar parciais</h3>
+        <p>${err.message}</p>
+        <div class="mm-parciais-voltar">
+          <button class="mm-parciais-voltar-btn" id="btnVoltarParc">← Voltar</button>
+        </div>
+      </div>`;
+    document.getElementById("btnVoltarParc")?.addEventListener("click", () => {
+      renderParciaisOptionsApp(container, edicao);
+    });
+  }
+}
+
+async function carregarConfrontosParciais(container, edicao) {
+  container.innerHTML = `
+    <div class="mm-loading">
+      <div class="mm-spinner"></div>
+      <p>Montando confrontos parciais...</p>
+    </div>`;
+
+  try {
+    const res = await fetch(`/api/matchday/parciais/${estado.ligaId}`);
+    const data = res.ok ? await res.json() : null;
+
+    if (!data || !data.disponivel) {
+      const msg = data?.message || "Parciais não disponíveis no momento.";
+      container.innerHTML = `
+        <div class="mm-vazio">
+          <span class="material-symbols-outlined">info</span>
+          <h3>${msg}</h3>
+          <div class="mm-parciais-voltar">
+            <button class="mm-parciais-voltar-btn" id="btnVoltarParc">← Voltar</button>
+          </div>
+        </div>`;
+      document.getElementById("btnVoltarParc")?.addEventListener("click", () => {
+        renderParciaisOptionsApp(container, edicao);
+      });
+      return;
+    }
+
+    const ranking = data.ranking || [];
+    const tamanho = estado.tamanhoTorneio;
+
+    if (ranking.length < tamanho) {
+      container.innerHTML = `
+        <div class="mm-vazio">
+          <span class="material-symbols-outlined">group</span>
+          <h3>Dados insuficientes</h3>
+          <p>${ranking.length} de ${tamanho} times nas parciais.</p>
+          <div class="mm-parciais-voltar">
+            <button class="mm-parciais-voltar-btn" id="btnVoltarParc">← Voltar</button>
+          </div>
+        </div>`;
+      document.getElementById("btnVoltarParc")?.addEventListener("click", () => {
+        renderParciaisOptionsApp(container, edicao);
+      });
+      return;
+    }
+
+    // Montar confrontos 1vs último, 2vs penúltimo, etc.
+    const classificados = ranking.slice(0, tamanho);
+    const metade = tamanho / 2;
+    const confrontos = [];
+
+    for (let i = 0; i < metade; i++) {
+      const timeA = classificados[i];
+      const timeB = classificados[tamanho - 1 - i];
+      confrontos.push({
+        timeA: {
+          time_id: timeA.timeId,
+          timeId: timeA.timeId,
+          nome_time: timeA.nome_time,
+          nome_cartola: timeA.nome_cartola,
+          nome_cartoleiro: timeA.nome_cartola,
+          clube_id: timeA.clube_id,
+          url_escudo_png: `/escudos/${timeA.clube_id}.png`,
+          pontos: 0,
+        },
+        timeB: {
+          time_id: timeB.timeId,
+          timeId: timeB.timeId,
+          nome_time: timeB.nome_time,
+          nome_cartola: timeB.nome_cartola,
+          nome_cartoleiro: timeB.nome_cartola,
+          clube_id: timeB.clube_id,
+          url_escudo_png: `/escudos/${timeB.clube_id}.png`,
+          pontos: 0,
+        },
+      });
+    }
+
+    const edicaoConfig = EDICOES_MATA_MATA.find(e => e.id === edicao);
+    const edicaoNome = edicaoConfig ? edicaoConfig.nome : `${edicao}ª Edição`;
+
+    // Renderizar com header AO VIVO + confrontos em cards
+    let html = `
+      <div class="mm-parciais-live-header">
+        <span class="mm-live-dot"></span>
+        <span class="mm-live-text">AO VIVO</span>
+        <span class="mm-live-info">Confrontos da 1ª Fase — ${edicaoNome} (Rodada ${data.rodada})</span>
+      </div>
+      <p class="mm-parciais-sub">Baseado nas parciais. Sujeito a alteração.</p>`;
+
+    html += `
+      <div class="mm-outros-header">
+        <span>Confrontos Projetados</span>
+      </div>
+      <div class="mm-confrontos-lista">`;
+
+    const meuTimeId = estado.timeId ? parseInt(estado.timeId) : null;
+
+    confrontos.forEach((c, idx) => {
+      const timeA = c.timeA || {};
+      const timeB = c.timeB || {};
+      const posA = idx + 1;
+      const posB = tamanho - idx;
+      const isMinha = extrairTimeId(timeA) === meuTimeId || extrairTimeId(timeB) === meuTimeId;
+
+      html += `
+        <div class="mm-confronto-card ${isMinha ? "minha" : ""}">
+          <div class="mm-conf-numero">${idx + 1}</div>
+          <div class="mm-conf-times">
+            <div class="mm-conf-time">
+              <img class="mm-conf-escudo" src="${getEscudoUrl(timeA)}" alt="" onerror="this.src='${ESCUDO_PLACEHOLDER}'">
+              <div class="mm-conf-info">
+                <span class="mm-conf-nome">${truncate(timeA.nome_time || "A definir", 14)}</span>
+                <span class="mm-conf-cartola">${truncate(timeA.nome_cartola || "", 16)}</span>
+              </div>
+              <span class="mm-conf-pts empate">${posA}º</span>
+            </div>
+            <div class="mm-conf-vs">×</div>
+            <div class="mm-conf-time">
+              <img class="mm-conf-escudo" src="${getEscudoUrl(timeB)}" alt="" onerror="this.src='${ESCUDO_PLACEHOLDER}'">
+              <div class="mm-conf-info">
+                <span class="mm-conf-nome">${truncate(timeB.nome_time || "A definir", 14)}</span>
+                <span class="mm-conf-cartola">${truncate(timeB.nome_cartola || "", 16)}</span>
+              </div>
+              <span class="mm-conf-pts empate">${posB}º</span>
+            </div>
+          </div>
+          <div class="mm-conf-diff">Parcial: ${posA}º vs ${posB}º</div>
+        </div>`;
+    });
+
+    html += `</div>
+      <div class="mm-parciais-voltar">
+        <button class="mm-parciais-voltar-btn" id="btnVoltarParc">← Voltar</button>
+      </div>`;
+
+    container.innerHTML = html;
+    document.getElementById("btnVoltarParc")?.addEventListener("click", () => {
+      renderParciaisOptionsApp(container, edicao);
+    });
+
+    if (window.Log) Log.info(`[MATA-MATA] ⚔️ Confrontos parciais: ${confrontos.length} jogos montados`);
+  } catch (err) {
+    if (window.Log) Log.error("[MATA-MATA] Erro confrontos parciais:", err);
+    container.innerHTML = `
+      <div class="mm-vazio">
+        <span class="material-symbols-outlined">error_outline</span>
+        <h3>Erro ao montar confrontos</h3>
+        <p>${err.message}</p>
+        <div class="mm-parciais-voltar">
+          <button class="mm-parciais-voltar-btn" id="btnVoltarParc">← Voltar</button>
+        </div>
+      </div>`;
+    document.getElementById("btnVoltarParc")?.addEventListener("click", () => {
+      renderParciaisOptionsApp(container, edicao);
+    });
+  }
+}
+
+// =====================================================================
 // RENDER ERRO
 // =====================================================================
 function renderErro(msg) {
@@ -970,4 +1287,4 @@ function truncate(str, len) {
   return str.length > len ? str.substring(0, len) + "..." : str;
 }
 
-if (window.Log) Log.info("[MATA-MATA] ✅ Módulo v6.7 carregado (Cache-First IndexedDB)");
+if (window.Log) Log.info("[MATA-MATA] ✅ Módulo v7.2 carregado (Cache-First + Parciais ao Vivo)");

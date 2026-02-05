@@ -1460,4 +1460,219 @@
         background: rgba(107, 114, 128, 0.2);
         color: var(--mm-text-muted);
     }
+
+    /* =====================================================
+       PARCIAIS AO VIVO - v7.2
+       ===================================================== */
+
+    .mm-parciais-menu { text-align: center; }
+
+    .mm-parciais-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 16px;
+        padding: 0 8px;
+    }
+
+    .mm-parciais-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        color: var(--mm-text);
+        font-family: var(--mm-font-body);
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .mm-parciais-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(245, 158, 11, 0.4);
+    }
+
+    .mm-parciais-btn .material-symbols-outlined {
+        font-size: 18px;
+        color: #f59e0b;
+    }
+
+    .mm-parciais-badge {
+        margin-left: auto;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #000;
+        font-size: 9px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    /* Live header */
+    .mm-parciais-live-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 8px;
+        margin-bottom: 8px;
+    }
+
+    .mm-live-dot {
+        width: 8px;
+        height: 8px;
+        background: #ef4444;
+        border-radius: 50%;
+        animation: mm-pulse-live 1.5s ease-in-out infinite;
+        flex-shrink: 0;
+    }
+
+    @keyframes mm-pulse-live {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    .mm-live-text {
+        color: #ef4444;
+        font-family: var(--mm-font-brand);
+        font-size: 11px;
+        letter-spacing: 1px;
+        flex-shrink: 0;
+    }
+
+    .mm-live-info {
+        color: var(--mm-text-muted);
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mm-parciais-sub {
+        color: var(--mm-text-dim);
+        font-size: 11px;
+        text-align: center;
+        margin-bottom: 12px;
+        padding: 0 4px;
+    }
+
+    /* Ranking list */
+    .mm-parciais-ranking {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .mm-parciais-rank-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        border: 1px solid transparent;
+    }
+
+    .mm-parciais-rank-item.meu {
+        background: rgba(255, 106, 56, 0.1);
+        border-color: rgba(255, 106, 56, 0.3);
+    }
+
+    .mm-parciais-rank-item.cutoff {
+        border-bottom: 2px dashed rgba(255, 106, 56, 0.4);
+        border-radius: 8px 8px 0 0;
+        margin-bottom: 4px;
+    }
+
+    .mm-parciais-rank-item.eliminado {
+        opacity: 0.4;
+    }
+
+    .mm-parciais-eliminados-label {
+        color: var(--mm-text-dim);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-align: center;
+        padding: 6px 0 2px;
+    }
+
+    .mm-parciais-pos {
+        font-family: var(--mm-font-brand);
+        font-size: 12px;
+        color: var(--mm-text-muted);
+        min-width: 28px;
+        text-align: center;
+    }
+
+    .mm-parciais-escudo {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .mm-parciais-rank-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .mm-parciais-rank-nome {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--mm-text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mm-parciais-rank-cartola {
+        font-size: 10px;
+        color: var(--mm-text-dim);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mm-parciais-rank-pts {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--mm-success);
+        flex-shrink: 0;
+    }
+
+    /* Voltar button */
+    .mm-parciais-voltar {
+        text-align: center;
+        margin-top: 16px;
+    }
+
+    .mm-parciais-voltar-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 20px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        color: var(--mm-text-muted);
+        font-family: var(--mm-font-body);
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .mm-parciais-voltar-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--mm-text);
+    }
 </style>

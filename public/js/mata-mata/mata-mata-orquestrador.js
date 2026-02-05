@@ -13,6 +13,7 @@ import {
   getEdicaoMataMata,
   getFasesParaTamanho,
   TAMANHO_TORNEIO_DEFAULT,
+  FASE_LABELS,
   FASE_NUM_JOGOS,
   setValoresFase,
 } from "./mata-mata-config.js";
@@ -386,6 +387,255 @@ function renderizarAguardandoDados(container, ligaId) {
   `;
 }
 
+// =====================================================================
+// PARCIAIS - Rodada de classificação em andamento
+// =====================================================================
+
+function renderParciaisOptions(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao) {
+  const edicaoNome = edicaoSelecionada.nome || `Edição ${edicaoId}`;
+
+  contentElement.innerHTML = `
+    <div class="mata-mata-aguardando-fase">
+      <span class="material-symbols-outlined">schedule</span>
+      <h4>Rodada de Classificação em Andamento</h4>
+      <p>As chaves definitivas serão definidas após a Rodada ${rodadaDefinicao}.</p>
+      <div class="parciais-actions">
+        <button class="fase-btn parciais-btn" id="btnClassificadosParciais">
+          <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">leaderboard</span>
+          Classificados da ${edicaoNome}
+          <span class="parciais-badge">PARCIAIS</span>
+        </button>
+        <button class="fase-btn parciais-btn" id="btnConfrontosParciais">
+          <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">account_tree</span>
+          Confrontos da 1ª Fase
+          <span class="parciais-badge">PARCIAIS</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("btnClassificadosParciais")?.addEventListener("click", () => {
+    carregarClassificadosParciais(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao);
+  });
+
+  document.getElementById("btnConfrontosParciais")?.addEventListener("click", () => {
+    carregarConfrontosParciais(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao);
+  });
+}
+
+async function carregarClassificadosParciais(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao) {
+  contentElement.innerHTML = `
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Buscando parciais...</p>
+    </div>`;
+
+  try {
+    const res = await fetch(`/api/matchday/parciais/${ligaId}`);
+    const data = res.ok ? await res.json() : null;
+
+    if (!data || !data.disponivel) {
+      const msg = data?.message || "Parciais não disponíveis no momento.";
+      contentElement.innerHTML = `
+        <div class="mata-mata-aguardando-fase">
+          <span class="material-symbols-outlined">info</span>
+          <h4>${msg}</h4>
+          <div class="parciais-voltar">
+            <button class="fase-btn" id="btnVoltarParciais">← Voltar</button>
+          </div>
+        </div>`;
+      document.getElementById("btnVoltarParciais")?.addEventListener("click", () => {
+        renderParciaisOptions(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao);
+      });
+      return;
+    }
+
+    const ranking = data.ranking || [];
+    const classificados = ranking.slice(0, tamanhoTorneioVal);
+    const eliminados = ranking.slice(tamanhoTorneioVal);
+    const edicaoNome = edicaoSelecionada.nome || `Edição ${edicaoId}`;
+
+    const rowsClassificados = classificados.map((t, i) => `
+      <tr class="${i === tamanhoTorneioVal - 1 ? "parciais-cutoff" : ""}">
+        <td class="jogo-cell">${i + 1}º</td>
+        <td class="time-cell">
+          <div class="time-info">
+            <img src="/escudos/${t.clube_id}.png" class="escudo-img" onerror="this.src='/escudos/default.png'">
+            <div class="time-details">
+              <span class="time-nome">${t.nome_time || "—"}</span>
+              <span class="time-cartoleiro">${t.nome_cartola || "—"}</span>
+            </div>
+          </div>
+        </td>
+        <td class="pontos-cell valor-positivo">
+          <div class="pontos-valor">${t.pontos?.toFixed(2).replace(".", ",") || "0,00"}</div>
+        </td>
+      </tr>`).join("");
+
+    const rowsEliminados = eliminados.slice(0, 5).map((t, i) => `
+      <tr style="opacity:0.4;">
+        <td class="jogo-cell">${tamanhoTorneioVal + i + 1}º</td>
+        <td class="time-cell">
+          <div class="time-info">
+            <img src="/escudos/${t.clube_id}.png" class="escudo-img" onerror="this.src='/escudos/default.png'">
+            <div class="time-details">
+              <span class="time-nome">${t.nome_time || "—"}</span>
+              <span class="time-cartoleiro">${t.nome_cartola || "—"}</span>
+            </div>
+          </div>
+        </td>
+        <td class="pontos-cell">
+          <div class="pontos-valor">${t.pontos?.toFixed(2).replace(".", ",") || "0,00"}</div>
+        </td>
+      </tr>`).join("");
+
+    contentElement.innerHTML = `
+      <div class="parciais-header">
+        <span class="parciais-live-badge">AO VIVO</span>
+        <h4>Classificados — ${edicaoNome}</h4>
+        <p>Top ${tamanhoTorneioVal} classificam para o Mata-Mata (Rodada ${data.rodada})</p>
+      </div>
+      <div class="mata-mata-table-container">
+        <table class="mata-mata-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Time</th>
+              <th class="pontos-cell">Pts</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsClassificados}
+            ${rowsEliminados}
+          </tbody>
+        </table>
+      </div>
+      <div class="parciais-voltar">
+        <button class="fase-btn" id="btnVoltarParciais">← Voltar</button>
+      </div>`;
+
+    document.getElementById("btnVoltarParciais")?.addEventListener("click", () => {
+      renderParciaisOptions(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao);
+    });
+
+    console.log(`[MATA-ORQUESTRADOR] Classificados parciais: ${classificados.length}/${ranking.length} times`);
+  } catch (err) {
+    console.error("[MATA-ORQUESTRADOR] Erro ao buscar parciais:", err);
+    contentElement.innerHTML = `
+      <div class="mata-mata-aguardando-fase">
+        <span class="material-symbols-outlined">error</span>
+        <h4>Erro ao buscar parciais</h4>
+        <p>${err.message}</p>
+        <div class="parciais-voltar">
+          <button class="fase-btn" id="btnVoltarParciais">← Voltar</button>
+        </div>
+      </div>`;
+    document.getElementById("btnVoltarParciais")?.addEventListener("click", () => {
+      renderParciaisOptions(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao);
+    });
+  }
+}
+
+async function carregarConfrontosParciais(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao) {
+  contentElement.innerHTML = `
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Buscando parciais para montar confrontos...</p>
+    </div>`;
+
+  try {
+    const res = await fetch(`/api/matchday/parciais/${ligaId}`);
+    const data = res.ok ? await res.json() : null;
+
+    if (!data || !data.disponivel) {
+      const msg = data?.message || "Parciais não disponíveis no momento.";
+      contentElement.innerHTML = `
+        <div class="mata-mata-aguardando-fase">
+          <span class="material-symbols-outlined">info</span>
+          <h4>${msg}</h4>
+          <div class="parciais-voltar">
+            <button class="fase-btn" id="btnVoltarParciais">← Voltar</button>
+          </div>
+        </div>`;
+      document.getElementById("btnVoltarParciais")?.addEventListener("click", () => {
+        renderParciaisOptions(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao);
+      });
+      return;
+    }
+
+    const ranking = data.ranking || [];
+    if (ranking.length < tamanhoTorneioVal) {
+      contentElement.innerHTML = `
+        <div class="mata-mata-aguardando-fase">
+          <span class="material-symbols-outlined">group</span>
+          <h4>Dados insuficientes</h4>
+          <p>${ranking.length} de ${tamanhoTorneioVal} times encontrados nas parciais.</p>
+          <div class="parciais-voltar">
+            <button class="fase-btn" id="btnVoltarParciais">← Voltar</button>
+          </div>
+        </div>`;
+      document.getElementById("btnVoltarParciais")?.addEventListener("click", () => {
+        renderParciaisOptions(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao);
+      });
+      return;
+    }
+
+    // Transformar ranking parcial para formato do montarConfrontosPrimeiraFase
+    const rankingSlice = ranking.slice(0, tamanhoTorneioVal).map((t, i) => ({
+      timeId: String(t.timeId),
+      nome_time: t.nome_time,
+      nome_cartoleiro: t.nome_cartola,
+      clube_id: t.clube_id,
+      pontos: t.pontos,
+      posicao: i + 1,
+    }));
+
+    const confrontos = montarConfrontosPrimeiraFase(rankingSlice, {}, tamanhoTorneioVal);
+    const fasesAtivas = getFasesParaTamanho(tamanhoTorneioVal);
+    const primeiraFase = fasesAtivas[0];
+    calcularValoresConfronto(confrontos, true, primeiraFase);
+
+    const faseLabel = FASE_LABELS[primeiraFase] || primeiraFase.toUpperCase();
+    renderTabelaMataMata(confrontos, "mataMataContent", faseLabel, edicaoId, true);
+
+    // Inserir badge AO VIVO antes da tabela
+    contentElement.insertAdjacentHTML("afterbegin", `
+      <div class="parciais-header">
+        <span class="parciais-live-badge">AO VIVO</span>
+        <h4>Confrontos da ${faseLabel} — ${edicaoSelecionada.nome || "Edição " + edicaoId}</h4>
+        <p>Baseado nas parciais da Rodada ${data.rodada}. Sujeito a alteração.</p>
+      </div>
+    `);
+
+    // Inserir botão Voltar
+    contentElement.insertAdjacentHTML("beforeend", `
+      <div class="parciais-voltar">
+        <button class="fase-btn" id="btnVoltarParciais">← Voltar</button>
+      </div>
+    `);
+
+    document.getElementById("btnVoltarParciais")?.addEventListener("click", () => {
+      renderParciaisOptions(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao);
+    });
+
+    console.log(`[MATA-ORQUESTRADOR] Confrontos parciais: ${confrontos.length} jogos montados`);
+  } catch (err) {
+    console.error("[MATA-ORQUESTRADOR] Erro ao montar confrontos parciais:", err);
+    contentElement.innerHTML = `
+      <div class="mata-mata-aguardando-fase">
+        <span class="material-symbols-outlined">error</span>
+        <h4>Erro ao montar confrontos</h4>
+        <p>${err.message}</p>
+        <div class="parciais-voltar">
+          <button class="fase-btn" id="btnVoltarParciais">← Voltar</button>
+        </div>
+      </div>`;
+    document.getElementById("btnVoltarParciais")?.addEventListener("click", () => {
+      renderParciaisOptions(contentElement, ligaId, edicaoId, edicaoSelecionada, tamanhoTorneioVal, rodadaDefinicao);
+    });
+  }
+}
+
 // Handler para mudança de edição
 function handleEdicaoChange(novaEdicao, fase, ligaId) {
   edicaoAtual = novaEdicao;
@@ -506,12 +756,7 @@ async function carregarFase(fase, ligaId) {
     }
 
     if (rodada_atual <= rodadaDefinicao) {
-      contentElement.innerHTML = `
-        <div class="mata-mata-aguardando-fase">
-          <span class="material-symbols-outlined">schedule</span>
-          <h4>Aguardando Rodada de Classificação</h4>
-          <p>As chaves desta edição serão definidas após a Rodada ${rodadaDefinicao}.</p>
-        </div>`;
+      renderParciaisOptions(contentElement, ligaId, edicaoAtual, edicaoSelecionada, tamanhoTorneio, rodadaDefinicao);
       return;
     }
 
