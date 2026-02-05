@@ -78,6 +78,14 @@
   box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
 }
 
+/* Container de tabela com scroll horizontal (FIX-7) */
+.mata-mata-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -4px;
+  padding: 0 4px;
+}
+
 /* Tabela de Confrontos */
 #mataMataContent table {
   width: 100%;
@@ -439,6 +447,74 @@
 
 /* Animações */
 
+/* Estado Aguardando Dados (FIX-8) */
+.mata-mata-aguardando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 136, 0, 0.2);
+  min-height: 300px;
+  margin: 20px;
+}
+
+.mata-mata-aguardando-icon {
+  font-size: 64px;
+  color: var(--laranja, #ff8800);
+  margin-bottom: 20px;
+}
+
+.mata-mata-aguardando-titulo {
+  font-family: 'Russo One', sans-serif;
+  color: white;
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.mata-mata-aguardando-texto {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+/* Estado Aguardando Fase (FIX-1) */
+.mata-mata-aguardando-fase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  background: rgba(42, 42, 42, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 136, 0, 0.15);
+  min-height: 200px;
+}
+
+.mata-mata-aguardando-fase .material-symbols-outlined {
+  font-size: 48px;
+  color: var(--laranja, #ff8800);
+  margin-bottom: 16px;
+}
+
+.mata-mata-aguardando-fase h4 {
+  font-family: 'Russo One', sans-serif;
+  color: white;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.mata-mata-aguardando-fase p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  max-width: 350px;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .fase-nav {
@@ -461,6 +537,27 @@
   .time-info img {
     width: 18px;
     height: 18px;
+  }
+
+  .mata-mata-table-container {
+    margin: 0 -8px;
+    padding: 0 8px;
+  }
+
+  .pontos-cell {
+    min-width: 44px;
+  }
+
+  .time-nome {
+    font-size: 11px;
+  }
+
+  .time-cartoleiro {
+    font-size: 9px;
+  }
+
+  .premio-valor {
+    font-size: 8px;
   }
 
   .campeao-banner-content {

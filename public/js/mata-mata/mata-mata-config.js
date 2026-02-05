@@ -1,8 +1,8 @@
 // MATA-MATA CONFIG - Configurações e Constantes
 // Responsável por: definições de edições, funções auxiliares de texto/rodadas
 
-// Definição das edições do Mata-Mata
-export const edicoes = [
+// Definição das edições do Mata-Mata (array mutável para carregamento dinâmico)
+let _edicoes = [
   {
     id: 1,
     nome: "1ª Edição",
@@ -53,6 +53,16 @@ export const edicoes = [
   },
 ];
 
+// Getter para compatibilidade (todos os importadores continuam usando `edicoes`)
+export const edicoes = _edicoes;
+
+// Setter para carregar edições da API
+export function setEdicoes(novasEdicoes) {
+  _edicoes.length = 0;
+  novasEdicoes.forEach(e => _edicoes.push(e));
+  console.log(`[MATA-CONFIG] Edições atualizadas: ${_edicoes.length} edições carregadas`);
+}
+
 // Valores financeiros por fase (espelho do config/rules/mata_mata.json)
 export const VALORES_FASE = {
   primeira: { vitoria: 10.0, derrota: -10.0 },
@@ -61,6 +71,15 @@ export const VALORES_FASE = {
   semis:    { vitoria: 10.0, derrota: -10.0 },
   final:    { vitoria: 10.0, derrota: -10.0 },
 };
+
+// Setter para carregar valores financeiros da config da liga
+export function setValoresFase(valorVitoria, valorDerrota) {
+  for (const fase of Object.keys(VALORES_FASE)) {
+    VALORES_FASE[fase].vitoria = valorVitoria;
+    VALORES_FASE[fase].derrota = valorDerrota;
+  }
+  console.log(`[MATA-CONFIG] Valores financeiros atualizados: vitória=${valorVitoria}, derrota=${valorDerrota}`);
+}
 
 // Tamanho padrao do torneio
 export const TAMANHO_TORNEIO_DEFAULT = 32;

@@ -1,7 +1,7 @@
 // MATA-MATA FINANCEIRO - Cálculos e Resultados Financeiros
 // Responsável por: cálculos de premiação, consolidação de resultados, fluxo financeiro
 
-import { edicoes, getLigaId, VALORES_FASE, TAMANHO_TORNEIO_DEFAULT, getFasesParaTamanho, FASE_NUM_JOGOS } from "./mata-mata-config.js";
+import { edicoes, getLigaId, VALORES_FASE, TAMANHO_TORNEIO_DEFAULT, getFasesParaTamanho, FASE_NUM_JOGOS, setValoresFase } from "./mata-mata-config.js";
 import {
   getPontosDaRodada,
   montarConfrontosPrimeiraFase,
@@ -187,10 +187,17 @@ export async function getResultadosMataMataFluxo(ligaIdParam = null) {
         const resConfig = await fetch(`/api/liga/${ligaId}/modulos/mata_mata`);
         if (resConfig.ok) {
           const configData = await resConfig.json();
-          const totalTimes = Number(configData?.config?.wizard_respostas?.total_times);
+          const wizardRespostas = configData?.config?.wizard_respostas;
+          const totalTimes = Number(wizardRespostas?.total_times);
           if (totalTimes && [8, 16, 32].includes(totalTimes)) {
             tamanhoTorneio = totalTimes;
             console.log(`[MATA-FINANCEIRO] Tamanho do torneio via API: ${tamanhoTorneio}`);
+          }
+          // FIX-4: Carregar valores financeiros da config
+          const valorVitoria = Number(wizardRespostas?.valor_vitoria);
+          const valorDerrota = Number(wizardRespostas?.valor_derrota);
+          if (valorVitoria > 0 && valorDerrota < 0) {
+            setValoresFase(valorVitoria, valorDerrota);
           }
         }
       } catch (err) {

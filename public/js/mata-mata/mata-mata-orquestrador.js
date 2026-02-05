@@ -6,6 +6,7 @@
 
 import {
   edicoes,
+  setEdicoes,
   getFaseInfo,
   getLigaId,
   getRodadaPontosText,
@@ -13,6 +14,7 @@ import {
   getFasesParaTamanho,
   TAMANHO_TORNEIO_DEFAULT,
   FASE_NUM_JOGOS,
+  setValoresFase,
 } from "./mata-mata-config.js";
 import {
   setRankingFunction as setRankingConfronto,
@@ -284,7 +286,10 @@ export async function carregarMataMata() {
     const resConfig = await fetch(`/api/liga/${ligaId}/modulos/mata_mata`);
     if (resConfig.ok) {
       const configData = await resConfig.json();
-      const totalTimes = Number(configData?.config?.wizard_respostas?.total_times);
+      const wizardRespostas = configData?.config?.wizard_respostas;
+
+      // Tamanho do torneio
+      const totalTimes = Number(wizardRespostas?.total_times);
       if (totalTimes && [8, 16, 32].includes(totalTimes)) {
         tamanhoTorneio = totalTimes;
         console.log(`[MATA-ORQUESTRADOR] Tamanho do torneio configurado: ${tamanhoTorneio}`);
@@ -293,6 +298,23 @@ export async function carregarMataMata() {
         console.log(`[MATA-ORQUESTRADOR] Tamanho do torneio: ${tamanhoTorneio} (default)`);
       }
       setTamanhoTorneioFinanceiro(tamanhoTorneio);
+
+      // FIX-4: Valores financeiros da config da liga
+      const valorVitoria = Number(wizardRespostas?.valor_vitoria);
+      const valorDerrota = Number(wizardRespostas?.valor_derrota);
+      if (valorVitoria > 0 && valorDerrota < 0) {
+        setValoresFase(valorVitoria, valorDerrota);
+      }
+
+      // FIX-3: Carregar edições da config (se qtd_edicoes definida)
+      const qtdEdicoes = Number(wizardRespostas?.qtd_edicoes);
+      if (qtdEdicoes && qtdEdicoes >= 1 && qtdEdicoes <= 10) {
+        const calendario = configData?.config?.configuracao_override?.calendario?.edicoes
+          || configData?.config?.calendario?.edicoes;
+        if (Array.isArray(calendario) && calendario.length > 0) {
+          setEdicoes(calendario.slice(0, qtdEdicoes));
+        }
+      }
     }
   } catch (err) {
     console.warn("[MATA-ORQUESTRADOR] Erro ao buscar config do mata-mata, usando default:", err.message);
@@ -354,36 +376,10 @@ function renderizarAguardandoDados(container, ligaId) {
   if (!container) return;
 
   container.innerHTML = `
-    <div class="mata-mata-aguardando" style="
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 20px;
-      text-align: center;
-      background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
-      border-radius: 16px;
-      border: 1px solid rgba(255, 136, 0, 0.2);
-      min-height: 300px;
-      margin: 20px;
-    ">
-      <span class="material-icons" style="
-        font-size: 64px;
-        color: var(--laranja, #ff8800);
-        margin-bottom: 20px;
-      ">account_tree</span>
-      <h2 style="
-        font-family: 'Russo One', sans-serif;
-        color: white;
-        font-size: 24px;
-        margin-bottom: 12px;
-      ">Aguardando Início do Campeonato</h2>
-      <p style="
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 16px;
-        max-width: 400px;
-        line-height: 1.5;
-      ">
+    <div class="mata-mata-aguardando">
+      <span class="material-symbols-outlined mata-mata-aguardando-icon">account_tree</span>
+      <h2 class="mata-mata-aguardando-titulo">Aguardando Início do Campeonato</h2>
+      <p class="mata-mata-aguardando-texto">
         As chaves do Mata-Mata serão definidas quando as rodadas de classificação forem concluídas.
       </p>
     </div>
@@ -497,6 +493,27 @@ async function carregarFase(fase, ligaId) {
     }
 
     const rodadaDefinicao = edicaoSelecionada.rodadaDefinicao;
+
+    // FIX-1: Guard pré-temporada - não buscar ranking se temporada não iniciou
+    if (rodada_atual === 0) {
+      contentElement.innerHTML = `
+        <div class="mata-mata-aguardando-fase">
+          <span class="material-symbols-outlined">hourglass_empty</span>
+          <h4>Temporada ainda não iniciou</h4>
+          <p>Os confrontos serão calculados quando as rodadas começarem.</p>
+        </div>`;
+      return;
+    }
+
+    if (rodada_atual < rodadaDefinicao) {
+      contentElement.innerHTML = `
+        <div class="mata-mata-aguardando-fase">
+          <span class="material-symbols-outlined">schedule</span>
+          <h4>Aguardando Rodada de Classificação</h4>
+          <p>As chaves desta edição serão definidas após a Rodada ${rodadaDefinicao}.</p>
+        </div>`;
+      return;
+    }
 
     // ✅ USA CACHE LOCAL PARA RANKING BASE
     const rankingBase = await getRankingBaseCached(ligaId, rodadaDefinicao);

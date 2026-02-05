@@ -186,7 +186,7 @@ export function renderErrorState(containerId, fase, error) {
     <div class="error-state">
       <h4>Erro ao Carregar Confrontos</h4>
       <p><strong>Fase:</strong> ${fase.toUpperCase()}</p>
-      <p><strong>Erro:</strong> ${error.message}</p>
+      <p><strong>Erro:</strong> ${esc(error.message)}</p>
       <button onclick="window.location.reload()" class="reload-btn">
         Recarregar Página
       </button>
@@ -261,7 +261,7 @@ export function renderTabelaMataMata(
                 <td class="jogo-cell">${c.jogo}</td>
                 <td class="time-cell">
                   <div class="time-info">
-                    <img src="/escudos/${c.timeA.clube_id}.png" class="escudo-img" onerror="this.style.display='none'">
+                    <img src="/escudos/${c.timeA.clube_id}.png" class="escudo-img" onerror="this.src='/escudos/default.png'">
                     <div class="time-details">
                       <span class="time-nome">${esc(c.timeA.nome_time)}</span>
                       <span class="time-cartoleiro">${esc(c.timeA.nome_cartoleiro || c.timeA.nome_cartola) || "—"}</span>
@@ -271,19 +271,19 @@ export function renderTabelaMataMata(
                 <td class="pontos-cell ${resultadoA} ${valorA > 0 ? "valor-positivo" : valorA < 0 ? "valor-negativo" : "valor-neutro"}">
                   <div class="pontos-valor">${formatPoints(c.timeA.pontos)}</div>
                   <div class="premio-valor">
-                    ${valorA === 10 ? "R$ 10,00" : valorA === -10 ? "-R$ 10,00" : ""}
+                    ${valorA > 0 ? `R$ ${valorA.toFixed(2).replace(".", ",")}` : valorA < 0 ? `-R$ ${Math.abs(valorA).toFixed(2).replace(".", ",")}` : ""}
                   </div>
                 </td>
                 <td class="vs-cell">X</td>
                 <td class="pontos-cell ${resultadoB} ${valorB > 0 ? "valor-positivo" : valorB < 0 ? "valor-negativo" : "valor-neutro"}">
                   <div class="pontos-valor">${formatPoints(c.timeB.pontos)}</div>
                   <div class="premio-valor">
-                    ${valorB === 10 ? "R$ 10,00" : valorB === -10 ? "-R$ 10,00" : ""}
+                    ${valorB > 0 ? `R$ ${valorB.toFixed(2).replace(".", ",")}` : valorB < 0 ? `-R$ ${Math.abs(valorB).toFixed(2).replace(".", ",")}` : ""}
                   </div>
                 </td>
                 <td class="time-cell">
                   <div class="time-info">
-                    <img src="/escudos/${c.timeB.clube_id}.png" class="escudo-img" onerror="this.style.display='none'">
+                    <img src="/escudos/${c.timeB.clube_id}.png" class="escudo-img" onerror="this.src='/escudos/default.png'">
                     <div class="time-details">
                       <span class="time-nome">${esc(c.timeB.nome_time)}</span>
                       <span class="time-cartoleiro">${esc(c.timeB.nome_cartoleiro || c.timeB.nome_cartola) || "—"}</span>
@@ -338,7 +338,7 @@ export function renderBannerCampeao(
   const timeCoracaoHTML = timeCoracaoNome
     ? `
     <div class="campeao-time-coracao">
-      <img src="/escudos/${campeao.clube_id}.png" onerror="this.style.display='none'">
+      <img src="/escudos/${campeao.clube_id}.png" onerror="this.src='/escudos/default.png'">
       <span>Torcedor ${esc(timeCoracaoNome)}</span>
     </div>
   `

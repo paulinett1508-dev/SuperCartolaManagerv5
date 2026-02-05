@@ -349,6 +349,8 @@ async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual, config) {
                         rodadaPontos: rodadaPontosNum,
                         valor: valorVitoria,
                         edicao: edicao.id,
+                        temporada: CURRENT_SEASON,
+                        chaveIdempotencia: `matamata-${edicao.id}-${fase}-${vencedor.timeId}-${CURRENT_SEASON}`,
                     });
 
                     // Registrar resultado financeiro do perdedor
@@ -358,6 +360,8 @@ async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual, config) {
                         rodadaPontos: rodadaPontosNum,
                         valor: valorDerrota,
                         edicao: edicao.id,
+                        temporada: CURRENT_SEASON,
+                        chaveIdempotencia: `matamata-${edicao.id}-${fase}-${perdedor.timeId}-${CURRENT_SEASON}`,
                     });
 
                     // Preparar vencedor para próxima fase
