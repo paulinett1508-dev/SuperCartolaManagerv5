@@ -551,7 +551,7 @@ function gerarLinhaTabela(
                 </div>
             </td>
             <td class="escudo-cell">${escudoHTML}</td>
-            <td class="pontos-valor">${(item.pontos ?? 0).toFixed(2)}</td>
+            <td class="pontos-valor">${(typeof truncarPontos === 'function' ? truncarPontos(item.pontos ?? 0) : (item.pontos ?? 0).toFixed(2))}</td>
             <td class="rodada-badge">R${item.rodada ?? "?"}</td>
             <td class="${valorClass}">${valorFormatado}</td>
             <td>
@@ -724,7 +724,7 @@ window.abrirModalTop10 = function (nomeTime, rodada, pontos, isMito) {
     if (modal && nomeEl && rodadaEl && pontosEl) {
         nomeEl.textContent = nomeTime || "Time";
         rodadaEl.textContent = `Rodada ${rodada || "?"}`;
-        pontosEl.textContent = (pontos || 0).toFixed(2);
+        pontosEl.textContent = typeof truncarPontos === 'function' ? truncarPontos(pontos || 0) : (pontos || 0).toFixed(2);
         if (tipoEl) {
             tipoEl.textContent = isMito
                 ? `Maior pontuação da rodada ${rodada} (MITO)`

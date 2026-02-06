@@ -663,7 +663,7 @@ function renderMeuConfrontoCard(confronto, meuTimeId) {
             <span class="mm-mc-nome-cartoleiro">${truncate(eu?.nome_cartola || eu?.nome_cartoleiro || "", 14)}</span>
             <span class="mm-mc-nome">${truncate(eu?.nome_time || "Meu Time", 16)}</span>
           </div>
-          <span class="mm-mc-pts ${ganhando ? "vencedor" : perdendo ? "perdedor" : "empate"}">${meusPts.toFixed(2)}</span>
+          <span class="mm-mc-pts ${ganhando ? "vencedor" : perdendo ? "perdedor" : "empate"}">${typeof truncarPontos === 'function' ? truncarPontos(meusPts) : meusPts.toFixed(2)}</span>
         </div>
 
         <div class="mm-mc-x">VS</div>
@@ -676,7 +676,7 @@ function renderMeuConfrontoCard(confronto, meuTimeId) {
             <span class="mm-mc-nome-cartoleiro">${truncate(adv?.nome_cartola || adv?.nome_cartoleiro || "", 14)}</span>
             <span class="mm-mc-nome">${truncate(adv?.nome_time || "Adversário", 16)}</span>
           </div>
-          <span class="mm-mc-pts ${perdendo ? "vencedor" : ganhando ? "perdedor" : "empate"}">${advPts.toFixed(2)}</span>
+          <span class="mm-mc-pts ${perdendo ? "vencedor" : ganhando ? "perdedor" : "empate"}">${typeof truncarPontos === 'function' ? truncarPontos(advPts) : advPts.toFixed(2)}</span>
         </div>
       </div>
 
@@ -716,7 +716,7 @@ function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
             <div class="mm-campeao-info">
               <p class="mm-campeao-nome">${campeao.nome_time || "Time"}</p>
               <p class="mm-campeao-cartola">${campeao.nome_cartola || campeao.nome_cartoleiro || ""}</p>
-              <p class="mm-campeao-pts">${ptsCampeao.toFixed(2)} pts</p>
+              <p class="mm-campeao-pts">${typeof truncarPontos === 'function' ? truncarPontos(ptsCampeao) : ptsCampeao.toFixed(2)} pts</p>
             </div>
           </div>
           <div class="mm-campeao-badge">
@@ -740,7 +740,7 @@ function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
     const timeB = c.timeB || {};
     const ptsA = parseFloat(timeA.pontos) || 0;
     const ptsB = parseFloat(timeB.pontos) || 0;
-    const diff = Math.abs(ptsA - ptsB).toFixed(2);
+    const diff = typeof truncarPontos === 'function' ? truncarPontos(Math.abs(ptsA - ptsB)) : Math.abs(ptsA - ptsB).toFixed(2);
 
     const vencedorA = ptsA > ptsB;
     const vencedorB = ptsB > ptsA;
@@ -759,7 +759,7 @@ function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
               <span class="mm-conf-nome">${truncate(timeA.nome_time || "A definir", 14)}</span>
               <span class="mm-conf-cartola">${truncate(timeA.nome_cartola || timeA.nome_cartoleiro || "", 16)}</span>
             </div>
-            <span class="mm-conf-pts ${vencedorA ? "vencedor" : vencedorB ? "perdedor" : "empate"}">${ptsA.toFixed(2)}</span>
+            <span class="mm-conf-pts ${vencedorA ? "vencedor" : vencedorB ? "perdedor" : "empate"}">${typeof truncarPontos === 'function' ? truncarPontos(ptsA) : ptsA.toFixed(2)}</span>
           </div>
 
           <div class="mm-conf-vs">×</div>
@@ -771,7 +771,7 @@ function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
               <span class="mm-conf-nome">${truncate(timeB.nome_time || "A definir", 14)}</span>
               <span class="mm-conf-cartola">${truncate(timeB.nome_cartola || timeB.nome_cartoleiro || "", 16)}</span>
             </div>
-            <span class="mm-conf-pts ${vencedorB ? "vencedor" : vencedorA ? "perdedor" : "empate"}">${ptsB.toFixed(2)}</span>
+            <span class="mm-conf-pts ${vencedorB ? "vencedor" : vencedorA ? "perdedor" : "empate"}">${typeof truncarPontos === 'function' ? truncarPontos(ptsB) : ptsB.toFixed(2)}</span>
           </div>
         </div>
 
@@ -951,7 +951,7 @@ function renderCardDesempenho() {
           <div class="mm-desemp-secondary-label">Aproveit.</div>
         </div>
         <div class="mm-desemp-secondary-stat">
-          <div class="mm-desemp-secondary-value">${pontosTotal.toFixed(2)}</div>
+          <div class="mm-desemp-secondary-value">${typeof truncarPontos === 'function' ? truncarPontos(pontosTotal) : pontosTotal.toFixed(2)}</div>
           <div class="mm-desemp-secondary-label">Pts Total</div>
         </div>
         <div class="mm-desemp-secondary-stat">
@@ -1056,7 +1056,7 @@ async function carregarClassificadosParciais(container, edicao) {
             <span class="mm-parciais-rank-nome">${truncate(t.nome_time || "—", 16)}</span>
             <span class="mm-parciais-rank-cartola">${truncate(t.nome_cartola || "—", 18)}</span>
           </div>
-          <span class="mm-parciais-rank-pts">${t.pontos?.toFixed(2) || "0.00"}</span>
+          <span class="mm-parciais-rank-pts">${typeof truncarPontos === 'function' ? truncarPontos(t.pontos || 0) : (t.pontos?.toFixed(2) || "0.00")}</span>
         </div>`;
     });
 
@@ -1071,7 +1071,7 @@ async function carregarClassificadosParciais(container, edicao) {
               <span class="mm-parciais-rank-nome">${truncate(t.nome_time || "—", 16)}</span>
               <span class="mm-parciais-rank-cartola">${truncate(t.nome_cartola || "—", 18)}</span>
             </div>
-            <span class="mm-parciais-rank-pts">${t.pontos?.toFixed(2) || "0.00"}</span>
+            <span class="mm-parciais-rank-pts">${typeof truncarPontos === 'function' ? truncarPontos(t.pontos || 0) : (t.pontos?.toFixed(2) || "0.00")}</span>
           </div>`;
       });
     }

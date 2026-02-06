@@ -48,6 +48,36 @@ function parseMoedaBR(valor) {
     return parseFloat(str) || 0;
 }
 
+/**
+ * Trunca pontos para 2 casas decimais (não arredonda) e formata em pt-BR
+ * @param {number|string} valor - Valor a truncar
+ * @returns {string} Valor truncado formatado (ex: "123,45")
+ */
+function truncarPontos(valor) {
+    const num = parseFloat(valor) || 0;
+    // Trunca para 2 casas decimais (não arredonda)
+    const truncado = Math.floor(num * 100) / 100;
+    return truncado.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+}
+
+/**
+ * Formata pontos com 2 casas decimais (com arredondamento) em pt-BR
+ * @param {number|string} valor - Valor a formatar
+ * @returns {string} Valor formatado (ex: "123,46")
+ */
+function formatarPontos(valor) {
+    const num = parseFloat(valor) || 0;
+    return num.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+}
+
 // Disponibilizar globalmente
 window.formatarMoedaBR = formatarMoedaBR;
 window.parseMoedaBR = parseMoedaBR;
+window.truncarPontos = truncarPontos;
+window.formatarPontos = formatarPontos;

@@ -408,7 +408,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                     <div class="campinho-field-footer">
                         <div class="campinho-points">
                             <span>Pontos totais</span>
-                            <strong>${pontosTotais.toFixed(2)}</strong>
+                            <strong>${typeof truncarPontos === 'function' ? truncarPontos(pontosTotais) : pontosTotais.toFixed(2)}</strong>
                         </div>
                         <div class="campinho-counter">
                             <span>Escalados</span>
@@ -448,12 +448,12 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                     <div class="campinho-confronto-placar">
                         <div class="campinho-confronto-time">
                             <p class="nome">Você</p>
-                            <p class="pontos">${(confronto.placar?.meu || pontosTotais).toFixed(2)}</p>
+                            <p class="pontos">${typeof truncarPontos === 'function' ? truncarPontos(confronto.placar?.meu || pontosTotais) : (confronto.placar?.meu || pontosTotais).toFixed(2)}</p>
                         </div>
                         <span class="campinho-confronto-vs">VS</span>
                         <div class="campinho-confronto-time">
                             <p class="nome">${confronto.adversario?.nome || 'Adversário'}</p>
-                            <p class="pontos">${(confronto.placar?.adversario || 0).toFixed(2)}</p>
+                            <p class="pontos">${typeof truncarPontos === 'function' ? truncarPontos(confronto.placar?.adversario || 0) : (confronto.placar?.adversario || 0).toFixed(2)}</p>
                         </div>
                     </div>
                 </div>
@@ -465,7 +465,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                                 <p class="rodada">Escalação</p>
                             </div>
                             <div class="campinho-header-pontos">
-                                <p class="valor" style="color: #f87171;">${(adversario.pontos || calcularPontosTotais(adversario)).toFixed(2)}</p>
+                                <p class="valor" style="color: #f87171;">${typeof truncarPontos === 'function' ? truncarPontos(adversario.pontos || calcularPontosTotais(adversario)) : (adversario.pontos || calcularPontosTotais(adversario)).toFixed(2)}</p>
                                 <p class="label">Pontos</p>
                             </div>
                         </div>
