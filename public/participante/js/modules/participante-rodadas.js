@@ -474,6 +474,98 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
         return ordemA - ordemB;
     });
 
+    // Calcular substituições (regras oficiais Cartola FC 2025/2026)
+    const substituicoes = new Map();
+    const titularesSubstituidos = new Map(); // atleta_id -> 'ausente' | 'luxo'
+
+    // Verificar se dados pré-computados estão disponíveis (parciais)
+    const temDadosParciais = atletas.some(a =>
+        a.substituido_por !== undefined || a.substituiu_apelido !== undefined || a.luxo_ativado !== undefined
+    );
+
+    if (temDadosParciais) {
+        // Usar dados pré-computados do módulo de parciais
+        atletas.forEach(a => {
+            if (a.is_reserva && a.contribuiu) {
+                if (a.luxo_ativado) {
+                    substituicoes.set(a.atleta_id, {
+                        tipo: 'luxo',
+                        substituiu: a.substituiu_apelido || '',
+                        herdouCapitao: a.luxo_herdou_capitao || false,
+                    });
+                } else if (a.substituiu_apelido) {
+                    substituicoes.set(a.atleta_id, { tipo: 'posicao', substituiu: a.substituiu_apelido });
+                }
+            }
+            if (!a.is_reserva && a.substituido_por_luxo) {
+                titularesSubstituidos.set(a.atleta_id, 'luxo');
+            } else if (!a.is_reserva && a.substituido_por) {
+                titularesSubstituidos.set(a.atleta_id, 'ausente');
+            }
+        });
+    } else {
+        // Fallback: computar localmente para dados consolidados
+        const titularesSemJogo = new Map();
+        titulares.forEach(t => {
+            if (t.entrou_em_campo === false) {
+                if (!titularesSemJogo.has(t.posicao_id)) {
+                    titularesSemJogo.set(t.posicao_id, []);
+                }
+                titularesSemJogo.get(t.posicao_id).push(t);
+            }
+        });
+
+        // Reservas comuns primeiro
+        reservas.forEach(r => {
+            const isLuxo = r.atleta_id === reservaLuxoId || r.is_reserva_luxo;
+            if (isLuxo) return;
+            const entrou = r.entrou_em_campo === true || r.contribuiu === true;
+            if (!entrou) return;
+
+            if (titularesSemJogo.has(r.posicao_id)) {
+                const tits = titularesSemJogo.get(r.posicao_id);
+                if (tits.length > 0) {
+                    const titular = tits.shift();
+                    substituicoes.set(r.atleta_id, { tipo: 'posicao', substituiu: titular.apelido || 'Titular' });
+                    titularesSubstituidos.set(titular.atleta_id, 'ausente');
+                }
+            }
+        });
+
+        // Depois o Luxo
+        const luxoReserva = reservas.find(r => r.atleta_id === reservaLuxoId || r.is_reserva_luxo);
+        if (luxoReserva) {
+            const entrou = luxoReserva.entrou_em_campo === true || luxoReserva.contribuiu === true;
+            if (entrou) {
+                if (titularesSemJogo.has(luxoReserva.posicao_id) && titularesSemJogo.get(luxoReserva.posicao_id).length > 0) {
+                    // Luxo como reserva comum
+                    const tits = titularesSemJogo.get(luxoReserva.posicao_id);
+                    const titular = tits.shift();
+                    substituicoes.set(luxoReserva.atleta_id, { tipo: 'posicao', substituiu: titular.apelido || 'Titular' });
+                    titularesSubstituidos.set(titular.atleta_id, 'ausente');
+                } else {
+                    // Luxo special: encontrar pior titular da posição que jogou
+                    const titularesNaPosicao = titulares.filter(
+                        t => t.posicao_id === luxoReserva.posicao_id && t.entrou_em_campo !== false
+                    );
+                    if (titularesNaPosicao.length > 0) {
+                        const luxoPts = Number(luxoReserva.pontos_num ?? luxoReserva.pontos ?? 0);
+                        const pior = titularesNaPosicao.reduce((p, t) => {
+                            const ptsP = Number(p.pontos_num ?? p.pontos ?? 0);
+                            const ptsT = Number(t.pontos_num ?? t.pontos ?? 0);
+                            return ptsT < ptsP ? t : p;
+                        }, titularesNaPosicao[0]);
+                        const piorPts = Number(pior.pontos_num ?? pior.pontos ?? 0);
+                        if (luxoPts > piorPts) {
+                            substituicoes.set(luxoReserva.atleta_id, { tipo: 'luxo', substituiu: pior.apelido || 'Titular' });
+                            titularesSubstituidos.set(pior.atleta_id, 'luxo');
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Estatísticas
     const pontos = Number(meuPart.pontos || 0);
     const posicao = meuPart.posicao || '-';
@@ -544,7 +636,7 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
     }
 
     // Renderizar atleta na tabela
-    function renderAtleta(a, isReserva = false) {
+    function renderAtleta(a, isReserva = false, subInfo = null) {
         const pos = POSICOES[a.posicao_id] || { nome: '???', cor: '#6b7280' };
         const pontosRaw = a.pontos_num ?? 0;
         const pontosAtl = Number(pontosRaw).toFixed(1);
@@ -558,6 +650,23 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
 
         const capitaoBadge = isCapitao ? '<span style="background:#eab308;color:#000;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">C</span>' : '';
         const luxoBadge = isLuxo ? '<span style="background:#a855f7;color:#fff;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">L</span>' : '';
+
+        // Badge de substituição (regras oficiais Cartola FC 2025/2026)
+        let subBadge = '';
+        if (subInfo) {
+            if (subInfo.tipo === 'luxo') {
+                const textoLuxo = subInfo.herdouCapitao
+                    ? `Luxo ativado (C 1.5x) por ${subInfo.substituiu}`
+                    : `Luxo ativado por ${subInfo.substituiu}`;
+                subBadge = `<div style="font-size:9px;color:#a855f7;margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">star</span> ${textoLuxo}</div>`;
+            } else if (subInfo.tipo === 'posicao') {
+                subBadge = `<div style="font-size:9px;color:#22c55e;margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Entrou por ${subInfo.substituiu}</div>`;
+            } else if (subInfo.tipo === 'substituido') {
+                subBadge = '<div style="font-size:9px;color:#ef4444;margin-top:1px;opacity:0.8;">Não entrou em campo</div>';
+            } else if (subInfo.tipo === 'substituido_luxo') {
+                subBadge = '<div style="font-size:9px;color:#a855f7;margin-top:1px;opacity:0.8;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Substituído pelo Luxo</div>';
+            }
+        }
 
         const clubeId = a.clube_id || extrairClubeIdDaFoto(a.foto) || null;
         const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
@@ -575,7 +684,7 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
                     <img src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;">
                 </td>
                 <td style="padding:8px 8px;font-size:13px;color:#e5e7eb;">
-                    ${a.apelido || 'Atleta'}${capitaoBadge}${luxoBadge}
+                    <div>${a.apelido || 'Atleta'}${capitaoBadge}${luxoBadge}</div>${subBadge}
                 </td>
                 <td style="padding:8px 4px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:bold;${pontosClass};">
                     ${pontosAtl}
@@ -591,11 +700,18 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
     }
 
     const titularesHTML = titulares.length > 0
-        ? titulares.map(a => renderAtleta(a, false)).join("")
+        ? titulares.map(a => {
+            let subInfo = null;
+            if (titularesSubstituidos.has(a.atleta_id)) {
+                const tipo = titularesSubstituidos.get(a.atleta_id);
+                subInfo = tipo === 'luxo' ? { tipo: 'substituido_luxo' } : { tipo: 'substituido' };
+            }
+            return renderAtleta(a, false, subInfo);
+        }).join("")
         : '<tr><td colspan="6" style="color:#6b7280;padding:12px;text-align:center;">Sem titulares</td></tr>';
 
     const reservasHTML = reservas.length > 0
-        ? reservas.map(a => renderAtleta(a, true)).join("")
+        ? reservas.map(a => renderAtleta(a, true, substituicoes.get(a.atleta_id) || null)).join("")
         : '';
 
     container.innerHTML = `
@@ -1256,6 +1372,95 @@ function abrirCampinhoModal(targetTimeId, rodada) {
         return ordemA - ordemB;
     });
 
+    // Calcular substituições (modal - regras oficiais Cartola FC 2025/2026)
+    const substituicoesModal = new Map();
+    const titularesSubstituidosModal = new Map(); // atleta_id -> 'ausente' | 'luxo'
+    const reservaLuxoIdModal = timeDados?.reserva_luxo_id || escalacaoCacheada?.reserva_luxo_id;
+
+    // Verificar se dados pré-computados estão disponíveis
+    const temDadosParciaisModal = atletas.some(a =>
+        a.substituido_por !== undefined || a.substituiu_apelido !== undefined || a.luxo_ativado !== undefined
+    );
+
+    if (temDadosParciaisModal) {
+        atletas.forEach(a => {
+            if (a.is_reserva && a.contribuiu) {
+                if (a.luxo_ativado) {
+                    substituicoesModal.set(a.atleta_id, {
+                        tipo: 'luxo',
+                        substituiu: a.substituiu_apelido || '',
+                        herdouCapitao: a.luxo_herdou_capitao || false,
+                    });
+                } else if (a.substituiu_apelido) {
+                    substituicoesModal.set(a.atleta_id, { tipo: 'posicao', substituiu: a.substituiu_apelido });
+                }
+            }
+            if (!a.is_reserva && a.substituido_por_luxo) {
+                titularesSubstituidosModal.set(a.atleta_id, 'luxo');
+            } else if (!a.is_reserva && a.substituido_por) {
+                titularesSubstituidosModal.set(a.atleta_id, 'ausente');
+            }
+        });
+    } else {
+        const titularesSemJogoModal = new Map();
+        titulares.forEach(t => {
+            if (t.entrou_em_campo === false) {
+                if (!titularesSemJogoModal.has(t.posicao_id)) {
+                    titularesSemJogoModal.set(t.posicao_id, []);
+                }
+                titularesSemJogoModal.get(t.posicao_id).push(t);
+            }
+        });
+
+        // Reservas comuns primeiro
+        reservas.forEach(r => {
+            const isLuxo = r.is_reserva_luxo || r.atleta_id === reservaLuxoIdModal;
+            if (isLuxo) return;
+            const entrou = r.entrou_em_campo === true || r.contribuiu === true;
+            if (!entrou) return;
+
+            if (titularesSemJogoModal.has(r.posicao_id)) {
+                const tits = titularesSemJogoModal.get(r.posicao_id);
+                if (tits.length > 0) {
+                    const titular = tits.shift();
+                    substituicoesModal.set(r.atleta_id, { tipo: 'posicao', substituiu: titular.apelido || 'Titular' });
+                    titularesSubstituidosModal.set(titular.atleta_id, 'ausente');
+                }
+            }
+        });
+
+        // Depois o Luxo
+        const luxoReserva = reservas.find(r => r.is_reserva_luxo || r.atleta_id === reservaLuxoIdModal);
+        if (luxoReserva) {
+            const entrou = luxoReserva.entrou_em_campo === true || luxoReserva.contribuiu === true;
+            if (entrou) {
+                if (titularesSemJogoModal.has(luxoReserva.posicao_id) && titularesSemJogoModal.get(luxoReserva.posicao_id).length > 0) {
+                    const tits = titularesSemJogoModal.get(luxoReserva.posicao_id);
+                    const titular = tits.shift();
+                    substituicoesModal.set(luxoReserva.atleta_id, { tipo: 'posicao', substituiu: titular.apelido || 'Titular' });
+                    titularesSubstituidosModal.set(titular.atleta_id, 'ausente');
+                } else {
+                    const titularesNaPosicao = titulares.filter(
+                        t => t.posicao_id === luxoReserva.posicao_id && t.entrou_em_campo !== false
+                    );
+                    if (titularesNaPosicao.length > 0) {
+                        const luxoPts = Number(luxoReserva.pontos_efetivos ?? luxoReserva.pontos_num ?? 0);
+                        const pior = titularesNaPosicao.reduce((p, t) => {
+                            const ptsP = Number(p.pontos_efetivos ?? p.pontos_num ?? 0);
+                            const ptsT = Number(t.pontos_efetivos ?? t.pontos_num ?? 0);
+                            return ptsT < ptsP ? t : p;
+                        }, titularesNaPosicao[0]);
+                        const piorPts = Number(pior.pontos_efetivos ?? pior.pontos_num ?? 0);
+                        if (luxoPts > piorPts) {
+                            substituicoesModal.set(luxoReserva.atleta_id, { tipo: 'luxo', substituiu: pior.apelido || 'Titular' });
+                            titularesSubstituidosModal.set(pior.atleta_id, 'luxo');
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Função para determinar status do jogo baseado em data/hora
     function obterStatusJogo(atleta) {
         // Verificar se o atleta tem informação de jogo
@@ -1299,7 +1504,7 @@ function abrirCampinhoModal(targetTimeId, rodada) {
     }
 
     // Renderizar atleta na tabela
-    function renderAtleta(a, isReserva = false) {
+    function renderAtleta(a, isReserva = false, subInfo = null) {
         const pos = POSICOES[a.posicao_id] || { nome: '???', cor: '#6b7280' };
         const pontosRaw = a.pontos_efetivos ?? a.pontos_num ?? 0;
         const pontosAtl = Number(pontosRaw).toFixed(1);
@@ -1310,6 +1515,23 @@ function abrirCampinhoModal(targetTimeId, rodada) {
 
         const isCapitao = String(a.atleta_id) === String(capitaoId);
         const capitaoBadge = isCapitao ? '<span style="background:#eab308;color:#000;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">C</span>' : '';
+
+        // Badge de substituição (modal - regras oficiais Cartola FC 2025/2026)
+        let subBadge = '';
+        if (subInfo) {
+            if (subInfo.tipo === 'luxo') {
+                const textoLuxo = subInfo.herdouCapitao
+                    ? `Luxo ativado (C 1.5x) por ${subInfo.substituiu}`
+                    : `Luxo ativado por ${subInfo.substituiu}`;
+                subBadge = `<div style="font-size:9px;color:#a855f7;margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">star</span> ${textoLuxo}</div>`;
+            } else if (subInfo.tipo === 'posicao') {
+                subBadge = `<div style="font-size:9px;color:#22c55e;margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Entrou por ${subInfo.substituiu}</div>`;
+            } else if (subInfo.tipo === 'substituido') {
+                subBadge = '<div style="font-size:9px;color:#ef4444;margin-top:1px;opacity:0.8;">Não entrou em campo</div>';
+            } else if (subInfo.tipo === 'substituido_luxo') {
+                subBadge = '<div style="font-size:9px;color:#a855f7;margin-top:1px;opacity:0.8;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Substituído pelo Luxo</div>';
+            }
+        }
 
         const clubeId = a.clube_id || extrairClubeIdDaFoto(a.foto) || null;
         const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
@@ -1327,7 +1549,7 @@ function abrirCampinhoModal(targetTimeId, rodada) {
                     <img src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;">
                 </td>
                 <td style="padding:8px 8px;font-size:13px;color:#e5e7eb;">
-                    ${a.apelido || 'Atleta'}${capitaoBadge}
+                    <div>${a.apelido || 'Atleta'}${capitaoBadge}</div>${subBadge}
                 </td>
                 <td style="padding:8px 4px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:bold;${pontosClass};">
                     ${pontosAtl}
@@ -1343,11 +1565,18 @@ function abrirCampinhoModal(targetTimeId, rodada) {
     }
 
     const titularesHTML = titulares.length > 0
-        ? titulares.map(a => renderAtleta(a, false)).join("")
+        ? titulares.map(a => {
+            let subInfo = null;
+            if (titularesSubstituidosModal.has(a.atleta_id)) {
+                const tipo = titularesSubstituidosModal.get(a.atleta_id);
+                subInfo = tipo === 'luxo' ? { tipo: 'substituido_luxo' } : { tipo: 'substituido' };
+            }
+            return renderAtleta(a, false, subInfo);
+        }).join("")
         : '<tr><td colspan="6" style="color:#6b7280;padding:12px;text-align:center;">Sem dados de escalação</td></tr>';
 
     const reservasHTML = reservas.length > 0
-        ? reservas.map(a => renderAtleta(a, true)).join("")
+        ? reservas.map(a => renderAtleta(a, true, substituicoesModal.get(a.atleta_id) || null)).join("")
         : '';
 
     // Criar modal

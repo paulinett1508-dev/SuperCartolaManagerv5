@@ -393,71 +393,81 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
             _escalacaoCache.set(cacheKey, dadosEscalacao);
         }
 
-        // ✅ CALCULAR PONTUAÇÃO (igual ao admin)
+        // ✅ CALCULAR PONTUAÇÃO (Regras oficiais Cartola FC 2025/2026)
+        // Capitão: 1.5x | Reserva comum: entra se titular ausente na posição
+        // Reserva de Luxo: substitui pior titular da posição se TODOS jogaram E luxo pontuou mais
         let pontos = 0;
         let atletasEmCampo = 0;
-        const posicoesQuePontuaram = new Set();
         const atletasDetalhes = [];
 
-        // Somar pontos dos TITULARES
+        // ── FASE 1: Processar TITULARES ──
+        const titularesProcessados = [];
         if (dadosEscalacao.atletas && Array.isArray(dadosEscalacao.atletas)) {
             dadosEscalacao.atletas.forEach((atleta) => {
                 const atletaPontuado = atletasPontuados[atleta.atleta_id];
                 const pontuacao = atletaPontuado?.pontuacao || 0;
                 const entrouEmCampo = atletaPontuado?.entrou_em_campo;
+                const jogou = !!(entrouEmCampo || pontuacao !== 0);
 
-                if (entrouEmCampo || pontuacao !== 0) {
-                    posicoesQuePontuaram.add(atleta.posicao_id);
-                    atletasEmCampo++;
-                }
+                if (jogou) atletasEmCampo++;
 
-                let pontosEfetivos = pontuacao;
                 const isCapitao = atleta.atleta_id === dadosEscalacao.capitao_id;
-                if (isCapitao) {
-                    pontosEfetivos = pontuacao * 2;
-                }
+                const pontosEfetivos = isCapitao ? pontuacao * 1.5 : pontuacao;
                 pontos += pontosEfetivos;
 
-                atletasDetalhes.push({
+                const info = {
                     atleta_id: atleta.atleta_id,
                     apelido: atleta.apelido || atletaPontuado?.apelido || '',
                     posicao_id: atleta.posicao_id,
                     clube_id: atleta.clube_id || atletaPontuado?.clube_id,
                     pontos: pontuacao,
                     pontos_efetivos: pontosEfetivos,
-                    entrou_em_campo: !!(entrouEmCampo || pontuacao !== 0),
+                    entrou_em_campo: jogou,
                     is_capitao: isCapitao,
                     is_reserva: false,
                     foto: atleta.foto || atletaPontuado?.foto || null,
-                });
+                    substituido_por: null,
+                    substituido_por_luxo: false,
+                };
+                titularesProcessados.push(info);
+                atletasDetalhes.push(info);
             });
         }
 
-        // Somar pontos dos RESERVAS
+        // ── FASE 2: Mapear titulares ausentes por posição ──
+        const ausentesPorPosicao = {};
+        titularesProcessados.forEach(t => {
+            if (!t.entrou_em_campo) {
+                if (!ausentesPorPosicao[t.posicao_id]) ausentesPorPosicao[t.posicao_id] = [];
+                ausentesPorPosicao[t.posicao_id].push(t);
+            }
+        });
+
+        // ── FASE 3: Processar RESERVAS ──
         if (dadosEscalacao.reservas && Array.isArray(dadosEscalacao.reservas)) {
+            const reservaLuxoId = dadosEscalacao.reserva_luxo_id;
+
+            // 3a. Reservas comuns (não-luxo)
             dadosEscalacao.reservas.forEach((atleta) => {
+                if (atleta.atleta_id === reservaLuxoId) return;
+
                 const atletaPontuado = atletasPontuados[atleta.atleta_id];
                 const pontuacao = atletaPontuado?.pontuacao || 0;
                 const entrouEmCampo = atletaPontuado?.entrou_em_campo;
+                const jogou = !!(entrouEmCampo || pontuacao !== 0);
                 let pontosEfetivos = 0;
                 let contribuiu = false;
+                let substituiuApelido = null;
 
-                const isReservaLuxo = atleta.atleta_id === dadosEscalacao.reserva_luxo_id;
-
-                if (isReservaLuxo && entrouEmCampo) {
-                    pontosEfetivos = pontuacao * 1.5;
-                    pontos += pontosEfetivos;
-                    atletasEmCampo++;
-                    contribuiu = true;
-                } else if (
-                    !posicoesQuePontuaram.has(atleta.posicao_id) &&
-                    entrouEmCampo
-                ) {
+                // Reserva entra se titular da mesma posição não jogou
+                if (jogou && ausentesPorPosicao[atleta.posicao_id]?.length > 0) {
+                    const titSub = ausentesPorPosicao[atleta.posicao_id].shift();
                     pontosEfetivos = pontuacao;
                     pontos += pontosEfetivos;
-                    posicoesQuePontuaram.add(atleta.posicao_id);
                     atletasEmCampo++;
                     contribuiu = true;
+                    substituiuApelido = titSub.apelido;
+                    titSub.substituido_por = atleta.apelido || 'Reserva';
                 }
 
                 atletasDetalhes.push({
@@ -467,14 +477,93 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
                     clube_id: atleta.clube_id || atletaPontuado?.clube_id,
                     pontos: pontuacao,
                     pontos_efetivos: pontosEfetivos,
-                    entrou_em_campo: !!(entrouEmCampo || pontuacao !== 0),
+                    entrou_em_campo: jogou,
                     is_capitao: false,
                     is_reserva: true,
-                    is_reserva_luxo: isReservaLuxo,
+                    is_reserva_luxo: false,
                     contribuiu,
+                    substituiu_apelido: substituiuApelido,
                     foto: atleta.foto || atletaPontuado?.foto || null,
                 });
             });
+
+            // 3b. Reserva de Luxo (processado por último)
+            const luxoAtleta = dadosEscalacao.reservas.find(a => a.atleta_id === reservaLuxoId);
+            if (luxoAtleta) {
+                const atletaPontuado = atletasPontuados[luxoAtleta.atleta_id];
+                const pontuacao = atletaPontuado?.pontuacao || 0;
+                const entrouEmCampo = atletaPontuado?.entrou_em_campo;
+                const jogou = !!(entrouEmCampo || pontuacao !== 0);
+                let pontosEfetivos = 0;
+                let contribuiu = false;
+                let substituiuApelido = null;
+                let luxoAtivado = false;
+                let luxoHerdouCapitao = false;
+
+                // Cenário A: Luxo entra como reserva comum (titular ausente na posição)
+                if (jogou && ausentesPorPosicao[luxoAtleta.posicao_id]?.length > 0) {
+                    const titSub = ausentesPorPosicao[luxoAtleta.posicao_id].shift();
+                    pontosEfetivos = pontuacao;
+                    pontos += pontosEfetivos;
+                    atletasEmCampo++;
+                    contribuiu = true;
+                    substituiuApelido = titSub.apelido;
+                    titSub.substituido_por = luxoAtleta.apelido || 'Reserva de Luxo';
+                }
+                // Cenário B: Habilidade especial do Luxo
+                // Todos titulares da posição jogaram → substitui o pior se luxo pontuou mais
+                else if (jogou) {
+                    const titularesDaPosicao = titularesProcessados.filter(
+                        t => t.posicao_id === luxoAtleta.posicao_id && t.entrou_em_campo
+                    );
+
+                    if (titularesDaPosicao.length > 0) {
+                        // Encontrar pior titular da posição (pontuação bruta)
+                        const piorTitular = titularesDaPosicao.reduce((pior, t) =>
+                            t.pontos < pior.pontos ? t : pior
+                        , titularesDaPosicao[0]);
+
+                        // Luxo substitui SE pontuou MAIS que o pior
+                        if (pontuacao > piorTitular.pontos) {
+                            // Remover contribuição efetiva do pior titular
+                            pontos -= piorTitular.pontos_efetivos;
+
+                            // Luxo herda multiplicador de capitão se substituir o capitão
+                            if (piorTitular.is_capitao) {
+                                pontosEfetivos = pontuacao * 1.5;
+                                luxoHerdouCapitao = true;
+                            } else {
+                                pontosEfetivos = pontuacao;
+                            }
+
+                            pontos += pontosEfetivos;
+                            contribuiu = true;
+                            luxoAtivado = true;
+                            substituiuApelido = piorTitular.apelido;
+                            piorTitular.substituido_por_luxo = true;
+                            piorTitular.substituido_por = luxoAtleta.apelido || 'Reserva de Luxo';
+                        }
+                    }
+                }
+
+                atletasDetalhes.push({
+                    atleta_id: luxoAtleta.atleta_id,
+                    apelido: luxoAtleta.apelido || atletaPontuado?.apelido || '',
+                    posicao_id: luxoAtleta.posicao_id,
+                    clube_id: luxoAtleta.clube_id || atletaPontuado?.clube_id,
+                    pontos: pontuacao,
+                    pontos_efetivos: pontosEfetivos,
+                    entrou_em_campo: jogou,
+                    is_capitao: luxoHerdouCapitao,
+                    is_reserva: true,
+                    is_reserva_luxo: true,
+                    contribuiu,
+                    luxo_ativado: luxoAtivado,
+                    luxo_herdou_capitao: luxoHerdouCapitao,
+                    substituiu_apelido: substituiuApelido,
+                    foto: luxoAtleta.foto || atletaPontuado?.foto || null,
+                });
+            }
         }
 
         // Extrair dados do time
