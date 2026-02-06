@@ -961,8 +961,7 @@ function renderizarHome(container, data, ligaId) {
     }
 
     if (rankingPatrimonioEl) {
-        // TODO: Calcular ranking financeiro real
-        rankingPatrimonioEl.textContent = posicao ? `${posicao}º` : '--';
+        rankingPatrimonioEl.textContent = rodadaAtual ? `R${rodadaAtual}` : '--';
     }
 
     // === DESTAQUES DA RODADA ===

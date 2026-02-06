@@ -67,7 +67,7 @@
                 </div>
             </div>
             <div class="home-stat-card-right">
-                <span class="home-stat-right-label">RANKING GERAL</span>
+                <span class="home-stat-right-label">POSIÇÃO</span>
                 <span id="home-ranking-pontos" class="home-stat-right-value">--</span>
             </div>
         </div>
@@ -87,7 +87,7 @@
                 </div>
             </div>
             <div class="home-stat-card-right">
-                <span class="home-stat-right-label">RANKING GERAL</span>
+                <span class="home-stat-right-label">RODADA</span>
                 <span id="home-ranking-patrimonio" class="home-stat-right-value">--</span>
             </div>
         </div>
@@ -463,16 +463,18 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #ffffff;
+    background: var(--app-surface, #1a1a1a);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 16px;
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 
 .home-stat-card:active {
     transform: scale(0.98);
+    background: var(--app-surface-hover, #333333);
 }
 
 .home-stat-card-left {
@@ -520,7 +522,7 @@
     font-family: 'Inter', sans-serif;
     font-size: 10px;
     font-weight: 700;
-    color: #6b7280;
+    color: var(--app-text-muted, rgba(255, 255, 255, 0.6));
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -535,7 +537,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 24px;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--app-text-primary, #ffffff);
     letter-spacing: -0.5px;
 }
 
@@ -546,11 +548,11 @@
 }
 
 .home-stat-variacao.positivo {
-    color: #16a34a;
+    color: var(--app-success-light, #22c55e);
 }
 
 .home-stat-variacao.negativo {
-    color: #dc2626;
+    color: var(--app-danger, #ef4444);
 }
 
 .home-stat-card-right {
@@ -564,7 +566,7 @@
     font-family: 'Inter', sans-serif;
     font-size: 9px;
     font-weight: 600;
-    color: #9ca3af;
+    color: var(--app-text-dim, rgba(255, 255, 255, 0.45));
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
@@ -573,7 +575,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 18px;
     font-weight: 700;
-    color: #374151;
+    color: var(--app-text-secondary, rgba(255, 255, 255, 0.85));
 }
 
 /* === DESTAQUES DA RODADA (Colapsável) === */
@@ -914,7 +916,7 @@
 /* === LOADING STATE === */
 .home-stat-card.loading .home-stat-value,
 .home-stat-card.loading .home-stat-right-value {
-    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     color: transparent;
