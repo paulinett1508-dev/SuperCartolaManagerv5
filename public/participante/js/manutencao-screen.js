@@ -1,7 +1,8 @@
 // =====================================================================
-// manutencao-screen.js - Tela "Calma aê!" v2.0
+// manutencao-screen.js - Tela "Calma aê!" v2.1
 // =====================================================================
 // Exibe tela de manutenção amigável quando admin ativa o modo.
+// v2.1: 4 botões - Ranking Geral, Ranking da Rodada, Dino Game, Atualizar Parciais
 // v2.0: 3 botões - Ranking Geral, Ranking da Rodada, Dino Game
 // =====================================================================
 
@@ -482,6 +483,82 @@ const ManutencaoScreen = {
 
         html += `</tbody></table></div></div>`;
         return html;
+    },
+
+    // =====================================================================
+    // BOTÃO REFRESH: Atualizar Parciais (force-reload ranking da rodada)
+    // =====================================================================
+    async atualizarParciais() {
+        const btn = document.getElementById('manutencaoBtnRefresh');
+        if (!btn) return;
+
+        // Feedback visual: spinner no ícone
+        const icon = btn.querySelector('.material-icons');
+        const btnText = btn.querySelector('.btn-text');
+        if (icon) icon.style.animation = 'refreshSpin 0.8s linear infinite';
+        if (btnText) btnText.textContent = 'Atualizando...';
+        btn.disabled = true;
+
+        // Invalidar cache para forçar reload
+        this._rankingRodadaCarregado = false;
+        this._rankingGeralCarregado = false;
+
+        try {
+            // Sempre recarregar ranking da rodada (parciais)
+            const conteudo = document.getElementById('manutencaoConteudo');
+            const dinoContainer = document.getElementById('manutencaoDinoContainer');
+
+            // Fechar dino game se aberto
+            this._fecharDinoGame();
+            if (dinoContainer) dinoContainer.style.display = 'none';
+
+            const timeId = window.participanteAuth?.timeId;
+            const ligas = window.participanteAuth?.ligasDisponiveis || [];
+            const ligaAtiva = window.participanteAuth?.ligaId;
+
+            if (!ligaAtiva || !conteudo) {
+                if (btnText) btnText.textContent = 'Atualizar Parciais';
+                btn.disabled = false;
+                if (icon) icon.style.animation = '';
+                return;
+            }
+
+            conteudo.style.display = 'block';
+            let html = '';
+            if (ligas.length > 1) {
+                html += this._renderizarTabsLigas(ligas, ligaAtiva, 'rodada');
+            }
+            html += '<div id="manutencaoRankingRodadaContainer"></div>';
+            conteudo.innerHTML = html;
+
+            // Configurar tabs
+            if (ligas.length > 1) {
+                conteudo.querySelectorAll('.manut-liga-tab-rodada').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const lid = tab.dataset.ligaId;
+                        conteudo.querySelectorAll('.manut-liga-tab-rodada').forEach(t => t.style.background = '#374151');
+                        tab.style.background = 'linear-gradient(135deg,#f97316,#ea580c)';
+                        this._carregarRankingRodadaLiga(lid, timeId);
+                    });
+                });
+            }
+
+            await this._carregarRankingRodadaLiga(ligaAtiva, timeId);
+
+            this._rankingRodadaCarregado = true;
+            this._painelAtivo = 'rodada';
+        } catch (error) {
+            const conteudo = document.getElementById('manutencaoConteudo');
+            if (conteudo) {
+                conteudo.style.display = 'block';
+                conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:#f87171;">Erro ao atualizar. Tente novamente.</div>';
+            }
+            if (window.Log) Log.error('MANUTENCAO', 'Erro ao atualizar parciais:', error);
+        } finally {
+            if (icon) icon.style.animation = '';
+            if (btnText) btnText.textContent = 'Atualizar Parciais';
+            btn.disabled = false;
+        }
     },
 
     // =====================================================================

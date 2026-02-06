@@ -931,6 +931,11 @@
                             <span style="font-size:22px;">⚽</span>
                             <span class="btn-text">Cobrança de Pênalti</span>
                         </button>
+                        <button id="manutencaoBtnRefresh" onclick="window.ManutencaoScreen && ManutencaoScreen.atualizarParciais()"
+                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(52,211,153,0.08);color:#34d399;border:1px solid rgba(52,211,153,0.25);border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;width:100%;text-align:left;">
+                            <span class="material-icons" style="font-size:22px;color:#34d399;">refresh</span>
+                            <span class="btn-text">Atualizar Parciais</span>
+                        </button>
                     </div>
                 </div>
 
@@ -965,10 +970,20 @@
                     background: rgba(255,255,255,0.1) !important;
                     border-color: #4b5563 !important;
                 }
+                #manutencaoBtnRefresh:hover {
+                    transform: scale(1.02);
+                    background: rgba(52,211,153,0.15) !important;
+                    border-color: rgba(52,211,153,0.4) !important;
+                }
                 #manutencaoBtnRankingGeral:active,
                 #manutencaoBtnRankingRodada:active,
-                #manutencaoBtnDino:active {
+                #manutencaoBtnDino:active,
+                #manutencaoBtnRefresh:active {
                     transform: scale(0.98);
+                }
+                @keyframes refreshSpin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
                 }
             </style>
         </div>
