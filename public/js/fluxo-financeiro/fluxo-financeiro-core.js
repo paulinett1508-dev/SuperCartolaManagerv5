@@ -410,10 +410,14 @@ export class FluxoFinanceiroCore {
             if (cacheValido && cacheValido.valido) {
                 const rodadasArray = cacheValido.rodadas || [];
 
-                // ✅ v6.9 FIX: Em pré-temporada, usar resumo do backend se disponível
-                // O backend já calcula corretamente: inscrição + acertos
-                if (isPreTemporada && cacheValido.resumo) {
-                    console.log(`[FLUXO-CORE] ✅ PRÉ-TEMPORADA: Usando resumo do backend cache`);
+                // ✅ v6.14 FIX: Usar resumo do backend quando cache é de pré-temporada
+                // Cenário: backend marcou preTemporada=true (inscrição + acertos calculados),
+                // mas frontend diz isPreTemporada=false (rodada_atual > 1).
+                // Sem este fix, o frontend ignora o resumo e recalcula do zero,
+                // perdendo a inscrição (-180) e mostrando apenas rodadas + acertos.
+                const cacheEhPreTemporada = isPreTemporada || cacheValido.preTemporada === true;
+                if (cacheEhPreTemporada && cacheValido.resumo) {
+                    console.log(`[FLUXO-CORE] ✅ PRÉ-TEMPORADA (backend=${cacheValido.preTemporada}, frontend=${isPreTemporada}): Usando resumo do backend cache`);
 
                     // Usar campos e acertos do cache
                     let camposEditaveis;
@@ -432,6 +436,11 @@ export class FluxoFinanceiroCore {
 
                     const acertos = cacheValido.acertos || await this._buscarAcertosFinanceiros(ligaId, timeId);
 
+                    // ✅ v6.14: Ajustar mensagem se temporada já começou mas cache é de pré-temporada
+                    const avisoPre = isPreTemporada
+                        ? `Temporada ${temporadaSelecionada} ainda não iniciou. Exibindo apenas inscrições.`
+                        : `Dados de pré-temporada (inscrição + acertos). Atualize parciais para incluir rodadas.`;
+
                     return {
                         rodadas: [],
                         resumo: {
@@ -447,12 +456,12 @@ export class FluxoFinanceiroCore {
                         inativo: isInativo,
                         rodadaDesistencia: rodadaDesistencia,
                         extratoTravado: false,
-                        preTemporada: true,
+                        preTemporada: cacheEhPreTemporada,
                         temporadaMercado: temporadaMercado,
                         inscricao: cacheValido.inscricao,
                         updatedAt: cacheValido.updatedAt,
                         fonte: cacheValido.fonte || 'cache',
-                        avisoPreTemporada: `Temporada ${temporadaSelecionada} ainda não iniciou. Exibindo apenas inscrições.`
+                        avisoPreTemporada: avisoPre,
                     };
                 }
 
@@ -1239,17 +1248,21 @@ export class FluxoFinanceiroCore {
      */
     _calcularSaldoTemporada(resumo) {
         const pontosCorridos =
-            resumo.pontosCorridos === null ? 0 : resumo.pontosCorridos;
+            resumo.pontosCorridos === null ? 0 : (resumo.pontosCorridos || 0);
         return (
-            resumo.bonus +
-            resumo.onus +
+            (resumo.bonus || 0) +
+            (resumo.onus || 0) +
             pontosCorridos +
-            resumo.mataMata +
-            resumo.top10 +
-            resumo.campo1 +
-            resumo.campo2 +
-            resumo.campo3 +
-            resumo.campo4
+            (resumo.mataMata || 0) +
+            (resumo.top10 || 0) +
+            // ✅ v6.13 FIX: Incluir módulos opcionais no saldo (casamento com tesouraria)
+            (resumo.melhorMes || 0) +
+            (resumo.artilheiro || 0) +
+            (resumo.luvaOuro || 0) +
+            (resumo.campo1 || 0) +
+            (resumo.campo2 || 0) +
+            (resumo.campo3 || 0) +
+            (resumo.campo4 || 0)
         );
     }
 
@@ -1259,9 +1272,10 @@ export class FluxoFinanceiroCore {
      */
     _calcularSaldoFinal(resumo) {
         // ✅ v6.6: Saldo temporada (histórico) + acertos = saldo pendente
+        // ✅ v6.13 FIX: Guard contra NaN (se algum campo do resumo for undefined)
         const saldoTemporada = this._calcularSaldoTemporada(resumo);
         const saldoAcertos = resumo.saldo_acertos || 0;
-        return saldoTemporada + saldoAcertos;
+        return (isNaN(saldoTemporada) ? 0 : saldoTemporada) + saldoAcertos;
     }
 
     _calcularTotaisConsolidados(resumo, rodadas) {

@@ -106,6 +106,7 @@ body {
   margin-left: 280px;
   background: var(--bg-secondary);
   min-height: 100vh;
+  transition: margin-left 0.3s ease;
 }
 
 /* === HEADER ESCURO === */

@@ -572,6 +572,13 @@ function formatarPontos(valor) {
     });
 }
 
+// Trunca valor para 2 casas decimais sem arredondar e retorna string formatada pt-BR
+function truncarPontos(valor) {
+    const num = Number(valor) || 0;
+    const truncated = Math.trunc(num * 100) / 100;
+    return truncated.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function getZonaInfo(posicao, total) {
     if (!posicao || !total)
         return {
@@ -641,7 +648,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
     // ✅ v10.11: Badge de ambiente movido para o header (próximo à versão)
     const rodadasRestantes = Math.max(0, 38 - rodadaAtual);
     const pontosUltimaRodada = ultimaRodada
-        ? parseFloat(ultimaRodada.pontos).toFixed(2)
+        ? truncarPontos(ultimaRodada.pontos)
         : "0.00";
 
     // Variação posição
@@ -942,7 +949,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
                         </div>
                         <div class="text-center">
                             <p class="text-xs font-medium uppercase leading-normal text-white/70">Pontos</p>
-                            <p class="text-4xl font-bold leading-tight tracking-tighter text-white">${formatarPontos(pontosTotal).split(",")[0]}</p>
+                            <p class="text-4xl font-bold leading-tight tracking-tighter text-white">${truncarPontos(pontosTotal)}</p>
                             <p class="text-xs font-normal leading-normal text-white/70">total acumulado</p>
                         </div>
                     </div>

@@ -345,10 +345,8 @@
     padding: 20px 40px;
 }
 
-/* Detalhe Liga: Content wide */
+/* Detalhe Liga: Content wide - sem max-width/margin auto para não conflitar com sidebar */
 .detalhe-liga-page .app-main {
-    max-width: 1400px;
-    margin: 0 auto;
     padding: 20px 40px;
 }
 

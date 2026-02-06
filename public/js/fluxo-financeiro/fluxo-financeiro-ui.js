@@ -338,6 +338,21 @@ export class FluxoFinanceiroUI {
                         <span class="card-label">Manuais</span>
                         <span class="card-value ${getValorClass(resumo.camposManuais)}">${formatarMoeda(resumo.camposManuais || 0)}</span>
                     </div>
+                    ${resumo.melhorMes ? `
+                    <div class="extrato-resumo-card">
+                        <span class="card-label">Melhor Mês</span>
+                        <span class="card-value ${getValorClass(resumo.melhorMes)}">${formatarMoeda(resumo.melhorMes)}</span>
+                    </div>` : ''}
+                    ${resumo.artilheiro ? `
+                    <div class="extrato-resumo-card">
+                        <span class="card-label">Artilheiro</span>
+                        <span class="card-value ${getValorClass(resumo.artilheiro)}">${formatarMoeda(resumo.artilheiro)}</span>
+                    </div>` : ''}
+                    ${resumo.luvaOuro ? `
+                    <div class="extrato-resumo-card">
+                        <span class="card-label">Luva de Ouro</span>
+                        <span class="card-value ${getValorClass(resumo.luvaOuro)}">${formatarMoeda(resumo.luvaOuro)}</span>
+                    </div>` : ''}
                 </div>
             `;
         }

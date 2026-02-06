@@ -764,7 +764,9 @@ class DetalheLigaOrquestrador {
                 scripts.forEach((script) => {
                     if (script.textContent.trim()) {
                         const newScript = document.createElement("script");
-                        newScript.textContent = `(function(){${script.textContent}})();`;
+                        // v3.2 FIX: Sem IIFE - funções como toggleSidebar devem ficar globais
+                        // A guarda _layoutScriptsInjected já previne re-injeção
+                        newScript.textContent = script.textContent;
                         document.head.appendChild(newScript);
                     }
                 });
