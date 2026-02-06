@@ -1,5 +1,7 @@
 /**
- * CONSOLIDAÇÃO-CONTROLLER v3.1.0 (SaaS DINÂMICO + DATA LAKE)
+ * CONSOLIDAÇÃO-CONTROLLER v3.2.0 (SaaS DINÂMICO + DATA LAKE + TEMPORADA FIX)
+ * ✅ v3.2.0: FIX CRÍTICO - Filtro de temporada na query de ranking_rodada
+ *   - Evita misturar dados de temporadas diferentes na consolidação
  * ✅ v3.1.0: BACKUP AUTOMÁTICO - Salva dumps permanentes na consolidação
  *   - Hook de backup após consolidação para preservar dados históricos
  *   - Dados salvos em cartola_oficial_dumps para Hall da Fama e restaurações
@@ -25,6 +27,7 @@ import { getFluxoFinanceiroLiga } from './fluxoFinanceiroController.js';
 import { obterConfrontosMataMata } from './mataMataCacheController.js';
 import { calcularConfrontosDaRodada, getRankingArtilheiroCampeao } from '../utils/consolidacaoHelpers.js';
 import { isSeasonFinished, SEASON_CONFIG } from '../utils/seasonGuard.js';
+import { CURRENT_SEASON } from '../config/seasons.js';
 
 // 🔔 PUSH NOTIFICATIONS - Gatilhos automaticos (FASE 5)
 import {
@@ -265,10 +268,12 @@ export const consolidarRodada = async (req, res) => {
         const rankingGeral = await calcularRankingCompleto(ligaId, rodadaNum);
         
         // 2. RANKING DA RODADA (pontuação específica desta rodada)
-        console.log(`[CONSOLIDAÇÃO] Calculando ranking da rodada...`);
+        // ✅ v3.2.0: Filtrar por temporada para não misturar dados de temporadas diferentes
+        console.log(`[CONSOLIDAÇÃO] Calculando ranking da rodada (temporada ${CURRENT_SEASON})...`);
         const dadosRodada = await Rodada.find({
             ligaId: new mongoose.Types.ObjectId(ligaId),
-            rodada: rodadaNum
+            rodada: rodadaNum,
+            temporada: CURRENT_SEASON
         }).lean();
         
         const rankingRodada = dadosRodada
