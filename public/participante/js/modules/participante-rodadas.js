@@ -1232,7 +1232,8 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
             ? `<span class="badge-em-campo ${jogandoAoVivo > 0 ? 'ativo' : ''}">${escalados}/12 <span style="color:#22c55e;font-weight:600;font-size:9px;margin-left:2px">${jogandoAoVivo}</span></span>`
             : "";
 
-        const curiosarAttr = isParcial && !participante.rodadaNaoJogada
+        // ✅ v8.0: Curiosar disponível em TODAS rodadas (não só parciais)
+        const curiosarAttr = !participante.rodadaNaoJogada
             ? `data-curiosar-time-id="${timeId}" style="cursor: pointer;"`
             : "";
 
@@ -1268,7 +1269,7 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
                     <div class="ranking-pontos-pro">${pontosFormatados}</div>
                     <div class="ranking-financeiro-pro ${financeiroClass}">${isParcial ? '' : financeiroTexto}</div>
                 </div>
-                ${isParcial ? '<span class="material-icons curiosar-icon" style="font-size:16px;color:#6b7280;margin-left:4px;">visibility</span>' : ''}
+                ${!participante.rodadaNaoJogada ? '<span class="material-icons curiosar-icon" style="font-size:16px;color:#6b7280;margin-left:4px;">visibility</span>' : ''}
             </div>
         `;
     }).join("");
@@ -1285,6 +1286,15 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
     // ✅ v7.0: Atualizar gráfico evolutivo
     renderizarGraficoEvolutivo(todasRodadasCache, rodadaData.numero);
 
+    // ✅ v8.0: Event listener para "Curiosar" - disponível em TODAS rodadas
+    container.querySelectorAll("[data-curiosar-time-id]").forEach((el) => {
+        el.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const targetTimeId = el.getAttribute("data-curiosar-time-id");
+            if (targetTimeId) abrirCampinhoModal(targetTimeId, rodadaData.numero, rodadaData);
+        });
+    });
+
     if (isParcial) {
         container.insertAdjacentHTML("beforeend", `
             <div style="text-align: center; padding: 20px;">
@@ -1294,48 +1304,54 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
                 </button>
             </div>
         `);
-
-        // ✅ v3.0: Event listener para "Curiosar" - clicar no card abre campinho
-        container.querySelectorAll("[data-curiosar-time-id]").forEach((el) => {
-            el.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const targetTimeId = el.getAttribute("data-curiosar-time-id");
-                if (targetTimeId) abrirCampinhoModal(targetTimeId, rodadaData.numero);
-            });
-        });
     }
 }
 
 // =====================================================================
 // MODAL "CURIOSAR" - VER ESCALAÇÃO DE OUTRO TIME
 // =====================================================================
-function abrirCampinhoModal(targetTimeId, rodada) {
+function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
     if (window.Log) Log.info("[RODADAS] 👀 Curiosar time:", targetTimeId);
 
-    // Buscar dados enriquecidos do parciais (já em cache)
+    // ── Fonte 1: Dados enriquecidos do parciais (ao vivo) ──
     const dadosParciais = ParciaisModule.obterDados?.();
     const timeDados = dadosParciais?.participantes?.find(
         (p) => String(p.timeId) === String(targetTimeId)
     );
 
-    // Buscar escalação cacheada completa
+    // ── Fonte 2: Escalação cacheada do parciais ──
     const escalacaoCacheada = ParciaisModule.obterEscalacaoCacheada?.(targetTimeId);
 
-    const nomeTime = timeDados?.nome_time || escalacaoCacheada?.nome_time || "Time";
-    const nomeCartola = timeDados?.nome_cartola || escalacaoCacheada?.nome_cartola || "";
-    const pontos = timeDados?.pontos || escalacaoCacheada?.pontos || 0;
+    // ── Fonte 3: Dados consolidados da rodada (rodadas finalizadas) ──
+    const partConsolidado = rodadaData?.participantes?.find(
+        (p) => String(p.timeId || p.time_id) === String(targetTimeId)
+    );
+
+    // Prioridade: parciais > cache > consolidado
+    const nomeTime = timeDados?.nome_time || escalacaoCacheada?.nome_time || partConsolidado?.nome || partConsolidado?.nome_time || "Time";
+    const nomeCartola = timeDados?.nome_cartola || escalacaoCacheada?.nome_cartola || partConsolidado?.nome_cartola || "";
+    const pontos = timeDados?.pontos || escalacaoCacheada?.pontos || partConsolidado?.pontos || 0;
     const emCampo = timeDados?.atletasEmCampo || escalacaoCacheada?.atletasEmCampo || 0;
-    const totalAtl = 12; // Show only titulares count
+    const totalAtl = 12;
     const atletas = (timeDados?.atletas && timeDados.atletas.length > 0)
         ? timeDados.atletas
-        : (escalacaoCacheada?.atletas || []);
-    const capitaoId = timeDados?.capitao_id || escalacaoCacheada?.capitao_id;
+        : (escalacaoCacheada?.atletas?.length > 0)
+            ? escalacaoCacheada.atletas
+            : (partConsolidado?.atletas || []);
+    const capitaoId = timeDados?.capitao_id || escalacaoCacheada?.capitao_id || partConsolidado?.capitao_id;
     const isMeuTime = String(targetTimeId) === String(meuTimeId);
 
-    // DEBUG: verificar estrutura dos atletas
-    if (window.Log && atletas.length > 0) {
-        Log.info("[RODADAS] 🔍 Exemplo de atleta:", atletas[0]);
-        Log.info("[RODADAS] 📊 Campos disponíveis:", Object.keys(atletas[0]));
+    // Recalcular emCampo para dados consolidados (sem parciais)
+    const emCampoCalc = emCampo || atletas.filter(a =>
+        (!a.is_reserva && a.status_id !== 2) && (a.entrou_em_campo || (a.pontos_num && a.pontos_num !== 0))
+    ).length;
+
+    // DEBUG: verificar fonte e estrutura dos atletas
+    if (window.Log) {
+        const fonte = (timeDados?.atletas?.length > 0) ? 'parciais'
+            : (escalacaoCacheada?.atletas?.length > 0) ? 'cache'
+            : (partConsolidado?.atletas?.length > 0) ? 'consolidado' : 'nenhuma';
+        Log.info("[RODADAS] 📊 Curiosar fonte:", fonte, "atletas:", atletas.length);
     }
 
     const pontosFormatados = Number(pontos).toLocaleString("pt-BR", {
@@ -1375,7 +1391,7 @@ function abrirCampinhoModal(targetTimeId, rodada) {
     // Calcular substituições (modal - regras oficiais Cartola FC 2025/2026)
     const substituicoesModal = new Map();
     const titularesSubstituidosModal = new Map(); // atleta_id -> 'ausente' | 'luxo'
-    const reservaLuxoIdModal = timeDados?.reserva_luxo_id || escalacaoCacheada?.reserva_luxo_id;
+    const reservaLuxoIdModal = timeDados?.reserva_luxo_id || escalacaoCacheada?.reserva_luxo_id || partConsolidado?.reserva_luxo_id;
 
     // Verificar se dados pré-computados estão disponíveis
     const temDadosParciaisModal = atletas.some(a =>
@@ -1608,7 +1624,7 @@ function abrirCampinhoModal(targetTimeId, rodada) {
                 </div>
                 <div style="flex:1;background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
                     <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;">Em Campo</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:${emCampo > 0 ? '#22c55e' : '#6b7280'};">${Math.min(emCampo, totalAtl)}/${totalAtl}</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:${emCampoCalc > 0 ? '#22c55e' : '#6b7280'};">${Math.min(emCampoCalc, totalAtl)}/${totalAtl}</div>
                 </div>
             </div>
 

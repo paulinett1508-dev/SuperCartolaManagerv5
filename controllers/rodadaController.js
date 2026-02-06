@@ -335,7 +335,8 @@ async function processarRodada(
         }
 
         // ✅ v3.1: Extrair atletas para fallback offline (Campinho)
-        const atletasRaw = dados.atletas || [];
+        // ✅ v3.3: Incluir reservas (status_id: 2) para escalação completa
+        const atletasRaw = [...(dados.atletas || []), ...(dados.reservas || [])];
         const partidas = dados.partidas || {}; // Informações de partidas da rodada
         
         const atletas = atletasRaw.map(a => ({
