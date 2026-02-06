@@ -178,6 +178,20 @@ async function carregarRanking() {
             return;
         }
 
+        // ✅ FIX: Limpar flags parciais stale quando mercado está aberto (rodada encerrada)
+        if (!estadoCapitao.modeLive && data.ranking) {
+            data.ranking.forEach(p => {
+                if (p.historico_rodadas) {
+                    p.historico_rodadas.forEach(h => {
+                        if (h.parcial === true) {
+                            h.parcial = false;
+                            h.jogou = null;
+                        }
+                    });
+                }
+            });
+        }
+
         estadoCapitao.rankingAtual = data.ranking;
         renderizarRanking(data.ranking);
         renderizarCardDesempenho(data.ranking);
@@ -229,32 +243,9 @@ function renderizarRanking(ranking) {
             ? '<span class="capitao-badge-captain">CAMPEÃO</span>'
             : '<span class="capitao-badge-captain">[C]</span>';
 
-        // Histórico por rodada (chips)
+        // Histórico por rodada (chips) - últimas 5 + expandir
         const historico = participante.historico_rodadas || [];
-        let historicoHtml = '';
-        if (historico.length > 0) {
-            const chips = historico.map(r => {
-                const pts = (r.pontuacao || 0).toFixed(1);
-                const isParcial = r.parcial === true;
-                const corPts = r.pontuacao >= 10 ? '#22c55e' : r.pontuacao >= 5 ? '#fbbf24' : r.pontuacao < 0 ? '#ef4444' : '#9ca3af';
-
-                let dotHtml = '';
-                if (isParcial) {
-                    if (r.jogou === false) {
-                        dotHtml = '<span class="cap-dot cap-dot-pending"></span>';
-                    } else if (r.pontuacao > 0) {
-                        dotHtml = '<span class="cap-dot cap-dot-positive"></span>';
-                    } else if (r.pontuacao < 0) {
-                        dotHtml = '<span class="cap-dot cap-dot-negative"></span>';
-                    } else {
-                        dotHtml = '<span class="cap-dot cap-dot-neutral"></span>';
-                    }
-                }
-
-                return `<span class="cap-chip${isParcial && r.jogou === false ? ' cap-chip-pending' : ''}"><span class="cap-chip-rod">R${r.rodada}</span> ${r.atleta_nome || '?'} <span style="color:${corPts}; font-family:var(--capitao-font-mono); font-weight:600;">${pts}</span>${dotHtml}</span>`;
-            }).join('');
-            historicoHtml = `<div class="cap-historico">${chips}</div>`;
-        }
+        const historicoHtml = _renderHistoricoChips(historico, index);
 
         html += `
             <div class="${cardClasses}">
@@ -357,36 +348,72 @@ function renderizarCardDesempenho(ranking) {
 }
 
 // =============================================
-// HELPER: HISTORICO CHIPS (para card desempenho)
+// HELPER: CHIP INDIVIDUAL
+// =============================================
+const MAX_CHIPS_VISIBLE = 5;
+
+function _renderChipHtml(r) {
+    const pts = (r.pontuacao || 0).toFixed(1);
+    const isParcial = r.parcial === true;
+    const corPts = r.pontuacao >= 10 ? '#22c55e' : r.pontuacao >= 5 ? '#fbbf24' : r.pontuacao < 0 ? '#ef4444' : '#9ca3af';
+
+    let dotHtml = '';
+    if (isParcial) {
+        if (r.jogou === false) {
+            dotHtml = '<span class="cap-dot cap-dot-pending"></span>';
+        } else if (r.pontuacao > 0) {
+            dotHtml = '<span class="cap-dot cap-dot-positive"></span>';
+        } else if (r.pontuacao < 0) {
+            dotHtml = '<span class="cap-dot cap-dot-negative"></span>';
+        } else {
+            dotHtml = '<span class="cap-dot cap-dot-neutral"></span>';
+        }
+    }
+
+    return `<span class="cap-chip${isParcial && r.jogou === false ? ' cap-chip-pending' : ''}"><span class="cap-chip-rod">R${r.rodada}</span> ${r.atleta_nome || '?'} <span style="color:${corPts}; font-family:var(--capitao-font-mono); font-weight:600;">${pts}</span>${dotHtml}</span>`;
+}
+
+// =============================================
+// HELPER: HISTORICO CHIPS COM COLLAPSE (últimas 5 + expandir)
+// =============================================
+function _renderHistoricoChips(historico, uniqueId) {
+    if (!historico || historico.length === 0) return '';
+
+    const total = historico.length;
+
+    if (total <= MAX_CHIPS_VISIBLE) {
+        // Poucos chips: mostrar todos sem toggle
+        const chips = historico.map(r => _renderChipHtml(r)).join('');
+        return `<div class="cap-historico">${chips}</div>`;
+    }
+
+    // Muitos chips: mostrar últimas 5 + botão expandir
+    const ultimas = historico.slice(-MAX_CHIPS_VISIBLE);
+    const anteriores = historico.slice(0, total - MAX_CHIPS_VISIBLE);
+    const chipsVisiveis = ultimas.map(r => _renderChipHtml(r)).join('');
+    const chipsOcultos = anteriores.map(r => _renderChipHtml(r)).join('');
+    const hiddenCount = anteriores.length;
+
+    return `
+        <div class="cap-historico cap-historico-collapsible">
+            <div class="cap-historico-hidden" id="capHist_${uniqueId}" style="display:none;">${chipsOcultos}</div>
+            ${chipsVisiveis}
+            <span class="cap-chip cap-chip-toggle" onclick="(function(el){var h=document.getElementById('capHist_${uniqueId}');var show=h.style.display==='none';h.style.display=show?'flex':'none';el.textContent=show?'▲ fechar':'▼ +${hiddenCount}'})(this)">▼ +${hiddenCount}</span>
+        </div>`;
+}
+
+// =============================================
+// HELPER: HISTORICO CHIPS PARA CARD DESEMPENHO
 // =============================================
 function _renderHistoricoDesempenho(historico) {
     if (!historico || historico.length === 0) return '';
 
-    const chips = historico.map(r => {
-        const pts = (r.pontuacao || 0).toFixed(1);
-        const isParcial = r.parcial === true;
-        const corPts = r.pontuacao >= 10 ? '#22c55e' : r.pontuacao >= 5 ? '#fbbf24' : r.pontuacao < 0 ? '#ef4444' : '#9ca3af';
-
-        let dotHtml = '';
-        if (isParcial) {
-            if (r.jogou === false) {
-                dotHtml = '<span class="cap-dot cap-dot-pending"></span>';
-            } else if (r.pontuacao > 0) {
-                dotHtml = '<span class="cap-dot cap-dot-positive"></span>';
-            } else if (r.pontuacao < 0) {
-                dotHtml = '<span class="cap-dot cap-dot-negative"></span>';
-            } else {
-                dotHtml = '<span class="cap-dot cap-dot-neutral"></span>';
-            }
-        }
-
-        return `<span class="cap-chip${isParcial && r.jogou === false ? ' cap-chip-pending' : ''}"><span class="cap-chip-rod">R${r.rodada}</span> ${r.atleta_nome || '?'} <span style="color:${corPts}; font-family:var(--capitao-font-mono); font-weight:600;">${pts}</span>${dotHtml}</span>`;
-    }).join('');
+    const chipsHtml = _renderHistoricoChips(historico, 'desempenho');
 
     return `
         <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--capitao-border);">
             <div style="font-size: 10px; color: var(--capitao-text-muted); margin-bottom: 6px;">Seus capitães por rodada:</div>
-            <div class="cap-historico">${chips}</div>
+            ${chipsHtml}
         </div>
     `;
 }

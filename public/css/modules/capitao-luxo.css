@@ -265,6 +265,33 @@
 /* Branco - 0 pts / nem banco */
 .chip-dot.dot-neutral { background: #9ca3af; }
 
+/* Toggle expandir/colapsar histórico */
+.capitao-hist-collapsible {
+  position: relative;
+}
+
+.capitao-hist-hidden {
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.capitao-chip-toggle {
+  cursor: pointer;
+  background: rgba(139, 92, 246, 0.25) !important;
+  border-color: #8b5cf6 !important;
+  color: #a78bfa !important;
+  font-weight: 600 !important;
+  font-size: 9px !important;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.capitao-chip-toggle:hover {
+  background: rgba(139, 92, 246, 0.4) !important;
+}
+
 /* Pontuação */
 .capitao-luxo-ranking-table .val-pts {
   font-family: 'JetBrains Mono', monospace;

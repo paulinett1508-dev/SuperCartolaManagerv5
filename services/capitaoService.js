@@ -1,4 +1,5 @@
 // capitaoService.js - Lógica de negócio do Capitão de Luxo
+import mongoose from 'mongoose';
 import cartolaApiService from './cartolaApiService.js';
 import CapitaoCaches from '../models/CapitaoCaches.js';
 import Liga from '../models/Liga.js';
@@ -159,7 +160,10 @@ export async function calcularEstatisticasCapitao(ligaId, temporada, timeId, rod
 export async function consolidarRankingCapitao(ligaId, temporada, rodadaFinal = 38) {
   console.log(`${LOG_PREFIX} Consolidando ranking Capitão Luxo - Liga ${ligaId}, Temporada ${temporada}, até rodada ${rodadaFinal}`);
 
-  const liga = await Liga.findById(ligaId).lean();
+  // ✅ FIX: Garantir que ligaId é ObjectId para consistência no cache
+  const ligaObjectId = typeof ligaId === 'string' ? new mongoose.Types.ObjectId(ligaId) : ligaId;
+
+  const liga = await Liga.findById(ligaObjectId).lean();
   if (!liga || !liga.participantes) {
     throw new Error('Liga não encontrada');
   }
@@ -198,7 +202,7 @@ export async function consolidarRankingCapitao(ligaId, temporada, rodadaFinal = 
     );
 
     dadosCapitaes.push({
-      ligaId,
+      ligaId: ligaObjectId,
       temporada,
       timeId: participante.time_id,
       nome_cartola: participante.nome_cartola,
@@ -226,8 +230,8 @@ export async function consolidarRankingCapitao(ligaId, temporada, rodadaFinal = 
     else dado.premiacao_recebida = 0;
   });
 
-  // Salvar no cache
-  await CapitaoCaches.consolidarRanking(ligaId, temporada, dadosCapitaes);
+  // Salvar no cache (usa ObjectId para consistência com buscarRanking)
+  await CapitaoCaches.consolidarRanking(ligaObjectId, temporada, dadosCapitaes);
 
   console.log(`${LOG_PREFIX} ✅ Consolidado: ${dadosCapitaes.length} participantes`);
   return dadosCapitaes;

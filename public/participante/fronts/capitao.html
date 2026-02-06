@@ -313,6 +313,33 @@
     .cap-dot-negative { background: var(--capitao-danger); }
     .cap-dot-neutral { background: #9ca3af; }
 
+    /* Toggle expandir/colapsar histórico */
+    .cap-historico-collapsible {
+        position: relative;
+    }
+
+    .cap-historico-hidden {
+        flex-wrap: wrap;
+        gap: 4px;
+        width: 100%;
+        margin-bottom: 4px;
+    }
+
+    .cap-chip-toggle {
+        cursor: pointer;
+        background: rgba(139, 92, 246, 0.25) !important;
+        border-color: var(--capitao-primary) !important;
+        color: var(--capitao-primary-light) !important;
+        font-weight: 600 !important;
+        font-size: 9px !important;
+        user-select: none;
+        transition: background 0.2s;
+    }
+
+    .cap-chip-toggle:active {
+        background: rgba(139, 92, 246, 0.4) !important;
+    }
+
     @media (max-width: 768px) {
         .capitao-participante {
             padding: 10px;

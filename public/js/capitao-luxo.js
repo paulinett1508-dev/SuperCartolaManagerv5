@@ -256,10 +256,15 @@ const CapitaoLuxo = {
             const semHistorico = !rankingVazio && !dadosZerados && data.ranking.some(r => !r.historico_rodadas || r.historico_rodadas.length === 0);
             const rodadaEmAndamento = !this.estado.mercadoAberto && !this.estado.temporadaEncerrada;
 
-            if (rankingVazio || dadosZerados || semHistorico || rodadaEmAndamento) {
+            // ✅ FIX: Detectar dados parciais stale (rodada encerrou mas cache tem parcial: true)
+            const temParcialStale = !rankingVazio && this.estado.mercadoAberto &&
+                data.ranking.some(r => r.historico_rodadas && r.historico_rodadas.some(h => h.parcial === true));
+
+            if (rankingVazio || dadosZerados || semHistorico || rodadaEmAndamento || temParcialStale) {
                 if (dadosZerados) console.warn("⚠️ [CAPITAO-LUXO] Dados zerados, re-consolidando...");
                 if (semHistorico) console.warn("⚠️ [CAPITAO-LUXO] Histórico ausente, re-consolidando...");
                 if (rodadaEmAndamento) console.log("🔴 [CAPITAO-LUXO] Rodada em andamento, atualizando parciais...");
+                if (temParcialStale) console.warn("⚠️ [CAPITAO-LUXO] Dados parciais stale detectados (rodada encerrada mas cache com parcial:true), re-consolidando...");
 
                 // Verificar se há rodadas finalizadas para auto-consolidar
                 const rodadaConsolidada = this.estado.mercadoAberto
@@ -366,11 +371,12 @@ const CapitaoLuxo = {
 
             const posicaoIcon = isPrimeiro ? "🥇" : isPodio2 ? "🥈" : isPodio3 ? "🥉" : `${posicao}º`;
 
-            // Histórico por rodada (chips)
+            // Histórico por rodada (chips) - últimas 5 + expandir
             const historico = participante.historico_rodadas || [];
             let historicoHtml = "";
             if (historico.length > 0) {
-                const chips = historico.map(r => {
+                const MAX_VISIBLE = 5;
+                const _chipHtml = (r) => {
                     const pts = (r.pontuacao || 0).toFixed(1);
                     const isParcial = r.parcial === true;
                     const corPts = r.pontuacao >= 10 ? "#22c55e" : r.pontuacao >= 5 ? "#fbbf24" : r.pontuacao < 0 ? "#ef4444" : "#9ca3af";
@@ -379,27 +385,34 @@ const CapitaoLuxo = {
                     let chipExtra = "";
                     if (isParcial) {
                         if (r.jogou === false) {
-                            // Ainda vai jogar - amarelo piscando
                             indicador = '<span class="chip-dot dot-pending"></span>';
                             chipExtra = " chip-parcial-pending";
                         } else if (r.pontuacao > 0) {
-                            // Já jogou, pontuou positivo - verde
                             indicador = '<span class="chip-dot dot-positive"></span>';
                             chipExtra = " chip-parcial-done";
                         } else if (r.pontuacao < 0) {
-                            // Já jogou, pontuou negativo - vermelho
                             indicador = '<span class="chip-dot dot-negative"></span>';
                             chipExtra = " chip-parcial-done";
                         } else {
-                            // Já jogou mas 0 pts (nem banco) - branco
                             indicador = '<span class="chip-dot dot-neutral"></span>';
                             chipExtra = " chip-parcial-done";
                         }
                     }
-
                     return `<span class="capitao-rodada-chip${chipExtra}"><span class="chip-rodada">R${r.rodada}</span> ${r.atleta_nome || "?"} <span style="color:${corPts}; font-family:'JetBrains Mono',monospace; font-weight:600;">${pts}</span>${indicador}</span>`;
-                }).join("");
-                historicoHtml = `<div class="capitao-historico-rodadas">${chips}</div>`;
+                };
+
+                if (historico.length <= MAX_VISIBLE) {
+                    historicoHtml = `<div class="capitao-historico-rodadas">${historico.map(_chipHtml).join("")}</div>`;
+                } else {
+                    const ultimas = historico.slice(-MAX_VISIBLE);
+                    const anteriores = historico.slice(0, historico.length - MAX_VISIBLE);
+                    const hiddenId = `capAdmHist_${index}`;
+                    historicoHtml = `<div class="capitao-historico-rodadas capitao-hist-collapsible">` +
+                        `<div class="capitao-hist-hidden" id="${hiddenId}" style="display:none;">${anteriores.map(_chipHtml).join("")}</div>` +
+                        ultimas.map(_chipHtml).join("") +
+                        `<span class="capitao-rodada-chip capitao-chip-toggle" onclick="(function(el){var h=document.getElementById('${hiddenId}');var show=h.style.display==='none';h.style.display=show?'flex':'none';el.textContent=show?'▲ fechar':'▼ +${anteriores.length}'})(this)">▼ +${anteriores.length}</span>` +
+                        `</div>`;
+                }
             }
 
             html += `

@@ -28,6 +28,7 @@ import { obterConfrontosMataMata } from './mataMataCacheController.js';
 import { calcularConfrontosDaRodada, getRankingArtilheiroCampeao } from '../utils/consolidacaoHelpers.js';
 import { isSeasonFinished, SEASON_CONFIG } from '../utils/seasonGuard.js';
 import { CURRENT_SEASON } from '../config/seasons.js';
+import { consolidarRankingCapitao } from '../services/capitaoService.js';
 
 // 🔔 PUSH NOTIFICATIONS - Gatilhos automaticos (FASE 5)
 import {
@@ -38,6 +39,26 @@ import {
 // ============================================================================
 // ✅ v3.0: FUNÇÕES SaaS DINÂMICAS (Multi-Tenant)
 // ============================================================================
+
+/**
+ * Obtém configuração de ranking_rodada (BANCO) da liga
+ * @param {Object} liga - Documento da liga
+ * @param {number} rodada - Número da rodada (para configs temporais)
+ * @returns {Object} { valores: {posicao: valor}, faixas: {...} }
+ */
+function getConfigRankingRodada(liga, rodada = 1) {
+    const config = liga?.configuracoes?.ranking_rodada;
+    if (!config) return { valores: {}, faixas: null };
+
+    if (config.temporal) {
+        const rodadaTransicao = config.rodada_transicao || 30;
+        const fase = rodada < rodadaTransicao ? 'fase1' : 'fase2';
+        const faseConfig = config[fase] || {};
+        return { valores: faseConfig.valores || {}, faixas: faseConfig.faixas || null };
+    }
+
+    return { valores: config.valores || {}, faixas: config.faixas || null };
+}
 
 /**
  * Obtém configuração de TOP10 (Mitos/Micos) da liga
@@ -276,6 +297,11 @@ export const consolidarRodada = async (req, res) => {
             temporada: CURRENT_SEASON
         }).lean();
         
+        // ✅ v3.3.0: Buscar config de ranking_rodada para enriquecer com valor_financeiro
+        const configRankingRodada = getConfigRankingRodada(liga, rodadaNum);
+        const valoresRanking = configRankingRodada.valores || {};
+        const faixasRanking = configRankingRodada.faixas || {};
+
         const rankingRodada = dadosRodada
             .map(d => ({
                 time_id: d.timeId,
@@ -287,8 +313,27 @@ export const consolidarRodada = async (req, res) => {
                 pontos_rodada: d.pontos || 0
             }))
             .sort((a, b) => b.pontos_rodada - a.pontos_rodada)
-            .map((t, i) => ({ ...t, posicao: i + 1 }));
-        
+            .map((t, i) => {
+                const posicao = i + 1;
+                const valorFinanceiro = valoresRanking[posicao] || valoresRanking[String(posicao)] || 0;
+
+                // Determinar zona baseada no valor financeiro e faixas configuradas
+                let zona = 'Neutro';
+                if (valorFinanceiro > 0) {
+                    zona = posicao === 1 ? 'MITO' : `G${posicao}`;
+                } else if (valorFinanceiro < 0) {
+                    const totalTimes = dadosRodada.length;
+                    const inicioPerda = faixasRanking.debito?.inicio || totalTimes;
+                    if (posicao === totalTimes) {
+                        zona = 'MICO';
+                    } else {
+                        zona = `Z${posicao - inicioPerda + 1}`;
+                    }
+                }
+
+                return { ...t, posicao, valor_financeiro: valorFinanceiro, zona };
+            });
+
         // 3. FINANCEIRO (resumo por time + extratos individuais)
         console.log(`[CONSOLIDAÇÃO] Calculando financeiro...`);
         const financeiro = await getFluxoFinanceiroLiga(ligaId, rodadaNum);
@@ -477,8 +522,7 @@ export const consolidarRodada = async (req, res) => {
 
         console.log(`[CONSOLIDAÇÃO] ✅ R${rodadaNum} consolidada com sucesso! (${rankingRodada.length} times)`);
 
-        // 14. PUSH NOTIFICATIONS - Gatilhos automaticos (FASE 5)
-        // Executar em background para nao atrasar resposta
+        // 14. PUSH NOTIFICATIONS + MÓDULOS DEPENDENTES - Executar em background
         setImmediate(async () => {
             try {
                 // Gatilho: Rodada Finalizada (todos da liga)
@@ -494,7 +538,23 @@ export const consolidarRodada = async (req, res) => {
                 console.log(`[CONSOLIDAÇÃO] 🔔 Notificacoes push disparadas para R${rodadaNum}`);
             } catch (notifError) {
                 console.error(`[CONSOLIDAÇÃO] ⚠️ Erro ao enviar notificacoes:`, notifError.message);
-                // Nao falha a consolidacao por erro de notificacao
+            }
+
+            // ✅ FIX: Consolidar Capitão de Luxo automaticamente após rodada
+            try {
+                const capitaoAtivo = modulosAtivos.capitaoLuxo === true ||
+                    modulosAtivos.capitao_luxo === true ||
+                    modulosAtivos.capitao === true ||
+                    liga?.configuracoes?.capitao_luxo?.habilitado === true;
+
+                if (capitaoAtivo) {
+                    const temporadaConsolidacao = SEASON_CONFIG?.temporada || new Date().getFullYear();
+                    console.log(`[CONSOLIDAÇÃO] 🎖️ Consolidando Capitão de Luxo até R${rodadaNum}...`);
+                    await consolidarRankingCapitao(ligaId, temporadaConsolidacao, rodadaNum);
+                    console.log(`[CONSOLIDAÇÃO] 🎖️ Capitão de Luxo consolidado com sucesso!`);
+                }
+            } catch (capitaoError) {
+                console.error(`[CONSOLIDAÇÃO] ⚠️ Erro ao consolidar Capitão de Luxo:`, capitaoError.message);
             }
         });
         
