@@ -96,6 +96,7 @@ class AnalisadorBranches {
       prs: false,
       syncCheck: false,
       autoSync: false,
+      semMerge: false,
       ajuda: false
     };
 
@@ -122,6 +123,10 @@ class AnalisadorBranches {
         case '--auto-sync':
           opcoes.autoSync = true;
           opcoes.syncCheck = true;
+          break;
+        case '--sem-merge':
+        case '--unmerged':
+          opcoes.semMerge = true;
           break;
         case '--ajuda':
         case '--help':
@@ -151,6 +156,7 @@ ${cores.bright}Opções:${cores.reset}
   ${cores.verde}--prs${cores.reset}               Buscar info de Pull Requests do GitHub
   ${cores.verde}--sync-check${cores.reset}        Verificar sincronização Replit ↔ GitHub
   ${cores.verde}--auto-sync${cores.reset}         Sincronizar automaticamente branches atrasadas
+  ${cores.verde}--sem-merge${cores.reset}         Mostrar apenas branches sem merge (não mergeadas)
   ${cores.verde}--ajuda${cores.reset}             Mostrar esta mensagem
 
 ${cores.bright}Exemplos:${cores.reset}
@@ -171,6 +177,9 @@ ${cores.bright}Exemplos:${cores.reset}
 
   ${cores.cinza}# Branches pendentes com detalhes${cores.reset}
   node scripts/analisar-branches-github.js --status pendente --detalhes
+
+  ${cores.cinza}# Branches sem merge (não mergeadas)${cores.reset}
+  node scripts/analisar-branches-github.js --sem-merge
 
   ${cores.cinza}# Branches da última semana${cores.reset}
   node scripts/analisar-branches-github.js --desde $(date -d '7 days ago' +%Y-%m-%d)
@@ -818,6 +827,13 @@ ${cores.bright}Exemplos:${cores.reset}
       );
       console.log(`${cores.amarelo}🔍 Filtro de status: ${statusFiltro}${cores.reset}`);
       console.log(`${cores.verde}✓ ${branchesFiltradas.length} branches encontradas${cores.reset}\n`);
+    }
+
+    // Filtrar por branches sem merge se solicitado
+    if (this.opcoes.semMerge) {
+      branchesFiltradas = branchesFiltradas.filter(b => !b.mergeada);
+      console.log(`${cores.amarelo}🔍 Filtro: Apenas branches sem merge${cores.reset}`);
+      console.log(`${cores.verde}✓ ${branchesFiltradas.length} branches não mergeadas${cores.reset}\n`);
     }
 
     // Ordenar por data (mais recentes primeiro)

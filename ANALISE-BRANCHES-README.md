@@ -7,6 +7,7 @@
 - 🔄 Verificação de sincronização local vs. remoto
 - ⚠️ Alertas de branches desatualizadas
 - 🔗 Links diretos para PRs no GitHub
+- 🆕 Filtro para branches sem merge
 
 ## ⚡ Uso Rápido (Recomendado)
 
@@ -27,6 +28,9 @@ Use o script quick start para os casos mais comuns:
 
 # Branches em desenvolvimento
 ./quick-start-branches.sh ativas
+
+# 🆕 Branches sem merge (não mergeadas)
+./quick-start-branches.sh sem-merge
 
 # 🆕 Com informações de Pull Requests
 ./quick-start-branches.sh prs
@@ -52,8 +56,9 @@ node scripts/analisar-branches-github.js [opções]
 # Exemplos
 node scripts/analisar-branches-github.js --desde 2026-01-01 --ate 2026-01-31
 node scripts/analisar-branches-github.js --status pendente --detalhes
-node scripts/analisar-branches-github.js --prs                    # 🆕 Com PRs
-node scripts/analisar-branches-github.js --sync-check             # 🆕 Sincronização
+node scripts/analisar-branches-github.js --sem-merge                # 🆕 Branches sem merge
+node scripts/analisar-branches-github.js --prs                      # 🆕 Com PRs
+node scripts/analisar-branches-github.js --sync-check               # 🆕 Sincronização
 node scripts/analisar-branches-github.js --ajuda
 ```
 
@@ -119,6 +124,7 @@ Veja [docs/SKILL-ANALISE-BRANCHES.md](docs/SKILL-ANALISE-BRANCHES.md) para docum
 | `--ate <data>` | Filtrar branches até uma data | `--ate 2026-01-31` |
 | `--status <tipo>` | Filtrar por status específico | `--status pendente` |
 | `--detalhes` | Mostrar commits de cada branch | `--detalhes` |
+| `--sem-merge` | 🆕 Filtrar apenas branches sem merge | `--sem-merge` |
 | `--prs` | 🆕 Buscar info de Pull Requests | `--prs` |
 | `--sync-check` | 🆕 Verificar sincronização | `--sync-check` |
 | `--ajuda` | Mostrar ajuda completa | `--ajuda` |

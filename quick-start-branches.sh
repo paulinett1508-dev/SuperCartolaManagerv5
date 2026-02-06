@@ -56,6 +56,11 @@ case "$1" in
             "node scripts/analisar-branches-github.js --status desenvolvimento --detalhes"
         ;;
     
+    "sem-merge")
+        run_analysis "⚠️  Branches sem merge (não mergeadas)" \
+            "node scripts/analisar-branches-github.js --sem-merge"
+        ;;
+    
     "stats")
         run_analysis "📊 Estatísticas gerais" \
             "node scripts/analisar-branches-github.js | tail -20"
@@ -91,6 +96,7 @@ case "$1" in
         echo "  mes        - Branches do mês atual"
         echo "  pendentes  - Branches pendentes (com detalhes)"
         echo "  ativas     - Branches em desenvolvimento"
+        echo "  sem-merge  - Branches sem merge (não mergeadas)"
         echo "  prs        - Incluir informações de Pull Requests"
         echo "  sync       - Verificar sincronização Replit ↔ GitHub"
         echo "  auto-sync  - Sincronizar automaticamente branches atrasadas"
@@ -101,6 +107,7 @@ case "$1" in
         echo "  ./quick-start-branches.sh ontem"
         echo "  ./quick-start-branches.sh hoje"
         echo "  ./quick-start-branches.sh semana"
+        echo "  ./quick-start-branches.sh sem-merge"
         echo "  ./quick-start-branches.sh prs"
         echo "  ./quick-start-branches.sh sync"
         echo "  ./quick-start-branches.sh auto-sync"
