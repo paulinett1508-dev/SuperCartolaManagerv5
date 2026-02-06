@@ -52,7 +52,7 @@ export async function inicializar({
 
     try {
         // 1. Inicializar calendário
-        const calendarInfo = await CalendarModule.inicializar(temporada, rodada);
+        const calendarInfo = await CalendarModule.inicializarCalendario(temporada, rodada);
 
         if (calendarInfo.disponivel) {
             estadoPolling.calendarioDisponivel = true;
@@ -100,7 +100,7 @@ export async function inicializar({
             estadoPolling.calendarioDisponivel = false;
 
             // Verificar se mercado está fechado (bola rolando)
-            const parciaisInfo = await ParciaisModule.inicializar(ligaId, timeId);
+            const parciaisInfo = await ParciaisModule.inicializarParciais(ligaId, timeId);
 
             if (parciaisInfo && parciaisInfo.disponivel && parciaisInfo.bolaRolando) {
                 await ativarPolling();
@@ -196,7 +196,7 @@ function iniciarVerificacaoCalendario() {
 
     if (window.Log) Log.info("[POLLING] 🔄 Iniciando verificação periódica do calendário...");
 
-    CalendarModule.iniciarVerificacao(
+    CalendarModule.iniciarVerificacaoPeriodica(
         estadoPolling.temporada,
         estadoPolling.rodada,
         (statusCalendario) => {
@@ -232,7 +232,7 @@ function iniciarVerificacaoCalendario() {
 function pararVerificacaoCalendario() {
     if (!estadoPolling.verificacaoCalendarioAtiva) return;
 
-    CalendarModule.pararVerificacao();
+    CalendarModule.pararVerificacaoPeriodica();
     estadoPolling.verificacaoCalendarioAtiva = false;
 
     if (window.Log) Log.info("[POLLING] ⏹️ Verificação do calendário parada");
@@ -294,7 +294,7 @@ export function status() {
         calendarioDisponivel: estadoPolling.calendarioDisponivel,
         temporada: estadoPolling.temporada,
         rodada: estadoPolling.rodada,
-        proximoJogo: CalendarModule.proximoJogo(),
+        proximoJogo: CalendarModule.obterProximoJogo(),
     };
 }
 

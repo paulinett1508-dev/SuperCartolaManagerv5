@@ -8,6 +8,12 @@ import ModuleConfig from "../models/ModuleConfig.js";
 import axios from "axios";
 import { hasAccessToLiga } from "../middleware/tenant.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
+import { readFile } from "fs/promises";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const safeAggregate = async (model, pipeline, label) => {
   try {
@@ -879,6 +885,113 @@ const mapearModuloId = (moduloFrontend) => {
   return mapeamento[moduloFrontend] || moduloFrontend;
 };
 
+/**
+ * Busca regras financeiras de um módulo específico
+ * Prioridade: 1) Override em ModuleConfig, 2) Regras default do JSON
+ * GET /api/ligas/:id/modulos/:moduloId/regras
+ */
+const buscarRegrasModulo = async (req, res) => {
+  try {
+    const { id: ligaId, moduloId } = req.params;
+    const { temporada = CURRENT_SEASON } = req.query;
+
+    // Validar liga ID
+    if (!mongoose.Types.ObjectId.isValid(ligaId)) {
+      return res.status(400).json({ erro: "ID de liga inválido" });
+    }
+
+    // Verificar se liga existe
+    const liga = await Liga.findById(ligaId).lean();
+    if (!liga) {
+      return res.status(404).json({ erro: "Liga não encontrada" });
+    }
+
+    // Mapear módulo ID (frontend → backend)
+    const moduloBackend = mapearModuloId(moduloId);
+
+    // Buscar configuração override no ModuleConfig
+    const config = await ModuleConfig.buscarConfig(ligaId, moduloBackend, temporada);
+
+    let valoresFinanceiros = null;
+    let calendario = null;
+    let fonte = "default";
+
+    // 1️⃣ Se tem override, usar override
+    if (config?.financeiro_override) {
+      const override = config.financeiro_override;
+      
+      if (override.valores_por_fase) {
+        valoresFinanceiros = override.valores_por_fase;
+        fonte = "override_fase";
+      } else if (override.valores_por_posicao) {
+        valoresFinanceiros = override.valores_por_posicao;
+        fonte = "override_posicao";
+      } else if (override.valores_simples) {
+        valoresFinanceiros = override.valores_simples;
+        fonte = "override_simples";
+      }
+
+      if (config.calendario_override?.length > 0) {
+        calendario = config.calendario_override;
+      }
+    }
+
+    // 2️⃣ Se não tem override, buscar regras default do JSON
+    if (!valoresFinanceiros) {
+      try {
+        const rulesPath = join(__dirname, "..", "config", "rules", `${moduloBackend}.json`);
+        const rulesContent = await readFile(rulesPath, "utf-8");
+        const rulesData = JSON.parse(rulesContent);
+
+        // Extrair valores financeiros baseado na estrutura do JSON
+        if (rulesData.financeiro) {
+          // Para módulos com valores por liga (top_10, artilheiro, etc)
+          const ligaIdStr = String(ligaId);
+          
+          // Tentar buscar valores específicos da liga primeiro
+          if (rulesData.financeiro[ligaIdStr]) {
+            valoresFinanceiros = rulesData.financeiro[ligaIdStr];
+          } else {
+            // Fallback: pegar primeira liga disponível ou estrutura geral
+            const primeiraLiga = Object.values(rulesData.financeiro)[0];
+            valoresFinanceiros = primeiraLiga || rulesData.financeiro;
+          }
+        }
+
+        // Calendário default
+        if (rulesData.calendario?.edicoes) {
+          calendario = rulesData.calendario.edicoes;
+        }
+
+        fonte = "json_default";
+      } catch (error) {
+        console.error(`[LIGAS] Erro ao carregar regras default para ${moduloBackend}:`, error.message);
+        // Se não encontrou JSON, retornar sem valores
+        valoresFinanceiros = null;
+      }
+    }
+
+    // Resposta
+    res.json({
+      success: true,
+      modulo: moduloId,
+      moduloBackend,
+      temporada: Number(temporada),
+      fonte,
+      ativo: config?.ativo || false,
+      valores: valoresFinanceiros,
+      calendario,
+      configuracao: {
+        possui_override: !!config?.financeiro_override,
+        data_ativacao: config?.ativado_em || null,
+      }
+    });
+  } catch (err) {
+    console.error("[LIGAS] Erro ao buscar regras do módulo:", err);
+    res.status(500).json({ erro: "Erro ao buscar regras do módulo" });
+  }
+};
+
 const atualizarModulosAtivos = async (req, res) => {
   const ligaIdParam = req.params.id;
   const { modulos } = req.body;
@@ -1152,6 +1265,7 @@ export {
   buscarCartoleiroPorId,
   buscarModulosAtivos,
   atualizarModulosAtivos,
+  buscarRegrasModulo,
   sincronizarParticipantesLiga,
   sincronizarTodasLigas,
   buscarConfiguracoes,

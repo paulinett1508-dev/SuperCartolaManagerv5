@@ -716,7 +716,7 @@ export class FluxoFinanceiroUI {
                 <table class="fluxo-participantes-tabela tabela-financeira" style="border-collapse: separate; border-spacing: 0;">
                     <thead style="position: sticky; top: 0; z-index: 100;">
                         ${temporadaNum >= 2026 ? `
-                        <!-- Header Pré-Temporada 2026: Colunas simplificadas de inscrição -->
+                        <!-- Header Temporada Atual (>= 2026): Colunas simplificadas de inscrição -->
                         <tr>
                             <th class="col-num">#</th>
                             <th class="col-participante sortable" onclick="window.ordenarTabelaFinanceiro('nome')" data-sort="nome">
@@ -734,7 +734,7 @@ export class FluxoFinanceiroUI {
                             <th class="col-acoes">Ações</th>
                         </tr>
                         ` : `
-                        <!-- Header Histórico 2025: Colunas de módulos -->
+                        <!-- Header Histórico (< 2026): Colunas de módulos -->
                         <tr>
                             <th class="col-num">#</th>
                             <th class="col-participante sortable" onclick="window.ordenarTabelaFinanceiro('nome')" data-sort="nome">
@@ -743,13 +743,13 @@ export class FluxoFinanceiroUI {
                             <th class="col-time-coracao" title="Time do Coração">
                                 <span class="material-icons" style="font-size: 16px;">favorite</span>
                             </th>
-                            ${this._modulosAtivos?.banco !== false ? '<th class="col-modulo">Timeline</th>' : ''}
-                            ${this._modulosAtivos?.pontosCorridos ? '<th class="col-modulo">P.Corridos</th>' : ''}
-                            ${this._modulosAtivos?.mataMata ? '<th class="col-modulo">Mata-Mata</th>' : ''}
-                            ${this._modulosAtivos?.top10 ? '<th class="col-modulo">Top 10</th>' : ''}
-                            ${this._modulosAtivos?.melhorMes ? '<th class="col-modulo">Melhor Mês</th>' : ''}
-                            ${this._modulosAtivos?.artilheiro ? '<th class="col-modulo">Artilheiro</th>' : ''}
-                            ${this._modulosAtivos?.luvaOuro ? '<th class="col-modulo">Luva Ouro</th>' : ''}
+                            ${this._modulosAtivos?.banco !== false ? '<th class="col-modulo" data-modulo="banco">Timeline</th>' : ''}
+                            ${this._modulosAtivos?.pontosCorridos ? '<th class="col-modulo" data-modulo="pontosCorridos">P.Corridos</th>' : ''}
+                            ${this._modulosAtivos?.mataMata ? '<th class="col-modulo" data-modulo="mataMata">Mata-Mata</th>' : ''}
+                            ${this._modulosAtivos?.top10 ? '<th class="col-modulo" data-modulo="top10">Top 10</th>' : ''}
+                            ${this._modulosAtivos?.melhorMes ? '<th class="col-modulo" data-modulo="melhorMes">Melhor Mês</th>' : ''}
+                            ${this._modulosAtivos?.artilheiro ? '<th class="col-modulo" data-modulo="artilheiro">Artilheiro</th>' : ''}
+                            ${this._modulosAtivos?.luvaOuro ? '<th class="col-modulo" data-modulo="luvaOuro">Luva Ouro</th>' : ''}
                             <th class="col-modulo">Aj. Manuais</th>
                             <th class="col-modulo">Acertos</th>
                             <th class="col-saldo sortable" onclick="window.ordenarTabelaFinanceiro('saldo')" data-sort="saldo">
@@ -794,6 +794,11 @@ export class FluxoFinanceiroUI {
 
         // ✅ v5.1: Forçar CSS sticky nativo (sem workaround de clone)
         this._aplicarStickyHeader();
+
+        // ✅ NOVO: Anexar tooltips de regras financeiras aos headers de módulos
+        if (temporadaNum < 2026) {
+            this._anexarTooltipsRegrasFinanceiras(ligaId);
+        }
     }
 
     /**
@@ -933,6 +938,43 @@ export class FluxoFinanceiroUI {
 
             console.log(`[FluxoFinanceiroUI] Sticky header v9.0 (fixed) - altura container: ${altura}px`);
         }, 200);
+    }
+
+    /**
+     * ✅ NOVO v10.0: Anexa tooltips de regras financeiras aos headers de módulos
+     * Usa o componente TooltipRegrasFinanceiras para exibir valores configurados
+     */
+    async _anexarTooltipsRegrasFinanceiras(ligaId) {
+        // Verificar se componente está disponível
+        if (!window.TooltipRegrasFinanceiras) {
+            console.warn('[FLUXO-UI] TooltipRegrasFinanceiras não disponível');
+            return;
+        }
+
+        try {
+            // Módulos que têm regras financeiras relevantes
+            const modulosComRegras = ['pontosCorridos', 'mataMata', 'top10', 'melhorMes', 'artilheiro', 'luvaOuro'];
+            
+            // Buscar todos os headers com data-modulo
+            const headers = document.querySelectorAll('.fluxo-participantes-tabela th[data-modulo]');
+            
+            for (const header of headers) {
+                const modulo = header.getAttribute('data-modulo');
+                
+                // Apenas anexar tooltip se o módulo tiver regras financeiras
+                if (!modulosComRegras.includes(modulo)) {
+                    continue;
+                }
+
+                // Criar instância do tooltip e anexar
+                const tooltip = new TooltipRegrasFinanceiras();
+                await tooltip.anexarAoElemento(header, ligaId, modulo);
+            }
+
+            console.log('[FLUXO-UI] Tooltips de regras financeiras anexados');
+        } catch (error) {
+            console.error('[FLUXO-UI] Erro ao anexar tooltips:', error);
+        }
     }
 
     /**

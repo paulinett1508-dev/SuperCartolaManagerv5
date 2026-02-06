@@ -19,6 +19,7 @@ import {
   buscarCartoleiroPorId,
   buscarModulosAtivos,
   atualizarModulosAtivos,
+  buscarRegrasModulo,
   sincronizarParticipantesLiga,
   sincronizarTodasLigas,
   buscarConfiguracoes,
@@ -697,6 +698,9 @@ router.get("/:id/rodadas/:rodadaNum", buscarRodadasDaLiga);
 // Rota de módulos ativos
 router.get("/:id/modulos-ativos", buscarModulosAtivos);
 router.put("/:id/modulos-ativos", verificarAdmin, atualizarModulosAtivos);
+
+// Rota de regras financeiras de módulos (para tooltips)
+router.get("/:id/modulos/:moduloId/regras", buscarRegrasModulo);
 
 // =====================================================================
 // ✅ v2.0: ROTAS DE CONFIGURAÇÕES DINÂMICAS (SaaS Multi-Tenant)

@@ -22,7 +22,7 @@
 class AdminTesouraria {
     constructor() {
         this.ligaId = null;
-        this.season = '2025';
+        this.season = '2026';
         this.participantes = [];
         this.filtroStatus = 'todos';
         this.container = null;
@@ -75,9 +75,9 @@ class AdminTesouraria {
      * Renderiza o modulo de tesouraria
      * @param {string} containerId - ID do container HTML
      * @param {string} ligaId - ID da liga
-     * @param {string} season - Temporada (default: 2025)
+     * @param {string} season - Temporada (default: 2026)
      */
-    async render(containerId, ligaId, season = '2025') {
+    async render(containerId, ligaId, season = '2026') {
         this.container = document.getElementById(containerId.replace('#', ''));
         this.ligaId = ligaId;
         this.season = season;
@@ -134,8 +134,8 @@ class AdminTesouraria {
                         <div class="filter-group">
                             <label>Temporada</label>
                             <select id="filtro-temporada" onchange="adminTesouraria.mudarTemporada(this.value)">
-                                <option value="2025" ${this.season === '2025' ? 'selected' : ''}>2025</option>
-                                <option value="2026" ${this.season === '2026' ? 'selected' : ''}>2026</option>
+                                <option value="2025" ${this.season === '2025' ? 'selected' : ''}>2025 (Aposentada)</option>
+                                <option value="2026" ${this.season === '2026' ? 'selected' : ''}>2026 (Atual)</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -402,6 +402,9 @@ class AdminTesouraria {
                 ${dadosFiltrados.map(p => this._renderLinha(p)).join('')}
             </div>
         `;
+
+        // ✅ NOVO: Anexar tooltips aos badges de módulos
+        this._anexarTooltipsBadges();
     }
 
     /**
@@ -510,7 +513,7 @@ class AdminTesouraria {
             const valorFormatado = this._formatarValorBadge(valor);
 
             badges.push(`
-                <div class="badge-financeiro ${colorClass}" title="${config.label}: R$ ${valor.toFixed(2).replace('.', ',')}">
+                <div class="badge-financeiro ${colorClass}" data-modulo="${modulo}" title="${config.label}: R$ ${valor.toFixed(2).replace('.', ',')}">
                     <span class="material-icons badge-icon">${config.icon}</span>
                     <span class="badge-valor">${valorFormatado}</span>
                 </div>
@@ -536,6 +539,43 @@ class AdminTesouraria {
             return `${sinal}${(abs / 1000).toFixed(1)}k`;
         }
         return `${sinal}${abs.toFixed(0)}`;
+    }
+
+    /**
+     * ✅ NOVO v2.5: Anexa tooltips de regras financeiras aos badges
+     * Usa o componente TooltipRegrasFinanceiras para exibir valores configurados
+     */
+    async _anexarTooltipsBadges() {
+        // Verificar se componente está disponível
+        if (!window.TooltipRegrasFinanceiras) {
+            console.warn('[TESOURARIA] TooltipRegrasFinanceiras não disponível');
+            return;
+        }
+
+        try {
+            // Módulos que têm regras financeiras relevantes (excluir 'campos' e 'acertos')
+            const modulosComRegras = ['pontosCorridos', 'mataMata', 'top10', 'melhorMes', 'artilheiro', 'luvaOuro'];
+            
+            // Buscar todos os badges com data-modulo
+            const badges = document.querySelectorAll('.badge-financeiro[data-modulo]');
+            
+            for (const badge of badges) {
+                const modulo = badge.getAttribute('data-modulo');
+                
+                // Apenas anexar tooltip se o módulo tiver regras financeiras
+                if (!modulosComRegras.includes(modulo)) {
+                    continue;
+                }
+
+                // Criar instância do tooltip e anexar
+                const tooltip = new TooltipRegrasFinanceiras();
+                await tooltip.anexarAoElemento(badge, this.ligaId, modulo, this.season);
+            }
+
+            console.log('[TESOURARIA] Tooltips de regras financeiras anexados aos badges');
+        } catch (error) {
+            console.error('[TESOURARIA] Erro ao anexar tooltips:', error);
+        }
     }
 
     /**
