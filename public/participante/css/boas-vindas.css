@@ -6,25 +6,26 @@
 /* =====================================================================
    DESIGN TOKENS
    ===================================================================== */
+/* --bv-* tokens redirecionados para --app-* (fonte única de verdade em _app-tokens.css) */
 :root {
-    --bv-primary: #ff5c00;
-    --bv-primary-light: rgba(255, 92, 0, 0.1);
-    --bv-primary-border: rgba(255, 92, 0, 0.2);
-    --bv-background: #101010;
-    --bv-surface: #1c1c1c;
+    --bv-primary: var(--app-primary);
+    --bv-primary-light: var(--app-primary-muted);
+    --bv-primary-border: var(--app-primary-border);
+    --bv-background: var(--app-bg);
+    --bv-surface: var(--app-surface-elevated);
     --bv-surface-light: #2a2a2a;
-    --bv-text-primary: #ffffff;
+    --bv-text-primary: var(--app-text-primary);
     --bv-text-secondary: rgba(255, 255, 255, 0.7);
-    --bv-text-muted: rgba(255, 255, 255, 0.5);
-    --bv-success: #22c55e;
-    --bv-success-bg: rgba(34, 197, 94, 0.1);
-    --bv-danger: #ef4444;
-    --bv-danger-bg: rgba(239, 68, 68, 0.1);
-    --bv-warning: #eab308;
-    --bv-warning-bg: rgba(234, 179, 8, 0.1);
-    --bv-radius: 16px;
-    --bv-radius-sm: 12px;
-    --bv-radius-full: 50px;
+    --bv-text-muted: var(--app-text-muted);
+    --bv-success: var(--app-success-light);
+    --bv-success-bg: var(--app-success-muted);
+    --bv-danger: var(--app-danger);
+    --bv-danger-bg: var(--app-danger-muted);
+    --bv-warning: var(--app-warning);
+    --bv-warning-bg: var(--app-warning-muted);
+    --bv-radius: var(--app-radius-xl);
+    --bv-radius-sm: var(--app-radius-lg);
+    --bv-radius-full: var(--app-radius-full);
 }
 
 /* =====================================================================

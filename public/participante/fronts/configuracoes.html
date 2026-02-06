@@ -76,7 +76,7 @@
     }
 
     #paginaConfiguracoes {
-        font-family: 'Inter', -apple-system, sans-serif;
+        font-family: var(--app-font-base);
     }
 
     /* Header */
@@ -85,7 +85,7 @@
     }
 
     .config-page-title {
-        font-family: 'Russo One', sans-serif;
+        font-family: var(--app-font-brand);
         font-size: 24px;
         color: var(--config-text-white);
         margin: 0;
@@ -102,7 +102,7 @@
 
     /* Section Title */
     .config-section-title {
-        font-family: 'Russo One', sans-serif;
+        font-family: var(--app-font-brand);
         font-size: 13px;
         color: var(--config-text-muted);
         text-transform: uppercase;
@@ -504,7 +504,7 @@
     }
 
     .footer-brand .brand-name {
-        font-family: 'Russo One', sans-serif;
+        font-family: var(--app-font-brand);
         font-size: 14px;
         color: var(--config-orange);
     }
@@ -535,7 +535,7 @@
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         opacity: 0;
         transition: all 0.3s ease;
-        z-index: 9999;
+        z-index: var(--app-z-toast);
     }
 
     .notification-toast.show {

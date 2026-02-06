@@ -27,10 +27,10 @@
 }
 
 .campinho-title-block h1 {
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand);
     font-size: 28px;
     margin: 0;
-    color: #fff;
+    color: var(--app-text-white, #fff);
 }
 
 .campinho-title-row {
@@ -40,7 +40,7 @@
 }
 
 .campinho-formation {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--app-font-mono);
     font-size: 14px;
     padding: 2px 10px;
     border-radius: 999px;
@@ -71,7 +71,7 @@
 
 .campinho-market-pill {
     background: var(--app-primary);
-    color: #fff;
+    color: var(--app-text-white, #fff);
     padding: 6px 18px;
     border-radius: 999px;
     font-size: 12px;
@@ -106,8 +106,8 @@
     display: block;
     font-size: 18px;
     margin-top: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    color: #fff;
+    font-family: var(--app-font-mono);
+    color: var(--app-text-white, #fff);
 }
 
 .campinho-screen-body {
@@ -148,8 +148,8 @@
 
 .campinho-points strong {
     font-size: 20px;
-    font-family: 'JetBrains Mono', monospace;
-    color: #fff;
+    font-family: var(--app-font-mono);
+    color: var(--app-text-white, #fff);
 }
 
 .campinho-counter {
@@ -162,8 +162,8 @@
 
 .campinho-counter strong {
     font-size: 18px;
-    font-family: 'JetBrains Mono', monospace;
-    color: #22c55e;
+    font-family: var(--app-font-mono);
+    color: var(--app-success, #22c55e);
 }
 
 .campinho-lineup-panel {
@@ -204,9 +204,9 @@
 }
 
 .campinho-lineup-balance {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--app-font-mono);
     font-size: 18px;
-    color: #fff;
+    color: var(--app-text-white, #fff);
 }
 
 .campinho-lineup-body {
@@ -283,7 +283,7 @@
 
 .lineup-player-name {
     font-weight: 600;
-    color: #fff;
+    color: var(--app-text-white, #fff);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -315,7 +315,7 @@
 }
 
 .lineup-player-price {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--app-font-mono);
     font-size: 13px;
     color: rgba(255, 255, 255, 0.85);
     white-space: nowrap;
@@ -358,9 +358,9 @@
 }
 
 .campinho-header-info h2 {
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand);
     font-size: 18px;
-    color: #fff;
+    color: var(--app-text-white, #fff);
     margin: 0;
 }
 
@@ -375,10 +375,10 @@
 }
 
 .campinho-header-pontos .valor {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--app-font-mono);
     font-size: 28px;
     font-weight: 700;
-    color: #FF4500;
+    color: var(--app-primary);
 }
 
 .campinho-header-pontos .label {
@@ -559,7 +559,7 @@
     right: -4px;
     padding: 2px 5px;
     border-radius: 6px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--app-font-mono);
     font-size: 9px;
     font-weight: 700;
     background: rgba(0,0,0,0.9);
@@ -742,14 +742,14 @@
 }
 
 .campinho-confronto-header .material-icons {
-    color: #FF4500;
+    color: var(--app-primary);
     font-size: 20px;
 }
 
 .campinho-confronto-header span {
     font-size: 13px;
     font-weight: 600;
-    color: #fff;
+    color: var(--app-text-white, #fff);
 }
 
 .campinho-confronto-placar {
@@ -770,10 +770,10 @@
 }
 
 .campinho-confronto-time .pontos {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--app-font-mono);
     font-size: 24px;
     font-weight: 700;
-    color: #fff;
+    color: var(--app-text-white, #fff);
 }
 
 .campinho-confronto-vs {
@@ -865,7 +865,7 @@
     width: 48px;
     height: 48px;
     border: 4px solid rgba(255, 69, 0, 0.2);
-    border-top-color: #FF4500;
+    border-top-color: var(--app-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -898,7 +898,7 @@
 
 .campinho-empty h3 {
     font-size: 18px;
-    color: #fff;
+    color: var(--app-text-white, #fff);
     margin-bottom: 8px;
 }
 
