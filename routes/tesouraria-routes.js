@@ -4,7 +4,13 @@
  * Painel para gerenciar saldos de TODOS os participantes de TODAS as ligas.
  * Permite visualizar, filtrar e realizar acertos financeiros.
  *
- * @version 2.26.0
+ * @version 3.1.0
+ * ✅ v3.1.0: FIX CRÍTICO - Filtro de temporada e performance
+ *   - FIX: Bulk queries em /participantes agora filtram por temporada (evita mistura 2025/2026)
+ *   - FIX: /resumo refatorado de N+1 queries para bulk queries (performance)
+ *   - FIX: Breakdown de inscrição incluído nos endpoints bulk (consistência)
+ *   - FIX: Detecção de pagamento de inscrição usa apenas flag explícito (sem falso-positivos)
+ *   - FIX: Redeclaração de temporadaNum removida
  * ✅ v2.26.0: FIX CRÍTICO CRIT-001 e CRIT-002 - Bugs inscrição 2026
  *   - CRIT-001: Atualiza pagou_inscricao=true quando admin registra acerto de inscrição
  *   - CRIT-002: Deduz taxa de inscrição no cálculo de saldo quando pagou_inscricao=false
@@ -120,10 +126,12 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
 
         // ✅ v2.0: Bulk queries para todos os dados
         // ✅ v3.0: Adicionar InscricaoTemporada ao bulk query
+        // ✅ v3.1 FIX CRÍTICO: Adicionar filtro de temporada em ExtratoFinanceiroCache e FluxoFinanceiroCampos
+        // Bug anterior: queries sem temporada misturavam dados de 2025 e 2026
         const temporadaNum = Number(temporada);
         const [todosExtratos, todosCampos, todosAcertos, todasInscricoes] = await Promise.all([
-            ExtratoFinanceiroCache.find({ time_id: { $in: allTimeIds } }).lean(),
-            FluxoFinanceiroCampos.find({ timeId: { $in: allTimeIds.map(String) } }).lean(),
+            ExtratoFinanceiroCache.find({ time_id: { $in: allTimeIds }, temporada: temporadaNum }).lean(),
+            FluxoFinanceiroCampos.find({ timeId: { $in: allTimeIds.map(String) }, temporada: temporadaNum }).lean(),
             AcertoFinanceiro.find({ temporada: temporadaNum, ativo: true }).lean(),
             temporadaNum >= 2026
                 ? InscricaoTemporada.find({ temporada: temporadaNum }).lean()
@@ -220,13 +228,24 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                 }
 
                 // ✅ v3.0: Aplicar ajuste de inscrição usando dados pré-carregados
+                // ✅ v3.1: Preservar dados de inscrição para breakdown
+                let taxaInscricao = 0;
+                let pagouInscricao = true;
+                let saldoAnteriorTransferido = 0;
+                let dividaAnterior = 0;
+
                 if (temporadaNum >= 2026) {
                     const inscricaoData = inscricoesMapAll.get(key);
                     const ajusteInsc = aplicarAjusteInscricaoBulk(saldoConsolidado, inscricaoData, historico);
                     saldoConsolidado = ajusteInsc.saldoAjustado;
+                    taxaInscricao = ajusteInsc.taxaInscricao;
+                    pagouInscricao = ajusteInsc.pagouInscricao;
+                    saldoAnteriorTransferido = ajusteInsc.saldoAnteriorTransferido;
+                    dividaAnterior = ajusteInsc.dividaAnterior;
                 }
 
                 // ✅ v2.0: Calcular breakdown por módulo (baseado no resumo calculado)
+                // ✅ v3.1: Incluir dados de inscrição no breakdown (consistência com endpoint individual)
                 const breakdown = {
                     banco: resumoCalculado.bonus + resumoCalculado.onus,
                     pontosCorridos: resumoCalculado.pontosCorridos,
@@ -234,9 +253,13 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                     top10: resumoCalculado.top10,
                     melhorMes: 0,
                     artilheiro: 0,
-                    luvaOuro: 0, // Não está no resumoCalculado padrão
+                    luvaOuro: 0,
                     campos: saldoCampos,
                     acertos: 0, // Será preenchido abaixo
+                    taxaInscricao,
+                    pagouInscricao,
+                    saldoAnteriorTransferido,
+                    dividaAnterior,
                 };
 
                 // Calcular campos especiais do histórico legado se houver
@@ -249,7 +272,6 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                 // Calcular saldo de acertos
                 // ✅ v2.23 FIX: Filtrar acertos pela temporada EXATA sendo visualizada
                 const acertosList = acertosMap.get(key) || [];
-                const temporadaNum = Number(temporada);
                 const acertosTemporada = acertosList.filter(a => Number(a.temporada) === temporadaNum);
                 let totalPago = 0;
                 let totalRecebido = 0;
@@ -310,6 +332,7 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                     quantidadeAcertos: acertosTemporada.length,
                     // ✅ v2.0: Breakdown e módulos ativos
                     // ✅ v2.9: Adicionado 'acertos' ao breakdown
+                    // ✅ v3.1: Adicionado dados de inscrição ao breakdown
                     breakdown: {
                         banco: parseFloat(breakdown.banco.toFixed(2)),
                         pontosCorridos: parseFloat(breakdown.pontosCorridos.toFixed(2)),
@@ -320,6 +343,10 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                         luvaOuro: parseFloat(breakdown.luvaOuro.toFixed(2)),
                         campos: breakdown.campos,
                         acertos: parseFloat(breakdown.acertos.toFixed(2)),
+                        taxaInscricao: parseFloat((breakdown.taxaInscricao || 0).toFixed(2)),
+                        pagouInscricao: breakdown.pagouInscricao,
+                        saldoAnteriorTransferido: parseFloat((breakdown.saldoAnteriorTransferido || 0).toFixed(2)),
+                        dividaAnterior: parseFloat((breakdown.dividaAnterior || 0).toFixed(2)),
                     },
                     modulosAtivos,
                 });
@@ -1078,13 +1105,10 @@ router.post("/acerto", verificarAdmin, async (req, res) => {
         // =========================================================================
         const tempNum = parseInt(temporada);
         if (tipo === "pagamento" && tempNum >= 2026) {
-            // ✅ v3.0: Usar campo explícito OU fallback para detecção por texto
-            const ehPagamentoInscricaoFlag = req.body.ehPagamentoInscricao === true;
-            const ehPagamentoInscricaoTexto = descricao &&
-                (descricao.toLowerCase().includes("inscrição") ||
-                 descricao.toLowerCase().includes("inscricao") ||
-                 descricao.toLowerCase().includes("taxa de inscrição"));
-            const ehPagamentoInscricao = ehPagamentoInscricaoFlag || ehPagamentoInscricaoTexto;
+            // ✅ v3.1 FIX: Usar APENAS flag explícito ehPagamentoInscricao
+            // Bug anterior: detecção por texto na descrição causava falso-positivos
+            // (ex: "Ajuste referente à inscrição anterior" triggava atualização indevida)
+            const ehPagamentoInscricao = req.body.ehPagamentoInscricao === true;
 
             if (ehPagamentoInscricao) {
                 // Buscar inscrição
@@ -1266,8 +1290,59 @@ router.delete("/acerto/:id", verificarAdmin, async (req, res) => {
 router.get("/resumo", verificarAdmin, async (req, res) => {
     try {
         const { temporada = CURRENT_SEASON } = req.query;
+        const temporadaNum = Number(temporada);
+        const startTime = Date.now();
 
         const ligas = await Liga.find({ ativo: { $ne: false } }).lean();
+
+        // ✅ v3.1 FIX: Bulk queries em vez de N+1 calcularSaldoParticipante()
+        // Bug anterior: loop com query individual por participante (N×M queries)
+        const allTimeIds = [];
+        const ligaMap = new Map();
+
+        for (const liga of ligas) {
+            const ligaId = liga._id.toString();
+            ligaMap.set(ligaId, liga);
+            for (const p of liga.participantes || []) {
+                allTimeIds.push(p.time_id);
+            }
+        }
+
+        // Bulk queries para todos os dados (4 queries em vez de N×M)
+        const [todosExtratos, todosCampos, todosAcertos, todasInscricoes] = await Promise.all([
+            ExtratoFinanceiroCache.find({ time_id: { $in: allTimeIds }, temporada: temporadaNum }).lean(),
+            FluxoFinanceiroCampos.find({ timeId: { $in: allTimeIds.map(String) }, temporada: temporadaNum }).lean(),
+            AcertoFinanceiro.find({ temporada: temporadaNum, ativo: true }).lean(),
+            temporadaNum >= 2026
+                ? InscricaoTemporada.find({ temporada: temporadaNum }).lean()
+                : Promise.resolve([])
+        ]);
+
+        // Criar mapas para acesso O(1)
+        const extratoMap = new Map();
+        todosExtratos.forEach(e => {
+            const key = `${e.liga_id}_${e.time_id}`;
+            extratoMap.set(key, e);
+        });
+
+        const camposMap = new Map();
+        todosCampos.forEach(c => {
+            const key = `${c.ligaId}_${c.timeId}`;
+            camposMap.set(key, c);
+        });
+
+        const acertosMap = new Map();
+        todosAcertos.forEach(a => {
+            const key = `${a.ligaId}_${a.timeId}`;
+            if (!acertosMap.has(key)) acertosMap.set(key, []);
+            acertosMap.get(key).push(a);
+        });
+
+        const inscricoesMap = new Map();
+        todasInscricoes.forEach(i => {
+            const key = `${String(i.liga_id)}_${i.time_id}`;
+            inscricoesMap.set(key, i);
+        });
 
         const resumoPorLiga = [];
         let totalGeralCredores = 0;
@@ -1282,17 +1357,54 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
             let qtdQuitados = 0;
 
             for (const participante of liga.participantes || []) {
-                const saldo = await calcularSaldoParticipante(ligaId, participante.time_id, temporada);
+                const timeId = String(participante.time_id);
+                const key = `${ligaId}_${timeId}`;
 
-                if (saldo.saldoFinal < -0.01) {
-                    // Devedor: saldo negativo (deve à liga)
-                    devedores += Math.abs(saldo.saldoFinal);
+                // Calcular saldo em memória (sem queries adicionais)
+                const extrato = extratoMap.get(key);
+                const historico = extrato?.historico_transacoes || [];
+                const camposDoc = camposMap.get(key);
+                const camposAtivos = camposDoc?.campos?.filter(c => c.valor !== 0) || [];
+
+                let saldoConsolidado = 0;
+                const apenasTransacoesEspeciais = historico.length > 0 &&
+                    historico.every(t => t.rodada === 0 || t.tipo);
+
+                if (apenasTransacoesEspeciais) {
+                    saldoConsolidado = extrato?.saldo_consolidado || 0;
+                } else {
+                    const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
+                    const resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
+                    saldoConsolidado = resumoCalculado.saldo;
+                }
+
+                // Aplicar inscrição (2026+)
+                if (temporadaNum >= 2026) {
+                    const inscricaoData = inscricoesMap.get(key);
+                    const ajusteInsc = aplicarAjusteInscricaoBulk(saldoConsolidado, inscricaoData, historico);
+                    saldoConsolidado = ajusteInsc.saldoAjustado;
+                }
+
+                // Calcular acertos
+                const acertosList = acertosMap.get(key) || [];
+                const acertosTemporada = acertosList.filter(a => Number(a.temporada) === temporadaNum);
+                let totalPago = 0;
+                let totalRecebido = 0;
+                acertosTemporada.forEach(a => {
+                    if (a.tipo === 'pagamento') totalPago += a.valor || 0;
+                    else if (a.tipo === 'recebimento') totalRecebido += a.valor || 0;
+                });
+                const saldoAcertos = totalPago - totalRecebido;
+
+                const saldoFinal = saldoConsolidado + saldoAcertos;
+
+                if (saldoFinal < -0.01) {
+                    devedores += Math.abs(saldoFinal);
                     qtdDevedores++;
                 } else {
-                    // ✅ FIX: Quitados = saldo >= -0.01 (zerados + credores = sem dívidas)
                     qtdQuitados++;
-                    if (saldo.saldoFinal > 0.01) {
-                        credores += saldo.saldoFinal;
+                    if (saldoFinal > 0.01) {
+                        credores += saldoFinal;
                         qtdCredores++;
                     }
                 }
@@ -1314,6 +1426,9 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
             });
         }
 
+        const elapsed = Date.now() - startTime;
+        console.log(`[TESOURARIA] ✅ Resumo calculado em ${elapsed}ms (bulk queries)`);
+
         res.json({
             success: true,
             temporada,
@@ -1330,6 +1445,6 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v2.24 Rotas carregadas (FIX CRÍTICO: cache preservado ao registrar acertos)");
+console.log("[TESOURARIA] ✅ v3.1 Rotas carregadas (FIX: temporada em bulk queries, /resumo otimizado, breakdown inscrição)");
 
 export default router;

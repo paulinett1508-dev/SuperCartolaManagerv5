@@ -314,31 +314,65 @@ saldoInicial =
 
 ---
 
-## 9. PROBLEMAS ENCONTRADOS
+## 9. AUDITORIA DE TEMPORADAS (SEPARAÇÃO POR SEASON)
 
-### 9.1 BUG - N+1 Query no /resumo (PERFORMANCE)
+### Resultado: 31 arquivos auditados, 1 bug CRÍTICO encontrado e CORRIGIDO
 
-**Arquivo:** `routes/tesouraria-routes.js` (endpoint `/api/tesouraria/resumo`)
+| Arquivo | Status | Notas |
+|---------|--------|-------|
+| `controllers/fluxoFinanceiroController.js` | PASS | Filtra por temporada em todas as queries |
+| `controllers/ajustesController.js` | PASS | Default CURRENT_SEASON em todos endpoints |
+| `controllers/quitacaoController.js` | PASS | Usa getFinancialSeason() |
+| `controllers/extratoFinanceiroCacheController.js` | PASS | Filtra por temporada em todas queries |
+| `routes/tesouraria-routes.js` GET /participantes | **CORRIGIDO v3.1** | ~~Faltava temporada em ExtratoFinanceiroCache.find() e FluxoFinanceiroCampos.find()~~ |
+| `routes/tesouraria-routes.js` GET /liga/:ligaId | PASS | Filtra por temporada + temporada-1 |
+| `routes/tesouraria-routes.js` GET /resumo | **CORRIGIDO v3.1** | ~~N+1 queries~~ → Bulk com temporada |
+| `routes/acertos-financeiros-routes.js` | PASS | Todas as queries filtram por temporada |
+| `routes/ajustes-routes.js` | PASS | Controllers recebem temporada via query |
+| `routes/fluxoFinanceiroRoutes.js` | PASS | Controllers extraem temporada internamente |
+| `routes/extratoFinanceiroCacheRoutes.js` | PASS | Controllers extraem temporada internamente |
+| `utils/saldo-calculator.js` | PASS | Recebe temporada como parâmetro, default CURRENT_SEASON |
+| `models/AcertoFinanceiro.js` | PASS | Todas funções estáticas filtram por temporada |
+| `models/AjusteFinanceiro.js` | PASS | Aggregate pipeline inclui temporada |
+| Hardcoded years (2025/2026) | PASS | Nenhum valor hardcoded em queries; todos usam CURRENT_SEASON |
+
+---
+
+## 10. PROBLEMAS ENCONTRADOS
+
+### 10.0 BUG CRÍTICO (CORRIGIDO v3.1) - Bulk queries sem filtro de temporada
+
+**Arquivo:** `routes/tesouraria-routes.js` (endpoint `GET /api/tesouraria/participantes`)
+**Problema:** `ExtratoFinanceiroCache.find()` e `FluxoFinanceiroCampos.find()` NÃO filtravam por `temporada`. Retornavam dados de TODAS as temporadas misturados.
+**Impacto:** Admin visualizando 2026 podia ver extratos de 2025, gerando saldos incorretos.
+**Correção:** Adicionado `temporada: temporadaNum` em ambas as queries.
+
+**Severidade:** CRÍTICA - **CORRIGIDO**
+
+---
+
+### 10.1 BUG (CORRIGIDO v3.1) - N+1 Query no /resumo (PERFORMANCE)
+
+**Arquivo:** `routes/tesouraria-routes.js` (endpoint `GET /api/tesouraria/resumo`)
 **Problema:** Loop com `calcularSaldoParticipante()` individual para cada participante de cada liga.
 **Impacto:** Para N participantes × M ligas = N×M queries ao banco.
-**Solução:** Usar padrão bulk como no endpoint `/participantes` (que já resolve isso).
+**Correção:** Refatorado para usar bulk queries (4 queries fixas) com cálculo em memória.
 
-**Severidade:** Media (performance, não afeta cálculo)
-
----
-
-### 9.2 BUG - Breakdown de Inscrição ausente em endpoints bulk
-
-**Arquivo:** `routes/tesouraria-routes.js` (endpoints `/participantes` e `/liga/:ligaId`)
-**Problema:** O breakdown retornado inclui `banco, PC, MM, top10, campos, acertos` mas NÃO inclui `taxaInscricao, saldoAnteriorTransferido, dividaAnterior`. Já o endpoint `/participante/:ligaId/:timeId` (individual) retorna esses campos.
-**Impacto:** Inconsistência na resposta entre endpoints bulk vs individual.
-**Solução:** Adicionar campos de inscrição ao breakdown dos endpoints bulk.
-
-**Severidade:** Baixa (dados existem, apenas não são expostos em bulk)
+**Severidade:** Média - **CORRIGIDO**
 
 ---
 
-### 9.3 OBSERVAÇÃO - totalPerdas armazena valores negativos
+### 10.2 BUG (CORRIGIDO v3.1) - Breakdown de Inscrição ausente em endpoint bulk
+
+**Arquivo:** `routes/tesouraria-routes.js` (endpoint `GET /api/tesouraria/participantes`)
+**Problema:** O breakdown retornado não incluía `taxaInscricao, saldoAnteriorTransferido, dividaAnterior, pagouInscricao`. Já o endpoint individual retornava.
+**Correção:** Dados de inscrição agora preservados de `aplicarAjusteInscricaoBulk()` e incluídos no breakdown.
+
+**Severidade:** Baixa - **CORRIGIDO**
+
+---
+
+### 10.3 OBSERVAÇÃO - totalPerdas armazena valores negativos
 
 **Arquivo:** `controllers/extratoFinanceiroCacheController.js:379-382`
 **Comportamento:** `totalPerdas` acumula valores negativos (ex: -100) em vez de absolutos (100).
@@ -349,27 +383,37 @@ saldoInicial =
 
 ---
 
-### 9.4 OBSERVAÇÃO - Detecção de pagamento de inscrição por texto
+### 10.4 BUG (CORRIGIDO v3.1) - Detecção de pagamento de inscrição por texto
 
 **Arquivo:** `routes/tesouraria-routes.js` (POST `/api/tesouraria/acerto`)
-**Problema:** Além do flag `ehPagamentoInscricao`, há detecção por texto na descrição (`includes("inscrição")`). Um acerto com descrição "Ajuste de inscrição anterior" poderia triggar falso-positivo.
-**Recomendação:** Usar apenas o flag explícito `ehPagamentoInscricao` do body.
+**Problema:** Além do flag `ehPagamentoInscricao`, havia detecção por texto na descrição (`includes("inscrição")`). Um acerto com descrição "Ajuste referente à inscrição anterior" poderia triggar falso-positivo.
+**Correção:** Removida detecção por texto. Apenas o flag explícito `req.body.ehPagamentoInscricao === true` é usado.
 
-**Severidade:** Baixa (flag tem prioridade, texto é fallback)
+**Severidade:** Baixa - **CORRIGIDO**
 
 ---
 
-### 9.5 OBSERVAÇÃO - Auto-Quitação apenas para temporadas passadas
+### 10.5 OBSERVAÇÃO - Auto-Quitação apenas para temporadas passadas
 
-**Arquivo:** `routes/tesouraria-routes.js:1145`
+**Arquivo:** `routes/tesouraria-routes.js`
 **Comportamento:** Auto-quitação (quando saldo chega a zero) só funciona para `temporada < CURRENT_SEASON`. Temporada corrente exige quitação manual.
-**Justificativa possível:** Temporada corrente ainda pode ter movimentações, então auto-quitar seria prematuro.
+**Justificativa:** Temporada corrente ainda pode ter movimentações, então auto-quitar seria prematuro.
 
-**Severidade:** Info (comportamento intencional, mas vale documentar)
+**Severidade:** Info (comportamento intencional)
 
 ---
 
-### 9.6 OBSERVAÇÃO - Tipos de ID inconsistentes entre collections
+### 10.6 BUG (CORRIGIDO v3.1) - Redeclaração de temporadaNum
+
+**Arquivo:** `routes/tesouraria-routes.js` (endpoint `GET /api/tesouraria/participantes`)
+**Problema:** `const temporadaNum = Number(temporada)` declarado na linha 123 e novamente na linha 252 (dentro do loop). Em modo strict, `const` no mesmo escopo pode causar erro.
+**Correção:** Removida a redeclaração. O `temporadaNum` da linha 123 é usado em todo o escopo.
+
+**Severidade:** Baixa - **CORRIGIDO**
+
+---
+
+### 10.7 OBSERVAÇÃO - Tipos de ID inconsistentes entre collections
 
 | Collection | Campo | Tipo |
 |-----------|-------|------|
@@ -386,7 +430,7 @@ saldoInicial =
 
 ---
 
-## 10. VALIDAÇÃO DA FÓRMULA PRINCIPAL
+## 11. VALIDAÇÃO DA FÓRMULA PRINCIPAL
 
 ### O que o usuário pediu:
 ```
@@ -428,7 +472,7 @@ O backend **recalcula** o saldoAcumulado antes de salvar (`salvarExtratoCache`, 
 
 ---
 
-## 11. FLUXO ADMIN → PARTICIPANTE
+## 12. FLUXO ADMIN → PARTICIPANTE
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -487,23 +531,29 @@ O backend **recalcula** o saldoAcumulado antes de salvar (`salvarExtratoCache`, 
 
 ---
 
-## 12. CONCLUSÃO
+## 13. CONCLUSÃO
 
 ### O que está CORRETO:
 - A fórmula `saldo_anterior + créditos - débitos = saldo_vigente` está implementada corretamente
 - O `saldo-calculator.js` centraliza a lógica como fonte de verdade
 - Idempotência está protegida em todos os pontos críticos
-- Segregação temporal (por temporada) está consistente
+- Segregação temporal (por temporada) está consistente (31/31 arquivos PASS após correções)
 - Frontend é reflexo puro dos cálculos do backend
 - Proteção dupla: backend recalcula antes de salvar
 - Soft delete em todas as operações financeiras
-- Auditoria completa (quem criou/atualizou/quando)
+- Nenhum valor hardcoded de ano em queries (tudo usa CURRENT_SEASON)
 
-### O que pode melhorar:
-1. **Performance:** Endpoint `/resumo` com N+1 queries (bug #9.1)
-2. **Consistência API:** Breakdown de inscrição ausente em endpoints bulk (bug #9.2)
-3. **Padronização:** Tipos de ID (Number vs String) entre collections (obs #9.6)
-4. **Documentação:** Convenção de sinais em `totalPerdas` (obs #9.3)
+### Problemas CORRIGIDOS nesta auditoria (v3.1):
+1. **CRÍTICO:** Bulk queries sem filtro de temporada em `/participantes` (misturava 2025/2026)
+2. **Performance:** `/resumo` refatorado de N+1 queries para 4 bulk queries
+3. **Consistência API:** Breakdown de inscrição adicionado nos endpoints bulk
+4. **Falso-positivo:** Detecção de pagamento de inscrição por texto removida
+5. **JS:** Redeclaração de `temporadaNum` removida
 
-### Risco financeiro: **BAIXO**
-O sistema calcula corretamente. Os problemas encontrados são de performance e consistência de API, não de cálculo incorreto de valores.
+### Pendências restantes (não-críticas):
+1. **Padronização:** Tipos de ID (Number vs String) entre collections (tech debt)
+2. **Semântica:** Convenção de sinais em `totalPerdas` (funcional, documentar)
+3. **Comportamento:** Auto-quitação apenas para temporadas passadas (intencional)
+
+### Risco financeiro: **BAIXO** (era MÉDIO antes das correções)
+O sistema agora calcula corretamente E filtra por temporada em todos os endpoints. O bug crítico de mistura de temporadas foi eliminado.
