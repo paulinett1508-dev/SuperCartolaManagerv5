@@ -70,7 +70,7 @@
 }
 
 .campinho-market-pill {
-    background: #ff4500;
+    background: var(--app-primary);
     color: #fff;
     padding: 6px 18px;
     border-radius: 999px;

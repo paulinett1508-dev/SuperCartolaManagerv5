@@ -215,8 +215,8 @@
 }
 
 .nav-sheet-close {
-    width: 36px;
-    height: 36px;
+    width: var(--app-touch-target);
+    height: var(--app-touch-target);
     display: flex;
     align-items: center;
     justify-content: center;

@@ -34,7 +34,7 @@
     background: var(--bv-background);
     min-height: 100vh;
     padding-bottom: 100px;
-    font-family: 'Lexend', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: var(--app-font-base);
 }
 
 /* =====================================================================

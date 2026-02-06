@@ -20,7 +20,7 @@
 .splash-screen {
     position: fixed;
     inset: 0;
-    z-index: 99999;
+    z-index: var(--app-z-modal);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -71,7 +71,7 @@
     height: 50%;
     top: 25%;
     left: -20%;
-    background: #FF4500;
+    background: var(--app-primary);
     border-radius: 50%;
     filter: blur(80px);
     opacity: 0;
@@ -135,7 +135,7 @@
 .splash-logo-glow {
     position: absolute;
     inset: -20px;
-    background: #FF4500;
+    background: var(--app-primary);
     background-image: none !important; /* Garantir que não exiba imagem */
     border-radius: 50%;
     filter: blur(40px);

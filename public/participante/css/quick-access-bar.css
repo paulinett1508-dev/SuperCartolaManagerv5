@@ -20,7 +20,7 @@
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding: 8px 0 max(8px, env(safe-area-inset-bottom));
-    z-index: 9999999;
+    z-index: var(--app-z-bottom-nav);
     box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.4);
     /* GPU Acceleration */
     transform: translateZ(0);
@@ -63,7 +63,7 @@
 }
 
 .nav-item.active {
-    color: #FF4500;
+    color: var(--app-primary);
 }
 
 .nav-icon {
@@ -90,7 +90,7 @@
     left: 50%;
     width: 32px;
     height: 3px;
-    background: #FF4500;
+    background: var(--app-primary);
     border-radius: 0 0 3px 3px;
     transform: translateX(-50%) scaleX(0) translateZ(0);
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -106,7 +106,7 @@
     position: absolute;
     top: 6px;
     right: 12px;
-    background: #FF4500;
+    background: var(--app-primary);
     color: #fff;
     font-size: 9px;
     font-weight: 700;
@@ -129,7 +129,7 @@
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    z-index: 9999998;
+    z-index: var(--app-z-overlay);
     /* GPU-only animation */
     opacity: 0;
     visibility: hidden;
@@ -157,7 +157,7 @@
     background: #1a1a1a;
     border-top-left-radius: 24px;
     border-top-right-radius: 24px;
-    z-index: 9999999;
+    z-index: var(--app-z-modal);
     max-height: 75vh;
     overflow-y: auto;
     overflow-x: hidden;
@@ -211,7 +211,7 @@
 
 .menu-category-title .material-icons {
     font-size: 16px;
-    color: #FF4500;
+    color: var(--app-primary);
 }
 
 .menu-card {
@@ -244,7 +244,7 @@
 
 .menu-card .material-icons {
     font-size: 28px;
-    color: #FF4500; /* Fallback */
+    color: var(--app-primary); /* Fallback */
 }
 
 /* =====================================================================
@@ -297,7 +297,7 @@
 
 /* Em Breve (2026) - mantém laranja com opacidade */
 .menu-card.disabled .material-icons {
-    color: #FF4500;
+    color: var(--app-primary);
     opacity: 0.5;
 }
 
@@ -342,7 +342,7 @@
     color: #fff;
     font-size: 14px;
     font-weight: 500;
-    z-index: 99999999;
+    z-index: var(--app-z-toast);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
@@ -364,7 +364,7 @@
 }
 
 .quick-toast .material-icons {
-    color: #FF4500;
+    color: var(--app-primary);
     font-size: 20px;
 }
 
