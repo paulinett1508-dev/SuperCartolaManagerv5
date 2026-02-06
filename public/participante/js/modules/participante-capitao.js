@@ -211,8 +211,8 @@ function renderizarRanking(ranking) {
         const isPodium3 = posicao === 3;
 
         const escudoSrc = participante.escudo || `/escudos/${participante.clube_id || 'default'}.png`;
-        const pontos = (participante.pontuacao_total || 0).toFixed(2);
-        const media = (participante.media_capitao || 0).toFixed(2);
+        const pontos = typeof truncarPontos === 'function' ? truncarPontos(participante.pontuacao_total || 0) : (participante.pontuacao_total || 0).toFixed(2);
+        const media = typeof truncarPontos === 'function' ? truncarPontos(participante.media_capitao || 0) : (participante.media_capitao || 0).toFixed(2);
 
         const cardClasses = [
             'capitao-card',
@@ -302,8 +302,8 @@ function renderizarCardDesempenho(ranking) {
     }
 
     const posicao = meusDados.posicao_final || (ranking.indexOf(meusDados) + 1);
-    const pontos = (meusDados.pontuacao_total || 0).toFixed(2);
-    const media = (meusDados.media_capitao || 0).toFixed(2);
+    const pontos = typeof truncarPontos === 'function' ? truncarPontos(meusDados.pontuacao_total || 0) : (meusDados.pontuacao_total || 0).toFixed(2);
+    const media = typeof truncarPontos === 'function' ? truncarPontos(meusDados.media_capitao || 0) : (meusDados.media_capitao || 0).toFixed(2);
     const rodadas = meusDados.rodadas_jogadas || 0;
     const melhor = meusDados.melhor_capitao;
     const pior = meusDados.pior_capitao;
@@ -336,13 +336,13 @@ function renderizarCardDesempenho(ranking) {
                     <div style="font-size: 11px;">
                         <span style="color: var(--capitao-success);">Melhor:</span>
                         <span style="color: #e5e7eb;">${melhor.atleta_nome || '---'} (R${melhor.rodada})</span>
-                        <span style="font-family: var(--capitao-font-mono); color: var(--capitao-success); font-weight: 700;">${(melhor.pontuacao || 0).toFixed(2)}</span>
+                        <span style="font-family: var(--capitao-font-mono); color: var(--capitao-success); font-weight: 700;">${typeof truncarPontos === 'function' ? truncarPontos(melhor.pontuacao || 0) : (melhor.pontuacao || 0).toFixed(2)}</span>
                     </div>
                     ${pior ? `
                     <div style="font-size: 11px;">
                         <span style="color: var(--capitao-danger);">Pior:</span>
                         <span style="color: #e5e7eb;">${pior.atleta_nome || '---'} (R${pior.rodada})</span>
-                        <span style="font-family: var(--capitao-font-mono); color: var(--capitao-danger); font-weight: 700;">${(pior.pontuacao || 0).toFixed(2)}</span>
+                        <span style="font-family: var(--capitao-font-mono); color: var(--capitao-danger); font-weight: 700;">${typeof truncarPontos === 'function' ? truncarPontos(pior.pontuacao || 0) : (pior.pontuacao || 0).toFixed(2)}</span>
                     </div>
                     ` : ''}
                 </div>

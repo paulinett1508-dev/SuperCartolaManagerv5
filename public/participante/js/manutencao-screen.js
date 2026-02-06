@@ -394,7 +394,7 @@ const ManutencaoScreen = {
                     <div style="width:1px;background:#374151;"></div>
                     <div>
                         <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Pts Rodada</div>
-                        <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#e5e7eb;font-weight:700;">${Number(userItem.pontos_rodada_atual || 0).toFixed(2)}</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#e5e7eb;font-weight:700;">${typeof truncarPontos === 'function' ? truncarPontos(Number(userItem.pontos_rodada_atual || 0)) : Number(userItem.pontos_rodada_atual || 0).toFixed(2)}</div>
                     </div>
                 </div>
             </div>`;
@@ -477,7 +477,7 @@ const ManutencaoScreen = {
                         </div>
                     </td>
                     <td style="padding:7px 6px;text-align:center;font-size:0.75rem;">${escalouIcon}</td>
-                    <td style="padding:7px 6px;text-align:right;font-family:'JetBrains Mono',monospace;color:${textColor};font-weight:${fontWeight};">${Number(pontosRodada).toFixed(2)}</td>
+                    <td style="padding:7px 6px;text-align:right;font-family:'JetBrains Mono',monospace;color:${textColor};font-weight:${fontWeight};">${typeof truncarPontos === 'function' ? truncarPontos(Number(pontosRodada)) : Number(pontosRodada).toFixed(2)}</td>
                 </tr>`;
         });
 
@@ -1174,7 +1174,7 @@ const ManutencaoScreen = {
                     <div style="width:1px;background:#374151;"></div>
                     <div>
                         <div style="font-size:0.7rem;color:#93c5fd;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Pontos</div>
-                        <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#e5e7eb;font-weight:700;">${Number(userItem.pontos).toFixed(2)}</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:1.75rem;color:#e5e7eb;font-weight:700;">${typeof truncarPontos === 'function' ? truncarPontos(Number(userItem.pontos)) : Number(userItem.pontos).toFixed(2)}</div>
                     </div>
                     <div style="width:1px;background:#374151;"></div>
                     <div>
@@ -1246,7 +1246,7 @@ const ManutencaoScreen = {
                             </div>
                         </div>
                     </td>
-                    ${!todosZerados ? `<td style="padding:7px 6px;text-align:right;font-family:'JetBrains Mono',monospace;color:${textColor};font-weight:${fontWeight};">${Number(pontos).toFixed(2)}</td>` : ''}
+                    ${!todosZerados ? `<td style="padding:7px 6px;text-align:right;font-family:'JetBrains Mono',monospace;color:${textColor};font-weight:${fontWeight};">${typeof truncarPontos === 'function' ? truncarPontos(Number(pontos)) : Number(pontos).toFixed(2)}</td>` : ''}
                 </tr>`;
         });
 
