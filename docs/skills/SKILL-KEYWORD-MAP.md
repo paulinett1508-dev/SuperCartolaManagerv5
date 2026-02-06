@@ -202,6 +202,15 @@ Sistema de ativação inteligente de skills baseado em palavras-chave contextuai
 | **NÃO confundir** | Auditoria de código genérica → `code-inspector`; Auditoria de cache → `cache-auditor` |
 | **Localização** | `docs/skills/04-project-specific/AUDITOR-MODULE.md` |
 
+#### ux-auditor-app
+| Tipo | Keywords |
+|------|----------|
+| **Primárias** | `auditar UX`, `auditoria UX app`, `auditar design app`, `UX participante`, `design participante`, `checkar UI`, `revisar frontend app`, `auditoria visual`, `consistencia visual` |
+| **Frases PT-BR** | "auditar UX do app", "revisar design do participante", "checar UI do app", "auditoria visual do app", "tá consistente o app?", "conferir CSS do app", "revisar telas do participante", "design tá ok?", "como tá o visual do app", "auditar experiencia do participante", "checar dark mode do app", "revisar tipografia do app", "conferir responsividade do app", "estados visuais do app", "navegação do app tá ok?", "PWA tá acessível?", "tokens CSS do app", "inconsistencia no app" |
+| **Contexto** | Auditoria holística de UI/UX/Design de TODAS as telas do app participante (PWA Mobile) |
+| **NÃO confundir** | Criar tela nova → `frontend-crafter`; Auditar 1 módulo (backend+frontend) → `auditor-module`; Auditoria de cache → `cache-auditor` |
+| **Localização** | `docs/skills/04-project-specific/ux-auditor-app.md` |
+
 #### analise-branches
 | Tipo | Keywords |
 |------|----------|
@@ -258,6 +267,9 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | "endpoint do cartola" | `cartola-api` | API externa |
 | "cache tá lento" | `cache-auditor` | Performance de cache |
 | "audite o módulo top 10" | `auditor-module` | Auditoria de módulo |
+| "auditar UX do app" | `ux-auditor-app` | Auditoria UX holística do app |
+| "revisar design do participante" | `ux-auditor-app` | Consistência visual do app |
+| "como tá o visual do app" | `ux-auditor-app` | Estado do design do app |
 | "quais branches existem" | `analise-branches` | Análise git |
 | "criar uma skill nova" | `skill-creator` | Meta |
 | "instalar skill X" | `skill-installer` | Meta |
@@ -273,6 +285,8 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | Refatoração | `Refactor-Monolith` → `code-inspector` → `git-commit-push` |
 | Deploy completo | `git-commit-push` → `replit-pull` → `restart-server` |
 | Auditoria de módulo | `auditor-module` → `code-inspector` → `cache-auditor` |
+| Auditoria UX pré-release | `ux-auditor-app` → `cache-auditor` → `code-inspector` |
+| Auditoria UX + correção | `ux-auditor-app` → `frontend-crafter` |
 | Documentação | `system-scribe` |
 | Consulta API Cartola | `cartola-api` → `fact-checker` |
 

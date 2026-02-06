@@ -89,6 +89,7 @@ Documentação das skills: [`docs/skills/`](docs/skills/) (agnóstico, Markdown 
 | "API Cartola", "endpoint", "scout", "mercado" | **cartola-api** | Project |
 | "auditar cache", "cache lento", "Service Worker" | **cache-auditor** | Project |
 | "auditar módulo", "checklist módulo" | **auditor-module** | Project |
+| "auditar UX app", "revisar design participante", "visual do app" | **ux-auditor-app** | Project |
 | "análise de branches", "comparar branches" | **analise-branches** | Project |
 | "criar skill", "skill nova" | **skill-creator** | Meta |
 | "instalar skill", "listar skills" | **skill-installer** | Meta |
@@ -145,6 +146,7 @@ As keywords ativam a mesma skill automaticamente (ver tabela acima).
 | `/code` | "implemente", "aplique spec" |
 | `/auditor-module [modulo]` | "audite o módulo X", "checklist módulo" |
 | `/cache-auditor [modo]` | "auditar cache", "cache desatualizado" |
+| `/ux-auditor-app` | "auditar UX do app", "revisar design participante", "visual do app tá ok?" |
 | `/newsession` | "nova sessão", "salvar contexto" |
 
 ## 🔄 Sistema de Renovação de Temporada
