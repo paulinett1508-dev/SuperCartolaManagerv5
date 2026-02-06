@@ -450,8 +450,8 @@ const InstallPrompt = {
 
         const btnPrimary = banner.querySelector('.install-btn-primary');
         btnPrimary.style.cssText = `
-            background: white;
-            color: #FF5500;
+            background: var(--app-text-primary);
+            color: var(--app-bg);
             border: none;
             padding: 10px 20px;
             border-radius: 8px;

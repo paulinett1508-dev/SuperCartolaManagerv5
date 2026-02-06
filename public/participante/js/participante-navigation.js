@@ -590,6 +590,9 @@ class ParticipanteNavigation {
 
         if (window.Log) Log.info('PARTICIPANTE-NAV', `🧭 Navegando para: ${moduloId}`);
 
+        // Reset scroll ao topo ao trocar de módulo
+        window.scrollTo(0, 0);
+
         // container já foi obtido acima para verificar isFirstLoad
         if (!container) {
             if (window.Log) Log.error('PARTICIPANTE-NAV', '❌ Container não encontrado');

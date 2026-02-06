@@ -421,7 +421,7 @@ body {
     }
 
     .header-buttons button {
-        min-height: 40px;
+        min-height: var(--app-touch-target);
         padding: var(--app-space-2) var(--app-space-4);
     }
 }
