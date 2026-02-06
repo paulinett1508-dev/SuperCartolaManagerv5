@@ -554,6 +554,14 @@ export class FluxoFinanceiroUI {
         };
         await this._carregarIntegracoesExtrato(ligaId);
 
+        // ✅ v8.9: Detectar se existem rodadas consolidadas para decidir layout da tabela
+        // Se algum participante tem breakdown com dados de módulos, já tem rodadas
+        this._temRodadasConsolidadas = dadosSaldo?.participantes?.some(p => {
+            const b = p.breakdown;
+            return b && (Math.abs(b.banco || 0) > 0.01 || Math.abs(b.pontosCorridos || 0) > 0.01 ||
+                         Math.abs(b.mataMata || 0) > 0.01 || Math.abs(b.top10 || 0) > 0.01);
+        }) || false;
+
         // ✅ v6.5 FIX: Para temporadas >= 2026, usar lista da API de tesouraria (já filtrada por renovados)
         // Temporadas anteriores (2025) usam lista do cache (todos os participantes)
         const temporadaNum = window.temporadaAtual || 2026;
@@ -711,12 +719,12 @@ export class FluxoFinanceiroUI {
                 </div>
             </div>
 
-            <!-- Tabela Financeira v4.1 - Layout Condicional por Temporada + Sticky Header -->
+            <!-- Tabela Financeira v4.2 - Layout Condicional por Temporada + Sticky Header -->
             <div class="fluxo-tabela-container" style="max-height: calc(100vh - 300px); overflow-y: auto; overflow-x: auto; position: relative;">
                 <table class="fluxo-participantes-tabela tabela-financeira" style="border-collapse: separate; border-spacing: 0;">
                     <thead style="position: sticky; top: 0; z-index: 100;">
-                        ${temporadaNum >= 2026 ? `
-                        <!-- Header Temporada Atual (>= 2026): Colunas simplificadas de inscrição -->
+                        ${temporadaNum >= 2026 && !this._temRodadasConsolidadas ? `
+                        <!-- Header Temporada Atual (>= 2026) SEM rodadas: Colunas simplificadas de inscrição -->
                         <tr>
                             <th class="col-num">#</th>
                             <th class="col-participante sortable" onclick="window.ordenarTabelaFinanceiro('nome')" data-sort="nome">
@@ -734,7 +742,7 @@ export class FluxoFinanceiroUI {
                             <th class="col-acoes">Ações</th>
                         </tr>
                         ` : `
-                        <!-- Header Histórico (< 2026): Colunas de módulos -->
+                        <!-- Header com colunas de módulos (temporada com rodadas consolidadas) -->
                         <tr>
                             <th class="col-num">#</th>
                             <th class="col-participante sortable" onclick="window.ordenarTabelaFinanceiro('nome')" data-sort="nome">
@@ -755,7 +763,7 @@ export class FluxoFinanceiroUI {
                             <th class="col-saldo sortable" onclick="window.ordenarTabelaFinanceiro('saldo')" data-sort="saldo">
                                 <span class="th-sort">Saldo <span class="material-icons sort-icon">unfold_more</span></span>
                             </th>
-                            <th class="col-2026" title="Status Renovação 2026">2026</th>
+                            ${temporadaNum < 2026 ? '<th class="col-2026" title="Status Renovação 2026">2026</th>' : ''}
                             <th class="col-acoes">Ações</th>
                         </tr>
                         `}
@@ -763,7 +771,7 @@ export class FluxoFinanceiroUI {
                     <tbody id="participantesTableBody">
                         ${participantesOrdenados.length > 0
                             ? participantesOrdenados.map((p, idx) =>
-                                temporadaNum >= 2026
+                                temporadaNum >= 2026 && !this._temRodadasConsolidadas
                                     ? this._renderizarLinhaTabela2026(p, idx, ligaId, temporadaNum)
                                     : this._renderizarLinhaTabela(p, idx, ligaId)
                             ).join('')
@@ -796,7 +804,7 @@ export class FluxoFinanceiroUI {
         this._aplicarStickyHeader();
 
         // ✅ NOVO: Anexar tooltips de regras financeiras aos headers de módulos
-        if (temporadaNum < 2026) {
+        if (temporadaNum < 2026 || this._temRodadasConsolidadas) {
             this._anexarTooltipsRegrasFinanceiras(ligaId);
         }
     }
@@ -1065,9 +1073,9 @@ export class FluxoFinanceiroUI {
                         : `<strong>${saldoSinal}R$ ${saldoFormatado}</strong>`
                     }
                 </td>
-                <td class="col-2026">
+                ${(window.temporadaAtual || 0) < 2026 ? `<td class="col-2026">
                     ${this._renderizarBadge2026(timeId, p)}
-                </td>
+                </td>` : ''}
                 <td class="col-acoes">
                     <div class="acoes-row">
                         <button onclick="window.selecionarParticipante('${timeId}')"
@@ -1328,12 +1336,12 @@ export class FluxoFinanceiroUI {
                             <label>Tipo de Acerto</label>
                             <div class="tipo-acerto-btns">
                                 <button type="button" class="tipo-btn pagamento active" onclick="window.selecionarTipoAcerto('pagamento')">
-                                    <span class="material-icons">arrow_downward</span>
-                                    Pagamento
+                                    <span class="material-icons">remove_circle_outline</span>
+                                    Lançar um débito
                                 </button>
                                 <button type="button" class="tipo-btn recebimento" onclick="window.selecionarTipoAcerto('recebimento')">
-                                    <span class="material-icons">arrow_upward</span>
-                                    Recebimento
+                                    <span class="material-icons">add_circle_outline</span>
+                                    Lançar um crédito
                                 </button>
                             </div>
                         </div>
@@ -1414,12 +1422,12 @@ export class FluxoFinanceiroUI {
 
             if (Math.abs(saldo) > 0.01) {
                 if (saldo < 0) {
-                    // DEVEDOR: precisa PAGAR para quitar a dívida
+                    // DEVEDOR: lançar DÉBITO (participante pagou, reduz dívida)
                     window.selecionarTipoAcerto('pagamento');
                     document.getElementById('acertoValor').value = Math.abs(saldo).toFixed(2);
                     document.getElementById('acertoDescricao').value = 'Quitação de dívida';
                 } else {
-                    // CREDOR: precisa RECEBER o que tem de crédito
+                    // CREDOR: lançar CRÉDITO (participante recebeu, reduz crédito)
                     window.selecionarTipoAcerto('recebimento');
                     document.getElementById('acertoValor').value = saldo.toFixed(2);
                     document.getElementById('acertoDescricao').value = 'Resgate de crédito';
@@ -1455,12 +1463,12 @@ export class FluxoFinanceiroUI {
             if (Math.abs(saldoAtual) < 0.01) return;
 
             if (saldoAtual < 0) {
-                // Devedor: precisa pagar
+                // Devedor: lançar débito para quitar
                 window.selecionarTipoAcerto('pagamento');
                 document.getElementById('acertoValor').value = Math.abs(saldoAtual).toFixed(2);
                 document.getElementById('acertoDescricao').value = 'Quitação de dívida';
             } else {
-                // Credor: precisa receber
+                // Credor: lançar crédito para resgatar
                 window.selecionarTipoAcerto('recebimento');
                 document.getElementById('acertoValor').value = saldoAtual.toFixed(2);
                 document.getElementById('acertoDescricao').value = 'Resgate de crédito';
