@@ -455,9 +455,9 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
         }
     });
 
-    // Separar titulares e reservas
-    const titulares = atletas.filter(a => a.status_id !== 2);
-    const reservas = atletas.filter(a => a.status_id === 2);
+    // Separar titulares e reservas (suporta is_reserva de parciais E status_id de consolidados)
+    const titulares = atletas.filter(a => !a.is_reserva && a.status_id !== 2);
+    const reservas = atletas.filter(a => a.is_reserva || a.status_id === 2);
 
     // Ordenar titulares por posição: GOL → ZAG → LAT → MEI → ATA → TEC
     const ordemPosicoes = { 1: 1, 3: 2, 2: 3, 4: 4, 5: 5, 6: 6 };
@@ -638,12 +638,19 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
                 </table>
             </div>
 
-            <!-- Tabela de Reservas -->
+            <!-- Separador Banco de Reservas -->
             ${reservas.length > 0 ? `
-                <div style="margin:0 16px;border-top:2px solid #374151;"></div>
-                <div style="padding:16px 16px;">
+                <div style="margin:0 16px;padding:12px 0;display:flex;align-items:center;gap:8px;">
+                    <div style="flex:1;border-top:1px dashed #374151;"></div>
+                    <span style="font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:4px;">
+                        <span class="material-icons" style="font-size:14px;">event_seat</span>
+                        BANCO
+                    </span>
+                    <div style="flex:1;border-top:1px dashed #374151;"></div>
+                </div>
+                <div style="padding:8px 16px 16px;background:rgba(107,114,128,0.06);border-radius:0 0 16px 16px;">
                     <div style="font-size:10px;color:#6b7280;text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
-                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;opacity:0.7;">
                         <tbody>
                             ${reservasHTML}
                         </tbody>
@@ -1397,13 +1404,20 @@ function abrirCampinhoModal(targetTimeId, rodada) {
             </div>
 
             ${reservas.length > 0 ? `
-                <!-- Separador Visual -->
-                <div style="margin:0 20px;border-top:2px solid #374151;"></div>
-                
+                <!-- Separador Banco de Reservas -->
+                <div style="margin:0 20px;padding:12px 0;display:flex;align-items:center;gap:8px;">
+                    <div style="flex:1;border-top:1px dashed #374151;"></div>
+                    <span style="font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:4px;">
+                        <span class="material-icons" style="font-size:14px;">event_seat</span>
+                        BANCO
+                    </span>
+                    <div style="flex:1;border-top:1px dashed #374151;"></div>
+                </div>
+
                 <!-- Tabela de Reservas -->
-                <div style="padding:16px 20px 24px;">
+                <div style="padding:8px 20px 24px;background:rgba(107,114,128,0.06);">
                     <div style="font-size:10px;color:#6b7280;text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
-                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;opacity:0.7;">
                         <tbody>
                             ${reservasHTML}
                         </tbody>
