@@ -171,7 +171,9 @@
       "Bash(# The API works at api.cartola.globo.com - check reserves curl -s \"\"https://api.cartola.globo.com/time/id/13935277/1\"\")",
       "Bash(# Check if fetch follows 301 redirects curl -s -L \"\"https://api.cartolafc.globo.com/time/id/13935277/1\"\")",
       "Bash(# Check what''s listening on port 3000 lsof -i :3000)",
-      "Bash(# Kill the old server and restart with new code kill 707570 && sleep 2 && node index.js & sleep 3 # Verify it''s running curl -s http://localhost:3000/api/ligas)"
+      "Bash(# Kill the old server and restart with new code kill 707570 && sleep 2 && node index.js & sleep 3 # Verify it''s running curl -s http://localhost:3000/api/ligas)",
+      "Bash(if curl -s http://localhost:3000/api/cartola/mercado/status)",
+      "Bash(then echo 'Servidor reiniciado com sucesso!' curl -s http://localhost:3000/api/cartola/mercado/status)"
     ]
   },
   "enableAllProjectMcpServers": true,
