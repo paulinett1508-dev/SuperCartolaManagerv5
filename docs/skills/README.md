@@ -100,33 +100,40 @@ Esta estrutura foi projetada para ser **agnóstica em relação à IA**:
 
 ---
 
-## 📖 Como Usar
+## 🔑 Ativação por Keywords
 
-### Para Claude Code
+Skills são ativadas automaticamente por **palavras-chave contextuais** na mensagem do usuário.
+Não é necessário chamar pelo nome direto - o sistema identifica a skill pela intenção.
+
+**Mapeamento completo:** [`SKILL-KEYWORD-MAP.md`](SKILL-KEYWORD-MAP.md)
+
+### Para Qualquer IA
+1. Leia [`SKILL-KEYWORD-MAP.md`](SKILL-KEYWORD-MAP.md) para identificar a skill pela mensagem
+2. Carregue o `.md` da skill correspondente em `docs/skills/[categoria]/`
+3. Siga o protocolo descrito na skill
+4. Use as ferramentas disponíveis (Glob, Grep, Read, etc)
+
+### Invocação Direta (também funciona)
 ```bash
-# Skills são invocadas via /nome-da-skill
+# Via slash command
 /workflow
 /pesquisa
 /code-inspector
 ```
 
-### Para Outras IAs
-1. Leia o arquivo `.md` da skill desejada
-2. Siga as instruções do protocolo descrito
-3. Use as ferramentas disponíveis (Glob, Grep, Read, etc)
-
 ---
 
 ## 🔄 Atualização e Manutenção
 
-- **Adicionar nova skill:** Coloque no diretório apropriado e atualize este README
+- **Adicionar nova skill:** Coloque no diretório apropriado, atualize este README E o `SKILL-KEYWORD-MAP.md`
 - **Modificar skill:** Edite o arquivo `.md` correspondente
-- **Deprecar skill:** Mova para `docs/archives/skills/deprecated/`
+- **Deprecar skill:** Mova para `docs/archives/skills/deprecated/` e remova do mapa de keywords
 
 ---
 
 ## 📚 Recursos Relacionados
 
+- **Keyword Map:** [`SKILL-KEYWORD-MAP.md`](SKILL-KEYWORD-MAP.md) - Mapeamento keywords → skills
 - **PRDs/SPECs:** `/docs/specs/` - Especificações de funcionalidades
 - **Arquitetura:** `/docs/architecture/` - Documentos técnicos do sistema
 - **Guias:** `/docs/guides/` - Tutoriais e workflows

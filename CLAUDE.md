@@ -54,41 +54,50 @@ Cada módulo possui sua paleta de cores padronizada. **Sempre use variáveis CSS
 - **No React/Vue:** Pure JavaScript for frontend
 - **Nomenclatura em Português:** Use `autorizado` (not `authorized`), `usuario` (not `user`), `senha` (not `password`)
 
-## 🤖 Project Skills (Agentes Especializados)
+## 🤖 Skills com Ativação por Keywords
 
-### Skills Auxiliares (14)
-| Skill | Quando Usar |
-|-------|-------------|
-| **ai-problems-detection** | Antes de implementar: detectar overengineering, código duplicado, reinvenção da roda, falta de docs, arquivos monolíticos |
-| **auditor-module** | Auditoria completa de módulos (segurança, UI, financeiro, performance, negócio) |
-| **cache-auditor** | Auditoria de cache (3 modos: CACHE-APP --participante, CACHE-WEB --admin, CACHE-APP --admin) |
-| **cartola-api** | Consultar endpoints, schemas, scouts, autenticação da API oficial do Cartola FC |
-| **code-inspector** | "auditar código", "security review", "OWASP check" |
-| **db-guardian** | Scripts DB, limpeza, manutenção, snapshots |
-| **fact-checker** | "verifique se", "confirme que", validar informações críticas |
-| **frontend-crafter** | Criar/ajustar telas, CSS, JS do cliente, navegação |
-| **git-commit-push** | "git push", "commit", "suba as mudanças" |
-| **league-architect** | Regras de negócio, configs de liga, cálculos |
-| **Refactor-Monolith** | "refatorar arquivo grande", "separar em módulos" |
-| **skill-creator** | "criar skill", "fazer skill", criar/atualizar skills customizadas |
-| **skill-installer** | "instalar skill", listar e instalar skills do catálogo |
-| **replit-pull** | "pull no replit", "atualizar replit", "sincronizar replit", "deploy" |
-| **restart-server** | "reiniciar servidor", "restart", aplicar mudanças backend |
-| **system-scribe** | "explicar módulo X", "como funciona Y?" |
+Skills são ativadas automaticamente por **palavras-chave contextuais** em vez de nome direto.
+Mapeamento completo: [`docs/skills/SKILL-KEYWORD-MAP.md`](docs/skills/SKILL-KEYWORD-MAP.md)
+Documentação das skills: [`docs/skills/`](docs/skills/) (agnóstico, Markdown puro)
 
-### Skills do High Senior Protocol (4)
-| Skill | Fase | Descrição |
-|-------|------|-----------|
-| **workflow** | Maestro | Detecta fase e orquestra fluxo |
-| **pesquisa** | Fase 1 | Busca no codebase, gera PRD |
-| **spec** | Fase 2 | Mapeia dependências, define mudanças |
-| **code** | Fase 3 | Aplica mudanças linha por linha |
+### Protocolo de Ativação
+1. Detectar keywords na mensagem do usuário
+2. Consultar [`SKILL-KEYWORD-MAP.md`](docs/skills/SKILL-KEYWORD-MAP.md) para identificar a skill
+3. Carregar skill de `docs/skills/[categoria]/[skill].md`
+4. Executar protocolo da skill
 
-### Fluxo Completo
+### Tabela Rápida - Keyword → Skill
+
+| Quando o usuário diz... | Skill Ativada | Categoria |
+|--------------------------|---------------|-----------|
+| "quero criar feature", "como fazer", "por onde começar" | **workflow** | Core |
+| "pesquise", "analise o código", "gere PRD" | **pesquisa** | Core |
+| "especifique", "mapeie dependências", "fase 2" | **spec** | Core |
+| "implemente", "aplique mudanças", "fase 3" | **code** | Core |
+| "crie tela", "ajuste CSS", "layout", "componente" | **frontend-crafter** | Specialist |
+| "como funciona", "explique módulo", "documente" | **system-scribe** | Specialist |
+| "regra de negócio", "cálculo", "config liga" | **league-architect** | Specialist |
+| "script DB", "backup", "migration", "limpeza" | **db-guardian** | Specialist |
+| "auditar código", "security review", "OWASP" | **code-inspector** | Specialist |
+| "git push", "commit", "suba mudanças" | **git-commit-push** | Utility |
+| "reiniciar servidor", "restart" | **restart-server** | Utility |
+| "pull no replit", "deploy", "sincronizar" | **replit-pull** | Utility |
+| "nova sessão", "handover", "retomar" | **newsession** | Utility |
+| "verifique se", "confirme que", "é verdade?" | **fact-checker** | Utility |
+| "tá complexo", "duplicado", "antes de codar" | **ai-problems-detection** | Utility |
+| "refatorar arquivo grande", "separar módulos" | **Refactor-Monolith** | Utility |
+| "API Cartola", "endpoint", "scout", "mercado" | **cartola-api** | Project |
+| "auditar cache", "cache lento", "Service Worker" | **cache-auditor** | Project |
+| "auditar módulo", "checklist módulo" | **auditor-module** | Project |
+| "análise de branches", "comparar branches" | **analise-branches** | Project |
+| "criar skill", "skill nova" | **skill-creator** | Meta |
+| "instalar skill", "listar skills" | **skill-installer** | Meta |
+
+### High Senior Protocol (Workflow Completo)
 ```
-/workflow → FASE 1: /pesquisa → PRD.md
-         → FASE 2: /spec → SPEC.md
-         → FASE 3: /code → Implementado
+workflow → FASE 1: pesquisa → PRD.md
+         → FASE 2: spec → SPEC.md
+         → FASE 3: code → Implementado
 ```
 
 **Diretório:** `.claude/docs/PRD-[nome].md` e `SPEC-[nome].md`
@@ -123,20 +132,20 @@ Busca docs sempre atualizadas de frameworks/APIs (Mongoose, Express, MDN, OWASP)
 
 **Quando usar:** Consultas rápidas, debug. **Não usar:** Operações destrutivas (usar scripts com `--dry-run`)
 
-## 🎯 Slash Commands
+## 🎯 Slash Commands & Ativação por Keywords
 
-| Comando | Descrição |
-|---------|-----------|
-| `/analisar [jogador]` | Análise estratégica de jogadores Cartola |
-| `/audit-financa [nome]` | Auditoria financeira completa |
-| `/auditor-module [modulo]` | Auditoria de módulo (segurança, UI, financeiro, performance) |
-| `/cache-auditor [modo]` | Auditoria de cache (CACHE-APP --participante, CACHE-WEB --admin, CACHE-APP --admin) |
-| `/perplexity-search [termo]` | Pesquisa inteligente últimas 24-48h |
-| `/feature-scout [funcionalidade]` | Verifica se feature existe no código |
-| `/html-audit [arquivo]` | QA frontend - conformidade com padrões |
-| `/salvar-tarefas` | Persistir contexto entre sessões |
-| `/retomar-tarefas` | Retomar trabalho da sessão anterior |
-| `/newsession` | Handover para nova sessão com contexto |
+Skills podem ser invocadas por `/nome` OU por keywords naturais na conversa.
+As keywords ativam a mesma skill automaticamente (ver tabela acima).
+
+| Comando Direto | Keywords Equivalentes |
+|----------------|----------------------|
+| `/workflow` | "como fazer feature", "por onde começar" |
+| `/pesquisa` | "pesquise no código", "gere PRD" |
+| `/spec` | "especifique mudanças", "mapeie dependências" |
+| `/code` | "implemente", "aplique spec" |
+| `/auditor-module [modulo]` | "audite o módulo X", "checklist módulo" |
+| `/cache-auditor [modo]` | "auditar cache", "cache desatualizado" |
+| `/newsession` | "nova sessão", "salvar contexto" |
 
 ## 🔄 Sistema de Renovação de Temporada
 
