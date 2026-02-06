@@ -166,7 +166,12 @@
       "Bash(git -C /home/runner/workspace log --all --oneline --graph -- '*pontos*')",
       "Bash(git -C /home/runner/workspace log -1 --format=\"%H %ai\" -- public/js/pontos-corridos/pontos-corridos-*.js)",
       "Bash(git -C /home/runner/workspace log -1 --format=\"%H %ai\" -- public/participante/js/modules/participante-pontos-corridos.js)",
-      "Bash(do echo \"=== Disabling extrato for $LIGA_ID ===\" curl -s -X PUT \"localhost:3000/api/ligas/$LIGA_ID/modulos-ativos\" -H \"Content-Type: application/json\" -d '{\"\"\"\"modulos\"\"\"\": {\"\"\"\"extrato\"\"\"\": false, \"\"\"\"ranking\"\"\"\": true, \"\"\"\"rodadas\"\"\"\": true, \"\"\"\"historico\"\"\"\": true}}')"
+      "Bash(do echo \"=== Disabling extrato for $LIGA_ID ===\" curl -s -X PUT \"localhost:3000/api/ligas/$LIGA_ID/modulos-ativos\" -H \"Content-Type: application/json\" -d '{\"\"\"\"modulos\"\"\"\": {\"\"\"\"extrato\"\"\"\": false, \"\"\"\"ranking\"\"\"\": true, \"\"\"\"rodadas\"\"\"\": true, \"\"\"\"historico\"\"\"\": true}}')",
+      "Bash(# Check what the Cartola API actually returns for a team in round 1 curl -s \"\"https://api.cartola.globo.com/time/id/13935277/1\"\")",
+      "Bash(# The API works at api.cartola.globo.com - check reserves curl -s \"\"https://api.cartola.globo.com/time/id/13935277/1\"\")",
+      "Bash(# Check if fetch follows 301 redirects curl -s -L \"\"https://api.cartolafc.globo.com/time/id/13935277/1\"\")",
+      "Bash(# Check what''s listening on port 3000 lsof -i :3000)",
+      "Bash(# Kill the old server and restart with new code kill 707570 && sleep 2 && node index.js & sleep 3 # Verify it''s running curl -s http://localhost:3000/api/ligas)"
     ]
   },
   "enableAllProjectMcpServers": true,
