@@ -565,6 +565,15 @@ function calcularRankingManual(rodadas) {
         .map((time, index) => ({ ...time, posicao: index + 1 }));
 }
 
+function truncarPontos(valor) {
+    // Trunca para 2 casas decimais (não arredonda) e formata em pt-BR
+    const truncado = Math.floor(valor * 100) / 100;
+    return truncado.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+}
+
 function formatarPontos(valor) {
     return valor.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
@@ -648,8 +657,8 @@ function renderizarBoasVindas(container, data, ligaRules) {
     // ✅ v10.11: Badge de ambiente movido para o header (próximo à versão)
     const rodadasRestantes = Math.max(0, 38 - rodadaAtual);
     const pontosUltimaRodada = ultimaRodada
-        ? truncarPontos(ultimaRodada.pontos)
-        : "0.00";
+        ? truncarPontos(parseFloat(ultimaRodada.pontos))
+        : "0,00";
 
     // Variação posição
     let variacaoPosHTML = "";
