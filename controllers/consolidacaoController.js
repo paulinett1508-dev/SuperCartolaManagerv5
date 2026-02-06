@@ -488,10 +488,11 @@ export const consolidarRodada = async (req, res) => {
         
         // 12a. Ranking Geral Cache
         await RankingGeralCache.findOneAndUpdate(
-            { ligaId: new mongoose.Types.ObjectId(ligaId), rodadaFinal: rodadaNum },
+            { ligaId: new mongoose.Types.ObjectId(ligaId), rodadaFinal: rodadaNum, temporada: CURRENT_SEASON },
             {
                 ligaId: new mongoose.Types.ObjectId(ligaId),
                 rodadaFinal: rodadaNum,
+                temporada: CURRENT_SEASON,
                 ranking: rankingGeral,
                 consolidada: true,
                 atualizadoEm: new Date()

@@ -35,12 +35,6 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
     // Buscar snapshot existente (filtrado por temporada)
     let snapshot = await RankingTurno.findOne({ ligaId: ligaObjectId, turno, temporada });
 
-    // Se já está consolidado, retorna direto (imutável)
-    if (snapshot && snapshot.status === "consolidado") {
-        console.log(`${LOG_PREFIX} ✅ Retornando snapshot consolidado`);
-        return snapshot;
-    }
-
     // Se não existe ou está em andamento, verificar se precisa atualizar
     const { inicio, fim } = RankingTurno.getRodadasTurno(turno);
 
@@ -51,6 +45,22 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
         .lean();
 
     const rodadaAtual = ultimaRodada?.rodada || 0;
+
+    // ✅ v3.2: Validar snapshots "consolidados" - corrigir snapshots stale
+    // Um turno "geral" (1-38) só pode ser consolidado se rodadaAtual >= 38
+    if (snapshot && snapshot.status === "consolidado") {
+        if (rodadaAtual < fim) {
+            // Snapshot incorretamente marcado como consolidado - corrigir
+            console.log(`${LOG_PREFIX} ⚠️ Snapshot consolidado stale detectado (R${snapshot.rodada_atual} < R${fim}), reconsolidando...`);
+            snapshot.status = "em_andamento";
+            await snapshot.save();
+        } else if (turno !== "geral") {
+            // Turnos 1 e 2 consolidados podem retornar direto (são imutáveis)
+            console.log(`${LOG_PREFIX} ✅ Retornando snapshot consolidado turno ${turno}`);
+            return snapshot;
+        }
+        // turno "geral" consolidado: continuar para checar parciais antes de retornar
+    }
 
     // Verificar se precisa consolidar
     const precisaConsolidar =
@@ -68,12 +78,12 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
         );
     }
 
-    // ✅ v3.0: Se não há dados consolidados, tentar buscar parciais em tempo real
-    if (!snapshot && turno === "geral") {
-        console.log(`${LOG_PREFIX} 🔴 Sem dados consolidados, buscando parciais em tempo real... (Temporada: ${temporada})`);
+    // ✅ v3.1: Buscar parciais SEMPRE que turno=geral (mesmo com snapshot)
+    // Isso garante que durante rodada em andamento, o ranking mostre acumulado + parciais
+    if (turno === "geral") {
+        console.log(`${LOG_PREFIX} 🔴 Verificando parciais em tempo real... (Temporada: ${temporada})`);
         const parciais = await buscarRankingParcial(ligaId);
 
-        // 🔍 DEBUG: Log do retorno de parciais
         console.log(`${LOG_PREFIX} 📊 Resposta de parciais:`, parciais ? {
             disponivel: parciais.disponivel,
             motivo: parciais.motivo,
@@ -83,8 +93,7 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
         } : 'NULL');
 
         if (parciais && parciais.disponivel) {
-            console.log(`${LOG_PREFIX} ✅ Parciais encontradas: ${parciais.total_times} times`);
-            // Retornar no formato esperado pelo controller
+            console.log(`${LOG_PREFIX} ✅ Parciais encontradas: ${parciais.total_times} times (acumulado + rodada ao vivo)`);
             return {
                 ligaId: ligaObjectId,
                 turno: "geral",
@@ -98,10 +107,15 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
                 atualizado_em: parciais.atualizado_em,
                 message: parciais.message,
             };
-        } else if (parciais) {
-            console.log(`${LOG_PREFIX} ⚠️ Parciais não disponíveis: ${parciais.motivo} - Retornando tela contextualizada`);
-            // Retornar info sobre o estado
-            const resultado = {
+        } else if (parciais && !parciais.disponivel) {
+            // Mercado aberto ou sem pontuação: retornar snapshot consolidado se existir
+            if (snapshot) {
+                console.log(`${LOG_PREFIX} ℹ️ ${parciais.motivo} - retornando snapshot consolidado (R1-${rodadaAtual})`);
+                return snapshot;
+            }
+            // Sem snapshot nem parciais: retornar estado contextualizado
+            console.log(`${LOG_PREFIX} ⚠️ Sem snapshot e sem parciais: ${parciais.motivo}`);
+            return {
                 ligaId: ligaObjectId,
                 turno: "geral",
                 temporada,
@@ -113,12 +127,6 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
                 parcial: false,
                 message: parciais.message,
             };
-            console.log(`${LOG_PREFIX} 📤 Retornando ao controller:`, {
-                status: resultado.status,
-                message: resultado.message,
-                ranking_length: resultado.ranking.length,
-            });
-            return resultado;
         }
     }
 

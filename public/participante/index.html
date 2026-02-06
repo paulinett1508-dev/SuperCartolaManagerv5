@@ -764,12 +764,18 @@
                     }
 
                     // ✅ v3: Garantir que app está revelado (estilos inline diretos)
-                    if (!document.body.classList.contains('app-ready') ||
-                        (container && getComputedStyle(container).display === 'none')) {
+                    // ✅ FIX: NÃO forçar se manutenção está ativa (container hidden é intencional)
+                    var manutScreen = document.getElementById('manutencaoScreen');
+                    var emManutencao = manutScreen && getComputedStyle(manutScreen).display !== 'none';
+
+                    if (!emManutencao && (!document.body.classList.contains('app-ready') ||
+                        (container && getComputedStyle(container).display === 'none'))) {
                         console.warn('[FAILSAFE] Revelando app forçado');
                         document.body.classList.add('app-ready');
                         if (container) container.style.cssText = 'display:flex !important;flex-direction:column;';
                         if (bottomNav) bottomNav.style.cssText = 'display:flex !important;';
+                    } else if (emManutencao) {
+                        console.log('[FAILSAFE] Manutenção ativa - não forçar app visível');
                     }
                 }, 6000);
             })();

@@ -1,8 +1,11 @@
 // services/parciaisRankingService.js
-// ✅ v1.0: Calcula ranking parcial em tempo real (rodada em andamento)
+// ✅ v1.2: Calcula ranking parcial em tempo real (rodada em andamento)
+// v1.2: Usa CURRENT_SEASON + fallback liga.times quando liga.participantes ausente
 import axios from "axios";
 import Liga from "../models/Liga.js";
+import Time from "../models/Time.js";
 import mongoose from "mongoose";
+import { CURRENT_SEASON } from "../config/seasons.js";
 
 const LOG_PREFIX = "[PARCIAIS-RANKING-SERVICE]";
 const CARTOLA_API_BASE = "https://api.cartola.globo.com";
@@ -164,24 +167,42 @@ export async function buscarRankingParcial(ligaId) {
 
         const liga = await Liga.findById(ligaObjectId).lean();
 
-        if (!liga || !liga.participantes || liga.participantes.length === 0) {
-            console.log(`${LOG_PREFIX} ⚠️ Liga não encontrada ou sem participantes`);
+        if (!liga) {
+            console.log(`${LOG_PREFIX} ⚠️ Liga não encontrada`);
             return null;
         }
 
-        const participantesAtivos = liga.participantes.filter(p => p.ativo !== false);
+        // ✅ v1.2: Usar liga.participantes se disponível, senão fallback para liga.times
+        let participantesAtivos;
+        if (liga.participantes && liga.participantes.length > 0) {
+            participantesAtivos = liga.participantes.filter(p => p.ativo !== false);
+        } else if (liga.times && liga.times.length > 0) {
+            // Fallback: buscar dados dos times pela collection Time
+            const timesData = await Time.find({ id: { $in: liga.times }, ativo: { $ne: false } })
+                .select("id nome_time nome_cartoleiro clube_id")
+                .lean();
+            participantesAtivos = timesData.map(t => ({
+                time_id: t.id,
+                nome_time: t.nome_time || "N/D",
+                nome_cartola: t.nome_cartoleiro || "N/D",
+                clube_id: t.clube_id || null,
+            }));
+        } else {
+            console.log(`${LOG_PREFIX} ⚠️ Liga sem participantes nem times`);
+            return null;
+        }
+
         console.log(`${LOG_PREFIX} Processando ${participantesAtivos.length} participantes ativos`);
 
-        // ✅ v1.1: Buscar pontos acumulados das rodadas anteriores (1 até rodadaAtual-1)
+        // ✅ v1.2: Buscar pontos acumulados das rodadas anteriores (1 até rodadaAtual-1)
         const Rodada = (await import("../models/Rodada.js")).default;
         const pontosAcumulados = {};
-        const temporadaAtual = new Date().getFullYear(); // 2026
 
         if (rodadaAtual > 1) {
-            console.log(`${LOG_PREFIX} 🔍 Buscando pontos acumulados das rodadas 1 a ${rodadaAtual - 1} (temporada ${temporadaAtual})...`);
+            console.log(`${LOG_PREFIX} 🔍 Buscando pontos acumulados das rodadas 1 a ${rodadaAtual - 1} (temporada ${CURRENT_SEASON})...`);
             const rodadasAnteriores = await Rodada.find({
                 ligaId: ligaObjectId,
-                temporada: temporadaAtual, // ✅ FIX: Filtrar apenas temporada atual
+                temporada: CURRENT_SEASON,
                 rodada: { $gte: 1, $lt: rodadaAtual },
             }).lean();
 

@@ -76,10 +76,10 @@ function toLigaId(ligaId) {
 export const recalcularRodadas = async (req, res) => {
   try {
     const { ligaId } = req.params;
-    const { rodadaInicio, rodadaFim } = req.body;
+    const { rodadaInicio, rodadaFim, temporada } = req.body;
 
     console.log(
-      `[RODADAS-CACHE] 🔄 Recalculando rodadas ${rodadaInicio} a ${rodadaFim} da liga ${ligaId}`,
+      `[RODADAS-CACHE] 🔄 Recalculando rodadas ${rodadaInicio} a ${rodadaFim} da liga ${ligaId} (temporada: ${temporada || 'todas'})`,
     );
 
     // Validações
@@ -137,10 +137,9 @@ export const recalcularRodadas = async (req, res) => {
       const configRanking = getConfigRankingRodada(liga, rodada);
 
       // Buscar documentos existentes desta rodada
-      const documentosRodada = await Rodada.find({
-        ligaId: toLigaId(ligaId),
-        rodada,
-      });
+      const queryRodada = { ligaId: toLigaId(ligaId), rodada };
+      if (temporada) queryRodada.temporada = Number(temporada);
+      const documentosRodada = await Rodada.find(queryRodada);
 
       if (documentosRodada.length === 0) {
         console.log(`[RODADAS-CACHE] ⚠️ Rodada ${rodada} sem dados - pulando`);

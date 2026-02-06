@@ -1,10 +1,11 @@
-// PARTICIPANTE PONTOS CORRIDOS - v5.2
+// PARTICIPANTE PONTOS CORRIDOS - v5.3
+// ✅ v5.3: FIX - totalRodadas calculado a partir do número de times (N-1), não dados.length
 // ✅ v5.2: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v5.1: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v4.9: Emojis substituídos por Material Icons + Card "Seu Desempenho"
 // ✅ v5.0: Posição na liga integrada no card + card ao final da página
 
-if (window.Log) Log.info("[PONTOS-CORRIDOS] 📊 Módulo v5.2 carregando...");
+if (window.Log) Log.info("[PONTOS-CORRIDOS] 📊 Módulo v5.3 carregando...");
 
 const estadoPC = {
     ligaId: null,
@@ -19,14 +20,24 @@ const estadoPC = {
     mercadoTemporada: null, // ✅ AUDIT-FIX: Temporada da API Cartola
     mercadoAberto: true,
     ligaEncerrou: false,
+    rodadaInicial: 2, // ✅ v5.3: Default 2026, será atualizado pela config API
 };
+
+// ✅ v5.3: Calcula total de rodadas real baseado no número de times (N-1 para par, N para ímpar)
+function calcularTotalRodadas(dados) {
+    const rodadaComClassificacao = dados.find(r => r.classificacao?.length > 0);
+    if (!rodadaComClassificacao) return 31;
+    const totalTimes = rodadaComClassificacao.classificacao.length;
+    if (totalTimes <= 1) return 31;
+    return totalTimes % 2 === 0 ? totalTimes - 1 : totalTimes;
+}
 
 // ============================================
 // INICIALIZAÇÃO
 // ============================================
 
 export async function inicializarPontosCorridosParticipante(params = {}) {
-    if (window.Log) Log.info("[PONTOS-CORRIDOS] 🚀 Inicializando v5.2...", params);
+    if (window.Log) Log.info("[PONTOS-CORRIDOS] 🚀 Inicializando v5.3...", params);
 
     // ✅ v5.2: Aguardar DOM estar renderizado (double RAF)
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -46,6 +57,9 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
 
     if (window.Log) Log.info(`[PONTOS-CORRIDOS] 📅 Temporada ativa: ${estadoPC.temporada}`);
 
+    // ✅ v5.3: Buscar rodadaInicial da config do módulo
+    await buscarConfigModulo();
+
     // ✅ v5.1: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
     let usouCache = false;
     let dadosCache = null;
@@ -63,7 +77,7 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
 
                 // Processar dados do cache
                 const rodadasComConfrontos = pcCache.filter((r) => r.confrontos?.length > 0);
-                estadoPC.totalRodadas = pcCache.length;
+                estadoPC.totalRodadas = calcularTotalRodadas(pcCache);
                 estadoPC.rodadaAtual = rodadasComConfrontos.length > 0
                     ? Math.max(...rodadasComConfrontos.map((r) => r.rodada))
                     : 1;
@@ -101,7 +115,7 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
             const rodadasComConfrontos = dados.filter(
                 (r) => r.confrontos?.length > 0,
             );
-            estadoPC.totalRodadas = dados.length;
+            estadoPC.totalRodadas = calcularTotalRodadas(dados);
             estadoPC.rodadaAtual =
                 rodadasComConfrontos.length > 0
                     ? Math.max(...rodadasComConfrontos.map((r) => r.rodada))
@@ -180,6 +194,22 @@ async function buscarStatusMercado() {
         }
     } catch (e) {
         if (window.Log) Log.warn("[PONTOS-CORRIDOS] ⚠️ Falha ao buscar status do mercado");
+    }
+}
+
+// ✅ v5.3: Buscar rodadaInicial da config do módulo (dinâmico, não hardcoded)
+async function buscarConfigModulo() {
+    try {
+        const response = await fetch(`/api/pontos-corridos/config/${estadoPC.ligaId}?temporada=${estadoPC.temporada}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.config) {
+                estadoPC.rodadaInicial = data.config.rodadaInicial || 2;
+                if (window.Log) Log.info(`[PONTOS-CORRIDOS] ⚙️ Config: rodadaInicial=${estadoPC.rodadaInicial}`);
+            }
+        }
+    } catch (e) {
+        if (window.Log) Log.warn("[PONTOS-CORRIDOS] ⚠️ Falha ao buscar config, usando rodadaInicial padrão");
     }
 }
 
@@ -704,7 +734,8 @@ function renderizarConfrontos() {
         return;
     }
 
-    const rodadaBrasileirao = rodadaSelecionada + 6;
+    // ✅ v5.3: Cálculo dinâmico da rodada do Brasileirão (era hardcoded +6)
+    const rodadaBrasileirao = rodadaSelecionada + (estadoPC.rodadaInicial - 1);
     let isEmAndamento = !ligaEncerrou && rodadaBrasileirao >= mercadoRodada;
     const isRodadaFinal = rodadaSelecionada === totalRodadas && ligaEncerrou;
 
@@ -937,8 +968,6 @@ function buildLinhaClassificacao(
     const cartoleiro = time.nome_cartola || "";
     const esc =
         time.escudo || time.url_escudo_png || "/assets/escudo-placeholder.png";
-    const sg = time.saldo_gols ?? time.saldoGols ?? 0;
-
     const inativoStyle = isInativo ? "opacity-50 grayscale-[60%]" : "";
     const bgClass = isCampeao
         ? "bg-gradient-to-r from-yellow-500/20 to-yellow-600/10 border-l-2 border-yellow-500"
@@ -978,7 +1007,6 @@ function buildLinhaClassificacao(
             <div class="w-6 text-center ${isInativo ? "text-gray-600" : "text-yellow-400"} text-[10px]">${time.empates || 0}</div>
             <div class="w-6 text-center ${isInativo ? "text-gray-600" : "text-red-400"} text-[10px]">${time.derrotas || 0}</div>
             <div class="w-6 text-center ${isInativo ? "text-gray-600" : "text-orange-400"} text-[10px]">${time.pontosGoleada || 0}</div>
-            <div class="w-8 text-center ${isInativo ? "text-gray-600" : "text-white/60"} text-[10px]">${Math.round(sg)}</div>
             <div class="w-8 text-center ${isInativo ? "text-gray-500" : "text-white"} font-bold text-xs ${isCampeao ? "text-yellow-400" : ""}">${time.pontos || 0}</div>
         </div>
     `;

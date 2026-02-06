@@ -1050,7 +1050,7 @@ function renderizarParciaisDados(numeroRodada, dados) {
 // =====================================================================
 // ZONA LABELS - MITO, G2-G12, Neutro, Z1-Z11, MICO
 // =====================================================================
-function calcularZonaLabel(posicao, totalParticipantes, valorFinanceiro) {
+function calcularZonaLabel(posicao, totalParticipantes, valorFinanceiro, totalPerda) {
     if (!posicao || !totalParticipantes) return '';
 
     // Derivar zona a partir do valorFinanceiro
@@ -1061,12 +1061,15 @@ function calcularZonaLabel(posicao, totalParticipantes, valorFinanceiro) {
         }
         return `<span class="zona-badge zona-g">G${posicao}</span>`;
     } else if (valorFinanceiro < 0) {
-        // Zona de Risco - numerar de baixo pra cima
+        // Zona de Risco - MICO é o último, Z numera de cima pra baixo
         if (posicao === totalParticipantes) {
             return '<span class="zona-badge zona-mico">MICO</span>';
         }
-        // Z1 = primeiro da zona Z (mais perto do neutro), ZN = penúltimo
-        const zNum = totalParticipantes - posicao;
+        // Z1 = primeiro da zona de perda (mais perto do neutro)
+        // ZN = penúltimo (mais perto do MICO)
+        const perdaEfetiva = totalPerda || 1;
+        const inicioPerda = totalParticipantes - perdaEfetiva + 1;
+        const zNum = posicao - inicioPerda + 1;
         return `<span class="zona-badge zona-z">Z${zNum}</span>`;
     }
 
@@ -1127,6 +1130,7 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
 
     const participantesOrdenados = [...participantesAtivos].sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
     const totalParticipantes = participantesOrdenados.length;
+    const totalPerda = participantesOrdenados.filter(p => (p.valorFinanceiro || 0) < 0).length;
     const container = document.getElementById("rankingListPro");
 
     if (!container) return;
@@ -1147,7 +1151,7 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         const meuNome = meuPart.nome || meuPart.nome_time || 'Meu Time';
 
         // Detalhes extras: zona label + mito/mico
-        const meuZonaBadge = !isParcial ? calcularZonaLabel(minhaPosicaoCalc, totalParticipantes, meusValor) : '';
+        const meuZonaBadge = !isParcial ? calcularZonaLabel(minhaPosicaoCalc, totalParticipantes, meusValor, totalPerda) : '';
         let detalhesExtra = meuZonaBadge;
 
         // ✅ v7.0: Ícone e estilo especial se eu sou MITO ou MICO
@@ -1223,7 +1227,7 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         const naoJogouBadge = participante.rodadaNaoJogada ? '<span class="badge-nao-jogou">N/E</span>' : "";
 
         // ✅ v6.0: Badge de zona (MITO, G2-G12, Z1-Z11, MICO)
-        const zonaBadge = !isParcial ? calcularZonaLabel(posicao, totalParticipantes, valorFinanceiro) : '';
+        const zonaBadge = !isParcial ? calcularZonaLabel(posicao, totalParticipantes, valorFinanceiro, totalPerda) : '';
 
         // ✅ Badge "X/12 em campo" - mostrar escalados + jogando ao vivo
         const escalados = participante.atletas ? participante.atletas.filter(a => !a.is_reserva).length : 0;

@@ -389,36 +389,81 @@ async function buscarDadosHomeFresh(ligaId, timeId) {
 }
 
 function atualizarCardsHomeUI(data) {
-    const pontosEl = document.getElementById('home-stat-pontos');
-    const pontosHintEl = document.getElementById('home-stat-pontos-hint');
-    const posicaoEl = document.getElementById('home-stat-posicao');
-    const posicaoHintEl = document.getElementById('home-stat-posicao-hint');
-    const saldoEl = document.getElementById('home-saldo-value');
-
-    if (!pontosEl && !posicaoEl && !saldoEl) return;
-
     const {
-        saldoFormatado,
-        saldoClass,
-        pontosDisplay,
-        posicaoDisplay,
-        hintPontos,
-        hintPosicao,
-        zonaTexto,
-        zonaCor,
-        zonaBg,
-        zonaClass
-    } = calcularValoresCards(data);
+        posicao,
+        totalParticipantes,
+        pontosTotal,
+        ultimaRodada,
+        minhasRodadas,
+        saldoFinanceiro
+    } = data;
 
-    if (pontosEl) pontosEl.textContent = pontosDisplay;
-    if (pontosHintEl) pontosHintEl.textContent = hintPontos;
-    if (posicaoEl) posicaoEl.textContent = posicaoDisplay;
-    if (posicaoHintEl) posicaoHintEl.innerHTML = hintPosicao;
+    // === SLIDER DE POSIÇÃO ===
+    const posicaoBadgeEl = document.getElementById('home-posicao-badge');
+    const sliderProgressEl = document.getElementById('home-slider-progress');
+    const posicaoIndicatorEl = document.getElementById('home-posicao-indicator');
 
-    if (saldoEl) {
-        saldoEl.textContent = saldoFormatado;
-        saldoEl.classList.remove('positive', 'negative');
-        if (saldoClass) saldoEl.classList.add(saldoClass);
+    if (posicaoBadgeEl) {
+        posicaoBadgeEl.textContent = posicao || '--';
+    }
+
+    if (sliderProgressEl && posicaoIndicatorEl && posicao && totalParticipantes > 0) {
+        const percentual = ((posicao - 1) / (totalParticipantes - 1)) * 100;
+        const percentualClamped = Math.max(5, Math.min(95, percentual));
+        sliderProgressEl.style.width = `${100 - percentualClamped}%`;
+        posicaoIndicatorEl.style.left = `${percentualClamped}%`;
+    }
+
+    // === ÚLTIMA PONTUAÇÃO ===
+    const ultimaPontuacaoEl = document.getElementById('home-ultima-pontuacao');
+    const variacaoPontosEl = document.getElementById('home-variacao-pontos');
+    const rankingPontosEl = document.getElementById('home-ranking-pontos');
+
+    const pontosUltimaRodada = ultimaRodada ? parseFloat(ultimaRodada.pontos || 0) : 0;
+    const pontosRodadaAnterior = minhasRodadas?.[1] ? parseFloat(minhasRodadas[1].pontos || 0) : 0;
+    const variacaoPontos = pontosUltimaRodada - pontosRodadaAnterior;
+
+    if (ultimaPontuacaoEl) {
+        ultimaPontuacaoEl.textContent = formatarPontos(pontosUltimaRodada);
+    }
+
+    if (variacaoPontosEl) {
+        if (variacaoPontos >= 0) {
+            variacaoPontosEl.textContent = `↑${formatarPontos(Math.abs(variacaoPontos))}`;
+            variacaoPontosEl.className = 'home-stat-variacao positivo';
+        } else {
+            variacaoPontosEl.textContent = `↓${formatarPontos(Math.abs(variacaoPontos))}`;
+            variacaoPontosEl.className = 'home-stat-variacao negativo';
+        }
+    }
+
+    if (rankingPontosEl) {
+        rankingPontosEl.textContent = posicao ? `${posicao}º` : '--';
+    }
+
+    // === PATRIMÔNIO ===
+    const patrimonioEl = document.getElementById('home-patrimonio');
+    const variacaoPatrimonioEl = document.getElementById('home-variacao-patrimonio');
+
+    const saldoAbs = Math.abs(saldoFinanceiro);
+    const saldoFormatado = saldoFinanceiro >= 0
+        ? `R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+        : `-R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+    const ganhoUltimaRodada = ultimaRodada ? parseFloat(ultimaRodada.valorFinanceiro || ultimaRodada.ganho_rodada || 0) : 0;
+
+    if (patrimonioEl) {
+        patrimonioEl.textContent = saldoFormatado;
+    }
+
+    if (variacaoPatrimonioEl) {
+        if (ganhoUltimaRodada >= 0) {
+            variacaoPatrimonioEl.textContent = `↑${ganhoUltimaRodada.toFixed(2)}`;
+            variacaoPatrimonioEl.className = 'home-stat-variacao positivo';
+        } else {
+            variacaoPatrimonioEl.textContent = `↓${Math.abs(ganhoUltimaRodada).toFixed(2)}`;
+            variacaoPatrimonioEl.className = 'home-stat-variacao negativo';
+        }
     }
 }
 
@@ -807,7 +852,7 @@ function getGreetingEmoji() {
 }
 
 // =====================================================================
-// RENDERIZACAO PRINCIPAL
+// RENDERIZACAO PRINCIPAL - v3.0 (Cartola Style)
 // =====================================================================
 function renderizarHome(container, data, ligaId) {
     const {
@@ -821,184 +866,398 @@ function renderizarHome(container, data, ligaId) {
         nomeLiga,
         saldoFinanceiro,
         posicaoAnterior,
-        clubeId
+        clubeId,
+        minhasRodadas,
+        timeId
     } = data;
 
-    const iniciais = getIniciais(nomeCartola);
     const isPremium = participantePremium;
-
-    // Atualizar header premium
-    atualizarHeaderPremium(nomeTime, nomeCartola, iniciais, isPremium, clubeId);
-
-    // Atualizar saudação
     const totalRodadas = 38;
-    const rodadasFaltam = Math.max(0, totalRodadas - rodadaAtual);
-    atualizarSaudacao(nomeCartola, nomeLiga, rodadaAtual, totalRodadas);
 
-    const {
-        saldoFormatado,
-        saldoClass,
-        pontosDisplay,
-        posicaoDisplay,
-        hintPontos,
-        hintPosicao,
-        zonaTexto,
-        zonaCor,
-        zonaBg,
-        zonaClass
-    } = calcularValoresCards(data);
+    // === PAINEL DE AVISOS ===
+    atualizarPainelAvisos(rodadaAtual, totalParticipantes);
 
-    // Clube do coração (escudo + nome do clube)
-    const nomeClube = getNomeClubePorId(clubeId);
-    const escudoHTML = clubeId
-        ? `<img src="/escudos/${clubeId}.png" alt="${nomeClube}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'material-icons\\'>shield</span>'">`
-        : `<span class="material-icons">shield</span>`;
+    // === SLIDER DE POSIÇÃO ===
+    const posicaoBadgeEl = document.getElementById('home-posicao-badge');
+    const sliderProgressEl = document.getElementById('home-slider-progress');
+    const posicaoIndicatorEl = document.getElementById('home-posicao-indicator');
+    const sliderTotalEl = document.getElementById('home-slider-total');
 
-    // Badge Premium
-    const badgePremiumHTML = isPremium ? `
-        <div class="home-badge-premium">
-            <span class="material-icons badge-icon">star</span>
-            <span>Premium</span>
-        </div>
-    ` : "";
+    if (posicaoBadgeEl) {
+        posicaoBadgeEl.textContent = posicao || '--';
+    }
 
-    const onClickCartolaPro = isPremium
-        ? `window.abrirCartolaPro && window.abrirCartolaPro()`
-        : `window.mostrarAguarde && window.mostrarAguarde('Cartola PRO')`;
+    if (sliderProgressEl && posicaoIndicatorEl && posicao && totalParticipantes > 0) {
+        const percentual = ((posicao - 1) / (totalParticipantes - 1)) * 100;
+        const percentualClamped = Math.max(5, Math.min(95, percentual));
+        sliderProgressEl.style.width = `${100 - percentualClamped}%`;
+        posicaoIndicatorEl.style.left = `${percentualClamped}%`;
+    }
 
-    const onClickPremiacoes = isPremium
-        ? `window.abrirPremiacoes2026 && window.abrirPremiacoes2026()`
-        : `window.mostrarAguarde && window.mostrarAguarde('Premiações')`;
+    if (sliderTotalEl) {
+        sliderTotalEl.textContent = totalParticipantes || 38;
+    }
 
-    const onClickRegras = isPremium
-        ? `window.abrirRegras2026 && window.abrirRegras2026()`
-        : `window.mostrarAguarde && window.mostrarAguarde('Regras')`;
+    // Link para rodada
+    const linkRodadaEl = document.getElementById('home-link-rodada');
+    const rodadaNumEl = document.getElementById('home-rodada-num');
+    if (rodadaNumEl) {
+        rodadaNumEl.textContent = `Rodada ${Math.max(1, rodadaAtual)}`;
+    }
 
-    const disabledStyle = isPremium ? '' : ' home-action-disabled';
+    // === CARDS DE STATS ===
+    // Última Pontuação
+    const ultimaPontuacaoEl = document.getElementById('home-ultima-pontuacao');
+    const variacaoPontosEl = document.getElementById('home-variacao-pontos');
+    const rankingPontosEl = document.getElementById('home-ranking-pontos');
 
-    const cartolaProHTML = `
-            <button class="home-action-item${disabledStyle}" onclick="${onClickCartolaPro}">
-                <div class="home-action-icon">
-                    <span class="material-icons">workspace_premium</span>
+    const pontosUltimaRodada = ultimaRodada ? parseFloat(ultimaRodada.pontos || 0) : 0;
+    const pontosRodadaAnterior = minhasRodadas?.[1] ? parseFloat(minhasRodadas[1].pontos || 0) : 0;
+    const variacaoPontos = pontosUltimaRodada - pontosRodadaAnterior;
+
+    if (ultimaPontuacaoEl) {
+        ultimaPontuacaoEl.textContent = formatarPontos(pontosUltimaRodada);
+    }
+
+    if (variacaoPontosEl) {
+        if (variacaoPontos >= 0) {
+            variacaoPontosEl.textContent = `↑${formatarPontos(Math.abs(variacaoPontos))}`;
+            variacaoPontosEl.className = 'home-stat-variacao positivo';
+        } else {
+            variacaoPontosEl.textContent = `↓${formatarPontos(Math.abs(variacaoPontos))}`;
+            variacaoPontosEl.className = 'home-stat-variacao negativo';
+        }
+    }
+
+    if (rankingPontosEl) {
+        rankingPontosEl.textContent = posicao ? `${posicao}º` : '--';
+    }
+
+    // Patrimônio
+    const patrimonioEl = document.getElementById('home-patrimonio');
+    const variacaoPatrimonioEl = document.getElementById('home-variacao-patrimonio');
+    const rankingPatrimonioEl = document.getElementById('home-ranking-patrimonio');
+
+    const saldoAbs = Math.abs(saldoFinanceiro);
+    const saldoFormatado = saldoFinanceiro >= 0
+        ? `R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+        : `-R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+    // Calcular variação do patrimônio (última rodada)
+    const ganhoUltimaRodada = ultimaRodada ? parseFloat(ultimaRodada.valorFinanceiro || ultimaRodada.ganho_rodada || 0) : 0;
+
+    if (patrimonioEl) {
+        patrimonioEl.textContent = saldoFormatado;
+    }
+
+    if (variacaoPatrimonioEl) {
+        if (ganhoUltimaRodada >= 0) {
+            variacaoPatrimonioEl.textContent = `↑${ganhoUltimaRodada.toFixed(2)}`;
+            variacaoPatrimonioEl.className = 'home-stat-variacao positivo';
+        } else {
+            variacaoPatrimonioEl.textContent = `↓${Math.abs(ganhoUltimaRodada).toFixed(2)}`;
+            variacaoPatrimonioEl.className = 'home-stat-variacao negativo';
+        }
+    }
+
+    if (rankingPatrimonioEl) {
+        // TODO: Calcular ranking financeiro real
+        rankingPatrimonioEl.textContent = posicao ? `${posicao}º` : '--';
+    }
+
+    // === DESTAQUES DA RODADA ===
+    const destaquesSection = document.getElementById('home-destaques-section');
+    const destaquesContent = document.getElementById('home-destaques-content');
+    if (destaquesSection) {
+        if (rodadaAtual > 0 && ultimaRodada) {
+            destaquesSection.classList.remove('hidden');
+
+            // Durante jogos ao vivo, iniciar colapsado
+            const status = mercadoStatus?.status_mercado;
+            const isJogosAoVivo = status === 'Mercado fechado';
+
+            if (isJogosAoVivo) {
+                destaquesSection.classList.remove('expanded');
+                if (destaquesContent) destaquesContent.classList.add('collapsed');
+            } else {
+                // Fim de rodada: expandido por padrão
+                destaquesSection.classList.add('expanded');
+                if (destaquesContent) destaquesContent.classList.remove('collapsed');
+            }
+
+            carregarDestaquesRodada(ligaId, rodadaAtual, timeId);
+        } else {
+            destaquesSection.classList.add('hidden');
+        }
+    }
+
+    // === BOTÕES DE ATALHOS (Premium) ===
+    const btnPremiacoes = document.getElementById('btn-premiacoes');
+    const btnRegras = document.getElementById('btn-regras');
+    const btnCartolaPro = document.getElementById('btn-cartola-pro');
+
+    if (!isPremium) {
+        [btnPremiacoes, btnRegras, btnCartolaPro].forEach(btn => {
+            if (btn) {
+                btn.classList.add('home-action-disabled');
+                btn.onclick = () => window.mostrarAguarde && window.mostrarAguarde('Função Premium');
+            }
+        });
+    }
+}
+
+// =====================================================================
+// APLICAR COR DO CLUBE AO ESCUDO
+// =====================================================================
+async function aplicarCorEscudoTime(escudoEl, clubeId) {
+    if (!escudoEl || !clubeId) return;
+
+    const clubes = await obterClubesCache();
+    if (!clubes) return;
+
+    const clube = clubes[String(clubeId)] || clubes[Number(clubeId)];
+    const corPrimaria = clube?.cor_primaria || clube?.cor_fundo || '#dc2626';
+    const corSecundaria = clube?.cor_secundaria || '#991b1b';
+
+    escudoEl.style.background = `linear-gradient(135deg, ${corPrimaria} 0%, ${corSecundaria || corPrimaria} 100%)`;
+
+    // Atualizar imagem do escudo
+    const imgEl = escudoEl.querySelector('img');
+    if (imgEl) {
+        imgEl.src = `/escudos/${clubeId}.png`;
+        imgEl.onerror = () => {
+            imgEl.style.display = 'none';
+        };
+    }
+}
+
+// =====================================================================
+// CARREGAR DESTAQUES DA RODADA
+// =====================================================================
+async function carregarDestaquesRodada(ligaId, rodada, timeId) {
+    try {
+        // Atualizar badge com número da rodada
+        const rodadaBadgeEl = document.getElementById('home-destaques-rodada');
+        if (rodadaBadgeEl) {
+            rodadaBadgeEl.textContent = `Rodada ${rodada}`;
+        }
+
+        // Buscar escalação do time na rodada
+        const response = await fetch(`/api/cartola/time/${timeId}/rodada/${rodada}`);
+        if (!response.ok) {
+            if (window.Log) Log.debug("PARTICIPANTE-HOME", "Escalação não encontrada");
+            // Esconder seção se não tiver dados
+            const destaquesSection = document.getElementById('home-destaques-section');
+            if (destaquesSection) destaquesSection.classList.add('hidden');
+            return;
+        }
+
+        const escalacao = await response.json();
+        if (!escalacao?.atletas?.length) {
+            const destaquesSection = document.getElementById('home-destaques-section');
+            if (destaquesSection) destaquesSection.classList.add('hidden');
+            return;
+        }
+
+        const atletas = escalacao.atletas || [];
+        const capitaoId = escalacao.capitao_id;
+
+        // Encontrar capitão, maior e menor pontuador
+        let capitao = atletas.find(a => a.atleta_id === capitaoId) || atletas[0];
+        let maiorPontuador = atletas.reduce((max, a) => (a.pontos_num > (max?.pontos_num || -999) ? a : max), null);
+        let menorPontuador = atletas.reduce((min, a) => (a.pontos_num < (min?.pontos_num || 999) ? a : min), null);
+
+        // Popular cards
+        popularDestaqueCard('capitao', capitao, true);
+        popularDestaqueCard('maior', maiorPontuador, false);
+        popularDestaqueCard('menor', menorPontuador, false);
+
+        if (window.Log) Log.info("PARTICIPANTE-HOME", `Destaques carregados - Rodada ${rodada}`);
+
+    } catch (error) {
+        if (window.Log) Log.warn("PARTICIPANTE-HOME", "Erro ao carregar destaques:", error);
+        // Esconder seção em caso de erro
+        const destaquesSection = document.getElementById('home-destaques-section');
+        if (destaquesSection) destaquesSection.classList.add('hidden');
+    }
+}
+
+// =====================================================================
+// POPULAR CARD DE DESTAQUE
+// =====================================================================
+function popularDestaqueCard(tipo, atleta, isCapitao = false) {
+    if (!atleta) return;
+
+    const nomeEl = document.getElementById(`home-nome-${tipo}`);
+    const posicaoEl = document.getElementById(`home-posicao-${tipo}`);
+    const pontosEl = document.getElementById(`home-pontos-${tipo}`);
+    const escudoEl = document.getElementById(`home-escudo-${tipo}`);
+
+    if (nomeEl) {
+        nomeEl.textContent = atleta.apelido || atleta.nome || '--';
+    }
+
+    if (posicaoEl) {
+        const posicoes = {
+            1: 'GOLEIRO', 2: 'LATERAL', 3: 'ZAGUEIRO',
+            4: 'MEIA', 5: 'ATACANTE', 6: 'TÉCNICO'
+        };
+        posicaoEl.textContent = posicoes[atleta.posicao_id] || 'JOGADOR';
+    }
+
+    if (pontosEl) {
+        const pontos = parseFloat(atleta.pontos_num || 0);
+        if (isCapitao) {
+            // Capitão: mostrar pontos x1.5
+            const pontosCapitao = pontos * 1.5;
+            pontosEl.textContent = pontosCapitao.toFixed(2);
+
+            // Pontos base
+            const pontosBaseEl = document.getElementById('home-pontos-base-capitao');
+            if (pontosBaseEl) {
+                pontosBaseEl.textContent = pontos.toFixed(2);
+            }
+        } else {
+            pontosEl.textContent = pontos.toFixed(2);
+        }
+    }
+
+    // Escudo do clube
+    if (escudoEl && atleta.clube_id) {
+        const escudoImg = escudoEl.querySelector('img');
+        if (escudoImg) {
+            escudoImg.src = `/escudos/${atleta.clube_id}.png`;
+            escudoImg.onerror = () => {
+                escudoImg.src = '/escudos/default.png';
+            };
+        }
+    }
+}
+
+// =====================================================================
+// ABREVIAÇÃO DO CLUBE
+// =====================================================================
+function getAbrevClube(clubeId) {
+    const abrevs = {
+        262: 'FLA', 263: 'BOT', 264: 'COR', 265: 'BAH', 266: 'FLU',
+        275: 'PAL', 276: 'SAO', 277: 'GRE', 278: 'INT', 280: 'BRA',
+        282: 'CAM', 283: 'CRU', 284: 'SAN', 285: 'VAS', 286: 'CAP',
+        287: 'GOI', 288: 'CFC', 290: 'FOR', 292: 'JUV', 293: 'CUI',
+        294: 'AME', 354: 'CEA', 356: 'VIT', 373: 'AVA', 1371: 'RBB'
+    };
+    return abrevs[clubeId] || '---';
+}
+
+// =====================================================================
+// TOGGLE DESTAQUES DA RODADA (Colapsável)
+// =====================================================================
+function toggleDestaquesRodada() {
+    const section = document.getElementById('home-destaques-section');
+    const content = document.getElementById('home-destaques-content');
+
+    if (!section || !content) return;
+
+    const isExpanded = section.classList.contains('expanded');
+
+    if (isExpanded) {
+        section.classList.remove('expanded');
+        content.classList.add('collapsed');
+    } else {
+        section.classList.add('expanded');
+        content.classList.remove('collapsed');
+    }
+}
+
+// Expor função globalmente
+window.toggleDestaquesRodada = toggleDestaquesRodada;
+
+// =====================================================================
+// PAINEL DE AVISOS
+// =====================================================================
+function atualizarPainelAvisos(rodadaAtual, totalParticipantes) {
+    const avisoCard = document.getElementById('home-aviso-mercado');
+    const avisoIcon = document.getElementById('home-aviso-icon');
+    const avisoTitulo = document.getElementById('home-aviso-titulo');
+    const avisoSubtitulo = document.getElementById('home-aviso-subtitulo');
+    const avisosSecundarios = document.getElementById('home-avisos-secundarios');
+
+    if (!avisoCard) return;
+
+    const status = mercadoStatus?.status_mercado;
+    const rodadaMercado = mercadoStatus?.rodada_atual || rodadaAtual;
+    const fechamento = mercadoStatus?.fechamento;
+
+    // Remover classes anteriores
+    avisoCard.classList.remove('mercado-aberto', 'mercado-fechado', 'fim-rodada');
+
+    if (status === 'Mercado aberto') {
+        avisoCard.classList.add('mercado-aberto');
+        if (avisoIcon) avisoIcon.textContent = 'lock_open';
+        if (avisoTitulo) avisoTitulo.textContent = 'MERCADO ABERTO';
+
+        // Calcular tempo restante
+        const tempoRestante = calcularTempoRestante(fechamento);
+        if (avisoSubtitulo) {
+            avisoSubtitulo.textContent = `Rodada ${rodadaMercado} • ${tempoRestante || 'Escale seu time!'}`;
+        }
+
+        // Ação: abrir Cartola
+        avisoCard.onclick = () => {
+            window.open('https://cartolafc.globo.com', '_blank');
+        };
+
+    } else if (status === 'Mercado fechado') {
+        avisoCard.classList.add('mercado-fechado');
+        if (avisoIcon) avisoIcon.textContent = 'sports_soccer';
+        if (avisoTitulo) avisoTitulo.textContent = 'JOGOS EM ANDAMENTO';
+        if (avisoSubtitulo) {
+            avisoSubtitulo.textContent = `Rodada ${rodadaMercado} • Acompanhe os parciais`;
+        }
+
+        // Ação: ir para rodadas
+        avisoCard.onclick = () => {
+            window.participanteNav?.navegarPara('rodadas');
+        };
+
+    } else {
+        avisoCard.classList.add('fim-rodada');
+        if (avisoIcon) avisoIcon.textContent = 'flag';
+        if (avisoTitulo) avisoTitulo.textContent = 'FIM DE RODADA';
+        if (avisoSubtitulo) {
+            avisoSubtitulo.textContent = `Rodada ${rodadaMercado} finalizada • ${totalParticipantes} participantes`;
+        }
+
+        // Ação: ir para rodadas
+        avisoCard.onclick = () => {
+            window.participanteNav?.navegarPara('rodadas');
+        };
+    }
+
+    // Avisos secundários
+    if (avisosSecundarios) {
+        let avisosHTML = '';
+
+        // Aviso de pré-temporada
+        const temporadaSelecionada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const temporadaMercado = mercadoStatus?.temporada || temporadaSelecionada;
+        const isPreTemporada = temporadaSelecionada > temporadaMercado;
+
+        if (isPreTemporada) {
+            avisosHTML += `
+                <div class="home-aviso-secundario" onclick="window.participanteNav?.navegarPara('extrato')">
+                    <div class="home-aviso-icon-mini">
+                        <span class="material-icons">event_upcoming</span>
+                    </div>
+                    <span class="home-aviso-texto">Pré-temporada ${temporadaSelecionada} - Renove sua inscrição!</span>
+                    <span class="home-aviso-badge">NOVO</span>
                 </div>
-                <span class="home-action-label">Cartola PRO</span>
-            </button>
-        `;
+            `;
+        }
 
-    const premiumShortcuts = `
-            <button class="home-action-item${disabledStyle}" onclick="${onClickPremiacoes}">
-                <div class="home-action-icon">
-                    <span class="material-icons">emoji_events</span>
-                </div>
-                <span class="home-action-label">Premiações</span>
-            </button>
-            <button class="home-action-item${disabledStyle}" onclick="${onClickRegras}">
-                <div class="home-action-icon">
-                    <span class="material-icons">description</span>
-                </div>
-                <span class="home-action-label">Regras</span>
-            </button>
-        `;
+        // Aviso de saldo negativo (se aplicável)
+        // TODO: Verificar saldo e adicionar aviso se negativo
 
-    const cardStyleAttr = zonaBg ? `style="--home-card-border:${zonaBg}; --home-card-accent:${zonaCor};"` : "";
-
-    // Grid de Stats (2 colunas - removido Participantes)
-    const rodadaDisplay = Math.max(1, rodadaAtual); // Nunca mostrar 0
-    const rodadasRestantes = Math.max(0, totalRodadas - rodadaDisplay);
-
-    const statsGridHTML = `
-        <section class="home-stats-grid" style="grid-template-columns: repeat(2, 1fr);">
-            <div class="home-stats-grid-item">
-                <span class="home-stats-grid-label">Rodada</span>
-                <span class="home-stats-grid-value">${rodadaDisplay}</span>
-            </div>
-            <div class="home-stats-grid-item">
-                <span class="home-stats-grid-label">Faltam</span>
-                <span class="home-stats-grid-value accent">${rodadasRestantes}</span>
-            </div>
-        </section>
-    `;
-
-    container.innerHTML = `
-        <!-- Grid de Atalhos -->
-        <section class="home-action-grid">
-            <!-- Botão Participantes (SEMPRE VISÍVEL) -->
-            <button class="home-action-item" onclick="window.abrirParticipantes2026 && window.abrirParticipantes2026()">
-                <div class="home-action-icon">
-                    <span class="material-icons">groups</span>
-                </div>
-                <span class="home-action-label">Participantes</span>
-            </button>
-            ${premiumShortcuts}
-            ${cartolaProHTML}
-        </section>
-
-        <!-- Card Saldo Financeiro -->
-        ${window.participanteNav?.isModuloEmManutencao?.('extrato') ? `
-        <section class="home-finance-card" style="opacity:0.4;filter:grayscale(0.5);pointer-events:none">
-            <div class="home-finance-left">
-                <div class="home-finance-icon">
-                    <span class="material-icons">engineering</span>
-                </div>
-                <div class="home-finance-info">
-                    <span class="home-finance-label" style="color:#ff5500">Em Manutenção</span>
-                    <span class="home-finance-value" style="color:#666;font-size:13px">Financeiro em ajustes</span>
-                </div>
-            </div>
-            <div class="home-finance-arrow">
-                <span class="material-icons">block</span>
-            </div>
-        </section>
-        ` : `
-        <section class="home-finance-card" onclick="window.participanteNav?.navegarPara('extrato')">
-            <div class="home-finance-left">
-                <div class="home-finance-icon">
-                    <span class="material-icons">toll</span>
-                </div>
-                <div class="home-finance-info">
-                    <span class="home-finance-label">Saldo Financeiro</span>
-                    <span id="home-saldo-value" class="home-finance-value ${saldoClass}">${saldoFormatado}</span>
-                </div>
-            </div>
-            <div class="home-finance-arrow">
-                <span class="material-icons">chevron_right</span>
-            </div>
-        </section>
-        `}
-
-        <!-- Grid de 3 Stats -->
-        ${statsGridHTML}
-
-        <!-- Card Status do Time -->
-        <section class="home-team-card ${zonaClass}" ${cardStyleAttr}>
-            <div class="home-stats-split">
-                <div class="home-stat-block">
-                    <span class="home-stat-label">Pontos</span>
-                    <span id="home-stat-pontos" class="home-stat-value" style="color:${zonaCor};">${pontosDisplay}</span>
-                    <span id="home-stat-pontos-hint" class="home-stat-hint">${hintPontos}</span>
-                </div>
-                <div class="home-stat-divider"></div>
-                <div class="home-stat-block">
-                    <span class="home-stat-label">Posicao</span>
-                    <span id="home-stat-posicao" class="home-stat-value">${posicaoDisplay}</span>
-                    <span id="home-stat-posicao-hint" class="home-stat-hint">${hintPosicao}</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Jogos do Dia -->
-        <div id="home-jogos-placeholder"></div>
-
-        <!-- Tabelas Esportivas (Brasileirão, Copa, Libertadores, etc) -->
-        <div id="home-tabelas-placeholder"></div>
-
-        <!-- Notícias do meu time -->
-        <div id="home-noticias-placeholder"></div>
-    `;
-
-    // Aplicar cor do clube ao badge do header (após renderizar)
-    if (clubeId) {
-        requestAnimationFrame(() => aplicarCorBadgeClube(clubeId));
+        avisosSecundarios.innerHTML = avisosHTML;
     }
 }
 
@@ -1089,29 +1348,43 @@ function atualizarCardsHomeComParciais() {
     const minhaPosicao = ParciaisModule.obterMinhaPosicaoParcial?.() || null;
     if (!minhaPosicao) return;
 
-    // Atualizar card de posição
-    const posicaoEl = document.getElementById('home-stat-posicao');
-    const posicaoHintEl = document.getElementById('home-stat-posicao-hint');
+    // Atualizar slider de posição
+    const posicaoBadgeEl = document.getElementById('home-posicao-badge');
+    const sliderProgressEl = document.getElementById('home-slider-progress');
+    const posicaoIndicatorEl = document.getElementById('home-posicao-indicator');
 
-    if (posicaoEl) {
-        posicaoEl.textContent = minhaPosicao.posicao;
+    if (posicaoBadgeEl) {
+        posicaoBadgeEl.textContent = minhaPosicao.posicao;
     }
 
-    if (posicaoHintEl) {
-        posicaoHintEl.innerHTML = `de ${minhaPosicao.totalTimes}`;
+    if (sliderProgressEl && posicaoIndicatorEl && minhaPosicao.totalTimes > 0) {
+        const percentual = ((minhaPosicao.posicao - 1) / (minhaPosicao.totalTimes - 1)) * 100;
+        const percentualClamped = Math.max(5, Math.min(95, percentual));
+        sliderProgressEl.style.width = `${100 - percentualClamped}%`;
+        posicaoIndicatorEl.style.left = `${percentualClamped}%`;
     }
 
     // Atualizar card de pontos (pontos da rodada parcial)
-    const pontosEl = document.getElementById('home-stat-pontos');
-    const pontosHintEl = document.getElementById('home-stat-pontos-hint');
+    const ultimaPontuacaoEl = document.getElementById('home-ultima-pontuacao');
+    const variacaoPontosEl = document.getElementById('home-variacao-pontos');
 
-    if (pontosEl) {
-        const pontosParciais = Math.floor(minhaPosicao.pontos || 0);
-        pontosEl.textContent = pontosParciais.toLocaleString('pt-BR');
+    if (ultimaPontuacaoEl) {
+        const pontosParciais = minhaPosicao.pontos || 0;
+        ultimaPontuacaoEl.textContent = pontosParciais.toFixed(2);
     }
 
-    if (pontosHintEl) {
-        pontosHintEl.textContent = 'parcial da rodada';
+    if (variacaoPontosEl) {
+        variacaoPontosEl.innerHTML = '<span class="live-badge-mini">AO VIVO</span>';
+    }
+
+    // Atualizar painel de avisos para modo AO VIVO
+    const avisoTitulo = document.getElementById('home-aviso-titulo');
+    const avisoSubtitulo = document.getElementById('home-aviso-subtitulo');
+    if (avisoTitulo) {
+        avisoTitulo.innerHTML = 'JOGOS AO VIVO <span class="live-badge-mini">LIVE</span>';
+    }
+    if (avisoSubtitulo) {
+        avisoSubtitulo.textContent = `Posição ${minhaPosicao.posicao}º • ${minhaPosicao.pontos?.toFixed(1) || 0} pts parciais`;
     }
 
     // Atualizar saldo projetado
@@ -1126,8 +1399,9 @@ function getValorRankingPosicao(config, posicao) {
 function atualizarSaldoProjetado(posicaoParcial) {
     if (!configRankingRodada) return;
 
-    const saldoEl = document.getElementById('home-saldo-value');
-    if (!saldoEl) return;
+    const patrimonioEl = document.getElementById('home-patrimonio');
+    const variacaoEl = document.getElementById('home-variacao-patrimonio');
+    if (!patrimonioEl) return;
 
     // Calcular impacto da posição parcial
     const impacto = getValorRankingPosicao(configRankingRodada, posicaoParcial);
@@ -1139,15 +1413,16 @@ function atualizarSaldoProjetado(posicaoParcial) {
         ? `R$ ${abs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
         : `-R$ ${abs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
-    // Atualizar UI com indicador de projeção
-    saldoEl.innerHTML = `${formatted} <span class="projected-badge">projetado</span>`;
+    // Atualizar UI
+    patrimonioEl.textContent = formatted;
 
-    // Atualizar classes de cor
-    saldoEl.className = 'home-finance-value';
-    if (saldoProjetado > 0) {
-        saldoEl.classList.add('positive');
-    } else if (saldoProjetado < 0) {
-        saldoEl.classList.add('negative');
+    // Mostrar variação como projeção
+    if (variacaoEl) {
+        if (impacto >= 0) {
+            variacaoEl.innerHTML = `<span class="projected-badge">+${impacto.toFixed(0)} proj.</span>`;
+        } else {
+            variacaoEl.innerHTML = `<span class="projected-badge">${impacto.toFixed(0)} proj.</span>`;
+        }
     }
 }
 

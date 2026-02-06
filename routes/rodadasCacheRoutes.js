@@ -17,7 +17,7 @@ const router = express.Router();
 
 // Recalcular rodadas de uma liga
 // POST /api/rodadas-cache/:ligaId/recalcular
-// Body: { rodadaInicio: 1, rodadaFim: 38 }
+// Body: { rodadaInicio: 1, rodadaFim: 38, temporada?: 2025 }
 router.post("/:ligaId/recalcular", recalcularRodadas);
 
 // =====================================================================

@@ -83,6 +83,7 @@ import { APP_VERSION } from "./config/appVersion.js";
 
 // 📊 MODELS PARA SYNC DE ÍNDICES
 import ExtratoFinanceiroCache from "./models/ExtratoFinanceiroCache.js";
+import Rodada from "./models/Rodada.js";
 import UserActivity from "./models/UserActivity.js";
 import AccessLog from "./models/AccessLog.js";
 import { readFile } from "fs/promises";
@@ -630,7 +631,9 @@ if (process.env.NODE_ENV !== "test") {
 // 🔄 SINCRONIZAÇÃO DE ÍNDICES (Mongoose 8.x syncIndexes)
 // Remove índices legados e cria índices definidos no schema
 // ====================================================================
-mongoose.connection.once("open", async () => {
+// ✅ FIX: connectDB() já fez await, conexão já está aberta neste ponto.
+// Usar IIFE em vez de .once("open") que nunca dispara (evento já passou).
+(async () => {
   console.log("🔧 Sincronizando índices do banco de dados (Mongoose 8.x)...");
   try {
     // Preview das mudanças antes de aplicar
@@ -651,23 +654,36 @@ mongoose.connection.once("open", async () => {
     }
   } catch (error) {
     if (error.codeName !== "NamespaceNotFound") {
-      console.error("⚠️ Erro na sincronização de índices:", error.message);
+      console.error("⚠️ Erro na sincronização de índices (Extrato):", error.message);
+    }
+  }
+
+  // ✅ Sincronizar índices de Rodada (fix: índice antigo sem temporada)
+  try {
+    const rodadaDiff = await Rodada.diffIndexes();
+    if (rodadaDiff.toDrop.length > 0 || rodadaDiff.toCreate.length > 0) {
+      console.log("📋 [Rodada] Índices a remover:", rodadaDiff.toDrop);
+      console.log("📋 [Rodada] Índices a criar:", rodadaDiff.toCreate);
+      const droppedRodada = await Rodada.syncIndexes();
+      if (droppedRodada.length > 0) {
+        console.log("✅ [Rodada] Índices removidos:", droppedRodada);
+      }
+      console.log("✅ [Rodada] Índices sincronizados (multi-temporada)!");
+    }
+  } catch (error) {
+    if (error.codeName !== "NamespaceNotFound") {
+      console.error("⚠️ Erro na sincronização de índices (Rodada):", error.message);
     }
   }
 
   // ✅ SCHEDULER DE CONSOLIDAÇÃO AUTOMÁTICA
-  if (process.env.NODE_ENV === "production") {
-    setTimeout(() => {
-      console.log(
-        "[SERVER] 🚀 Iniciando scheduler de consolidação em produção...",
-      );
-      consolidacaoIntervalId = iniciarSchedulerConsolidacao();
-    }, 10000);
-  } else {
+  // Roda em qualquer ambiente (DEV e PROD usam o mesmo banco)
+  setTimeout(() => {
     console.log(
-      "[SERVER] ⚠️ Scheduler de consolidação desativado em desenvolvimento",
+      `[SERVER] 🚀 Iniciando scheduler de consolidação (${process.env.NODE_ENV || "development"})...`,
     );
-  }
+    consolidacaoIntervalId = iniciarSchedulerConsolidacao();
+  }, 10000);
 
   // 🔔 CRON: Limpeza de push subscriptions expiradas
   // Toda segunda-feira às 3h da manhã
@@ -706,7 +722,7 @@ mongoose.connection.once("open", async () => {
   });
   cronJobs.push(cronLimpezaCache);
   console.log("[SERVER] 🔔 Cron de limpeza de cache agendado (diário 4h)");
-});
+})();
 
 // ====================================================================
 // 🛑 GRACEFUL SHUTDOWN - Fecha recursos antes de encerrar processo

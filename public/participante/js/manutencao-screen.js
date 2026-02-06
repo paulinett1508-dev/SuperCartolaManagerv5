@@ -24,16 +24,29 @@ const ManutencaoScreen = {
         const tela = document.getElementById('manutencaoScreen');
         if (!tela) return;
 
+        // ✅ FIX: Esconder splash screen ANTES de tudo (z-index 999999 > manutenção 99999)
+        const splash = document.getElementById('splashScreen');
+        if (splash) {
+            splash.style.display = 'none';
+            splash.style.opacity = '0';
+            splash.style.visibility = 'hidden';
+            splash.classList.add('hidden');
+            splash.classList.remove('animate');
+        }
+        // Esconder overlay de reload também
+        const reloadOverlay = document.getElementById('reload-glass-overlay');
+        if (reloadOverlay) reloadOverlay.classList.remove('is-active');
+
         // Aplicar customização se fornecida
         if (config && config.customizacao) {
             this._aplicarCustomizacao(tela, config.customizacao);
         }
 
-        // Esconder app normal
+        // Esconder app normal (usar cssText para garantir override de !important)
         const container = document.querySelector('.participante-container');
         const bottomNav = document.querySelector('.bottom-nav-modern');
-        if (container) container.style.display = 'none';
-        if (bottomNav) bottomNav.style.display = 'none';
+        if (container) container.style.cssText = 'display:none !important;';
+        if (bottomNav) bottomNav.style.cssText = 'display:none !important;';
 
         // Esconder quick bar (pode já existir ou não)
         this._esconderQuickBar();

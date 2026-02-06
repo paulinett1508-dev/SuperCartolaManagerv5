@@ -64,6 +64,12 @@ const SplashScreen = {
 
     // ✅ v5.0: Revelar app manipulando estilos inline diretamente
     revelarApp() {
+        // ✅ FIX: NÃO revelar app se modo manutenção está ativo
+        if (window.ManutencaoScreen && window.ManutencaoScreen.estaAtivo()) {
+            console.log('[SPLASH] Manutenção ativa - não revelar app');
+            return;
+        }
+
         console.log('[SPLASH] Revelando app...');
 
         // Adicionar classe app-ready (para CSS que depende dela)
@@ -190,6 +196,12 @@ const SplashScreen = {
         this.hiddenTimestamp = null;
 
         if (window.Log) Log.debug('SPLASH', `Usuário retornou após ${Math.round(tempoAusente / 1000)}s`);
+
+        // ✅ FIX: Não recarregar módulos se manutenção está ativa
+        if (window.ManutencaoScreen && window.ManutencaoScreen.estaAtivo()) {
+            if (window.Log) Log.info('SPLASH', 'Manutenção ativa - skip handleReturn');
+            return;
+        }
 
         // Se ficou mais de 5 minutos fora
         if (tempoAusente >= this.INACTIVITY_THRESHOLD) {

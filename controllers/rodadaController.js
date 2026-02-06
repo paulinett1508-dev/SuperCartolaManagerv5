@@ -486,10 +486,8 @@ export const obterRodadas = async (req, res) => {
     const ligaIdObj = toLigaId(ligaId);
     let filtro = { ligaId: ligaIdObj };
 
-    // Multi-Temporada: filtrar por temporada se fornecida
-    if (temporada) {
-      filtro.temporada = Number(temporada);
-    }
+    // Multi-Temporada: filtrar por temporada (default = CURRENT_SEASON)
+    filtro.temporada = temporada ? Number(temporada) : CURRENT_SEASON;
 
     if (rodada) {
       filtro.rodada = Number(rodada);
@@ -674,7 +672,7 @@ export const obterRodadas = async (req, res) => {
 export const criarIndiceUnico = async (req, res) => {
   try {
     await Rodada.collection.createIndex(
-      { ligaId: 1, rodada: 1, timeId: 1 },
+      { ligaId: 1, rodada: 1, timeId: 1, temporada: 1 },
       { unique: true },
     );
 

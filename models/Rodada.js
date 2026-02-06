@@ -40,4 +40,7 @@ const RodadaSchema = new mongoose.Schema({
   reserva_luxo_id: { type: Number },
 });
 
+// ✅ Índice composto único COM temporada (multi-temporada)
+RodadaSchema.index({ ligaId: 1, rodada: 1, timeId: 1, temporada: 1 }, { unique: true });
+
 export default mongoose.model("Rodada", RodadaSchema);

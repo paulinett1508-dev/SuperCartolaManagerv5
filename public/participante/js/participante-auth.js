@@ -65,15 +65,17 @@ class ParticipanteAuth {
                 window.SplashScreen.show('autenticacao');
             }
 
-            // ✅ v2.1: Emitir evento com dados da liga incluídos
-            window.dispatchEvent(new CustomEvent('participante-auth-ready', {
-                detail: {
-                    participante: this.participante,
-                    ligaId: this.ligaId,
-                    timeId: this.timeId,
-                    ligaData: this.ligaDataCache // Incluir dados da liga
-                }
-            }));
+            // ✅ FIX: Só emitir auth-ready se NÃO estiver em manutenção
+            if (!emManutencao) {
+                window.dispatchEvent(new CustomEvent('participante-auth-ready', {
+                    detail: {
+                        participante: this.participante,
+                        ligaId: this.ligaId,
+                        timeId: this.timeId,
+                        ligaData: this.ligaDataCache
+                    }
+                }));
+            }
 
             return true;
         }
@@ -162,15 +164,18 @@ class ParticipanteAuth {
                 window.SplashScreen.show('autenticacao');
             }
 
-            // ✅ v2.1: Emitir evento com dados da liga incluídos
-            window.dispatchEvent(new CustomEvent('participante-auth-ready', {
-                detail: {
-                    participante: this.participante,
-                    ligaId: this.ligaId,
-                    timeId: this.timeId,
-                    ligaData: this.ligaDataCache // Incluir dados da liga
-                }
-            }));
+            // ✅ FIX: Só emitir auth-ready se NÃO estiver em manutenção
+            // Evita que navegação carregue módulos desnecessariamente
+            if (!emManutencaoFetch) {
+                window.dispatchEvent(new CustomEvent('participante-auth-ready', {
+                    detail: {
+                        participante: this.participante,
+                        ligaId: this.ligaId,
+                        timeId: this.timeId,
+                        ligaData: this.ligaDataCache
+                    }
+                }));
+            }
 
             return true;
         } catch (error) {
