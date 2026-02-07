@@ -111,6 +111,9 @@ export async function obterEscalacao(req, res) {
       reservas: reservas,         // Apenas reservas
       capitao_id: data.capitao_id,
       reserva_luxo_id: data.reserva_luxo_id || null,
+      pontos: data.pontos,
+      patrimonio: data.patrimonio,
+      variacao_patrimonio: data.variacao_patrimonio,
     });
   } catch (error) {
     console.error(

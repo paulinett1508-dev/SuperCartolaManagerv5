@@ -141,6 +141,7 @@ async function buscarEscalacaoCompleta(ligaId, timeId, rodada = 1) {
                 reserva_luxo_id: data.reserva_luxo_id,
                 pontos: data.pontos || calcularPontosTotais(data),
                 patrimonio: data.patrimonio,
+                variacao_patrimonio: data.variacao_patrimonio,
                 nome: data.nome,
                 nome_cartoleiro: data.nome_cartoleiro
             };
@@ -281,6 +282,7 @@ function construirEscalacaoFromRaw(rawJson, timeId, rodada, atletasPontuados) {
         reserva_luxo_id: reservaLuxoId,
         pontos: rawJson.pontos ?? calcularPontosTotais({ titulares: titularesRaw, capitao_id: capitainId, reserva_luxo_id: reservaLuxoId }),
         patrimonio: rawJson.patrimonio,
+        variacao_patrimonio: rawJson.variacao_patrimonio,
         nome: rawJson.nome ?? rawJson.time?.nome ?? rawJson.nome_cartoleiro ?? 'Sua Escalação',
         nome_cartoleiro: rawJson.nome_cartoleiro ?? rawJson.time?.nome_cartoleiro ?? rawJson.cartoleiro_nome ?? 'Cartoleiro'
     };
@@ -376,7 +378,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
     const totalEscalados = (grupos.goleiros.length + grupos.defensores.length + grupos.meias.length + grupos.atacantes.length + grupos.tecnicos.length);
     const formacao = `${grupos.defensores.length || 0}-${grupos.meias.length || 0}-${grupos.atacantes.length || 0}`;
     const patrimonio = Number(escalacao.patrimonio ?? escalacao.patrimonio_total ?? 0) || 0;
-    const saldo = Number(escalacao.saldo ?? escalacao.saldo_total ?? 0) || 0;
+    const variacao = Number(escalacao.variacao_patrimonio ?? 0) || 0;
     const rodadaLabel = escalacao.rodada ?? '--';
 
     return `
@@ -398,8 +400,8 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                         <strong>${formatarCartoletas(patrimonio)}</strong>
                     </div>
                     <div class="campinho-header-saldo">
-                        <p>Saldo</p>
-                        <strong>${formatarCartoletas(saldo)}</strong>
+                        <p>Variação</p>
+                        <strong style="color:${variacao >= 0 ? '#22c55e' : '#ef4444'}">${variacao >= 0 ? '+' : ''}${formatarCartoletas(variacao)}</strong>
                     </div>
                 </div>
             </header>
