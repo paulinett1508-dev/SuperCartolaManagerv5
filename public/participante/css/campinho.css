@@ -110,13 +110,79 @@
     color: var(--app-text-white, #fff);
 }
 
-.campinho-screen-body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
-    gap: 24px;
-    align-items: start;
+/* === TABELA DE ESCALAÇÃO (formato Rodadas) === */
+.campinho-escalacao-tabela {
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 16px;
+    margin-bottom: 16px;
 }
 
+.campinho-escalacao-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.campinho-escalacao-header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--app-font-brand, 'Russo One', sans-serif);
+    font-size: 13px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.campinho-escalacao-header-left .material-icons {
+    font-size: 18px;
+    color: var(--app-primary, #ff5500);
+}
+
+.campinho-escalacao-count {
+    font-family: var(--app-font-base, 'Inter', sans-serif);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 400;
+}
+
+.campinho-escalacao-header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.campinho-escalacao-total-label {
+    font-family: var(--app-font-base, 'Inter', sans-serif);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.campinho-escalacao-total-valor {
+    font-family: var(--app-font-mono, 'JetBrains Mono', monospace);
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.campinho-escalacao-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.campinho-escalacao-divisoria {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 12px 0;
+}
+
+/* Campo visual como complemento */
 .campinho-field-panel {
     background: rgba(15, 23, 42, 0.85);
     border-radius: 20px;
@@ -407,18 +473,6 @@
 .campinho-lineup-body::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 999px;
-}
-
-@media (max-width: 1024px) {
-    .campinho-screen-body {
-        grid-template-columns: 1fr;
-    }
-
-    .campinho-lineup-panel {
-        width: 100%;
-        min-width: unset;
-        max-width: 100%;
-    }
 }
 
 /* === HEADER DO CAMPINHO === */

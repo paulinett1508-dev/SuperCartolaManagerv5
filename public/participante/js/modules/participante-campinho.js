@@ -403,47 +403,50 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                 </div>
             </header>
 
-            <div class="campinho-screen-body">
-                <section class="campinho-field-panel">
-                    <div class="campinho-field-wrapper">
-                        ${renderizarCampo(grupos, escalacao.capitao_id, escalacao.reserva_luxo_id, 'meu-time')}
+            <!-- TABELA DE ESCALAÇÃO (formato Rodadas) -->
+            <section class="campinho-escalacao-tabela">
+                <div class="campinho-escalacao-header-bar">
+                    <div class="campinho-escalacao-header-left">
+                        <span class="material-icons">stadium</span>
+                        <span>Titulares</span>
+                        <span class="campinho-escalacao-count">(${totalEscalados})</span>
                     </div>
-                    <div class="campinho-field-footer">
-                        <div class="campinho-points">
-                            <span>Pontos totais</span>
-                            <strong>${_truncar(pontosTotais)}</strong>
-                        </div>
-                        <div class="campinho-counter">
-                            <span>Escalados</span>
-                            <strong>${totalEscalados}/12</strong>
-                        </div>
-                        ${renderizarLegenda()}
+                    <div class="campinho-escalacao-header-right">
+                        <span class="campinho-escalacao-total-label">Total</span>
+                        <span class="campinho-escalacao-total-valor">${_truncar(pontosTotais)} pts</span>
                     </div>
-                </section>
-                <aside class="campinho-lineup-panel">
-                    <div class="campinho-lineup-card">
-                        <div class="campinho-lineup-header">
-                            <div>
-                                <p class="campinho-lineup-label">Escalação Completa</p>
-                                <h3>Rodada ${rodadaLabel}</h3>
-                            </div>
-                            <div class="campinho-lineup-balance">
-                                <span class="campinho-lineup-balance-label">Total</span>
-                                <strong>${_truncar(pontosTotais)} pts</strong>
-                            </div>
-                        </div>
-                        <div class="campinho-lineup-body">
-                            ${renderizarListaPorPosicao('GOL', grupos.goleiros, escalacao.capitao_id, escalacao.reserva_luxo_id)}
-                            ${renderizarListaPorPosicao('LAT', grupos.laterais, escalacao.capitao_id, escalacao.reserva_luxo_id)}
-                            ${renderizarListaPorPosicao('ZAG', grupos.zagueiros, escalacao.capitao_id, escalacao.reserva_luxo_id)}
-                            ${renderizarListaPorPosicao('MEI', grupos.meias, escalacao.capitao_id, escalacao.reserva_luxo_id)}
-                            ${renderizarListaPorPosicao('ATA', grupos.atacantes, escalacao.capitao_id, escalacao.reserva_luxo_id)}
-                            ${renderizarListaPorPosicao('TEC', grupos.tecnicos, escalacao.capitao_id, escalacao.reserva_luxo_id)}
-                            ${reservas.length > 0 ? renderizarReservas(reservas, escalacao.capitao_id, escalacao.reserva_luxo_id) : ''}
-                        </div>
+                </div>
+                <div class="campinho-escalacao-body">
+                    ${renderizarListaPorPosicao('GOL', grupos.goleiros, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                    ${renderizarListaPorPosicao('LAT', grupos.laterais, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                    ${renderizarListaPorPosicao('ZAG', grupos.zagueiros, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                    ${renderizarListaPorPosicao('MEI', grupos.meias, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                    ${renderizarListaPorPosicao('ATA', grupos.atacantes, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                    ${renderizarListaPorPosicao('TEC', grupos.tecnicos, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                </div>
+                ${reservas.length > 0 ? `
+                    <div class="campinho-escalacao-divisoria"></div>
+                    ${renderizarReservas(reservas, escalacao.capitao_id, escalacao.reserva_luxo_id)}
+                ` : ''}
+            </section>
+
+            <!-- CAMPO VISUAL (complemento) -->
+            <section class="campinho-field-panel">
+                <div class="campinho-field-wrapper">
+                    ${renderizarCampo(grupos, escalacao.capitao_id, escalacao.reserva_luxo_id, 'meu-time')}
+                </div>
+                <div class="campinho-field-footer">
+                    <div class="campinho-points">
+                        <span>Pontos totais</span>
+                        <strong>${_truncar(pontosTotais)}</strong>
                     </div>
-                </aside>
-            </div>
+                    <div class="campinho-counter">
+                        <span>Escalados</span>
+                        <strong>${totalEscalados}/12</strong>
+                    </div>
+                    ${renderizarLegenda()}
+                </div>
+            </section>
 
             ${confronto ? `
                 <div class="campinho-confronto-card">
