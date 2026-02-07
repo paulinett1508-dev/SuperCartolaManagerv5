@@ -81,8 +81,18 @@ export function setValoresFase(valorVitoria, valorDerrota) {
   console.log(`[MATA-CONFIG] Valores financeiros atualizados: vitória=${valorVitoria}, derrota=${valorDerrota}`);
 }
 
-// Tamanho padrao do torneio
+// ⚠️ DEPRECATED: Tamanho agora vem do CACHE calculado pelo backend
+// Mantido apenas como fallback extremo
 export const TAMANHO_TORNEIO_DEFAULT = 32;
+
+// ✅ Função para calcular tamanho ideal localmente (espelho do backend)
+export function calcularTamanhoIdeal(totalParticipantes) {
+  if (totalParticipantes < 8) return 0;
+  
+  // Encontra maior potência de 2 menor ou igual ao total
+  let potenciaDeDois = Math.pow(2, Math.floor(Math.log2(totalParticipantes)));
+  return potenciaDeDois >= 8 ? potenciaDeDois : 0;
+}
 
 // Labels e número de jogos por fase
 export const FASE_LABELS = {

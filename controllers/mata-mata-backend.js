@@ -410,12 +410,18 @@ export async function getResultadosMataMataCompleto(ligaId, rodadaAtual) {
     );
 
     for (const edicao of edicoesProcessaveis) {
-        const resultadosEdicao = await calcularResultadosEdicao(
+        const dadosEdicao = await calcularResultadosEdicao(
             ligaId,
             edicao,
             rodadaAtual,
             config,
         );
+        
+        // ✅ Extrair resultados (compatibilidade com novo formato)
+        const resultadosEdicao = Array.isArray(dadosEdicao) 
+            ? dadosEdicao 
+            : dadosEdicao.resultados || [];
+        
         todosResultados.push(...resultadosEdicao);
     }
 

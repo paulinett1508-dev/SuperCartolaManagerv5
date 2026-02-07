@@ -21,21 +21,31 @@ export const salvarCacheMataMata = async (req, res) => {
             return res.status(400).json({ error: "Dados do torneio devem ser um objeto" });
         }
 
-        const fasesValidas = ['primeira', 'oitavas', 'quartas', 'semis', 'final', 'campeao'];
+        const fasesValidas = ['primeira', 'oitavas', 'quartas', 'semis', 'final', 'campeao', 'metadata'];
         const chavesDados = Object.keys(dados);
         const chavesInvalidas = chavesDados.filter(k => !fasesValidas.includes(k));
         if (chavesInvalidas.length > 0) {
             return res.status(400).json({ error: `Chaves inválidas nos dados: ${chavesInvalidas.join(', ')}` });
         }
 
+        // ✅ Extrair metadata se disponível
+        const tamanhoTorneio = dados?.metadata?.tamanhoTorneio || dados?.tamanhoTorneio || null;
+        const participantesAtivos = dados?.metadata?.participantesAtivos || dados?.participantesAtivos || null;
+
+        const updateData = {
+            rodada_atual: rodada,
+            dados_torneio: dados,
+            ultima_atualizacao: new Date(),
+        };
+
+        // ✅ Adicionar campos opcionais se disponíveis
+        if (tamanhoTorneio) updateData.tamanhoTorneio = tamanhoTorneio;
+        if (participantesAtivos) updateData.participantesAtivos = participantesAtivos;
+
         // Upsert: Salva ou Atualiza o estado desta edição (com temporada no filtro)
         await MataMataCache.findOneAndUpdate(
             { liga_id: ligaId, edicao: edicaoNum, temporada: CURRENT_SEASON },
-            {
-                rodada_atual: rodada,
-                dados_torneio: dados,
-                ultima_atualizacao: new Date(),
-            },
+            updateData,
             { new: true, upsert: true },
         );
 

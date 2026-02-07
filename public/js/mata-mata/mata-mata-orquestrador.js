@@ -16,6 +16,7 @@ import {
   FASE_LABELS,
   FASE_NUM_JOGOS,
   setValoresFase,
+  calcularTamanhoIdeal,
 } from "./mata-mata-config.js";
 import {
   setRankingFunction as setRankingConfronto,
@@ -50,6 +51,9 @@ const pontosRodadaCache = new Map();
 
 // ✅ CACHE LOCAL DE RANKING BASE POR EDIÇÃO (evita buscas duplicadas)
 const rankingBaseCache = new Map();
+
+// ✅ CACHE LOCAL DE TAMANHO DO TORNEIO POR EDIÇÃO
+const tamanhoTorneioCache = new Map();
 
 // Configuração de cache persistente
 const CACHE_CONFIG = {
@@ -137,6 +141,14 @@ async function salvarFaseNoMongoDB(
       }
     }
 
+    // ✅ 3.5. Adicionar metadata do tamanho calculado
+    if (tamanhoTorneio && tamanhoTorneio !== TAMANHO_TORNEIO_DEFAULT) {
+      dadosAtuais.metadata = {
+        tamanhoTorneio: tamanhoTorneio,
+        calculadoEm: new Date().toISOString()
+      };
+    }
+
     // 4. Salvar no MongoDB
     const resPost = await fetch(`/api/mata-mata/cache/${ligaId}/${edicao}`, {
       method: "POST",
@@ -179,7 +191,7 @@ async function getPontosDaRodadaCached(ligaId, rodada) {
   return pontos;
 }
 
-// ✅ FUNÇÃO PARA OBTER RANKING BASE COM CACHE LOCAL
+// ✅ FUNÇÃO PARA OBTER RANKING BASE COM CACHE LOCAL  
 async function getRankingBaseCached(ligaId, rodadaDefinicao) {
   const cacheKey = `${ligaId}_base_${rodadaDefinicao}`;
 
@@ -203,6 +215,63 @@ async function getRankingBaseCached(ligaId, rodadaDefinicao) {
 
   rankingBaseCache.set(cacheKey, rankingBase);
   return rankingBase;
+}
+
+// ✅ FUNÇÃO PARA OBTER TAMANHO DO TORNEIO (prioriza cache MongoDB)
+async function getTamanhoTorneioCached(ligaId, edicao) {
+  const cacheKey = `${ligaId}_tamanho_${edicao}`;
+
+  // 1. Verificar cache local
+  if (tamanhoTorneioCache.has(cacheKey)) {
+    console.log(`[MATA-ORQUESTRADOR] 💾 Cache hit: tamanho edição ${edicao}`);
+    return tamanhoTorneioCache.get(cacheKey);
+  }
+
+  // 2. Buscar do MongoDB
+  try {
+    const resCache = await fetch(`/api/mata-mata/cache/${ligaId}/${edicao}`);
+    if (resCache.ok) {
+      const cacheData = await resCache.json();
+      if (cacheData.cached) {
+        const tamanhoDoMongo = Number(cacheData.dados?.tamanhoTorneio) || 
+                               Number(cacheData.dados?.metadata?.tamanhoTorneio);
+        
+        if (tamanhoDoMongo && tamanhoDoMongo >= 8) {
+          tamanhoTorneioCache.set(cacheKey, tamanhoDoMongo);
+          console.log(`[MATA-ORQUESTRADOR] Tamanho (MongoDB): ${tamanhoDoMongo}`);
+          return tamanhoDoMongo;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`[MATA-ORQUESTRADOR] Erro ao buscar tamanho do MongoDB:`, err.message);
+  }
+
+  // 3. Fallback: calcular localmente
+  console.log(`[MATA-ORQUESTRADOR] Calculando tamanho localmente...`);
+  const edicaoData = edicoes.find(e => e.id === edicao);
+  if (!edicaoData) {
+    console.warn(`[MATA-ORQUESTRADOR] Edição ${edicao} não encontrada`);
+    return TAMANHO_TORNEIO_DEFAULT;
+  }
+
+  try {
+    const rankingCompleto = await getRankingRodadaEspecifica(ligaId, edicaoData.rodadaDefinicao);
+    const timesAtivos = rankingCompleto.filter(t => t.ativo !== false).length;
+    const tamanhoCalculado = calcularTamanhoIdeal(timesAtivos);
+    
+    if (tamanhoCalculado > 0) {
+      tamanhoTorneioCache.set(cacheKey, tamanhoCalculado);
+      console.log(`[MATA-ORQUESTRADOR] Tamanho calculado: ${tamanhoCalculado} (${timesAtivos} ativos)`);
+      return tamanhoCalculado;
+    } else {
+      console.warn(`[MATA-ORQUESTRADOR] Participantes insuficientes (${timesAtivos}), mínimo: 8`);
+      return 0;
+    }
+  } catch (err) {
+    console.error(`[MATA-ORQUESTRADOR] Erro ao calcular tamanho:`, err);
+    return TAMANHO_TORNEIO_DEFAULT;
+  }
 }
 
 // Função de carregamento dinâmico das rodadas
@@ -282,45 +351,38 @@ export async function carregarMataMata() {
 
   const ligaId = getLigaId();
 
-  // Buscar tamanho do torneio configurado pela liga
+  // ✅ v2.0: Buscar config para valores financeiros e edições (NÃO mais para tamanho)
   try {
     const resConfig = await fetch(`/api/liga/${ligaId}/modulos/mata_mata`);
     if (resConfig.ok) {
       const configData = await resConfig.json();
       const wizardRespostas = configData?.config?.wizard_respostas;
 
-      // Tamanho do torneio
-      const totalTimes = Number(wizardRespostas?.total_times);
-      if (totalTimes && [8, 16, 32].includes(totalTimes)) {
-        tamanhoTorneio = totalTimes;
-        console.log(`[MATA-ORQUESTRADOR] Tamanho do torneio configurado: ${tamanhoTorneio}`);
-      } else {
-        tamanhoTorneio = TAMANHO_TORNEIO_DEFAULT;
-        console.log(`[MATA-ORQUESTRADOR] Tamanho do torneio: ${tamanhoTorneio} (default)`);
-      }
-      setTamanhoTorneioFinanceiro(tamanhoTorneio);
+      // ⚠️ NOTA: Tamanho do torneio agora vem do CACHE, não do wizard
+      // O wizard pode definir um "mínimo" mas não o tamanho real
+      console.log(`[MATA-ORQUESTRADOR] Config carregada (valores financeiros e edições)`);
 
-      // FIX-4: Valores financeiros da config da liga
+      // Valores financeiros da config da liga
       const valorVitoria = Number(wizardRespostas?.valor_vitoria);
       const valorDerrota = Number(wizardRespostas?.valor_derrota);
       if (valorVitoria > 0 && valorDerrota < 0) {
         setValoresFase(valorVitoria, valorDerrota);
+        console.log(`[MATA-ORQUESTRADOR] Valores financeiros: vitória=${valorVitoria}, derrota=${valorDerrota}`);
       }
 
-      // FIX-3: Carregar edições da config (se qtd_edicoes definida)
+      // Carregar edições da config (se qtd_edicoes definida)
       const qtdEdicoes = Number(wizardRespostas?.qtd_edicoes);
       if (qtdEdicoes && qtdEdicoes >= 1 && qtdEdicoes <= 10) {
         const calendario = configData?.config?.configuracao_override?.calendario?.edicoes
           || configData?.config?.calendario?.edicoes;
         if (Array.isArray(calendario) && calendario.length > 0) {
           setEdicoes(calendario.slice(0, qtdEdicoes));
+          console.log(`[MATA-ORQUESTRADOR] ${qtdEdicoes} edições configuradas`);
         }
       }
     }
   } catch (err) {
-    console.warn("[MATA-ORQUESTRADOR] Erro ao buscar config do mata-mata, usando default:", err.message);
-    tamanhoTorneio = TAMANHO_TORNEIO_DEFAULT;
-    setTamanhoTorneioFinanceiro(tamanhoTorneio);
+    console.warn("[MATA-ORQUESTRADOR] Erro ao buscar config do mata-mata:", err.message);
   }
 
   try {
@@ -754,6 +816,22 @@ async function carregarFase(fase, ligaId) {
         </div>`;
       return;
     }
+
+    // ✅ v2.0: Buscar tamanho calculado do cache MongoDB ANTES de qualquer cálculo
+    const tamanhoCalculado = await getTamanhoTorneioCached(ligaId, edicaoAtual);
+    if (tamanhoCalculado === 0) {
+      contentElement.innerHTML = `
+        <div class="mata-mata-aguardando-fase">
+          <span class="material-symbols-outlined">group_off</span>
+          <h4>Participantes insuficientes</h4>
+          <p>O Mata-Mata requer no mínimo 8 participantes ativos.</p>
+        </div>`;
+      return;
+    }
+
+    // Atualizar tamanho global
+    tamanhoTorneio = tamanhoCalculado;
+    setTamanhoTorneioFinanceiro(tamanhoTorneio);
 
     if (rodada_atual <= rodadaDefinicao) {
       renderParciaisOptions(contentElement, ligaId, edicaoAtual, edicaoSelecionada, tamanhoTorneio, rodadaDefinicao);
