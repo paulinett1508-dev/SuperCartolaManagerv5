@@ -645,9 +645,12 @@ export const getExtratoFinanceiro = async (req, res) => {
                 // Calcular TODOS os resultados de Mata-Mata
                 const resultadosMM = await getResultadosMataMataCompleto(ligaId, rodadaAtualCartola + 1);
 
-                // Filtrar apenas resultados deste time
+                // Filtrar apenas resultados deste time E dentro do limite de rodadas
+                // ✅ v8.8.0 FIX: rodadaPontos é a rodada do Brasileirão onde a fase é calculada
+                // Não incluir resultados de rodadas além do limiteConsolidacao (ainda não disputadas)
                 const transacoesMM = resultadosMM
                     .filter((r) => String(r.timeId) === String(timeId))
+                    .filter((r) => r.rodadaPontos <= rodadaLimite)
                     .map((r) => {
                         const faseLabel = {
                             primeira: "1ª Fase",
