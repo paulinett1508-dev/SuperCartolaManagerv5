@@ -1,5 +1,11 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v8.9.1 (SaaS DINÂMICO)
+ * FLUXO-FINANCEIRO-CONTROLLER v8.10.0 (SaaS DINÂMICO)
+ * ✅ v8.10.0: FEATURE - Inscrição automática como lançamento inicial
+ *   - Adiciona taxa de inscrição da temporada automaticamente no extrato
+ *   - Funciona com pagamentos parciais (inscrição -180 + acerto +60 = saldo -120)
+ *   - Flag pagouInscricao: true → não adiciona débito (já quitado)
+ *   - Flag pagouInscricao: false → adiciona débito (pendente ou parcial)
+ *   - Pagamentos parciais registrados via sistema de Acertos
  * ✅ v8.9.1: FIX CRÍTICO - isModuloHabilitado() agora respeita flag 'configurado'
  *   - Ligas com config parcial (configurado: false) usam modulos_ativos como fallback
  *   - Resolve bug onde PC/MM/Top10 ativos em modulos_ativos eram ignorados
@@ -878,14 +884,38 @@ export const getExtratoFinanceiro = async (req, res) => {
             console.log(`[FLUXO-CONTROLLER] Acertos financeiros: ${acertos.length} transações`);
         }
 
-        // Saldo da temporada (sem acertos)
-        const saldoTemporada = cache.saldo_consolidado + saldoCampos;
+        // ✅ v8.10.0 NEW: Incluir inscrição da temporada como lançamento inicial
+        // Se participante tem `pagouInscricao: false`, adiciona débito de inscrição
+        // Pagamentos parciais são registrados via Acertos (já incluídos acima)
+        let transacoesInscricao = [];
+        let saldoInscricao = 0;
 
-        // Saldo total (temporada + acertos)
-        // acertosInfo.saldoAcertos: recebido - pago
+        const valorInscricao = liga.parametros_financeiros?.inscricao || 0;
+        const pagouInscricao = participante?.pagouInscricao === true;
+
+        // Adicionar inscrição como débito SEMPRE que houver valor configurado
+        // e participante não tiver pago integralmente
+        if (valorInscricao > 0 && !pagouInscricao) {
+            saldoInscricao = -valorInscricao;
+            transacoesInscricao.push({
+                rodada: null,
+                tipo: "INSCRICAO_TEMPORADA",
+                descricao: `Taxa de inscrição ${temporadaAtual}`,
+                valor: -valorInscricao,
+                data: new Date(`${temporadaAtual}-01-01T00:00:00Z`), // Início da temporada
+            });
+            console.log(`[FLUXO-CONTROLLER] Inscrição ${temporadaAtual}: R$ ${-valorInscricao} (pagou: ${pagouInscricao})`);
+        }
+
+        // Saldo da temporada (sem acertos, com inscrição)
+        const saldoTemporada = cache.saldo_consolidado + saldoCampos + saldoInscricao;
+
+        // Saldo total (temporada + inscrição + acertos)
+        // acertosInfo.saldoAcertos: recebido - pago (pagamentos aumentam saldo)
         const saldoTotal = saldoTemporada + acertosInfo.saldoAcertos;
 
         const todasTransacoes = [
+            ...transacoesInscricao,     // ✅ v8.10.0: Inscrição primeiro (lançamento inicial)
             ...cache.historico_transacoes,
             ...transacoesCampos,
             ...transacoesAcertos,
@@ -1236,4 +1266,4 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     }
 };
 
-console.log("[FLUXO-CONTROLLER] ✅ v8.9.1 carregado (AUTO-HEALING + Fix Módulos Legados)");
+console.log("[FLUXO-CONTROLLER] ✅ v8.10.0 carregado (AUTO-HEALING + Inscrição Automática)");
