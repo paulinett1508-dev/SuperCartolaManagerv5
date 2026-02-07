@@ -399,7 +399,8 @@ function atualizarCardsHomeUI(data) {
         ultimaRodada,
         rodadaAtual,
         minhasRodadas,
-        saldoFinanceiro
+        saldoFinanceiro,
+        timeId
     } = data;
 
     // === SLIDER DE POSIÇÃO ===
@@ -1071,7 +1072,7 @@ function renderizarHome(container, data, ligaId) {
 
             // Durante jogos ao vivo, iniciar colapsado
             const status = mercadoStatus?.status_mercado;
-            const isJogosAoVivo = status === 2 || status === 'Mercado fechado';
+            const isJogosAoVivo = status === 2;
 
             if (isJogosAoVivo) {
                 destaquesSection.classList.remove('expanded');
@@ -1373,7 +1374,8 @@ function atualizarPainelAvisos(rodadaAtual, totalParticipantes, extras = {}) {
     // Remover classes anteriores
     avisoCard.classList.remove('mercado-aberto', 'mercado-fechado', 'fim-rodada');
 
-    if (status === 'Mercado aberto') {
+    // status_mercado: 1=aberto, 2=fechado(jogos), 3=desbloqueado, 4=encerrado, 6=temporada encerrada
+    if (status === 1 || status === 3) {
         avisoCard.classList.add('mercado-aberto');
         if (avisoIcon) avisoIcon.textContent = 'lock_open';
         if (avisoTitulo) avisoTitulo.textContent = 'MERCADO ABERTO';
@@ -1389,7 +1391,7 @@ function atualizarPainelAvisos(rodadaAtual, totalParticipantes, extras = {}) {
             window.open('https://cartolafc.globo.com', '_blank');
         };
 
-    } else if (status === 'Mercado fechado') {
+    } else if (status === 2) {
         avisoCard.classList.add('mercado-fechado');
         if (avisoIcon) avisoIcon.textContent = 'sports_soccer';
         if (avisoTitulo) avisoTitulo.textContent = 'JOGOS EM ANDAMENTO';
