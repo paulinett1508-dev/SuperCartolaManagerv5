@@ -1014,17 +1014,15 @@ const atualizarModulosAtivos = async (req, res) => {
   }
 
   // ✅ FIX: Validar que módulos base não podem ser desativados
-  const MODULOS_BASE_OBRIGATORIOS = ['extrato', 'ranking', 'rodadas'];
+  // NOTA: extrato NÃO está aqui — admin pode desativá-lo (modo manutenção)
+  const MODULOS_BASE_OBRIGATORIOS = ['ranking', 'rodadas'];
 
-  console.log('[DEBUG-MODULOS] Validando módulos base obrigatórios...');
   for (const moduloBase of MODULOS_BASE_OBRIGATORIOS) {
-    console.log(`[DEBUG-MODULOS] Verificando ${moduloBase}:`, modulos[moduloBase]);
     if (modulos[moduloBase] === false) {
       console.log(`[DEBUG-MODULOS] ⚠️ Forçando módulo base: ${moduloBase} = true`);
       modulos[moduloBase] = true;
     }
   }
-  console.log('[DEBUG-MODULOS] ✅ Validação de módulos base OK');
 
   try {
     const liga = await Liga.findById(ligaIdParam);
