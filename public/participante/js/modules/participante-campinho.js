@@ -444,7 +444,6 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                         <span>Escalados</span>
                         <strong>${totalEscalados}/12</strong>
                     </div>
-                    ${renderizarLegenda()}
                 </div>
             </section>
 
