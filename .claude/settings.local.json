@@ -180,7 +180,13 @@
       "Bash(do short=\"$name#origin/\" echo \"$short\")",
       "Bash(continue if git merge-base --is-ancestor $name origin/main)",
       "Bash(then echo '$date  $short' fi done)",
-      "Bash(git remote remove:*)"
+      "Bash(git remote remove:*)",
+      "Bash(if curl -s -o /dev/null -w %{http_code} http://localhost:3000/api/cartola/mercado/status)",
+      "Bash(then echo '✅ Servidor reiniciado com sucesso na porta 3000!')",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "Bash(/tmp/claude-1000/-home-runner-workspace/af6c866a-261f-428a-8a05-bcabb5f8387b/scratchpad/audit.py:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

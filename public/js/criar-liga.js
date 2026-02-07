@@ -9,6 +9,12 @@ let timesSelecionados = [];
 // === CARREGAR LAYOUT ===
 async function loadLayout() {
     try {
+        // ✅ FIX: Não recarregar layout se já existe sidebar (navegação SPA)
+        if (document.querySelector('.app-sidebar')) {
+            console.log("[CRIAR-LIGA] Sidebar já existe, pulando loadLayout");
+            return;
+        }
+
         const response = await fetch("layout.html");
         const layoutHtml = await response.text();
         const parser = new DOMParser();
@@ -25,15 +31,18 @@ async function loadLayout() {
             placeholder.replaceWith(fragment);
         }
 
-        // Executar scripts do layout
-        const scripts = doc.querySelectorAll("script");
-        scripts.forEach((script) => {
-            if (script.textContent.trim()) {
-                const newScript = document.createElement("script");
-                newScript.textContent = `(function(){${script.textContent}})();`;
-                document.head.appendChild(newScript);
-            }
-        });
+        // ✅ FIX: Só injetar scripts do layout na PRIMEIRA carga
+        if (!window.__layoutScriptsInjected) {
+            window.__layoutScriptsInjected = true;
+            const scripts = doc.querySelectorAll("script");
+            scripts.forEach((script) => {
+                if (script.textContent.trim()) {
+                    const newScript = document.createElement("script");
+                    newScript.textContent = `(function(){${script.textContent}})();`;
+                    document.head.appendChild(newScript);
+                }
+            });
+        }
 
         // Garantir que AccordionManager seja inicializado
         setTimeout(() => {

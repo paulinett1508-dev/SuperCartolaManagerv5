@@ -385,6 +385,12 @@
             // === CARREGAR LAYOUT ===
             async function loadLayout() {
                 try {
+                    // ✅ FIX: Não recarregar layout se já existe sidebar (navegação SPA)
+                    if (document.querySelector('.app-sidebar')) {
+                        console.log("[PAINEL] Sidebar já existe, pulando loadLayout");
+                        return;
+                    }
+
                     const response = await fetch("layout.html");
                     const layoutHtml = await response.text();
 
@@ -400,17 +406,20 @@
                         console.log("[PAINEL] Sidebar já injetado, pulando...");
                     }
 
-                    // Injetar scripts do layout para accordions funcionarem
-                    const scripts = doc.querySelectorAll("script");
-                    console.log("[PAINEL] Scripts encontrados no layout:", scripts.length);
-                    scripts.forEach((script, index) => {
-                        if (script.textContent.trim()) {
-                            console.log("[PAINEL] Injetando script", index + 1, "- primeiros 100 chars:", script.textContent.substring(0, 100));
-                            const newScript = document.createElement("script");
-                            newScript.textContent = `(function(){${script.textContent}})();`;
-                            document.head.appendChild(newScript);
-                        }
-                    });
+                    // ✅ FIX: Só injetar scripts do layout na PRIMEIRA carga
+                    if (!window.__layoutScriptsInjected) {
+                        window.__layoutScriptsInjected = true;
+                        const scripts = doc.querySelectorAll("script");
+                        console.log("[PAINEL] Scripts encontrados no layout:", scripts.length);
+                        scripts.forEach((script, index) => {
+                            if (script.textContent.trim()) {
+                                console.log("[PAINEL] Injetando script", index + 1, "- primeiros 100 chars:", script.textContent.substring(0, 100));
+                                const newScript = document.createElement("script");
+                                newScript.textContent = `(function(){${script.textContent}})();`;
+                                document.head.appendChild(newScript);
+                            }
+                        });
+                    }
                     console.log("[PAINEL] verificarMenuSuperAdmin disponível?", typeof window.verificarMenuSuperAdmin);
 
                     // Garantir que AccordionManager seja inicializado

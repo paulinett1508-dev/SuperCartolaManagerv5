@@ -664,6 +664,12 @@
             // Carregar layout
             async function loadLayout() {
                 try {
+                    // ✅ FIX: Não recarregar layout se já existe sidebar (navegação SPA)
+                    if (document.querySelector('.app-sidebar')) {
+                        console.log("[API-FOOTBALL] Sidebar já existe, pulando loadLayout");
+                        return;
+                    }
+
                     const response = await fetch("layout.html");
                     const layoutHtml = await response.text();
                     const parser = new DOMParser();
@@ -674,14 +680,18 @@
                         document.getElementById("sidebar-placeholder")?.replaceWith(sidebar);
                     }
 
-                    const scripts = doc.querySelectorAll("script");
-                    scripts.forEach((script) => {
-                        if (script.textContent.trim()) {
-                            const newScript = document.createElement("script");
-                            newScript.textContent = `(function(){${script.textContent}})();`;
-                            document.head.appendChild(newScript);
-                        }
-                    });
+                    // ✅ FIX: Só injetar scripts do layout na PRIMEIRA carga
+                    if (!window.__layoutScriptsInjected) {
+                        window.__layoutScriptsInjected = true;
+                        const scripts = doc.querySelectorAll("script");
+                        scripts.forEach((script) => {
+                            if (script.textContent.trim()) {
+                                const newScript = document.createElement("script");
+                                newScript.textContent = `(function(){${script.textContent}})();`;
+                                document.head.appendChild(newScript);
+                            }
+                        });
+                    }
                 } catch (error) {
                     console.error("Erro ao carregar layout:", error);
                 }
