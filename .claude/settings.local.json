@@ -173,7 +173,14 @@
       "Bash(# Check what''s listening on port 3000 lsof -i :3000)",
       "Bash(# Kill the old server and restart with new code kill 707570 && sleep 2 && node index.js & sleep 3 # Verify it''s running curl -s http://localhost:3000/api/ligas)",
       "Bash(if curl -s http://localhost:3000/api/cartola/mercado/status)",
-      "Bash(then echo 'Servidor reiniciado com sucesso!' curl -s http://localhost:3000/api/cartola/mercado/status)"
+      "Bash(then echo 'Servidor reiniciado com sucesso!' curl -s http://localhost:3000/api/cartola/mercado/status)",
+      "Bash(exit 0)",
+      "Bash(cutoff=\"2026-01-25\" echo \"=== BRANCHES OLDER THAN 2 WEEKS \\(before $cutoff\\) ===\" echo \"\" git for-each-ref --sort=authordate --format='%\\(authordate:short\\) %\\(refname:short\\)' refs/remotes/origin/)",
+      "Bash(while read date name)",
+      "Bash(do short=\"$name#origin/\" echo \"$short\")",
+      "Bash(continue if git merge-base --is-ancestor $name origin/main)",
+      "Bash(then echo '$date  $short' fi done)",
+      "Bash(git remote remove:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
