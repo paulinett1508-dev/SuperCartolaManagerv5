@@ -390,6 +390,41 @@
 }
 
 /* ========================================
+   FOCUS VISIBLE (Acessibilidade WCAG 2.1)
+   ======================================== */
+
+/* Outline global para navegacao via teclado */
+*:focus-visible {
+    outline: 2px solid var(--app-primary);
+    outline-offset: 2px;
+}
+
+/* Suprimir outline para mouse/touch */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Bottom nav items */
+.nav-item:focus-visible {
+    outline: 2px solid var(--app-primary);
+    outline-offset: -2px;
+    border-radius: var(--app-radius-lg);
+}
+
+/* Menu cards (modulos) */
+.menu-card:focus-visible {
+    outline: 2px solid var(--app-primary);
+    outline-offset: 2px;
+    border-radius: var(--app-radius-xl);
+}
+
+/* Header icon buttons */
+.btn-icon-modern:focus-visible {
+    outline: 2px solid var(--app-primary);
+    outline-offset: 2px;
+}
+
+/* ========================================
    MEDIA QUERIES - BREAKPOINTS
    ======================================== */
 

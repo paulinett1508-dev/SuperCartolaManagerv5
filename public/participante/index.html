@@ -898,53 +898,52 @@
         <!-- =====================================================
              TELA DE MANUTENÇÃO - "Calma aê!" v2.0
              ===================================================== -->
-        <div id="manutencaoScreen" style="display:none;position:fixed;inset:0;z-index:99999;background:#111827;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:20px;font-family:'Inter',-apple-system,sans-serif;">
+        <div id="manutencaoScreen" class="manutencao-screen">
             <!-- Dev bypass link (discreto) -->
             <a id="devBypassLink" href="#" onclick="window.ManutencaoScreen && ManutencaoScreen.iniciarDevBypass(); return false;"
-                style="position:absolute;top:10px;right:14px;font-size:0.65rem;color:#374151;text-decoration:none;font-family:'JetBrains Mono',monospace;padding:4px 8px;border-radius:4px;transition:color 0.3s;"
-                onmouseover="this.style.color='#6b7280'" onmouseout="this.style.color='#374151'">
+                class="manutencao-dev-bypass">
                 dev
             </a>
 
             <!-- Card principal -->
-            <div style="max-width:400px;width:100%;margin-top:15vh;text-align:center;">
+            <div class="manutencao-card-principal">
                 <!-- Logo animado -->
-                <img src="/img/logo01-urubuplay.png" alt="Urubu Play" style="width:120px;height:120px;object-fit:contain;animation:manutBounce 2s ease-in-out infinite;margin-bottom:16px;border-radius:16px;">
+                <img src="/img/logo01-urubuplay.png" alt="Urubu Play" class="manutencao-logo">
 
                 <!-- Card com mensagem (customizável) -->
-                <div class="manutencao-header" style="background:#1f2937;border-radius:20px;padding:32px 24px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);border:1px solid rgba(249,115,22,0.25);">
+                <div class="manutencao-header manutencao-card-mensagem">
                     <!-- Imagem customizada (opcional) -->
                     <div class="manutencao-imagem" style="display:none;"></div>
 
-                    <h1 style="font-family:'Russo One',sans-serif;font-size:1.75rem;color:#f97316;margin:0 0 8px;">
+                    <h1 class="manutencao-titulo">
                         🛠️ Calma aê!
                     </h1>
-                    <p class="manutencao-mensagem" style="font-size:1.15rem;color:#e5e7eb;margin:0 0 16px;line-height:1.5;">
+                    <p class="manutencao-mensagem manutencao-texto">
                         Estamos aplicando melhorias no app. Voltamos em breve!
                     </p>
-                    <p style="font-size:0.9rem;color:#9ca3af;margin:0 0 20px;line-height:1.5;">
+                    <p class="manutencao-subtexto">
                         Enquanto isso, explore as opções abaixo! 👇
                     </p>
 
                     <!-- 3 Botões -->
-                    <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
+                    <div class="manutencao-botoes">
                         <button id="manutencaoBtnRankingGeral" onclick="window.ManutencaoScreen && ManutencaoScreen.carregarRankingGeral()"
-                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.06);color:#e5e7eb;border:1px solid #374151;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;width:100%;text-align:left;">
+                            class="manutencao-btn">
                             <span class="material-icons" style="font-size:22px;color:#fbbf24;">emoji_events</span>
                             <span class="btn-text">Ranking Geral</span>
                         </button>
                         <button id="manutencaoBtnRankingRodada" onclick="window.ManutencaoScreen && ManutencaoScreen.carregarRankingRodada()"
-                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.06);color:#e5e7eb;border:1px solid #374151;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;width:100%;text-align:left;">
+                            class="manutencao-btn">
                             <span class="material-icons" style="font-size:22px;color:#34d399;">leaderboard</span>
                             <span class="btn-text">Ranking da Rodada</span>
                         </button>
                         <button id="manutencaoBtnDino" onclick="window.ManutencaoScreen && ManutencaoScreen.abrirDinoGame()"
-                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.06);color:#e5e7eb;border:1px solid #374151;border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;width:100%;text-align:left;">
+                            class="manutencao-btn">
                             <span style="font-size:22px;">⚽</span>
                             <span class="btn-text">Cobrança de Pênalti</span>
                         </button>
                         <button id="manutencaoBtnRefresh" onclick="window.ManutencaoScreen && ManutencaoScreen.atualizarParciais()"
-                            style="display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(52,211,153,0.08);color:#34d399;border:1px solid rgba(52,211,153,0.25);border-radius:14px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;width:100%;text-align:left;">
+                            class="manutencao-btn manutencao-btn--refresh">
                             <span class="material-icons" style="font-size:22px;color:#34d399;">refresh</span>
                             <span class="btn-text">Atualizar Parciais</span>
                         </button>
@@ -952,16 +951,16 @@
                 </div>
 
                 <!-- Conteúdo dinâmico (ranking) -->
-                <div id="manutencaoConteudo" style="display:none;margin-top:20px;text-align:left;"></div>
+                <div id="manutencaoConteudo" class="manutencao-conteudo"></div>
 
                 <!-- Container Dino Game -->
-                <div id="manutencaoDinoContainer" style="display:none;margin-top:20px;"></div>
+                <div id="manutencaoDinoContainer" class="manutencao-conteudo"></div>
 
                 <!-- Notícias do time do coração (carrega automaticamente) -->
-                <div id="manutencaoNoticias" style="margin-top:20px;text-align:left;"></div>
+                <div id="manutencaoNoticias" class="manutencao-noticias"></div>
 
                 <!-- Footer -->
-                <p style="margin-top:24px;font-size:0.75rem;color:#4b5563;">
+                <p class="manutencao-footer">
                     Volta logo! ⚡
                 </p>
             </div>

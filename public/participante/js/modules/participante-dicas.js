@@ -256,7 +256,7 @@ function renderizarTabJogadores() {
         <div class="px-4 space-y-2" id="lista-jogadores">
             ${estadoDicas.jogadores.length > 0
                 ? estadoDicas.jogadores.map(j => renderizarCardJogador(j)).join('')
-                : '<div class="text-center py-8 text-white/40">Nenhum jogador encontrado</div>'
+                : renderizarVazio('Nenhum jogador encontrado para os filtros selecionados')
             }
         </div>
     `;
@@ -367,13 +367,7 @@ function renderizarTabConfrontos() {
                 `).join('')}
             </div>
 
-            ${estadoDicas.confrontos.length === 0 ? `
-                <div class="text-center py-8 text-white/40">
-                    <span class="material-icons text-4xl mb-2 block">sports_soccer</span>
-                    <p>Dados insuficientes para analise</p>
-                    <p class="text-xs mt-2">Aguarde mais rodadas serem disputadas</p>
-                </div>
-            ` : ''}
+            ${estadoDicas.confrontos.length === 0 ? renderizarVazio('Dados insuficientes para analise. Aguarde mais rodadas serem disputadas.') : ''}
         </div>
     `;
 }
@@ -716,6 +710,15 @@ function renderizarErro(mensagem) {
             <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-white/10 rounded-lg text-white text-sm">
                 Tentar novamente
             </button>
+        </div>
+    `;
+}
+
+function renderizarVazio(mensagem = 'Nenhum dado disponivel') {
+    return `
+        <div class="text-center py-16 px-5">
+            <span class="material-icons text-5xl mb-4 block" style="color:rgba(255,255,255,0.2);">inbox</span>
+            <p class="text-sm" style="color:rgba(255,255,255,0.5);">${mensagem}</p>
         </div>
     `;
 }

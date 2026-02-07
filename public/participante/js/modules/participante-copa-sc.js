@@ -27,6 +27,14 @@ export async function inicializarCopaTimesSC(params) {
         return;
     }
 
+    // Loading overlay sobre o teaser (não substitui conteúdo)
+    container.style.position = 'relative';
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'copa-sc-loading';
+    loadingOverlay.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.7);z-index:10;';
+    loadingOverlay.innerHTML = '<div class="copa-spinner"></div>';
+    container.appendChild(loadingOverlay);
+
     try {
         // Buscar informações da rodada atual
         await carregarInformacoesRodada();
@@ -37,9 +45,13 @@ export async function inicializarCopaTimesSC(params) {
         // Adicionar listeners se necessário
         setupEventListeners();
 
+        // Remover loading
+        document.getElementById('copa-sc-loading')?.remove();
+
         if (window.Log) Log.info("PARTICIPANTE-COPA-SC", "✅ Tela teaser carregada com sucesso!");
 
     } catch (erro) {
+        document.getElementById('copa-sc-loading')?.remove();
         if (window.Log) Log.error("PARTICIPANTE-COPA-SC", "Erro ao inicializar:", erro);
         mostrarErro("Não foi possível carregar as informações da Copa de Times SC.");
     }

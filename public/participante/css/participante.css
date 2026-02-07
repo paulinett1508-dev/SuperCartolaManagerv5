@@ -814,3 +814,140 @@ body {
     color: var(--app-text-muted);
     line-height: 1.4;
 }
+
+/* ========================================
+   TELA DE MANUTENÇÃO - "Calma aê!" v2.0
+   ======================================== */
+
+.manutencao-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #111827;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-y: auto;
+    padding: var(--app-space-6);
+    font-family: var(--app-font-base);
+}
+
+.manutencao-dev-bypass {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 0.65rem;
+    color: var(--app-text-dim);
+    text-decoration: none;
+    font-family: var(--app-font-mono);
+    padding: var(--app-space-1) var(--app-space-2);
+    border-radius: var(--app-radius-sm);
+    transition: color var(--app-transition-normal);
+}
+
+.manutencao-dev-bypass:hover {
+    color: var(--app-text-muted);
+}
+
+.manutencao-card-principal {
+    max-width: 400px;
+    width: 100%;
+    margin-top: 15vh;
+    text-align: center;
+}
+
+.manutencao-logo {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    animation: manutBounce 2s ease-in-out infinite;
+    margin-bottom: var(--app-space-5);
+    border-radius: var(--app-radius-xl);
+}
+
+.manutencao-card-mensagem {
+    background: #1f2937;
+    border-radius: 20px;
+    padding: 32px 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(249, 115, 22, 0.25);
+}
+
+.manutencao-titulo {
+    font-family: var(--app-font-brand);
+    font-weight: 400;
+    font-size: 1.75rem;
+    color: var(--app-primary-light);
+    margin: 0 0 8px;
+}
+
+.manutencao-texto {
+    font-size: 1.15rem;
+    color: var(--app-text-secondary);
+    margin: 0 0 16px;
+    line-height: 1.5;
+}
+
+.manutencao-subtexto {
+    font-size: 0.9rem;
+    color: var(--app-text-muted);
+    margin: 0 0 20px;
+    line-height: 1.5;
+}
+
+.manutencao-botoes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.manutencao-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--app-text-secondary);
+    border: 1px solid var(--app-border);
+    border-radius: 14px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--app-font-base);
+    width: 100%;
+    text-align: left;
+}
+
+.manutencao-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.manutencao-btn--refresh {
+    background: rgba(52, 211, 153, 0.08);
+    color: #34d399;
+    border: 1px solid rgba(52, 211, 153, 0.25);
+}
+
+.manutencao-btn--refresh:hover {
+    background: rgba(52, 211, 153, 0.15);
+}
+
+.manutencao-conteudo {
+    display: none;
+    margin-top: var(--app-space-6);
+    text-align: left;
+}
+
+.manutencao-noticias {
+    margin-top: var(--app-space-6);
+    text-align: left;
+}
+
+.manutencao-footer {
+    margin-top: 24px;
+    font-size: 0.75rem;
+    color: var(--app-text-dim);
+}
