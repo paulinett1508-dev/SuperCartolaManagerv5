@@ -16,12 +16,12 @@ if (window.Log) Log.info("PARTICIPANTE-CAMPINHO", "🔄 Carregando módulo v2.1.
 
 // Mapeamento de posicoes do Cartola
 const POSICOES = {
-    1: { nome: 'Goleiro', abrev: 'GOL', cor: 'gol' },
-    2: { nome: 'Lateral', abrev: 'LAT', cor: 'def' },
-    3: { nome: 'Zagueiro', abrev: 'ZAG', cor: 'def' },
-    4: { nome: 'Meia', abrev: 'MEI', cor: 'mei' },
-    5: { nome: 'Atacante', abrev: 'ATA', cor: 'ata' },
-    6: { nome: 'Técnico', abrev: 'TEC', cor: 'tec' }
+    1: { nome: 'Goleiro', abrev: 'GOL', cor: 'gol', icone: 'sports_soccer' },
+    2: { nome: 'Lateral', abrev: 'LAT', cor: 'def', icone: 'directions_run' },
+    3: { nome: 'Zagueiro', abrev: 'ZAG', cor: 'def', icone: 'shield' },
+    4: { nome: 'Meia', abrev: 'MEI', cor: 'mei', icone: 'sync_alt' },
+    5: { nome: 'Atacante', abrev: 'ATA', cor: 'ata', icone: 'sports_score' },
+    6: { nome: 'Técnico', abrev: 'TEC', cor: 'tec', icone: 'person' }
 };
 
 // Thresholds para mito/mico
@@ -75,23 +75,20 @@ export async function inicializarCampinhoParticipante(params) {
 
     try {
         const statusMercado = await buscarStatusMercado();
-        const rodadaAtual = statusMercado?.rodada_atual || 1;
+        const rodadaMercado = statusMercado?.rodada_atual || 1;
+        const mercadoAberto = statusMercado?.status_mercado === 1;
+
+        // Sempre mostrar última rodada consolidada
+        // Se mercado aberto, a rodada atual é a próxima (ainda não jogada), então usa anterior
+        const rodadaConsolidada = mercadoAberto ? Math.max(1, rodadaMercado - 1) : rodadaMercado;
 
         const [escalacao, confrontos] = await Promise.all([
-            buscarEscalacaoCompleta(ligaId, timeId, rodadaAtual),
+            buscarEscalacaoCompleta(ligaId, timeId, rodadaConsolidada),
             buscarConfrontos(ligaId, timeId)
         ]);
 
         dadosEscalacao = escalacao;
         confrontoAtual = confrontos;
-
-        // Verificar se mercado esta fechado (mostra escalacao)
-        const mercadoFechado = statusMercado?.status_mercado !== 1;
-
-        if (!mercadoFechado) {
-            container.innerHTML = renderizarAvisoMercadoAberto(statusMercado);
-            return;
-        }
 
         if (!escalacao || (!escalacao.atletas?.length && !escalacao.titulares?.length)) {
             container.innerHTML = renderizarSemEscalacao();
@@ -100,7 +97,7 @@ export async function inicializarCampinhoParticipante(params) {
 
         // Buscar dados do adversario se tiver confronto
         if (confrontos?.adversario?.timeId) {
-            dadosAdversario = await buscarEscalacaoCompleta(ligaId, confrontos.adversario.timeId);
+            dadosAdversario = await buscarEscalacaoCompleta(ligaId, confrontos.adversario.timeId, rodadaConsolidada);
         }
 
         // Renderizar campinho completo
@@ -385,7 +382,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
         <div class="campinho-wrapper campinho-screen">
             <header class="campinho-screen-header">
                 <div class="campinho-title-block">
-                    <p class="campinho-title-label">Escalação</p>
+                    <p class="campinho-title-label">Meu Campinho Rodada ${rodadaLabel}</p>
                     <div class="campinho-title-row">
                         <h1>${esc(escalacao.nome_cartoleiro) || 'Sua Escalação'}</h1>
                         <span class="campinho-formation">${formacao}</span>
@@ -393,8 +390,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                 </div>
                 <div class="campinho-header-actions">
                     <div class="campinho-market-group">
-                        <span class="campinho-market-pill">Mercado Fechado</span>
-                        <span class="campinho-market-rodada">Rodada ${rodadaLabel}</span>
+                        <span class="campinho-market-pill">Rodada Consolidada</span>
                     </div>
                     <div class="campinho-header-patrimonio">
                         <p>Meu Time</p>
@@ -428,10 +424,13 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                     <div class="campinho-lineup-card">
                         <div class="campinho-lineup-header">
                             <div>
-                                <p class="campinho-lineup-label">Meu Campinho</p>
+                                <p class="campinho-lineup-label">Escalação Completa</p>
                                 <h3>Rodada ${rodadaLabel}</h3>
                             </div>
-                            <div class="campinho-lineup-balance">${formatarCartoletas(patrimonio)}</div>
+                            <div class="campinho-lineup-balance">
+                                <span class="campinho-lineup-balance-label">Total</span>
+                                <strong>${_truncar(pontosTotais)} pts</strong>
+                            </div>
                         </div>
                         <div class="campinho-lineup-body">
                             ${renderizarListaPorPosicao('GOL', grupos.goleiros, escalacao.capitao_id, escalacao.reserva_luxo_id)}
@@ -518,39 +517,78 @@ function formatarCartoletas(valor) {
 
 function renderizarListaPorPosicao(label, atletas, capitaoId, reservaLuxoId) {
     if (!Array.isArray(atletas) || atletas.length === 0) return '';
+    // Buscar ícone da posição pelo label
+    const posEntry = Object.values(POSICOES).find(p => p.abrev === label);
+    const icone = posEntry?.icone || 'person';
     return `
         <div class="campinho-lineup-section">
             <div class="campinho-lineup-section-title">
+                <span class="material-icons campinho-lineup-section-icon">${icone}</span>
                 <span>${label}</span>
                 <span class="campinho-lineup-section-count">(${atletas.length})</span>
             </div>
             <div class="campinho-lineup-section-body">
-                ${atletas.map(a => renderizarLinhaLista(a, capitaoId, reservaLuxoId)).join('')}
+                ${atletas.map(a => renderizarLinhaLista(a, capitaoId, reservaLuxoId, false)).join('')}
             </div>
         </div>
     `;
 }
 
-function renderizarLinhaLista(atleta, capitaoId, reservaLuxoId) {
+function renderizarLinhaLista(atleta, capitaoId, reservaLuxoId, isReserva = false) {
     if (!atleta) return '';
     const atletaId = Number(atleta.atleta_id ?? atleta.atletaId ?? atleta.id);
-    const posAbrev = POSICOES[atleta.posicao_id ?? atleta.posicaoId ?? atleta.posicao]?.abrev || '---';
+    const posInfo = POSICOES[atleta.posicao_id ?? atleta.posicaoId ?? atleta.posicao] || { nome: 'Outros', abrev: '?', cor: 'def' };
     const nome = atleta.apelido || atleta.nome || 'Jogador';
-    const nomeAbrev = nome.length > 17 ? `${nome.slice(0, 16)}.` : nome;
+    const clubeId = atleta.clube_id || atleta.clubeId || 'default';
     const isCapitao = Number(capitaoId) && atletaId === Number(capitaoId);
     const isReservaLuxo = Number(reservaLuxoId) && atletaId === Number(reservaLuxoId);
-    const badges = [];
-    if (isCapitao) badges.push('<span class="campinho-lineup-player-badge captain">C</span>');
-    if (isReservaLuxo) badges.push('<span class="campinho-lineup-player-badge luxo">L</span>');
+
+    // Pontos com multiplicadores
+    let pontos = parseFloat(atleta.pontos_atual ?? atleta.pontos_num ?? (atleta.pontos || 0));
+    let pontosExibir = pontos;
+    let multiplicador = '';
+    let infoExtra = '';
+    if (isCapitao) {
+        pontosExibir = pontos * 2;
+        multiplicador = '2x';
+        infoExtra = ' - Capitão (2x)';
+    } else if (isReservaLuxo && pontos !== 0) {
+        pontosExibir = pontos * 1.5;
+        multiplicador = '1.5x';
+        infoExtra = ' - Luxo (1.5x)';
+    }
+
+    const classePontos = pontosExibir > 0 ? 'positivo' : pontosExibir < 0 ? 'negativo' : 'neutro';
+    const classeCard = isCapitao ? 'capitao' : isReservaLuxo ? 'luxo' : '';
+    const classeReserva = isReserva ? 'reserva-bg' : '';
+
+    // Badge no escudo
+    let badgeHtml = '';
+    if (isCapitao) {
+        badgeHtml = '<div class="campinho-tabela-badge badge-c"><span>C</span></div>';
+    } else if (isReservaLuxo) {
+        badgeHtml = '<div class="campinho-tabela-badge badge-l"><span>L</span></div>';
+    }
+
+    // Multiplicador
+    const multiplicadorHtml = multiplicador && pontos !== 0
+        ? `<span class="campinho-tabela-multiplicador ${isCapitao ? 'cap' : 'lux'}">(${pontos.toFixed(2)} x${multiplicador.replace('x','')})</span>`
+        : '';
 
     return `
-        <div class="campinho-lineup-player ${isCapitao ? 'capitao' : ''} ${isReservaLuxo ? 'reserva' : ''}">
-            <div class="campinho-lineup-player-info">
-                <span class="pos-label">${posAbrev}</span>
-                <span class="lineup-player-name">${esc(nomeAbrev)}</span>
-                ${badges.length ? `<div class="campinho-lineup-player-badges">${badges.join('')}</div>` : ''}
+        <div class="campinho-tabela-jogador ${classeCard} ${classeReserva}">
+            <div class="campinho-tabela-escudo">
+                <img src="/escudos/${clubeId}.png" alt="${esc(nome)}" onerror="this.src='/escudos/default.png'">
+                ${badgeHtml}
             </div>
-            <span class="lineup-player-price">${formatarCartoletas(atleta.preco)}</span>
+            <div class="campinho-tabela-info">
+                <span class="campinho-tabela-nome">${esc(nome)}</span>
+                <span class="campinho-tabela-pos">${posInfo.abrev}${infoExtra}</span>
+            </div>
+            <div class="campinho-tabela-pontos">
+                <span class="campinho-tabela-pontos-valor ${classePontos}">${pontosExibir.toFixed(2)}</span>
+                ${multiplicadorHtml}
+            </div>
         </div>
     `;
 }
@@ -560,11 +598,12 @@ function renderizarReservas(reservas, capitaoId, reservaLuxoId) {
     return `
         <div class="campinho-lineup-section campinho-lineup-banco">
             <div class="campinho-lineup-section-title">
+                <span class="material-icons campinho-lineup-section-icon" style="color:#a855f7;">event_seat</span>
                 <span>Banco de Reservas</span>
                 <span class="campinho-lineup-section-count">(${reservas.length})</span>
             </div>
             <div class="campinho-lineup-section-body">
-                ${reservas.map(a => renderizarLinhaLista(a, capitaoId, reservaLuxoId)).join('')}
+                ${reservas.map(a => renderizarLinhaLista(a, capitaoId, reservaLuxoId, true)).join('')}
             </div>
         </div>
     `;

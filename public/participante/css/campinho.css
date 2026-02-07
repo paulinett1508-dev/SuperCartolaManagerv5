@@ -204,8 +204,19 @@
 }
 
 .campinho-lineup-balance {
-    font-family: var(--app-font-mono);
-    font-size: 18px;
+    text-align: right;
+}
+
+.campinho-lineup-balance-label {
+    font-family: var(--app-font-base, 'Inter', sans-serif);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    display: block;
+}
+
+.campinho-lineup-balance strong {
+    font-family: var(--app-font-mono, 'JetBrains Mono', monospace);
+    font-size: 16px;
     color: var(--app-text-white, #fff);
 }
 
@@ -226,12 +237,17 @@
 
 .campinho-lineup-section-title {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 6px;
     font-size: 12px;
     letter-spacing: 1px;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.6);
+}
+
+.campinho-lineup-section-icon {
+    font-size: 14px;
+    color: var(--app-primary, #ff5500);
 }
 
 .campinho-lineup-section-count {
@@ -245,84 +261,141 @@
     gap: 6px;
 }
 
-.campinho-lineup-player {
+/* === TABELA DE JOGADORES (estilo Rodadas) === */
+.campinho-tabela-jogador {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 12px;
     padding: 10px 12px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.025);
-    gap: 10px;
-    font-size: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.campinho-lineup-player.capitao {
-    border: 1px solid rgba(251, 191, 36, 0.6);
-    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+.campinho-tabela-jogador.capitao {
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
 }
 
-.campinho-lineup-player.reserva {
+.campinho-tabela-jogador.luxo {
     border: 1px solid rgba(168, 85, 247, 0.4);
+    box-shadow: 0 2px 8px rgba(168, 85, 247, 0.1);
 }
 
-.campinho-lineup-player-info {
+.campinho-tabela-jogador.reserva-bg {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Escudo do clube */
+.campinho-tabela-escudo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.campinho-tabela-escudo img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+/* Badge capitão/luxo no escudo */
+.campinho-tabela-badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0f1012;
+}
+
+.campinho-tabela-badge span {
+    font-size: 9px;
+    font-weight: 700;
+    color: #000;
+}
+
+.campinho-tabela-badge.badge-c {
+    background: linear-gradient(135deg, var(--app-gold, #fbbf24), var(--app-amber, #f59e0b));
+}
+
+.campinho-tabela-badge.badge-l {
+    background: linear-gradient(135deg, #a855f7, #f59e0b);
+}
+
+/* Info do jogador */
+.campinho-tabela-info {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
 }
 
-.pos-label {
-    font-size: 10px;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.5);
-    width: 32px;
-}
-
-.lineup-player-name {
+.campinho-tabela-nome {
+    font-family: var(--app-font-base, 'Inter', sans-serif);
+    font-size: 14px;
     font-weight: 600;
-    color: var(--app-text-white, #fff);
+    color: #fff;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.campinho-lineup-player-badges {
-    display: flex;
-    gap: 4px;
+.campinho-tabela-pos {
+    font-family: var(--app-font-base, 'Inter', sans-serif);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
 }
 
-.campinho-lineup-player-badge {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
+/* Pontos */
+.campinho-tabela-pontos {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.campinho-tabela-pontos-valor {
+    font-family: var(--app-font-mono, 'JetBrains Mono', monospace);
+    font-size: 16px;
     font-weight: 700;
-    color: var(--app-text-inverse);
+    display: block;
 }
 
-.campinho-lineup-player-badge.captain {
-    background: var(--app-gold);
+.campinho-tabela-pontos-valor.positivo {
+    color: #4ade80;
 }
 
-.campinho-lineup-player-badge.luxo {
-    background: linear-gradient(135deg, var(--app-pos-tec), var(--app-amber));
+.campinho-tabela-pontos-valor.negativo {
+    color: #f87171;
 }
 
-.lineup-player-price {
-    font-family: var(--app-font-mono);
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.85);
-    white-space: nowrap;
+.campinho-tabela-pontos-valor.neutro {
+    color: rgba(255, 255, 255, 0.4);
 }
 
-.campinho-lineup-banco .campinho-lineup-player {
-    background: rgba(255, 255, 255, 0.02);
+.campinho-tabela-multiplicador {
+    font-family: var(--app-font-mono, 'JetBrains Mono', monospace);
+    font-size: 10px;
+    display: block;
+}
+
+.campinho-tabela-multiplicador.cap {
+    color: rgba(251, 191, 36, 0.7);
+}
+
+.campinho-tabela-multiplicador.lux {
+    color: rgba(168, 85, 247, 0.7);
 }
 
 .campinho-lineup-panel::-webkit-scrollbar,
