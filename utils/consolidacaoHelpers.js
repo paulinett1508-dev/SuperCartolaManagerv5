@@ -32,9 +32,10 @@ export async function calcularConfrontosDaRodada(
     }
 
     // Ordenar participantes alfabeticamente para garantir consistência
-    const participantesOrdenados = [...(liga.participantes || [])].sort(
-        (a, b) => a.nome_cartola.localeCompare(b.nome_cartola),
-    );
+    // ✅ v8.8.0 FIX: Filtrar apenas participantes ativos no round-robin do PC
+    const participantesOrdenados = [...(liga.participantes || [])]
+        .filter(p => p.ativo !== false)
+        .sort((a, b) => a.nome_cartola.localeCompare(b.nome_cartola));
 
     const totalTimes = participantesOrdenados.length;
     if (totalTimes < 2) return confrontos;

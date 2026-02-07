@@ -386,6 +386,15 @@ export class FluxoFinanceiroCore {
                         // Temporada encerrada: usar rodada final
                         rodadaParaCalculo = rodadaFinal;
                     }
+                    // ✅ v6.11 FIX: Mercado fechado mid-season (jogos rolando ou rodada não disputada)
+                    // Quando status_mercado=2, a rodada atual pode não ter dados ainda.
+                    // Usar rodada anterior como limite seguro.
+                    else if (!mercadoAberto && !temporadaEncerrada) {
+                        rodadaParaCalculo = Math.max(1, rodadaAtualMercado - 1);
+                        console.log(
+                            `[FLUXO-CORE] ⚠️ Mercado fechado mid-season, usando R${rodadaParaCalculo} ao invés de R${rodadaAtualMercado}`,
+                        );
+                    }
                 }
             } catch (error) {
                 console.warn("[FLUXO-CORE] Erro ao verificar mercado:", error);

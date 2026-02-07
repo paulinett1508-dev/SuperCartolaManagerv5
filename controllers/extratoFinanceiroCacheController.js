@@ -1318,9 +1318,25 @@ export const verificarCacheValido = async (req, res) => {
         }
 
         // Validação normal para ativos
-        const rodadaEsperada = mercadoEstaAberto
+        let rodadaEsperada = mercadoEstaAberto
             ? rodadaAtualInt - 1
             : rodadaAtualInt;
+
+        // ✅ v8.0 FIX: Quando mercado fechado, validar que a rodada tem dados reais
+        // status_mercado=2 pode significar jogos rolando ou rodada ainda não disputada
+        if (!mercadoEstaAberto && rodadaEsperada > 0) {
+            const rodadasCol = mongoose.connection.db.collection('rodadas');
+            const rodadaExisteVal = await rodadasCol.findOne({
+                ligaId: String(ligaId),
+                rodada: rodadaEsperada,
+                temporada: temporadaNum,
+            });
+            if (!rodadaExisteVal) {
+                rodadaEsperada = rodadaEsperada - 1;
+                console.log(`[CACHE-CONTROLLER] ⚠️ R${rodadaAtualInt} sem dados, ajustando rodadaEsperada para R${rodadaEsperada}`);
+            }
+        }
+
         if (cacheExistente.ultima_rodada_consolidada >= rodadaEsperada) {
             const rodadasConsolidadas = transformarTransacoesEmRodadas(
                 cacheExistente.historico_transacoes || [],

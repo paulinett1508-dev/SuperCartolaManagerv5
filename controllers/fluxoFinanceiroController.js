@@ -289,7 +289,10 @@ async function calcularConfrontoPontosCorridos(
 
     if (rodadaLiga < 1) return null;
 
+    // ✅ v8.8.0 FIX: Filtrar apenas participantes ativos no round-robin do PC
+    // Inativos (desistentes) distorcem os confrontos de todos os participantes
     const participantesOrdenados = liga.participantes
+        .filter(p => p.ativo !== false)
         .slice()
         .sort((a, b) => a.nome_cartola.localeCompare(b.nome_cartola));
 
@@ -307,9 +310,13 @@ async function calcularConfrontoPontosCorridos(
     const pontuacaoOponenteObj = todasPontuacoes.find(
         (p) => String(p.timeId) === String(oponente.time_id),
     );
-    const pontuacaoOponente = pontuacaoOponenteObj
-        ? pontuacaoOponenteObj.pontos
-        : 0;
+
+    // ✅ v8.8.0 FIX: Se oponente não tem dados na rodada, rodada incompleta - não calcular PC
+    // Antes: usava 0 pontos → time sempre "ganhava" por WO em rodadas não disputadas
+    if (!pontuacaoOponenteObj) {
+        return null;
+    }
+    const pontuacaoOponente = pontuacaoOponenteObj.pontos;
 
     const diferenca = Math.abs(pontuacaoTime - pontuacaoOponente);
     let valor = 0;
@@ -464,9 +471,27 @@ export const getExtratoFinanceiro = async (req, res) => {
         const rodadaAtualCartola = statusMercado.rodada_atual;
         const mercadoAberto = statusMercado.status_mercado === 1;
 
-        const limiteConsolidacao = mercadoAberto
+        const limiteConsolidacaoBase = mercadoAberto
             ? rodadaAtualCartola - 1
             : rodadaAtualCartola;
+
+        // ✅ v8.8.0 FIX: Validar que a rodada-limite realmente tem dados na collection Rodada
+        // Quando status_mercado === 2 (mercado fechado), rodadaAtualCartola pode ser uma rodada
+        // que ainda não foi disputada. Verificar se existem dados reais antes de consolidar.
+        let limiteConsolidacao = limiteConsolidacaoBase;
+        if (!mercadoAberto && limiteConsolidacao > 0) {
+            const countRodadaLimite = await Rodada.countDocuments({
+                ligaId: ligaId,
+                rodada: limiteConsolidacao,
+                temporada: temporadaAtual,
+            });
+            if (countRodadaLimite === 0) {
+                limiteConsolidacao = limiteConsolidacao - 1;
+                console.log(
+                    `[FLUXO-CONTROLLER] ⚠️ R${limiteConsolidacaoBase} sem dados na collection Rodada, ajustando limite para R${limiteConsolidacao}`,
+                );
+            }
+        }
 
         // ✅ v8.2.0 FIX: Buscar ou criar cache COM TEMPORADA (evita duplicados)
         // ✅ v8.3.0: Usa temporadaAtual dinâmica (pode ser 2025 ou 2026)
@@ -481,6 +506,16 @@ export const getExtratoFinanceiro = async (req, res) => {
             await ExtratoFinanceiroCache.deleteOne({ _id: cache._id });
             cache = null;
             console.log(`[FLUXO-CONTROLLER] Cache limpo para recálculo`);
+        }
+
+        // ✅ v8.8.0 FIX: Auto-healing - se cache consolidou além do limite validado,
+        // pode conter dados incorretos de rodadas não finalizadas. Forçar recálculo.
+        if (cache && cache.ultima_rodada_consolidada > limiteConsolidacao) {
+            console.log(
+                `[FLUXO-CONTROLLER] ⚠️ Auto-healing: cache consolidado até R${cache.ultima_rodada_consolidada} > limite R${limiteConsolidacao} - forçando recálculo`,
+            );
+            await ExtratoFinanceiroCache.deleteOne({ _id: cache._id });
+            cache = null;
         }
 
         if (!cache) {
