@@ -444,9 +444,10 @@ function atualizarCardsHomeUI(data) {
         rankingPontosEl.textContent = posicao ? `${posicao}º` : '--';
     }
 
-    // === PATRIMÔNIO ===
-    const patrimonioEl = document.getElementById('home-patrimonio');
-    const variacaoPatrimonioEl = document.getElementById('home-variacao-patrimonio');
+    // === SALDO FINANCEIRO (Liga) ===
+    const saldoFinanceiroEl = document.getElementById('home-saldo-financeiro');
+    const variacaoSaldoEl = document.getElementById('home-variacao-saldo');
+    const rankingSaldoEl = document.getElementById('home-ranking-saldo');
 
     const saldoAbs = Math.abs(saldoFinanceiro);
     const saldoFormatado = saldoFinanceiro >= 0
@@ -455,19 +456,38 @@ function atualizarCardsHomeUI(data) {
 
     const ganhoUltimaRodada = ultimaRodada ? parseFloat(ultimaRodada.valorFinanceiro || ultimaRodada.ganho_rodada || 0) : 0;
 
-    if (patrimonioEl) {
-        patrimonioEl.textContent = saldoFormatado;
+    if (saldoFinanceiroEl) {
+        saldoFinanceiroEl.textContent = saldoFormatado;
     }
 
-    if (variacaoPatrimonioEl) {
+    if (variacaoSaldoEl) {
         if (ganhoUltimaRodada >= 0) {
-            variacaoPatrimonioEl.textContent = `↑${ganhoUltimaRodada.toFixed(2)}`;
-            variacaoPatrimonioEl.className = 'home-stat-variacao positivo';
+            variacaoSaldoEl.textContent = `↑${ganhoUltimaRodada.toFixed(2)}`;
+            variacaoSaldoEl.className = 'home-stat-variacao positivo';
         } else {
-            variacaoPatrimonioEl.textContent = `↓${Math.abs(ganhoUltimaRodada).toFixed(2)}`;
-            variacaoPatrimonioEl.className = 'home-stat-variacao negativo';
+            variacaoSaldoEl.textContent = `↓${Math.abs(ganhoUltimaRodada).toFixed(2)}`;
+            variacaoSaldoEl.className = 'home-stat-variacao negativo';
         }
     }
+
+    if (rankingSaldoEl) {
+        rankingSaldoEl.textContent = rodadaAtual ? `R${rodadaAtual}` : '--';
+    }
+
+    // === CARTOLETAS (Patrimônio Cartola) ===
+    // Placeholder - será populado via busca assíncrona ao status do mercado
+    const cartoletasEl = document.getElementById('home-cartoletas');
+    const variacaoCartoletasEl = document.getElementById('home-variacao-cartoletas');
+
+    if (cartoletasEl) {
+        cartoletasEl.textContent = 'C$ --';
+    }
+    if (variacaoCartoletasEl) {
+        variacaoCartoletasEl.textContent = '';
+    }
+
+    // Buscar cartoletas do time (assíncrono)
+    buscarCartoletasTime(timeId);
 }
 
 // =====================================================================
@@ -910,11 +930,12 @@ function renderizarHome(container, data, ligaId) {
         sliderTotalEl.textContent = totalParticipantes || 38;
     }
 
-    // Link para rodada
+    // Link para rodada - usar última rodada consolidada
     const linkRodadaEl = document.getElementById('home-link-rodada');
     const rodadaNumEl = document.getElementById('home-rodada-num');
+    const rodadaParaExibir = ultimaRodadaDisputada || Math.max(1, rodadaAtual - 1);
     if (rodadaNumEl) {
-        rodadaNumEl.textContent = `Rodada ${Math.max(1, rodadaAtual)}`;
+        rodadaNumEl.textContent = `Rodada ${rodadaParaExibir}`;
     }
 
     // === CARDS DE STATS ===
@@ -945,36 +966,50 @@ function renderizarHome(container, data, ligaId) {
         rankingPontosEl.textContent = posicao ? `${posicao}º` : '--';
     }
 
-    // Patrimônio
-    const patrimonioEl = document.getElementById('home-patrimonio');
-    const variacaoPatrimonioEl = document.getElementById('home-variacao-patrimonio');
-    const rankingPatrimonioEl = document.getElementById('home-ranking-patrimonio');
+    // Saldo Financeiro (Liga)
+    const saldoFinanceiroEl = document.getElementById('home-saldo-financeiro');
+    const variacaoSaldoEl = document.getElementById('home-variacao-saldo');
+    const rankingSaldoEl = document.getElementById('home-ranking-saldo');
 
     const saldoAbs = Math.abs(saldoFinanceiro);
     const saldoFormatado = saldoFinanceiro >= 0
         ? `R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
         : `-R$ ${saldoAbs.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
-    // Calcular variação do patrimônio (última rodada)
+    // Calcular variação do saldo (última rodada)
     const ganhoUltimaRodada = ultimaRodada ? parseFloat(ultimaRodada.valorFinanceiro || ultimaRodada.ganho_rodada || 0) : 0;
 
-    if (patrimonioEl) {
-        patrimonioEl.textContent = saldoFormatado;
+    if (saldoFinanceiroEl) {
+        saldoFinanceiroEl.textContent = saldoFormatado;
     }
 
-    if (variacaoPatrimonioEl) {
+    if (variacaoSaldoEl) {
         if (ganhoUltimaRodada >= 0) {
-            variacaoPatrimonioEl.textContent = `↑${ganhoUltimaRodada.toFixed(2)}`;
-            variacaoPatrimonioEl.className = 'home-stat-variacao positivo';
+            variacaoSaldoEl.textContent = `↑${ganhoUltimaRodada.toFixed(2)}`;
+            variacaoSaldoEl.className = 'home-stat-variacao positivo';
         } else {
-            variacaoPatrimonioEl.textContent = `↓${Math.abs(ganhoUltimaRodada).toFixed(2)}`;
-            variacaoPatrimonioEl.className = 'home-stat-variacao negativo';
+            variacaoSaldoEl.textContent = `↓${Math.abs(ganhoUltimaRodada).toFixed(2)}`;
+            variacaoSaldoEl.className = 'home-stat-variacao negativo';
         }
     }
 
-    if (rankingPatrimonioEl) {
-        rankingPatrimonioEl.textContent = rodadaAtual ? `R${rodadaAtual}` : '--';
+    if (rankingSaldoEl) {
+        rankingSaldoEl.textContent = rodadaAtual ? `R${rodadaAtual}` : '--';
     }
+
+    // Cartoletas Disponíveis (Patrimônio Cartola)
+    const cartoletasEl = document.getElementById('home-cartoletas');
+    const variacaoCartoletasEl = document.getElementById('home-variacao-cartoletas');
+
+    if (cartoletasEl) {
+        cartoletasEl.textContent = 'C$ --';
+    }
+    if (variacaoCartoletasEl) {
+        variacaoCartoletasEl.textContent = '';
+    }
+
+    // Buscar cartoletas do time (assíncrono)
+    buscarCartoletasTime(timeId);
 
     // === DESTAQUES DA RODADA ===
     // ✅ FIX: Usar ultimaRodadaDisputada para buscar escalação (não rodada do mercado)
@@ -1509,6 +1544,49 @@ async function carregarNoticiasDoMeuTime(participante) {
 const _clubesNomeMap = getClubesNomeMap();
 function getNomeClubePorId(clubeId) {
     return _clubesNomeMap[Number(clubeId)] || "Seu Time";
+}
+
+// =====================================================================
+// BUSCAR CARTOLETAS DO TIME (Patrimônio no Cartola)
+// =====================================================================
+async function buscarCartoletasTime(timeId) {
+    try {
+        const cartoletasEl = document.getElementById('home-cartoletas');
+        const variacaoCartoletasEl = document.getElementById('home-variacao-cartoletas');
+        const rankingCartoletasEl = document.getElementById('home-ranking-cartoletas');
+
+        if (!cartoletasEl) return;
+
+        // Buscar status do time no Cartola (inclui patrimônio)
+        const response = await fetch(`/api/cartola/time-info/${timeId}`);
+        if (!response.ok) {
+            if (window.Log) Log.warn("PARTICIPANTE-HOME", "Não foi possível buscar cartoletas");
+            return;
+        }
+
+        const timeInfo = await response.json();
+        const patrimonio = parseFloat(timeInfo.patrimonio || 0);
+
+        // Formatar valor das cartoletas
+        const patrimonioFormatado = `C$ ${patrimonio.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+        cartoletasEl.textContent = patrimonioFormatado;
+
+        // Variação (placeholder - pode ser implementado depois)
+        if (variacaoCartoletasEl) {
+            variacaoCartoletasEl.textContent = '';
+        }
+
+        // Ranking (mostrar "Cartola" como hint)
+        if (rankingCartoletasEl) {
+            rankingCartoletasEl.textContent = 'CARTOLA';
+        }
+
+        if (window.Log) Log.info("PARTICIPANTE-HOME", `Cartoletas carregadas: C$ ${patrimonio.toFixed(2)}`);
+
+    } catch (error) {
+        if (window.Log) Log.warn("PARTICIPANTE-HOME", "Erro ao buscar cartoletas:", error);
+    }
 }
 
 if (window.Log)
