@@ -58,7 +58,8 @@
 
     /* Erro/Prejuízo/Derrota (Vermelho) */
     --app-danger: #ef4444;
-    --app-danger-dark: #dc2626;
+    --app-danger-dark: #b91c1c;
+    --app-danger-light: #f87171;
     --app-danger-muted: rgba(239, 68, 68, 0.15);
     --app-danger-text: #fca5a5;
 
@@ -69,6 +70,8 @@
 
     /* Info (Azul) */
     --app-info: #3b82f6;
+    --app-info-dark: #1d4ed8;
+    --app-info-light: #60a5fa;
     --app-info-muted: rgba(59, 130, 246, 0.15);
 
     /* Cores Especiais (Módulos) */
@@ -76,6 +79,26 @@
     --app-purple-muted: rgba(139, 92, 246, 0.15);
     --app-pink: #ec4899;
     --app-pink-muted: rgba(236, 72, 153, 0.15);
+    --app-indigo: #6366f1;
+    --app-teal: #14b8a6;
+    --app-amber: #f59e0b;
+
+    /* Cores de Posição (Campinho/Escalação) */
+    --app-pos-gol: #f97316;
+    --app-pos-gol-dark: #c2410c;
+    --app-pos-gol-light: #fb923c;
+    --app-pos-def: var(--app-info);
+    --app-pos-def-dark: var(--app-info-dark);
+    --app-pos-def-light: var(--app-info-light);
+    --app-pos-mei: var(--app-success-light);
+    --app-pos-mei-dark: #15803d;
+    --app-pos-mei-light: #4ade80;
+    --app-pos-ata: var(--app-danger);
+    --app-pos-ata-dark: var(--app-danger-dark);
+    --app-pos-ata-light: var(--app-danger-light);
+    --app-pos-tec: #a855f7;
+    --app-pos-tec-dark: #7e22ce;
+    --app-pos-tec-light: #c084fc;
 
     /* ========================================
        4. CORES DE RANKING (Posições)
@@ -511,6 +534,7 @@
 .app-brand-name,
 .app-brand-position {
     font-family: 'Russo One', sans-serif !important;
+    font-weight: 400 !important;
 }
 
 /* Seletor para títulos dentro de fragmentos */
@@ -521,6 +545,7 @@
 .luva-ouro-participante h2,
 .artilheiro-participante h2 {
     font-family: 'Russo One', sans-serif !important;
+    font-weight: 400 !important;
 }
 
 /* ========================================
@@ -535,6 +560,7 @@
 .top10-resumo-total-value,
 .posicao-cell {
     font-family: 'Russo One', sans-serif !important;
+    font-weight: 400 !important;
 }
 
 /* RODADAS */
@@ -548,6 +574,7 @@
 .posicao-badge-pro,
 .ranking-pontos-pro {
     font-family: 'Russo One', sans-serif !important;
+    font-weight: 400 !important;
 }
 
 /* RANKING */
@@ -558,6 +585,7 @@
 .rank-stats-value,
 .turno-label {
     font-family: 'Russo One', sans-serif !important;
+    font-weight: 400 !important;
 }
 
 /* MATA-MATA */
@@ -570,6 +598,7 @@
 .confronto-pontos,
 .fase-titulo {
     font-family: 'Russo One', sans-serif !important;
+    font-weight: 400 !important;
 }
 
 /* MELHOR MÊS */
@@ -579,6 +608,7 @@
 .participante-pontos,
 .participante-posicao {
     font-family: 'Russo One', sans-serif !important;
+    font-weight: 400 !important;
 }
 
 /* HALL DA FAMA / HISTÓRICO */
@@ -590,6 +620,7 @@
 .champion-name,
 .champion-points {
     font-family: 'Russo One', sans-serif !important;
+    font-weight: 400 !important;
 }
 
 /* ARTILHEIRO E LUVA DE OURO */
@@ -600,6 +631,7 @@
 .premio-artilheiro,
 .premio-luva {
     font-family: 'Russo One', sans-serif !important;
+    font-weight: 400 !important;
 }
 
 /* EXTRATO */
@@ -607,6 +639,7 @@
 .extrato-saldo-valor,
 .extrato-item-valor {
     font-family: 'Russo One', sans-serif !important;
+    font-weight: 400 !important;
 }
 
 /* GENÉRICOS - Fallback */
@@ -616,4 +649,5 @@
 .tab-btn,
 [class*="-font-brand"] {
     font-family: 'Russo One', sans-serif !important;
+    font-weight: 400 !important;
 }

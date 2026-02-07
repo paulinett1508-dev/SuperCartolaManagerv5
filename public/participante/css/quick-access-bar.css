@@ -107,7 +107,7 @@
     top: 6px;
     right: 12px;
     background: var(--app-primary);
-    color: #fff;
+    color: var(--app-text-white);
     font-size: 9px;
     font-weight: 700;
     padding: 2px 5px;
@@ -154,7 +154,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: #1a1a1a;
+    background: var(--app-surface);
     border-top-left-radius: 24px;
     border-top-right-radius: 24px;
     z-index: var(--app-z-modal);
@@ -225,7 +225,7 @@
     gap: 8px;
     cursor: pointer;
     text-decoration: none;
-    color: #fff;
+    color: var(--app-text-white);
     /* GPU-only animation */
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
@@ -253,46 +253,46 @@
 
 /* Competições */
 .menu-card[data-module="rodadas"] .material-icons {
-    color: #a855f7; /* Roxo */
+    color: var(--app-pos-tec); /* Roxo */
 }
 
 .menu-card[data-module="pontos-corridos"] .material-icons {
-    color: #6366f1; /* Índigo */
+    color: var(--app-indigo); /* Índigo */
 }
 
 .menu-card[data-module="mata-mata"] .material-icons {
-    color: #ef4444; /* Vermelho */
+    color: var(--app-danger); /* Vermelho */
 }
 
 .menu-card[data-module="top10"] .material-icons {
-    color: #eab308; /* Amarelo */
+    color: var(--app-warning); /* Amarelo */
 }
 
 /* Prêmios & Estatísticas */
 .menu-card[data-module="artilheiro"] .material-icons {
-    color: #10b981; /* Esmeralda */
+    color: var(--app-success); /* Esmeralda */
 }
 
 .menu-card[data-module="luva-ouro"] .material-icons {
-    color: #14b8a6; /* Teal */
+    color: var(--app-teal); /* Teal */
 }
 
 .menu-card[data-module="melhor-mes"] .material-icons {
-    color: #ec4899; /* Rosa */
+    color: var(--app-pink); /* Rosa */
 }
 
 .menu-card[data-module="historico"] .material-icons {
-    color: #f59e0b; /* Âmbar */
+    color: var(--app-amber); /* Âmbar */
 }
 
 /* Navegação Rápida (Bottom Nav) */
 .menu-card[data-module="ranking"] .material-icons,
 .menu-card[data-module="boas-vindas"] .material-icons {
-    color: #22c55e; /* Verde */
+    color: var(--app-success-light); /* Verde */
 }
 
 .menu-card[data-module="extrato"] .material-icons {
-    color: #22c55e; /* Verde */
+    color: var(--app-success-light); /* Verde */
 }
 
 /* Em Breve (2026) - mantém laranja com opacidade */
@@ -335,11 +335,11 @@
     position: fixed;
     top: 50%;
     left: 50%;
-    background: #1a1a1a;
+    background: var(--app-surface);
     border: 1px solid rgba(255, 69, 0, 0.3);
     border-radius: 12px;
     padding: 16px 24px;
-    color: #fff;
+    color: var(--app-text-white);
     font-size: 14px;
     font-weight: 500;
     z-index: var(--app-z-toast);
@@ -451,7 +451,7 @@
     font-size: 7px;
     font-weight: 600;
     background: rgba(255, 255, 255, 0.08);
-    color: #888;
+    color: var(--app-text-muted);
     padding: 2px 5px;
     border-radius: 4px;
     text-transform: uppercase;
@@ -483,7 +483,7 @@
 }
 
 .menu-card.ao-vivo-card .material-icons {
-    color: #ef4444;
+    color: var(--app-danger);
 }
 
 .menu-card.ao-vivo-card .live-indicator {
@@ -492,7 +492,7 @@
     right: 8px;
     width: 8px;
     height: 8px;
-    background: #ef4444;
+    background: var(--app-danger);
     border-radius: 50%;
     animation: live-pulse 1.5s ease-in-out infinite;
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
@@ -508,11 +508,11 @@
 }
 
 .menu-card.ao-vivo-card.desativado .material-icons {
-    color: #94a3b8;
+    color: var(--app-text-dim);
 }
 
 .menu-card.ao-vivo-card.desativado .live-indicator {
-    background: #94a3b8;
+    background: var(--app-text-dim);
     box-shadow: none;
     animation: none;
 }

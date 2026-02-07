@@ -774,11 +774,7 @@ body {
 }
 */
 
-/* ✅ Ajustar padding do container para QUICK ACCESS BAR */
-.module-container {
-    /* Quick Access Bar height = 72px + safe area + espaçamento */
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 16px) !important;
-}
+/* ✅ padding-bottom do .module-container definido em quick-access-bar.css (80px + safe area) */
 
 /* ====== ALERT BANNER (v10.5 - Status de Inatividade) ====== */
 .alert-banner {

@@ -93,7 +93,7 @@
 
 .copa-badge-gold {
     background: linear-gradient(135deg, var(--copa-gold) 0%, var(--copa-yellow) 100%);
-    color: #000;
+    color: var(--app-text-inverse);
     padding: 0.25rem 0.75rem;
     border-radius: 0.5rem;
     font-weight: bold;
@@ -125,7 +125,7 @@
 
 .copa-card-stat {
     background: rgba(15, 23, 42, 0.5);
-    border: 1px solid #374151;
+    border: 1px solid var(--app-border);
     border-radius: 0.5rem;
     padding: 1rem;
     text-align: center;
@@ -143,7 +143,7 @@
    ===================================================================== */
 .copa-button-primary {
     background: linear-gradient(135deg, var(--copa-gold) 0%, var(--copa-yellow) 100%);
-    color: #000;
+    color: var(--app-text-inverse);
     padding: 0.75rem 1.5rem;
     border-radius: 0.75rem;
     font-weight: bold;
@@ -175,7 +175,7 @@
 
 .copa-button-secondary:hover {
     background: var(--copa-gold);
-    color: #000;
+    color: var(--app-text-inverse);
 }
 
 /* =====================================================================
@@ -199,7 +199,7 @@
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
     line-height: 1.6;
-    color: #d1d5db;
+    color: var(--app-text-secondary);
 }
 
 .copa-text-highlight {
@@ -208,7 +208,7 @@
 }
 
 .copa-text-muted {
-    color: #9ca3af;
+    color: var(--app-text-muted);
     font-size: 0.875rem;
 }
 

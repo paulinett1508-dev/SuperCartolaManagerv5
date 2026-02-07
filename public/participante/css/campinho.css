@@ -171,7 +171,7 @@
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     padding: 18px;
-    min-width: 280px;
+    min-width: min(280px, 100%);
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -303,15 +303,15 @@
     justify-content: center;
     font-size: 10px;
     font-weight: 700;
-    color: #000;
+    color: var(--app-text-inverse);
 }
 
 .campinho-lineup-player-badge.captain {
-    background: #fbbf24;
+    background: var(--app-gold);
 }
 
 .campinho-lineup-player-badge.luxo {
-    background: linear-gradient(135deg, #a855f7, #f59e0b);
+    background: linear-gradient(135deg, var(--app-pos-tec), var(--app-amber));
 }
 
 .lineup-player-price {
@@ -524,24 +524,24 @@
 
 /* Cores por posição */
 .campinho-jogador-avatar.pos-gol {
-    background: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
-    border: 2px solid #fb923c;
+    background: linear-gradient(135deg, var(--app-pos-gol) 0%, var(--app-pos-gol-dark) 100%);
+    border: 2px solid var(--app-pos-gol-light);
 }
 .campinho-jogador-avatar.pos-def {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    border: 2px solid #60a5fa;
+    background: linear-gradient(135deg, var(--app-pos-def) 0%, var(--app-pos-def-dark) 100%);
+    border: 2px solid var(--app-pos-def-light);
 }
 .campinho-jogador-avatar.pos-mei {
-    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
-    border: 2px solid #4ade80;
+    background: linear-gradient(135deg, var(--app-pos-mei) 0%, var(--app-pos-mei-dark) 100%);
+    border: 2px solid var(--app-pos-mei-light);
 }
 .campinho-jogador-avatar.pos-ata {
-    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-    border: 2px solid #f87171;
+    background: linear-gradient(135deg, var(--app-pos-ata) 0%, var(--app-pos-ata-dark) 100%);
+    border: 2px solid var(--app-pos-ata-light);
 }
 .campinho-jogador-avatar.pos-tec {
-    background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
-    border: 2px solid #c084fc;
+    background: linear-gradient(135deg, var(--app-pos-tec) 0%, var(--app-pos-tec-dark) 100%);
+    border: 2px solid var(--app-pos-tec-light);
 }
 
 /* Escudo do clube dentro do avatar */
@@ -567,8 +567,8 @@
     white-space: nowrap;
 }
 
-.campinho-jogador-pontos.positivo { color: #4ade80; }
-.campinho-jogador-pontos.negativo { color: #f87171; }
+.campinho-jogador-pontos.positivo { color: var(--app-pos-mei-light); }
+.campinho-jogador-pontos.negativo { color: var(--app-danger-light); }
 .campinho-jogador-pontos.neutro { color: rgba(255,255,255,0.5); }
 
 /* Nome do jogador */
@@ -595,7 +595,7 @@
 /* === CAPITÃO === */
 .campinho-jogador.is-capitao .campinho-jogador-avatar {
     box-shadow:
-        0 0 0 3px #fbbf24,
+        0 0 0 3px var(--app-gold),
         0 4px 12px rgba(251, 191, 36, 0.4);
 }
 
@@ -605,24 +605,24 @@
     right: -4px;
     width: 18px;
     height: 18px;
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, var(--app-gold) 0%, var(--app-amber) 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #000;
+    border: 2px solid var(--app-text-inverse);
 }
 
 .campinho-jogador-badge-c span {
     font-size: 10px;
     font-weight: 900;
-    color: #000;
+    color: var(--app-text-inverse);
 }
 
 /* === RESERVA DE LUXO === */
 .campinho-jogador.is-luxo .campinho-jogador-avatar {
     box-shadow:
-        0 0 0 3px #a855f7,
+        0 0 0 3px var(--app-pos-tec),
         0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
@@ -632,18 +632,18 @@
     right: -4px;
     width: 18px;
     height: 18px;
-    background: linear-gradient(135deg, #a855f7 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, var(--app-pos-tec) 0%, var(--app-amber) 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #000;
+    border: 2px solid var(--app-text-inverse);
 }
 
 .campinho-jogador-badge-l span {
     font-size: 10px;
     font-weight: 900;
-    color: #000;
+    color: var(--app-text-inverse);
 }
 
 /* === MITO / MICO (alta/baixa pontuação) === */
@@ -807,11 +807,11 @@
     border-radius: 50%;
 }
 
-.campinho-legenda-item .dot.gol { background: #f97316; }
-.campinho-legenda-item .dot.def { background: #3b82f6; }
-.campinho-legenda-item .dot.mei { background: #22c55e; }
-.campinho-legenda-item .dot.ata { background: #ef4444; }
-.campinho-legenda-item .dot.tec { background: #a855f7; }
+.campinho-legenda-item .dot.gol { background: var(--app-pos-gol); }
+.campinho-legenda-item .dot.def { background: var(--app-pos-def); }
+.campinho-legenda-item .dot.mei { background: var(--app-pos-mei); }
+.campinho-legenda-item .dot.ata { background: var(--app-pos-ata); }
+.campinho-legenda-item .dot.tec { background: var(--app-pos-tec); }
 
 .campinho-legenda-item span {
     font-size: 10px;
