@@ -424,10 +424,20 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                     ${renderizarListaPorPosicao('ATA', grupos.atacantes, escalacao.capitao_id, escalacao.reserva_luxo_id)}
                     ${renderizarListaPorPosicao('TEC', grupos.tecnicos, escalacao.capitao_id, escalacao.reserva_luxo_id)}
                 </div>
-                ${reservas.length > 0 ? `
-                    <div class="campinho-escalacao-divisoria"></div>
-                    ${renderizarReservas(reservas, escalacao.capitao_id, escalacao.reserva_luxo_id)}
-                ` : ''}
+                <div class="campinho-escalacao-divisoria"></div>
+                ${reservas.length > 0
+                    ? renderizarReservas(reservas, escalacao.capitao_id, escalacao.reserva_luxo_id)
+                    : `<div class="campinho-lineup-section campinho-lineup-banco">
+                        <div class="campinho-lineup-section-title">
+                            <span class="material-icons campinho-lineup-section-icon" style="color:#a855f7;">event_seat</span>
+                            <span>Banco de Reservas</span>
+                            <span class="campinho-lineup-section-count">(0)</span>
+                        </div>
+                        <div class="campinho-tabela-jogador reserva-bg" style="justify-content:center;color:rgba(255,255,255,0.3);font-size:12px;">
+                            Sem reservas nesta rodada
+                        </div>
+                    </div>`
+                }
             </section>
 
             <!-- FOOTER: Pontos totais + Escalados -->
