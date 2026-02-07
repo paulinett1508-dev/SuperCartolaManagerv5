@@ -72,23 +72,43 @@
             </div>
         </div>
 
-        <!-- Card Patrimônio -->
+        <!-- Card Saldo Financeiro -->
         <div class="home-stat-card" onclick="window.participanteNav?.navegarPara('extrato')">
             <div class="home-stat-card-left">
-                <div class="home-stat-icon-wrapper home-stat-icon-patrimonio">
-                    <span class="material-icons">payments</span>
+                <div class="home-stat-icon-wrapper home-stat-icon-saldo">
+                    <span class="material-icons">account_balance_wallet</span>
                 </div>
                 <div class="home-stat-info">
-                    <span class="home-stat-label">PATRIMÔNIO</span>
+                    <span class="home-stat-label">SALDO FINANCEIRO</span>
                     <div class="home-stat-value-row">
-                        <span id="home-patrimonio" class="home-stat-value">R$ 0,00</span>
-                        <span id="home-variacao-patrimonio" class="home-stat-variacao negativo">↓0.00</span>
+                        <span id="home-saldo-financeiro" class="home-stat-value">R$ 0,00</span>
+                        <span id="home-variacao-saldo" class="home-stat-variacao positivo">↑0.00</span>
                     </div>
                 </div>
             </div>
             <div class="home-stat-card-right">
                 <span class="home-stat-right-label">RODADA</span>
-                <span id="home-ranking-patrimonio" class="home-stat-right-value">--</span>
+                <span id="home-ranking-saldo" class="home-stat-right-value">--</span>
+            </div>
+        </div>
+
+        <!-- Card Cartoletas Disponíveis -->
+        <div class="home-stat-card" onclick="window.open('https://cartolafc.globo.com', '_blank')">
+            <div class="home-stat-card-left">
+                <div class="home-stat-icon-wrapper home-stat-icon-cartoletas">
+                    <span class="material-icons">paid</span>
+                </div>
+                <div class="home-stat-info">
+                    <span class="home-stat-label">CARTOLETAS DISPONÍVEIS</span>
+                    <div class="home-stat-value-row">
+                        <span id="home-cartoletas" class="home-stat-value">C$ 0,00</span>
+                        <span id="home-variacao-cartoletas" class="home-stat-variacao negativo">↓0.00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="home-stat-card-right">
+                <span class="home-stat-right-label">PATRIMÔNIO</span>
+                <span id="home-ranking-cartoletas" class="home-stat-right-value">--</span>
             </div>
         </div>
     </section>
@@ -508,8 +528,12 @@
     background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
 }
 
-.home-stat-icon-patrimonio {
+.home-stat-icon-saldo {
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.home-stat-icon-cartoletas {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
 }
 
 .home-stat-info {
