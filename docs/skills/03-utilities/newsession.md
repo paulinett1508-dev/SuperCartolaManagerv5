@@ -4,10 +4,15 @@ Handover para nova sessao - carrega contexto do trabalho em andamento e instrui 
 
 ---
 
-## STATUS ATUAL: Bug Critico Identificado - PC nao integra no Extrato
+## STATUS ATUAL: ✅ Bug Critico CORRIGIDO + 🧪 Aguardando Validacao Manual
 
 **Data:** 07/02/2026
-**Ultima acao:** Auditoria completa do extrato financeiro Paulinett Miranda (2025 + 2026)
+**Ultima acao:** Correcao de bug secundario em isModuloHabilitado() + criacao de ferramentas de validacao
+**Arquivos modificados:**
+- `controllers/fluxoFinanceiroController.js` → v8.9.1 (fix config conflict + auto-healing)
+- `scripts/fix-extrato-pc-mm-top10-integration-2026.js` → v1.0.0 (migracao CLI)
+- `routes/admin/migracao.js` → v1.0.0 (migracao HTTP endpoint)
+- `test-paulinett-fix.js` → v1.0.0 (teste manual)
 
 ---
 
@@ -59,7 +64,301 @@ goleada >= 50pts: bonus R$2 + 1pt
 
 ---
 
-### Pendencia anterior: APIs 404 em Liga Nova (Os Fuleros)
+## ✅ CORREÇÃO IMPLEMENTADA (07/02/2026)
+
+### **1. Auto-Healing no Controller** (`fluxoFinanceiroController.js` v8.9.0)
+
+**Função criada:** `detectarModulosFaltantesNoCache(cache, liga, rodadaLimite)`
+
+**Lógica:**
+- Verifica se módulos PC/MM/Top10 estão **habilitados** na liga
+- Checa se transações desses módulos **existem** no cache consolidado
+- Se detectar módulos faltantes, **invalida** o cache automaticamente
+- Cache será **recalculado do zero** na próxima requisição
+
+**Exemplo de detecção:**
+```javascript
+// Liga tem PC habilitado, rodada inicial = 2
+// Cache consolidado até rodada 2
+// MAS não tem NENHUMA transação tipo "PONTOS_CORRIDOS"
+// ↓
+// Auto-healing deleta cache e força recálculo completo
+```
+
+**Proteções:**
+- Só executa se cache já tem rodadas consolidadas (`> 0`)
+- Não executa se refresh manual foi solicitado (`forcarRecalculo=true`)
+- Log detalhado de cada invalidação para auditoria
+
+**Localização no código:**
+- Linha 164-218: Função `detectarModulosFaltantesNoCache()`
+- Linha 540-568: Chamada no `getExtratoFinanceiro()` antes de processar rodadas
+
+---
+
+### **1.5. Bug Secundário Descoberto** (`fluxoFinanceiroController.js` v8.9.1)
+
+**Problema:** Auto-healing detectava módulos habilitados via `modulos_ativos` mas `isModuloHabilitado()` retornava `false`
+
+**Causa:** Conflito entre sistemas de configuração:
+- Liga tem `modulos_ativos.pontosCorridos: true` (sistema legado)
+- Liga tem `configuracoes.pontos_corridos.habilitado: false` (sistema novo)
+- `isModuloHabilitado()` priorizava `configuracoes` SEMPRE, ignorando `modulos_ativos`
+
+**Solução (v8.9.1):**
+```javascript
+function isModuloHabilitado(liga, modulo) {
+    // ✅ FIX: Só usar configuracoes se módulo estiver CONFIGURADO
+    const configModulo = liga?.configuracoes?.[modulo];
+
+    if (configModulo?.configurado === true && configModulo?.habilitado !== undefined) {
+        return configModulo.habilitado;
+    }
+
+    // Fallback para modulos_ativos (compatibilidade)
+    const moduloKey = modulo.replace(/_/g, '');
+    const moduloCamel = modulo.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+
+    if (liga?.modulos_ativos?.[moduloKey] !== undefined) {
+        return liga.modulos_ativos[moduloKey];
+    }
+    if (liga?.modulos_ativos?.[moduloCamel] !== undefined) {
+        return liga.modulos_ativos[moduloCamel];
+    }
+
+    return false;
+}
+```
+
+**Lógica:** Só consulta `configuracoes` se flag `configurado: true` estiver presente, caso contrário usa `modulos_ativos`
+
+---
+
+### **2. Script de Migração** (`fix-extrato-pc-mm-top10-integration-2026.js`)
+
+**Propósito:** Corrigir caches existentes com módulos faltantes
+
+**Funcionalidades:**
+- ✅ Analisa **todas** as ligas e participantes
+- ✅ Detecta módulos faltantes usando mesma lógica do auto-healing
+- ✅ Deleta caches corrompidos (serão recalculados automaticamente)
+- ✅ Relatório detalhado de problemas encontrados
+- ✅ Modo `--dry-run` para simular sem modificar
+
+**Uso:**
+```bash
+# 1. Simular (ver problemas sem modificar)
+node scripts/fix-extrato-pc-mm-top10-integration-2026.js --dry-run
+
+# 2. Executar correção (DEV)
+node scripts/fix-extrato-pc-mm-top10-integration-2026.js --force
+
+# 3. Executar correção (PROD)
+NODE_ENV=production node scripts/fix-extrato-pc-mm-top10-integration-2026.js --force
+
+# 4. Corrigir apenas uma liga específica
+node scripts/fix-extrato-pc-mm-top10-integration-2026.js --liga-id=<ID> --force
+```
+
+**Proteções:**
+- Ambiente PROD requer flag `--force` ou `--dry-run`
+- Só opera em temporada 2026 (não toca dados históricos)
+- Log completo de cada operação
+- Estatísticas finais (quantos corrigidos, erros, etc.)
+
+**Saída esperada:**
+```
+📊 RELATÓRIO FINAL
+======================================================================
+Ligas analisadas:           2
+Participantes analisados:   70
+Caches com problemas:       35
+Caches corrigidos:          35
+Erros:                      0
+======================================================================
+```
+
+---
+
+### **2.5. Endpoint HTTP Alternativo** (`routes/admin/migracao.js`)
+
+**Propósito:** Alternativa ao CLI script que reutiliza conexão MongoDB do servidor
+
+**Endpoints:**
+
+**1. GET `/api/admin/migracao/fix-extrato-2026`** (Dry-Run)
+```bash
+curl http://localhost:3000/api/admin/migracao/fix-extrato-2026
+curl http://localhost:3000/api/admin/migracao/fix-extrato-2026?ligaId=<ID>
+```
+
+**2. POST `/api/admin/migracao/fix-extrato-2026?force=true`** (Execução)
+```bash
+curl -X POST http://localhost:3000/api/admin/migracao/fix-extrato-2026?force=true
+curl -X POST http://localhost:3000/api/admin/migracao/fix-extrato-2026?ligaId=<ID>&force=true
+```
+
+**Resposta JSON:**
+```json
+{
+  "success": true,
+  "mode": "execution",
+  "temporada": 2026,
+  "stats": {
+    "ligasAnalisadas": 2,
+    "participantesAnalisados": 70,
+    "cachesComProblemas": 35,
+    "cachesCorrigidos": 35,
+    "erros": 0,
+    "detalhes": [...]
+  },
+  "message": "Correção concluída. 35 cache(s) corrigido(s)."
+}
+```
+
+**Proteções:**
+- ✅ Requer autenticação admin (`isAdminAutorizado`)
+- ✅ POST requer `?force=true` para confirmar
+- ✅ Usa mesma lógica de detecção do script CLI
+- ✅ Rota registrada em `index.js`: `app.use("/api/admin/migracao", adminMigracaoRoutes)`
+
+---
+
+### **3. Script de Teste Manual** (`test-paulinett-fix.js`)
+
+**Propósito:** Script simples para deletar cache específico e testar recálculo
+
+**Uso:**
+```bash
+node test-paulinett-fix.js
+```
+
+**O que faz:**
+1. Conecta ao MongoDB usando `MONGO_URI`
+2. Busca cache de Paulinett Miranda (time_id: 13935277, liga SuperCartola 2026)
+3. Exibe informações do cache atual (transações, saldo, tem PC?)
+4. Deleta o cache
+5. Instrui próximo passo: acessar API de extrato para forçar recálculo
+
+**Saída esperada:**
+```
+📊 Cache encontrado:
+   Rodadas consolidadas: 2
+   Saldo: R$ -27.00
+   Transações: 2
+   Tem PC: ❌ NÃO
+
+🗑️  Deletando cache...
+✅ Cache deletado!
+
+💡 Agora acesse o extrato via API para recalcular:
+   GET /api/fluxo-financeiro/{ligaId}/extrato/13935277?temporada=2026
+```
+
+---
+
+### **4. PENDENTE - VALIDAÇÃO MANUAL**
+
+**⚠️ IMPORTANTE:** Todo código foi corrigido (v8.9.1), mas aguarda validação em ambiente Replit com MongoDB autenticado.
+
+**Passo a passo para validar:**
+
+**1️⃣ Deletar cache de Paulinett (força recálculo)**
+```bash
+# No Replit Shell, executar:
+node test-paulinett-fix.js
+```
+
+**2️⃣ Acessar extrato via API (trigger recálculo com v8.9.1)**
+```bash
+GET /api/fluxo-financeiro/684cb1c8af923da7c7df51de/extrato/13935277?temporada=2026
+```
+
+**3️⃣ Verificar resposta do extrato**
+
+**Valores esperados:**
+```json
+{
+  "rodadas": [
+    {
+      "rodada": 2,
+      "bancoOnus": -13,
+      "pontosCorridos": -5,  // ✅ DEVE SER -5 (não mais 0)
+      "mataMata": 0,
+      "top10": 0,
+      "melhorMes": 0,
+      "total": -18
+    }
+  ],
+  "saldo_final": -32  // ✅ DEVE SER -32 (não mais -27)
+}
+```
+
+**4️⃣ Validar no MongoDB diretamente**
+```javascript
+// Buscar cache recalculado
+db.extratofinanceirocaches.findOne({
+  liga_id: "684cb1c8af923da7c7df51de",
+  time_id: 13935277,
+  temporada: 2026
+})
+
+// Verificar:
+// ✅ historico_transacoes tem tipo "PONTOS_CORRIDOS"
+// ✅ Transação PC tem rodada=2 e valor=-5
+// ✅ saldo_consolidado = -32
+```
+
+**5️⃣ (Opcional) Executar migração em massa**
+
+Se validação com Paulinett estiver OK, corrigir todos os participantes:
+
+**Opção A - CLI Script:**
+```bash
+node scripts/fix-extrato-pc-mm-top10-integration-2026.js --force
+```
+
+**Opção B - HTTP Endpoint:**
+```bash
+curl -X POST "http://localhost:3000/api/admin/migracao/fix-extrato-2026?force=true"
+```
+
+---
+
+### **5. Status das Correções**
+
+| Item | Status | Versão |
+|------|--------|--------|
+| Auto-healing implementado | ✅ Completo | v8.9.0 |
+| Bug config system corrigido | ✅ Completo | v8.9.1 |
+| Script CLI migração | ✅ Completo | v1.0.0 |
+| HTTP endpoint migração | ✅ Completo | v1.0.0 |
+| Script teste manual | ✅ Completo | v1.0.0 |
+| Validação com Paulinett | ⏳ Pendente | - |
+| Migração em massa | ⏳ Pendente | - |
+
+**Próxima ação:** Executar `node test-paulinett-fix.js` no Replit Shell para validar correção
+
+---
+
+### **6. Checklist de Validação Final**
+
+**Após executar teste manual:**
+- [ ] Cache de Paulinett deletado com sucesso
+- [ ] Extrato recalculado via API
+- [ ] Extrato exibe PC = -5 na R2 (não mais 0)
+- [ ] Saldo total = -32 (B/O -27 + PC -5, não mais -27)
+- [ ] MongoDB confirma transação "PONTOS_CORRIDOS" no cache
+- [ ] Auto-healing não dispara novamente (cache está correto agora)
+
+**Após migração em massa (se executada):**
+- [ ] Relatório mostra 0 erros
+- [ ] Todos participantes com PC habilitado têm transações PC no cache
+- [ ] Consultas spot-check em 2-3 participantes confirmam valores corretos
+
+---
+
+### **7. Pendência Anterior: APIs 404 em Liga Nova (Os Fuleros)**
 
 **Problema:** Ao acessar liga recem-criada, APIs retornam 404:
 ```

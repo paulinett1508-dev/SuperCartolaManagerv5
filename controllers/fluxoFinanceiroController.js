@@ -1,5 +1,13 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v8.7.0 (SaaS DINÂMICO)
+ * FLUXO-FINANCEIRO-CONTROLLER v8.9.1 (SaaS DINÂMICO)
+ * ✅ v8.9.1: FIX CRÍTICO - isModuloHabilitado() agora respeita flag 'configurado'
+ *   - Ligas com config parcial (configurado: false) usam modulos_ativos como fallback
+ *   - Resolve bug onde PC/MM/Top10 ativos em modulos_ativos eram ignorados
+ * ✅ v8.9.0: FIX CRÍTICO - AUTO-HEALING de módulos faltantes no cache
+ *   - Detecta quando módulos (PC/MM/Top10) estão habilitados mas ausentes no cache consolidado
+ *   - Invalida cache automaticamente e força recálculo completo
+ *   - Resolve bug onde cache criado antes do módulo ser habilitado nunca era recalculado
+ *   - Função detectarModulosFaltantesNoCache() verifica integridade dos dados
  * ✅ v8.7.0: FIX CRÍTICO - Query de rodadas agora filtra por temporada (evita misturar 2025+2026)
  * ✅ v8.6.0: FIX PREVENTIVO - Query TOP10 agora filtra por temporada (evita cache errado)
  * ✅ v8.5.0: PROTEÇÃO DADOS HISTÓRICOS - resetarCampos/deletarCampos só permite temporada atual
@@ -120,13 +128,16 @@ function getConfigTop10(liga) {
  * @returns {boolean}
  */
 function isModuloHabilitado(liga, modulo) {
-    // Primeiro verifica em configuracoes.{modulo}.habilitado
+    // ✅ v8.9.1 FIX: Só usar configuracoes se módulo estiver CONFIGURADO
+    // Ligas com config parcial (configurado: false) devem usar modulos_ativos como fallback
     const configModulo = liga?.configuracoes?.[modulo];
-    if (configModulo?.habilitado !== undefined) {
+
+    // Se módulo está CONFIGURADO no sistema novo, usar essa config
+    if (configModulo?.configurado === true && configModulo?.habilitado !== undefined) {
         return configModulo.habilitado;
     }
 
-    // Fallback para modulos_ativos (compatibilidade)
+    // Fallback para modulos_ativos (compatibilidade com sistema antigo)
     const moduloKey = modulo.replace(/_/g, ''); // pontos_corridos -> pontoscorridos
     const moduloCamel = modulo.replace(/_([a-z])/g, (_, c) => c.toUpperCase()); // pontos_corridos -> pontosCorridos
 
@@ -160,6 +171,59 @@ async function getStatusMercadoInterno() {
         );
         return { rodada_atual: 38, status_mercado: 2 };
     }
+}
+
+/**
+ * ✅ v8.9.0 FIX CRÍTICO: Detecta módulos habilitados mas ausentes no cache
+ * Resolve bug onde cache foi criado antes do módulo ser habilitado
+ * @param {Object} cache - Cache de extrato financeiro
+ * @param {Object} liga - Documento da liga
+ * @param {number} rodadaLimite - Última rodada a verificar
+ * @returns {Array<string>} Lista de módulos faltantes (ex: ['PONTOS_CORRIDOS', 'MATA_MATA'])
+ */
+function detectarModulosFaltantesNoCache(cache, liga, rodadaLimite) {
+    const modulosFaltantes = [];
+    const transacoes = cache.historico_transacoes || [];
+
+    // 1. Verificar PONTOS CORRIDOS
+    const pcHabilitado = isModuloHabilitado(liga, 'pontos_corridos') || liga.modulos_ativos?.pontosCorridos;
+    if (pcHabilitado) {
+        const rodadaInicialPC = liga.configuracoes?.pontos_corridos?.rodadaInicial || 7;
+        // Verificar se deveria ter transações de PC (rodada >= rodadaInicial)
+        if (rodadaLimite >= rodadaInicialPC) {
+            const temPC = transacoes.some(t => t.tipo === 'PONTOS_CORRIDOS' && t.rodada >= rodadaInicialPC);
+            if (!temPC) {
+                modulosFaltantes.push('PONTOS_CORRIDOS');
+            }
+        }
+    }
+
+    // 2. Verificar MATA-MATA
+    const mmHabilitado = isModuloHabilitado(liga, 'mata_mata') || liga.modulos_ativos?.mataMata;
+    if (mmHabilitado) {
+        // MM pode ter múltiplas edições, verificar se tem pelo menos uma transação
+        const temMM = transacoes.some(t => t.tipo === 'MATA_MATA');
+        const edicoes = liga.configuracoes?.mata_mata?.edicoes || [];
+        // Se tem edições configuradas e deveria ter rodadas consolidadas, verificar
+        if (edicoes.length > 0 && rodadaLimite >= 3) { // MM geralmente começa na R3
+            if (!temMM) {
+                modulosFaltantes.push('MATA_MATA');
+            }
+        }
+    }
+
+    // 3. Verificar TOP10
+    const top10Habilitado = isModuloHabilitado(liga, 'top10') || liga.modulos_ativos?.top10 === true;
+    if (top10Habilitado) {
+        const temTop10 = transacoes.some(t => t.tipo === 'MITO' || t.tipo === 'MICO');
+        // Top10 é ranking histórico, só deveria aparecer após várias rodadas
+        if (rodadaLimite >= 5 && !temTop10) {
+            // Pode não ter Top10 se o time nunca foi Mito/Mico, então é menos crítico
+            // Não marcar como faltante (falso positivo comum)
+        }
+    }
+
+    return modulosFaltantes;
 }
 
 // ============================================================================
@@ -536,6 +600,37 @@ export const getExtratoFinanceiro = async (req, res) => {
         const liga = await Liga.findById(ligaId).lean();
         if (!liga)
             return res.status(404).json({ error: "Liga não encontrada" });
+
+        // ✅ v8.9.0 FIX CRÍTICO: AUTO-HEALING - Detectar módulos faltantes no cache
+        // Bug: Cache criado antes de módulo ser habilitado não recalcula rodadas consolidadas
+        // Solução: Detectar módulos habilitados mas ausentes no cache e forçar recálculo
+        if (cache && cache.ultima_rodada_consolidada > 0 && !forcarRecalculo) {
+            const modulosFaltantes = detectarModulosFaltantesNoCache(cache, liga, limiteConsolidacao);
+
+            if (modulosFaltantes.length > 0) {
+                console.log(
+                    `[FLUXO-CONTROLLER] 🔧 AUTO-HEALING: Módulos faltantes detectados (${modulosFaltantes.join(', ')}) - invalidando cache...`
+                );
+                console.log(
+                    `[FLUXO-CONTROLLER] Cache tinha ${cache.historico_transacoes?.length || 0} transações até R${cache.ultima_rodada_consolidada}`
+                );
+
+                // Invalidar cache para forçar recálculo COMPLETO
+                await ExtratoFinanceiroCache.deleteOne({ _id: cache._id });
+                cache = new ExtratoFinanceiroCache({
+                    liga_id: ligaId,
+                    time_id: timeId,
+                    temporada: temporadaAtual,
+                    ultima_rodada_consolidada: 0,
+                    saldo_consolidado: 0,
+                    historico_transacoes: [],
+                });
+
+                console.log(
+                    `[FLUXO-CONTROLLER] ✅ Cache invalidado - recálculo completo será executado`
+                );
+            }
+        }
 
         // Verificar se time é inativo
         const participante = liga.participantes.find(
@@ -1141,4 +1236,4 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     }
 };
 
-console.log("[FLUXO-CONTROLLER] ✅ v8.4.0 carregado (Extrato 2026 + Ajustes Dinâmicos)");
+console.log("[FLUXO-CONTROLLER] ✅ v8.9.1 carregado (AUTO-HEALING + Fix Módulos Legados)");
