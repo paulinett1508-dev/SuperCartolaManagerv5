@@ -397,6 +397,7 @@ function atualizarCardsHomeUI(data) {
         totalParticipantes,
         pontosTotal,
         ultimaRodada,
+        rodadaAtual,
         minhasRodadas,
         saldoFinanceiro
     } = data;
@@ -1019,6 +1020,30 @@ function renderizarHome(container, data, ligaId) {
 
     if (rankingSaldoEl) {
         rankingSaldoEl.textContent = rodadaAtual ? `R${rodadaAtual}` : '--';
+    }
+
+    // Pontos Ranking Geral
+    const pontosRankingEl = document.getElementById('home-pontos-ranking');
+    const variacaoRankingEl = document.getElementById('home-variacao-ranking');
+    const rankingGeralEl = document.getElementById('home-ranking-geral');
+
+    if (pontosRankingEl) {
+        pontosRankingEl.textContent = formatarPontos(pontosTotal);
+    }
+
+    if (variacaoRankingEl) {
+        const pontosUltimaRodadaRank = ultimaRodada ? parseFloat(ultimaRodada.pontos || 0) : 0;
+        if (pontosUltimaRodadaRank >= 0) {
+            variacaoRankingEl.textContent = `↑${pontosUltimaRodadaRank.toFixed(2)}`;
+            variacaoRankingEl.className = 'home-stat-variacao positivo';
+        } else {
+            variacaoRankingEl.textContent = `↓${Math.abs(pontosUltimaRodadaRank).toFixed(2)}`;
+            variacaoRankingEl.className = 'home-stat-variacao negativo';
+        }
+    }
+
+    if (rankingGeralEl) {
+        rankingGeralEl.textContent = posicao ? `${posicao}º` : '--';
     }
 
     // Cartoletas Disponíveis (Patrimônio Cartola)
