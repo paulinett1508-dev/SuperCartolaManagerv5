@@ -173,24 +173,45 @@
                         <div class="space-y-3">
                             ${data.problemas.map(p => `
                                 <div class="bg-gray-700 rounded p-4">
-                                    <div class="flex justify-between items-start mb-2">
+                                    <div class="flex justify-between items-start mb-3">
                                         <div>
-                                            <div class="font-bold">${p.time}</div>
+                                            <div class="font-bold text-lg">${p.time}</div>
                                             <div class="text-sm text-gray-400">${p.liga} • Time ${p.timeId}</div>
                                         </div>
                                         <div class="text-right">
-                                            <div class="text-2xl font-bold">R$ ${p.saldoAtual.toFixed(2)}</div>
-                                            <div class="text-sm text-gray-400">Saldo Atual</div>
+                                            <div class="text-2xl font-bold ${p.saldoAtual >= 0 ? 'text-green-400' : 'text-red-400'}">
+                                                R$ ${p.saldoAtual.toFixed(2)}
+                                            </div>
+                                            <div class="text-sm text-gray-400">Saldo Atual (Cache)</div>
                                         </div>
                                     </div>
-                                    <div class="flex gap-2 mb-3">
+
+                                    ${p.contextoFinanceiro ? `
+                                        <div class="grid grid-cols-2 gap-2 mb-3 p-2 bg-gray-800 rounded">
+                                            <div class="text-xs">
+                                                <span class="text-gray-400">Legado 2025:</span>
+                                                <span class="font-semibold ${p.contextoFinanceiro.saldoLegado2025 >= 0 ? 'text-green-400' : 'text-red-400'}">
+                                                    R$ ${p.contextoFinanceiro.saldoLegado2025.toFixed(2)}
+                                                </span>
+                                            </div>
+                                            <div class="text-xs">
+                                                <span class="text-gray-400">Inscrição 2026:</span>
+                                                <span class="font-semibold ${p.contextoFinanceiro.inscricao2026.paga ? 'text-green-400' : 'text-yellow-400'}">
+                                                    ${p.contextoFinanceiro.inscricao2026.paga ? '✅ PAGA' : '⚠️ PENDENTE'}
+                                                    (R$ ${p.contextoFinanceiro.inscricao2026.valor.toFixed(2)})
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    <div class="flex flex-wrap gap-2 mb-3">
                                         ${p.modulosFaltantes.map(m => `
                                             <span class="bg-red-900/50 text-red-300 px-2 py-1 rounded text-xs font-semibold">
                                                 ❌ ${m}
                                             </span>
                                         `).join('')}
                                     </div>
-                                    <div class="text-sm text-gray-400 mb-2">
+                                    <div class="text-sm text-gray-400 mb-3">
                                         Rodada consolidada: ${p.rodadaConsolidada} • Transações: ${p.totalTransacoes}
                                     </div>
                                     <div class="flex gap-2">

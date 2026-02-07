@@ -132,6 +132,11 @@ router.get('/preview-correcoes', async (req, res) => {
                     const saldoAtual = cache.saldo_consolidado || 0;
                     const transacoesPorRodada = {};
 
+                    // ✅ NOVO: Buscar informações adicionais do participante
+                    const saldoLegado = cache.saldo_legado || 0;
+                    const inscricao2026Paga = participante.pagouInscricao === true;
+                    const valorInscricao = liga.parametros_financeiros?.inscricao || 0;
+
                     cache.historico_transacoes?.forEach(t => {
                         if (!transacoesPorRodada[t.rodada]) {
                             transacoesPorRodada[t.rodada] = {
@@ -161,6 +166,15 @@ router.get('/preview-correcoes', async (req, res) => {
                         modulosFaltantes: modulosFaltantes.map(m => m.nome),
                         rodadaConsolidada: cache.ultima_rodada_consolidada,
                         saldoAtual,
+                        // ✅ NOVO: Contexto financeiro completo
+                        contextoFinanceiro: {
+                            saldoLegado2025: saldoLegado,
+                            inscricao2026: {
+                                valor: valorInscricao,
+                                paga: inscricao2026Paga,
+                                status: inscricao2026Paga ? 'PAGA' : 'PENDENTE'
+                            }
+                        },
                         transacoesPorRodada,
                         totalTransacoes: cache.historico_transacoes?.length || 0,
                         urlValidacao: `/api/fluxo-financeiro/${liga._id}/extrato/${timeId}?temporada=${TEMPORADA_ALVO}`,
