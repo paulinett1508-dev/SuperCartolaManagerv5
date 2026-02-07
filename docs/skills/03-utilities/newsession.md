@@ -1,448 +1,415 @@
 # Skill: newsession
 
-Handover para nova sessao - carrega contexto do trabalho em andamento e instrui proximos passos.
+Handover para nova sessão - carrega contexto do trabalho em andamento e instrui próximos passos.
 
 ---
 
-## STATUS ATUAL: ✅ Bug Critico CORRIGIDO + 🧪 Aguardando Validacao Manual
+## STATUS ATUAL: ✅ Inscrição Automática v8.10.0 COMPLETA | ⚠️ PC Integration Bug PENDENTE
 
 **Data:** 07/02/2026
-**Ultima acao:** Correcao de bug secundario em isModuloHabilitado() + criacao de ferramentas de validacao
-**Arquivos modificados:**
-- `controllers/fluxoFinanceiroController.js` → v8.9.1 (fix config conflict + auto-healing)
-- `scripts/fix-extrato-pc-mm-top10-integration-2026.js` → v1.0.0 (migracao CLI)
-- `routes/admin/migracao.js` → v1.0.0 (migracao HTTP endpoint)
-- `test-paulinett-fix.js` → v1.0.0 (teste manual)
+**Última ação:** Implementação completa de inscrição automática v8.10.0 + Identificação de bug persistente no PC
+**Versão atual:** v8.10.0
 
 ---
 
-## BUG CRITICO PARA PROXIMA SESSAO
+## 🎉 CONQUISTAS DESTA SESSÃO
 
-### Pontos Corridos NAO propaga valores para o Extrato Financeiro
+### ✅ Feature: Inscrição Automática v8.10.0
 
-**Severidade:** ALTA - Afeta TODOS os participantes de TODAS as ligas
-**Descoberto em:** Auditoria do extrato Paulinett Miranda (time_id: 13935277)
+**Implementado e testado com sucesso!**
 
-**Evidencia concreta (Liga Super Cartola 2026):**
+**O que foi feito:**
+- Inscrição da temporada agora aparece automaticamente como lançamento inicial
+- Suporte completo a pagamentos parciais via sistema de Acertos
+- Flag `pagouInscricao` controla se débito é adicionado ou não
 
-| Dado | Valor |
-|------|-------|
-| PC Rodada 1 (R2 Brasileirao) | Paulinett (49.3) vs Raimundo Pinheiro (85.3) = DERROTA = **-R$5** |
-| Extrato R2 campo `pontosCorridos` | **0** (deveria ser -5) |
-| Saldo no cache | -27 (apenas B/O) |
-| Saldo correto | **-32** (B/O + PC) |
+**Código modificado:**
+- `controllers/fluxoFinanceiroController.js` v8.10.0
 
-**Causa provavel:**
-O `fluxoFinanceiroController.js` ou `extratoFinanceiroCacheController.js` consolida o extrato
-usando apenas o ranking da rodada (bonusOnus), mas NAO integra o valor financeiro do PC
-calculado pelo modulo `pontosCorridosCacheController`. O confronto PC existe na collection
-`pontoscorridoscaches` com `financeiro: -5`, porem esse valor nao e propagado para o
-campo `pontosCorridos` do `historico_transacoes` no `extratofinanceirocaches`.
-
-**Arquivos a investigar:**
-1. `controllers/fluxoFinanceiroController.js` - funcao `getExtratoFinanceiro()` (como monta o extrato)
-2. `controllers/extratoFinanceiroCacheController.js` - funcao `salvarExtratoCache()` (como salva o cache)
-3. `public/participante/js/modules/participante-extrato.js` - como o frontend calcula e envia ao backend
-4. Integracoes entre PC cache e extrato cache
-
-**Config PC 2026 (SuperCartola):**
-```
-rodada_inicial: 2 (R2 do Brasileirao = R1 do PC)
-formato: round_robin
-V=+5, E=+3, D=-5
-tolerancia_empate: 0.3
-goleada >= 50pts: bonus R$2 + 1pt
-```
-
-**Para corrigir:**
-1. Identificar ONDE o extrato busca (ou deveria buscar) o valor PC de cada rodada
-2. Garantir que ao consolidar/salvar o extrato, o campo `pontosCorridos` seja populado
-3. Recalcular os extratos de TODOS os participantes das 2 rodadas ja consolidadas
-4. Verificar se MM e Top10 tem o mesmo problema (provavelmente sim quando iniciarem)
-
-**Comando sugerido:** `/workflow corrigir integracao PC/MM/Top10 no extrato financeiro 2026`
-
----
-
-## ✅ CORREÇÃO IMPLEMENTADA (07/02/2026)
-
-### **1. Auto-Healing no Controller** (`fluxoFinanceiroController.js` v8.9.0)
-
-**Função criada:** `detectarModulosFaltantesNoCache(cache, liga, rodadaLimite)`
-
-**Lógica:**
-- Verifica se módulos PC/MM/Top10 estão **habilitados** na liga
-- Checa se transações desses módulos **existem** no cache consolidado
-- Se detectar módulos faltantes, **invalida** o cache automaticamente
-- Cache será **recalculado do zero** na próxima requisição
-
-**Exemplo de detecção:**
+**Lógica implementada:**
 ```javascript
-// Liga tem PC habilitado, rodada inicial = 2
-// Cache consolidado até rodada 2
-// MAS não tem NENHUMA transação tipo "PONTOS_CORRIDOS"
-// ↓
-// Auto-healing deleta cache e força recálculo completo
-```
+const valorInscricao = liga.parametros_financeiros?.inscricao || 0;
+const pagouInscricao = participante?.pagouInscricao === true;
 
-**Proteções:**
-- Só executa se cache já tem rodadas consolidadas (`> 0`)
-- Não executa se refresh manual foi solicitado (`forcarRecalculo=true`)
-- Log detalhado de cada invalidação para auditoria
-
-**Localização no código:**
-- Linha 164-218: Função `detectarModulosFaltantesNoCache()`
-- Linha 540-568: Chamada no `getExtratoFinanceiro()` antes de processar rodadas
-
----
-
-### **1.5. Bug Secundário Descoberto** (`fluxoFinanceiroController.js` v8.9.1)
-
-**Problema:** Auto-healing detectava módulos habilitados via `modulos_ativos` mas `isModuloHabilitado()` retornava `false`
-
-**Causa:** Conflito entre sistemas de configuração:
-- Liga tem `modulos_ativos.pontosCorridos: true` (sistema legado)
-- Liga tem `configuracoes.pontos_corridos.habilitado: false` (sistema novo)
-- `isModuloHabilitado()` priorizava `configuracoes` SEMPRE, ignorando `modulos_ativos`
-
-**Solução (v8.9.1):**
-```javascript
-function isModuloHabilitado(liga, modulo) {
-    // ✅ FIX: Só usar configuracoes se módulo estiver CONFIGURADO
-    const configModulo = liga?.configuracoes?.[modulo];
-
-    if (configModulo?.configurado === true && configModulo?.habilitado !== undefined) {
-        return configModulo.habilitado;
-    }
-
-    // Fallback para modulos_ativos (compatibilidade)
-    const moduloKey = modulo.replace(/_/g, '');
-    const moduloCamel = modulo.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-
-    if (liga?.modulos_ativos?.[moduloKey] !== undefined) {
-        return liga.modulos_ativos[moduloKey];
-    }
-    if (liga?.modulos_ativos?.[moduloCamel] !== undefined) {
-        return liga.modulos_ativos[moduloCamel];
-    }
-
-    return false;
+if (valorInscricao > 0 && !pagouInscricao) {
+    transacoesInscricao.push({
+        rodada: null,
+        tipo: "INSCRICAO_TEMPORADA",
+        descricao: `Taxa de inscrição ${temporada}`,
+        valor: -valorInscricao,
+        data: new Date(`${temporada}-01-01T00:00:00Z`)
+    });
+    saldoInscricao = -valorInscricao;
 }
+
+// Saldo da temporada (com inscrição)
+const saldoTemporada = cache.saldo_consolidado + saldoCampos + saldoInscricao;
+
+// Saldo total (temporada + acertos)
+const saldoTotal = saldoTemporada + acertosInfo.saldoAcertos;
 ```
 
-**Lógica:** Só consulta `configuracoes` se flag `configurado: true` estiver presente, caso contrário usa `modulos_ativos`
+**Como funciona:**
+1. Se `pagouInscricao === true` → Não adiciona débito (já quitado)
+2. Se `pagouInscricao === false` → Adiciona débito de inscrição
+3. Pagamentos parciais são registrados via **Acertos**
+
+**Exemplo real (Antônio Luis - Time 645089):**
+```
+Inscrição 2026:     R$ -180,00  (débito automático)
+Acerto (pagamento): R$  +60,00  (registro manual via Acertos)
+R1 Ranking (7º):    R$   +9,00
+R2 Ranking (24º):   R$   -4,00
+────────────────────────────────
+Subtotal:           R$ -115,00  ✅ CORRETO!
+
+FALTANDO:
+PC R2 (derrota):    R$   -5,00  ❌ NÃO INTEGRA
+────────────────────────────────
+Saldo esperado:     R$ -120,00
+```
+
+**Validação realizada:**
+- ✅ Inscrição aparece no extrato
+- ✅ Acertos são somados corretamente
+- ✅ Saldo calculado: -175 (temporada) + 60 (acertos) = -115
+- ✅ Flag `pagouInscricao` funciona corretamente
+- ✅ Campo `parametros_financeiros.inscricao` configurado na liga
+
+**Status:** 🟢 **100% FUNCIONAL**
 
 ---
 
-### **2. Script de Migração** (`fix-extrato-pc-mm-top10-integration-2026.js`)
+## ⚠️ BUG CRÍTICO PENDENTE: PC Não Integra ao Extrato
 
-**Propósito:** Corrigir caches existentes com módulos faltantes
+### Descrição do Problema
 
-**Funcionalidades:**
-- ✅ Analisa **todas** as ligas e participantes
-- ✅ Detecta módulos faltantes usando mesma lógica do auto-healing
-- ✅ Deleta caches corrompidos (serão recalculados automaticamente)
-- ✅ Relatório detalhado de problemas encontrados
-- ✅ Modo `--dry-run` para simular sem modificar
+**Severidade:** ALTA
+**Afeta:** Todos os participantes com Pontos Corridos habilitado
+**Descoberto em:** Validação com Antônio Luis (Time 645089)
 
-**Uso:**
-```bash
-# 1. Simular (ver problemas sem modificar)
-node scripts/fix-extrato-pc-mm-top10-integration-2026.js --dry-run
-
-# 2. Executar correção (DEV)
-node scripts/fix-extrato-pc-mm-top10-integration-2026.js --force
-
-# 3. Executar correção (PROD)
-NODE_ENV=production node scripts/fix-extrato-pc-mm-top10-integration-2026.js --force
-
-# 4. Corrigir apenas uma liga específica
-node scripts/fix-extrato-pc-mm-top10-integration-2026.js --liga-id=<ID> --force
-```
-
-**Proteções:**
-- Ambiente PROD requer flag `--force` ou `--dry-run`
-- Só opera em temporada 2026 (não toca dados históricos)
-- Log completo de cada operação
-- Estatísticas finais (quantos corrigidos, erros, etc.)
-
-**Saída esperada:**
-```
-📊 RELATÓRIO FINAL
-======================================================================
-Ligas analisadas:           2
-Participantes analisados:   70
-Caches com problemas:       35
-Caches corrigidos:          35
-Erros:                      0
-======================================================================
-```
-
----
-
-### **2.5. Endpoint HTTP Alternativo** (`routes/admin/migracao.js`)
-
-**Propósito:** Alternativa ao CLI script que reutiliza conexão MongoDB do servidor
-
-**Endpoints:**
-
-**1. GET `/api/admin/migracao/fix-extrato-2026`** (Dry-Run)
-```bash
-curl http://localhost:3000/api/admin/migracao/fix-extrato-2026
-curl http://localhost:3000/api/admin/migracao/fix-extrato-2026?ligaId=<ID>
-```
-
-**2. POST `/api/admin/migracao/fix-extrato-2026?force=true`** (Execução)
-```bash
-curl -X POST http://localhost:3000/api/admin/migracao/fix-extrato-2026?force=true
-curl -X POST http://localhost:3000/api/admin/migracao/fix-extrato-2026?ligaId=<ID>&force=true
-```
-
-**Resposta JSON:**
+**Sintoma:**
 ```json
 {
-  "success": true,
-  "mode": "execution",
-  "temporada": 2026,
-  "stats": {
-    "ligasAnalisadas": 2,
-    "participantesAnalisados": 70,
-    "cachesComProblemas": 35,
-    "cachesCorrigidos": 35,
-    "erros": 0,
-    "detalhes": [...]
-  },
-  "message": "Correção concluída. 35 cache(s) corrigido(s)."
-}
-```
-
-**Proteções:**
-- ✅ Requer autenticação admin (`isAdminAutorizado`)
-- ✅ POST requer `?force=true` para confirmar
-- ✅ Usa mesma lógica de detecção do script CLI
-- ✅ Rota registrada em `index.js`: `app.use("/api/admin/migracao", adminMigracaoRoutes)`
-
----
-
-### **3. Script de Teste Manual** (`test-paulinett-fix.js`)
-
-**Propósito:** Script simples para deletar cache específico e testar recálculo
-
-**Uso:**
-```bash
-node test-paulinett-fix.js
-```
-
-**O que faz:**
-1. Conecta ao MongoDB usando `MONGO_URI`
-2. Busca cache de Paulinett Miranda (time_id: 13935277, liga SuperCartola 2026)
-3. Exibe informações do cache atual (transações, saldo, tem PC?)
-4. Deleta o cache
-5. Instrui próximo passo: acessar API de extrato para forçar recálculo
-
-**Saída esperada:**
-```
-📊 Cache encontrado:
-   Rodadas consolidadas: 2
-   Saldo: R$ -27.00
-   Transações: 2
-   Tem PC: ❌ NÃO
-
-🗑️  Deletando cache...
-✅ Cache deletado!
-
-💡 Agora acesse o extrato via API para recalcular:
-   GET /api/fluxo-financeiro/{ligaId}/extrato/13935277?temporada=2026
-```
-
----
-
-### **4. PENDENTE - VALIDAÇÃO MANUAL**
-
-**⚠️ IMPORTANTE:** Todo código foi corrigido (v8.9.1), mas aguarda validação em ambiente Replit com MongoDB autenticado.
-
-**Passo a passo para validar:**
-
-**1️⃣ Deletar cache de Paulinett (força recálculo)**
-```bash
-# No Replit Shell, executar:
-node test-paulinett-fix.js
-```
-
-**2️⃣ Acessar extrato via API (trigger recálculo com v8.9.1)**
-```bash
-GET /api/fluxo-financeiro/684cb1c8af923da7c7df51de/extrato/13935277?temporada=2026
-```
-
-**3️⃣ Verificar resposta do extrato**
-
-**Valores esperados:**
-```json
-{
-  "rodadas": [
+  "extrato": [
     {
       "rodada": 2,
-      "bancoOnus": -13,
-      "pontosCorridos": -5,  // ✅ DEVE SER -5 (não mais 0)
-      "mataMata": 0,
-      "top10": 0,
-      "melhorMes": 0,
-      "total": -18
+      "pontosCorridos": 0,  // ❌ Deveria ser -5
+      "tipo": "ONUS",
+      "valor": -4
     }
-  ],
-  "saldo_final": -32  // ✅ DEVE SER -32 (não mais -27)
+  ]
 }
 ```
 
-**4️⃣ Validar no MongoDB diretamente**
+O confronto de PC existe e foi calculado (derrota = -R$ 5), mas o valor **não propaga** para o extrato financeiro.
+
+---
+
+### Investigação Realizada
+
+#### 1. Auto-Healing v8.9.1
+**Implementado mas não resolveu o problema:**
+- Função `detectarModulosFaltantesNoCache()` detecta módulos faltantes
+- Invalida cache e força recálculo
+- **MAS** mesmo após recálculo, PC continua zerado
+
+#### 2. Configuração da Liga
+**Verificado e correto:**
+- `modulos_ativos.pontosCorridos: true` ✅
+- `configuracoes.pontos_corridos.habilitado: true` ✅
+- `configuracoes.pontos_corridos.rodadaInicial: 2` ✅
+
+#### 3. Cache de Extrato
+**Recalculado múltiplas vezes:**
+- Cache deletado e recriado várias vezes
+- Timestamp atualizado corretamente
+- **MAS** campo `pontosCorridos` sempre retorna 0
+
+---
+
+### Próximos Passos para Nova Sessão
+
+#### PASSO 1: Verificar Cache de PC
+
+**Comando:**
+```bash
+node -e "
+const mongoose = require('mongoose');
+mongoose.connect(process.env.MONGO_URI).then(async () => {
+  const pc = await mongoose.connection.db
+    .collection('pontoscorridoscaches')
+    .findOne({
+      liga_id: '684cb1c8af923da7c7df51de',
+      temporada: 2026
+    });
+
+  if (!pc) {
+    console.log('❌ Cache PC não encontrado');
+    process.exit(1);
+  }
+
+  console.log('✅ Cache PC encontrado');
+  console.log('Rodadas:', pc.rodadas?.length || 0);
+
+  // Buscar confronto Antônio Luis (645089)
+  pc.rodadas?.forEach(rodada => {
+    rodada.confrontos?.forEach(conf => {
+      if (conf.time1_id === 645089 || conf.time2_id === 645089) {
+        console.log('\n📊 Confronto R' + rodada.rodada);
+        console.log('  Time 1:', conf.time1_id, '-', conf.time1_pontos, 'pts');
+        console.log('  Time 2:', conf.time2_id, '-', conf.time2_pontos, 'pts');
+        console.log('  Resultado:', conf.resultado);
+        console.log('  Financeiro:', conf.financeiro);
+      }
+    });
+  });
+
+  process.exit(0);
+});
+"
+```
+
+**O que verificar:**
+- ✅ Cache PC existe?
+- ✅ Confronto do Antônio Luis está registrado?
+- ✅ Campo `financeiro` tem valor correto (-5)?
+- ✅ Rodada está correta (R2)?
+
+---
+
+#### PASSO 2: Investigar Integração PC → Extrato
+
+**Arquivos a analisar:**
+
+1. **`controllers/fluxoFinanceiroController.js`**
+   - Função `calcularRodada()` ou similar
+   - Onde busca valores de PC
+   - Como integra PC ao cache de extrato
+
+2. **`controllers/pontosCorridosCacheController.js`**
+   - Como calcula e salva confrontos
+   - Formato do cache PC
+   - Campo `financeiro` está sendo salvo?
+
+3. **`controllers/extratoFinanceiroCacheController.js`**
+   - Como transforma rodadas em transações
+   - Busca valores de PC no cache?
+   - Integra PC ao `historico_transacoes`?
+
+**Buscar no código:**
+```bash
+# Procurar onde PC é integrado ao extrato
+grep -r "pontosCorridos" controllers/ --include="*.js" -n
+
+# Procurar onde cache PC é lido
+grep -r "pontoscorridoscaches" controllers/ --include="*.js" -n
+
+# Procurar função que calcula rodada
+grep -r "calcularRodada\|processarRodada" controllers/ --include="*.js" -n
+```
+
+---
+
+#### PASSO 3: Hipóteses a Validar
+
+**Hipótese 1: PC não está sendo buscado**
+- Controller de extrato não consulta cache de PC
+- Apenas usa dados do ranking (banco/ônus)
+
+**Hipótese 2: Campo `financeiro` não está salvo**
+- Cache PC pode não ter campo financeiro
+- Cálculo acontece mas não persiste
+
+**Hipótese 3: Integração quebrada**
+- Cache PC existe e tem dados
+- Extrato não sabe ler/integrar esses dados
+
+**Hipótese 4: Rodada não consolidada**
+- PC só integra após rodada ser consolidada
+- Pode ter condição que não está sendo atendida
+
+---
+
+#### PASSO 4: Solução Esperada
+
+Após identificar a causa, implementar uma das soluções:
+
+**Solução A: Adicionar integração faltante**
 ```javascript
-// Buscar cache recalculado
-db.extratofinanceirocaches.findOne({
-  liga_id: "684cb1c8af923da7c7df51de",
-  time_id: 13935277,
-  temporada: 2026
-})
+// Em fluxoFinanceiroController.js, ao processar rodada:
 
-// Verificar:
-// ✅ historico_transacoes tem tipo "PONTOS_CORRIDOS"
-// ✅ Transação PC tem rodada=2 e valor=-5
-// ✅ saldo_consolidado = -32
+// Buscar valor de PC para a rodada
+const pcCache = await PontosCorridosCache.findOne({
+    liga_id: ligaId,
+    temporada: temporada
+});
+
+const rodadaPC = pcCache?.rodadas?.find(r => r.rodada === numeroRodada);
+const confrontoPC = rodadaPC?.confrontos?.find(c =>
+    c.time1_id === timeId || c.time2_id === timeId
+);
+
+const valorPC = confrontoPC?.financeiro || 0;
+
+// Adicionar ao cache de extrato
+if (valorPC !== 0) {
+    transacoes.push({
+        tipo: 'PONTOS_CORRIDOS',
+        valor: valorPC,
+        rodada: numeroRodada,
+        // ... outros campos
+    });
+}
 ```
 
-**5️⃣ (Opcional) Executar migração em massa**
+**Solução B: Corrigir cálculo/salvamento**
+- Garantir que `financeiro` é salvo no cache PC
+- Verificar se cálculo acontece no momento certo
 
-Se validação com Paulinett estiver OK, corrigir todos os participantes:
+**Solução C: Forçar recálculo PC**
+- Criar migration que recalcula TODOS os caches PC
+- Garantir integração após recálculo
 
-**Opção A - CLI Script:**
+---
+
+### Dados de Teste
+
+**Liga:** Super Cartola 2026
+- Liga ID: `684cb1c8af923da7c7df51de`
+- Inscrição: R$ 180,00
+- PC habilitado: Rodada inicial 2
+
+**Participante de teste:** Antônio Luis
+- Time ID: `645089`
+- Nome: FloriMengo FC
+- pagouInscricao: `false`
+- Pagamento parcial: R$ 60,00 (via Acerto)
+
+**Saldo esperado:**
+```
+Inscrição:  -180
+Acerto:      +60
+R1 (7º):      +9
+R2 (24º):     -4
+PC R2:        -5  ← FALTANDO!
+──────────────
+Total:      -120
+```
+
+**Saldo atual:**
+```
+Total: -115  (faltam -5 do PC)
+```
+
+---
+
+### Ferramentas Disponíveis
+
+**Scripts de teste:**
+- `test-extrato-antonio.cjs` - Testa extrato completo do Antônio Luis
+- `test-paulinett-fix.js` - Testa cache de outro participante
+
+**Endpoints:**
+- `GET /api/fluxo-financeiro/{ligaId}/extrato/{timeId}?temporada=2026`
+- `GET /api/admin/migracao-validacao/preview-correcoes` - Análise de problemas
+- `POST /api/admin/migracao-validacao/recalcular-participante` - Recálculo individual
+
+**Interface admin:**
+- `/admin-validacao-migracao.html` - Dashboard de validação
+
+---
+
+### Commits Desta Sessão
+
+```
+51ddadd - fix(financeiro): auto-healing cache + migration tools v8.9.1
+2cd38bf - feat(admin): sistema de validação de migração
+080b241 - feat(validacao): contexto financeiro completo (legado + inscrição)
+09a0b19 - feat(admin): link para validação no painel gerenciar
+d8e68e9 - feat(financeiro): inscrição automática v8.10.0 ✅ SUCESSO!
+```
+
+---
+
+## 🎯 OBJETIVO DA PRÓXIMA SESSÃO
+
+**Investigar e corrigir integração PC → Extrato**
+
+1. ✅ Verificar se cache PC existe e tem dados corretos
+2. ✅ Identificar onde código deveria buscar PC mas não busca
+3. ✅ Implementar correção
+4. ✅ Validar com Antônio Luis (saldo -115 → -120)
+5. ✅ Executar migração em massa para todos participantes
+
+**Resultado esperado:**
+```
+ANTES:  pontosCorridos: 0
+DEPOIS: pontosCorridos: -5
+Saldo:  -115 → -120 ✅
+```
+
+---
+
+## 📚 Contexto Adicional
+
+### Sistema de Módulos
+
+**Base (sempre ativos):** Extrato, Ranking, Rodadas, Hall da Fama
+
+**Opcionais (configuráveis):**
+- ✅ Top 10
+- ✅ Melhor Mês
+- ✅ **Pontos Corridos** ← BUG AQUI
+- ✅ Mata-Mata
+- ✅ Artilheiro Campeão
+- ✅ Luva de Ouro
+
+### Fluxo Financeiro
+
+```
+Cache Ranking (rodadas) ──┐
+                          │
+Cache PC (confrontos) ────┼─→ Extrato Financeiro Cache
+                          │
+Cache MM (confrontos) ────┘
+
+Acertos Financeiros ──────────→ Soma ao extrato
+Inscrição (v8.10.0) ──────────→ Lançamento inicial
+```
+
+**O problema:** Seta do "Cache PC → Extrato" está quebrada!
+
+---
+
+## 🔧 Comandos Úteis
+
+### Deletar cache de teste:
 ```bash
-node scripts/fix-extrato-pc-mm-top10-integration-2026.js --force
+node -e "
+const mongoose = require('mongoose');
+mongoose.connect(process.env.MONGO_URI).then(async () => {
+  await mongoose.connection.db.collection('extratofinanceirocaches').deleteOne({
+    liga_id: '684cb1c8af923da7c7df51de',
+    time_id: 645089,
+    temporada: 2026
+  });
+  console.log('✅ Cache deletado');
+  process.exit(0);
+});
+"
 ```
 
-**Opção B - HTTP Endpoint:**
+### Testar extrato completo:
 ```bash
-curl -X POST "http://localhost:3000/api/admin/migracao/fix-extrato-2026?force=true"
+node test-extrato-antonio.cjs
+```
+
+### Ver logs do servidor:
+```bash
+tail -f /tmp/server.log | grep -E "FLUXO-CONTROLLER|PC|PONTOS"
 ```
 
 ---
 
-### **5. Status das Correções**
-
-| Item | Status | Versão |
-|------|--------|--------|
-| Auto-healing implementado | ✅ Completo | v8.9.0 |
-| Bug config system corrigido | ✅ Completo | v8.9.1 |
-| Script CLI migração | ✅ Completo | v1.0.0 |
-| HTTP endpoint migração | ✅ Completo | v1.0.0 |
-| Script teste manual | ✅ Completo | v1.0.0 |
-| Validação com Paulinett | ⏳ Pendente | - |
-| Migração em massa | ⏳ Pendente | - |
-
-**Próxima ação:** Executar `node test-paulinett-fix.js` no Replit Shell para validar correção
-
----
-
-### **6. Checklist de Validação Final**
-
-**Após executar teste manual:**
-- [ ] Cache de Paulinett deletado com sucesso
-- [ ] Extrato recalculado via API
-- [ ] Extrato exibe PC = -5 na R2 (não mais 0)
-- [ ] Saldo total = -32 (B/O -27 + PC -5, não mais -27)
-- [ ] MongoDB confirma transação "PONTOS_CORRIDOS" no cache
-- [ ] Auto-healing não dispara novamente (cache está correto agora)
-
-**Após migração em massa (se executada):**
-- [ ] Relatório mostra 0 erros
-- [ ] Todos participantes com PC habilitado têm transações PC no cache
-- [ ] Consultas spot-check em 2-3 participantes confirmam valores corretos
-
----
-
-### **7. Pendência Anterior: APIs 404 em Liga Nova (Os Fuleros)**
-
-**Problema:** Ao acessar liga recem-criada, APIs retornam 404:
-```
-GET /api/ranking-turno/6977a62071dee12036bb163e?turno=geral&temporada=2026 -> 404
-GET /api/ranking-cache/6977a62071dee12036bb163e?temporada=2026 -> 404
-```
-
-**Para investigar:**
-1. Verificar rotas em `routes/ranking*.js`
-2. Verificar se liga nova precisa de inicializacao de cache
-3. Confirmar se e comportamento esperado em pre-temporada
-
----
-
-## CONTEXTO DA AUDITORIA REALIZADA
-
-### Extrato Paulinett 2025 (HISTORICO - Hall da Fama apenas)
-
-Dados de 2025 ficam como referencia historica. Bugs identificados mas NAO precisam de correcao:
-
-| Bug | Descricao |
-|-----|-----------|
-| `temporada: null` | Cache criado com versao 3.4.0, campo temporada ausente |
-| Top10 zerado | 2 MICOs existem mas T10=0 em todas rodadas (versao antiga) |
-| PC divergente | Extrato PC=-25 vs Cache PC=-9 (delta incorreto) |
-| 9 rodadas sem posicao | Snapshots tem posicao mas extrato perdeu dados |
-| Fix script com tabela errada | `fix-extrato-paulinett-sc-2025.js` usa B/O incorretos |
-
-### Extrato Paulinett 2026 (ATIVO)
-
-| Componente | Valor | Status |
-|------------|-------|--------|
-| R1 B/O (Pos 34/35) | -14 | OK |
-| R2 B/O (Pos 33/35) | -13 | OK |
-| R2 PC | 0 (deveria -5) | **BUG** |
-| R2 MM | 0 | OK (R2 e classificatoria) |
-| Campos manuais | 0 | OK |
-| Acertos | 0 | OK |
-| Lancamentos iniciais | 0 | OK (owner isento) |
-| **Saldo cache** | **-27** | **INCORRETO (deveria -32)** |
-
-### Parametrizacao 2026 SuperCartola
-
-| Modulo | Rodada Inicio | Config |
-|--------|--------------|--------|
-| Ranking (BANCO) | R1 | 35 times, credito 1-12, neutro 13-23, debito 24-35 |
-| Pontos Corridos | R2 | V=+5, E=+3, D=-5 |
-| Mata-Mata | R3 (classif R2) | 32 times, 7 edicoes, V=+10, D=-10 |
-| Top10 | Acumulado | Mito +30..+12, Mico -30..-12 |
-| Melhor Mes | R1 | 7 edicoes (R1-4, R5-8, R9-13, R14-18, R19-25, R26-33, R34-38), campeao R$80 |
-| Artilheiro | Acumulado | 1o=R$30, 2o=R$20, 3o=R$10 |
-| Luva de Ouro | Acumulado | 1o=R$30, 2o=R$20, 3o=R$10 |
-| Capitao de Luxo | Acumulado | 1o=R$25, 2o=R$15, 3o=R$10 |
-
-### Calendario MM 2026 (6 edicoes default)
-
-| Edicao | Classificatoria | Primeira | Oitavas | Quartas | Semis | Final |
-|--------|----------------|----------|---------|---------|-------|-------|
-| 1 | R2 | R3 | R4 | R5 | R6 | R7 |
-| 2 | R9 | R10 | R11 | R12 | R13 | R14 |
-| 3 | R15 | R16 | R17 | R18 | R19 | R20 |
-| 4 | R21 | R22 | R23 | R24 | R25 | R26 |
-| 5 | R26 | R27 | R28 | R29 | R30 | R31 |
-| 6 | R32 | R33 | R34 | R35 | R36 | R37 |
-
-Nota: Wizard configurou 7 edicoes mas calendario default tem 6. A 7a precisa ser criada.
-
----
-
-## CONTEXTO DO SISTEMA
-
-### Classificacao de Modulos
-
-| Tipo | Modulos | Default |
-|------|---------|---------|
-| **Base** | extrato, ranking, rodadas, historico | `true` (sempre) |
-| **Opcionais** | top10, melhorMes, pontosCorridos, mataMata, artilheiro, luvaOuro, campinho, dicas | `false` (admin configura) |
-
-### Servidor
-- Rodando na porta 3000
-- NODE_ENV=development
-- CURRENT_SEASON=2026
-- Temporada status: ativa (2 rodadas consolidadas, rodada atual 3)
-
----
-
-**PROXIMA SESSAO:** Corrigir integracao PC -> Extrato (e validar MM/Top10 quando iniciarem).
+**PRÓXIMA SESSÃO:** Resolver integração PC → Extrato e validar correção completa! 🎯
