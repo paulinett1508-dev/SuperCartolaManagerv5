@@ -28,6 +28,13 @@ const POSICOES = {
 const MITO_THRESHOLD = 12;  // > 12 pontos = mito
 const MICO_THRESHOLD = -3;  // < -3 pontos = mico
 
+// Truncar pontos (sem arredondar) - fallback local caso participante-utils nao carregue
+function _truncar(v) {
+    if (typeof truncarPontos === 'function') return truncarPontos(v);
+    const num = parseFloat(v) || 0;
+    return (Math.trunc(num * 100) / 100).toFixed(2).replace('.', ',');
+}
+
 // Escape HTML para prevenir XSS
 function esc(str) {
     if (!str) return '';
@@ -334,7 +341,7 @@ function renderizarErro(mensagem) {
         <div class="campinho-empty">
             <span class="material-icons">error_outline</span>
             <h3>Erro ao carregar</h3>
-            <p>${mensagem || 'Não foi possível carregar a escalação'}</p>
+            <p>${esc(mensagem) || 'Não foi possível carregar a escalação'}</p>
         </div>
     `;
 }
@@ -352,7 +359,7 @@ function renderizarSemEscalacao() {
 function renderizarAvisoMercadoAberto(status) {
     return `
         <div class="campinho-empty">
-            <span class="material-icons" style="color: #22c55e;">storefront</span>
+            <span class="material-icons campinho-mercado-icon">storefront</span>
             <h3>Mercado Aberto</h3>
             <p>A escalação será exibida após o fechamento do mercado</p>
             ${status?.rodada_atual ? `<p style="margin-top: 8px; font-size: 12px; opacity: 0.5;">Rodada ${status.rodada_atual}</p>` : ''}
@@ -408,7 +415,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                     <div class="campinho-field-footer">
                         <div class="campinho-points">
                             <span>Pontos totais</span>
-                            <strong>${typeof truncarPontos === 'function' ? truncarPontos(pontosTotais) : pontosTotais.toFixed(2)}</strong>
+                            <strong>${_truncar(pontosTotais)}</strong>
                         </div>
                         <div class="campinho-counter">
                             <span>Escalados</span>
@@ -443,17 +450,17 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                 <div class="campinho-confronto-card">
                     <div class="campinho-confronto-header">
                         <span class="material-icons">${confronto.tipo === 'mata-mata' ? 'sports_kabaddi' : 'leaderboard'}</span>
-                        <span>${confronto.tipo === 'mata-mata' ? `Mata-Mata - ${confronto.fase || ''}` : 'Pontos Corridos'}</span>
+                        <span>${confronto.tipo === 'mata-mata' ? `Mata-Mata - ${esc(confronto.fase) || ''}` : 'Pontos Corridos'}</span>
                     </div>
                     <div class="campinho-confronto-placar">
                         <div class="campinho-confronto-time">
                             <p class="nome">Você</p>
-                            <p class="pontos">${typeof truncarPontos === 'function' ? truncarPontos(confronto.placar?.meu || pontosTotais) : (confronto.placar?.meu || pontosTotais).toFixed(2)}</p>
+                            <p class="pontos">${_truncar(confronto.placar?.meu || pontosTotais)}</p>
                         </div>
                         <span class="campinho-confronto-vs">VS</span>
                         <div class="campinho-confronto-time">
-                            <p class="nome">${confronto.adversario?.nome || 'Adversário'}</p>
-                            <p class="pontos">${typeof truncarPontos === 'function' ? truncarPontos(confronto.placar?.adversario || 0) : (confronto.placar?.adversario || 0).toFixed(2)}</p>
+                            <p class="nome">${esc(confronto.adversario?.nome) || 'Adversário'}</p>
+                            <p class="pontos">${_truncar(confronto.placar?.adversario || 0)}</p>
                         </div>
                     </div>
                 </div>
@@ -461,11 +468,11 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                     ${temAdversario ? `
                         <div class="campinho-header campinho-adversario-header">
                             <div class="campinho-header-info">
-                                <h2 style="color: #f87171;">${esc(adversario.nome_cartoleiro || confronto.adversario?.nome) || 'Adversário'}</h2>
+                                <h2 class="campinho-adversario-nome">${esc(adversario.nome_cartoleiro || confronto.adversario?.nome) || 'Adversário'}</h2>
                                 <p class="rodada">Escalação</p>
                             </div>
                             <div class="campinho-header-pontos">
-                                <p class="valor" style="color: #f87171;">${typeof truncarPontos === 'function' ? truncarPontos(adversario.pontos || calcularPontosTotais(adversario)) : (adversario.pontos || calcularPontosTotais(adversario)).toFixed(2)}</p>
+                                <p class="valor campinho-adversario-pontos">${_truncar(adversario.pontos || calcularPontosTotais(adversario))}</p>
                                 <p class="label">Pontos</p>
                             </div>
                         </div>
