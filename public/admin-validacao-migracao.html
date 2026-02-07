@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validação de Migração - Super Cartola Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .tab-active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">🔧 Validação de Migração PC/MM/Top10</h1>
+            <p class="text-gray-400">Revise e valide correções de extratos financeiros</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="border-b border-gray-700 mb-6">
+            <div class="flex space-x-8">
+                <button onclick="showTab('preview')" id="tab-preview" class="tab-active pb-3 font-semibold transition">
+                    📊 Preview de Correções
+                </button>
+                <button onclick="showTab('validacao')" id="tab-validacao" class="pb-3 font-semibold text-gray-400 hover:text-white transition">
+                    ✅ Validação Individual
+                </button>
+                <button onclick="showTab('execucao')" id="tab-execucao" class="pb-3 font-semibold text-gray-400 hover:text-white transition">
+                    🚀 Execução em Massa
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab: Preview -->
+        <div id="content-preview" class="tab-content">
+            <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-bold mb-4">Análise de Participantes</h2>
+                <div class="flex gap-4 mb-4">
+                    <input type="text" id="filtroLigaId" placeholder="Filtrar por Liga ID (opcional)"
+                           class="flex-1 bg-gray-700 rounded px-4 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                    <button onclick="carregarPreview()" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded font-semibold transition">
+                        🔍 Analisar
+                    </button>
+                </div>
+                <div id="loading-preview" class="hidden text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                    <p class="mt-2 text-gray-400">Analisando participantes...</p>
+                </div>
+                <div id="resultado-preview"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Validação Individual -->
+        <div id="content-validacao" class="tab-content hidden">
+            <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-bold mb-4">Recalcular e Validar Participante</h2>
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <input type="text" id="validacaoLigaId" placeholder="Liga ID"
+                           class="bg-gray-700 rounded px-4 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                    <input type="number" id="validacaoTimeId" placeholder="Time ID"
+                           class="bg-gray-700 rounded px-4 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                    <button onclick="recalcularParticipante()" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-semibold transition">
+                        ✅ Recalcular e Validar
+                    </button>
+                </div>
+                <div id="loading-validacao" class="hidden text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div>
+                    <p class="mt-2 text-gray-400">Recalculando extrato...</p>
+                </div>
+                <div id="resultado-validacao"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Execução em Massa -->
+        <div id="content-execucao" class="tab-content hidden">
+            <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-bold mb-4">⚠️ Execução em Massa</h2>
+                <div class="bg-yellow-900/30 border border-yellow-600 rounded p-4 mb-4">
+                    <p class="font-semibold mb-2">⚠️ ATENÇÃO:</p>
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        <li>Esta operação irá deletar TODOS os caches com problemas detectados</li>
+                        <li>Os extratos serão recalculados automaticamente no próximo acesso</li>
+                        <li>Recomenda-se fazer o Preview primeiro para revisar o que será alterado</li>
+                    </ul>
+                </div>
+                <div class="flex gap-4">
+                    <input type="text" id="execucaoLigaId" placeholder="Liga ID (opcional - vazio = todas)"
+                           class="flex-1 bg-gray-700 rounded px-4 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none">
+                    <button onclick="executarMigracao()" class="bg-red-600 hover:bg-red-700 px-8 py-2 rounded font-semibold transition">
+                        🚀 Executar Migração
+                    </button>
+                </div>
+                <div id="loading-execucao" class="hidden text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-500"></div>
+                    <p class="mt-2 text-gray-400">Executando migração...</p>
+                </div>
+                <div id="resultado-execucao"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.classList.remove('tab-active', 'text-blue-500');
+                el.classList.add('text-gray-400');
+            });
+
+            // Show selected tab
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            const tab = document.getElementById(`tab-${tabName}`);
+            tab.classList.add('tab-active');
+            tab.classList.remove('text-gray-400');
+        }
+
+        // Preview de Correções
+        async function carregarPreview() {
+            const loading = document.getElementById('loading-preview');
+            const resultado = document.getElementById('resultado-preview');
+            const ligaId = document.getElementById('filtroLigaId').value.trim();
+
+            loading.classList.remove('hidden');
+            resultado.innerHTML = '';
+
+            try {
+                const url = ligaId
+                    ? `/api/admin/migracao-validacao/preview-correcoes?ligaId=${ligaId}`
+                    : `/api/admin/migracao-validacao/preview-correcoes`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error);
+                }
+
+                // Renderizar resumo
+                resultado.innerHTML = `
+                    <div class="grid grid-cols-4 gap-4 mb-6">
+                        <div class="bg-gray-700 rounded p-4 text-center">
+                            <div class="text-3xl font-bold text-blue-400">${data.resumo.ligasAnalisadas}</div>
+                            <div class="text-sm text-gray-400 mt-1">Ligas</div>
+                        </div>
+                        <div class="bg-gray-700 rounded p-4 text-center">
+                            <div class="text-3xl font-bold text-purple-400">${data.resumo.participantesAnalisados}</div>
+                            <div class="text-sm text-gray-400 mt-1">Participantes</div>
+                        </div>
+                        <div class="bg-gray-700 rounded p-4 text-center">
+                            <div class="text-3xl font-bold text-red-400">${data.resumo.participantesComProblema}</div>
+                            <div class="text-sm text-gray-400 mt-1">Com Problemas</div>
+                        </div>
+                        <div class="bg-gray-700 rounded p-4 text-center">
+                            <div class="text-3xl font-bold text-green-400">${data.resumo.participantesOK}</div>
+                            <div class="text-sm text-gray-400 mt-1">OK</div>
+                        </div>
+                    </div>
+                `;
+
+                // Renderizar participantes com problemas
+                if (data.problemas.length > 0) {
+                    resultado.innerHTML += `
+                        <h3 class="text-lg font-bold mb-3 text-red-400">🔴 Participantes com Problemas</h3>
+                        <div class="space-y-3">
+                            ${data.problemas.map(p => `
+                                <div class="bg-gray-700 rounded p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div class="font-bold">${p.time}</div>
+                                            <div class="text-sm text-gray-400">${p.liga} • Time ${p.timeId}</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-2xl font-bold">R$ ${p.saldoAtual.toFixed(2)}</div>
+                                            <div class="text-sm text-gray-400">Saldo Atual</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2 mb-3">
+                                        ${p.modulosFaltantes.map(m => `
+                                            <span class="bg-red-900/50 text-red-300 px-2 py-1 rounded text-xs font-semibold">
+                                                ❌ ${m}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                    <div class="text-sm text-gray-400 mb-2">
+                                        Rodada consolidada: ${p.rodadaConsolidada} • Transações: ${p.totalTransacoes}
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button onclick="validarEspecifico('${p.ligaId}', ${p.timeId})"
+                                                class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition">
+                                            🔍 Validar
+                                        </button>
+                                        <a href="${p.urlParticipante}" target="_blank"
+                                           class="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded text-sm transition inline-block">
+                                            👁️ Ver Extrato
+                                        </a>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    resultado.innerHTML += `
+                        <div class="bg-green-900/30 border border-green-600 rounded p-6 text-center">
+                            <div class="text-4xl mb-2">✅</div>
+                            <div class="font-bold text-green-400">Nenhum problema encontrado!</div>
+                            <div class="text-sm text-gray-400 mt-1">Todos os participantes estão com cache correto.</div>
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                resultado.innerHTML = `
+                    <div class="bg-red-900/30 border border-red-600 rounded p-4">
+                        <p class="font-semibold">❌ Erro ao carregar preview:</p>
+                        <p class="text-sm mt-1">${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        // Recalcular Participante Individual
+        async function recalcularParticipante() {
+            const loading = document.getElementById('loading-validacao');
+            const resultado = document.getElementById('resultado-validacao');
+            const ligaId = document.getElementById('validacaoLigaId').value.trim();
+            const timeId = document.getElementById('validacaoTimeId').value.trim();
+
+            if (!ligaId || !timeId) {
+                alert('Por favor, preencha Liga ID e Time ID');
+                return;
+            }
+
+            loading.classList.remove('hidden');
+            resultado.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/admin/migracao-validacao/recalcular-participante', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ligaId, timeId: parseInt(timeId) })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error);
+                }
+
+                const mudou = data.diferenca.mudou;
+                const corFundo = mudou ? 'bg-yellow-900/30 border-yellow-600' : 'bg-green-900/30 border-green-600';
+                const icone = mudou ? '⚠️' : '✅';
+
+                resultado.innerHTML = `
+                    <div class="${corFundo} border rounded p-6">
+                        <div class="text-center mb-6">
+                            <div class="text-6xl mb-2">${icone}</div>
+                            <h3 class="text-2xl font-bold">${mudou ? 'Saldo Alterado' : 'Saldo Mantido'}</h3>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-6 mb-6">
+                            <div class="text-center">
+                                <div class="text-sm text-gray-400 mb-1">Antes</div>
+                                <div class="text-3xl font-bold">R$ ${data.antes.saldo.toFixed(2)}</div>
+                                <div class="text-xs text-gray-500 mt-1">${data.antes.transacoes} transações</div>
+                            </div>
+                            <div class="text-center flex items-center justify-center">
+                                <div class="text-4xl">${mudou ? '→' : '='}</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-sm text-gray-400 mb-1">Depois</div>
+                                <div class="text-3xl font-bold ${mudou ? 'text-yellow-400' : 'text-green-400'}">
+                                    R$ ${data.depois.saldo.toFixed(2)}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">${data.depois.transacoes} transações</div>
+                            </div>
+                        </div>
+
+                        ${mudou ? `
+                            <div class="bg-gray-800 rounded p-4 text-center">
+                                <div class="text-sm text-gray-400 mb-1">Diferença</div>
+                                <div class="text-2xl font-bold ${data.diferenca.valor > 0 ? 'text-green-400' : 'text-red-400'}">
+                                    ${data.diferenca.valor > 0 ? '+' : ''}R$ ${data.diferenca.valor.toFixed(2)}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    ${data.diferenca.percentual !== 'N/A' ? `(${data.diferenca.percentual}%)` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <div class="mt-4 text-center">
+                            <a href="/participante/?liga=${ligaId}&time=${timeId}&view=extrato" target="_blank"
+                               class="inline-block bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded transition">
+                                👁️ Ver Extrato Completo
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                resultado.innerHTML = `
+                    <div class="bg-red-900/30 border border-red-600 rounded p-4">
+                        <p class="font-semibold">❌ Erro ao recalcular:</p>
+                        <p class="text-sm mt-1">${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        // Validar participante específico da lista
+        function validarEspecifico(ligaId, timeId) {
+            document.getElementById('validacaoLigaId').value = ligaId;
+            document.getElementById('validacaoTimeId').value = timeId;
+            showTab('validacao');
+            recalcularParticipante();
+        }
+
+        // Executar Migração em Massa
+        async function executarMigracao() {
+            const ligaId = document.getElementById('execucaoLigaId').value.trim();
+
+            const confirmar = confirm(
+                `⚠️ ATENÇÃO!\n\n` +
+                `Esta operação irá:\n` +
+                `1. Deletar TODOS os caches com problemas detectados\n` +
+                `2. Os extratos serão recalculados automaticamente\n\n` +
+                `${ligaId ? `Filtro: Liga ${ligaId}` : 'TODAS as ligas serão processadas'}\n\n` +
+                `Deseja continuar?`
+            );
+
+            if (!confirmar) return;
+
+            const loading = document.getElementById('loading-execucao');
+            const resultado = document.getElementById('resultado-execucao');
+
+            loading.classList.remove('hidden');
+            resultado.innerHTML = '';
+
+            try {
+                const url = ligaId
+                    ? `/api/admin/migracao/fix-extrato-2026?ligaId=${ligaId}&force=true`
+                    : `/api/admin/migracao/fix-extrato-2026?force=true`;
+
+                const response = await fetch(url, { method: 'POST' });
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error);
+                }
+
+                resultado.innerHTML = `
+                    <div class="bg-green-900/30 border border-green-600 rounded p-6">
+                        <div class="text-center mb-6">
+                            <div class="text-6xl mb-2">✅</div>
+                            <h3 class="text-2xl font-bold text-green-400">Migração Concluída!</h3>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-4 mb-4">
+                            <div class="bg-gray-800 rounded p-3 text-center">
+                                <div class="text-2xl font-bold">${data.stats.ligasAnalisadas}</div>
+                                <div class="text-xs text-gray-400">Ligas</div>
+                            </div>
+                            <div class="bg-gray-800 rounded p-3 text-center">
+                                <div class="text-2xl font-bold">${data.stats.participantesAnalisados}</div>
+                                <div class="text-xs text-gray-400">Participantes</div>
+                            </div>
+                            <div class="bg-gray-800 rounded p-3 text-center">
+                                <div class="text-2xl font-bold text-yellow-400">${data.stats.cachesComProblemas}</div>
+                                <div class="text-xs text-gray-400">Problemas</div>
+                            </div>
+                            <div class="bg-gray-800 rounded p-3 text-center">
+                                <div class="text-2xl font-bold text-green-400">${data.stats.cachesCorrigidos}</div>
+                                <div class="text-xs text-gray-400">Corrigidos</div>
+                            </div>
+                        </div>
+
+                        <div class="text-center text-sm text-gray-400">
+                            ${data.message}
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                resultado.innerHTML = `
+                    <div class="bg-red-900/30 border border-red-600 rounded p-4">
+                        <p class="font-semibold">❌ Erro ao executar migração:</p>
+                        <p class="text-sm mt-1">${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

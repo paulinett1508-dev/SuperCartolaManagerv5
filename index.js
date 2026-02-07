@@ -188,6 +188,7 @@ import systemHealthRoutes from "./routes/system-health-routes.js";
 import adminClienteAuthRoutes from "./routes/admin-cliente-auth.js";
 import adminMobileRoutes from "./routes/admin-mobile-routes.js";
 import adminMigracaoRoutes from "./routes/admin/migracao.js";
+import adminMigracaoValidacaoRoutes from "./routes/admin/migracao-validacao.js";
 console.log("[DEBUG] adminAuthRoutes type:", typeof adminAuthRoutes);
 console.log(
   "[DEBUG] adminAuthRoutes.stack length:",
@@ -420,6 +421,9 @@ console.log("[SERVER] 🏥 Rota de dashboard de saúde registrada");
 // 🔧 Migração e Correção de Dados (admin)
 app.use("/api/admin/migracao", adminMigracaoRoutes);
 console.log("[SERVER] 🔧 Rota de migração registrada");
+
+app.use("/api/admin/migracao-validacao", adminMigracaoValidacaoRoutes);
+console.log("[SERVER] ✅ Rota de validação de migração registrada");
 
 // 📱 Admin Mobile - App PWA para administradores
 app.use("/api/admin/mobile", adminMobileRoutes);
