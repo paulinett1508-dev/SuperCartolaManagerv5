@@ -396,7 +396,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                         <span class="campinho-market-pill">Rodada Consolidada</span>
                     </div>
                     <div class="campinho-header-patrimonio">
-                        <p>Meu Time</p>
+                        <p>Patrimônio</p>
                         <strong>${formatarCartoletas(patrimonio)}</strong>
                     </div>
                     <div class="campinho-header-saldo">
