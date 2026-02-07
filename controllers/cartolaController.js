@@ -95,18 +95,18 @@ export async function obterEscalacao(req, res) {
     }
     const data = await response.json();
 
-    // Separar titulares e reservas pelo status_id
-    // status_id: 2 = Reserva, outros = Titular
-    const atletas = data.atletas || [];
-    const titulares = atletas.filter(a => a.status_id !== 2);
-    const reservas = atletas.filter(a => a.status_id === 2);
+    // Cartola API retorna titulares em data.atletas e reservas em data.reservas (arrays separadas)
+    // status_id no contexto do Cartola indica status de mercado (7=Provável, 6=Nulo), NÃO titular/reserva
+    const titulares = data.atletas || [];
+    const reservas = data.reservas || [];
+    const todosAtletas = [...titulares, ...reservas];
 
     res.status(200).json({
       time_id: data.time.time_id,
       nome: data.time.nome,
       nome_cartoleiro: data.time.nome_cartola,
       url_escudo_png: data.time.url_escudo_png,
-      atletas: atletas,           // Todos (retrocompatibilidade)
+      atletas: todosAtletas,      // Todos (retrocompatibilidade)
       titulares: titulares,       // Apenas titulares
       reservas: reservas,         // Apenas reservas
       capitao_id: data.capitao_id,

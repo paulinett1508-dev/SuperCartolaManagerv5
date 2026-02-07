@@ -127,10 +127,10 @@ async function buscarEscalacaoCompleta(ligaId, timeId, rodada = 1) {
         const cartolaRes = await fetch(`/api/cartola/time/${timeId}/${rodadaAtual}/escalacao`);
         if (cartolaRes.ok) {
             const data = await cartolaRes.json();
-            const todosAtletas = data.atletas || [];
-            // Separar titulares/reservas com coerção de tipo
-            const tit = data.titulares || todosAtletas.filter(a => Number(a.status_id) !== 2);
-            const res = data.reservas || todosAtletas.filter(a => Number(a.status_id) === 2);
+            // Controller já separa titulares/reservas corretamente
+            const tit = data.titulares || [];
+            const res = data.reservas || [];
+            const todosAtletas = data.atletas || [...tit, ...res];
             return {
                 timeId,
                 rodada: rodadaAtual,
@@ -158,8 +158,8 @@ async function buscarEscalacaoCompleta(ligaId, timeId, rodada = 1) {
         if (!rodadaTime) return null;
 
         const atletas = rodadaTime.atletas || [];
-        const titulares = atletas.filter(a => Number(a.status_id) !== 2);
-        const reservas = atletas.filter(a => Number(a.status_id) === 2);
+        const titulares = atletas.filter(a => !a.is_reserva);
+        const reservas = atletas.filter(a => a.is_reserva);
 
         return {
             timeId,
@@ -264,30 +264,30 @@ async function carregarEscalacaoDoDataLake(timeId, rodada, temporada, atletasPon
 
 function construirEscalacaoFromRaw(rawJson, timeId, rodada, atletasPontuados) {
     if (!rawJson) return null;
-    const atletasNormalizados = normalizarAtletas(rawJson, atletasPontuados);
-    const titulares = atletasNormalizados.filter(a => Number(a.status_id) !== 2);
-    const reservas = atletasNormalizados.filter(a => Number(a.status_id) === 2);
+    // Cartola API retorna titulares em rawJson.atletas e reservas em rawJson.reservas (arrays/objetos separados)
+    const titularesRaw = normalizarListaAtletas(rawJson?.atletas || rawJson?.atletas_obj || {}, atletasPontuados, false);
+    const reservasRaw = normalizarListaAtletas(rawJson?.reservas || [], atletasPontuados, true);
+    const todosAtletas = [...titularesRaw, ...reservasRaw];
     const capitainId = rawJson.capitao_id ?? rawJson.capitaoId ?? rawJson.capitao;
     const reservaLuxoId = rawJson.reserva_luxo_id ?? rawJson.reservaLuxoId ?? rawJson.reserva_luxo;
 
     return {
         timeId,
         rodada,
-        atletas: atletasNormalizados,
-        titulares,
-        reservas,
+        atletas: todosAtletas,
+        titulares: titularesRaw,
+        reservas: reservasRaw,
         capitao_id: capitainId,
         reserva_luxo_id: reservaLuxoId,
-        pontos: rawJson.pontos ?? calcularPontosTotais({ titulares, capitao_id: capitainId, reserva_luxo_id: reservaLuxoId }),
+        pontos: rawJson.pontos ?? calcularPontosTotais({ titulares: titularesRaw, capitao_id: capitainId, reserva_luxo_id: reservaLuxoId }),
         patrimonio: rawJson.patrimonio,
         nome: rawJson.nome ?? rawJson.time?.nome ?? rawJson.nome_cartoleiro ?? 'Sua Escalação',
         nome_cartoleiro: rawJson.nome_cartoleiro ?? rawJson.time?.nome_cartoleiro ?? rawJson.cartoleiro_nome ?? 'Cartoleiro'
     };
 }
 
-function normalizarAtletas(rawJson, atletasPontuados) {
-    const atletasPayload = rawJson?.atletas || rawJson?.atletas_obj || {};
-    const lista = Array.isArray(atletasPayload) ? atletasPayload : Object.values(atletasPayload || {});
+function normalizarListaAtletas(payload, atletasPontuados, isReserva) {
+    const lista = Array.isArray(payload) ? payload : Object.values(payload || {});
     return lista.map((atleta) => {
         const atletaId = Number(atleta.atleta_id ?? atleta.atletaId ?? atleta.id);
         const pontuado = atletasPontuados?.[String(atletaId)] ?? atletasPontuados?.[atletaId] ?? {};
@@ -302,6 +302,7 @@ function normalizarAtletas(rawJson, atletasPontuados) {
             pontos_atual: valorPontos,
             posicao_id: atleta.posicao_id ?? atleta.posicaoId ?? atleta.posicao ?? 0,
             status_id: atleta.status_id ?? atleta.statusId ?? atleta.status ?? 1,
+            is_reserva: isReserva,
             apelido: atleta.apelido || atleta.nome || atleta.nick || 'Jogador',
             clube_id: atleta.clube_id ?? atleta.clubeId ?? 'default',
             preco
@@ -367,8 +368,8 @@ function renderizarAvisoMercadoAberto(status) {
 function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
     const temAdversario = adversario && (adversario.atletas?.length > 0 || adversario.titulares?.length > 0);
     const todosAtletas = escalacao.atletas || [];
-    const titulares = escalacao.titulares || todosAtletas.filter(a => Number(a.status_id) !== 2);
-    const reservas = escalacao.reservas?.length ? escalacao.reservas : todosAtletas.filter(a => Number(a.status_id) === 2);
+    const titulares = escalacao.titulares || todosAtletas.filter(a => !a.is_reserva);
+    const reservas = escalacao.reservas?.length ? escalacao.reservas : todosAtletas.filter(a => a.is_reserva);
     const pontosTotais = escalacao.pontos || calcularPontosTotais(escalacao);
     const grupos = agruparTitulares(titulares);
     const gruposAdversario = temAdversario ? agruparTitulares(adversario.titulares || adversario.atletas || []) : null;
@@ -502,7 +503,7 @@ function agruparTitulares(atletas) {
         defensores: []
     };
 
-    lista.filter(a => Number(a.status_id) !== 2).forEach((atleta) => {
+    lista.filter(a => !a.is_reserva).forEach((atleta) => {
         const pos = Number(atleta.posicao_id ?? atleta.posicaoId ?? atleta.posicao);
         if (pos === 1) groups.goleiros.push(atleta);
         else if (pos === 2) groups.laterais.push(atleta);
