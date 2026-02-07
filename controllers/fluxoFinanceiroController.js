@@ -221,8 +221,8 @@ async function calcularTop10Historico(liga, timeId, temporada) {
             .sort({ rodada_consolidada: -1 })
             .lean();
 
-        if (!cache || !cache.mitos || !cache.micos) {
-            console.log(`[FLUXO-CONTROLLER] Top10 cache não encontrado para liga ${ligaId}`);
+        if (!cache || !cache.mitos?.length || !cache.micos?.length) {
+            console.log(`[FLUXO-CONTROLLER] Top10 cache não encontrado ou vazio para liga ${ligaId}`);
             return [];
         }
 
@@ -236,10 +236,12 @@ async function calcularTop10Historico(liga, timeId, temporada) {
             if (String(mTimeId) === String(timeId)) {
                 const pos = i + 1;
                 const valor = configTop10.mitos[pos] || configTop10.mitos[String(pos)] || 0;
+                // ✅ v8.8.0 FIX: m.rodada pode não existir no cache — usar rodada_consolidada como fallback
+                const rodada = m.rodada || cache.rodada_consolidada;
                 transacoes.push({
-                    rodada: m.rodada,
+                    rodada: rodada,
                     tipo: "MITO",
-                    descricao: `Top10 Mito: ${pos}º maior pontuação histórica (R${m.rodada})`,
+                    descricao: `Top10 Mito: ${pos}º maior pontuação histórica (R${rodada})`,
                     valor: valor,
                     posicao: pos,
                     data: new Date(),
@@ -253,10 +255,12 @@ async function calcularTop10Historico(liga, timeId, temporada) {
             if (String(mTimeId) === String(timeId)) {
                 const pos = i + 1;
                 const valor = configTop10.micos[pos] || configTop10.micos[String(pos)] || 0;
+                // ✅ v8.8.0 FIX: m.rodada pode não existir no cache — usar rodada_consolidada como fallback
+                const rodada = m.rodada || cache.rodada_consolidada;
                 transacoes.push({
-                    rodada: m.rodada,
+                    rodada: rodada,
                     tipo: "MICO",
-                    descricao: `Top10 Mico: ${pos}º menor pontuação histórica (R${m.rodada})`,
+                    descricao: `Top10 Mico: ${pos}º menor pontuação histórica (R${rodada})`,
                     valor: valor,
                     posicao: pos,
                     data: new Date(),
@@ -702,6 +706,12 @@ export const getExtratoFinanceiro = async (req, res) => {
             console.log(
                 `[FLUXO-CONTROLLER] Cache atualizado: ${cache.historico_transacoes.length} transações`,
             );
+        } else if (!isTemporadaFutura && cache.ultima_rodada_consolidada < rodadaLimite) {
+            // ✅ v8.8.0 FIX: Atualizar rodada consolidada mesmo sem transações novas
+            // Evita recálculo desnecessário em requisições futuras (zona neutra)
+            cache.ultima_rodada_consolidada = rodadaLimite;
+            cache.data_ultima_atualizacao = new Date();
+            await cache.save();
         }
 
         // ✅ v8.4.0: Para temporada 2026+, usar Ajustes. Para anteriores, usar campos manuais
