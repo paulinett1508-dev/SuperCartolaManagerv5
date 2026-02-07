@@ -387,10 +387,18 @@ class ParticipanteNavigation {
 
             // Navegar sem adicionar ao histórico
             this.navegarPara(moduloAnterior, false, true);
+            // Sincronizar estado ativo da Quick Access Bar
+            if (window.quickAccessBar) {
+                window.quickAccessBar.atualizarNavAtivo(moduloAnterior);
+            }
         } else {
             // ✅ v4.3: Se não há histórico, ir para home
             history.pushState({ modulo: 'home', index: 0 }, '', window.location.href);
             this.navegarPara('home', false, true);
+            // Sincronizar estado ativo da Quick Access Bar
+            if (window.quickAccessBar) {
+                window.quickAccessBar.atualizarNavAtivo('home');
+            }
         }
     }
 
@@ -731,7 +739,8 @@ class ParticipanteNavigation {
 
     obterNomeModulo(moduloId) {
         const nomes = {
-            "boas-vindas": "Início", // ✅ v4.3: Renomeado de "Boas-Vindas" para "Início"
+            "boas-vindas": "Início",
+            home: "Início",
             extrato: "Extrato Financeiro",
             ranking: "Ranking Geral",
             rodadas: "Rodadas",

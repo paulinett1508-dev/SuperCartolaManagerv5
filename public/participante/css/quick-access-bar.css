@@ -44,7 +44,7 @@
     gap: 4px;
     background: none;
     border: none;
-    color: #666;
+    color: var(--app-text-dim);
     cursor: pointer;
     padding: 8px 16px;
     border-radius: 12px;
@@ -199,7 +199,7 @@
 
 .menu-category-title {
     font-size: 11px;
-    color: #666;
+    color: var(--app-text-dim);
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 600;
@@ -441,7 +441,7 @@
 }
 
 .menu-card.aguarde .material-icons {
-    color: #666 !important;
+    color: var(--app-text-dim) !important;
 }
 
 .menu-card.aguarde .badge-aguarde {

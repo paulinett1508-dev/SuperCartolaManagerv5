@@ -186,7 +186,7 @@ class QuickAccessBar {
         bottomNav.className = 'bottom-nav';
         bottomNav.innerHTML = `
             <div class="nav-container">
-                <button class="nav-item active" data-page="home" type="button">
+                <button class="nav-item active" data-page="home" type="button" aria-current="page">
                     <span class="material-icons nav-icon">home</span>
                     <span class="nav-label">Início</span>
                 </button>
@@ -599,7 +599,13 @@ class QuickAccessBar {
 
     atualizarNavAtivo(page) {
         this._dom.navItems.forEach(item => {
-            item.classList.toggle('active', item.dataset.page === page);
+            const isActive = item.dataset.page === page;
+            item.classList.toggle('active', isActive);
+            if (isActive) {
+                item.setAttribute('aria-current', 'page');
+            } else {
+                item.removeAttribute('aria-current');
+            }
         });
     }
 
