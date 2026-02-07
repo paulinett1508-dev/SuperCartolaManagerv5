@@ -303,13 +303,14 @@
 .home-status-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: 6px;
+    padding: 7px 10px;
     border-radius: 8px;
     cursor: pointer;
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.08);
     transition: background 0.15s;
+    flex-wrap: wrap;
 }
 
 .home-status-bar:active {
@@ -324,7 +325,7 @@
 
 .home-status-titulo {
     font-family: 'Russo One', sans-serif;
-    font-size: 11px;
+    font-size: 10px;
     color: #ffffff;
     letter-spacing: 0.3px;
     white-space: nowrap;
@@ -337,11 +338,8 @@
 
 .home-status-subtitulo {
     font-family: 'Inter', sans-serif;
-    font-size: 11px;
+    font-size: 10px;
     color: rgba(255,255,255,0.45);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     flex: 1;
     min-width: 0;
 }
