@@ -430,12 +430,17 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                 ` : ''}
             </section>
 
-            <!-- CAMPO VISUAL (complemento) -->
-            <section class="campinho-field-panel">
-                <div class="campinho-field-wrapper">
-                    ${renderizarCampo(grupos, escalacao.capitao_id, escalacao.reserva_luxo_id, 'meu-time')}
+            <!-- FOOTER: Pontos totais + Escalados -->
+            <div class="campinho-field-footer">
+                <div class="campinho-points">
+                    <span>Pontos totais</span>
+                    <strong>${_truncar(pontosTotais)}</strong>
                 </div>
-            </section>
+                <div class="campinho-counter">
+                    <span>Escalados</span>
+                    <strong>${totalEscalados}/12</strong>
+                </div>
+            </div>
 
             ${confronto ? `
                 <div class="campinho-confronto-card">
