@@ -460,6 +460,7 @@ function atualizarCardsHomeUI(data) {
 
     if (saldoFinanceiroEl) {
         saldoFinanceiroEl.textContent = saldoFormatado;
+        saldoFinanceiroEl.style.color = saldoFinanceiro < 0 ? '#ef4444' : '';
     }
 
     if (variacaoSaldoEl) {
@@ -1007,6 +1008,7 @@ function renderizarHome(container, data, ligaId) {
 
     if (saldoFinanceiroEl) {
         saldoFinanceiroEl.textContent = saldoFormatado;
+        saldoFinanceiroEl.style.color = saldoFinanceiro < 0 ? '#ef4444' : '';
     }
 
     if (variacaoSaldoEl) {
@@ -1653,6 +1655,7 @@ function atualizarSaldoProjetado(posicaoParcial) {
 
     // Atualizar UI
     patrimonioEl.textContent = formatted;
+    patrimonioEl.style.color = saldoProjetado < 0 ? '#ef4444' : '';
 
     // Mostrar variação como projeção
     if (variacaoEl) {
