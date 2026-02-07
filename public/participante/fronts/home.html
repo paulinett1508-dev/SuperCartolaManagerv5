@@ -38,17 +38,12 @@
          ======================================== -->
     <section id="home-avisos-section" class="home-avisos-section">
         <!-- Card Principal de Status -->
-        <div class="home-aviso-card home-aviso-principal" id="home-aviso-mercado">
-            <div class="home-aviso-icon-wrapper">
-                <span class="material-icons" id="home-aviso-icon">schedule</span>
-            </div>
-            <div class="home-aviso-content">
-                <span class="home-aviso-titulo" id="home-aviso-titulo">MERCADO ABERTO</span>
-                <span class="home-aviso-subtitulo" id="home-aviso-subtitulo">Rodada 2 • Fecha em 2d 14h</span>
-            </div>
-            <div class="home-aviso-action" id="home-aviso-action">
-                <span class="material-icons">chevron_right</span>
-            </div>
+        <div class="home-status-bar" id="home-aviso-mercado">
+            <span class="material-icons home-status-icon" id="home-aviso-icon">schedule</span>
+            <span class="home-status-titulo" id="home-aviso-titulo">MERCADO ABERTO</span>
+            <span class="home-status-separador">•</span>
+            <span class="home-status-subtitulo" id="home-aviso-subtitulo">Rodada 2 • Fecha em 2d 14h</span>
+            <span class="material-icons home-status-chevron">chevron_right</span>
         </div>
 
         <!-- Avisos Secundários (opcional - pode ter mais de um) -->
@@ -228,6 +223,14 @@
                     <span class="home-destaque-pontos-total destaque-vermelho" id="home-pontos-menor">0.00</span>
                 </div>
             </div>
+
+            <!-- Link para escalação completa -->
+            <a href="javascript:void(0)" class="home-destaques-ver-escalacao" id="home-ver-escalacao"
+               onclick="window.participanteNav?.navegarPara('rodadas')">
+                <span class="material-icons">groups</span>
+                Ver escalação completa
+                <span class="material-icons home-destaques-ver-chevron">chevron_right</span>
+            </a>
         </div>
     </section>
 
@@ -290,110 +293,83 @@
 
 /* === PAINEL DE AVISOS === */
 .home-avisos-section {
-    padding: 16px;
+    padding: 8px 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
-/* Card de Aviso Principal */
-.home-aviso-card {
+/* Status Bar Compacta */
+.home-status-bar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 12px;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: transform 0.15s, background 0.2s;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: background 0.15s;
 }
 
-.home-aviso-card:active {
-    transform: scale(0.98);
+.home-status-bar:active {
+    background: rgba(255,255,255,0.08);
 }
 
-/* Variantes de cor do aviso */
-.home-aviso-principal {
-    background: linear-gradient(135deg, #1e3a5f 0%, #0f2744 100%);
-    border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-.home-aviso-principal.mercado-aberto {
-    background: linear-gradient(135deg, #14532d 0%, #052e16 100%);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.home-aviso-principal.mercado-fechado {
-    background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.home-aviso-principal.fim-rodada {
-    background: linear-gradient(135deg, #1f1f1f 0%, #151515 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.home-aviso-icon-wrapper {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.home-status-icon {
+    font-size: 16px;
+    color: rgba(255,255,255,0.5);
     flex-shrink: 0;
 }
 
-.home-aviso-icon-wrapper .material-icons {
-    font-size: 24px;
-    color: #fff;
-}
-
-/* Ícones por estado */
-.home-aviso-principal.mercado-aberto .home-aviso-icon-wrapper {
-    background: rgba(34, 197, 94, 0.2);
-}
-.home-aviso-principal.mercado-aberto .material-icons {
-    color: #22c55e;
-}
-
-.home-aviso-principal.mercado-fechado .home-aviso-icon-wrapper {
-    background: rgba(239, 68, 68, 0.2);
-}
-.home-aviso-principal.mercado-fechado .material-icons {
-    color: #ef4444;
-}
-
-.home-aviso-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-}
-
-.home-aviso-titulo {
+.home-status-titulo {
     font-family: 'Russo One', sans-serif;
-    font-size: 13px;
+    font-size: 11px;
     color: #ffffff;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
 }
 
-.home-aviso-subtitulo {
+.home-status-separador {
+    color: rgba(255,255,255,0.2);
+    font-size: 10px;
+}
+
+.home-status-subtitulo {
     font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    color: rgba(255,255,255,0.6);
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
 }
 
-.home-aviso-action {
+.home-status-chevron {
+    font-size: 16px;
+    color: rgba(255,255,255,0.2);
     flex-shrink: 0;
 }
 
-.home-aviso-action .material-icons {
-    font-size: 22px;
-    color: rgba(255,255,255,0.4);
+/* Variantes de cor por estado */
+.home-status-bar.mercado-aberto {
+    border-color: rgba(34, 197, 94, 0.25);
+    background: rgba(34, 197, 94, 0.08);
+}
+.home-status-bar.mercado-aberto .home-status-icon { color: #22c55e; }
+.home-status-bar.mercado-aberto .home-status-titulo { color: #4ade80; }
+
+.home-status-bar.mercado-fechado {
+    border-color: rgba(239, 68, 68, 0.25);
+    background: rgba(239, 68, 68, 0.08);
+}
+.home-status-bar.mercado-fechado .home-status-icon { color: #ef4444; }
+.home-status-bar.mercado-fechado .home-status-titulo { color: #f87171; }
+
+.home-status-bar.fim-rodada {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255,255,255,0.03);
 }
 
 /* Avisos Secundários */
@@ -758,6 +734,33 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+}
+
+.home-destaques-ver-escalacao {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    transition: background 0.15s, color 0.15s;
+}
+.home-destaques-ver-escalacao:active {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+}
+.home-destaques-ver-escalacao .material-icons {
+    font-size: 16px;
+}
+.home-destaques-ver-chevron {
+    margin-left: auto;
+    font-size: 16px !important;
+    color: rgba(255,255,255,0.2);
 }
 
 .home-destaque-card {
