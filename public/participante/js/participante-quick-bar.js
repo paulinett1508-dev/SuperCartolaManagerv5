@@ -467,16 +467,31 @@ class QuickAccessBar {
         this.menuAberto ? this.fecharMenu() : this.abrirMenu();
     }
 
+    /**
+     * ✅ v2.9: Recarrega modulosAtivos do backend via participanteNav
+     * Garante que o menu sempre mostra o estado real dos módulos.
+     */
+    async _refreshModulosAtivos() {
+        if (window.participanteNav?.refreshModulosAtivos) {
+            await window.participanteNav.refreshModulosAtivos();
+            this.modulosAtivos = window.participanteNav.modulosAtivos;
+        }
+    }
+
     async abrirMenu() {
         if (this._isAnimating) return;
         this._isAnimating = true;
 
         const { menuOverlay, menuSheet } = this._dom;
 
+        // ✅ v2.9: Atualizar status do mercado e módulos ativos em paralelo
         try {
-            await this.atualizarStatusMercado();
+            await Promise.all([
+                this.atualizarStatusMercado(),
+                this._refreshModulosAtivos()
+            ]);
         } catch (error) {
-            if (window.Log) Log.warn('QUICK-BAR', 'Erro ao atualizar status antes do menu', error);
+            if (window.Log) Log.warn('QUICK-BAR', 'Erro ao atualizar dados antes do menu', error);
         }
 
         if (menuSheet) {
@@ -655,20 +670,21 @@ class QuickAccessBar {
         this.modulosAtivos = modulosAtivos;
         if (window.Log) Log.debug('QUICK-BAR', 'Módulos atualizados');
 
-        // v4.7: Aplicar visual de manutenção nos botões da bottom nav
+        // v4.7: Aplicar/remover visual de manutenção nos botões da bottom nav
         const modulosBase = ['extrato', 'ranking', 'rodadas'];
         modulosBase.forEach(key => {
+            const btn = document.querySelector(`.nav-item[data-page="${key}"]`);
+            if (!btn) return;
             if (modulosAtivos[key] === false) {
-                const btn = document.querySelector(`.nav-item[data-page="${key}"]`);
-                if (btn) {
-                    btn.style.opacity = '0.35';
-                    btn.style.filter = 'grayscale(0.5)';
-                }
+                btn.style.opacity = '0.35';
+                btn.style.filter = 'grayscale(0.5)';
+            } else {
+                btn.style.opacity = '';
+                btn.style.filter = '';
             }
         });
-
-        // Re-renderizar menu content com estados atualizados
-        this.renderizarMenuContent();
+        // ✅ v2.9: Removido renderizarMenuContent() que era no-op (descartava HTML).
+        // O menu é re-renderizado de fato em abrirMenu() a cada abertura.
     }
 
     /**

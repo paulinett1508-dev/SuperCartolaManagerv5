@@ -141,6 +141,16 @@ class ParticipanteNavigation {
 
         // Navegar para módulo (salvo ou inicial)
         await this.navegarPara(moduloInicial);
+
+        // ✅ v4.8: Refresh modulosAtivos em background via endpoint correto (com defaults)
+        this.refreshModulosAtivos();
+
+        // ✅ v4.8: Atualizar módulos ao retornar do background (app resume)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                this.refreshModulosAtivos();
+            }
+        });
     }
 
     _extrairCampinhoTarget() {
@@ -287,6 +297,32 @@ class ParticipanteNavigation {
         }
     }
 
+    /**
+     * ✅ v4.8: Atualiza modulosAtivos via endpoint dedicado (com merge de defaults)
+     * Resolve BUG onde app lia dados crus sem defaults e nunca atualizava após init.
+     * Chamado: ao abrir menu, ao retornar do background, após inicialização.
+     */
+    async refreshModulosAtivos() {
+        if (!this.participanteData?.ligaId) return;
+
+        try {
+            const response = await fetch(`/api/ligas/${this.participanteData.ligaId}/modulos-ativos`);
+            if (!response.ok) return;
+
+            const data = await response.json();
+            this.modulosAtivos = data.modulos || {};
+
+            // Notificar Quick Access Bar
+            if (window.quickAccessBar) {
+                window.quickAccessBar.atualizarModulosAtivos(this.modulosAtivos);
+            }
+
+            if (window.Log) Log.debug('PARTICIPANTE-NAV', '🔄 Módulos ativos atualizados via API');
+        } catch (error) {
+            if (window.Log) Log.warn('PARTICIPANTE-NAV', '⚠️ Erro ao atualizar módulos:', error);
+        }
+    }
+
     renderizarMenuDinamico() {
         // ✅ QUICK ACCESS BAR: Não renderizar bottom-nav-modern (foi substituído)
         // A Quick Access Bar gerencia a navegação agora
@@ -335,6 +371,32 @@ class ParticipanteNavigation {
         if (!modulosBase.includes(moduloId)) return false;
         if (!this.modulosAtivos) return false;
         return this.modulosAtivos[moduloId] === false;
+    }
+
+    /**
+     * ✅ v4.8: Verifica se módulo opcional foi desativado pelo admin.
+     * Módulos base e de sistema sempre passam. Módulos opcionais precisam
+     * estar explicitamente ativos em modulosAtivos.
+     */
+    _isModuloOpcionalInativo(moduloId) {
+        // Módulos de sistema/base: sempre permitidos
+        const modulosPermitidos = ['home', 'boas-vindas', 'extrato', 'ranking', 'rodadas', 'historico', 'configuracoes', 'copa-times-sc'];
+        if (modulosPermitidos.includes(moduloId)) return false;
+
+        // Sem dados de módulos carregados: permitir (graceful degradation)
+        if (!this.modulosAtivos || Object.keys(this.modulosAtivos).length === 0) return false;
+
+        // Mapear kebab-case (ID de navegação) para camelCase (key do modulosAtivos)
+        const configKeyMap = {
+            'mata-mata': 'mataMata',
+            'pontos-corridos': 'pontosCorridos',
+            'melhor-mes': 'melhorMes',
+            'luva-ouro': 'luvaOuro',
+            'capitao': 'capitaoLuxo',
+        };
+        const configKey = configKeyMap[moduloId] || moduloId;
+
+        return this.modulosAtivos[configKey] !== true;
     }
 
     configurarEventListeners() {
@@ -564,6 +626,13 @@ class ParticipanteNavigation {
         // ✅ v4.7: Bloqueio de módulos em manutenção (admin desativou via toggle)
         if (this.isModuloEmManutencao(moduloId)) {
             if (window.Log) Log.info('PARTICIPANTE-NAV', `🔧 Modulo em manutenção: ${moduloId}`);
+            this.mostrarModalManutencaoModulo(moduloId);
+            return;
+        }
+
+        // ✅ v4.8: Bloqueio de módulos opcionais desativados pelo admin
+        if (this._isModuloOpcionalInativo(moduloId)) {
+            if (window.Log) Log.info('PARTICIPANTE-NAV', `🚫 Módulo opcional inativo: ${moduloId}`);
             this.mostrarModalManutencaoModulo(moduloId);
             return;
         }

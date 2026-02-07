@@ -827,6 +827,7 @@ const buscarModulosAtivos = async (req, res) => {
       extrato: true,
       ranking: true,
       rodadas: true,
+      historico: true,
       top10: false,
       melhorMes: false,
       pontosCorridos: false,
@@ -1031,11 +1032,12 @@ const atualizarModulosAtivos = async (req, res) => {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    // Módulos base: ranking e rodadas sempre ativos, extrato pode ser desativado (manutenção)
+    // Módulos base: ranking, rodadas e historico sempre ativos
     const modulosComBaseForçada = {
       ...modulos,
-      ranking: true,  // Sempre ativo
-      rodadas: true,  // Sempre ativo
+      ranking: true,    // Sempre ativo
+      rodadas: true,    // Sempre ativo
+      historico: true,  // Sempre ativo
     };
 
     // 1. Salvar no sistema antigo (manter compatibilidade)
