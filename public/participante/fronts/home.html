@@ -124,6 +124,26 @@
             </div>
         </div>
 
+        <!-- Card Pontos Ranking Geral -->
+        <div class="home-stat-card" onclick="window.participanteNav?.navegarPara('ranking')">
+            <div class="home-stat-card-left">
+                <div class="home-stat-icon-wrapper home-stat-icon-ranking">
+                    <span class="material-icons">leaderboard</span>
+                </div>
+                <div class="home-stat-info">
+                    <span class="home-stat-label">PONTOS RANKING GERAL</span>
+                    <div class="home-stat-value-row">
+                        <span id="home-pontos-ranking" class="home-stat-value">0.00</span>
+                        <span id="home-variacao-ranking" class="home-stat-variacao positivo">↑0.00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="home-stat-card-right">
+                <span class="home-stat-right-label">POSIÇÃO</span>
+                <span id="home-ranking-geral" class="home-stat-right-value">--</span>
+            </div>
+        </div>
+
         <!-- Card Cartoletas Disponíveis -->
         <div class="home-stat-card" onclick="window.open('https://cartolafc.globo.com', '_blank')">
             <div class="home-stat-card-left">
@@ -569,6 +589,10 @@
 
 .home-stat-icon-saldo {
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.home-stat-icon-ranking {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
 }
 
 .home-stat-icon-cartoletas {

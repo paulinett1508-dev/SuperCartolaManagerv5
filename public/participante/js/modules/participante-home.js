@@ -474,6 +474,30 @@ function atualizarCardsHomeUI(data) {
         rankingSaldoEl.textContent = rodadaAtual ? `R${rodadaAtual}` : '--';
     }
 
+    // === PONTOS RANKING GERAL ===
+    const pontosRankingEl = document.getElementById('home-pontos-ranking');
+    const variacaoRankingEl = document.getElementById('home-variacao-ranking');
+    const rankingGeralEl = document.getElementById('home-ranking-geral');
+
+    if (pontosRankingEl) {
+        pontosRankingEl.textContent = formatarPontos(pontosTotal);
+    }
+
+    if (variacaoRankingEl) {
+        const pontosUltimaRodadaRank = ultimaRodada ? parseFloat(ultimaRodada.pontos || 0) : 0;
+        if (pontosUltimaRodadaRank >= 0) {
+            variacaoRankingEl.textContent = `↑${pontosUltimaRodadaRank.toFixed(2)}`;
+            variacaoRankingEl.className = 'home-stat-variacao positivo';
+        } else {
+            variacaoRankingEl.textContent = `↓${Math.abs(pontosUltimaRodadaRank).toFixed(2)}`;
+            variacaoRankingEl.className = 'home-stat-variacao negativo';
+        }
+    }
+
+    if (rankingGeralEl) {
+        rankingGeralEl.textContent = posicao ? `${posicao}º` : '--';
+    }
+
     // === CARTOLETAS (Patrimônio Cartola) ===
     // Placeholder - será populado via busca assíncrona ao status do mercado
     const cartoletasEl = document.getElementById('home-cartoletas');
