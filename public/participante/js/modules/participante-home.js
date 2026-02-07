@@ -1508,9 +1508,19 @@ function calcularTempoRestante(fechamento) {
     if (!fechamento) return "";
 
     const agora = new Date();
-    const fim = new Date(fechamento);
-    const diff = fim - agora;
+    // fechamento pode ser: objeto {timestamp, dia, mes, ano, hora, minuto}, timestamp number, ou string ISO
+    let fim;
+    if (fechamento.timestamp) {
+        fim = new Date(fechamento.timestamp * 1000);
+    } else if (typeof fechamento === 'number') {
+        fim = new Date(fechamento * 1000);
+    } else {
+        fim = new Date(fechamento);
+    }
 
+    if (isNaN(fim.getTime())) return "";
+
+    const diff = fim - agora;
     if (diff <= 0) return "Fechado";
 
     const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
