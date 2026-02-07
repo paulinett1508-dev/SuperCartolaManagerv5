@@ -907,7 +907,7 @@ function renderizarHome(container, data, ligaId) {
     const totalRodadas = 38;
 
     // === PAINEL DE AVISOS ===
-    atualizarPainelAvisos(rodadaAtual, totalParticipantes);
+    atualizarPainelAvisos(rodadaAtual, totalParticipantes, { saldoFinanceiro, posicao, posicaoAnterior });
 
     // === SLIDER DE POSIÇÃO ===
     const posicaoBadgeEl = document.getElementById('home-posicao-badge');
@@ -1091,7 +1091,7 @@ async function carregarDestaquesRodada(ligaId, rodada, timeId) {
         }
 
         // Buscar escalação do time na rodada
-        const response = await fetch(`/api/cartola/time/${timeId}/rodada/${rodada}`);
+        const response = await fetch(`/api/cartola/time/id/${timeId}/${rodada}`);
         if (!response.ok) {
             if (window.Log) Log.debug("PARTICIPANTE-HOME", "Escalação não encontrada");
             // Esconder seção se não tiver dados
@@ -1115,18 +1115,23 @@ async function carregarDestaquesRodada(ligaId, rodada, timeId) {
         let maiorPontuador = atletas.reduce((max, a) => (a.pontos_num > (max?.pontos_num || -999) ? a : max), null);
         let menorPontuador = atletas.reduce((min, a) => (a.pontos_num < (min?.pontos_num || 999) ? a : min), null);
 
-        // Popular cards
+        // Popular cards de destaques (Capitão / Maior / Menor)
         popularDestaqueCard('capitao', capitao, true);
         popularDestaqueCard('maior', maiorPontuador, false);
         popularDestaqueCard('menor', menorPontuador, false);
+
+        // Popular card de módulos (Artilheiro / Luva / Capitão de Luxo)
+        popularCardModulos(atletas, capitao);
 
         if (window.Log) Log.info("PARTICIPANTE-HOME", `Destaques carregados - Rodada ${rodada}`);
 
     } catch (error) {
         if (window.Log) Log.warn("PARTICIPANTE-HOME", "Erro ao carregar destaques:", error);
-        // Esconder seção em caso de erro
+        // Esconder seções em caso de erro
         const destaquesSection = document.getElementById('home-destaques-section');
         if (destaquesSection) destaquesSection.classList.add('hidden');
+        const modulosSection = document.getElementById('home-modulos-section');
+        if (modulosSection) modulosSection.classList.add('hidden');
     }
 }
 
@@ -1183,6 +1188,87 @@ function popularDestaqueCard(tipo, atleta, isCapitao = false) {
 }
 
 // =====================================================================
+// POPULAR CARD DE MÓDULOS (Artilheiro / Luva de Ouro / Capitão)
+// =====================================================================
+function popularCardModulos(atletas, capitao) {
+    const section = document.getElementById('home-modulos-section');
+    if (!section || !atletas?.length) return;
+
+    // === ARTILHEIRO: Atacante/Meia com mais gols (scout "G") ===
+    let artilheiro = null;
+    let maxGols = 0;
+    for (const a of atletas) {
+        const gols = parseInt(a.scout?.G || a.scouts?.G || 0);
+        if (gols > maxGols) {
+            maxGols = gols;
+            artilheiro = a;
+        }
+    }
+    // Fallback: maior pontuador entre atacantes (posicao_id 5)
+    if (!artilheiro) {
+        const atacantes = atletas.filter(a => a.posicao_id === 5);
+        if (atacantes.length > 0) {
+            artilheiro = atacantes.reduce((max, a) =>
+                (parseFloat(a.pontos_num || 0) > parseFloat(max.pontos_num || 0)) ? a : max, atacantes[0]);
+        }
+    }
+
+    const artNomeEl = document.getElementById('home-modulo-artilheiro-nome');
+    const artStatsEl = document.getElementById('home-modulo-artilheiro-stats');
+    if (artilheiro) {
+        if (artNomeEl) artNomeEl.textContent = artilheiro.apelido || artilheiro.nome || '--';
+        if (artStatsEl) {
+            const gols = parseInt(artilheiro.scout?.G || artilheiro.scouts?.G || 0);
+            const pts = parseFloat(artilheiro.pontos_num || 0).toFixed(1);
+            artStatsEl.textContent = gols > 0 ? `${gols} gol${gols > 1 ? 's' : ''} • ${pts} pts` : `${pts} pts`;
+        }
+    } else {
+        if (artNomeEl) artNomeEl.textContent = 'Sem gols';
+        if (artStatsEl) artStatsEl.textContent = '--';
+    }
+
+    // === LUVA DE OURO: Goleiro (posicao_id 1) ===
+    const goleiro = atletas.find(a => a.posicao_id === 1);
+    const luvaNomeEl = document.getElementById('home-modulo-luva-nome');
+    const luvaStatsEl = document.getElementById('home-modulo-luva-stats');
+    if (goleiro) {
+        if (luvaNomeEl) luvaNomeEl.textContent = goleiro.apelido || goleiro.nome || '--';
+        if (luvaStatsEl) {
+            const gs = parseInt(goleiro.scout?.GS || goleiro.scouts?.GS || 0);
+            const dd = parseInt(goleiro.scout?.DD || goleiro.scouts?.DD || 0);
+            const sg = parseInt(goleiro.scout?.SG || goleiro.scouts?.SG || 0);
+            const pts = parseFloat(goleiro.pontos_num || 0).toFixed(1);
+            let info = '';
+            if (sg > 0) info = `SG • ${pts} pts`;
+            else if (gs > 0) info = `${gs} gol${gs > 1 ? 's' : ''} sofrido${gs > 1 ? 's' : ''} • ${pts} pts`;
+            else info = `${dd > 0 ? dd + ' DD • ' : ''}${pts} pts`;
+            luvaStatsEl.textContent = info;
+        }
+    } else {
+        if (luvaNomeEl) luvaNomeEl.textContent = '--';
+        if (luvaStatsEl) luvaStatsEl.textContent = '--';
+    }
+
+    // === CAPITÃO DE LUXO: Capitão com multiplicador ===
+    const capNomeEl = document.getElementById('home-modulo-capitao-nome');
+    const capStatsEl = document.getElementById('home-modulo-capitao-stats');
+    if (capitao) {
+        if (capNomeEl) capNomeEl.textContent = capitao.apelido || capitao.nome || '--';
+        if (capStatsEl) {
+            const pts = parseFloat(capitao.pontos_num || 0);
+            const ptsCapitao = (pts * 1.5).toFixed(1);
+            capStatsEl.textContent = `${pts.toFixed(1)} ×1.5 = ${ptsCapitao} pts`;
+        }
+    } else {
+        if (capNomeEl) capNomeEl.textContent = '--';
+        if (capStatsEl) capStatsEl.textContent = '--';
+    }
+
+    // Mostrar seção
+    section.classList.remove('hidden');
+}
+
+// =====================================================================
 // ABREVIAÇÃO DO CLUBE
 // =====================================================================
 function getAbrevClube(clubeId) {
@@ -1222,7 +1308,7 @@ window.toggleDestaquesRodada = toggleDestaquesRodada;
 // =====================================================================
 // PAINEL DE AVISOS
 // =====================================================================
-function atualizarPainelAvisos(rodadaAtual, totalParticipantes) {
+function atualizarPainelAvisos(rodadaAtual, totalParticipantes, extras = {}) {
     const avisoCard = document.getElementById('home-aviso-mercado');
     const avisoIcon = document.getElementById('home-aviso-icon');
     const avisoTitulo = document.getElementById('home-aviso-titulo');
@@ -1302,8 +1388,61 @@ function atualizarPainelAvisos(rodadaAtual, totalParticipantes) {
             `;
         }
 
-        // Aviso de saldo negativo (se aplicável)
-        // TODO: Verificar saldo e adicionar aviso se negativo
+        // Aviso de saldo negativo
+        const saldo = extras.saldoFinanceiro ?? 0;
+        if (saldo < 0) {
+            const saldoFormatado = `R$ ${Math.abs(saldo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+            avisosHTML += `
+                <div class="home-aviso-secundario" onclick="window.participanteNav?.navegarPara('extrato')" style="border-left:3px solid #ef4444;">
+                    <div class="home-aviso-icon-mini" style="background:rgba(239,68,68,0.15);">
+                        <span class="material-icons" style="color:#ef4444;">trending_down</span>
+                    </div>
+                    <span class="home-aviso-texto">Saldo negativo: -${saldoFormatado}</span>
+                    <span class="home-aviso-badge" style="color:#ef4444;background:rgba(239,68,68,0.15);">ALERTA</span>
+                </div>
+            `;
+        }
+
+        // Aviso de mudança de posição no ranking
+        const posicao = extras.posicao;
+        const posicaoAnterior = extras.posicaoAnterior;
+        if (posicao && posicaoAnterior && posicao !== posicaoAnterior) {
+            const diff = posicaoAnterior - posicao; // positivo = subiu
+            if (diff >= 3) {
+                avisosHTML += `
+                    <div class="home-aviso-secundario" onclick="window.participanteNav?.navegarPara('ranking')">
+                        <div class="home-aviso-icon-mini" style="background:rgba(34,197,94,0.15);">
+                            <span class="material-icons" style="color:#22c55e;">trending_up</span>
+                        </div>
+                        <span class="home-aviso-texto">Você subiu ${diff} posições! Agora está em ${posicao}º</span>
+                        <span class="home-aviso-badge" style="color:#22c55e;background:rgba(34,197,94,0.15);">TOP</span>
+                    </div>
+                `;
+            } else if (diff <= -5) {
+                avisosHTML += `
+                    <div class="home-aviso-secundario" onclick="window.participanteNav?.navegarPara('ranking')">
+                        <div class="home-aviso-icon-mini" style="background:rgba(251,191,36,0.15);">
+                            <span class="material-icons" style="color:#fbbf24;">trending_down</span>
+                        </div>
+                        <span class="home-aviso-texto">Você caiu ${Math.abs(diff)} posições. Posição atual: ${posicao}º</span>
+                        <span class="home-aviso-badge" style="color:#fbbf24;background:rgba(251,191,36,0.15);">ATENÇÃO</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Aviso de posição no Top 10
+        if (posicao && posicao <= 10) {
+            avisosHTML += `
+                <div class="home-aviso-secundario" onclick="window.participanteNav?.navegarPara('ranking')">
+                    <div class="home-aviso-icon-mini" style="background:rgba(255,215,0,0.15);">
+                        <span class="material-icons" style="color:#ffd700;">workspace_premium</span>
+                    </div>
+                    <span class="home-aviso-texto">Você está no Top 10! Posição ${posicao}º no ranking</span>
+                    <span class="home-aviso-badge" style="color:#ffd700;background:rgba(255,215,0,0.15);">TOP 10</span>
+                </div>
+            `;
+        }
 
         avisosSecundarios.innerHTML = avisosHTML;
     }

@@ -125,10 +125,20 @@ const NoticiasTime = {
     _renderCompleto(noticias, clube, clubeId) {
         const noticiasHTML = noticias.map((noticia, idx) => {
             const isFirst = idx === 0;
+            const temImagem = noticia.imagem || noticia.thumbnail || noticia.urlImagem;
+
             return `
                 <a href="${this._sanitizeUrl(noticia.link)}" target="_blank" rel="noopener noreferrer"
                    class="noticias-item ${isFirst ? 'noticias-item-destaque' : ''}"
                    style="text-decoration:none;display:block;">
+                    ${temImagem ? `
+                        <div class="noticias-thumbnail">
+                            <img src="${this._sanitizeUrl(temImagem)}"
+                                 alt="${this._sanitizeHtml(noticia.titulo)}"
+                                 onerror="this.parentElement.style.display='none'"
+                                 loading="lazy">
+                        </div>
+                    ` : ''}
                     <div class="noticias-item-content">
                         <div class="noticias-item-badge">
                             <img src="/escudos/${clubeId}.png" alt="${clube}"

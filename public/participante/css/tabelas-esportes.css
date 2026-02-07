@@ -1,0 +1,478 @@
+/* =====================================================================
+   tabelas-esportes.css - Estilos do componente Tabelas Esportivas v2.0
+   ===================================================================== */
+
+/* Container principal */
+.tabelas-section {
+    margin: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #111827;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Header */
+.tabelas-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 8px;
+}
+
+.tabelas-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tabelas-header-title {
+    font-family: 'Russo One', sans-serif;
+    font-size: 1rem;
+    color: #fff;
+    margin: 0;
+}
+
+/* Abas scrolláveis */
+.tabelas-tabs-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 12px 10px;
+}
+
+.tabelas-tabs-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.tabelas-tabs {
+    display: flex;
+    gap: 6px;
+    min-width: max-content;
+}
+
+.tabelas-tab {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: #9ca3af;
+    font-size: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.tabelas-tab:active {
+    transform: scale(0.96);
+}
+
+.tabelas-tab-active {
+    background: linear-gradient(135deg, #ff6d00, #ff8f00);
+    color: #fff;
+    border-color: transparent;
+    font-weight: 600;
+}
+
+/* Conteúdo da aba */
+.tabelas-conteudo {
+    min-height: 120px;
+}
+
+/* Loading */
+.tabelas-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    gap: 10px;
+    color: #9ca3af;
+    font-size: 0.8rem;
+}
+
+.tabelas-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #374151;
+    border-top-color: #ff6d00;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ========== ABA: MEU TIME ========== */
+.tabelas-meutime-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px 6px;
+    font-family: 'Russo One', sans-serif;
+    font-size: 0.85rem;
+    color: #e5e7eb;
+}
+
+/* Sem jogos */
+.tabelas-sem-jogos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 16px;
+    text-align: center;
+}
+
+.tabelas-sem-jogos-titulo {
+    font-size: 0.85rem;
+    color: #d1d5db;
+    margin: 10px 0 4px;
+    font-weight: 600;
+}
+
+.tabelas-sem-jogos-sub {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* ========== ABA: JOGOS DO DIA ========== */
+.tabelas-dia-header {
+    padding: 10px 16px 6px;
+}
+
+.tabelas-dia-header-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tabelas-dia-titulo {
+    font-family: 'Russo One', sans-serif;
+    font-size: 0.9rem;
+    color: #fff;
+}
+
+.tabelas-dia-resumo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.tabelas-dia-stat {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    font-family: 'Inter', sans-serif;
+}
+
+.tabelas-stat-live {
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.tabelas-stat-enc {
+    color: #6b7280;
+}
+
+/* ========== FILTROS (Todos, Ao Vivo, Liga) ========== */
+.tabelas-filtros {
+    display: flex;
+    gap: 6px;
+    padding: 8px 16px 4px;
+}
+
+.tabelas-filtro-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: #9ca3af;
+    font-size: 0.72rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.tabelas-filtro-btn:active {
+    transform: scale(0.95);
+}
+
+.tabelas-filtro-btn-active {
+    background: linear-gradient(135deg, #ff6d00, #ff8f00);
+    color: #fff;
+    border-color: transparent;
+    font-weight: 600;
+}
+
+.tabelas-filtro-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: tabelas-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes tabelas-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ========== GRUPOS DE LIGAS ========== */
+.tabelas-liga-grupo {
+    margin-bottom: 4px;
+}
+
+.tabelas-liga-grupo.tabelas-grupo-hidden {
+    display: none;
+}
+
+.tabelas-liga-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tabelas-liga-header-live {
+    border-left: 3px solid #ef4444;
+}
+
+.tabelas-liga-nome {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #d1d5db;
+}
+
+.tabelas-liga-count {
+    font-size: 0.68rem;
+    color: #6b7280;
+}
+
+/* ========== CARDS DE JOGO ========== */
+.tabelas-jogos-lista {
+    display: flex;
+    flex-direction: column;
+}
+
+.tabelas-card-jogo {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    transition: background 0.15s;
+}
+
+.tabelas-card-jogo:last-child {
+    border-bottom: none;
+}
+
+.tabelas-card-jogo-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tabelas-campeonato-line {
+    font-size: 0.65rem;
+    color: #6b7280;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Times */
+.tabelas-time {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.tabelas-time-casa {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.tabelas-time-fora {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.tabelas-time-nome {
+    font-size: 0.78rem;
+    color: #e5e7eb;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+
+.tabelas-time-abrev {
+    font-size: 0.65rem;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: none;
+}
+
+/* Centro (placar / VS / status) */
+.tabelas-centro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+    gap: 2px;
+}
+
+.tabelas-placar,
+.tabelas-placar-sm {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.tabelas-placar-sm {
+    font-size: 0.85rem;
+}
+
+.tabelas-vs,
+.tabelas-vs-sm {
+    font-size: 0.7rem;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+/* Badges de status */
+.tabelas-badge-live {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.62rem;
+    color: #ef4444;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.tabelas-live-dot-sm {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: tabelas-pulse 1.5s ease-in-out infinite;
+}
+
+.tabelas-badge-encerrado {
+    font-size: 0.62rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.tabelas-badge-horario {
+    font-size: 0.72rem;
+    color: #9ca3af;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+}
+
+/* Card estados */
+.tabelas-card-live {
+    background: rgba(239, 68, 68, 0.06);
+    border-left: 3px solid #ef4444;
+}
+
+.tabelas-card-encerrado {
+    opacity: 0.65;
+}
+
+/* ========== JOGOS DO MÊS ========== */
+.tabelas-mes-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px 6px;
+    font-family: 'Russo One', sans-serif;
+    font-size: 0.85rem;
+    color: #e5e7eb;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tabelas-mes-data-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    font-size: 0.72rem;
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+.tabelas-mes-passado {
+    color: #6b7280;
+}
+
+.tabelas-card-mes {
+    padding: 8px 16px;
+}
+
+/* ========== AGUARDE (Placeholder) ========== */
+.tabelas-aguarde {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px;
+    text-align: center;
+}
+
+.tabelas-aguarde-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.tabelas-aguarde-titulo {
+    font-family: 'Russo One', sans-serif;
+    font-size: 0.95rem;
+    color: #e5e7eb;
+    margin: 0 0 6px;
+}
+
+.tabelas-aguarde-sub {
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin: 0 0 12px;
+}
+
+.tabelas-aguarde-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    color: #9ca3af;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}

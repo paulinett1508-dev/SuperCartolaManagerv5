@@ -461,4 +461,58 @@ router.get("/time/:timeId/completo", async (req, res) => {
     }
 });
 
+// =============================================================================
+// 💰 INFO DO TIME (Patrimônio / Cartoletas)
+// Retorna dados básicos do time incluindo patrimônio para o card da Home
+// =============================================================================
+router.get("/time-info/:timeId", async (req, res) => {
+    try {
+        const { timeId } = req.params;
+
+        if (!timeId || isNaN(parseInt(timeId))) {
+            return res.status(400).json({ error: "ID do time inválido" });
+        }
+
+        console.log(`🔄 [CARTOLA-PROXY] Buscando info do time ${timeId}...`);
+
+        const response = await axios.get(
+            `${CARTOLA_API_BASE}/time/id/${timeId}`,
+            {
+                timeout: 10000,
+                headers: {
+                    "User-Agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                },
+            },
+        );
+
+        const data = response.data;
+
+        console.log(`✅ [CARTOLA-PROXY] Info do time ${timeId} obtida (patrimônio: ${data.patrimonio})`);
+
+        res.json({
+            time_id: data.time_id || data.time?.time_id,
+            nome_time: data.nome || data.time?.nome,
+            nome_cartoleiro: data.nome_cartola || data.time?.nome_cartola,
+            patrimonio: data.patrimonio ?? data.time?.patrimonio ?? 0,
+            pontos_campeonato: data.pontos_campeonato ?? 0,
+            rodada_atual: data.rodada_atual ?? 0,
+        });
+    } catch (error) {
+        console.error(
+            `❌ [CARTOLA-PROXY] Erro ao buscar info do time ${req.params.timeId}:`,
+            error.message,
+        );
+
+        if (error.response?.status === 404) {
+            return res.status(404).json({ error: "Time não encontrado" });
+        }
+
+        res.status(error.response?.status || 500).json({
+            error: "Erro ao buscar info do time",
+            details: error.message,
+        });
+    }
+});
+
 export default router;

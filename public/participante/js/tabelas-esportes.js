@@ -25,6 +25,8 @@ const TabelasEsportes = {
     _clubeId: null,
     _clubeNome: null,
     _abaAtiva: 'meu-time',
+    _filtroAtivo: 'todos',
+    _autoRefreshTimer: null,
     _cache: {},
 
     /**
@@ -119,6 +121,7 @@ const TabelasEsportes = {
                 tab.classList.add('tabelas-tab-active');
 
                 this._abaAtiva = abaId;
+                this._pararAutoRefresh();
                 this._carregarAba(abaId);
             });
         });
@@ -381,6 +384,9 @@ const TabelasEsportes = {
             }
 
             conteudo.innerHTML = this._renderJogosDoDia(todosJogos);
+            this._filtroAtivo = 'todos';
+            this._bindFiltros();
+            this._iniciarAutoRefresh(todosJogos);
         } catch (err) {
             console.error('[TABELAS] Erro Jogos do Dia:', err);
             conteudo.innerHTML = this._renderErro('Erro ao carregar jogos');
@@ -425,6 +431,15 @@ const TabelasEsportes = {
                     ${totalEncerrados > 0 ? `<span class="tabelas-dia-stat tabelas-stat-enc">${totalEncerrados} encerrado${totalEncerrados > 1 ? 's' : ''}</span>` : ''}
                 </div>
             </div>
+            <div class="tabelas-filtros">
+                <button class="tabelas-filtro-btn tabelas-filtro-btn-active" data-filtro="todos">Todos</button>
+                <button class="tabelas-filtro-btn" data-filtro="ao-vivo">
+                    <div class="tabelas-filtro-dot"></div> Ao Vivo
+                </button>
+                <button class="tabelas-filtro-btn" data-filtro="liga">
+                    <span class="material-icons" style="font-size:12px;">expand_more</span> Liga
+                </button>
+            </div>
         `;
 
         for (const liga of ligasOrdenadas) {
@@ -432,7 +447,7 @@ const TabelasEsportes = {
             const temAoVivo = jogosLiga.some(j => ['1H','2H','HT','ET','P','BT','LIVE'].includes(j.statusRaw));
 
             html += `
-                <div class="tabelas-liga-grupo">
+                <div class="tabelas-liga-grupo" data-tem-ao-vivo="${temAoVivo}" data-liga="${liga}">
                     <div class="tabelas-liga-header ${temAoVivo ? 'tabelas-liga-header-live' : ''}">
                         <span class="tabelas-liga-nome">${liga}</span>
                         <span class="tabelas-liga-count">${jogosLiga.length} jogo${jogosLiga.length > 1 ? 's' : ''}</span>
@@ -501,6 +516,167 @@ const TabelasEsportes = {
                 </div>
             </div>
         `;
+    },
+
+    // =================================================================
+    // FILTROS: Todos / Ao Vivo / Liga
+    // =================================================================
+    _bindFiltros() {
+        const container = document.getElementById(this._containerId);
+        if (!container) return;
+
+        const btns = container.querySelectorAll('.tabelas-filtro-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const filtro = btn.dataset.filtro;
+                if (filtro === this._filtroAtivo) return;
+
+                // Atualizar visual
+                btns.forEach(b => b.classList.remove('tabelas-filtro-btn-active'));
+                btn.classList.add('tabelas-filtro-btn-active');
+
+                this._filtroAtivo = filtro;
+                this._aplicarFiltro(filtro);
+            });
+        });
+    },
+
+    _aplicarFiltro(filtro) {
+        const container = document.getElementById(this._containerId);
+        if (!container) return;
+
+        const grupos = container.querySelectorAll('.tabelas-liga-grupo');
+
+        switch (filtro) {
+            case 'todos':
+                grupos.forEach(g => g.classList.remove('tabelas-grupo-hidden'));
+                break;
+            case 'ao-vivo':
+                grupos.forEach(g => {
+                    const temAoVivo = g.dataset.temAoVivo === 'true';
+                    g.classList.toggle('tabelas-grupo-hidden', !temAoVivo);
+                });
+                break;
+            case 'liga':
+                // Placeholder para futuro filtro por competição
+                console.log('[TABELAS] Filtro por liga: em desenvolvimento');
+                break;
+        }
+    },
+
+    // =================================================================
+    // AUTO-REFRESH: Atualiza placares ao vivo a cada 60s
+    // =================================================================
+    _iniciarAutoRefresh(jogos) {
+        this._pararAutoRefresh();
+
+        const temAoVivo = jogos.some(j => ['1H','2H','HT','ET','P','BT','LIVE'].includes(j.statusRaw));
+        if (!temAoVivo) return;
+
+        console.log('[TABELAS] Auto-refresh iniciado (60s)');
+
+        this._autoRefreshTimer = setInterval(async () => {
+            try {
+                const response = await fetch('/api/jogos-ao-vivo');
+                if (!response.ok) return;
+
+                const data = await response.json();
+                const jogosAtualizados = data.jogos || [];
+                const aoVivo = jogosAtualizados.filter(j =>
+                    ['1H','2H','HT','ET','P','BT','LIVE'].includes(j.statusRaw)
+                );
+
+                if (aoVivo.length === 0) {
+                    console.log('[TABELAS] Auto-refresh parado (sem jogos ao vivo)');
+                    this._pararAutoRefresh();
+                    // Re-renderizar para atualizar estados finais
+                    const conteudo = document.getElementById('tabelas-conteudo');
+                    if (conteudo && this._abaAtiva === 'jogos-dia') {
+                        conteudo.innerHTML = this._renderJogosDoDia(jogosAtualizados);
+                        this._bindFiltros();
+                    }
+                    return;
+                }
+
+                // Atualizar placares inline (sem recriar HTML)
+                this._atualizarPlacaresInline(jogosAtualizados);
+                console.log(`[TABELAS] Atualizado ${aoVivo.length} jogo(s) ao vivo`);
+            } catch (err) {
+                console.warn('[TABELAS] Erro no auto-refresh:', err.message);
+            }
+        }, 60000);
+    },
+
+    _pararAutoRefresh() {
+        if (this._autoRefreshTimer) {
+            clearInterval(this._autoRefreshTimer);
+            this._autoRefreshTimer = null;
+        }
+    },
+
+    _atualizarPlacaresInline(jogosAtualizados) {
+        const container = document.getElementById(this._containerId);
+        if (!container) return;
+
+        const cards = container.querySelectorAll('.tabelas-card-jogo');
+        for (const card of cards) {
+            const nomeEl = card.querySelector('.tabelas-time-casa .tabelas-time-nome');
+            if (!nomeEl) continue;
+
+            const mandanteCard = nomeEl.textContent.trim().toLowerCase();
+
+            // Encontrar jogo correspondente
+            const jogo = jogosAtualizados.find(j =>
+                (j.mandante || '').toLowerCase() === mandanteCard
+            );
+            if (!jogo) continue;
+
+            const isAoVivo = ['1H','2H','HT','ET','P','BT','LIVE'].includes(jogo.statusRaw);
+            const isEncerrado = ['FT','AET','PEN'].includes(jogo.statusRaw);
+
+            // Atualizar placar
+            const placarEl = card.querySelector('.tabelas-placar') || card.querySelector('.tabelas-placar-sm');
+            if (placarEl && (isAoVivo || isEncerrado)) {
+                placarEl.textContent = `${jogo.golsMandante ?? 0} - ${jogo.golsVisitante ?? 0}`;
+            }
+
+            // Atualizar VS → Placar se jogo começou
+            const vsEl = card.querySelector('.tabelas-vs') || card.querySelector('.tabelas-vs-sm');
+            if (vsEl && (isAoVivo || isEncerrado)) {
+                vsEl.outerHTML = `<span class="tabelas-placar">${jogo.golsMandante ?? 0} - ${jogo.golsVisitante ?? 0}</span>`;
+            }
+
+            // Atualizar badge de status
+            const badgeLive = card.querySelector('.tabelas-badge-live');
+            const badgeHorario = card.querySelector('.tabelas-badge-horario');
+            const badgeEncerrado = card.querySelector('.tabelas-badge-encerrado');
+            const targetBadge = badgeLive || badgeHorario || badgeEncerrado;
+
+            if (targetBadge) {
+                if (isAoVivo) {
+                    targetBadge.outerHTML = `<div class="tabelas-badge-live"><div class="tabelas-live-dot-sm"></div>${jogo.tempo || 'AO VIVO'}</div>`;
+                    card.classList.add('tabelas-card-live');
+                    card.classList.remove('tabelas-card-encerrado');
+                } else if (isEncerrado) {
+                    targetBadge.outerHTML = `<div class="tabelas-badge-encerrado">Encerrado</div>`;
+                    card.classList.remove('tabelas-card-live');
+                    card.classList.add('tabelas-card-encerrado');
+                }
+            }
+        }
+
+        // Atualizar data-attributes dos grupos para o filtro
+        const grupos = container.querySelectorAll('.tabelas-liga-grupo');
+        for (const grupo of grupos) {
+            const cardsGrupo = grupo.querySelectorAll('.tabelas-card-live');
+            grupo.dataset.temAoVivo = cardsGrupo.length > 0 ? 'true' : 'false';
+        }
+
+        // Re-aplicar filtro ativo
+        if (this._filtroAtivo !== 'todos') {
+            this._aplicarFiltro(this._filtroAtivo);
+        }
     },
 
     // =================================================================
