@@ -10,13 +10,13 @@
     "theme_color": "#FF4500",
     "icons": [
         {
-            "src": "/escudos/default.png",
+            "src": "/img/newlogo-supercartola.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/escudos/default.png",
+            "src": "/img/newlogo-supercartola.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any"

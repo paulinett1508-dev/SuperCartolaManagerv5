@@ -398,8 +398,8 @@ async function sendTestNotification() {
 
         await registration.showNotification('Super Cartola - Teste', {
             body: 'Se você está vendo isso, as notificações estão funcionando!',
-            icon: '/escudos/default.png',
-            badge: '/escudos/default.png',
+            icon: '/img/newlogo-supercartola.png',
+            badge: '/img/newlogo-supercartola.png',
             tag: 'test-notification',
             vibrate: [200, 100, 200],
             data: {

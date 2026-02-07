@@ -11,10 +11,10 @@
 // ✅ v3.2: FORCE CACHE CLEAR - Limpar cache antigo que causava erros
 // ✅ v3.1: Network-First com cache fallback (FIX fetch failures)
 // ✅ v3.0: Força limpeza de caches antigos
-// BUILD: 2026-01-30T12:00:00Z
+// BUILD: 2026-02-07T12:00:00Z
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v18-copa-sc";
+const CACHE_NAME = "super-cartola-v19-liga-logos";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
@@ -23,6 +23,8 @@ const STATIC_ASSETS = [
     "/participante/css/pull-refresh.css",
     "/escudos/default.png",
     "/escudos/placeholder.png",
+    "/img/newlogo-supercartola.png",
+    "/img/logo-osfuleros.png",
 ];
 
 // Extensões que devem usar Cache First
@@ -160,8 +162,8 @@ self.addEventListener("push", (event) => {
     let payload = {
         title: "Super Cartola",
         body: "Você tem uma nova notificação",
-        icon: "/escudos/default.png",
-        badge: "/escudos/default.png",
+        icon: "/img/newlogo-supercartola.png",
+        badge: "/img/newlogo-supercartola.png",
         url: "/participante/",
         tag: "default",
     };

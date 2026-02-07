@@ -568,6 +568,16 @@ class ParticipanteAuth {
                 if (window.Log) Log.warn('PARTICIPANTE-AUTH', '⚠️ Nenhuma liga encontrada para este participante');
                 this.pausarNavegacaoAteSelecao = true;
             }
+
+            // ✅ v3.2: Atualizar logo da splash/app baseada na liga
+            if (window.LigaLogos) {
+                const ligaAtual = ligas.find(l => l.id === this.ligaId);
+                window.LigaLogos.atualizarLogosApp({
+                    ligaId: this.ligaId,
+                    ligaNome: ligaAtual?.nome || null,
+                    multiplasLigas: this.multiplasLigas
+                });
+            }
         } catch (error) {
             if (window.Log) Log.error('PARTICIPANTE-AUTH', '❌ Erro ao verificar múltiplas ligas:', error);
         }
