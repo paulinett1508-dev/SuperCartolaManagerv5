@@ -1,9 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-HOME.JS - v1.2 (Parciais em Tempo Real)
+// PARTICIPANTE-HOME.JS - v1.3 (Correção Rodada Disputada)
 // =====================================================================
 import { getZonaInfo } from "./zona-utils.js";
 import * as ParciaisModule from "./participante-rodada-parcial.js";
 import { getClubesNomeMap } from "/js/shared/clubes-data.js";
+// v1.3: FIX - Distinguir rodada do mercado vs última rodada disputada
+//       - Quando mercado aberto, usa rodada-1 para buscar escalação
+//       - Evita erro 404 ao buscar dados de rodada não disputada
 // v1.2: Integração com parciais em tempo real + Saldo projetado
 //       - Removido header premium (badge com nome)
 //       - Card central reflete pontos/posição parciais (AO VIVO)
@@ -13,7 +16,7 @@ import { getClubesNomeMap } from "/js/shared/clubes-data.js";
 // =====================================================================
 
 if (window.Log)
-    Log.info("PARTICIPANTE-HOME", "Carregando modulo v1.2 (Parciais Tempo Real)...");
+    Log.info("PARTICIPANTE-HOME", "Carregando modulo v1.3 (Correção Rodada Disputada)...");
 
 // Configuracao de temporada
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -491,7 +494,14 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
     const rodadaAtualByRodadas = ultimaRodada ? Number(ultimaRodada.rodada) : 0;
     const rodadasDoRanking = Number(meuTime?.rodadas ?? meuTime?.rodada ?? meuTime?.rodadas_jogadas ?? 0) || 0;
     const rodadaMercado = Number(mercadoStatus?.rodada_atual ?? 0) || 0;
+    const statusMercadoNum = Number(mercadoStatus?.status_mercado ?? 1) || 1;
     const rodadaAtual = Math.max(rodadaAtualByRodadas, rodadasDoRanking, rodadaMercado);
+
+    // ✅ FIX: Calcular última rodada DISPUTADA (com dados de escalação/pontuação)
+    // Quando mercado está ABERTO (status=1), a rodada_atual é a PRÓXIMA a ser disputada
+    const ultimaRodadaDisputada = window.obterUltimaRodadaDisputada
+        ? window.obterUltimaRodadaDisputada(rodadaMercado, statusMercadoNum)
+        : (statusMercadoNum === 1 || statusMercadoNum === 3 ? Math.max(1, rodadaMercado - 1) : rodadaMercado);
 
     // Posicao anterior
     let posicaoAnterior = null;
@@ -529,6 +539,7 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
         pontosTotal,
         ultimaRodada,
         rodadaAtual,
+        ultimaRodadaDisputada, // ✅ FIX: Rodada com dados de escalação disponíveis
         nomeTime,
         nomeCartola,
         nomeLiga,
@@ -861,6 +872,7 @@ function renderizarHome(container, data, ligaId) {
         pontosTotal,
         ultimaRodada,
         rodadaAtual,
+        ultimaRodadaDisputada, // ✅ FIX: Rodada com dados de escalação
         nomeTime,
         nomeCartola,
         nomeLiga,
@@ -965,15 +977,17 @@ function renderizarHome(container, data, ligaId) {
     }
 
     // === DESTAQUES DA RODADA ===
+    // ✅ FIX: Usar ultimaRodadaDisputada para buscar escalação (não rodada do mercado)
+    const rodadaParaDestaques = ultimaRodadaDisputada || rodadaAtual;
     const destaquesSection = document.getElementById('home-destaques-section');
     const destaquesContent = document.getElementById('home-destaques-content');
     if (destaquesSection) {
-        if (rodadaAtual > 0 && ultimaRodada) {
+        if (rodadaParaDestaques > 0 && ultimaRodada) {
             destaquesSection.classList.remove('hidden');
 
             // Durante jogos ao vivo, iniciar colapsado
             const status = mercadoStatus?.status_mercado;
-            const isJogosAoVivo = status === 'Mercado fechado';
+            const isJogosAoVivo = status === 2 || status === 'Mercado fechado';
 
             if (isJogosAoVivo) {
                 destaquesSection.classList.remove('expanded');
@@ -984,7 +998,7 @@ function renderizarHome(container, data, ligaId) {
                 if (destaquesContent) destaquesContent.classList.remove('collapsed');
             }
 
-            carregarDestaquesRodada(ligaId, rodadaAtual, timeId);
+            carregarDestaquesRodada(ligaId, rodadaParaDestaques, timeId);
         } else {
             destaquesSection.classList.add('hidden');
         }

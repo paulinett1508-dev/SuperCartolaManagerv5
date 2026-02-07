@@ -1,8 +1,12 @@
 import { renderizarAvisos } from './participante-avisos.js';
 
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v12.0 (Temporada 2026 Ativa)
+// PARTICIPANTE-BOAS-VINDAS.JS - v12.1 (Correção Rodada Disputada)
 // =====================================================================
+// ✅ v12.1: FIX - Distinguir rodada do mercado vs última rodada disputada
+//           - Quando mercado aberto, calcula última rodada disputada
+//           - Usa API /mercado/status para obter status real do mercado
+//           - Adiciona ultimaRodadaDisputada aos dados processados
 // ✅ v12.0: TEMPORADA 2026 EM ANDAMENTO - Rodada 1+ iniciada
 //           - Removida lógica de "Aguardando 1ª rodada" (temporada ativa)
 //           - Simplificado código para sempre mostrar dados reais
@@ -21,7 +25,7 @@ import { renderizarAvisos } from './participante-avisos.js';
 // ✅ v8.0: Carregamento INSTANTÂNEO com cache offline (IndexedDB)
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v12.0 (Temporada 2026 Ativa)...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v12.1 (Correção Rodada Disputada)...");
 
 // Configuração de temporada (com fallback seguro)
 const TEMPORADA_ATUAL = window.ParticipanteConfig?.CURRENT_SEASON || 2026;
@@ -40,6 +44,9 @@ let participanteRenovado = false;
 
 // ✅ v11.1: Estado PRO do participante
 let participantePremium = false;
+
+// ✅ v12.1: Estado do mercado para cálculo correto de rodada
+let mercadoStatus = null;
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL
@@ -180,7 +187,11 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     // await verificarStatusRenovacao(ligaId, timeId); // ARQUIVADO
 
     // ✅ v11.1: Verificar se participante é PRO
-    await verificarStatusPremium();
+    // ✅ v12.1: Buscar status do mercado para cálculo correto de rodada
+    await Promise.all([
+        verificarStatusPremium(),
+        buscarStatusMercado()
+    ]);
 
     // ✅ v11.4: Buscar histórico APENAS para ligas NÃO estreantes
     // Ligas novas não têm histórico - evita 404 desnecessário
@@ -380,7 +391,18 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
 
     const rodadasOrdenadas = [...minhasRodadas].sort((a, b) => b.rodada - a.rodada);
     const ultimaRodada = rodadasOrdenadas[0];
-    const rodadaAtual = ultimaRodada ? ultimaRodada.rodada : 0;
+    const rodadaAtualByRodadas = ultimaRodada ? ultimaRodada.rodada : 0;
+
+    // ✅ v12.1: Usar rodada do mercado como fonte primária
+    const rodadaMercado = Number(mercadoStatus?.rodada_atual ?? 0) || 0;
+    const statusMercadoNum = Number(mercadoStatus?.status_mercado ?? 1) || 1;
+    const rodadaAtual = Math.max(rodadaAtualByRodadas, rodadaMercado);
+
+    // ✅ v12.1 FIX: Calcular última rodada DISPUTADA (com dados de escalação)
+    // Quando mercado está ABERTO (status=1), a rodada_atual é a PRÓXIMA a ser disputada
+    const ultimaRodadaDisputada = window.obterUltimaRodadaDisputada
+        ? window.obterUltimaRodadaDisputada(rodadaMercado || rodadaAtual, statusMercadoNum)
+        : (statusMercadoNum === 1 || statusMercadoNum === 3 ? Math.max(1, (rodadaMercado || rodadaAtual) - 1) : (rodadaMercado || rodadaAtual));
 
     // Posição anterior
     let posicaoAnterior = null;
@@ -422,6 +444,7 @@ function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeId
         pontosTotal,
         ultimaRodada,
         rodadaAtual,
+        ultimaRodadaDisputada, // ✅ v12.1: Rodada com dados de escalação disponíveis
         nomeTime,
         nomeCartola,
         nomeLiga,
@@ -472,6 +495,25 @@ async function verificarStatusPremium() {
     } catch (error) {
         if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "⚠️ Erro ao verificar PRO:", error);
         participantePremium = false;
+    }
+}
+
+// =====================================================================
+// ✅ v12.1: BUSCAR STATUS DO MERCADO (para cálculo correto de rodada)
+// =====================================================================
+async function buscarStatusMercado() {
+    try {
+        const response = await fetch('/api/cartola/mercado/status');
+        if (response.ok) {
+            mercadoStatus = await response.json();
+            if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "📊 Status mercado:", {
+                rodada: mercadoStatus?.rodada_atual,
+                status: mercadoStatus?.status_mercado
+            });
+        }
+    } catch (error) {
+        if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "⚠️ Erro ao buscar status mercado");
+        mercadoStatus = null;
     }
 }
 
@@ -1135,4 +1177,4 @@ window.abrirCartolaPro = function() {
 };
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "Modulo v12.0 carregado (Temporada 2026 Ativa)");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "Modulo v12.1 carregado (Correção Rodada Disputada)");

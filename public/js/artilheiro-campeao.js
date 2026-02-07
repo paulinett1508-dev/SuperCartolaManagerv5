@@ -19,6 +19,8 @@ const ArtilheiroCampeao = {
             RANKING: (ligaId) => `/api/artilheiro-campeao/${ligaId}/ranking`,
             DETECTAR_RODADA: (ligaId) =>
                 `/api/artilheiro-campeao/${ligaId}/detectar-rodada`,
+            ESTATISTICAS: (ligaId) => `/api/artilheiro-campeao/${ligaId}/estatisticas`,
+            PREMIAR: (ligaId) => `/api/artilheiro-campeao/${ligaId}/premiar`,
         },
     },
 
@@ -346,11 +348,51 @@ const ArtilheiroCampeao = {
                         </tbody>
                     </table>
                 </div>
+
+                <!-- ✅ v5.2: PAINEL GESTÃO ADMIN -->
+                <div class="artilheiro-admin-panel" style="margin-top: 24px; background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.2); border-radius: 12px; padding: 16px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                        <span class="material-icons" style="color: #22c55e; font-size: 20px;">admin_panel_settings</span>
+                        <h4 style="margin: 0; color: #fff; font-size: 16px;">Gestão do Módulo</h4>
+                    </div>
+
+                    <div id="artilheiroAdminStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                        <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px; text-align: center;">
+                            <div style="font-size: 10px; color: #888; text-transform: uppercase;">Registros</div>
+                            <div id="adminStatRegistros" style="font-size: 20px; font-weight: 800; color: #22c55e;">-</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px; text-align: center;">
+                            <div style="font-size: 10px; color: #888; text-transform: uppercase;">Consolidados</div>
+                            <div id="adminStatConsolidados" style="font-size: 20px; font-weight: 800; color: #3b82f6;">-</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px; text-align: center;">
+                            <div style="font-size: 10px; color: #888; text-transform: uppercase;">Parciais</div>
+                            <div id="adminStatParciais" style="font-size: 20px; font-weight: 800; color: #f59e0b;">-</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px; text-align: center;">
+                            <div style="font-size: 10px; color: #888; text-transform: uppercase;">Participantes</div>
+                            <div id="adminStatParticipantes" style="font-size: 20px; font-weight: 800; color: #fff;">-</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-sm" style="background: rgba(34,197,94,0.2); color: #22c55e; border: 1px solid rgba(34,197,94,0.4); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 4px;" onclick="ArtilheiroCampeao.carregarEstatisticas()">
+                            <span class="material-icons" style="font-size: 14px;">assessment</span> Atualizar Stats
+                        </button>
+                        <button class="btn btn-sm" style="background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 4px;" onclick="ArtilheiroCampeao.premiarArtilheiro()">
+                            <span class="material-icons" style="font-size: 14px;">emoji_events</span> Consolidar Premiação
+                        </button>
+                    </div>
+                    <div id="artilheiroPremiacaoMsg" style="margin-top: 8px;"></div>
+                </div>
             </div>
 
             <!-- ✅ v4.3: ESTILOS DE DESTAQUE -->
             ${this._injetarEstilosDestaque()}
         `;
+
+        // ✅ v5.2: Carregar stats automaticamente
+        this.carregarEstatisticas();
     },
 
     // ==============================
@@ -1236,6 +1278,68 @@ const ArtilheiroCampeao = {
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") this.fecharModal();
         });
+    },
+
+    // ==============================
+    // ✅ v5.2: GESTÃO ADMIN - Estatísticas
+    // ==============================
+    async carregarEstatisticas() {
+        const ligaId = this.config.getLigaId();
+        if (!ligaId) return;
+
+        try {
+            const resp = await fetch(this.config.API.ESTATISTICAS(ligaId));
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const json = await resp.json();
+            const stats = json.data || json;
+
+            const elRegistros = document.getElementById("adminStatRegistros");
+            const elConsolidados = document.getElementById("adminStatConsolidados");
+            const elParciais = document.getElementById("adminStatParciais");
+            const elParticipantes = document.getElementById("adminStatParticipantes");
+
+            if (elRegistros) elRegistros.textContent = stats.totalRegistros ?? "-";
+            if (elConsolidados) elConsolidados.textContent = stats.rodadasConsolidadas ?? "-";
+            if (elParciais) elParciais.textContent = stats.rodadasParciais ?? "-";
+            if (elParticipantes) elParticipantes.textContent = stats.totalParticipantes ?? "-";
+        } catch (err) {
+            console.error("❌ [ARTILHEIRO] Erro ao carregar estatísticas admin:", err);
+        }
+    },
+
+    // ==============================
+    // ✅ v5.2: GESTÃO ADMIN - Consolidar Premiação
+    // ==============================
+    async premiarArtilheiro() {
+        const ligaId = this.config.getLigaId();
+        if (!ligaId) return;
+
+        const msgEl = document.getElementById("artilheiroPremiacaoMsg");
+        if (msgEl) {
+            msgEl.innerHTML = '<span style="color: #f59e0b;">⏳ Processando premiação...</span>';
+        }
+
+        try {
+            const resp = await fetch(this.config.API.PREMIAR(ligaId), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+            });
+            const json = await resp.json();
+
+            if (!resp.ok) {
+                throw new Error(json.error || json.message || `HTTP ${resp.status}`);
+            }
+
+            if (msgEl) {
+                const total = json.data?.totalPremiacoes || 0;
+                msgEl.innerHTML = `<span style="color: #22c55e;">✅ Premiação consolidada! ${total} registro(s) lançados no extrato.</span>`;
+            }
+        } catch (err) {
+            console.error("❌ [ARTILHEIRO] Erro ao consolidar premiação:", err);
+            if (msgEl) {
+                msgEl.innerHTML = `<span style="color: #ef4444;">❌ ${err.message}</span>`;
+            }
+        }
     },
 };
 

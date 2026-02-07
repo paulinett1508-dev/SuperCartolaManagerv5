@@ -1,16 +1,16 @@
 // =====================================================================
-// PARTICIPANTE-ARTILHEIRO.JS - v3.7 (Cache-First IndexedDB)
+// PARTICIPANTE-ARTILHEIRO.JS - v4.0 (Auditoria Completa)
 // =====================================================================
+// ✅ v4.0: Skeleton loading, pull-to-refresh, MutationObserver
 // ✅ v3.7: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v3.5: Detecção de temporada encerrada (R38 + mercado fechado)
-//    - Badge "CAMPEÃO" quando temporada encerrada
-//    - Banner ajustado para "CAMPEÃO CONFIRMADO"
 // ✅ v3.4: Card Desempenho ao final
 // =====================================================================
 
-if (window.Log) Log.info("[PARTICIPANTE-ARTILHEIRO] Carregando módulo v3.7...");
+if (window.Log) Log.info("[PARTICIPANTE-ARTILHEIRO] Carregando módulo v4.0...");
 
-const RODADA_FINAL = 38;
+// ✅ v4.0: RODADA_FINAL dinâmico - obtido da API, fallback 38
+let RODADA_FINAL = 38;
 
 // Estado do módulo
 let estadoArtilheiro = {
@@ -22,21 +22,37 @@ let estadoArtilheiro = {
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
 // =====================================================================
+// ✅ v4.0: Referência para refresh
+let _currentLigaId = null;
+let _currentTimeId = null;
+let _currentParticipante = null;
+
 export async function inicializarArtilheiroParticipante({
     participante,
     ligaId,
     timeId,
 }) {
-    if (window.Log) Log.info("[PARTICIPANTE-ARTILHEIRO] 🚀 Inicializando v3.7...", {
+    if (window.Log) Log.info("[PARTICIPANTE-ARTILHEIRO] 🚀 Inicializando v4.0...", {
         ligaId,
         timeId,
     });
+
+    // ✅ v4.0: Guardar refs para pull-to-refresh
+    _currentLigaId = ligaId;
+    _currentTimeId = timeId;
+    _currentParticipante = participante;
 
     const container = document.getElementById("artilheiro-content");
     if (!container) {
         if (window.Log) Log.error("[PARTICIPANTE-ARTILHEIRO] ❌ Container não encontrado");
         return;
     }
+
+    // ✅ v4.0: Skeleton loading em vez de spinner genérico
+    container.innerHTML = renderSkeleton();
+
+    // ✅ v4.0: Setup pull-to-refresh
+    setupPullToRefresh(container);
 
     // ✅ v3.7: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
     let usouCache = false;
@@ -49,7 +65,6 @@ export async function inicializarArtilheiroParticipante({
                 usouCache = true;
                 dadosCache = artCache;
 
-                // Renderizar IMEDIATAMENTE com dados do cache
                 if (window.Log)
                     Log.info("[PARTICIPANTE-ARTILHEIRO] ⚡ Cache IndexedDB encontrado");
 
@@ -460,7 +475,7 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
     let mercadoAberto = estatisticas.mercadoAberto !== false;
     let temporadaEncerrada = false;
 
-    // ✅ v3.5: BUSCAR STATUS DO MERCADO PARA DETECTAR TEMPORADA ENCERRADA
+    // ✅ v4.0: BUSCAR STATUS DO MERCADO PARA DETECTAR TEMPORADA ENCERRADA
     try {
         const mercadoRes = await fetch("/api/cartola/mercado/status");
         if (mercadoRes.ok) {
@@ -469,7 +484,10 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
                 mercado.rodada_atual || mercado.rodadaAtual || rodadaFim;
             mercadoAberto = mercado.status_mercado === 1;
 
-            // Temporada encerrada: status_mercado = 6 OU (rodada >= 38 E mercado fechado)
+            // ✅ v4.0: Atualizar RODADA_FINAL dinâmico
+            if (mercado.rodada_total) RODADA_FINAL = mercado.rodada_total;
+
+            // Temporada encerrada: status_mercado = 6 OU (rodada >= RODADA_FINAL E mercado fechado)
             temporadaEncerrada =
                 mercado.status_mercado === 6 ||
                 (rodadaAtual >= RODADA_FINAL && mercado.status_mercado !== 1);
@@ -796,34 +814,133 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
 
     container.innerHTML = html;
 
-    // ✅ v3.4: Mover o card "Meus Dados" para o container externo ao final
-    setTimeout(() => {
-        const cardDesempenhoContainer = document.getElementById(
-            "artilheiro-card-desempenho",
-        );
-        const cardMeusDados = container.querySelector(
-            '[style*="linear-gradient(135deg, rgba(34, 197, 94, 0.15)"]',
-        );
+    // ✅ v4.0: Mover card usando requestAnimationFrame (substitui setTimeout hack)
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            const cardDesempenhoContainer = document.getElementById(
+                "artilheiro-card-desempenho",
+            );
+            const cardMeusDados = container.querySelector(
+                '[style*="linear-gradient(135deg, rgba(34, 197, 94, 0.15)"]',
+            );
 
-        if (cardDesempenhoContainer && cardMeusDados) {
-            // Criar wrapper com estilos do card Seu Desempenho
-            const wrapper = document.createElement("div");
-            wrapper.innerHTML = `
-                <div style="background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%); border-radius: 16px; padding: 16px; border: 1px solid rgba(34, 197, 94, 0.3);">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: #22c55e; font-weight: 600; font-size: 14px;">
-                        <span class="material-icons" style="font-size: 20px;">insights</span>
-                        <span>Seu Desempenho</span>
+            if (cardDesempenhoContainer && cardMeusDados) {
+                const wrapper = document.createElement("div");
+                wrapper.innerHTML = `
+                    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%); border-radius: 16px; padding: 16px; border: 1px solid rgba(34, 197, 94, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: #22c55e; font-weight: 600; font-size: 14px;">
+                            <span class="material-icons" style="font-size: 20px;">insights</span>
+                            <span>Seu Desempenho</span>
+                        </div>
+                        ${cardMeusDados.innerHTML}
                     </div>
-                    ${cardMeusDados.innerHTML}
-                </div>
-            `;
-            cardDesempenhoContainer.innerHTML = "";
-            cardDesempenhoContainer.appendChild(wrapper);
-
-            // Remover o card original
-            cardMeusDados.remove();
-        }
-    }, 100);
+                `;
+                cardDesempenhoContainer.innerHTML = "";
+                cardDesempenhoContainer.appendChild(wrapper);
+                cardMeusDados.remove();
+            }
+        });
+    });
 }
 
-if (window.Log) Log.info("[PARTICIPANTE-ARTILHEIRO] Módulo v3.7 carregado (Cache-First IndexedDB)");
+// =====================================================================
+// ✅ v4.0: SKELETON LOADING
+// =====================================================================
+function renderSkeleton() {
+    const shimmer = `background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%); background-size: 200% 100%; animation: artSkeletonShimmer 1.5s ease-in-out infinite;`;
+    return `
+        <style>
+            @keyframes artSkeletonShimmer {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+            }
+        </style>
+        <div style="padding: 16px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="width: 200px; height: 24px; border-radius: 6px; margin: 0 auto 8px; ${shimmer}"></div>
+                <div style="width: 120px; height: 14px; border-radius: 4px; margin: 0 auto; ${shimmer}"></div>
+            </div>
+            <div style="border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 2px solid rgba(34,197,94,0.2); background: rgba(34,197,94,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <div style="width: 80px; height: 12px; border-radius: 4px; margin-bottom: 8px; ${shimmer}"></div>
+                        <div style="width: 50px; height: 32px; border-radius: 6px; ${shimmer}"></div>
+                    </div>
+                    <div style="display: flex; gap: 16px;">
+                        <div style="width: 40px; height: 28px; border-radius: 6px; ${shimmer}"></div>
+                        <div style="width: 40px; height: 28px; border-radius: 6px; ${shimmer}"></div>
+                        <div style="width: 40px; height: 28px; border-radius: 6px; ${shimmer}"></div>
+                    </div>
+                </div>
+                <div style="width: 100%; height: 36px; border-radius: 8px; ${shimmer}"></div>
+            </div>
+            <div style="border-radius: 12px; background: rgba(0,0,0,0.3); overflow: hidden;">
+                <div style="padding: 12px 16px; background: rgba(34,197,94,0.1);">
+                    <div style="width: 140px; height: 14px; border-radius: 4px; ${shimmer}"></div>
+                </div>
+                ${[1,2,3,4,5].map(() => `
+                <div style="display: flex; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div style="width: 26px; height: 16px; border-radius: 4px; ${shimmer}"></div>
+                        <div style="width: 100px; height: 14px; border-radius: 4px; ${shimmer}"></div>
+                    </div>
+                    <div style="width: 60px; height: 16px; border-radius: 4px; ${shimmer}"></div>
+                </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// =====================================================================
+// ✅ v4.0: PULL-TO-REFRESH
+// =====================================================================
+function setupPullToRefresh(container) {
+    const parentEl = container.closest('.artilheiro-participante') || container;
+    let startY = 0;
+    let pulling = false;
+    let indicator = null;
+
+    parentEl.addEventListener('touchstart', (e) => {
+        if (parentEl.scrollTop === 0) {
+            startY = e.touches[0].clientY;
+            pulling = true;
+        }
+    }, { passive: true });
+
+    parentEl.addEventListener('touchmove', (e) => {
+        if (!pulling) return;
+        const diff = e.touches[0].clientY - startY;
+        if (diff > 50 && diff < 150) {
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'art-pull-indicator';
+                indicator.style.cssText = 'text-align:center;padding:8px;color:#22c55e;font-size:11px;font-weight:600;transition:opacity 0.2s;';
+                indicator.innerHTML = '<span class="material-icons" style="font-size:18px;vertical-align:middle;animation:spin 1s linear infinite;">refresh</span> Solte para atualizar';
+                parentEl.prepend(indicator);
+            }
+        }
+    }, { passive: true });
+
+    parentEl.addEventListener('touchend', async () => {
+        if (indicator) {
+            indicator.innerHTML = '<span class="material-icons" style="font-size:18px;vertical-align:middle;animation:spin 1s linear infinite;">sync</span> Atualizando...';
+            try {
+                if (_currentLigaId && _currentTimeId) {
+                    await inicializarArtilheiroParticipante({
+                        participante: _currentParticipante,
+                        ligaId: _currentLigaId,
+                        timeId: _currentTimeId,
+                    });
+                }
+            } catch (e) {
+                if (window.Log) Log.warn("[PARTICIPANTE-ARTILHEIRO] Erro no refresh:", e);
+            }
+            indicator?.remove();
+            indicator = null;
+        }
+        pulling = false;
+    }, { passive: true });
+}
+
+if (window.Log) Log.info("[PARTICIPANTE-ARTILHEIRO] Módulo v4.0 carregado (Skeleton + Pull-to-Refresh)");

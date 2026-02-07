@@ -1,64 +1,57 @@
-// routes/artilheiro-campeao-routes.js - VERSÃO 4.0
+// routes/artilheiro-campeao-routes.js - VERSÃO 5.2
 // Rotas do módulo Artilheiro Campeão com persistência MongoDB
+// ✅ v5.2: Session validation, audit logging, premiação endpoint
 
 import express from "express";
 import ArtilheiroCampeaoController from "../controllers/artilheiroCampeaoController.js";
 
 const router = express.Router();
 
-console.log("🚀 [ROUTES] Carregando rotas do Artilheiro Campeão v4.0...");
+console.log("🚀 [ROUTES] Carregando rotas do Artilheiro Campeão v5.2...");
 
 // ========================================
-// ROTAS PRINCIPAIS
+// ROTAS PÚBLICAS (GET)
 // ========================================
 
-/**
- * GET /:ligaId/ranking
- * Retorna ranking completo com dados consolidados + parciais
- */
 router.get("/:ligaId/ranking", async (req, res) => {
     await ArtilheiroCampeaoController.obterRanking(req, res);
 });
 
-/**
- * GET /:ligaId/detectar-rodada
- * Detecta rodada atual e status do mercado
- */
 router.get("/:ligaId/detectar-rodada", async (req, res) => {
     await ArtilheiroCampeaoController.detectarRodada(req, res);
 });
 
-/**
- * GET /:ligaId/estatisticas
- * Retorna estatísticas do MongoDB
- */
 router.get("/:ligaId/estatisticas", async (req, res) => {
     await ArtilheiroCampeaoController.obterEstatisticas(req, res);
 });
 
-/**
- * GET /:ligaId/participantes
- * Lista participantes da liga
- */
 router.get("/:ligaId/participantes", async (req, res) => {
     await ArtilheiroCampeaoController.listarParticipantes(req, res);
 });
 
-/**
- * POST /:ligaId/consolidar/:rodada
- * ✅ NOVO: Consolida rodada (marca como não-parcial)
- * Chamado quando mercado abre após rodada fechar
- */
+router.get("/:ligaId/time/:timeId", async (req, res) => {
+    await ArtilheiroCampeaoController.getDetalheTime(req, res);
+});
+
+// ========================================
+// ROTAS ADMIN (POST/DELETE - requerem sessão)
+// ========================================
+
 router.post("/:ligaId/consolidar/:rodada", async (req, res) => {
     await ArtilheiroCampeaoController.consolidarRodada(req, res);
 });
 
-/**
- * POST /:ligaId/coletar/:rodada
- * Força coleta de uma rodada específica (recalcula e salva no MongoDB)
- */
 router.post("/:ligaId/coletar/:rodada", async (req, res) => {
     await ArtilheiroCampeaoController.coletarRodada(req, res);
+});
+
+// ✅ v5.2: Endpoint de premiação no extrato financeiro
+router.post("/:ligaId/premiar", async (req, res) => {
+    await ArtilheiroCampeaoController.consolidarPremiacao(req, res);
+});
+
+router.delete("/:ligaId/cache", async (req, res) => {
+    await ArtilheiroCampeaoController.limparCache(req, res);
 });
 
 // ========================================
@@ -69,6 +62,6 @@ router.get("/:ligaId/acumulado", async (req, res) => {
     await ArtilheiroCampeaoController.obterRanking(req, res);
 });
 
-console.log("✅ [ROUTES] Rotas do Artilheiro Campeão v4.0 carregadas!");
+console.log("✅ [ROUTES] Rotas do Artilheiro Campeão v5.2 carregadas!");
 
 export default router;

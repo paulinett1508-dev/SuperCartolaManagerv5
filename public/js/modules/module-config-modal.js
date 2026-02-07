@@ -13,15 +13,17 @@ class ModuleConfigModal {
         this.userAnswers = {};
         this.modalElement = null;
         this.bsModal = null;
+        this.temporada = null; // ✅ v1.1: Temporada selecionada
     }
 
     /**
      * Inicializa modal com dados de um módulo específico
      */
-    async init(ligaId, modulo) {
+    async init(ligaId, modulo, temporada = null) {
         console.log(`[MODULE-CONFIG-MODAL] Inicializando modal - Liga: ${ligaId}, Módulo: ${modulo}`);
         this.ligaId = ligaId;
         this.currentModule = modulo;
+        this.temporada = temporada; // ✅ v1.1: Aceita temporada como parâmetro
 
         try {
             // Buscar wizard do backend
@@ -163,9 +165,15 @@ class ModuleConfigModal {
      * Busca configuração existente
      */
     async fetchConfig(ligaId, modulo) {
-        const response = await fetch(`/api/liga/${ligaId}/modulos/${modulo}`);
+        // ✅ v1.1: Passa temporada se especificada
+        const params = this.temporada ? `?temporada=${this.temporada}` : '';
+        const response = await fetch(`/api/liga/${ligaId}/modulos/${modulo}${params}`);
         if (response.ok) {
             const data = await response.json();
+            // ✅ v1.1: Guardar temporada retornada pelo backend
+            if (data.temporada && !this.temporada) {
+                this.temporada = data.temporada;
+            }
             return data.config || data;
         }
         return null;
@@ -197,14 +205,29 @@ class ModuleConfigModal {
         const titulo = this.wizardData?.titulo || 'Configurar Módulo';
         const descricao = this.wizardData?.descricao || '';
 
+        // ✅ v1.1: Opções de temporada (atual + anterior)
+        const anoAtual = this.temporada || new Date().getFullYear();
+        const anoAnterior = anoAtual - 1;
+        const temporadaSelector = `
+            <div class="d-flex align-items-center gap-2 ms-3">
+                <span class="material-icons" style="font-size: 16px; color: #888;">date_range</span>
+                <select class="form-select form-select-sm bg-gray-700 text-white border-gray-600"
+                        id="selectTemporadaConfig" style="width: auto; min-width: 100px;">
+                    <option value="${anoAtual}" ${this.temporada === anoAtual || !this.temporada ? 'selected' : ''}>${anoAtual}</option>
+                    <option value="${anoAnterior}" ${this.temporada === anoAnterior ? 'selected' : ''}>${anoAnterior}</option>
+                </select>
+            </div>
+        `;
+
         return `
             <div class="modal fade" id="modalConfigModulo" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
                 <div class="modal-dialog modal-xl modal-dialog-scrollable">
                     <div class="modal-content bg-gray-800 text-white">
                         <div class="modal-header border-gray-700">
-                            <h5 class="modal-title">
+                            <h5 class="modal-title d-flex align-items-center">
                                 <span class="material-icons" style="vertical-align: middle;">settings</span>
                                 ${titulo}
+                                ${temporadaSelector}
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
@@ -943,10 +966,14 @@ class ModuleConfigModal {
         btnSalvar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Salvando...';
 
         try {
+            // ✅ v1.1: Envia temporada junto com as respostas
+            const payload = { wizard_respostas: this.userAnswers };
+            if (this.temporada) payload.temporada = this.temporada;
+
             const response = await fetch(`/api/liga/${this.ligaId}/modulos/${this.currentModule}/config`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ wizard_respostas: this.userAnswers })
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();
@@ -984,6 +1011,21 @@ class ModuleConfigModal {
         const btnSalvar = document.getElementById('btnSalvarConfig');
         btnSalvar?.addEventListener('click', () => this.save());
 
+        // ✅ v1.1: Seletor de temporada - recarrega config ao trocar
+        const selectTemporada = document.getElementById('selectTemporadaConfig');
+        selectTemporada?.addEventListener('change', async (e) => {
+            this.temporada = parseInt(e.target.value);
+            const configAtual = await this.fetchConfig(this.ligaId, this.currentModule);
+            this.userAnswers = configAtual?.wizard_respostas || {};
+            // Re-renderizar campos com novos valores
+            const body = this.modalElement.querySelector('.modal-body');
+            if (body) {
+                const descricao = this.wizardData?.descricao || '';
+                body.innerHTML = `${descricao ? `<p class="text-muted mb-4">${descricao}</p>` : ''}${this.renderWizardQuestions()}`;
+                this.bindInputEvents();
+            }
+        });
+
         // Inputs que afetam renderização dinâmica
         const totalParticipantesInput = document.getElementById('input_total_participantes');
         totalParticipantesInput?.addEventListener('change', (e) => {
@@ -1002,6 +1044,13 @@ class ModuleConfigModal {
             this.reRenderDynamicFields();
         });
 
+        this.bindInputEvents();
+    }
+
+    /**
+     * ✅ v1.1: Bind de eventos de inputs (separado para re-binding)
+     */
+    bindInputEvents() {
         // Inputs de valores (para preview)
         this.modalElement.addEventListener('input', (e) => {
             if (e.target.classList.contains('valor-input')) {

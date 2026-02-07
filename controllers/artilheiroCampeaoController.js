@@ -1,4 +1,4 @@
-// controllers/artilheiroCampeaoController.js - VERSÃO 5.0.0 (SaaS DINÂMICO)
+// controllers/artilheiroCampeaoController.js - VERSÃO 5.2.0 (SaaS DINÂMICO)
 // ✅ PERSISTÊNCIA MONGODB + LÓGICA DE RODADA PARCIAL (igual Luva de Ouro)
 // ✅ SUPORTE A PARTICIPANTES INATIVOS - FILTRO INTEGRADO
 // ✅ CORREÇÃO v4.1: Não incluir rodada atual quando mercado aberto (sem scouts válidos)
@@ -6,11 +6,15 @@
 // ✅ CORREÇÃO v4.3: Integração com participanteHelper para filtrar inativos
 // ✅ CORREÇÃO v4.4: COLETA AUTOMÁTICA de rodadas faltantes no MongoDB
 // ✅ v5.0.0: MULTI-TENANT - Busca participantes e configurações do banco (liga.configuracoes)
+// ✅ v5.2.0: Campo temporada no GolsConsolidados, validação de sessão, criterio_ranking,
+//            RODADA_FINAL dinâmico, rate limiting, audit logging, fallback melhorado
 
 import mongoose from "mongoose";
 import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
 import RankingGeralCache from "../models/RankingGeralCache.js";
+import ModuleConfig from "../models/ModuleConfig.js";
+import { CURRENT_SEASON, SEASON_CONFIG } from "../config/seasons.js";
 import {
     buscarStatusParticipantes,
     obterUltimaRodadaValida,
@@ -25,6 +29,7 @@ const GolsConsolidadosSchema = new mongoose.Schema(
         ligaId: { type: String, required: true, index: true },
         timeId: { type: Number, required: true, index: true },
         rodada: { type: Number, required: true, index: true },
+        temporada: { type: Number, required: true, default: CURRENT_SEASON, index: true },
         golsPro: { type: Number, default: 0 },
         golsContra: { type: Number, default: 0 },
         saldo: { type: Number, default: 0 },
@@ -44,8 +49,9 @@ const GolsConsolidadosSchema = new mongoose.Schema(
     },
 );
 
+// ✅ v5.2: Índice inclui temporada para evitar colisão multi-temporada
 GolsConsolidadosSchema.index(
-    { ligaId: 1, timeId: 1, rodada: 1 },
+    { ligaId: 1, timeId: 1, rodada: 1, temporada: 1 },
     { unique: true },
 );
 
@@ -110,6 +116,63 @@ async function getParticipantesLiga(liga) {
         ativo: time.ativo !== false,
     }));
 }
+
+// ========================================
+// ✅ v5.2: RATE LIMITER PARA API CARTOLA
+// ========================================
+const _apiQueue = [];
+let _apiProcessing = false;
+const API_RATE_LIMIT_MS = 200; // 5 req/s
+
+async function fetchCartolaComRateLimit(url) {
+    return new Promise((resolve, reject) => {
+        _apiQueue.push({ url, resolve, reject });
+        _processApiQueue();
+    });
+}
+
+async function _processApiQueue() {
+    if (_apiProcessing || _apiQueue.length === 0) return;
+    _apiProcessing = true;
+
+    while (_apiQueue.length > 0) {
+        const { url, resolve, reject } = _apiQueue.shift();
+        try {
+            const response = await fetch(url);
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+        if (_apiQueue.length > 0) {
+            await new Promise(r => setTimeout(r, API_RATE_LIMIT_MS));
+        }
+    }
+
+    _apiProcessing = false;
+}
+
+// ========================================
+// ✅ v5.2: AUDIT LOG HELPER
+// ========================================
+async function registrarAuditLog(db, { acao, ligaId, usuario, detalhes }) {
+    try {
+        const collection = db.collection('artilheiro_audit_log');
+        await collection.insertOne({
+            acao,
+            ligaId,
+            usuario: usuario || 'sistema',
+            detalhes,
+            timestamp: new Date(),
+        });
+    } catch (error) {
+        console.warn(`⚠️ [AUDIT] Erro ao registrar log:`, error.message);
+    }
+}
+
+// ========================================
+// ✅ v5.2: ÚLTIMO STATUS CONHECIDO DO MERCADO (FALLBACK)
+// ========================================
+let _ultimoStatusMercado = null;
 
 // ========================================
 // ESCUDOS DOS CLUBES
@@ -186,6 +249,17 @@ class ArtilheiroCampeaoController {
 
             console.log(`[ARTILHEIRO] Liga "${liga.nome}" - ${participantes.length} participantes`);
 
+            // ✅ v5.2: Buscar criterio_ranking do ModuleConfig
+            let criterioRanking = 'saldo_gols';
+            try {
+                const moduleConfig = await ModuleConfig.buscarConfig(ligaId, 'artilheiro', CURRENT_SEASON);
+                if (moduleConfig?.wizard_respostas?.criterio_ranking) {
+                    criterioRanking = moduleConfig.wizard_respostas.criterio_ranking;
+                }
+            } catch (e) {
+                console.warn(`[ARTILHEIRO] Erro ao buscar criterio_ranking:`, e.message);
+            }
+
             const rodadaInicio = inicio ? parseInt(inicio) : 1;
 
             // ✅ v4.4: Detectar status do mercado COM temporada encerrada
@@ -196,22 +270,23 @@ class ArtilheiroCampeaoController {
             const temporadaEncerrada = statusMercado.temporadaEncerrada;
             const rodadaEmAndamento = statusMercado.rodadaEmAndamento;
 
+            // ✅ v5.2: RODADA_FINAL dinâmico (de seasons.js, não hardcoded)
+            const RODADA_FINAL = statusMercado.rodadaTotal || SEASON_CONFIG.rodadaFinal || 38;
+
             // ✅ v4.5: LÓGICA CORRETA DE RODADA FIM
             let rodadaFim;
             if (fim) {
                 rodadaFim = parseInt(fim);
-                // ✅ v4.5: Se temporada encerrada (R38), não subtrair
-                if (mercadoAberto && rodadaFim >= rodadaAtual && rodadaAtual < 38) {
+                if (mercadoAberto && rodadaFim >= rodadaAtual && rodadaAtual < RODADA_FINAL) {
                     rodadaFim = rodadaAtual - 1;
                     console.log(
                         `⚠️ Corrigido: fim=${fim} → ${rodadaFim} (mercado aberto, sem scouts)`,
                     );
                 }
             } else {
-                // ✅ v4.5: Se rodada >= 38, sempre usar 38 (temporada encerrada)
-                if (rodadaAtual >= 38) {
-                    rodadaFim = 38;
-                    console.log(`🏁 Temporada encerrada - usando R38`);
+                if (rodadaAtual >= RODADA_FINAL) {
+                    rodadaFim = RODADA_FINAL;
+                    console.log(`🏁 Temporada encerrada - usando R${RODADA_FINAL}`);
                 } else if (mercadoAberto) {
                     rodadaFim = rodadaAtual - 1;
                 } else {
@@ -224,7 +299,7 @@ class ArtilheiroCampeaoController {
             }
 
             console.log(
-                `📊 Rodada ${rodadaInicio}-${rodadaFim}, Mercado: ${mercadoAberto ? "Aberto" : "Fechado"}, Temporada: ${temporadaEncerrada ? "ENCERRADA" : "ATIVA"}, Rodada API: ${rodadaAtual}`,
+                `📊 Rodada ${rodadaInicio}-${rodadaFim}, Mercado: ${mercadoAberto ? "Aberto" : "Fechado"}, Temporada: ${temporadaEncerrada ? "ENCERRADA" : "ATIVA"}, Rodada API: ${rodadaAtual}, Critério: ${criterioRanking}`,
             );
 
             // ✅ v5.0: Gerar ranking - só busca parciais se rodada em andamento
@@ -232,9 +307,10 @@ class ArtilheiroCampeaoController {
                 ligaId,
                 rodadaInicio,
                 rodadaFim,
-                !rodadaEmAndamento, // Se NÃO está em andamento, considera como "mercado aberto" (não busca parciais)
+                !rodadaEmAndamento,
                 forcar_coleta === "true",
-                participantes, // ✅ v5.0: Passa participantes dinamicamente
+                participantes,
+                criterioRanking, // ✅ v5.2: Passa critério configurado
             );
 
             // Calcular estatísticas (apenas ativos)
@@ -287,35 +363,56 @@ class ArtilheiroCampeaoController {
 
             const data = await response.json();
 
-            // ✅ v4.4: Detectar temporada encerrada
-            // status_mercado: 1 = aberto, 2 = fechado (em andamento), 6 = temporada encerrada
             const statusMercado = data.status_mercado;
             const temporadaEncerrada =
                 statusMercado === 6 || statusMercado === 4;
             const mercadoAberto = statusMercado === 1;
-
-            // Se temporada encerrada, considerar como consolidado (não parcial)
             const rodadaEmAndamento = !mercadoAberto && !temporadaEncerrada;
 
             console.log(
                 `📊 [MERCADO] Status: ${statusMercado}, Rodada: ${data.rodada_atual}, Temporada: ${temporadaEncerrada ? "ENCERRADA" : "ATIVA"}`,
             );
 
-            return {
+            const resultado = {
                 rodadaAtual: data.rodada_atual || 1,
+                rodadaTotal: data.rodada_total || SEASON_CONFIG.rodadaFinal || 38,
                 mercadoAberto: mercadoAberto,
                 temporadaEncerrada: temporadaEncerrada,
                 rodadaEmAndamento: rodadaEmAndamento,
                 statusMercado: statusMercado,
             };
+
+            // ✅ v5.2: Salvar último status conhecido para fallback
+            _ultimoStatusMercado = { ...resultado, timestamp: Date.now() };
+
+            return resultado;
         } catch (error) {
             console.warn("⚠️ Erro ao detectar mercado:", error.message);
+
+            // ✅ v5.2: Usar último status conhecido em vez de assumir encerrada
+            if (_ultimoStatusMercado && (Date.now() - _ultimoStatusMercado.timestamp) < 30 * 60 * 1000) {
+                console.log(`📊 [MERCADO] Usando último status conhecido (${Math.round((Date.now() - _ultimoStatusMercado.timestamp) / 1000)}s atrás)`);
+                return {
+                    rodadaAtual: _ultimoStatusMercado.rodadaAtual,
+                    rodadaTotal: _ultimoStatusMercado.rodadaTotal,
+                    mercadoAberto: _ultimoStatusMercado.mercadoAberto,
+                    temporadaEncerrada: _ultimoStatusMercado.temporadaEncerrada,
+                    rodadaEmAndamento: _ultimoStatusMercado.rodadaEmAndamento,
+                    statusMercado: _ultimoStatusMercado.statusMercado,
+                    fallback: true,
+                };
+            }
+
+            // Sem status conhecido - usar valores seguros (mercado aberto = não processa parciais)
+            console.warn("⚠️ [MERCADO] Sem status conhecido - usando fallback conservador (mercado aberto)");
             return {
-                rodadaAtual: 38,
-                mercadoAberto: false,
-                temporadaEncerrada: true, // Assume encerrada em caso de erro
+                rodadaAtual: SEASON_CONFIG.rodadaFinal || 38,
+                rodadaTotal: SEASON_CONFIG.rodadaFinal || 38,
+                mercadoAberto: true,
+                temporadaEncerrada: false,
                 rodadaEmAndamento: false,
-                statusMercado: 6,
+                statusMercado: 1,
+                fallback: true,
             };
         }
     }
@@ -357,7 +454,8 @@ class ArtilheiroCampeaoController {
         rodadaFim,
         mercadoAberto,
         forcarColeta,
-        participantes, // ✅ v5.0: Recebe participantes dinamicamente
+        participantes,
+        criterioRanking = 'saldo_gols', // ✅ v5.2: Critério configurável
     ) {
         console.log(
             `🔄 Processando ${participantes.length} participantes em PARALELO...`,
@@ -486,13 +584,17 @@ class ArtilheiroCampeaoController {
             p.posicaoRankingGeral = posicaoRankingMap[String(p.timeId)] || 999;
         });
 
-        // ✅ v5.1: Ordenar com 3 critérios: 1) Saldo de Gols, 2) Gols Pró, 3) Ranking Geral
+        // ✅ v5.2: Ordenação respeita criterio_ranking configurado no wizard
         const sortFn = (a, b) => {
-            // 1º critério: Saldo de gols (maior primeiro)
+            if (criterioRanking === 'gols_pro') {
+                // Critério "Apenas Gols Marcados": 1) GP, 2) Saldo, 3) Ranking Geral
+                if (b.golsPro !== a.golsPro) return b.golsPro - a.golsPro;
+                if (b.saldoGols !== a.saldoGols) return b.saldoGols - a.saldoGols;
+                return a.posicaoRankingGeral - b.posicaoRankingGeral;
+            }
+            // Default "saldo_gols": 1) Saldo, 2) GP, 3) Ranking Geral
             if (b.saldoGols !== a.saldoGols) return b.saldoGols - a.saldoGols;
-            // 2º critério: Gols Pró (maior primeiro)
             if (b.golsPro !== a.golsPro) return b.golsPro - a.golsPro;
-            // 3º critério: Ranking Geral (menor posição = melhor)
             return a.posicaoRankingGeral - b.posicaoRankingGeral;
         };
 
@@ -516,10 +618,11 @@ class ArtilheiroCampeaoController {
         let rodadasProcessadas = 0;
         const detalhePorRodada = [];
 
-        // ✅ v4.4: Buscar rodadas existentes no MongoDB
+        // ✅ v5.2: Buscar rodadas existentes no MongoDB COM filtro de temporada
         const rodadasDB = await GolsConsolidados.find({
             ligaId: ligaId,
             timeId: timeId,
+            temporada: CURRENT_SEASON,
             rodada: { $gte: rodadaInicio, $lte: rodadaFim },
         }).lean();
 
@@ -637,7 +740,8 @@ class ArtilheiroCampeaoController {
      */
     static async buscarAtletasPontuados() {
         try {
-            const response = await fetch(
+            // ✅ v5.2: Usa rate limiter
+            const response = await fetchCartolaComRateLimit(
                 "https://api.cartola.globo.com/atletas/pontuados",
             );
             if (!response.ok) return {};
@@ -655,7 +759,8 @@ class ArtilheiroCampeaoController {
      */
     static async calcularGolsRodadaParcial(timeId, rodada, atletasPontuados) {
         try {
-            const response = await fetch(
+            // ✅ v5.2: Usa rate limiter
+            const response = await fetchCartolaComRateLimit(
                 `https://api.cartola.globo.com/time/id/${timeId}/${rodada}`,
             );
             if (!response.ok) return null;
@@ -704,14 +809,19 @@ class ArtilheiroCampeaoController {
      */
     static async coletarRodada(req, res) {
         try {
+            // ✅ v5.2: Validação de sessão admin
+            if (!req.session?.usuario) {
+                return res.status(401).json({ success: false, error: "Não autorizado" });
+            }
+
             const { ligaId, rodada } = req.params;
             const rodadaNum = parseInt(rodada);
+            const usuario = req.session.usuario.email || req.session.usuario.nome || 'admin';
 
             console.log(
-                `🔄 [ARTILHEIRO] Coletando rodada ${rodadaNum} para liga ${ligaId}...`,
+                `🔄 [ARTILHEIRO] Coletando rodada ${rodadaNum} para liga ${ligaId} por ${usuario}...`,
             );
 
-            // ✅ v5.0: Validar liga e buscar participantes
             const { valid, liga, error } = await validarLigaArtilheiro(ligaId);
             if (!valid) {
                 return res.status(liga ? 400 : 404).json({ success: false, error });
@@ -750,6 +860,17 @@ class ArtilheiroCampeaoController {
                 }
             }
 
+            // ✅ v5.2: Audit log
+            setImmediate(async () => {
+                const db = mongoose.connection.db;
+                await registrarAuditLog(db, {
+                    acao: 'coletar_rodada',
+                    ligaId,
+                    usuario,
+                    detalhes: { rodada: rodadaNum, participantes: resultados.length },
+                });
+            });
+
             res.json({
                 success: true,
                 rodada: rodadaNum,
@@ -768,7 +889,8 @@ class ArtilheiroCampeaoController {
      */
     static async coletarDadosRodada(ligaId, timeId, rodada) {
         try {
-            const response = await fetch(
+            // ✅ v5.2: Usa rate limiter para API Cartola
+            const response = await fetchCartolaComRateLimit(
                 `https://api.cartola.globo.com/time/id/${timeId}/${rodada}`,
             );
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -797,12 +919,14 @@ class ArtilheiroCampeaoController {
                 }
             }
 
+            // ✅ v5.2: Inclui temporada no upsert
             await GolsConsolidados.findOneAndUpdate(
-                { ligaId, timeId, rodada },
+                { ligaId, timeId, rodada, temporada: CURRENT_SEASON },
                 {
                     ligaId,
                     timeId,
                     rodada,
+                    temporada: CURRENT_SEASON,
                     golsPro,
                     golsContra,
                     saldo: golsPro - golsContra,
@@ -825,9 +949,26 @@ class ArtilheiroCampeaoController {
      */
     static async limparCache(req, res) {
         try {
-            const { ligaId } = req.params;
+            // ✅ v5.2: Validação de sessão admin
+            if (!req.session?.usuario) {
+                return res.status(401).json({ success: false, error: "Não autorizado" });
+            }
 
-            const result = await GolsConsolidados.deleteMany({ ligaId });
+            const { ligaId } = req.params;
+            const usuario = req.session.usuario.email || req.session.usuario.nome || 'admin';
+
+            const result = await GolsConsolidados.deleteMany({ ligaId, temporada: CURRENT_SEASON });
+
+            // ✅ v5.2: Audit log
+            setImmediate(async () => {
+                const db = mongoose.connection.db;
+                await registrarAuditLog(db, {
+                    acao: 'limpar_cache',
+                    ligaId,
+                    usuario,
+                    detalhes: { registrosRemovidos: result.deletedCount },
+                });
+            });
 
             res.json({
                 success: true,
@@ -852,6 +993,7 @@ class ArtilheiroCampeaoController {
             const rodadas = await GolsConsolidados.find({
                 ligaId,
                 timeId: parseInt(timeId),
+                temporada: CURRENT_SEASON,
             })
                 .sort({ rodada: 1 })
                 .lean();
@@ -888,16 +1030,33 @@ class ArtilheiroCampeaoController {
      */
     static async consolidarRodada(req, res) {
         try {
-            const { ligaId, rodada } = req.params;
+            // ✅ v5.2: Validação de sessão admin
+            if (!req.session?.usuario) {
+                return res.status(401).json({ success: false, error: "Não autorizado" });
+            }
 
-            console.log(`🔒 [ARTILHEIRO] Consolidando rodada ${rodada}...`);
+            const { ligaId, rodada } = req.params;
+            const usuario = req.session.usuario.email || req.session.usuario.nome || 'admin';
+
+            console.log(`🔒 [ARTILHEIRO] Consolidando rodada ${rodada} por ${usuario}...`);
 
             const result = await GolsConsolidados.updateMany(
-                { ligaId, rodada: parseInt(rodada), parcial: true },
+                { ligaId, rodada: parseInt(rodada), temporada: CURRENT_SEASON, parcial: true },
                 { $set: { parcial: false } },
             );
 
             console.log(`✅ ${result.modifiedCount} registros consolidados`);
+
+            // ✅ v5.2: Audit log
+            setImmediate(async () => {
+                const db = mongoose.connection.db;
+                await registrarAuditLog(db, {
+                    acao: 'consolidar_rodada',
+                    ligaId,
+                    usuario,
+                    detalhes: { rodada: parseInt(rodada), registrosAtualizados: result.modifiedCount },
+                });
+            });
 
             res.json({
                 success: true,
@@ -929,19 +1088,18 @@ class ArtilheiroCampeaoController {
 
             const participantes = await getParticipantesLiga(liga);
 
-            const totalRegistros = await GolsConsolidados.countDocuments({
-                ligaId,
-            });
+            const filtroBase = { ligaId, temporada: CURRENT_SEASON };
+            const totalRegistros = await GolsConsolidados.countDocuments(filtroBase);
             const registrosConsolidados = await GolsConsolidados.countDocuments(
-                { ligaId, parcial: false },
+                { ...filtroBase, parcial: false },
             );
             const registrosParciais = await GolsConsolidados.countDocuments({
-                ligaId,
+                ...filtroBase,
                 parcial: true,
             });
             const rodadasDisponiveis = await GolsConsolidados.distinct(
                 "rodada",
-                { ligaId },
+                filtroBase,
             );
 
             res.json({
@@ -1007,8 +1165,131 @@ class ArtilheiroCampeaoController {
             });
         }
     }
+
+    /**
+     * ✅ v5.2: Consolidar premiação no extrato financeiro
+     * POST /api/artilheiro-campeao/:ligaId/premiar
+     */
+    static async consolidarPremiacao(req, res) {
+        try {
+            // Validação de sessão admin
+            if (!req.session?.usuario) {
+                return res.status(401).json({ success: false, error: "Não autorizado" });
+            }
+
+            const { ligaId } = req.params;
+            const usuario = req.session.usuario.email || req.session.usuario.nome || 'admin';
+
+            console.log(`🏆 [ARTILHEIRO] Consolidando premiação para liga ${ligaId} por ${usuario}...`);
+
+            // Validar liga
+            const { valid, liga, error } = await validarLigaArtilheiro(ligaId);
+            if (!valid) {
+                return res.status(liga ? 400 : 404).json({ success: false, error });
+            }
+
+            // Buscar configuração de premiação do ModuleConfig
+            let premios = { 1: 30, 2: 20, 3: 10 }; // defaults
+            try {
+                const moduleConfig = await ModuleConfig.buscarConfig(ligaId, 'artilheiro', CURRENT_SEASON);
+                if (moduleConfig?.wizard_respostas) {
+                    const wr = moduleConfig.wizard_respostas;
+                    if (wr.valor_campeao !== undefined) premios[1] = Number(wr.valor_campeao) || 0;
+                    if (wr.valor_vice !== undefined) premios[2] = Number(wr.valor_vice) || 0;
+                    if (wr.valor_terceiro !== undefined) premios[3] = Number(wr.valor_terceiro) || 0;
+                }
+            } catch (e) {
+                console.warn(`[ARTILHEIRO] Usando premiação default:`, e.message);
+            }
+
+            // Gerar ranking atual
+            const participantes = await getParticipantesLiga(liga);
+            if (participantes.length === 0) {
+                return res.status(400).json({ success: false, error: "Sem participantes" });
+            }
+
+            const statusMercado = await ArtilheiroCampeaoController.detectarStatusMercado();
+            const RODADA_FINAL = statusMercado.rodadaTotal || SEASON_CONFIG.rodadaFinal || 38;
+
+            let criterioRanking = 'saldo_gols';
+            try {
+                const mc = await ModuleConfig.buscarConfig(ligaId, 'artilheiro', CURRENT_SEASON);
+                if (mc?.wizard_respostas?.criterio_ranking) criterioRanking = mc.wizard_respostas.criterio_ranking;
+            } catch (_) {}
+
+            const ranking = await ArtilheiroCampeaoController.gerarRanking(
+                ligaId, 1, RODADA_FINAL, true, false, participantes, criterioRanking,
+            );
+
+            // Filtrar apenas ativos
+            const ativos = ranking.filter(p => p.ativo !== false);
+
+            // Verificar idempotência - não premiar duas vezes
+            const db = mongoose.connection.db;
+            const acertosCollection = db.collection('acertofinanceiros');
+            const jaPremiou = await acertosCollection.findOne({
+                ligaId,
+                temporada: CURRENT_SEASON,
+                tipo: 'ARTILHEIRO_PREMIACAO',
+                ativo: true,
+            });
+
+            if (jaPremiou) {
+                return res.status(409).json({
+                    success: false,
+                    error: "Premiação já foi consolidada para esta temporada",
+                    premiacaoExistente: jaPremiou._id,
+                });
+            }
+
+            // Gerar registros de premiação
+            const lancamentos = [];
+            for (let posicao = 1; posicao <= 3; posicao++) {
+                const premiado = ativos[posicao - 1];
+                const valor = premios[posicao];
+                if (!premiado || !valor) continue;
+
+                const lancamento = {
+                    ligaId,
+                    timeId: String(premiado.timeId),
+                    temporada: CURRENT_SEASON,
+                    tipo: 'ARTILHEIRO_PREMIACAO',
+                    subtipo: `${posicao}o_lugar`,
+                    valor: valor,
+                    descricao: `Artilheiro Campeão - ${posicao}º lugar (${premiado.nome})`,
+                    ativo: true,
+                    createdAt: new Date(),
+                    registradoPor: usuario,
+                };
+
+                await acertosCollection.insertOne(lancamento);
+                lancamentos.push({ posicao, timeId: premiado.timeId, nome: premiado.nome, valor });
+            }
+
+            // Audit log
+            setImmediate(async () => {
+                await registrarAuditLog(db, {
+                    acao: 'consolidar_premiacao',
+                    ligaId,
+                    usuario,
+                    detalhes: { lancamentos, premios },
+                });
+            });
+
+            console.log(`🏆 [ARTILHEIRO] ${lancamentos.length} premiações registradas`);
+
+            res.json({
+                success: true,
+                message: `${lancamentos.length} premiações registradas`,
+                lancamentos,
+            });
+        } catch (error) {
+            console.error("❌ [ARTILHEIRO] Erro ao consolidar premiação:", error);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    }
 }
 
-console.log("[ARTILHEIRO-CAMPEAO] ✅ v5.0.0 carregado (SaaS Dinâmico)");
+console.log("[ARTILHEIRO-CAMPEAO] ✅ v5.2.0 carregado (SaaS Dinâmico + Auditoria)");
 
 export default ArtilheiroCampeaoController;

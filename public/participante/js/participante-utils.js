@@ -76,8 +76,63 @@ function formatarPontos(valor) {
     });
 }
 
+/**
+ * Calcula a última rodada efetivamente disputada baseado no status do mercado
+ *
+ * IMPORTANTE: A rodada_atual do Cartola representa a PRÓXIMA rodada quando
+ * o mercado está aberto, não a última disputada.
+ *
+ * @param {number} rodadaMercado - Rodada atual retornada pela API do Cartola
+ * @param {number|string} statusMercado - Status do mercado (1=aberto, 2=fechado, etc)
+ * @returns {number} Última rodada com dados de escalação/pontuação disponíveis
+ *
+ * Lógica:
+ * - status_mercado = 1 (ABERTO): Jogos ainda não começaram, última disputada = rodada - 1
+ * - status_mercado = 2 (FECHADO): Jogos em andamento ou finalizados, usa rodada atual
+ * - status_mercado = 3 (DESBLOQUEADO): Mercado reaberto, mesma lógica de aberto
+ * - status_mercado = 4 (ENCERRADO): Rodada consolidada, usa rodada atual
+ * - status_mercado = 6 (TEMPORADA_ENCERRADA): Usa rodada atual (última do campeonato)
+ */
+function obterUltimaRodadaDisputada(rodadaMercado, statusMercado) {
+    const rodada = parseInt(rodadaMercado) || 1;
+    const status = parseInt(statusMercado) || 1;
+
+    // Mercado aberto (1) ou desbloqueado (3) = jogos ainda não começaram
+    // A rodada_atual é a PRÓXIMA a ser disputada
+    if (status === 1 || status === 3) {
+        return Math.max(1, rodada - 1);
+    }
+
+    // Mercado fechado (2), encerrado (4) ou temporada encerrada (6)
+    // A rodada atual está em andamento ou já foi disputada
+    return rodada;
+}
+
+/**
+ * Verifica se o mercado está aberto (aceitando escalações)
+ * @param {number|string} statusMercado - Status do mercado
+ * @returns {boolean} true se mercado está aberto
+ */
+function isMercadoAberto(statusMercado) {
+    const status = parseInt(statusMercado) || 0;
+    return status === 1 || status === 3; // ABERTO ou DESBLOQUEADO
+}
+
+/**
+ * Verifica se há jogos em andamento (parciais disponíveis)
+ * @param {number|string} statusMercado - Status do mercado
+ * @returns {boolean} true se jogos estão rolando
+ */
+function isJogosEmAndamento(statusMercado) {
+    const status = parseInt(statusMercado) || 0;
+    return status === 2; // FECHADO = jogos em andamento
+}
+
 // Disponibilizar globalmente
 window.formatarMoedaBR = formatarMoedaBR;
 window.parseMoedaBR = parseMoedaBR;
 window.truncarPontos = truncarPontos;
 window.formatarPontos = formatarPontos;
+window.obterUltimaRodadaDisputada = obterUltimaRodadaDisputada;
+window.isMercadoAberto = isMercadoAberto;
+window.isJogosEmAndamento = isJogosEmAndamento;
