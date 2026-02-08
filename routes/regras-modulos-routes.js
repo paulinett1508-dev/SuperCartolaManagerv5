@@ -227,19 +227,27 @@ router.get('/:ligaId', async (req, res) => {
             return res.status(400).json({ sucesso: false, erro: 'Liga ID inválido' });
         }
 
-        let regras = await RegraModulo.find({ liga_id: ligaId, ativo: true })
+        const includeInactive = req.query.includeInactive === 'true';
+        const filter = includeInactive
+            ? { liga_id: ligaId }
+            : { liga_id: ligaId, ativo: true };
+
+        let regras = await RegraModulo.find(filter)
             .sort({ ordem: 1 })
             .lean();
 
-        // Se não há regras para essa liga, retornar defaults
-        if (!regras || regras.length === 0) {
-            regras = MODULOS_DEFAULT.map(m => ({
+        // Merge: completar com defaults faltantes
+        const modulosSalvos = new Set(regras.map(r => r.modulo));
+        const faltantes = MODULOS_DEFAULT
+            .filter(m => !modulosSalvos.has(m.modulo))
+            .map(m => ({
                 ...m,
                 liga_id: ligaId,
                 ativo: true,
                 _isDefault: true
             }));
-        }
+
+        regras = [...regras, ...faltantes].sort((a, b) => (a.ordem ?? 99) - (b.ordem ?? 99));
 
         res.json({ sucesso: true, regras });
     } catch (error) {
@@ -327,19 +335,23 @@ router.post('/:ligaId/seed', async (req, res) => {
             return res.status(400).json({ sucesso: false, erro: 'Liga ID inválido' });
         }
 
-        const existentes = await RegraModulo.countDocuments({ liga_id: ligaId });
-        if (existentes > 0) {
-            return res.json({ sucesso: true, mensagem: 'Regras já existem', total: existentes });
+        const existentes = await RegraModulo.find({ liga_id: ligaId }).lean();
+        const modulosExistentes = existentes.map(r => r.modulo);
+
+        const faltantes = MODULOS_DEFAULT.filter(m => !modulosExistentes.includes(m.modulo));
+
+        if (faltantes.length === 0) {
+            return res.json({ sucesso: true, mensagem: 'Todas as regras já existem', total: existentes.length });
         }
 
-        const regras = MODULOS_DEFAULT.map(m => ({
+        const regras = faltantes.map(m => ({
             ...m,
             liga_id: ligaId
         }));
 
         await RegraModulo.insertMany(regras);
 
-        res.json({ sucesso: true, mensagem: 'Regras padrão criadas', total: regras.length });
+        res.json({ sucesso: true, mensagem: `${regras.length} regras criadas (${existentes.length} já existiam)`, total: existentes.length + regras.length });
     } catch (error) {
         console.error('[REGRAS-MODULOS] Erro ao seed:', error);
         res.status(500).json({ sucesso: false, erro: 'Erro interno' });
