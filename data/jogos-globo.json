@@ -394,33 +394,6 @@
     ]
   },
   {
-    "id": 348247,
-    "mandante": "Ceará",
-    "visitante": "Fortaleza",
-    "logoMandante": "https://s.sde.globo.com/media/organizations/2019/10/10/ceara-30x30.png",
-    "logoVisitante": "https://s.sde.globo.com/media/organizations/2021/09/19/30_0000_Fortaleza-2021.png",
-    "golsMandante": 0,
-    "golsVisitante": 0,
-    "placar": "0 x 0",
-    "placarHT": null,
-    "tempo": "",
-    "tempoExtra": null,
-    "status": "Ao vivo",
-    "statusRaw": "LIVE",
-    "liga": "Campeonato Cearense",
-    "ligaId": null,
-    "ligaOriginal": "Campeonato Cearense",
-    "ligaLogo": null,
-    "estadio": "Castelão (CE)",
-    "cidade": null,
-    "horario": "18:00",
-    "timestamp": 1770584400000,
-    "fonte": "globo",
-    "transmissao": [
-      "Globo"
-    ]
-  },
-  {
     "id": 347014,
     "mandante": "Treze",
     "visitante": "Campinense",
@@ -1748,5 +1721,32 @@
     "timestamp": 1770580800000,
     "fonte": "globo",
     "transmissao": []
+  },
+  {
+    "id": 348247,
+    "mandante": "Ceará",
+    "visitante": "Fortaleza",
+    "logoMandante": "https://s.sde.globo.com/media/organizations/2019/10/10/ceara-30x30.png",
+    "logoVisitante": "https://s.sde.globo.com/media/organizations/2021/09/19/30_0000_Fortaleza-2021.png",
+    "golsMandante": 0,
+    "golsVisitante": 0,
+    "placar": "0 x 0",
+    "placarHT": null,
+    "tempo": "",
+    "tempoExtra": null,
+    "status": "Encerrado",
+    "statusRaw": "FT",
+    "liga": "Campeonato Cearense",
+    "ligaId": null,
+    "ligaOriginal": "Campeonato Cearense",
+    "ligaLogo": null,
+    "estadio": "Castelão (CE)",
+    "cidade": null,
+    "horario": "18:00",
+    "timestamp": 1770584400000,
+    "fonte": "globo",
+    "transmissao": [
+      "Globo"
+    ]
   }
 ]

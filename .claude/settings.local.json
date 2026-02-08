@@ -100,7 +100,12 @@
       "Skill(fact-checker)",
       "Bash(git remote get-url:*)",
       "Bash(do node --check:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(do)",
+      "Bash(file=\"/home/runner/workspace/public/participante/js/modules/participante-$module.js\")",
+      "Bash(if [ -f \"$file\" ])",
+      "Bash(then)",
+      "Bash(fi)"
     ]
   },
   "enableAllProjectMcpServers": true,
