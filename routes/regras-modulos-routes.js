@@ -213,6 +213,93 @@ const MODULOS_DEFAULT = [
 <li>A taxa pode ser parcelada (se o admin permitir)</li>
 </ul>
 <p><em>Fique atento ao prazo! Quem não renovar a tempo pode perder a vaga.</em></p>`
+    },
+    {
+        modulo: 'bolao_copa_mundo',
+        titulo: 'Bolão da Copa do Mundo',
+        icone: 'public',
+        cor: '#eab308',
+        ordem: 12,
+        conteudo_html: `<h3>🌍 Como funciona o Bolão da Copa do Mundo?</h3>
+<p>Em ano de Copa do Mundo, a liga ganha um módulo especial de <strong>palpites</strong>!</p>
+<h4>Mecânica:</h4>
+<ul>
+<li>Antes de cada jogo, você dá seu <strong>palpite no placar</strong></li>
+<li>Acertou o placar exato? Pontuação máxima!</li>
+<li>Acertou o resultado (vitória/empate/derrota)? Pontuação parcial</li>
+<li>Errou tudo? Zero pontos naquele jogo</li>
+</ul>
+<p>Quem acumular mais pontos ao longo da Copa é o <strong>campeão do Bolão</strong> e leva o prêmio!</p>
+<p><em>Módulo especial — ativado apenas em anos de Copa do Mundo.</em></p>`
+    },
+    {
+        modulo: 'bolao_libertadores',
+        titulo: 'Bolão da Libertadores',
+        icone: 'emoji_events',
+        cor: '#f59e0b',
+        ordem: 13,
+        conteudo_html: `<h3>🏆 Como funciona o Bolão da Libertadores?</h3>
+<p>Acompanhe a Libertadores com palpites e disputas entre os participantes da liga!</p>
+<h4>Mecânica:</h4>
+<ul>
+<li>Dê seus <strong>palpites nos jogos</strong> das fases eliminatórias</li>
+<li>Placar exato vale mais pontos que acertar só o resultado</li>
+<li>Fases mais avançadas (quartas, semi, final) valem <strong>pontuação dobrada</strong></li>
+</ul>
+<p>O ranking é pela soma de pontos de todos os palpites. O campeão do Bolão leva o prêmio!</p>
+<p><em>A emoção da Libertadores dentro da sua liga!</em></p>`
+    },
+    {
+        modulo: 'copa_mundo_sc',
+        titulo: 'Copa do Mundo do Super Cartola',
+        icone: 'stadium',
+        cor: '#14b8a6',
+        ordem: 14,
+        conteudo_html: `<h3>🏟️ Como funciona a Copa do Mundo do Super Cartola?</h3>
+<p>Um torneio especial inspirado no formato da Copa do Mundo FIFA, mas disputado entre os participantes da liga!</p>
+<h4>Formato:</h4>
+<ul>
+<li><strong>Fase de Grupos</strong>: Participantes divididos em grupos, todos se enfrentam</li>
+<li><strong>Oitavas, Quartas, Semi e Final</strong>: Eliminação direta baseada na pontuação do Cartola</li>
+<li>Confrontos definidos pelo chaveamento clássico (1º do Grupo A vs 2º do Grupo B)</li>
+</ul>
+<p>O campeão da Copa do Mundo do Super Cartola ganha o troféu máximo e o maior prêmio!</p>
+<p><em>O torneio mais épico da temporada!</em></p>`
+    },
+    {
+        modulo: 'resta_um',
+        titulo: 'Resta Um',
+        icone: 'person_off',
+        cor: '#f43f5e',
+        ordem: 15,
+        conteudo_html: `<h3>🎯 Como funciona o Resta Um?</h3>
+<p>Uma competição de sobrevivência! A cada rodada, o <strong>pior colocado é eliminado</strong> até restar apenas um.</p>
+<h4>Regras:</h4>
+<ul>
+<li>Todos começam participando</li>
+<li>A cada rodada, quem fizer a <strong>menor pontuação</strong> entre os sobreviventes é eliminado</li>
+<li>Eliminações se acumulam até restar o campeão</li>
+<li>Em caso de empate na pior pontuação, critérios de desempate se aplicam</li>
+</ul>
+<p>O último sobrevivente é o <strong>campeão do Resta Um</strong> e leva o prêmio!</p>
+<p><em>Cada rodada é uma final. Não dá pra relaxar nunca!</em></p>`
+    },
+    {
+        modulo: 'tiro_certo',
+        titulo: 'Tiro Certo',
+        icone: 'ads_click',
+        cor: '#6366f1',
+        ordem: 16,
+        conteudo_html: `<h3>🎯 Como funciona o Tiro Certo?</h3>
+<p>Aqui a estratégia é diferente! Antes de cada rodada, você define uma <strong>meta de pontuação</strong> para o seu time.</p>
+<h4>Como pontua:</h4>
+<ul>
+<li>Quanto <strong>mais perto da meta</strong> você chegar, mais pontos ganha</li>
+<li>Acertou a meta exata (ou muito próximo)? Pontuação máxima!</li>
+<li>Passou muito ou ficou muito abaixo? Pontuação menor</li>
+</ul>
+<p>O ranking é pela soma dos pontos de precisão ao longo da temporada.</p>
+<p><em>Não basta pontuar alto — tem que saber prever o próprio desempenho!</em></p>`
     }
 ];
 
