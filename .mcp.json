@@ -18,12 +18,6 @@
       "env": {
         "NODE_ENV": "production"
       }
-    },
-    "daisyui": {
-      "command": "python",
-      "args": ["/tmp/daisyui-mcp/mcp_server.py"],
-      "disabled": true,
-      "note": "Requires running 'python update_components.py' first. Currently disabled due to network restrictions in Replit environment."
     }
   }
 }
