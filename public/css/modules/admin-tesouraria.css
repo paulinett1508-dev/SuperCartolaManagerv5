@@ -1,0 +1,1066 @@
+/* ========================================
+   ADMIN TESOURARIA v3.0 - Redesign
+   ========================================
+   Extraído de _injectStyles() + novas features:
+   - Search bar com busca em tempo real
+   - Sort buttons (Nome, Saldo)
+   - Detail panel slide-up (substitui toast)
+   - Expandable rows inline
+   - CSV export button
+   ======================================== */
+
+/* ========================================
+   BASE MODULE
+   ======================================== */
+
+.tesouraria-module {
+    background: var(--surface-bg);
+    min-height: 100%;
+    padding: var(--space-6);
+    font-family: var(--font-family-base);
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+
+.tesouraria-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-6);
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.tesouraria-header .header-info h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+}
+
+.tesouraria-header .header-info h2 .material-icons {
+    font-size: 32px;
+    color: var(--color-primary);
+}
+
+.tesouraria-header .header-info p {
+    color: var(--text-muted);
+    font-size: var(--font-size-md);
+    margin: 0;
+}
+
+.tesouraria-header .header-actions {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+.tesouraria-module .btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--surface-card);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.tesouraria-module .btn-icon:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.tesouraria-module .btn-secondary-dark {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--surface-card);
+    color: var(--text-primary);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.tesouraria-module .btn-secondary-dark:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-muted);
+}
+
+.tesouraria-module .btn-primary-dark {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.tesouraria-module .btn-primary-dark:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+/* ========================================
+   KPI GRID
+   ======================================== */
+
+.tesouraria-module .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.tesouraria-module .kpi-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.tesouraria-module .kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tesouraria-module .kpi-icon .material-icons {
+    font-size: 24px;
+}
+
+.tesouraria-module .kpi-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.tesouraria-module .kpi-value {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    font-family: var(--font-family-mono);
+}
+
+.tesouraria-module .kpi-value.loading-pulse {
+    animation: pulse 1.5s infinite;
+}
+
+.tesouraria-module .kpi-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ========================================
+   TOOLBAR (filtros + search + sort)
+   ======================================== */
+
+.tesouraria-module .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.tesouraria-module .toolbar-left {
+    display: flex;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.tesouraria-module .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tesouraria-module .filter-group label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+}
+
+.tesouraria-module .filter-group select,
+.tesouraria-module .filter-group input[type="text"] {
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text-primary);
+    font-size: var(--font-size-md);
+    min-width: 140px;
+    cursor: pointer;
+    transition: border-color var(--transition-fast);
+}
+
+.tesouraria-module .filter-group select:focus,
+.tesouraria-module .filter-group input[type="text"]:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+/* Search input */
+.tesouraria-module .search-group {
+    position: relative;
+}
+
+.tesouraria-module .search-group .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.tesouraria-module .search-group input {
+    padding-left: 36px;
+    min-width: 200px;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-right: 12px;
+    color: var(--text-primary);
+    font-size: var(--font-size-md);
+    transition: border-color var(--transition-fast);
+}
+
+.tesouraria-module .search-group input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.tesouraria-module .search-group input::placeholder {
+    color: var(--text-dim);
+}
+
+/* Sort buttons */
+.tesouraria-module .sort-group {
+    display: flex;
+    gap: 4px;
+}
+
+.tesouraria-module .sort-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.tesouraria-module .sort-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--text-primary);
+}
+
+.tesouraria-module .sort-btn.active {
+    border-color: var(--color-primary);
+    background: var(--color-primary-muted);
+    color: var(--color-primary);
+}
+
+.tesouraria-module .sort-btn .material-icons {
+    font-size: 16px;
+}
+
+.tesouraria-module .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.tesouraria-module .participantes-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: var(--font-size-md);
+}
+
+.tesouraria-module .participantes-count .material-icons {
+    font-size: 18px;
+}
+
+/* ========================================
+   TABLE CONTAINER
+   ======================================== */
+
+.tesouraria-module .table-container {
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+/* Loading / Empty / Error States */
+.tesouraria-module .loading-state,
+.tesouraria-module .empty-state,
+.tesouraria-module .error-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.tesouraria-module .loading-state .spinner {
+    width: var(--spinner-size-md);
+    height: var(--spinner-size-md);
+    border: 3px solid var(--border-color);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.tesouraria-module .empty-state .material-icons,
+.tesouraria-module .error-state .material-icons {
+    font-size: 48px;
+    margin-bottom: var(--space-3);
+    opacity: 0.5;
+}
+
+.tesouraria-module .error-state .material-icons {
+    color: var(--color-danger);
+}
+
+/* ========================================
+   PARTICIPANTES LISTA
+   ======================================== */
+
+.tesouraria-module .participantes-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Linha Financeira Principal */
+.tesouraria-module .linha-financeira {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: 14px 20px;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--border-color);
+    transition: background var(--transition-fast);
+    cursor: pointer;
+}
+
+.tesouraria-module .linha-financeira:first-child {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.tesouraria-module .linha-financeira:last-child {
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    border-bottom: none;
+}
+
+.tesouraria-module .linha-financeira:only-child {
+    border-radius: var(--radius-lg);
+}
+
+.tesouraria-module .linha-financeira:hover {
+    background: rgba(255, 85, 0, 0.03);
+}
+
+/* Status-based styling */
+.tesouraria-module .linha-financeira.status-devedor {
+    background: rgba(239, 68, 68, 0.03);
+    border-left: 3px solid var(--color-danger);
+}
+
+.tesouraria-module .linha-financeira.status-devedor:hover {
+    background: rgba(239, 68, 68, 0.07);
+}
+
+.tesouraria-module .linha-financeira.status-credor {
+    border-left: 3px solid var(--color-success);
+}
+
+.tesouraria-module .linha-financeira.status-quitado {
+    border-left: 3px solid var(--text-dim);
+}
+
+/* ========================================
+   PERFIL (Esquerda)
+   ======================================== */
+
+.tesouraria-module .linha-perfil {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 200px;
+    flex-shrink: 0;
+}
+
+.tesouraria-module .linha-perfil .escudo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--border-color);
+    flex-shrink: 0;
+}
+
+.tesouraria-module .perfil-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.tesouraria-module .nome-cartola {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tesouraria-module .nome-time {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ========================================
+   EXTRATO / BADGES (Centro)
+   ======================================== */
+
+.tesouraria-module .linha-extrato {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+.tesouraria-module .linha-extrato::-webkit-scrollbar {
+    height: 4px;
+}
+
+.tesouraria-module .linha-extrato::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tesouraria-module .linha-extrato::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.tesouraria-module .badges-container {
+    display: flex;
+    gap: var(--space-2);
+    padding: 4px 0;
+}
+
+/* Badge Financeiro */
+.tesouraria-module .badge-financeiro {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+    transition: transform var(--transition-fast);
+    cursor: default;
+}
+
+.tesouraria-module .badge-financeiro:hover {
+    transform: scale(1.05);
+}
+
+.tesouraria-module .badge-icon {
+    font-size: 14px !important;
+}
+
+.tesouraria-module .badge-valor {
+    font-family: var(--font-family-mono);
+    font-size: 0.7rem;
+}
+
+/* Badge Colors */
+.tesouraria-module .badge-ganho {
+    background: var(--color-success-muted);
+    color: var(--color-success);
+}
+
+.tesouraria-module .badge-perda {
+    background: var(--color-danger-muted);
+    color: var(--color-danger);
+}
+
+.tesouraria-module .badge-neutro {
+    background: rgba(107, 114, 128, 0.2);
+    color: var(--text-dim);
+}
+
+.tesouraria-module .no-badges,
+.tesouraria-module .no-data {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    font-style: italic;
+}
+
+/* ========================================
+   SALDO FINAL + ACOES (Direita)
+   ======================================== */
+
+.tesouraria-module .linha-totais {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-shrink: 0;
+}
+
+.tesouraria-module .saldo-final-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    min-width: 140px;
+    justify-content: center;
+}
+
+.tesouraria-module .saldo-final-box.status-devedor {
+    background: var(--color-danger-muted);
+}
+
+.tesouraria-module .saldo-final-box.status-credor {
+    background: var(--color-success-muted);
+}
+
+.tesouraria-module .saldo-final-box.status-quitado {
+    background: rgba(107, 114, 128, 0.15);
+}
+
+.tesouraria-module .status-icon {
+    font-size: 18px !important;
+}
+
+.tesouraria-module .status-devedor .status-icon { color: var(--color-danger); }
+.tesouraria-module .status-credor .status-icon { color: var(--color-success); }
+.tesouraria-module .status-quitado .status-icon { color: var(--text-dim); }
+
+.tesouraria-module .saldo-valor {
+    font-weight: var(--font-weight-bold);
+    font-size: 1rem;
+    font-family: var(--font-family-mono);
+}
+
+.tesouraria-module .status-devedor .saldo-valor { color: var(--color-danger); }
+.tesouraria-module .status-credor .saldo-valor { color: var(--color-success); }
+.tesouraria-module .status-quitado .saldo-valor { color: var(--text-dim); }
+
+.tesouraria-module .linha-acoes {
+    display: flex;
+    gap: 4px;
+}
+
+/* Action Buttons */
+.tesouraria-module .btn-acao {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.tesouraria-module .btn-acao:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-muted);
+}
+
+.tesouraria-module .btn-acao .material-icons {
+    font-size: 18px;
+}
+
+/* ========================================
+   EXPAND INLINE (Breakdown por módulo)
+   ======================================== */
+
+.tesouraria-module .linha-expand {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.2s ease;
+    opacity: 0;
+    background: var(--surface-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tesouraria-module .linha-expand.expanded {
+    max-height: 500px;
+    opacity: 1;
+}
+
+.tesouraria-module .expand-content {
+    padding: 16px 20px 16px 72px;
+}
+
+.tesouraria-module .breakdown-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.tesouraria-module .breakdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+}
+
+.tesouraria-module .breakdown-item .material-icons {
+    font-size: 18px;
+    opacity: 0.7;
+}
+
+.tesouraria-module .breakdown-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    flex: 1;
+}
+
+.tesouraria-module .breakdown-value {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.tesouraria-module .breakdown-value.positivo { color: var(--color-success); }
+.tesouraria-module .breakdown-value.negativo { color: var(--color-danger); }
+.tesouraria-module .breakdown-value.zero { color: var(--text-dim); }
+
+/* Expand summary row */
+.tesouraria-module .expand-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: var(--surface-card-elevated);
+    border: 1px solid var(--border-color);
+    margin-top: var(--space-2);
+}
+
+.tesouraria-module .expand-summary-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+}
+
+.tesouraria-module .expand-summary-value {
+    font-family: var(--font-family-mono);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-md);
+}
+
+/* Expand chevron indicator */
+.tesouraria-module .expand-indicator {
+    transition: transform 0.2s ease;
+    font-size: 20px !important;
+    color: var(--text-dim);
+}
+
+.tesouraria-module .linha-financeira.row-expanded .expand-indicator {
+    transform: rotate(180deg);
+    color: var(--color-primary);
+}
+
+/* ========================================
+   DETAIL PANEL (slide-up)
+   ======================================== */
+
+.tesouraria-detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: var(--z-modal-backdrop);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.tesouraria-detail-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.tesouraria-detail-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 85vh;
+    background: var(--surface-card);
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    z-index: var(--z-modal);
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.tesouraria-detail-overlay.visible .tesouraria-detail-panel {
+    transform: translateY(0);
+}
+
+/* Panel handle */
+.tesouraria-detail-panel .panel-handle {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+    cursor: grab;
+}
+
+.tesouraria-detail-panel .panel-handle-bar {
+    width: 40px;
+    height: 4px;
+    border-radius: var(--radius-full);
+    background: var(--border-color);
+}
+
+/* Panel header */
+.tesouraria-detail-panel .panel-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: 0 24px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tesouraria-detail-panel .panel-header .escudo-lg {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--border-color);
+}
+
+.tesouraria-detail-panel .panel-header-info {
+    flex: 1;
+}
+
+.tesouraria-detail-panel .panel-header-info h3 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0 0 2px;
+}
+
+.tesouraria-detail-panel .panel-header-info p {
+    font-size: var(--font-size-md);
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.tesouraria-detail-panel .panel-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.tesouraria-detail-panel .panel-close:hover {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+}
+
+/* Panel body */
+.tesouraria-detail-panel .panel-body {
+    padding: 20px 24px 32px;
+}
+
+/* Saldo hero in panel */
+.tesouraria-detail-panel .panel-saldo-hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-5);
+}
+
+.tesouraria-detail-panel .panel-saldo-hero.devedor {
+    background: var(--color-danger-muted);
+}
+
+.tesouraria-detail-panel .panel-saldo-hero.credor {
+    background: var(--color-success-muted);
+}
+
+.tesouraria-detail-panel .panel-saldo-hero.quitado {
+    background: rgba(107, 114, 128, 0.15);
+}
+
+.tesouraria-detail-panel .panel-saldo-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+}
+
+.tesouraria-detail-panel .panel-saldo-value {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-hero);
+    font-weight: var(--font-weight-bold);
+}
+
+/* Panel sections */
+.tesouraria-detail-panel .panel-section {
+    margin-bottom: var(--space-5);
+}
+
+.tesouraria-detail-panel .panel-section-title {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    margin-bottom: var(--space-3);
+}
+
+/* Breakdown table in panel */
+.tesouraria-detail-panel .breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tesouraria-detail-panel .breakdown-table tr {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tesouraria-detail-panel .breakdown-table tr:last-child {
+    border-bottom: none;
+}
+
+.tesouraria-detail-panel .breakdown-table td {
+    padding: 10px 0;
+    font-size: var(--font-size-md);
+}
+
+.tesouraria-detail-panel .breakdown-table td:first-child {
+    color: var(--text-muted);
+}
+
+.tesouraria-detail-panel .breakdown-table td:first-child .material-icons {
+    font-size: 18px;
+    vertical-align: middle;
+    margin-right: var(--space-2);
+}
+
+.tesouraria-detail-panel .breakdown-table td:last-child {
+    text-align: right;
+    font-family: var(--font-family-mono);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Panel actions */
+.tesouraria-detail-panel .panel-actions {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+}
+
+.tesouraria-detail-panel .panel-actions button {
+    flex: 1;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .tesouraria-module .linha-perfil {
+        min-width: 160px;
+    }
+
+    .tesouraria-module .saldo-final-box {
+        min-width: 120px;
+        padding: 6px 12px;
+    }
+
+    .tesouraria-module .saldo-valor {
+        font-size: 0.9rem;
+    }
+
+    .tesouraria-module .expand-content {
+        padding-left: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .tesouraria-module {
+        padding: var(--space-4);
+    }
+
+    .tesouraria-header {
+        flex-direction: column;
+    }
+
+    .tesouraria-module .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tesouraria-module .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tesouraria-module .toolbar-left,
+    .tesouraria-module .toolbar-right {
+        justify-content: center;
+    }
+
+    .tesouraria-module .search-group input {
+        min-width: unset;
+        width: 100%;
+    }
+
+    /* Mobile: Stack vertical */
+    .tesouraria-module .linha-financeira {
+        flex-wrap: wrap;
+        padding: 12px 16px;
+        gap: var(--space-3);
+    }
+
+    .tesouraria-module .linha-perfil {
+        min-width: 100%;
+        order: 1;
+    }
+
+    .tesouraria-module .linha-extrato {
+        order: 3;
+        width: 100%;
+        padding-bottom: 8px;
+    }
+
+    .tesouraria-module .linha-totais {
+        order: 2;
+        margin-left: auto;
+    }
+
+    .tesouraria-module .saldo-final-box {
+        min-width: 110px;
+    }
+
+    .tesouraria-module .expand-content {
+        padding-left: 16px;
+    }
+
+    .tesouraria-module .breakdown-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    /* Detail panel full width on mobile */
+    .tesouraria-detail-panel {
+        max-height: 92vh;
+    }
+}
+
+@media (max-width: 480px) {
+    .tesouraria-module .kpi-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .tesouraria-module .kpi-card {
+        padding: var(--space-3);
+    }
+
+    .tesouraria-module .kpi-value {
+        font-size: 1.1rem;
+    }
+
+    .tesouraria-module .linha-totais {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .tesouraria-module .linha-acoes {
+        margin-left: auto;
+    }
+
+    .tesouraria-module .breakdown-grid {
+        grid-template-columns: 1fr;
+    }
+}

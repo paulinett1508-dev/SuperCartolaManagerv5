@@ -265,6 +265,35 @@
     --participante-text-muted: var(--app-text-muted);
     --participante-text-secondary: var(--app-text-secondary);
 
+    /* ========================================
+       15. BANK-INSPIRED (Extrato Digital)
+       ======================================== */
+    /* Gradientes de saldo (sutis sobre dark) */
+    --app-gradient-positive: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.03) 100%);
+    --app-gradient-negative: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.03) 100%);
+    --app-gradient-neutral: linear-gradient(135deg, rgba(107, 114, 128, 0.12) 0%, rgba(107, 114, 128, 0.03) 100%);
+
+    /* Glass effect (frosted sobre OLED black) */
+    --app-glass-bg: rgba(255, 255, 255, 0.03);
+    --app-glass-border: rgba(255, 255, 255, 0.06);
+    --app-glass-hover: rgba(255, 255, 255, 0.08);
+    --app-glass-elevated: rgba(255, 255, 255, 0.05);
+
+    /* Saldo hero (extrato principal) */
+    --app-font-saldo-hero: 2.25rem;
+
+    /* Radius extras */
+    --app-radius-2xl: 20px;
+    --app-radius-3xl: 24px;
+
+    /* Skeleton loading */
+    --app-skeleton-from: rgba(255, 255, 255, 0.03);
+    --app-skeleton-via: rgba(255, 255, 255, 0.07);
+
+    /* Timeline */
+    --app-timeline-line: rgba(255, 255, 255, 0.06);
+    --app-timeline-dot: var(--app-primary);
+
     /* Cores semânticas legadas */
     --laranja: var(--app-primary);
     --bg-card: var(--app-surface);
@@ -387,6 +416,34 @@
 
 .app-value-neutral {
     color: var(--app-text-muted);
+}
+
+/* ========================================
+   SKELETON SHIMMER (Bank-style loading)
+   ======================================== */
+
+@keyframes app-skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-box {
+    background: linear-gradient(
+        90deg,
+        var(--app-skeleton-from) 25%,
+        var(--app-skeleton-via) 50%,
+        var(--app-skeleton-from) 75%
+    );
+    background-size: 200% 100%;
+    animation: app-skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Glass card base */
+.app-glass-card {
+    background: var(--app-glass-bg);
+    border: 1px solid var(--app-glass-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 /* ========================================

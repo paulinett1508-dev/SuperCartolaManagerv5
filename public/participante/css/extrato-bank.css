@@ -1,0 +1,660 @@
+/**
+ * EXTRATO BANK - Estilos inspirados em banco digital
+ * ===================================================
+ * Nubank/Inter-style sobre dark mode OLED
+ * Usa tokens de _app-tokens.css
+ */
+
+/* ========================================
+   HERO SALDO CARD
+   ======================================== */
+
+.extrato-hero {
+    background: var(--app-glass-bg);
+    border: 1px solid var(--app-glass-border);
+    border-radius: var(--app-radius-3xl);
+    padding: var(--app-space-6) var(--app-space-5);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.extrato-hero--positive {
+    background: var(--app-gradient-positive);
+    border-color: rgba(16, 185, 129, 0.12);
+}
+
+.extrato-hero--negative {
+    background: var(--app-gradient-negative);
+    border-color: rgba(239, 68, 68, 0.12);
+}
+
+.extrato-hero--zero {
+    background: var(--app-gradient-neutral);
+    border-color: rgba(107, 114, 128, 0.1);
+}
+
+.extrato-hero__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--app-space-3);
+}
+
+.extrato-hero__label {
+    font-family: var(--app-font-base);
+    font-size: var(--app-font-sm);
+    color: var(--app-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.extrato-hero__actions {
+    display: flex;
+    gap: var(--app-space-2);
+}
+
+.extrato-hero__btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--app-radius-full);
+    background: var(--app-glass-hover);
+    border: none;
+    color: var(--app-text-muted);
+    cursor: pointer;
+    transition: all var(--app-transition-fast);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.extrato-hero__btn:active {
+    transform: scale(0.92);
+    background: var(--app-glass-elevated);
+}
+
+.extrato-hero__btn .material-icons {
+    font-size: 20px;
+}
+
+.extrato-hero__valor {
+    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-size: var(--app-font-saldo-hero);
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-bottom: var(--app-space-3);
+    transition: filter 0.2s ease;
+}
+
+.extrato-hero__valor--hidden {
+    filter: blur(16px);
+    user-select: none;
+}
+
+.extrato-hero__valor--positive { color: var(--app-success-light); }
+.extrato-hero__valor--negative { color: var(--app-danger-light); }
+.extrato-hero__valor--zero { color: var(--app-text-muted); }
+
+.extrato-hero__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: var(--app-radius-full);
+    font-family: var(--app-font-brand);
+    font-size: var(--app-font-xs);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.extrato-hero__status--devedor {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--app-danger-light);
+}
+
+.extrato-hero__status--credor {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--app-success-text);
+}
+
+.extrato-hero__status--quitado {
+    background: rgba(107, 114, 128, 0.15);
+    color: var(--app-text-muted);
+}
+
+.extrato-hero__inscricao {
+    margin-top: var(--app-space-4);
+    padding-top: var(--app-space-3);
+    border-top: 1px solid var(--app-glass-border);
+    font-size: var(--app-font-xs);
+    color: var(--app-text-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.extrato-hero__inscricao-badge {
+    padding: 2px 8px;
+    border-radius: var(--app-radius-full);
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.extrato-hero__inscricao-badge--paga {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--app-success-light);
+}
+
+.extrato-hero__inscricao-badge--devida {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--app-danger-light);
+}
+
+/* ========================================
+   QUICK STATS ROW
+   ======================================== */
+
+.extrato-stats {
+    display: flex;
+    gap: var(--app-space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: var(--app-space-1) 0;
+    margin: var(--app-space-5) 0;
+}
+
+.extrato-stats::-webkit-scrollbar {
+    display: none;
+}
+
+.extrato-stat-pill {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--app-space-2);
+    padding: var(--app-space-3) var(--app-space-4);
+    background: var(--app-glass-bg);
+    border: 1px solid var(--app-glass-border);
+    border-radius: var(--app-radius-full);
+    min-width: fit-content;
+}
+
+.extrato-stat-pill__icon {
+    font-size: 16px;
+    color: var(--app-text-dim);
+}
+
+.extrato-stat-pill__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.extrato-stat-pill__label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--app-text-dim);
+    white-space: nowrap;
+}
+
+.extrato-stat-pill__value {
+    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-size: var(--app-font-sm);
+    font-weight: 600;
+    color: var(--app-text-primary);
+    white-space: nowrap;
+}
+
+/* ========================================
+   EVOLUTION CHART
+   ======================================== */
+
+.extrato-chart {
+    background: var(--app-glass-bg);
+    border: 1px solid var(--app-glass-border);
+    border-radius: var(--app-radius-2xl);
+    padding: var(--app-space-5);
+    margin-bottom: var(--app-space-5);
+}
+
+.extrato-chart__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--app-space-4);
+}
+
+.extrato-chart__title {
+    font-family: var(--app-font-brand);
+    font-size: var(--app-font-sm);
+    color: var(--app-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.extrato-chart__filters {
+    display: flex;
+    gap: var(--app-space-1);
+}
+
+.extrato-chart__filter-btn {
+    padding: 4px 10px;
+    border-radius: var(--app-radius-full);
+    border: 1px solid var(--app-glass-border);
+    background: transparent;
+    color: var(--app-text-dim);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--app-transition-fast);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.extrato-chart__filter-btn--active {
+    background: var(--app-primary-muted);
+    border-color: var(--app-primary-border);
+    color: var(--app-primary);
+}
+
+.extrato-chart__svg-container {
+    width: 100%;
+    height: 160px;
+    position: relative;
+}
+
+.extrato-chart__zero-line {
+    stroke: var(--app-glass-border);
+    stroke-dasharray: 4 4;
+}
+
+/* ========================================
+   TRANSACTION TIMELINE
+   ======================================== */
+
+.extrato-timeline {
+    margin-top: var(--app-space-5);
+}
+
+.extrato-timeline__filters {
+    display: flex;
+    gap: var(--app-space-2);
+    margin-bottom: var(--app-space-5);
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+}
+
+.extrato-timeline__filters::-webkit-scrollbar {
+    display: none;
+}
+
+.extrato-timeline__filter-btn {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: var(--app-radius-full);
+    border: 1px solid var(--app-glass-border);
+    background: transparent;
+    color: var(--app-text-dim);
+    font-size: var(--app-font-xs);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--app-transition-fast);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.extrato-timeline__filter-btn--active {
+    background: var(--app-primary-muted);
+    border-color: var(--app-primary-border);
+    color: var(--app-primary-light);
+}
+
+/* Grupo (Rodada, Inscrição, Acertos) */
+.extrato-timeline__group {
+    margin-bottom: var(--app-space-4);
+}
+
+.extrato-timeline__group-header {
+    display: flex;
+    align-items: center;
+    gap: var(--app-space-2);
+    padding: var(--app-space-2) 0;
+    margin-bottom: var(--app-space-2);
+    border-bottom: 1px solid var(--app-timeline-line);
+}
+
+.extrato-timeline__group-label {
+    font-family: var(--app-font-brand);
+    font-size: var(--app-font-xs);
+    color: var(--app-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    flex: 1;
+}
+
+.extrato-timeline__group-total {
+    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-size: var(--app-font-sm);
+    font-weight: 600;
+}
+
+/* Item individual */
+.extrato-timeline__item {
+    display: flex;
+    align-items: center;
+    gap: var(--app-space-3);
+    padding: var(--app-space-3) var(--app-space-2);
+    border-radius: var(--app-radius-lg);
+    transition: background var(--app-transition-fast);
+    cursor: default;
+}
+
+.extrato-timeline__item:active {
+    background: var(--app-glass-hover);
+}
+
+.extrato-timeline__item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--app-radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+}
+
+.extrato-timeline__item-icon--credit {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--app-success-light);
+}
+
+.extrato-timeline__item-icon--debit {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--app-danger-light);
+}
+
+.extrato-timeline__item-icon--acerto {
+    background: rgba(59, 130, 246, 0.12);
+    color: var(--app-info-light);
+}
+
+.extrato-timeline__item-icon--inscricao {
+    background: rgba(234, 179, 8, 0.12);
+    color: var(--app-warning);
+}
+
+.extrato-timeline__item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.extrato-timeline__item-title {
+    font-size: var(--app-font-base);
+    color: var(--app-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.extrato-timeline__item-subtitle {
+    font-size: var(--app-font-xs);
+    color: var(--app-text-dim);
+    margin-top: 1px;
+}
+
+.extrato-timeline__item-value {
+    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-size: var(--app-font-md);
+    font-weight: 600;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+/* Saldo acumulado (aparece no final do grupo) */
+.extrato-timeline__accumulated {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--app-space-2);
+    padding: var(--app-space-2) var(--app-space-2);
+    margin-top: var(--app-space-1);
+}
+
+.extrato-timeline__accumulated-label {
+    font-size: 9px;
+    color: var(--app-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.extrato-timeline__accumulated-value {
+    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-size: var(--app-font-xs);
+    font-weight: 600;
+}
+
+/* Rodada expansível */
+.extrato-timeline__expandable {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.extrato-timeline__expandable:hover {
+    background: var(--app-glass-hover);
+}
+
+.extrato-timeline__expand-icon {
+    transition: transform var(--app-transition-fast);
+    color: var(--app-text-dim);
+    font-size: 18px;
+}
+
+.extrato-timeline__expand-icon--open {
+    transform: rotate(180deg);
+}
+
+.extrato-timeline__subitems {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease-out;
+    padding-left: 48px;
+}
+
+.extrato-timeline__subitems--open {
+    max-height: 500px;
+}
+
+.extrato-timeline__subitem {
+    display: flex;
+    align-items: center;
+    gap: var(--app-space-3);
+    padding: var(--app-space-2) 0;
+    font-size: var(--app-font-xs);
+}
+
+.extrato-timeline__subitem-icon {
+    font-size: 14px;
+    width: 20px;
+    text-align: center;
+}
+
+.extrato-timeline__subitem-label {
+    flex: 1;
+    color: var(--app-text-dim);
+}
+
+.extrato-timeline__subitem-value {
+    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-weight: 600;
+    font-size: var(--app-font-xs);
+}
+
+/* ========================================
+   PERFORMANCE CARD
+   ======================================== */
+
+.extrato-performance {
+    background: var(--app-glass-bg);
+    border: 1px solid var(--app-glass-border);
+    border-radius: var(--app-radius-2xl);
+    padding: var(--app-space-5);
+    margin-top: var(--app-space-5);
+}
+
+.extrato-performance__title {
+    font-family: var(--app-font-brand);
+    font-size: var(--app-font-sm);
+    color: var(--app-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--app-space-4);
+}
+
+.extrato-performance__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--app-space-3);
+}
+
+.extrato-performance__stat {
+    text-align: center;
+    padding: var(--app-space-3);
+    border-radius: var(--app-radius-lg);
+    background: var(--app-glass-hover);
+}
+
+.extrato-performance__stat-value {
+    font-family: var(--app-font-brand);
+    font-size: var(--app-font-2xl);
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.extrato-performance__stat-label {
+    font-size: 9px;
+    color: var(--app-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.extrato-performance__best-worst {
+    display: flex;
+    gap: var(--app-space-3);
+    margin-top: var(--app-space-3);
+}
+
+.extrato-performance__best-worst-item {
+    flex: 1;
+    padding: var(--app-space-3);
+    border-radius: var(--app-radius-lg);
+    background: var(--app-glass-hover);
+    text-align: center;
+}
+
+.extrato-performance__bw-label {
+    font-size: 9px;
+    color: var(--app-text-dim);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.extrato-performance__bw-value {
+    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-size: var(--app-font-sm);
+    font-weight: 600;
+}
+
+/* ========================================
+   EMPTY / ERROR STATES
+   ======================================== */
+
+.extrato-empty {
+    text-align: center;
+    padding: var(--app-space-10) var(--app-space-5);
+}
+
+.extrato-empty__icon {
+    font-size: 48px;
+    color: var(--app-text-dim);
+    margin-bottom: var(--app-space-4);
+}
+
+.extrato-empty__title {
+    font-family: var(--app-font-brand);
+    font-size: var(--app-font-lg);
+    color: var(--app-text-secondary);
+    margin-bottom: var(--app-space-2);
+}
+
+.extrato-empty__text {
+    font-size: var(--app-font-base);
+    color: var(--app-text-dim);
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+/* ========================================
+   SKELETON LOADING (extrato-specific)
+   ======================================== */
+
+.extrato-skeleton {
+    padding: var(--app-space-5);
+}
+
+.extrato-skeleton__hero {
+    height: 140px;
+    border-radius: var(--app-radius-3xl);
+    margin-bottom: var(--app-space-5);
+}
+
+.extrato-skeleton__stats {
+    display: flex;
+    gap: var(--app-space-3);
+    margin-bottom: var(--app-space-5);
+    overflow: hidden;
+}
+
+.extrato-skeleton__stat-pill {
+    height: 52px;
+    width: 120px;
+    border-radius: var(--app-radius-full);
+    flex-shrink: 0;
+}
+
+.extrato-skeleton__chart {
+    height: 200px;
+    border-radius: var(--app-radius-2xl);
+    margin-bottom: var(--app-space-5);
+}
+
+.extrato-skeleton__items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--app-space-3);
+}
+
+.extrato-skeleton__item {
+    height: 56px;
+    border-radius: var(--app-radius-lg);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (min-width: 768px) {
+    .extrato-hero__valor {
+        font-size: 2.5rem;
+    }
+
+    .extrato-performance__grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

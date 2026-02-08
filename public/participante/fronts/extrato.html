@@ -1,110 +1,28 @@
-<!-- PARTICIPANTE EXTRATO - v2.1 Russo One Brand Typography -->
-<div id="extratoFinanceiro" class="p-4 pb-20 font-display text-gray-300">
-    <!-- Conteúdo renderizado via JS -->
+<!-- PARTICIPANTE EXTRATO - v3.0 Bank Digital Redesign -->
+<div id="extratoFinanceiro" class="p-4 pb-20">
+    <!-- Skeleton Loading (substituído via JS quando dados carregam) -->
     <div id="fluxoFinanceiroContent">
-        <div class="flex flex-col items-center justify-center py-10">
-            <div
-                class="w-8 h-8 border-3 border-zinc-700 border-t-orange-500 rounded-full animate-spin mb-4"
-            ></div>
-            <p class="text-sm text-gray-500">Carregando extrato...</p>
+        <div class="extrato-skeleton">
+            <!-- Skeleton: Hero Saldo Card -->
+            <div class="skeleton-box extrato-skeleton__hero"></div>
+
+            <!-- Skeleton: Quick Stats Pills -->
+            <div class="extrato-skeleton__stats">
+                <div class="skeleton-box extrato-skeleton__stat-pill"></div>
+                <div class="skeleton-box extrato-skeleton__stat-pill"></div>
+                <div class="skeleton-box extrato-skeleton__stat-pill"></div>
+            </div>
+
+            <!-- Skeleton: Chart -->
+            <div class="skeleton-box extrato-skeleton__chart"></div>
+
+            <!-- Skeleton: Timeline Items -->
+            <div class="extrato-skeleton__items">
+                <div class="skeleton-box extrato-skeleton__item"></div>
+                <div class="skeleton-box extrato-skeleton__item"></div>
+                <div class="skeleton-box extrato-skeleton__item"></div>
+                <div class="skeleton-box extrato-skeleton__item"></div>
+            </div>
         </div>
     </div>
 </div>
-
-<style>
-    /* ============================================
-       EXTRATO v2.1 - Russo One Brand Typography
-       Cores mapeadas para tokens globais (_app-tokens.css)
-       Fonts loaded from parent index.html
-       ============================================ */
-
-    :root {
-        --extrato-font-brand: var(--app-font-brand, 'Russo One', sans-serif);
-        --extrato-font-body: 'Inter', -apple-system, sans-serif;
-        --extrato-gold: var(--app-warning, #fbbf24);
-        --extrato-success: var(--app-success-light, #34d399);
-        --extrato-success-alpha: rgba(16, 185, 129, 0.2);
-        --extrato-danger: var(--app-danger, #f87171);
-        --extrato-danger-alpha: rgba(239, 68, 68, 0.2);
-        --extrato-text-white: var(--app-text-white, #fff);
-        --extrato-text-light: rgba(255, 255, 255, 0.8);
-        --extrato-text-muted: rgba(255, 255, 255, 0.5);
-        --extrato-surface-alpha: rgba(255, 255, 255, 0.15);
-    }
-
-    #extratoFinanceiro {
-        font-family: var(--extrato-font-body);
-    }
-
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-    .animate-spin {
-        animation: spin 0.8s linear infinite;
-    }
-
-    /* ===== BOTÃO PILL MEUS ACERTOS ===== */
-    .btn-pill-acertos {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 10px 16px;
-        border-radius: 50px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(255, 255, 255, 0.05);
-        transition: all 0.2s ease;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    .btn-pill-acertos:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    .btn-pill-acertos:active {
-        transform: scale(0.95);
-    }
-
-    .btn-pill-acertos .pill-icon {
-        font-size: 18px;
-        color: var(--extrato-gold);
-        line-height: 1;
-        display: flex;
-        align-items: center;
-    }
-
-    .btn-pill-acertos .pill-text {
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--extrato-text-light);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        line-height: 1;
-    }
-
-    .btn-pill-acertos .pill-badge {
-        font-size: 10px;
-        font-weight: 700;
-        padding: 4px 8px;
-        border-radius: 50px;
-        line-height: 1;
-    }
-
-    .btn-pill-acertos .pill-badge.badge-neutral {
-        background: var(--extrato-surface-alpha);
-        color: var(--extrato-text-muted);
-    }
-
-    .btn-pill-acertos .pill-badge.badge-positive {
-        background: var(--extrato-success-alpha);
-        color: var(--extrato-success);
-    }
-
-    .btn-pill-acertos .pill-badge.badge-negative {
-        background: var(--extrato-danger-alpha);
-        color: var(--extrato-danger);
-    }
-</style>

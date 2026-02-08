@@ -691,10 +691,10 @@ class ParticipanteNavigation {
 
         const nomeModulo = this.obterNomeModulo(moduloId);
 
-        // ✅ v3.1: Feedback visual IMEDIATO - aplicar opacity no container
-        // Isso dá feedback instantâneo que algo está acontecendo
-        container.style.transition = 'opacity 0.15s ease-out';
+        // ✅ v4.3: Feedback visual IMEDIATO - fade + translate para transição suave
+        container.style.transition = 'opacity 0.15s ease-out, transform 0.15s ease-out';
         container.style.opacity = '0.6';
+        container.style.transform = 'translateY(4px)';
 
         // ✅ v2.5: Loading inteligente - só mostra se não tem cache recente (24h)
         const cacheKey = `modulo_loaded_${moduloId}`;
@@ -761,8 +761,10 @@ class ParticipanteNavigation {
             this.mostrarErroCarregamento(container, moduloId, error);
         } finally {
             // ✅ v4.2: SEMPRE restaurar opacity e esconder overlays (evita UI travada)
+            // ✅ v4.3: Restaurar com transição suave de entrada
+            container.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
             container.style.opacity = '1';
-            container.style.transition = '';
+            container.style.transform = 'translateY(0)';
 
             if (window.SplashScreen) {
                 window.SplashScreen.hide();

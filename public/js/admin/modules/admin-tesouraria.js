@@ -4,19 +4,21 @@
  * Dashboard de fechamento financeiro para gestao de caixa da liga.
  * Consolida: Saldo do Sistema (bonus/onus) + Acertos Manuais = Saldo Final
  *
- * @version 2.1.0 - Ajustes Manuais + Acertos
+ * @version 3.0.0 - Redesign: Search, Sort, Detail Panel, Expand, CSV
  * @author Product Team
- * @date 2026-01-04
+ * @date 2026-02-08
+ *
+ * CHANGELOG v3.0:
+ * - CSS extraido para admin-tesouraria.css (zero _injectStyles)
+ * - Search bar com busca em tempo real (nome/time)
+ * - Sort buttons (Nome A-Z, Saldo crescente/decrescente)
+ * - Detail panel slide-up substitui SuperModal.toast.info
+ * - Expand inline para ver breakdown por modulo
+ * - Export CSV download
  *
  * CHANGELOG v2.1:
  * - Renomeado 'Ajustes' para 'Ajustes Manuais' (badge 'Aj. Manuais')
  * - Nova coluna 'Acertos' para exibir pagamentos/recebimentos do participante
- *
- * CHANGELOG v2.0:
- * - Novo layout de linha com breakdown financeiro por modulo
- * - Badges dinamicos condicionais (mostra apenas modulos ativos da liga)
- * - Cores semanticas: verde=ganho, vermelho=perda, cinza=zerado
- * - Scroll horizontal para extrato em telas menores
  */
 
 class AdminTesouraria {
@@ -25,10 +27,12 @@ class AdminTesouraria {
         this.season = '2026';
         this.participantes = [];
         this.filtroStatus = 'todos';
+        this.searchTerm = '';
+        this.sortMode = 'saldo-asc'; // saldo-asc | saldo-desc | nome-az
         this.container = null;
         this.isLoading = false;
 
-        // ✅ v2.0: Modulos ativos da liga (carregados da API)
+        // Modulos ativos da liga (carregados da API)
         this.modulosAtivos = {
             banco: true,
             pontosCorridos: false,
@@ -40,7 +44,6 @@ class AdminTesouraria {
         };
 
         // Configuracao dos badges financeiros
-        // ✅ v2.1: Renomeado 'Ajustes' para 'Ajustes Manuais' + nova coluna 'Acertos'
         this.badgeConfig = {
             banco: { icon: 'casino', label: 'Rodada', color: 'primary' },
             pontosCorridos: { icon: 'emoji_events', label: 'Pt.Corridos', color: 'info' },
@@ -52,31 +55,12 @@ class AdminTesouraria {
             campos: { icon: 'edit_note', label: 'Aj. Manuais', color: 'muted' },
             acertos: { icon: 'payments', label: 'Acertos', color: 'info' },
         };
-
-        // Cores do tema
-        this.cores = {
-            bgCard: '#1a1a1a',
-            bgPage: '#121212',
-            border: '#2d2d2d',
-            laranja: '#FF5500',
-            verde: '#10b981',
-            vermelho: '#ef4444',
-            amarelo: '#f59e0b',
-            cinza: '#6b7280',
-            texto: '#ffffff',
-            textoMuted: '#9ca3af',
-            azul: '#3b82f6',
-            roxo: '#8b5cf6',
-            gold: '#ffd700',
-        };
     }
 
-    /**
-     * Renderiza o modulo de tesouraria
-     * @param {string} containerId - ID do container HTML
-     * @param {string} ligaId - ID da liga
-     * @param {string} season - Temporada (default: 2026)
-     */
+    // ==========================================================================
+    // RENDER PRINCIPAL
+    // ==========================================================================
+
     async render(containerId, ligaId, season = '2026') {
         this.container = document.getElementById(containerId.replace('#', ''));
         this.ligaId = ligaId;
@@ -87,19 +71,10 @@ class AdminTesouraria {
             return;
         }
 
-        // Renderizar estrutura base com loading
         this.container.innerHTML = this._renderLayout();
-
-        // Injetar CSS
-        this._injectStyles();
-
-        // Carregar dados
         await this._carregarDados();
     }
 
-    /**
-     * Estrutura HTML base do modulo
-     */
     _renderLayout() {
         return `
             <div class="tesouraria-module">
@@ -116,9 +91,13 @@ class AdminTesouraria {
                         <button class="btn-icon" onclick="adminTesouraria.recarregar()" title="Atualizar">
                             <span class="material-icons">refresh</span>
                         </button>
+                        <button class="btn-secondary-dark" onclick="adminTesouraria.exportarCSV()" title="Exportar CSV">
+                            <span class="material-icons">download</span>
+                            CSV
+                        </button>
                         <button class="btn-secondary-dark" onclick="adminTesouraria.exportarRelatorio()">
                             <span class="material-icons">share</span>
-                            Exportar WhatsApp
+                            WhatsApp
                         </button>
                     </div>
                 </div>
@@ -128,7 +107,7 @@ class AdminTesouraria {
                     ${this._renderKPIsLoading()}
                 </div>
 
-                <!-- Toolbar de Filtros -->
+                <!-- Toolbar: Filtros + Search + Sort -->
                 <div class="toolbar">
                     <div class="toolbar-left">
                         <div class="filter-group">
@@ -147,6 +126,26 @@ class AdminTesouraria {
                                 <option value="quitados">Quitados</option>
                             </select>
                         </div>
+                        <div class="filter-group search-group">
+                            <label>Buscar</label>
+                            <span class="material-icons search-icon">search</span>
+                            <input type="text" id="search-participante" placeholder="Nome ou time..."
+                                   oninput="adminTesouraria.buscar(this.value)" />
+                        </div>
+                        <div class="filter-group">
+                            <label>Ordenar</label>
+                            <div class="sort-group">
+                                <button class="sort-btn active" data-sort="saldo-asc" onclick="adminTesouraria.ordenar('saldo-asc')" title="Saldo crescente">
+                                    <span class="material-icons">arrow_upward</span> Saldo
+                                </button>
+                                <button class="sort-btn" data-sort="saldo-desc" onclick="adminTesouraria.ordenar('saldo-desc')" title="Saldo decrescente">
+                                    <span class="material-icons">arrow_downward</span> Saldo
+                                </button>
+                                <button class="sort-btn" data-sort="nome-az" onclick="adminTesouraria.ordenar('nome-az')" title="Nome A-Z">
+                                    <span class="material-icons">sort_by_alpha</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="toolbar-right">
                         <span class="participantes-count" id="count-label">
@@ -161,23 +160,29 @@ class AdminTesouraria {
                     ${this._renderTableLoading()}
                 </div>
             </div>
+
+            <!-- Detail Panel Overlay (fora do module para z-index) -->
+            <div class="tesouraria-detail-overlay" id="tesouraria-detail-overlay" onclick="adminTesouraria.fecharDetalhes(event)">
+                <div class="tesouraria-detail-panel" id="tesouraria-detail-panel">
+                    <div class="panel-handle"><div class="panel-handle-bar"></div></div>
+                    <div class="panel-header" id="detail-panel-header"></div>
+                    <div class="panel-body" id="detail-panel-body"></div>
+                </div>
+            </div>
         `;
     }
 
-    /**
-     * KPIs em estado de loading
-     */
     _renderKPIsLoading() {
         const kpis = [
-            { icon: 'trending_up', label: 'Total Bonus', color: this.cores.verde },
-            { icon: 'trending_down', label: 'Total Onus', color: this.cores.vermelho },
-            { icon: 'account_balance_wallet', label: 'Saldo Geral', color: this.cores.laranja },
-            { icon: 'warning', label: 'Inadimplentes', color: this.cores.amarelo }
+            { icon: 'trending_up', label: 'Total Bonus' },
+            { icon: 'trending_down', label: 'Total Onus' },
+            { icon: 'account_balance_wallet', label: 'Saldo Geral' },
+            { icon: 'warning', label: 'Inadimplentes' }
         ];
 
         return kpis.map(kpi => `
             <div class="kpi-card">
-                <div class="kpi-icon" style="background: ${kpi.color}20; color: ${kpi.color}">
+                <div class="kpi-icon" style="background: rgba(107,114,128,0.2); color: #6b7280">
                     <span class="material-icons">${kpi.icon}</span>
                 </div>
                 <div class="kpi-content">
@@ -188,9 +193,6 @@ class AdminTesouraria {
         `).join('');
     }
 
-    /**
-     * Tabela em estado de loading
-     */
     _renderTableLoading() {
         return `
             <div class="loading-state">
@@ -200,15 +202,14 @@ class AdminTesouraria {
         `;
     }
 
-    /**
-     * Carrega todos os dados necessarios
-     * ✅ v2.0: Usa nova rota otimizada /api/tesouraria/liga/:ligaId
-     */
+    // ==========================================================================
+    // DATA LOADING
+    // ==========================================================================
+
     async _carregarDados() {
         this.isLoading = true;
 
         try {
-            // ✅ v2.0: Usar rota otimizada que retorna tudo de uma vez
             const response = await fetch(`/api/tesouraria/liga/${this.ligaId}?temporada=${this.season}`);
             const data = await response.json();
 
@@ -222,13 +223,10 @@ class AdminTesouraria {
                 return;
             }
 
-            // ✅ v2.0: Armazenar modulos ativos da liga
             if (data.modulosAtivos) {
                 this.modulosAtivos = data.modulosAtivos;
-                console.log('[TESOURARIA] Modulos ativos:', this.modulosAtivos);
             }
 
-            // Mapear dados para formato interno
             this.participantes = data.participantes.map(p => ({
                 timeId: p.timeId,
                 nome: p.nomeCartola || p.nomeTime || 'Time sem nome',
@@ -241,28 +239,13 @@ class AdminTesouraria {
                 saldoFinal: p.saldoFinal,
                 situacao: p.situacao,
                 quantidadeAcertos: p.quantidadeAcertos,
-                // ✅ v2.0: Breakdown por modulo
                 breakdown: p.breakdown || {},
             }));
 
             console.log(`[TESOURARIA] ${this.participantes.length} participantes carregados`);
-            
-            // 🐛 DEBUG: Log detalhado dos dados carregados
-            console.log('[TESOURARIA] 🔍 DEBUG _carregarDados:');
-            console.log('  📦 Dados da API:', data.participantes);
-            console.log('  📦 Participantes mapeados:', this.participantes);
-            console.log('  📊 Análise de saldos:');
-            this.participantes.forEach(p => {
-                console.log(`    ${p.nome}: saldoFinal=${p.saldoFinal} (${typeof p.saldoFinal}) | situacao=${p.situacao}`);
-            });
 
-            // Renderizar KPIs
             this._renderKPIs();
-
-            // Renderizar tabela
             this._renderTabela();
-
-            // Atualizar contador
             this._atualizarContador();
 
         } catch (error) {
@@ -273,64 +256,44 @@ class AdminTesouraria {
         }
     }
 
-    /**
-     * Renderiza os KPIs com dados reais
-     */
+    // ==========================================================================
+    // KPIs
+    // ==========================================================================
+
     _renderKPIs() {
         const kpiContainer = document.getElementById('kpi-container');
         if (!kpiContainer) return;
 
-        // 🐛 DEBUG: Log antes do cálculo
-        console.log('[TESOURARIA] 🔍 DEBUG _renderKPIs:');
-        console.log('  Participantes para KPI:', this.participantes.length);
-
-        // Calcular totais
         const totais = this.participantes.reduce((acc, p) => {
             acc.totalBonus += p.saldoJogo > 0 ? p.saldoJogo : 0;
             acc.totalOnus += p.saldoJogo < 0 ? Math.abs(p.saldoJogo) : 0;
             acc.saldoGeral += p.saldoFinal;
             if (p.saldoFinal < -0.01) acc.inadimplentes++;
-            if (p.saldoFinal >= -0.01) acc.quitados++;
             return acc;
-        }, { totalBonus: 0, totalOnus: 0, saldoGeral: 0, inadimplentes: 0, quitados: 0 });
-        
-        // 🐛 DEBUG: Log dos totais calculados
-        console.log('  📊 Totais KPI:', {
-            inadimplentes: totais.inadimplentes,
-            quitados: totais.quitados,
-            totalBonus: totais.totalBonus,
-            totalOnus: totais.totalOnus,
-            saldoGeral: totais.saldoGeral
-        });
+        }, { totalBonus: 0, totalOnus: 0, saldoGeral: 0, inadimplentes: 0 });
 
         const kpis = [
             {
-                icon: 'trending_up',
-                label: 'Total Bonus',
-                value: totais.totalBonus,
-                color: this.cores.verde,
+                icon: 'trending_up', label: 'Total Bonus',
+                value: totais.totalBonus, color: 'var(--color-success)',
                 prefix: '+ R$ '
             },
             {
-                icon: 'trending_down',
-                label: 'Total Onus',
-                value: totais.totalOnus,
-                color: this.cores.vermelho,
+                icon: 'trending_down', label: 'Total Onus',
+                value: totais.totalOnus, color: 'var(--color-danger)',
                 prefix: '- R$ '
             },
             {
-                icon: 'account_balance_wallet',
-                label: 'Saldo Geral',
+                icon: 'account_balance_wallet', label: 'Saldo Geral',
                 value: totais.saldoGeral,
-                color: totais.saldoGeral >= 0 ? this.cores.verde : this.cores.vermelho,
+                color: totais.saldoGeral >= 0 ? 'var(--color-success)' : 'var(--color-danger)',
                 prefix: totais.saldoGeral >= 0 ? '+ R$ ' : '- R$ ',
                 absValue: true
             },
             {
-                icon: 'warning',
-                label: 'Inadimplentes',
+                icon: 'warning', label: 'Inadimplentes',
                 value: totais.inadimplentes,
-                color: totais.inadimplentes > 0 ? this.cores.amarelo : this.cores.cinza,
+                color: totais.inadimplentes > 0 ? 'var(--color-warning)' : 'var(--text-dim)',
                 isCount: true
             }
         ];
@@ -341,9 +304,15 @@ class AdminTesouraria {
                 : (kpi.absValue ? Math.abs(kpi.value) : kpi.value).toFixed(2).replace('.', ',');
             const prefix = kpi.isCount ? '' : kpi.prefix;
 
+            // Dynamic background for icon
+            const bgColor = kpi.color.includes('success') ? 'rgba(16,185,129,0.2)'
+                          : kpi.color.includes('danger') ? 'rgba(239,68,68,0.2)'
+                          : kpi.color.includes('warning') ? 'rgba(234,179,8,0.2)'
+                          : 'rgba(107,114,128,0.2)';
+
             return `
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: ${kpi.color}20; color: ${kpi.color}">
+                    <div class="kpi-icon" style="background: ${bgColor}; color: ${kpi.color}">
                         <span class="material-icons">${kpi.icon}</span>
                     </div>
                     <div class="kpi-content">
@@ -355,71 +324,73 @@ class AdminTesouraria {
         }).join('');
     }
 
-    /**
-     * Renderiza a tabela de participantes
-     * ✅ v2.0: Novo layout com badges financeiros dinamicos
-     */
+    // ==========================================================================
+    // TABELA + FILTRO + SEARCH + SORT
+    // ==========================================================================
+
+    _getDadosFiltrados() {
+        let dados = [...this.participantes];
+
+        // Filter by status
+        if (this.filtroStatus === 'devedores') {
+            dados = dados.filter(p => p.saldoFinal < -0.01);
+        } else if (this.filtroStatus === 'credores') {
+            dados = dados.filter(p => p.saldoFinal > 0.01);
+        } else if (this.filtroStatus === 'quitados') {
+            dados = dados.filter(p => p.saldoFinal >= -0.01);
+        }
+
+        // Search by nome/time
+        if (this.searchTerm) {
+            const term = this.searchTerm.toLowerCase();
+            dados = dados.filter(p =>
+                (p.nome && p.nome.toLowerCase().includes(term)) ||
+                (p.nomeTime && p.nomeTime.toLowerCase().includes(term))
+            );
+        }
+
+        // Sort
+        if (this.sortMode === 'saldo-asc') {
+            dados.sort((a, b) => a.saldoFinal - b.saldoFinal);
+        } else if (this.sortMode === 'saldo-desc') {
+            dados.sort((a, b) => b.saldoFinal - a.saldoFinal);
+        } else if (this.sortMode === 'nome-az') {
+            dados.sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+        }
+
+        return dados;
+    }
+
     _renderTabela() {
         const container = document.getElementById('tabela-container');
         if (!container) return;
 
-        // Aplicar filtro
-        let dadosFiltrados = [...this.participantes];
-
-        console.log('[TESOURARIA] 🔍 DEBUG _renderTabela:');
-        console.log('  Antes do filtro:', dadosFiltrados.length, 'participantes');
-        console.log('  Filtro aplicado:', this.filtroStatus);
-
-        if (this.filtroStatus === 'devedores') {
-            dadosFiltrados = dadosFiltrados.filter(p => p.saldoFinal < -0.01);
-            console.log('  Após filtro devedores:', dadosFiltrados.length);
-        } else if (this.filtroStatus === 'credores') {
-            dadosFiltrados = dadosFiltrados.filter(p => p.saldoFinal > 0.01);
-            console.log('  Após filtro credores:', dadosFiltrados.length);
-        } else if (this.filtroStatus === 'quitados') {
-            // ✅ FIX: Quitados = saldo >= -0.01 (zerado ou credor)
-            dadosFiltrados = dadosFiltrados.filter(p => p.saldoFinal >= -0.01);
-            console.log('  Após filtro quitados:', dadosFiltrados.length);
-            console.log('  Lista filtrada:', dadosFiltrados.map(p => `${p.nome}: ${p.saldoFinal}`));
-        }
-
-        // Ordenar por saldo (devedores primeiro)
-        dadosFiltrados.sort((a, b) => a.saldoFinal - b.saldoFinal);
+        const dadosFiltrados = this._getDadosFiltrados();
 
         if (dadosFiltrados.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <span class="material-icons">search_off</span>
-                    <p>Nenhum participante encontrado com o filtro selecionado</p>
+                    <p>Nenhum participante encontrado${this.searchTerm ? ` para "${this.searchTerm}"` : ''}</p>
                 </div>
             `;
+            this._atualizarContador(0);
             return;
         }
 
-        // ✅ v2.0: Lista de cards ao inves de tabela
         container.innerHTML = `
             <div class="participantes-lista">
                 ${dadosFiltrados.map(p => this._renderLinha(p)).join('')}
             </div>
         `;
 
-        // ✅ NOVO: Anexar tooltips aos badges de módulos
+        this._atualizarContador(dadosFiltrados.length);
         this._anexarTooltipsBadges();
     }
 
-    /**
-     * Renderiza uma linha da tabela
-     * ✅ v2.0: Novo layout com badges financeiros dinamicos
-     *
-     * Layout:
-     * [Esquerda] Perfil: Avatar + Nome
-     * [Centro] Extrato: Badges de cada modulo ativo
-     * [Direita] Saldo Final + Acoes
-     */
     _renderLinha(participante) {
-        const { timeId, nome, nomeTime, escudo, saldoJogo, saldoAcertos, saldoFinal, breakdown } = participante;
+        const { timeId, nome, nomeTime, escudo, saldoFinal, breakdown } = participante;
 
-        // Determinar status
         let statusClass, statusIcon;
         if (saldoFinal < -0.01) {
             statusClass = 'status-devedor';
@@ -432,23 +403,18 @@ class AdminTesouraria {
             statusIcon = 'check_circle';
         }
 
-        // Escudo placeholder
         const escudoUrl = escudo || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%232d2d2d"/%3E%3Ctext x="50" y="55" text-anchor="middle" fill="%236b7280" font-size="24"%3E?%3C/text%3E%3C/svg%3E';
-
-        // ✅ v2.0: Gerar badges financeiros dinamicos
         const badges = this._renderBadgesFinanceiros(breakdown);
-
-        // Formatar saldo final
         const saldoFormatado = this._formatarSaldo(saldoFinal);
 
         return `
-            <div class="linha-financeira ${statusClass}" data-time-id="${timeId}">
+            <div class="linha-financeira ${statusClass}" data-time-id="${timeId}" onclick="adminTesouraria.toggleExpand(this)">
                 <!-- ESQUERDA: Perfil -->
                 <div class="linha-perfil">
                     <img src="${escudoUrl}" alt="" class="escudo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%232d2d2d%22/%3E%3C/svg%3E'">
                     <div class="perfil-info">
-                        <span class="nome-cartola">${nome}</span>
-                        <span class="nome-time">${nomeTime || ''}</span>
+                        <span class="nome-cartola">${this._escapeHtml(nome)}</span>
+                        <span class="nome-time">${this._escapeHtml(nomeTime || '')}</span>
                     </div>
                 </div>
 
@@ -466,50 +432,127 @@ class AdminTesouraria {
                         <span class="saldo-valor">${saldoFormatado}</span>
                     </div>
                     <div class="linha-acoes">
-                        <button class="btn-acao" onclick="adminTesouraria.abrirAcerto('${timeId}', '${nome.replace(/'/g, "\\'")}')" title="Registrar Acerto">
+                        <button class="btn-acao" onclick="event.stopPropagation(); adminTesouraria.abrirAcerto('${timeId}', '${this._escapeHtml(nome).replace(/'/g, "\\'")}')" title="Registrar Acerto">
                             <span class="material-icons">payments</span>
                         </button>
-                        <button class="btn-acao" onclick="adminTesouraria.verDetalhes('${timeId}')" title="Ver Detalhes">
+                        <button class="btn-acao" onclick="event.stopPropagation(); adminTesouraria.verDetalhes('${timeId}')" title="Ver Detalhes">
                             <span class="material-icons">visibility</span>
                         </button>
                     </div>
+                    <span class="material-icons expand-indicator">expand_more</span>
+                </div>
+            </div>
+            <div class="linha-expand" data-expand-for="${timeId}">
+                ${this._renderExpandContent(participante)}
+            </div>
+        `;
+    }
+
+    // ==========================================================================
+    // EXPAND INLINE
+    // ==========================================================================
+
+    _renderExpandContent(participante) {
+        const bd = participante.breakdown || {};
+        const items = [];
+
+        const modulosMapa = [
+            ['banco', 'casino', 'Rodada (Banco)'],
+            ['pontosCorridos', 'emoji_events', 'Pontos Corridos'],
+            ['mataMata', 'sports_mma', 'Mata-Mata'],
+            ['top10', 'stars', 'Top10 (Mitos/Micos)'],
+            ['melhorMes', 'calendar_month', 'Melhor Mes'],
+            ['artilheiro', 'sports_soccer', 'Artilheiro'],
+            ['luvaOuro', 'sports_handball', 'Luva de Ouro'],
+            ['campos', 'edit_note', 'Ajustes Manuais'],
+            ['acertos', 'payments', 'Acertos'],
+        ];
+
+        for (const [key, icon, label] of modulosMapa) {
+            const ativo = key === 'campos' || key === 'acertos' || this.modulosAtivos[key];
+            if (!ativo) continue;
+
+            const valor = bd[key] || 0;
+            if (Math.abs(valor) < 0.01) continue;
+
+            const classe = valor > 0 ? 'positivo' : valor < 0 ? 'negativo' : 'zero';
+            const valorFmt = this._formatarSaldo(valor);
+
+            items.push(`
+                <div class="breakdown-item">
+                    <span class="material-icons" style="color: ${valor > 0 ? 'var(--color-success)' : valor < 0 ? 'var(--color-danger)' : 'var(--text-dim)'}">${icon}</span>
+                    <span class="breakdown-label">${label}</span>
+                    <span class="breakdown-value ${classe}">${valorFmt}</span>
+                </div>
+            `);
+        }
+
+        if (items.length === 0) {
+            items.push('<div class="breakdown-item"><span class="breakdown-label">Sem movimentacoes</span></div>');
+        }
+
+        const saldoClasse = participante.saldoFinal > 0.01 ? 'positivo'
+                          : participante.saldoFinal < -0.01 ? 'negativo' : 'zero';
+
+        return `
+            <div class="expand-content">
+                <div class="breakdown-grid">
+                    ${items.join('')}
+                </div>
+                <div class="expand-summary">
+                    <span class="expand-summary-label">Saldo Final</span>
+                    <span class="expand-summary-value ${saldoClasse}">${this._formatarSaldo(participante.saldoFinal)}</span>
                 </div>
             </div>
         `;
     }
 
-    /**
-     * ✅ v2.0: Renderiza badges financeiros dinamicos
-     * Mostra apenas modulos ativos da liga com valores != 0
-     */
+    toggleExpand(linhaEl) {
+        const timeId = linhaEl.dataset.timeId;
+        const expandEl = document.querySelector(`.linha-expand[data-expand-for="${timeId}"]`);
+        if (!expandEl) return;
+
+        const isExpanded = expandEl.classList.contains('expanded');
+
+        // Close all others
+        document.querySelectorAll('.linha-expand.expanded').forEach(el => {
+            el.classList.remove('expanded');
+        });
+        document.querySelectorAll('.linha-financeira.row-expanded').forEach(el => {
+            el.classList.remove('row-expanded');
+        });
+
+        // Toggle this one
+        if (!isExpanded) {
+            expandEl.classList.add('expanded');
+            linhaEl.classList.add('row-expanded');
+        }
+    }
+
+    // ==========================================================================
+    // BADGES FINANCEIROS
+    // ==========================================================================
+
     _renderBadgesFinanceiros(breakdown) {
         if (!breakdown) return '<span class="no-data">Sem dados</span>';
 
         const badges = [];
-
-        // Ordem de exibicao dos badges
-        // ✅ v2.1: Adicionado 'acertos' na ordem
         const ordem = ['banco', 'pontosCorridos', 'mataMata', 'top10', 'melhorMes', 'artilheiro', 'luvaOuro', 'campos', 'acertos'];
 
         for (const modulo of ordem) {
-            // Verificar se modulo esta ativo (exceto 'campos' e 'acertos' que sempre mostram se tiver valor)
             const ativo = modulo === 'campos' || modulo === 'acertos' || this.modulosAtivos[modulo];
             if (!ativo) continue;
 
             const valor = breakdown[modulo] || 0;
-
-            // Apenas mostrar se tiver valor (diferente de 0)
             if (Math.abs(valor) < 0.01) continue;
 
             const config = this.badgeConfig[modulo];
             if (!config) continue;
 
-            // Determinar cor baseada no valor (ganho/perda)
             let colorClass = 'badge-neutro';
             if (valor > 0) colorClass = 'badge-ganho';
             else if (valor < 0) colorClass = 'badge-perda';
 
-            // Formatar valor
             const valorFormatado = this._formatarValorBadge(valor);
 
             badges.push(`
@@ -520,7 +563,6 @@ class AdminTesouraria {
             `);
         }
 
-        // Se nao tiver nenhum badge, mostrar mensagem
         if (badges.length === 0) {
             return '<span class="no-badges">Sem movimentacoes</span>';
         }
@@ -528,236 +570,251 @@ class AdminTesouraria {
         return badges.join('');
     }
 
-    /**
-     * Formata valor para exibicao no badge (compacto)
-     */
     _formatarValorBadge(valor) {
         const abs = Math.abs(valor);
         const sinal = valor >= 0 ? '+' : '-';
-
-        if (abs >= 1000) {
-            return `${sinal}${(abs / 1000).toFixed(1)}k`;
-        }
+        if (abs >= 1000) return `${sinal}${(abs / 1000).toFixed(1)}k`;
         return `${sinal}${abs.toFixed(0)}`;
     }
 
-    /**
-     * ✅ NOVO v2.5: Anexa tooltips de regras financeiras aos badges
-     * Usa o componente TooltipRegrasFinanceiras para exibir valores configurados
-     */
     async _anexarTooltipsBadges() {
-        // Verificar se componente está disponível
-        if (!window.TooltipRegrasFinanceiras) {
-            console.warn('[TESOURARIA] TooltipRegrasFinanceiras não disponível');
-            return;
-        }
+        if (!window.TooltipRegrasFinanceiras) return;
 
         try {
-            // Módulos que têm regras financeiras relevantes (excluir 'campos' e 'acertos')
             const modulosComRegras = ['pontosCorridos', 'mataMata', 'top10', 'melhorMes', 'artilheiro', 'luvaOuro'];
-            
-            // Buscar todos os badges com data-modulo
             const badges = document.querySelectorAll('.badge-financeiro[data-modulo]');
-            
+
             for (const badge of badges) {
                 const modulo = badge.getAttribute('data-modulo');
-                
-                // Apenas anexar tooltip se o módulo tiver regras financeiras
-                if (!modulosComRegras.includes(modulo)) {
-                    continue;
-                }
+                if (!modulosComRegras.includes(modulo)) continue;
 
-                // Criar instância do tooltip e anexar
                 const tooltip = new TooltipRegrasFinanceiras();
                 await tooltip.anexarAoElemento(badge, this.ligaId, modulo, this.season);
             }
-
-            console.log('[TESOURARIA] Tooltips de regras financeiras anexados aos badges');
         } catch (error) {
             console.error('[TESOURARIA] Erro ao anexar tooltips:', error);
         }
     }
 
-    /**
-     * Formata saldo para exibicao principal
-     */
-    _formatarSaldo(valor) {
-        const abs = Math.abs(valor).toFixed(2).replace('.', ',');
-        if (valor > 0.01) return `+R$ ${abs}`;
-        if (valor < -0.01) return `-R$ ${abs}`;
-        return `R$ ${abs}`;
-    }
+    // ==========================================================================
+    // DETAIL PANEL (slide-up)
+    // ==========================================================================
 
-    /**
-     * Atualiza contador de participantes
-     */
-    _atualizarContador() {
-        const countEl = document.getElementById('count-value');
-        if (countEl) {
-            let count = this.participantes.length;
-            
-            // 🐛 DEBUG: Log do array completo
-            console.log('[TESOURARIA] 🔍 DEBUG _atualizarContador:');
-            console.log('  Total participantes:', this.participantes.length);
-            console.log('  Filtro status atual:', this.filtroStatus);
-            console.log('  Array participantes:', this.participantes.map(p => ({
-                nome: p.nome,
-                saldoFinal: p.saldoFinal,
-                tipo: typeof p.saldoFinal
-            })));
-            
-            if (this.filtroStatus !== 'todos') {
-                if (this.filtroStatus === 'devedores') {
-                    const devedores = this.participantes.filter(p => p.saldoFinal < -0.01);
-                    count = devedores.length;
-                    console.log('  📊 Devedores:', count, devedores.map(p => `${p.nome}: ${p.saldoFinal}`));
-                } else if (this.filtroStatus === 'credores') {
-                    const credores = this.participantes.filter(p => p.saldoFinal > 0.01);
-                    count = credores.length;
-                    console.log('  📊 Credores:', count, credores.map(p => `${p.nome}: ${p.saldoFinal}`));
-                } else if (this.filtroStatus === 'quitados') {
-                    // ✅ FIX: Quitados = saldo >= -0.01 (zerados + credores = sem dívidas)
-                    const quitados = this.participantes.filter(p => p.saldoFinal >= -0.01);
-                    count = quitados.length;
-                    console.log('  📊 Quitados (saldo >= -0.01):', count);
-                    console.log('  Lista quitados:', quitados.map(p => `${p.nome}: ${p.saldoFinal}`));
-                }
-            }
-            countEl.textContent = count;
-            console.log('  ✅ Contador atualizado para:', count);
-        }
-    }
+    verDetalhes(timeId) {
+        const participante = this.participantes.find(p => p.timeId === timeId);
+        if (!participante) return;
 
-    /**
-     * Renderiza estado de erro
-     */
-    _renderErro(mensagem) {
-        const container = document.getElementById('tabela-container');
-        if (container) {
-            container.innerHTML = `
-                <div class="error-state">
-                    <span class="material-icons">error_outline</span>
-                    <p>${mensagem}</p>
-                    <button class="btn-primary-dark" onclick="adminTesouraria.recarregar()">
-                        <span class="material-icons">refresh</span>
-                        Tentar Novamente
-                    </button>
-                </div>
+        const overlay = document.getElementById('tesouraria-detail-overlay');
+        const headerEl = document.getElementById('detail-panel-header');
+        const bodyEl = document.getElementById('detail-panel-body');
+        if (!overlay || !headerEl || !bodyEl) return;
+
+        const bd = participante.breakdown || {};
+        const escudoUrl = participante.escudo || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%232d2d2d"/%3E%3C/svg%3E';
+
+        const saldoClasse = participante.saldoFinal < -0.01 ? 'devedor'
+                          : participante.saldoFinal > 0.01 ? 'credor' : 'quitado';
+        const saldoCor = participante.saldoFinal < -0.01 ? 'var(--color-danger)'
+                       : participante.saldoFinal > 0.01 ? 'var(--color-success)' : 'var(--text-dim)';
+
+        headerEl.innerHTML = `
+            <img src="${escudoUrl}" alt="" class="escudo-lg" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%232d2d2d%22/%3E%3C/svg%3E'">
+            <div class="panel-header-info">
+                <h3>${this._escapeHtml(participante.nome)}</h3>
+                <p>${this._escapeHtml(participante.nomeTime || '')}</p>
+            </div>
+            <button class="panel-close" onclick="adminTesouraria.fecharDetalhes()">
+                <span class="material-icons">close</span>
+            </button>
+        `;
+
+        // Build breakdown rows
+        const modulosMapa = [
+            ['banco', 'casino', 'Rodada (Banco)'],
+            ['pontosCorridos', 'emoji_events', 'Pontos Corridos'],
+            ['mataMata', 'sports_mma', 'Mata-Mata'],
+            ['top10', 'stars', 'Top10 (Mitos/Micos)'],
+            ['melhorMes', 'calendar_month', 'Melhor Mes'],
+            ['artilheiro', 'sports_soccer', 'Artilheiro'],
+            ['luvaOuro', 'sports_handball', 'Luva de Ouro'],
+            ['campos', 'edit_note', 'Ajustes Manuais'],
+        ];
+
+        let breakdownRows = '';
+        for (const [key, icon, label] of modulosMapa) {
+            const ativo = key === 'campos' || this.modulosAtivos[key];
+            if (!ativo) continue;
+
+            const valor = bd[key] || 0;
+            if (Math.abs(valor) < 0.01) continue;
+
+            const cor = valor > 0 ? 'var(--color-success)' : valor < 0 ? 'var(--color-danger)' : 'var(--text-dim)';
+            breakdownRows += `
+                <tr>
+                    <td><span class="material-icons">${icon}</span> ${label}</td>
+                    <td style="color: ${cor}">${this._formatarSaldo(valor)}</td>
+                </tr>
             `;
         }
+
+        bodyEl.innerHTML = `
+            <!-- Saldo Hero -->
+            <div class="panel-saldo-hero ${saldoClasse}">
+                <div style="text-align: center">
+                    <div class="panel-saldo-label">Saldo Final</div>
+                    <div class="panel-saldo-value" style="color: ${saldoCor}">${this._formatarSaldo(participante.saldoFinal)}</div>
+                </div>
+            </div>
+
+            <!-- Breakdown por Modulo -->
+            ${breakdownRows ? `
+            <div class="panel-section">
+                <div class="panel-section-title">Detalhamento por Modulo</div>
+                <table class="breakdown-table">
+                    ${breakdownRows}
+                    <tr style="border-top: 2px solid var(--border-color)">
+                        <td><strong>Saldo Temporada</strong></td>
+                        <td><strong style="color: ${participante.saldoJogo >= 0 ? 'var(--color-success)' : 'var(--color-danger)'}">${this._formatarSaldo(participante.saldoJogo)}</strong></td>
+                    </tr>
+                </table>
+            </div>
+            ` : ''}
+
+            <!-- Acertos -->
+            <div class="panel-section">
+                <div class="panel-section-title">Acertos Financeiros</div>
+                <table class="breakdown-table">
+                    <tr>
+                        <td><span class="material-icons">arrow_upward</span> Total Pago</td>
+                        <td style="color: var(--color-success)">+R$ ${participante.totalPago.toFixed(2).replace('.', ',')}</td>
+                    </tr>
+                    <tr>
+                        <td><span class="material-icons">arrow_downward</span> Total Recebido</td>
+                        <td style="color: var(--color-danger)">-R$ ${participante.totalRecebido.toFixed(2).replace('.', ',')}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Saldo Acertos</strong></td>
+                        <td><strong style="color: ${participante.saldoAcertos >= 0 ? 'var(--color-success)' : 'var(--color-danger)'}">${this._formatarSaldo(participante.saldoAcertos)}</strong></td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Actions -->
+            <div class="panel-actions">
+                <button class="btn-primary-dark" onclick="adminTesouraria.abrirAcerto('${participante.timeId}', '${this._escapeHtml(participante.nome).replace(/'/g, "\\'")}'); adminTesouraria.fecharDetalhes();">
+                    <span class="material-icons">payments</span>
+                    Registrar Acerto
+                </button>
+                <button class="btn-secondary-dark" onclick="adminTesouraria.fecharDetalhes()">
+                    Fechar
+                </button>
+            </div>
+        `;
+
+        // Show overlay
+        overlay.classList.add('visible');
+    }
+
+    fecharDetalhes(event) {
+        if (event && event.target !== event.currentTarget) return;
+        const overlay = document.getElementById('tesouraria-detail-overlay');
+        if (overlay) overlay.classList.remove('visible');
     }
 
     // ==========================================================================
     // ACOES PUBLICAS
     // ==========================================================================
 
-    /**
-     * Recarrega os dados
-     */
     async recarregar() {
         const container = document.getElementById('tabela-container');
-        if (container) {
-            container.innerHTML = this._renderTableLoading();
-        }
+        if (container) container.innerHTML = this._renderTableLoading();
         await this._carregarDados();
     }
 
-    /**
-     * Muda a temporada
-     */
     async mudarTemporada(season) {
         this.season = season;
         await this.recarregar();
     }
 
-    /**
-     * Filtra por status
-     */
     filtrarStatus(status) {
         this.filtroStatus = status;
         this._renderTabela();
-        this._atualizarContador();
     }
 
-    /**
-     * Abre modal de acerto
-     */
+    buscar(term) {
+        this.searchTerm = term.trim();
+        this._renderTabela();
+    }
+
+    ordenar(mode) {
+        this.sortMode = mode;
+        // Update active button
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.sort === mode);
+        });
+        this._renderTabela();
+    }
+
     abrirAcerto(timeId, nomeTime) {
         if (typeof window.abrirModalAcerto === 'function') {
             window.abrirModalAcerto(timeId, nomeTime);
         } else {
-            SuperModal.toast.warning(`Modal de acerto não disponível para ${nomeTime}. Implemente window.abrirModalAcerto(timeId, nomeTime)`);
+            SuperModal.toast.warning(`Modal de acerto nao disponivel para ${nomeTime}. Implemente window.abrirModalAcerto(timeId, nomeTime)`);
         }
     }
 
-    /**
-     * Ver detalhes do participante
-     * ✅ v2.0: Mostra breakdown por modulo
-     */
-    verDetalhes(timeId) {
-        const participante = this.participantes.find(p => p.timeId === timeId);
-        if (!participante) return;
+    // ==========================================================================
+    // CSV EXPORT
+    // ==========================================================================
 
-        const bd = participante.breakdown || {};
-
-        // Construir lista de modulos com valores
-        let modulosStr = '';
-        const modulosComValor = [];
-
-        if (this.modulosAtivos.banco && bd.banco) {
-            modulosComValor.push(`  Rodada (Banco): R$ ${bd.banco.toFixed(2)}`);
-        }
-        if (this.modulosAtivos.pontosCorridos && bd.pontosCorridos) {
-            modulosComValor.push(`  Pontos Corridos: R$ ${bd.pontosCorridos.toFixed(2)}`);
-        }
-        if (this.modulosAtivos.mataMata && bd.mataMata) {
-            modulosComValor.push(`  Mata-Mata: R$ ${bd.mataMata.toFixed(2)}`);
-        }
-        if (this.modulosAtivos.top10 && bd.top10) {
-            modulosComValor.push(`  Top10 (Mitos/Micos): R$ ${bd.top10.toFixed(2)}`);
-        }
-        if (this.modulosAtivos.melhorMes && bd.melhorMes) {
-            modulosComValor.push(`  Melhor Mes: R$ ${bd.melhorMes.toFixed(2)}`);
-        }
-        if (this.modulosAtivos.artilheiro && bd.artilheiro) {
-            modulosComValor.push(`  Artilheiro: R$ ${bd.artilheiro.toFixed(2)}`);
-        }
-        if (this.modulosAtivos.luvaOuro && bd.luvaOuro) {
-            modulosComValor.push(`  Luva de Ouro: R$ ${bd.luvaOuro.toFixed(2)}`);
-        }
-        if (bd.campos) {
-            modulosComValor.push(`  Ajustes Manuais: R$ ${bd.campos.toFixed(2)}`);
-        }
-        if (bd.acertos) {
-            modulosComValor.push(`  Acertos: R$ ${bd.acertos.toFixed(2)}`);
+    exportarCSV() {
+        if (!this.participantes.length) {
+            SuperModal.toast.warning('Nenhum dado para exportar');
+            return;
         }
 
-        if (modulosComValor.length > 0) {
-            modulosStr = '\nDETALHAMENTO POR MODULO:\n' + modulosComValor.join('\n');
-        }
+        const headers = ['Nome', 'Time', 'Status', 'Rodada', 'Pt.Corridos', 'Mata-Mata', 'Top10', 'Melhor Mes', 'Artilheiro', 'Luva Ouro', 'Aj.Manuais', 'Acertos', 'Saldo Jogo', 'Total Pago', 'Total Recebido', 'Saldo Final'];
 
-        const msg = `
-DETALHES FINANCEIROS - ${participante.nome}
-==========================================
-${modulosStr}
+        const rows = this._getDadosFiltrados().map(p => {
+            const bd = p.breakdown || {};
+            return [
+                `"${(p.nome || '').replace(/"/g, '""')}"`,
+                `"${(p.nomeTime || '').replace(/"/g, '""')}"`,
+                p.saldoFinal < -0.01 ? 'Devedor' : p.saldoFinal > 0.01 ? 'Credor' : 'Quitado',
+                (bd.banco || 0).toFixed(2),
+                (bd.pontosCorridos || 0).toFixed(2),
+                (bd.mataMata || 0).toFixed(2),
+                (bd.top10 || 0).toFixed(2),
+                (bd.melhorMes || 0).toFixed(2),
+                (bd.artilheiro || 0).toFixed(2),
+                (bd.luvaOuro || 0).toFixed(2),
+                (bd.campos || 0).toFixed(2),
+                (bd.acertos || 0).toFixed(2),
+                (p.saldoJogo || 0).toFixed(2),
+                (p.totalPago || 0).toFixed(2),
+                (p.totalRecebido || 0).toFixed(2),
+                (p.saldoFinal || 0).toFixed(2),
+            ].join(';');
+        });
 
-SALDO TEMPORADA: R$ ${participante.saldoJogo.toFixed(2)}
+        const csvContent = [headers.join(';'), ...rows].join('\n');
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
 
-ACERTOS:
-  Pago: R$ ${participante.totalPago.toFixed(2)}
-  Recebido: R$ ${participante.totalRecebido.toFixed(2)}
-  Saldo Acertos: R$ ${participante.saldoAcertos.toFixed(2)}
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `tesouraria_${this.season}_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
 
-==========================================
-SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
-        `.trim();
-
-        SuperModal.toast.info(msg);
+        URL.revokeObjectURL(url);
+        SuperModal.toast.success('CSV exportado com sucesso!');
     }
 
-    /**
-     * Exporta relatorio para WhatsApp
-     */
+    // ==========================================================================
+    // WHATSAPP EXPORT
+    // ==========================================================================
+
     exportarRelatorio() {
         const devedores = this.participantes
             .filter(p => p.saldoFinal < -0.01)
@@ -767,7 +824,6 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
             .filter(p => p.saldoFinal > 0.01)
             .sort((a, b) => b.saldoFinal - a.saldoFinal);
 
-        // ✅ FIX: Quitados = saldo >= -0.01 (zerado ou credor)
         const quitados = this.participantes.filter(p => p.saldoFinal >= -0.01);
 
         let relatorio = `*BALANCO FINANCEIRO ${this.season}*\n`;
@@ -798,11 +854,9 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
         relatorio += `Total a Receber: R$ ${totalDevido.toFixed(2).replace('.', ',')}\n`;
         relatorio += `Total a Pagar: R$ ${totalCredito.toFixed(2).replace('.', ',')}\n`;
 
-        // Copiar para clipboard
         navigator.clipboard.writeText(relatorio).then(() => {
             SuperModal.toast.success('Relatorio copiado! Agora e so colar no WhatsApp.');
         }).catch(() => {
-            // Fallback para browsers antigos
             const textarea = document.createElement('textarea');
             textarea.value = relatorio;
             document.body.appendChild(textarea);
@@ -814,632 +868,49 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
     }
 
     // ==========================================================================
-    // CSS INJECTION
+    // HELPERS
     // ==========================================================================
 
-    _injectStyles() {
-        if (document.getElementById('tesouraria-styles')) return;
-
-        const styles = document.createElement('style');
-        styles.id = 'tesouraria-styles';
-        styles.textContent = `
-            /* ========================================
-               ADMIN TESOURARIA v2.0 - Badges Financeiros
-               ======================================== */
-
-            .tesouraria-module {
-                background: ${this.cores.bgPage};
-                min-height: 100%;
-                padding: 24px;
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            }
-
-            /* Header */
-            .tesouraria-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 24px;
-                flex-wrap: wrap;
-                gap: 16px;
-            }
-
-            .tesouraria-header .header-info h2 {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                font-size: 1.75rem;
-                font-weight: 700;
-                color: ${this.cores.texto};
-                margin: 0 0 4px 0;
-            }
-
-            .tesouraria-header .header-info h2 .material-icons {
-                font-size: 32px;
-                color: ${this.cores.laranja};
-            }
-
-            .tesouraria-header .header-info p {
-                color: ${this.cores.textoMuted};
-                font-size: 0.875rem;
-                margin: 0;
-            }
-
-            .tesouraria-header .header-actions {
-                display: flex;
-                gap: 12px;
-            }
-
-            .btn-icon {
-                width: 40px;
-                height: 40px;
-                border-radius: 8px;
-                border: 1px solid ${this.cores.border};
-                background: ${this.cores.bgCard};
-                color: ${this.cores.textoMuted};
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s;
-            }
-
-            .btn-icon:hover {
-                border-color: ${this.cores.laranja};
-                color: ${this.cores.laranja};
-            }
-
-            .btn-secondary-dark {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 10px 16px;
-                border-radius: 8px;
-                border: 1px solid ${this.cores.border};
-                background: ${this.cores.bgCard};
-                color: ${this.cores.texto};
-                font-size: 0.875rem;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s;
-            }
-
-            .btn-secondary-dark:hover {
-                border-color: ${this.cores.laranja};
-                background: ${this.cores.laranja}15;
-            }
-
-            .btn-primary-dark {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 10px 20px;
-                border-radius: 8px;
-                border: none;
-                background: ${this.cores.laranja};
-                color: #fff;
-                font-size: 0.875rem;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.2s;
-            }
-
-            .btn-primary-dark:hover {
-                background: #e64d00;
-                transform: translateY(-1px);
-            }
-
-            /* KPI Grid */
-            .kpi-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 16px;
-                margin-bottom: 24px;
-            }
-
-            .kpi-card {
-                background: ${this.cores.bgCard};
-                border: 1px solid ${this.cores.border};
-                border-radius: 12px;
-                padding: 20px;
-                display: flex;
-                align-items: center;
-                gap: 16px;
-            }
-
-            .kpi-icon {
-                width: 48px;
-                height: 48px;
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .kpi-icon .material-icons {
-                font-size: 24px;
-            }
-
-            .kpi-content {
-                display: flex;
-                flex-direction: column;
-            }
-
-            .kpi-value {
-                font-size: 1.5rem;
-                font-weight: 700;
-                color: ${this.cores.texto};
-            }
-
-            .kpi-value.loading-pulse {
-                animation: pulse 1.5s infinite;
-            }
-
-            .kpi-label {
-                font-size: 0.75rem;
-                color: ${this.cores.textoMuted};
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-
-            @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.5; }
-            }
-
-            /* Toolbar */
-            .toolbar {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: ${this.cores.bgCard};
-                border: 1px solid ${this.cores.border};
-                border-radius: 12px;
-                padding: 16px 20px;
-                margin-bottom: 16px;
-                flex-wrap: wrap;
-                gap: 16px;
-            }
-
-            .toolbar-left {
-                display: flex;
-                gap: 16px;
-                flex-wrap: wrap;
-            }
-
-            .filter-group {
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-            }
-
-            .filter-group label {
-                font-size: 0.7rem;
-                color: ${this.cores.textoMuted};
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-
-            .filter-group select {
-                background: ${this.cores.bgPage};
-                border: 1px solid ${this.cores.border};
-                border-radius: 6px;
-                padding: 8px 12px;
-                color: ${this.cores.texto};
-                font-size: 0.875rem;
-                min-width: 140px;
-                cursor: pointer;
-            }
-
-            .filter-group select:focus {
-                outline: none;
-                border-color: ${this.cores.laranja};
-            }
-
-            .toolbar-right {
-                display: flex;
-                align-items: center;
-            }
-
-            .participantes-count {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                color: ${this.cores.textoMuted};
-                font-size: 0.875rem;
-            }
-
-            .participantes-count .material-icons {
-                font-size: 18px;
-            }
-
-            /* Table Container */
-            .table-container {
-                background: ${this.cores.bgCard};
-                border: 1px solid ${this.cores.border};
-                border-radius: 12px;
-                overflow: hidden;
-            }
-
-            /* Loading State */
-            .loading-state, .empty-state, .error-state {
-                padding: 60px 20px;
-                text-align: center;
-                color: ${this.cores.textoMuted};
-            }
-
-            .loading-state .spinner {
-                width: 40px;
-                height: 40px;
-                border: 3px solid ${this.cores.border};
-                border-top-color: ${this.cores.laranja};
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-                margin: 0 auto 16px;
-            }
-
-            @keyframes spin {
-                to { transform: rotate(360deg); }
-            }
-
-            .empty-state .material-icons, .error-state .material-icons {
-                font-size: 48px;
-                margin-bottom: 12px;
-                opacity: 0.5;
-            }
-
-            .error-state .material-icons {
-                color: ${this.cores.vermelho};
-            }
-
-            /* ========================================
-               v2.0: LINHA FINANCEIRA COM BADGES
-               ======================================== */
-
-            .participantes-lista {
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-            }
-
-            /* Linha Financeira Principal */
-            .linha-financeira {
-                display: flex;
-                align-items: center;
-                gap: 16px;
-                padding: 14px 20px;
-                background: ${this.cores.bgCard};
-                border-bottom: 1px solid ${this.cores.border};
-                transition: background 0.2s;
-            }
-
-            .linha-financeira:first-child {
-                border-radius: 12px 12px 0 0;
-            }
-
-            .linha-financeira:last-child {
-                border-radius: 0 0 12px 12px;
-                border-bottom: none;
-            }
-
-            .linha-financeira:only-child {
-                border-radius: 12px;
-            }
-
-            .linha-financeira:hover {
-                background: ${this.cores.laranja}08;
-            }
-
-            /* Status-based styling */
-            .linha-financeira.status-devedor {
-                background: ${this.cores.vermelho}08;
-                border-left: 3px solid ${this.cores.vermelho};
-            }
-
-            .linha-financeira.status-devedor:hover {
-                background: ${this.cores.vermelho}12;
-            }
-
-            .linha-financeira.status-credor {
-                border-left: 3px solid ${this.cores.verde};
-            }
-
-            .linha-financeira.status-quitado {
-                border-left: 3px solid ${this.cores.cinza};
-            }
-
-            /* ESQUERDA: Perfil */
-            .linha-perfil {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                min-width: 200px;
-                flex-shrink: 0;
-            }
-
-            .linha-perfil .escudo {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                object-fit: cover;
-                background: ${this.cores.border};
-                flex-shrink: 0;
-            }
-
-            .perfil-info {
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-                min-width: 0;
-            }
-
-            .nome-cartola {
-                font-weight: 600;
-                color: ${this.cores.texto};
-                font-size: 0.9rem;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .nome-time {
-                font-size: 0.75rem;
-                color: ${this.cores.textoMuted};
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            /* CENTRO: Extrato (Badges) */
-            .linha-extrato {
-                flex: 1;
-                min-width: 0;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: thin;
-                scrollbar-color: ${this.cores.border} transparent;
-            }
-
-            .linha-extrato::-webkit-scrollbar {
-                height: 4px;
-            }
-
-            .linha-extrato::-webkit-scrollbar-track {
-                background: transparent;
-            }
-
-            .linha-extrato::-webkit-scrollbar-thumb {
-                background: ${this.cores.border};
-                border-radius: 4px;
-            }
-
-            .badges-container {
-                display: flex;
-                gap: 8px;
-                padding: 4px 0;
-            }
-
-            /* Badge Financeiro */
-            .badge-financeiro {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                padding: 4px 10px;
-                border-radius: 16px;
-                font-size: 0.75rem;
-                font-weight: 600;
-                white-space: nowrap;
-                transition: transform 0.2s;
-                cursor: default;
-            }
-
-            .badge-financeiro:hover {
-                transform: scale(1.05);
-            }
-
-            .badge-icon {
-                font-size: 14px !important;
-            }
-
-            .badge-valor {
-                font-family: 'JetBrains Mono', monospace;
-                font-size: 0.7rem;
-            }
-
-            /* Cores dos Badges */
-            .badge-ganho {
-                background: ${this.cores.verde}20;
-                color: ${this.cores.verde};
-            }
-
-            .badge-perda {
-                background: ${this.cores.vermelho}20;
-                color: ${this.cores.vermelho};
-            }
-
-            .badge-neutro {
-                background: ${this.cores.cinza}20;
-                color: ${this.cores.cinza};
-            }
-
-            .no-badges, .no-data {
-                color: ${this.cores.textoMuted};
-                font-size: 0.75rem;
-                font-style: italic;
-            }
-
-            /* DIREITA: Saldo Final + Acoes */
-            .linha-totais {
-                display: flex;
-                align-items: center;
-                gap: 16px;
-                flex-shrink: 0;
-            }
-
-            .saldo-final-box {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                padding: 8px 16px;
-                border-radius: 8px;
-                min-width: 140px;
-                justify-content: center;
-            }
-
-            .saldo-final-box.status-devedor {
-                background: ${this.cores.vermelho}15;
-            }
-
-            .saldo-final-box.status-credor {
-                background: ${this.cores.verde}15;
-            }
-
-            .saldo-final-box.status-quitado {
-                background: ${this.cores.cinza}15;
-            }
-
-            .status-icon {
-                font-size: 18px !important;
-            }
-
-            .status-devedor .status-icon { color: ${this.cores.vermelho}; }
-            .status-credor .status-icon { color: ${this.cores.verde}; }
-            .status-quitado .status-icon { color: ${this.cores.cinza}; }
-
-            .saldo-valor {
-                font-weight: 700;
-                font-size: 1rem;
-                font-family: 'JetBrains Mono', monospace;
-            }
-
-            .status-devedor .saldo-valor { color: ${this.cores.vermelho}; }
-            .status-credor .saldo-valor { color: ${this.cores.verde}; }
-            .status-quitado .saldo-valor { color: ${this.cores.cinza}; }
-
-            .linha-acoes {
-                display: flex;
-                gap: 4px;
-            }
-
-            /* Action Buttons */
-            .btn-acao {
-                width: 32px;
-                height: 32px;
-                border-radius: 6px;
-                border: 1px solid ${this.cores.border};
-                background: transparent;
-                color: ${this.cores.textoMuted};
-                cursor: pointer;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s;
-            }
-
-            .btn-acao:hover {
-                border-color: ${this.cores.laranja};
-                color: ${this.cores.laranja};
-                background: ${this.cores.laranja}10;
-            }
-
-            .btn-acao .material-icons {
-                font-size: 18px;
-            }
-
-            /* ========================================
-               RESPONSIVE
-               ======================================== */
-
-            @media (max-width: 1024px) {
-                .linha-perfil {
-                    min-width: 160px;
-                }
-
-                .saldo-final-box {
-                    min-width: 120px;
-                    padding: 6px 12px;
-                }
-
-                .saldo-valor {
-                    font-size: 0.9rem;
-                }
-            }
-
-            @media (max-width: 768px) {
-                .tesouraria-module {
-                    padding: 16px;
-                }
-
-                .tesouraria-header {
-                    flex-direction: column;
-                }
-
-                .kpi-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-
-                .toolbar {
-                    flex-direction: column;
-                    align-items: stretch;
-                }
-
-                .toolbar-left, .toolbar-right {
-                    justify-content: center;
-                }
-
-                /* Mobile: Stack vertical */
-                .linha-financeira {
-                    flex-wrap: wrap;
-                    padding: 12px 16px;
-                    gap: 12px;
-                }
-
-                .linha-perfil {
-                    min-width: 100%;
-                    order: 1;
-                }
-
-                .linha-extrato {
-                    order: 3;
-                    width: 100%;
-                    padding-bottom: 8px;
-                }
-
-                .linha-totais {
-                    order: 2;
-                    margin-left: auto;
-                }
-
-                .saldo-final-box {
-                    min-width: 110px;
-                }
-            }
-
-            @media (max-width: 480px) {
-                .kpi-grid {
-                    grid-template-columns: 1fr 1fr;
-                }
-
-                .kpi-card {
-                    padding: 12px;
-                }
-
-                .kpi-value {
-                    font-size: 1.1rem;
-                }
-
-                .linha-totais {
-                    width: 100%;
-                    justify-content: space-between;
-                }
-
-                .linha-acoes {
-                    margin-left: auto;
-                }
-            }
-        `;
-
-        document.head.appendChild(styles);
+    _formatarSaldo(valor) {
+        const abs = Math.abs(valor).toFixed(2).replace('.', ',');
+        if (valor > 0.01) return `+R$ ${abs}`;
+        if (valor < -0.01) return `-R$ ${abs}`;
+        return `R$ ${abs}`;
+    }
+
+    _atualizarContador(count) {
+        const countEl = document.getElementById('count-value');
+        if (!countEl) return;
+
+        if (count !== undefined) {
+            countEl.textContent = count;
+            return;
+        }
+
+        countEl.textContent = this._getDadosFiltrados().length;
+    }
+
+    _renderErro(mensagem) {
+        const container = document.getElementById('tabela-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="error-state">
+                    <span class="material-icons">error_outline</span>
+                    <p>${mensagem}</p>
+                    <button class="btn-primary-dark" onclick="adminTesouraria.recarregar()">
+                        <span class="material-icons">refresh</span>
+                        Tentar Novamente
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    _escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 }
 
@@ -1450,9 +921,8 @@ SALDO FINAL: R$ ${participante.saldoFinal.toFixed(2)}
 window.AdminTesouraria = AdminTesouraria;
 window.adminTesouraria = new AdminTesouraria();
 
-// Export para uso como modulo ES6
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AdminTesouraria;
 }
 
-console.log('[TESOURARIA] Modulo AdminTesouraria carregado v2.1.0 (Ajustes Manuais + Acertos)');
+console.log('[TESOURARIA] Modulo AdminTesouraria carregado v3.0.0 (Search, Sort, Detail Panel, Expand, CSV)');
