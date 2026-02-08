@@ -192,7 +192,7 @@ class QuickAccessBar {
                 </button>
                 <button class="nav-item" data-page="ranking" type="button">
                     <span class="material-icons nav-icon">trending_up</span>
-                    <span class="nav-label">Ranking</span>
+                    <span class="nav-label">Ranking Geral</span>
                 </button>
                 <button class="nav-item" data-page="menu" id="menuButton" type="button">
                     <span class="material-icons nav-icon">apps</span>
