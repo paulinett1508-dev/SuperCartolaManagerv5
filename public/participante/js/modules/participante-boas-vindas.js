@@ -813,7 +813,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
                             Participantes
                         </button>
                         <!-- Botao Regras (azul) -->
-                        <button onclick="window.abrirRegras2026 && window.abrirRegras2026()"
+                        <button onclick="window.participanteNav?.navegarPara('regras')"
                                 class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/40 text-blue-400 text-xs font-medium active:scale-95 transition-all hover:bg-blue-500/30">
                             <span class="material-icons text-sm">gavel</span>
                             Regras
@@ -956,7 +956,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
                             Participantes
                         </button>
                         <!-- Botao Regras (azul) -->
-                        <button onclick="window.abrirRegras2026 && window.abrirRegras2026()"
+                        <button onclick="window.participanteNav?.navegarPara('regras')"
                                 class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/40 text-blue-400 text-xs font-medium active:scale-95 transition-all hover:bg-blue-500/30">
                             <span class="material-icons text-sm">gavel</span>
                             Regras

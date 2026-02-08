@@ -1,0 +1,299 @@
+<!-- PARTICIPANTE REGRAS - Regras dos Módulos da Liga v1.0 -->
+<div id="regras-container" class="regras-page">
+    <!-- Header -->
+    <div class="regras-header">
+        <div class="regras-header-icon">
+            <span class="material-icons">menu_book</span>
+        </div>
+        <div class="regras-header-info">
+            <h1 class="regras-header-titulo">Regras da Liga</h1>
+            <p class="regras-header-subtitulo">Entenda como cada módulo funciona</p>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="regras-loading" class="regras-loading">
+        <div class="regras-spinner"></div>
+        <p>Carregando regras...</p>
+    </div>
+
+    <!-- Lista de Regras (Accordion) -->
+    <div id="regras-lista" class="regras-lista" style="display:none;"></div>
+
+    <!-- Erro -->
+    <div id="regras-erro" class="regras-erro" style="display:none;">
+        <span class="material-icons">info</span>
+        <p>As regras ainda não foram configuradas para esta liga.</p>
+        <p class="regras-erro-sub">Aguarde o administrador definir as regras.</p>
+    </div>
+</div>
+
+<style>
+/* =====================================================
+   PARTICIPANTE REGRAS - Dark Mode Cartola Style v1.0
+   ===================================================== */
+
+.regras-page {
+    background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+/* Header */
+.regras-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 16px 16px;
+}
+
+.regras-header-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.regras-header-icon .material-icons {
+    font-size: 26px;
+    color: #fff;
+}
+
+.regras-header-titulo {
+    font-family: 'Russo One', sans-serif;
+    font-size: 20px;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: 0.3px;
+}
+
+.regras-header-subtitulo {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    margin: 2px 0 0;
+}
+
+/* Loading */
+.regras-loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+}
+
+.regras-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: regras-spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+}
+
+@keyframes regras-spin { to { transform: rotate(360deg); } }
+
+/* Erro */
+.regras-erro {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Inter', sans-serif;
+}
+
+.regras-erro .material-icons {
+    font-size: 48px;
+    color: rgba(255,255,255,0.2);
+    margin-bottom: 12px;
+    display: block;
+}
+
+.regras-erro p {
+    font-size: 14px;
+    margin: 0;
+}
+
+.regras-erro-sub {
+    font-size: 12px !important;
+    color: rgba(255,255,255,0.3) !important;
+    margin-top: 4px !important;
+}
+
+/* Lista de Regras */
+.regras-lista {
+    padding: 0 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Card Accordion */
+.regra-accordion {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.regra-accordion.open {
+    border-color: rgba(255,255,255,0.15);
+}
+
+/* Accordion Header */
+.regra-accordion-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.regra-accordion-header:active {
+    background: rgba(255,255,255,0.04);
+}
+
+.regra-acc-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.regra-acc-icon .material-icons {
+    font-size: 20px;
+    color: #fff;
+}
+
+.regra-acc-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.regra-acc-titulo {
+    font-family: 'Russo One', sans-serif;
+    font-size: 13px;
+    color: #ffffff;
+    letter-spacing: 0.2px;
+}
+
+.regra-acc-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 1px;
+}
+
+.regra-acc-chevron {
+    font-size: 22px;
+    color: rgba(255,255,255,0.3);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.regra-accordion.open .regra-acc-chevron {
+    transform: rotate(180deg);
+    color: rgba(255,255,255,0.6);
+}
+
+/* Accordion Content */
+.regra-accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.regra-accordion.open .regra-accordion-body {
+    max-height: 2000px;
+}
+
+.regra-accordion-content {
+    padding: 0 16px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Rich Content Rendering */
+.regra-accordion-content h1,
+.regra-accordion-content h2,
+.regra-accordion-content h3,
+.regra-accordion-content h4 {
+    font-family: 'Russo One', sans-serif;
+    color: #ffffff;
+    margin: 14px 0 8px;
+}
+
+.regra-accordion-content h3 {
+    font-size: 15px;
+}
+
+.regra-accordion-content h4 {
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+}
+
+.regra-accordion-content p {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.7);
+    margin: 8px 0;
+}
+
+.regra-accordion-content strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.regra-accordion-content em {
+    color: rgba(255,255,255,0.5);
+    font-style: italic;
+}
+
+.regra-accordion-content ul,
+.regra-accordion-content ol {
+    padding-left: 20px;
+    margin: 8px 0;
+}
+
+.regra-accordion-content li {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 4px;
+}
+
+.regra-accordion-content li strong {
+    color: #ffffff;
+}
+
+.regra-accordion-content a {
+    color: #60a5fa;
+    text-decoration: underline;
+}
+
+.regra-accordion-content img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.regra-accordion-content blockquote {
+    border-left: 3px solid rgba(255,255,255,0.15);
+    padding-left: 12px;
+    margin: 10px 0;
+    color: rgba(255,255,255,0.5);
+    font-style: italic;
+}
+</style>
