@@ -169,6 +169,15 @@ Sistema de ativação inteligente de skills baseado em palavras-chave contextuai
 | **NÃO confundir** | Refactoring pontual → `code`; Refactoring de lógica de negócio → `league-architect` primeiro |
 | **Localização** | `docs/skills/03-utilities/Refactor-Monolith.md` |
 
+#### stitch-adapter
+| Tipo | Keywords |
+|------|----------|
+| **Primárias** | `stitch`, `google stitch`, `adaptar código`, `converter html`, `código externo`, `html do stitch` |
+| **Frases PT-BR** | "adaptar código do stitch", "recebi código do stitch", "converter html externo", "processar stitch", "código gerado pelo stitch", "html do google stitch", "adaptar design do stitch" |
+| **Contexto** | Receber HTML do Google Stitch e adaptar para stack do projeto (separar HTML/CSS/JS, converter cores para variáveis CSS) |
+| **NÃO confundir** | Criar componente do zero → `frontend-crafter`; Apenas estilizar → `frontend-crafter` |
+| **Localização** | `docs/skills/03-utilities/stitch-adapter.md` |
+
 ---
 
 ### 04 - Project-Specific (Específicas do Super Cartola)
@@ -264,6 +273,8 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | "tem certeza disso?" | `fact-checker` | Validação de fatos |
 | "antes de codar, verifique" | `ai-problems-detection` | Pré-check |
 | "esse arquivo tá enorme" | `Refactor-Monolith` | Decomposição |
+| "adaptar código do stitch" | `stitch-adapter` | Conversão HTML externo |
+| "recebi html do google stitch" | `stitch-adapter` | Adaptação de código |
 | "endpoint do cartola" | `cartola-api` | API externa |
 | "cache tá lento" | `cache-auditor` | Performance de cache |
 | "audite o módulo top 10" | `auditor-module` | Auditoria de módulo |
@@ -287,6 +298,7 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | Auditoria de módulo | `auditor-module` → `code-inspector` → `cache-auditor` |
 | Auditoria UX pré-release | `ux-auditor-app` → `cache-auditor` → `code-inspector` |
 | Auditoria UX + correção | `ux-auditor-app` → `frontend-crafter` |
+| Design Stitch → Código | `stitch-adapter` → `frontend-crafter` (ajustes) |
 | Documentação | `system-scribe` |
 | Consulta API Cartola | `cartola-api` → `fact-checker` |
 
