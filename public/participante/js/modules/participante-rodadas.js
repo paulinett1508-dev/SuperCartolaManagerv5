@@ -308,50 +308,126 @@ window.selecionarRodadaMini = function(numero, isParcial) {
 // (Grupos expansíveis removidos na v5.1 - rodadas exibidas em grid único)
 
 // =====================================================================
-// CARD DE DESEMPENHO MITOS/MICOS
+// CARD SUA TEMPORADA v2.0 - Estatísticas reais do participante
 // =====================================================================
 function renderizarCardDesempenho(rodadas) {
-    const card = document.getElementById("cardDesempenhoMitosMicos");
+    const card = document.getElementById("cardSuaTemporada");
     if (!card) return;
 
-    let totalMitos = 0;
-    let totalMicos = 0;
-    let ultimoMito = null;
-    let ultimoMico = null;
-    let rodadasJogadas = 0;
+    // Coletar dados do participante logado
+    const meusDados = [];
+    let totalPontos = 0;
+    let melhorRodada = { numero: 0, pontos: -Infinity };
+    let piorRodada = { numero: 0, pontos: Infinity };
+    let vezesTop3 = 0;
+    let vezesUltimo = 0;
+    let vezesAcimaMedia = 0;
+    let somaPosicoesFinanceiras = 0;
+    let rodadasComPosicao = 0;
 
     rodadas.forEach((rodada) => {
         if (!rodada.jogou || !rodada.participantes?.length) return;
 
-        rodadasJogadas++;
+        const numeroRodada = obterNumeroRodada(rodada);
+        const meusPontos = rodada.meusPontos ?? 0;
 
-        const destaqueRodada = obterMitoMicoDaRodada(rodada);
-        if (destaqueRodada) {
-            const numeroRodada = obterNumeroRodada(rodada);
-            if (compararTimeIds(destaqueRodada.mito?.timeId, meuTimeId)) {
-                totalMitos++;
-                ultimoMito = numeroRodada;
+        meusDados.push({
+            rodada: numeroRodada,
+            pontos: meusPontos,
+            posicao: rodada.posicaoFinanceira
+        });
+
+        totalPontos += meusPontos;
+
+        // Melhor rodada
+        if (meusPontos > melhorRodada.pontos) {
+            melhorRodada = { numero: numeroRodada, pontos: meusPontos };
+        }
+
+        // Pior rodada
+        if (meusPontos < piorRodada.pontos) {
+            piorRodada = { numero: numeroRodada, pontos: meusPontos };
+        }
+
+        // Calcular posição na rodada e média da liga
+        const participantesAtivos = rodada.participantes.filter((p) => p.ativo !== false && !p.rodadaNaoJogada);
+        if (participantesAtivos.length > 0) {
+            // Ordenar por pontos para descobrir posição
+            const ordenados = [...participantesAtivos].sort((a, b) => {
+                const pontosA = parseFloat(a.pontos || 0);
+                const pontosB = parseFloat(b.pontos || 0);
+                return pontosB - pontosA;
+            });
+
+            const minhaPosicao = ordenados.findIndex((p) =>
+                compararTimeIds(p.timeId ?? p.time_id, meuTimeId)
+            ) + 1;
+
+            // Top 3
+            if (minhaPosicao >= 1 && minhaPosicao <= 3) {
+                vezesTop3++;
             }
-            if (compararTimeIds(destaqueRodada.mico?.timeId, meuTimeId)) {
-                totalMicos++;
-                ultimoMico = numeroRodada;
+
+            // Último lugar
+            if (minhaPosicao === ordenados.length && ordenados.length > 1) {
+                vezesUltimo++;
             }
+
+            // Acima da média
+            const somaPontosLiga = participantesAtivos.reduce((acc, p) => acc + parseFloat(p.pontos || 0), 0);
+            const mediaLiga = somaPontosLiga / participantesAtivos.length;
+            if (meusPontos > mediaLiga) {
+                vezesAcimaMedia++;
+            }
+        }
+
+        // Posição financeira (para média)
+        if (rodada.posicaoFinanceira) {
+            somaPosicoesFinanceiras += rodada.posicaoFinanceira;
+            rodadasComPosicao++;
         }
     });
 
-    const totalOcorrencias = totalMitos + totalMicos;
-    const percentMito = totalOcorrencias > 0 ? Math.round((totalMitos / totalOcorrencias) * 100) : 0;
-    const percentMico = totalOcorrencias > 0 ? Math.round((totalMicos / totalOcorrencias) * 100) : 0;
+    const rodadasJogadas = meusDados.length;
 
-    document.getElementById("desempBadgeRodadas").textContent = `${rodadasJogadas} RODADAS`;
-    document.getElementById("desempMitosCount").textContent = totalMitos;
-    document.getElementById("desempMicosCount").textContent = totalMicos;
-    document.getElementById("desempMitoPercent").textContent = `${percentMito}%`;
-    document.getElementById("desempMicoPercent").textContent = `${percentMico}%`;
-    document.getElementById("progressMito").style.width = `${percentMito}%`;
-    document.getElementById("progressMico").style.width = `${percentMico}%`;
-    document.getElementById("desempUltimoMito").textContent = ultimoMito ? `Rodada ${ultimoMito}` : "Nenhum";
-    document.getElementById("desempUltimoMico").textContent = ultimoMico ? `Rodada ${ultimoMico}` : "Nenhum";
+    if (rodadasJogadas === 0) {
+        card.style.display = "none";
+        return;
+    }
+
+    // Cálculos finais
+    const mediaPontos = totalPontos / rodadasJogadas;
+    const posicaoMedia = rodadasComPosicao > 0 ? (somaPosicoesFinanceiras / rodadasComPosicao) : null;
+    const aproveitamento = Math.round((vezesAcimaMedia / rodadasJogadas) * 100);
+
+    // Popular elementos do DOM
+    const setEl = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
+
+    const setStyle = (id, prop, value) => {
+        const el = document.getElementById(id);
+        if (el) el.style[prop] = value;
+    };
+
+    setEl("tempBadgeRodadas", `${rodadasJogadas} RODADAS`);
+    setEl("tempPontosTotal", totalPontos.toFixed(2).replace('.', ','));
+    setEl("tempMediaPontos", mediaPontos.toFixed(2).replace('.', ','));
+    setEl("tempPosicaoMedia", posicaoMedia ? `${posicaoMedia.toFixed(1)}º` : "-");
+
+    setEl("tempMelhorRodada", `R${String(melhorRodada.numero).padStart(2, '0')}`);
+    setEl("tempMelhorPontos", `${melhorRodada.pontos.toFixed(2)} pts`);
+    setEl("tempPiorRodada", `R${String(piorRodada.numero).padStart(2, '0')}`);
+    setEl("tempPiorPontos", `${piorRodada.pontos.toFixed(2)} pts`);
+
+    setEl("tempVezesTop3", vezesTop3);
+    setEl("tempVezesAcimaMedia", vezesAcimaMedia);
+    setEl("tempVezesUltimo", vezesUltimo);
+
+    setEl("tempAproveitamento", `${aproveitamento}%`);
+    setStyle("tempAproveitamentoBar", "width", `${aproveitamento}%`);
+    setEl("tempAproveitamentoHint", `${vezesAcimaMedia} de ${rodadasJogadas} rodadas acima da média da liga`);
 
     card.style.display = "block";
 }
@@ -840,10 +916,6 @@ function renderizarGraficoEvolutivo(rodadas, rodadaSelecionadaNum) {
 
     barsContainer.innerHTML = barsHTML;
     chartContainer.style.display = 'block';
-
-    // Ocultar card antigo de Mitos/Micos
-    const cardMitosMicos = document.getElementById('cardDesempenhoMitosMicos');
-    if (cardMitosMicos) cardMitosMicos.style.display = 'none';
 }
 
 // =====================================================================

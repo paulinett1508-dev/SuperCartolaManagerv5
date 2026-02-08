@@ -241,8 +241,8 @@
     animation: blink 1s infinite;
 }
 
-/* === CARD DE DESEMPENHO === */
-.card-desempenho-mitos-micos {
+/* === CARD SUA TEMPORADA v2.0 === */
+.card-sua-temporada {
     background: linear-gradient(135deg, var(--rodadas-surface) 0%, var(--rodadas-surface-elevated) 100%);
     border-radius: 16px;
     padding: 16px;
@@ -250,22 +250,27 @@
     border: 1px solid var(--rodadas-border);
 }
 
-.desempenho-header {
+.temporada-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.temporada-header-left {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 16px;
     color: var(--rodadas-primary);
     font-weight: 600;
     font-size: 14px;
 }
 
-.desempenho-header .material-symbols-outlined {
+.temporada-header-left .material-symbols-outlined {
     font-size: 20px;
 }
 
 .badge-rodadas {
-    margin-left: auto;
     background: rgba(255, 69, 0, 0.12);
     color: var(--rodadas-primary);
     padding: 4px 10px;
@@ -274,101 +279,196 @@
     font-weight: 600;
 }
 
-.desempenho-stats {
+/* Linhas de estatísticas */
+.temporada-row {
     display: flex;
-    gap: 12px;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
-.stat-mito, .stat-mico {
-    flex: 1;
-    background: rgba(0, 0, 0, 0.3);
+/* Estatísticas de pontuação */
+.pontuacao-row {
+    background: rgba(0, 0, 0, 0.25);
     border-radius: 12px;
     padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
 }
 
-.stat-icon-wrapper {
-    width: 36px;
-    height: 36px;
+.temp-stat {
+    flex: 1;
+    text-align: center;
+}
+
+.temp-stat.principal {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    padding-right: 12px;
+}
+
+.temp-stat-valor {
+    display: block;
+    font-family: var(--rodadas-font-mono);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--rodadas-text-white);
+}
+
+.temp-stat.principal .temp-stat-valor {
+    font-size: 26px;
+    color: var(--rodadas-primary);
+}
+
+.temp-stat-label {
+    display: block;
+    font-size: 10px;
+    color: var(--rodadas-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+}
+
+/* Destaques (melhor/pior rodada) */
+.destaques-row {
+    gap: 10px;
+}
+
+.temp-destaque {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
     border-radius: 10px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.temp-destaque.melhor {
+    border-left: 3px solid var(--rodadas-success);
+}
+
+.temp-destaque.pior {
+    border-left: 3px solid var(--rodadas-danger);
+}
+
+.destaque-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.stat-icon-wrapper.mito {
-    background: rgba(34, 197, 94, 0.2);
+.temp-destaque.melhor .destaque-icon {
+    background: rgba(34, 197, 94, 0.15);
     color: var(--rodadas-success);
 }
 
-.stat-icon-wrapper.mico {
-    background: rgba(239, 68, 68, 0.2);
+.temp-destaque.pior .destaque-icon {
+    background: rgba(239, 68, 68, 0.15);
     color: var(--rodadas-danger);
 }
 
-.stat-icon-wrapper .material-symbols-outlined {
+.destaque-icon .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.destaque-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.destaque-label {
+    font-size: 9px;
+    color: var(--rodadas-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.destaque-valor {
+    font-family: var(--rodadas-font-brand);
+    font-size: 14px;
+    color: var(--rodadas-text-white);
+}
+
+.destaque-pontos {
+    font-family: var(--rodadas-font-mono);
+    font-size: 11px;
+    color: var(--rodadas-text-muted);
+}
+
+/* Conquistas */
+.conquistas-row {
+    justify-content: space-around;
+    padding: 8px 0;
+}
+
+.temp-conquista {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.conquista-icon {
     font-size: 20px;
 }
 
-.stat-info {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-}
-
-.stat-label {
-    color: var(--rodadas-text-dim);
-    font-family: var(--rodadas-font-brand);
-    font-size: 10px;
-    font-weight: 400;
-    letter-spacing: 0.5px;
-}
-
-.stat-value {
+.conquista-valor {
+    font-family: var(--rodadas-font-mono);
+    font-size: 18px;
+    font-weight: 600;
     color: var(--rodadas-text-white);
-    font-family: var(--rodadas-font-brand);
-    font-size: 24px;
-    font-weight: 400;
 }
 
-.stat-progress {
+.conquista-label {
+    font-size: 9px;
+    color: var(--rodadas-text-dim);
+    text-transform: uppercase;
+}
+
+/* Barra de aproveitamento */
+.temporada-aproveitamento {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 4px;
+}
+
+.aproveitamento-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    color: var(--rodadas-text-muted);
 }
 
-.progress-bar {
-    flex: 1;
-    height: 4px;
+.aproveitamento-header span:last-child {
+    font-family: var(--rodadas-font-mono);
+    font-weight: 600;
+    color: var(--rodadas-primary);
+}
+
+.aproveitamento-bar {
+    height: 6px;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
+    border-radius: 3px;
     overflow: hidden;
 }
 
-.progress-bar.mito .progress-fill {
-    background: var(--rodadas-success);
-}
-
-.progress-bar.mico .progress-fill {
-    background: var(--rodadas-danger);
-}
-
-.progress-fill {
+.aproveitamento-fill {
     height: 100%;
-    transition: width 0.5s ease;
+    background: linear-gradient(90deg, var(--rodadas-primary), #ff8c42);
+    border-radius: 3px;
+    transition: width 0.6s ease;
 }
 
-.progress-text {
+.aproveitamento-hint {
+    display: block;
+    font-size: 9px;
     color: var(--rodadas-text-dim);
-    font-size: 11px;
-    min-width: 32px;
-}
-
-.stat-ultimo {
-    color: var(--rodadas-text-dim);
-    font-size: 11px;
+    margin-top: 4px;
+    text-align: center;
 }
 
 /* === DETALHAMENTO DA RODADA === */
@@ -1897,25 +1997,81 @@
         </div>
     </div>
 
-    <div id="cardDesempenhoMitosMicos" class="card-desempenho-mitos-micos" style="display: none;">
-        <div class="desempenho-header">
-            <span class="material-symbols-outlined">insights</span>
-            <span>Seu Desempenho</span>
-            <span id="desempBadgeRodadas" class="badge-rodadas">0 RODADAS</span>
+    <!-- Card Sua Temporada v2.0 - Estatísticas reais do participante -->
+    <div id="cardSuaTemporada" class="card-sua-temporada" style="display: none;">
+        <div class="temporada-header">
+            <div class="temporada-header-left">
+                <span class="material-symbols-outlined">query_stats</span>
+                <span>Sua Temporada</span>
+            </div>
+            <span id="tempBadgeRodadas" class="badge-rodadas">0 RODADAS</span>
         </div>
-        <div class="desempenho-stats">
-            <div class="stat-mito">
-                <div class="stat-icon-wrapper mito"><span class="material-symbols-outlined">emoji_events</span></div>
-                <div class="stat-info"><span class="stat-label">MITOS</span><span id="desempMitosCount" class="stat-value">0</span></div>
-                <div class="stat-progress"><div class="progress-bar mito"><div id="progressMito" class="progress-fill" style="width: 0%"></div></div><span id="desempMitoPercent" class="progress-text">0%</span></div>
-                <span id="desempUltimoMito" class="stat-ultimo">Nenhum</span>
+
+        <!-- Linha 1: Pontuação -->
+        <div class="temporada-row pontuacao-row">
+            <div class="temp-stat principal">
+                <span class="temp-stat-valor" id="tempPontosTotal">0</span>
+                <span class="temp-stat-label">Pontos Total</span>
             </div>
-            <div class="stat-mico">
-                <div class="stat-icon-wrapper mico"><span class="material-symbols-outlined">sentiment_very_dissatisfied</span></div>
-                <div class="stat-info"><span class="stat-label">MICOS</span><span id="desempMicosCount" class="stat-value">0</span></div>
-                <div class="stat-progress"><div class="progress-bar mico"><div id="progressMico" class="progress-fill" style="width: 0%"></div></div><span id="desempMicoPercent" class="progress-text">0%</span></div>
-                <span id="desempUltimoMico" class="stat-ultimo">Nenhum</span>
+            <div class="temp-stat">
+                <span class="temp-stat-valor" id="tempMediaPontos">0.00</span>
+                <span class="temp-stat-label">Média/Rodada</span>
             </div>
+            <div class="temp-stat">
+                <span class="temp-stat-valor" id="tempPosicaoMedia">-</span>
+                <span class="temp-stat-label">Posição Média</span>
+            </div>
+        </div>
+
+        <!-- Linha 2: Destaques -->
+        <div class="temporada-row destaques-row">
+            <div class="temp-destaque melhor">
+                <div class="destaque-icon"><span class="material-symbols-outlined">trending_up</span></div>
+                <div class="destaque-info">
+                    <span class="destaque-label">Melhor Rodada</span>
+                    <span class="destaque-valor" id="tempMelhorRodada">R00</span>
+                    <span class="destaque-pontos" id="tempMelhorPontos">0 pts</span>
+                </div>
+            </div>
+            <div class="temp-destaque pior">
+                <div class="destaque-icon"><span class="material-symbols-outlined">trending_down</span></div>
+                <div class="destaque-info">
+                    <span class="destaque-label">Pior Rodada</span>
+                    <span class="destaque-valor" id="tempPiorRodada">R00</span>
+                    <span class="destaque-pontos" id="tempPiorPontos">0 pts</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Linha 3: Conquistas -->
+        <div class="temporada-row conquistas-row">
+            <div class="temp-conquista">
+                <span class="conquista-icon top3">🥇</span>
+                <span class="conquista-valor" id="tempVezesTop3">0</span>
+                <span class="conquista-label">Top 3</span>
+            </div>
+            <div class="temp-conquista">
+                <span class="conquista-icon acima">📈</span>
+                <span class="conquista-valor" id="tempVezesAcimaMedia">0</span>
+                <span class="conquista-label">Acima da Média</span>
+            </div>
+            <div class="temp-conquista">
+                <span class="conquista-icon ultimo">😅</span>
+                <span class="conquista-valor" id="tempVezesUltimo">0</span>
+                <span class="conquista-label">Último</span>
+            </div>
+        </div>
+
+        <!-- Barra de aproveitamento -->
+        <div class="temporada-aproveitamento">
+            <div class="aproveitamento-header">
+                <span>Aproveitamento</span>
+                <span id="tempAproveitamento">0%</span>
+            </div>
+            <div class="aproveitamento-bar">
+                <div class="aproveitamento-fill" id="tempAproveitamentoBar" style="width: 0%"></div>
+            </div>
+            <span class="aproveitamento-hint" id="tempAproveitamentoHint">Rodadas acima da média da liga</span>
         </div>
     </div>
 
