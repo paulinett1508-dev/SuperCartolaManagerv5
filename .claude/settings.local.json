@@ -97,7 +97,10 @@
       "Skill(code)",
       "Skill(workflow)",
       "Skill(Refactor-Monolith)",
-      "Skill(fact-checker)"
+      "Skill(fact-checker)",
+      "Bash(git remote get-url:*)",
+      "Bash(do node --check:*)",
+      "Bash(done)"
     ]
   },
   "enableAllProjectMcpServers": true,
