@@ -62,7 +62,7 @@
 }
 
 .campinho-status-indicator.consolidada .campinho-status-dot {
-    background: #22c55e;
+    background: var(--app-success-light);
     box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
 }
 
@@ -121,11 +121,11 @@
 }
 
 .campinho-variacao-linha.positivo {
-    color: #22c55e;
+    color: var(--app-success-light);
 }
 
 .campinho-variacao-linha.negativo {
-    color: #ef4444;
+    color: var(--app-danger);
 }
 
 .campinho-variacao-icone {
@@ -219,11 +219,11 @@
 }
 
 .campinho-desemp-stat-valor.positivo {
-    color: #22c55e;
+    color: var(--app-success-light);
 }
 
 .campinho-desemp-stat-valor.negativo {
-    color: #ef4444;
+    color: var(--app-danger);
 }
 
 .campinho-desemp-stat-label {
@@ -270,7 +270,7 @@
 }
 
 .campinho-desemp-esc-icon.escalados {
-    color: #22c55e;
+    color: var(--app-success-light);
 }
 
 .campinho-desemp-esc-icon.jogaram {
@@ -278,11 +278,11 @@
 }
 
 .campinho-desemp-esc-icon.sairam {
-    color: #ef4444;
+    color: var(--app-danger);
 }
 
 .campinho-desemp-esc-icon.entraram {
-    color: #22c55e;
+    color: var(--app-success-light);
 }
 
 .campinho-desemp-esc-valor {
@@ -325,11 +325,11 @@
 }
 
 .campinho-desemp-extrato-icon.ganho {
-    color: #22c55e;
+    color: var(--app-success-light);
 }
 
 .campinho-desemp-extrato-icon.perda {
-    color: #ef4444;
+    color: var(--app-danger);
 }
 
 .campinho-desemp-extrato-icon.neutro {
@@ -344,11 +344,11 @@
 }
 
 .campinho-desemp-extrato-texto.ganho {
-    color: #22c55e;
+    color: var(--app-success-light);
 }
 
 .campinho-desemp-extrato-texto.perda {
-    color: #ef4444;
+    color: var(--app-danger);
 }
 
 .campinho-desemp-extrato-texto.neutro {
@@ -574,7 +574,7 @@
 .campinho-counter strong {
     font-size: 18px;
     font-family: var(--app-font-mono);
-    color: var(--app-success, #22c55e);
+    color: var(--app-success-light);
 }
 
 .campinho-lineup-panel {

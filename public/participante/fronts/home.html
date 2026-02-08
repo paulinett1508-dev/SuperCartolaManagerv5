@@ -241,8 +241,8 @@
         <div class="home-modulos-card">
             <!-- Artilheiro -->
             <div class="home-modulo-item home-modulo-artilheiro">
-                <div class="home-modulo-icon-wrap" style="background:rgba(34,197,94,0.15);">
-                    <span class="material-icons" style="color:var(--module-artilheiro-primary, #22c55e);font-size:20px;">sports_soccer</span>
+                <div class="home-modulo-icon-wrap home-modulo-icon--artilheiro">
+                    <span class="material-icons home-modulo-icon-color--artilheiro">sports_soccer</span>
                 </div>
                 <span class="home-modulo-label">ARTILHEIRO</span>
                 <span class="home-modulo-nome" id="home-modulo-artilheiro-nome">--</span>
@@ -252,8 +252,8 @@
             <div class="home-modulo-divider"></div>
             <!-- Luva de Ouro -->
             <div class="home-modulo-item home-modulo-luva">
-                <div class="home-modulo-icon-wrap" style="background:rgba(255,215,0,0.15);">
-                    <span class="material-icons" style="color:var(--module-luva-primary, #ffd700);font-size:20px;">sports_handball</span>
+                <div class="home-modulo-icon-wrap home-modulo-icon--luva">
+                    <span class="material-icons home-modulo-icon-color--luva">sports_handball</span>
                 </div>
                 <span class="home-modulo-label">LUVA DE OURO</span>
                 <span class="home-modulo-nome" id="home-modulo-luva-nome">--</span>
@@ -263,8 +263,8 @@
             <div class="home-modulo-divider"></div>
             <!-- Capitão de Luxo -->
             <div class="home-modulo-item home-modulo-capitao">
-                <div class="home-modulo-icon-wrap" style="background:rgba(139,92,246,0.15);">
-                    <span class="material-icons" style="color:var(--module-capitao-primary, #8b5cf6);font-size:20px;">military_tech</span>
+                <div class="home-modulo-icon-wrap home-modulo-icon--capitao">
+                    <span class="material-icons home-modulo-icon-color--capitao">military_tech</span>
                 </div>
                 <span class="home-modulo-label">CAPITÃO</span>
                 <span class="home-modulo-nome" id="home-modulo-capitao-nome">--</span>
@@ -414,11 +414,27 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     font-weight: 600;
-    color: #ff5500;
-    background: rgba(255, 85, 0, 0.15);
+    color: var(--app-primary);
+    background: var(--app-primary-muted);
     padding: 3px 8px;
     border-radius: 6px;
 }
+
+/* Variantes de avisos por tipo */
+.home-aviso--danger { border-left: 3px solid var(--app-danger); }
+.home-aviso-icon--danger { background: var(--app-danger-muted) !important; }
+.home-aviso--danger .material-icons { color: var(--app-danger) !important; }
+.home-aviso-badge--danger { color: var(--app-danger) !important; background: var(--app-danger-muted) !important; }
+
+.home-aviso--success { border-left: 3px solid var(--app-success-light); }
+.home-aviso-icon--success { background: var(--app-success-muted) !important; }
+.home-aviso--success .material-icons { color: var(--app-success-light) !important; }
+.home-aviso-badge--success { color: var(--app-success-light) !important; background: var(--app-success-muted) !important; }
+
+.home-aviso--warning { border-left: 3px solid var(--app-warning); }
+.home-aviso-icon--warning { background: var(--app-warning-muted) !important; }
+.home-aviso--warning .material-icons { color: var(--app-warning) !important; }
+.home-aviso-badge--warning { color: var(--app-warning) !important; background: var(--app-warning-muted) !important; }
 
 /* === SLIDER DE POSIÇÃO === */
 .home-posicao-slider-section {
@@ -892,6 +908,13 @@
 }
 
 /* === CARD MÓDULOS (Artilheiro / Luva / Capitão) === */
+.home-modulo-icon--artilheiro { background: var(--app-success-muted); }
+.home-modulo-icon-color--artilheiro { color: var(--app-success-light); font-size: 20px; }
+.home-modulo-icon--luva { background: var(--app-gold-muted); }
+.home-modulo-icon-color--luva { color: var(--app-gold); font-size: 20px; }
+.home-modulo-icon--capitao { background: var(--app-purple-muted); }
+.home-modulo-icon-color--capitao { color: var(--app-purple); font-size: 20px; }
+
 .home-modulos-section {
     padding: 0 16px 16px;
 }

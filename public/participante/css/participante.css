@@ -823,8 +823,8 @@ body {
     display: none;
     position: fixed;
     inset: 0;
-    z-index: 99999;
-    background: #111827;
+    z-index: var(--app-z-modal);
+    background: var(--app-surface);
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;

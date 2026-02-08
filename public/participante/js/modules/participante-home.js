@@ -1461,12 +1461,12 @@ function atualizarPainelAvisos(rodadaAtual, totalParticipantes, extras = {}) {
         if (saldo < 0) {
             const saldoFormatado = `R$ ${Math.abs(saldo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
             avisosHTML += `
-                <div class="home-aviso-secundario" onclick="window.participanteNav?.navegarPara('extrato')" style="border-left:3px solid #ef4444;">
-                    <div class="home-aviso-icon-mini" style="background:rgba(239,68,68,0.15);">
-                        <span class="material-icons" style="color:#ef4444;">trending_down</span>
+                <div class="home-aviso-secundario home-aviso--danger" onclick="window.participanteNav?.navegarPara('extrato')">
+                    <div class="home-aviso-icon-mini home-aviso-icon--danger">
+                        <span class="material-icons">trending_down</span>
                     </div>
                     <span class="home-aviso-texto">Saldo negativo: -${saldoFormatado}</span>
-                    <span class="home-aviso-badge" style="color:#ef4444;background:rgba(239,68,68,0.15);">ALERTA</span>
+                    <span class="home-aviso-badge home-aviso-badge--danger">ALERTA</span>
                 </div>
             `;
         }
@@ -1478,22 +1478,22 @@ function atualizarPainelAvisos(rodadaAtual, totalParticipantes, extras = {}) {
             const diff = posicaoAnterior - posicao; // positivo = subiu
             if (diff >= 3) {
                 avisosHTML += `
-                    <div class="home-aviso-secundario" onclick="window.participanteNav?.navegarPara('ranking')">
-                        <div class="home-aviso-icon-mini" style="background:rgba(34,197,94,0.15);">
-                            <span class="material-icons" style="color:#22c55e;">trending_up</span>
+                    <div class="home-aviso-secundario home-aviso--success" onclick="window.participanteNav?.navegarPara('ranking')">
+                        <div class="home-aviso-icon-mini home-aviso-icon--success">
+                            <span class="material-icons">trending_up</span>
                         </div>
                         <span class="home-aviso-texto">Você subiu ${diff} posições! Agora está em ${posicao}º</span>
-                        <span class="home-aviso-badge" style="color:#22c55e;background:rgba(34,197,94,0.15);">TOP</span>
+                        <span class="home-aviso-badge home-aviso-badge--success">TOP</span>
                     </div>
                 `;
             } else if (diff <= -5) {
                 avisosHTML += `
-                    <div class="home-aviso-secundario" onclick="window.participanteNav?.navegarPara('ranking')">
-                        <div class="home-aviso-icon-mini" style="background:rgba(251,191,36,0.15);">
-                            <span class="material-icons" style="color:#fbbf24;">trending_down</span>
+                    <div class="home-aviso-secundario home-aviso--warning" onclick="window.participanteNav?.navegarPara('ranking')">
+                        <div class="home-aviso-icon-mini home-aviso-icon--warning">
+                            <span class="material-icons">trending_down</span>
                         </div>
                         <span class="home-aviso-texto">Você caiu ${Math.abs(diff)} posições. Posição atual: ${posicao}º</span>
-                        <span class="home-aviso-badge" style="color:#fbbf24;background:rgba(251,191,36,0.15);">ATENÇÃO</span>
+                        <span class="home-aviso-badge home-aviso-badge--warning">ATENÇÃO</span>
                     </div>
                 `;
             }

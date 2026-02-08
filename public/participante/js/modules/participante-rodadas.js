@@ -799,7 +799,7 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
         const pos = POSICOES[a.posicao_id] || { nome: '???', cor: '#6b7280' };
         const pontosRaw = a.pontos_num ?? 0;
         const pontosAtl = Number(pontosRaw).toFixed(1);
-        const pontosClass = pontosRaw > 0 ? 'color:#22c55e' : pontosRaw < 0 ? 'color:#ef4444' : 'color:#6b7280';
+        const pontosClass = pontosRaw > 0 ? 'color:var(--app-success-light)' : pontosRaw < 0 ? 'color:var(--app-danger)' : 'color:var(--app-text-muted)';
         
         // Status do jogo baseado em data/hora
         const statusIcon = obterStatusJogo(a);
@@ -807,8 +807,8 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
         const isCapitao = a.atleta_id === capitaoId;
         const isLuxo = a.atleta_id === reservaLuxoId && isReserva;
 
-        const capitaoBadge = isCapitao ? '<span style="background:#eab308;color:#000;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">C</span>' : '';
-        const luxoBadge = isLuxo ? '<span style="background:#a855f7;color:#fff;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">L</span>' : '';
+        const capitaoBadge = isCapitao ? '<span style="background:var(--app-warning);color:var(--app-text-inverse);font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">C</span>' : '';
+        const luxoBadge = isLuxo ? '<span style="background:var(--app-purple);color:var(--app-text-white);font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">L</span>' : '';
 
         // Badge de substituição (regras oficiais Cartola FC 2025/2026)
         let subBadge = '';
@@ -817,13 +817,13 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
                 const textoLuxo = subInfo.herdouCapitao
                     ? `Luxo ativado (C 1.5x) por ${subInfo.substituiu}`
                     : `Luxo ativado por ${subInfo.substituiu}`;
-                subBadge = `<div style="font-size:9px;color:#a855f7;margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">star</span> ${textoLuxo}</div>`;
+                subBadge = `<div style="font-size:9px;color:var(--app-purple);margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">star</span> ${textoLuxo}</div>`;
             } else if (subInfo.tipo === 'posicao') {
-                subBadge = `<div style="font-size:9px;color:#22c55e;margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Entrou por ${subInfo.substituiu}</div>`;
+                subBadge = `<div style="font-size:9px;color:var(--app-success-light);margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Entrou por ${subInfo.substituiu}</div>`;
             } else if (subInfo.tipo === 'substituido') {
-                subBadge = '<div style="font-size:9px;color:#ef4444;margin-top:1px;opacity:0.8;">Não entrou em campo</div>';
+                subBadge = '<div style="font-size:9px;color:var(--app-danger);margin-top:1px;opacity:0.8;">Não entrou em campo</div>';
             } else if (subInfo.tipo === 'substituido_luxo') {
-                subBadge = '<div style="font-size:9px;color:#a855f7;margin-top:1px;opacity:0.8;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Substituído pelo Luxo</div>';
+                subBadge = '<div style="font-size:9px;color:var(--app-purple);margin-top:1px;opacity:0.8;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Substituído pelo Luxo</div>';
             }
         }
 
@@ -831,13 +831,13 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
         const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
 
         const csAtl = a.variacao_num ?? 0;
-        const csClass = csAtl > 0 ? 'color:#22c55e' : csAtl < 0 ? 'color:#ef4444' : 'color:#6b7280';
+        const csClass = csAtl > 0 ? 'color:var(--app-success-light)' : csAtl < 0 ? 'color:var(--app-danger)' : 'color:var(--app-text-muted)';
         const csTexto = csAtl > 0 ? `+${csAtl.toFixed(1)}` : csAtl.toFixed(1);
 
         return `
             <tr style="border-bottom:1px solid #1f2937;">
                 <td style="padding:8px 4px;text-align:center;">
-                    <span style="background:${pos.cor};color:#fff;font-size:9px;padding:3px 7px;border-radius:4px;font-weight:bold;">${pos.nome}</span>
+                    <span style="background:${pos.cor};color:var(--app-text-white);font-size:9px;padding:3px 7px;border-radius:4px;font-weight:bold;">${pos.nome}</span>
                 </td>
                 <td style="padding:8px 4px;text-align:center;">
                     <img src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;">
@@ -867,7 +867,7 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
             }
             return renderAtleta(a, false, subInfo);
         }).join("")
-        : '<tr><td colspan="6" style="color:#6b7280;padding:12px;text-align:center;">Sem titulares</td></tr>';
+        : '<tr><td colspan="6" style="color:var(--app-text-muted);padding:12px;text-align:center;">Sem titulares</td></tr>';
 
     const reservasHTML = reservas.length > 0
         ? reservas.map(a => renderAtleta(a, true, substituicoes.get(a.atleta_id) || null)).join("")
@@ -877,28 +877,28 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
         <div class="minha-escalacao-container" style="background:#111827;border-radius:16px;overflow:hidden;margin-bottom:16px;border:1px solid #1f2937;">
             <!-- Header -->
             <div style="padding:16px;background:linear-gradient(135deg, rgba(255, 85, 0, 0.08) 0%, transparent 100%);border-bottom:1px solid #1f2937;">
-                <div style="font-family:'Russo One',sans-serif;font-size:16px;color:#fff;">${nomeTime}</div>
-                <div style="font-size:12px;color:#9ca3af;margin-top:2px;">${nomeCartola}</div>
+                <div style="font-family:'Russo One',sans-serif;font-size:16px;color:var(--app-text-white);">${nomeTime}</div>
+                <div style="font-size:12px;color:var(--app-text-muted);margin-top:2px;">${nomeCartola}</div>
             </div>
 
             <!-- Stats -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px;">
                 <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
-                    <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;">Pontos</div>
+                    <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Pontos</div>
                     <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:#ff5500;">${pontosFormatados}</div>
                 </div>
                 <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
-                    <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;">Posição</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:#fff;">${posicao}º <span style="font-size:12px;color:#6b7280;">/${totalPart}</span></div>
+                    <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Posição</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:var(--app-text-white);">${posicao}º <span style="font-size:12px;color:var(--app-text-muted);">/${totalPart}</span></div>
                 </div>
             </div>
 
             <!-- Tabela de Titulares -->
             <div style="padding:8px 16px 16px;">
-                <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Titulares (${titulares.length})</div>
+                <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Titulares (${titulares.length})</div>
                 <table style="width:100%;border-collapse:collapse;font-size:13px;">
                     <thead>
-                        <tr style="border-bottom:2px solid #374151;color:#6b7280;font-size:10px;text-transform:uppercase;">
+                        <tr style="border-bottom:2px solid var(--app-border);color:var(--app-text-muted);font-size:10px;text-transform:uppercase;">
                             <th style="padding:6px 4px;text-align:center;font-weight:600;">POS</th>
                             <th style="padding:6px 4px;text-align:center;font-weight:600;">TIME</th>
                             <th style="padding:6px 8px;text-align:left;font-weight:600;">JOGADOR</th>
@@ -917,14 +917,14 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
             ${reservas.length > 0 ? `
                 <div style="margin:0 16px;padding:12px 0;display:flex;align-items:center;gap:8px;">
                     <div style="flex:1;border-top:1px dashed #374151;"></div>
-                    <span style="font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:4px;">
+                    <span style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:4px;">
                         <span class="material-icons" style="font-size:14px;">event_seat</span>
                         BANCO
                     </span>
                     <div style="flex:1;border-top:1px dashed #374151;"></div>
                 </div>
                 <div style="padding:8px 16px 16px;background:rgba(107,114,128,0.06);border-radius:0 0 16px 16px;">
-                    <div style="font-size:10px;color:#6b7280;text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
+                    <div style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
                     <table style="width:100%;border-collapse:collapse;font-size:13px;opacity:0.7;">
                         <tbody>
                             ${reservasHTML}
@@ -1327,7 +1327,7 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         const escalados = meuPart.atletas ? meuPart.atletas.filter(a => !a.is_reserva).length : 0;
         const jogandoAoVivo = meuPart.atletas ? meuPart.atletas.filter(a => !a.is_reserva && a.entrou_em_campo).length : 0;
         const emCampoInfo = isParcial && escalados > 0
-            ? `<span style="margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#9ca3af">${escalados}/12 <span style="color:#22c55e;font-weight:600;font-size:10px;margin-left:2px">${jogandoAoVivo}</span></span>`
+            ? `<span style="margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--app-text-muted)">${escalados}/12 <span style="color:var(--app-success-light);font-weight:600;font-size:10px;margin-left:2px">${jogandoAoVivo}</span></span>`
             : '';
 
         meuResumoHTML = `
@@ -1388,7 +1388,7 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         const escalados = participante.atletas ? participante.atletas.filter(a => !a.is_reserva).length : 0;
         const jogandoAoVivo = participante.atletas ? participante.atletas.filter(a => !a.is_reserva && a.entrou_em_campo).length : 0;
         const badgeEmCampo = isParcial && escalados > 0
-            ? `<span class="badge-em-campo ${jogandoAoVivo > 0 ? 'ativo' : ''}">${escalados}/12 <span style="color:#22c55e;font-weight:600;font-size:9px;margin-left:2px">${jogandoAoVivo}</span></span>`
+            ? `<span class="badge-em-campo ${jogandoAoVivo > 0 ? 'ativo' : ''}">${escalados}/12 <span style="color:var(--app-success-light);font-weight:600;font-size:9px;margin-left:2px">${jogandoAoVivo}</span></span>`
             : "";
 
         // ✅ v8.0: Curiosar disponível em TODAS rodadas (não só parciais)
@@ -1428,7 +1428,7 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
                     <div class="ranking-pontos-pro">${pontosFormatados}</div>
                     <div class="ranking-financeiro-pro ${financeiroClass}">${isParcial ? '' : financeiroTexto}</div>
                 </div>
-                ${!participante.rodadaNaoJogada ? '<span class="material-icons curiosar-icon" style="font-size:16px;color:#6b7280;margin-left:4px;">visibility</span>' : ''}
+                ${!participante.rodadaNaoJogada ? '<span class="material-icons curiosar-icon" style="font-size:16px;color:var(--app-text-muted);margin-left:4px;">visibility</span>' : ''}
             </div>
         `;
     }).join("");
@@ -1683,13 +1683,13 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
         const pos = POSICOES[a.posicao_id] || { nome: '???', cor: '#6b7280' };
         const pontosRaw = a.pontos_efetivos ?? a.pontos_num ?? 0;
         const pontosAtl = Number(pontosRaw).toFixed(1);
-        const pontosClass = pontosRaw > 0 ? 'color:#22c55e' : pontosRaw < 0 ? 'color:#ef4444' : 'color:#6b7280';
+        const pontosClass = pontosRaw > 0 ? 'color:var(--app-success-light)' : pontosRaw < 0 ? 'color:var(--app-danger)' : 'color:var(--app-text-muted)';
         
         // Status do jogo baseado em data/hora
         const statusIcon = obterStatusJogo(a);
 
         const isCapitao = String(a.atleta_id) === String(capitaoId);
-        const capitaoBadge = isCapitao ? '<span style="background:#eab308;color:#000;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">C</span>' : '';
+        const capitaoBadge = isCapitao ? '<span style="background:var(--app-warning);color:var(--app-text-inverse);font-size:9px;padding:2px 5px;border-radius:3px;font-weight:bold;margin-left:4px;">C</span>' : '';
 
         // Badge de substituição (modal - regras oficiais Cartola FC 2025/2026)
         let subBadge = '';
@@ -1698,13 +1698,13 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
                 const textoLuxo = subInfo.herdouCapitao
                     ? `Luxo ativado (C 1.5x) por ${subInfo.substituiu}`
                     : `Luxo ativado por ${subInfo.substituiu}`;
-                subBadge = `<div style="font-size:9px;color:#a855f7;margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">star</span> ${textoLuxo}</div>`;
+                subBadge = `<div style="font-size:9px;color:var(--app-purple);margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">star</span> ${textoLuxo}</div>`;
             } else if (subInfo.tipo === 'posicao') {
-                subBadge = `<div style="font-size:9px;color:#22c55e;margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Entrou por ${subInfo.substituiu}</div>`;
+                subBadge = `<div style="font-size:9px;color:var(--app-success-light);margin-top:1px;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Entrou por ${subInfo.substituiu}</div>`;
             } else if (subInfo.tipo === 'substituido') {
-                subBadge = '<div style="font-size:9px;color:#ef4444;margin-top:1px;opacity:0.8;">Não entrou em campo</div>';
+                subBadge = '<div style="font-size:9px;color:var(--app-danger);margin-top:1px;opacity:0.8;">Não entrou em campo</div>';
             } else if (subInfo.tipo === 'substituido_luxo') {
-                subBadge = '<div style="font-size:9px;color:#a855f7;margin-top:1px;opacity:0.8;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Substituído pelo Luxo</div>';
+                subBadge = '<div style="font-size:9px;color:var(--app-purple);margin-top:1px;opacity:0.8;"><span class="material-icons" style="font-size:10px;vertical-align:middle;">swap_vert</span> Substituído pelo Luxo</div>';
             }
         }
 
@@ -1712,13 +1712,13 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
         const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : '/escudos/default.png';
 
         const csAtl = a.variacao_num ?? 0;
-        const csClass = csAtl > 0 ? 'color:#22c55e' : csAtl < 0 ? 'color:#ef4444' : 'color:#6b7280';
+        const csClass = csAtl > 0 ? 'color:var(--app-success-light)' : csAtl < 0 ? 'color:var(--app-danger)' : 'color:var(--app-text-muted)';
         const csTexto = csAtl > 0 ? `+${csAtl.toFixed(1)}` : csAtl.toFixed(1);
 
         return `
             <tr style="border-bottom:1px solid #1f2937;">
                 <td style="padding:8px 4px;text-align:center;">
-                    <span style="background:${pos.cor};color:#fff;font-size:9px;padding:3px 7px;border-radius:4px;font-weight:bold;">${pos.nome}</span>
+                    <span style="background:${pos.cor};color:var(--app-text-white);font-size:9px;padding:3px 7px;border-radius:4px;font-weight:bold;">${pos.nome}</span>
                 </td>
                 <td style="padding:8px 4px;text-align:center;">
                     <img src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;">
@@ -1748,7 +1748,7 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
             }
             return renderAtleta(a, false, subInfo);
         }).join("")
-        : '<tr><td colspan="6" style="color:#6b7280;padding:12px;text-align:center;">Sem dados de escalação</td></tr>';
+        : '<tr><td colspan="6" style="color:var(--app-text-muted);padding:12px;text-align:center;">Sem dados de escalação</td></tr>';
 
     const reservasHTML = reservas.length > 0
         ? reservas.map(a => renderAtleta(a, true, substituicoesModal.get(a.atleta_id) || null)).join("")
@@ -1767,10 +1767,10 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
             <!-- Header -->
             <div style="position:sticky;top:0;background:#111827;padding:16px 20px;border-bottom:1px solid #1f2937;display:flex;align-items:center;justify-content:space-between;z-index:1;">
                 <div>
-                    <div style="font-family:'Russo One',sans-serif;font-size:16px;color:#fff;">${nomeTime}</div>
-                    <div style="font-size:12px;color:#9ca3af;">${nomeCartola}${isMeuTime ? ' (Meu Time)' : ''}</div>
+                    <div style="font-family:'Russo One',sans-serif;font-size:16px;color:var(--app-text-white);">${nomeTime}</div>
+                    <div style="font-size:12px;color:var(--app-text-muted);">${nomeCartola}${isMeuTime ? ' (Meu Time)' : ''}</div>
                 </div>
-                <button id="fecharCampinhoModal" style="background:none;border:none;color:#9ca3af;cursor:pointer;padding:8px;">
+                <button id="fecharCampinhoModal" style="background:none;border:none;color:var(--app-text-muted);cursor:pointer;padding:8px;">
                     <span class="material-icons">close</span>
                 </button>
             </div>
@@ -1778,21 +1778,21 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
             <!-- Stats -->
             <div style="display:flex;gap:12px;padding:12px 20px;">
                 <div style="flex:1;background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
-                    <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;">Pontos</div>
+                    <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Pontos</div>
                     <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:#ff5500;">${pontosFormatados}</div>
                 </div>
                 <div style="flex:1;background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
-                    <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;">Em Campo</div>
+                    <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Em Campo</div>
                     <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:${emCampoCalc > 0 ? '#22c55e' : '#6b7280'};">${Math.min(emCampoCalc, totalAtl)}/${totalAtl}</div>
                 </div>
             </div>
 
             <!-- Tabela de Titulares -->
             <div style="padding:8px 20px 16px;">
-                <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Titulares (${titulares.length})</div>
+                <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Titulares (${titulares.length})</div>
                 <table style="width:100%;border-collapse:collapse;font-size:13px;">
                     <thead>
-                        <tr style="border-bottom:2px solid #374151;color:#6b7280;font-size:10px;text-transform:uppercase;">
+                        <tr style="border-bottom:2px solid var(--app-border);color:var(--app-text-muted);font-size:10px;text-transform:uppercase;">
                             <th style="padding:6px 4px;text-align:center;font-weight:600;">POS</th>
                             <th style="padding:6px 4px;text-align:center;font-weight:600;">TIME</th>
                             <th style="padding:6px 8px;text-align:left;font-weight:600;">JOGADOR</th>
@@ -1811,7 +1811,7 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
                 <!-- Separador Banco de Reservas -->
                 <div style="margin:0 20px;padding:12px 0;display:flex;align-items:center;gap:8px;">
                     <div style="flex:1;border-top:1px dashed #374151;"></div>
-                    <span style="font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:4px;">
+                    <span style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:4px;">
                         <span class="material-icons" style="font-size:14px;">event_seat</span>
                         BANCO
                     </span>
@@ -1820,7 +1820,7 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
 
                 <!-- Tabela de Reservas -->
                 <div style="padding:8px 20px 24px;background:rgba(107,114,128,0.06);">
-                    <div style="font-size:10px;color:#6b7280;text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
+                    <div style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
                     <table style="width:100%;border-collapse:collapse;font-size:13px;opacity:0.7;">
                         <tbody>
                             ${reservasHTML}

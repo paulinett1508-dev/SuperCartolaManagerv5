@@ -60,6 +60,16 @@ export async function inicializarLuvaOuroParticipante({
         }
     }
 
+    // ✅ v4.1: Mostrar loading spinner se não tiver cache
+    if (!usouCache) {
+        container.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;">
+                <div class="app-spinner"></div>
+                <p style="color:var(--app-text-muted);margin-top:16px;font-size:13px;">Carregando Luva de Ouro...</p>
+            </div>
+        `;
+    }
+
     try {
         const ligaRes = await fetch(`/api/ligas/${ligaId}`);
         if (ligaRes.ok) {

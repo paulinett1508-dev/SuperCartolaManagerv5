@@ -122,9 +122,14 @@ class ParticipanteNavigation {
             sessionStorage.getItem("participante_modulo_atual") ||
             "home";
 
+        // ✅ v4.9: Deep linking via hash (#ranking, #extrato, etc.)
+        const hashModulo = window.location.hash ? window.location.hash.replace('#', '') : null;
+        const moduloViaHash = hashModulo && this.modulos[hashModulo] ? hashModulo : null;
+        if (moduloViaHash && window.Log) Log.info('PARTICIPANTE-NAV', `🔗 Deep link detectado: #${moduloViaHash}`);
+
         // ✅ v4.4: Liga aposentada → direto para Hall da Fama
         const moduloInicial = window.isLigaAposentada ? 'historico'
-            : this._campinhoTarget ? 'campinho' : moduloSalvo;
+            : this._campinhoTarget ? 'campinho' : moduloViaHash || moduloSalvo;
 
         // ✅ Sincronizar botão ativo do menu com módulo salvo
         if (moduloSalvo) {
@@ -741,6 +746,13 @@ class ParticipanteNavigation {
             this.moduloAtual = moduloId;
             window.moduloAtualParticipante = moduloId; // Expor globalmente para tracking
             sessionStorage.setItem("participante_modulo_atual", moduloId);
+
+            // ✅ v4.9: Atualizar hash para deep linking
+            if (moduloId === 'home') {
+                history.replaceState(history.state, '', window.location.pathname + window.location.search);
+            } else {
+                history.replaceState(history.state, '', `#${moduloId}`);
+            }
 
             // ✅ v2.5: Salvar timestamp do carregamento para loading inteligente
             localStorage.setItem(`modulo_loaded_${moduloId}`, Date.now().toString());
