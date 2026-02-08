@@ -64,7 +64,62 @@ A funcionalidade de **Notícias do Time** está **100% implementada e operaciona
 
 ## Soluções Possíveis
 
-### Opção 1: Scraping (Não Recomendado)
+### Opção 1: X/Twitter API (Não Recomendado) ❌
+
+**Descrição:** Usar Twitter/X como fonte de notícias de times via API oficial
+
+**Status da Infraestrutura:**
+- ❌ Nenhum MCP do Twitter configurado em `.mcp.json`
+- ❌ Zero código de integração social no projeto
+- ❌ Sem API keys do Twitter em `.env`
+- ❌ Biblioteca `twitter-api-v2` não instalada
+
+**Pricing (2026):**
+| Tier | Custo/mês | Limits | Acesso a Buscas |
+|------|-----------|--------|-----------------|
+| Free | $0 | Timeline only | ❌ SEM buscas históricas |
+| Basic | $100 | 10k tweets/mês | ✅ Limited search |
+| Pro | $5.000 | 1M tweets/mês | ✅ Full search |
+
+**Nossa necessidade:** ~3-10k tweets/mês → **Custo mínimo: $100/mês**
+
+**Prós:**
+- ✅ Conteúdo em tempo real
+- ✅ Trending topics e reações
+- ✅ Engajamento social
+
+**Contras:**
+- ❌ **Custo alto** ($100/mês vs $0 Google News)
+- ❌ **Dados não estruturados** (texto livre 140-280 chars)
+- ❌ **Ruído alto** (opinião vs notícia, spam, bots)
+- ❌ **Duplicação** (retweets, múltiplas menções)
+- ❌ **URLs encurtadas** (t.co, precisa unshorten)
+- ❌ **Fragmentação** (precisa múltiplas buscas: @clube, #hashtags, jornalistas)
+- ❌ **OAuth 2.0** (aprovação manual leva semanas)
+- ❌ **Rate limits agressivos** (15 requests/15min)
+- ❌ **Sem estrutura RSS** (precisa parse manual + ML para filtrar)
+
+**Comparação com Google News:**
+
+| Aspecto | Google News RSS | Twitter/X API |
+|---------|-----------------|---------------|
+| **Custo** | $0 | $100+/mês |
+| **Setup** | 0h (já feito) | 12-16h |
+| **Estrutura** | ✅ Padronizada (title, link, source) | ❌ Texto livre |
+| **Qualidade** | ✅ Alta (agregado multi-fonte) | ⚠️ Baixa (ruído, opinião) |
+| **Manutenção** | Zero | 4-8h/mês |
+| **Cobertura** | ✅ Todas fontes (Globo, UOL, ESPN, etc.) | ⚠️ Fragmentado (múltiplas contas) |
+| **Thumbnails** | ❌ | ✅ (mas não compensa custo) |
+
+**Decisão:** ❌ **NÃO IMPLEMENTAR**
+
+Twitter é excelente para trending topics e social listening, mas **terrível como feed estruturado de notícias** devido a custo/benefício ruim e alta complexidade de filtragem.
+
+**Estimativa (se fosse implementar):** 12-16h setup + 4-8h/mês manutenção + $100+/mês API
+
+---
+
+### Opção 2: Scraping (Não Recomendado)
 **Descrição:** Fazer fetch das URLs individuais e extrair `<meta property="og:image">`
 
 **Prós:**
@@ -101,22 +156,79 @@ A funcionalidade de **Notícias do Time** está **100% implementada e operaciona
 
 **Estimativa:** 4-6h integração + $$$/mês
 
-### Opção 3: API-Football (Já integrado)
+### Opção 3: API-Football (INDISPONÍVEL) ❌
+
+**Status:** ⚠️ **CONTA SUSPENSA** (verificado em 08/02/2026)
+
 **Descrição:** Usar endpoint `/news` da API-Football
 
-**Prós:**
-- ✅ Já temos API key
-- ✅ Sem custo adicional
-- ✅ Thumbnails disponíveis
+**Situação Atual:**
+- ❌ Dashboard mostra: "Your account is Suspended"
+- ❌ API-Football **REMOVIDA do sistema** de "Jogos do Dia"
+- ✅ Sistema migrou para **SoccerDataAPI** como principal
+- ✅ Fallback: Globo Esporte (scraper) + Cache Stale
+
+**Conforme `/docs/architecture/JOGOS-DO-DIA-API.md` (v4.0):**
+```
+Fluxo Atual:
+1. SoccerDataAPI (Principal) - 75 req/dia free
+2. Globo Esporte (Paralelo) - Scraper SSR agenda
+3. Cache Stale (30min) - Fallback
+4. Arquivo JSON - Fallback final
+
+⚠️ API-Football BANIDA e permanece DESABILITADA
+```
+
+**Endpoint de diagnóstico:**
+```bash
+curl http://localhost:3000/api/jogos-ao-vivo/status
+# Retorna: "api-football": {
+#   "tipo": "🚫 REMOVIDA",
+#   "alerta": "Bloqueada / Usuário banido",
+#   "requisicoes": { "atual": 0, "limite": 0 }
+# }
+```
+
+**Decisão:** ❌ **NÃO UTILIZÁVEL** para endpoint `/news`
+
+Mesmo que reativassem a conta, não compensa porque:
+- ⚠️ Histórico de banimento (instabilidade)
+- ⚠️ Notícias em inglês (maioria)
+- ⚠️ Cobertura focada em Europa (não Brasil)
+- ✅ Google News RSS é superior para clubes brasileiros
+
+**Estimativa (se conta fosse reativada):** 3-5h integração
+
+---
+
+### Opção 4: SoccerDataAPI `/news` (Investigar)
+
+**Status:** 🔍 **NÃO VERIFICADO** se endpoint `/news` existe
+
+**Descrição:** Investigar se SoccerDataAPI (atual principal) tem endpoint de notícias
+
+**SoccerDataAPI atual:**
+- ✅ Configurado e operacional (`SOCCERDATA_API_KEY` no `.env`)
+- ✅ Usado para "Jogos do Dia" (75 req/dia free)
+- ⚠️ Documentação não menciona endpoint `/news` (apenas `/livescores`)
+
+**Documentação:** https://rapidapi.com/soccerdata/api/soccerdata
+
+**Prós (se existir):**
+- ✅ Já temos API key configurada
+- ✅ Sem custo adicional (dentro do plano)
+- ✅ Mesma fonte de dados
 
 **Contras:**
-- ⚠️ Cobertura focada em grandes clubes
-- ⚠️ Notícias em inglês (maioria)
-- ⚠️ Limite mensal de requests (10.000/mês)
+- ⚠️ Limite baixo (75 req/dia → ~30-40 req para notícias)
+- ⚠️ Não confirmado se tem endpoint `/news`
+- ⚠️ Pode não ter thumbnails
 
-**Estimativa:** 3-5h implementação
+**Estimativa (se existir):** 2-4h investigação + 3-5h integração
 
-### Opção 4: Aceitar Limitação (Atual) ✅
+---
+
+### Opção 5: Aceitar Limitação (Atual) ✅
 **Descrição:** Manter Google News sem thumbnails, usar escudos de clubes
 
 **Prós:**
@@ -134,7 +246,7 @@ A funcionalidade de **Notícias do Time** está **100% implementada e operaciona
 
 ## Decisão Atual
 
-**Opção escolhida:** #4 - Aceitar limitação
+**Opção escolhida:** #5 - Aceitar limitação
 
 **Justificativa:**
 1. Funcionalidade principal (notícias) funciona perfeitamente
@@ -192,10 +304,85 @@ curl -s "https://news.google.com/rss/search?q=Flamengo&hl=pt-BR" | grep -i "medi
 - [Google News RSS Feed](https://news.google.com/rss)
 - [Media RSS Specification](https://www.rssboard.org/media-rss)
 - [NewsAPI Pricing](https://newsapi.org/pricing)
-- [API-Football Docs](https://www.api-football.com/documentation-v3#tag/News)
+- ~~[API-Football Docs](https://www.api-football.com/documentation-v3#tag/News)~~ (conta suspensa)
+- [SoccerDataAPI Docs](https://rapidapi.com/soccerdata/api/soccerdata)
+
+---
+
+## ⚠️ Adendo: Status da API-Football
+
+**Data:** 08/02/2026
+**Situação:** Conta do usuário admin **SUSPENSA**
+
+### Diagnóstico
+
+**Dashboard API-Football:** https://dashboard.api-football.com/
+```
+Mensagem persistente: "Your account is Suspended"
+```
+
+**Impacto no Sistema:**
+
+| Feature | Status | Fonte Atual |
+|---------|--------|-------------|
+| **Jogos do Dia** | ✅ Operacional | SoccerDataAPI (principal) + Globo (scraper) |
+| **Notícias** | ✅ Operacional | Google News RSS (sem API) |
+| **API-Football** | ❌ DESABILITADA | Removida do fluxo (v4.0) |
+
+**Verificação em Tempo Real:**
+```bash
+curl http://localhost:3000/api/jogos-ao-vivo/status | jq '.fontes["api-football"]'
+
+# Retorna:
+# {
+#   "tipo": "🚫 REMOVIDA",
+#   "configurado": false,
+#   "alerta": "Bloqueada / Usuário banido",
+#   "requisicoes": { "atual": 0, "limite": 0 }
+# }
+```
+
+**Documentação Relacionada:**
+- `/docs/architecture/JOGOS-DO-DIA-API.md` (v4.0)
+- Linha 174: "⚠️ API-Football foi banida e permanece DESABILITADA"
+
+### Arquitetura Atual (Sem API-Football)
+
+```
+JOGOS DO DIA (v4.0):
+┌─────────────────────────────────────────┐
+│ 1. SoccerDataAPI (Principal)            │
+│    └─ 75 req/dia free                   │
+│         ↓ (falha)                       │
+│ 2. Globo Esporte (Paralelo)             │
+│    └─ Scraper SSR (agenda)              │
+│         ↓ (falha)                       │
+│ 3. Cache Stale (30min)                  │
+│         ↓ (vazio)                       │
+│ 4. Arquivo JSON (Fallback final)        │
+└─────────────────────────────────────────┘
+
+NOTÍCIAS:
+┌─────────────────────────────────────────┐
+│ Google News RSS (único)                 │
+│    └─ Sem API key necessária            │
+│    └─ Cache 30min                       │
+│    └─ Sem thumbnails                    │
+└─────────────────────────────────────────┘
+```
+
+### Conclusão
+
+**API-Football NÃO é mais parte da arquitetura.** Sistema opera 100% funcional sem ela:
+- ✅ Jogos ao vivo via SoccerDataAPI
+- ✅ Notícias via Google News RSS
+- ✅ Fallbacks robustos (Globo + Cache)
+
+**Ação necessária:** Nenhuma. Sistema resiliente e independente da API-Football.
 
 ---
 
 **Última atualização:** 08/02/2026
-**Versão backend:** v1.2
-**Status:** Funcional (sem thumbnails)
+**Versão backend notícias:** v1.2
+**Versão jogos-ao-vivo:** v4.0
+**Status:** Funcional (sem thumbnails, sem API-Football)
