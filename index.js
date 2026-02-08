@@ -143,6 +143,7 @@ import quitacaoRoutes from "./routes/quitacao-routes.js";
 // 🧩 Configuração de Módulos por Liga
 import moduleConfigRoutes from "./routes/module-config-routes.js";
 import rulesRoutes from "./routes/rules-routes.js";
+import regrasModulosRoutes from "./routes/regras-modulos-routes.js";
 
 // 📦 DATA LAKE dos Participantes
 import dataLakeRoutes from "./routes/data-lake-routes.js";
@@ -515,6 +516,10 @@ console.log("[SERVER] 🔄 Sistema de Renovação de Temporada registrado");
 // 📚 Regras estáticas (JSON)
 app.use("/api/rules", rulesRoutes);
 console.log("[SERVER] 🧾 Rotas de regras estáticas registradas em /api/rules");
+
+// 📝 Regras de Módulos (editáveis por liga)
+app.use("/api/regras-modulos", regrasModulosRoutes);
+console.log("[SERVER] 📝 Rotas de regras de módulos registradas em /api/regras-modulos");
 
 // 📦 DATA LAKE dos Participantes
 app.use("/api/data-lake", dataLakeRoutes);

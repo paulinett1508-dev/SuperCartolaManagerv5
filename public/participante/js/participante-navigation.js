@@ -54,6 +54,7 @@ class ParticipanteNavigation {
             capitao: "/participante/fronts/capitao.html",
             configuracoes: "/participante/fronts/configuracoes.html",
             "copa-times-sc": "/participante/fronts/copa-times-sc.html",
+            regras: "/participante/fronts/regras.html",
         };
 
         // ✅ v3.0: Controles simplificados (apenas debounce por tempo)
@@ -380,7 +381,7 @@ class ParticipanteNavigation {
      */
     _isModuloOpcionalInativo(moduloId) {
         // Módulos de sistema/base: sempre permitidos
-        const modulosPermitidos = ['home', 'boas-vindas', 'extrato', 'ranking', 'rodadas', 'historico', 'configuracoes', 'copa-times-sc'];
+        const modulosPermitidos = ['home', 'boas-vindas', 'extrato', 'ranking', 'rodadas', 'historico', 'configuracoes', 'copa-times-sc', 'regras'];
         if (modulosPermitidos.includes(moduloId)) return false;
 
         // Sem dados de módulos carregados: permitir (graceful degradation)
@@ -821,6 +822,7 @@ class ParticipanteNavigation {
             artilheiro: "Artilheiro Campeão",
             "luva-ouro": "Luva de Ouro",
             capitao: "Capitão de Luxo",
+            regras: "Regras",
             configuracoes: "Configurações",
         };
         return nomes[moduloId] || moduloId;
@@ -872,6 +874,7 @@ class ParticipanteNavigation {
             capitao: "/participante/js/modules/participante-capitao.js",
             configuracoes: "/participante/js/modules/participante-notifications.js",
             "copa-times-sc": "/participante/js/modules/participante-copa-sc.js",
+            regras: "/participante/js/modules/participante-regras.js",
         };
 
         const jsPath = modulosPaths[modulo];
@@ -974,7 +977,7 @@ class ParticipanteNavigation {
 
         // Modulos que funcionam mesmo em pre-temporada
         // ✅ v4.1: Adicionado 'home' - mostra dados basicos do participante
-        const modulosLiberados = ['boas-vindas', 'home', 'extrato', 'historico', 'configuracoes'];
+        const modulosLiberados = ['boas-vindas', 'home', 'extrato', 'historico', 'configuracoes', 'regras'];
 
         // Se o modulo esta na lista de liberados, nao bloquear
         if (modulosLiberados.includes(moduloId)) {
