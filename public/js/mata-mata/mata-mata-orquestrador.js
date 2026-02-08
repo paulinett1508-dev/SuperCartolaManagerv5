@@ -699,12 +699,70 @@ async function carregarConfrontosParciais(contentElement, ligaId, edicaoId, edic
 }
 
 // Handler para mudança de edição
-function handleEdicaoChange(novaEdicao, fase, ligaId) {
+async function handleEdicaoChange(novaEdicao, fase, ligaId) {
   edicaoAtual = novaEdicao;
   // ✅ Limpar caches locais ao trocar de edição
   pontosRodadaCache.clear();
   rankingBaseCache.clear();
+
+  // ✅ v1.5: Calcular tamanho ANTES de carregar fase para atualizar navegação
+  const tamanhoCalculado = await getTamanhoTorneioCached(ligaId, novaEdicao);
+
+  if (tamanhoCalculado > 0 && tamanhoCalculado !== tamanhoTorneio) {
+    console.log(`[MATA-ORQUESTRADOR] Tamanho mudou: ${tamanhoTorneio} → ${tamanhoCalculado}`);
+    tamanhoTorneio = tamanhoCalculado;
+
+    // Re-renderizar navegação com fases corretas
+    const fasesReais = getFasesParaTamanho(tamanhoTorneio);
+    atualizarNavegacaoFases(fasesReais);
+
+    // Usar primeira fase válida se a fase atual não existe
+    if (!fasesReais.includes(fase.toLowerCase())) {
+      fase = fasesReais[0];
+      console.log(`[MATA-ORQUESTRADOR] Fase ajustada para: ${fase}`);
+    }
+  }
+
   carregarFase(fase, ligaId);
+}
+
+// ✅ v1.5: Atualizar botões de navegação de fases dinamicamente
+function atualizarNavegacaoFases(fasesAtivas) {
+  const faseNav = document.querySelector('.fase-nav');
+  if (!faseNav) return;
+
+  const botoesHtml = fasesAtivas
+    .map((fase, idx) => `<button class="fase-btn${idx === 0 ? " active" : ""}" data-fase="${fase}">${FASE_LABELS[fase] || fase.toUpperCase()}</button>`)
+    .join("\n");
+
+  faseNav.innerHTML = botoesHtml;
+
+  // Re-bind event listeners
+  faseNav.querySelectorAll('.fase-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const edicaoSelect = document.getElementById('edicao-select');
+      const edicao = edicaoSelect ? parseInt(edicaoSelect.value) : null;
+
+      if (!edicao) {
+        console.warn('[MATA-ORQUESTRADOR] Nenhuma edição selecionada');
+        return;
+      }
+
+      faseNav.querySelectorAll('.fase-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+
+      const fase = this.getAttribute('data-fase');
+      handleFaseClick(fase, edicao);
+    });
+  });
+
+  // Atualizar data attribute da primeira fase
+  const container = document.getElementById('mata-mata');
+  if (container) {
+    container.dataset.primeiraFase = fasesAtivas[0];
+  }
+
+  console.log(`[MATA-ORQUESTRADOR] Navegação atualizada: ${fasesAtivas.join(', ')}`);
 }
 
 // Handler para clique em fase

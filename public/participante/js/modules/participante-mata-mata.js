@@ -1,5 +1,7 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v7.2 (Cache-First + Parciais ao Vivo)
+// PARTICIPANTE MATA-MATA v7.3 (Fases Dinâmicas + Contador Corrigido)
+// ✅ v7.3: FIX - Fases dinâmicas baseadas no tamanho real do torneio
+// ✅ v7.3: FIX - Contador de participantes usa tamanhoTorneio real
 // ✅ v7.2: FEAT - Parciais ao vivo na rodada de classificação
 // ✅ v7.0: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v6.9: FIX Escudo placeholder não usa mais logo do sistema
@@ -19,7 +21,24 @@ const EDICOES_MATA_MATA = [
   { id: 5, nome: "5ª Edição", rodadaInicial: 31, rodadaFinal: 35 },
 ];
 
-const FASES = ["primeira", "oitavas", "quartas", "semis", "final"];
+// ✅ v7.3: Fases dinâmicas baseadas no tamanho do torneio
+const TODAS_FASES = ["primeira", "oitavas", "quartas", "semis", "final"];
+
+// ✅ v7.3: Retorna fases aplicáveis para o tamanho do torneio (espelho do admin)
+function getFasesParaTamanho(tamanho) {
+  if (tamanho >= 32) return ["primeira", "oitavas", "quartas", "semis", "final"];
+  if (tamanho >= 16) return ["oitavas", "quartas", "semis", "final"];
+  if (tamanho >= 8)  return ["quartas", "semis", "final"];
+  return [];
+}
+
+// ✅ v7.3: Getter para fases atuais (usa tamanhoTorneio do estado)
+function getFasesAtuais() {
+  return getFasesParaTamanho(estado.tamanhoTorneio);
+}
+
+// Compatibilidade: FASES agora é getter dinâmico
+const FASES = TODAS_FASES; // Fallback para código legado que itera todas
 
 // ✅ v6.8: FIX - Sempre retorna number para comparação consistente
 // Banco tem timeId inconsistente: às vezes string "1323370", às vezes number 1323370
@@ -101,7 +120,7 @@ let estado = {
   timeId: null,
   rodadaAtual: 1,
   edicaoSelecionada: null,
-  faseSelecionada: "primeira",
+  faseSelecionada: null, // ✅ v7.3: Será definida dinamicamente baseada no tamanhoTorneio
   edicoesDisponiveis: [],
   cacheConfrontos: {},
   historicoParticipacao: {},
@@ -140,6 +159,10 @@ export async function inicializarMataMata(params) {
     if (window.Log) Log.warn("[MATA-MATA] ⚠️ Config não carregada, usando default:", estado.tamanhoTorneio);
   }
 
+  // ✅ v7.3: Atualizar navegação de fases após carregar tamanho do torneio
+  atualizarNavegacaoFases();
+  atualizarContador();
+
   // ✅ v6.8: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
   // ⚠️ v6.8: NÃO usar historicoParticipacao do cache (pode estar com bug de tipos antigo)
   let usouCache = false;
@@ -174,7 +197,9 @@ export async function inicializarMataMata(params) {
           const select = document.getElementById("mmEditionSelect");
           if (select) select.value = ultimaEdicao.edicao;
 
-          await carregarFase(estado.edicaoSelecionada, "primeira");
+          // ✅ v7.3: Usar primeira fase válida para o tamanho do torneio
+          const primeiraFaseValida = getFasesAtuais()[0] || "quartas";
+          await carregarFase(estado.edicaoSelecionada, primeiraFaseValida);
         }
       }
     } catch (e) {
@@ -269,7 +294,9 @@ async function carregarEdicoesDisponiveis(usouCache = false) {
         const select = document.getElementById("mmEditionSelect");
         if (select) select.value = ultimaEdicao.edicao;
 
-        await carregarFase(estado.edicaoSelecionada, "primeira");
+        // ✅ v7.3: Usar primeira fase válida para o tamanho do torneio
+        const primeiraFaseValida = getFasesAtuais()[0] || "quartas";
+        await carregarFase(estado.edicaoSelecionada, primeiraFaseValida);
       } else if (dadosMudaram) {
         // Re-renderizar se dados mudaram
         popularSelectEdicoes();
@@ -390,7 +417,8 @@ function popularSelectEdicoes() {
 // =====================================================================
 function atualizarContador() {
   const el = document.getElementById("mmTimesCount");
-  if (el) el.textContent = "32 participante(s)";
+  // ✅ v7.3: Usar tamanho real do torneio em vez de hardcoded
+  if (el) el.textContent = `${estado.tamanhoTorneio} participante(s)`;
 }
 
 // =====================================================================
@@ -401,10 +429,12 @@ function setupEventListeners() {
   if (select) {
     select.addEventListener("change", async (e) => {
       estado.edicaoSelecionada = parseInt(e.target.value);
-      estado.faseSelecionada = "primeira";
+      // ✅ v7.3: Usar primeira fase válida para o tamanho do torneio
+      const primeiraFaseValida = getFasesAtuais()[0] || "quartas";
+      estado.faseSelecionada = primeiraFaseValida;
       atualizarBotoesFases();
       await carregarTodasFases(estado.edicaoSelecionada);
-      await carregarFase(estado.edicaoSelecionada, "primeira");
+      await carregarFase(estado.edicaoSelecionada, primeiraFaseValida);
     });
   }
 
@@ -443,6 +473,39 @@ function atualizarBotoesFases() {
 }
 
 // =====================================================================
+// ✅ v7.3: ATUALIZAR NAVEGAÇÃO DE FASES DINAMICAMENTE
+// =====================================================================
+function atualizarNavegacaoFases() {
+  const phasesNav = document.getElementById("mmPhasesNav");
+  if (!phasesNav) return;
+
+  const fasesAtivas = getFasesAtuais();
+  const faseLabels = {
+    primeira: "1ª FASE",
+    oitavas: "OITAVAS",
+    quartas: "QUARTAS",
+    semis: "SEMIFINAL",
+    final: "FINAL",
+  };
+
+  // Recriar botões com apenas as fases válidas
+  phasesNav.innerHTML = fasesAtivas
+    .map((fase, idx) => `
+      <button class="mm-phase-btn${idx === 0 ? ' active' : ''}" data-fase="${fase}">
+        ${faseLabels[fase] || fase.toUpperCase()}
+      </button>
+    `)
+    .join('');
+
+  // Definir primeira fase como selecionada se não houver
+  if (!estado.faseSelecionada || !fasesAtivas.includes(estado.faseSelecionada)) {
+    estado.faseSelecionada = fasesAtivas[0];
+  }
+
+  if (window.Log) Log.info(`[MATA-MATA] 🔄 Navegação atualizada: ${fasesAtivas.join(', ')}`);
+}
+
+// =====================================================================
 // ATUALIZAR INFO DA FASE
 // =====================================================================
 function atualizarInfoFase(fase) {
@@ -467,8 +530,10 @@ function atualizarInfoFase(fase) {
 
   let rodadaFase = estado.rodadaAtual;
   if (config) {
-    const faseIndex = FASES.indexOf(fase);
-    rodadaFase = config.rodadaInicial + faseIndex;
+    // ✅ v7.3: Usar fases dinâmicas para calcular índice
+    const fasesAtivas = getFasesAtuais();
+    const faseIndex = fasesAtivas.indexOf(fase);
+    rodadaFase = config.rodadaInicial + (faseIndex >= 0 ? faseIndex : 0);
   }
 
   infoEl.innerHTML = `
