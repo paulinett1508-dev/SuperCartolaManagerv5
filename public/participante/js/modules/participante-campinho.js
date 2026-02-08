@@ -845,6 +845,7 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
     // Classes especiais
     const isMito = pontos > MITO_THRESHOLD;
     const isMico = pontos < MICO_THRESHOLD;
+    const isNegativo = pontosExibir < 0; // Qualquer pontuação negativa
     const classePontos = pontosExibir > 0 ? 'positivo' : pontosExibir < 0 ? 'negativo' : 'neutro';
 
     let classes = ['campinho-jogador'];
@@ -852,6 +853,7 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
     if (isReservaLuxo) classes.push('is-luxo');
     if (isMito) classes.push('is-mito');
     if (isMico) classes.push('is-mico');
+    if (isNegativo) classes.push('is-negativo');
 
     // Badge de capitão ou reserva luxo
     let badgeHtml = '';

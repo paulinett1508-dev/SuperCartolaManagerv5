@@ -1137,6 +1137,21 @@
     50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
 }
 
+/* === JOGADOR QUE NEGATIVOU (tom avermelhado sutil) === */
+.campinho-jogador.is-negativo .campinho-jogador-avatar {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(185, 28, 28, 0.5) 100%);
+    border-color: rgba(239, 68, 68, 0.6);
+    box-shadow:
+        0 0 0 2px rgba(239, 68, 68, 0.25),
+        0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Badge de pontos com fundo avermelhado quando negativo */
+.campinho-jogador.is-negativo .campinho-jogador-pontos {
+    background: rgba(185, 28, 28, 0.9);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
 /* === ANIMAÇÕES DE ENTRADA === */
 @keyframes jogador-entrada {
     from {
