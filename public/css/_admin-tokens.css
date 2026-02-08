@@ -415,3 +415,92 @@
    - Backgrounds sutis: background: var(--module-[modulo]-muted);
    - Textos/ícones: color: var(--module-[modulo]-primary);
 */
+
+/* ========================================
+   16. BREAKPOINTS RESPONSIVOS (Mobile-First)
+   ======================================== */
+:root {
+    /* Breakpoints canônicos */
+    --breakpoint-mobile: 480px;
+    --breakpoint-tablet: 768px;
+    --breakpoint-desktop: 1024px;
+    --breakpoint-desktop-large: 1400px;
+    --breakpoint-ultrawide: 1600px;
+
+    /* Container max-widths */
+    --container-max-width: 1600px;
+    --container-padding-mobile: var(--space-4);
+    --container-padding-tablet: var(--space-5);
+    --container-padding-desktop: var(--space-6);
+}
+
+/* ========================================
+   CLASSES UTILITÁRIAS RESPONSIVAS
+   ======================================== */
+
+/* Container centralizado com max-width */
+.container-centered {
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: var(--container-padding-mobile);
+}
+
+@media (min-width: 481px) {
+    .container-centered {
+        padding: var(--container-padding-tablet);
+    }
+}
+
+@media (min-width: 769px) {
+    .container-centered {
+        padding: var(--container-padding-desktop);
+    }
+}
+
+/* Grid responsivo automático */
+.grid-responsive {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+}
+
+@media (min-width: 481px) {
+    .grid-responsive {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--space-5);
+    }
+}
+
+@media (min-width: 769px) {
+    .grid-responsive {
+        gap: var(--space-6);
+    }
+}
+
+@media (min-width: 1025px) {
+    .grid-responsive {
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    }
+}
+
+/* Esconder em mobile */
+.hide-mobile {
+    display: none;
+}
+
+@media (min-width: 769px) {
+    .hide-mobile {
+        display: block;
+    }
+}
+
+/* Mostrar apenas em mobile */
+.show-mobile {
+    display: block;
+}
+
+@media (min-width: 769px) {
+    .show-mobile {
+        display: none;
+    }
+}

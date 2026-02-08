@@ -107,6 +107,29 @@ body {
   background: var(--bg-secondary);
   min-height: 100vh;
   transition: margin-left 0.3s ease;
+  /* Limite máximo + centralização para telas UltraWide */
+  max-width: calc(100vw - 280px);
+}
+
+/* Content wrapper para centralização em telas grandes */
+.app-main > * {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Sidebar colapsada: ajustar max-width */
+body.sidebar-collapsed .app-main {
+  margin-left: 80px;
+  max-width: calc(100vw - 80px);
+}
+
+/* Mobile: sem margem lateral (sidebar escondida) */
+@media (max-width: 768px) {
+  .app-main {
+    margin-left: 0;
+    max-width: 100vw;
+  }
 }
 
 /* === HEADER ESCURO === */

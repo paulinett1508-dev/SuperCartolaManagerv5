@@ -314,6 +314,18 @@
         </nav>
 
         <script>
+            // === GLOBAL LAYOUT STATE (Idempotency Guard) ===
+            // ✅ v10.0: Previne re-execuções em navegação SPA
+            if (typeof window.__layout_state === 'undefined') {
+                window.__layout_state = {
+                    initialized: false,
+                    accordionBound: false,
+                    ligasCarregadas: false,
+                    version: '3.0'
+                };
+                console.log('[LAYOUT] Estado global inicializado');
+            }
+
             // === SISTEMA DE CACHE LOCALSTORAGE ===
             // ✅ v9.2: Fix - CacheManager acessível mesmo após re-injeção SPA
             if (typeof window._layoutCacheManager === 'undefined') {
@@ -450,11 +462,16 @@
                 _initialized: false,
 
                 init() {
-                    if (this._initialized) return;
+                    if (this._initialized) {
+                        console.log('[LAYOUT] AccordionManager já inicializado, pulando...');
+                        return;
+                    }
+                    console.log('[LAYOUT] Inicializando AccordionManager...');
                     this.restoreState();
                     this.bindEvents();
                     this.autoExpandForCurrentPage();
                     this._initialized = true;
+                    window.__layout_state.accordionBound = true;
                 },
 
                 bindEvents() {
@@ -633,10 +650,16 @@
                 }
             };
 
-            // === CARREGAMENTO DAS LIGAS NO SIDEBAR (v3.0 - Com Cache) ===
+            // === CARREGAMENTO DAS LIGAS NO SIDEBAR (v3.0 - Com Cache + Idempotency Guard) ===
             async function carregarLigasLayout(forceRefresh = false) {
                 const ligasList = document.getElementById("ligasList");
                 if (!ligasList) return;
+
+                // ✅ GUARD: Evita re-execuções em navegação SPA (exceto se forceRefresh)
+                if (!forceRefresh && window.__layout_state && window.__layout_state.ligasCarregadas) {
+                    console.log('[LAYOUT] Ligas já carregadas, usando cache de estado...');
+                    return;
+                }
 
                 // Obter ID da liga atual da URL
                 const urlParams = new URLSearchParams(window.location.search);
@@ -786,6 +809,12 @@
                             ">Tentar</button>
                         </div>
                     `;
+                }
+
+                // ✅ Marcar ligas como carregadas (para guard de idempotência)
+                if (window.__layout_state) {
+                    window.__layout_state.ligasCarregadas = true;
+                    console.log('[LAYOUT] Ligas carregadas e marcadas no estado global');
                 }
             }
 

@@ -1122,10 +1122,10 @@
    SIDEBAR REDESIGN v1.0 - Design Moderno
    ============================================================ */
 
-/* Botão Toggle Sidebar */
+/* Botão Toggle Sidebar - Posicionamento Dinâmico */
 .sidebar-toggle-btn {
     position: fixed;
-    left: 268px;
+    left: calc(280px - 12px); /* Dinâmico: largura sidebar - metade botão */
     top: 50%;
     transform: translateY(-50%);
     width: 24px;
@@ -1152,9 +1152,9 @@
     font-size: 18px;
 }
 
-/* Estado colapsado do botão */
+/* Estado colapsado do botão - Posicionamento Dinâmico */
 body.sidebar-collapsed .sidebar-toggle-btn {
-    left: 68px;
+    left: calc(80px - 12px); /* Dinâmico: largura colapsada - metade botão */
 }
 
 /* Override do sidebar antigo */
