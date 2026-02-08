@@ -207,8 +207,53 @@
 .regra-admin-card:hover {
     border-color: rgba(255,255,255,0.15);
 }
+.regra-admin-card.open {
+    border-color: rgba(255,255,255,0.15);
+}
 .regra-admin-card.disabled {
     opacity: 0.5;
+}
+
+/* Accordion Body */
+.regra-admin-card-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+.regra-admin-card.open .regra-admin-card-body {
+    max-height: 2000px;
+}
+.regra-admin-card-body-content {
+    padding: 0 16px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.7);
+}
+.regra-admin-card-body-content h1,
+.regra-admin-card-body-content h2,
+.regra-admin-card-body-content h3 {
+    color: #fff;
+    font-family: 'Russo One', sans-serif;
+    margin: 12px 0 6px;
+}
+.regra-admin-card-body-content p { margin: 6px 0; }
+.regra-admin-card-body-content ul,
+.regra-admin-card-body-content ol { padding-left: 20px; margin: 6px 0; }
+.regra-admin-card-body-content strong { color: #fff; }
+.regra-admin-card-body-content a { color: #60a5fa; }
+
+/* Chevron */
+.regra-admin-card-chevron {
+    font-size: 22px;
+    color: rgba(255,255,255,0.3);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+.regra-admin-card.open .regra-admin-card-chevron {
+    transform: rotate(180deg);
+    color: rgba(255,255,255,0.6);
 }
 
 .regra-admin-card-row {
@@ -544,8 +589,8 @@
         const emptyEl = document.getElementById('regras-admin-empty');
 
         try {
-            console.log('[REGRAS-ADMIN] 📡 Fetching:', `/api/regras-modulos/${ligaId}`);
-            const resp = await fetch(`/api/regras-modulos/${ligaId}`);
+            console.log('[REGRAS-ADMIN] 📡 Fetching:', `/api/regras-modulos/${ligaId}?includeInactive=true`);
+            const resp = await fetch(`/api/regras-modulos/${ligaId}?includeInactive=true`);
             const data = await resp.json();
             console.log('[REGRAS-ADMIN] 📦 Resposta:', { sucesso: data.sucesso, total: data.regras?.length });
 
@@ -584,7 +629,7 @@
 
             return `
                 <div class="regra-admin-card ${disabledClass}" data-idx="${idx}">
-                    <div class="regra-admin-card-row">
+                    <div class="regra-admin-card-row" onclick="window.toggleRegraAccordionAdmin(this)" style="cursor:pointer;">
                         <div class="regra-admin-card-icon" style="background:${cor}20;">
                             <span class="material-icons" style="color:${cor};">${icone}</span>
                         </div>
@@ -592,17 +637,30 @@
                             <div class="regra-admin-card-titulo">${titulo}</div>
                             <div class="regra-admin-card-preview">${preview || 'Sem conteúdo'}</div>
                         </div>
+                        <span class="material-icons regra-admin-card-chevron">expand_more</span>
                         <div class="regra-toggle-wrap">
                             <button class="regra-toggle ${activeClass}" data-modulo="${regra.modulo}" onclick="window.toggleRegraAtivo(this, '${regra.modulo}', event)" title="${isAtivo ? 'Desativar' : 'Ativar'}"></button>
                         </div>
-                        <button class="regra-btn-edit" onclick="window.abrirEditorRegras(${idx})" title="Editar conteúdo">
+                        <button class="regra-btn-edit" onclick="event.stopPropagation(); window.abrirEditorRegras(${idx})" title="Editar conteúdo">
                             <span class="material-icons">edit</span>
                         </button>
+                    </div>
+                    <div class="regra-admin-card-body">
+                        <div class="regra-admin-card-body-content">
+                            ${regra.conteudo_html || '<p style="color:rgba(255,255,255,0.3);">Sem conteúdo configurado.</p>'}
+                        </div>
                     </div>
                 </div>
             `;
         }).join('');
     }
+
+    // Toggle accordion expand/collapse
+    window.toggleRegraAccordionAdmin = function(headerEl) {
+        const card = headerEl.closest('.regra-admin-card');
+        if (!card) return;
+        card.classList.toggle('open');
+    };
 
     // Toggle ativo/desativo
     window.toggleRegraAtivo = async function(btn, modulo, event) {
