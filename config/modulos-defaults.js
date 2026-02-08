@@ -33,6 +33,11 @@ export const MODULOS_DEFAULTS = {
     luvaOuro: false,        // Prêmio luva de ouro - OPCIONAL
     campinho: false,        // Campinho virtual - OPCIONAL
     dicas: false,           // Dicas de escalação - OPCIONAL
+    // Atalhos da home do participante
+    participantes: true,    // Lista de participantes - ATALHO HOME
+    premiacoes: true,       // Premiações da liga - ATALHO HOME
+    regras: true,           // Regras da liga - ATALHO HOME
+    cartolaPro: false,      // Cartola PRO - ATALHO HOME (premium)
 };
 
 /**
@@ -52,6 +57,10 @@ export function aplicarDefaults(modulosAtivos = {}) {
         luvaOuro: modulosAtivos.luvaOuro ?? MODULOS_DEFAULTS.luvaOuro,
         campinho: modulosAtivos.campinho ?? MODULOS_DEFAULTS.campinho,
         dicas: modulosAtivos.dicas ?? MODULOS_DEFAULTS.dicas,
+        participantes: modulosAtivos.participantes ?? MODULOS_DEFAULTS.participantes,
+        premiacoes: modulosAtivos.premiacoes ?? MODULOS_DEFAULTS.premiacoes,
+        regras: modulosAtivos.regras ?? MODULOS_DEFAULTS.regras,
+        cartolaPro: modulosAtivos.cartolaPro ?? MODULOS_DEFAULTS.cartolaPro,
     };
 }
 

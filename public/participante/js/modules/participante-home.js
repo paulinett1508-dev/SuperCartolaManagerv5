@@ -1104,6 +1104,21 @@ function renderizarHome(container, data, ligaId) {
             }
         });
     }
+
+    // === BOTÕES DE ATALHOS (Módulos Ativos) ===
+    const modulosAtivos = window.participanteNav?.modulosAtivos || {};
+    const atalhoMap = {
+        'btn-participantes': 'participantes',
+        'btn-premiacoes': 'premiacoes',
+        'btn-regras': 'regras',
+        'btn-cartola-pro': 'cartolaPro',
+    };
+    for (const [btnId, moduloKey] of Object.entries(atalhoMap)) {
+        if (modulosAtivos[moduloKey] === false) {
+            const btn = document.getElementById(btnId);
+            if (btn) btn.style.display = 'none';
+        }
+    }
 }
 
 // =====================================================================

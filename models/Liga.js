@@ -112,6 +112,11 @@ const ligaSchema = new mongoose.Schema({
             capitaoLuxo: false,
             campinho: false,
             dicas: false,
+            // Atalhos da home do participante
+            participantes: true,
+            premiacoes: true,
+            regras: true,
+            cartolaPro: false,
         },
     },
     criadaEm: { type: Date, default: Date.now },
