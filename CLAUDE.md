@@ -149,6 +149,9 @@ As keywords ativam a mesma skill automaticamente (ver tabela acima).
 | `/cache-auditor [modo]` | "auditar cache", "cache desatualizado" |
 | `/ux-auditor-app` | "auditar UX do app", "revisar design participante", "visual do app tá ok?" |
 | `/newsession` | "nova sessão", "salvar contexto" |
+| `/liste-pr-github [período]` | "listar PRs", "PRs de hoje", "merges da semana" |
+
+> **`/liste-pr-github`** - Lista PRs do GitHub via API. Períodos: `hoje`, `ontem`, `semana`, `mes`, `YYYY-MM-DD` ou range `YYYY-MM-DD YYYY-MM-DD`. Sem argumento lista os últimos 10.
 
 ## 🔄 Sistema de Renovação de Temporada
 
