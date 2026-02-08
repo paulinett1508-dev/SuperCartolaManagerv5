@@ -1,5 +1,7 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v7.3 (Fases Dinâmicas + Contador Corrigido)
+// PARTICIPANTE MATA-MATA v7.5 (Botão Classificados)
+// ✅ v7.5: FEAT - Botão "Classificados" mostra os N classificados e seus adversários
+// ✅ v7.4: FIX - Mostra mensagem adequada quando não há edições na temporada
 // ✅ v7.3: FIX - Fases dinâmicas baseadas no tamanho real do torneio
 // ✅ v7.3: FIX - Contador de participantes usa tamanhoTorneio real
 // ✅ v7.2: FEAT - Parciais ao vivo na rodada de classificação
@@ -305,6 +307,12 @@ async function carregarEdicoesDisponiveis(usouCache = false) {
         await carregarFase(ultimaEdicao.edicao, estado.faseSelecionada);
         if (window.Log) Log.info("[MATA-MATA] 🔄 Re-renderizado com dados frescos");
       }
+    } else {
+      // ✅ v7.4: Tratar caso de zero edições disponíveis
+      if (!usouCache) {
+        const temporada = window.participanteAuth?.temporadaSelecionada || CURRENT_SEASON;
+        renderSemEdicoes(temporada);
+      }
     }
   } catch (error) {
     if (window.Log) Log.error("[MATA-MATA] Erro ao carregar edições:", error);
@@ -457,6 +465,18 @@ function setupEventListeners() {
   FASES.forEach((fase, i) => {
     if (buttons[i]) buttons[i].dataset.fase = fase;
   });
+
+  // ✅ v7.4: Botão Classificados
+  const btnClassificados = document.getElementById("btnClassificados");
+  if (btnClassificados) {
+    btnClassificados.addEventListener("click", () => {
+      if (estado.edicaoSelecionada) {
+        toggleClassificados();
+      } else {
+        if (window.Log) Log.warn("[MATA-MATA] Nenhuma edição selecionada");
+      }
+    });
+  }
 }
 
 // =====================================================================
@@ -503,6 +523,108 @@ function atualizarNavegacaoFases() {
   }
 
   if (window.Log) Log.info(`[MATA-MATA] 🔄 Navegação atualizada: ${fasesAtivas.join(', ')}`);
+}
+
+// =====================================================================
+// ✅ v7.4: TOGGLE CLASSIFICADOS
+// =====================================================================
+let classificadosAberto = false;
+
+function toggleClassificados() {
+  const container = document.getElementById("mata-mata-container");
+  if (!container) return;
+
+  // Se já está aberto, fechar
+  const existente = document.querySelector(".mm-classificados-container");
+  if (existente) {
+    existente.remove();
+    classificadosAberto = false;
+    return;
+  }
+
+  // Buscar classificados da fase "primeira" da edição selecionada
+  const primeiraFase = getFasesAtuais()[0] || "primeira";
+  const cacheKey = `${estado.edicaoSelecionada}-${primeiraFase}`;
+  const confrontos = estado.cacheConfrontos[cacheKey];
+
+  if (!confrontos || confrontos.length === 0) {
+    if (window.Log) Log.warn("[MATA-MATA] Sem dados de classificados para esta edição");
+    return;
+  }
+
+  // Extrair todos os times únicos e ordenar por rankR2 (posição na classificação)
+  const classificados = [];
+  confrontos.forEach(c => {
+    if (c.timeA) classificados.push({ ...c.timeA, adversario: c.timeB });
+    if (c.timeB) classificados.push({ ...c.timeB, adversario: c.timeA });
+  });
+
+  // Ordenar por rankR2 (posição na rodada de classificação)
+  classificados.sort((a, b) => (a.rankR2 || 999) - (b.rankR2 || 999));
+
+  // Renderizar lista
+  renderClassificados(classificados, container);
+  classificadosAberto = true;
+
+  if (window.Log) Log.info(`[MATA-MATA] 📋 ${classificados.length} classificados exibidos`);
+}
+
+function renderClassificados(classificados, container) {
+  const meuTimeId = estado.timeId ? parseInt(estado.timeId) : null;
+  const config = EDICOES_MATA_MATA.find(e => e.id === estado.edicaoSelecionada);
+  const nomeEdicao = config ? config.nome : `${estado.edicaoSelecionada}ª Edição`;
+  const rodadaClass = config ? config.rodadaInicial - 1 : "?"; // Rodada anterior à 1ª Fase é a classificatória
+
+  let html = `
+    <div class="mm-classificados-container">
+      <div class="mm-classificados-header">
+        <div class="mm-classificados-title">
+          <span class="material-symbols-outlined">format_list_numbered</span>
+          <span>Classificados - ${nomeEdicao}</span>
+        </div>
+        <button class="mm-classificados-close" id="btnFecharClassificados">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <p class="mm-classificados-info">
+        Top ${estado.tamanhoTorneio} da Rodada ${rodadaClass} (Classificatória)
+        <br><small>1º enfrenta ${estado.tamanhoTorneio}º, 2º enfrenta ${estado.tamanhoTorneio - 1}º...</small>
+      </p>
+      <div class="mm-classificados-list">
+  `;
+
+  classificados.forEach(time => {
+    const isMeuTime = extrairTimeId(time) === meuTimeId;
+    const posAdv = time.adversario?.rankR2 || "?";
+
+    html += `
+      <div class="mm-classificado-item ${isMeuTime ? 'meu-time' : ''}">
+        <span class="mm-classificado-pos">${time.rankR2 || "?"}</span>
+        <img class="mm-classificado-escudo" src="${getEscudoUrl(time)}" alt="" onerror="this.src='${ESCUDO_PLACEHOLDER}'">
+        <div class="mm-classificado-info">
+          <div class="mm-classificado-nome">${truncate(time.nome_time || "Time", 18)}</div>
+          <div class="mm-classificado-cartola">${truncate(time.nome_cartola || time.nome_cartoleiro || "", 20)}</div>
+        </div>
+        <div class="mm-classificado-adversario">
+          vs <strong>${posAdv}º</strong>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+    </div>
+  `;
+
+  // Inserir antes do conteúdo existente
+  container.insertAdjacentHTML("afterbegin", html);
+
+  // Event listener para fechar
+  document.getElementById("btnFecharClassificados")?.addEventListener("click", () => {
+    document.querySelector(".mm-classificados-container")?.remove();
+    classificadosAberto = false;
+  });
 }
 
 // =====================================================================
@@ -1329,6 +1451,31 @@ async function carregarConfrontosParciais(container, edicao) {
 }
 
 // =====================================================================
+// ✅ v7.4: RENDER SEM EDIÇÕES DISPONÍVEIS
+// =====================================================================
+function renderSemEdicoes(temporada) {
+  const container = document.getElementById("mata-mata-container");
+  if (!container) return;
+
+  // Esconder select de edições e info quando não há edições
+  const selectWrapper = document.querySelector(".mm-edition-select-wrapper");
+  const phaseInfo = document.getElementById("mmPhaseInfo");
+  if (selectWrapper) selectWrapper.style.display = "none";
+  if (phaseInfo) phaseInfo.innerHTML = "";
+
+  container.innerHTML = `
+    <div class="mm-vazio">
+      <span class="material-symbols-outlined">sports_kabaddi</span>
+      <h3>Mata-Mata ainda não calculado</h3>
+      <p>As chaves do Mata-Mata ${temporada} ainda não foram geradas pelo administrador.</p>
+      <p class="mm-vazio-sub">Aguarde a publicação dos confrontos!</p>
+    </div>
+  `;
+
+  if (window.Log) Log.info(`[MATA-MATA] 📭 Sem edições para temporada ${temporada}`);
+}
+
+// =====================================================================
 // RENDER ERRO
 // =====================================================================
 function renderErro(msg) {
@@ -1352,4 +1499,4 @@ function truncate(str, len) {
   return str.length > len ? str.substring(0, len) + "..." : str;
 }
 
-if (window.Log) Log.info("[MATA-MATA] ✅ Módulo v7.2 carregado (Cache-First + Parciais ao Vivo)");
+if (window.Log) Log.info("[MATA-MATA] ✅ Módulo v7.5 carregado (Botão Classificados)");

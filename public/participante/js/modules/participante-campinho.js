@@ -101,11 +101,130 @@ export async function inicializarCampinhoParticipante(params) {
         }
 
         // Renderizar campinho completo
-        container.innerHTML = renderizarCampinhoCompleto(escalacao, dadosAdversario, confrontos);
+        container.innerHTML = renderizarCampinhoCompleto(escalacao, dadosAdversario, confrontos, ligaId, timeId);
+
+        // Buscar extrato financeiro da rodada (assíncrono)
+        buscarExtratoRodada(ligaId, timeId, rodadaConsolidada);
 
     } catch (error) {
         if (window.Log) Log.error("PARTICIPANTE-CAMPINHO", "❌ Erro:", error);
         container.innerHTML = renderizarErro(error.message);
+    }
+}
+
+// =====================================================================
+// FUNCAO PARA CALCULAR STATS DE JOGO (escalados, jogaram, sairam, entraram)
+// =====================================================================
+function calcularStatsJogo(titulares, reservas) {
+    // Status do Cartola: 2 = Dúvida, 3 = Suspenso, 5 = Contundido, 6 = Nulo (não joga), 7 = Provável
+    // Jogador "jogou" se tem pontos != null/undefined ou status indica que jogou
+    const STATUS_NAO_JOGOU = [2, 3, 5, 6]; // Dúvida, Suspenso, Contundido, Nulo
+
+    const totalEscalados = titulares.length;
+
+    // Titulares que efetivamente jogaram (pontuaram algo, mesmo 0.00)
+    const titularesQueJogaram = titulares.filter(a => {
+        const pontos = parseFloat(a.pontos_atual ?? a.pontos_num ?? a.pontos);
+        const status = a.status_id ?? a.statusId ?? a.status ?? 7;
+        // Se tem pontos definidos (mesmo 0) e status não é "não jogou", jogou
+        const temPontos = pontos !== null && pontos !== undefined && !isNaN(pontos);
+        const statusJogou = !STATUS_NAO_JOGOU.includes(Number(status));
+        return temPontos && statusJogou;
+    });
+
+    // Titulares que NÃO jogaram (saíram/substituídos)
+    const titularesQueSairam = titulares.filter(a => {
+        const pontos = parseFloat(a.pontos_atual ?? a.pontos_num ?? a.pontos);
+        const status = a.status_id ?? a.statusId ?? a.status ?? 7;
+        const naoTemPontos = pontos === null || pontos === undefined || isNaN(pontos);
+        const statusNaoJogou = STATUS_NAO_JOGOU.includes(Number(status));
+        return naoTemPontos || statusNaoJogou;
+    });
+
+    // Reservas que entraram (substituíram titulares)
+    const reservasQueEntraram = reservas.filter(a => {
+        const pontos = parseFloat(a.pontos_atual ?? a.pontos_num ?? a.pontos);
+        // No Cartola, reserva que entra tem pontos contabilizados
+        return pontos !== null && pontos !== undefined && !isNaN(pontos) && pontos !== 0;
+    });
+
+    // Se não conseguiu detectar substituições, usar lógica alternativa
+    // (reservas usados = min(titulares que sairam, reservas disponíveis))
+    let sairam = titularesQueSairam.length;
+    let entraram = reservasQueEntraram.length;
+
+    // Garantir consistência: entraram não pode ser maior que sairam
+    if (entraram > sairam && sairam === 0) {
+        // Provavelmente todos jogaram, reservas com pontos são erro de dados
+        entraram = 0;
+    }
+
+    return {
+        escalados: totalEscalados,
+        jogaram: titularesQueJogaram.length + entraram,
+        sairam: sairam,
+        entraram: entraram,
+        totalReservas: reservas.length
+    };
+}
+
+// =====================================================================
+// FUNCAO PARA BUSCAR EXTRATO DA RODADA (ASSÍNCRONO)
+// =====================================================================
+async function buscarExtratoRodada(ligaId, timeId, rodada) {
+    const extratoEl = document.getElementById('campinho-extrato-rodada');
+    if (!extratoEl) return;
+
+    try {
+        const temporada = window.ParticipanteConfig?.CURRENT_SEASON || new Date().getFullYear();
+        const response = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodada}&temporada=${temporada}`);
+
+        if (!response.ok) throw new Error('Falha ao buscar extrato');
+
+        const data = await response.json();
+        const rodadas = data?.rodadas || [];
+
+        // Encontrar a rodada específica
+        const rodadaData = rodadas.find(r => r.rodada === Number(rodada));
+
+        if (rodadaData) {
+            // bonusOnus representa o resultado financeiro da rodada (em R$, não cartoletas)
+            const bonusOnus = rodadaData.bonusOnus || 0;
+            const posicao = rodadaData.posicao || null;
+
+            let icone, classe, texto;
+
+            if (bonusOnus > 0) {
+                icone = 'trending_up';
+                classe = 'ganho';
+                texto = `Ganhei R$ ${Math.abs(bonusOnus).toFixed(2)} de bônus${posicao ? ` (${posicao}º lugar)` : ''}`;
+            } else if (bonusOnus < 0) {
+                icone = 'trending_down';
+                classe = 'perda';
+                texto = `Perdi R$ ${Math.abs(bonusOnus).toFixed(2)} de ônus${posicao ? ` (${posicao}º lugar)` : ''}`;
+            } else {
+                icone = 'remove';
+                classe = 'neutro';
+                texto = posicao ? `${posicao}º lugar - Sem bônus/ônus` : 'Sem movimentação financeira';
+            }
+
+            extratoEl.innerHTML = `
+                <span class="material-icons campinho-desemp-extrato-icon ${classe}">${icone}</span>
+                <span class="campinho-desemp-extrato-texto ${classe}">${texto}</span>
+            `;
+        } else {
+            // Rodada não encontrada no extrato
+            extratoEl.innerHTML = `
+                <span class="material-icons campinho-desemp-extrato-icon neutro">receipt_long</span>
+                <span class="campinho-desemp-extrato-texto neutro">Extrato da rodada ainda não processado</span>
+            `;
+        }
+    } catch (error) {
+        if (window.Log) Log.warn("PARTICIPANTE-CAMPINHO", "Erro ao buscar extrato:", error);
+        extratoEl.innerHTML = `
+            <span class="material-icons campinho-desemp-extrato-icon neutro">receipt_long</span>
+            <span class="campinho-desemp-extrato-texto neutro">Ver extrato completo no módulo Extrato</span>
+        `;
     }
 }
 
@@ -367,7 +486,7 @@ function renderizarAvisoMercadoAberto(status) {
     `;
 }
 
-function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
+function renderizarCampinhoCompleto(escalacao, adversario, confronto, ligaId, timeId) {
     const temAdversario = adversario && (adversario.atletas?.length > 0 || adversario.titulares?.length > 0);
     const todosAtletas = escalacao.atletas || [];
     const titulares = escalacao.titulares || todosAtletas.filter(a => !a.is_reserva);
@@ -376,6 +495,9 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
     const grupos = agruparTitulares(titulares);
     const gruposAdversario = temAdversario ? agruparTitulares(adversario.titulares || adversario.atletas || []) : null;
     const totalEscalados = (grupos.goleiros.length + grupos.defensores.length + grupos.meias.length + grupos.atacantes.length + grupos.tecnicos.length);
+
+    // Calcular estatísticas de jogo (quem jogou, quem saiu, quem entrou)
+    const statsJogo = calcularStatsJogo(titulares, reservas);
     const formacao = `${grupos.defensores.length || 0}-${grupos.meias.length || 0}-${grupos.atacantes.length || 0}`;
     const patrimonio = Number(escalacao.patrimonio ?? escalacao.patrimonio_total ?? 0) || 0;
     const variacao = Number(escalacao.variacao_patrimonio ?? 0) || 0;
@@ -412,7 +534,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                     </div>
                 </div>
 
-                <div class="campinho-desemp-stats">
+                <div class="campinho-desemp-stats campinho-desemp-stats-2col">
                     <div class="campinho-desemp-stat">
                         <span class="campinho-desemp-stat-valor">${formatarCartoletas(patrimonio)}</span>
                         <span class="campinho-desemp-stat-label">Patrimônio</span>
@@ -421,10 +543,35 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
                         <span class="campinho-desemp-stat-valor ${variacaoClasse}">${variacao >= 0 ? '+' : ''}${formatarCartoletas(variacao)} ${variacaoIcone}</span>
                         <span class="campinho-desemp-stat-label">Variação</span>
                     </div>
-                    <div class="campinho-desemp-stat">
-                        <span class="campinho-desemp-stat-valor">${totalEscalados}/12</span>
-                        <span class="campinho-desemp-stat-label">Escalados</span>
+                </div>
+
+                <div class="campinho-desemp-escalacao">
+                    <div class="campinho-desemp-esc-item">
+                        <span class="campinho-desemp-esc-icon escalados">●</span>
+                        <span class="campinho-desemp-esc-valor">${statsJogo.escalados}</span>
+                        <span class="campinho-desemp-esc-label">escalados</span>
                     </div>
+                    <div class="campinho-desemp-esc-item">
+                        <span class="campinho-desemp-esc-icon jogaram">●</span>
+                        <span class="campinho-desemp-esc-valor">${statsJogo.jogaram}</span>
+                        <span class="campinho-desemp-esc-label">jogaram</span>
+                    </div>
+                    <div class="campinho-desemp-esc-item">
+                        <span class="campinho-desemp-esc-icon sairam">▼</span>
+                        <span class="campinho-desemp-esc-valor">${statsJogo.sairam}</span>
+                        <span class="campinho-desemp-esc-label">saiu</span>
+                    </div>
+                    <div class="campinho-desemp-esc-item">
+                        <span class="campinho-desemp-esc-icon entraram">▲</span>
+                        <span class="campinho-desemp-esc-valor">${statsJogo.entraram}</span>
+                        <span class="campinho-desemp-esc-label">entrou</span>
+                    </div>
+                </div>
+
+                <!-- Extrato Financeiro da Rodada (carrega assíncrono) -->
+                <div class="campinho-desemp-extrato" id="campinho-extrato-rodada" data-liga-id="${ligaId}" data-time-id="${timeId}" data-rodada="${rodadaLabel}">
+                    <span class="material-icons campinho-desemp-extrato-icon loading">sync</span>
+                    <span class="campinho-desemp-extrato-texto">Carregando extrato...</span>
                 </div>
             </div>
 

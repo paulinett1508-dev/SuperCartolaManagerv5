@@ -176,16 +176,34 @@ export async function calcularSaldoParticipante(ligaId, timeId, temporada = CURR
                 }
             }
         } else {
-            // Inscrição já está no cache — extrair valores para o retorno
+            // ✅ v2.1.0 FIX: Inscrição no cache — aplicar valores ao saldo E extrair metadata
+            // Antes: só extraía metadata sem aplicar ao saldo (bug)
             const tInscricao = cache.historico_transacoes.find(t => t.tipo === 'INSCRICAO_TEMPORADA');
             const tSaldo = cache.historico_transacoes.find(t => t.tipo === 'SALDO_TEMPORADA_ANTERIOR');
 
             if (tInscricao) {
                 taxaInscricaoValor = Math.abs(tInscricao.valor || 0);
                 pagouInscricao = false; // Se está no cache, é porque não pagou
+                saldoConsolidado += tInscricao.valor; // Aplicar débito (-180)
             }
             if (tSaldo) {
                 saldoAnteriorTransferido = tSaldo.valor || 0;
+                saldoConsolidado += tSaldo.valor; // Aplicar saldo transferido
+            }
+
+            // divida_anterior não fica no cache — buscar do inscricoestemporada
+            try {
+                const inscricaoDoc = await InscricaoTemporada.findOne({
+                    liga_id: new mongoose.Types.ObjectId(ligaId),
+                    time_id: Number(timeId),
+                    temporada: tempNum
+                }).lean();
+                if (inscricaoDoc && inscricaoDoc.divida_anterior > 0) {
+                    dividaAnterior = inscricaoDoc.divida_anterior;
+                    saldoConsolidado -= dividaAnterior;
+                }
+            } catch {
+                // Fallback silencioso — divida_anterior = 0
             }
         }
     }
@@ -278,6 +296,25 @@ export function aplicarAjusteInscricaoBulk(saldoConsolidado, inscricaoData, hist
             saldo += saldoAnteriorTransferido;
         }
         if (dividaAnterior > 0) {
+            saldo -= dividaAnterior;
+        }
+    } else {
+        // ✅ v2.1.0 FIX: Inscrição no cache — aplicar valores ao saldo E extrair metadata
+        const tInscricao = historicoTransacoes.find(t => t.tipo === 'INSCRICAO_TEMPORADA');
+        const tSaldo = historicoTransacoes.find(t => t.tipo === 'SALDO_TEMPORADA_ANTERIOR');
+
+        if (tInscricao) {
+            taxaInscricao = Math.abs(tInscricao.valor || 0);
+            pagouInscricao = false;
+            saldo += tInscricao.valor; // Aplicar débito (-180)
+        }
+        if (tSaldo) {
+            saldoAnteriorTransferido = tSaldo.valor || 0;
+            saldo += tSaldo.valor;
+        }
+        // divida_anterior do inscricaoData (já carregado no path bulk)
+        if (inscricaoData.divida_anterior > 0) {
+            dividaAnterior = inscricaoData.divida_anterior;
             saldo -= dividaAnterior;
         }
     }

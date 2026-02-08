@@ -234,6 +234,142 @@
     display: block;
 }
 
+/* Grid 4 colunas */
+.campinho-desemp-stats-4col {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Grid 2 colunas */
+.campinho-desemp-stats-2col {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* Seção de Escalação (escalados, jogaram, saiu, entrou) */
+.campinho-desemp-escalacao {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    gap: 8px;
+}
+
+.campinho-desemp-esc-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    justify-content: center;
+}
+
+.campinho-desemp-esc-icon {
+    font-size: 10px;
+    line-height: 1;
+}
+
+.campinho-desemp-esc-icon.escalados {
+    color: #22c55e;
+}
+
+.campinho-desemp-esc-icon.jogaram {
+    color: #3b82f6;
+}
+
+.campinho-desemp-esc-icon.sairam {
+    color: #ef4444;
+}
+
+.campinho-desemp-esc-icon.entraram {
+    color: #22c55e;
+}
+
+.campinho-desemp-esc-valor {
+    font-family: var(--app-font-mono, 'JetBrains Mono', monospace);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--app-text-white, #fff);
+}
+
+.campinho-desemp-esc-label {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: lowercase;
+}
+
+/* Linha de Extrato Financeiro */
+.campinho-desemp-extrato {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    border-left: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.campinho-desemp-extrato-icon {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.campinho-desemp-extrato-icon.loading {
+    animation: spin-icon 1s linear infinite;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+@keyframes spin-icon {
+    to { transform: rotate(360deg); }
+}
+
+.campinho-desemp-extrato-icon.ganho {
+    color: #22c55e;
+}
+
+.campinho-desemp-extrato-icon.perda {
+    color: #ef4444;
+}
+
+.campinho-desemp-extrato-icon.neutro {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.campinho-desemp-extrato-texto {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    flex: 1;
+}
+
+.campinho-desemp-extrato-texto.ganho {
+    color: #22c55e;
+}
+
+.campinho-desemp-extrato-texto.perda {
+    color: #ef4444;
+}
+
+.campinho-desemp-extrato-texto.neutro {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsivo - 4 colunas para 2x2 em telas pequenas */
+@media (max-width: 400px) {
+    .campinho-desemp-stats-4col {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .campinho-desemp-extrato {
+        padding: 10px 12px;
+    }
+
+    .campinho-desemp-extrato-texto {
+        font-size: 12px;
+    }
+}
+
 /* Legacy classes (manter compatibilidade) */
 .campinho-screen-header {
     display: flex;

@@ -11,7 +11,7 @@
 
     <!-- Container principal -->
     <div class="mm-content">
-        <!-- Seletor de Edição -->
+        <!-- Seletor de Edição + Botão Classificados -->
         <div class="mm-edition-selector">
             <label for="mmEditionSelect">Edição:</label>
             <div class="mm-select-wrapper">
@@ -22,6 +22,10 @@
                     >expand_more</span
                 >
             </div>
+            <button class="mm-btn-classificados" id="btnClassificados" title="Ver classificados desta edição">
+                <span class="material-symbols-outlined">format_list_numbered</span>
+                <span class="mm-btn-text">Classificados</span>
+            </button>
         </div>
 
         <!-- Navegação de Fases -->
@@ -186,6 +190,187 @@
         color: var(--participante-text-muted, #9ca3af);
         pointer-events: none;
         font-size: 18px;
+    }
+
+    /* ===== BOTÃO CLASSIFICADOS ===== */
+    .mm-btn-classificados {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--participante-border, #3a3a3c);
+        color: var(--participante-text-muted, #9ca3af);
+        font-size: 11px;
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .mm-btn-classificados:hover {
+        background: rgba(255, 106, 56, 0.1);
+        border-color: var(--participante-primary, #ff6a38);
+        color: var(--participante-primary, #ff6a38);
+    }
+
+    .mm-btn-classificados .material-symbols-outlined {
+        font-size: 16px;
+    }
+
+    .mm-btn-classificados .mm-btn-text {
+        display: none;
+    }
+
+    @media (min-width: 400px) {
+        .mm-btn-classificados .mm-btn-text {
+            display: inline;
+        }
+    }
+
+    /* ===== LISTA DE CLASSIFICADOS ===== */
+    .mm-classificados-container {
+        background: var(--participante-card, #1c1c1e);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .mm-classificados-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--participante-border, #3a3a3c);
+    }
+
+    .mm-classificados-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--participante-text, #f9fafb);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .mm-classificados-title .material-symbols-outlined {
+        color: var(--participante-primary, #ff6a38);
+        font-size: 20px;
+    }
+
+    .mm-classificados-close {
+        background: none;
+        border: none;
+        color: var(--participante-text-muted, #9ca3af);
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+
+    .mm-classificados-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--participante-text, #f9fafb);
+    }
+
+    .mm-classificados-info {
+        font-size: 11px;
+        color: var(--participante-text-muted, #9ca3af);
+        margin-bottom: 12px;
+        text-align: center;
+    }
+
+    .mm-classificados-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .mm-classificado-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+
+    .mm-classificado-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .mm-classificado-item.meu-time {
+        background: rgba(255, 106, 56, 0.1);
+        border: 1px solid rgba(255, 106, 56, 0.3);
+    }
+
+    .mm-classificado-pos {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--mm-bg-dark);
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--participante-text-muted, #9ca3af);
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .mm-classificado-item:nth-child(-n+3) .mm-classificado-pos {
+        background: linear-gradient(135deg, #ffd700 0%, #ff9500 100%);
+        color: #000;
+    }
+
+    .mm-classificado-escudo {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: contain;
+        background: var(--mm-bg-dark);
+    }
+
+    .mm-classificado-info {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .mm-classificado-nome {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--participante-text, #f9fafb);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mm-classificado-cartola {
+        font-size: 10px;
+        color: var(--participante-text-muted, #9ca3af);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mm-classificado-adversario {
+        font-size: 10px;
+        color: var(--participante-text-dim, #6b7280);
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .mm-classificado-adversario strong {
+        color: var(--participante-primary, #ff6a38);
     }
 
     /* ===== NAVEGAÇÃO DE FASES ===== */
@@ -677,6 +862,12 @@
         color: var(--participante-text-muted, #9ca3af);
         font-size: 12px;
         margin: 0;
+    }
+
+    .mm-vazio-sub {
+        margin-top: 8px !important;
+        font-size: 11px !important;
+        opacity: 0.7;
     }
 
     /* ===== RESPONSIVE ===== */
