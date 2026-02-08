@@ -2,6 +2,9 @@
 <div id="regras-container" class="regras-page">
     <!-- Header -->
     <div class="regras-header">
+        <button class="regras-btn-voltar" onclick="window.participanteNav?.navegarPara('inicio')" title="Voltar ao Início">
+            <span class="material-icons">arrow_back</span>
+        </button>
         <div class="regras-header-icon">
             <span class="material-icons">menu_book</span>
         </div>
@@ -37,6 +40,30 @@
     background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
     min-height: 100vh;
     padding-bottom: 80px;
+}
+
+/* Botão Voltar */
+.regras-btn-voltar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.regras-btn-voltar:active {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+}
+.regras-btn-voltar .material-icons {
+    font-size: 20px;
 }
 
 /* Header */
