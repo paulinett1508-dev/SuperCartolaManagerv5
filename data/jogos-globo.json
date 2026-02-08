@@ -262,36 +262,6 @@
     ]
   },
   {
-    "id": 348641,
-    "mandante": "Internacional",
-    "visitante": "São Luiz",
-    "logoMandante": "https://s.sde.globo.com/media/organizations/2016/05/03/inter30.png",
-    "logoVisitante": "https://s.sde.globo.com/media/organizations/2019/01/29/30.png",
-    "golsMandante": 2,
-    "golsVisitante": 1,
-    "placar": "2 x 1",
-    "placarHT": null,
-    "tempo": "",
-    "tempoExtra": null,
-    "status": "Ao vivo",
-    "statusRaw": "LIVE",
-    "liga": "Campeonato Gaúcho",
-    "ligaId": null,
-    "ligaOriginal": "Campeonato Gaúcho",
-    "ligaLogo": null,
-    "estadio": "Beira-Rio",
-    "cidade": null,
-    "horario": "18:00",
-    "timestamp": 1770584400000,
-    "fonte": "globo",
-    "transmissao": [
-      "sportv",
-      "Premiere",
-      "Globo",
-      "globoplay"
-    ]
-  },
-  {
     "id": 348453,
     "mandante": "Chile",
     "visitante": "Uruguai",
@@ -418,34 +388,6 @@
     "fonte": "globo",
     "transmissao": [
       "Globo"
-    ]
-  },
-  {
-    "id": 348638,
-    "mandante": "Santa Cruz",
-    "visitante": "Decisão",
-    "logoMandante": "https://s.sde.globo.com/media/organizations/2014/04/14/santa_cruz_30x30.png",
-    "logoVisitante": "https://s.sde.globo.com/media/organizations/2026/01/06/decisao-01-79590.png",
-    "golsMandante": 1,
-    "golsVisitante": 0,
-    "placar": "1 x 0",
-    "placarHT": null,
-    "tempo": "",
-    "tempoExtra": null,
-    "status": "Ao vivo",
-    "statusRaw": "LIVE",
-    "liga": "Campeonato Pernambucano",
-    "ligaId": null,
-    "ligaOriginal": "Campeonato Pernambucano",
-    "ligaLogo": null,
-    "estadio": "Arena de Pernambuco",
-    "cidade": null,
-    "horario": "18:00",
-    "timestamp": 1770584400000,
-    "fonte": "globo",
-    "transmissao": [
-      "Globo",
-      "globoplay"
     ]
   },
   {
@@ -1723,6 +1665,36 @@
     "transmissao": []
   },
   {
+    "id": 348641,
+    "mandante": "Internacional",
+    "visitante": "São Luiz",
+    "logoMandante": "https://s.sde.globo.com/media/organizations/2016/05/03/inter30.png",
+    "logoVisitante": "https://s.sde.globo.com/media/organizations/2019/01/29/30.png",
+    "golsMandante": 2,
+    "golsVisitante": 1,
+    "placar": "2 x 1",
+    "placarHT": null,
+    "tempo": "",
+    "tempoExtra": null,
+    "status": "Encerrado",
+    "statusRaw": "FT",
+    "liga": "Campeonato Gaúcho",
+    "ligaId": null,
+    "ligaOriginal": "Campeonato Gaúcho",
+    "ligaLogo": null,
+    "estadio": "Beira-Rio",
+    "cidade": null,
+    "horario": "18:00",
+    "timestamp": 1770584400000,
+    "fonte": "globo",
+    "transmissao": [
+      "sportv",
+      "Premiere",
+      "Globo",
+      "globoplay"
+    ]
+  },
+  {
     "id": 348247,
     "mandante": "Ceará",
     "visitante": "Fortaleza",
@@ -1747,6 +1719,34 @@
     "fonte": "globo",
     "transmissao": [
       "Globo"
+    ]
+  },
+  {
+    "id": 348638,
+    "mandante": "Santa Cruz",
+    "visitante": "Decisão",
+    "logoMandante": "https://s.sde.globo.com/media/organizations/2014/04/14/santa_cruz_30x30.png",
+    "logoVisitante": "https://s.sde.globo.com/media/organizations/2026/01/06/decisao-01-79590.png",
+    "golsMandante": 1,
+    "golsVisitante": 0,
+    "placar": "1 x 0",
+    "placarHT": null,
+    "tempo": "",
+    "tempoExtra": null,
+    "status": "Encerrado",
+    "statusRaw": "FT",
+    "liga": "Campeonato Pernambucano",
+    "ligaId": null,
+    "ligaOriginal": "Campeonato Pernambucano",
+    "ligaLogo": null,
+    "estadio": "Arena de Pernambuco",
+    "cidade": null,
+    "horario": "18:00",
+    "timestamp": 1770584400000,
+    "fonte": "globo",
+    "transmissao": [
+      "Globo",
+      "globoplay"
     ]
   }
 ]

@@ -404,7 +404,8 @@ function renderizarCardDesempenho(rodadas) {
         }
 
         // Calcular posição na rodada e média da liga
-        const participantesAtivos = rodada.participantes.filter((p) => p.ativo !== false && !p.rodadaNaoJogada);
+        // FIX: Usar apenas rodadaNaoJogada para filtrar (campo 'ativo' pode estar desatualizado)
+        const participantesAtivos = rodada.participantes.filter((p) => !p.rodadaNaoJogada);
 
         // DEBUG: Verificar se usuário passou no filtro
         if (window.Log && idx < 2) {
@@ -529,7 +530,8 @@ function obterMitoMicoDaRodada(rodada) {
         return null;
     }
 
-    const participantesAtivos = rodada.participantes.filter((p) => p.ativo !== false);
+    // FIX: Usar apenas rodadaNaoJogada para filtrar (campo 'ativo' pode estar desatualizado)
+    const participantesAtivos = rodada.participantes.filter((p) => !p.rodadaNaoJogada);
     if (participantesAtivos.length === 0) {
         return null;
     }
