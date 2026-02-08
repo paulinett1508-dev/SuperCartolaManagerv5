@@ -383,6 +383,11 @@ class DetalheLigaOrquestrador {
                     }
                     break;
 
+                case "regras":
+                    console.log('[ORQUESTRADOR] Iniciando regras...');
+                    // Scripts embutidos no HTML, auto-inicializa
+                    break;
+
                 case "capitao-luxo": {
                     // ✅ v2.0: JS admin dedicado (capitao-luxo.js)
                     console.log('[ORQUESTRADOR] Iniciando capitao-luxo...');
@@ -446,6 +451,7 @@ class DetalheLigaOrquestrador {
             participantes: `<div id="participantes-content"><div class="loading-state">Carregando participantes...</div></div>`,
             parciais: `<div id="parciais-content"><div class="loading-state">Carregando parciais...</div></div>`,
             "capitao-luxo": `<div id="capitao-luxo-content"><div class="capitao-luxo-loading"><div class="spinner"></div><p>Carregando Capitão de Luxo...</p></div></div>`,
+            regras: `<div id="regras-admin-container"><div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">Carregando regras...</div></div>`,
         };
 
         return (

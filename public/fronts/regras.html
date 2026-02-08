@@ -1,0 +1,760 @@
+<!-- REGRAS DOS MÓDULOS - Admin Front v1.0 -->
+<!-- Carregado via orquestrador dentro de detalhe-liga.html -->
+<div id="regras-admin-container" class="regras-admin-page">
+
+    <!-- Header -->
+    <div class="regras-admin-header">
+        <div class="regras-admin-header-icon">
+            <span class="material-icons">menu_book</span>
+        </div>
+        <div class="regras-admin-header-info">
+            <h2>Regras dos Módulos</h2>
+            <p>Edite os textos que os participantes veem no app. Ative/desative por módulo.</p>
+        </div>
+        <button class="regras-btn-seed" id="btn-seed-regras" onclick="window.seedRegrasAdmin()" title="Gerar regras padrão">
+            <span class="material-icons">auto_fix_high</span>
+            Gerar Padrão
+        </button>
+    </div>
+
+    <!-- Loading -->
+    <div id="regras-admin-loading" class="regras-admin-loading">
+        <div class="regras-admin-spinner"></div>
+        <p>Carregando regras...</p>
+    </div>
+
+    <!-- Cards Grid -->
+    <div id="regras-admin-grid" class="regras-admin-grid" style="display:none;"></div>
+
+    <!-- Empty State -->
+    <div id="regras-admin-empty" class="regras-admin-empty" style="display:none;">
+        <span class="material-icons">auto_fix_high</span>
+        <p>Nenhuma regra configurada.</p>
+        <p class="regras-admin-empty-sub">Clique em "Gerar Padrão" para criar os textos iniciais.</p>
+    </div>
+</div>
+
+<!-- Modal Editor (Quill) -->
+<div class="regras-editor-overlay" id="regras-editor-overlay">
+    <div class="regras-editor-modal">
+        <div class="regras-editor-header">
+            <div class="regras-editor-header-left">
+                <div class="regras-editor-icon" id="regras-editor-icon">
+                    <span class="material-icons">description</span>
+                </div>
+                <h3 id="regras-editor-titulo">Editando Regra</h3>
+            </div>
+            <button class="regras-editor-close" onclick="window.fecharEditorRegras()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="regras-editor-body">
+            <div id="regras-quill-editor"></div>
+        </div>
+        <div class="regras-editor-footer">
+            <span class="regras-editor-info" id="regras-editor-info">--</span>
+            <div class="regras-editor-actions">
+                <button class="regras-btn-cancelar" onclick="window.fecharEditorRegras()">Cancelar</button>
+                <button class="regras-btn-salvar" id="regras-btn-salvar" onclick="window.salvarRegraAdmin()">
+                    <span class="material-icons" style="font-size:16px;">save</span>
+                    Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="regras-toast" id="regras-toast">
+    <span class="material-icons" style="font-size:18px;">check_circle</span>
+    <span id="regras-toast-texto">Salvo!</span>
+</div>
+
+<!-- Quill CDN -->
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet" />
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+
+<style>
+/* =====================================================
+   REGRAS ADMIN FRONT - Dark Mode v1.0
+   Carregado dentro de detalhe-liga secondary screen
+   ===================================================== */
+
+.regras-admin-page {
+    padding: 0 0 40px;
+}
+
+/* Header */
+.regras-admin-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--surface-card, #1a1a1a) 0%, var(--surface-card-elevated, #2a2a2a) 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(59,130,246,0.3);
+    margin: 16px 16px 20px;
+    position: relative;
+    flex-wrap: wrap;
+}
+.regras-admin-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+    border-radius: 12px 12px 0 0;
+}
+.regras-admin-header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(59,130,246,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.regras-admin-header-icon .material-icons {
+    font-size: 24px;
+    color: #60a5fa;
+}
+.regras-admin-header-info {
+    flex: 1;
+    min-width: 200px;
+}
+.regras-admin-header-info h2 {
+    font-family: 'Russo One', sans-serif;
+    font-size: 18px;
+    color: #fff;
+    margin: 0;
+}
+.regras-admin-header-info p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    margin: 2px 0 0;
+}
+
+.regras-btn-seed {
+    background: rgba(59,130,246,0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(59,130,246,0.3);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+.regras-btn-seed:hover { background: rgba(59,130,246,0.25); }
+.regras-btn-seed .material-icons { font-size: 16px; }
+
+/* Loading */
+.regras-admin-loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+}
+.regras-admin-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: regras-admin-spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+}
+@keyframes regras-admin-spin { to { transform: rotate(360deg); } }
+
+/* Empty */
+.regras-admin-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255,255,255,0.5);
+}
+.regras-admin-empty .material-icons {
+    font-size: 48px;
+    color: rgba(255,255,255,0.2);
+    margin-bottom: 12px;
+    display: block;
+}
+.regras-admin-empty p { margin: 0; }
+.regras-admin-empty-sub { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 6px !important; }
+
+/* Grid de Cards */
+.regras-admin-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 16px;
+}
+
+/* Card */
+.regra-admin-card {
+    background: var(--surface-card, #1a1a1a);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+.regra-admin-card:hover {
+    border-color: rgba(255,255,255,0.15);
+}
+.regra-admin-card.disabled {
+    opacity: 0.5;
+}
+
+.regra-admin-card-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+}
+
+.regra-admin-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.regra-admin-card-icon .material-icons {
+    font-size: 22px;
+    color: #fff;
+}
+
+.regra-admin-card-info {
+    flex: 1;
+    min-width: 0;
+}
+.regra-admin-card-titulo {
+    font-family: 'Russo One', sans-serif;
+    font-size: 13px;
+    color: #fff;
+}
+.regra-admin-card-preview {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+}
+
+/* Toggle Switch */
+.regra-toggle-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.regra-toggle {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: none;
+    padding: 0;
+}
+.regra-toggle.active {
+    background: #22c55e;
+}
+.regra-toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+.regra-toggle.active::after {
+    transform: translateX(18px);
+}
+
+/* Edit Button */
+.regra-btn-edit {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.regra-btn-edit:hover {
+    background: rgba(59,130,246,0.15);
+    color: #60a5fa;
+    border-color: rgba(59,130,246,0.3);
+}
+.regra-btn-edit .material-icons { font-size: 18px; }
+
+/* ===================== EDITOR MODAL ===================== */
+.regras-editor-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.regras-editor-overlay.active { display: flex; }
+
+.regras-editor-modal {
+    background: #1a1a1a;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.1);
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.regras-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+}
+.regras-editor-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.regras-editor-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.regras-editor-icon .material-icons { font-size: 22px; color: #fff; }
+.regras-editor-header h3 {
+    font-family: 'Russo One', sans-serif;
+    font-size: 16px;
+    color: #fff;
+    margin: 0;
+}
+.regras-editor-close {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.regras-editor-close:hover { background: rgba(255,255,255,0.15); }
+
+.regras-editor-body {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Quill Dark Theme Overrides */
+.regras-editor-body .ql-toolbar.ql-snow {
+    background: #222;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.regras-editor-body .ql-toolbar.ql-snow .ql-stroke { stroke: rgba(255,255,255,0.6); }
+.regras-editor-body .ql-toolbar.ql-snow .ql-fill { fill: rgba(255,255,255,0.6); }
+.regras-editor-body .ql-toolbar.ql-snow .ql-picker-label { color: rgba(255,255,255,0.6); }
+.regras-editor-body .ql-toolbar.ql-snow .ql-picker-options { background: #333; border-color: rgba(255,255,255,0.15); }
+.regras-editor-body .ql-toolbar.ql-snow .ql-picker-item { color: rgba(255,255,255,0.8); }
+.regras-editor-body .ql-toolbar.ql-snow button:hover .ql-stroke,
+.regras-editor-body .ql-toolbar.ql-snow button.ql-active .ql-stroke { stroke: #60a5fa; }
+.regras-editor-body .ql-toolbar.ql-snow button:hover .ql-fill,
+.regras-editor-body .ql-toolbar.ql-snow button.ql-active .ql-fill { fill: #60a5fa; }
+
+#regras-quill-editor {
+    background: #1e1e1e;
+    color: #e0e0e0;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    min-height: 350px;
+    border: none;
+}
+#regras-quill-editor .ql-editor {
+    min-height: 350px;
+    padding: 20px;
+}
+#regras-quill-editor .ql-editor h1,
+#regras-quill-editor .ql-editor h2,
+#regras-quill-editor .ql-editor h3 {
+    color: #fff;
+    font-family: 'Russo One', sans-serif;
+}
+#regras-quill-editor .ql-editor strong { color: #fff; }
+#regras-quill-editor .ql-editor a { color: #60a5fa; }
+.regras-editor-body .ql-container.ql-snow { border: none; }
+.regras-editor-body .ql-snow .ql-tooltip {
+    background: #333;
+    border-color: rgba(255,255,255,0.15);
+    color: #fff;
+}
+.regras-editor-body .ql-snow .ql-tooltip input[type="text"] {
+    background: #222;
+    color: #fff;
+    border-color: rgba(255,255,255,0.2);
+}
+
+.regras-editor-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+}
+.regras-editor-info {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+}
+.regras-editor-actions { display: flex; gap: 10px; }
+.regras-btn-cancelar {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.regras-btn-cancelar:hover { background: rgba(255,255,255,0.12); }
+.regras-btn-salvar {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+.regras-btn-salvar:hover { filter: brightness(1.1); }
+.regras-btn-salvar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Toast */
+.regras-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #22c55e;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 99999;
+    box-shadow: 0 8px 24px rgba(34,197,94,0.3);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+.regras-toast.show { transform: translateY(0); opacity: 1; }
+.regras-toast.error { background: #ef4444; box-shadow: 0 8px 24px rgba(239,68,68,0.3); }
+
+/* Card Regras icon color */
+.module-card-regras .module-icon {
+    background: rgba(59, 130, 246, 0.15) !important;
+}
+.module-card-regras .module-icon .material-icons {
+    color: #60a5fa !important;
+}
+</style>
+
+<script>
+(function() {
+    // Estado
+    let regrasQuill = null;
+    let regraEditando = null;
+    let regrasCache = [];
+
+    function obterLigaId() {
+        return typeof obterLigaIdCache === 'function' ? obterLigaIdCache() : null;
+    }
+
+    function stripHtml(html) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || '';
+    }
+
+    // Carregar regras da liga
+    async function carregarRegrasAdmin() {
+        const ligaId = obterLigaId();
+        if (!ligaId) return;
+
+        const loadingEl = document.getElementById('regras-admin-loading');
+        const gridEl = document.getElementById('regras-admin-grid');
+        const emptyEl = document.getElementById('regras-admin-empty');
+
+        try {
+            const resp = await fetch(`/api/regras-modulos/${ligaId}`);
+            const data = await resp.json();
+
+            if (loadingEl) loadingEl.style.display = 'none';
+
+            if (!data.sucesso || !data.regras || data.regras.length === 0) {
+                if (emptyEl) emptyEl.style.display = 'block';
+                return;
+            }
+
+            regrasCache = data.regras;
+            renderizarCardsAdmin(data.regras, gridEl);
+            if (gridEl) gridEl.style.display = 'flex';
+        } catch (err) {
+            console.error('[REGRAS-ADMIN] Erro:', err);
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (emptyEl) emptyEl.style.display = 'block';
+        }
+    }
+
+    // Renderizar cards
+    function renderizarCardsAdmin(regras, container) {
+        if (!container) return;
+
+        container.innerHTML = regras.map((regra, idx) => {
+            const cor = regra.cor || '#ff5500';
+            const icone = regra.icone || 'description';
+            const titulo = regra.titulo || regra.modulo;
+            const preview = stripHtml(regra.conteudo_html || '').substring(0, 80);
+            const isAtivo = regra.ativo !== false;
+            const disabledClass = isAtivo ? '' : 'disabled';
+            const activeClass = isAtivo ? 'active' : '';
+
+            return `
+                <div class="regra-admin-card ${disabledClass}" data-idx="${idx}">
+                    <div class="regra-admin-card-row">
+                        <div class="regra-admin-card-icon" style="background:${cor}20;">
+                            <span class="material-icons" style="color:${cor};">${icone}</span>
+                        </div>
+                        <div class="regra-admin-card-info">
+                            <div class="regra-admin-card-titulo">${titulo}</div>
+                            <div class="regra-admin-card-preview">${preview || 'Sem conteúdo'}</div>
+                        </div>
+                        <div class="regra-toggle-wrap">
+                            <button class="regra-toggle ${activeClass}" data-modulo="${regra.modulo}" onclick="window.toggleRegraAtivo(this, '${regra.modulo}', event)" title="${isAtivo ? 'Desativar' : 'Ativar'}"></button>
+                        </div>
+                        <button class="regra-btn-edit" onclick="window.abrirEditorRegras(${idx})" title="Editar conteúdo">
+                            <span class="material-icons">edit</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Toggle ativo/desativo
+    window.toggleRegraAtivo = async function(btn, modulo, event) {
+        event.stopPropagation();
+        const ligaId = obterLigaId();
+        if (!ligaId) return;
+
+        const isNowActive = !btn.classList.contains('active');
+        btn.classList.toggle('active');
+
+        // Atualizar visual do card
+        const card = btn.closest('.regra-admin-card');
+        if (card) card.classList.toggle('disabled', !isNowActive);
+
+        try {
+            await fetch(`/api/regras-modulos/${ligaId}/${modulo}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ativo: isNowActive })
+            });
+            mostrarToastRegras(isNowActive ? 'Módulo ativado' : 'Módulo desativado', false);
+        } catch (err) {
+            console.error('[REGRAS-ADMIN] Erro toggle:', err);
+            // Reverter visual
+            btn.classList.toggle('active');
+            if (card) card.classList.toggle('disabled');
+            mostrarToastRegras('Erro ao atualizar', true);
+        }
+    };
+
+    // Abrir editor
+    window.abrirEditorRegras = function(idx) {
+        const regra = regrasCache[idx];
+        if (!regra) return;
+
+        // Inicializar Quill se não existe
+        if (!regrasQuill) {
+            regrasQuill = new Quill('#regras-quill-editor', {
+                theme: 'snow',
+                placeholder: 'Escreva as regras do módulo aqui...',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                        ['blockquote'],
+                        ['link', 'image'],
+                        ['clean']
+                    ]
+                }
+            });
+        }
+
+        regraEditando = regra;
+
+        document.getElementById('regras-editor-titulo').textContent = regra.titulo || regra.modulo;
+        const iconEl = document.getElementById('regras-editor-icon');
+        iconEl.style.background = `${regra.cor || '#ff5500'}30`;
+        iconEl.querySelector('.material-icons').textContent = regra.icone || 'description';
+        iconEl.querySelector('.material-icons').style.color = regra.cor || '#ff5500';
+
+        const info = regra.atualizado_em
+            ? `Última edição: ${new Date(regra.atualizado_em).toLocaleString('pt-BR')}`
+            : 'Usando texto padrão';
+        document.getElementById('regras-editor-info').textContent = info;
+
+        regrasQuill.root.innerHTML = regra.conteudo_html || '';
+
+        document.getElementById('regras-editor-overlay').classList.add('active');
+    };
+
+    // Fechar editor
+    window.fecharEditorRegras = function() {
+        document.getElementById('regras-editor-overlay').classList.remove('active');
+        regraEditando = null;
+    };
+
+    // Salvar regra
+    window.salvarRegraAdmin = async function() {
+        if (!regraEditando) return;
+        const ligaId = obterLigaId();
+        if (!ligaId) return;
+
+        const btn = document.getElementById('regras-btn-salvar');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons" style="font-size:16px;">sync</span> Salvando...';
+
+        try {
+            const conteudo_html = regrasQuill.root.innerHTML;
+
+            const resp = await fetch(`/api/regras-modulos/${ligaId}/${regraEditando.modulo}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    titulo: regraEditando.titulo,
+                    conteudo_html,
+                    icone: regraEditando.icone,
+                    cor: regraEditando.cor,
+                    ordem: regraEditando.ordem
+                })
+            });
+
+            const data = await resp.json();
+            if (!data.sucesso) throw new Error(data.erro);
+
+            mostrarToastRegras('Regra salva com sucesso!', false);
+            window.fecharEditorRegras();
+            carregarRegrasAdmin();
+        } catch (err) {
+            console.error('[REGRAS-ADMIN] Erro salvar:', err);
+            mostrarToastRegras('Erro ao salvar', true);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons" style="font-size:16px;">save</span> Salvar';
+        }
+    };
+
+    // Seed padrão
+    window.seedRegrasAdmin = async function() {
+        const ligaId = obterLigaId();
+        if (!ligaId) {
+            mostrarToastRegras('Liga não identificada', true);
+            return;
+        }
+
+        try {
+            const resp = await fetch(`/api/regras-modulos/${ligaId}/seed`, { method: 'POST' });
+            const data = await resp.json();
+
+            if (data.sucesso) {
+                mostrarToastRegras(data.mensagem || 'Regras criadas!', false);
+                carregarRegrasAdmin();
+            } else {
+                throw new Error(data.erro);
+            }
+        } catch (err) {
+            console.error('[REGRAS-ADMIN] Erro seed:', err);
+            mostrarToastRegras('Erro ao gerar regras', true);
+        }
+    };
+
+    // Toast
+    function mostrarToastRegras(msg, isError) {
+        const toast = document.getElementById('regras-toast');
+        const texto = document.getElementById('regras-toast-texto');
+        if (!toast || !texto) return;
+        texto.textContent = msg;
+        toast.classList.toggle('error', isError);
+        toast.querySelector('.material-icons').textContent = isError ? 'error' : 'check_circle';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Fechar com Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') window.fecharEditorRegras();
+    });
+
+    // Fechar ao clicar overlay
+    document.getElementById('regras-editor-overlay')?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) window.fecharEditorRegras();
+    });
+
+    // Expor para orquestrador
+    window.inicializarRegrasAdmin = function() {
+        console.log('[REGRAS-ADMIN] Inicializando...');
+        carregarRegrasAdmin();
+    };
+
+    // Auto-inicializar
+    carregarRegrasAdmin();
+})();
+</script>
