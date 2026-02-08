@@ -36,13 +36,19 @@ export async function inicializarRodadasParticipante({
     timeId,
 }) {
     if (window.Log)
-        Log.info("[PARTICIPANTE-RODADAS] Inicializando v6.0...", {
+        Log.info("[PARTICIPANTE-RODADAS] Inicializando v7.0...", {
             ligaIdParam,
             timeId,
+            timeIdType: typeof timeId,
         });
 
     ligaId = ligaIdParam;
     meuTimeId = timeId;
+
+    // DEBUG: Confirmar valor armazenado
+    if (window.Log) {
+        Log.info("[PARTICIPANTE-RODADAS]", `🎯 meuTimeId definido: ${meuTimeId} (${typeof meuTimeId})`);
+    }
 
     // Aguardar DOM estar renderizado (double RAF)
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -157,6 +163,16 @@ async function buscarRodadaAtual() {
 // =====================================================================
 function agruparRodadasPorNumero(rodadas) {
     const rodadasMap = new Map();
+    let matchCount = 0;
+
+    // DEBUG: Log no início do agrupamento
+    if (window.Log) {
+        Log.info("[PARTICIPANTE-RODADAS]", `📦 AGRUPANDO: meuTimeId=${meuTimeId} | Total registros: ${rodadas.length}`);
+        if (rodadas.length > 0) {
+            const primeiroReg = rodadas[0];
+            Log.info("[PARTICIPANTE-RODADAS]", `Primeiro registro: timeId=${primeiroReg.timeId}, time_id=${primeiroReg.time_id}, id=${primeiroReg.id}`);
+        }
+    }
 
     rodadas.forEach((r) => {
         const rodadaNum = r.rodada;
@@ -179,12 +195,19 @@ function agruparRodadasPorNumero(rodadas) {
 
         const timeId = r.timeId || r.time_id;
         if (String(timeId) === String(meuTimeId)) {
+            matchCount++;
             rodadaData.meusPontos = r.pontos || 0;
             rodadaData.jogou = !r.rodadaNaoJogada;
             rodadaData.posicaoFinanceira = r.posicao;
             rodadaData.valorFinanceiro = r.valorFinanceiro;
         }
     });
+
+    // DEBUG: Resultado do agrupamento
+    if (window.Log) {
+        const rodadasJogadas = Array.from(rodadasMap.values()).filter(r => r.jogou).length;
+        Log.info("[PARTICIPANTE-RODADAS]", `📦 AGRUPADO: ${matchCount} matches encontrados | ${rodadasJogadas} rodadas jogadas`);
+    }
 
     return Array.from(rodadasMap.values()).sort((a, b) => a.numero - b.numero);
 }
@@ -325,16 +348,40 @@ function renderizarCardDesempenho(rodadas) {
     let somaPosicoesFinanceiras = 0;
     let rodadasComPosicao = 0;
 
+    // DEBUG: Log global para auditoria
+    if (window.Log) {
+        Log.info("[PARTICIPANTE-RODADAS]", `🔍 AUDITORIA SUA TEMPORADA: meuTimeId=${meuTimeId} (tipo: ${typeof meuTimeId}) | Total rodadas: ${rodadas.length}`);
+    }
+
     rodadas.forEach((rodada, idx) => {
         if (!rodada.jogou || !rodada.participantes?.length) return;
 
         const numeroRodada = obterNumeroRodada(rodada);
 
-        // Debug: verificar se meuTimeId está na lista de participantes
-        if (idx === 0 && window.Log) {
-            const todosIds = rodada.participantes.map(p => p.timeId ?? p.time_id ?? p.id).join(', ');
-            const encontrado = rodada.participantes.find(p => compararTimeIds(p.timeId ?? p.time_id ?? p.id, meuTimeId));
-            Log.info("[PARTICIPANTE-RODADAS]", `DEBUG R${numeroRodada}: meuTimeId=${meuTimeId} | encontrado=${!!encontrado} | IDs: ${todosIds}`);
+        // Debug detalhado: verificar se meuTimeId está na lista de participantes
+        if (window.Log && idx < 2) {
+            const todosIds = rodada.participantes.map(p => {
+                const pId = p.timeId ?? p.time_id ?? p.id;
+                return `${pId}(${typeof pId})`;
+            });
+
+            const encontrado = rodada.participantes.find(p => {
+                const pId = p.timeId ?? p.time_id ?? p.id;
+                return compararTimeIds(pId, meuTimeId);
+            });
+
+            Log.info("[PARTICIPANTE-RODADAS]",
+                `DEBUG R${numeroRodada}: meuTimeId=${meuTimeId}(${typeof meuTimeId}) | encontrado=${!!encontrado} | participantes=${rodada.participantes.length}`);
+            Log.info("[PARTICIPANTE-RODADAS]", `IDs na rodada: ${todosIds.slice(0, 5).join(', ')}${todosIds.length > 5 ? '...' : ''}`);
+
+            // Verificar se o ID existe com comparação manual
+            const matches = rodada.participantes.filter(p => {
+                const pId = p.timeId ?? p.time_id ?? p.id;
+                return String(pId) === String(meuTimeId);
+            });
+            if (matches.length > 0) {
+                Log.info("[PARTICIPANTE-RODADAS]", `✅ Match encontrado: ${JSON.stringify(matches[0])}`);
+            }
         }
         const meusPontos = rodada.meusPontos ?? 0;
 
@@ -358,6 +405,17 @@ function renderizarCardDesempenho(rodadas) {
 
         // Calcular posição na rodada e média da liga
         const participantesAtivos = rodada.participantes.filter((p) => p.ativo !== false && !p.rodadaNaoJogada);
+
+        // DEBUG: Verificar se usuário passou no filtro
+        if (window.Log && idx < 2) {
+            const euNoFiltro = participantesAtivos.find(p => {
+                const pId = p.timeId ?? p.time_id ?? p.id;
+                return String(pId) === String(meuTimeId);
+            });
+            Log.info("[PARTICIPANTE-RODADAS]",
+                `DEBUG R${numeroRodada} FILTRO: antes=${rodada.participantes.length} | depois=${participantesAtivos.length} | eu_no_filtro=${!!euNoFiltro}`);
+        }
+
         if (participantesAtivos.length > 0) {
             // Ordenar por pontos para descobrir posição
             const ordenados = [...participantesAtivos].sort((a, b) => {
@@ -372,6 +430,18 @@ function renderizarCardDesempenho(rodadas) {
                 return compararTimeIds(pId, meuTimeId);
             });
             const minhaPosicao = idxFound + 1;
+
+            // DEBUG: Resultado da busca de posição
+            if (window.Log && idx < 2) {
+                Log.info("[PARTICIPANTE-RODADAS]",
+                    `DEBUG R${numeroRodada} POSICAO: idxFound=${idxFound} | minhaPosicao=${minhaPosicao} | totalOrdenados=${ordenados.length}`);
+                if (idxFound === -1) {
+                    // Mostrar todos os IDs para debug
+                    const idsOrdenados = ordenados.slice(0, 10).map(p => p.timeId ?? p.time_id ?? p.id);
+                    Log.warn("[PARTICIPANTE-RODADAS]",
+                        `⚠️ Não encontrado! meuTimeId=${meuTimeId} | IDs: ${idsOrdenados.join(', ')}`);
+                }
+            }
 
             // Top 3
             if (minhaPosicao >= 1 && minhaPosicao <= 3) {
