@@ -579,7 +579,12 @@ app.use("/api/*", (req, res) => {
 });
 
 // Depois: servir o frontend para qualquer outra rota
+// ✅ FIX: Não servir HTML para requests de assets estáticos (evita MIME type errors)
 app.get("*", (req, res) => {
+  const ext = path.extname(req.path).toLowerCase();
+  if (ext && ext !== '.html') {
+    return res.status(404).end();
+  }
   res.sendFile(path.resolve("public/index.html"));
 });
 

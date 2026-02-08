@@ -1080,13 +1080,25 @@
 
             // === CARREGAR USUÁRIOS ONLINE ===
             let usuariosOnlineInterval = null;
+            let _usuariosOnlineFalhas = 0;
+            const _USUARIOS_MAX_FALHAS = 3;
 
             async function carregarUsuariosOnline() {
                 try {
                     const response = await fetch('/api/admin/usuarios-online', {
                         credentials: 'include'
                     });
+
+                    if (response.status === 401) {
+                        console.warn('[UsuariosOnline] Sessão expirada, parando polling');
+                        pararAtualizacaoUsuariosOnline();
+                        return;
+                    }
+
                     if (!response.ok) throw new Error('Erro ao buscar');
+
+                    // Reset falhas em caso de sucesso
+                    _usuariosOnlineFalhas = 0;
 
                     const data = await response.json();
                     const totalEl = document.getElementById('totalUsuariosOnline');
@@ -1124,7 +1136,19 @@
                         }
                     }
                 } catch (error) {
-                    console.error('[UsuariosOnline] Erro:', error);
+                    _usuariosOnlineFalhas++;
+                    console.error(`[UsuariosOnline] Erro (${_usuariosOnlineFalhas}/${_USUARIOS_MAX_FALHAS}):`, error);
+                    if (_usuariosOnlineFalhas >= _USUARIOS_MAX_FALHAS) {
+                        console.warn('[UsuariosOnline] Máximo de falhas atingido, parando polling');
+                        pararAtualizacaoUsuariosOnline();
+                    }
+                }
+            }
+
+            function pararAtualizacaoUsuariosOnline() {
+                if (usuariosOnlineInterval) {
+                    clearInterval(usuariosOnlineInterval);
+                    usuariosOnlineInterval = null;
                 }
             }
 

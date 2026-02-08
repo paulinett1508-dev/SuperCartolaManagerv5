@@ -559,6 +559,7 @@
     let regrasQuill = null;
     let regraEditando = null;
     let regrasCache = [];
+    let _isLoading = false;
 
     function obterLigaId() {
         const fromCache = typeof obterLigaIdCache === 'function' ? obterLigaIdCache() : null;
@@ -576,11 +577,15 @@
 
     // Carregar regras da liga
     async function carregarRegrasAdmin() {
+        if (_isLoading) return;
+        _isLoading = true;
+
         console.log('[REGRAS-ADMIN] carregarRegrasAdmin() chamado');
         const ligaId = obterLigaId();
         console.log('[REGRAS-ADMIN] ligaId:', ligaId);
         if (!ligaId) {
             console.warn('[REGRAS-ADMIN] ❌ Sem ligaId, abortando');
+            _isLoading = false;
             return;
         }
 
@@ -611,6 +616,8 @@
             console.error('[REGRAS-ADMIN] ❌ Erro:', err);
             if (loadingEl) loadingEl.style.display = 'none';
             if (emptyEl) emptyEl.style.display = 'block';
+        } finally {
+            _isLoading = false;
         }
     }
 
@@ -665,8 +672,10 @@
     // Toggle ativo/desativo
     window.toggleRegraAtivo = async function(btn, modulo, event) {
         event.stopPropagation();
+        if (_isLoading || btn.dataset.toggling) return;
+        btn.dataset.toggling = '1';
         const ligaId = obterLigaId();
-        if (!ligaId) return;
+        if (!ligaId) { delete btn.dataset.toggling; return; }
 
         const isNowActive = !btn.classList.contains('active');
         btn.classList.toggle('active');
@@ -688,6 +697,8 @@
             btn.classList.toggle('active');
             if (card) card.classList.toggle('disabled');
             mostrarToastRegras('Erro ao atualizar', true);
+        } finally {
+            delete btn.dataset.toggling;
         }
     };
 
