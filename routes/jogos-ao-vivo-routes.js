@@ -1,5 +1,7 @@
 // routes/jogos-ao-vivo-routes.js
-// v4.0 - Agenda do dia via ge.globo.com + merge com livescores
+// v4.1 - TTL reduzido para jogos ao vivo (30s) por feedback de usuários
+// ✅ v4.1: CACHE_TTL_AO_VIVO reduzido de 2min para 30s (melhora experiência ao vivo)
+//          Resolve: usuários reclamaram de demora excessiva na atualização de placares
 // ✅ v4.0: Busca agenda do dia do ge.globo.com (SSR data) e mescla com livescores
 //          Resolve: jogos agendados apareciam como "Sem jogos" quando SoccerDataAPI retornava vazio
 // ✅ v3.6: Cache invalida automaticamente quando data muda (virou o dia)
@@ -138,7 +140,7 @@ let cacheFonte = 'soccerdata'; // ✅ Fonte do cache atual (SoccerDataAPI agora 
 let cacheDataReferencia = null;  // ✅ v3.5: Data de referência do cache (YYYY-MM-DD)
 
 // TTL dinâmico baseado em jogos ao vivo
-const CACHE_TTL_AO_VIVO = 2 * 60 * 1000;    // 2 minutos se tem jogos ao vivo
+const CACHE_TTL_AO_VIVO = 30 * 1000;        // 30 segundos se tem jogos ao vivo (reduzido de 2min)
 const CACHE_TTL_SEM_JOGOS = 10 * 60 * 1000; // 10 minutos se não tem jogos ao vivo
 const CACHE_STALE_MAX = 30 * 60 * 1000;     // 30 minutos máximo para cache stale
 
@@ -719,7 +721,7 @@ router.get('/status', async (req, res) => {
     cache: {
       temJogosAoVivo: cacheTemJogosAoVivo,
       fonte: cacheFonte,
-      ttlAtual: cacheTemJogosAoVivo ? '2 min' : '10 min',
+      ttlAtual: cacheTemJogosAoVivo ? '30s' : '10 min',
       idadeMinutos: cacheIdadeMin,
       stale: cacheStale,
       jogosEmCache: cacheJogosDia?.length || 0,

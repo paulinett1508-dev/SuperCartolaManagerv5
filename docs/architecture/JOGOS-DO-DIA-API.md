@@ -177,9 +177,13 @@ O sistema agora opera com **3 camadas resilientes**, porque a API-Football foi r
 
 | Condição | TTL | Razão |
 |----------|-----|-------|
-| Com jogos ao vivo | 2 minutos | Placares mudam rapidamente |
+| Com jogos ao vivo | **30 segundos** | Atualização rápida de placares (v4.1) |
 | Sem jogos ao vivo | 10 minutos | Economia de requisições |
 | Cache stale | 30 minutos máx | Melhor que nada |
+
+**Histórico:**
+- v4.1 (08/02/2026): Reduzido de 2min → 30s por feedback de usuários
+- v4.0: Era 2 minutos (muito lento para jogos ao vivo)
 
 ---
 
