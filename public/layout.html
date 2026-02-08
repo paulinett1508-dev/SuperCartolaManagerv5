@@ -67,7 +67,7 @@
                     <span class="material-icons">sports_soccer</span>
                 </div>
                 <div class="sidebar-logo-text">
-                    <h1>Super Cartola</h1>
+                    <h1>Super <span>Cartola</span></h1>
                     <p>Manager Profissional</p>
                 </div>
             </div>
@@ -304,6 +304,7 @@
                 <div class="sidebar-user-inner" id="userMenuToggle">
                     <div class="sidebar-user-avatar">
                         <span class="material-icons">person</span>
+                        <div class="sidebar-user-status-dot"></div>
                     </div>
                     <div class="sidebar-user-info">
                         <div class="sidebar-user-name" id="userName">Admin</div>
@@ -657,8 +658,13 @@
 
                 // ✅ GUARD: Evita re-execuções em navegação SPA (exceto se forceRefresh)
                 if (!forceRefresh && window.__layout_state && window.__layout_state.ligasCarregadas) {
-                    console.log('[LAYOUT] Ligas já carregadas, usando cache de estado...');
-                    return;
+                    // Verificar se o DOM do sidebar realmente tem ligas renderizadas
+                    if (!ligasList.querySelector('.sidebar-ligas-loading')) {
+                        console.log('[LAYOUT] Ligas já carregadas, usando cache de estado...');
+                        return;
+                    }
+                    // Se o DOM ainda mostra loading, forçar recarregamento
+                    console.log('[LAYOUT] Guard ativo mas DOM em loading, forçando recarga...');
                 }
 
                 // Obter ID da liga atual da URL
@@ -1040,10 +1046,12 @@
                             document.head.appendChild(newStyle);
                         });
 
-                        // Extrair scripts inline da nova página (exceto layout.html e layout loaders)
+                        // Extrair scripts inline da nova página (exceto o script de infraestrutura do layout.html)
                         const newScripts = Array.from(doc.querySelectorAll('script:not([src])')).filter(s => {
                             const text = s.textContent || '';
-                            return !text.includes('CacheManager') && !text.includes('SPANavigation') && !text.includes('loadLayout');
+                            // Filtrar APENAS o script do layout.html (contém marcadores únicos de infraestrutura)
+                            const isLayoutInfraScript = text.includes('__layout_state') || text.includes('SPANavigation');
+                            return !isLayoutInfraScript;
                         });
 
                         // Extrair scripts externos específicos da página
@@ -1082,8 +1090,19 @@
                             window.navigationSystem.updatePageTitle();
                         }
 
-                        // ✅ FIX: Disparar evento para reinicializar módulos após navegação SPA
+                        // ✅ FIX: Limpar guards de página antes de reinicializar
                         const pageName = url?.split('?')[0]?.split('/').pop();
+
+                        // Resetar guards de páginas específicas para permitir re-inicialização
+                        if (window.__gerenciar_setup_done) {
+                            window.__gerenciar_setup_done = false;
+                        }
+                        if (window.__gerenciar_state) {
+                            window.__gerenciar_state.initRunning = false;
+                            window.__gerenciar_state.initialized = false;
+                            window.__gerenciar_state.lastInitTimestamp = 0;
+                        }
+
                         setTimeout(() => {
                             window.dispatchEvent(new CustomEvent('spa:navigated', {
                                 detail: { url, pageName }
@@ -1101,6 +1120,9 @@
                 },
 
                 executeScripts(externalScripts, inlineScripts) {
+                    // ✅ FIX: Remover scripts de módulos SPA da navegação anterior (previne acúmulo)
+                    document.querySelectorAll('script[data-spa-injected="true"][type="module"]').forEach(s => s.remove());
+
                     // Carregar scripts externos
                     const loadScript = (scriptEl) => {
                         const src = scriptEl.getAttribute('src');
@@ -1135,6 +1157,8 @@
                             if (isModule) {
                                 newScript.type = 'module';
                             }
+                            // ✅ FIX: Marcar scripts SPA para cleanup na próxima navegação
+                            newScript.setAttribute('data-spa-injected', 'true');
                             newScript.textContent = oldScript.textContent;
                             document.body.appendChild(newScript);
 
