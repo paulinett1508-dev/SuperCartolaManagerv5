@@ -61,6 +61,7 @@ Skills utilitárias para tarefas específicas:
 | **Refactor-Monolith** | Decomposição de arquivos grandes | "refatorar arquivo grande", "separar em módulos" |
 | **replit-pull** | Sincronização GitHub ↔ Replit | "pull no replit", "atualizar replit", "deploy" |
 | **restart-server** | Reiniciar servidor Node.js | "reiniciar servidor", "restart" |
+| **stitch-adapter** | Adapta código do Google Stitch para stack do projeto | "adaptar código do stitch", "html do google stitch" |
 | **newsession** | Handover entre sessões | Transferir contexto para nova sessão |
 
 ---

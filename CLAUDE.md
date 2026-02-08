@@ -86,6 +86,7 @@ Documentação das skills: [`docs/skills/`](docs/skills/) (agnóstico, Markdown 
 | "verifique se", "confirme que", "é verdade?" | **fact-checker** | Utility |
 | "tá complexo", "duplicado", "antes de codar" | **ai-problems-detection** | Utility |
 | "refatorar arquivo grande", "separar módulos" | **Refactor-Monolith** | Utility |
+| "adaptar código do stitch", "html do google stitch" | **stitch-adapter** | Utility |
 | "API Cartola", "endpoint", "scout", "mercado" | **cartola-api** | Project |
 | "auditar cache", "cache lento", "Service Worker" | **cache-auditor** | Project |
 | "auditar módulo", "checklist módulo" | **auditor-module** | Project |
