@@ -1092,12 +1092,11 @@ function renderizarHome(container, data, ligaId) {
     }
 
     // === BOTÕES DE ATALHOS (Premium) ===
-    const btnPremiacoes = document.getElementById('btn-premiacoes');
-    const btnRegras = document.getElementById('btn-regras');
+    // Apenas Cartola PRO é premium - Premiações e Regras são básicos para todos
     const btnCartolaPro = document.getElementById('btn-cartola-pro');
 
     if (!isPremium) {
-        [btnPremiacoes, btnRegras, btnCartolaPro].forEach(btn => {
+        [btnCartolaPro].forEach(btn => {
             if (btn) {
                 btn.classList.add('home-action-disabled');
                 btn.onclick = () => window.mostrarAguarde && window.mostrarAguarde('Função Premium');
