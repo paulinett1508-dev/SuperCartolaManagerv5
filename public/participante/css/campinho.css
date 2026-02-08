@@ -132,6 +132,108 @@
     font-size: 12px;
 }
 
+/* =====================================================
+   CARD "MEU DESEMPENHO" - Padrão App
+   ===================================================== */
+.campinho-desempenho-card {
+    background: rgba(26, 26, 26, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 4px solid var(--app-primary, #ff5500);
+    border-radius: 10px;
+    padding: 14px 16px;
+}
+
+.campinho-desemp-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.campinho-desemp-header .material-icons {
+    color: var(--app-primary, #ff5500);
+    font-size: 18px;
+}
+
+.campinho-desemp-header span:not(.material-icons) {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Pontos principais */
+.campinho-desemp-main {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.campinho-desemp-pontos-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 16px 32px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+}
+
+.campinho-desemp-pontos-valor {
+    font-family: var(--app-font-brand, 'Russo One', sans-serif);
+    font-size: 36px;
+    font-weight: 400;
+    color: var(--app-text-white, #fff);
+    line-height: 1;
+}
+
+.campinho-desemp-pontos-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Stats secundários */
+.campinho-desemp-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.campinho-desemp-stat {
+    text-align: center;
+    padding: 10px 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.campinho-desemp-stat-valor {
+    font-family: var(--app-font-mono, 'JetBrains Mono', monospace);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--app-text-white, #fff);
+    display: block;
+    line-height: 1.2;
+}
+
+.campinho-desemp-stat-valor.positivo {
+    color: #22c55e;
+}
+
+.campinho-desemp-stat-valor.negativo {
+    color: #ef4444;
+}
+
+.campinho-desemp-stat-label {
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    margin-top: 4px;
+    display: block;
+}
+
 /* Legacy classes (manter compatibilidade) */
 .campinho-screen-header {
     display: flex;
