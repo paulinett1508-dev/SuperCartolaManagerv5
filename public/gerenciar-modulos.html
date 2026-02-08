@@ -197,6 +197,15 @@
 
                 try {
                     await loadLayout();
+
+                    // ✅ FIX CRÍTICO: Recarregar ligas do sidebar após navegação SPA
+                    // BUG: loadLayout() pula injeção se sidebar existe, mas não recarrega ligas
+                    // Resultado: sidebar fica travado em "Carregando ligas..." ao navegar de volta
+                    if (typeof window.carregarLigasLayout === 'function') {
+                        console.log('[GERENCIAR-MODULOS] Recarregando ligas do sidebar após navegação SPA...');
+                        await window.carregarLigasLayout();
+                    }
+
                     await loadLiga();
                     await loadModulos();
                 } finally {

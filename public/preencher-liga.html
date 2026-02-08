@@ -746,20 +746,31 @@
             }
             if (!window.__preencher_liga_state.domBound) {
                 window.__preencher_liga_state.domBound = true;
-                document.addEventListener("DOMContentLoaded", () => {
+                document.addEventListener("DOMContentLoaded", async () => {
                     if (!window.location.pathname.includes('preencher-liga.html')) return;
-                    loadLayout();
+                    await loadLayout();
+
+                    // ✅ Primeira carga: esperar scripts do layout carregarem as ligas
+                    // (carregarLigasLayout é chamado automaticamente pelos scripts do layout.html)
                 });
             }
 
             // ✅ FIX: Reinicializar após navegação SPA
             if (!window.__preencher_liga_state.spaBound) {
                 window.__preencher_liga_state.spaBound = true;
-                window.addEventListener('spa:navigated', (e) => {
+                window.addEventListener('spa:navigated', async (e) => {
                     const { pageName } = e.detail || {};
                     if (pageName === 'preencher-liga.html') {
                         console.log('[PREENCHER-LIGA] Reinicializando após navegação SPA...');
-                        loadLayout();
+                        await loadLayout();
+
+                        // ✅ FIX CRÍTICO: Recarregar ligas do sidebar após navegação SPA
+                        // BUG: loadLayout() pula injeção se sidebar existe, mas não recarrega ligas
+                        // Resultado: sidebar fica travado em "Carregando ligas..." ao navegar de volta
+                        if (typeof window.carregarLigasLayout === 'function') {
+                            console.log('[PREENCHER-LIGA] Recarregando ligas do sidebar...');
+                            await window.carregarLigasLayout();
+                        }
                     }
                 });
             }
@@ -768,7 +779,15 @@
             if (!window.__preencher_liga_state.readyChecked) {
                 window.__preencher_liga_state.readyChecked = true;
                 if (document.readyState !== 'loading' && window.location.pathname.includes('preencher-liga.html')) {
-                    loadLayout();
+                    (async () => {
+                        await loadLayout();
+
+                        // ✅ Recarregar ligas se navegação SPA e sidebar já existe
+                        if (document.querySelector('.app-sidebar') && typeof window.carregarLigasLayout === 'function') {
+                            console.log('[PREENCHER-LIGA] DOM pronto + sidebar existe, recarregando ligas...');
+                            await window.carregarLigasLayout();
+                        }
+                    })();
                 }
             }
         </script>
