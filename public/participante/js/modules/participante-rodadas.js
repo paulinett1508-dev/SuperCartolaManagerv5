@@ -325,10 +325,17 @@ function renderizarCardDesempenho(rodadas) {
     let somaPosicoesFinanceiras = 0;
     let rodadasComPosicao = 0;
 
-    rodadas.forEach((rodada) => {
+    rodadas.forEach((rodada, idx) => {
         if (!rodada.jogou || !rodada.participantes?.length) return;
 
         const numeroRodada = obterNumeroRodada(rodada);
+
+        // Debug: verificar se meuTimeId está na lista de participantes
+        if (idx === 0 && window.Log) {
+            const todosIds = rodada.participantes.map(p => p.timeId ?? p.time_id ?? p.id).join(', ');
+            const encontrado = rodada.participantes.find(p => compararTimeIds(p.timeId ?? p.time_id ?? p.id, meuTimeId));
+            Log.info("[PARTICIPANTE-RODADAS]", `DEBUG R${numeroRodada}: meuTimeId=${meuTimeId} | encontrado=${!!encontrado} | IDs: ${todosIds}`);
+        }
         const meusPontos = rodada.meusPontos ?? 0;
 
         meusDados.push({
@@ -359,9 +366,12 @@ function renderizarCardDesempenho(rodadas) {
                 return pontosB - pontosA;
             });
 
-            const minhaPosicao = ordenados.findIndex((p) =>
-                compararTimeIds(p.timeId ?? p.time_id, meuTimeId)
-            ) + 1;
+            // Buscar posição - verificar múltiplos campos de ID
+            const idxFound = ordenados.findIndex((p) => {
+                const pId = p.timeId ?? p.time_id ?? p.id;
+                return compararTimeIds(pId, meuTimeId);
+            });
+            const minhaPosicao = idxFound + 1;
 
             // Top 3
             if (minhaPosicao >= 1 && minhaPosicao <= 3) {
@@ -424,6 +434,9 @@ function renderizarCardDesempenho(rodadas) {
     setEl("tempVezesTop3", vezesTop3);
     setEl("tempVezesAcimaMedia", vezesAcimaMedia);
     setEl("tempVezesUltimo", vezesUltimo);
+
+    if (window.Log) Log.info("[PARTICIPANTE-RODADAS]",
+        `Sua Temporada: ${rodadasJogadas} rodadas | Top3: ${vezesTop3} | AcimaMedia: ${vezesAcimaMedia} | Ultimo: ${vezesUltimo} | Aprov: ${aproveitamento}%`);
 
     setEl("tempAproveitamento", `${aproveitamento}%`);
     setStyle("tempAproveitamentoBar", "width", `${aproveitamento}%`);
