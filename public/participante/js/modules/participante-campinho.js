@@ -381,30 +381,52 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto) {
     const variacao = Number(escalacao.variacao_patrimonio ?? 0) || 0;
     const rodadaLabel = escalacao.rodada ?? '--';
 
+    // Determinar ícone de variação
+    const variacaoIcone = variacao > 0 ? '▲' : variacao < 0 ? '▼' : '';
+    const variacaoClasse = variacao >= 0 ? 'positivo' : 'negativo';
+
     return `
         <div class="campinho-wrapper campinho-screen">
-            <header class="campinho-screen-header">
-                <div class="campinho-title-block">
-                    <p class="campinho-title-label">Meu Campinho Rodada ${rodadaLabel}</p>
-                    <div class="campinho-title-row">
-                        <h1>${esc(escalacao.nome_cartoleiro) || 'Sua Escalação'}</h1>
-                        <span class="campinho-formation">${formacao}</span>
-                    </div>
-                </div>
-                <div class="campinho-header-actions">
-                    <div class="campinho-market-group">
-                        <span class="campinho-market-pill">Rodada Consolidada</span>
-                    </div>
-                    <div class="campinho-header-patrimonio">
-                        <p>Patrimônio</p>
-                        <strong>${formatarCartoletas(patrimonio)}</strong>
-                    </div>
-                    <div class="campinho-header-saldo">
-                        <p>Variação</p>
-                        <strong style="color:${variacao >= 0 ? '#22c55e' : '#ef4444'}">${variacao >= 0 ? '+' : ''}${formatarCartoletas(variacao)}</strong>
-                    </div>
+            <header class="campinho-header-minimal">
+                <div class="campinho-header-top">
+                    <span class="campinho-rodada-badge">RODADA ${rodadaLabel}</span>
+                    <span class="campinho-status-indicator consolidada">
+                        <span class="campinho-status-dot"></span>
+                        CONSOLIDADA
+                    </span>
+                    <span class="campinho-formation">${formacao}</span>
                 </div>
             </header>
+
+            <!-- CARD MEU DESEMPENHO -->
+            <div class="campinho-desempenho-card">
+                <div class="campinho-desemp-header">
+                    <span class="material-icons">bar_chart</span>
+                    <span>Meu Desempenho</span>
+                </div>
+
+                <div class="campinho-desemp-main">
+                    <div class="campinho-desemp-pontos-box">
+                        <span class="campinho-desemp-pontos-valor">${_truncar(pontosTotais)}</span>
+                        <span class="campinho-desemp-pontos-label">Pontos na Rodada</span>
+                    </div>
+                </div>
+
+                <div class="campinho-desemp-stats">
+                    <div class="campinho-desemp-stat">
+                        <span class="campinho-desemp-stat-valor">${formatarCartoletas(patrimonio)}</span>
+                        <span class="campinho-desemp-stat-label">Patrimônio</span>
+                    </div>
+                    <div class="campinho-desemp-stat">
+                        <span class="campinho-desemp-stat-valor ${variacaoClasse}">${variacao >= 0 ? '+' : ''}${formatarCartoletas(variacao)} ${variacaoIcone}</span>
+                        <span class="campinho-desemp-stat-label">Variação</span>
+                    </div>
+                    <div class="campinho-desemp-stat">
+                        <span class="campinho-desemp-stat-valor">${totalEscalados}/12</span>
+                        <span class="campinho-desemp-stat-label">Escalados</span>
+                    </div>
+                </div>
+            </div>
 
             <!-- TABELA DE ESCALAÇÃO (formato Rodadas) -->
             <section class="campinho-escalacao-tabela">
