@@ -740,6 +740,7 @@ function renderizarLinhaLista(atleta, capitaoId, reservaLuxoId, isReserva = fals
     const classePontos = pontosExibir > 0 ? 'positivo' : pontosExibir < 0 ? 'negativo' : 'neutro';
     const classeCard = isCapitao ? 'capitao' : isReservaLuxo ? 'luxo' : '';
     const classeReserva = isReserva ? 'reserva-bg' : '';
+    const classeNegativo = pontosExibir < 0 ? 'negativo-bg' : '';
 
     // Badge no escudo
     let badgeHtml = '';
@@ -755,7 +756,7 @@ function renderizarLinhaLista(atleta, capitaoId, reservaLuxoId, isReserva = fals
         : '';
 
     return `
-        <div class="campinho-tabela-jogador ${classeCard} ${classeReserva}">
+        <div class="campinho-tabela-jogador ${classeCard} ${classeReserva} ${classeNegativo}">
             <div class="campinho-tabela-escudo">
                 <img src="/escudos/${clubeId}.png" alt="${esc(nome)}" onerror="this.src='/escudos/default.png'">
                 ${badgeHtml}

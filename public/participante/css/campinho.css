@@ -1139,17 +1139,39 @@
 
 /* === JOGADOR QUE NEGATIVOU (tom avermelhado sutil) === */
 .campinho-jogador.is-negativo .campinho-jogador-avatar {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(185, 28, 28, 0.5) 100%);
-    border-color: rgba(239, 68, 68, 0.6);
+    border-color: rgba(239, 68, 68, 0.8) !important;
     box-shadow:
-        0 0 0 2px rgba(239, 68, 68, 0.25),
-        0 4px 12px rgba(239, 68, 68, 0.3);
+        0 0 0 2px rgba(239, 68, 68, 0.4),
+        0 4px 12px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* Overlay avermelhado sobre o avatar */
+.campinho-jogador.is-negativo .campinho-jogador-avatar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.45) 0%, rgba(185, 28, 28, 0.55) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Manter escudo visível acima do overlay */
+.campinho-jogador.is-negativo .campinho-jogador-avatar img {
+    position: relative;
+    z-index: 2;
 }
 
 /* Badge de pontos com fundo avermelhado quando negativo */
 .campinho-jogador.is-negativo .campinho-jogador-pontos {
-    background: rgba(185, 28, 28, 0.9);
-    border-color: rgba(239, 68, 68, 0.5);
+    background: rgba(185, 28, 28, 0.95) !important;
+    border-color: rgba(239, 68, 68, 0.6) !important;
+}
+
+/* === TABELA: Jogador que negativou (tom avermelhado sutil no card) === */
+.campinho-tabela-jogador.negativo-bg {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.3);
 }
 
 /* === ANIMAÇÕES DE ENTRADA === */
