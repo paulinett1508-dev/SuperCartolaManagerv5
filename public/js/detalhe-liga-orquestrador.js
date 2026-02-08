@@ -385,7 +385,39 @@ class DetalheLigaOrquestrador {
 
                 case "regras":
                     console.log('[ORQUESTRADOR] Iniciando regras...');
-                    // Scripts embutidos no HTML, auto-inicializa
+                    // ✅ v3.3: Carregar Quill e executar scripts manualmente
+                    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+                    // 1. Carregar CSS do Quill (se não existe)
+                    if (!document.querySelector('link[href*="quill.snow.css"]')) {
+                        const quillCSS = document.createElement('link');
+                        quillCSS.rel = 'stylesheet';
+                        quillCSS.href = 'https://cdn.quilljs.com/1.3.7/quill.snow.css';
+                        document.head.appendChild(quillCSS);
+                    }
+
+                    // 2. Carregar JS do Quill (se não existe)
+                    if (!window.Quill) {
+                        await new Promise((resolve, reject) => {
+                            const quillJS = document.createElement('script');
+                            quillJS.src = 'https://cdn.quilljs.com/1.3.7/quill.min.js';
+                            quillJS.onload = resolve;
+                            quillJS.onerror = reject;
+                            document.head.appendChild(quillJS);
+                        });
+                        console.log('[ORQUESTRADOR] Quill.js carregado');
+                    }
+
+                    // 3. Executar scripts inline
+                    const regrasContainer = document.getElementById("dynamic-content-area");
+                    if (regrasContainer) {
+                        const scripts = regrasContainer.querySelectorAll("script:not([src])");
+                        scripts.forEach(oldScript => {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = oldScript.textContent;
+                            oldScript.parentNode.replaceChild(newScript, oldScript);
+                        });
+                    }
                     break;
 
                 case "capitao-luxo": {
