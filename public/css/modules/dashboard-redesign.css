@@ -1275,23 +1275,23 @@ body.sidebar-collapsed .app-main {
 
 /* Logo Section */
 .sidebar-logo-new {
-    padding: 20px 16px;
+    padding: 8px 24px 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    border-bottom: 1px solid #1f1f1f;
+    border-bottom: none;
 }
 
 .sidebar-logo-icon {
     width: 48px;
     height: 48px;
-    background: #FF5500;
-    border-radius: 12px;
+    background: var(--color-primary);
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 12px;
-    box-shadow: 0 4px 14px rgba(255, 85, 0, 0.3);
+    box-shadow: 0 4px 14px rgba(255, 85, 0, 0.2);
 }
 
 .sidebar-logo-icon .material-icons {
@@ -1304,20 +1304,25 @@ body.sidebar-collapsed .app-main {
 }
 
 .sidebar-logo-text h1 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #FF5500;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
     margin: 0;
-    letter-spacing: 0.1em;
+    letter-spacing: -0.02em;
     text-transform: uppercase;
 }
 
+.sidebar-logo-text h1 span {
+    color: var(--color-primary);
+}
+
 .sidebar-logo-text p {
-    font-size: 0.7rem;
+    font-size: 0.625rem;
     color: #6b7280;
     margin: 4px 0 0 0;
     font-weight: 500;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
 }
 
 /* Navigation */
@@ -1325,6 +1330,20 @@ body.sidebar-collapsed .app-main {
     flex: 1;
     overflow-y: auto;
     padding: 16px 0;
+}
+
+/* Custom scrollbar para navegação */
+.sidebar-nav-new::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav-new::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav-new::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 10px;
 }
 
 .sidebar-section-new {
@@ -1365,10 +1384,10 @@ body.sidebar-collapsed .app-main {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 12px;
+    padding: 12px 16px;
     color: #9ca3af;
     text-decoration: none;
-    border-radius: 8px;
+    border-radius: 12px;
     transition: all 0.15s ease;
     font-size: 0.875rem;
     font-weight: 500;
@@ -1380,21 +1399,28 @@ body.sidebar-collapsed .app-main {
 }
 
 .sidebar-menu-item.active {
-    background: rgba(255, 85, 0, 0.1);
-    color: #FF5500;
-    border-left: 3px solid #FF5500;
-    margin-left: -3px;
-    padding-left: 15px;
+    background: var(--color-primary);
+    color: #ffffff;
+    border-left: none;
+    margin-left: 0;
+    padding-left: 12px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(255, 85, 0, 0.2);
+    border-radius: 12px;
 }
 
 .sidebar-menu-item .material-icons {
-    font-size: 20px;
+    font-size: 18px;
     opacity: 0.7;
 }
 
-.sidebar-menu-item:hover .material-icons,
+.sidebar-menu-item:hover .material-icons {
+    opacity: 1;
+}
+
 .sidebar-menu-item.active .material-icons {
     opacity: 1;
+    color: #ffffff;
 }
 
 .sidebar-menu-item .item-badge {
@@ -1408,8 +1434,8 @@ body.sidebar-collapsed .app-main {
 }
 
 .sidebar-menu-item.active .item-badge {
-    background: rgba(255, 85, 0, 0.2);
-    color: #FF5500;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
 }
 
 /* Liga Items */
@@ -1472,12 +1498,17 @@ body.sidebar-collapsed .app-main {
 
 .sidebar-liga-item .liga-badge-count {
     margin-left: auto;
-    background: #1f1f1f;
-    color: #6b7280;
-    font-size: 0.6rem;
-    font-weight: 600;
-    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #9ca3af;
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 2px 8px;
     border-radius: 4px;
+}
+
+.sidebar-liga-item.active .liga-badge-count {
+    background: rgba(255, 85, 0, 0.2);
+    color: var(--color-primary);
 }
 
 /* =============================================
@@ -1546,6 +1577,8 @@ body.sidebar-collapsed .app-main {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.2s ease;
+    margin-left: 16px;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-temporada-group.open .sidebar-temporada-content {
@@ -1605,8 +1638,9 @@ body.sidebar-collapsed .app-main {
 /* User Section */
 .sidebar-user-new {
     padding: 16px;
-    border-top: 1px solid #1f1f1f;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     position: relative; /* Para posicionar o dropup */
+    background: rgba(0, 0, 0, 0.4);
 }
 
 .sidebar-user-inner {
@@ -1650,17 +1684,31 @@ body.sidebar-collapsed .app-main {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #1f1f1f;
+    background: rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #333333;
+    border: 2px solid rgba(255, 85, 0, 0.2);
     transition: all 0.2s ease;
+    position: relative;
+    flex-shrink: 0;
 }
 
 .sidebar-user-avatar .material-icons {
     font-size: 20px;
     color: #9ca3af;
+}
+
+/* Online status dot */
+.sidebar-user-status-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    background: #22c55e;
+    border: 2px solid #000000;
+    border-radius: 50%;
 }
 
 .sidebar-user-info {
@@ -2261,13 +2309,12 @@ body.sidebar-collapsed .main-content {
 .sidebar-accordion-title {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-family: var(--font-family-brand);
-    font-size: 0.8rem;
-    font-weight: 400;
-    color: #9ca3af;
+    gap: 8px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #6b7280;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
 }
 
 .sidebar-accordion-header:hover .sidebar-accordion-title,
@@ -2276,7 +2323,7 @@ body.sidebar-collapsed .main-content {
 }
 
 .sidebar-accordion-title .material-icons {
-    font-size: 18px;
+    font-size: 16px;
     color: #6b7280;
     transition: color 0.15s ease;
 }
@@ -2329,34 +2376,41 @@ body.sidebar-collapsed .main-content {
 .sidebar-accordion-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px 8px 40px;
+    gap: 12px;
+    padding: 10px 12px 10px 40px;
     color: #9ca3af;
     text-decoration: none;
-    border-radius: 6px;
+    border-radius: 8px;
     transition: all 0.15s ease;
-    font-size: 0.8rem;
-    font-weight: 500;
+    font-size: 0.875rem;
+    font-weight: 400;
 }
 
 .sidebar-accordion-item:hover {
-    background: #1f1f1f;
+    background: rgba(255, 255, 255, 0.05);
     color: #ffffff;
 }
 
 .sidebar-accordion-item.active {
-    background: rgba(255, 85, 0, 0.1);
-    color: #FF5500;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    font-weight: 500;
+    border-left: 4px solid var(--color-primary);
+    padding-left: 36px;
 }
 
 .sidebar-accordion-item .material-icons {
-    font-size: 16px;
-    opacity: 0.7;
+    font-size: 18px;
+    color: #6b7280;
+    transition: color 0.15s ease;
 }
 
-.sidebar-accordion-item:hover .material-icons,
+.sidebar-accordion-item:hover .material-icons {
+    color: var(--color-primary);
+}
+
 .sidebar-accordion-item.active .material-icons {
-    opacity: 1;
+    color: var(--color-primary);
 }
 
 /* Badge de contagem */
@@ -2506,19 +2560,25 @@ body.sidebar-collapsed .main-content {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 12px 8px 40px;
+    padding: 10px 12px 10px 40px;
     color: #9ca3af;
-    border-radius: 6px;
+    border-radius: 8px;
     transition: all 0.15s ease;
     font-size: 0.8rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     position: relative;
     user-select: none;
 }
 
+.sidebar-temporadas-wrapper.open .sidebar-temporadas-toggle {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-radius: 12px;
+}
+
 .sidebar-temporadas-toggle:hover {
-    background: #1f1f1f;
+    background: rgba(255, 255, 255, 0.05);
     color: #ffffff;
 }
 
@@ -2636,20 +2696,22 @@ body.sidebar-collapsed .main-content {
 
 /* === SEÇÃO INFERIOR DO SIDEBAR (App Participante) === */
 .sidebar-section-bottom {
-    padding: 8px 12px;
-    border-top: 1px solid #1f1f1f;
+    padding: 12px 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.4);
 }
 
 /* === LINK DIRETO DO APP PARTICIPANTE === */
 .sidebar-app-link {
-    background: linear-gradient(135deg, rgba(255, 85, 0, 0.1), rgba(255, 85, 0, 0.05)) !important;
+    background: transparent !important;
     border: 1px solid rgba(255, 85, 0, 0.2);
-    border-radius: 8px;
+    border-radius: 12px;
     margin: 4px 0;
+    padding: 12px !important;
 }
 
 .sidebar-app-link:hover {
-    background: linear-gradient(135deg, rgba(255, 85, 0, 0.2), rgba(255, 85, 0, 0.1)) !important;
+    background: rgba(255, 85, 0, 0.05) !important;
     border-color: rgba(255, 85, 0, 0.4);
 }
 

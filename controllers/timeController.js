@@ -220,12 +220,21 @@ export const obterTimePorId = async (req, res) => {
       // Atualizar cache
       cache.set(cacheKey, time, 300);
 
+      // ✅ v2.1: Log para debug de dados do time
+      console.log(`[TIME-CONTROLLER] Retornando time ${id}:`, {
+        nome_time: time.nome_time,
+        nome_cartoleiro: time.nome_cartoleiro,
+        nome_cartola: time.nome_cartola,
+        clube_id: time.clube_id
+      });
+
       return res.json({
         id: time.id,
         nome_time: time.nome_time, // ✅ Campo que existe no banco
         nome: time.nome_time, // Alias
         nome_cartoleiro: time.nome_cartoleiro, // ✅ Campo que existe no banco
-        nome_cartola: time.nome_cartoleiro, // Alias
+        // ✅ v2.1: Priorizar nome_cartola se existir, senão usar nome_cartoleiro
+        nome_cartola: time.nome_cartola || time.nome_cartoleiro,
         url_escudo_png: time.url_escudo_png,
         clube_id: time.clube_id,
         assinante: time.assinante,
@@ -245,7 +254,8 @@ export const obterTimePorId = async (req, res) => {
         nome_time: novoTime.nome_time, // ✅ Campo que existe no banco
         nome: novoTime.nome_time, // Alias
         nome_cartoleiro: novoTime.nome_cartoleiro, // ✅ Campo que existe no banco
-        nome_cartola: novoTime.nome_cartoleiro, // Alias
+        // ✅ v2.1: Priorizar nome_cartola se existir, senão usar nome_cartoleiro
+        nome_cartola: novoTime.nome_cartola || novoTime.nome_cartoleiro,
         url_escudo_png: novoTime.url_escudo_png,
         clube_id: novoTime.clube_id,
         ativo: novoTime.ativo !== false,

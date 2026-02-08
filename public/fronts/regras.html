@@ -508,13 +508,19 @@
 
 <script>
 (function() {
+    console.log('[REGRAS-ADMIN] 🚀 Script inline executando...');
+
     // Estado
     let regrasQuill = null;
     let regraEditando = null;
     let regrasCache = [];
 
     function obterLigaId() {
-        return typeof obterLigaIdCache === 'function' ? obterLigaIdCache() : null;
+        const fromCache = typeof obterLigaIdCache === 'function' ? obterLigaIdCache() : null;
+        const fromOrq = window.DetalheOrquestrador?.ligaId || null;
+        const fromUrl = new URLSearchParams(window.location.search).get('id');
+        console.log('[REGRAS-ADMIN] obterLigaId:', { fromCache, fromOrq, fromUrl });
+        return fromCache || fromOrq || fromUrl;
     }
 
     function stripHtml(html) {
@@ -525,29 +531,39 @@
 
     // Carregar regras da liga
     async function carregarRegrasAdmin() {
+        console.log('[REGRAS-ADMIN] carregarRegrasAdmin() chamado');
         const ligaId = obterLigaId();
-        if (!ligaId) return;
+        console.log('[REGRAS-ADMIN] ligaId:', ligaId);
+        if (!ligaId) {
+            console.warn('[REGRAS-ADMIN] ❌ Sem ligaId, abortando');
+            return;
+        }
 
         const loadingEl = document.getElementById('regras-admin-loading');
         const gridEl = document.getElementById('regras-admin-grid');
         const emptyEl = document.getElementById('regras-admin-empty');
 
         try {
+            console.log('[REGRAS-ADMIN] 📡 Fetching:', `/api/regras-modulos/${ligaId}`);
             const resp = await fetch(`/api/regras-modulos/${ligaId}`);
             const data = await resp.json();
+            console.log('[REGRAS-ADMIN] 📦 Resposta:', { sucesso: data.sucesso, total: data.regras?.length });
 
             if (loadingEl) loadingEl.style.display = 'none';
 
             if (!data.sucesso || !data.regras || data.regras.length === 0) {
+                console.warn('[REGRAS-ADMIN] ⚠️ Sem regras, mostrando empty state');
                 if (emptyEl) emptyEl.style.display = 'block';
                 return;
             }
 
             regrasCache = data.regras;
+            console.log('[REGRAS-ADMIN] 🎨 Renderizando cards...');
             renderizarCardsAdmin(data.regras, gridEl);
             if (gridEl) gridEl.style.display = 'flex';
+            console.log('[REGRAS-ADMIN] ✅ Cards renderizados');
         } catch (err) {
-            console.error('[REGRAS-ADMIN] Erro:', err);
+            console.error('[REGRAS-ADMIN] ❌ Erro:', err);
             if (loadingEl) loadingEl.style.display = 'none';
             if (emptyEl) emptyEl.style.display = 'block';
         }
@@ -758,6 +774,8 @@
     };
 
     // Auto-inicializar
+    console.log('[REGRAS-ADMIN] 🔄 Auto-inicializando...');
     carregarRegrasAdmin();
+    console.log('[REGRAS-ADMIN] ✅ Script inline finalizado');
 })();
 </script>

@@ -408,15 +408,24 @@ class DetalheLigaOrquestrador {
                         console.log('[ORQUESTRADOR] Quill.js carregado');
                     }
 
-                    // 3. Executar scripts inline
+                    // 3. Executar scripts inline (técnica correta: remover + appendChild no head)
                     const regrasContainer = document.getElementById("dynamic-content-area");
+                    console.log('[ORQUESTRADOR] regrasContainer encontrado:', !!regrasContainer);
                     if (regrasContainer) {
                         const scripts = regrasContainer.querySelectorAll("script:not([src])");
-                        scripts.forEach(oldScript => {
+                        console.log('[ORQUESTRADOR] Scripts inline encontrados:', scripts.length);
+                        scripts.forEach((oldScript, i) => {
+                            console.log(`[ORQUESTRADOR] Executando script ${i + 1}/${scripts.length}...`);
                             const newScript = document.createElement("script");
                             newScript.textContent = oldScript.textContent;
-                            oldScript.parentNode.replaceChild(newScript, oldScript);
+                            // Remover o script original do DOM
+                            oldScript.remove();
+                            // Adicionar ao head força execução
+                            document.head.appendChild(newScript);
                         });
+                        console.log('[ORQUESTRADOR] Scripts de regras executados');
+                    } else {
+                        console.warn('[ORQUESTRADOR] Container dynamic-content-area NÃO encontrado!');
                     }
                     break;
 

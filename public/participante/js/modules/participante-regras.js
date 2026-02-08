@@ -5,9 +5,12 @@
 // Conteúdo editável pelo admin via painel
 // =====================================================================
 
-if (window.Log) Log.info('PARTICIPANTE-REGRAS', 'Carregando módulo v1.0...');
+console.log('[REGRAS] 🚀 Módulo v1.1 carregado');
+if (window.Log) Log.info('PARTICIPANTE-REGRAS', 'Carregando módulo v1.1...');
 
 export async function inicializarRegrasParticipante(params) {
+    if (window.Log) Log.info('PARTICIPANTE-REGRAS', '🚀 Iniciando com params:', params);
+
     let ligaId;
 
     if (typeof params === 'object' && params !== null) {
@@ -19,35 +22,58 @@ export async function inicializarRegrasParticipante(params) {
     // Fallback
     if (!ligaId && window.participanteAuth) {
         ligaId = window.participanteAuth.ligaId;
+        if (window.Log) Log.info('PARTICIPANTE-REGRAS', '📍 ligaId obtido do participanteAuth:', ligaId);
     }
 
     const loadingEl = document.getElementById('regras-loading');
     const listaEl = document.getElementById('regras-lista');
     const erroEl = document.getElementById('regras-erro');
 
+    if (window.Log) Log.info('PARTICIPANTE-REGRAS', '🔍 Elementos DOM:', {
+        loadingEl: !!loadingEl,
+        listaEl: !!listaEl,
+        erroEl: !!erroEl,
+        ligaId
+    });
+
     if (!ligaId) {
+        if (window.Log) Log.error('PARTICIPANTE-REGRAS', '❌ Sem ligaId - mostrando erro');
         if (loadingEl) loadingEl.style.display = 'none';
         if (erroEl) erroEl.style.display = 'block';
         return;
     }
 
     try {
+        if (window.Log) Log.info('PARTICIPANTE-REGRAS', `📡 Buscando: /api/regras-modulos/${ligaId}`);
         const resp = await fetch(`/api/regras-modulos/${ligaId}`);
         const data = await resp.json();
+
+        if (window.Log) Log.info('PARTICIPANTE-REGRAS', '📦 Resposta API:', {
+            sucesso: data.sucesso,
+            totalRegras: data.regras?.length || 0
+        });
 
         if (loadingEl) loadingEl.style.display = 'none';
 
         if (!data.sucesso || !data.regras || data.regras.length === 0) {
+            if (window.Log) Log.warn('PARTICIPANTE-REGRAS', '⚠️ Sem regras - mostrando erro');
             if (erroEl) erroEl.style.display = 'block';
             return;
         }
 
+        if (window.Log) Log.info('PARTICIPANTE-REGRAS', `🎨 Renderizando ${data.regras.length} regras no container:`, listaEl);
         renderizarRegras(data.regras, listaEl);
-        if (listaEl) listaEl.style.display = 'flex';
 
-        if (window.Log) Log.info('PARTICIPANTE-REGRAS', `✅ ${data.regras.length} regras carregadas`);
+        if (listaEl) {
+            listaEl.style.display = 'flex';
+            if (window.Log) Log.info('PARTICIPANTE-REGRAS', '✅ Container exibido, innerHTML length:', listaEl.innerHTML.length);
+        }
+
+        console.log(`[REGRAS] ✅ ${data.regras.length} accordions renderizados`);
+        if (window.Log) Log.info('PARTICIPANTE-REGRAS', `✅ ${data.regras.length} regras carregadas com sucesso`);
 
     } catch (error) {
+        console.error('[REGRAS] ❌ Erro:', error);
         if (window.Log) Log.error('PARTICIPANTE-REGRAS', '❌ Erro:', error);
         if (loadingEl) loadingEl.style.display = 'none';
         if (erroEl) erroEl.style.display = 'block';
@@ -55,7 +81,11 @@ export async function inicializarRegrasParticipante(params) {
 }
 
 function renderizarRegras(regras, container) {
-    if (!container) return;
+    if (!container) {
+        if (window.Log) Log.error('PARTICIPANTE-REGRAS', '❌ Container não encontrado em renderizarRegras!');
+        return;
+    }
+    if (window.Log) Log.info('PARTICIPANTE-REGRAS', `🔧 renderizarRegras() - ${regras.length} regras`);
 
     container.innerHTML = regras.map((regra, index) => {
         const cor = regra.cor || '#ff5500';

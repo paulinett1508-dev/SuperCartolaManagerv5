@@ -542,28 +542,45 @@ router.get("/session", async (req, res) => {
 
         let timeData = null;
         if (timeId) {
-            // ✅ v2.3: Incluir nome_time e nome_cartoleiro para compatibilidade
-            timeData = await Time.findOne({ id: timeId }).select(
-                "nome nome_time nome_cartola nome_cartoleiro clube_id url_escudo_png assinante",
-            );
-        }
+            // ✅ v2.4: Converter timeId para Number explicitamente (campo id no schema é Number)
+            const timeIdNum = Number(timeId);
+            console.log('[PARTICIPANTE-AUTH] Buscando time no banco:', { timeId, timeIdNum, isNaN: isNaN(timeIdNum) });
 
-        console.log('[PARTICIPANTE-AUTH] ✅ Sessão válida retornada:', timeId);
+            if (!isNaN(timeIdNum)) {
+                timeData = await Time.findOne({ id: timeIdNum }).select(
+                    "nome nome_time nome_cartola nome_cartoleiro clube_id url_escudo_png assinante",
+                );
+                console.log('[PARTICIPANTE-AUTH] Time encontrado:', timeData ? '✅ SIM' : '❌ NÃO', timeData ? { nome_time: timeData.nome_time, nome_cartola: timeData.nome_cartola, nome_cartoleiro: timeData.nome_cartoleiro } : null);
+            }
+        }
 
         // ✅ Adicionar headers de cache-control para evitar cache agressivo
         res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.set('Pragma', 'no-cache');
         res.set('Expires', '0');
 
-        // ✅ v2.3: Construir dados com fallbacks robustos
+        // ✅ v2.4: Construir dados com fallbacks robustos
         const sessionData = req.session.participante;
         const dadosParticipante = sessionData.participante || {};
+
+        // ✅ v2.4: Log detalhado para debug
+        console.log('[PARTICIPANTE-AUTH] 📊 Dados para composição:', {
+            timeId,
+            timeDataEncontrado: !!timeData,
+            timeData_nome_time: timeData?.nome_time,
+            timeData_nome_cartola: timeData?.nome_cartola,
+            timeData_nome_cartoleiro: timeData?.nome_cartoleiro,
+            sessao_nome_time: dadosParticipante.nome_time,
+            sessao_nome_cartola: dadosParticipante.nome_cartola
+        });
 
         // Priorizar dados do banco (frescos) sobre dados da sessão (podem estar desatualizados)
         const nomeCartola = timeData?.nome_cartola || timeData?.nome_cartoleiro ||
                             dadosParticipante.nome_cartola || dadosParticipante.nome_cartoleiro || "Cartoleiro";
         const nomeTime = timeData?.nome_time || timeData?.nome ||
                          dadosParticipante.nome_time || dadosParticipante.nome || "Meu Time";
+
+        console.log('[PARTICIPANTE-AUTH] ✅ Sessão válida - retornando:', { timeId, nomeTime, nomeCartola });
         const clubeId = timeData?.clube_id || dadosParticipante.clube_id || null;
 
         res.json({

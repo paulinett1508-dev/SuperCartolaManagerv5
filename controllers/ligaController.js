@@ -86,10 +86,15 @@ const listarLigas = async (req, res) => {
       temporadasMap[item._id] = item.temporadas.sort((a, b) => b - a);
     });
 
-    // ✅ v4.2: Buscar contagem TOTAL de inscrições por liga/temporada (2026+)
-    // Conta TODAS as inscrições (renovado, novo, nao_participa, pendente)
-    // O sidebar mostra o total de participantes inscritos na temporada
+    // ✅ v4.3 FIX: Buscar contagem de inscrições ATIVAS por liga/temporada (2026+)
+    // Conta apenas inscrições com status 'renovado' ou 'novo' (participantes ativos)
+    // NÃO conta 'nao_participa' ou 'pendente' - estes não são participantes da temporada
     const inscricoesPorLiga = await safeAggregate(InscricaoTemporada, [
+      {
+        $match: {
+          status: { $in: ['renovado', 'novo'] }
+        }
+      },
       {
         $group: {
           _id: { liga_id: "$liga_id", temporada: "$temporada" },
