@@ -315,16 +315,17 @@ router.get('/:ligaId', async (req, res) => {
         }
 
         const includeInactive = req.query.includeInactive === 'true';
-        const filter = includeInactive
-            ? { liga_id: ligaId }
-            : { liga_id: ligaId, ativo: true };
 
-        let regras = await RegraModulo.find(filter)
-            .sort({ ordem: 1 })
-            .lean();
+        // Buscar TODOS os módulos do DB para saber quais existem (evita re-adicionar desativados como default)
+        const todosNoBanco = await RegraModulo.find({ liga_id: ligaId }).sort({ ordem: 1 }).lean();
+        const modulosSalvos = new Set(todosNoBanco.map(r => r.modulo));
 
-        // Merge: completar com defaults faltantes
-        const modulosSalvos = new Set(regras.map(r => r.modulo));
+        // Filtrar conforme solicitado (ativo ou todos)
+        let regras = includeInactive
+            ? todosNoBanco
+            : todosNoBanco.filter(r => r.ativo !== false);
+
+        // Merge: só adicionar defaults para módulos que NÃO existem no banco
         const faltantes = MODULOS_DEFAULT
             .filter(m => !modulosSalvos.has(m.modulo))
             .map(m => ({
