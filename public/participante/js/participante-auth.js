@@ -250,79 +250,104 @@ class ParticipanteAuth {
             let fotoTime = this.participante.participante?.foto_time || null;
 
             // Buscar dados atualizados do time APENAS se necessário
-            const timeResponse = await fetch(`/api/times/${this.timeId}`, {
-                credentials: "include",
-                cache: "no-store",
-            });
-
-            let timeData = {}; // Inicializa timeData como um objeto vazio
-            if (timeResponse.ok) {
-                timeData = await timeResponse.json();
-
-                // Atualizar sempre que houver dados do time (prioridade máxima)
-                nomeTimeTexto = timeData.nome_time || timeData.nome || nomeTimeTexto;
-                nomeCartolaTexto = timeData.nome_cartola || timeData.nome_cartoleiro || nomeCartolaTexto;
-                clubeId = timeData.clube_id || clubeId;
-                fotoTime = timeData.url_escudo_png || timeData.foto_time || fotoTime;
-
-                if (window.Log) Log.debug('PARTICIPANTE-AUTH', '✅ Dados do time atualizados', {
-                    timeId: this.timeId,
-                    nome_time: timeData.nome_time || timeData.nome,
-                    nome_cartola: timeData.nome_cartola || timeData.nome_cartoleiro,
+            let timeData = {};
+            try {
+                const timeResponse = await fetch(`/api/times/${this.timeId}`, {
+                    credentials: "include",
+                    cache: "no-store",
                 });
-            } else {
-                if (window.Log) Log.warn('PARTICIPANTE-AUTH', '⚠️ Não foi possível buscar dados atualizados do time');
+
+                if (timeResponse.ok) {
+                    timeData = await timeResponse.json();
+
+                    // Atualizar sempre que houver dados do time (prioridade máxima)
+                    nomeTimeTexto = timeData.nome_time || timeData.nome || nomeTimeTexto;
+                    nomeCartolaTexto = timeData.nome_cartola || timeData.nome_cartoleiro || nomeCartolaTexto;
+                    clubeId = timeData.clube_id || clubeId;
+                    fotoTime = timeData.url_escudo_png || timeData.foto_time || fotoTime;
+
+                    if (window.Log) Log.debug('PARTICIPANTE-AUTH', '✅ Dados do time atualizados', {
+                        timeId: this.timeId,
+                        nome_time: timeData.nome_time || timeData.nome,
+                        nome_cartola: timeData.nome_cartola || timeData.nome_cartoleiro,
+                    });
+                } else {
+                    if (window.Log) Log.warn('PARTICIPANTE-AUTH', '⚠️ Não foi possível buscar dados atualizados do time');
+                }
+            } catch (timeError) {
+                if (window.Log) Log.warn('PARTICIPANTE-AUTH', '⚠️ Erro ao buscar /api/times:', timeError.message);
             }
+
+            // ✅ ATUALIZAÇÃO PROGRESSIVA: Setar header com dados do time/sessão IMEDIATAMENTE
+            // Assim, mesmo se a busca da liga falhar, o header já mostra dados reais
+            if (nomeTimeEl) nomeTimeEl.textContent = nomeTimeTexto;
+            if (nomeCartolaTextEl) nomeCartolaTextEl.textContent = nomeCartolaTexto;
+            this._atualizarEscudos(escudoCoracao, escudoTimeEl, clubeId, fotoTime);
 
             // 2. Buscar dados da liga (COM CACHE para evitar duplicação)
+            // ✅ FIX: Falha na liga NÃO deve derrubar o header inteiro
             let ligaData = null;
+            let participanteDataNaLiga = null;
             const now = Date.now();
 
-            // Verificar cache da liga
-            if (!forceRefresh &&
-                this.ligaDataCache &&
-                this.ligaDataCacheTime &&
-                now - this.ligaDataCacheTime < this.LIGA_CACHE_DURATION &&
-                this.ligaDataCache._ligaId === this.ligaId) {
-                ligaData = this.ligaDataCache;
-                if (window.Log) Log.debug('PARTICIPANTE-AUTH', '💾 Usando cache da liga');
-            } else {
-                const ligaResponse = await fetch(`/api/ligas/${this.ligaId}`, {
-                    credentials: "include",
-                });
+            try {
+                // Verificar cache da liga
+                if (!forceRefresh &&
+                    this.ligaDataCache &&
+                    this.ligaDataCacheTime &&
+                    now - this.ligaDataCacheTime < this.LIGA_CACHE_DURATION &&
+                    this.ligaDataCache._ligaId === this.ligaId) {
+                    ligaData = this.ligaDataCache;
+                    if (window.Log) Log.debug('PARTICIPANTE-AUTH', '💾 Usando cache da liga');
+                } else {
+                    const ligaResponse = await fetch(`/api/ligas/${this.ligaId}`, {
+                        credentials: "include",
+                    });
 
-                if (!ligaResponse.ok) {
-                    throw new Error(
-                        `Erro ao buscar dados da liga ${this.ligaId} (status: ${ligaResponse.status})`,
-                    );
+                    if (ligaResponse.ok) {
+                        ligaData = await ligaResponse.json();
+                        ligaData._ligaId = this.ligaId; // Marcar para validação do cache
+                        this.ligaDataCache = ligaData;
+                        this.ligaDataCacheTime = Date.now();
+                        if (window.Log) Log.debug('PARTICIPANTE-AUTH', '📥 Liga carregada e cacheada', { forceRefresh });
+                    } else {
+                        if (window.Log) Log.warn('PARTICIPANTE-AUTH', `⚠️ Falha ao buscar liga ${this.ligaId} (status: ${ligaResponse.status}) - usando dados do time/sessão`);
+                        // Usar cache stale se disponível
+                        if (this.ligaDataCache && this.ligaDataCache._ligaId === this.ligaId) {
+                            ligaData = this.ligaDataCache;
+                            if (window.Log) Log.debug('PARTICIPANTE-AUTH', '💾 Usando cache stale da liga como fallback');
+                        }
+                    }
+                }
+            } catch (ligaError) {
+                if (window.Log) Log.warn('PARTICIPANTE-AUTH', '⚠️ Erro ao buscar liga:', ligaError.message);
+                // Usar cache stale se disponível
+                if (this.ligaDataCache && this.ligaDataCache._ligaId === this.ligaId) {
+                    ligaData = this.ligaDataCache;
+                }
+            }
+
+            // Processar dados da liga (se disponíveis)
+            if (ligaData) {
+                // ✅ v3.0: Detectar se liga é estreante (criada na temporada atual)
+                const anoAtual = new Date().getFullYear();
+                const anoCriacao = ligaData.criadaEm ? new Date(ligaData.criadaEm).getFullYear() : 2025;
+                window.isLigaEstreante = (anoCriacao >= anoAtual);
+                window.ligaPrimeiraTemporada = anoCriacao;
+                if (window.Log) Log.info('PARTICIPANTE-AUTH', `📅 Liga estreante: ${window.isLigaEstreante} (criada em ${anoCriacao})`);
+
+                // ✅ v3.2: Detectar liga aposentada / não renovada
+                window.isLigaAposentada = (ligaData.status === 'aposentada' || ligaData.ativa === false);
+                if (window.isLigaAposentada) {
+                    if (window.Log) Log.info('PARTICIPANTE-AUTH', '🏛️ Liga APOSENTADA - acesso restrito ao Hall da Fama');
                 }
 
-                ligaData = await ligaResponse.json();
-                ligaData._ligaId = this.ligaId; // Marcar para validação do cache
-                this.ligaDataCache = ligaData;
-                this.ligaDataCacheTime = Date.now();
-                if (window.Log) Log.debug('PARTICIPANTE-AUTH', '📥 Liga carregada e cacheada', { forceRefresh });
+                participanteDataNaLiga = ligaData.participantes?.find(
+                    (p) => String(p.time_id) === String(this.timeId),
+                );
+
+                if (window.Log) Log.debug('PARTICIPANTE-AUTH', 'Dados do participante na liga obtidos');
             }
-
-            // ✅ v3.0: Detectar se liga é estreante (criada na temporada atual)
-            const anoAtual = new Date().getFullYear();
-            const anoCriacao = ligaData.criadaEm ? new Date(ligaData.criadaEm).getFullYear() : 2025;
-            window.isLigaEstreante = (anoCriacao >= anoAtual);
-            window.ligaPrimeiraTemporada = anoCriacao;
-            if (window.Log) Log.info('PARTICIPANTE-AUTH', `📅 Liga estreante: ${window.isLigaEstreante} (criada em ${anoCriacao})`);
-
-            // ✅ v3.2: Detectar liga aposentada / não renovada
-            window.isLigaAposentada = (ligaData.status === 'aposentada' || ligaData.ativa === false);
-            if (window.isLigaAposentada) {
-                if (window.Log) Log.info('PARTICIPANTE-AUTH', '🏛️ Liga APOSENTADA - acesso restrito ao Hall da Fama');
-            }
-
-
-            let participanteDataNaLiga = ligaData.participantes?.find(
-                (p) => String(p.time_id) === String(this.timeId),
-            );
-
-            if (window.Log) Log.debug('PARTICIPANTE-AUTH', 'Dados do participante na liga obtidos');
 
             // Priorizar dados reais do time sobre dados da liga (que podem estar desatualizados)
             const nomeTimeTextoFinal =
@@ -379,13 +404,10 @@ class ParticipanteAuth {
                 }
             }
 
-            // Atualizar nome do time e cartoleiro
-            if (nomeTimeEl) {
-                nomeTimeEl.textContent = nomeTimeTextoFinal;
-            }
-            if (nomeCartolaTextEl) {
-                nomeCartolaTextEl.textContent = nomeCartolaTextoFinal;
-            }
+            // ✅ Atualizar header com dados finais (enriquecidos com dados da liga)
+            if (nomeTimeEl) nomeTimeEl.textContent = nomeTimeTextoFinal;
+            if (nomeCartolaTextEl) nomeCartolaTextEl.textContent = nomeCartolaTextoFinal;
+            this._atualizarEscudos(escudoCoracao, escudoTimeEl, clubeIdFinal, fotoTimeFinal);
 
             // ✅ Badge de ambiente (DEV/PROD) - apenas para participante premium
             const envBadge = document.getElementById("app-env-badge");
@@ -406,40 +428,6 @@ class ParticipanteAuth {
                 }
             }
 
-            // Escudo do clube (coração)
-            if (escudoCoracao) {
-                if (clubeIdFinal) {
-                    escudoCoracao.src = `/escudos/${clubeIdFinal}.png`;
-                    escudoCoracao.onerror = () =>
-                        (escudoCoracao.src = "/escudos/placeholder.png");
-                } else {
-                    escudoCoracao.src = "/escudos/placeholder.png";
-                }
-            }
-
-            // Escudo do time (foto do escudo do Cartola)
-            if (escudoTimeEl) {
-                if (fotoTimeFinal) {
-                    escudoTimeEl.src = fotoTimeFinal;
-                    escudoTimeEl.onerror = () => {
-                        // Fallback para escudo do clube
-                        if (clubeIdFinal) {
-                            escudoTimeEl.src = `/escudos/${clubeIdFinal}.png`;
-                            escudoTimeEl.onerror = () =>
-                                (escudoTimeEl.src = "/escudos/placeholder.png");
-                        } else {
-                            escudoTimeEl.src = "/escudos/placeholder.png";
-                        }
-                    };
-                } else if (clubeIdFinal) {
-                    escudoTimeEl.src = `/escudos/${clubeIdFinal}.png`;
-                    escudoTimeEl.onerror = () =>
-                        (escudoTimeEl.src = "/escudos/placeholder.png");
-                } else {
-                    escudoTimeEl.src = "/escudos/placeholder.png";
-                }
-            }
-
             // Scrollbar personalizada com cores do time do participante
             this._aplicarCoresScrollbar(clubeIdFinal);
 
@@ -457,14 +445,58 @@ class ParticipanteAuth {
             this._atualizandoHeader = false;
             if (window.Log) Log.error('PARTICIPANTE-AUTH', 'Erro ao atualizar header:', error);
 
-            // Fallback para dados básicos
-            if (nomeTimeEl) nomeTimeEl.textContent = "Meu Time";
-            if (nomeCartolaTextEl) nomeCartolaTextEl.textContent = "Cartoleiro";
-            if (escudoCoracao) escudoCoracao.src = "/escudos/placeholder.png";
-            if (escudoTimeEl) escudoTimeEl.src = "/escudos/placeholder.png";
-            // Esconder botão de logout em caso de erro
+            // ✅ FIX: Usar dados da sessão como fallback (não hardcoded "Meu Time")
+            const fallbackNome = this.participante?.participante?.nome_time || "Meu Time";
+            const fallbackCartola = this.participante?.participante?.nome_cartola || "Cartoleiro";
+            const fallbackClubeId = this.participante?.participante?.clube_id || null;
+            const fallbackFoto = this.participante?.participante?.foto_time || null;
+
+            if (nomeTimeEl) nomeTimeEl.textContent = fallbackNome;
+            if (nomeCartolaTextEl) nomeCartolaTextEl.textContent = fallbackCartola;
+            this._atualizarEscudos(escudoCoracao, escudoTimeEl, fallbackClubeId, fallbackFoto);
+
+            // Mostrar botão de logout mesmo em erro (usuário está autenticado)
             if (headerLogoutButton) {
-                headerLogoutButton.style.display = "none";
+                headerLogoutButton.style.display = this.estaAutenticado()
+                    ? "block"
+                    : "none";
+            }
+        }
+    }
+
+    /**
+     * Atualiza escudos do header (clube e time)
+     * Extraído para reuso entre fluxo normal e fallback
+     */
+    _atualizarEscudos(escudoCoracao, escudoTimeEl, clubeId, fotoTime) {
+        if (escudoCoracao) {
+            if (clubeId) {
+                escudoCoracao.src = `/escudos/${clubeId}.png`;
+                escudoCoracao.onerror = () =>
+                    (escudoCoracao.src = "/escudos/placeholder.png");
+            } else {
+                escudoCoracao.src = "/escudos/placeholder.png";
+            }
+        }
+
+        if (escudoTimeEl) {
+            if (fotoTime) {
+                escudoTimeEl.src = fotoTime;
+                escudoTimeEl.onerror = () => {
+                    if (clubeId) {
+                        escudoTimeEl.src = `/escudos/${clubeId}.png`;
+                        escudoTimeEl.onerror = () =>
+                            (escudoTimeEl.src = "/escudos/placeholder.png");
+                    } else {
+                        escudoTimeEl.src = "/escudos/placeholder.png";
+                    }
+                };
+            } else if (clubeId) {
+                escudoTimeEl.src = `/escudos/${clubeId}.png`;
+                escudoTimeEl.onerror = () =>
+                    (escudoTimeEl.src = "/escudos/placeholder.png");
+            } else {
+                escudoTimeEl.src = "/escudos/placeholder.png";
             }
         }
     }
