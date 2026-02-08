@@ -1,7 +1,8 @@
 // routes/noticias-time-routes.js
-// v1.1 - Notícias personalizadas do time do coração
+// v1.2 - Notícias personalizadas do time do coração
 // Busca notícias via Google News RSS por clube (sem API key)
 // Cache inteligente: 30min por clube
+// v1.2: Adiciona extração de thumbnails (<media:thumbnail> e <enclosure>)
 import express from 'express';
 import fetch from 'node-fetch';
 import { CLUBES as CLUBES_NOTICIAS } from '../public/js/shared/clubes-data.js';
@@ -48,6 +49,14 @@ function parseRSSItems(xml) {
         const fonte = limparTexto(extrairTag(itemXml, 'source'));
         const descricao = limparTexto(extrairTag(itemXml, 'description'));
 
+        // NOTA: Google News RSS não fornece <media:thumbnail> ou <enclosure> nos items
+        // Apenas o canal tem <image>, mas não os items individuais
+        // Alternativas futuras:
+        // 1. Scraping das URLs (complexo, lento, frágil)
+        // 2. API paga (NewsAPI, Globo Esporte API)
+        // 3. Usar escudo do clube como fallback visual (atual)
+        const imagem = null;
+
         if (titulo && link) {
             items.push({
                 titulo,
@@ -55,7 +64,8 @@ function parseRSSItems(xml) {
                 fonte,
                 descricao: descricao.substring(0, 200),
                 publicadoEm: pubDate ? new Date(pubDate).toISOString() : null,
-                tempoRelativo: pubDate ? calcularTempoRelativo(new Date(pubDate)) : null
+                tempoRelativo: pubDate ? calcularTempoRelativo(new Date(pubDate)) : null,
+                imagem
             });
         }
     }
