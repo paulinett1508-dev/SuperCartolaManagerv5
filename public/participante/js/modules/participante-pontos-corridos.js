@@ -565,7 +565,7 @@ function renderizarBannerCampeao() {
         </div>
         <style>
             .campeao-banner { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 0 20px rgba(255, 215, 0, 0.15); }
-            .confetti-bg { background-image: radial-gradient(circle at 10% 20%, #ffd700 1px, transparent 1px), radial-gradient(circle at 90% 30%, #ff6b6b 1px, transparent 1px), radial-gradient(circle at 30% 80%, #4ecdc4 1px, transparent 1px); background-size: 80px 80px; animation: confettiMove 4s ease-in-out infinite; }
+            .confetti-bg { background-image: radial-gradient(circle at 10% 20%, var(--app-gold) 1px, transparent 1px), radial-gradient(circle at 90% 30%, #ff6b6b 1px, transparent 1px), radial-gradient(circle at 30% 80%, #4ecdc4 1px, transparent 1px); background-size: 80px 80px; animation: confettiMove 4s ease-in-out infinite; }
             @keyframes confettiMove { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
             .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
             @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }

@@ -54,10 +54,10 @@ export async function renderizarAvisos(ligaId, timeId) {
 // ============================================
 function renderizarCardAviso(aviso, timeId) {
   const categorias = {
-    success: { cor: '#10b981', icon: 'check_circle' },
-    warning: { cor: '#f59e0b', icon: 'warning' },
-    info: { cor: '#3b82f6', icon: 'info' },
-    urgent: { cor: '#ef4444', icon: 'error' }
+    success: { cor: 'var(--app-success)', icon: 'check_circle' },
+    warning: { cor: 'var(--app-amber)', icon: 'warning' },
+    info: { cor: 'var(--app-info)', icon: 'info' },
+    urgent: { cor: 'var(--app-danger)', icon: 'error' }
   };
 
   const cat = categorias[aviso.categoria] || categorias.info;

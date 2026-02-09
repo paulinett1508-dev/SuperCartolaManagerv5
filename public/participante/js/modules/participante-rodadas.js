@@ -591,10 +591,10 @@ function obterMitoMicoDaRodada(rodada) {
 // =====================================================================
 const POSICOES_CARTOLA = {
     1: { nome: 'GOL', slug: 'gol', cor: '#FF4500' },
-    2: { nome: 'LAT', slug: 'lat', cor: '#3b82f6' },
-    3: { nome: 'ZAG', slug: 'zag', cor: '#3b82f6' },
-    4: { nome: 'MEI', slug: 'mei', cor: '#22c55e' },
-    5: { nome: 'ATA', slug: 'ata', cor: '#ef4444' },
+    2: { nome: 'LAT', slug: 'lat', cor: 'var(--app-info)' },
+    3: { nome: 'ZAG', slug: 'zag', cor: 'var(--app-info)' },
+    4: { nome: 'MEI', slug: 'mei', cor: 'var(--app-success-light)' },
+    5: { nome: 'ATA', slug: 'ata', cor: 'var(--app-danger)' },
     6: { nome: 'TEC', slug: 'tec', cor: '#6b7280' },
 };
 
@@ -766,10 +766,10 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
     // Posições do Cartola
     const POSICOES = {
         1: { nome: 'GOL', cor: '#FF4500' },
-        2: { nome: 'LAT', cor: '#3b82f6' },
-        3: { nome: 'ZAG', cor: '#3b82f6' },
-        4: { nome: 'MEI', cor: '#22c55e' },
-        5: { nome: 'ATA', cor: '#ef4444' },
+        2: { nome: 'LAT', cor: 'var(--app-info)' },
+        3: { nome: 'ZAG', cor: 'var(--app-info)' },
+        4: { nome: 'MEI', cor: 'var(--app-success-light)' },
+        5: { nome: 'ATA', cor: 'var(--app-danger)' },
         6: { nome: 'TEC', cor: '#6b7280' },
     };
 
@@ -911,7 +911,7 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px;">
                 <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
                     <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Pontos</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:#ff5500;">${pontosFormatados}</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:var(--app-primary);">${pontosFormatados}</div>
                 </div>
                 <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
                     <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Posição</div>
@@ -1117,7 +1117,7 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
         if (window.Log) Log.error(`[PARTICIPANTE-RODADAS] ❌ Erro ao selecionar rodada:`, error);
         if (rankingContainer) {
             rankingContainer.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #ef4444;">
+                <div style="text-align: center; padding: 40px; color: var(--app-danger);">
                     <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">error_outline</span>
                     <p>Erro ao carregar rodada. Tente novamente.</p>
                 </div>
@@ -1155,7 +1155,7 @@ async function carregarERenderizarParciais(numeroRodada) {
         const rankingContainer = document.getElementById("rankingListPro");
         if (rankingContainer) {
             rankingContainer.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #ef4444;">
+                <div style="text-align: center; padding: 40px; color: var(--app-danger);">
                     <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">error_outline</span>
                     <p>Erro ao carregar parciais</p>
                     <button onclick="selecionarRodada(${numeroRodada}, true)"
@@ -1328,7 +1328,7 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         const meusValor = meuPart.valorFinanceiro || 0;
         const meusValorAbs = Math.abs(meusValor).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const meusValorTexto = meusValor > 0 ? `+R$ ${meusValorAbs}` : meusValor < 0 ? `-R$ ${meusValorAbs}` : '';
-        const meusValorCor = meusValor > 0 ? '#22c55e' : meusValor < 0 ? '#ef4444' : '#fff';
+        const meusValorCor = meusValor > 0 ? 'var(--app-success-light)' : meusValor < 0 ? 'var(--app-danger)' : 'var(--app-text-primary)';
         const meuNome = meuPart.nome || meuPart.nome_time || 'Meu Time';
 
         // Detalhes extras: zona label + mito/mico
@@ -1340,7 +1340,7 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         const meuIsMico = minhaPosicaoCalc === totalParticipantes && totalParticipantes > 1 && !isParcial;
         const meuResumoExtraClass = meuIsMito ? 'meu-resumo-mito' : meuIsMico ? 'meu-resumo-mico' : '';
         const meuPosicaoIcon = meuIsMito
-            ? '<span class="material-icons" style="font-size:22px;color:#ffd700;">emoji_events</span>'
+            ? '<span class="material-icons" style="font-size:22px;color:var(--app-gold);">emoji_events</span>'
             : `${minhaPosicaoCalc}&#186;`;
         const meuStatusLabel = meuIsMito
             ? '<div class="mito-icon-row"><span class="material-icons">star</span> REI DA RODADA</div>'
@@ -1547,10 +1547,10 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
     // Posições do Cartola
     const POSICOES = {
         1: { nome: 'GOL', cor: '#FF4500' },
-        2: { nome: 'LAT', cor: '#3b82f6' },
-        3: { nome: 'ZAG', cor: '#3b82f6' },
-        4: { nome: 'MEI', cor: '#22c55e' },
-        5: { nome: 'ATA', cor: '#ef4444' },
+        2: { nome: 'LAT', cor: 'var(--app-info)' },
+        3: { nome: 'ZAG', cor: 'var(--app-info)' },
+        4: { nome: 'MEI', cor: 'var(--app-success-light)' },
+        5: { nome: 'ATA', cor: 'var(--app-danger)' },
         6: { nome: 'TEC', cor: '#6b7280' },
     };
 
@@ -1805,11 +1805,11 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
             <div style="display:flex;gap:12px;padding:12px 20px;">
                 <div style="flex:1;background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
                     <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Pontos</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:#ff5500;">${pontosFormatados}</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:var(--app-primary);">${pontosFormatados}</div>
                 </div>
                 <div style="flex:1;background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
                     <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Em Campo</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:${emCampoCalc > 0 ? '#22c55e' : '#6b7280'};">${Math.min(emCampoCalc, totalAtl)}/${totalAtl}</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:${emCampoCalc > 0 ? 'var(--app-success-light)' : '#6b7280'};">${Math.min(emCampoCalc, totalAtl)}/${totalAtl}</div>
                 </div>
             </div>
 
@@ -1876,7 +1876,7 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
             }
             .badge-em-campo.ativo {
                 background: rgba(34, 197, 94, 0.15);
-                color: #22c55e;
+                color: var(--app-success-light);
                 animation: pulseEmCampo 2s infinite;
             }
             @keyframes pulseEmCampo {
@@ -1888,7 +1888,7 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
             }
             [data-curiosar-time-id]:hover .curiosar-icon,
             [data-curiosar-time-id]:active .curiosar-icon {
-                color: #ff5500 !important;
+                color: var(--app-primary) !important;
             }
         `;
         document.head.appendChild(style);
@@ -2066,7 +2066,7 @@ function mostrarErro(mensagem) {
     const container = document.getElementById("rodadasGruposContainer");
     if (container) {
         container.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #ef4444;">
+            <div style="text-align: center; padding: 40px; color: var(--app-danger);">
                 <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">error_outline</span>
                 <h3 style="margin-bottom: 8px;">Erro ao Carregar</h3>
                 <p style="color: #9ca3af;">${mensagem}</p>

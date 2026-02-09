@@ -1162,7 +1162,7 @@ function renderParciaisOptionsApp(container, edicao) {
 
   container.innerHTML = `
     <div class="mm-vazio mm-parciais-menu">
-      <span class="material-symbols-outlined" style="font-size:40px;color:#f59e0b;">sports_score</span>
+      <span class="material-symbols-outlined" style="font-size:40px;color:var(--app-amber);">sports_score</span>
       <h3>Rodada de Classificação</h3>
       <p>As chaves serão definidas ao final da rodada.</p>
       <div class="mm-parciais-actions">

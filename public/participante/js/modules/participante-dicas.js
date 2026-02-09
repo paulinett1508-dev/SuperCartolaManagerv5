@@ -115,7 +115,7 @@ function renderizarTelaBloqueio() {
             </h3>
 
             <p style="color: rgba(255,255,255,0.5); font-size: 14px; line-height: 1.6; max-width: 280px; margin: 0 auto 24px;">
-                As <strong style="color: #ff5500;">Dicas Premium</strong> oferecem analises avancadas,
+                As <strong style="color: var(--app-primary);">Dicas Premium</strong> oferecem analises avancadas,
                 estatisticas detalhadas e calculadoras de valorizacao para montar o time campeao.
             </p>
 
@@ -123,19 +123,19 @@ function renderizarTelaBloqueio() {
                 <div style="font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 12px;">Recursos inclusos:</div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="material-icons" style="font-size: 16px; color: #22c55e;">check_circle</span>
+                        <span class="material-icons" style="font-size: 16px; color: var(--app-success-light);">check_circle</span>
                         <span style="font-size: 13px; color: rgba(255,255,255,0.7);">Filtros avancados por posicao</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="material-icons" style="font-size: 16px; color: #22c55e;">check_circle</span>
+                        <span class="material-icons" style="font-size: 16px; color: var(--app-success-light);">check_circle</span>
                         <span style="font-size: 13px; color: rgba(255,255,255,0.7);">Calculo de MPV (valorizacao)</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="material-icons" style="font-size: 16px; color: #22c55e;">check_circle</span>
+                        <span class="material-icons" style="font-size: 16px; color: var(--app-success-light);">check_circle</span>
                         <span style="font-size: 13px; color: rgba(255,255,255,0.7);">Defesas vulneraveis</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="material-icons" style="font-size: 16px; color: #22c55e;">check_circle</span>
+                        <span class="material-icons" style="font-size: 16px; color: var(--app-success-light);">check_circle</span>
                         <span style="font-size: 13px; color: rgba(255,255,255,0.7);">Dados em tempo real da API</span>
                     </div>
                 </div>

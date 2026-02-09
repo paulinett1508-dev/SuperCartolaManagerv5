@@ -601,7 +601,7 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto, ligaId, ti
                     ? renderizarReservas(reservas, escalacao.capitao_id, escalacao.reserva_luxo_id)
                     : `<div class="campinho-lineup-section campinho-lineup-banco">
                         <div class="campinho-lineup-section-title">
-                            <span class="material-icons campinho-lineup-section-icon" style="color:#a855f7;">event_seat</span>
+                            <span class="material-icons campinho-lineup-section-icon" style="color:var(--app-pos-tec);">event_seat</span>
                             <span>Banco de Reservas</span>
                             <span class="campinho-lineup-section-count">(0)</span>
                         </div>
@@ -778,7 +778,7 @@ function renderizarReservas(reservas, capitaoId, reservaLuxoId) {
     return `
         <div class="campinho-lineup-section campinho-lineup-banco">
             <div class="campinho-lineup-section-title">
-                <span class="material-icons campinho-lineup-section-icon" style="color:#a855f7;">event_seat</span>
+                <span class="material-icons campinho-lineup-section-icon" style="color:var(--app-pos-tec);">event_seat</span>
                 <span>Banco de Reservas</span>
                 <span class="campinho-lineup-section-count">(${reservas.length})</span>
             </div>

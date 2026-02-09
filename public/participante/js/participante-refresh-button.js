@@ -200,7 +200,7 @@ const RefreshButton = {
         }
 
         .refresh-modal-btn-confirm {
-            background: linear-gradient(135deg, #ff4500, #ff6b35);
+            background: linear-gradient(135deg, #ff4500, var(--app-primary-light));
             color: white;
         }
 

@@ -259,7 +259,7 @@ class QuickAccessBar {
                          style="opacity:0.45;filter:grayscale(0.5)">
                         <span class="material-icons">${icon}</span>
                         <span class="menu-card-label">${label}</span>
-                        <span class="badge-aguarde" style="background:rgba(255,85,0,0.2);color:#ff5500">Em manutenção</span>
+                        <span class="badge-aguarde" style="background:rgba(255,85,0,0.2);color:var(--app-primary)">Em manutenção</span>
                     </div>
                 `;
             }
@@ -349,9 +349,9 @@ class QuickAccessBar {
                 </div>
                 <div class="menu-grid">
                     <div class="menu-card copa-times-card" data-module="copa-times-sc">
-                        <span class="material-icons" style="color: #ffd700;">emoji_events</span>
+                        <span class="material-icons" style="color: var(--app-gold);">emoji_events</span>
                         <span class="menu-card-label">Copa de Times SC</span>
-                        <span class="badge-aguarde" style="background:rgba(255,215,0,0.2);color:#ffd700;border:1px solid #ffd700;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:bold;">EM BREVE</span>
+                        <span class="badge-aguarde" style="background:rgba(255,215,0,0.2);color:var(--app-gold);border:1px solid var(--app-gold);padding:2px 8px;border-radius:12px;font-size:10px;font-weight:bold;">EM BREVE</span>
                     </div>
                     <div class="menu-card disabled" data-action="em-breve">
                         <span class="material-icons">sports</span>
@@ -634,11 +634,11 @@ class QuickAccessBar {
 
         // Configuracao por tipo
         const configs = {
-            info: { icone: 'info', cor: '#3b82f6', duracao: 2500 },
-            success: { icone: 'check_circle', cor: '#22c55e', duracao: 2500 },
-            warning: { icone: 'warning', cor: '#f59e0b', duracao: 3500 },
-            urgente: { icone: 'alarm', cor: '#f97316', duracao: 4500 },
-            critico: { icone: 'alarm_on', cor: '#ef4444', duracao: 5500 }
+            info: { icone: 'info', cor: 'var(--app-info)', duracao: 2500 },
+            success: { icone: 'check_circle', cor: 'var(--app-success-light)', duracao: 2500 },
+            warning: { icone: 'warning', cor: 'var(--app-amber)', duracao: 3500 },
+            urgente: { icone: 'alarm', cor: 'var(--app-pos-gol)', duracao: 4500 },
+            critico: { icone: 'alarm_on', cor: 'var(--app-danger)', duracao: 5500 }
         };
         const config = configs[tipo] || configs.info;
 

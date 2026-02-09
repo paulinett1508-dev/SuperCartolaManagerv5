@@ -87,8 +87,8 @@ export async function inicializarArtilheiroParticipante({
             if (!artilheiroAtivo) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(34, 197, 94, 0.3);">
-                        <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: #22c55e;">sports_soccer</span>
-                        <h3 style="color: #fff; margin-bottom: 12px;">Artilheiro Campeão</h3>
+                        <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: var(--app-success-light);">sports_soccer</span>
+                        <h3 style="color: var(--app-text-primary); margin-bottom: 12px;">Artilheiro Campeão</h3>
                         <p style="color: #999;">Este módulo não está ativo para esta liga.</p>
                     </div>
                 `;
@@ -145,8 +145,8 @@ export async function inicializarArtilheiroParticipante({
         if (!usouCache) {
             container.innerHTML = `
                 <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(34, 197, 94, 0.3);">
-                    <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: #22c55e;">sports_soccer</span>
-                    <h3 style="color: #fff; margin-bottom: 12px;">Artilheiro Campeão</h3>
+                    <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: var(--app-success-light);">sports_soccer</span>
+                    <h3 style="color: var(--app-text-primary); margin-bottom: 12px;">Artilheiro Campeão</h3>
                     <p style="color: #999;">Dados não disponíveis no momento.</p>
                 </div>
             `;
@@ -215,10 +215,10 @@ function renderizarBannerRodadaFinal(
                 .art-campeao-badge {
                     font-size: 10px;
                     font-weight: 700;
-                    color: #22c55e;
+                    color: var(--app-success-light);
                     text-transform: uppercase;
                     letter-spacing: 1px;
-                    background: linear-gradient(90deg, #22c55e, #16a34a, #22c55e);
+                    background: linear-gradient(90deg, var(--app-success-light), #16a34a, var(--app-success-light));
                     background-size: 200% auto;
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
@@ -231,7 +231,7 @@ function renderizarBannerRodadaFinal(
                     border-radius: 4px;
                     font-weight: 600;
                     background: rgba(34, 197, 94, 0.25);
-                    color: #22c55e;
+                    color: var(--app-success-light);
                 }
                 .art-campeao-info {
                     display: flex;
@@ -244,11 +244,11 @@ function renderizarBannerRodadaFinal(
                 .art-campeao-nome {
                     font-size: 15px;
                     font-weight: 700;
-                    color: #fff;
+                    color: var(--app-text-primary);
                 }
                 .art-campeao-label {
                     font-size: 9px;
-                    color: #22c55e;
+                    color: var(--app-success-light);
                     font-weight: 600;
                     text-transform: uppercase;
                     margin-bottom: 2px;
@@ -259,7 +259,7 @@ function renderizarBannerRodadaFinal(
                 .art-campeao-gols-valor {
                     font-size: 20px;
                     font-weight: 800;
-                    color: #22c55e;
+                    color: var(--app-success-light);
                 }
                 .art-campeao-gols-label {
                     font-size: 8px;
@@ -270,7 +270,7 @@ function renderizarBannerRodadaFinal(
             <div class="art-banner-campeao">
                 <div class="art-campeao-header">
                     <div class="art-campeao-title">
-                        <span class="material-icons" style="font-size: 22px; color: #22c55e;">emoji_events</span>
+                        <span class="material-icons" style="font-size: 22px; color: var(--app-success-light);">emoji_events</span>
                         <span class="art-campeao-badge">CAMPEÃO ARTILHEIRO</span>
                     </div>
                     <span class="art-campeao-status"><span class="material-symbols-outlined" style="font-size: 12px; vertical-align: middle;">check</span> CONSOLIDADO</span>
@@ -324,7 +324,7 @@ function renderizarBannerRodadaFinal(
             .art-banner-text {
                 font-size: 11px;
                 font-weight: 700;
-                color: #22c55e;
+                color: var(--app-success-light);
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
             }
@@ -335,8 +335,8 @@ function renderizarBannerRodadaFinal(
                 font-weight: 600;
                 ${
                     isParcial
-                        ? "background: rgba(34, 197, 94, 0.2); color: #22c55e;"
-                        : "background: rgba(34, 197, 94, 0.15); color: #22c55e;"
+                        ? "background: rgba(34, 197, 94, 0.2); color: var(--app-success-light);"
+                        : "background: rgba(34, 197, 94, 0.15); color: var(--app-success-light);"
                 }
             }
             .art-banner-lider {
@@ -350,9 +350,9 @@ function renderizarBannerRodadaFinal(
             .art-banner-lider-badge {
                 font-size: 9px;
                 font-weight: 700;
-                color: #22c55e;
+                color: var(--app-success-light);
                 text-transform: uppercase;
-                background: linear-gradient(90deg, #22c55e, #16a34a, #22c55e);
+                background: linear-gradient(90deg, var(--app-success-light), #16a34a, var(--app-success-light));
                 background-size: 200% auto;
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
@@ -362,7 +362,7 @@ function renderizarBannerRodadaFinal(
             .art-banner-lider-nome {
                 font-size: 14px;
                 font-weight: 700;
-                color: #fff;
+                color: var(--app-text-primary);
             }
             .art-banner-lider-gols {
                 text-align: right;
@@ -370,7 +370,7 @@ function renderizarBannerRodadaFinal(
             .art-banner-lider-valor {
                 font-size: 18px;
                 font-weight: 800;
-                color: #22c55e;
+                color: var(--app-success-light);
             }
             .art-banner-lider-label {
                 font-size: 8px;
@@ -382,7 +382,7 @@ function renderizarBannerRodadaFinal(
         <div class="art-banner-final">
             <div class="art-banner-header">
                 <div class="art-banner-title">
-                    <span class="material-icons" style="font-size: 18px; color: #22c55e; vertical-align: middle;">emoji_events</span>
+                    <span class="material-icons" style="font-size: 18px; color: var(--app-success-light); vertical-align: middle;">emoji_events</span>
                     <span class="art-banner-text">Rodada Final</span>
                 </div>
                 <span class="art-banner-status">${isParcial ? "● Em andamento" : "Última Rodada"}</span>
@@ -448,8 +448,8 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
     if (rankingAtivos.length === 0) {
         container.innerHTML = `
             <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(34, 197, 94, 0.3);">
-                <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: #22c55e;">sports_soccer</span>
-                <h3 style="color: #fff; margin-bottom: 12px;">Artilheiro Campeão</h3>
+                <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: var(--app-success-light);">sports_soccer</span>
+                <h3 style="color: var(--app-text-primary); margin-bottom: 12px;">Artilheiro Campeão</h3>
                 <p style="color: #999;">Nenhum dado disponível ainda.</p>
             </div>
         `;
@@ -567,7 +567,7 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
     const html = `
     <div style="padding: 16px;">
         <div style="text-align: center; margin-bottom: 20px;">
-            <h2 style="margin: 0 0 4px 0; font-size: 20px; font-weight: 800; color: #22c55e; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <h2 style="margin: 0 0 4px 0; font-size: 20px; font-weight: 800; color: var(--app-success-light); display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <span class="material-symbols-outlined">sports_soccer</span> Artilheiro Campeão
             </h2>
             <p style="margin: 0; color: #888; font-size: 12px;">
@@ -583,20 +583,20 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
         <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%); border: 2px solid rgba(34, 197, 94, 0.4); border-radius: 16px; padding: 16px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <div>
-                    <div style="font-size: 10px; color: #22c55e; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Sua Posição</div>
-                    <div style="font-size: 28px; font-weight: 900; color: #fff;">${minhaColocacao}º</div>
+                    <div style="font-size: 10px; color: var(--app-success-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Sua Posição</div>
+                    <div style="font-size: 28px; font-weight: 900; color: var(--app-text-primary);">${minhaColocacao}º</div>
                 </div>
                 <div style="display: flex; gap: 16px; text-align: center;">
                     <div>
-                        <div style="font-size: 20px; font-weight: 800; color: #22c55e;">${getGP(meusDados)}</div>
+                        <div style="font-size: 20px; font-weight: 800; color: var(--app-success-light);">${getGP(meusDados)}</div>
                         <div style="font-size: 9px; color: #888;">GP</div>
                     </div>
                     <div>
-                        <div style="font-size: 20px; font-weight: 800; color: #ef4444;">${getGC(meusDados)}</div>
+                        <div style="font-size: 20px; font-weight: 800; color: var(--app-danger);">${getGC(meusDados)}</div>
                         <div style="font-size: 9px; color: #888;">GC</div>
                     </div>
                     <div>
-                        <div style="font-size: 20px; font-weight: 800; color: ${getSaldo(meusDados) >= 0 ? "#22c55e" : "#ef4444"};">${getSaldo(meusDados) >= 0 ? "+" : ""}${getSaldo(meusDados)}</div>
+                        <div style="font-size: 20px; font-weight: 800; color: ${getSaldo(meusDados) >= 0 ? "var(--app-success-light)" : "var(--app-danger)"};">${getSaldo(meusDados) >= 0 ? "+" : ""}${getSaldo(meusDados)}</div>
                         <div style="font-size: 9px; color: #888;">SG</div>
                     </div>
                 </div>
@@ -607,12 +607,12 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
                     ? `
             <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
                 <span style="color: #888; font-size: 11px;">Distância p/ ${labelLider.toLowerCase()}</span>
-                <span style="color: #f59e0b; font-weight: 700; font-size: 13px;">-${distanciaLider} gols</span>
+                <span style="color: var(--app-amber); font-weight: 700; font-size: 13px;">-${distanciaLider} gols</span>
             </div>
             `
                     : `
             <div style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1)); border-radius: 8px; padding: 8px 12px; text-align: center;">
-                <span style="color: #22c55e; font-weight: 700; font-size: 13px;">${textoVoceELider}</span>
+                <span style="color: var(--app-success-light); font-weight: 700; font-size: 13px;">${textoVoceELider}</span>
             </div>
             `
             }
@@ -623,16 +623,16 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
                 ? `
         <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span style="color: #3b82f6; font-size: 11px; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 14px;">calendar_today</span> Rodada ${ultimaRodada.rodada}</span>
+                <span style="color: var(--app-info); font-size: 11px; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 14px;">calendar_today</span> Rodada ${ultimaRodada.rodada}</span>
                 <span style="color: #666; font-size: 10px;">Última atualização</span>
             </div>
             <div style="display: flex; gap: 8px; justify-content: center;">
                 <div style="background: rgba(34, 197, 94, 0.15); padding: 10px 16px; border-radius: 8px; text-align: center; flex: 1;">
-                    <div style="font-size: 22px; font-weight: 800; color: #22c55e;">${ultimaRodada.golsPro || 0}</div>
+                    <div style="font-size: 22px; font-weight: 800; color: var(--app-success-light);">${ultimaRodada.golsPro || 0}</div>
                     <div style="font-size: 9px; color: #888;">GP</div>
                 </div>
                 <div style="background: rgba(239, 68, 68, 0.15); padding: 10px 16px; border-radius: 8px; text-align: center; flex: 1;">
-                    <div style="font-size: 22px; font-weight: 800; color: #ef4444;">${ultimaRodada.golsContra || 0}</div>
+                    <div style="font-size: 22px; font-weight: 800; color: var(--app-danger);">${ultimaRodada.golsContra || 0}</div>
                     <div style="font-size: 9px; color: #888;">GC</div>
                 </div>
                 <div style="background: rgba(255, 255, 255, 0.05); padding: 10px 16px; border-radius: 8px; text-align: center; flex: 1;">
@@ -640,7 +640,7 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
                         const saldo =
                             (ultimaRodada.golsPro || 0) -
                             (ultimaRodada.golsContra || 0);
-                        return `<div style="font-size: 22px; font-weight: 800; color: ${saldo >= 0 ? "#22c55e" : "#ef4444"};">${saldo >= 0 ? "+" : ""}${saldo}</div>`;
+                        return `<div style="font-size: 22px; font-weight: 800; color: ${saldo >= 0 ? "var(--app-success-light)" : "var(--app-danger)"};">${saldo >= 0 ? "+" : ""}${saldo}</div>`;
                     })()}
                     <div style="font-size: 9px; color: #888;">SG</div>
                 </div>
@@ -661,10 +661,10 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
                         (j, idx) => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="material-symbols-outlined" style="font-size: 18px; color: ${idx === 0 ? "#FFD700" : idx === 1 ? "#C0C0C0" : "#CD7F32"};">workspace_premium</span>
-                        <span style="color: #fff; font-size: 12px; font-weight: 500;">${j.nome}</span>
+                        <span class="material-symbols-outlined" style="font-size: 18px; color: ${idx === 0 ? "var(--app-gold)" : idx === 1 ? "var(--app-silver)" : "var(--app-bronze)"};">workspace_premium</span>
+                        <span style="color: var(--app-text-primary); font-size: 12px; font-weight: 500;">${j.nome}</span>
                     </div>
-                    <span style="color: #22c55e; font-weight: 800; font-size: 14px;">${j.gols} gols</span>
+                    <span style="color: var(--app-success-light); font-weight: 800; font-size: 14px;">${j.gols} gols</span>
                 </div>
                 `,
                     )
@@ -692,9 +692,9 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
                                   : "rgba(255,255,255,0.05)";
                         const textColor =
                             saldo > 0
-                                ? "#22c55e"
+                                ? "var(--app-success-light)"
                                 : saldo < 0
-                                  ? "#ef4444"
+                                  ? "var(--app-danger)"
                                   : "#666";
                         return `
                     <div style="flex: 1; background: ${bgColor}; border-radius: 8px; padding: 8px 4px; text-align: center;">
@@ -723,14 +723,14 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
                 ? `
         <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.03) 100%); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span class="material-symbols-outlined" style="font-size: 24px; color: #22c55e;">emoji_events</span>
+                <span class="material-symbols-outlined" style="font-size: 24px; color: var(--app-success-light);">emoji_events</span>
                 <div>
-                    <div style="font-size: 10px; color: #22c55e; font-weight: 700; text-transform: uppercase;">${labelLider}</div>
-                    <div style="font-size: 14px; font-weight: 700; color: #fff;">${getNome(campeao)}</div>
+                    <div style="font-size: 10px; color: var(--app-success-light); font-weight: 700; text-transform: uppercase;">${labelLider}</div>
+                    <div style="font-size: 14px; font-weight: 700; color: var(--app-text-primary);">${getNome(campeao)}</div>
                 </div>
             </div>
             <div style="text-align: right;">
-                <div style="font-size: 18px; font-weight: 800; color: #22c55e;">+${getSaldo(campeao)}</div>
+                <div style="font-size: 18px; font-weight: 800; color: var(--app-success-light);">+${getSaldo(campeao)}</div>
                 <div style="font-size: 8px; color: #888;">saldo de gols</div>
             </div>
         </div>
@@ -740,7 +740,7 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
 
         <details style="background: rgba(0,0,0,0.3); border-radius: 12px; overflow: hidden;" open>
             <summary style="background: rgba(34, 197, 94, 0.1); padding: 12px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(34, 197, 94, 0.2);">
-                <span style="font-size: 13px; font-weight: 700; color: #22c55e; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 16px;">list_alt</span> Ranking Completo</span>
+                <span style="font-size: 13px; font-weight: 700; color: var(--app-success-light); display: flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 16px;">list_alt</span> Ranking Completo</span>
                 <span style="font-size: 11px; color: #888;">${rankingAtivos.length} participantes</span>
             </summary>
 
@@ -758,18 +758,18 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
                 ativos.forEach((time, idx) => {
                     const isMeuTime = isMyTime(time, meuTimeId);
                     const pos = idx + 1;
-                    const posicaoDisplay = pos === 1 ? '<span class="material-symbols-outlined" style="font-size: 16px; color: #22c55e;">emoji_events</span>' : `${pos}º`;
+                    const posicaoDisplay = pos === 1 ? '<span class="material-symbols-outlined" style="font-size: 16px; color: var(--app-success-light);">emoji_events</span>' : `${pos}º`;
                     const saldo = getSaldo(time);
 
                     html += `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); ${isMeuTime ? "background: rgba(34, 197, 94, 0.15);" : ""}">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: ${pos === 1 ? "16px" : "12px"}; width: 26px; ${pos === 1 ? "" : "color: #888;"}">${posicaoDisplay}</span>
-                            <span style="color: ${isMeuTime ? "#22c55e" : "#fff"}; font-weight: ${isMeuTime ? "700" : "500"}; font-size: 12px;">${getNome(time)}</span>
+                            <span style="color: ${isMeuTime ? "var(--app-success-light)" : "var(--app-text-primary)"}; font-weight: ${isMeuTime ? "700" : "500"}; font-size: 12px;">${getNome(time)}</span>
                         </div>
                         <div style="display: flex; gap: 12px; align-items: center;">
                             <span style="color: #888; font-size: 11px;">${getGP(time)}/${getGC(time)}</span>
-                            <span style="color: ${saldo >= 0 ? "#22c55e" : "#ef4444"}; font-weight: 700; font-size: 13px;">${saldo >= 0 ? "+" : ""}${saldo}</span>
+                            <span style="color: ${saldo >= 0 ? "var(--app-success-light)" : "var(--app-danger)"}; font-weight: 700; font-size: 13px;">${saldo >= 0 ? "+" : ""}${saldo}</span>
                         </div>
                     </div>
                     `;
@@ -827,8 +827,8 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
             if (cardDesempenhoContainer && cardMeusDados) {
                 const wrapper = document.createElement("div");
                 wrapper.innerHTML = `
-                    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%); border-radius: 16px; padding: 16px; border: 1px solid rgba(34, 197, 94, 0.3);">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: #22c55e; font-weight: 600; font-size: 14px;">
+                    <div style="background: linear-gradient(135deg, var(--app-surface) 0%, #262626 100%); border-radius: 16px; padding: 16px; border: 1px solid rgba(34, 197, 94, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: var(--app-success-light); font-weight: 600; font-size: 14px;">
                             <span class="material-icons" style="font-size: 20px;">insights</span>
                             <span>Seu Desempenho</span>
                         </div>
@@ -915,7 +915,7 @@ function setupPullToRefresh(container) {
             if (!indicator) {
                 indicator = document.createElement('div');
                 indicator.id = 'art-pull-indicator';
-                indicator.style.cssText = 'text-align:center;padding:8px;color:#22c55e;font-size:11px;font-weight:600;transition:opacity 0.2s;';
+                indicator.style.cssText = 'text-align:center;padding:8px;color:var(--app-success-light);font-size:11px;font-weight:600;transition:opacity 0.2s;';
                 indicator.innerHTML = '<span class="material-icons" style="font-size:18px;vertical-align:middle;animation:spin 1s linear infinite;">refresh</span> Solte para atualizar';
                 parentEl.prepend(indicator);
             }

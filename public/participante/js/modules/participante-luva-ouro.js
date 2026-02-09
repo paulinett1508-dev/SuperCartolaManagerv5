@@ -82,8 +82,8 @@ export async function inicializarLuvaOuroParticipante({
             if (!luvaAtiva) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 215, 0, 0.3);">
-                        <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: #ffd700;">sports_handball</span>
-                        <h3 style="color: #fff; margin-bottom: 12px;">Luva de Ouro</h3>
+                        <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: var(--app-gold);">sports_handball</span>
+                        <h3 style="color: var(--app-text-primary); margin-bottom: 12px;">Luva de Ouro</h3>
                         <p style="color: #999;">Este módulo não está ativo para esta liga.</p>
                     </div>
                 `;
@@ -137,8 +137,8 @@ export async function inicializarLuvaOuroParticipante({
         if (!usouCache) {
             container.innerHTML = `
                 <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 215, 0, 0.3);">
-                    <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: #ffd700;">sports_handball</span>
-                    <h3 style="color: #fff; margin-bottom: 12px;">Luva de Ouro</h3>
+                    <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: var(--app-gold);">sports_handball</span>
+                    <h3 style="color: var(--app-text-primary); margin-bottom: 12px;">Luva de Ouro</h3>
                     <p style="color: #999;">Dados não disponíveis no momento.</p>
                 </div>
             `;
@@ -211,10 +211,10 @@ function renderizarBannerRodadaFinal(
                 .luva-campeao-badge {
                     font-size: 10px;
                     font-weight: 700;
-                    color: #ffd700;
+                    color: var(--app-gold);
                     text-transform: uppercase;
                     letter-spacing: 1px;
-                    background: linear-gradient(90deg, #ffd700, #ffaa00, #ffd700);
+                    background: linear-gradient(90deg, var(--app-gold), #ffaa00, var(--app-gold));
                     background-size: 200% auto;
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
@@ -227,7 +227,7 @@ function renderizarBannerRodadaFinal(
                     border-radius: 4px;
                     font-weight: 600;
                     background: rgba(255, 215, 0, 0.25);
-                    color: #ffd700;
+                    color: var(--app-gold);
                 }
                 .luva-campeao-info {
                     display: flex;
@@ -240,11 +240,11 @@ function renderizarBannerRodadaFinal(
                 .luva-campeao-nome {
                     font-size: 15px;
                     font-weight: 700;
-                    color: #fff;
+                    color: var(--app-text-primary);
                 }
                 .luva-campeao-label {
                     font-size: 9px;
-                    color: #ffd700;
+                    color: var(--app-gold);
                     font-weight: 600;
                     text-transform: uppercase;
                     margin-bottom: 2px;
@@ -255,7 +255,7 @@ function renderizarBannerRodadaFinal(
                 .luva-campeao-pontos-valor {
                     font-size: 20px;
                     font-weight: 800;
-                    color: #ffd700;
+                    color: var(--app-gold);
                 }
                 .luva-campeao-pontos-label {
                     font-size: 8px;
@@ -266,7 +266,7 @@ function renderizarBannerRodadaFinal(
             <div class="luva-banner-campeao">
                 <div class="luva-campeao-header">
                     <div class="luva-campeao-title">
-                        <span class="material-icons" style="font-size: 22px; color: #ffd700;">emoji_events</span>
+                        <span class="material-icons" style="font-size: 22px; color: var(--app-gold);">emoji_events</span>
                         <span class="luva-campeao-badge">CAMPEÃO LUVA DE OURO</span>
                     </div>
                     <span class="luva-campeao-status"><span class="material-symbols-outlined" style="font-size: 12px; vertical-align: middle;">check</span> CONSOLIDADO</span>
@@ -320,7 +320,7 @@ function renderizarBannerRodadaFinal(
             .luva-banner-text {
                 font-size: 11px;
                 font-weight: 700;
-                color: #ffd700;
+                color: var(--app-gold);
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
             }
@@ -331,8 +331,8 @@ function renderizarBannerRodadaFinal(
                 font-weight: 600;
                 ${
                     isParcial
-                        ? "background: rgba(34, 197, 94, 0.2); color: #22c55e;"
-                        : "background: rgba(255, 215, 0, 0.2); color: #ffd700;"
+                        ? "background: rgba(34, 197, 94, 0.2); color: var(--app-success-light);"
+                        : "background: rgba(255, 215, 0, 0.2); color: var(--app-gold);"
                 }
             }
             .luva-banner-lider {
@@ -346,9 +346,9 @@ function renderizarBannerRodadaFinal(
             .luva-banner-lider-badge {
                 font-size: 9px;
                 font-weight: 700;
-                color: #ffd700;
+                color: var(--app-gold);
                 text-transform: uppercase;
-                background: linear-gradient(90deg, #ffd700, #ffaa00, #ffd700);
+                background: linear-gradient(90deg, var(--app-gold), #ffaa00, var(--app-gold));
                 background-size: 200% auto;
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
@@ -358,7 +358,7 @@ function renderizarBannerRodadaFinal(
             .luva-banner-lider-nome {
                 font-size: 14px;
                 font-weight: 700;
-                color: #fff;
+                color: var(--app-text-primary);
             }
             .luva-banner-lider-pontos {
                 text-align: right;
@@ -366,7 +366,7 @@ function renderizarBannerRodadaFinal(
             .luva-banner-lider-valor {
                 font-size: 18px;
                 font-weight: 800;
-                color: #ffd700;
+                color: var(--app-gold);
             }
             .luva-banner-lider-label {
                 font-size: 8px;
@@ -378,7 +378,7 @@ function renderizarBannerRodadaFinal(
         <div class="luva-banner-final">
             <div class="luva-banner-header">
                 <div class="luva-banner-title">
-                    <span class="material-icons" style="font-size: 18px; color: #ffd700; vertical-align: middle;">emoji_events</span>
+                    <span class="material-icons" style="font-size: 18px; color: var(--app-gold); vertical-align: middle;">emoji_events</span>
                     <span class="luva-banner-text">Rodada Final</span>
                 </div>
                 <span class="luva-banner-status">${isParcial ? "● Em andamento" : "Última Rodada"}</span>
@@ -489,8 +489,8 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
     if (rankingAtivos.length === 0) {
         container.innerHTML = `
             <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 215, 0, 0.3);">
-                <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: #ffd700;">sports_handball</span>
-                <h3 style="color: #fff; margin-bottom: 12px;">Luva de Ouro Não Disponível</h3>
+                <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: var(--app-gold);">sports_handball</span>
+                <h3 style="color: var(--app-text-primary); margin-bottom: 12px;">Luva de Ouro Não Disponível</h3>
                 <p style="color: #999;">Nenhum dado de goleiros disponível ainda.</p>
             </div>
         `;
@@ -547,7 +547,7 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
     const html = `
     <div style="padding: 16px;">
         <div style="text-align: center; margin-bottom: 20px;">
-            <h2 style="margin: 0 0 4px 0; font-size: 20px; font-weight: 800; color: #ffd700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <h2 style="margin: 0 0 4px 0; font-size: 20px; font-weight: 800; color: var(--app-gold); display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <span class="material-symbols-outlined">sports_handball</span> Luva de Ouro
             </h2>
             <p style="margin: 0; color: #888; font-size: 12px;">
@@ -563,11 +563,11 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
         <div style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%); border: 2px solid rgba(255, 215, 0, 0.4); border-radius: 16px; padding: 16px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <div>
-                    <div style="font-size: 10px; color: #ffd700; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Sua Posição</div>
-                    <div style="font-size: 28px; font-weight: 900; color: #fff;">${minhaColocacao}º</div>
+                    <div style="font-size: 10px; color: var(--app-gold); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Sua Posição</div>
+                    <div style="font-size: 28px; font-weight: 900; color: var(--app-text-primary);">${minhaColocacao}º</div>
                 </div>
                 <div style="text-align: center;">
-                    <div style="font-size: 26px; font-weight: 800; color: #ffd700;">${getPontos(meusDados).toFixed(1)}</div>
+                    <div style="font-size: 26px; font-weight: 800; color: var(--app-gold);">${getPontos(meusDados).toFixed(1)}</div>
                     <div style="font-size: 9px; color: #888;">pontos</div>
                 </div>
             </div>
@@ -577,12 +577,12 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
                     ? `
             <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
                 <span style="color: #888; font-size: 11px;">Distância p/ ${labelLider.toLowerCase()}</span>
-                <span style="color: #f59e0b; font-weight: 700; font-size: 13px;">-${distanciaLider.toFixed(1)} pts</span>
+                <span style="color: var(--app-amber); font-weight: 700; font-size: 13px;">-${distanciaLider.toFixed(1)} pts</span>
             </div>
             `
                     : `
             <div style="background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1)); border-radius: 8px; padding: 8px 12px; text-align: center;">
-                <span style="color: #ffd700; font-weight: 700; font-size: 13px;">${textoVoceELider}</span>
+                <span style="color: var(--app-gold); font-weight: 700; font-size: 13px;">${textoVoceELider}</span>
             </div>
             `
             }
@@ -600,9 +600,9 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span style="font-size: 12px; width: 20px; color: #888;">${idx + 1}º</span>
-                        <span style="color: #fff; font-size: 12px; font-weight: 500;">${g.nome}</span>
+                        <span style="color: var(--app-text-primary); font-size: 12px; font-weight: 500;">${g.nome}</span>
                     </div>
-                    <span style="color: #ffd700; font-weight: 800; font-size: 14px;">${g.pontos.toFixed(1)} pts</span>
+                    <span style="color: var(--app-gold); font-weight: 800; font-size: 14px;">${g.pontos.toFixed(1)} pts</span>
                 </div>
                 `,
                     )
@@ -630,9 +630,9 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
                                   : "rgba(255,255,255,0.05)";
                         const textColor =
                             pontos >= 5
-                                ? "#ffd700"
+                                ? "var(--app-gold)"
                                 : pontos > 0
-                                  ? "#3b82f6"
+                                  ? "var(--app-info)"
                                   : "#666";
                         return `
                     <div style="flex: 1; background: ${bgColor}; border-radius: 8px; padding: 8px 4px; text-align: center;">
@@ -661,14 +661,14 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
                 ? `
         <div style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.03) 100%); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span class="material-symbols-outlined" style="font-size: 24px; color: #ffd700;">emoji_events</span>
+                <span class="material-symbols-outlined" style="font-size: 24px; color: var(--app-gold);">emoji_events</span>
                 <div>
-                    <div style="font-size: 10px; color: #ffd700; font-weight: 700; text-transform: uppercase;">${labelLider}</div>
-                    <div style="font-size: 14px; font-weight: 700; color: #fff;">${getNome(campeao)}</div>
+                    <div style="font-size: 10px; color: var(--app-gold); font-weight: 700; text-transform: uppercase;">${labelLider}</div>
+                    <div style="font-size: 14px; font-weight: 700; color: var(--app-text-primary);">${getNome(campeao)}</div>
                 </div>
             </div>
             <div style="text-align: right;">
-                <div style="font-size: 18px; font-weight: 800; color: #ffd700;">${getPontos(campeao).toFixed(1)}</div>
+                <div style="font-size: 18px; font-weight: 800; color: var(--app-gold);">${getPontos(campeao).toFixed(1)}</div>
                 <div style="font-size: 8px; color: #888;">pontos</div>
             </div>
         </div>
@@ -678,7 +678,7 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
 
         <details style="background: rgba(0,0,0,0.3); border-radius: 12px; overflow: hidden;" open>
             <summary style="background: rgba(255, 215, 0, 0.1); padding: 12px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 215, 0, 0.2);">
-                <span style="font-size: 13px; font-weight: 700; color: #ffd700; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 16px;">list_alt</span> Ranking Completo</span>
+                <span style="font-size: 13px; font-weight: 700; color: var(--app-gold); display: flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 16px;">list_alt</span> Ranking Completo</span>
                 <span style="font-size: 11px; color: #888;">${rankingAtivos.length} participantes</span>
             </summary>
 
@@ -696,15 +696,15 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
                 ativos.forEach((time, idx) => {
                     const isMeuTime = isMyTime(time, meuTimeId);
                     const pos = idx + 1;
-                    const posicaoDisplay = pos === 1 ? '<span class="material-symbols-outlined" style="font-size: 16px; color: #ffd700;">emoji_events</span>' : `${pos}º`;
+                    const posicaoDisplay = pos === 1 ? '<span class="material-symbols-outlined" style="font-size: 16px; color: var(--app-gold);">emoji_events</span>' : `${pos}º`;
 
                     html += `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); ${isMeuTime ? "background: rgba(255, 215, 0, 0.15);" : ""}">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: ${pos === 1 ? "16px" : "12px"}; width: 26px; ${pos === 1 ? "" : "color: #888;"}">${posicaoDisplay}</span>
-                            <span style="color: ${isMeuTime ? "#ffd700" : "#fff"}; font-weight: ${isMeuTime ? "700" : "500"}; font-size: 12px;">${getNome(time)}</span>
+                            <span style="color: ${isMeuTime ? "var(--app-gold)" : "var(--app-text-primary)"}; font-weight: ${isMeuTime ? "700" : "500"}; font-size: 12px;">${getNome(time)}</span>
                         </div>
-                        <span style="color: #ffd700; font-weight: 700; font-size: 13px;">${getPontos(time).toFixed(1)}</span>
+                        <span style="color: var(--app-gold); font-weight: 700; font-size: 13px;">${getPontos(time).toFixed(1)}</span>
                     </div>
                     `;
                 });
@@ -757,8 +757,8 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
             // Criar wrapper com estilos do card Seu Desempenho
             const wrapper = document.createElement("div");
             wrapper.innerHTML = `
-                <div style="background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%); border-radius: 16px; padding: 16px; border: 1px solid rgba(255, 215, 0, 0.3);">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: #ffd700; font-weight: 600; font-size: 14px;">
+                <div style="background: linear-gradient(135deg, var(--app-surface) 0%, #262626 100%); border-radius: 16px; padding: 16px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: var(--app-gold); font-weight: 600; font-size: 14px;">
                         <span class="material-icons" style="font-size: 20px;">insights</span>
                         <span>Seu Desempenho</span>
                     </div>

@@ -80,7 +80,7 @@
 }
 
 .extrato-hero__valor {
-    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-family: var(--app-font-mono), var(--app-font-mono);
     font-size: var(--app-font-saldo-hero);
     font-weight: 700;
     letter-spacing: -1px;
@@ -205,7 +205,7 @@
 }
 
 .extrato-stat-pill__value {
-    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-family: var(--app-font-mono), var(--app-font-mono);
     font-size: var(--app-font-sm);
     font-weight: 600;
     color: var(--app-text-primary);
@@ -339,7 +339,7 @@
 }
 
 .extrato-timeline__group-total {
-    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-family: var(--app-font-mono), var(--app-font-mono);
     font-size: var(--app-font-sm);
     font-weight: 600;
 }
@@ -410,7 +410,7 @@
 }
 
 .extrato-timeline__item-value {
-    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-family: var(--app-font-mono), var(--app-font-mono);
     font-size: var(--app-font-md);
     font-weight: 600;
     flex-shrink: 0;
@@ -435,7 +435,7 @@
 }
 
 .extrato-timeline__accumulated-value {
-    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-family: var(--app-font-mono), var(--app-font-mono);
     font-size: var(--app-font-xs);
     font-weight: 600;
 }
@@ -491,7 +491,7 @@
 }
 
 .extrato-timeline__subitem-value {
-    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-family: var(--app-font-mono), var(--app-font-mono);
     font-weight: 600;
     font-size: var(--app-font-xs);
 }
@@ -566,7 +566,7 @@
 }
 
 .extrato-performance__bw-value {
-    font-family: 'JetBrains Mono', var(--app-font-mono);
+    font-family: var(--app-font-mono), var(--app-font-mono);
     font-size: var(--app-font-sm);
     font-weight: 600;
 }

@@ -21,12 +21,12 @@
         --capitao-font-brand: var(--app-font-brand, 'Russo One', sans-serif);
         --capitao-font-body: 'Inter', -apple-system, sans-serif;
         --capitao-font-mono: 'JetBrains Mono', monospace;
-        --capitao-primary: var(--app-purple, #8b5cf6);
+        --capitao-primary: var(--app-purple, var(--app-purple));
         --capitao-primary-light: #a78bfa;
         --capitao-gold: var(--app-gold, #fbbf24);
-        --capitao-success: var(--app-success-light, #22c55e);
-        --capitao-danger: var(--app-danger, #ef4444);
-        --capitao-card: var(--app-surface, #1a1a1a);
+        --capitao-success: var(--app-success-light, var(--app-success-light));
+        --capitao-danger: var(--app-danger, var(--app-danger));
+        --capitao-card: var(--app-surface, var(--app-surface));
         --capitao-border: var(--participante-border, #333);
         --capitao-text-muted: #999;
     }
@@ -59,7 +59,7 @@
 
     /* Cards de ranking */
     .capitao-card {
-        background: var(--participante-card, #1a1a1a);
+        background: var(--participante-card, var(--app-surface));
         border: 1px solid var(--participante-border, #333);
         border-radius: 12px;
         padding: 15px;
@@ -80,12 +80,12 @@
     }
 
     .capitao-card.podium-2 {
-        border-color: var(--app-silver, #c0c0c0);
+        border-color: var(--app-silver, var(--app-silver));
         box-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
     }
 
     .capitao-card.podium-3 {
-        border-color: var(--app-bronze, #cd7f32);
+        border-color: var(--app-bronze, var(--app-bronze));
         box-shadow: 0 0 15px rgba(205, 127, 50, 0.3);
     }
 
@@ -117,7 +117,7 @@
     .capitao-nome {
         font-size: 14px;
         font-weight: 600;
-        color: var(--app-text-white, #fff);
+        color: var(--app-text-white, var(--app-text-primary));
     }
 
     .capitao-time-nome {

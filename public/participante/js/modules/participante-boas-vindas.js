@@ -756,7 +756,7 @@ function renderizarBoasVindas(container, data, ligaRules) {
         saldoFinanceiro > 0
             ? "color: #4ade80;"
             : saldoFinanceiro < 0
-              ? "color: #f87171;"
+              ? "color: var(--app-danger-light);"
               : "color: rgba(255,255,255,0.5);";
 
     // =========================================================================

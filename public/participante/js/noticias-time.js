@@ -196,7 +196,7 @@ const NoticiasTime = {
 
         return `
             <div style="margin-top:20px;">
-                <h3 style="font-family:'Russo One',sans-serif;font-size:1rem;color:#fb923c;margin:0 0 12px;display:flex;align-items:center;gap:8px;">
+                <h3 style="font-family:'Russo One',sans-serif;font-size:1rem;color:var(--app-pos-gol-light);margin:0 0 12px;display:flex;align-items:center;gap:8px;">
                     <span class="material-icons" style="font-size:20px;">newspaper</span>
                     Notícias do ${this._sanitizeHtml(clube)}
                 </h3>

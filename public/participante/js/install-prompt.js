@@ -180,7 +180,7 @@ const InstallPrompt = {
             .install-prompt-modal {
                 width: min(560px, 92vw);
                 background: #121212;
-                color: #ffffff;
+                color: var(--app-text-primary);
                 border: 1px solid #2a2a2a;
                 border-radius: 16px;
                 padding: 20px;
@@ -243,7 +243,7 @@ const InstallPrompt = {
             }
             .install-modal-close:hover {
                 background: #262626;
-                color: #ffffff;
+                color: var(--app-text-primary);
             }
             .install-modal-benefits {
                 margin: 16px 0;
@@ -255,7 +255,7 @@ const InstallPrompt = {
                 display: flex;
                 gap: 8px;
                 align-items: flex-start;
-                background: #1a1a1a;
+                background: var(--app-surface);
                 border: 1px solid #2a2a2a;
                 border-radius: 12px;
                 padding: 10px 12px;
@@ -273,7 +273,7 @@ const InstallPrompt = {
             }
             .install-btn-primary {
                 background: linear-gradient(135deg, var(--laranja, #ff4500), #cc3700);
-                color: #ffffff;
+                color: var(--app-text-primary);
                 border: none;
                 padding: 12px 18px;
                 border-radius: 10px;
@@ -299,7 +299,7 @@ const InstallPrompt = {
             }
             .install-btn-secondary:hover {
                 background: #262626;
-                color: #ffffff;
+                color: var(--app-text-primary);
             }
             .install-modal-ios {
                 margin-top: 12px;
@@ -382,7 +382,7 @@ const InstallPrompt = {
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(135deg, #FF5500, #e8472b);
+            background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
             color: white;
             padding: 16px;
             padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));

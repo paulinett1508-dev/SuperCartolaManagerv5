@@ -88,7 +88,7 @@ function renderizarRegras(regras, container) {
     if (window.Log) Log.info('PARTICIPANTE-REGRAS', `🔧 renderizarRegras() - ${regras.length} regras`);
 
     container.innerHTML = regras.map((regra, index) => {
-        const cor = regra.cor || '#ff5500';
+        const cor = regra.cor || 'var(--app-primary)';
         const icone = regra.icone || 'description';
         const titulo = regra.titulo || regra.modulo;
         const conteudo = regra.conteudo_html || '<p>Conteúdo não disponível.</p>';

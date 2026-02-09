@@ -99,7 +99,7 @@ function mostrarLoading() {
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
     modal.innerHTML = `
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
-        <div class="relative w-full max-w-lg mx-4 bg-[#1a1a1a] rounded-3xl border border-white/10 max-h-[80vh] flex items-center justify-center py-20">
+        <div class="relative w-full max-w-lg mx-4 bg-[var(--app-surface)] rounded-3xl border border-white/10 max-h-[80vh] flex items-center justify-center py-20">
             <div class="flex flex-col items-center">
                 <div class="w-12 h-12 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
                 <p class="text-sm text-white/50">Verificando conexão...</p>
@@ -128,9 +128,9 @@ function mostrarTelaConexao() {
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
     modal.innerHTML = `
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="window.CartolaProModule.fecharModal()"></div>
-        <div class="relative w-full max-w-lg mx-4 bg-[#1a1a1a] rounded-3xl border border-white/10 max-h-[80vh] overflow-y-auto animate-slide-up">
+        <div class="relative w-full max-w-lg mx-4 bg-[var(--app-surface)] rounded-3xl border border-white/10 max-h-[80vh] overflow-y-auto animate-slide-up">
             <!-- Header -->
-            <div class="sticky top-0 bg-[#1a1a1a] rounded-t-3xl px-4 py-4 border-b border-white/10 flex items-center justify-between">
+            <div class="sticky top-0 bg-[var(--app-surface)] rounded-t-3xl px-4 py-4 border-b border-white/10 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, rgba(234,179,8,0.2), rgba(249,115,22,0.2));">
                         <span class="material-icons text-yellow-400">sports_soccer</span>
@@ -165,7 +165,7 @@ function mostrarTelaConexao() {
                 <!-- BOTAO PRINCIPAL: OAuth -->
                 <button onclick="window.CartolaProModule.iniciarOAuth()"
                         class="w-full py-4 rounded-xl text-black font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-                        style="background: linear-gradient(135deg, #eab308, #f97316);">
+                        style="background: linear-gradient(135deg, var(--app-warning), var(--app-pos-gol));">
                     <span class="material-icons">login</span>
                     Conectar com Globo
                 </button>
@@ -234,7 +234,7 @@ function mostrarFormularioEmail() {
     // Header diferente: com botao voltar (se OAuth disponivel) ou sem (se unica opcao)
     const headerHTML = oauthDisponivel ? `
         <!-- Header com Voltar -->
-        <div class="sticky top-0 bg-[#1a1a1a] rounded-t-3xl px-4 py-4 border-b border-white/10 flex items-center justify-between">
+        <div class="sticky top-0 bg-[var(--app-surface)] rounded-t-3xl px-4 py-4 border-b border-white/10 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <button onclick="window.CartolaProModule.voltarTelaConexao()" class="p-2 -ml-2 rounded-full hover:bg-white/10">
                     <span class="material-icons text-white/50">arrow_back</span>
@@ -252,7 +252,7 @@ function mostrarFormularioEmail() {
         </div>
     ` : `
         <!-- Header sem Voltar (unica opcao de login) -->
-        <div class="sticky top-0 bg-[#1a1a1a] rounded-t-3xl px-4 py-4 border-b border-white/10 flex items-center justify-between">
+        <div class="sticky top-0 bg-[var(--app-surface)] rounded-t-3xl px-4 py-4 border-b border-white/10 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, rgba(234,179,8,0.2), rgba(249,115,22,0.2));">
                     <span class="material-icons text-yellow-400">sports_soccer</span>
@@ -302,7 +302,7 @@ function mostrarFormularioEmail() {
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
     modal.innerHTML = `
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="window.CartolaProModule.fecharModal()"></div>
-        <div class="relative w-full max-w-lg mx-4 bg-[#1a1a1a] rounded-3xl border border-white/10 max-h-[80vh] overflow-y-auto animate-slide-up">
+        <div class="relative w-full max-w-lg mx-4 bg-[var(--app-surface)] rounded-3xl border border-white/10 max-h-[80vh] overflow-y-auto animate-slide-up">
             ${headerHTML}
             ${avisoHTML}
 
@@ -332,7 +332,7 @@ function mostrarFormularioEmail() {
                 <!-- Botao Login -->
                 <button onclick="window.CartolaProModule.fazerLogin()" id="pro-btn-login"
                         class="w-full py-4 rounded-xl text-black font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-                        style="background: linear-gradient(135deg, #eab308, #f97316);">
+                        style="background: linear-gradient(135deg, var(--app-warning), var(--app-pos-gol));">
                     <span class="material-icons">login</span>
                     Conectar
                 </button>
@@ -464,7 +464,7 @@ async function mostrarInterfaceAbas() {
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
     modal.innerHTML = `
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="window.CartolaProModule.fecharModal()"></div>
-        <div class="relative w-full max-w-lg mx-4 bg-[#1a1a1a] rounded-3xl border border-white/10 max-h-[75vh] overflow-hidden flex flex-col animate-slide-up">
+        <div class="relative w-full max-w-lg mx-4 bg-[var(--app-surface)] rounded-3xl border border-white/10 max-h-[75vh] overflow-hidden flex flex-col animate-slide-up">
             <!-- Header -->
             <div class="flex-shrink-0 px-4 py-3 border-b border-white/10 flex items-center justify-between">
                 <div class="flex items-center gap-3">

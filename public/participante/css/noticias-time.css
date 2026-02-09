@@ -22,9 +22,9 @@
 }
 
 .noticias-header-title {
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand), sans-serif;
     font-size: 1rem;
-    color: #fff;
+    color: var(--app-text-primary);
     margin: 0;
 }
 
@@ -94,7 +94,7 @@
 /* Título */
 .noticias-titulo {
     font-size: 0.82rem;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--app-font-base), sans-serif;
     font-weight: 600;
     color: #e5e7eb;
     line-height: 1.4;

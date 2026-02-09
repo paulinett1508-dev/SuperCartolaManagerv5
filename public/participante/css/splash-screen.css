@@ -25,7 +25,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(circle at center, #1e1e1e 0%, #0a0a0a 100%);
+    background: radial-gradient(circle at center, #1e1e1e 0%, var(--app-bg) 100%);
     overflow: hidden;
     opacity: 0;
     visibility: hidden;
@@ -87,7 +87,7 @@
 /* ========== CONTEÚDO CENTRAL ========== */
 .splash-content {
     position: relative;
-    z-index: 10;
+    z-index: var(--app-z-header);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -141,7 +141,7 @@
     filter: blur(40px);
     opacity: 0.25;
     animation: splash-pulse-glow 3s ease-in-out infinite;
-    z-index: 0; /* Ficar atrás do logo */
+    z-index: var(--app-z-content); /* Ficar atrás do logo */
 }
 
 @keyframes splash-pulse-glow {
@@ -151,7 +151,7 @@
 
 .splash-logo-img {
     position: relative;
-    z-index: 1;
+    z-index: var(--app-z-content);
     width: 220px;
     height: 220px;
     object-fit: contain;

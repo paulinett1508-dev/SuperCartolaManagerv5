@@ -121,18 +121,18 @@ class ParticipanteStatus {
         if (!this.statusIndicador || !this.statusTexto) return;
 
         if (window.Log) Log.debug("PARTICIPANTE-STATUS", "🟢 Online");
-        this.statusIndicador.style.background = "#22c55e";
+        this.statusIndicador.style.background = "var(--app-success-light)";
         this.statusTexto.textContent = "Online";
-        this.statusTexto.style.color = "#22c55e";
+        this.statusTexto.style.color = "var(--app-success-light)";
     }
 
     marcarOffline() {
         if (!this.statusIndicador || !this.statusTexto) return;
 
         if (window.Log) Log.warn("PARTICIPANTE-STATUS", "🔴 Offline");
-        this.statusIndicador.style.background = "#ef4444";
+        this.statusIndicador.style.background = "var(--app-danger)";
         this.statusTexto.textContent = "Offline";
-        this.statusTexto.style.color = "#ef4444";
+        this.statusTexto.style.color = "var(--app-danger)";
     }
 
     destruir() {

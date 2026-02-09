@@ -29,21 +29,21 @@ const FEATURES = {
 
 // Mapeamento de badges para exibição
 const BADGES_CONFIG = {
-    campeao: { icon: "🏆", nome: "Campeão", cor: "#ffd700" },
-    campeao_2025: { icon: "🏆", nome: "Campeão", cor: "#ffd700" },
-    vice: { icon: "🥈", nome: "Vice", cor: "#c0c0c0" },
-    vice_2025: { icon: "🥈", nome: "Vice", cor: "#c0c0c0" },
-    terceiro: { icon: "🥉", nome: "3º Lugar", cor: "#cd7f32" },
-    terceiro_2025: { icon: "🥉", nome: "3º Lugar", cor: "#cd7f32" },
-    top10_mito: { icon: "⭐", nome: "Top Mito", cor: "#10b981" },
-    top10_mito_2025: { icon: "⭐", nome: "Top Mito", cor: "#10b981" },
-    top10_mico: { icon: "💀", nome: "Top Mico", cor: "#ef4444" },
-    top10_mico_2025: { icon: "💀", nome: "Top Mico", cor: "#ef4444" },
-    artilheiro: { icon: "⚽", nome: "Artilheiro", cor: "#3b82f6" },
-    luva_ouro: { icon: "🧤", nome: "Luva Ouro", cor: "#f59e0b" },
-    capitao_luxo: { icon: "🎖️", nome: "Capitão Luxo", cor: "#8b5cf6" },
-    melhor_mes: { icon: "📅", nome: "Melhor Mês", cor: "#8b5cf6" },
-    mata_mata_campeao: { icon: "⚔️", nome: "Mata-Mata", cor: "#ec4899" },
+    campeao: { icon: "🏆", nome: "Campeão", cor: "var(--app-gold)" },
+    campeao_2025: { icon: "🏆", nome: "Campeão", cor: "var(--app-gold)" },
+    vice: { icon: "🥈", nome: "Vice", cor: "var(--app-silver)" },
+    vice_2025: { icon: "🥈", nome: "Vice", cor: "var(--app-silver)" },
+    terceiro: { icon: "🥉", nome: "3º Lugar", cor: "var(--app-bronze)" },
+    terceiro_2025: { icon: "🥉", nome: "3º Lugar", cor: "var(--app-bronze)" },
+    top10_mito: { icon: "⭐", nome: "Top Mito", cor: "var(--app-success)" },
+    top10_mito_2025: { icon: "⭐", nome: "Top Mito", cor: "var(--app-success)" },
+    top10_mico: { icon: "💀", nome: "Top Mico", cor: "var(--app-danger)" },
+    top10_mico_2025: { icon: "💀", nome: "Top Mico", cor: "var(--app-danger)" },
+    artilheiro: { icon: "⚽", nome: "Artilheiro", cor: "var(--app-info)" },
+    luva_ouro: { icon: "🧤", nome: "Luva Ouro", cor: "var(--app-amber)" },
+    capitao_luxo: { icon: "🎖️", nome: "Capitão Luxo", cor: "var(--app-purple)" },
+    melhor_mes: { icon: "📅", nome: "Melhor Mês", cor: "var(--app-purple)" },
+    mata_mata_campeao: { icon: "⚔️", nome: "Mata-Mata", cor: "var(--app-pink)" },
 };
 
 // Exportar para uso global

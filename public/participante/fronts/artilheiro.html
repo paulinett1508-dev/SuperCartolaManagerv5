@@ -20,10 +20,10 @@
     :root {
         --artilheiro-font-brand: var(--app-font-brand, 'Russo One', sans-serif);
         --artilheiro-font-body: 'Inter', -apple-system, sans-serif;
-        --artilheiro-primary: var(--app-success-light, #22c55e);
-        --artilheiro-card: var(--app-surface, #1a1a1a);
+        --artilheiro-primary: var(--app-success-light, var(--app-success-light));
+        --artilheiro-card: var(--app-surface, var(--app-surface));
         --artilheiro-border: var(--participante-border, #333);
-        --artilheiro-danger: var(--app-danger, #ef4444);
+        --artilheiro-danger: var(--app-danger, var(--app-danger));
     }
 
     @keyframes spin {
@@ -57,7 +57,7 @@
     }
 
     .artilheiro-card {
-        background: var(--participante-card, #1a1a1a);
+        background: var(--participante-card, var(--app-surface));
         border: 1px solid var(--participante-border, #333);
         border-radius: 12px;
         padding: 15px;
@@ -93,7 +93,7 @@
         color: var(--artilheiro-danger);
     }
     .text-primary {
-        color: var(--participante-primary, #22c55e);
+        color: var(--participante-primary, var(--app-success-light));
     }
     .fw-bold {
         font-weight: 700;

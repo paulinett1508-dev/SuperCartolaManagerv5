@@ -305,7 +305,7 @@ function renderizarCardDesempenho(ranking) {
             <div style="width: 100%;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                     <span class="material-icons" style="color: var(--capitao-primary); font-size: 20px;">person</span>
-                    <span style="font-family: var(--capitao-font-brand); color: #fff; font-size: 14px;">Seu Desempenho</span>
+                    <span style="font-family: var(--capitao-font-brand); color: var(--app-text-primary); font-size: 14px;">Seu Desempenho</span>
                     <span class="capitao-badge-captain">${posicao}º lugar</span>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
@@ -355,7 +355,7 @@ const MAX_CHIPS_VISIBLE = 5;
 function _renderChipHtml(r) {
     const pts = (r.pontuacao || 0).toFixed(1);
     const isParcial = r.parcial === true;
-    const corPts = r.pontuacao >= 10 ? '#22c55e' : r.pontuacao >= 5 ? '#fbbf24' : r.pontuacao < 0 ? '#ef4444' : '#9ca3af';
+    const corPts = r.pontuacao >= 10 ? 'var(--app-success-light)' : r.pontuacao >= 5 ? '#fbbf24' : r.pontuacao < 0 ? 'var(--app-danger)' : '#9ca3af';
 
     let dotHtml = '';
     if (isParcial) {
@@ -428,7 +428,7 @@ function renderizarModuloInativo() {
     container.innerHTML = `
         <div class="capitao-modulo-inativo">
             <span class="material-icons">military_tech</span>
-            <p style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 8px;">Capitão de Luxo</p>
+            <p style="font-size: 16px; font-weight: 600; color: var(--app-text-primary); margin-bottom: 8px;">Capitão de Luxo</p>
             <p>Este módulo não está ativo nesta liga.</p>
             <p style="font-size: 12px; margin-top: 8px;">Converse com o administrador da liga para ativá-lo.</p>
         </div>
@@ -442,7 +442,7 @@ function renderizarVazio() {
     container.innerHTML = `
         <div class="capitao-empty">
             <span class="material-icons">military_tech</span>
-            <p style="font-size: 14px; color: #fff; margin-bottom: 8px;">Sem dados disponíveis</p>
+            <p style="font-size: 14px; color: var(--app-text-primary); margin-bottom: 8px;">Sem dados disponíveis</p>
             <p>O ranking de capitães será atualizado após a consolidação das rodadas.</p>
         </div>
     `;

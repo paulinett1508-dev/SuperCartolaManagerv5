@@ -42,12 +42,12 @@ function mostrarErroFallback(mensagem) {
     if (container) {
         container.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; min-height: 300px;">
-                <span class="material-icons" style="font-size: 48px; color: #ef4444; margin-bottom: 16px;">warning</span>
-                <p style="font-weight: 600; color: #fff; margin-bottom: 8px;">Erro ao carregar ranking</p>
+                <span class="material-icons" style="font-size: 48px; color: var(--app-danger); margin-bottom: 16px;">warning</span>
+                <p style="font-weight: 600; color: var(--app-text-primary); margin-bottom: 8px;">Erro ao carregar ranking</p>
                 <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 20px;">${mensagem}</p>
                 <button
                     onclick="location.reload()"
-                    style="padding: 10px 20px; background: linear-gradient(135deg, #ff5c00, #ff8c00); color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(255,92,0,0.3);">
+                    style="padding: 10px 20px; background: linear-gradient(135deg, #ff5c00, #ff8c00); color: var(--app-text-primary); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(255,92,0,0.3);">
                     <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">refresh</span>
                     Recarregar Página
                 </button>

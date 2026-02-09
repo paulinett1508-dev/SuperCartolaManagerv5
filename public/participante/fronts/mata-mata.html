@@ -70,17 +70,17 @@
         --mm-bg-dark: var(--app-bg-dark, #000);
         --mm-primary: var(--participante-primary, #ff6a38);
         --mm-text: var(--participante-text, #f9fafb);
-        --mm-text-white: var(--app-text-white, #fff);
+        --mm-text-white: var(--app-text-white, var(--app-text-primary));
         --mm-text-muted: var(--participante-text-muted, #9ca3af);
         --mm-text-dim: var(--app-text-dim, #6b7280);
-        --mm-success: var(--app-success-light, #22c55e);
+        --mm-success: var(--app-success-light, var(--app-success-light));
         --mm-success-dark: var(--app-success, #16a34a);
-        --mm-danger: var(--app-danger, #ef4444);
-        --mm-warning: var(--app-warning, #eab308);
-        --mm-warning-dark: #ca8a04;
-        --mm-info: var(--app-info, #3b82f6);
-        --mm-purple: #8b5cf6;
-        --mm-pink: #ec4899;
+        --mm-danger: var(--app-danger, var(--app-danger));
+        --mm-warning: var(--app-warning, var(--app-warning));
+        --mm-warning-dark: var(--app-warning-dark);
+        --mm-info: var(--app-info, var(--app-info));
+        --mm-purple: var(--app-purple);
+        --mm-pink: var(--app-pink);
     }
 
     .mata-mata-module .material-symbols-outlined {
@@ -327,7 +327,7 @@
     }
 
     .mm-classificado-item:nth-child(-n+3) .mm-classificado-pos {
-        background: linear-gradient(135deg, #ffd700 0%, #ff9500 100%);
+        background: linear-gradient(135deg, var(--app-gold) 0%, #ff9500 100%);
         color: #000;
     }
 
@@ -1689,12 +1689,12 @@
 
     .mm-parciais-btn .material-symbols-outlined {
         font-size: 18px;
-        color: #f59e0b;
+        color: var(--app-amber);
     }
 
     .mm-parciais-badge {
         margin-left: auto;
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+        background: linear-gradient(135deg, var(--app-amber), #d97706);
         color: #000;
         font-size: 9px;
         font-weight: 700;
@@ -1718,7 +1718,7 @@
     .mm-live-dot {
         width: 8px;
         height: 8px;
-        background: #ef4444;
+        background: var(--app-danger);
         border-radius: 50%;
         animation: mm-pulse-live 1.5s ease-in-out infinite;
         flex-shrink: 0;
@@ -1730,7 +1730,7 @@
     }
 
     .mm-live-text {
-        color: #ef4444;
+        color: var(--app-danger);
         font-family: var(--mm-font-brand);
         font-size: 11px;
         letter-spacing: 1px;

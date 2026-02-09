@@ -4,21 +4,21 @@
 const DEFAULT_ZONE = {
     premiacao: {
         texto: "Zona de Premiação",
-        cor: "var(--app-success, #10b981)",
+        cor: "var(--app-success, var(--app-success))",
         bg: "rgba(16, 185, 129, 0.15)",
         classe: "zona-premiacao",
         icon: "emoji_events"
     },
     neutra: {
         texto: "Zona Neutra",
-        cor: "var(--app-warning, #f97316)",
+        cor: "var(--app-warning, var(--app-pos-gol))",
         bg: "rgba(249, 115, 22, 0.12)",
         classe: "zona-neutra",
         icon: "remove"
     },
     risco: {
         texto: "Zona de Risco",
-        cor: "var(--app-danger, #ef4444)",
+        cor: "var(--app-danger, var(--app-danger))",
         bg: "rgba(239, 68, 68, 0.18)",
         classe: "zona-risco",
         icon: "warning"
