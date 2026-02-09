@@ -105,7 +105,11 @@
       "Bash(file=\"/home/runner/workspace/public/participante/js/modules/participante-$module.js\")",
       "Bash(if [ -f \"$file\" ])",
       "Bash(then)",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(do sleep 1)",
+      "Bash(break)",
+      "Bash(if curl -s http://localhost:5000/api/cartola/mercado/status)",
+      "Bash(then echo 'Servidor reiniciado com sucesso!')"
     ]
   },
   "enableAllProjectMcpServers": true,
