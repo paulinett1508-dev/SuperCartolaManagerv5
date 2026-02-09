@@ -238,7 +238,18 @@ async function auditar() {
 
             let bulkSaldoConsolidado = 0;
             if (apenasTransacoesEspeciais) {
-                bulkSaldoConsolidado = extrato?.saldo_consolidado || 0;
+                // ✅ v1.1 FIX BUG-002: Para 2026+, NÃO usar saldo_consolidado direto
+                // (mesmo fix aplicado nos endpoints de tesouraria v3.3)
+                if (temporadaNum >= 2026) {
+                    bulkSaldoConsolidado = 0;
+                    historico.forEach(t => {
+                        if (t.tipo && t.tipo !== 'INSCRICAO_TEMPORADA' && t.tipo !== 'SALDO_TEMPORADA_ANTERIOR') {
+                            bulkSaldoConsolidado += t.valor || 0;
+                        }
+                    });
+                } else {
+                    bulkSaldoConsolidado = extrato?.saldo_consolidado || 0;
+                }
             } else {
                 const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
                 const resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);

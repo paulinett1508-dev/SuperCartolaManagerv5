@@ -232,8 +232,19 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                 let resumoCalculado = { bonus: 0, onus: 0, pontosCorridos: 0, mataMata: 0, top10: 0 };
 
                 if (apenasTransacoesEspeciais) {
-                    // ✅ v2.22: Para pré-temporada (só inscrição/legado), usar saldo_consolidado direto
-                    saldoConsolidado = extrato?.saldo_consolidado || 0;
+                    // ✅ v3.3 FIX BUG-002: Para 2026+, NÃO usar saldo_consolidado direto
+                    // saldo_consolidado já inclui inscrição/legado; aplicarAjusteInscricaoBulk reaplicaria
+                    if (temporadaNum >= 2026) {
+                        saldoConsolidado = 0;
+                        // Somar transações que aplicarAjusteInscricaoBulk NÃO trata
+                        historico.forEach(t => {
+                            if (t.tipo && t.tipo !== 'INSCRICAO_TEMPORADA' && t.tipo !== 'SALDO_TEMPORADA_ANTERIOR') {
+                                saldoConsolidado += t.valor || 0;
+                            }
+                        });
+                    } else {
+                        saldoConsolidado = extrato?.saldo_consolidado || 0;
+                    }
                 } else {
                     // ✅ v2.1 FIX: RECALCULAR usando mesmas funções do extrato individual
                     const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
@@ -608,10 +619,10 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
             const extrato = extratoMap.get(timeId);
             const historico = extrato?.historico_transacoes || [];
 
-            // ✅ v2.22 FIX: Detectar caches com apenas transações especiais (INSCRICAO, LEGADO)
-            // Esses caches têm rodada: 0 ou campo tipo, que são ignorados por transformarTransacoesEmRodadas
+            // ✅ v3.3 FIX BUG-002: Condição refinada (mesma do /participantes e /resumo)
+            const TIPOS_ESPECIAIS = ['INSCRICAO_TEMPORADA', 'SALDO_TEMPORADA_ANTERIOR', 'LEGADO_ANTERIOR'];
             const apenasTransacoesEspeciais = historico.length > 0 &&
-                historico.every(t => t.rodada === 0 || t.tipo);
+                historico.every(t => TIPOS_ESPECIAIS.includes(t.tipo));
 
             // Campos manuais
             const camposDoc = camposMap.get(timeId);
@@ -622,8 +633,17 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
             let resumoCalculado = { bonus: 0, onus: 0, pontosCorridos: 0, mataMata: 0, top10: 0 };
 
             if (apenasTransacoesEspeciais) {
-                // ✅ v2.22: Para pré-temporada (só inscrição/legado), usar saldo_consolidado direto
-                saldoConsolidado = extrato?.saldo_consolidado || 0;
+                // ✅ v3.3 FIX BUG-002: Para 2026+, NÃO usar saldo_consolidado direto
+                if (temporadaNum >= 2026) {
+                    saldoConsolidado = 0;
+                    historico.forEach(t => {
+                        if (t.tipo && t.tipo !== 'INSCRICAO_TEMPORADA' && t.tipo !== 'SALDO_TEMPORADA_ANTERIOR') {
+                            saldoConsolidado += t.valor || 0;
+                        }
+                    });
+                } else {
+                    saldoConsolidado = extrato?.saldo_consolidado || 0;
+                }
             } else {
                 // ✅ v2.1 FIX: RECALCULAR usando mesmas funções do extrato individual
                 const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
@@ -1431,13 +1451,23 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
                 const camposAtivos = camposDoc?.campos?.filter(c => c.valor !== 0) || [];
 
                 let saldoConsolidado = 0;
-                // ✅ v3.2 FIX BUG-002: Condição refinada
+                // ✅ v3.3 FIX BUG-002: Condição refinada
                 const TIPOS_ESPECIAIS = ['INSCRICAO_TEMPORADA', 'SALDO_TEMPORADA_ANTERIOR', 'LEGADO_ANTERIOR'];
                 const apenasTransacoesEspeciais = historico.length > 0 &&
                     historico.every(t => TIPOS_ESPECIAIS.includes(t.tipo));
 
                 if (apenasTransacoesEspeciais) {
-                    saldoConsolidado = extrato?.saldo_consolidado || 0;
+                    // ✅ v3.3 FIX BUG-002: Para 2026+, NÃO usar saldo_consolidado direto
+                    if (temporadaNum >= 2026) {
+                        saldoConsolidado = 0;
+                        historico.forEach(t => {
+                            if (t.tipo && t.tipo !== 'INSCRICAO_TEMPORADA' && t.tipo !== 'SALDO_TEMPORADA_ANTERIOR') {
+                                saldoConsolidado += t.valor || 0;
+                            }
+                        });
+                    } else {
+                        saldoConsolidado = extrato?.saldo_consolidado || 0;
+                    }
                 } else {
                     const rodadasProcessadas = transformarTransacoesEmRodadas(historico, ligaId);
                     const resumoCalculado = calcularResumoDeRodadas(rodadasProcessadas, camposAtivos);
@@ -1518,6 +1548,6 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v3.2 Rotas carregadas (FIX: AjusteFinanceiro no bulk, contagem credores/resumo)");
+console.log("[TESOURARIA] ✅ v3.3 Rotas carregadas (FIX: double-counting inscrição/legado em bulk endpoints)");
 
 export default router;

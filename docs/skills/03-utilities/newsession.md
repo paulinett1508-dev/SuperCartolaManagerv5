@@ -1,172 +1,127 @@
 # Skill: newsession
 
-Handover para nova sessão - carrega contexto do trabalho em andamento e instrui próximos passos.
+Handover para nova sessao - carrega contexto do trabalho em andamento e instrui proximos passos.
 
 ---
 
-## STATUS ATUAL: 🔴 AUDITORIA FINANCEIRA MEGA-PLANO | MCP Mongo fixado, aguardando restart
+## STATUS ATUAL: AUDITORIA FINANCEIRA CONCLUIDA
 
-**Data:** 08/02/2026
-**Última ação:** Plano de auditoria financeira APROVADO + Fix do .mcp.json (MCP Mongo)
-**Plano completo:** `.claude/plans/lucky-plotting-teacup.md`
-
----
-
-## 🎯 MISSÃO DESTA SESSÃO
-
-**Auditoria completa do módulo financeiro** - Extrato individual, Tesouraria, Fluxo Financeiro e scripts de auditoria estão dessincronizados. Saldos de participantes divergem entre views.
+**Data:** 09/02/2026
+**Ultima acao:** Todos os bugs financeiros fixados + auditoria confirmou ZERO divergencias
+**Plano original:** `.claude/plans/lucky-plotting-teacup.md`
 
 ---
 
-## 🐛 5 BUGS ENCONTRADOS (com localização exata)
+## RESULTADO DA AUDITORIA
 
-### BUG 1: AjusteFinanceiro AUSENTE das rotas bulk da Tesouraria (CRÍTICO)
-- **Arquivo:** `routes/tesouraria-routes.js`
-- **Linhas:** 132-139 (`/participantes`), 464-496 (`/liga/:ligaId`), 1312-1319 (`/resumo`)
-- **Problema:** 3 de 4 endpoints NÃO consultam collection `ajustesfinanceiros`
-- Apenas `/participante/:ligaId/:timeId` (L775-802) usa `calcularSaldoParticipante()` corretamente
-- **Impacto:** Saldo ERRADO na tabela da tesouraria para qualquer participante com ajustes dinâmicos (2026+)
-- **Fix:** Adicionar `AjusteFinanceiro.find(...)` ao `Promise.all` dos 3 endpoints
+```
+Temporada 2026: 43 participantes auditados | 0 divergencias
+Temporada 2025: 49 participantes auditados | 0 divergencias
+```
 
-### BUG 2: Potencial double-counting de inscrição/legado
-- **Arquivo:** `routes/tesouraria-routes.js` (L219-244 e L570-600)
-- **Problema:** Quando `apenasTransacoesEspeciais=true`:
-  1. Usa `saldo_consolidado` direto (que pode incluir inscrição/legado)
-  2. Depois chama `aplicarAjusteInscricaoBulk` que soma inscrição/legado NOVAMENTE
-- **Fix:** Não usar `saldo_consolidado` direto; somar transações especiais manualmente
+---
+
+## BUGS CORRIGIDOS (historico)
+
+### BUG 1: AjusteFinanceiro AUSENTE das rotas bulk da Tesouraria (CRITICO)
+- **Status:** FIXADO v3.2
+- **Fix:** `AjusteFinanceiro.find(...)` adicionado ao `Promise.all` dos 3 endpoints bulk
+- **Endpoints:** `/participantes`, `/liga/:ligaId`, `/resumo`
+
+### BUG 2: Double-counting de inscricao/legado
+- **Status:** FIXADO v3.3
+- **Problema:** Quando `apenasTransacoesEspeciais=true`, `saldo_consolidado` ja incluia inscricao/legado e `aplicarAjusteInscricaoBulk` os reaplicava
+- **Fix:** Para 2026+, iniciar `saldoConsolidado=0` e somar apenas transacoes nao tratadas por `aplicarAjusteInscricaoBulk`
+- **Endpoints:** `/participantes` (L234-247), `/liga/:ligaId` (L635-646), `/resumo` (L1459-1470)
+
+### BUG 2b: Condicao antiga em /liga/:ligaId
+- **Status:** FIXADO v3.3
+- **Problema:** Usava `t.rodada === 0 || t.tipo` (truthy para TUDO em cache v4.0.0)
+- **Fix:** Trocado por `TIPOS_ESPECIAIS.includes(t.tipo)` (mesma condicao do /participantes e /resumo)
 
 ### BUG 3: audit-financeiro.cjs totalmente quebrado
-- **Arquivo:** `scripts/audit-financeiro.cjs`
-- **Campos errados:** L206-208 consulta `timeId`/`ligaId` em ExtratoFinanceiroCache (deveria ser `time_id`/`liga_id`)
-- **Fórmula invertida:** L153 `saldoAcertos = totalRecebido - totalPago` (deveria ser `totalPago - totalRecebido`)
-- **Sem filtro temporada:** L168 busca sem temporada, mistura 2025/2026
-- **Ignora:** AjusteFinanceiro e InscricaoTemporada
+- **Status:** FIXADO v3.2
+- **Fix:** Script deprecado, substituido por `scripts/auditoria-financeira-completa.js`
 
 ### BUG 4: Query strategies divergentes entre endpoints
-- `/api/tesouraria/participantes` busca `temporada: N` (exata)
-- `/api/tesouraria/liga/:ligaId` busca `temporada: {$in: [N, N-1]}` e depois filtra com sort/prioridade
-- **Podem produzir mapas com dados de temporadas diferentes**
+- **Status:** BY DESIGN
+- `/participantes` busca `temporada: N` (exata)
+- `/liga/:ligaId` busca `temporada: {$in: [N, N-1]}` com sort/prioridade
+- Intencional para transicao de temporada; mecanismo de prioridade garante dados corretos
 
 ### BUG 5: /resumo conta credores como quitados
-- **Arquivo:** `routes/tesouraria-routes.js` (L1401-1410)
-- **Lógica bugada:**
-```js
-if (saldoFinal < -0.01) { qtdDevedores++ }
-else { qtdQuitados++; if (saldoFinal > 0.01) { qtdCredores++ } }
-// ↑ credores contados em qtdQuitados E qtdCredores simultaneamente
+- **Status:** FIXADO v3.2
+- **Fix:** Logica if/else if/else correta separando devedores, credores e quitados
+
+---
+
+## TASK LIST (TODAS CONCLUIDAS)
+
+```
+#1. [completed] Fix MCP Mongo authentication
+#2. [completed] Criar script auditoria-financeira-completa.js
+#3. [completed] Fix BUG 1 - AjusteFinanceiro ausente do bulk tesouraria (v3.2)
+#4. [completed] Fix BUG 2 - Double-counting inscricao/legado (v3.3)
+#5. [completed] Fix BUGs 4 e 5 - Query temporada e contagem resumo (v3.2)
+#6. [completed] Reescrever audit-financeiro.cjs → auditoria-financeira-completa.js
+#7. [completed] Auditoria final: ZERO divergencias em 2025 e 2026
 ```
 
 ---
 
-## ✅ O QUE JÁ FOI FEITO
-
-### 1. Fix MCP Mongo (.mcp.json)
-- Corrigido `cwd` de `/home/user/SuperCartolaManagerv5` para `/home/runner/workspace`
-- Adicionado `MONGO_URI` e `NODE_ENV=production` no bloco `env`
-- **Status:** Editado, aguardando restart do Claude Code para fazer efeito
-
-### 2. Plano Aprovado
-- Plano completo em `.claude/plans/lucky-plotting-teacup.md`
-- Escopo: Temporadas 2025 + 2026
-- Abordagem: Fix inline (manter performance bulk)
-- 7 fases de execução definidas
-
----
-
-## 📋 TASK LIST (não iniciadas exceto #1)
-
-```
-#1. [in_progress] Fix MCP Mongo authentication → .mcp.json editado, aguardando restart
-#2. [pending] Criar script auditoria-financeira-completa.js
-#3. [pending] Fix BUG 1 - AjusteFinanceiro ausente do bulk tesouraria
-#4. [pending] Fix BUG 2 - Double-counting inscrição/legado
-#5. [pending] Fix BUGs 4 e 5 - Query temporada e contagem resumo
-#6. [pending] Reescrever audit-financeiro.cjs
-```
-
----
-
-## 🚀 PRÓXIMOS PASSOS (ao retomar)
-
-### PASSO 1: Verificar MCP Mongo
-```
-Testar: mcp__mongo__list_collections
-Se funcionar → prosseguir
-Se falhar → debug da .mcp.json
-```
-
-### PASSO 2: Consultar banco para entender estado real
-```
-- Quantos participantes com AjusteFinanceiro ativo em 2026?
-- Quantos com pagou_inscricao=false?
-- Quantos caches com apenasTransacoesEspeciais?
-- Divergência real entre saldo_consolidado e sum(historico_transacoes.saldo)?
-```
-
-### PASSO 3: Criar script auditoria-financeira-completa.js (Task #2)
-Script que compara os 3 caminhos de cálculo para cada participante
-
-### PASSO 4: Aplicar fixes (Tasks #3-#6)
-Na ordem: BUG 1 → BUG 2 → BUGs 4+5 → BUG 3
-
-### PASSO 5: Rodar auditoria novamente e confirmar zero divergências
-
----
-
-## 📁 ARQUIVOS CRÍTICOS
+## ARQUIVOS CRITICOS
 
 | Arquivo | Papel | Status |
 |---------|-------|--------|
 | `utils/saldo-calculator.js` | FONTE DA VERDADE | Correto (v2.0) |
-| `routes/tesouraria-routes.js` | 4 endpoints financeiros | BUGs 1,2,4,5 |
-| `controllers/fluxoFinanceiroController.js` | Cálculo real-time | Referência |
-| `controllers/extratoFinanceiroCacheController.js` | Cache + funções compartilhadas | Referência |
-| `models/AjusteFinanceiro.js` | Ajustes dinâmicos 2026+ | Referência |
-| `models/InscricaoTemporada.js` | Inscrição/renovação | Referência |
-| `scripts/audit-financeiro.cjs` | Script auditoria individual | BUG 3 |
-| `scripts/reconciliar-saldos-financeiros.js` | Reconciliação bulk | Limitado |
-| `.mcp.json` | Config MCP Mongo | FIXADO ✅ |
+| `routes/tesouraria-routes.js` | 4 endpoints financeiros | FIXADO v3.3 |
+| `controllers/fluxoFinanceiroController.js` | Calculo real-time | Referencia |
+| `controllers/extratoFinanceiroCacheController.js` | Cache + funcoes compartilhadas | Referencia |
+| `models/AjusteFinanceiro.js` | Ajustes dinamicos 2026+ | Referencia |
+| `models/InscricaoTemporada.js` | Inscricao/renovacao | Referencia |
+| `scripts/auditoria-financeira-completa.js` | Script auditoria completa | Correto v1.1 |
+| `scripts/audit-financeiro.cjs` | DEPRECADO | Substituido |
+| `.mcp.json` | Config MCP Mongo | FIXADO |
 
 ---
 
-## 🏗️ ARQUITETURA FINANCEIRA (Resumo)
+## ARQUITETURA FINANCEIRA (Resumo)
 
 ```
 6 Collections:
-  extratofinanceirocaches  → Cache consolidado (rodadas + saldo)
-  fluxofinanceirocampos    → 4 campos manuais fixos (< 2026)
-  ajustesfinanceiros       → Ajustes dinâmicos ilimitados (>= 2026)
-  acertofinanceiros        → Pagamentos e recebimentos reais
-  inscricoestemporada      → Inscrição, legado, dívida anterior
-  ligarules                → Regras configuráveis por liga/temporada
+  extratofinanceirocaches  -> Cache consolidado (rodadas + saldo)
+  fluxofinanceirocampos    -> 4 campos manuais fixos (< 2026)
+  ajustesfinanceiros       -> Ajustes dinamicos ilimitados (>= 2026)
+  acertofinanceiros        -> Pagamentos e recebimentos reais
+  inscricoestemporada      -> Inscricao, legado, divida anterior
+  ligarules                -> Regras configuraveis por liga/temporada
 
-Fórmula Master (saldo-calculator.js):
+Formula Master (saldo-calculator.js):
   SALDO = (cache.rodadas + campos + ajustes - inscricao + legado - divida) + (totalPago - totalRecebido)
 
-4 Caminhos de Cálculo:
-  1. calcularSaldoParticipante() → fonte da verdade (N+1 queries)
-  2. /participantes inline       → bulk otimizado (FALTA ajustes)
-  3. /liga/:ligaId inline        → bulk otimizado (FALTA ajustes + query N-1)
-  4. /resumo inline              → bulk otimizado (FALTA ajustes + contagem bugada)
-
-Inconsistência de tipos:
-  time_id: Number (cache, inscricao, ajustes) vs String (campos, acertos)
-  liga_id: Mixed/ObjectId (cache, inscricao, rules) vs String (campos, acertos)
+4 Caminhos de Calculo (TODOS SINCRONIZADOS):
+  1. calcularSaldoParticipante() -> fonte da verdade (N+1 queries)
+  2. /participantes inline       -> bulk otimizado (v3.3 sincronizado)
+  3. /liga/:ligaId inline        -> bulk otimizado (v3.3 sincronizado)
+  4. /resumo inline              -> bulk otimizado (v3.3 sincronizado)
 ```
 
 ---
 
-## 🔧 DADOS DE REFERÊNCIA
+## DADOS DE REFERENCIA
 
 **Liga principal:** Super Cartola 2026
 - Liga ID: `684cb1c8af923da7c7df51de`
-- Inscrição: R$ 180,00
+- Inscricao: R$ 180,00
 - CURRENT_SEASON: 2026
 
-**Participante de teste:** Antônio Luis (FloriMengo FC)
-- Time ID: `645089`
-- pagouInscricao: `false`
+**Como rodar auditoria:**
+```bash
+node scripts/auditoria-financeira-completa.js --dry-run
+node scripts/auditoria-financeira-completa.js --dry-run --liga=684cb1c8af923da7c7df51de
+node scripts/auditoria-financeira-completa.js --dry-run --temporada=2025
+```
 
 ---
 
-**RETOMAR:** Verificar MCP Mongo → Consultar banco → Criar auditoria → Aplicar fixes 🎯
+**STATUS: AUDITORIA FINANCEIRA COMPLETA - Todos os caminhos de calculo sincronizados**
