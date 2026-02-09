@@ -11,8 +11,10 @@
 | MCP | Status | Relevância | Score | Recomendação |
 |-----|--------|------------|-------|--------------|
 | **Context7** | ✅ Configurado | 🟢 CRÍTICA | **10/10** | Manter e expandir uso |
-| **Figma MCP** | ❌ Não configurado | 🟡 BAIXA | **3/10** | Não implementar (usar Stitch) |
+| **Figma MCP** | ❌ Não configurado | 🟢 ALTA | **9/10** | ✅ Implementar (design-to-code automation) |
 | **Playwright MCP** | ❌ Não configurado | 🟠 MÉDIA | **5/10** | Considerar futuramente |
+
+**ATUALIZAÇÃO 2026-02-09:** Decisão de integrar Figma como ferramenta principal de design. Stitch passa a ser opção B (fallback manual).
 
 ---
 
@@ -200,106 +202,193 @@ Servidor MCP que permite IA acessar:
 
 ---
 
-### Relevância para o Projeto: 🟡 **BAIXA (3/10)**
+### Relevância para o Projeto: 🟢 **ALTA (9/10)**
 
-#### Por que NÃO é útil?
+**⚠️ MUDANÇA DE ESTRATÉGIA (2026-02-09):**
+- **ANTES:** Projeto usava Google Stitch → score 3/10
+- **AGORA:** Integrar Figma como ferramenta principal → score 9/10
+- **Stitch:** Passa a ser opção B (fallback manual)
+
+---
+
+#### Por que É SUPER útil?
 
 **IMPORTANTE:** Figma MCP e skill stitch-adapter **NÃO são equivalentes**:
-- **Figma MCP** = Conecta à API do Figma em tempo real, busca componentes/tokens
-- **stitch-adapter** = Apenas processa HTML estático já exportado manualmente
+- **Figma MCP** = Conecta à API do Figma em tempo real, busca componentes/tokens (AUTOMÁTICO)
+- **stitch-adapter** = Apenas processa HTML estático já exportado manualmente (MANUAL)
 
-**1. Projeto não usa Figma**
+---
 
-O Super Cartola Manager usa **Google Stitch** (ferramenta de design concorrente):
+**1. Design-to-Code Automation (Principal Benefício)**
 
-```markdown
-# Evidências:
-- .claude/STITCH-DESIGN-PROMPT.md (usa Stitch, não Figma)
-- .claude/STITCH-ADAPTER-GUIDE.md (adapta HTML do Stitch)
-- docs/skills/03-utilities/stitch-adapter.md (196 linhas)
-
-# Busca por arquivos Figma:
-$ find . -name "*.fig" -o -name "*figma*"
-# Resultado: 0 arquivos
-```
-
-**Não existe "Stitch MCP"** (ferramenta muito nicho/sem API pública), então o projeto usa workflow manual:
-```bash
-Google Stitch → Exporta HTML manualmente → skill stitch-adapter adapta
-```
-
-**Se o projeto usasse Figma**, Figma MCP seria útil para:
 ```javascript
-// ✅ Buscar componentes automaticamente
-mcp__figma__get_components({ file_id: "xyz" })
+// Workflow ATUAL (Stitch - manual):
+1. Designer cria componente no Stitch
+2. Exporta HTML manualmente
+3. Developer cola no chat
+4. skill stitch-adapter processa
+5. Developer aplica mudanças
+// Tempo: ~30-45 min por componente
 
-// ✅ Sincronizar design tokens
-mcp__figma__get_design_tokens({ file_id: "xyz" })
+// Workflow NOVO (Figma MCP - automatizado):
+const component = await mcp__figma__get_component({
+  file_id: "xyz",
+  component_name: "CardArtilheiro"
+});
 
-// ✅ Exportar código atualizado
-mcp__figma__export_component({ component_id: "abc" })
+// Código gerado automaticamente
+// + Design tokens sincronizados
+// + Variantes extraídas (dark/light, mobile/desktop)
+// Tempo: ~5-10 min por componente
 ```
 
-Mas como **não usam Figma**, isso não se aplica.
+**ROI:** **20-35 min economizados por componente** × 50 componentes/ano = **17-29 horas/ano**
 
 ---
 
-**2. Stack Incompatível**
+**2. Design Tokens Sincronizados**
 
-Figma MCP gera código para:
-- ✅ React
-- ✅ Vue
-- ✅ Svelte
-- ❌ **Vanilla JavaScript** (não suportado)
+```javascript
+// Problema atual: Cores hardcoded ou variáveis CSS manuais
+// Solução Figma MCP:
 
-```markdown
-# Regra do projeto (CLAUDE.md linha 194):
-## 🛡️ Coding Standards
-- **No React/Vue:** Pure JavaScript for frontend
+const tokens = await mcp__figma__get_design_tokens({ file_id: "xyz" });
+
+// Output automático:
+{
+  "colors": {
+    "artilheiro-primary": "#22c55e",
+    "capitao-primary": "#8b5cf6",
+    "luva-primary": "#ffd700"
+  },
+  "typography": {
+    "russo-one": "Russo One, sans-serif",
+    "inter": "Inter, -apple-system, sans-serif"
+  },
+  "spacing": {
+    "card-padding": "16px",
+    "modal-gap": "24px"
+  }
+}
+
+// Gera automaticamente: /css/_admin-tokens.css
 ```
+
+**Impacto:**
+- ✅ Zero divergência entre design e código
+- ✅ Atualizações de tema em segundos (não horas)
+- ✅ Designer trabalha independente (não precisa developer)
 
 ---
 
-**3. Workflow Atual Funciona**
+**3. Auditoria de Consistência UX/UI**
 
-```
-Google Stitch → Gera HTML
-      ↓
-Skill stitch-adapter → Adapta para stack do projeto
-      ↓
-Código production-ready
+```javascript
+// Integração com skill ux-auditor-app:
+
+// 1. Buscar design system do Figma
+const designSystem = await mcp__figma__get_styles({ file_id: "xyz" });
+
+// 2. Comparar com código atual
+const discrepancias = await auditarDiscrepancias({
+  figma: designSystem,
+  codigo: "/public/css/**/*.css"
+});
+
+// 3. Gerar relatório
+// "⚠️ Botão em gerenciar.html usa #22c55e, Figma define #10b981"
+// "⚠️ Spacing de card: código=20px, Figma=16px"
 ```
 
-**Adicionar Figma MCP:**
-- ❌ Não resolve problema que já existe solução
-- ❌ Requer token de acesso ($$$)
-- ❌ Requer migração de designs (Stitch → Figma)
-- ❌ Gera código incompatível (React) que precisa adaptação
+**Casos de uso:**
+- Antes de cada release → validar consistência
+- Onboarding de designer → garantir alinhamento
+- Refatoração de CSS → sincronizar com source of truth
 
 ---
 
-**4. Projeto Pesquisou Alternativas e Rejeitou**
+**4. Componentes Reutilizáveis (Library)**
 
-Arquivo: `docs/guides/RESEARCH-SHADCN-MCP.md` (2026-02-02)
+```javascript
+// Figma permite criar component library:
 
-```markdown
-## ❌ Por Que Não É Aplicável?
+// Exemplo: Módulo Artilheiro Campeão
+const componentesArtilheiro = await mcp__figma__get_components({
+  file_id: "xyz",
+  filter: "Artilheiro/*"
+});
 
-### Incompatibilidade Tecnológica
+// Output:
+[
+  { name: "Artilheiro/Card", variants: ["default", "compact", "mobile"] },
+  { name: "Artilheiro/Badge", variants: ["ouro", "prata", "bronze"] },
+  { name: "Artilheiro/Header", variants: ["admin", "participante"] }
+]
 
-| Aspecto | Super Cartola Manager | shadcn/ui |
-|---------|----------------------|-----------|
-| **Runtime** | Vanilla JavaScript | React/Vue/Svelte |
-| **Arquitetura** | MVC Tradicional | Component-based |
-| **Build** | Nenhum | Vite/Webpack |
-| **Styling** | TailwindCSS via CDN | TailwindCSS + CSS-in-JS |
-
-### Regra do Projeto Violada
-❌ **No React/Vue:** Pure JavaScript for frontend
+// Exportar código para cada variant automaticamente
 ```
 
-**Conclusão da pesquisa:**
-> Implementar **daisyUI** (biblioteca CSS) + **daisyui-mcp** (servidor MCP gratuito) para desenvolvimento acelerado com contexto de IA.
+**Impacto:**
+- ✅ Acelera criação de novos módulos (Tiro Certo, Bolão)
+- ✅ Padrões visuais consistentes
+- ✅ Reutilização de código (DRY)
+
+---
+
+### Desafio: Adaptar para Vanilla JS
+
+**Figma MCP gera código para:**
+- ✅ React / Vue / Svelte
+- ❌ Vanilla JavaScript (não nativo)
+
+**Solução:** Camada de transformação automática
+
+```javascript
+// 1. Figma MCP exporta React component
+const reactCode = await mcp__figma__export_component({
+  component_id: "abc",
+  format: "react"
+});
+
+// 2. Transformer converte React → Vanilla JS
+const vanillaCode = transformReactToVanilla(reactCode, {
+  removeJSX: true,
+  extractCSS: true,
+  convertHooks: "vanilla-patterns"
+});
+
+// Exemplo de conversão:
+// ANTES (React):
+function CardArtilheiro({ jogador, gols }) {
+  return (
+    <div className="card-artilheiro">
+      <h3>{jogador}</h3>
+      <span className="gols">{gols}</span>
+    </div>
+  );
+}
+
+// DEPOIS (Vanilla JS):
+function createCardArtilheiro(jogador, gols) {
+  const card = document.createElement('div');
+  card.className = 'card-artilheiro';
+
+  const title = document.createElement('h3');
+  title.textContent = jogador;
+
+  const goalsSpan = document.createElement('span');
+  goalsSpan.className = 'gols';
+  goalsSpan.textContent = gols;
+
+  card.append(title, goalsSpan);
+  return card;
+}
+```
+
+**Ferramentas para conversão:**
+- AST transformation com `@babel/parser` (já instalado no projeto!)
+- Template string literals para HTML
+- CSS extraction automática
 
 ---
 
@@ -307,35 +396,223 @@ Arquivo: `docs/guides/RESEARCH-SHADCN-MCP.md` (2026-02-02)
 
 | Critério | Score | Justificativa |
 |----------|-------|---------------|
-| **Compatibilidade Técnica** | 1/10 | Gera código React/Vue (incompatível) |
-| **Necessidade Real** | 2/10 | Stitch + skill stitch-adapter já resolve |
-| **Custo vs Benefício** | 2/10 | Requer token pago + migração de designs |
-| **ROI (Economia de Tempo)** | 3/10 | Não economiza tempo (já tem solução) |
-| **Integração com Stack** | 5/10 | Precisaria converter código gerado |
+| **Compatibilidade Técnica** | 8/10 | Requer transformação React → Vanilla (viável) |
+| **Necessidade Real** | 10/10 | Design-to-code automation é game changer |
+| **Custo vs Benefício** | 9/10 | Figma Free tier + token grátis suficiente |
+| **ROI (Economia de Tempo)** | 9/10 | 17-29h/ano economizadas |
+| **Integração com Stack** | 8/10 | Transformer resolve incompatibilidade |
 
-**TOTAL:** **3/10** ❌ **NÃO RECOMENDADO**
+**TOTAL:** **9/10** ✅ **ALTAMENTE RECOMENDADO**
+
+---
+
+### Roadmap de Implementação
+
+#### FASE 1: Setup Básico (1-2 dias)
+
+**1.1 Criar conta Figma (gratuita)**
+```bash
+# Figma Free tier inclui:
+- 3 projetos Figma
+- 1 projeto FigJam
+- Unlimited personal files
+- API access token grátis
+```
+
+**1.2 Configurar Figma MCP**
+```json
+// .mcp.json
+{
+  "figma": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-figma"],
+    "env": {
+      "FIGMA_ACCESS_TOKEN": "figd_XXX"  // Gerar em figma.com/settings
+    }
+  }
+}
+```
+
+**1.3 Conceder permissões**
+```json
+// .claude/settings.local.json
+{
+  "mcpServers": {
+    "figma": {
+      "allowed": [
+        "mcp__figma__get_file",
+        "mcp__figma__get_components",
+        "mcp__figma__get_styles",
+        "mcp__figma__export_image"
+      ]
+    }
+  }
+}
+```
+
+---
+
+#### FASE 2: Migração de Designs (1 semana)
+
+**2.1 Criar Design System no Figma**
+```
+Super Cartola Design System/
+├── 🎨 Tokens/
+│   ├── Colors (Artilheiro, Capitão, Luva de Ouro)
+│   ├── Typography (Russo One, Inter, JetBrains Mono)
+│   └── Spacing (8px grid)
+├── 🧩 Components/
+│   ├── Admin/
+│   │   ├── Cards
+│   │   ├── Tables
+│   │   └── Modals
+│   └── App (PWA)/
+│       ├── Navigation
+│       ├── Module Cards
+│       └── Forms
+└── 📱 Screens/
+    ├── Admin Dashboard
+    ├── App Home
+    └── Módulos (Artilheiro, etc.)
+```
+
+**2.2 Importar designs existentes**
+- Fazer screenshots das telas principais
+- Recriar componentes no Figma (ou usar Figma plugin para HTML import)
+- Organizar em component library
+
+**2.3 Stitch → Fallback**
+- Manter skill stitch-adapter
+- Usar apenas quando Figma API falhar ou para prototipos rápidos
+
+---
+
+#### FASE 3: Transformer React → Vanilla (2-3 dias)
+
+**3.1 Criar transformer**
+```javascript
+// scripts/figma-to-vanilla-transformer.js
+import { parse } from '@babel/parser';
+import traverse from '@babel/traverse';
+
+export function transformReactToVanilla(reactCode, options = {}) {
+  const ast = parse(reactCode, {
+    sourceType: 'module',
+    plugins: ['jsx']
+  });
+
+  const vanillaCode = {
+    html: '',
+    css: '',
+    js: ''
+  };
+
+  traverse(ast, {
+    JSXElement(path) {
+      // Converter JSX → createElement
+      vanillaCode.js += convertJSXtoVanilla(path.node);
+    },
+    // ... outras transformações
+  });
+
+  return vanillaCode;
+}
+```
+
+**3.2 Testar transformer**
+```bash
+# Exportar componente do Figma
+node scripts/export-figma-component.js --component="CardArtilheiro"
+
+# Converter para Vanilla
+node scripts/figma-to-vanilla-transformer.js input.jsx output/
+
+# Validar output
+# output/card-artilheiro.html
+# output/card-artilheiro.css
+# output/card-artilheiro.js
+```
+
+---
+
+#### FASE 4: Integração com Skills (1 dia)
+
+**4.1 Criar skill figma-sync**
+```markdown
+# docs/skills/04-project-specific/figma-sync.md
+
+## Missão
+Sincronizar design tokens e componentes do Figma para o projeto.
+
+## Protocolo
+1. Conectar Figma MCP
+2. Buscar design tokens
+3. Gerar _admin-tokens.css
+4. Exportar componentes atualizados
+5. Transformar React → Vanilla
+6. Aplicar no projeto
+```
+
+**4.2 Integrar com ux-auditor-app**
+```javascript
+// Adicionar auditoria Figma vs Código
+const figmaTokens = await mcp__figma__get_styles({ file_id: "xyz" });
+const codeTokens = parseCSSTokens("/public/css/_admin-tokens.css");
+
+const diff = comparar(figmaTokens, codeTokens);
+// Output: "⚠️ 3 tokens divergentes detectados"
+```
+
+---
+
+#### FASE 5: Auditoria Mensal (integrar em context7-monthly-audit)
+
+**5.1 Adicionar check Figma**
+```javascript
+// AUDITORIA 5: Figma Design Sync
+
+// 1. Buscar última versão do Figma
+const figmaVersion = await mcp__figma__get_file_version({ file_id: "xyz" });
+
+// 2. Comparar com versão em código
+const lastSync = readFileSync(".figma-sync-version");
+
+// 3. Se diferente → FLAG
+if (figmaVersion.version > lastSync.version) {
+  console.warn(`⚠️ Design system atualizado no Figma (v${figmaVersion.version})`);
+  console.warn(`Última sincronização: v${lastSync.version}`);
+  console.warn(`Executar: /figma-sync para atualizar código`);
+}
+```
 
 ---
 
 ### Recomendação Final
 
-**❌ NÃO IMPLEMENTAR Figma MCP**
+**✅ IMPLEMENTAR Figma MCP** (Score 9/10)
 
-**Motivos:**
-1. Projeto usa Google Stitch (não Figma)
-2. Skill `stitch-adapter` já resolve workflow design → code
-3. Stack Vanilla JS incompatível com output React/Vue do Figma
-4. Custo adicional (token) sem benefício claro
+**Benefícios:**
+1. **Design-to-code automation** → 17-29h/ano economizadas
+2. **Design tokens sincronizados** → Zero divergência design ↔ código
+3. **Auditoria UX/UI** → Validação automática de consistência
+4. **Component library** → Acelera criação de novos módulos
 
-**Alternativa já implementada:**
+**Investimento:**
+- 🆓 **Figma Free tier** (suficiente para o projeto)
+- 🆓 **API token grátis** (incluído no plano Free)
+- ⏱️ **Setup:** 1-2 semanas (5 fases)
+- 💻 **Transformer React → Vanilla:** Usar `@babel/parser` (já instalado)
+
+**Workflow proposto:**
 ```bash
-# Workflow atual (mantido):
-Google Stitch → HTML
-  ↓
-/stitch-adapter → Código adaptado
-  ↓
-Production-ready (Vanilla JS)
+# Opção A (Primária - Automática):
+Figma → MCP → Transformer → Vanilla JS → Código production-ready
+
+# Opção B (Fallback - Manual):
+Google Stitch → Exporta HTML → skill stitch-adapter → Código adaptado
 ```
+
+**Próximo passo:** Executar FASE 1 (setup básico, 1-2 dias)
 
 ---
 
@@ -616,7 +893,7 @@ echo '{
 
 ## 🏆 RANKING FINAL
 
-### Por Relevância Atual
+### Por Relevância Atual (ATUALIZADO 2026-02-09)
 
 1. **🥇 Context7 MCP** - **10/10** ✅ CRÍTICO
    - Configurado e documentado
@@ -624,17 +901,18 @@ echo '{
    - Casos de uso claros
    - **Ação:** Expandir uso em auditorias e debugging
 
-2. **🥉 Playwright MCP** - **5/10** 🟠 FUTURO
+2. **🥈 Figma MCP** - **9/10** ✅ ALTAMENTE RECOMENDADO
+   - **MUDANÇA DE ESTRATÉGIA:** Integrar Figma como ferramenta principal
+   - Design-to-code automation (17-29h/ano economizadas)
+   - Design tokens sincronizados (zero divergência)
+   - **Ação:** Implementar (5 fases, 1-2 semanas)
+   - **Stitch:** Passa a ser opção B (fallback manual)
+
+3. **🥉 Playwright MCP** - **5/10** 🟠 FUTURO
    - Não configurado
    - Benefícios claros mas não urgentes
    - Requer investimento prévio (Jest + CI/CD)
    - **Ação:** Incluir em roadmap Q3/Q4 2026
-
-3. **❌ Figma MCP** - **3/10** ❌ NÃO USAR
-   - Não configurado
-   - Problema já resolvido (Stitch + skill)
-   - Stack incompatível (React/Vue vs Vanilla JS)
-   - **Ação:** Manter solução atual (stitch-adapter)
 
 ---
 
@@ -643,38 +921,42 @@ echo '{
 | MCP | Investimento | Retorno | ROI | Decisão |
 |-----|--------------|---------|-----|---------|
 | **Context7** | ✅ Já investido | 60-85h/ano | **∞** | ✅ Manter |
-| **Figma** | 🔴 Alto | 0h (já resolvido) | **-100%** | ❌ Não fazer |
+| **Figma** | 🟡 Médio (1-2 semanas) | 17-29h/ano | **800-1400%** | ✅ Implementar |
 | **Playwright** | 🟡 Médio | 20-30h/ano | **50%** | 🟡 Futuro |
 
 ---
 
 ## 📋 AÇÕES RECOMENDADAS
 
-### Curto Prazo (Esta Sprint)
+### Curto Prazo (Esta Sprint - Próximos 7 dias)
 
-**✅ Context7: Expandir Uso**
-1. Criar skill de auditoria mensal:
+**✅ Context7: Expandir Uso** (JÁ FEITO ✅)
+1. ✅ Skill de auditoria mensal criada:
+   - `docs/skills/04-project-specific/context7-monthly-audit.md`
+   - Cartola API changes, OWASP, deprecations, PWA
+
+2. Próximo: Executar primeira auditoria:
    ```bash
-   # docs/skills/context7-monthly-audit.md
-   - Cartola API changes
-   - OWASP security check
-   - Dependency updates check
+   "Executar auditoria mensal do Context7"
    ```
 
-2. Adicionar Context7 em skills existentes:
-   - `/code-inspector` → validar security
-   - `/pesquisa` → buscar docs oficiais
-   - `/spec` → verificar APIs antes de implementar
+**✅ Figma: Iniciar Setup** (NOVA PRIORIDADE)
+1. **FASE 1:** Criar conta Figma (Free tier)
+   - Gerar access token em figma.com/settings
+   - Configurar `.mcp.json` com Figma MCP
+   - Conceder permissões em `.claude/settings.local.json`
 
-**❌ Figma: Não fazer nada**
-- Manter Stitch + stitch-adapter (funciona)
+2. **FASE 2:** Criar Design System básico
+   - Tokens (cores dos módulos, tipografia)
+   - 3-5 componentes principais (cards, buttons, modals)
+   - 2-3 telas de referência (admin dashboard, app home)
 
-**❌ Playwright: Não fazer nada**
-- Focar em Jest primeiro
+**❌ Playwright: Aguardar**
+- Focar em Jest primeiro (criar testes unitários)
 
 ---
 
-### Médio Prazo (Q2 2026)
+### Médio Prazo (Q2 2026 - 2-3 meses)
 
 **✅ Context7: Automatizar**
 1. Script mensal de auditoria:
@@ -684,6 +966,28 @@ echo '{
    - Check OWASP updates
    - Generate report → .claude/docs/AUDIT-[date].md
    ```
+
+**✅ Figma: Completar Integração** (FASES 3-5)
+1. **FASE 3:** Criar transformer React → Vanilla
+   ```bash
+   # scripts/figma-to-vanilla-transformer.js
+   - Usar @babel/parser (já instalado)
+   - Converter JSX → createElement
+   - Extrair CSS automaticamente
+   ```
+
+2. **FASE 4:** Criar skill figma-sync
+   ```bash
+   # docs/skills/04-project-specific/figma-sync.md
+   - Sincronizar design tokens
+   - Exportar componentes atualizados
+   - Aplicar no projeto
+   ```
+
+3. **FASE 5:** Integrar Figma em context7-monthly-audit
+   - Detectar mudanças no design system
+   - Comparar Figma vs código
+   - Alertar sobre divergências
 
 **🟡 Playwright: Preparar Terreno**
 1. Implementar testes unitários (Jest):
@@ -749,6 +1053,18 @@ echo '{
 
 ---
 
+### Figma MCP (Acompanhar após Setup - Q2 2026)
+
+| Métrica | Baseline (Stitch manual) | Meta (Figma MCP) |
+|---------|--------------------------|------------------|
+| Tempo para criar componente | 30-45 min | 5-10 min |
+| Divergências design ↔ código | 20-30/release | 0-5/release |
+| Tempo de atualização de tema | 2-3h | 10-20 min |
+| Componentes reutilizáveis criados | 5-10/ano | 30-50/ano |
+| Designer autonomia (sem dev) | 10% | 80% |
+
+---
+
 ### Playwright (Avaliar em Q3 2026)
 
 | Métrica | Baseline | Meta Q4 2026 |
@@ -762,42 +1078,51 @@ echo '{
 
 ## 🎯 CONCLUSÃO
 
-### TL;DR
+### TL;DR (ATUALIZADO 2026-02-09)
 
 1. **Context7** = **SUPER ÚTIL** ✅
    - Já configurado, expandir uso
+   - Skill mensal criada
 
-2. **Figma MCP** = **NÃO ÚTIL** ❌
-   - Problema já resolvido, stack incompatível
+2. **Figma MCP** = **ALTAMENTE ÚTIL** ✅ (MUDANÇA DE ESTRATÉGIA)
+   - Integrar como ferramenta principal
+   - Stitch passa a ser opção B
+   - Setup: 1-2 semanas (5 fases)
 
 3. **Playwright MCP** = **ÚTIL NO FUTURO** 🟠
    - Aguardar Jest + CI/CD primeiro
 
 ---
 
-### Priorização
+### Priorização (ATUALIZADO 2026-02-09)
 
 ```
-[AGORA]
-└── Context7 MCP
-    ├── Usar em auditorias mensais
-    ├── Integrar em skills existentes
-    └── Automatizar checks de API/security
+[AGORA - Esta Sprint]
+├── Context7 MCP (JÁ FEITO ✅)
+│   ├── ✅ Skill mensal criada
+│   ├── Executar primeira auditoria
+│   └── Integrar em skills existentes
+│
+└── Figma MCP (NOVA PRIORIDADE ⭐)
+    ├── FASE 1: Criar conta + configurar MCP (1-2 dias)
+    ├── FASE 2: Design System básico (1 semana)
+    └── Stitch → Opção B (fallback manual)
 
-[DEPOIS - Q2 2026]
+[Q2 2026 - 2-3 meses]
+├── Figma MCP (continuar)
+│   ├── FASE 3: Transformer React → Vanilla
+│   ├── FASE 4: Skill figma-sync
+│   └── FASE 5: Integrar em context7-monthly-audit
+│
 └── Jest (testes unitários)
     ├── 70% coverage em módulos críticos
     └── Baseline para testes E2E
 
-[FUTURO - Q3/Q4 2026]
+[Q3/Q4 2026 - Futuro]
 └── Playwright MCP
     ├── Se CI/CD configurado
     ├── Se testes unitários ok
     └── Se ROI positivo (menos bugs)
-
-[NUNCA]
-└── Figma MCP
-    └── Stitch + stitch-adapter resolve
 ```
 
 ---
@@ -806,8 +1131,9 @@ echo '{
 
 1. ✅ Ler esta auditoria
 2. ✅ Confirmar decisões com time
-3. ✅ Expandir uso de Context7 (skill mensal)
-4. 🟡 Planejar Jest implementation (Q2 2026)
+3. ✅ Expandir uso de Context7 (skill mensal criada)
+4. 🆕 **INICIAR Figma MCP FASE 1** (criar conta + configurar)
+5. 🟡 Planejar Jest implementation (Q2 2026)
 5. 🟡 Reavaliar Playwright (Q3 2026)
 
 ---
