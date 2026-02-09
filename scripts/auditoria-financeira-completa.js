@@ -130,7 +130,7 @@ async function auditar() {
             }).lean(),
             temporadaNum >= 2026
                 ? AjusteFinanceiro.find({
-                    liga_id: ligaId,
+                    liga_id: { $in: [ligaId, new mongoose.Types.ObjectId(ligaId)] },
                     temporada: temporadaNum,
                     ativo: true
                 }).lean()
@@ -228,8 +228,10 @@ async function auditar() {
             }
 
             // Com cache - simular bulk
+            // v3.2 FIX: Apenas tipos especiais (pre-temporada) usam saldo_consolidado
+            const TIPOS_ESPECIAIS = ['INSCRICAO_TEMPORADA', 'SALDO_TEMPORADA_ANTERIOR', 'LEGADO_ANTERIOR'];
             const apenasTransacoesEspeciais = historico.length > 0 &&
-                historico.every(t => t.rodada === 0 || t.tipo);
+                historico.every(t => TIPOS_ESPECIAIS.includes(t.tipo));
 
             const camposDoc = camposMap.get(timeId);
             const camposAtivos = camposDoc?.campos?.filter(c => c.valor !== 0) || [];
