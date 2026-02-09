@@ -194,11 +194,34 @@
     color: var(--rodadas-text-white);
 }
 
-.mini-card-pontos {
+.mini-card-posicao {
     font-family: var(--rodadas-font-mono);
-    font-size: 9px;
+    font-size: 10px;
+    font-weight: 600;
     color: var(--rodadas-text-muted);
-    margin-top: 1px;
+    margin-top: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+/* Destaque para posições especiais */
+.rodada-mini-card.mito .mini-card-posicao {
+    color: var(--rodadas-success);
+    background: rgba(34, 197, 94, 0.15);
+}
+
+.rodada-mini-card.mico .mini-card-posicao {
+    color: var(--rodadas-danger);
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.rodada-mini-card.saldo-positivo .mini-card-posicao {
+    color: var(--rodadas-success-light, #86efac);
+}
+
+.rodada-mini-card.saldo-negativo .mini-card-posicao {
+    color: var(--rodadas-danger-light, #fca5a5);
 }
 
 .badge-mini-destaque {

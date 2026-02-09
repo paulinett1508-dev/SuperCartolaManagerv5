@@ -3,7 +3,11 @@
     "mongo": {
       "command": "node",
       "args": ["mongo-server.js"],
-      "cwd": "/home/user/SuperCartolaManagerv5"
+      "cwd": "/home/runner/workspace",
+      "env": {
+        "MONGO_URI": "mongodb+srv://admin:yFRLiUwIG5ZhQQ43@cluster0.fjcat.mongodb.net/cartola-manager?retryWrites=true&w=majority",
+        "NODE_ENV": "production"
+      }
     },
     "perplexity": {
       "command": "npx",

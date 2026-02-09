@@ -129,12 +129,16 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
         // ✅ v3.1 FIX CRÍTICO: Adicionar filtro de temporada em ExtratoFinanceiroCache e FluxoFinanceiroCampos
         // Bug anterior: queries sem temporada misturavam dados de 2025 e 2026
         const temporadaNum = Number(temporada);
-        const [todosExtratos, todosCampos, todosAcertos, todasInscricoes] = await Promise.all([
+        const [todosExtratos, todosCampos, todosAcertos, todasInscricoes, todosAjustes] = await Promise.all([
             ExtratoFinanceiroCache.find({ time_id: { $in: allTimeIds }, temporada: temporadaNum }).lean(),
             FluxoFinanceiroCampos.find({ timeId: { $in: allTimeIds.map(String) }, temporada: temporadaNum }).lean(),
             AcertoFinanceiro.find({ temporada: temporadaNum, ativo: true }).lean(),
             temporadaNum >= 2026
                 ? InscricaoTemporada.find({ temporada: temporadaNum }).lean()
+                : Promise.resolve([]),
+            // ✅ v3.2 FIX BUG-001: Buscar ajustes dinâmicos (2026+)
+            temporadaNum >= 2026
+                ? AjusteFinanceiro.find({ temporada: temporadaNum, ativo: true }).lean()
                 : Promise.resolve([])
         ]);
 
@@ -143,6 +147,14 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
         todasInscricoes.forEach(i => {
             const key = `${String(i.liga_id)}_${i.time_id}`;
             inscricoesMapAll.set(key, i);
+        });
+
+        // ✅ v3.2 FIX BUG-001: Mapa de ajustes financeiros por liga_time
+        const ajustesFinMap = new Map();
+        todosAjustes.forEach(a => {
+            const key = `${String(a.liga_id)}_${a.time_id}`;
+            if (!ajustesFinMap.has(key)) ajustesFinMap.set(key, []);
+            ajustesFinMap.get(key).push(a);
         });
 
         // Criar mapas para acesso O(1) - chave composta liga_time
@@ -204,9 +216,12 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                 const extrato = extratoMap.get(key);
                 const historico = extrato?.historico_transacoes || [];
 
-                // ✅ v2.22 FIX: Detectar caches com apenas transações especiais (INSCRICAO, LEGADO)
+                // ✅ v3.2 FIX BUG-002: Condição refinada para transações especiais
+                // Bug v2.22: `t.tipo` é truthy para TODAS entries em caches 4.0.0 (BONUS, ONUS, etc.)
+                // Isso forçava SEMPRE o path saldo_consolidado, ignorando rodadas não-consolidadas
+                const TIPOS_ESPECIAIS = ['INSCRICAO_TEMPORADA', 'SALDO_TEMPORADA_ANTERIOR', 'LEGADO_ANTERIOR'];
                 const apenasTransacoesEspeciais = historico.length > 0 &&
-                    historico.every(t => t.rodada === 0 || t.tipo);
+                    historico.every(t => TIPOS_ESPECIAIS.includes(t.tipo));
 
                 // Campos manuais
                 const camposDoc = camposMap.get(key);
@@ -244,6 +259,14 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                     dividaAnterior = ajusteInsc.dividaAnterior;
                 }
 
+                // ✅ v3.2 FIX BUG-001: Aplicar AjusteFinanceiro (ajustes dinâmicos 2026+)
+                let saldoAjustes = 0;
+                if (temporadaNum >= 2026) {
+                    const ajustesList = ajustesFinMap.get(key) || [];
+                    saldoAjustes = ajustesList.reduce((acc, a) => acc + (a.valor || 0), 0);
+                    saldoConsolidado += saldoAjustes;
+                }
+
                 // ✅ v2.0: Calcular breakdown por módulo (baseado no resumo calculado)
                 // ✅ v3.1: Incluir dados de inscrição no breakdown (consistência com endpoint individual)
                 const breakdown = {
@@ -255,6 +278,7 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                     artilheiro: 0,
                     luvaOuro: 0,
                     campos: saldoCampos,
+                    ajustes: saldoAjustes,
                     acertos: 0, // Será preenchido abaixo
                     taxaInscricao,
                     pagouInscricao,
@@ -342,6 +366,7 @@ router.get("/participantes", verificarAdmin, async (req, res) => {
                         artilheiro: parseFloat(breakdown.artilheiro.toFixed(2)),
                         luvaOuro: parseFloat(breakdown.luvaOuro.toFixed(2)),
                         campos: breakdown.campos,
+                        ajustes: parseFloat((breakdown.ajustes || 0).toFixed(2)),
                         acertos: parseFloat(breakdown.acertos.toFixed(2)),
                         taxaInscricao: parseFloat((breakdown.taxaInscricao || 0).toFixed(2)),
                         pagouInscricao: breakdown.pagouInscricao,
@@ -461,7 +486,7 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
         // ✅ BULK QUERIES - Buscar todos os dados de uma vez (4 queries em vez de ~96)
         console.log(`[TESOURARIA] Buscando dados para temporada ${temporadaNum}`);
 
-        const [todosExtratos, todosCampos, todosAcertos] = await Promise.all([
+        const [todosExtratos, todosCampos, todosAcertos, todosAjustes] = await Promise.all([
             // 1. Todos os extratos da liga
             // ✅ v2.8 FIX CRÍTICO: Usar acesso DIRETO à collection (bypass schema)
             // Problema: Schema define liga_id como ObjectId, mas docs foram salvos como String
@@ -492,7 +517,16 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
                 ligaId: String(ligaId),
                 temporada: { $in: [temporadaNum, temporadaNum - 1] },
                 ativo: true
-            }).lean()
+            }).lean(),
+
+            // 4. ✅ v3.2 FIX BUG-001: Todos os ajustes dinâmicos da liga (2026+)
+            temporadaNum >= 2026
+                ? AjusteFinanceiro.find({
+                    liga_id: ligaIdStr,
+                    temporada: temporadaNum,
+                    ativo: true
+                }).lean()
+                : Promise.resolve([])
         ]);
 
         // Criar mapas para acesso O(1)
@@ -536,7 +570,15 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
             acertosMap.get(key).push(a);
         });
 
-        console.log(`[TESOURARIA] Bulk queries: ${todosExtratos.length} extratos, ${todosCampos.length} campos, ${todosAcertos.length} acertos`);
+        // ✅ v3.2 FIX BUG-001: Mapa de ajustes financeiros por timeId
+        const ajustesFinMap = new Map();
+        todosAjustes.forEach(a => {
+            const key = String(a.time_id);
+            if (!ajustesFinMap.has(key)) ajustesFinMap.set(key, []);
+            ajustesFinMap.get(key).push(a);
+        });
+
+        console.log(`[TESOURARIA] Bulk queries: ${todosExtratos.length} extratos, ${todosCampos.length} campos, ${todosAcertos.length} acertos, ${todosAjustes.length} ajustes`);
 
         // ✅ v2.1: Extrair módulos ativos da liga para enviar ao frontend
         // OPCIONAIS usam === true (não habilitados por default)
@@ -599,6 +641,14 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
                 inscricaoInfo = ajusteInsc;
             }
 
+            // ✅ v3.2 FIX BUG-001: Aplicar AjusteFinanceiro (ajustes dinâmicos 2026+)
+            let saldoAjustes = 0;
+            if (temporadaNum >= 2026) {
+                const ajustesList = ajustesFinMap.get(timeId) || [];
+                saldoAjustes = ajustesList.reduce((acc, a) => acc + (a.valor || 0), 0);
+                saldoConsolidado += saldoAjustes;
+            }
+
             // ✅ v2.0: Calcular breakdown por módulo (baseado no resumo calculado)
             const breakdown = {
                 banco: resumoCalculado.bonus + resumoCalculado.onus,
@@ -608,6 +658,7 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
                 melhorMes: 0,
                 artilheiro: 0,
                 luvaOuro: 0,
+                ajustes: saldoAjustes,
                 acertos: 0, // Será preenchido abaixo
             };
 
@@ -690,6 +741,7 @@ router.get("/liga/:ligaId", verificarAdmin, async (req, res) => {
                     artilheiro: parseFloat(breakdown.artilheiro.toFixed(2)),
                     luvaOuro: parseFloat(breakdown.luvaOuro.toFixed(2)),
                     campos: parseFloat(saldoCampos.toFixed(2)),
+                    ajustes: parseFloat((breakdown.ajustes || 0).toFixed(2)),
                     acertos: parseFloat(breakdown.acertos.toFixed(2)),
                 },
                 // ✅ v2.5 FIX: Incluir modulosAtivos para renderizar badges
@@ -1308,13 +1360,17 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
             }
         }
 
-        // Bulk queries para todos os dados (4 queries em vez de N×M)
-        const [todosExtratos, todosCampos, todosAcertos, todasInscricoes] = await Promise.all([
+        // Bulk queries para todos os dados (5 queries em vez de N×M)
+        const [todosExtratos, todosCampos, todosAcertos, todasInscricoes, todosAjustes] = await Promise.all([
             ExtratoFinanceiroCache.find({ time_id: { $in: allTimeIds }, temporada: temporadaNum }).lean(),
             FluxoFinanceiroCampos.find({ timeId: { $in: allTimeIds.map(String) }, temporada: temporadaNum }).lean(),
             AcertoFinanceiro.find({ temporada: temporadaNum, ativo: true }).lean(),
             temporadaNum >= 2026
                 ? InscricaoTemporada.find({ temporada: temporadaNum }).lean()
+                : Promise.resolve([]),
+            // ✅ v3.2 FIX BUG-001: Buscar ajustes dinâmicos (2026+)
+            temporadaNum >= 2026
+                ? AjusteFinanceiro.find({ temporada: temporadaNum, ativo: true }).lean()
                 : Promise.resolve([])
         ]);
 
@@ -1344,6 +1400,14 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
             inscricoesMap.set(key, i);
         });
 
+        // ✅ v3.2 FIX BUG-001: Mapa de ajustes financeiros por liga_time
+        const ajustesFinMap = new Map();
+        todosAjustes.forEach(a => {
+            const key = `${String(a.liga_id)}_${a.time_id}`;
+            if (!ajustesFinMap.has(key)) ajustesFinMap.set(key, []);
+            ajustesFinMap.get(key).push(a);
+        });
+
         const resumoPorLiga = [];
         let totalGeralCredores = 0;
         let totalGeralDevedores = 0;
@@ -1367,8 +1431,10 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
                 const camposAtivos = camposDoc?.campos?.filter(c => c.valor !== 0) || [];
 
                 let saldoConsolidado = 0;
+                // ✅ v3.2 FIX BUG-002: Condição refinada
+                const TIPOS_ESPECIAIS = ['INSCRICAO_TEMPORADA', 'SALDO_TEMPORADA_ANTERIOR', 'LEGADO_ANTERIOR'];
                 const apenasTransacoesEspeciais = historico.length > 0 &&
-                    historico.every(t => t.rodada === 0 || t.tipo);
+                    historico.every(t => TIPOS_ESPECIAIS.includes(t.tipo));
 
                 if (apenasTransacoesEspeciais) {
                     saldoConsolidado = extrato?.saldo_consolidado || 0;
@@ -1385,6 +1451,13 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
                     saldoConsolidado = ajusteInsc.saldoAjustado;
                 }
 
+                // ✅ v3.2 FIX BUG-001: Aplicar AjusteFinanceiro (ajustes dinâmicos 2026+)
+                if (temporadaNum >= 2026) {
+                    const ajustesList = ajustesFinMap.get(key) || [];
+                    const saldoAjustes = ajustesList.reduce((acc, a) => acc + (a.valor || 0), 0);
+                    saldoConsolidado += saldoAjustes;
+                }
+
                 // Calcular acertos
                 const acertosList = acertosMap.get(key) || [];
                 const acertosTemporada = acertosList.filter(a => Number(a.temporada) === temporadaNum);
@@ -1398,15 +1471,15 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
 
                 const saldoFinal = saldoConsolidado + saldoAcertos;
 
+                // ✅ v3.2 FIX BUG-005: Credores NÃO devem ser contados como quitados
                 if (saldoFinal < -0.01) {
                     devedores += Math.abs(saldoFinal);
                     qtdDevedores++;
+                } else if (saldoFinal > 0.01) {
+                    credores += saldoFinal;
+                    qtdCredores++;
                 } else {
                     qtdQuitados++;
-                    if (saldoFinal > 0.01) {
-                        credores += saldoFinal;
-                        qtdCredores++;
-                    }
                 }
             }
 
@@ -1445,6 +1518,6 @@ router.get("/resumo", verificarAdmin, async (req, res) => {
     }
 });
 
-console.log("[TESOURARIA] ✅ v3.1 Rotas carregadas (FIX: temporada em bulk queries, /resumo otimizado, breakdown inscrição)");
+console.log("[TESOURARIA] ✅ v3.2 Rotas carregadas (FIX: AjusteFinanceiro no bulk, contagem credores/resumo)");
 
 export default router;

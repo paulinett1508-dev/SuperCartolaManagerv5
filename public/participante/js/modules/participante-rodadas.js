@@ -264,8 +264,18 @@ function renderizarMiniCards(inicio, fim, rodadasMap) {
         const isFuturo = i > rodadaAtualCartola;
         const temDados = rodada && rodada.participantes.length > 0;
         const jogou = rodada?.jogou || false;
-        const pontos = rodada?.meusPontos;
         const valorFinanceiro = rodada?.valorFinanceiro;
+
+        // Calcular posição na rodada
+        let posicao = rodada?.posicaoFinanceira;
+        if (!posicao && temDados && jogou && rodada.participantes?.length > 1) {
+            // Calcular posição se não estiver disponível diretamente
+            const ordenados = [...rodada.participantes]
+                .filter(p => !p.rodadaNaoJogada)
+                .sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+            const idx = ordenados.findIndex(p => compararTimeIds(p.timeId || p.time_id, meuTimeId));
+            if (idx >= 0) posicao = idx + 1;
+        }
 
         let classes = ['rodada-mini-card'];
         let tipoDestaque = null;
@@ -292,11 +302,11 @@ function renderizarMiniCards(inicio, fim, rodadasMap) {
                 }
             }
 
-        // Formatar pontos
-        let pontosTexto = '';
-        if (isParcial) pontosTexto = '⏳';
-        else if (temDados && jogou && pontos > 0) pontosTexto = pontos.toFixed(0);
-        else if (temDados && !jogou) pontosTexto = 'N/J';
+        // Formatar posição (em vez de pontos)
+        let chipTexto = '';
+        if (isParcial) chipTexto = '⏳';
+        else if (temDados && jogou && posicao) chipTexto = `${posicao}º`;
+        else if (temDados && !jogou) chipTexto = 'N/J';
 
         const badgeAoVivo = isParcial ? '<span class="badge-mini-ao-vivo">●</span>' : '';
         let badgeDestaque = '';
@@ -311,7 +321,7 @@ function renderizarMiniCards(inicio, fim, rodadasMap) {
                 ${badgeAoVivo}
                 ${badgeDestaque}
                 <span class="mini-card-numero">${i}</span>
-                ${pontosTexto ? `<span class="mini-card-pontos">${pontosTexto}</span>` : ''}
+                ${chipTexto ? `<span class="mini-card-posicao">${chipTexto}</span>` : ''}
             </div>
         `;
     }
@@ -413,8 +423,16 @@ function renderizarCardDesempenho(rodadas) {
                 const pId = p.timeId ?? p.time_id ?? p.id;
                 return String(pId) === String(meuTimeId);
             });
+            // DEBUG DETALHADO: Mostrar valores de rodadaNaoJogada
+            const amostraFiltro = rodada.participantes.slice(0, 5).map(p => ({
+                id: p.timeId ?? p.time_id,
+                rnj: p.rodadaNaoJogada,
+                tipo: typeof p.rodadaNaoJogada
+            }));
             Log.info("[PARTICIPANTE-RODADAS]",
                 `DEBUG R${numeroRodada} FILTRO: antes=${rodada.participantes.length} | depois=${participantesAtivos.length} | eu_no_filtro=${!!euNoFiltro}`);
+            Log.info("[PARTICIPANTE-RODADAS]",
+                `DEBUG R${numeroRodada} AMOSTRA rodadaNaoJogada: ${JSON.stringify(amostraFiltro)}`);
         }
 
         if (participantesAtivos.length > 0) {
@@ -441,6 +459,12 @@ function renderizarCardDesempenho(rodadas) {
                     const idsOrdenados = ordenados.slice(0, 10).map(p => p.timeId ?? p.time_id ?? p.id);
                     Log.warn("[PARTICIPANTE-RODADAS]",
                         `⚠️ Não encontrado! meuTimeId=${meuTimeId} | IDs: ${idsOrdenados.join(', ')}`);
+                } else {
+                    // Mostrar se qualifica para cada categoria
+                    const somaPontosLiga = participantesAtivos.reduce((acc, p) => acc + parseFloat(p.pontos || 0), 0);
+                    const mediaLiga = somaPontosLiga / participantesAtivos.length;
+                    Log.info("[PARTICIPANTE-RODADAS]",
+                        `DEBUG R${numeroRodada} QUALIFICA: Top3=${minhaPosicao <= 3} | Ultimo=${minhaPosicao === ordenados.length} | AcimaMedia=${meusPontos > mediaLiga} (meusPontos=${meusPontos}, mediaLiga=${mediaLiga.toFixed(2)})`);
                 }
             }
 
