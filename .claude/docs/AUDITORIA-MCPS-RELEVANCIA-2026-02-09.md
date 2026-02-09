@@ -204,29 +204,43 @@ Servidor MCP que permite IA acessar:
 
 #### Por que NÃO é útil?
 
+**IMPORTANTE:** Figma MCP e skill stitch-adapter **NÃO são equivalentes**:
+- **Figma MCP** = Conecta à API do Figma em tempo real, busca componentes/tokens
+- **stitch-adapter** = Apenas processa HTML estático já exportado manualmente
+
 **1. Projeto não usa Figma**
 
-O Super Cartola Manager usa **Google Stitch** (alternativa ao Figma):
+O Super Cartola Manager usa **Google Stitch** (ferramenta de design concorrente):
 
 ```markdown
 # Evidências:
-- .claude/STITCH-DESIGN-PROMPT.md
-- .claude/STITCH-ADAPTER-GUIDE.md
+- .claude/STITCH-DESIGN-PROMPT.md (usa Stitch, não Figma)
+- .claude/STITCH-ADAPTER-GUIDE.md (adapta HTML do Stitch)
 - docs/skills/03-utilities/stitch-adapter.md (196 linhas)
+
+# Busca por arquivos Figma:
+$ find . -name "*.fig" -o -name "*figma*"
+# Resultado: 0 arquivos
 ```
 
-**Skill stitch-adapter já resolve o problema:**
+**Não existe "Stitch MCP"** (ferramenta muito nicho/sem API pública), então o projeto usa workflow manual:
 ```bash
-# Keywords que ativam a skill:
-"código do stitch", "html do stitch", "adaptar código"
-
-# Funcionalidades:
-✅ Separa HTML/CSS/JS
-✅ Converte cores hardcoded → variáveis CSS
-✅ Adapta espaçamentos e border-radius
-✅ Transforma JS em ES6 Module
-✅ Valida compatibilidade com stack
+Google Stitch → Exporta HTML manualmente → skill stitch-adapter adapta
 ```
+
+**Se o projeto usasse Figma**, Figma MCP seria útil para:
+```javascript
+// ✅ Buscar componentes automaticamente
+mcp__figma__get_components({ file_id: "xyz" })
+
+// ✅ Sincronizar design tokens
+mcp__figma__get_design_tokens({ file_id: "xyz" })
+
+// ✅ Exportar código atualizado
+mcp__figma__export_component({ component_id: "abc" })
+```
+
+Mas como **não usam Figma**, isso não se aplica.
 
 ---
 
@@ -798,11 +812,69 @@ echo '{
 
 ---
 
+## 📚 APÊNDICE: MCPs vs Skills
+
+### Diferença Conceitual
+
+**MCPs (Model Context Protocol Servers):**
+- 🔌 **Servidores externos** que se conectam a APIs/serviços
+- 🌐 **Tempo real:** Buscam dados atualizados via rede
+- 🔑 **Requerem credenciais:** API keys, tokens, etc.
+- 📦 **Exemplos:** Context7 (docs), Perplexity (web search), Mongo (database), Figma (design API)
+
+**Skills:**
+- 📜 **Scripts locais** que processam dados já existentes
+- 💾 **Offline:** Trabalham com arquivos do projeto
+- 🆓 **Sem credenciais:** Usam apenas ferramentas locais (Read, Grep, Edit)
+- 📦 **Exemplos:** stitch-adapter (processa HTML), code-inspector (analisa código local)
+
+### Exemplo Prático
+
+```javascript
+// ❌ COMPARAÇÃO ERRADA (era meu erro inicial):
+"Figma MCP não é útil porque temos skill stitch-adapter"
+// Errado porque compara servidor remoto com script local
+
+// ✅ COMPARAÇÃO CORRETA:
+"Figma MCP não é útil porque não usamos Figma (usamos Stitch)"
+// Correto: não temos conta/designs no Figma
+
+// Analogia:
+// - Figma MCP = "Conectar ao Google Drive"
+// - stitch-adapter = "Processar arquivo .docx já baixado"
+// São coisas completamente diferentes!
+```
+
+### Quando Figma MCP SERIA útil
+
+**Cenário hipotético:**
+```bash
+# Se o projeto migrasse para Figma:
+1. Designer atualiza cor primária no Figma (de #22c55e para #10b981)
+2. MCP detecta mudança automaticamente
+3. Gera PR com atualização em _admin-tokens.css
+4. CI/CD testa e deploys
+
+# Atualmente com Stitch:
+1. Designer atualiza cor no Stitch
+2. Exporta HTML manualmente
+3. Developer cola HTML no chat
+4. Skill stitch-adapter processa
+5. Developer aplica mudanças manualmente
+```
+
+**Benefício do MCP:** Automação end-to-end (design → code)
+
+**Por que não implementar:** Projeto não usa Figma (usa Stitch)
+
+---
+
 **Arquivos Relacionados:**
 - `.mcp.json` (configuração MCPs)
 - `docs/guides/CONTEXT7-MCP-SETUP.md` (guia Context7)
 - `CLAUDE.md` (regras do projeto)
 - `BACKLOG.md` (bugs e features planejadas)
+- `docs/skills/04-project-specific/context7-monthly-audit.md` (nova skill)
 
 **Última Atualização:** 2026-02-09
 **Revisão Necessária:** Q3 2026 (reavaliar Playwright)
