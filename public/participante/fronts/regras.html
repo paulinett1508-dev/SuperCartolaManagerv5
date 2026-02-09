@@ -37,7 +37,7 @@
    ===================================================== */
 
 .regras-page {
-    background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+    background: linear-gradient(180deg, var(--app-surface) 0%, #0f0f0f 100%);
     min-height: 100vh;
     padding-bottom: 80px;
 }
@@ -60,7 +60,7 @@
 }
 .regras-btn-voltar:active {
     background: rgba(255,255,255,0.12);
-    color: #fff;
+    color: var(--app-text-primary);
 }
 .regras-btn-voltar .material-icons {
     font-size: 20px;
@@ -78,7 +78,7 @@
     width: 48px;
     height: 48px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    background: linear-gradient(135deg, var(--app-info) 0%, var(--app-info-dark) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -87,13 +87,13 @@
 
 .regras-header-icon .material-icons {
     font-size: 26px;
-    color: #fff;
+    color: var(--app-text-primary);
 }
 
 .regras-header-titulo {
     font-family: 'Russo One', sans-serif;
     font-size: 20px;
-    color: #ffffff;
+    color: var(--app-text-primary);
     margin: 0;
     letter-spacing: 0.3px;
 }
@@ -118,7 +118,7 @@
     width: 32px;
     height: 32px;
     border: 3px solid rgba(255,255,255,0.1);
-    border-top-color: #3b82f6;
+    border-top-color: var(--app-info);
     border-radius: 50%;
     animation: regras-spin 0.8s linear infinite;
     margin: 0 auto 12px;
@@ -200,7 +200,7 @@
 
 .regra-acc-icon .material-icons {
     font-size: 20px;
-    color: #fff;
+    color: var(--app-text-primary);
 }
 
 .regra-acc-info {
@@ -211,7 +211,7 @@
 .regra-acc-titulo {
     font-family: 'Russo One', sans-serif;
     font-size: 13px;
-    color: #ffffff;
+    color: var(--app-text-primary);
     letter-spacing: 0.2px;
 }
 
@@ -256,7 +256,7 @@
 .regra-accordion-content h3,
 .regra-accordion-content h4 {
     font-family: 'Russo One', sans-serif;
-    color: #ffffff;
+    color: var(--app-text-primary);
     margin: 14px 0 8px;
 }
 
@@ -278,7 +278,7 @@
 }
 
 .regra-accordion-content strong {
-    color: #ffffff;
+    color: var(--app-text-primary);
     font-weight: 600;
 }
 
@@ -302,11 +302,11 @@
 }
 
 .regra-accordion-content li strong {
-    color: #ffffff;
+    color: var(--app-text-primary);
 }
 
 .regra-accordion-content a {
-    color: #60a5fa;
+    color: var(--app-info-light);
     text-decoration: underline;
 }
 

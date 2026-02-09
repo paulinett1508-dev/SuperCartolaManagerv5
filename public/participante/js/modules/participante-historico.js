@@ -1807,7 +1807,7 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
                 <!-- Header -->
                 <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h2 style="color: #fff; margin: 0; font-size: 18px; font-weight: 700;">Detalhes Financeiros</h2>
+                        <h2 style="color: var(--app-text-primary); margin: 0; font-size: 18px; font-weight: 700;">Detalhes Financeiros</h2>
                         <p style="color: #9ca3af; margin: 4px 0 0; font-size: 13px;">Temporada ${temporada}</p>
                     </div>
                     <button onclick="document.getElementById('modalDetalhesFinanceirosOverlay').remove()"
@@ -1819,7 +1819,7 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
                 <!-- Saldo Principal -->
                 <div style="padding: 20px; background: linear-gradient(135deg, rgba(255,85,0,0.1) 0%, rgba(255,136,0,0.05) 100%); text-align: center;">
                     <div style="color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Saldo Final</div>
-                    <div style="color: ${saldoTotal > 0 ? '#10b981' : saldoTotal < 0 ? '#ef4444' : '#fff'}; font-size: 32px; font-weight: 700; margin: 8px 0;">
+                    <div style="color: ${saldoTotal > 0 ? 'var(--app-success)' : saldoTotal < 0 ? 'var(--app-danger)' : 'var(--app-text-primary)'}; font-size: 32px; font-weight: 700; margin: 8px 0;">
                         ${formatarMoeda(saldoTotal)}
                     </div>
                 </div>
@@ -1827,12 +1827,12 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
                 <!-- Resumo -->
                 <div style="padding: 16px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div style="background: rgba(16,185,129,0.1); border-radius: 8px; padding: 12px; text-align: center;">
-                        <div style="color: #10b981; font-size: 12px;">Creditos</div>
-                        <div style="color: #10b981; font-size: 18px; font-weight: 700;">+${formatarMoeda(totalCreditos)}</div>
+                        <div style="color: var(--app-success); font-size: 12px;">Creditos</div>
+                        <div style="color: var(--app-success); font-size: 18px; font-weight: 700;">+${formatarMoeda(totalCreditos)}</div>
                     </div>
                     <div style="background: rgba(239,68,68,0.1); border-radius: 8px; padding: 12px; text-align: center;">
-                        <div style="color: #ef4444; font-size: 12px;">Debitos</div>
-                        <div style="color: #ef4444; font-size: 18px; font-weight: 700;">-${formatarMoeda(totalDebitos)}</div>
+                        <div style="color: var(--app-danger); font-size: 12px;">Debitos</div>
+                        <div style="color: var(--app-danger); font-size: 18px; font-weight: 700;">-${formatarMoeda(totalDebitos)}</div>
                     </div>
                 </div>
 
@@ -1841,7 +1841,7 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
                     <!-- Rodadas -->
                     <div style="margin-bottom: 16px;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <span class="material-icons" style="color: #ff5500; font-size: 18px;">sports_soccer</span>
+                            <span class="material-icons" style="color: var(--app-primary); font-size: 18px;">sports_soccer</span>
                             <span style="color: #e5e5e5; font-size: 14px; font-weight: 600;">${usandoFallbackJSON ? 'Temporada Consolidada' : 'Rodadas Disputadas'}</span>
                             <span style="color: #6b7280; font-size: 12px; margin-left: auto;">${usandoFallbackJSON ? 'Historico' : rodadas.length + ' rodadas'}</span>
                         </div>
@@ -1850,18 +1850,18 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
                             <!-- Dados consolidados do JSON -->
                             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                 <span style="color: #9ca3af; font-size: 12px;">Total Ganhos</span>
-                                <span style="color: #10b981; font-size: 12px;">+${formatarMoeda(resumo.totalGanhos || 0)}</span>
+                                <span style="color: var(--app-success); font-size: 12px;">+${formatarMoeda(resumo.totalGanhos || 0)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                 <span style="color: #9ca3af; font-size: 12px;">Total Perdas</span>
-                                <span style="color: #ef4444; font-size: 12px;">-${formatarMoeda(Math.abs(resumo.totalPerdas || 0))}</span>
+                                <span style="color: var(--app-danger); font-size: 12px;">-${formatarMoeda(Math.abs(resumo.totalPerdas || 0))}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
                                 <span style="color: #e5e5e5; font-size: 12px; font-weight: 600;">Saldo Temporada</span>
-                                <span style="color: ${(resumo.saldo_final || 0) >= 0 ? '#10b981' : '#ef4444'}; font-size: 12px; font-weight: 600;">${formatarMoeda(resumo.saldo_final || 0)}</span>
+                                <span style="color: ${(resumo.saldo_final || 0) >= 0 ? 'var(--app-success)' : 'var(--app-danger)'}; font-size: 12px; font-weight: 600;">${formatarMoeda(resumo.saldo_final || 0)}</span>
                             </div>
                             <div style="margin-top: 8px; padding: 8px; background: rgba(255,85,0,0.1); border-radius: 6px;">
-                                <span style="color: #ff5500; font-size: 11px;">Dados historicos consolidados. Detalhes por rodada nao disponiveis.</span>
+                                <span style="color: var(--app-primary); font-size: 11px;">Dados historicos consolidados. Detalhes por rodada nao disponiveis.</span>
                             </div>
                             ` : `
                             <!-- Dados detalhados por rodada -->
@@ -1897,7 +1897,7 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
                             ${campos.map(c => `
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                     <span style="color: #9ca3af; font-size: 12px;">${c.nome}</span>
-                                    <span style="color: ${parseFloat(c.valor) >= 0 ? '#10b981' : '#ef4444'}; font-size: 12px;">
+                                    <span style="color: ${parseFloat(c.valor) >= 0 ? 'var(--app-success)' : 'var(--app-danger)'}; font-size: 12px;">
                                         ${parseFloat(c.valor) >= 0 ? '+' : ''}${formatarMoeda(c.valor)}
                                     </span>
                                 </div>
@@ -1910,7 +1910,7 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
                     <!-- Acertos -->
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <span class="material-icons" style="color: #8b5cf6; font-size: 18px;">handshake</span>
+                            <span class="material-icons" style="color: var(--app-purple); font-size: 18px;">handshake</span>
                             <span style="color: #e5e5e5; font-size: 14px; font-weight: 600;">Acertos Financeiros</span>
                             <span style="color: #6b7280; font-size: 12px; margin-left: auto;">${acertos.length} registros</span>
                         </div>
@@ -1918,7 +1918,7 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
                             ${acertos.slice(0, 5).map(a => `
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                     <span style="color: #9ca3af; font-size: 12px;">${a.tipo === 'pagamento' ? 'Pagou' : 'Recebeu'}</span>
-                                    <span style="color: ${a.tipo === 'pagamento' ? '#10b981' : '#ef4444'}; font-size: 12px;">
+                                    <span style="color: ${a.tipo === 'pagamento' ? 'var(--app-success)' : 'var(--app-danger)'}; font-size: 12px;">
                                         ${a.tipo === 'pagamento' ? '+' : '-'}${formatarMoeda(a.valor)}
                                     </span>
                                 </div>
@@ -1935,11 +1935,11 @@ window.abrirModalDetalhesFinanceiros = async function(ligaId, timeId, temporada,
         if (window.Log) Log.error("HISTORICO", "Erro ao carregar detalhes financeiros:", error);
         overlay.innerHTML = `
             <div style="background: #1f2937; border-radius: 16px; width: 100%; max-width: 420px; padding: 24px; text-align: center;">
-                <span class="material-icons" style="color: #ef4444; font-size: 48px; margin-bottom: 12px;">error_outline</span>
-                <h3 style="color: #ef4444; margin: 0 0 8px;">Erro ao carregar</h3>
+                <span class="material-icons" style="color: var(--app-danger); font-size: 48px; margin-bottom: 12px;">error_outline</span>
+                <h3 style="color: var(--app-danger); margin: 0 0 8px;">Erro ao carregar</h3>
                 <p style="color: #9ca3af; margin: 0 0 16px;">Nao foi possivel carregar os detalhes financeiros.</p>
                 <button onclick="document.getElementById('modalDetalhesFinanceirosOverlay').remove()"
-                        style="padding: 12px 24px; background: #ff5500; border: none; border-radius: 8px; color: #fff; cursor: pointer;">
+                        style="padding: 12px 24px; background: var(--app-primary); border: none; border-radius: 8px; color: var(--app-text-primary); cursor: pointer;">
                     Fechar
                 </button>
             </div>

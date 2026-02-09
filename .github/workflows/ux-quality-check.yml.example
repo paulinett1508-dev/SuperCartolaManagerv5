@@ -1,0 +1,148 @@
+# UX Quality Check - GitHub Actions Workflow
+# ===========================================
+#
+# Este workflow roda automaticamente em PRs para verificar qualidade de UX.
+#
+# Para ativar:
+#   1. Renomear para .github/workflows/ux-quality-check.yml
+#   2. Push para o repositório
+#   3. O workflow rodará em todos os PRs
+#
+# Exit codes:
+#   0 = Passou (verde)
+#   1 = Warning (amarelo) - não bloqueia
+#   2+ = Falhou (vermelho) - bloqueia merge
+
+name: UX Quality Check
+
+on:
+  pull_request:
+    paths:
+      - 'public/participante/**/*.html'
+      - 'public/participante/**/*.css'
+      - 'public/participante/**/*.js'
+      - 'scripts/ux-*.js'
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'public/participante/**'
+
+jobs:
+  ux-audit:
+    name: UX Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for diff
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run UX CI Check
+        id: ux-check
+        run: |
+          node scripts/ux-ci-check.js --diff --block-high
+        continue-on-error: true
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && steps.ux-check.outcome == 'failure'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const output = `
+            ## 🔍 UX Quality Check Failed
+
+            Issues de UX foram detectados neste PR.
+
+            ### 🔧 Como corrigir:
+
+            \`\`\`bash
+            # Auto-fix issues automatizáveis
+            node scripts/ux-auto-fix.js --apply
+
+            # Verificar issues manuais
+            node scripts/ux-audit-todos.js --dashboard
+            \`\`\`
+
+            Por favor, corrija os issues antes de fazer merge.
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Set status
+        if: steps.ux-check.outcome == 'failure'
+        run: exit 1
+
+  auto-fix-suggestion:
+    name: Auto-Fix Suggestion
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Check auto-fixable issues
+        id: auto-fix
+        run: |
+          OUTPUT=$(node scripts/ux-auto-fix.js --diff)
+          echo "$OUTPUT"
+
+          # Extract count
+          COUNT=$(echo "$OUTPUT" | grep -oP "Total: \K\d+" || echo "0")
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+
+      - name: Comment with auto-fix suggestion
+        if: steps.auto-fix.outputs.count > 0
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const count = '${{ steps.auto-fix.outputs.count }}';
+            const output = `
+            ## 💡 Auto-Fix Disponível
+
+            Detectamos **${count} issue(s)** que podem ser corrigidos automaticamente!
+
+            ### 🚀 Como corrigir em 10 segundos:
+
+            \`\`\`bash
+            node scripts/ux-auto-fix.js --apply
+            git add .
+            git commit -m "fix(ux): auto-fix ${count} issues"
+            git push
+            \`\`\`
+
+            Isso vai:
+            - ✅ Substituir cores hardcoded por tokens
+            - ✅ Padronizar z-index
+            - ✅ Converter emojis para Material Icons
+            - ✅ Normalizar font-family
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });

@@ -53,7 +53,7 @@
         --rank-font-body: var(--app-font-base, 'Inter', -apple-system, sans-serif);
         --rank-font-mono: var(--app-font-mono, 'JetBrains Mono', monospace);
         --rank-primary: var(--app-primary, #ff5c00);
-        --rank-primary-light: var(--app-primary-light, #f97316);
+        --rank-primary-light: var(--app-primary-light, var(--app-pos-gol));
         --rank-primary-alpha-15: rgba(255, 92, 0, 0.15);
         --rank-primary-alpha-20: rgba(255, 92, 0, 0.2);
         --rank-primary-alpha-25: rgba(255, 92, 0, 0.25);
@@ -62,8 +62,8 @@
         --rank-bg: var(--app-surface, #1c1c1e);
         --rank-surface: var(--app-surface-elevated, #2c2c2e);
         --rank-surface-light: var(--app-surface-hover, #3c3c3e);
-        --rank-text: var(--app-text-primary, #ffffff);
-        --rank-text-white: var(--app-text-white, #fff);
+        --rank-text: var(--app-text-primary, var(--app-text-primary));
+        --rank-text-white: var(--app-text-white, var(--app-text-primary));
         --rank-text-dark: #1c1c1e;
         --rank-text-secondary: var(--app-text-secondary, rgba(255, 255, 255, 0.6));
         --rank-text-muted: var(--app-text-muted, rgba(255, 255, 255, 0.4));
@@ -73,11 +73,11 @@
         --rank-silver-bg: var(--app-silver-muted, rgba(161, 161, 170, 0.08));
         --rank-bronze: var(--app-bronze, #d97706);
         --rank-bronze-bg: var(--app-bronze-muted, rgba(217, 119, 6, 0.08));
-        --rank-green: var(--app-success, #22c55e);
+        --rank-green: var(--app-success, var(--app-success-light));
         --rank-green-bg: rgba(34, 197, 94, 0.08);
         --rank-danger: var(--app-danger-muted, rgba(239, 68, 68, 0.12));
-        --rank-danger-border: var(--app-danger, #ef4444);
-        --rank-danger-light: #fca5a5;
+        --rank-danger-border: var(--app-danger, var(--app-danger));
+        --rank-danger-light: var(--app-danger-text);
         --rank-danger-alpha-40: rgba(239, 68, 68, 0.4);
     }
 
@@ -298,7 +298,7 @@
     /* Badge do último lugar */
     .ranking-ultimo .posicao-badge {
         background: rgba(220, 38, 38, 0.2);
-        color: #f87171;
+        color: var(--app-danger-light);
         border: 1px solid rgba(220, 38, 38, 0.5);
     }
 
@@ -593,7 +593,7 @@
         align-items: center;
         font-size: 9px;
         background: var(--rank-danger-border);
-        color: #fff;
+        color: var(--app-text-primary);
         padding: 2px 6px;
         border-radius: 4px;
         margin-left: 6px;
@@ -608,7 +608,7 @@
         gap: 2px;
         font-size: 9px;
         background: var(--rank-primary);
-        color: #fff;
+        color: var(--app-text-primary);
         padding: 2px 6px;
         border-radius: 4px;
         margin-left: 6px;

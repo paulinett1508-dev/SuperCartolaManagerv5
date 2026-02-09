@@ -236,15 +236,15 @@ function mostrarSemDados(container, mensagem, status) {
     if (status === 'mercado_aberto') {
         icone = 'storefront';
         titulo = 'Mercado Aberto';
-        cor = '#22c55e';
+        cor = 'var(--app-success-light)';
     } else if (status === 'sem_pontuacao') {
         icone = 'sports_soccer';
         titulo = 'Aguardando Jogos';
-        cor = '#f59e0b';
+        cor = 'var(--app-amber)';
     } else {
         icone = 'event_upcoming';
         titulo = 'Aguardando Rodadas';
-        cor = '#3b82f6';
+        cor = 'var(--app-info)';
     }
 
     container.innerHTML = `
@@ -259,7 +259,7 @@ function mostrarSemDados(container, mensagem, status) {
 function mostrarErro(container, mensagem) {
     container.innerHTML = `
         <div class="empty-state">
-            <span class="material-icons" style="color: #ef4444;">warning</span>
+            <span class="material-icons" style="color: var(--app-danger);">warning</span>
             <p style="font-weight: 600;">Erro ao carregar ranking</p>
             <p style="font-size: 0.85rem;">${mensagem}</p>
             <button onclick="location.reload()" style="margin-top: 12px; padding: 8px 16px; background: var(--rank-primary); color: white; border: none; border-radius: 6px; cursor: pointer;">

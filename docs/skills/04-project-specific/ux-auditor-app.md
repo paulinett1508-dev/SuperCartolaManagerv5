@@ -311,6 +311,110 @@ Compara consistencia visual entre duas telas.
 
 ---
 
+## 🔧 AUTO-FIX MODE (NOVO)
+
+### Script de Auto-Fix
+Localização: `scripts/ux-auto-fix.js`
+
+Detecta e corrige **automaticamente** issues comuns de UX no app participante.
+
+### Issues Automatizáveis (Confidence >= 80%)
+
+| Tipo | Detecção | Fix Automático | Confidence |
+|------|----------|----------------|------------|
+| **Cores hardcoded** | `#FF5500`, `#fff`, `#0a0a0a` | → Design tokens (`var(--app-primary)`) | 95% |
+| **Z-index arbitrário** | `z-index: 999` | → Camadas semânticas (`var(--app-z-modal)`) | 80-95% |
+| **Emojis como ícones** | `🏆`, `⚽`, `💰` | → Material Icons | 90% |
+| **Font-family hardcoded** | `font-family: Arial` | → Tokens (`var(--app-font-base)`) | 90% |
+| **Inline styles** | `style="color:#fff"` | → Extrair para CSS com tokens | 85% |
+
+### Uso do Script
+
+```bash
+# Preview (dry-run) - mostra issues sem aplicar
+node scripts/ux-auto-fix.js
+
+# Aplicar fixes em todos arquivos
+node scripts/ux-auto-fix.js --apply
+
+# Fix + commit automático
+node scripts/ux-auto-fix.js --apply --commit
+
+# Arquivo específico
+node scripts/ux-auto-fix.js --file=css/campinho.css --apply
+```
+
+### Safety Features
+
+✅ **Backup automático** antes de aplicar mudanças (`.ux-auto-fix-backup/`)
+✅ **Git clean check** - bloqueia se working directory não está limpo
+✅ **Confidence scoring** - só aplica fixes com >= 80% confiança
+✅ **Dry-run mode** - preview antes de aplicar
+
+### Exemplo de Output
+
+```
+================================================================================
+🔍 UX AUTO-FIX REPORT - DRY-RUN
+================================================================================
+
+📊 RESUMO
+
+  Cores hardcoded em CSS: 604 issue(s)
+  Z-index arbitrário: 7 issue(s)
+  Font-family hardcoded: 26 issue(s)
+  Emoji como ícone: 2 issue(s)
+
+  Total: 639 issue(s) detectado(s)
+
+📝 DETALHES
+
+  Cores hardcoded em CSS:
+    css/campinho.css:8
+      ❌ #0a0a0a
+      ✅ var(--app-bg)
+      💡 Cor hardcoded mapeada para token oficial (confidence: 95%)
+
+    css/campinho.css:102
+      ❌ #fff
+      ✅ var(--app-text-primary)
+      💡 Cor hardcoded mapeada para token oficial (confidence: 95%)
+...
+```
+
+### Workflow Recomendado
+
+```
+1. Rodar auditoria completa:
+   /ux-auditor-app
+
+2. Se encontrar issues auto-fixáveis, preview:
+   node scripts/ux-auto-fix.js
+
+3. Revisar mudanças propostas
+
+4. Aplicar fixes:
+   node scripts/ux-auto-fix.js --apply
+
+5. Testar app manualmente
+
+6. Commit:
+   git commit -m "fix(ux): auto-fix [N] issues"
+```
+
+### Limitações e Edge Cases
+
+⚠️ **Não corrige automaticamente:**
+- Estados visuais (loading, empty, error)
+- Responsividade (overflow, touch targets)
+- Acessibilidade (aria-labels, focus states)
+- Navegação SPA (rotas, history)
+- Performance (animações, lazy loading)
+
+Esses casos requerem análise e fix manual.
+
+---
+
 ## Workflow de Auditoria
 
 ### Passo 1: Carregar Referencia

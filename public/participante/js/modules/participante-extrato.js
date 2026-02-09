@@ -358,10 +358,10 @@ async function carregarExtrato(ligaId, timeId) {
         container.innerHTML = `
             <div style="text-align: center; padding: 40px;">
                 <div style="font-size: 48px; margin-bottom: 16px;">⏱️</div>
-                <h3 style="color: #f59e0b; margin-bottom: 12px;">Carregamento lento</h3>
+                <h3 style="color: var(--app-amber); margin-bottom: 12px;">Carregamento lento</h3>
                 <p style="color: #9ca3af; margin-bottom: 20px;">O servidor está demorando para responder.</p>
                 <button onclick="window.location.reload()"
-                    style="background: #ff5500; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    style="background: var(--app-primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
                     Tentar Novamente
                 </button>
             </div>
@@ -977,8 +977,8 @@ function mostrarVazio() {
         const saldoInicialHtml = !pagouInscricao && taxaInscricao > 0
             ? `<div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
                           border-radius: 8px; padding: 12px; margin-top: 16px;">
-                   <div style="color: #ef4444; font-size: 12px; font-weight: 600;">Taxa de inscricao pendente</div>
-                   <div style="color: #ef4444; font-size: 16px; font-weight: 700;">R$ ${taxaInscricao.toFixed(2).replace('.', ',')}</div>
+                   <div style="color: var(--app-danger); font-size: 12px; font-weight: 600;">Taxa de inscricao pendente</div>
+                   <div style="color: var(--app-danger); font-size: 16px; font-weight: 700;">R$ ${taxaInscricao.toFixed(2).replace('.', ',')}</div>
                </div>`
             : '';
 
@@ -988,7 +988,7 @@ function mostrarVazio() {
                 <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
                             border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; padding: 24px;">
                     <div style="font-size: 40px; margin-bottom: 12px;">✅</div>
-                    <h3 style="color: #10b981; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+                    <h3 style="color: var(--app-success); margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
                         Renovacao Confirmada!
                     </h3>
                     <p style="color: #9ca3af; font-size: 13px; margin: 0; line-height: 1.5;">
@@ -1004,7 +1004,7 @@ function mostrarVazio() {
                     <p style="color: #6b7280; font-size: 12px; margin: 0;">
                         Para ver seu historico de ${temporadaAnterior}, acesse o
                         <a href="#" onclick="window.participanteNav && window.participanteNav.navegarPara('historico'); return false;"
-                           style="color: #ff5500; text-decoration: none; font-weight: 600;">Hall da Fama</a>.
+                           style="color: var(--app-primary); text-decoration: none; font-weight: 600;">Hall da Fama</a>.
                     </p>
                 </div>
             </div>
@@ -1017,7 +1017,7 @@ function mostrarVazio() {
                 <div style="background: linear-gradient(135deg, rgba(255,85,0,0.1) 0%, rgba(255,136,0,0.05) 100%);
                             border: 1px solid rgba(255,85,0,0.3); border-radius: 16px; padding: 24px; margin-bottom: 20px;">
                     <div style="font-size: 40px; margin-bottom: 12px;">📋</div>
-                    <h3 style="color: #ff5500; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+                    <h3 style="color: var(--app-primary); margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
                         Temporada ${temporadaAtual}
                     </h3>
                     <p style="color: #9ca3af; font-size: 13px; margin: 0; line-height: 1.5;">
@@ -1034,11 +1034,11 @@ function mostrarVazio() {
                         <span style="color: #e5e5e5; font-size: 14px; font-weight: 600;">Temporada ${temporadaAnterior}</span>
                     </div>
                     <p style="color: #9ca3af; font-size: 12px; margin: 0 0 12px 0; line-height: 1.5;">
-                        Para ver seu historico financeiro de ${temporadaAnterior}, incluindo acertos e pagamentos, acesse o <strong style="color: #ff5500;">Hall da Fama</strong>.
+                        Para ver seu historico financeiro de ${temporadaAnterior}, incluindo acertos e pagamentos, acesse o <strong style="color: var(--app-primary);">Hall da Fama</strong>.
                     </p>
                     <button onclick="window.participanteNav && window.participanteNav.navegarPara('historico')"
                             style="width: 100%; padding: 12px; background: rgba(255,85,0,0.15); border: 1px solid rgba(255,85,0,0.3);
-                                   border-radius: 8px; color: #ff5500; font-weight: 600; font-size: 13px; cursor: pointer;
+                                   border-radius: 8px; color: var(--app-primary); font-weight: 600; font-size: 13px; cursor: pointer;
                                    display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <span class="material-symbols-outlined" style="font-size: 18px;">emoji_events</span>
                         Ver Historico ${temporadaAnterior}
@@ -1070,10 +1070,10 @@ function mostrarErro(mensagem) {
             <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1);
                         border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
                 <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-                <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar</h3>
+                <h3 style="color: var(--app-danger); margin-bottom: 12px;">Erro ao Carregar</h3>
                 <p style="color: #e0e0e0; margin-bottom: 20px;">${mensagem}</p>
                 <button onclick="window.forcarRefreshExtratoParticipante()"
-                        style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+                        style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, var(--app-primary-dark) 100%);
                                color: white; border: none; border-radius: 8px; cursor: pointer;
                                font-weight: 600; font-size: 14px;">
                     🔄 Tentar Novamente

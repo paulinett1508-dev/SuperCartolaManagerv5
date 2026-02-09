@@ -216,7 +216,7 @@ const ManutencaoScreen = {
             const ligaAtiva = window.participanteAuth?.ligaId;
 
             if (!ligaAtiva) {
-                conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:#f87171;">Faça login para ver seus dados</div>';
+                conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:var(--app-danger-light);">Faça login para ver seus dados</div>';
                 return;
             }
 
@@ -235,7 +235,7 @@ const ManutencaoScreen = {
                     tab.addEventListener('click', () => {
                         const lid = tab.dataset.ligaId;
                         conteudo.querySelectorAll('.manut-liga-tab-geral').forEach(t => t.style.background = '#374151');
-                        tab.style.background = 'linear-gradient(135deg,#f97316,#ea580c)';
+                        tab.style.background = 'linear-gradient(135deg,var(--app-pos-gol),#ea580c)';
                         this._carregarRankingLiga(lid, timeId, temporada);
                     });
                 });
@@ -247,7 +247,7 @@ const ManutencaoScreen = {
             this._rankingGeralCarregado = true;
             this._painelAtivo = 'geral';
         } catch (error) {
-            conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:#f87171;">Erro ao carregar dados. Tente novamente.</div>';
+            conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:var(--app-danger-light);">Erro ao carregar dados. Tente novamente.</div>';
             if (window.Log) Log.error('MANUTENCAO', 'Erro ao carregar ranking geral:', error);
         } finally {
             if (btn) {
@@ -294,7 +294,7 @@ const ManutencaoScreen = {
             const ligaAtiva = window.participanteAuth?.ligaId;
 
             if (!ligaAtiva) {
-                conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:#f87171;">Faça login para ver seus dados</div>';
+                conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:var(--app-danger-light);">Faça login para ver seus dados</div>';
                 return;
             }
 
@@ -311,7 +311,7 @@ const ManutencaoScreen = {
                     tab.addEventListener('click', () => {
                         const lid = tab.dataset.ligaId;
                         conteudo.querySelectorAll('.manut-liga-tab-rodada').forEach(t => t.style.background = '#374151');
-                        tab.style.background = 'linear-gradient(135deg,#f97316,#ea580c)';
+                        tab.style.background = 'linear-gradient(135deg,var(--app-pos-gol),#ea580c)';
                         this._carregarRankingRodadaLiga(lid, timeId);
                     });
                 });
@@ -322,7 +322,7 @@ const ManutencaoScreen = {
             this._rankingRodadaCarregado = true;
             this._painelAtivo = 'rodada';
         } catch (error) {
-            conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:#f87171;">Erro ao carregar dados. Tente novamente.</div>';
+            conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:var(--app-danger-light);">Erro ao carregar dados. Tente novamente.</div>';
             if (window.Log) Log.error('MANUTENCAO', 'Erro ao carregar ranking rodada:', error);
         } finally {
             if (btn) {
@@ -373,7 +373,7 @@ const ManutencaoScreen = {
             container.innerHTML = this._renderizarRankingRodada(parciaisRes, timeId, atletasInfo);
         } catch (error) {
             console.error('[MANUTENCAO] Erro ao carregar ranking da rodada:', error);
-            container.innerHTML = '<div style="text-align:center;padding:12px;color:#f87171;">Erro ao carregar ranking da rodada</div>';
+            container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--app-danger-light);">Erro ao carregar ranking da rodada</div>';
         }
     },
 
@@ -550,7 +550,7 @@ const ManutencaoScreen = {
                     tab.addEventListener('click', () => {
                         const lid = tab.dataset.ligaId;
                         conteudo.querySelectorAll('.manut-liga-tab-rodada').forEach(t => t.style.background = '#374151');
-                        tab.style.background = 'linear-gradient(135deg,#f97316,#ea580c)';
+                        tab.style.background = 'linear-gradient(135deg,var(--app-pos-gol),#ea580c)';
                         this._carregarRankingRodadaLiga(lid, timeId);
                     });
                 });
@@ -564,7 +564,7 @@ const ManutencaoScreen = {
             const conteudo = document.getElementById('manutencaoConteudo');
             if (conteudo) {
                 conteudo.style.display = 'block';
-                conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:#f87171;">Erro ao atualizar. Tente novamente.</div>';
+                conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:var(--app-danger-light);">Erro ao atualizar. Tente novamente.</div>';
             }
             if (window.Log) Log.error('MANUTENCAO', 'Erro ao atualizar parciais:', error);
         } finally {
@@ -597,7 +597,7 @@ const ManutencaoScreen = {
         dinoContainer.style.display = 'block';
         dinoContainer.innerHTML = `
             <div style="text-align:center;margin-bottom:12px;">
-                <h3 style="font-family:'Russo One',sans-serif;font-size:1rem;color:#fb923c;margin:0 0 8px;">
+                <h3 style="font-family:'Russo One',sans-serif;font-size:1rem;color:var(--app-pos-gol-light);margin:0 0 8px;">
                     ⚽ Cobrança de Pênalti
                 </h3>
                 <p style="font-size:0.75rem;color:#9ca3af;margin:0;">
@@ -811,7 +811,7 @@ const ManutencaoScreen = {
             const dp = diving ? Math.min(keeperAnim.p * 2, 1) : 0;
 
             // Jersey (orange)
-            px(x + 6, y + 10, 16, 14, '#fb923c');
+            px(x + 6, y + 10, 16, 14, 'var(--app-pos-gol-light)');
             // Head
             px(x + 8, y + 1, 12, 10, '#fcd34d');
             // Hair
@@ -821,17 +821,17 @@ const ManutencaoScreen = {
                 // Diving arms stretched
                 const armX = diveDir < 0 ? x - 10 * dp : x + kW - 2;
                 const armW = 12 * dp;
-                px(armX, y + 8, armW, 5, '#fb923c');
+                px(armX, y + 8, armW, 5, 'var(--app-pos-gol-light)');
                 // Gloves
                 const gloveX = diveDir < 0 ? armX - 4 : armX + armW;
-                px(gloveX, y + 6, 5, 7, '#22c55e');
+                px(gloveX, y + 6, 5, 7, 'var(--app-success-light)');
             } else {
                 // Arms up
-                px(x + 1, y + 4, 5, 14, '#fb923c');
-                px(x + kW - 6, y + 4, 5, 14, '#fb923c');
+                px(x + 1, y + 4, 5, 14, 'var(--app-pos-gol-light)');
+                px(x + kW - 6, y + 4, 5, 14, 'var(--app-pos-gol-light)');
                 // Gloves
-                px(x - 1, y + 1, 5, 6, '#22c55e');
-                px(x + kW - 4, y + 1, 5, 6, '#22c55e');
+                px(x - 1, y + 1, 5, 6, 'var(--app-success-light)');
+                px(x + kW - 4, y + 1, 5, 6, 'var(--app-success-light)');
             }
 
             // Shorts
@@ -938,7 +938,7 @@ const ManutencaoScreen = {
                 // Ball stuck in net
                 drawBall(ballAnim.tx, ballAnim.ty, ballR * 0.65);
 
-                ctx.fillStyle = isGol ? '#22c55e' : '#ef4444';
+                ctx.fillStyle = isGol ? 'var(--app-success-light)' : 'var(--app-danger)';
                 ctx.font = "bold 26px 'Russo One', sans-serif";
                 ctx.textAlign = 'center';
                 ctx.fillText(resultado, W / 2, H / 2 + 30);
@@ -955,13 +955,13 @@ const ManutencaoScreen = {
                 // Rating por desempenho
                 let rating, ratingColor;
                 if (gols === 5) { rating = 'CRAQUE! ⭐'; ratingColor = '#fbbf24'; }
-                else if (gols === 4) { rating = 'Muito bom!'; ratingColor = '#22c55e'; }
+                else if (gols === 4) { rating = 'Muito bom!'; ratingColor = 'var(--app-success-light)'; }
                 else if (gols === 3) { rating = 'Bom!'; ratingColor = '#34d399'; }
-                else if (gols === 2) { rating = 'Precisa treinar...'; ratingColor = '#f59e0b'; }
-                else if (gols === 1) { rating = 'Perna de pau!'; ratingColor = '#f87171'; }
-                else { rating = 'Caneleiro!'; ratingColor = '#ef4444'; }
+                else if (gols === 2) { rating = 'Precisa treinar...'; ratingColor = 'var(--app-amber)'; }
+                else if (gols === 1) { rating = 'Perna de pau!'; ratingColor = 'var(--app-danger-light)'; }
+                else { rating = 'Caneleiro!'; ratingColor = 'var(--app-danger)'; }
 
-                ctx.fillStyle = '#fb923c';
+                ctx.fillStyle = 'var(--app-pos-gol-light)';
                 ctx.font = "bold 20px 'Russo One', sans-serif";
                 ctx.textAlign = 'center';
                 ctx.fillText('FIM DE JOGO', W / 2, H / 2 - 25);
@@ -984,7 +984,7 @@ const ManutencaoScreen = {
             if (state !== 'gameover') {
                 px(0, 0, W, 18, 'rgba(0,0,0,0.6)');
                 ctx.font = "bold 10px 'JetBrains Mono', monospace";
-                ctx.fillStyle = '#22c55e';
+                ctx.fillStyle = 'var(--app-success-light)';
                 ctx.textAlign = 'left';
                 ctx.fillText(`⚽ ${gols}`, 8, 13);
 
@@ -997,7 +997,7 @@ const ManutencaoScreen = {
                     ctx.arc(dx, 10, 4, 0, Math.PI * 2);
                     if (i < cobradas) {
                         // Played: green=gol, red=miss
-                        ctx.fillStyle = i < gols + defesas ? (i < cobradas - defesas + (cobradas <= gols ? 0 : 0) ? '#22c55e' : '#ef4444') : '#22c55e';
+                        ctx.fillStyle = i < gols + defesas ? (i < cobradas - defesas + (cobradas <= gols ? 0 : 0) ? 'var(--app-success-light)' : 'var(--app-danger)') : 'var(--app-success-light)';
                     } else {
                         ctx.fillStyle = 'transparent';
                     }
@@ -1012,7 +1012,7 @@ const ManutencaoScreen = {
                     }
                 }
 
-                ctx.fillStyle = '#ef4444';
+                ctx.fillStyle = 'var(--app-danger)';
                 ctx.textAlign = 'right';
                 ctx.font = "bold 10px 'JetBrains Mono', monospace";
                 ctx.fillText(`❌ ${defesas}`, W - 8, 13);
@@ -1077,7 +1077,7 @@ const ManutencaoScreen = {
         let html = `<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;justify-content:center;">`;
         ligas.forEach(liga => {
             const isActive = String(liga._id || liga.id) === String(ligaAtiva);
-            const bg = isActive ? 'linear-gradient(135deg,#f97316,#ea580c)' : '#374151';
+            const bg = isActive ? 'linear-gradient(135deg,var(--app-pos-gol),#ea580c)' : '#374151';
             const nome = liga.nome || liga.name || 'Liga';
             html += `<button class="${tabClass}" data-liga-id="${liga._id || liga.id}"
                 style="background:${bg};color:white;border:none;padding:8px 16px;border-radius:10px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;">
@@ -1137,7 +1137,7 @@ const ManutencaoScreen = {
             container.innerHTML = this._renderizarRanking(dados, timeId);
         } catch (error) {
             console.error('[MANUTENCAO] Erro ao carregar ranking:', error);
-            container.innerHTML = '<div style="text-align:center;padding:12px;color:#f87171;">Erro ao carregar ranking</div>';
+            container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--app-danger-light);">Erro ao carregar ranking</div>';
         }
     },
 
@@ -1160,7 +1160,7 @@ const ManutencaoScreen = {
         // Aviso quando API Cartola está em manutenção
         if (todosZerados) {
             html += `
-            <div style="background:linear-gradient(135deg,#92400e,#78350f);border-radius:14px;padding:16px;border:1px solid #f59e0b40;margin-bottom:16px;text-align:center;">
+            <div style="background:linear-gradient(135deg,#92400e,#78350f);border-radius:14px;padding:16px;border:1px solid var(--app-amber)40;margin-bottom:16px;text-align:center;">
                 <div style="font-size:1.5rem;margin-bottom:8px;">🛠️</div>
                 <div style="font-family:'Russo One',sans-serif;font-size:0.95rem;color:#fbbf24;margin-bottom:6px;">API do Cartola em Manutenção</div>
                 <div style="font-size:0.78rem;color:#fde68a;line-height:1.4;">
@@ -1206,7 +1206,7 @@ const ManutencaoScreen = {
         const tituloTabela = todosZerados ? `Participantes - Rodada ${rodadaAtual}` : `Ranking Geral - Rodada ${rodadaAtual}`;
         html += `
             <div style="margin-bottom:16px;">
-                <h3 style="font-family:'Russo One',sans-serif;font-size:1rem;color:#fb923c;margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <h3 style="font-family:'Russo One',sans-serif;font-size:1rem;color:var(--app-pos-gol-light);margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                     <span class="material-icons" style="font-size:20px;">${todosZerados ? 'groups' : 'emoji_events'}</span>
                     ${tituloTabela}
                     <span style="font-size:0.7rem;color:${statusColor};font-weight:400;font-family:'Inter',sans-serif;background:${statusColor}20;padding:2px 8px;border-radius:999px;">${statusLabel}</span>
@@ -1232,7 +1232,7 @@ const ManutencaoScreen = {
             const isUser = String(item.timeId) === String(timeIdLogado);
 
             const bgColor = isUser ? '#1e3a5f' : (idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)');
-            const borderLeft = isUser ? '3px solid #fb923c' : '3px solid transparent';
+            const borderLeft = isUser ? '3px solid var(--app-pos-gol-light)' : '3px solid transparent';
             const fontWeight = isUser ? '700' : '400';
             const textColor = isUser ? '#fbbf24' : '#e5e7eb';
 

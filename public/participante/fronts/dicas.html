@@ -4,7 +4,7 @@
      ACESSO: Exclusivo para participantes Premium
      ===================================================================== -->
 
-<div id="dicas-container" class="min-h-screen bg-[#0a0a0a]">
+<div id="dicas-container" class="min-h-screen bg-[var(--app-bg)]">
     <!-- Header -->
     <div class="px-4 py-3 border-b border-white/10">
         <div class="flex items-center justify-between">
@@ -71,7 +71,7 @@
 }
 
 .dicas-tab.active {
-    color: #ff5500;
+    color: var(--app-primary);
     background: rgba(255,85,0,0.1);
     border-color: rgba(255,85,0,0.3);
 }
@@ -89,8 +89,8 @@
 
 .dicas-filtro-btn.active {
     color: white;
-    background: #ff5500;
-    border-color: #ff5500;
+    background: var(--app-primary);
+    border-color: var(--app-primary);
 }
 
 .dicas-jogador-card {
@@ -131,7 +131,7 @@
 }
 
 .dicas-input:focus {
-    border-color: #ff5500;
+    border-color: var(--app-primary);
     background: rgba(255,85,0,0.05);
 }
 
@@ -165,7 +165,7 @@
 
 .premium-bloqueio-icon .material-icons {
     font-size: 40px;
-    color: #ff5500;
+    color: var(--app-primary);
 }
 
 .premium-badge {
@@ -173,7 +173,7 @@
     align-items: center;
     gap: 6px;
     padding: 6px 14px;
-    background: linear-gradient(135deg, #ff5500, #ffaa00);
+    background: linear-gradient(135deg, var(--app-primary), #ffaa00);
     border-radius: 20px;
     font-size: 11px;
     font-weight: 700;
@@ -210,19 +210,19 @@
     font-weight: 700;
 }
 
-.sugestao-posicao-badge.gol { background: #f59e0b; color: #000; }
-.sugestao-posicao-badge.lat { background: #22c55e; color: #000; }
-.sugestao-posicao-badge.zag { background: #3b82f6; color: #fff; }
-.sugestao-posicao-badge.mei { background: #8b5cf6; color: #fff; }
-.sugestao-posicao-badge.ata { background: #ef4444; color: #fff; }
-.sugestao-posicao-badge.tec { background: #6b7280; color: #fff; }
+.sugestao-posicao-badge.gol { background: var(--app-amber); color: #000; }
+.sugestao-posicao-badge.lat { background: var(--app-success-light); color: #000; }
+.sugestao-posicao-badge.zag { background: var(--app-info); color: var(--app-text-primary); }
+.sugestao-posicao-badge.mei { background: var(--app-purple); color: var(--app-text-primary); }
+.sugestao-posicao-badge.ata { background: var(--app-danger); color: var(--app-text-primary); }
+.sugestao-posicao-badge.tec { background: #6b7280; color: var(--app-text-primary); }
 
 .capitao-badge {
     display: inline-flex;
     align-items: center;
     gap: 2px;
     padding: 2px 6px;
-    background: #ff5500;
+    background: var(--app-primary);
     border-radius: 4px;
     font-size: 9px;
     font-weight: 700;
@@ -247,7 +247,7 @@ input[type="range"] {
     width: 100%;
     height: 6px;
     border-radius: 3px;
-    background: linear-gradient(to right, #22c55e, #ff5500);
+    background: linear-gradient(to right, var(--app-success-light), var(--app-primary));
     outline: none;
 }
 

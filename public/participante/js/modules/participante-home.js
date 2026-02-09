@@ -460,7 +460,7 @@ function atualizarCardsHomeUI(data) {
 
     if (saldoFinanceiroEl) {
         saldoFinanceiroEl.textContent = saldoFormatado;
-        saldoFinanceiroEl.style.color = saldoFinanceiro < 0 ? '#ef4444' : '';
+        saldoFinanceiroEl.style.color = saldoFinanceiro < 0 ? 'var(--app-danger)' : '';
     }
 
     if (variacaoSaldoEl) {
@@ -729,10 +729,10 @@ async function aplicarCorBadgeClube(clubeId) {
         const rgb = corParaRGB(cor);
         if (rgb) {
             const luminancia = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
-            icon.style.color = luminancia > 0.6 ? '#111111' : '#FFFFFF';
+            icon.style.color = luminancia > 0.6 ? '#111111' : 'var(--app-text-primary)';
             badge.style.borderColor = luminancia > 0.7 ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.5)';
         } else {
-            icon.style.color = '#FFFFFF';
+            icon.style.color = 'var(--app-text-primary)';
         }
     }
 }
@@ -1008,7 +1008,7 @@ function renderizarHome(container, data, ligaId) {
 
     if (saldoFinanceiroEl) {
         saldoFinanceiroEl.textContent = saldoFormatado;
-        saldoFinanceiroEl.style.color = saldoFinanceiro < 0 ? '#ef4444' : '';
+        saldoFinanceiroEl.style.color = saldoFinanceiro < 0 ? 'var(--app-danger)' : '';
     }
 
     if (variacaoSaldoEl) {
@@ -1503,10 +1503,10 @@ function atualizarPainelAvisos(rodadaAtual, totalParticipantes, extras = {}) {
             avisosHTML += `
                 <div class="home-aviso-secundario" onclick="window.participanteNav?.navegarPara('ranking')">
                     <div class="home-aviso-icon-mini" style="background:rgba(255,215,0,0.15);">
-                        <span class="material-icons" style="color:#ffd700;">workspace_premium</span>
+                        <span class="material-icons" style="color:var(--app-gold);">workspace_premium</span>
                     </div>
                     <span class="home-aviso-texto">Você está no Top 10! Posição ${posicao}º no ranking</span>
-                    <span class="home-aviso-badge" style="color:#ffd700;background:rgba(255,215,0,0.15);">TOP 10</span>
+                    <span class="home-aviso-badge" style="color:var(--app-gold);background:rgba(255,215,0,0.15);">TOP 10</span>
                 </div>
             `;
         }
@@ -1679,7 +1679,7 @@ function atualizarSaldoProjetado(posicaoParcial) {
 
     // Atualizar UI
     patrimonioEl.textContent = formatted;
-    patrimonioEl.style.color = saldoProjetado < 0 ? '#ef4444' : '';
+    patrimonioEl.style.color = saldoProjetado < 0 ? 'var(--app-danger)' : '';
 
     // Mostrar variação como projeção
     if (variacaoEl) {

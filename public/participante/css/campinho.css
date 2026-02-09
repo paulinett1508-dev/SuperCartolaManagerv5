@@ -5,7 +5,7 @@
 
 /* === CONTAINER PRINCIPAL === */
 .campinho-wrapper {
-    background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
+    background: linear-gradient(180deg, var(--app-bg) 0%, #111 100%);
     min-height: 100vh;
     padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
 }
@@ -99,7 +99,7 @@
     font-family: var(--app-font-mono, 'JetBrains Mono', monospace);
     font-size: 32px;
     font-weight: 700;
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
     line-height: 1;
 }
 
@@ -138,7 +138,7 @@
 .campinho-desempenho-card {
     background: rgba(26, 26, 26, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-left: 4px solid var(--app-primary, #ff5500);
+    border-left: 4px solid var(--app-primary, var(--app-primary));
     border-radius: 10px;
     padding: 14px 16px;
 }
@@ -151,7 +151,7 @@
 }
 
 .campinho-desemp-header .material-icons {
-    color: var(--app-primary, #ff5500);
+    color: var(--app-primary, var(--app-primary));
     font-size: 18px;
 }
 
@@ -184,7 +184,7 @@
     font-family: var(--app-font-brand, 'Russo One', sans-serif);
     font-size: 36px;
     font-weight: 400;
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
     line-height: 1;
 }
 
@@ -213,7 +213,7 @@
     font-family: var(--app-font-mono, 'JetBrains Mono', monospace);
     font-size: 14px;
     font-weight: 700;
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
     display: block;
     line-height: 1.2;
 }
@@ -274,7 +274,7 @@
 }
 
 .campinho-desemp-esc-icon.jogaram {
-    color: #3b82f6;
+    color: var(--app-info);
 }
 
 .campinho-desemp-esc-icon.sairam {
@@ -289,7 +289,7 @@
     font-family: var(--app-font-mono, 'JetBrains Mono', monospace);
     font-size: 14px;
     font-weight: 700;
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
 }
 
 .campinho-desemp-esc-label {
@@ -384,7 +384,7 @@
     font-family: var(--app-font-brand);
     font-size: 28px;
     margin: 0;
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
 }
 
 .campinho-title-row {
@@ -416,7 +416,7 @@
 
 .campinho-market-pill {
     background: var(--app-primary);
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
     padding: 6px 18px;
     border-radius: 999px;
     font-size: 12px;
@@ -452,7 +452,7 @@
     font-size: 18px;
     margin-top: 4px;
     font-family: var(--app-font-mono);
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
 }
 
 /* === TABELA DE ESCALAÇÃO (formato Rodadas) === */
@@ -479,14 +479,14 @@
     gap: 6px;
     font-family: var(--app-font-brand, 'Russo One', sans-serif);
     font-size: 13px;
-    color: #fff;
+    color: var(--app-text-primary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .campinho-escalacao-header-left .material-icons {
     font-size: 18px;
-    color: var(--app-primary, #ff5500);
+    color: var(--app-primary, var(--app-primary));
 }
 
 .campinho-escalacao-count {
@@ -512,7 +512,7 @@
     font-family: var(--app-font-mono, 'JetBrains Mono', monospace);
     font-size: 16px;
     font-weight: 700;
-    color: #fff;
+    color: var(--app-text-primary);
 }
 
 .campinho-escalacao-body {
@@ -560,7 +560,7 @@
 .campinho-points strong {
     font-size: 20px;
     font-family: var(--app-font-mono);
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
 }
 
 .campinho-counter {
@@ -628,7 +628,7 @@
 .campinho-lineup-balance strong {
     font-family: var(--app-font-mono, 'JetBrains Mono', monospace);
     font-size: 16px;
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
 }
 
 .campinho-lineup-body {
@@ -658,7 +658,7 @@
 
 .campinho-lineup-section-icon {
     font-size: 14px;
-    color: var(--app-primary, #ff5500);
+    color: var(--app-primary, var(--app-primary));
 }
 
 .campinho-lineup-section-count {
@@ -738,11 +738,11 @@
 }
 
 .campinho-tabela-badge.badge-c {
-    background: linear-gradient(135deg, var(--app-gold, #fbbf24), var(--app-amber, #f59e0b));
+    background: linear-gradient(135deg, var(--app-gold, #fbbf24), var(--app-amber, var(--app-amber)));
 }
 
 .campinho-tabela-badge.badge-l {
-    background: linear-gradient(135deg, #a855f7, #f59e0b);
+    background: linear-gradient(135deg, var(--app-pos-tec), var(--app-amber));
 }
 
 /* Info do jogador */
@@ -758,7 +758,7 @@
     font-family: var(--app-font-base, 'Inter', sans-serif);
     font-size: 14px;
     font-weight: 600;
-    color: #fff;
+    color: var(--app-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -788,7 +788,7 @@
 }
 
 .campinho-tabela-pontos-valor.negativo {
-    color: #f87171;
+    color: var(--app-danger-light);
 }
 
 .campinho-tabela-pontos-valor.neutro {
@@ -832,7 +832,7 @@
 .campinho-header-info h2 {
     font-family: var(--app-font-brand);
     font-size: 18px;
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
     margin: 0;
 }
 
@@ -962,7 +962,7 @@
     justify-content: center;
     gap: 6px;
     position: relative;
-    z-index: 2;
+    z-index: var(--app-z-header);
 }
 
 /* === JOGADOR INDIVIDUAL === */
@@ -1153,13 +1153,13 @@
     border-radius: 50%;
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.45) 0%, rgba(185, 28, 28, 0.55) 100%);
     pointer-events: none;
-    z-index: 1;
+    z-index: var(--app-z-content);
 }
 
 /* Manter escudo visível acima do overlay */
 .campinho-jogador.is-negativo .campinho-jogador-avatar img {
     position: relative;
-    z-index: 2;
+    z-index: var(--app-z-header);
 }
 
 /* Badge de pontos com fundo avermelhado quando negativo */
@@ -1258,7 +1258,7 @@
 .campinho-confronto-header span {
     font-size: 13px;
     font-weight: 600;
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
 }
 
 .campinho-confronto-placar {
@@ -1282,7 +1282,7 @@
     font-family: var(--app-font-mono);
     font-size: 24px;
     font-weight: 700;
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
 }
 
 .campinho-confronto-vs {
@@ -1450,7 +1450,7 @@
 
 .campinho-empty h3 {
     font-size: 18px;
-    color: var(--app-text-white, #fff);
+    color: var(--app-text-white, var(--app-text-primary));
     margin-bottom: 8px;
 }
 

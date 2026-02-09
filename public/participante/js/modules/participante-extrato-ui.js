@@ -287,21 +287,21 @@ function renderEvolutionChart(isPreTemporadaMode) {
                 <svg id="graficoSVG" style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 300 160" preserveAspectRatio="none" fill="none">
                     <defs>
                         <linearGradient id="chartGradientPositive" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="0%" stop-color="#10b981" stop-opacity="0.25"></stop>
-                            <stop offset="100%" stop-color="#10b981" stop-opacity="0"></stop>
+                            <stop offset="0%" stop-color="var(--app-success)" stop-opacity="0.25"></stop>
+                            <stop offset="100%" stop-color="var(--app-success)" stop-opacity="0"></stop>
                         </linearGradient>
                         <linearGradient id="chartGradientNegative" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="0%" stop-color="#ef4444" stop-opacity="0.25"></stop>
-                            <stop offset="100%" stop-color="#ef4444" stop-opacity="0"></stop>
+                            <stop offset="0%" stop-color="var(--app-danger)" stop-opacity="0.25"></stop>
+                            <stop offset="100%" stop-color="var(--app-danger)" stop-opacity="0"></stop>
                         </linearGradient>
                         <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="0%" stop-color="#FF5500" stop-opacity="0.3"></stop>
-                            <stop offset="100%" stop-color="#FF5500" stop-opacity="0"></stop>
+                            <stop offset="0%" stop-color="var(--app-primary)" stop-opacity="0.3"></stop>
+                            <stop offset="100%" stop-color="var(--app-primary)" stop-opacity="0"></stop>
                         </linearGradient>
                     </defs>
                     <line class="extrato-chart__zero-line" x1="0" x2="300" y1="80" y2="80"></line>
                     <path id="graficoArea" fill="url(#chartGradient)" d=""></path>
-                    <path id="graficoPath" fill="none" stroke="#FF5500" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d=""></path>
+                    <path id="graficoPath" fill="none" stroke="var(--app-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d=""></path>
                 </svg>
                 <div id="graficoLabels" style="position:absolute;inset:0;top:auto;display:flex;justify-content:space-between;font-size:10px;color:var(--app-text-dim);padding:0 4px"></div>
             </div>
@@ -683,7 +683,7 @@ function renderBottomSheetAcertos(listaAcertos, resumoAcertos, saldoTemporada, s
     return `
         <div id="bottomSheetAcertos" class="fixed inset-0 z-[60] hidden">
             <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="window.fecharBottomSheetAcertos()"></div>
-            <div class="absolute bottom-0 left-0 right-0 rounded-t-3xl max-h-[85vh] flex flex-col transform translate-y-full transition-transform duration-300 ease-out" style="background: var(--app-bg-elevated, #1a1a1a)" id="bottomSheetContent">
+            <div class="absolute bottom-0 left-0 right-0 rounded-t-3xl max-h-[85vh] flex flex-col transform translate-y-full transition-transform duration-300 ease-out" style="background: var(--app-bg-elevated, var(--app-surface))" id="bottomSheetContent">
                 <div style="display:flex;justify-content:center;padding:12px 0 8px"><div style="width:40px;height:4px;border-radius:9999px;background:var(--app-glass-hover)"></div></div>
                 <div style="padding:0 20px 16px;border-bottom:1px solid var(--app-glass-border)">
                     <div style="display:flex;justify-content:space-between;align-items:center">
@@ -1026,7 +1026,7 @@ function renderizarGraficoEvolucao(rodadas, range = "all") {
 
     // Color based on final saldo
     const finalSaldo = pontos[pontos.length - 1].saldo;
-    const strokeColor = '#FF5500'; // Orange identity
+    const strokeColor = 'var(--app-primary)'; // Orange identity
     path.setAttribute("d", pathD);
     path.setAttribute("stroke", strokeColor);
     area.setAttribute("d", areaD);

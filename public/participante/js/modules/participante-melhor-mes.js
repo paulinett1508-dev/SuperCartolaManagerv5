@@ -456,7 +456,7 @@ function renderizarEdicaoCard(edicao, meuTimeIdNum) {
                     ? `
                 <div class="mm-card-campeao ${souCampeao ? "meu" : ""} ${campeao.ativo === false ? "inativo" : ""}">
                     <div class="mm-campeao-badge">
-                        <span class="mm-campeao-icon"><span class="material-symbols-outlined" style="font-size: 24px; ${souCampeao ? 'color: #fbbf24;' : 'color: #f59e0b;'}">${souCampeao ? "military_tech" : "emoji_events"}</span></span>
+                        <span class="mm-campeao-icon"><span class="material-symbols-outlined" style="font-size: 24px; ${souCampeao ? 'color: #fbbf24;' : 'color: var(--app-amber);'}">${souCampeao ? "military_tech" : "emoji_events"}</span></span>
                         <span class="mm-campeao-label">${souCampeao ? "VOCÊ É O CAMPEÃO!" : "CAMPEÃO"}</span>
                     </div>
                     <div class="mm-campeao-info">
@@ -486,7 +486,7 @@ function renderizarEdicaoCard(edicao, meuTimeIdNum) {
                             const medalhaIcons = [
                                 '<span class="material-symbols-outlined" style="font-size: 20px; color: #fbbf24;">trophy</span>',
                                 '<span class="material-symbols-outlined" style="font-size: 20px; color: #9ca3af;">workspace_premium</span>',
-                                '<span class="material-symbols-outlined" style="font-size: 20px; color: #cd7f32;">workspace_premium</span>'
+                                '<span class="material-symbols-outlined" style="font-size: 20px; color: var(--app-bronze);">workspace_premium</span>'
                             ];
                             const medalha = medalhaIcons[idx] || medalhaIcons[2];
                             const pts = time.pontos_total.toLocaleString(
@@ -689,9 +689,9 @@ function mostrarErro(mensagem) {
     if (grid) {
         grid.style.display = "flex";
         grid.innerHTML = `
-            <div style="width: 100%; text-align: center; padding: 40px; color: #ef4444;">
-                <div style="font-size: 48px; margin-bottom: 16px;"><span class="material-symbols-outlined" style="font-size: 48px; color: #f87171;">error</span></div>
-                <h3 style="color: #f87171; margin-bottom: 8px;">Erro ao Carregar</h3>
+            <div style="width: 100%; text-align: center; padding: 40px; color: var(--app-danger);">
+                <div style="font-size: 48px; margin-bottom: 16px;"><span class="material-symbols-outlined" style="font-size: 48px; color: var(--app-danger-light);">error</span></div>
+                <h3 style="color: var(--app-danger-light); margin-bottom: 8px;">Erro ao Carregar</h3>
                 <p style="color: #9ca3af; margin: 12px 0;">${mensagem}</p>
                 <button onclick="window.inicializarMelhorMesParticipante({ligaId: '${ligaIdAtual}', timeId: '${timeIdAtual}'})"
                         style="margin-top: 16px; padding: 12px 24px; background: #E65100;

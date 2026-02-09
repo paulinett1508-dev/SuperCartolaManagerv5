@@ -150,13 +150,13 @@ const TabelasEsportes = {
                 await this._carregarJogosDoDia(conteudo);
                 break;
             case 'copa-brasil':
-                this._renderAguarde(conteudo, 'Copa do Brasil', 'flag', '#22c55e');
+                this._renderAguarde(conteudo, 'Copa do Brasil', 'flag', 'var(--app-success-light)');
                 break;
             case 'libertadores':
-                this._renderAguarde(conteudo, 'Libertadores', 'public', '#ffd700');
+                this._renderAguarde(conteudo, 'Libertadores', 'public', 'var(--app-gold)');
                 break;
             case 'copa-mundo':
-                this._renderAguarde(conteudo, 'Copa do Mundo', 'language', '#3b82f6');
+                this._renderAguarde(conteudo, 'Copa do Mundo', 'language', 'var(--app-info)');
                 break;
         }
     },
@@ -704,7 +704,7 @@ const TabelasEsportes = {
     _renderErro(mensagem) {
         return `
             <div class="tabelas-sem-jogos">
-                <span class="material-icons" style="font-size:32px;color:#ef4444;">error_outline</span>
+                <span class="material-icons" style="font-size:32px;color:var(--app-danger);">error_outline</span>
                 <p class="tabelas-sem-jogos-titulo">${mensagem}</p>
                 <p class="tabelas-sem-jogos-sub">Tente novamente em alguns instantes</p>
             </div>

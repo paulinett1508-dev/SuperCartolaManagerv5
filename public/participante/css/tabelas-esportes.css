@@ -26,9 +26,9 @@
 }
 
 .tabelas-header-title {
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand), sans-serif;
     font-size: 1rem;
-    color: #fff;
+    color: var(--app-text-primary);
     margin: 0;
 }
 
@@ -60,7 +60,7 @@
     background: transparent;
     color: #9ca3af;
     font-size: 0.75rem;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--app-font-base), sans-serif;
     font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
@@ -73,7 +73,7 @@
 
 .tabelas-tab-active {
     background: linear-gradient(135deg, #ff6d00, #ff8f00);
-    color: #fff;
+    color: var(--app-text-primary);
     border-color: transparent;
     font-weight: 600;
 }
@@ -114,7 +114,7 @@
     align-items: center;
     gap: 8px;
     padding: 8px 16px 6px;
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand), sans-serif;
     font-size: 0.85rem;
     color: #e5e7eb;
 }
@@ -154,9 +154,9 @@
 }
 
 .tabelas-dia-titulo {
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand), sans-serif;
     font-size: 0.9rem;
-    color: #fff;
+    color: var(--app-text-primary);
 }
 
 .tabelas-dia-resumo {
@@ -169,11 +169,11 @@
 .tabelas-dia-stat {
     font-size: 0.7rem;
     color: #9ca3af;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--app-font-base), sans-serif;
 }
 
 .tabelas-stat-live {
-    color: #ef4444;
+    color: var(--app-danger);
     display: flex;
     align-items: center;
     gap: 4px;
@@ -201,7 +201,7 @@
     background: rgba(255, 255, 255, 0.04);
     color: #9ca3af;
     font-size: 0.72rem;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--app-font-base), sans-serif;
     font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
@@ -214,7 +214,7 @@
 
 .tabelas-filtro-btn-active {
     background: linear-gradient(135deg, #ff6d00, #ff8f00);
-    color: #fff;
+    color: var(--app-text-primary);
     border-color: transparent;
     font-weight: 600;
 }
@@ -223,7 +223,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #ef4444;
+    background: var(--app-danger);
     animation: tabelas-pulse 1.5s ease-in-out infinite;
 }
 
@@ -251,11 +251,11 @@
 }
 
 .tabelas-liga-header-live {
-    border-left: 3px solid #ef4444;
+    border-left: 3px solid var(--app-danger);
 }
 
 .tabelas-liga-nome {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--app-font-base), sans-serif;
     font-size: 0.78rem;
     font-weight: 600;
     color: #d1d5db;
@@ -344,10 +344,10 @@
 
 .tabelas-placar,
 .tabelas-placar-sm {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--app-font-mono), monospace;
     font-size: 1rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--app-text-primary);
 }
 
 .tabelas-placar-sm {
@@ -367,7 +367,7 @@
     align-items: center;
     gap: 4px;
     font-size: 0.62rem;
-    color: #ef4444;
+    color: var(--app-danger);
     font-weight: 700;
     text-transform: uppercase;
 }
@@ -376,7 +376,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #ef4444;
+    background: var(--app-danger);
     animation: tabelas-pulse 1.5s ease-in-out infinite;
 }
 
@@ -389,14 +389,14 @@
 .tabelas-badge-horario {
     font-size: 0.72rem;
     color: #9ca3af;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--app-font-mono), monospace;
     font-weight: 500;
 }
 
 /* Card estados */
 .tabelas-card-live {
     background: rgba(239, 68, 68, 0.06);
-    border-left: 3px solid #ef4444;
+    border-left: 3px solid var(--app-danger);
 }
 
 .tabelas-card-encerrado {
@@ -409,7 +409,7 @@
     align-items: center;
     gap: 8px;
     padding: 14px 16px 6px;
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand), sans-serif;
     font-size: 0.85rem;
     color: #e5e7eb;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -453,7 +453,7 @@
 }
 
 .tabelas-aguarde-titulo {
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand), sans-serif;
     font-size: 0.95rem;
     color: #e5e7eb;
     margin: 0 0 6px;

@@ -789,11 +789,11 @@ body {
 
 .alert-banner.warning {
     background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%);
-    border-left-color: var(--app-warning, #f59e0b);
+    border-left-color: var(--app-warning, var(--app-amber));
 }
 
 .alert-banner.warning .material-icons {
-    color: var(--app-warning, #f59e0b);
+    color: var(--app-warning, var(--app-amber));
     font-size: 24px;
     flex-shrink: 0;
 }

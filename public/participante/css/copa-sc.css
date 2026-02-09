@@ -2,7 +2,7 @@
    COPA DE TIMES SUPER CARTOLA - ESTILOS TEMÁTICOS
    ===================================================================== */
 /* v1.0: Tema dourado/troféu para a Copa de Times SC
-   Cores principais: Dourado (#ffd700), Amarelo (#fbbf24), Laranja (#f97316)
+   Cores principais: Dourado (var(--app-gold)), Amarelo (#fbbf24), Laranja (var(--app-pos-gol))
    Background: Dark mode (gray-900, slate-900)
    Tipografia: Russo One (títulos), Inter (corpo), JetBrains Mono (valores)
 */
@@ -11,9 +11,9 @@
    VARIÁVEIS CSS - TEMA COPA SC
    ===================================================================== */
 :root {
-    --copa-gold: #ffd700;
+    --copa-gold: var(--app-gold);
     --copa-yellow: #fbbf24;
-    --copa-orange: #f97316;
+    --copa-orange: var(--app-pos-gol);
     --copa-dark: #0f172a;
     --copa-gray: #1e293b;
     --copa-light: #f8fafc;
@@ -27,7 +27,7 @@
 #copa-times-sc-container {
     min-height: 100vh;
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-    font-family: 'Inter', -apple-system, sans-serif;
+    font-family: var(--app-font-base), -apple-system, sans-serif;
 }
 
 /* =====================================================================
@@ -147,7 +147,7 @@
     padding: 0.75rem 1.5rem;
     border-radius: 0.75rem;
     font-weight: bold;
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand), sans-serif;
     letter-spacing: 0.05em;
     transition: all 0.3s ease;
     border: none;
@@ -167,7 +167,7 @@
     border: 2px solid var(--copa-gold);
     border-radius: 0.75rem;
     font-weight: bold;
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand), sans-serif;
     letter-spacing: 0.05em;
     transition: all 0.3s ease;
     cursor: pointer;
@@ -182,21 +182,21 @@
    TIPOGRAFIA
    ===================================================================== */
 .copa-title-main {
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand), sans-serif;
     font-size: clamp(2.5rem, 5vw, 4rem);
     font-weight: 700;
     line-height: 1.2;
 }
 
 .copa-title-section {
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--app-font-brand), sans-serif;
     font-size: clamp(1.5rem, 3vw, 2rem);
     font-weight: 700;
     color: var(--copa-gold);
 }
 
 .copa-text-body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--app-font-base), sans-serif;
     font-size: 1rem;
     line-height: 1.6;
     color: var(--app-text-secondary);

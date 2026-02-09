@@ -8,3 +8,4 @@ build/
 .config/
 .breakpoints
 .claude_auth_store/
+.ux-auto-fix-backup/

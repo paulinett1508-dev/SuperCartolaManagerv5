@@ -12,7 +12,7 @@
         <meta http-equiv="Pragma" content="no-cache" />
         <meta http-equiv="Expires" content="0" />
 
-        <meta name="theme-color" content="#0a0a0a" />
+        <meta name="theme-color" content="var(--app-bg)" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
@@ -36,10 +36,10 @@
                 theme: {
                     extend: {
                         colors: {
-                            primary: "#FF5500", /* Padronizado com _app-tokens.css */
+                            primary: "var(--app-primary)", /* Padronizado com _app-tokens.css */
                             "background-light": "#f6f8f7",
                             "background-dark": "#101010",
-                            "surface-dark": "#1c1c1c",
+                            "surface-dark": "var(--app-surface-elevated)",
                         },
                         fontFamily: {
                             display: ["Inter", "-apple-system", "sans-serif"],
@@ -125,7 +125,7 @@
                 right: 0 !important;
                 bottom: 0 !important;
                 z-index: 999999 !important;
-                background: #0a0a0a !important;
+                background: var(--app-bg) !important;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -228,7 +228,7 @@
                 height: 5px;
             }
             ::-webkit-scrollbar-track {
-                background: #1c1c1c;
+                background: var(--app-surface-elevated);
             }
             ::-webkit-scrollbar-thumb {
                 background: linear-gradient(
@@ -250,7 +250,7 @@
             /* Firefox */
             * {
                 scrollbar-width: thin;
-                scrollbar-color: var(--scrollbar-cor1, #ff5c00) #1c1c1c;
+                scrollbar-color: var(--scrollbar-cor1, #ff5c00) var(--app-surface-elevated);
             }
 
             @keyframes spin {
@@ -366,7 +366,7 @@
                 animation: fadeIn 0.2s ease;
             }
             .liga-modal-content {
-                background: #1c1c1c;
+                background: var(--app-surface-elevated);
                 border-radius: 16px;
                 padding: 20px;
                 max-width: 340px;
@@ -426,7 +426,7 @@
             .liga-option-icon {
                 width: 40px;
                 height: 40px;
-                background: linear-gradient(135deg, #ff4500, #ff6b35);
+                background: linear-gradient(135deg, #ff4500, var(--app-primary-light));
                 border-radius: 10px;
                 display: flex;
                 align-items: center;
@@ -476,7 +476,7 @@
                 margin-top: 2px;
             }
             .liga-option-check {
-                color: #22c55e;
+                color: var(--app-success-light);
                 opacity: 0;
             }
             .liga-option.atual .liga-option-check {
@@ -565,7 +565,7 @@
                TEASER 2026 - Black & Laranja Intenso
                ============================================ */
             :root {
-                --orange-primary: #FF5500;
+                --orange-primary: var(--app-primary);
                 --orange-light: #FF8800;
                 --black-bg: #050505;
             }
@@ -575,7 +575,7 @@
             }
 
             .text-gradient-orange {
-                background: linear-gradient(90deg, #FF5500, #FFAA00);
+                background: linear-gradient(90deg, var(--app-primary), #FFAA00);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
@@ -945,7 +945,7 @@
                         </button>
                         <button id="manutencaoBtnDino" onclick="window.ManutencaoScreen && ManutencaoScreen.abrirDinoGame()"
                             class="manutencao-btn">
-                            <span style="font-size:22px;">⚽</span>
+                            <span style="font-size:22px;"><span class="material-icons">sports_soccer</span></span>
                             <span class="btn-text">Cobrança de Pênalti</span>
                         </button>
                         <button id="manutencaoBtnRefresh" onclick="window.ManutencaoScreen && ManutencaoScreen.atualizarParciais()"
@@ -967,7 +967,7 @@
 
                 <!-- Footer -->
                 <p class="manutencao-footer">
-                    Volta logo! ⚡
+                    Volta logo! <span class="material-icons">bolt</span>
                 </p>
             </div>
 
@@ -1128,11 +1128,11 @@
              ============================================ -->
 
         <!-- Botão Flutuante "Vem aí" - OCULTO até admin disparar 2026 -->
-        <button onclick="abrirTeaser()" style="display:none !important;" class="fixed bottom-24 right-4 z-40 flex items-center gap-3 px-5 py-3 bg-[#0a0a0a] border border-[#FF5500]/40 backdrop-blur-xl rounded-full shadow-[0_0_25px_rgba(255,85,0,0.3)] hover:scale-105 transition-transform group ring-1 ring-white/5">
-            <i class="ph-fill ph-rocket-launch text-xl group-hover:animate-bounce text-[#FF5500]"></i>
+        <button onclick="abrirTeaser()" style="display:none !important;" class="fixed bottom-24 right-4 z-40 flex items-center gap-3 px-5 py-3 bg-[var(--app-bg)] border border-[var(--app-primary)]/40 backdrop-blur-xl rounded-full shadow-[0_0_25px_rgba(255,85,0,0.3)] hover:scale-105 transition-transform group ring-1 ring-white/5">
+            <i class="ph-fill ph-rocket-launch text-xl group-hover:animate-bounce text-[var(--app-primary)]"></i>
             <div class="flex flex-col items-start leading-none">
                 <span class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Vem aí</span>
-                <span class="font-brand text-sm text-white tracking-wide">SUPER CARTOLA <span class="text-[#FF5500]">26</span></span>
+                <span class="font-brand text-sm text-white tracking-wide">SUPER CARTOLA <span class="text-[var(--app-primary)]">26</span></span>
             </div>
         </button>
 
@@ -1140,7 +1140,7 @@
         <div id="modal-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-sm hidden transition-opacity duration-300 opacity-0" style="z-index: 9999;">
             <div id="modal-card" class="relative w-full max-w-md rounded-2xl overflow-hidden text-center transform scale-95 opacity-0 shadow-2xl flex flex-col max-h-[85vh] border border-white/10 bg-[#0f1012]">
                 <!-- Barra laranja superior -->
-                <div class="h-1 w-full bg-gradient-to-r from-[#FF5500] to-[#FF8800] shadow-[0_0_25px_rgba(255,85,0,0.6)]"></div>
+                <div class="h-1 w-full bg-gradient-to-r from-[var(--app-primary)] to-[#FF8800] shadow-[0_0_25px_rgba(255,85,0,0.6)]"></div>
 
                 <div class="p-6 overflow-y-auto custom-scroll relative">
                     <!-- Logo da Liga (se existir) -->
@@ -1153,19 +1153,19 @@
                     </div>
 
                     <!-- Card Lançamentos Exclusivos -->
-                    <div class="bg-[#161618] border border-[#FF5500]/30 rounded-xl p-4 mb-5 relative overflow-hidden group shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] text-left">
-                        <div class="absolute top-0 right-0 w-40 h-40 blur-[80px] opacity-10 group-hover:opacity-20 transition bg-[#FF5500]"></div>
+                    <div class="bg-[#161618] border border-[var(--app-primary)]/30 rounded-xl p-4 mb-5 relative overflow-hidden group shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] text-left">
+                        <div class="absolute top-0 right-0 w-40 h-40 blur-[80px] opacity-10 group-hover:opacity-20 transition bg-[var(--app-primary)]"></div>
                         <div class="flex items-center gap-2 mb-4">
-                            <i class="ph-fill ph-fire text-[#FF5500] text-lg animate-pulse"></i>
+                            <i class="ph-fill ph-fire text-[var(--app-primary)] text-lg animate-pulse"></i>
                             <span class="text-xs font-bold uppercase tracking-widest text-white">Lançamentos Exclusivos</span>
                         </div>
                         <div class="space-y-2">
                             <div class="flex items-center gap-3 p-3 rounded bg-black/40 hover:bg-black/60 transition border border-white/5 group/item">
-                                <i class="ph-fill ph-crosshair text-lg text-[#FF5500]"></i>
+                                <i class="ph-fill ph-crosshair text-lg text-[var(--app-primary)]"></i>
                                 <div><span class="block text-white text-xs font-bold uppercase">Liga Tiro Certo</span><span class="block text-[10px] text-gray-400">Modo Survival: Errou, caiu.</span></div>
                             </div>
                             <div class="flex items-center gap-3 p-3 rounded bg-black/40 hover:bg-black/60 transition border border-white/5 group/item">
-                                <i class="ph-fill ph-globe-hemisphere-west text-lg text-[#FF5500]"></i>
+                                <i class="ph-fill ph-globe-hemisphere-west text-lg text-[var(--app-primary)]"></i>
                                 <div><span class="block text-white text-xs font-bold uppercase">Bolão Copa & Liberta</span><span class="block text-[10px] text-gray-400">Integrados no App.</span></div>
                             </div>
                         </div>
@@ -1174,21 +1174,21 @@
                     <!-- O Retorno dos Lendas -->
                     <div class="mb-6 text-left">
                         <div class="flex items-center gap-2 mb-3 px-1">
-                            <i class="ph-fill ph-arrow-u-up-left text-sm text-[#FF5500]"></i>
+                            <i class="ph-fill ph-arrow-u-up-left text-sm text-[var(--app-primary)]"></i>
                             <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">O Retorno dos Lendas</span>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div class="px-3 py-2 rounded border border-white/5 bg-[#161618] text-gray-300 text-[10px] font-bold uppercase flex items-center gap-2">
-                                <i class="ph-bold ph-users-three text-[#FF5500]"></i> Resta Um
+                                <i class="ph-bold ph-users-three text-[var(--app-primary)]"></i> Resta Um
                             </div>
                             <div class="px-3 py-2 rounded border border-white/5 bg-[#161618] text-gray-300 text-[10px] font-bold uppercase flex items-center gap-2">
-                                <i class="ph-bold ph-hand-fist text-[#FF5500]"></i> Luva de Ouro
+                                <i class="ph-bold ph-hand-fist text-[var(--app-primary)]"></i> Luva de Ouro
                             </div>
                             <div class="px-3 py-2 rounded border border-white/5 bg-[#161618] text-gray-300 text-[10px] font-bold uppercase flex items-center gap-2">
-                                <i class="ph-bold ph-soccer-ball text-[#FF5500]"></i> Artilheiro
+                                <i class="ph-bold ph-soccer-ball text-[var(--app-primary)]"></i> Artilheiro
                             </div>
                             <div class="px-3 py-2 rounded border border-white/5 bg-[#161618] text-gray-300 text-[10px] font-bold uppercase flex items-center gap-2">
-                                <i class="ph-bold ph-crown text-[#FF5500]"></i> Capitão Luxo
+                                <i class="ph-bold ph-crown text-[var(--app-primary)]"></i> Capitão Luxo
                             </div>
                         </div>
                     </div>
@@ -1196,12 +1196,12 @@
                     <!-- Countdown Duplo: Mercado + Brasileirao -->
                     <div id="countdown-container" class="mb-4 space-y-3">
                         <!-- Countdown Mercado (principal) -->
-                        <div id="countdown-market" class="p-4 rounded-xl bg-gradient-to-r from-[#FF5500]/20 to-transparent border border-[#FF5500]/40 relative overflow-hidden">
-                            <div class="absolute top-0 right-0 w-32 h-32 bg-[#FF5500] blur-[60px] opacity-20"></div>
+                        <div id="countdown-market" class="p-4 rounded-xl bg-gradient-to-r from-[var(--app-primary)]/20 to-transparent border border-[var(--app-primary)]/40 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-[var(--app-primary)] blur-[60px] opacity-20"></div>
                             <div class="flex items-center justify-between relative">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 rounded-full bg-[#FF5500]/20 flex items-center justify-center border border-[#FF5500]/40">
-                                        <i class="ph-fill ph-shopping-cart text-2xl text-[#FF5500]"></i>
+                                    <div class="w-12 h-12 rounded-full bg-[var(--app-primary)]/20 flex items-center justify-center border border-[var(--app-primary)]/40">
+                                        <i class="ph-fill ph-shopping-cart text-2xl text-[var(--app-primary)]"></i>
                                     </div>
                                     <div class="text-left">
                                         <p class="text-[10px] text-gray-400 uppercase tracking-widest">Mercado Cartola abre em</p>
@@ -1209,7 +1209,7 @@
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p id="countdown-market-days" class="text-3xl font-brand text-[#FF5500] leading-none">--</p>
+                                    <p id="countdown-market-days" class="text-3xl font-brand text-[var(--app-primary)] leading-none">--</p>
                                     <p class="text-[10px] text-gray-500 uppercase">dias</p>
                                 </div>
                             </div>
@@ -1225,7 +1225,7 @@
                     </div>
 
                     <!-- Botao CTA -->
-                    <button onclick="fecharTeaserComMarcacao()" class="w-full py-4 rounded-xl font-brand text-sm uppercase tracking-widest hover:brightness-110 shadow-[0_0_30px_rgba(255,85,0,0.2)] transition-all duration-300 group bg-gradient-to-r from-[#FF5500] to-[#FF8800] text-black font-bold">
+                    <button onclick="fecharTeaserComMarcacao()" class="w-full py-4 rounded-xl font-brand text-sm uppercase tracking-widest hover:brightness-110 shadow-[0_0_30px_rgba(255,85,0,0.2)] transition-all duration-300 group bg-gradient-to-r from-[var(--app-primary)] to-[#FF8800] text-black font-bold">
                         <span class="group-hover:scale-105 inline-block transition-transform">Explorar o App</span>
                     </button>
                 </div>
@@ -1256,7 +1256,7 @@
                             marketEl.innerHTML = '<i class="ph-fill ph-check-circle"></i>';
                             marketContainer.querySelector('p.text-\\[10px\\]').textContent = 'MERCADO ABERTO!';
                             marketContainer.classList.add('border-green-500/40');
-                            marketContainer.classList.remove('border-[#FF5500]/40');
+                            marketContainer.classList.remove('border-[var(--app-primary)]/40');
                         }
                     }
                 }
@@ -1281,9 +1281,9 @@
                 function fire(particleRatio, opts) {
                     confetti(Object.assign({}, defaults, opts, { particleCount: Math.floor(count * particleRatio) }));
                 }
-                fire(0.25, { spread: 26, startVelocity: 55, colors: ['#FF5500', '#FFFFFF'] });
-                fire(0.2, { spread: 60, colors: ['#FF8800', '#FFFFFF'] });
-                fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ['#FF5500', '#FF4500'] });
+                fire(0.25, { spread: 26, startVelocity: 55, colors: ['var(--app-primary)', 'var(--app-text-primary)'] });
+                fire(0.2, { spread: 60, colors: ['#FF8800', 'var(--app-text-primary)'] });
+                fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ['var(--app-primary)', '#FF4500'] });
             }
 
             function abrirTeaser() {
@@ -1297,7 +1297,7 @@
                         <div class="flex flex-col items-center">
                             <img src="/${ligaData.logo}"
                                  alt="${ligaData.nome || 'Liga'}"
-                                 class="w-14 h-14 object-contain rounded-lg shadow-lg border border-[#FF5500]/30"
+                                 class="w-14 h-14 object-contain rounded-lg shadow-lg border border-[var(--app-primary)]/30"
                                  onerror="this.parentElement.parentElement.style.display='none'">
                             <p class="text-xs text-gray-500 mt-1">${ligaData.nome || ''}</p>
                         </div>
@@ -1516,7 +1516,7 @@
                             particleCount: 100,
                             spread: 70,
                             origin: { y: 0.6 },
-                            colors: ['#10b981', '#34d399', '#6ee7b7', '#ffffff']
+                            colors: ['var(--app-success)', '#34d399', '#6ee7b7', 'var(--app-text-primary)']
                         });
                     }
                 }, 10);

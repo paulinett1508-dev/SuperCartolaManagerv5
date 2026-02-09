@@ -287,7 +287,7 @@
 
 /* === RESET CONTAINER === */
 #home-container {
-    background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+    background: linear-gradient(180deg, var(--app-surface) 0%, #0f0f0f 100%);
     min-height: 100vh;
 }
 
@@ -326,7 +326,7 @@
 .home-status-titulo {
     font-family: 'Russo One', sans-serif;
     font-size: 10px;
-    color: #ffffff;
+    color: var(--app-text-primary);
     letter-spacing: 0.3px;
     white-space: nowrap;
 }
@@ -355,15 +355,15 @@
     border-color: rgba(34, 197, 94, 0.25);
     background: rgba(34, 197, 94, 0.08);
 }
-.home-status-bar.mercado-aberto .home-status-icon { color: #22c55e; }
+.home-status-bar.mercado-aberto .home-status-icon { color: var(--app-success-light); }
 .home-status-bar.mercado-aberto .home-status-titulo { color: #4ade80; }
 
 .home-status-bar.mercado-fechado {
     border-color: rgba(239, 68, 68, 0.25);
     background: rgba(239, 68, 68, 0.08);
 }
-.home-status-bar.mercado-fechado .home-status-icon { color: #ef4444; }
-.home-status-bar.mercado-fechado .home-status-titulo { color: #f87171; }
+.home-status-bar.mercado-fechado .home-status-icon { color: var(--app-danger); }
+.home-status-bar.mercado-fechado .home-status-titulo { color: var(--app-danger-light); }
 
 .home-status-bar.fim-rodada {
     border-color: rgba(255, 255, 255, 0.08);
@@ -400,7 +400,7 @@
 
 .home-aviso-secundario .material-icons {
     font-size: 18px;
-    color: #ff5500;
+    color: var(--app-primary);
 }
 
 .home-aviso-secundario .home-aviso-texto {
@@ -439,7 +439,7 @@
 /* === SLIDER DE POSIÇÃO === */
 .home-posicao-slider-section {
     padding: 20px 24px;
-    background: #1a1a1a;
+    background: var(--app-surface);
 }
 
 .home-posicao-slider {
@@ -462,12 +462,12 @@
     justify-content: center;
     width: 32px;
     height: 32px;
-    background: #1a1a1a;
-    border: 2px solid #ff5500;
+    background: var(--app-surface);
+    border: 2px solid var(--app-primary);
     border-radius: 50%;
     font-family: 'Russo One', sans-serif;
     font-size: 12px;
-    color: #fff;
+    color: var(--app-text-primary);
     box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3);
 }
 
@@ -481,7 +481,7 @@
 
 .home-slider-progress {
     height: 100%;
-    background: linear-gradient(90deg, #ff5500 0%, #ff7733 100%);
+    background: linear-gradient(90deg, var(--app-primary) 0%, #ff7733 100%);
     border-radius: 4px;
     transition: width 0.3s ease;
 }
@@ -506,7 +506,7 @@
     text-align: center;
     font-family: 'Inter', sans-serif;
     font-size: 14px;
-    color: #ff5500;
+    color: var(--app-primary);
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s;
@@ -532,7 +532,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--app-surface, #1a1a1a);
+    background: var(--app-surface, var(--app-surface));
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 16px;
@@ -543,7 +543,7 @@
 
 .home-stat-card:active {
     transform: scale(0.98);
-    background: var(--app-surface-hover, #333333);
+    background: var(--app-surface-hover, var(--app-surface-hover));
 }
 
 .home-stat-card-left {
@@ -570,23 +570,23 @@
 
 .home-stat-icon-wrapper .material-icons {
     font-size: 28px;
-    color: #fff;
+    color: var(--app-text-primary);
 }
 
 .home-stat-icon-pontos {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    background: linear-gradient(135deg, var(--app-info) 0%, var(--app-info-dark) 100%);
 }
 
 .home-stat-icon-saldo {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    background: linear-gradient(135deg, var(--app-success-light) 0%, #16a34a 100%);
 }
 
 .home-stat-icon-ranking {
-    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    background: linear-gradient(135deg, var(--app-purple) 0%, #6d28d9 100%);
 }
 
 .home-stat-icon-cartoletas {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, #fbbf24 0%, var(--app-amber) 100%);
 }
 
 .home-stat-info {
@@ -614,7 +614,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 24px;
     font-weight: 700;
-    color: var(--app-text-primary, #ffffff);
+    color: var(--app-text-primary, var(--app-text-primary));
     letter-spacing: -0.5px;
 }
 
@@ -625,11 +625,11 @@
 }
 
 .home-stat-variacao.positivo {
-    color: var(--app-success-light, #22c55e);
+    color: var(--app-success-light, var(--app-success-light));
 }
 
 .home-stat-variacao.negativo {
-    color: var(--app-danger, #ef4444);
+    color: var(--app-danger, var(--app-danger));
 }
 
 .home-stat-card-right {
@@ -687,13 +687,13 @@
 
 .home-destaques-icon {
     font-size: 20px;
-    color: #ff5500;
+    color: var(--app-primary);
 }
 
 .home-destaques-header-title {
     font-family: 'Russo One', sans-serif;
     font-size: 13px;
-    color: #ffffff;
+    color: var(--app-text-primary);
     letter-spacing: 0.3px;
 }
 
@@ -729,7 +729,7 @@
     max-height: 300px;
     overflow: hidden;
     transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
-    background: linear-gradient(180deg, #1a1a1a 0%, #151515 100%);
+    background: linear-gradient(180deg, var(--app-surface) 0%, #151515 100%);
     border: 1px solid rgba(255,255,255,0.08);
     border-top: none;
     border-radius: 0 0 12px 12px;
@@ -829,13 +829,13 @@
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #ff5500;
+    background: var(--app-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: 'Russo One', sans-serif;
     font-size: 11px;
-    color: #fff;
+    color: var(--app-text-primary);
     font-weight: 700;
     box-shadow: 0 2px 8px rgba(255, 85, 0, 0.4);
 }
@@ -853,7 +853,7 @@
 .home-destaque-nome {
     font-family: 'Russo One', sans-serif;
     font-size: 10px;
-    color: #ffffff;
+    color: var(--app-text-primary);
     text-transform: uppercase;
     letter-spacing: 0.3px;
     max-width: 100%;
@@ -886,7 +886,7 @@
 .home-destaque-multiplicador {
     font-family: 'JetBrains Mono', monospace;
     font-size: 8px;
-    color: #ff5500;
+    color: var(--app-primary);
     padding: 1px 4px;
     background: rgba(255, 85, 0, 0.15);
     border-radius: 4px;
@@ -896,15 +896,15 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 14px;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--app-text-primary);
 }
 
 .home-destaque-pontos-total.destaque-verde {
-    color: #22c55e;
+    color: var(--app-success-light);
 }
 
 .home-destaque-pontos-total.destaque-vermelho {
-    color: #ef4444;
+    color: var(--app-danger);
 }
 
 /* === CARD MÓDULOS (Artilheiro / Luva / Capitão) === */
@@ -960,7 +960,7 @@
     font-family: 'Inter', sans-serif;
     font-size: 11px;
     font-weight: 600;
-    color: #fff;
+    color: var(--app-text-primary);
     max-width: 90px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1022,7 +1022,7 @@
 
 .home-action-item:active {
     transform: scale(0.98);
-    background: #1a1a1a;
+    background: var(--app-surface);
 }
 
 .home-action-item.home-action-disabled {
@@ -1132,7 +1132,7 @@
     border: 1px solid rgba(239, 68, 68, 0.5);
     font-size: 9px;
     font-weight: 600;
-    color: #ef4444;
+    color: var(--app-danger);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     animation: pulse-live 1.5s ease-in-out infinite;
@@ -1143,7 +1143,7 @@
     content: '';
     width: 6px;
     height: 6px;
-    background: #ef4444;
+    background: var(--app-danger);
     border-radius: 50%;
     animation: pulse-dot 1.5s ease-in-out infinite;
 }

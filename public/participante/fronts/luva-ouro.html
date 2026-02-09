@@ -20,10 +20,10 @@
     :root {
         --luva-font-brand: var(--app-font-brand, 'Russo One', sans-serif);
         --luva-font-body: 'Inter', -apple-system, sans-serif;
-        --luva-gold: var(--app-gold, #ffd700);
-        --luva-silver: var(--app-silver, #c0c0c0);
-        --luva-bronze: var(--app-bronze, #cd7f32);
-        --luva-card: var(--app-surface, #1a1a1a);
+        --luva-gold: var(--app-gold, var(--app-gold));
+        --luva-silver: var(--app-silver, var(--app-silver));
+        --luva-bronze: var(--app-bronze, var(--app-bronze));
+        --luva-card: var(--app-surface, var(--app-surface));
         --luva-text-muted: #999;
     }
 
@@ -64,7 +64,7 @@
     }
 
     .goleiro-card {
-        background: var(--participante-card, #1a1a1a);
+        background: var(--participante-card, var(--app-surface));
         border: 1px solid var(--participante-border, #333);
         border-radius: 12px;
         padding: 20px;
@@ -102,7 +102,7 @@
     .goleiro-nome {
         font-size: 16px;
         font-weight: 600;
-        color: var(--app-text-white, #fff);
+        color: var(--app-text-white, var(--app-text-primary));
         margin-bottom: 5px;
     }
     .goleiro-time {

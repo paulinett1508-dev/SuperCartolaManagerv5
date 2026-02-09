@@ -525,7 +525,7 @@ class ParticipanteNavigation {
                         to { opacity: 1; }
                     }
                     .modal-sair-content {
-                        background: #1c1c1c;
+                        background: var(--app-surface-elevated);
                         border-radius: 16px;
                         padding: 24px;
                         max-width: 320px;
@@ -1117,7 +1117,7 @@ class ParticipanteNavigation {
                     to { opacity: 1; }
                 }
                 .modal-bloqueio-content {
-                    background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+                    background: linear-gradient(180deg, var(--app-surface) 0%, #0f0f0f 100%);
                     border-radius: 20px;
                     padding: 28px 24px;
                     max-width: 340px;
@@ -1148,7 +1148,7 @@ class ParticipanteNavigation {
                 }
                 .modal-bloqueio-icon .material-symbols-outlined {
                     font-size: 36px;
-                    color: #ff5500;
+                    color: var(--app-primary);
                 }
                 .modal-bloqueio-titulo {
                     color: white;
@@ -1163,7 +1163,7 @@ class ParticipanteNavigation {
                     line-height: 1.5;
                 }
                 .modal-bloqueio-texto strong {
-                    color: #ff5500;
+                    color: var(--app-primary);
                 }
                 .modal-bloqueio-countdown {
                     background: rgba(255, 85, 0, 0.1);
@@ -1176,7 +1176,7 @@ class ParticipanteNavigation {
                     display: block;
                     font-size: 36px;
                     font-weight: 800;
-                    color: #ff5500;
+                    color: var(--app-primary);
                     line-height: 1;
                 }
                 .modal-bloqueio-countdown .countdown-label {
@@ -1206,7 +1206,7 @@ class ParticipanteNavigation {
                     line-height: 1.4;
                 }
                 .modal-bloqueio-dica strong {
-                    color: #ff5500;
+                    color: var(--app-primary);
                 }
                 .modal-bloqueio-botoes {
                     display: flex;
@@ -1238,7 +1238,7 @@ class ParticipanteNavigation {
                     transform: scale(0.98);
                 }
                 .modal-bloqueio-btn.primario {
-                    background: linear-gradient(135deg, #ff5500 0%, #ff8800 100%);
+                    background: linear-gradient(135deg, var(--app-primary) 0%, #ff8800 100%);
                     color: white;
                 }
                 .modal-bloqueio-btn.primario:active {
@@ -1288,14 +1288,14 @@ class ParticipanteNavigation {
                 <div style="background:#1e293b;border-radius:20px;padding:32px 24px;max-width:340px;width:100%;text-align:center;border:1px solid rgba(255,85,0,0.2);box-shadow:0 20px 60px rgba(255,85,0,0.1)"
                      onclick="event.stopPropagation()">
                     <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,85,0,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
-                        <span class="material-symbols-outlined" style="font-size:32px;color:#ff5500">engineering</span>
+                        <span class="material-symbols-outlined" style="font-size:32px;color:var(--app-primary)">engineering</span>
                     </div>
-                    <h3 style="color:#fff;font-family:'Russo One',sans-serif;font-size:18px;margin-bottom:8px">Em Manutenção</h3>
+                    <h3 style="color:var(--app-text-primary);font-family:'Russo One',sans-serif;font-size:18px;margin-bottom:8px">Em Manutenção</h3>
                     <p style="color:#9ca3af;font-size:14px;line-height:1.5;margin-bottom:20px">
-                        O módulo <strong style="color:#ff5500">${nomeModulo}</strong> está passando por ajustes e estará disponível em breve.
+                        O módulo <strong style="color:var(--app-primary)">${nomeModulo}</strong> está passando por ajustes e estará disponível em breve.
                     </p>
                     <button onclick="document.getElementById('modalManutencaoModulo')?.remove()"
-                            style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#ff5500,#ff8800);color:#fff;font-size:14px;font-weight:600;cursor:pointer">
+                            style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--app-primary),#ff8800);color:var(--app-text-primary);font-size:14px;font-weight:600;cursor:pointer">
                         Entendi
                     </button>
                 </div>
