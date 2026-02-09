@@ -229,6 +229,16 @@ Sistema de ativação inteligente de skills baseado em palavras-chave contextuai
 | **NÃO confundir** | Git push/commit → `git-commit-push` |
 | **Localização** | `docs/skills/04-project-specific/SKILL-ANALISE-BRANCHES.md` |
 
+#### context7-monthly-audit
+| Tipo | Keywords |
+|------|----------|
+| **Primárias** | `auditoria mensal`, `context7 audit`, `auditar mensalmente`, `verificar mudanças`, `auditoria preventiva`, `check mensal` |
+| **Frases PT-BR** | "executar auditoria mensal", "auditar context7", "verificar mudanças api cartola", "check owasp mensal", "verificar deprecations", "auditoria preventiva do projeto", "rodar auditoria automática", "verificar segurança mensal" |
+| **Contexto** | Auditoria preventiva mensal de API Cartola, OWASP security, deprecations de dependências e PWA |
+| **Auditorias** | API Cartola FC, OWASP Security, Mongoose/Express deprecations, PWA/Service Workers |
+| **NÃO confundir** | Auditoria de código específico → `code-inspector`; Auditoria de módulo → `auditor-module` |
+| **Localização** | `docs/skills/04-project-specific/context7-monthly-audit.md` |
+
 ---
 
 ### 05 - Meta (Skills sobre Skills)
@@ -282,6 +292,8 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | "revisar design do participante" | `ux-auditor-app` | Consistência visual do app |
 | "como tá o visual do app" | `ux-auditor-app` | Estado do design do app |
 | "quais branches existem" | `analise-branches` | Análise git |
+| "executar auditoria mensal" | `context7-monthly-audit` | Auditoria preventiva |
+| "verificar mudanças api cartola" | `context7-monthly-audit` | Check mensal automático |
 | "criar uma skill nova" | `skill-creator` | Meta |
 | "instalar skill X" | `skill-installer` | Meta |
 

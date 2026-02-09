@@ -92,6 +92,7 @@ Documentação das skills: [`docs/skills/`](docs/skills/) (agnóstico, Markdown 
 | "auditar módulo", "checklist módulo" | **auditor-module** | Project |
 | "auditar UX app", "revisar design participante", "visual do app" | **ux-auditor-app** | Project |
 | "análise de branches", "comparar branches" | **analise-branches** | Project |
+| "auditoria mensal", "verificar mudanças", "check context7" | **context7-monthly-audit** | Project |
 | "criar skill", "skill nova" | **skill-creator** | Meta |
 | "instalar skill", "listar skills" | **skill-installer** | Meta |
 
