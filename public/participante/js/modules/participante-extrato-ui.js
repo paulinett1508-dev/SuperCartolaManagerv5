@@ -182,7 +182,7 @@ function renderHeroSaldoCard(saldo, statusTexto, taxaInscricao, pagouInscricao, 
         <div class="extrato-hero__inscricao">
             <span>Inscrição ${temporada}: ${formatarMoeda(taxaInscricao)}</span>
             <span class="extrato-hero__inscricao-badge ${pagouInscricao ? 'extrato-hero__inscricao-badge--paga' : 'extrato-hero__inscricao-badge--devida'}">
-                ${pagouInscricao ? 'Paga' : 'Não paga'}
+                ${pagouInscricao ? 'PAGA' : 'DEVENDO'}
             </span>
         </div>
     ` : '';

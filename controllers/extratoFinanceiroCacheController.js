@@ -1,5 +1,5 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v6.8 - FIX RANKING RODADA NO EXTRATO
+// extratoFinanceiroCacheController.js v6.9 - FIX pagouInscricao no path normal do cache
 // ✅ v6.8: FIX CRÍTICO - getExtratoCache retornava 'inscricao-nova-temporada' com rodadas: []
 //   - Mesmo quando rodadas REAIS já existiam no banco para a temporada
 //   - Agora verifica collection 'rodadas' antes de retornar pré-temporada
@@ -907,6 +907,19 @@ export const getExtratoCache = async (req, res) => {
         // ✅ v6.3 FIX: Incluir valores separados para UI
         resumoCalculado.taxaInscricao = taxaInscricaoValor;
         resumoCalculado.saldoAnteriorTransferido = saldoAnteriorTransferidoValor;
+        // ✅ v6.9 FIX: Buscar pagouInscricao de inscricoestemporada para exibição no extrato
+        try {
+            const InscricaoTemporada = mongoose.model('InscricaoTemporada');
+            const inscDoc = await InscricaoTemporada.findOne({
+                liga_id: String(ligaId),
+                time_id: Number(timeId),
+                temporada: temporadaNum,
+            }).lean();
+            resumoCalculado.pagouInscricao = inscDoc?.pagou_inscricao === true;
+        } catch (e) {
+            console.warn('[CACHE-CONTROLLER] ⚠️ Erro ao buscar pagouInscricao:', e.message);
+            resumoCalculado.pagouInscricao = false;
+        }
 
         // ✅ v5.2 FIX: Incluir saldo de acertos no cálculo do saldo final
         const saldoAcertosCc = acertos?.resumo?.saldo ?? 0;
