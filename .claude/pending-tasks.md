@@ -1,11 +1,164 @@
 # Tarefas Pendentes - Super Cartola Manager
 
-> Atualizado: 2026-02-04 17:55
+> Atualizado: 2026-02-10 02:30
 > Auditado: Todos os itens anteriores foram verificados no código e MongoDB. Apenas tarefas realmente pendentes permanecem.
 
 ---
 
-## 🚨 HOTFIX CRÍTICO APLICADO (2026-02-04 17:55)
+## RESUMO SESSAO 2026-02-10
+
+### Commits desta sessao (6 commits, todos no main)
+| Commit | Descricao |
+|--------|-----------|
+| `cbcbfc3` | feat(admin): card Premium no dashboard de Analisar Participantes |
+| `5ee7c41` | feat(extrato): redesign Inter-inspired para Admin e App (v2.0) - **PRECISA AUDITORIA** |
+| `8e6b92c` | fix(admin): fallback seguro para SuperModal no toggle premium |
+| `5d71369` | fix(admin): SPA re-init robusto para Analisar Participantes |
+| `aba8909` | feat(admin): toggle Premium na coluna Acoes de Analisar Participantes |
+| `bafc937` | fix(admin): remove modais duplicados e corrige re-init SPA em Analisar Participantes |
+
+### Implementacoes desta sessao
+- **Premium bypass completo:** participante premium (flag no DB, nao hardcoded) bypassa modulos em manutencao (navegacao, quick bar, bottom nav, home mini cards)
+- **Analisar Participantes corrigido:** modais duplicados removidos, SPA re-init robusto, toggle premium na tabela, card Premium no dashboard (contagem deduplicada por time_id)
+- **Paulinett Miranda** (timeId 13935277) = unico premium ativo (aparece em 2 ligas: Super Cartola + Os Fuleros, contagem global = 1)
+- **Servidor rodando** no Replit via workflow (matar processo antigo com `lsof -ti:3000 | xargs kill -9` antes de reiniciar)
+
+---
+
+## 🔴 AUDITORIA COMPLETA - Sistema Financeiro / Redesign Extrato v2.0
+
+### [AUDIT-001] Auditoria End-to-End do Redesign Extrato Inter-Inspired + Sistema Financeiro
+
+**Prioridade:** 🔴 CRÍTICA
+**Status:** PENDENTE - Executar na proxima sessao
+**Commit alvo:** `5ee7c41` (feat(extrato): redesign Inter-inspired para Admin e App v2.0)
+**Metodologia:** PRD → SPEC → CODE (workflow completo)
+
+#### Contexto
+
+O commit `5ee7c41` introduziu +2.334 linhas em 7 arquivos, incluindo redesign completo do módulo Extrato com visual inspirado no Inter (banco digital). Esta auditoria deve verificar se tudo foi realmente implementado, integrado e funcional no sistema.
+
+#### Arquivos a Auditar (7 arquivos do commit)
+
+| Arquivo | Tipo | Linhas | O que verificar |
+|---------|------|--------|-----------------|
+| `public/css/modules/extrato-v2.css` | NOVO | 1.095 | CSS carrega? Conflita com v1? Dark mode ok? |
+| `public/js/fluxo-financeiro/extrato-render-v2.js` | NOVO | 673 | Renderiza corretamente? Chamado pelo sistema? |
+| `.claude/docs/REDESIGN-EXTRATO-v2.md` | NOVO | 430 | Spec alinhada com implementacao real? |
+| `public/detalhe-liga.html` | MOD | +1 | Link do CSS v2 incluido? Carrega no DOM? |
+| `public/js/fluxo-financeiro.js` | MOD | +9 | Import/init do v2 presente? Fallback v1 ok? |
+| `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` | MOD | +27/-1 | Integracao com render v2? Sem regressao? |
+| `public/participante/css/extrato-bank.css` | MOD | +100 | Tweaks Inter no App participante? Aplica? |
+
+#### FASE 1 - PRD (Pesquisa e Diagnostico) - PARCIALMENTE AUDITADO
+
+**Skill:** pesquisa + fact-checker
+
+**Achados da auditoria parcial (sessao 2026-02-10):**
+
+**WIRING (integração entre arquivos):**
+- [x] CSS v2 carregado no HTML: `detalhe-liga.html:37` → `<link rel="stylesheet" href="css/modules/extrato-v2.css" />`
+- [x] JS v2 importado: `fluxo-financeiro.js:78` → `await import("./fluxo-financeiro/extrato-render-v2.js?v8.10")`
+- [x] Funcoes exportadas para window: `renderExtratoV2`, `toggleExtratoValorVisibility`, `renderExtratoChartV2`, `setupExtratoChartFiltersV2`, `setupExtratoTimelineFiltersV2`
+- [x] Fallback v1 presente: `fluxo-financeiro-ui.js:238-256` → checa `window.renderExtratoV2` antes de usar, senao cai no legado
+- [x] Integração UI: `fluxo-financeiro-ui.js:233` → `renderizarExtratoTemporada()` usa v2 se disponivel
+- [x] Setup interatividade: chart, chart filters e timeline filters configurados com `setTimeout(100ms)`
+
+**COMPONENTES IMPLEMENTADOS (no extrato-render-v2.js, 673 linhas):**
+- [x] `renderHeroCardV2()` - Saldo principal + toggle visibilidade + stats pills
+- [x] `renderChartV2()` - SVG chart com gradiente #FF5500 + filtros (Tudo/10R/5R)
+- [x] `renderAcertosCardV2()` - Card de acertos financeiros (precisa verificar)
+- [x] `renderPerformanceV2()` - Card de performance (precisa verificar)
+- [x] `renderTimelineV2()` - Timeline agrupada (precisa verificar se agrupa por mes)
+- [x] Layout Grid 2 colunas: sidebar (chart + acertos + performance) + main (timeline)
+
+**CSS v2 (extrato-v2.css, 1.095 linhas):**
+- [x] Variaveis CSS definidas em :root (gradientes, bordas, icones, espacamentos)
+- [x] Hero Card com status (positive/negative/neutral)
+- [ ] Verificar se Dark Mode OLED (#0a0a0a) nao conflita com theme geral (bg-gray-900)
+- [ ] Verificar responsividade mobile dos componentes
+
+**PROBLEMAS ENCONTRADOS:**
+1. **API retornou objeto vazio `{}`** ao testar `GET /api/extrato-financeiro/cache/13935277?temporada=2026&liga_id=684cb1c8af923da7c7df51de` → Precisa investigar se endpoint requer autenticacao ou se nao ha cache ainda
+2. **extrato-bank.css (App participante):** +100 linhas adicionadas mas NAO foi verificado se o App participante usa v2 ou apenas tweaks CSS
+3. **Falta verificar:** funções `renderAcertosCardV2`, `renderPerformanceV2`, `renderTimelineV2` (linhas 150-500 do render)
+4. **Falta verificar:** se os dados do cache alimentam corretamente `data.resumo`, `data.rodadas`, `data.acertos`, `data.lancamentosIniciais`
+5. **Falta verificar:** App participante (`participante-extrato-ui.js`) - usa v2 ou continua com v1?
+
+**PENDENTE:**
+- [ ] Ler REDESIGN-EXTRATO-v2.md e extrair todas as features prometidas
+- [ ] Comparar spec vs codigo real implementado (gap analysis completo)
+- [ ] Testar endpoint com sessao admin autenticada (via browser)
+- [ ] Verificar renderAcertosCardV2, renderPerformanceV2, renderTimelineV2
+- [ ] Validar no MongoDB se os dados financeiros estao corretos
+- [ ] Verificar se nao ha codigo morto / imports quebrados
+- [ ] Checar se App participante usa v2 ou so v1
+- [ ] Gerar `PRD-AUDIT-EXTRATO-V2.md` com achados completos
+
+#### FASE 2 - SPEC (Especificacao de Correcoes)
+
+**Skill:** spec + code-inspector
+
+- [ ] Mapear cada bug/gap encontrado na Fase 1
+- [ ] Classificar: BUG / INCOMPLETO / COSMETICO / FUNCIONAL
+- [ ] Para cada item: arquivo, linha, problema, solucao proposta
+- [ ] Priorizar: o que bloqueia uso vs o que eh melhoria
+- [ ] Verificar Follow The Money (trilha de auditoria financeira intacta)
+- [ ] Checar idempotencia das operacoes financeiras
+- [ ] Validar calculos: saldo, lancamentos, acertos, ajustes
+- [ ] Gerar `SPEC-AUDIT-EXTRATO-V2.md` com plano de correcao
+
+#### FASE 3 - CODE (Implementacao das Correcoes)
+
+**Skill:** code + frontend-crafter
+
+- [ ] Aplicar cada correcao mapeada na SPEC
+- [ ] Testar apos cada correcao (nao acumular)
+- [ ] Validar visual: Hero Card, Timeline, Stats Pills, Grid 2 colunas
+- [ ] Testar no Admin (detalhe-liga.html → extrato do participante)
+- [ ] Testar no App participante (modulo extrato)
+- [ ] Verificar mobile responsivo
+- [ ] Confirmar que todos os numeros financeiros batem com o MongoDB
+- [ ] Commit atomico por area de correcao
+
+#### Checklist Critico - Sistema Financeiro
+
+- [ ] Saldo exibido == saldo calculado no cache
+- [ ] Lancamentos: creditos e debitos corretos por rodada
+- [ ] Acertos financeiros (pagamentos) refletidos corretamente
+- [ ] Ajustes (campos extras) computados no saldo
+- [ ] Inscricao: `pagouInscricao=true` nao gera debito, `false` gera
+- [ ] Legado (saldo transferido) aparece como lancamento inicial
+- [ ] Multi-liga: extrato de cada liga eh independente
+- [ ] Timeline expansivel mostra detalhes ao clicar
+- [ ] Grafico de evolucao do saldo renderiza corretamente
+- [ ] Exportar CSV funciona com dados v2
+
+#### Arquivos Relacionados (Contexto do Sistema Financeiro Completo)
+
+```
+# Backend
+routes/extrato-financeiro.js          # Rotas do extrato
+controllers/extratoFinanceiroController.js  # Logica de calculo
+models/ExtratoFinanceiroCache.js      # Schema do cache
+
+# Frontend Admin
+public/js/fluxo-financeiro.js         # Orchestrator
+public/js/fluxo-financeiro/fluxo-financeiro-ui.js  # UI principal (4.400L)
+public/js/fluxo-financeiro/extrato-render-v2.js    # NOVO render v2
+
+# Frontend App Participante
+public/participante/js/modules/participante-extrato.js    # Dados
+public/participante/js/modules/participante-extrato-ui.js  # Render
+
+# CSS
+public/css/modules/extrato-v2.css     # NOVO CSS v2
+public/participante/css/extrato-bank.css  # CSS app participante
+```
+
+---
+
+## 🚨 HOTFIX CRITICO APLICADO (2026-02-04 17:55)
 
 ### [HOTFIX-001] Correção de 3 Bugs Críticos no Módulo Extrato ✅ CORRIGIDO
 

@@ -109,7 +109,11 @@
       "Bash(do sleep 1)",
       "Bash(break)",
       "Bash(if curl -s http://localhost:5000/api/cartola/mercado/status)",
-      "Bash(then echo 'Servidor reiniciado com sucesso!')"
+      "Bash(then echo 'Servidor reiniciado com sucesso!')",
+      "Bash(npx:*)",
+      "Bash(git rebase:*)",
+      "Bash(GIT_EDITOR=true git rebase:*)",
+      "Bash(git -c core.editor=true rebase:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -118,10 +122,6 @@
     "perplexity",
     "context7"
   ],
-  "statusLine": {
-    "type": "command",
-    "command": "bash .claude/statusline-command.sh"
-  },
   "hooks": {
     "SessionStart": [
       {
@@ -134,5 +134,9 @@
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash .claude/statusline-command.sh"
   }
 }
