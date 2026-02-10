@@ -1105,7 +1105,9 @@ function renderizarHome(container, data, ligaId) {
     }
 
     // === BOTÕES DE ATALHOS (Módulos Ativos) ===
+    // ✅ v4.10: Premium bypass - participantes premium veem todos os atalhos
     const modulosAtivos = window.participanteNav?.modulosAtivos || {};
+    const isParticipantePremium = window.participanteNav?._isPremium === true;
     const atalhoMap = {
         'btn-participantes': 'participantes',
         'btn-premiacoes': 'premiacoes',
@@ -1114,8 +1116,8 @@ function renderizarHome(container, data, ligaId) {
     };
     for (const [btnId, moduloKey] of Object.entries(atalhoMap)) {
         if (modulosAtivos[moduloKey] === false) {
-            // Premium sobrescreve: Cartola PRO visível para participantes premium
-            if (moduloKey === 'cartolaPro' && isPremium) continue;
+            // ✅ v4.10: Premium bypass - participantes premium veem atalhos desativados
+            if (isParticipantePremium) continue;
             const btn = document.getElementById(btnId);
             if (btn) btn.style.display = 'none';
         }
