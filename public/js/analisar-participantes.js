@@ -269,10 +269,15 @@
       const icon = checkbox.closest(".toggle-premium-mini")?.querySelector(".toggle-premium-icon");
       if (icon) icon.style.color = premium ? "#fbbf24" : "#4b5563";
 
-      SuperModal.toast.success(`Premium ${premium ? "ativado" : "desativado"}`);
+      const msg = `Premium ${premium ? "ativado" : "desativado"}`;
+      if (window.SuperModal?.toast) SuperModal.toast.success(msg);
+      else console.log("[ANALISAR] " + msg);
     } catch (err) {
       checkbox.checked = !premium; // Reverter
-      SuperModal.toast.error("Erro: " + err.message);
+      const icon = checkbox.closest(".toggle-premium-mini")?.querySelector(".toggle-premium-icon");
+      if (icon) icon.style.color = !premium ? "#fbbf24" : "#4b5563";
+      if (window.SuperModal?.toast) SuperModal.toast.error("Erro: " + err.message);
+      else console.error("[ANALISAR] Erro premium:", err.message);
     }
   }
 
