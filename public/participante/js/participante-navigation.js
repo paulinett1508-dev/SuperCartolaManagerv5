@@ -35,6 +35,7 @@ class ParticipanteNavigation {
         this.moduloAtual = "home";
         this.participanteData = null;
         this.modulosAtivos = {};
+        this._isPremium = false; // ✅ v4.10: Premium bypass para módulos em manutenção
         this.historicoNavegacao = []; // Histórico interno de navegação
         this.modulos = {
             "boas-vindas": "/participante/fronts/boas-vindas.html",
@@ -94,6 +95,7 @@ class ParticipanteNavigation {
                         };
                         if (event.detail.ligaData) {
                             this._ligaDataFromEvent = event.detail.ligaData;
+                            this._resolverPremium(event.detail.ligaData, event.detail.timeId);
                         }
                     }
                     resolve();
@@ -193,6 +195,9 @@ class ParticipanteNavigation {
                 nomeCartola: window.participanteAuth.participante.participante?.nome_cartola || "Participante",
                 nomeTime: window.participanteAuth.participante.participante?.nome_time || "Meu Time",
             };
+            if (window.participanteAuth.ligaDataCache) {
+                this._resolverPremium(window.participanteAuth.ligaDataCache, window.participanteAuth.timeId);
+            }
             if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Dados obtidos do Auth (sem requisição extra)');
             return;
         }
@@ -210,6 +215,9 @@ class ParticipanteNavigation {
                         nomeCartola: window.participanteAuth.participante.participante?.nome_cartola || "Participante",
                         nomeTime: window.participanteAuth.participante.participante?.nome_time || "Meu Time",
                     };
+                    if (window.participanteAuth.ligaDataCache) {
+                        this._resolverPremium(window.participanteAuth.ligaDataCache, window.participanteAuth.timeId);
+                    }
                     if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Dados obtidos via polling');
                     resolve();
                 }
@@ -225,6 +233,9 @@ class ParticipanteNavigation {
                         nomeCartola: window.participanteAuth.participante.participante?.nome_cartola || "Participante",
                         nomeTime: window.participanteAuth.participante.participante?.nome_time || "Meu Time",
                     };
+                    if (window.participanteAuth.ligaDataCache) {
+                        this._resolverPremium(window.participanteAuth.ligaDataCache, window.participanteAuth.timeId);
+                    }
                     if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Dados obtidos no timeout final');
                     resolve();
                     return;
@@ -247,6 +258,7 @@ class ParticipanteNavigation {
                 // ✅ v2.1: Guardar dados da liga para evitar requisição extra
                 if (ligaData) {
                     this._ligaDataFromEvent = ligaData;
+                    this._resolverPremium(ligaData, timeId);
                 }
                 if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Dados obtidos via evento Auth');
                 resolve();
@@ -356,6 +368,21 @@ class ParticipanteNavigation {
         }
 
         return this.modulosAtivos[configKey] === true;
+    }
+
+    /**
+     * ✅ v4.10: Resolve flag premium do participante a partir dos dados da liga.
+     * Participantes premium (ex: owner Paulinett) bypassam módulos em manutenção.
+     */
+    _resolverPremium(ligaData, timeId) {
+        if (!ligaData?.participantes || !timeId) return;
+        const p = ligaData.participantes.find(
+            (part) => String(part.time_id) === String(timeId)
+        );
+        this._isPremium = p?.premium === true;
+        if (this._isPremium && window.Log) {
+            Log.info('PARTICIPANTE-NAV', '👑 Participante premium detectado - bypass de manutenção ativo');
+        }
     }
 
     /**
@@ -630,14 +657,19 @@ class ParticipanteNavigation {
 
     async navegarPara(moduloId, forcarReload = false, voltandoHistorico = false) {
         // ✅ v4.7: Bloqueio de módulos em manutenção (admin desativou via toggle)
-        if (this.isModuloEmManutencao(moduloId)) {
+        // ✅ v4.10: Premium bypass - participantes premium acessam módulos em manutenção
+        if (this.isModuloEmManutencao(moduloId) && !this._isPremium) {
             if (window.Log) Log.info('PARTICIPANTE-NAV', `🔧 Modulo em manutenção: ${moduloId}`);
             this.mostrarModalManutencaoModulo(moduloId);
             return;
         }
+        if (this.isModuloEmManutencao(moduloId) && this._isPremium) {
+            if (window.Log) Log.info('PARTICIPANTE-NAV', `👑 Premium bypass: acessando ${moduloId} em manutenção`);
+        }
 
         // ✅ v4.8: Bloqueio de módulos opcionais desativados pelo admin
-        if (this._isModuloOpcionalInativo(moduloId)) {
+        // ✅ v4.10: Premium bypass também para módulos opcionais inativos
+        if (this._isModuloOpcionalInativo(moduloId) && !this._isPremium) {
             if (window.Log) Log.info('PARTICIPANTE-NAV', `🚫 Módulo opcional inativo: ${moduloId}`);
             this.mostrarModalManutencaoModulo(moduloId);
             return;

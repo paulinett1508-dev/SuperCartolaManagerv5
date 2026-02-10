@@ -240,7 +240,10 @@ class QuickAccessBar {
         };
 
         // Helper: verifica se módulo base está em manutenção (admin desativou)
+        // ✅ v4.10: Premium bypass - participantes premium veem módulos normalmente
+        const isPremium = window.participanteNav?._isPremium === true;
         const isEmManutencao = (configKey) => {
+            if (isPremium) return false;
             return modulosBase.includes(configKey) && modulosAtivos[configKey] === false;
         };
 
@@ -671,11 +674,13 @@ class QuickAccessBar {
         if (window.Log) Log.debug('QUICK-BAR', 'Módulos atualizados');
 
         // v4.7: Aplicar/remover visual de manutenção nos botões da bottom nav
+        // ✅ v4.10: Premium bypass - sem visual de manutenção para premium
+        const isPremiumNav = window.participanteNav?._isPremium === true;
         const modulosBase = ['extrato', 'ranking', 'rodadas'];
         modulosBase.forEach(key => {
             const btn = document.querySelector(`.nav-item[data-page="${key}"]`);
             if (!btn) return;
-            if (modulosAtivos[key] === false) {
+            if (modulosAtivos[key] === false && !isPremiumNav) {
                 btn.style.opacity = '0.35';
                 btn.style.filter = 'grayscale(0.5)';
             } else {
