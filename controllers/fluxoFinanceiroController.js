@@ -257,11 +257,14 @@ function calcularBanco(liga, timeId, rodadaNumero, pontuacoes) {
     const configRanking = getConfigRankingRodada(liga, rodadaNumero);
     const valorBanco = configRanking.valores[posicao] || configRanking.valores[String(posicao)] || 0;
 
-    if (valorBanco === 0) return null;
-
+    // ✅ v8.10: Sempre retornar resultado (inclui Zona Neutra com valor 0)
+    // Garante que todas as rodadas apareçam no extrato timeline
+    const isNeutro = valorBanco === 0;
     return {
         valor: valorBanco,
-        descricao: `Banco R${rodadaNumero}: ${posicao}º lugar`,
+        descricao: isNeutro
+            ? `Banco R${rodadaNumero}: ${posicao}º lugar (Zona Neutra)`
+            : `Banco R${rodadaNumero}: ${posicao}º lugar`,
         posicao: posicao,
         totalTimes: totalTimes,
     };
@@ -479,7 +482,7 @@ async function calcularFinanceiroDaRodada(
         if (resultadoBanco) {
             transacoes.push({
                 rodada: rodadaNumero,
-                tipo: resultadoBanco.valor > 0 ? "BONUS" : "ONUS",
+                tipo: resultadoBanco.valor > 0 ? "BONUS" : resultadoBanco.valor < 0 ? "ONUS" : "NEUTRO",
                 descricao: resultadoBanco.descricao,
                 valor: resultadoBanco.valor,
                 posicao: resultadoBanco.posicao,
