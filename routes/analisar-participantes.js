@@ -183,6 +183,7 @@ router.get("/lista", async (req, res) => {
         rodadaDesistencia: timeDb?.rodada_desistencia || null,
         temSenha,
         assinante: timeDb?.assinante || false,
+        premium: p.premium === true,
         dadosCompletos: !!(nomeCartola && nomeCartola !== "N/D" && nomeTime && nomeTime !== "N/D"),
       });
     }

@@ -212,6 +212,11 @@
         <td>${p.dadosCompletos ? '<span style="color:#22c55e;font-size:14px;" class="material-icons">check</span>' : '<span class="badge-status badge-incompleto">N/D</span>'}</td>
         <td>
           <div class="acoes-cell">
+            <label class="toggle-premium-mini" title="${p.premium ? 'Premium ativo' : 'Ativar Premium'}">
+              <input type="checkbox" ${p.premium ? "checked" : ""} data-action="toggle-premium" data-time-id="${p.timeId}" data-liga-id="${p.ligaId}" />
+              <span class="toggle-slider-premium"></span>
+              <span class="material-icons toggle-premium-icon" style="font-size:14px;color:${p.premium ? '#fbbf24' : '#4b5563'}">workspace_premium</span>
+            </label>
             <button class="btn-acao-inline" title="Definir senha" data-action="senha" data-time-id="${p.timeId}" data-liga-id="${p.ligaId}" data-nome="${escapeHtml(p.nomeCartola)}">
               <span class="material-icons">vpn_key</span>
             </button>
@@ -230,13 +235,46 @@
 
     // Bind action buttons
     els.tabelaBody.querySelectorAll("[data-action]").forEach((btn) => {
-      btn.addEventListener("click", handleAcao);
+      if (btn.type === "checkbox" && btn.dataset.action === "toggle-premium") {
+        btn.addEventListener("change", handleTogglePremium);
+      } else {
+        btn.addEventListener("click", handleAcao);
+      }
     });
   }
 
   // =====================================================================
   // ACTIONS
   // =====================================================================
+
+  async function handleTogglePremium(e) {
+    const checkbox = e.currentTarget;
+    const timeId = checkbox.dataset.timeId;
+    const ligaId = checkbox.dataset.ligaId;
+    const premium = checkbox.checked;
+
+    try {
+      const res = await fetch(`/api/ligas/${ligaId}/participantes/${timeId}/premium`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ premium }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.erro || res.statusText);
+      }
+
+      // Atualizar ícone visual
+      const icon = checkbox.closest(".toggle-premium-mini")?.querySelector(".toggle-premium-icon");
+      if (icon) icon.style.color = premium ? "#fbbf24" : "#4b5563";
+
+      SuperModal.toast.success(`Premium ${premium ? "ativado" : "desativado"}`);
+    } catch (err) {
+      checkbox.checked = !premium; // Reverter
+      SuperModal.toast.error("Erro: " + err.message);
+    }
+  }
 
   let senhaEditando = null;
 

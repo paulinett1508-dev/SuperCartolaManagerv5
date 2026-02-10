@@ -377,9 +377,57 @@
                 color: #9ca3af;
             }
 
+            /* Toggle Premium Mini */
+            .toggle-premium-mini {
+                display: inline-flex;
+                align-items: center;
+                gap: 2px;
+                cursor: pointer;
+                position: relative;
+            }
+
+            .toggle-premium-mini input[type="checkbox"] {
+                position: absolute;
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .toggle-slider-premium {
+                width: 28px;
+                height: 14px;
+                background: #374151;
+                border-radius: 7px;
+                position: relative;
+                transition: background 0.2s;
+                flex-shrink: 0;
+            }
+
+            .toggle-slider-premium::after {
+                content: '';
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                background: #6b7280;
+                border-radius: 50%;
+                top: 2px;
+                left: 2px;
+                transition: all 0.2s;
+            }
+
+            .toggle-premium-mini input:checked + .toggle-slider-premium {
+                background: rgba(251, 191, 36, 0.3);
+            }
+
+            .toggle-premium-mini input:checked + .toggle-slider-premium::after {
+                background: #fbbf24;
+                left: 16px;
+            }
+
             /* Ações inline */
             .acoes-cell {
                 display: flex;
+                align-items: center;
                 gap: 4px;
             }
 
