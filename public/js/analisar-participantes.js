@@ -1047,6 +1047,9 @@
     init();
   }
 
+  // ✅ FIX: Expor init para re-execução via SPA navigation
+  window.__analisarParticipantesInit = init;
+
   // ✅ FIX: Re-init ao navegar via SPA (DOM substituído, refs precisam ser rebindadas)
   window.addEventListener("spa:navigated", (e) => {
     const page = e.detail?.pageName || "";

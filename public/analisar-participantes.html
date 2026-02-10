@@ -1527,6 +1527,12 @@
             }
 
             loadLayout();
+
+            // ✅ FIX: Re-init na navegação SPA (script externo não re-executa)
+            if (typeof window.__analisarParticipantesInit === 'function') {
+                console.log("[ANALISAR-PARTICIPANTES] Re-init via SPA");
+                window.__analisarParticipantesInit();
+            }
         </script>
 
         <script src="js/analisar-participantes.js"></script>
