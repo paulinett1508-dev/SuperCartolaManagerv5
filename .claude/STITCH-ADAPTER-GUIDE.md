@@ -133,22 +133,22 @@ Avalie a qualidade deste HTML do Stitch:
 
 ## Configurar MCP Stitch
 
-### 1. Setup
+### Pacote: `@_davideast/stitch-mcp` (David East, Google DevRel)
 
-```bash
-npx stitch-mcp-auto-setup
-```
+### 1. Obter API Key
+
+Acessar https://aistudio.google.com/apikey → Create API Key → Copiar
 
 ### 2. Configurar .mcp.json
 
-Ja adicionado ao projeto:
+Ja configurado no projeto:
 
 ```json
 "stitch": {
     "command": "npx",
-    "args": ["-y", "stitch-mcp-auto"],
+    "args": ["-y", "@_davideast/stitch-mcp", "proxy"],
     "env": {
-        "GOOGLE_CLOUD_PROJECT": "SEU_PROJECT_ID"
+        "STITCH_API_KEY": "SUA_API_KEY"
     }
 }
 ```
@@ -157,14 +157,13 @@ Ja adicionado ao projeto:
 
 ```bash
 claude mcp list | grep stitch
+npx @_davideast/stitch-mcp doctor --verbose
 ```
 
 ### Requisitos
 
 - Node.js v18+
-- Google Cloud CLI (`gcloud`)
-- Conta Google com projeto GCP
-- Stitch API habilitada no GCP
+- API Key do Google AI Studio
 
 ---
 

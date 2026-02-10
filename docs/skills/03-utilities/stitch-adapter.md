@@ -956,31 +956,38 @@ const INCOMPATIBILIDADES_MODERADAS = [
 
 ### Instalacao
 
-```bash
-# Setup automatico (wizard)
-npx stitch-mcp-auto-setup
+Pacote usado: **`@_davideast/stitch-mcp`** (David East, Google DevRel)
+Autenticacao via API Key do Google AI Studio (sem necessidade de gcloud CLI).
 
-# Ou configuracao manual no .mcp.json:
+```bash
+# Obter API Key: https://aistudio.google.com/apikey
+# Configuracao no .mcp.json:
 ```
 
 ```json
 {
     "stitch": {
         "command": "npx",
-        "args": ["-y", "stitch-mcp-auto"],
+        "args": ["-y", "@_davideast/stitch-mcp", "proxy"],
         "env": {
-            "GOOGLE_CLOUD_PROJECT": "SEU_PROJECT_ID"
+            "STITCH_API_KEY": "SUA_API_KEY_AQUI"
         }
     }
 }
 ```
 
+### Metodos de Autenticacao
+
+| Metodo | Env Var | Quando Usar |
+|--------|---------|-------------|
+| **API Key** (recomendado) | `STITCH_API_KEY` | Replit, CI/CD, headless |
+| gcloud ADC | `STITCH_USE_SYSTEM_GCLOUD=1` | Maquina local com gcloud |
+| Access Token | `STITCH_ACCESS_TOKEN` | Token pre-existente |
+
 ### Requisitos
 
 1. **Node.js v18+** instalado
-2. **Google Cloud CLI** (`gcloud`) instalado
-3. **Conta Google** com projeto GCP criado
-4. **Stitch API** habilitada no projeto GCP
+2. **API Key** do Google AI Studio (https://aistudio.google.com/apikey)
 
 ### Verificacao
 
@@ -988,23 +995,19 @@ npx stitch-mcp-auto-setup
 # Verificar se MCP esta registrado
 claude mcp list | grep stitch
 
-# Testar autenticacao
-node auth.js --status
+# Diagnostico completo
+npx @_davideast/stitch-mcp doctor --verbose
 ```
 
-### Tools Disponiveis (stitch-mcp-auto)
+### Tools Disponiveis (@_davideast/stitch-mcp)
 
 | Tool | Funcao |
 |------|--------|
-| `get_workspace_project` | Verificar projeto atual |
-| `set_workspace_project` | Associar projeto ao workspace |
-| `/design` | Gerar componente UI |
-| `/design-system` | Gerar design system |
-| `/design-flow` | Gerar fluxo de telas |
-| `/design-qa` | Validar design gerado |
-| `/design-export` | Exportar codigo |
-| `/design-full` | Pipeline completo (design → export) |
-| `/generate-asset` | Gerar imagens via Gemini AI |
+| `create_app` | Gerar app/componente UI a partir de prompt |
+| `update_app` | Atualizar app existente |
+| `screenshot_app` | Capturar screenshot do app gerado |
+| `get_app` | Recuperar codigo de app salvo |
+| `list_apps` | Listar apps criados |
 
 ---
 
