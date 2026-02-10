@@ -172,10 +172,11 @@ Sistema de ativação inteligente de skills baseado em palavras-chave contextuai
 #### stitch-adapter
 | Tipo | Keywords |
 |------|----------|
-| **Primárias** | `stitch`, `google stitch`, `adaptar código`, `converter html`, `código externo`, `html do stitch` |
-| **Frases PT-BR** | "adaptar código do stitch", "recebi código do stitch", "converter html externo", "processar stitch", "código gerado pelo stitch", "html do google stitch", "adaptar design do stitch" |
-| **Contexto** | Receber HTML do Google Stitch e adaptar para stack do projeto (separar HTML/CSS/JS, converter cores para variáveis CSS) |
-| **NÃO confundir** | Criar componente do zero → `frontend-crafter`; Apenas estilizar → `frontend-crafter` |
+| **Primárias** | `stitch`, `google stitch`, `adaptar código`, `converter html`, `código externo`, `html do stitch`, `gerar UI`, `criar componente stitch`, `avaliar html`, `score stitch`, `qualidade html` |
+| **Frases PT-BR** | "adaptar código do stitch", "recebi código do stitch", "converter html externo", "processar stitch", "código gerado pelo stitch", "html do google stitch", "adaptar design do stitch", "gerar UI no stitch", "criar componente no stitch", "avaliar qualidade do html", "score do html do stitch", "crie no stitch" |
+| **Contexto** | PLANO A de criação de UI: via MCP Stitch (geração automática) ou HTML colado (adaptação manual). Avalia qualidade, separa HTML/CSS/JS, converte para variáveis CSS, adapta à stack Vanilla JS |
+| **Versão** | 2.0 (MCP-First + Avaliador de Qualidade) |
+| **NÃO confundir** | Criar componente do zero sem Stitch → `frontend-crafter`; Apenas estilizar → `frontend-crafter` |
 | **Localização** | `docs/skills/03-utilities/stitch-adapter.md` |
 
 ---
@@ -285,6 +286,9 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | "esse arquivo tá enorme" | `Refactor-Monolith` | Decomposição |
 | "adaptar código do stitch" | `stitch-adapter` | Conversão HTML externo |
 | "recebi html do google stitch" | `stitch-adapter` | Adaptação de código |
+| "crie no stitch um card de..." | `stitch-adapter` | Geração via MCP Stitch |
+| "avalie qualidade deste html" | `stitch-adapter` | Avaliação score 0-100 |
+| "gerar UI no stitch" | `stitch-adapter` | Geração automática via MCP |
 | "endpoint do cartola" | `cartola-api` | API externa |
 | "cache tá lento" | `cache-auditor` | Performance de cache |
 | "audite o módulo top 10" | `auditor-module` | Auditoria de módulo |
@@ -310,7 +314,9 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | Auditoria de módulo | `auditor-module` → `code-inspector` → `cache-auditor` |
 | Auditoria UX pré-release | `ux-auditor-app` → `cache-auditor` → `code-inspector` |
 | Auditoria UX + correção | `ux-auditor-app` → `frontend-crafter` |
-| Design Stitch → Código | `stitch-adapter` → `frontend-crafter` (ajustes) |
+| Design Stitch → Código (MCP) | `stitch-adapter` (Plano A: MCP gera + adapta automaticamente) |
+| Design Stitch → Código (Manual) | `stitch-adapter` → `frontend-crafter` (ajustes) |
+| Design Figma → Código (Fallback) | Figma MCP → `stitch-adapter` (transformer React → Vanilla) |
 | Documentação | `system-scribe` |
 | Consulta API Cartola | `cartola-api` → `fact-checker` |
 
