@@ -955,6 +955,7 @@ export const getExtratoCache = async (req, res) => {
             resumo: resumoCalculado,
             camposManuais: camposAtivos,
             acertos: acertos,
+            lancamentosIniciais: lancamentosIniciais,
             // ✅ v7.0: Config da liga para extrato inteligente
             ligaConfig: {
                 modulosAtivos,

@@ -885,75 +885,7 @@
 }
 
 /* ========================================
-   9. FOOTER (Ações)
-   ======================================== */
-
-.extrato-footer-v2 {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px var(--extrato-card-padding);
-    background: var(--surface-card, #1a1a1a);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.extrato-footer-v2__actions-left,
-.extrato-footer-v2__actions-right {
-    display: flex;
-    gap: 10px;
-}
-
-.extrato-footer-v2__btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 18px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-}
-
-.extrato-footer-v2__btn .material-icons {
-    font-size: 18px;
-}
-
-.extrato-footer-v2__btn--primary {
-    background: var(--gradient-primary, linear-gradient(135deg, #FF5500, #e8472b));
-    color: white;
-    box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3);
-}
-
-.extrato-footer-v2__btn--primary:hover {
-    box-shadow: 0 6px 16px rgba(255, 85, 0, 0.4);
-    transform: translateY(-1px);
-}
-
-.extrato-footer-v2__btn--secondary {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--text-secondary, #e0e0e0);
-}
-
-.extrato-footer-v2__btn--secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary, #ffffff);
-}
-
-.extrato-footer-v2__btn--ghost {
-    background: transparent;
-    color: var(--text-muted, #a0a0a0);
-}
-
-.extrato-footer-v2__btn--ghost:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary, #ffffff);
-}
-
-/* ========================================
-   10. GRID LAYOUT ADMIN (Desktop)
+   9. GRID LAYOUT ADMIN (Desktop)
    ======================================== */
 
 .extrato-admin-grid {
