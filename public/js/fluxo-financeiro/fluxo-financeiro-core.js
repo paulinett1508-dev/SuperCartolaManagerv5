@@ -540,6 +540,8 @@ export class FluxoFinanceiroCore {
                                 parseFloat(camposEditaveis.campo4?.valor) || 0,
                             // ✅ v6.1: Incluir saldo de acertos no resumo
                             saldo_acertos: acertos?.resumo?.saldo ?? 0,
+                            // ✅ v6.9: Incluir lançamentos iniciais (inscrição, legado) do backend
+                            saldo_lancamentos_iniciais: cacheValido?.resumo?.saldo_lancamentos_iniciais || 0,
                             // ✅ v6.12: Preservar módulos opcionais do cache (quando existirem)
                             melhorMes: cacheValido?.resumo?.melhorMes ?? resumoRecalculado.melhorMes ?? 0,
                             artilheiro: cacheValido?.resumo?.artilheiro ?? resumoRecalculado.artilheiro ?? 0,
@@ -1282,9 +1284,11 @@ export class FluxoFinanceiroCore {
     _calcularSaldoFinal(resumo) {
         // ✅ v6.6: Saldo temporada (histórico) + acertos = saldo pendente
         // ✅ v6.13 FIX: Guard contra NaN (se algum campo do resumo for undefined)
+        // ✅ v6.9 FIX: Incluir lançamentos iniciais (inscrição, legado, dívida)
         const saldoTemporada = this._calcularSaldoTemporada(resumo);
         const saldoAcertos = resumo.saldo_acertos || 0;
-        return (isNaN(saldoTemporada) ? 0 : saldoTemporada) + saldoAcertos;
+        const saldoLancamentosIniciais = resumo.saldo_lancamentos_iniciais || 0;
+        return (isNaN(saldoTemporada) ? 0 : saldoTemporada) + saldoAcertos + saldoLancamentosIniciais;
     }
 
     _calcularTotaisConsolidados(resumo, rodadas) {
@@ -1403,4 +1407,4 @@ window.forcarRefreshExtrato = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-CORE] ✅ v6.10 - Fix defaults inconsistentes (|| 2025 → || 2026)");
+console.log("[FLUXO-CORE] ✅ v6.10 - Fix defaults inconsistentes (|| 2025 → || 2026) + v6.9 FIX lancamentos iniciais no saldo");

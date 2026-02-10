@@ -1185,6 +1185,27 @@ export const verificarCacheValido = async (req, res) => {
             return resumo;
         };
 
+        // ✅ v6.9 FIX: Calcular lançamentos iniciais (inscrição, legado, dívida) para incluir no saldo
+        // transformarTransacoesEmRodadas pula rodada=0, então lancamentos iniciais ficam de fora
+        const lancamentosIniciais = (cacheExistente.historico_transacoes || []).filter(t =>
+            t.rodada === 0 ||
+            t.tipo === 'INSCRICAO_TEMPORADA' ||
+            t.tipo === 'SALDO_TEMPORADA_ANTERIOR' ||
+            t.tipo === 'LEGADO_ANTERIOR'
+        );
+        const saldoLancamentosIniciais = lancamentosIniciais.reduce((acc, t) =>
+            acc + (parseFloat(t.valor) || 0), 0
+        );
+
+        // Helper para adicionar lancamentos iniciais ao resumo (NÃO usar no path pré-temporada que já calcula)
+        const adicionarLancamentosIniciaisAoResumo = (resumo) => {
+            resumo.saldo += saldoLancamentosIniciais;
+            resumo.saldo_final = resumo.saldo;
+            resumo.saldo_atual = resumo.saldo;
+            resumo.saldo_lancamentos_iniciais = saldoLancamentosIniciais;
+            return resumo;
+        };
+
         // ✅ v4.0: Se temporada finalizada E cache permanente, retorna imediatamente
         if (statusTemporada.finalizada && cacheExistente.cache_permanente) {
             console.log(`[CACHE-CONTROLLER] 🏁 Temporada finalizada - retornando cache permanente para time ${timeId}`);
@@ -1207,6 +1228,7 @@ export const verificarCacheValido = async (req, res) => {
                 camposAtivos,
             );
             adicionarAcertosAoResumo(resumoCalculado); // ✅ v5.2: Incluir acertos
+            adicionarLancamentosIniciaisAoResumo(resumoCalculado); // ✅ v6.9: Inscrição/legado
 
             return res.json({
                 valido: true,
@@ -1248,6 +1270,7 @@ export const verificarCacheValido = async (req, res) => {
                     camposAtivos,
                 );
                 adicionarAcertosAoResumo(resumoCalculado); // ✅ v5.2: Incluir acertos
+                adicionarLancamentosIniciaisAoResumo(resumoCalculado); // ✅ v6.9: Inscrição/legado
 
                 return res.json({
                     valido: true,
@@ -1309,6 +1332,7 @@ export const verificarCacheValido = async (req, res) => {
             };
 
             adicionarAcertosAoResumo(resumoCalculado);
+            resumoCalculado.saldo_lancamentos_iniciais = saldoLancamentosIniciais; // ✅ v6.9: consistência
 
             console.log(`[CACHE-CONTROLLER] ✅ PRÉ-TEMPORADA resumo: saldoInicial=${saldoLancamentosIniciais}, acertos=${saldoAcertosVal}, final=${resumoCalculado.saldo}`);
 
@@ -1361,6 +1385,7 @@ export const verificarCacheValido = async (req, res) => {
                 camposAtivos,
             );
             adicionarAcertosAoResumo(resumoCalculado); // ✅ v5.2: Incluir acertos
+            adicionarLancamentosIniciaisAoResumo(resumoCalculado); // ✅ v6.9: Inscrição/legado
 
             return res.json({
                 valido: true,

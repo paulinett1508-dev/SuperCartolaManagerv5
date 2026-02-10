@@ -22,6 +22,13 @@
       "env": {
         "NODE_ENV": "production"
       }
+    },
+    "figma": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-figma"],
+      "env": {
+        "FIGMA_ACCESS_TOKEN": "figd_b2MJbuEWzU10PKHRIm6Eerp-BaHtDwSquNZbNugP"
+      }
     }
   }
 }
