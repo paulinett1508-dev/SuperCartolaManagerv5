@@ -168,8 +168,8 @@
 }
 
 .edicao-card.selecionada {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  border: 2px solid #22c55e;
+  background: linear-gradient(135deg, var(--color-success-light) 0%, #16a34a 100%);
+  border: 2px solid var(--color-success-light);
   color: white;
   font-weight: 700;
   box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
@@ -335,7 +335,7 @@
 /* === POSIÇÕES DE DESTAQUE === */
 .tabela-melhor-mes tbody tr:first-child {
   background: rgba(255, 215, 0, 0.15) !important;
-  border-left: 4px solid #ffd700 !important;
+  border-left: 4px solid var(--color-gold) !important;
   font-weight: 700;
 }
 

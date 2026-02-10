@@ -4,9 +4,28 @@
      ===================================================================== -->
 
 <div id="campinho-container" class="min-h-screen bg-[var(--app-bg)]">
-    <!-- Conteudo sera renderizado pelo JS -->
-    <div class="flex flex-col items-center justify-center min-h-[400px] py-16">
+    <!-- Loading State -->
+    <div id="campinhoLoading" class="flex flex-col items-center justify-center min-h-[400px] py-16">
         <div class="w-12 h-12 border-4 border-zinc-700 border-t-green-500 rounded-full animate-spin mb-4"></div>
         <p class="text-sm text-gray-400">Carregando escalação...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="campinhoEmpty" style="display: none; text-align: center; padding: 60px 20px;">
+        <span class="material-symbols-outlined" style="font-size: 64px; color: var(--app-text-disabled, #404040); margin-bottom: 16px; display: block;">sports_soccer</span>
+        <h3 style="color: var(--app-text-muted); font-size: 18px; margin-bottom: 8px;">Nenhuma escalação disponível</h3>
+        <p style="color: var(--app-text-dim); font-size: 14px;">A escalação aparecerá quando a rodada estiver ativa</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="campinhoError" style="display: none; text-align: center; padding: 60px 20px;">
+        <span class="material-symbols-outlined" style="font-size: 64px; color: var(--app-warning); margin-bottom: 16px; display: block;">warning</span>
+        <h3 style="color: var(--app-text-muted); font-size: 18px; margin-bottom: 8px;">Erro ao carregar escalação</h3>
+        <p id="campinhoErrorMsg" style="color: var(--app-text-dim); font-size: 13px; margin-bottom: 20px;">Tente novamente em instantes</p>
+        <button onclick="window.participanteNav?.navegarPara('campinho', true)"
+                style="padding: 10px 20px; background: var(--app-gradient-primary); color: var(--app-text-primary); border: none; border-radius: var(--app-radius-md); font-weight: 600; cursor: pointer;">
+            <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">refresh</span>
+            Tentar novamente
+        </button>
     </div>
 </div>

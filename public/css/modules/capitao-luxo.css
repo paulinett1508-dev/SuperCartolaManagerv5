@@ -28,7 +28,7 @@
 .capitao-luxo-container {
   background: var(--bg-card, #1a1a2e);
   border-radius: 8px;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid var(--module-capitao-border);
   overflow: hidden;
 }
 
@@ -40,7 +40,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: var(--gradient-capitao);
 }
 
 .capitao-luxo-title {
@@ -101,9 +101,9 @@
   display: inline-block;
 }
 
-.capitao-luxo-legenda .legenda-cor.pts { background: #8b5cf6; }
-.capitao-luxo-legenda .legenda-cor.media { background: #a78bfa; }
-.capitao-luxo-legenda .legenda-cor.melhor { background: #22c55e; }
+.capitao-luxo-legenda .legenda-cor.pts { background: var(--module-capitao-primary); }
+.capitao-luxo-legenda .legenda-cor.media { background: var(--module-capitao-light); }
+.capitao-luxo-legenda .legenda-cor.melhor { background: var(--color-success-light); }
 .capitao-luxo-legenda .legenda-cor.pior { background: #ef4444; }
 
 /* =============================================
@@ -126,7 +126,7 @@
   top: 0;
   z-index: 2;
   background: #1e1b4b;
-  color: #a78bfa;
+  color: var(--module-capitao-light);
   font: 600 10px 'Inter', sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -171,7 +171,7 @@
 .capitao-luxo-ranking-table .col-pos {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
-  color: #8b5cf6;
+  color: var(--module-capitao-primary);
 }
 
 /* Escudo */
@@ -207,7 +207,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: rgba(139, 92, 246, 0.1);
+  background: var(--module-capitao-muted);
   border: 1px solid rgba(139, 92, 246, 0.2);
   border-radius: 4px;
   padding: 1px 6px;
@@ -221,7 +221,7 @@
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   font-size: 9px;
-  color: #8b5cf6;
+  color: var(--module-capitao-primary);
 }
 
 /* Chip parcial: ainda vai jogar (amarelo piscando) */
@@ -257,7 +257,7 @@
 }
 
 /* Verde - pontuou positivo */
-.chip-dot.dot-positive { background: #22c55e; }
+.chip-dot.dot-positive { background: var(--color-success-light); }
 
 /* Vermelho - pontuou negativo */
 .chip-dot.dot-negative { background: #ef4444; }
@@ -280,8 +280,8 @@
 .capitao-chip-toggle {
   cursor: pointer;
   background: rgba(139, 92, 246, 0.25) !important;
-  border-color: #8b5cf6 !important;
-  color: #a78bfa !important;
+  border-color: var(--module-capitao-primary) !important;
+  color: var(--module-capitao-light) !important;
   font-weight: 600 !important;
   font-size: 9px !important;
   user-select: none;
@@ -296,18 +296,18 @@
 .capitao-luxo-ranking-table .val-pts {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
-  color: #8b5cf6;
+  color: var(--module-capitao-primary);
   font-size: 13px;
 }
 
 .capitao-luxo-ranking-table .val-media {
   font-family: 'JetBrains Mono', monospace;
-  color: #a78bfa;
+  color: var(--module-capitao-light);
 }
 
 .capitao-luxo-ranking-table .val-melhor {
   font-family: 'JetBrains Mono', monospace;
-  color: #22c55e;
+  color: var(--color-success-light);
 }
 
 .capitao-luxo-ranking-table .val-pior {
@@ -323,7 +323,7 @@
 /* Destaque 1º lugar */
 .capitao-luxo-ranking-table tbody tr.destaque-primeiro {
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%);
-  border-left: 3px solid #8b5cf6;
+  border-left: 3px solid var(--module-capitao-primary);
 }
 
 .capitao-luxo-ranking-table tbody tr.destaque-primeiro .col-pos {
@@ -345,11 +345,11 @@
    ============================================= */
 .capitao-luxo-banner-final {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 2px solid #8b5cf6;
+  border: 2px solid var(--module-capitao-primary);
   border-radius: 12px;
   padding: 12px 20px;
   margin-bottom: 15px;
-  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 15px var(--module-capitao-border);
 }
 
 .capitao-luxo-banner-final.parcial-ativo {
@@ -357,8 +357,8 @@
 }
 
 @keyframes borderPulseCap {
-  0%, 100% { border-color: #8b5cf6; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); }
-  50% { border-color: #a78bfa; box-shadow: 0 4px 20px rgba(167, 139, 250, 0.5); }
+  0%, 100% { border-color: var(--module-capitao-primary); box-shadow: 0 4px 15px var(--module-capitao-border); }
+  50% { border-color: var(--module-capitao-light); box-shadow: 0 4px 20px rgba(167, 139, 250, 0.5); }
 }
 
 .capitao-luxo-banner-final .banner-content {
@@ -376,7 +376,7 @@
 }
 
 .capitao-luxo-banner-final .banner-titulo {
-  color: #8b5cf6;
+  color: var(--module-capitao-primary);
   font-size: 1.2rem;
   font-weight: bold;
   letter-spacing: 2px;
@@ -389,7 +389,7 @@
 }
 
 .capitao-luxo-banner-final .banner-status.pulsando {
-  color: #a78bfa;
+  color: var(--module-capitao-light);
   animation: textPulseCap 1.5s infinite;
 }
 
@@ -399,7 +399,7 @@
 }
 
 .capitao-luxo-banner-final .banner-lider {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  background: var(--gradient-capitao);
   padding: 8px 16px;
   border-radius: 20px;
   display: flex;
@@ -432,7 +432,7 @@
 
 .capitao-luxo-loading .spinner {
   border: 3px solid rgba(139, 92, 246, 0.2);
-  border-top: 3px solid #8b5cf6;
+  border-top: 3px solid var(--module-capitao-primary);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -488,7 +488,7 @@
   width: 80px;
   height: 80px;
   margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  background: var(--gradient-capitao);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -520,10 +520,10 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background: rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: var(--module-capitao-muted);
+  border: 1px solid var(--module-capitao-border);
   border-radius: 8px;
-  color: #a78bfa;
+  color: var(--module-capitao-light);
   font-size: 0.875rem;
 }
 

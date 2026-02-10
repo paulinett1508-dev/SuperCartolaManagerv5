@@ -1,0 +1,128 @@
+/* =====================================================================
+   ERROR TOAST v1.0 - Estilos do componente de feedback de erros
+   Usa tokens de _app-tokens.css
+   ===================================================================== */
+
+#errorToastContainer {
+    position: fixed;
+    bottom: calc(var(--app-bottom-nav-height, 72px) + 12px);
+    left: 12px;
+    right: 12px;
+    z-index: var(--app-z-toast, 700);
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.app-error-toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--app-toast-bg, #1e293b);
+    border: 1px solid var(--app-toast-border, #334155);
+    border-radius: var(--app-radius-lg, 12px);
+    padding: 12px 16px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: var(--app-shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.5));
+    backdrop-filter: blur(12px);
+    pointer-events: auto;
+
+    /* Animação de entrada */
+    transform: translateY(20px);
+    opacity: 0;
+    transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1),
+                opacity 0.25s ease;
+}
+
+.app-error-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Borda lateral colorida por tipo */
+.app-error-toast[data-tipo="error"] {
+    border-left: 3px solid var(--app-danger);
+}
+
+.app-error-toast[data-tipo="warning"] {
+    border-left: 3px solid var(--app-warning);
+}
+
+.app-error-toast[data-tipo="info"] {
+    border-left: 3px solid var(--app-info);
+}
+
+.app-error-toast[data-tipo="success"] {
+    border-left: 3px solid var(--app-success-light);
+}
+
+/* Ícone */
+.app-error-toast__icon {
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+/* Mensagem */
+.app-error-toast__msg {
+    flex: 1;
+    color: var(--app-text-primary);
+    font-family: var(--app-font-base);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* Botão de ação */
+.app-error-toast__acao {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--app-text-primary);
+    font-family: var(--app-font-base);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--app-radius-sm, 6px);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background var(--app-transition-fast);
+}
+
+.app-error-toast__acao:active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Botão fechar */
+.app-error-toast__close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--app-text-dim);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--app-radius-sm);
+    transition: color var(--app-transition-fast);
+}
+
+.app-error-toast__close .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.app-error-toast__close:active {
+    color: var(--app-text-primary);
+}
+
+/* Respeitar preferência de movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+    .app-error-toast {
+        transition: opacity 0.15s ease;
+        transform: none;
+    }
+    .app-error-toast.show {
+        transform: none;
+    }
+}

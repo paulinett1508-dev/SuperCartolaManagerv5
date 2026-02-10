@@ -333,7 +333,7 @@
 }
 
 .badge-success {
-    background: linear-gradient(135deg, var(--color-success) 0%, #20c997 100%);
+    background: linear-gradient(135deg, var(--color-success-light) 0%, #20c997 100%);
     color: white;
 }
 
@@ -564,7 +564,7 @@
 .stat-badge.stat-success {
     background: rgba(34, 197, 94, 0.1);
     border-color: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
+    color: var(--color-success-light);
 }
 
 .stat-badge.stat-warning {
@@ -737,7 +737,7 @@
 
 .participante-status-badge.badge-success {
     background: rgba(34, 197, 94, 0.15);
-    color: #22c55e;
+    color: var(--color-success-light);
     border: 1px solid rgba(34, 197, 94, 0.3);
 }
 

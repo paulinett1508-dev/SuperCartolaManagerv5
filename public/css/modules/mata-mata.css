@@ -195,7 +195,7 @@
 }
 
 .pontos-cell.resultado-vitoria .pontos-valor {
-  color: #22c55e;
+  color: var(--color-success-light);
   font-weight: 800;
   font-size: 14px;
 }

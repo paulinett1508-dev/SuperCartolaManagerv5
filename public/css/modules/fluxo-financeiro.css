@@ -20,7 +20,7 @@
   /* Gradientes atualizados para o tema laranja */
   --gradient-primary: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
   --gradient-secondary: linear-gradient(135deg, #ff6347 0%, #ff7f50 100%); /* Gradiente secundário laranja */
-  --success: #22c55e;
+  --success: var(--color-success-light);
   --danger: #ef4444;
   --warning: #f59e0b;
   --info: #3b82f6;
@@ -627,7 +627,7 @@ body {
 .resumo-card.top10 {
     background: linear-gradient(135deg, #fff9e6 0%, #ffe680 100%);
     color: #b8860b;
-    border-color: #ffd700;
+    border-color: var(--color-gold);
 }
 
 .resumo-card.estatisticas-mito {
@@ -1556,8 +1556,8 @@ body {
 }
 
 .input-campo-editavel.campo-positivo {
-    border-color: #22c55e;
-    color: #22c55e;
+    border-color: var(--color-success-light);
+    color: var(--color-success-light);
 }
 
 .input-campo-editavel.campo-negativo {
@@ -2842,7 +2842,7 @@ table.fluxo-participantes-tabela {
 }
 
 .tipo-label.credito {
-    color: var(--success, #22c55e) !important;
+    color: var(--success, var(--color-success-light)) !important;
 }
 
 .tipo-label.debito {

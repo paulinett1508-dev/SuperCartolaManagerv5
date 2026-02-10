@@ -30,7 +30,7 @@
     --extrato-border-neutral: rgba(107, 114, 128, 0.15);
 
     /* Cores de ícones */
-    --extrato-icon-positive: #22c55e;
+    --extrato-icon-positive: var(--color-success-light);
     --extrato-icon-negative: #ef4444;
     --extrato-icon-acerto: #3b82f6;
     --extrato-icon-inscricao: #f59e0b;
@@ -426,7 +426,7 @@
 
 .extrato-timeline-v2__group-badge--mito {
     background: rgba(255, 215, 0, 0.15);
-    color: #ffd700;
+    color: var(--color-gold);
 }
 
 .extrato-timeline-v2__group-badge--mico {
@@ -845,7 +845,7 @@
     margin-bottom: 4px;
 }
 
-.extrato-performance-v2__stat-value--mito { color: #ffd700; }
+.extrato-performance-v2__stat-value--mito { color: var(--color-gold); }
 .extrato-performance-v2__stat-value--mico { color: #f87171; }
 .extrato-performance-v2__stat-value--zona-g { color: #86efac; }
 .extrato-performance-v2__stat-value--zona-z { color: #f87171; }

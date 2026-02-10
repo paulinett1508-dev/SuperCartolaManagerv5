@@ -3,9 +3,29 @@
 <div class="artilheiro-participante">
     <!-- Container para conteúdo dinâmico (skeleton será injetado via JS) -->
     <div id="artilheiro-content">
-        <div class="loading-participante text-center py-10">
+        <!-- Loading State -->
+        <div id="artilheiroLoading" class="loading-participante text-center py-10">
             <div class="spinner-artilheiro"></div>
             <p class="loading-text">Carregando artilheiros...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="artilheiroEmpty" style="display: none; text-align: center; padding: 60px 20px;">
+            <span class="material-symbols-outlined" style="font-size: 64px; color: var(--app-text-disabled, #404040); margin-bottom: 16px; display: block;">military_tech</span>
+            <h3 style="color: var(--app-text-muted); font-size: 18px; margin-bottom: 8px;">Nenhum artilheiro registrado</h3>
+            <p style="color: var(--app-text-dim); font-size: 14px;">Os dados aparecerão quando houver gols na temporada</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="artilheiroError" style="display: none; text-align: center; padding: 60px 20px;">
+            <span class="material-symbols-outlined" style="font-size: 64px; color: var(--app-warning); margin-bottom: 16px; display: block;">warning</span>
+            <h3 style="color: var(--app-text-muted); font-size: 18px; margin-bottom: 8px;">Erro ao carregar artilheiros</h3>
+            <p id="artilheiroErrorMsg" style="color: var(--app-text-dim); font-size: 13px; margin-bottom: 20px;">Tente novamente em instantes</p>
+            <button onclick="window.participanteNav?.navegarPara('artilheiro', true)"
+                    style="padding: 10px 20px; background: var(--app-gradient-primary); color: var(--app-text-primary); border: none; border-radius: var(--app-radius-md); font-weight: 600; cursor: pointer;">
+                <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">refresh</span>
+                Tentar novamente
+            </button>
         </div>
     </div>
 
@@ -82,7 +102,7 @@
     }
 
     th {
-        background: rgba(34, 197, 94, 0.1);
+        background: var(--module-artilheiro-muted, rgba(34, 197, 94, 0.1));
         font-weight: 600;
     }
 
@@ -99,7 +119,7 @@
         font-weight: 700;
     }
     .table-primary {
-        background: rgba(34, 197, 94, 0.15);
+        background: var(--module-artilheiro-muted, rgba(34, 197, 94, 0.15));
     }
     .text-center {
         text-align: center;

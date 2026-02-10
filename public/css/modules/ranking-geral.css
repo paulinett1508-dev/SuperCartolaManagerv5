@@ -145,7 +145,7 @@
 /* Apenas 1º lugar destacado (ouro) */
 .ranking-table tbody tr:nth-child(1) {
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 193, 7, 0.1) 100%) !important;
-    border-left: 4px solid #ffd700;
+    border-left: 4px solid var(--color-gold);
     font-weight: 600;
 }
 
