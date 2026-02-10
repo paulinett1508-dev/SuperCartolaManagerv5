@@ -10,3 +10,4 @@ build/
 .claude_auth_store/
 .ux-auto-fix-backup/
 nul
+data/backups/
