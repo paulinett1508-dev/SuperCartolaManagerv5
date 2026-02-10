@@ -1,0 +1,18 @@
+#!/bin/bash
+# Hook de SessionStart para forçar modo de planejamento
+# Este hook é executado automaticamente quando Claude Code inicia em QUALQUER ambiente
+
+echo "🎯 ATENÇÃO: Modo de Planejamento Obrigatório está ATIVO"
+echo ""
+echo "PROTOCOLO ABSOLUTAMENTE OBRIGATÓRIO:"
+echo "1️⃣ Criar planejamento completo ANTES de programar"
+echo "2️⃣ Listar tarefas com TodoWrite"
+echo "3️⃣ Questionar usuário se faz sentido"
+echo "4️⃣ Aguardar aprovação explícita"
+echo ""
+echo "📋 Documentação:"
+echo "   - CLAUDE.md (seção 'PROTOCOLO DE PLANEJAMENTO OBRIGATÓRIO')"
+echo "   - .claude/planning-mode-config.md"
+echo ""
+echo "⚠️  NUNCA comece a programar sem validação do usuário!"
+echo ""
