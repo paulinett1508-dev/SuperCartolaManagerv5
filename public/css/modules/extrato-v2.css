@@ -1025,3 +1025,87 @@
 .extrato-timeline-v2__group:nth-child(3) { animation-delay: 0.15s; }
 .extrato-timeline-v2__group:nth-child(4) { animation-delay: 0.2s; }
 .extrato-timeline-v2__group:nth-child(5) { animation-delay: 0.25s; }
+
+/* ========================================
+   INTER-INSPIRED ENHANCEMENTS (v2.1)
+   Identidade visual "banco Inter" para admin
+   Espelha os enhancements do App participante
+   ======================================== */
+
+/* --- 1. Hero Card: Borda laranja + sombras coloridas por status --- */
+.extrato-hero-v2 {
+    border-color: rgba(255, 85, 0, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.extrato-hero-v2--positive {
+    border-color: rgba(34, 197, 94, 0.25);
+    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.1);
+}
+
+.extrato-hero-v2--negative {
+    border-color: rgba(239, 68, 68, 0.25);
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.1);
+}
+
+/* --- 2. Stat Pills: Contraste maior + tipografia bold --- */
+.extrato-stat-pill-v2 {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.extrato-stat-pill-v2__value {
+    font-weight: 700;
+}
+
+/* --- 3. Cards laterais: Bordas laranja sutis --- */
+.extrato-chart-v2,
+.extrato-acertos-v2,
+.extrato-performance-v2 {
+    border-color: rgba(255, 85, 0, 0.12);
+}
+
+/* --- 4. Timeline: Borda laranja + tipografia bold --- */
+.extrato-timeline-v2 {
+    border-color: rgba(255, 85, 0, 0.12);
+}
+
+.extrato-timeline-v2__group-header {
+    border-color: rgba(255, 85, 0, 0.1);
+}
+
+.extrato-timeline-v2__detail-value {
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.extrato-timeline-v2__group-value {
+    font-weight: 800;
+}
+
+/* --- 5. Performance: Text-shadow para profundidade --- */
+.extrato-performance-v2__stat-value {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* --- 6. Transições suaves em todos os cards --- */
+.extrato-hero-v2,
+.extrato-chart-v2,
+.extrato-acertos-v2,
+.extrato-performance-v2,
+.extrato-timeline-v2 {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* --- 7. Hover effects (desktop only) --- */
+@media (hover: hover) {
+    .extrato-stat-pill-v2:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 85, 0, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .extrato-timeline-v2__group-header:hover {
+        background: rgba(255, 85, 0, 0.05);
+    }
+}
