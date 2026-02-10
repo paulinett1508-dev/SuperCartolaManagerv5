@@ -658,3 +658,103 @@
         grid-template-columns: repeat(4, 1fr);
     }
 }
+
+/* ========================================
+   INTER-INSPIRED ENHANCEMENTS (v2.0)
+   ======================================== */
+
+/* Hero Card - Borda laranja sutil no estado neutro/base */
+.extrato-hero {
+    border-color: rgba(255, 85, 0, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Hero Card - Borda mais marcada por status */
+.extrato-hero--positive {
+    border-color: rgba(34, 197, 94, 0.25);
+    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.1);
+}
+
+.extrato-hero--negative {
+    border-color: rgba(239, 68, 68, 0.25);
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.1);
+}
+
+/* Stat Pills - Contraste maior e borda mais visível */
+.extrato-stat-pill {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s ease;
+}
+
+.extrato-stat-pill:active {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 85, 0, 0.2);
+}
+
+.extrato-stat-pill__value {
+    font-weight: 700;
+}
+
+/* Timeline - Valores mais bold */
+.extrato-timeline__item-value {
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.extrato-timeline__group-total {
+    font-weight: 800;
+}
+
+/* Timeline - Header com borda laranja sutil */
+.extrato-timeline__group-header {
+    border-color: rgba(255, 85, 0, 0.1);
+}
+
+/* Chart - Borda laranja sutil */
+.extrato-chart {
+    border-color: rgba(255, 85, 0, 0.12);
+}
+
+/* Performance Card - Borda laranja sutil */
+.extrato-performance {
+    border-color: rgba(255, 85, 0, 0.12);
+}
+
+/* Performance Stats - Valores mais destacados */
+.extrato-performance__stat-value {
+    font-size: var(--app-font-2xl);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Botão Meus Acertos - Destaque Inter-style */
+.extrato-acertos-btn {
+    background: rgba(255, 85, 0, 0.08);
+    border: 1px solid rgba(255, 85, 0, 0.2);
+}
+
+.extrato-acertos-btn:active {
+    background: rgba(255, 85, 0, 0.15);
+    border-color: rgba(255, 85, 0, 0.3);
+}
+
+/* Animação suave nos cards */
+.extrato-hero,
+.extrato-chart,
+.extrato-performance,
+.extrato-timeline {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Subtle hover effect em desktop */
+@media (hover: hover) {
+    .extrato-stat-pill:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 85, 0, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .extrato-timeline__item:hover {
+        background: rgba(255, 85, 0, 0.05);
+    }
+}

@@ -227,11 +227,36 @@ export class FluxoFinanceiroUI {
     // Não há mais seletor de temporada dentro do modal de extrato
 
     /**
-     * ✅ v6.4: Renderiza extrato de uma temporada específica
+     * ✅ v8.10: Renderiza extrato de uma temporada específica
+     * Usa renderExtratoV2 se disponível (design Inter-inspired)
      */
     async renderizarExtratoTemporada(data, temporada) {
         const modalBody = document.getElementById('modalExtratoBody');
         if (!modalBody) return;
+
+        // ✅ v8.10: Usar novo renderizador v2 se disponível
+        if (window.renderExtratoV2 && typeof window.renderExtratoV2 === 'function') {
+            console.log('[FLUXO-UI] Usando renderExtratoV2 (design Inter-inspired)');
+            modalBody.innerHTML = window.renderExtratoV2(data, temporada);
+
+            // Setup interatividade do novo layout
+            const rodadas = data.rodadas || data.historico || [];
+            setTimeout(() => {
+                if (window.renderExtratoChartV2) {
+                    window.renderExtratoChartV2(rodadas);
+                }
+                if (window.setupExtratoChartFiltersV2) {
+                    window.setupExtratoChartFiltersV2(rodadas);
+                }
+                if (window.setupExtratoTimelineFiltersV2) {
+                    window.setupExtratoTimelineFiltersV2();
+                }
+            }, 100);
+            return;
+        }
+
+        // ===== FALLBACK: Renderização v1 (legado) =====
+        console.log('[FLUXO-UI] Usando renderização legada v1');
 
         // Formatar valores
         const formatarMoeda = (v) => {

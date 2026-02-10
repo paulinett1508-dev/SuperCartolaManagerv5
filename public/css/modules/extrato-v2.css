@@ -1,0 +1,1095 @@
+/**
+ * EXTRATO FINANCEIRO v2.0 - CSS Compartilhado
+ * ============================================
+ * Inspirado no Banco Inter | Dark Theme
+ *
+ * USO: Importar DEPOIS dos tokens (_admin-tokens.css ou _app-tokens.css)
+ *
+ * COMPONENTES:
+ * - Hero Card (saldo principal)
+ * - Stats Pills (métricas rápidas)
+ * - Timeline (substituição de tabela)
+ * - Acertos Card
+ * - Performance Card
+ * - Gráfico de Evolução
+ */
+
+/* ========================================
+   1. VARIÁVEIS ESPECÍFICAS DO EXTRATO
+   ======================================== */
+
+:root {
+    /* Gradientes de status (fundos sutis) */
+    --extrato-gradient-positive: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.02) 100%);
+    --extrato-gradient-negative: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.02) 100%);
+    --extrato-gradient-neutral: linear-gradient(135deg, rgba(107, 114, 128, 0.08) 0%, rgba(107, 114, 128, 0.02) 100%);
+
+    /* Bordas de status */
+    --extrato-border-positive: rgba(34, 197, 94, 0.2);
+    --extrato-border-negative: rgba(239, 68, 68, 0.2);
+    --extrato-border-neutral: rgba(107, 114, 128, 0.15);
+
+    /* Cores de ícones */
+    --extrato-icon-positive: #22c55e;
+    --extrato-icon-negative: #ef4444;
+    --extrato-icon-acerto: #3b82f6;
+    --extrato-icon-inscricao: #f59e0b;
+
+    /* Espaçamentos */
+    --extrato-card-padding: 20px;
+    --extrato-card-radius: 16px;
+    --extrato-item-gap: 12px;
+}
+
+/* ========================================
+   2. HERO CARD (Saldo Principal)
+   ======================================== */
+
+.extrato-hero-v2 {
+    background: var(--surface-card, #1a1a1a);
+    border: 1px solid var(--extrato-border-neutral);
+    border-radius: var(--extrato-card-radius);
+    padding: var(--extrato-card-padding);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+}
+
+.extrato-hero-v2::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* Variantes de status */
+.extrato-hero-v2--positive {
+    border-color: var(--extrato-border-positive);
+}
+.extrato-hero-v2--positive::before {
+    background: var(--extrato-gradient-positive);
+}
+
+.extrato-hero-v2--negative {
+    border-color: var(--extrato-border-negative);
+}
+.extrato-hero-v2--negative::before {
+    background: var(--extrato-gradient-negative);
+}
+
+.extrato-hero-v2--neutral {
+    border-color: var(--extrato-border-neutral);
+}
+.extrato-hero-v2--neutral::before {
+    background: var(--extrato-gradient-neutral);
+}
+
+/* Header do Hero */
+.extrato-hero-v2__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.extrato-hero-v2__label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-family-base, 'Inter', sans-serif);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted, #a0a0a0);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.extrato-hero-v2__label .material-icons {
+    font-size: 18px;
+    color: var(--color-primary, #FF5500);
+}
+
+.extrato-hero-v2__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.extrato-hero-v2__action-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted, #a0a0a0);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.extrato-hero-v2__action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary, #ffffff);
+}
+
+.extrato-hero-v2__action-btn .material-icons {
+    font-size: 18px;
+}
+
+/* Valor Principal */
+.extrato-hero-v2__valor {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.extrato-hero-v2__valor--positive { color: var(--extrato-icon-positive); }
+.extrato-hero-v2__valor--negative { color: var(--extrato-icon-negative); }
+.extrato-hero-v2__valor--neutral { color: var(--text-muted, #a0a0a0); }
+
+.extrato-hero-v2__valor--hidden {
+    filter: blur(12px);
+    user-select: none;
+}
+
+/* Status Badge */
+.extrato-hero-v2__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    z-index: 1;
+}
+
+.extrato-hero-v2__status .material-icons {
+    font-size: 14px;
+}
+
+.extrato-hero-v2__status--deve {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+.extrato-hero-v2__status--receber {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+}
+
+.extrato-hero-v2__status--quitado {
+    background: rgba(107, 114, 128, 0.15);
+    color: var(--text-muted, #a0a0a0);
+}
+
+/* ========================================
+   3. STATS PILLS (Métricas Rápidas)
+   ======================================== */
+
+.extrato-stats-v2 {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    position: relative;
+    z-index: 1;
+    flex-wrap: wrap;
+}
+
+.extrato-stat-pill-v2 {
+    flex: 1;
+    min-width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: default;
+}
+
+.extrato-stat-pill-v2:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.extrato-stat-pill-v2__value {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary, #ffffff);
+}
+
+.extrato-stat-pill-v2__value--positive { color: var(--extrato-icon-positive); }
+.extrato-stat-pill-v2__value--negative { color: var(--extrato-icon-negative); }
+
+.extrato-stat-pill-v2__label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted, #a0a0a0);
+}
+
+/* ========================================
+   4. TIMELINE (Substitui Tabela)
+   ======================================== */
+
+.extrato-timeline-v2 {
+    background: var(--surface-card, #1a1a1a);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--extrato-card-radius);
+    overflow: hidden;
+}
+
+.extrato-timeline-v2__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px var(--extrato-card-padding);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.extrato-timeline-v2__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 13px;
+    color: var(--text-secondary, #e0e0e0);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.extrato-timeline-v2__title .material-icons {
+    font-size: 18px;
+    color: var(--color-primary, #FF5500);
+}
+
+/* Filtros da Timeline */
+.extrato-timeline-v2__filters {
+    display: flex;
+    gap: 6px;
+}
+
+.extrato-timeline-v2__filter-btn {
+    padding: 6px 12px;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: var(--text-muted, #a0a0a0);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.extrato-timeline-v2__filter-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary, #ffffff);
+}
+
+.extrato-timeline-v2__filter-btn--active {
+    background: var(--color-primary-muted, rgba(255, 85, 0, 0.15));
+    border-color: var(--color-primary-border, rgba(255, 85, 0, 0.3));
+    color: var(--color-primary, #FF5500);
+}
+
+/* Container de itens */
+.extrato-timeline-v2__content {
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.extrato-timeline-v2__content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.extrato-timeline-v2__content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.extrato-timeline-v2__content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+/* Grupo (Rodada, Inscrição, Acertos) */
+.extrato-timeline-v2__group {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.extrato-timeline-v2__group:last-child {
+    border-bottom: none;
+}
+
+.extrato-timeline-v2__group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px var(--extrato-card-padding);
+    background: rgba(255, 255, 255, 0.02);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.extrato-timeline-v2__group-header:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.extrato-timeline-v2__group-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.extrato-timeline-v2__group-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.extrato-timeline-v2__group-icon--rodada {
+    background: rgba(255, 85, 0, 0.12);
+    color: var(--color-primary, #FF5500);
+}
+
+.extrato-timeline-v2__group-icon--inscricao {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--extrato-icon-inscricao);
+}
+
+.extrato-timeline-v2__group-icon--acerto {
+    background: rgba(59, 130, 246, 0.12);
+    color: var(--extrato-icon-acerto);
+}
+
+.extrato-timeline-v2__group-icon--positive {
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--extrato-icon-positive);
+}
+
+.extrato-timeline-v2__group-icon--negative {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--extrato-icon-negative);
+}
+
+.extrato-timeline-v2__group-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.extrato-timeline-v2__group-title {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 13px;
+    color: var(--text-primary, #ffffff);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.extrato-timeline-v2__group-badge {
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.extrato-timeline-v2__group-badge--mito {
+    background: rgba(255, 215, 0, 0.15);
+    color: #ffd700;
+}
+
+.extrato-timeline-v2__group-badge--mico {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+.extrato-timeline-v2__group-badge--zona-g {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+}
+
+.extrato-timeline-v2__group-badge--zona-z {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+.extrato-timeline-v2__group-subtitle {
+    font-size: 11px;
+    color: var(--text-muted, #a0a0a0);
+}
+
+.extrato-timeline-v2__group-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.extrato-timeline-v2__group-value {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.extrato-timeline-v2__group-value--positive { color: var(--extrato-icon-positive); }
+.extrato-timeline-v2__group-value--negative { color: var(--extrato-icon-negative); }
+.extrato-timeline-v2__group-value--neutral { color: var(--text-muted, #a0a0a0); }
+
+.extrato-timeline-v2__expand-icon {
+    color: var(--text-muted, #a0a0a0);
+    font-size: 20px;
+    transition: transform 0.2s ease;
+}
+
+.extrato-timeline-v2__expand-icon--open {
+    transform: rotate(180deg);
+}
+
+/* Detalhes expandidos */
+.extrato-timeline-v2__group-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.extrato-timeline-v2__group-details--open {
+    max-height: 300px;
+}
+
+.extrato-timeline-v2__detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px var(--extrato-card-padding);
+    padding-left: 64px;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.extrato-timeline-v2__detail-item:first-child {
+    border-top: none;
+}
+
+.extrato-timeline-v2__detail-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted, #a0a0a0);
+}
+
+.extrato-timeline-v2__detail-label .material-icons {
+    font-size: 16px;
+    opacity: 0.6;
+}
+
+.extrato-timeline-v2__detail-value {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.extrato-timeline-v2__detail-value--positive { color: var(--extrato-icon-positive); }
+.extrato-timeline-v2__detail-value--negative { color: var(--extrato-icon-negative); }
+
+/* Saldo acumulado (no final do grupo) */
+.extrato-timeline-v2__accumulated {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 8px var(--extrato-card-padding);
+    padding-left: 64px;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.extrato-timeline-v2__accumulated-label {
+    font-size: 10px;
+    color: var(--text-muted, #a0a0a0);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.extrato-timeline-v2__accumulated-value {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* ========================================
+   5. TOTAIS (Footer da Timeline)
+   ======================================== */
+
+.extrato-timeline-v2__totals {
+    padding: var(--extrato-card-padding);
+    background: rgba(255, 85, 0, 0.03);
+    border-top: 1px solid rgba(255, 85, 0, 0.1);
+}
+
+.extrato-timeline-v2__totals-title {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 11px;
+    color: var(--text-muted, #a0a0a0);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.extrato-timeline-v2__totals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 12px;
+}
+
+.extrato-timeline-v2__total-item {
+    text-align: center;
+}
+
+.extrato-timeline-v2__total-label {
+    font-size: 10px;
+    color: var(--text-muted, #a0a0a0);
+    margin-bottom: 4px;
+}
+
+.extrato-timeline-v2__total-value {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* ========================================
+   6. ACERTOS CARD (Lateral)
+   ======================================== */
+
+.extrato-acertos-v2 {
+    background: var(--surface-card, #1a1a1a);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    border-radius: var(--extrato-card-radius);
+    overflow: hidden;
+}
+
+.extrato-acertos-v2__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px var(--extrato-card-padding);
+    background: rgba(59, 130, 246, 0.05);
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.extrato-acertos-v2__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 12px;
+    color: var(--text-secondary, #e0e0e0);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.extrato-acertos-v2__title .material-icons {
+    font-size: 18px;
+    color: var(--extrato-icon-acerto);
+}
+
+.extrato-acertos-v2__count {
+    padding: 4px 10px;
+    border-radius: 9999px;
+    background: rgba(59, 130, 246, 0.15);
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--extrato-icon-acerto);
+}
+
+.extrato-acertos-v2__list {
+    padding: var(--extrato-card-padding);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.extrato-acertos-v2__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.extrato-acertos-v2__item-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.extrato-acertos-v2__item-icon--pagamento {
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--extrato-icon-positive);
+}
+
+.extrato-acertos-v2__item-icon--recebimento {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--extrato-icon-negative);
+}
+
+.extrato-acertos-v2__item-icon .material-icons {
+    font-size: 16px;
+}
+
+.extrato-acertos-v2__item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.extrato-acertos-v2__item-title {
+    font-size: 13px;
+    color: var(--text-primary, #ffffff);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.extrato-acertos-v2__item-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--text-muted, #a0a0a0);
+}
+
+.extrato-acertos-v2__item-value {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.extrato-acertos-v2__empty {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted, #a0a0a0);
+}
+
+.extrato-acertos-v2__empty .material-icons {
+    font-size: 32px;
+    opacity: 0.4;
+    margin-bottom: 8px;
+}
+
+/* ========================================
+   7. GRÁFICO DE EVOLUÇÃO
+   ======================================== */
+
+.extrato-chart-v2 {
+    background: var(--surface-card, #1a1a1a);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--extrato-card-radius);
+    padding: var(--extrato-card-padding);
+}
+
+.extrato-chart-v2__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.extrato-chart-v2__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 12px;
+    color: var(--text-secondary, #e0e0e0);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.extrato-chart-v2__title .material-icons {
+    font-size: 18px;
+    color: var(--color-primary, #FF5500);
+}
+
+.extrato-chart-v2__filters {
+    display: flex;
+    gap: 4px;
+}
+
+.extrato-chart-v2__filter-btn {
+    padding: 5px 10px;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: var(--text-muted, #a0a0a0);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.extrato-chart-v2__filter-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.extrato-chart-v2__filter-btn--active {
+    background: var(--color-primary-muted, rgba(255, 85, 0, 0.15));
+    border-color: var(--color-primary-border, rgba(255, 85, 0, 0.3));
+    color: var(--color-primary, #FF5500);
+}
+
+.extrato-chart-v2__container {
+    position: relative;
+    height: 140px;
+}
+
+.extrato-chart-v2__svg {
+    width: 100%;
+    height: 100%;
+}
+
+.extrato-chart-v2__labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--text-muted, #a0a0a0);
+}
+
+/* ========================================
+   8. PERFORMANCE CARD
+   ======================================== */
+
+.extrato-performance-v2 {
+    background: var(--surface-card, #1a1a1a);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--extrato-card-radius);
+    padding: var(--extrato-card-padding);
+}
+
+.extrato-performance-v2__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 12px;
+    color: var(--text-secondary, #e0e0e0);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+}
+
+.extrato-performance-v2__title .material-icons {
+    font-size: 18px;
+    color: var(--color-primary, #FF5500);
+}
+
+.extrato-performance-v2__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.extrato-performance-v2__stat {
+    text-align: center;
+    padding: 12px 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+
+.extrato-performance-v2__stat-value {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 20px;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.extrato-performance-v2__stat-value--mito { color: #ffd700; }
+.extrato-performance-v2__stat-value--mico { color: #f87171; }
+.extrato-performance-v2__stat-value--zona-g { color: #86efac; }
+.extrato-performance-v2__stat-value--zona-z { color: #f87171; }
+
+.extrato-performance-v2__stat-label {
+    font-size: 9px;
+    color: var(--text-muted, #a0a0a0);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.extrato-performance-v2__best-worst {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.extrato-performance-v2__bw-item {
+    flex: 1;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    text-align: center;
+}
+
+.extrato-performance-v2__bw-label {
+    font-size: 9px;
+    color: var(--text-muted, #a0a0a0);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.extrato-performance-v2__bw-value {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ========================================
+   9. FOOTER (Ações)
+   ======================================== */
+
+.extrato-footer-v2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px var(--extrato-card-padding);
+    background: var(--surface-card, #1a1a1a);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.extrato-footer-v2__actions-left,
+.extrato-footer-v2__actions-right {
+    display: flex;
+    gap: 10px;
+}
+
+.extrato-footer-v2__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.extrato-footer-v2__btn .material-icons {
+    font-size: 18px;
+}
+
+.extrato-footer-v2__btn--primary {
+    background: var(--gradient-primary, linear-gradient(135deg, #FF5500, #e8472b));
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3);
+}
+
+.extrato-footer-v2__btn--primary:hover {
+    box-shadow: 0 6px 16px rgba(255, 85, 0, 0.4);
+    transform: translateY(-1px);
+}
+
+.extrato-footer-v2__btn--secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary, #e0e0e0);
+}
+
+.extrato-footer-v2__btn--secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary, #ffffff);
+}
+
+.extrato-footer-v2__btn--ghost {
+    background: transparent;
+    color: var(--text-muted, #a0a0a0);
+}
+
+.extrato-footer-v2__btn--ghost:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary, #ffffff);
+}
+
+/* ========================================
+   10. GRID LAYOUT ADMIN (Desktop)
+   ======================================== */
+
+.extrato-admin-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+@media (min-width: 1024px) {
+    .extrato-admin-grid {
+        grid-template-columns: 300px 1fr;
+    }
+}
+
+.extrato-admin-grid__sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.extrato-admin-grid__main {
+    min-width: 0;
+}
+
+/* ========================================
+   11. RESPONSIVO MOBILE
+   ======================================== */
+
+@media (max-width: 768px) {
+    :root {
+        --extrato-card-padding: 16px;
+        --extrato-card-radius: 14px;
+    }
+
+    .extrato-hero-v2__valor {
+        font-size: 2rem;
+    }
+
+    .extrato-stats-v2 {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding-bottom: 4px;
+    }
+
+    .extrato-stats-v2::-webkit-scrollbar {
+        display: none;
+    }
+
+    .extrato-stat-pill-v2 {
+        flex: 0 0 auto;
+        min-width: 90px;
+    }
+
+    .extrato-timeline-v2__filters {
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding-bottom: 4px;
+    }
+
+    .extrato-timeline-v2__filter-btn {
+        flex-shrink: 0;
+    }
+
+    .extrato-performance-v2__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .extrato-footer-v2 {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .extrato-footer-v2__actions-left,
+    .extrato-footer-v2__actions-right {
+        width: 100%;
+    }
+
+    .extrato-footer-v2__btn {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+/* ========================================
+   12. EMPTY STATE
+   ======================================== */
+
+.extrato-empty-v2 {
+    text-align: center;
+    padding: 48px 24px;
+}
+
+.extrato-empty-v2__icon {
+    font-size: 48px;
+    color: var(--text-muted, #a0a0a0);
+    opacity: 0.4;
+    margin-bottom: 16px;
+}
+
+.extrato-empty-v2__title {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 16px;
+    color: var(--text-secondary, #e0e0e0);
+    margin-bottom: 8px;
+}
+
+.extrato-empty-v2__text {
+    font-size: 14px;
+    color: var(--text-muted, #a0a0a0);
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+/* ========================================
+   13. ANIMAÇÕES
+   ======================================== */
+
+@keyframes extrato-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.extrato-animate-in {
+    animation: extrato-fade-in 0.3s ease-out;
+}
+
+/* Stagger animation para itens da timeline */
+.extrato-timeline-v2__group {
+    animation: extrato-fade-in 0.3s ease-out backwards;
+}
+
+.extrato-timeline-v2__group:nth-child(1) { animation-delay: 0.05s; }
+.extrato-timeline-v2__group:nth-child(2) { animation-delay: 0.1s; }
+.extrato-timeline-v2__group:nth-child(3) { animation-delay: 0.15s; }
+.extrato-timeline-v2__group:nth-child(4) { animation-delay: 0.2s; }
+.extrato-timeline-v2__group:nth-child(5) { animation-delay: 0.25s; }
