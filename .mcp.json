@@ -32,9 +32,9 @@
     },
     "stitch": {
       "command": "npx",
-      "args": ["-y", "stitch-mcp-auto"],
+      "args": ["-y", "@_davideast/stitch-mcp", "proxy"],
       "env": {
-        "GOOGLE_CLOUD_PROJECT": "CONFIGURE_SEU_PROJECT_ID"
+        "STITCH_API_KEY": "AIzaSyAbDBBH7BQR2lWpoXQptgJJiTuvUMLlzEk"
       }
     }
   }
