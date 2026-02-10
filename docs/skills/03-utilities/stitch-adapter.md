@@ -1,285 +1,727 @@
 ---
 name: stitch-adapter
-description: Adaptador inteligente de código HTML do Google Stitch. Recebe HTML gerado pelo Stitch e automaticamente separa HTML/CSS/JS, converte cores hardcoded para variáveis CSS, adapta à stack do projeto e sugere onde colocar cada arquivo. Use quando receber código do Google Stitch ou precisar adaptar HTML externo.
-allowed-tools: Read, Grep, Edit, Write
+description: "Adaptador inteligente de UI gerada pelo Google Stitch. PLANO A de criacao de UI: via MCP Stitch (geracao automatica) ou via HTML colado (adaptacao manual). Avalia qualidade do HTML, separa HTML/CSS/JS, converte para variaveis CSS do design system, adapta a stack Vanilla JS do projeto e gera relatorio completo de conformidade."
+allowed-tools: Read, Grep, Edit, Write, Glob
+version: 2.0
 ---
 
-# Stitch Adapter Skill (HTML → Project Stack)
+# Stitch Adapter Skill v2.0 (MCP-First + Avaliador de Qualidade)
 
-## 🎯 Missão
-Transformar código HTML bruto do Google Stitch em código production-ready adaptado à stack tecnológica e design system do Super Cartola Manager.
+## Estrategia de Design-to-Code
 
----
-
-## 1. 📥 INPUT ESPERADO
-
-### Formato
-```html
-<!-- Código que o Stitch gera (tudo misturado) -->
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Exemplo</title>
-    <style>
-        .card {
-            background: #1a1a1a;
-            color: #FF5500;
-            padding: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>Título</h2>
-    </div>
-    <script>
-        console.log('Hello');
-    </script>
-</body>
-</html>
 ```
+PLANO A (Automatico): Google Stitch MCP → Gera HTML → Avalia → Adapta → Production-Ready
+PLANO B (Manual):     HTML colado pelo usuario → Avalia → Adapta → Production-Ready
+PLANO C (Fallback):   Figma MCP → Exporta React → Transforma Vanilla → Adapta
+```
+
+**Por que Stitch > Figma?**
+- Stitch **gera UI a partir de texto** (poder de criacao autonomo)
+- Stitch **exporta HTML/CSS/JS nativo** (sem necessidade de transformer React → Vanilla)
+- Figma exige design manual e exporta React (precisa de transformer complexo)
+- Projeto ja usa Vanilla JS + TailwindCSS CDN (stack nativa do Stitch)
 
 ---
 
-## 2. 🔄 PROCESSO DE ADAPTAÇÃO
+## 1. MODOS DE OPERACAO
 
-### FASE 1: Análise e Extração
-```javascript
-const processarStitchHTML = (codigo) => {
-    // 1. Identificar blocos
-    const blocos = {
-        html: extrairHTML(codigo),
-        css: extrairCSS(codigo),
-        js: extrairJS(codigo),
-        fonts: extrairFonts(codigo),
-        externals: extrairExternals(codigo)
-    };
+### MODO A: Via MCP Stitch (Automatico)
 
-    // 2. Validar compatibilidade
-    const incompatibilidades = validarStack(blocos);
+Quando o MCP `stitch` esta configurado em `.mcp.json`:
 
-    // 3. Sugerir adaptações
-    const adaptacoes = gerarAdaptacoes(blocos, incompatibilidades);
-
-    return { blocos, incompatibilidades, adaptacoes };
-};
+```
+1. Usuario descreve o que quer ("crie um card de ranking mobile")
+2. Skill monta prompt otimizado usando STITCH-DESIGN-PROMPT.md
+3. MCP Stitch gera HTML completo
+4. Avaliador de qualidade analisa output (score 0-100)
+5. Se score >= 70: adapta automaticamente
+6. Se score < 70: lista problemas e sugere correcoes
+7. Gera arquivos production-ready + relatorio
 ```
 
-### FASE 2: Conversão CSS
+**Deteccao automatica do MCP:**
 ```javascript
-const adaptarCSS = (css) => {
-    const regras = [
-        // Cores hardcoded → Variáveis CSS
-        { de: '#FF5500', para: 'var(--color-primary)' },
-        { de: '#FF4500', para: 'var(--color-primary)' },
-        { de: '#1a1a1a', para: 'var(--surface-card)' },
-        { de: '#121212', para: 'var(--surface-bg)' },
-        { de: '#2a2a2a', para: 'var(--surface-card-elevated)' },
-        { de: '#333333', para: 'var(--surface-card-hover)' },
-        { de: '#ffffff', para: 'var(--text-primary)' },
-        { de: '#e0e0e0', para: 'var(--text-secondary)' },
-        { de: '#a0a0a0', para: 'var(--text-muted)' },
-        { de: '#666666', para: 'var(--text-disabled)' },
-        { de: '#10b981', para: 'var(--color-success)' },
-        { de: '#22c55e', para: 'var(--module-artilheiro-primary)' },
-        { de: '#8b5cf6', para: 'var(--module-capitao-primary)' },
-        { de: '#ffd700', para: 'var(--module-luva-primary)' },
-        { de: '#ef4444', para: 'var(--color-danger)' },
-        { de: '#eab308', para: 'var(--color-warning)' },
-        { de: '#3b82f6', para: 'var(--color-info)' },
+// Verificar se MCP Stitch esta disponivel
+const temMCPStitch = typeof mcp__stitch !== 'undefined';
 
-        // Border radius
-        { de: 'border-radius: 8px', para: 'border-radius: var(--radius-md)' },
-        { de: 'border-radius: 12px', para: 'border-radius: var(--radius-lg)' },
-        { de: 'border-radius: 16px', para: 'border-radius: var(--radius-xl)' },
-        { de: 'border-radius: 4px', para: 'border-radius: var(--radius-sm)' },
-        { de: 'border-radius: 50%', para: 'border-radius: var(--radius-full)' },
-        { de: 'border-radius: 9999px', para: 'border-radius: var(--radius-full)' },
-
-        // Espaçamento
-        { de: 'padding: 4px', para: 'padding: var(--space-1)' },
-        { de: 'padding: 8px', para: 'padding: var(--space-2)' },
-        { de: 'padding: 12px', para: 'padding: var(--space-3)' },
-        { de: 'padding: 16px', para: 'padding: var(--space-4)' },
-        { de: 'padding: 20px', para: 'padding: var(--space-5)' },
-        { de: 'padding: 24px', para: 'padding: var(--space-6)' },
-        { de: 'padding: 32px', para: 'padding: var(--space-8)' },
-
-        // Fontes
-        { de: /font-family:\s*['"]?Russo One['"]?/gi, para: 'font-family: var(--font-family-brand)' },
-        { de: /font-family:\s*['"]?Inter['"]?/gi, para: 'font-family: var(--font-family-base)' },
-        { de: /font-family:\s*['"]?JetBrains Mono['"]?/gi, para: 'font-family: var(--font-family-mono)' },
-
-        // Sombras
-        { de: '0 2px 8px rgba(0, 0, 0, 0.2)', para: 'var(--shadow-sm)' },
-        { de: '0 4px 16px rgba(0, 0, 0, 0.3)', para: 'var(--shadow-md)' },
-        { de: '0 8px 32px rgba(0, 0, 0, 0.4)', para: 'var(--shadow-lg)' }
-    ];
-
-    let cssAdaptado = css;
-
-    regras.forEach(regra => {
-        if (typeof regra.de === 'string') {
-            cssAdaptado = cssAdaptado.replaceAll(regra.de, regra.para);
-        } else {
-            cssAdaptado = cssAdaptado.replace(regra.de, regra.para);
-        }
-    });
-
-    return cssAdaptado;
-};
+if (temMCPStitch) {
+    // MODO A: Gerar via MCP
+    console.log('Stitch MCP detectado - Modo automatico');
+} else {
+    // MODO B: Aguardar HTML colado
+    console.log('Stitch MCP nao disponivel - Modo manual (cole o HTML)');
+}
 ```
 
-### FASE 3: Conversão HTML
-```javascript
-const adaptarHTML = (html) => {
-    let htmlAdaptado = html;
+### MODO B: Via HTML Colado (Manual)
 
-    // Remover DOCTYPE, html, head, body se existirem (para fragmentos)
-    htmlAdaptado = htmlAdaptado.replace(/<!DOCTYPE[^>]*>/gi, '');
-    htmlAdaptado = htmlAdaptado.replace(/<\/?html[^>]*>/gi, '');
-    htmlAdaptado = htmlAdaptado.replace(/<head>[\s\S]*?<\/head>/gi, '');
-    htmlAdaptado = htmlAdaptado.replace(/<\/?body[^>]*>/gi, '');
+Quando o MCP nao esta disponivel ou usuario ja tem o HTML:
 
-    // Converter classes TailwindCSS para semânticas (quando aplicável)
-    const tailwindMap = {
-        'bg-gray-900': 'class="bg-surface"',
-        'bg-gray-800': 'class="bg-card"',
-        'bg-gray-700': 'class="bg-input"',
-        'text-white': 'class="text-primary"',
-        'text-gray-400': 'class="text-muted"',
-        'rounded-lg': 'class="rounded-lg"', // manter TW para layout
-        'flex': 'class="flex"', // manter TW para layout
-        'grid': 'class="grid"' // manter TW para layout
-    };
-
-    // Adicionar comentários organizacionais
-    htmlAdaptado = `<!-- ========================================
-   COMPONENTE ADAPTADO DO GOOGLE STITCH
-   Data: ${new Date().toISOString().split('T')[0]}
-   ======================================== -->\n\n${htmlAdaptado}`;
-
-    return htmlAdaptado.trim();
-};
+```
+1. Usuario cola HTML do Google Stitch
+2. Avaliador de qualidade analisa (score 0-100)
+3. Adapta automaticamente
+4. Gera arquivos + relatorio
 ```
 
-### FASE 4: Conversão JavaScript
+---
+
+## 2. AVALIADOR DE QUALIDADE (Score 0-100)
+
+### Criterios de Avaliacao
+
+O avaliador analisa o HTML recebido em **8 dimensoes**:
+
+| Dimensao | Peso | O que avalia |
+|----------|------|--------------|
+| **Stack Compliance** | 20pts | Sem React/Vue/Angular, sem npm imports |
+| **Dark Mode** | 15pts | Backgrounds escuros, texto claro |
+| **Design Tokens** | 15pts | Uso de variaveis CSS ou cores mapeáveis |
+| **Tipografia** | 10pts | Russo One/Inter/JetBrains Mono presentes |
+| **Responsividade** | 10pts | Meta viewport, media queries, flexbox/grid |
+| **Acessibilidade** | 10pts | aria-labels, alt text, semantica HTML |
+| **JavaScript** | 10pts | ES6+, sem jQuery, try/catch em async |
+| **Performance** | 10pts | Lazy loading, transicoes GPU-friendly |
+
+### Logica de Avaliacao
+
 ```javascript
-const adaptarJS = (js) => {
-    let jsAdaptado = js;
+const avaliarQualidadeStitch = (codigo) => {
+    let score = 0;
+    const problemas = [];
+    const sugestoes = [];
 
-    // Converter para ES6 Module
-    if (!js.includes('import') && !js.includes('export')) {
-        jsAdaptado = `/**
- * MÓDULO ADAPTADO DO GOOGLE STITCH
- * Data: ${new Date().toISOString().split('T')[0]}
- */
+    // ========================================
+    // 1. STACK COMPLIANCE (20 pts)
+    // ========================================
+    const temReact = /(from\s+['"]react|import\s+React|jsx|tsx|className=\{)/i.test(codigo);
+    const temVue = /(v-if|v-for|v-model|<template>|<script setup>)/i.test(codigo);
+    const temAngular = /(ng-|ngIf|ngFor|\*ngIf|\[ngClass\])/i.test(codigo);
+    const temJQuery = /(\$\(|jQuery|\.ready\(|\.ajax\()/i.test(codigo);
+    const temNpmImport = /from\s+['"]@?[a-z]/i.test(codigo);
 
-// ========================================
-// IMPORTAÇÕES
-// ========================================
-// import { funcaoHelper } from './helpers.js';
-
-// ========================================
-// CONSTANTES
-// ========================================
-${jsAdaptado}
-
-// ========================================
-// EXPORTAÇÕES
-// ========================================
-// export { funcaoPrincipal };
-`;
+    if (!temReact && !temVue && !temAngular) {
+        score += 15;
+    } else {
+        problemas.push({
+            tipo: 'CRITICO',
+            msg: 'Framework JS detectado (React/Vue/Angular)',
+            solucao: 'Reescrever em Vanilla JavaScript'
+        });
     }
 
-    // Adicionar try/catch em funções async se não tiverem
-    jsAdaptado = jsAdaptado.replace(
-        /(async\s+function\s+\w+\s*\([^)]*\)\s*\{)(?!\s*try)/g,
-        '$1\n    try {'
-    );
+    if (!temJQuery) score += 3;
+    else problemas.push({ tipo: 'MODERADO', msg: 'jQuery detectado', solucao: 'Usar DOM API nativo' });
 
-    return jsAdaptado;
+    if (!temNpmImport) score += 2;
+    else problemas.push({ tipo: 'MODERADO', msg: 'Import npm detectado', solucao: 'Usar CDN ou reescrever' });
+
+    // ========================================
+    // 2. DARK MODE (15 pts)
+    // ========================================
+    const temBgEscuro = /(#1[0-9a-f]{5}|#0[0-9a-f]{5}|#2[0-9a-f]{5}|bg-gray-[89]00|bg-slate-[89]00|rgba?\(1[0-9],|rgba?\(2[0-9],)/i.test(codigo);
+    const temBgClaro = /(background:\s*(white|#fff|#ffffff|#f[0-9a-f]{4,5})|bg-white|bg-gray-[12]00)/i.test(codigo);
+    const temTextoClaro = /(color:\s*(white|#fff|#ffffff|#e[0-9a-f]{4,5})|text-white|text-gray-[12]00)/i.test(codigo);
+
+    if (temBgEscuro) score += 8;
+    else problemas.push({ tipo: 'CRITICO', msg: 'Background escuro nao detectado', solucao: 'Aplicar dark mode' });
+
+    if (!temBgClaro) score += 4;
+    else problemas.push({ tipo: 'MODERADO', msg: 'Background claro detectado', solucao: 'Substituir por var(--surface-bg/card)' });
+
+    if (temTextoClaro) score += 3;
+    else sugestoes.push('Usar text-white ou var(--text-primary) para texto principal');
+
+    // ========================================
+    // 3. DESIGN TOKENS (15 pts)
+    // ========================================
+    const temVariaveisCSS = /var\(--/i.test(codigo);
+    const coresHardcoded = (codigo.match(/#[0-9a-f]{3,8}(?!.*var\()/gi) || []).length;
+    const temTokensAdmin = /var\(--(color-primary|surface-|text-|space-|radius-|shadow-|font-family-|module-)/i.test(codigo);
+    const temTokensApp = /var\(--(app-|participante-)/i.test(codigo);
+
+    if (temVariaveisCSS && temTokensAdmin) score += 15;
+    else if (temVariaveisCSS) score += 10;
+    else if (coresHardcoded <= 5) score += 5;
+    else {
+        score += 2; // pontos base por ter cores mapeáveis
+        sugestoes.push(`${coresHardcoded} cores hardcoded detectadas - serao convertidas automaticamente`);
+    }
+
+    // ========================================
+    // 4. TIPOGRAFIA (10 pts)
+    // ========================================
+    const temRussoOne = /russo\s*one/i.test(codigo);
+    const temInter = /['"]Inter['"]/i.test(codigo);
+    const temJetBrains = /JetBrains\s*Mono/i.test(codigo);
+    const temFontBrand = /font-brand|font-family-brand/i.test(codigo);
+
+    if (temRussoOne || temFontBrand) score += 5;
+    else sugestoes.push('Adicionar Russo One para titulos e stats');
+
+    if (temInter) score += 3;
+    if (temJetBrains) score += 2;
+
+    // ========================================
+    // 5. RESPONSIVIDADE (10 pts)
+    // ========================================
+    const temViewport = /viewport/i.test(codigo);
+    const temMediaQuery = /@media/i.test(codigo);
+    const temFlexGrid = /(display:\s*(flex|grid)|flex-|grid-cols)/i.test(codigo);
+    const temMobileFirst = /min-width/i.test(codigo);
+
+    if (temViewport) score += 3;
+    if (temMediaQuery) score += 3;
+    else sugestoes.push('Adicionar media queries para responsividade');
+    if (temFlexGrid) score += 2;
+    if (temMobileFirst) score += 2;
+
+    // ========================================
+    // 6. ACESSIBILIDADE (10 pts)
+    // ========================================
+    const temAriaLabel = /aria-label/i.test(codigo);
+    const temAltText = /alt\s*=/i.test(codigo);
+    const temSemantica = /<(header|nav|main|section|article|aside|footer)/i.test(codigo);
+    const temRole = /role\s*=/i.test(codigo);
+
+    if (temSemantica) score += 4;
+    else sugestoes.push('Usar tags semanticas (header, nav, main, section, footer)');
+    if (temAriaLabel || temRole) score += 3;
+    if (temAltText) score += 3;
+
+    // ========================================
+    // 7. JAVASCRIPT (10 pts)
+    // ========================================
+    const temES6 = /(const |let |=>|async |await |import |export |class )/i.test(codigo);
+    const temTryCatch = /try\s*\{/i.test(codigo);
+    const temModuleType = /type\s*=\s*["']module["']/i.test(codigo);
+
+    if (temES6) score += 4;
+    if (temTryCatch) score += 3;
+    if (temModuleType) score += 3;
+
+    // ========================================
+    // 8. PERFORMANCE (10 pts)
+    // ========================================
+    const temLazyLoad = /loading\s*=\s*["']lazy["']/i.test(codigo);
+    const temPreconnect = /preconnect/i.test(codigo);
+    const temTransformGPU = /transform:|opacity:|will-change/i.test(codigo);
+
+    if (temLazyLoad) score += 3;
+    if (temPreconnect) score += 3;
+    if (temTransformGPU) score += 4;
+    else score += 2; // pontos base
+
+    // ========================================
+    // RESULTADO
+    // ========================================
+    const nivel = score >= 85 ? 'EXCELENTE' :
+                  score >= 70 ? 'BOM' :
+                  score >= 50 ? 'ACEITAVEL' :
+                  score >= 30 ? 'PRECISA_MELHORAR' : 'CRITICO';
+
+    return {
+        score,
+        nivel,
+        problemas,
+        sugestoes,
+        autoAdaptavel: score >= 30, // quase tudo e adaptavel
+        detalhes: {
+            stackCompliance: { max: 20, obtido: /* calculado */ },
+            darkMode: { max: 15, obtido: /* calculado */ },
+            designTokens: { max: 15, obtido: /* calculado */ },
+            tipografia: { max: 10, obtido: /* calculado */ },
+            responsividade: { max: 10, obtido: /* calculado */ },
+            acessibilidade: { max: 10, obtido: /* calculado */ },
+            javascript: { max: 10, obtido: /* calculado */ },
+            performance: { max: 10, obtido: /* calculado */ }
+        }
+    };
+};
+```
+
+### Interpretacao do Score
+
+| Score | Nivel | Acao |
+|-------|-------|------|
+| **85-100** | EXCELENTE | Adaptacao automatica, minimas mudancas |
+| **70-84** | BOM | Adaptacao automatica com ajustes moderados |
+| **50-69** | ACEITAVEL | Adaptacao automatica com muitos ajustes |
+| **30-49** | PRECISA MELHORAR | Adaptavel mas com alertas criticos |
+| **0-29** | CRITICO | Framework incompativel, reescrita necessaria |
+
+---
+
+## 3. MAPEAMENTO COMPLETO DE CONVERSOES
+
+### 3.1 Cores → Variaveis CSS (Admin)
+
+```javascript
+const MAPA_CORES_ADMIN = [
+    // Brand
+    { de: '#FF5500', para: 'var(--color-primary)' },
+    { de: '#ff5500', para: 'var(--color-primary)' },
+    { de: '#FF4500', para: 'var(--color-primary)' },
+    { de: '#ff4500', para: 'var(--color-primary)' },
+    { de: '#e8472b', para: 'var(--color-primary-dark)' },
+    { de: '#ff6b35', para: 'var(--color-primary-light)' },
+
+    // Superficies
+    { de: '#121212', para: 'var(--surface-bg)' },
+    { de: '#1a1a1a', para: 'var(--surface-card)' },
+    { de: '#2a2a2a', para: 'var(--surface-card-elevated)' },
+    { de: '#333333', para: 'var(--surface-card-hover)' },
+    { de: '#1e1e1e', para: 'var(--surface-card)' },
+    { de: '#0d0d0d', para: 'var(--bg-darker)' },
+    { de: '#151515', para: 'var(--bg-elevated)' },
+    { de: '#2d2d2d', para: 'var(--border-color)' },
+
+    // Texto
+    { de: '#ffffff', para: 'var(--text-primary)' },
+    { de: '#FFFFFF', para: 'var(--text-primary)' },
+    { de: '#e0e0e0', para: 'var(--text-secondary)' },
+    { de: '#a0a0a0', para: 'var(--text-muted)' },
+    { de: '#9ca3af', para: 'var(--text-muted)' },
+    { de: '#666666', para: 'var(--text-disabled)' },
+    { de: '#6b7280', para: 'var(--text-dim)' },
+
+    // Status
+    { de: '#10b981', para: 'var(--color-success)' },
+    { de: '#22c55e', para: 'var(--color-success-light)' },
+    { de: '#ef4444', para: 'var(--color-danger)' },
+    { de: '#dc2626', para: 'var(--color-danger-dark)' },
+    { de: '#eab308', para: 'var(--color-warning)' },
+    { de: '#ca8a04', para: 'var(--color-warning-dark)' },
+    { de: '#3b82f6', para: 'var(--color-info)' },
+
+    // Ranking
+    { de: '#ffd700', para: 'var(--color-gold)' },
+    { de: '#FFD700', para: 'var(--color-gold)' },
+    { de: '#c0c0c0', para: 'var(--color-silver)' },
+    { de: '#cd7f32', para: 'var(--color-bronze)' },
+
+    // Modulos
+    { de: '#16a34a', para: 'var(--module-artilheiro-dark)' },
+    { de: '#4ade80', para: 'var(--module-artilheiro-light)' },
+    { de: '#8b5cf6', para: 'var(--module-capitao-primary)' },
+    { de: '#7c3aed', para: 'var(--module-capitao-dark)' },
+    { de: '#a78bfa', para: 'var(--module-capitao-light)' },
+    { de: '#f0c000', para: 'var(--module-luva-dark)' },
+    { de: '#ffe44d', para: 'var(--module-luva-light)' },
+    { de: '#059669', para: 'var(--module-saude-dark)' },
+    { de: '#34d399', para: 'var(--module-saude-light)' },
+
+    // Cores extras frequentes no Stitch
+    { de: '#f97316', para: 'var(--color-warning)' },   // orange-500
+    { de: '#a855f7', para: 'var(--app-purple)' },       // purple-500
+    { de: '#ec4899', para: 'var(--app-pink)' },          // pink-500
+    { de: '#6366f1', para: 'var(--app-indigo)' },        // indigo-500
+    { de: '#14b8a6', para: 'var(--app-teal)' },          // teal-500
+    { de: '#f59e0b', para: 'var(--app-amber)' },         // amber-500
+];
+```
+
+### 3.2 Cores → Variaveis CSS (App Participante)
+
+```javascript
+const MAPA_CORES_APP = [
+    // Brand (prefixo --app-)
+    { de: '#FF5500', para: 'var(--app-primary)' },
+    { de: '#e8472b', para: 'var(--app-primary-dark)' },
+    { de: '#ff6b35', para: 'var(--app-primary-light)' },
+
+    // Superficies OLED
+    { de: '#0a0a0a', para: 'var(--app-bg)' },
+    { de: '#000000', para: 'var(--app-bg-dark)' },
+    { de: '#1a1a1a', para: 'var(--app-surface)' },
+    { de: '#1c1c1c', para: 'var(--app-surface-elevated)' },
+    { de: '#333333', para: 'var(--app-surface-hover)' },
+
+    // Texto
+    { de: '#ffffff', para: 'var(--app-text-primary)' },
+    // (rgba mapeados por regex abaixo)
+
+    // Status
+    { de: '#10b981', para: 'var(--app-success)' },
+    { de: '#22c55e', para: 'var(--app-success-light)' },
+    { de: '#ef4444', para: 'var(--app-danger)' },
+    { de: '#eab308', para: 'var(--app-warning)' },
+    { de: '#3b82f6', para: 'var(--app-info)' },
+
+    // Ranking
+    { de: '#ffd700', para: 'var(--app-gold)' },
+    { de: '#c0c0c0', para: 'var(--app-silver)' },
+    { de: '#cd7f32', para: 'var(--app-bronze)' },
+
+    // Posicoes
+    { de: '#f97316', para: 'var(--app-pos-gol)' },
+    { de: '#a855f7', para: 'var(--app-pos-tec)' },
+];
+```
+
+### 3.3 Espacamento (Padding, Margin, Gap)
+
+```javascript
+const MAPA_ESPACAMENTO_ADMIN = [
+    // Padding
+    { de: /padding:\s*4px/gi, para: 'padding: var(--space-1)' },
+    { de: /padding:\s*8px/gi, para: 'padding: var(--space-2)' },
+    { de: /padding:\s*12px/gi, para: 'padding: var(--space-3)' },
+    { de: /padding:\s*16px/gi, para: 'padding: var(--space-4)' },
+    { de: /padding:\s*20px/gi, para: 'padding: var(--space-5)' },
+    { de: /padding:\s*24px/gi, para: 'padding: var(--space-6)' },
+    { de: /padding:\s*32px/gi, para: 'padding: var(--space-8)' },
+    { de: /padding:\s*40px/gi, para: 'padding: var(--space-10)' },
+    { de: /padding:\s*48px/gi, para: 'padding: var(--space-12)' },
+
+    // Margin
+    { de: /margin:\s*4px/gi, para: 'margin: var(--space-1)' },
+    { de: /margin:\s*8px/gi, para: 'margin: var(--space-2)' },
+    { de: /margin:\s*12px/gi, para: 'margin: var(--space-3)' },
+    { de: /margin:\s*16px/gi, para: 'margin: var(--space-4)' },
+    { de: /margin:\s*20px/gi, para: 'margin: var(--space-5)' },
+    { de: /margin:\s*24px/gi, para: 'margin: var(--space-6)' },
+    { de: /margin:\s*32px/gi, para: 'margin: var(--space-8)' },
+
+    // Gap
+    { de: /gap:\s*4px/gi, para: 'gap: var(--space-1)' },
+    { de: /gap:\s*8px/gi, para: 'gap: var(--space-2)' },
+    { de: /gap:\s*12px/gi, para: 'gap: var(--space-3)' },
+    { de: /gap:\s*16px/gi, para: 'gap: var(--space-4)' },
+    { de: /gap:\s*20px/gi, para: 'gap: var(--space-5)' },
+    { de: /gap:\s*24px/gi, para: 'gap: var(--space-6)' },
+    { de: /gap:\s*32px/gi, para: 'gap: var(--space-8)' },
+
+    // Margin-bottom, margin-top (frequentes)
+    { de: /margin-bottom:\s*4px/gi, para: 'margin-bottom: var(--space-1)' },
+    { de: /margin-bottom:\s*8px/gi, para: 'margin-bottom: var(--space-2)' },
+    { de: /margin-bottom:\s*12px/gi, para: 'margin-bottom: var(--space-3)' },
+    { de: /margin-bottom:\s*16px/gi, para: 'margin-bottom: var(--space-4)' },
+    { de: /margin-bottom:\s*24px/gi, para: 'margin-bottom: var(--space-6)' },
+    { de: /margin-bottom:\s*32px/gi, para: 'margin-bottom: var(--space-8)' },
+    { de: /margin-top:\s*4px/gi, para: 'margin-top: var(--space-1)' },
+    { de: /margin-top:\s*8px/gi, para: 'margin-top: var(--space-2)' },
+    { de: /margin-top:\s*16px/gi, para: 'margin-top: var(--space-4)' },
+    { de: /margin-top:\s*24px/gi, para: 'margin-top: var(--space-6)' },
+];
+
+const MAPA_ESPACAMENTO_APP = [
+    // App usa escala diferente (mais compacta para mobile)
+    { de: /padding:\s*4px/gi, para: 'padding: var(--app-space-1)' },
+    { de: /padding:\s*8px/gi, para: 'padding: var(--app-space-2)' },
+    { de: /padding:\s*10px/gi, para: 'padding: var(--app-space-3)' },
+    { de: /padding:\s*12px/gi, para: 'padding: var(--app-space-4)' },
+    { de: /padding:\s*16px/gi, para: 'padding: var(--app-space-5)' },
+    { de: /padding:\s*20px/gi, para: 'padding: var(--app-space-6)' },
+    { de: /padding:\s*24px/gi, para: 'padding: var(--app-space-8)' },
+    { de: /padding:\s*32px/gi, para: 'padding: var(--app-space-10)' },
+    // Gap/Margin seguem o mesmo padrao com --app-space-*
+];
+```
+
+### 3.4 Border Radius
+
+```javascript
+const MAPA_RADIUS_ADMIN = [
+    { de: /border-radius:\s*4px/gi, para: 'border-radius: var(--radius-sm)' },
+    { de: /border-radius:\s*8px/gi, para: 'border-radius: var(--radius-md)' },
+    { de: /border-radius:\s*10px/gi, para: 'border-radius: var(--radius-md)' },
+    { de: /border-radius:\s*12px/gi, para: 'border-radius: var(--radius-lg)' },
+    { de: /border-radius:\s*16px/gi, para: 'border-radius: var(--radius-xl)' },
+    { de: /border-radius:\s*20px/gi, para: 'border-radius: var(--radius-2xl)' },
+    { de: /border-radius:\s*50%/gi, para: 'border-radius: var(--radius-full)' },
+    { de: /border-radius:\s*9999px/gi, para: 'border-radius: var(--radius-full)' },
+    { de: /border-radius:\s*100%/gi, para: 'border-radius: var(--radius-full)' },
+];
+
+const MAPA_RADIUS_APP = [
+    { de: /border-radius:\s*6px/gi, para: 'border-radius: var(--app-radius-sm)' },
+    { de: /border-radius:\s*8px/gi, para: 'border-radius: var(--app-radius-md)' },
+    { de: /border-radius:\s*12px/gi, para: 'border-radius: var(--app-radius-lg)' },
+    { de: /border-radius:\s*16px/gi, para: 'border-radius: var(--app-radius-xl)' },
+    { de: /border-radius:\s*20px/gi, para: 'border-radius: var(--app-radius-2xl)' },
+    { de: /border-radius:\s*24px/gi, para: 'border-radius: var(--app-radius-3xl)' },
+    { de: /border-radius:\s*50%/gi, para: 'border-radius: var(--app-radius-full)' },
+    { de: /border-radius:\s*9999px/gi, para: 'border-radius: var(--app-radius-full)' },
+];
+```
+
+### 3.5 Fontes
+
+```javascript
+const MAPA_FONTES_ADMIN = [
+    { de: /font-family:\s*['"]?Russo One['"]?[^;]*/gi, para: 'font-family: var(--font-family-brand)' },
+    { de: /font-family:\s*['"]?Inter['"]?[^;]*/gi, para: 'font-family: var(--font-family-base)' },
+    { de: /font-family:\s*['"]?JetBrains Mono['"]?[^;]*/gi, para: 'font-family: var(--font-family-mono)' },
+];
+
+const MAPA_FONTES_APP = [
+    { de: /font-family:\s*['"]?Russo One['"]?[^;]*/gi, para: 'font-family: var(--app-font-brand)' },
+    { de: /font-family:\s*['"]?Inter['"]?[^;]*/gi, para: 'font-family: var(--app-font-base)' },
+    { de: /font-family:\s*['"]?JetBrains Mono['"]?[^;]*/gi, para: 'font-family: var(--app-font-mono)' },
+];
+```
+
+### 3.6 Sombras
+
+```javascript
+const MAPA_SOMBRAS = [
+    { de: /box-shadow:\s*0\s+2px\s+8px\s+rgba\(0,?\s*0,?\s*0,?\s*0\.2\)/gi, para: 'box-shadow: var(--shadow-sm)' },
+    { de: /box-shadow:\s*0\s+4px\s+16px\s+rgba\(0,?\s*0,?\s*0,?\s*0\.3\)/gi, para: 'box-shadow: var(--shadow-md)' },
+    { de: /box-shadow:\s*0\s+8px\s+32px\s+rgba\(0,?\s*0,?\s*0,?\s*0\.4\)/gi, para: 'box-shadow: var(--shadow-lg)' },
+    { de: /box-shadow:\s*0\s+16px\s+48px\s+rgba\(0,?\s*0,?\s*0,?\s*0\.5\)/gi, para: 'box-shadow: var(--shadow-xl)' },
+    // Glow laranja
+    { de: /box-shadow:\s*0\s+4px\s+15px\s+rgba\(255,?\s*85,?\s*0/gi, para: 'box-shadow: var(--shadow-primary)' },
+];
+```
+
+### 3.7 Transicoes
+
+```javascript
+const MAPA_TRANSICOES = [
+    { de: /transition:\s*all\s+0\.15s\s+ease/gi, para: 'transition: var(--transition-fast)' },
+    { de: /transition:\s*all\s+0\.2s\s+ease/gi, para: 'transition: var(--transition-fast)' },
+    { de: /transition:\s*all\s+0\.3s\s+ease/gi, para: 'transition: var(--transition-normal)' },
+    { de: /transition:\s*all\s+0\.5s\s+ease/gi, para: 'transition: var(--transition-slow)' },
+];
+```
+
+### 3.8 Mapeamento de Icones (FontAwesome → Material Icons)
+
+```javascript
+const MAPA_ICONES = [
+    // Navegacao
+    { de: 'fa-home', para: '<span class="material-icons">home</span>' },
+    { de: 'fa-arrow-left', para: '<span class="material-icons">arrow_back</span>' },
+    { de: 'fa-arrow-right', para: '<span class="material-icons">arrow_forward</span>' },
+    { de: 'fa-bars', para: '<span class="material-icons">menu</span>' },
+    { de: 'fa-times', para: '<span class="material-icons">close</span>' },
+    { de: 'fa-search', para: '<span class="material-icons">search</span>' },
+
+    // Acoes
+    { de: 'fa-plus', para: '<span class="material-icons">add</span>' },
+    { de: 'fa-edit', para: '<span class="material-icons">edit</span>' },
+    { de: 'fa-pencil', para: '<span class="material-icons">edit</span>' },
+    { de: 'fa-trash', para: '<span class="material-icons">delete</span>' },
+    { de: 'fa-save', para: '<span class="material-icons">save</span>' },
+    { de: 'fa-download', para: '<span class="material-icons">download</span>' },
+    { de: 'fa-upload', para: '<span class="material-icons">upload</span>' },
+
+    // Status
+    { de: 'fa-check', para: '<span class="material-icons">check</span>' },
+    { de: 'fa-check-circle', para: '<span class="material-icons">check_circle</span>' },
+    { de: 'fa-exclamation-triangle', para: '<span class="material-icons">warning</span>' },
+    { de: 'fa-info-circle', para: '<span class="material-icons">info</span>' },
+    { de: 'fa-ban', para: '<span class="material-icons">block</span>' },
+
+    // Esportes / Cartola
+    { de: 'fa-trophy', para: '<span class="material-icons">emoji_events</span>' },
+    { de: 'fa-futbol', para: '<span class="material-icons">sports_soccer</span>' },
+    { de: 'fa-star', para: '<span class="material-icons">star</span>' },
+    { de: 'fa-medal', para: '<span class="material-icons">military_tech</span>' },
+    { de: 'fa-crown', para: '<span class="material-icons">workspace_premium</span>' },
+    { de: 'fa-shield', para: '<span class="material-icons">shield</span>' },
+
+    // Financeiro
+    { de: 'fa-dollar-sign', para: '<span class="material-icons">attach_money</span>' },
+    { de: 'fa-money-bill', para: '<span class="material-icons">payments</span>' },
+    { de: 'fa-chart-line', para: '<span class="material-icons">trending_up</span>' },
+    { de: 'fa-chart-bar', para: '<span class="material-icons">bar_chart</span>' },
+
+    // Usuarios
+    { de: 'fa-user', para: '<span class="material-icons">person</span>' },
+    { de: 'fa-users', para: '<span class="material-icons">group</span>' },
+    { de: 'fa-cog', para: '<span class="material-icons">settings</span>' },
+    { de: 'fa-sign-out', para: '<span class="material-icons">logout</span>' },
+    { de: 'fa-bell', para: '<span class="material-icons">notifications</span>' },
+
+    // Misc
+    { de: 'fa-calendar', para: '<span class="material-icons">calendar_today</span>' },
+    { de: 'fa-clock', para: '<span class="material-icons">schedule</span>' },
+    { de: 'fa-eye', para: '<span class="material-icons">visibility</span>' },
+    { de: 'fa-eye-slash', para: '<span class="material-icons">visibility_off</span>' },
+    { de: 'fa-filter', para: '<span class="material-icons">filter_list</span>' },
+    { de: 'fa-sort', para: '<span class="material-icons">sort</span>' },
+    { de: 'fa-refresh', para: '<span class="material-icons">refresh</span>' },
+    { de: 'fa-spinner', para: '<div class="admin-spinner admin-spinner--sm"></div>' },
+];
+```
+
+### 3.9 Estrategia de Classes TailwindCSS
+
+**Regra:** Manter classes Tailwind de layout, converter classes de cor/tema.
+
+```javascript
+const TAILWIND_MANTER = [
+    // Layout - MANTER sempre
+    'flex', 'grid', 'block', 'inline', 'hidden',
+    'flex-col', 'flex-row', 'flex-wrap',
+    'items-center', 'items-start', 'items-end',
+    'justify-center', 'justify-between', 'justify-start', 'justify-end',
+    'grid-cols-1', 'grid-cols-2', 'grid-cols-3', 'grid-cols-4',
+    'col-span-', 'row-span-',
+    'w-full', 'h-full', 'w-auto', 'h-auto',
+    'min-w-', 'max-w-', 'min-h-', 'max-h-',
+    'overflow-', 'relative', 'absolute', 'fixed', 'sticky',
+    'top-', 'bottom-', 'left-', 'right-',
+    'z-',
+
+    // Spacing Tailwind - MANTER (funciona com CDN)
+    'p-', 'px-', 'py-', 'pt-', 'pb-', 'pl-', 'pr-',
+    'm-', 'mx-', 'my-', 'mt-', 'mb-', 'ml-', 'mr-',
+    'gap-', 'space-x-', 'space-y-',
+
+    // Responsive prefixes - MANTER
+    'sm:', 'md:', 'lg:', 'xl:', '2xl:',
+
+    // Interacao - MANTER
+    'hover:', 'focus:', 'active:', 'group-hover:',
+    'transition-', 'duration-', 'ease-',
+    'cursor-pointer', 'cursor-default',
+    'select-none', 'pointer-events-',
+];
+
+const TAILWIND_CONVERTER = {
+    // Background - converter para classes semanticas
+    'bg-gray-900': 'bg-surface',     // use CSS: .bg-surface { background: var(--surface-bg); }
+    'bg-gray-800': 'bg-card',        // use CSS: .bg-card { background: var(--surface-card); }
+    'bg-gray-700': 'bg-input',       // use CSS: .bg-input { background: var(--input-bg); }
+
+    // Texto - converter
+    'text-white': '',                  // ja e o padrao em dark mode (body)
+    'text-gray-400': 'text-muted',
+    'text-gray-300': 'text-secondary',
+    'text-gray-500': 'text-disabled',
+
+    // Cores de modulo - converter para classes semanticas
+    'text-green-400': 'text-artilheiro',
+    'text-purple-400': 'text-capitao',
+    'text-yellow-400': 'text-luva',
+    'text-orange-500': 'text-primary',
 };
 ```
 
 ---
 
-## 3. 🎯 REGRAS DE CLASSIFICAÇÃO
+## 4. PROCESSO DE ADAPTACAO (Completo)
 
-### Decisão: Admin vs App Participante
+### FASE 1: Receber e Classificar
+
+```markdown
+1. Receber codigo (via MCP ou colado)
+2. Executar AVALIADOR DE QUALIDADE (score 0-100)
+3. Classificar destino:
+   - Admin vs App Participante
+   - Pagina completa vs Fragmento
+4. Identificar dependencias externas
+5. Apresentar resultado da avaliacao ao usuario
+```
+
+#### Decisao: Admin vs App Participante
+
 ```javascript
 const classificarDestino = (codigo) => {
     const indicadoresAdmin = [
-        /admin/gi,
-        /dashboard/gi,
-        /gerenciar/gi,
-        /configuração/gi,
-        /sidebar/gi,
-        /desktop/gi,
-        /painel/gi,
-        /controle/gi
+        /admin/gi, /dashboard/gi, /gerenciar/gi, /configuracao/gi,
+        /sidebar/gi, /desktop/gi, /painel/gi, /controle/gi,
+        /tabela/gi, /relatorio/gi, /configurar/gi
     ];
 
     const indicadoresApp = [
-        /mobile/gi,
-        /participante/gi,
-        /bottom.*nav/gi,
-        /pwa/gi,
-        /swipe/gi,
-        /touch/gi,
-        /fab/gi,
-        /safe-area-inset/gi
+        /mobile/gi, /participante/gi, /bottom.*nav/gi, /pwa/gi,
+        /swipe/gi, /touch/gi, /fab/gi, /safe-area/gi,
+        /app-/gi, /--app-/gi, /bottom-nav/gi, /header-mobile/gi
     ];
 
-    const scoreAdmin = indicadoresAdmin.filter(regex => regex.test(codigo)).length;
-    const scoreApp = indicadoresApp.filter(regex => regex.test(codigo)).length;
+    const scoreAdmin = indicadoresAdmin.filter(r => r.test(codigo)).length;
+    const scoreApp = indicadoresApp.filter(r => r.test(codigo)).length;
 
     if (scoreAdmin > scoreApp) return 'admin';
     if (scoreApp > scoreAdmin) return 'app';
-
-    // Ambíguo - perguntar ao usuário
-    return 'ambiguo';
+    return 'ambiguo'; // perguntar ao usuario
 };
 ```
 
-### Decisão: Fragmento vs Página Completa
-```javascript
-const classificarTipo = (html) => {
-    const temDoctype = html.includes('<!DOCTYPE');
-    const temHead = html.includes('<head>');
-    const temBody = html.includes('<body>');
+### FASE 2: Extrair e Separar
 
-    if (temDoctype && temHead && temBody) {
-        return 'pagina-completa';
-    }
+```markdown
+1. Extrair HTML puro (sem <head>, <script>, <style>)
+2. Extrair CSS (inline + <style> blocks)
+3. Extrair JavaScript (inline + <script> blocks)
+4. Extrair style="" inline e converter para classes
+5. Identificar fontes externas usadas
+6. Identificar icones (FA, Material, Heroicons, etc.)
+7. Identificar CDNs e dependencias
+```
 
-    if (!temDoctype && !temHead && !temBody) {
-        return 'fragmento';
-    }
+### FASE 3: Adaptar CSS
 
-    return 'hibrido'; // Precisa limpeza
-};
+```markdown
+Aplicar mapeamentos na ordem:
+1. Cores hardcoded → variaveis CSS (admin ou app conforme destino)
+2. Espacamento (padding/margin/gap) → variaveis
+3. Border-radius → variaveis
+4. Fontes → variaveis
+5. Sombras → variaveis
+6. Transicoes → variaveis
+7. rgba() com valores conhecidos → variaveis
+8. Organizar por secoes comentadas
+```
+
+### FASE 4: Adaptar HTML
+
+```markdown
+1. Se fragmento (app): remover DOCTYPE, html, head, body
+2. Converter icones FontAwesome → Material Icons
+3. Adicionar classes semanticas
+4. Converter classes Tailwind de tema (manter layout)
+5. Extrair styles inline → classes CSS
+6. Adicionar comentarios organizacionais
+7. Garantir acessibilidade (aria-label, role, alt)
+8. Adicionar data-attributes para JS
+```
+
+### FASE 5: Adaptar JavaScript
+
+```markdown
+1. Converter para ES6 Module (import/export)
+2. Adicionar try/catch em funcoes async
+3. Converter variavel naming para PT-BR (camelCase)
+4. Remover jQuery se presente → DOM API nativo
+5. Remover console.log → console.error para erros
+6. Adicionar comentarios estruturais
+7. Gerar exports das funcoes publicas
+```
+
+### FASE 6: Validar e Gerar
+
+```markdown
+CHECKLIST FINAL:
+[ ] Todas as cores usam variaveis CSS?
+[ ] Fontes corretas (Russo One, Inter, JetBrains Mono)?
+[ ] Icones sao Material Icons?
+[ ] Dark mode consistente?
+[ ] Mobile-first (se app)?
+[ ] JavaScript e ES6 Module?
+[ ] Sem React/Vue/Angular?
+[ ] Acessibilidade OK (aria, alt, semantica)?
+[ ] Touch targets >= 44px (se app mobile)?
+[ ] Performance OK (lazy loading, GPU transitions)?
 ```
 
 ---
 
-## 4. 📁 ESTRUTURA DE OUTPUT
+## 5. ESTRUTURA DE OUTPUT
 
-### Estrutura de Diretórios
+### Admin
+
 ```
-ADMIN:
-├── public/admin-[nome].html          # Página completa
-├── public/css/admin-[nome].css       # CSS específico
-└── public/js/admin-[nome].js         # JS específico
-
-APP PARTICIPANTE:
-├── public/participante/fronts/[nome].html    # Fragmento
-├── public/participante/modules/[nome]/[nome].css
-└── public/participante/modules/[nome]/[nome].js
+public/admin-[nome].html          # Pagina completa
+public/css/admin-[nome].css       # CSS com tokens admin
+public/js/admin-[nome].js         # JS como ES6 module
 ```
 
-### Template de Saída Admin
+**Template Admin:**
 ```html
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -287,512 +729,377 @@ APP PARTICIPANTE:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>[Nome] - Super Cartola Manager Admin</title>
-
-    <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-
-    <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-    <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- CSS Tokens (sempre primeiro) -->
     <link rel="stylesheet" href="/css/_admin-tokens.css">
-
-    <!-- CSS Custom -->
     <link rel="stylesheet" href="/css/admin-[nome].css">
 </head>
 <body class="bg-gray-900 text-white">
-    <!-- Conteúdo HTML adaptado -->
     [HTML_CONTENT]
-
-    <!-- Scripts -->
     <script type="module" src="/js/admin-[nome].js"></script>
 </body>
 </html>
 ```
 
-### Template de Saída App Participante (Fragmento)
+### App Participante
+
+```
+public/participante/fronts/[nome].html           # Fragmento HTML
+public/participante/modules/[nome]/[nome].css     # CSS com tokens app
+public/participante/modules/[nome]/[nome].js      # JS como ES6 module
+```
+
+**Template Fragmento App:**
 ```html
 <!-- ========================================
-   [NOME DO MÓDULO] - APP PARTICIPANTE
+   [NOME] - APP PARTICIPANTE
+   Adaptado do Google Stitch
    Data: [DATA]
    ======================================== -->
 
-<div id="[nome]-container">
+<div id="[nome]-container" class="module-container">
     [HTML_CONTENT]
 </div>
-
-<!-- CSS inline crítico (se necessário) -->
-<style>
-/* Estilos específicos aqui */
-</style>
 ```
 
----
+### Integracao com Navigation (App)
 
-## 5. 📋 PROTOCOLO DE EXECUÇÃO
+Apos gerar os arquivos, instruir registro no `participante-navigation.js`:
 
-### PASSO 1: Receber e Validar
-```markdown
-1. Receber código HTML do usuário
-2. Validar se é HTML válido
-3. Identificar tipo (admin/app, página/fragmento)
-4. Listar dependências externas (CDNs, libs)
-```
-
-### PASSO 2: Extrair e Separar
-```markdown
-1. Extrair HTML puro (sem <head>, <script>, <style>)
-2. Extrair CSS (inline + <style>)
-3. Extrair JavaScript (inline + <script>)
-4. Identificar fontes usadas
-5. Identificar ícones (FA, Material, etc.)
-```
-
-### PASSO 3: Adaptar
-```markdown
-1. CSS:
-   - Converter cores hardcoded → variáveis CSS
-   - Converter valores hardcoded → variáveis de espaçamento/radius
-   - Aplicar padrões de nomenclatura (PT-BR)
-   - Organizar por seções comentadas
-
-2. HTML:
-   - Remover estruturas desnecessárias (se fragmento)
-   - Converter classes quando aplicável
-   - Adicionar comentários organizacionais
-   - Garantir acessibilidade (aria-label, alt, etc.)
-
-3. JavaScript:
-   - Converter para ES6 Module
-   - Adicionar try/catch
-   - Adicionar comentários estruturais
-   - Garantir nomenclatura PT-BR
-```
-
-### PASSO 4: Validar Compatibilidade
-```markdown
-□ Todas as cores usam variáveis CSS?
-□ Fontes corretas (Russo One, Inter, JetBrains Mono)?
-□ Ícones são Material Icons?
-□ Dark mode aplicado?
-□ Mobile-first (se app)?
-□ Desktop layout (se admin)?
-□ JavaScript é ES6 Module?
-□ Sem React/Vue/Angular?
-□ Acessibilidade OK?
-□ Performance OK (lazy loading, etc.)?
-```
-
-### PASSO 5: Gerar Arquivos
-```markdown
-1. Criar arquivo HTML (página ou fragmento)
-2. Criar arquivo CSS com variáveis adaptadas
-3. Criar arquivo JS como ES6 module
-4. Gerar instruções de integração
-```
-
-### PASSO 6: Documentar
-```markdown
-Gerar relatório com:
-- Arquivos criados
-- Localização de cada arquivo
-- Instruções de integração
-- Incompatibilidades encontradas
-- Sugestões de melhoria
-- Próximos passos
-```
-
----
-
-## 6. 🔍 DETECÇÃO DE INCOMPATIBILIDADES
-
-### Incompatibilidades Críticas (BLOQUEAR)
 ```javascript
-const incompatibilidadesCriticas = [
+// Adicionar no objeto modulos:
+modulos: {
+    // ... existentes
+    '[nome]': '/participante/fronts/[nome].html'
+}
+
+// Adicionar no carregamento de CSS:
+// <link rel="stylesheet" href="/participante/modules/[nome]/[nome].css">
+
+// Adicionar no carregamento de JS:
+// import '/participante/modules/[nome]/[nome].js';
+```
+
+---
+
+## 6. TEMPLATE DE RELATORIO
+
+```markdown
+# RELATORIO DE ADAPTACAO - GOOGLE STITCH → SUPER CARTOLA
+
+**Data:** [DATA]
+**Modo:** [MCP Automatico / HTML Manual]
+**Destino:** [Admin / App Participante]
+**Formato:** [Pagina Completa / Fragmento]
+
+---
+
+## AVALIACAO DE QUALIDADE
+
+**Score:** [XX]/100 ([NIVEL])
+
+| Dimensao | Score | Max |
+|----------|-------|-----|
+| Stack Compliance | [X] | 20 |
+| Dark Mode | [X] | 15 |
+| Design Tokens | [X] | 15 |
+| Tipografia | [X] | 10 |
+| Responsividade | [X] | 10 |
+| Acessibilidade | [X] | 10 |
+| JavaScript | [X] | 10 |
+| Performance | [X] | 10 |
+
+### Problemas Encontrados
+[lista de problemas criticos e moderados]
+
+### Sugestoes
+[lista de melhorias opcionais]
+
+---
+
+## ARQUIVOS GERADOS
+
+### HTML
+- **Localização:** `[caminho]`
+- **Linhas:** [X]
+
+### CSS
+- **Localização:** `[caminho]`
+- **Linhas:** [X]
+- **Variaveis CSS usadas:** [lista]
+- **Conversoes realizadas:** [X] cores, [X] espacamentos, [X] radius
+
+### JavaScript
+- **Localização:** `[caminho]`
+- **Linhas:** [X]
+- **ES6 Module:** SIM/NAO
+
+---
+
+## ADAPTACOES REALIZADAS
+
+### CSS ([X] conversoes)
+- [X] cores hardcoded → variaveis CSS
+- [X] valores de espacamento padronizados (padding/margin/gap)
+- [X] border-radius usando variaveis
+- [X] fontes adaptadas (Russo One, Inter, JetBrains Mono)
+- [X] sombras convertidas
+- [X] transicoes padronizadas
+
+### HTML
+- Estrutura limpa ([pagina/fragmento])
+- Icones convertidos: [FA → Material Icons] ([X] icones)
+- Acessibilidade: [aria-labels, alt text, semantica]
+- Classes Tailwind: [X] mantidas (layout), [X] convertidas (tema)
+
+### JavaScript
+- ES6 Module: SIM/NAO
+- Try/catch: [X] funcoes async protegidas
+- Nomenclatura PT-BR: SIM/NAO
+- jQuery removido: SIM/NAO/N/A
+
+---
+
+## INSTRUCOES DE INTEGRACAO
+
+[Instrucoes especificas conforme destino admin/app]
+
+---
+
+## PROXIMOS PASSOS
+
+1. [ ] Revisar codigo gerado
+2. [ ] Testar em ambiente local
+3. [ ] Ajustar responsividade (se necessario)
+4. [ ] Registrar no navigation.js (se app)
+5. [ ] Commitar e push
+```
+
+---
+
+## 7. DETECCAO DE INCOMPATIBILIDADES
+
+### Criticas (BLOQUEAR)
+
+```javascript
+const INCOMPATIBILIDADES_CRITICAS = [
     {
-        regex: /(react|vue|angular|svelte)/gi,
-        msg: '❌ Framework JS detectado. Projeto usa Vanilla JS.',
-        solucao: 'Reescrever componente em Vanilla JavaScript'
+        regex: /(from\s+['"]react|import\s+React|ReactDOM|useState|useEffect)/gi,
+        msg: 'Framework React detectado',
+        solucao: 'Reescrever componentes em Vanilla JavaScript + DOM API'
     },
     {
-        regex: /from\s+['"]react['"]|require\(['"]react['"]\)/gi,
-        msg: '❌ Import React detectado.',
-        solucao: 'Remover dependência React e usar DOM API nativo'
+        regex: /(v-if|v-for|v-model|<template>|createApp|defineComponent)/gi,
+        msg: 'Framework Vue detectado',
+        solucao: 'Reescrever em Vanilla JavaScript'
     },
     {
-        regex: /<svg[^>]*>[\s\S]*?<\/svg>/gi,
-        msg: '⚠️ SVG inline detectado.',
-        solucao: 'Usar Material Icons ou mover SVG para /public/img/'
-    }
+        regex: /(\*ngIf|\*ngFor|\[ngClass\]|@Component|@NgModule)/gi,
+        msg: 'Framework Angular detectado',
+        solucao: 'Reescrever em Vanilla JavaScript'
+    },
+    {
+        regex: /from\s+['"]svelte|<script\s+lang=['"]ts["']>/gi,
+        msg: 'Framework Svelte/TypeScript detectado',
+        solucao: 'Converter para Vanilla JS puro'
+    },
 ];
 ```
 
-### Incompatibilidades Moderadas (AVISAR)
+### Moderadas (AVISAR + Converter)
+
 ```javascript
-const incompatibilidadesModeradas = [
+const INCOMPATIBILIDADES_MODERADAS = [
     {
-        regex: /font-awesome|fa-/gi,
-        msg: '⚠️ Font Awesome detectado. Projeto usa Material Icons.',
-        solucao: 'Converter ícones usando tabela de mapeamento'
+        regex: /(\$\(|jQuery|\.ready\(|\.ajax\(|\.on\()/gi,
+        msg: 'jQuery detectado',
+        solucao: 'Converter para DOM API nativo (querySelector, addEventListener, fetch)'
     },
     {
-        regex: /#[0-9a-f]{3,6}(?!.*var\()/gi,
-        msg: '⚠️ Cores hardcoded detectadas.',
-        solucao: 'Converter para variáveis CSS'
+        regex: /font-awesome|fa-[a-z]/gi,
+        msg: 'Font Awesome detectado (projeto usa Material Icons)',
+        solucao: 'Converter usando tabela MAPA_ICONES'
     },
     {
-        regex: /background:\s*white|background:\s*#fff/gi,
-        msg: '⚠️ Background claro detectado. Projeto é dark mode.',
+        regex: /#[0-9a-f]{3,8}(?![^{]*var\()/gi,
+        msg: 'Cores hardcoded detectadas',
+        solucao: 'Converter para variaveis CSS automaticamente'
+    },
+    {
+        regex: /background:\s*(white|#fff(?:fff)?|rgb\(255)/gi,
+        msg: 'Background claro detectado (projeto e dark mode)',
         solucao: 'Substituir por var(--surface-bg) ou var(--surface-card)'
     },
     {
-        regex: /bootstrap|material-ui|ant-design/gi,
-        msg: '⚠️ Framework CSS externo detectado.',
-        solucao: 'Usar apenas TailwindCSS + CSS custom'
-    }
+        regex: /bootstrap|material-ui|ant-design|chakra/gi,
+        msg: 'Framework CSS externo detectado',
+        solucao: 'Remover e usar TailwindCSS CDN + CSS custom'
+    },
+    {
+        regex: /<svg[^>]*>[\s\S]*?<\/svg>/gi,
+        msg: 'SVG inline detectado',
+        solucao: 'Mover para /public/img/ ou substituir por Material Icons'
+    },
+    {
+        regex: /heroicons|lucide|phosphor/gi,
+        msg: 'Biblioteca de icones alternativa detectada',
+        solucao: 'Converter para Material Icons'
+    },
 ];
 ```
 
 ---
 
-## 7. 📤 TEMPLATE DE RELATÓRIO
+## 8. CONFIGURACAO DO MCP STITCH
 
-```markdown
-# 📋 RELATÓRIO DE ADAPTAÇÃO - GOOGLE STITCH → SUPER CARTOLA
+### Instalacao
 
-**Data:** [DATA]
-**Tipo:** [Admin/App Participante]
-**Formato:** [Página Completa/Fragmento]
+```bash
+# Setup automatico (wizard)
+npx stitch-mcp-auto-setup
 
----
-
-## 📁 ARQUIVOS GERADOS
-
-### HTML
-- **Localização:** `[caminho/arquivo.html]`
-- **Tamanho:** [X KB]
-- **Linhas:** [X]
-
-### CSS
-- **Localização:** `[caminho/arquivo.css]`
-- **Tamanho:** [X KB]
-- **Linhas:** [X]
-- **Variáveis CSS usadas:** [lista]
-
-### JavaScript
-- **Localização:** `[caminho/arquivo.js]`
-- **Tamanho:** [X KB]
-- **Linhas:** [X]
-- **ES6 Module:** ✅
-
----
-
-## 🔄 ADAPTAÇÕES REALIZADAS
-
-### CSS
-- ✅ [X] cores hardcoded convertidas para variáveis CSS
-- ✅ [X] valores de espaçamento padronizados
-- ✅ [X] border-radius usando variáveis
-- ✅ Fontes adaptadas (Russo One, Inter, JetBrains Mono)
-
-### HTML
-- ✅ Estrutura limpa (fragmento puro)
-- ✅ Classes semânticas aplicadas
-- ✅ Acessibilidade garantida (aria-labels, alt text)
-- ✅ Dark mode aplicado
-
-### JavaScript
-- ✅ Convertido para ES6 Module
-- ✅ Try/catch adicionado
-- ✅ Nomenclatura PT-BR
-- ✅ Comentários estruturais
-
----
-
-## ⚠️ INCOMPATIBILIDADES ENCONTRADAS
-
-### Críticas
-[lista de incompatibilidades críticas e soluções aplicadas]
-
-### Moderadas
-[lista de incompatibilidades moderadas e soluções aplicadas]
-
----
-
-## 📝 INSTRUÇÕES DE INTEGRAÇÃO
-
-### ADMIN
-1. Arquivo HTML já está pronto em `public/admin-[nome].html`
-2. CSS em `public/css/admin-[nome].css` (já importa `_admin-tokens.css`)
-3. JS em `public/js/admin-[nome].js` (ES6 module)
-4. Adicionar link no menu admin: `<a href="/admin-[nome]">...</a>`
-
-### APP PARTICIPANTE
-1. Fragmento em `public/participante/fronts/[nome].html`
-2. CSS em `public/participante/modules/[nome]/[nome].css`
-3. JS em `public/participante/modules/[nome]/[nome].js`
-4. Adicionar rota no `participante-navigation.js`:
-   ```javascript
-   case '[nome]':
-       await loadFragment('[nome]');
-       break;
-   ```
-5. Adicionar item no bottom nav (se aplicável)
-
----
-
-## 🎯 PRÓXIMOS PASSOS
-
-1. [ ] Revisar código gerado
-2. [ ] Testar em ambiente local
-3. [ ] Ajustar responsividade (se necessário)
-4. [ ] Validar acessibilidade (WCAG)
-5. [ ] Testar performance (Lighthouse)
-6. [ ] Commitar e fazer push
-7. [ ] Testar em produção
-
----
-
-## 📊 MÉTRICAS
-
-- **Tempo de adaptação:** [X minutos]
-- **Conversões CSS:** [X] cores, [X] espaçamentos, [X] fonts
-- **Linhas de código:** [X HTML] + [X CSS] + [X JS]
-- **Compatibilidade:** [XX%]
-
----
-
-**Status:** ✅ ADAPTAÇÃO COMPLETA
+# Ou configuracao manual no .mcp.json:
 ```
 
----
-
-## 8. 🎨 EXEMPLOS DE USO
-
-### Exemplo 1: Card Admin Simples
-```html
-<!-- INPUT (Stitch) -->
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        .card {
-            background: #1a1a1a;
-            color: #FF5500;
-            padding: 20px;
-            border-radius: 12px;
+```json
+{
+    "stitch": {
+        "command": "npx",
+        "args": ["-y", "stitch-mcp-auto"],
+        "env": {
+            "GOOGLE_CLOUD_PROJECT": "SEU_PROJECT_ID"
         }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>Dashboard</h2>
-        <p>Bem-vindo!</p>
-    </div>
-</body>
-</html>
-```
-
-```html
-<!-- OUTPUT (Adaptado) -->
-<!-- HTML: public/admin-dashboard-card.html -->
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Card - Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/css/_admin-tokens.css">
-    <link rel="stylesheet" href="/css/admin-dashboard-card.css">
-</head>
-<body class="bg-gray-900 text-white">
-    <div class="dashboard-card">
-        <h2 class="font-brand">Dashboard</h2>
-        <p>Bem-vindo!</p>
-    </div>
-</body>
-</html>
-```
-
-```css
-/* CSS: public/css/admin-dashboard-card.css */
-/**
- * DASHBOARD CARD - Admin
- * Adaptado do Google Stitch
- */
-
-.dashboard-card {
-    background: var(--surface-card);
-    color: var(--color-primary);
-    padding: var(--space-5);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-}
-
-.dashboard-card h2 {
-    font-family: var(--font-family-brand);
-    font-size: var(--font-size-2xl);
-    margin-bottom: var(--space-3);
-}
-
-.dashboard-card p {
-    font-family: var(--font-family-base);
-    color: var(--text-secondary);
-}
-```
-
-### Exemplo 2: Fragmento App Participante
-```html
-<!-- INPUT (Stitch) -->
-<div style="background: #1a1a1a; padding: 16px;">
-    <h2 style="color: #FF5500; font-size: 24px;">Ranking</h2>
-    <div id="ranking-list"></div>
-</div>
-<script>
-    async function loadRanking() {
-        const data = await fetch('/api/ranking').then(r => r.json());
-        document.getElementById('ranking-list').innerHTML = data.map(item =>
-            `<div>${item.nome}</div>`
-        ).join('');
-    }
-    loadRanking();
-</script>
-```
-
-```html
-<!-- OUTPUT HTML: public/participante/fronts/ranking.html -->
-<!-- ========================================
-   RANKING - APP PARTICIPANTE
-   Data: 2026-02-08
-   ======================================== -->
-
-<div id="ranking-container" class="module-container">
-    <h2 class="module-title font-brand">Ranking</h2>
-    <div id="ranking-list" class="ranking-list"></div>
-</div>
-```
-
-```css
-/* OUTPUT CSS: public/participante/modules/ranking/ranking.css */
-/**
- * RANKING MODULE - App Participante
- * Adaptado do Google Stitch
- */
-
-.module-container {
-    background: var(--surface-card);
-    padding: var(--space-4);
-    border-radius: var(--radius-lg);
-}
-
-.module-title {
-    color: var(--color-primary);
-    font-size: var(--font-size-2xl);
-    font-family: var(--font-family-brand);
-    margin-bottom: var(--space-4);
-}
-
-.ranking-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-}
-```
-
-```javascript
-/* OUTPUT JS: public/participante/modules/ranking/ranking.js */
-/**
- * RANKING MODULE - App Participante
- * Adaptado do Google Stitch
- */
-
-// ========================================
-// FUNÇÕES PRINCIPAIS
-// ========================================
-async function loadRanking() {
-    try {
-        const response = await fetch('/api/ranking');
-        const data = await response.json();
-
-        const container = document.getElementById('ranking-list');
-        container.innerHTML = data.map(item =>
-            `<div class="ranking-item">${item.nome}</div>`
-        ).join('');
-    } catch (error) {
-        console.error('Erro ao carregar ranking:', error);
-        showError('Não foi possível carregar o ranking');
     }
 }
+```
 
-// ========================================
-// INICIALIZAÇÃO
-// ========================================
-loadRanking();
+### Requisitos
 
-// ========================================
-// EXPORTAÇÕES
-// ========================================
-export { loadRanking };
+1. **Node.js v18+** instalado
+2. **Google Cloud CLI** (`gcloud`) instalado
+3. **Conta Google** com projeto GCP criado
+4. **Stitch API** habilitada no projeto GCP
+
+### Verificacao
+
+```bash
+# Verificar se MCP esta registrado
+claude mcp list | grep stitch
+
+# Testar autenticacao
+node auth.js --status
+```
+
+### Tools Disponiveis (stitch-mcp-auto)
+
+| Tool | Funcao |
+|------|--------|
+| `get_workspace_project` | Verificar projeto atual |
+| `set_workspace_project` | Associar projeto ao workspace |
+| `/design` | Gerar componente UI |
+| `/design-system` | Gerar design system |
+| `/design-flow` | Gerar fluxo de telas |
+| `/design-qa` | Validar design gerado |
+| `/design-export` | Exportar codigo |
+| `/design-full` | Pipeline completo (design → export) |
+| `/generate-asset` | Gerar imagens via Gemini AI |
+
+---
+
+## 9. PROMPT OTIMIZADO PARA STITCH (via MCP)
+
+Quando usando o MCP Stitch, a skill monta este prompt automaticamente baseado no `STITCH-DESIGN-PROMPT.md`:
+
+```
+Voce e designer do Super Cartola Manager.
+
+STACK: HTML5 + TailwindCSS CDN + Vanilla JS ES6+
+DARK MODE: bg-gray-900 (#121212), cards bg-gray-800 (#1a1a1a)
+FONTS: Russo One (titulos/stats), Inter (corpo), JetBrains Mono (numeros)
+CORES: Laranja #FF5500, Verde #22c55e, Roxo #8b5cf6, Dourado #ffd700
+ICONES: Material Icons (nao FontAwesome)
+
+RESTRICOES:
+- NUNCA: React/Vue, cores hardcoded, light mode, jQuery
+- SEMPRE: Variaveis CSS, acessibilidade, mobile-first, ES6 modules
+
+TAREFA: [DESCRICAO DO USUARIO]
 ```
 
 ---
 
-## 9. 🚀 ATALHOS RÁPIDOS
+## 10. ATALHOS RAPIDOS
 
-### Comando Completo
+### Geracao Automatica (com MCP)
 ```
-Receba este código HTML do Google Stitch e adapte para o projeto:
+Crie no Stitch um card de ranking do modulo artilheiro para o app mobile
+```
 
-[COLAR CÓDIGO AQUI]
-
+### Adaptacao Manual (sem MCP)
+```
+Recebi este codigo do Google Stitch, adapte para o projeto:
+[COLAR HTML]
 Tipo: [Admin/App]
-Nome do componente: [nome]
+Nome: [nome-do-componente]
+```
+
+### Apenas Avaliar Qualidade
+```
+Avalie a qualidade deste HTML do Stitch (nao adapte ainda):
+[COLAR HTML]
 ```
 
 ### Apenas Converter CSS
 ```
-Converta apenas este CSS para variáveis do projeto:
-
-[COLAR CSS AQUI]
-```
-
-### Apenas Validar Compatibilidade
-```
-Valide a compatibilidade deste código com a stack do projeto:
-
-[COLAR CÓDIGO AQUI]
+Converta apenas este CSS para variaveis do projeto:
+[COLAR CSS]
+Destino: [Admin/App]
 ```
 
 ---
 
-## 10. 📚 REFERÊNCIAS
+## 11. REFERENCIAS
 
-- **Design System:** `/css/_admin-tokens.css`
+- **Design System Admin:** `/css/_admin-tokens.css`
+- **Design System App:** `/participante/css/_app-tokens.css`
 - **Prompt Stitch:** `/.claude/STITCH-DESIGN-PROMPT.md`
 - **Frontend Crafter:** `docs/skills/02-specialists/frontend-crafter.md`
-- **Exemplo App:** `public/participante/fronts/*.html`
-- **Exemplo Admin:** `public/admin-*.html`
+- **MCP Config:** `/.mcp.json`
+- **Exemplos Admin:** `public/admin-*.html`
+- **Exemplos App:** `public/participante/fronts/*.html`
+- **Navigation App:** `public/participante/js/participante-navigation.js`
 
 ---
 
-**STATUS:** Stitch Adapter - READY TO TRANSFORM
+**STATUS:** Stitch Adapter v2.0 - MCP-FIRST + AVALIADOR DE QUALIDADE
 
-**Versão:** 1.0
+**Versao:** 2.0
 
-**Última atualização:** 2026-02-08
+**Ultima atualizacao:** 2026-02-10
 
-**Autor:** Super Cartola Manager Team
+**Changelog v2.0:**
+- Adicionado suporte a MCP Stitch (Plano A automatico)
+- Adicionado avaliador de qualidade com score 0-100
+- Mapeamento completo de cores para ADMIN e APP tokens
+- Mapeamento de margin/gap (alem de padding)
+- Mapeamento de icones FontAwesome → Material Icons
+- Estrategia de classes Tailwind (manter layout, converter tema)
+- Mapeamento de tokens App Participante (--app-*)
+- Deteccao expandida de incompatibilidades
+- Template de integracao com navigation.js
+- Documentacao do MCP Stitch e suas tools
 
-**Keywords para ativação:**
-- "adaptar código do stitch"
-- "código do google stitch"
+**Keywords para ativacao:**
+- "adaptar codigo do stitch"
+- "codigo do google stitch"
 - "converter html externo"
-- "recebi código do stitch"
+- "recebi codigo do stitch"
 - "html do stitch"
 - "processar stitch"
+- "gerar UI no stitch"
+- "criar componente no stitch"
+- "avaliar html do stitch"
+- "score do stitch"
+- "qualidade do html"

@@ -29,6 +29,13 @@
       "env": {
         "FIGMA_ACCESS_TOKEN": "figd_b2MJbuEWzU10PKHRIm6Eerp-BaHtDwSquNZbNugP"
       }
+    },
+    "stitch": {
+      "command": "npx",
+      "args": ["-y", "stitch-mcp-auto"],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "CONFIGURE_SEU_PROJECT_ID"
+      }
     }
   }
 }

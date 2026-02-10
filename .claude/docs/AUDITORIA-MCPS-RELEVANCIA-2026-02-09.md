@@ -11,10 +11,13 @@
 | MCP | Status | Relevância | Score | Recomendação |
 |-----|--------|------------|-------|--------------|
 | **Context7** | ✅ Configurado | 🟢 CRÍTICA | **10/10** | Manter e expandir uso |
-| **Figma MCP** | ❌ Não configurado | 🟢 ALTA | **9/10** | ✅ Implementar (design-to-code automation) |
+| **Figma MCP** | ✅ Configurado | 🟡 MÉDIA | **6/10** | Manter como Plano B (fallback do Stitch) |
+| **Stitch MCP** | ✅ Configurado | 🟢 CRÍTICA | **9/10** | PLANO A - Geração automática de UI |
 | **Playwright MCP** | ❌ Não configurado | 🟠 MÉDIA | **5/10** | Considerar futuramente |
 
 **ATUALIZAÇÃO 2026-02-09:** Decisão de integrar Figma como ferramenta principal de design. Stitch passa a ser opção B (fallback manual).
+
+**ATUALIZAÇÃO 2026-02-10:** INVERSÃO DE ESTRATÉGIA. Google Stitch MCP passa a ser PLANO A (geração automática de UI). Figma passa a PLANO B (fallback). Motivo: Stitch tem poder de criação autônomo (gera UI a partir de texto), exporta HTML/CSS/JS nativo (sem necessidade de transformer React→Vanilla). Skill stitch-adapter atualizada para v2.0 com avaliador de qualidade e suporte MCP.
 
 ---
 
@@ -893,7 +896,7 @@ echo '{
 
 ## 🏆 RANKING FINAL
 
-### Por Relevância Atual (ATUALIZADO 2026-02-09)
+### Por Relevância Atual (ATUALIZADO 2026-02-10)
 
 1. **🥇 Context7 MCP** - **10/10** ✅ CRÍTICO
    - Configurado e documentado
@@ -901,14 +904,21 @@ echo '{
    - Casos de uso claros
    - **Ação:** Expandir uso em auditorias e debugging
 
-2. **🥈 Figma MCP** - **9/10** ✅ ALTAMENTE RECOMENDADO
-   - **MUDANÇA DE ESTRATÉGIA:** Integrar Figma como ferramenta principal
-   - Design-to-code automation (17-29h/ano economizadas)
-   - Design tokens sincronizados (zero divergência)
-   - **Ação:** Implementar (5 fases, 1-2 semanas)
-   - **Stitch:** Passa a ser opção B (fallback manual)
+2. **🥈 Stitch MCP** - **9/10** ✅ PLANO A DE UI (NOVA ESTRATÉGIA 2026-02-10)
+   - **Configurado** em `.mcp.json` (stitch-mcp-auto)
+   - **Gera UI a partir de texto** (poder de criação autônomo)
+   - **Exporta HTML/CSS/JS nativo** (sem transformer React→Vanilla)
+   - **Skill stitch-adapter v2.0** com avaliador de qualidade (score 0-100)
+   - **Ação:** Configurar GCP Project ID e testar geração
+   - **Pipeline:** Stitch MCP → Avaliador → Adapter → Production-Ready
 
-3. **🥉 Playwright MCP** - **5/10** 🟠 FUTURO
+3. **🥉 Figma MCP** - **6/10** 🟡 PLANO B (FALLBACK)
+   - Configurado mas demovido de Plano A para Plano B
+   - Requer design manual (sem poder de criação autônomo)
+   - Exporta React (precisa transformer para Vanilla JS)
+   - **Ação:** Usar quando Stitch falhar ou para designs complexos colaborativos
+
+4. **4️⃣ Playwright MCP** - **5/10** 🟠 FUTURO
    - Não configurado
    - Benefícios claros mas não urgentes
    - Requer investimento prévio (Jest + CI/CD)
