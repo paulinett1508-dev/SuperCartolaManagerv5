@@ -1975,6 +1975,26 @@ export class FluxoFinanceiroUI {
         window.extratoAtual = extratoView;
         extrato = extratoView;
 
+        // ✅ v8.11: Usar renderExtratoV2 (design Inter-inspired) se disponível
+        if (window.renderExtratoV2 && typeof window.renderExtratoV2 === 'function' && modalBody) {
+            console.log('[FLUXO-UI] Usando renderExtratoV2 (design Inter-inspired)');
+            const temporada = window.temporadaAtual || new Date().getFullYear();
+            modalBody.innerHTML = window.renderExtratoV2(extrato, temporada);
+
+            // Setup interatividade do novo layout
+            const rodadas = extrato.rodadas || extrato.historico || [];
+            setTimeout(() => {
+                if (window.renderExtratoChartV2) window.renderExtratoChartV2(rodadas);
+                if (window.setupExtratoChartFiltersV2) window.setupExtratoChartFiltersV2(rodadas);
+                if (window.setupExtratoTimelineFiltersV2) window.setupExtratoTimelineFiltersV2();
+            }, 100);
+
+            if (participante) {
+                this.abrirModalExtrato(participante);
+            }
+            return;
+        }
+
         const saldoFinal = parseFloat(extrato.resumo.saldo) || 0;
 
         // ✅ v6.3: Terminologia correta
