@@ -30,6 +30,7 @@ router.get("/resumo", async (req, res) => {
     let semSenha = 0;
     let ativos = 0;
     let inativos = 0;
+    const premiumUniqueIds = new Set();
     const porLiga = [];
 
     for (const liga of ligas) {
@@ -47,6 +48,7 @@ router.get("/resumo", async (req, res) => {
       let ligaSemSenha = 0;
       let ligaAtivos = 0;
       let ligaInativos = 0;
+      let ligaPremium = 0;
 
       for (const p of participantes) {
         const timeId = p.time_id;
@@ -61,6 +63,12 @@ router.get("/resumo", async (req, res) => {
         const estaAtivo = timeDb ? timeDb.ativo !== false : true;
         if (estaAtivo) ligaAtivos++;
         else ligaInativos++;
+
+        // Premium (deduplica por time_id no total global)
+        if (p.premium === true) {
+          ligaPremium++;
+          premiumUniqueIds.add(p.time_id);
+        }
       }
 
       totalParticipantes += participantes.length;
@@ -68,6 +76,7 @@ router.get("/resumo", async (req, res) => {
       semSenha += ligaSemSenha;
       ativos += ligaAtivos;
       inativos += ligaInativos;
+      // premium contado via Set (dedup global)
 
       porLiga.push({
         ligaId: liga._id.toString(),
@@ -77,6 +86,7 @@ router.get("/resumo", async (req, res) => {
         semSenha: ligaSemSenha,
         ativos: ligaAtivos,
         inativos: ligaInativos,
+        premium: ligaPremium,
       });
     }
 
@@ -99,6 +109,7 @@ router.get("/resumo", async (req, res) => {
         semSenha,
         ativos,
         inativos,
+        premium: premiumUniqueIds.size,
         dadosIncompletos: incompletos,
       },
       porLiga,

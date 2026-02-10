@@ -19,6 +19,7 @@
     els.statComSenha = document.getElementById("statComSenha");
     els.statSemSenha = document.getElementById("statSemSenha");
     els.statIncompletos = document.getElementById("statIncompletos");
+    els.statPremium = document.getElementById("statPremium");
     els.ligasResumo = document.getElementById("ligasResumo");
     els.filtroLiga = document.getElementById("filtroLiga");
     els.filtroStatus = document.getElementById("filtroStatus");
@@ -123,6 +124,7 @@
     els.statComSenha.textContent = t.comSenha;
     els.statSemSenha.textContent = t.semSenha;
     els.statIncompletos.textContent = t.dadosIncompletos;
+    els.statPremium.textContent = t.premium || 0;
   }
 
   function renderizarLigasResumo(ligas) {
