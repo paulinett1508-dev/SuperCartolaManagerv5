@@ -1,5 +1,44 @@
 {
   "github.copilot.chat.verboseLogging": true,
   "chatgpt.openOnStartup": true,
-  "claudeCode.useTerminal": true
+  "claudeCode.useTerminal": true,
+
+  // ═══════════════════════════════════════════════════════════
+  // 🎯 CLAUDE CODE - MODO DE PLANEJAMENTO OBRIGATÓRIO
+  // ═══════════════════════════════════════════════════════════
+  // Estas configurações garantem que Claude Code SEMPRE:
+  // 1. Crie um planejamento completo ANTES de programar
+  // 2. Liste todas as tarefas usando TodoWrite
+  // 3. Questione o usuário se faz sentido
+  // 4. SÓ ENTÃO execute após aprovação explícita
+  // ═══════════════════════════════════════════════════════════
+
+  "claudeCode.planningMode": {
+    "enabled": true,
+    "enforced": true,
+    "alwaysRequireApproval": true,
+    "autoUseTodoWrite": true,
+    "minimumTasksBeforeExecution": 1,
+    "showPlanningTemplate": true
+  },
+
+  "claudeCode.behavior": {
+    "neverStartWithoutPlan": true,
+    "requireExplicitApproval": true,
+    "autoAcceptEditsAfterApproval": true,
+    "pauseOnMajorDecisions": true
+  },
+
+  "claudeCode.instructions": {
+    "priority": "planning-first",
+    "enforceCLAUDE_MD": true,
+    "loadConfigOnStartup": [
+      "CLAUDE.md",
+      ".claude/planning-mode-config.md"
+    ]
+  },
+
+  // Garante que CLAUDE.md seja sempre lido primeiro
+  "claudeCode.projectInstructions": "./CLAUDE.md",
+  "claudeCode.readInstructionsOnStartup": true
 }
