@@ -1114,6 +1114,8 @@ function renderizarHome(container, data, ligaId) {
     };
     for (const [btnId, moduloKey] of Object.entries(atalhoMap)) {
         if (modulosAtivos[moduloKey] === false) {
+            // Premium sobrescreve: Cartola PRO visível para participantes premium
+            if (moduloKey === 'cartolaPro' && isPremium) continue;
             const btn = document.getElementById(btnId);
             if (btn) btn.style.display = 'none';
         }

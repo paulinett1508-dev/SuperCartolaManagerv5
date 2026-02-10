@@ -10,6 +10,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { verificarParticipantePremium } from "../utils/premium-participante.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,10 +37,11 @@ function lerEstado() {
  * Verifica na ordem:
  *   1. Manutenção ativa? Se não → libera
  *   2. Sessão admin (dev bypass via Replit Auth)? → libera com flag devBypass
- *   3. TimeId na whitelist? → libera
- *   4. Senão → bloqueado, retorna customização da splash
+ *   3. Participante Premium? → libera com flag premiumBypass
+ *   4. TimeId na whitelist? → libera
+ *   5. Senão → bloqueado, retorna customização da splash
  */
-router.get("/status", (req, res) => {
+router.get("/status", async (req, res) => {
     try {
         const estado = lerEstado();
 
@@ -56,6 +58,17 @@ router.get("/status", (req, res) => {
                 ativo: true,
                 bloqueado: false,
                 devBypass: true
+            });
+        }
+
+        // Premium bypass: participante premium nunca é bloqueado por manutenção
+        const acesso = await verificarParticipantePremium(req);
+        if (acesso.isPremium) {
+            console.log("[MANUTENCAO-APP] Premium bypass para timeId:", req.session?.participante?.timeId);
+            return res.json({
+                ativo: true,
+                bloqueado: false,
+                premiumBypass: true
             });
         }
 

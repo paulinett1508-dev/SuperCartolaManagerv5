@@ -1,50 +1,21 @@
 /**
- * DICAS PREMIUM CONTROLLER v1.0
+ * DICAS PREMIUM CONTROLLER v1.1
  * Endpoints da API para o modulo Dicas Premium
  *
- * ACESSO: Exclusivo para participantes com premium: true
+ * ACESSO: Verificado via middleware verificarPremium em dicas-premium-routes.js
  * (Nao confundir com assinante Cartola FC da Globo)
+ *
+ * ✅ v1.1: Removidas verificacoes inline de premium (agora via middleware na rota)
  */
 
 import dicasPremiumService from '../services/dicasPremiumService.js';
-import { verificarParticipantePremium } from '../utils/premium-participante.js';
-
-/**
- * Verifica se o participante logado e premium
- * @returns {Object} { isPremium, participante, error }
- */
-async function verificarAcessoPremium(req) {
-    const acesso = await verificarParticipantePremium(req);
-
-    if (!acesso.isPremium) {
-        return {
-            isPremium: false,
-            error: acesso.error || 'Acesso exclusivo para participantes Premium',
-            code: acesso.code || 403,
-            participante: acesso.participante
-        };
-    }
-
-    return { isPremium: true, participante: acesso.participante };
-}
 
 /**
  * GET /api/dicas-premium/jogadores
  * Lista jogadores com filtros
- * ACESSO: Premium only
  */
 export async function listarJogadores(req, res) {
     try {
-        // Verificar acesso premium
-        const acesso = await verificarAcessoPremium(req);
-        if (!acesso.isPremium) {
-            return res.status(acesso.code).json({
-                sucesso: false,
-                erro: acesso.error,
-                premium: false
-            });
-        }
-
         const filtros = {
             posicao: req.query.posicao,
             precoMin: req.query.precoMin,
@@ -77,20 +48,9 @@ export async function listarJogadores(req, res) {
 /**
  * GET /api/dicas-premium/jogador/:id
  * Detalhes de um jogador especifico
- * ACESSO: Premium only
  */
 export async function obterJogador(req, res) {
     try {
-        // Verificar acesso premium
-        const acesso = await verificarAcessoPremium(req);
-        if (!acesso.isPremium) {
-            return res.status(acesso.code).json({
-                sucesso: false,
-                erro: acesso.error,
-                premium: false
-            });
-        }
-
         const { id } = req.params;
 
         if (!id) {
@@ -127,20 +87,9 @@ export async function obterJogador(req, res) {
 /**
  * GET /api/dicas-premium/confrontos
  * Pontuacao cedida por times
- * ACESSO: Premium only
  */
 export async function listarConfrontos(req, res) {
     try {
-        // Verificar acesso premium
-        const acesso = await verificarAcessoPremium(req);
-        if (!acesso.isPremium) {
-            return res.status(acesso.code).json({
-                sucesso: false,
-                erro: acesso.error,
-                premium: false
-            });
-        }
-
         const posicao = parseInt(req.query.posicao) || 5; // Default: Atacantes
         const periodo = parseInt(req.query.periodo) || 5; // Default: 5 rodadas
 
@@ -166,20 +115,9 @@ export async function listarConfrontos(req, res) {
 /**
  * GET /api/dicas-premium/calculadora-mpv
  * Calcula MPV e tabela de valorizacao
- * ACESSO: Premium only
  */
 export async function calcularMPV(req, res) {
     try {
-        // Verificar acesso premium
-        const acesso = await verificarAcessoPremium(req);
-        if (!acesso.isPremium) {
-            return res.status(acesso.code).json({
-                sucesso: false,
-                erro: acesso.error,
-                premium: false
-            });
-        }
-
         const preco = parseFloat(req.query.preco);
 
         if (!preco || preco <= 0) {
@@ -212,20 +150,9 @@ export async function calcularMPV(req, res) {
 /**
  * POST /api/dicas-premium/sugestao
  * Gera sugestao de escalacao otimizada
- * ACESSO: Premium only
  */
 export async function gerarSugestao(req, res) {
     try {
-        // Verificar acesso premium
-        const acesso = await verificarAcessoPremium(req);
-        if (!acesso.isPremium) {
-            return res.status(acesso.code).json({
-                sucesso: false,
-                erro: acesso.error,
-                premium: false
-            });
-        }
-
         const { patrimonio, pesoValorizacao = 50 } = req.body;
 
         if (!patrimonio || patrimonio <= 0) {
