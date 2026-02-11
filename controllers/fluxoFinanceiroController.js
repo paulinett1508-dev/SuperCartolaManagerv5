@@ -1,5 +1,12 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v8.10.0 (SaaS DINÂMICO)
+ * FLUXO-FINANCEIRO-CONTROLLER v8.12.0 (SaaS DINÂMICO)
+ * ✅ v8.12.0: FIX - Owner/premium isento de inscrição
+ *   - Participante com premium=true em liga com owner_email tem inscrição abonada
+ *   - Não gera débito de inscrição para o owner da liga
+ * ✅ v8.11.0: FIX CRÍTICO - Preservação de entradas R0 durante auto-healing
+ *   - Auto-healing agora preserva INSCRICAO_TEMPORADA e SALDO_TEMPORADA_ANTERIOR
+ *   - Inscrição dinâmica verifica se já existe no cache (anti-double-count)
+ *   - getFluxoFinanceiroLiga busca com fallback String/ObjectId
  * ✅ v8.10.0: FEATURE - Inscrição automática como lançamento inicial
  *   - Adiciona taxa de inscrição da temporada automaticamente no extrato
  *   - Funciona com pagamentos parciais (inscrição -180 + acerto +60 = saldo -120)
@@ -579,10 +586,22 @@ export const getExtratoFinanceiro = async (req, res) => {
             temporada: temporadaAtual,
         });
 
+        // ✅ v8.11.0 FIX: Preservar entradas R0 (INSCRICAO_TEMPORADA, SALDO_TEMPORADA_ANTERIOR)
+        // ao recriar cache durante auto-healing ou recálculo forçado
+        let r0Preservadas = [];
+        let saldoR0Preservado = 0;
+
         if (forcarRecalculo && cache) {
+            // Extrair R0 antes de deletar
+            r0Preservadas = (cache.historico_transacoes || []).filter(t =>
+                t.rodada === 0 || t.tipo === "INSCRICAO_TEMPORADA" ||
+                t.tipo === "SALDO_TEMPORADA_ANTERIOR" || t.tipo === "LEGADO_ANTERIOR"
+            );
+            saldoR0Preservado = r0Preservadas.reduce((acc, t) => acc + (t.valor || 0), 0);
+
             await ExtratoFinanceiroCache.deleteOne({ _id: cache._id });
             cache = null;
-            console.log(`[FLUXO-CONTROLLER] Cache limpo para recálculo`);
+            console.log(`[FLUXO-CONTROLLER] Cache limpo para recálculo (${r0Preservadas.length} R0 preservadas)`);
         }
 
         // ✅ v8.8.0 FIX: Auto-healing - se cache consolidou além do limite validado,
@@ -591,6 +610,14 @@ export const getExtratoFinanceiro = async (req, res) => {
             console.log(
                 `[FLUXO-CONTROLLER] ⚠️ Auto-healing: cache consolidado até R${cache.ultima_rodada_consolidada} > limite R${limiteConsolidacao} - forçando recálculo`,
             );
+            // Extrair R0 antes de deletar
+            if (r0Preservadas.length === 0) {
+                r0Preservadas = (cache.historico_transacoes || []).filter(t =>
+                    t.rodada === 0 || t.tipo === "INSCRICAO_TEMPORADA" ||
+                    t.tipo === "SALDO_TEMPORADA_ANTERIOR" || t.tipo === "LEGADO_ANTERIOR"
+                );
+                saldoR0Preservado = r0Preservadas.reduce((acc, t) => acc + (t.valor || 0), 0);
+            }
             await ExtratoFinanceiroCache.deleteOne({ _id: cache._id });
             cache = null;
         }
@@ -601,9 +628,12 @@ export const getExtratoFinanceiro = async (req, res) => {
                 time_id: timeId,
                 temporada: temporadaAtual,
                 ultima_rodada_consolidada: 0,
-                saldo_consolidado: 0,
-                historico_transacoes: [],
+                saldo_consolidado: saldoR0Preservado,
+                historico_transacoes: r0Preservadas,
             });
+            if (r0Preservadas.length > 0) {
+                console.log(`[FLUXO-CONTROLLER] ✅ R0 restauradas: ${r0Preservadas.length} entradas (saldo R0: R$ ${saldoR0Preservado})`);
+            }
         }
 
         const liga = await Liga.findById(ligaId).lean();
@@ -624,6 +654,13 @@ export const getExtratoFinanceiro = async (req, res) => {
                     `[FLUXO-CONTROLLER] Cache tinha ${cache.historico_transacoes?.length || 0} transações até R${cache.ultima_rodada_consolidada}`
                 );
 
+                // ✅ v8.11.0 FIX: Preservar R0 ao invalidar cache por módulos faltantes
+                const r0DoCache = (cache.historico_transacoes || []).filter(t =>
+                    t.rodada === 0 || t.tipo === "INSCRICAO_TEMPORADA" ||
+                    t.tipo === "SALDO_TEMPORADA_ANTERIOR" || t.tipo === "LEGADO_ANTERIOR"
+                );
+                const saldoR0DoCache = r0DoCache.reduce((acc, t) => acc + (t.valor || 0), 0);
+
                 // Invalidar cache para forçar recálculo COMPLETO
                 await ExtratoFinanceiroCache.deleteOne({ _id: cache._id });
                 cache = new ExtratoFinanceiroCache({
@@ -631,12 +668,12 @@ export const getExtratoFinanceiro = async (req, res) => {
                     time_id: timeId,
                     temporada: temporadaAtual,
                     ultima_rodada_consolidada: 0,
-                    saldo_consolidado: 0,
-                    historico_transacoes: [],
+                    saldo_consolidado: saldoR0DoCache,
+                    historico_transacoes: r0DoCache,
                 });
 
                 console.log(
-                    `[FLUXO-CONTROLLER] ✅ Cache invalidado - recálculo completo será executado`
+                    `[FLUXO-CONTROLLER] ✅ Cache invalidado - recálculo completo será executado (${r0DoCache.length} R0 preservadas)`
                 );
             }
         }
@@ -887,27 +924,42 @@ export const getExtratoFinanceiro = async (req, res) => {
             console.log(`[FLUXO-CONTROLLER] Acertos financeiros: ${acertos.length} transações`);
         }
 
-        // ✅ v8.10.0 NEW: Incluir inscrição da temporada como lançamento inicial
-        // Se participante tem `pagouInscricao: false`, adiciona débito de inscrição
-        // Pagamentos parciais são registrados via Acertos (já incluídos acima)
+        // ✅ v8.11.0 FIX: Incluir inscrição da temporada como lançamento inicial
+        // SOMENTE se não estiver já no cache (evita double-count após fix de R0)
         let transacoesInscricao = [];
         let saldoInscricao = 0;
 
         const valorInscricao = liga.parametros_financeiros?.inscricao || 0;
         const pagouInscricao = participante?.pagouInscricao === true;
 
-        // Adicionar inscrição como débito SEMPRE que houver valor configurado
-        // e participante não tiver pago integralmente
-        if (valorInscricao > 0 && !pagouInscricao) {
+        // ✅ v8.12.0: Owner/premium isento de inscrição (liga com owner_email)
+        const isOwnerPremium = participante?.premium === true && !!liga.owner_email;
+        if (isOwnerPremium) {
+            console.log(`[FLUXO-CONTROLLER] 👑 Owner/premium isento de inscrição (${participante.nome_cartola})`);
+        }
+
+        // ✅ v8.11.0: Verificar se inscrição já está persistida no cache (R0)
+        const inscricaoJaEmCache = (cache.historico_transacoes || []).some(
+            t => t.tipo === "INSCRICAO_TEMPORADA"
+        );
+
+        // Adicionar inscrição como débito APENAS se:
+        // 1. Há valor configurado
+        // 2. Participante não pagou integralmente
+        // 3. Inscrição NÃO está já no cache (evita double-count)
+        // 4. Participante NÃO é owner/premium da liga (inscrição abonada)
+        if (valorInscricao > 0 && !pagouInscricao && !inscricaoJaEmCache && !isOwnerPremium) {
             saldoInscricao = -valorInscricao;
             transacoesInscricao.push({
                 rodada: null,
                 tipo: "INSCRICAO_TEMPORADA",
                 descricao: `Taxa de inscrição ${temporadaAtual}`,
                 valor: -valorInscricao,
-                data: new Date(`${temporadaAtual}-01-01T00:00:00Z`), // Início da temporada
+                data: new Date(`${temporadaAtual}-01-01T00:00:00Z`),
             });
-            console.log(`[FLUXO-CONTROLLER] Inscrição ${temporadaAtual}: R$ ${-valorInscricao} (pagou: ${pagouInscricao})`);
+            console.log(`[FLUXO-CONTROLLER] Inscrição ${temporadaAtual}: R$ ${-valorInscricao} (dinâmica, pagou: ${pagouInscricao})`);
+        } else if (inscricaoJaEmCache) {
+            console.log(`[FLUXO-CONTROLLER] Inscrição ${temporadaAtual}: já no cache R0 (não duplicar)`);
         }
 
         // Saldo da temporada (sem acertos, com inscrição)
@@ -1109,11 +1161,21 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
             const timeId = participante.time_id;
 
             // ✅ v8.2.0 FIX: Incluir temporada na query (evita duplicados)
+            // ✅ v8.11.0 FIX: Busca normalizada (String e ObjectId) para evitar duplicatas
             let cache = await ExtratoFinanceiroCache.findOne({
                 liga_id: ligaId,
                 time_id: timeId,
                 temporada: temporadaAtual,
             });
+
+            // Fallback: buscar com liga_id como String
+            if (!cache && typeof ligaId !== "string") {
+                cache = await ExtratoFinanceiroCache.findOne({
+                    liga_id: String(ligaId),
+                    time_id: timeId,
+                    temporada: temporadaAtual,
+                });
+            }
 
             if (!cache) {
                 cache = new ExtratoFinanceiroCache({
@@ -1269,4 +1331,4 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     }
 };
 
-console.log("[FLUXO-CONTROLLER] ✅ v8.10.0 carregado (AUTO-HEALING + Inscrição Automática)");
+console.log("[FLUXO-CONTROLLER] ✅ v8.12.0 carregado (Owner premium isento + Preservação R0)");
