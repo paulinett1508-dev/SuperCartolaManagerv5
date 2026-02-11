@@ -391,10 +391,12 @@ function renderTransactionTimeline(rodadas, acertos, lancamentosIniciais, ligaId
             subitems.push({ icon: top10 > 0 ? 'military_tech' : 'sentiment_sad', label: labelTop10, valor: top10, color: 'var(--app-warning)' });
         }
 
-        const hasMultiple = subitems.length > 1;
-        const expandableClass = hasMultiple ? 'extrato-timeline__expandable' : '';
-        const expandClick = hasMultiple ? `onclick="window.toggleTimelineGroup(this)"` : '';
-        const expandIcon = hasMultiple ? `<span class="material-icons extrato-timeline__expand-icon">expand_more</span>` : '';
+        // Módulos extras = tudo exceto o ranking base (Banco/Bônus/Ônus de posição)
+        const modulosExtras = subitems.filter(si => si.icon !== 'casino').length;
+        const hasSubitems = subitems.length > 0;
+        const expandableClass = hasSubitems ? 'extrato-timeline__expandable' : '';
+        const expandClick = hasSubitems ? `onclick="window.toggleTimelineGroup(this)"` : '';
+        const expandIcon = hasSubitems ? `<span class="material-icons extrato-timeline__expand-icon">expand_more</span>` : '';
 
         // Net icon based on result
         const iconType = saldoRodada > 0 ? 'credit' : saldoRodada < 0 ? 'debit' : 'credit';
@@ -406,8 +408,8 @@ function renderTransactionTimeline(rodadas, acertos, lancamentosIniciais, ligaId
         else if (isMico) badgeText = ' · MICO';
         else if (zonaLabel) badgeText = ` · ${zonaLabel}`;
 
-        // Subitems HTML
-        const subitemsHtml = hasMultiple ? `
+        // Subitems HTML (sempre renderiza se há subitems)
+        const subitemsHtml = hasSubitems ? `
             <div class="extrato-timeline__subitems">
                 ${subitems.map(si => `
                     <div class="extrato-timeline__subitem">
@@ -451,7 +453,7 @@ function renderTransactionTimeline(rodadas, acertos, lancamentosIniciais, ligaId
                                 <div class="extrato-timeline__item-title">
                                     ${r.posicao ? r.posicao + 'º lugar' : 'Rodada ' + r.rodada}
                                 </div>
-                                <div class="extrato-timeline__item-subtitle">${subitems.length === 1 ? subitems[0].label : subitems.length + ' módulos'}</div>
+                                <div class="extrato-timeline__item-subtitle">${modulosExtras} ${modulosExtras === 1 ? 'módulo' : 'módulos'}</div>
                             </div>
                             <div class="extrato-timeline__item-value" style="color: ${saldoRodada >= 0 ? 'var(--app-success-light)' : 'var(--app-danger-light)'}">
                                 ${sinalMoeda(saldoRodada)}
