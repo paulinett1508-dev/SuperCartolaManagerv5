@@ -1,13 +1,98 @@
 # Tarefas Pendentes - Super Cartola Manager
 
-> Atualizado: 2026-02-10 02:30
-> Auditado: Todos os itens anteriores foram verificados no código e MongoDB. Apenas tarefas realmente pendentes permanecem.
+> Atualizado: 2026-02-11
+> Auditado: Sessão anterior (2026-02-10) revisada. Itens concluídos marcados. Novas auditorias de extrato adicionadas.
+
+---
+
+## RESUMO SESSAO 2026-02-11
+
+### Commits desta sessao (4 commits, todos no main)
+| Commit | Descricao |
+|--------|-----------|
+| `e9ca0a3` | fix(extrato): abonar inscrição do owner/premium na liga com owner_email |
+| `8c6245f` | feat(extrato): cores de identidade por módulo e labels descritivos nos sub-itens |
+| `c4b3a92` | fix(extrato): mostrar posição como título em todas as rodadas (single e multi) |
+| `24eb896` | fix(extrato): rodadas sempre expandíveis e contagem de módulos extras |
+
+### Implementacoes desta sessao
+- **Owner/premium isento de inscrição:** `fluxoFinanceiroController.js` v8.12.0 — participante com `premium: true` + liga com `owner_email` = inscrição abonada (R$180 não vira débito)
+- **Cores por módulo no extrato:** cada sub-item do extrato usa a cor de identidade do Quick Bar (Pontos Corridos=índigo, Mata-Mata=vermelho, Top10=amarelo, Banco=roxo, MITO=dourado, MICO=vermelho)
+- **Labels descritivos:** "Banco" → "Bônus de posição" / "Ônus de posição" / "MITO da Rodada" / "MICO da Rodada"
+- **Posição sempre como título:** todas as rodadas mostram "Xº lugar" como título principal
+- **Expand/collapse universal:** todas as rodadas com subitems são expandíveis (antes só 2+)
+- **Contagem de módulos extras:** "X módulos" conta apenas PC, MM, Top10 — não conta bônus/ônus de posição
+- **⚠️ Servidor NÃO reiniciado:** fix do owner/premium requer restart para tomar efeito
+
+### Arquivos modificados
+- `controllers/fluxoFinanceiroController.js` — v8.12.0 (owner premium exemption)
+- `public/participante/js/modules/participante-extrato-ui.js` — cores, labels, expand, posição
+
+---
+
+## 🔴 AUDITORIA PRÓXIMA SESSÃO - Extrato Financeiro App Participante
+
+### [AUDIT-002] Validar 100% Extratos dos Participantes
+
+**Prioridade:** 🔴 CRÍTICA
+**Status:** PENDENTE - Executar na próxima sessão
+**Objetivo:** Garantir que TODOS os extratos financeiros no app do participante estão 100% corretos
+
+#### Pre-requisito
+- [ ] Reiniciar servidor para carregar v8.12.0 (owner premium exemption)
+
+#### Validação Owner/Premium (Paulinett Miranda - time_id: 13935277)
+- [ ] Abrir extrato de Paulinett na Liga Super Cartola (684cb1c8af923da7c7df51de)
+- [ ] Confirmar que NÃO aparece débito de -R$180 de inscrição
+- [ ] Confirmar que saldo está correto sem a cobrança indevida
+- [ ] Verificar logs do backend: deve aparecer "👑 Owner/premium isento de inscrição"
+- [ ] Testar em outra liga (Os Fuleros) — se não tem owner_email, inscrição deve cobrar normalmente
+
+#### Validação Visual - Cores por Módulo
+- [ ] Expandir rodada com múltiplos módulos (ex: Rodada 2+)
+- [ ] Verificar ícone/label Bônus/Ônus de posição = roxo (`--app-pos-tec` #a855f7)
+- [ ] Verificar ícone/label MITO da Rodada = dourado (`--app-gold` #ffd700)
+- [ ] Verificar ícone/label MICO da Rodada = vermelho (`--app-danger` #ef4444)
+- [ ] Verificar ícone/label Pontos Corridos = índigo (`--app-indigo` #6366f1)
+- [ ] Verificar ícone/label Mata-Mata = vermelho (`--app-danger` #ef4444)
+- [ ] Verificar ícone/label TOP 10 (positivo) = amarelo (`--app-warning` #eab308)
+- [ ] Verificar ícone/label TOP 10 (negativo) = amarelo (`--app-warning` #eab308)
+- [ ] Confirmar que valores financeiros continuam verde (ganho) / vermelho (perda)
+
+#### Validação Labels Descritivos
+- [ ] Rodada com participante 1º-10º → "Bônus de posição" ou "Bônus (G10)"
+- [ ] Rodada com participante nos últimos → "Ônus de posição" ou "Ônus (Z10)"
+- [ ] Rodada com 1º lugar → "MITO da Rodada"
+- [ ] Rodada com último lugar → "MICO da Rodada"
+- [ ] Rodada em Zona Neutra → "Zona Neutra" (sem valor)
+
+#### Validação Expand/Collapse
+- [ ] Rodada com 1 subitem (só posição) → expandível com seta
+- [ ] Rodada com 2+ subitems → expandível com seta
+- [ ] Contagem "0 módulos" quando só tem posição (sem PC/MM/Top10)
+- [ ] Contagem "1 módulo" quando tem posição + 1 extra
+- [ ] Contagem "3 módulos" quando tem posição + PC + MM + Top10
+- [ ] Título sempre mostra "Xº lugar" (posição), NUNCA o label do módulo
+
+#### Validação Financeira (Reconciliação)
+- [ ] Saldo final exibido == soma de todos os lançamentos
+- [ ] Verificar 3+ participantes diferentes (não só Paulinett)
+- [ ] Comparar extrato do app com dados do MongoDB (`extratofinanceirocaches`)
+- [ ] Verificar rodada por rodada: valor total == soma dos sub-itens
+- [ ] Confirmar que inscrição de NÃO-premium aparece como débito
+- [ ] Confirmar que legado (saldo anterior) aparece corretamente
+- [ ] Verificar acertos financeiros refletidos no saldo
+
+#### Validação Multi-Liga
+- [ ] Testar extrato na Liga Super Cartola (684cb1c8af923da7c7df51de)
+- [ ] Testar extrato na Liga Cartoleiros do Sobral (684d821cf1a7ae16d1f89572)
+- [ ] Confirmar que extratos são independentes por liga
 
 ---
 
 ## RESUMO SESSAO 2026-02-10
 
-### Commits desta sessao (6 commits, todos no main)
+### Commits da sessao anterior (6 commits, todos no main)
 | Commit | Descricao |
 |--------|-----------|
 | `cbcbfc3` | feat(admin): card Premium no dashboard de Analisar Participantes |
@@ -17,7 +102,7 @@
 | `aba8909` | feat(admin): toggle Premium na coluna Acoes de Analisar Participantes |
 | `bafc937` | fix(admin): remove modais duplicados e corrige re-init SPA em Analisar Participantes |
 
-### Implementacoes desta sessao
+### Implementacoes da sessao anterior
 - **Premium bypass completo:** participante premium (flag no DB, nao hardcoded) bypassa modulos em manutencao (navegacao, quick bar, bottom nav, home mini cards)
 - **Analisar Participantes corrigido:** modais duplicados removidos, SPA re-init robusto, toggle premium na tabela, card Premium no dashboard (contagem deduplicada por time_id)
 - **Paulinett Miranda** (timeId 13935277) = unico premium ativo (aparece em 2 ligas: Super Cartola + Os Fuleros, contagem global = 1)
