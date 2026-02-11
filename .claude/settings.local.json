@@ -115,7 +115,8 @@
       "Bash(GIT_EDITOR=true git rebase:*)",
       "Bash(git -c core.editor=true rebase:*)",
       "Bash(test:*)",
-      "mcp__stitch__list_projects"
+      "mcp__stitch__list_projects",
+      "Bash(cd /home/runner/workspace/public __NEW_LINE_5959da0240686acc__ echo \"=== 1. onerror SEM proteção \\(deve ser ZERO\\) ===\" grep -rn 'onerror=\"\"\"\"this\\\\.src=' --include=\"*.js\" --include=\"*.html\")"
     ]
   },
   "enableAllProjectMcpServers": true,

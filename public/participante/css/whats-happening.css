@@ -1,0 +1,859 @@
+/**
+ * WHATS HAPPENING WIDGET - "O que tá rolando?"
+ * =============================================
+ * Widget flutuante de engajamento em tempo real
+ * Mostra disputas internas ativas nos módulos da liga
+ *
+ * v1.0 - Criação inicial
+ */
+
+/* ========================================
+   1. FAB BUTTON (Floating Action Button)
+   ======================================== */
+.wh-fab {
+    position: fixed;
+    /* Posição controlada por JS - valores padrão */
+    bottom: 80px;
+    right: 16px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff4500 0%, #ff6b00 50%, #ff8c00 100%);
+    background-size: 200% 200%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+        0 4px 20px rgba(255, 69, 0, 0.6),
+        0 0 40px rgba(255, 69, 0, 0.4),
+        inset 0 -2px 10px rgba(0, 0, 0, 0.2);
+    cursor: grab;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s ease,
+                border-color 0.3s ease;
+    animation: wh-fab-entrance 0.6s ease-out, wh-gradient-shift 3s ease infinite, wh-breathe 2s ease-in-out infinite;
+    /* Drag hint */
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Estado arrastando */
+.wh-fab.dragging {
+    cursor: grabbing;
+    transform: scale(1.1);
+    box-shadow:
+        0 8px 30px rgba(255, 69, 0, 0.7),
+        0 0 60px rgba(255, 69, 0, 0.5);
+    animation: none; /* Pausar animações durante drag */
+    opacity: 0.9;
+}
+
+/* Hint de drag (primeira vez) */
+.wh-fab.show-drag-hint::after {
+    content: '↕️';
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    animation: wh-hint-fade 3s ease forwards;
+    pointer-events: none;
+}
+
+@keyframes wh-hint-fade {
+    0%, 70% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Animação de "solto" quando para de arrastar */
+.wh-fab.just-dropped {
+    animation: wh-drop-bounce 0.4s ease-out;
+}
+
+@keyframes wh-drop-bounce {
+    0% { transform: scale(1.1); }
+    40% { transform: scale(0.95); }
+    70% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.wh-fab::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff4500, #ff8c00, #ffd700, #ff4500);
+    background-size: 300% 300%;
+    animation: wh-ring-rotate 2s linear infinite;
+    z-index: -1;
+    opacity: 0.7;
+}
+
+.wh-fab::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 69, 0, 0.4) 0%, transparent 70%);
+    animation: wh-glow-pulse 1.5s ease-in-out infinite;
+    z-index: -2;
+}
+
+.wh-fab:hover {
+    transform: scale(1.15) rotate(-5deg);
+    box-shadow:
+        0 8px 30px rgba(255, 69, 0, 0.7),
+        0 0 60px rgba(255, 69, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.wh-fab:active {
+    transform: scale(0.95);
+}
+
+/* Ícone do FAB */
+.wh-fab-icon {
+    font-size: 32px;
+    color: white;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    animation: wh-icon-dance 0.5s ease-in-out infinite alternate;
+}
+
+.wh-fab.open .wh-fab-icon {
+    transform: rotate(180deg);
+    animation: none;
+}
+
+/* Animação de gradiente */
+@keyframes wh-gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Respiração suave */
+@keyframes wh-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Rotação do anel */
+@keyframes wh-ring-rotate {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+}
+
+/* Pulso do glow */
+@keyframes wh-glow-pulse {
+    0%, 100% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.2);
+    }
+}
+
+/* Dança do ícone */
+@keyframes wh-icon-dance {
+    0% { transform: translateY(0) rotate(-3deg); }
+    100% { transform: translateY(-2px) rotate(3deg); }
+}
+
+/* Pulso quando há novidades - SUPER CHAMATIVO */
+.wh-fab.has-updates {
+    animation: wh-fab-entrance 0.6s ease-out, wh-gradient-shift 2s ease infinite, wh-attention 0.6s ease-in-out infinite;
+}
+
+.wh-fab.has-updates::before {
+    animation: wh-ring-rotate 1s linear infinite;
+    opacity: 1;
+}
+
+.wh-fab.has-updates::after {
+    animation: wh-glow-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes wh-attention {
+    0%, 100% {
+        transform: scale(1) rotate(0deg);
+        box-shadow:
+            0 4px 20px rgba(255, 69, 0, 0.6),
+            0 0 40px rgba(255, 69, 0, 0.4);
+    }
+    25% {
+        transform: scale(1.1) rotate(-5deg);
+    }
+    50% {
+        transform: scale(1.15) rotate(0deg);
+        box-shadow:
+            0 8px 40px rgba(255, 69, 0, 0.8),
+            0 0 80px rgba(255, 69, 0, 0.6);
+    }
+    75% {
+        transform: scale(1.1) rotate(5deg);
+    }
+}
+
+@keyframes wh-fab-entrance {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(-180deg);
+    }
+    50% {
+        transform: scale(1.2) rotate(10deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* Badge de notificação */
+.wh-fab-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--app-danger);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--app-font-mono);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: wh-badge-pop 0.3s ease-out;
+}
+
+@keyframes wh-badge-pop {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* ========================================
+   2. PANEL (Painel Principal)
+   ======================================== */
+.wh-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 75vh;
+    background: var(--app-surface);
+    border-radius: 20px 20px 0 0;
+    z-index: 1001;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.wh-panel.open {
+    transform: translateY(0);
+}
+
+/* Backdrop */
+.wh-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.wh-backdrop.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Handle (puxador) */
+.wh-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--app-border);
+    border-radius: 2px;
+    margin: 12px auto 8px;
+}
+
+/* Header */
+.wh-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px 12px;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.wh-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--app-font-brand);
+    font-size: var(--app-font-lg);
+    color: var(--app-text-primary);
+}
+
+.wh-title-icon {
+    font-size: 24px;
+    color: var(--app-primary);
+    animation: wh-fire 1s ease-in-out infinite;
+}
+
+@keyframes wh-fire {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.wh-close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--app-surface-hover);
+    border: none;
+    color: var(--app-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.wh-close-btn:hover {
+    background: var(--app-danger-muted);
+    color: var(--app-danger);
+}
+
+/* Content */
+.wh-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Timestamp */
+.wh-timestamp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: var(--app-font-xs);
+    color: var(--app-text-muted);
+    padding-bottom: 8px;
+}
+
+.wh-timestamp .material-icons {
+    font-size: 14px;
+}
+
+/* ========================================
+   3. MODULE SECTIONS
+   ======================================== */
+.wh-section {
+    background: var(--app-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--app-border);
+}
+
+.wh-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.wh-section-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.wh-section-title {
+    flex: 1;
+    font-family: var(--app-font-brand);
+    font-size: var(--app-font-md);
+    color: var(--app-text-primary);
+}
+
+.wh-section-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: var(--app-font-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Cores por módulo */
+.wh-section--pontos-corridos .wh-section-icon {
+    background: var(--app-info-muted);
+    color: var(--app-info);
+}
+
+.wh-section--mata-mata .wh-section-icon {
+    background: var(--app-danger-muted);
+    color: var(--app-danger);
+}
+
+.wh-section--artilheiro .wh-section-icon {
+    background: var(--app-success-muted);
+    color: var(--app-success);
+}
+
+.wh-section--luva-ouro .wh-section-icon {
+    background: var(--app-gold-muted);
+    color: var(--app-gold);
+}
+
+.wh-section--capitao .wh-section-icon {
+    background: var(--app-purple-muted);
+    color: var(--app-purple);
+}
+
+.wh-section--ranking .wh-section-icon {
+    background: var(--app-primary-muted);
+    color: var(--app-primary);
+}
+
+/* Section Body */
+.wh-section-body {
+    padding: 12px;
+}
+
+/* ========================================
+   4. CONFRONTO CARD (Disputas Diretas)
+   ======================================== */
+.wh-confronto {
+    background: var(--app-surface);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.wh-confronto:last-child {
+    margin-bottom: 0;
+}
+
+.wh-confronto.hot {
+    border-color: var(--app-primary-border);
+    background: linear-gradient(135deg, var(--app-surface) 0%, rgba(255, 85, 0, 0.05) 100%);
+}
+
+.wh-confronto-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.wh-confronto-rodada {
+    font-size: var(--app-font-xs);
+    color: var(--app-text-muted);
+    font-weight: 500;
+}
+
+.wh-confronto-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--app-font-xs);
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 8px;
+}
+
+.wh-confronto-status.live {
+    background: var(--app-danger-muted);
+    color: var(--app-danger);
+    animation: wh-live-pulse 1.5s ease-in-out infinite;
+}
+
+.wh-confronto-status.tight {
+    background: var(--app-warning-muted);
+    color: var(--app-warning);
+}
+
+@keyframes wh-live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Times no confronto */
+.wh-confronto-times {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wh-time {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: var(--app-bg);
+    border-radius: 8px;
+}
+
+.wh-time--home {
+    flex-direction: row;
+}
+
+.wh-time--away {
+    flex-direction: row-reverse;
+    text-align: right;
+}
+
+.wh-time-escudo {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--app-surface);
+}
+
+.wh-time-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.wh-time-nome {
+    font-size: var(--app-font-sm);
+    font-weight: 600;
+    color: var(--app-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wh-time-pontos {
+    font-family: var(--app-font-mono);
+    font-size: var(--app-font-lg);
+    font-weight: 700;
+    color: var(--app-text-primary);
+}
+
+.wh-time.winning .wh-time-pontos {
+    color: var(--app-success);
+}
+
+.wh-time.losing .wh-time-pontos {
+    color: var(--app-danger);
+}
+
+/* VS separator */
+.wh-vs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 4px;
+}
+
+.wh-vs-text {
+    font-size: var(--app-font-xs);
+    font-weight: 700;
+    color: var(--app-text-dim);
+}
+
+.wh-vs-diff {
+    font-family: var(--app-font-mono);
+    font-size: var(--app-font-xs);
+    color: var(--app-text-muted);
+    margin-top: 2px;
+}
+
+/* Confronto insight */
+.wh-confronto-insight {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 8px 10px;
+    background: var(--app-primary-muted);
+    border-radius: 8px;
+    font-size: var(--app-font-xs);
+    color: var(--app-primary-light);
+}
+
+.wh-confronto-insight .material-icons {
+    font-size: 16px;
+}
+
+/* ========================================
+   5. RANKING MINI (Top 3 + Posição)
+   ======================================== */
+.wh-ranking-mini {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.wh-ranking-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--app-surface);
+    border-radius: 8px;
+}
+
+.wh-ranking-item.gold { border-left: 3px solid var(--app-gold); }
+.wh-ranking-item.silver { border-left: 3px solid var(--app-silver); }
+.wh-ranking-item.bronze { border-left: 3px solid var(--app-bronze); }
+.wh-ranking-item.me {
+    border-left: 3px solid var(--app-primary);
+    background: var(--app-primary-muted);
+}
+
+.wh-ranking-pos {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--app-font-sm);
+    font-weight: 700;
+    font-family: var(--app-font-mono);
+}
+
+.wh-ranking-item.gold .wh-ranking-pos { background: var(--app-gold-muted); color: var(--app-gold); }
+.wh-ranking-item.silver .wh-ranking-pos { background: var(--app-silver-muted); color: var(--app-silver); }
+.wh-ranking-item.bronze .wh-ranking-pos { background: var(--app-bronze-muted); color: var(--app-bronze); }
+.wh-ranking-item.me .wh-ranking-pos { background: var(--app-primary-muted); color: var(--app-primary); }
+
+.wh-ranking-nome {
+    flex: 1;
+    font-size: var(--app-font-sm);
+    color: var(--app-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wh-ranking-valor {
+    font-family: var(--app-font-mono);
+    font-size: var(--app-font-sm);
+    font-weight: 600;
+    color: var(--app-text-secondary);
+}
+
+/* Separador "..." */
+.wh-ranking-separator {
+    text-align: center;
+    font-size: var(--app-font-xs);
+    color: var(--app-text-dim);
+    padding: 4px 0;
+}
+
+/* ========================================
+   6. ARTILHEIRO/LUVA CARDS
+   ======================================== */
+.wh-leader-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--app-surface);
+    border-radius: 10px;
+}
+
+.wh-leader-avatar {
+    position: relative;
+}
+
+.wh-leader-escudo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--app-bg);
+    border: 2px solid var(--app-border);
+}
+
+.wh-leader-crown {
+    position: absolute;
+    top: -8px;
+    right: -4px;
+    font-size: 16px;
+}
+
+.wh-leader-info {
+    flex: 1;
+}
+
+.wh-leader-nome {
+    font-size: var(--app-font-md);
+    font-weight: 600;
+    color: var(--app-text-primary);
+}
+
+.wh-leader-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--app-font-sm);
+    color: var(--app-text-muted);
+    margin-top: 2px;
+}
+
+.wh-leader-stat .material-icons {
+    font-size: 14px;
+}
+
+.wh-leader-value {
+    font-family: var(--app-font-mono);
+    font-size: var(--app-font-2xl);
+    font-weight: 700;
+    color: var(--app-text-primary);
+}
+
+/* Disputa acirrada */
+.wh-disputa-acirrada {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: var(--app-warning-muted);
+    border-radius: 8px;
+    font-size: var(--app-font-xs);
+    color: var(--app-warning);
+}
+
+/* ========================================
+   7. EMPTY STATE
+   ======================================== */
+.wh-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.wh-empty-icon {
+    font-size: 48px;
+    color: var(--app-text-dim);
+    margin-bottom: 12px;
+}
+
+.wh-empty-title {
+    font-size: var(--app-font-md);
+    font-weight: 600;
+    color: var(--app-text-secondary);
+    margin-bottom: 4px;
+}
+
+.wh-empty-desc {
+    font-size: var(--app-font-sm);
+    color: var(--app-text-muted);
+}
+
+/* ========================================
+   8. LOADING STATE
+   ======================================== */
+.wh-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 12px;
+}
+
+.wh-loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--app-border);
+    border-top-color: var(--app-primary);
+    border-radius: 50%;
+    animation: wh-spin 0.8s linear infinite;
+}
+
+@keyframes wh-spin {
+    to { transform: rotate(360deg); }
+}
+
+.wh-loading-text {
+    font-size: var(--app-font-sm);
+    color: var(--app-text-muted);
+}
+
+/* ========================================
+   9. SCROLL INDICATOR
+   ======================================== */
+.wh-scroll-indicator {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    background: var(--app-surface-overlay);
+    border-radius: 20px;
+    font-size: var(--app-font-xs);
+    color: var(--app-text-muted);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.wh-panel.has-scroll .wh-scroll-indicator {
+    opacity: 1;
+}
+
+/* ========================================
+   10. RESPONSIVE
+   ======================================== */
+@media (min-width: 768px) {
+    .wh-fab {
+        bottom: 24px;
+        right: 24px;
+        width: 64px;
+        height: 64px;
+    }
+
+    .wh-panel {
+        max-width: 420px;
+        left: auto;
+        right: 24px;
+        bottom: 100px;
+        border-radius: 16px;
+        max-height: 70vh;
+    }
+
+    .wh-panel.open {
+        transform: translateY(0);
+    }
+}

@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION v4.3 - Sistema de Navegação entre Módulos
+// PARTICIPANTE NAVIGATION v4.9 - Sistema de Navegação entre Módulos
 // =====================================================================
+// v4.9: FEAT - Widget "O que tá rolando?" para engajamento ao vivo
 // v4.3: TEMPORADA 2026 ATIVA - Rodada 1+ em andamento
 //       - Módulo inicial agora é "home" (não mais "boas-vindas")
 //       - Bloqueio de pré-temporada desativado (só ativa se isPreparando=true)
@@ -27,7 +28,7 @@
 
 const CAMPINHO_TARGET_KEY = 'scm_campinho_target';
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação v4.3...');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação v4.9...');
 
 class ParticipanteNavigation {
     constructor() {
@@ -152,6 +153,9 @@ class ParticipanteNavigation {
 
         // ✅ v4.8: Refresh modulosAtivos em background via endpoint correto (com defaults)
         this.refreshModulosAtivos();
+
+        // ✅ v4.9: Inicializar Widget "O que tá rolando?" (engajamento ao vivo)
+        this.inicializarWhatsHappeningWidget();
 
         // ✅ v4.8: Atualizar módulos ao retornar do background (app resume)
         document.addEventListener('visibilitychange', () => {
@@ -338,6 +342,40 @@ class ParticipanteNavigation {
             if (window.Log) Log.debug('PARTICIPANTE-NAV', '🔄 Módulos ativos atualizados via API');
         } catch (error) {
             if (window.Log) Log.warn('PARTICIPANTE-NAV', '⚠️ Erro ao atualizar módulos:', error);
+        }
+    }
+
+    /**
+     * ✅ v4.9: Widget "O que tá rolando?" - Engajamento ao vivo
+     * Mostra disputas internas ativas nos módulos da liga
+     */
+    async inicializarWhatsHappeningWidget() {
+        // Só inicializar se não for liga aposentada
+        if (window.isLigaAposentada) {
+            if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏭️ Widget WH ignorado (liga aposentada)');
+            return;
+        }
+
+        try {
+            const module = await import('/participante/js/widgets/whats-happening-widget.js');
+
+            if (module.initWhatsHappeningWidget) {
+                await module.initWhatsHappeningWidget({
+                    ligaId: this.participanteData?.ligaId,
+                    timeId: this.participanteData?.timeId,
+                    temporada: new Date().getFullYear(),
+                    modulosAtivos: {
+                        pontosCorridos: this.modulosAtivos?.pontosCorridos || false,
+                        mataMata: this.modulosAtivos?.mataMata || false,
+                        artilheiro: this.modulosAtivos?.artilheiro || false,
+                        luvaOuro: this.modulosAtivos?.luvaOuro || false,
+                        capitaoLuxo: this.modulosAtivos?.capitaoLuxo || false,
+                    }
+                });
+                if (window.Log) Log.info('PARTICIPANTE-NAV', '🔥 Widget "O que tá rolando?" inicializado');
+            }
+        } catch (error) {
+            if (window.Log) Log.warn('PARTICIPANTE-NAV', '⚠️ Erro ao inicializar Widget WH:', error);
         }
     }
 
