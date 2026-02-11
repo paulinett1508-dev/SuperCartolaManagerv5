@@ -2,6 +2,9 @@
 # Hook de SessionStart para forçar modo de planejamento
 # Este hook é executado automaticamente quando Claude Code inicia em QUALQUER ambiente
 
+# Limpa flag de planejamento da sessão anterior
+rm -f /tmp/.claude-planning-done
+
 echo "🎯 ATENÇÃO: Modo de Planejamento Obrigatório está ATIVO"
 echo ""
 echo "PROTOCOLO ABSOLUTAMENTE OBRIGATÓRIO:"

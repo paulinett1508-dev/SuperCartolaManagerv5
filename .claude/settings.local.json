@@ -146,6 +146,17 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-tool-use-planning-gate",
+            "statusMessage": "Verificando se planejamento foi feito..."
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

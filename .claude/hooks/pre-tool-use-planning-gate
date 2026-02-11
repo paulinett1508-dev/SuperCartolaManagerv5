@@ -1,0 +1,26 @@
+#!/bin/bash
+# Hook PreToolUse: Bloqueia Edit/Write se planejamento não foi feito
+# Mecanismo: verifica flag /tmp/.claude-planning-done
+#
+# - TaskCreate/TaskUpdate → cria o flag (planejamento feito)
+# - Edit/Write → verifica se flag existe, bloqueia se não
+
+TOOL_NAME="$CLAUDE_TOOL_NAME"
+FLAG_FILE="/tmp/.claude-planning-done"
+
+# Se é TaskCreate ou TaskUpdate, marca que planejamento foi feito
+if [[ "$TOOL_NAME" == "TaskCreate" || "$TOOL_NAME" == "TaskUpdate" ]]; then
+    touch "$FLAG_FILE"
+    exit 0
+fi
+
+# Se é Edit ou Write, verifica se planejamento foi feito
+if [[ "$TOOL_NAME" == "Edit" || "$TOOL_NAME" == "Write" ]]; then
+    if [[ ! -f "$FLAG_FILE" ]]; then
+        echo "❌ BLOQUEADO: Crie planejamento com TaskCreate antes de editar/escrever código."
+        echo "💡 Use TaskCreate para listar as tarefas, valide com o usuário, e depois prossiga."
+        exit 2
+    fi
+fi
+
+exit 0
