@@ -1,7 +1,13 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v4.11 (FIX RANKING RODADA NO EXTRATO)
+// PARTICIPANTE-EXTRATO.JS - v4.12 (FIX 502 TRATADO COMO DADOS VÁLIDOS)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v4.12: FIX CRÍTICO - 502 Bad Gateway tratado como dados válidos
+//          - verificarRenovacao: 5xx não cacheia renovado=false (permite retry)
+//          - mercado/status: fallback marcado com serverError flag
+//          - Promise.all: detecta falha dupla → mostra mostrarErro() ao invés de mostrarVazio()
+//          - fluxo-financeiro: else para 5xx mostra erro real ao invés de "sem dados"
+//          - Logs diferenciados: 5xx vs 4xx em cache e cálculo
 // ✅ v4.11: FIX CRÍTICO - Extrato não exibia ranking da rodada (bonusOnus)
 //          - Quando cache retornava 'inscricao-nova-temporada' com rodadas: []
 //            mas rodadaAtual >= 1, o frontend NÃO chamava endpoint de cálculo
@@ -113,10 +119,14 @@ async function verificarRenovacao(ligaId, timeId) {
         const response = await fetch(url);
 
         if (!response.ok) {
+            const isServerError = response.status >= 500;
             if (window.Log)
-                Log.warn("EXTRATO-PARTICIPANTE", `⚠️ API renovação retornou ${response.status}`);
-            statusRenovacaoCache = { renovado: false };
-            return statusRenovacaoCache;
+                Log.warn("EXTRATO-PARTICIPANTE", `⚠️ API renovação retornou ${response.status}${isServerError ? ' (servidor indisponível)' : ''}`);
+            // 5xx = servidor fora → NÃO cachear (permitir retry)
+            // 4xx = resposta legítima → cachear como não renovado
+            const resultado = { renovado: false, serverError: isServerError };
+            if (!isServerError) statusRenovacaoCache = resultado;
+            return resultado;
         }
 
         const data = await response.json();
@@ -153,9 +163,8 @@ async function verificarRenovacao(ligaId, timeId) {
     } catch (error) {
         if (window.Log)
             Log.error("EXTRATO-PARTICIPANTE", "❌ Erro ao verificar renovação:", error);
-
-        statusRenovacaoCache = { renovado: false, error: true };
-        return statusRenovacaoCache;
+        // Erro de rede/timeout → NÃO cachear (permitir retry)
+        return { renovado: false, serverError: true };
     }
 }
 
@@ -393,14 +402,30 @@ async function carregarExtrato(ligaId, timeId) {
             // Requisição 2: Buscar status do mercado (com timeout de 5s)
             fetch("/api/cartola/mercado/status", {
                 signal: AbortSignal.timeout(5000)
-            }).then(r => r.ok ? r.json() : { rodada_atual: 1 })
-              .catch(() => ({ rodada_atual: 1 }))
+            }).then(r => r.ok ? r.json() : { rodada_atual: 1, serverError: r.status >= 500 })
+              .catch(() => ({ rodada_atual: 1, serverError: true }))
         ]);
 
         statusRenovacao = statusRenovacaoResult || { renovado: false };
         rodadaAtual = mercadoResult?.rodada_atual || 1;
 
-        if (window.Log) Log.info("EXTRATO-PARTICIPANTE", `✅ Paralelo OK: renovado=${statusRenovacao.renovado}, rodada=${rodadaAtual}`);
+        // Detectar se AMBAS as requisições falharam (servidor fora do ar)
+        const renovacaoFalhou = statusRenovacao?.serverError === true;
+        const mercadoFalhou = mercadoResult?.serverError === true;
+
+        if (renovacaoFalhou && mercadoFalhou) {
+            if (window.Log) Log.error("EXTRATO-PARTICIPANTE", "❌ Servidor indisponível (ambas APIs retornaram erro)");
+            if (timeoutId) clearTimeout(timeoutId);
+            mostrarErro("Servidor temporariamente indisponível. Tente novamente em alguns instantes.");
+            return;
+        }
+
+        const usouFallback = renovacaoFalhou || mercadoFalhou;
+        if (window.Log) Log.info("EXTRATO-PARTICIPANTE",
+            usouFallback
+                ? `⚠️ Paralelo parcial: renovado=${statusRenovacao.renovado}${renovacaoFalhou ? '(fallback)' : ''}, rodada=${rodadaAtual}${mercadoFalhou ? '(fallback)' : ''}`
+                : `✅ Paralelo OK: renovado=${statusRenovacao.renovado}, rodada=${rodadaAtual}`
+        );
     } catch (e) {
         if (window.Log) Log.warn("EXTRATO-PARTICIPANTE", "⚠️ Erro no Promise.all, usando defaults");
     }
@@ -580,12 +605,13 @@ async function carregarExtrato(ligaId, timeId) {
                 }
             }
         } else {
+            const isCacheServerError = responseCache.status >= 500;
             if (window.Log)
-                Log.debug(
+                Log[isCacheServerError ? 'warn' : 'debug'](
                     "EXTRATO-PARTICIPANTE",
-                    "⚠️ Cache não encontrado (status:",
-                    responseCache.status,
-                    ")",
+                    isCacheServerError
+                        ? `⚠️ Servidor indisponível (status: ${responseCache.status})`
+                        : `⚠️ Cache não encontrado (status: ${responseCache.status})`,
                 );
         }
 
@@ -618,12 +644,21 @@ async function carregarExtrato(ligaId, timeId) {
                 if (dadosCalculados.success && dadosCalculados.extrato) {
                     extratoData = transformarDadosController(dadosCalculados);
                 }
+            } else if (resCalculo.status >= 500) {
+                if (window.Log)
+                    Log.warn("EXTRATO-PARTICIPANTE", `⚠️ Endpoint cálculo indisponível (status: ${resCalculo.status})`);
+                // Servidor fora → mostrar erro real em vez de "sem dados"
+                if (!usouCache) {
+                    if (timeoutId) clearTimeout(timeoutId);
+                    mostrarErro("Servidor temporariamente indisponível. Tente novamente em alguns instantes.");
+                    return;
+                }
             }
         }
 
         // ✅ v4.4: Para nova temporada (fonte 'inscricao-nova-temporada'), não ir buscar cálculo antigo
         // Dados de nova temporada podem ter rodadas vazias - isso é esperado
-        const eNovaTemporada = extratoData?.fonte === 'inscricao-nova-temporada' || 
+        const eNovaTemporada = extratoData?.fonte === 'inscricao-nova-temporada' ||
                                (extratoData?.temporada >= 2026 && extratoData?.rodadas?.length === 0);
 
         if (!extratoData && !eNovaTemporada) {
