@@ -101,7 +101,7 @@ export async function inicializarCampinhoParticipante(params) {
         }
 
         // Renderizar campinho completo
-        container.innerHTML = renderizarCampinhoCompleto(escalacao, dadosAdversario, confrontos, ligaId, timeId);
+        container.innerHTML = renderizarCampinhoCompleto(escalacao, dadosAdversario, confrontos, ligaId, timeId, statusMercado);
 
         // Buscar extrato financeiro da rodada (assíncrono)
         buscarExtratoRodada(ligaId, timeId, rodadaConsolidada);
@@ -476,7 +476,7 @@ function renderizarSemEscalacao() {
 }
 
 
-function renderizarCampinhoCompleto(escalacao, adversario, confronto, ligaId, timeId) {
+function renderizarCampinhoCompleto(escalacao, adversario, confronto, ligaId, timeId, statusMercado) {
     const temAdversario = adversario && (adversario.atletas?.length > 0 || adversario.titulares?.length > 0);
     const todosAtletas = escalacao.atletas || [];
     const titulares = escalacao.titulares || todosAtletas.filter(a => !a.is_reserva);
@@ -497,14 +497,19 @@ function renderizarCampinhoCompleto(escalacao, adversario, confronto, ligaId, ti
     const variacaoIcone = variacao > 0 ? '▲' : variacao < 0 ? '▼' : '';
     const variacaoClasse = variacao >= 0 ? 'positivo' : 'negativo';
 
+    // Determinar status da rodada (parcial ao vivo vs consolidada)
+    const isParcial = statusMercado?.status_mercado === 2;
+    const statusClasse = isParcial ? 'parcial' : 'consolidada';
+    const statusTexto = isParcial ? 'AO VIVO' : 'CONSOLIDADA';
+
     return `
         <div class="campinho-wrapper campinho-screen">
             <header class="campinho-header-minimal">
                 <div class="campinho-header-top">
                     <span class="campinho-rodada-badge">RODADA ${rodadaLabel}</span>
-                    <span class="campinho-status-indicator consolidada">
+                    <span class="campinho-status-indicator ${statusClasse}">
                         <span class="campinho-status-dot"></span>
-                        CONSOLIDADA
+                        ${statusTexto}
                     </span>
                     <span class="campinho-formation">${formacao}</span>
                 </div>
