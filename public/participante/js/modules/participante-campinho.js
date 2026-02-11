@@ -475,16 +475,6 @@ function renderizarSemEscalacao() {
     `;
 }
 
-function renderizarAvisoMercadoAberto(status) {
-    return `
-        <div class="campinho-empty">
-            <span class="material-icons campinho-mercado-icon">storefront</span>
-            <h3>Mercado Aberto</h3>
-            <p>A escalação será exibida após o fechamento do mercado</p>
-            ${status?.rodada_atual ? `<p style="margin-top: 8px; font-size: 12px; opacity: 0.5;">Rodada ${status.rodada_atual}</p>` : ''}
-        </div>
-    `;
-}
 
 function renderizarCampinhoCompleto(escalacao, adversario, confronto, ligaId, timeId) {
     const temAdversario = adversario && (adversario.atletas?.length > 0 || adversario.titulares?.length > 0);
@@ -879,32 +869,6 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
     `;
 }
 
-function renderizarLegenda() {
-    return `
-        <div class="campinho-legenda">
-            <div class="campinho-legenda-item">
-                <span class="dot gol"></span>
-                <span>GOL</span>
-            </div>
-            <div class="campinho-legenda-item">
-                <span class="dot def"></span>
-                <span>DEF</span>
-            </div>
-            <div class="campinho-legenda-item">
-                <span class="dot mei"></span>
-                <span>MEI</span>
-            </div>
-            <div class="campinho-legenda-item">
-                <span class="dot ata"></span>
-                <span>ATA</span>
-            </div>
-            <div class="campinho-legenda-item">
-                <span class="dot tec"></span>
-                <span>TEC</span>
-            </div>
-        </div>
-    `;
-}
 
 // Expor globalmente
 window.inicializarCampinhoParticipante = inicializarCampinhoParticipante;
