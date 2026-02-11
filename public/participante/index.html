@@ -28,28 +28,9 @@
         <link rel="manifest" href="manifest.json" />
         <link rel="apple-touch-icon" href="/img/newlogo-supercartola.png" />
 
-        <!-- TAILWIND CDN + CONFIG -->
-        <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
-        <script>
-            tailwind.config = {
-                darkMode: "class",
-                theme: {
-                    extend: {
-                        colors: {
-                            primary: "var(--app-primary)", /* Padronizado com _app-tokens.css */
-                            "background-light": "#f6f8f7",
-                            "background-dark": "#101010",
-                            "surface-dark": "var(--app-surface-elevated)",
-                        },
-                        fontFamily: {
-                            display: ["Inter", "-apple-system", "sans-serif"],
-                            brand: ["Russo One", "sans-serif"],  /* Fonte brand para títulos/stats */
-                            mono: ["JetBrains Mono", "monospace"],
-                        },
-                    },
-                },
-            };
-        </script>
+        <!-- TAILWIND CSS (build estático - substitui CDN) -->
+        <!-- Rebuild com: npm run build:css -->
+        <link rel="stylesheet" href="css/tailwind.css" />
 
         <!-- MATERIAL ICONS -->
         <link
@@ -1076,7 +1057,7 @@
         <script src="js/splash-screen.js"></script>
 
         <!-- ✅ Sistema de Logos por Liga -->
-        <script src="js/liga-logos.js"></script>
+        <script src="js/liga-logos.js" defer></script>
 
         <!-- ✅ Sistema de Cache Offline (IndexedDB) - ANTES do cache-manager -->
         <script src="js/participante-config.js"></script>
@@ -1093,40 +1074,40 @@
         <script src="js/participante-cache-manager.js"></script>
 
         <!-- Utils (formatação de moeda) -->
-        <script src="js/participante-utils.js"></script>
+        <script src="js/participante-utils.js" defer></script>
 
         <!-- Scripts participante -->
         <script src="js/participante-auth.js"></script>
         <script src="js/participante-navigation.js"></script>
         <script src="js/participante-season-selector.js" type="module"></script>
-        <script src="js/participante-status.js"></script>
+        <script src="js/participante-status.js" defer></script>
         <!-- Live Results Module -->
         <script type="module" src="js/modules/participante-live-results.js"></script>
 
         <!-- ✅ Loading Overlay (navegação entre módulos) -->
-        <script src="js/loading-overlay.js"></script>
+        <script src="js/loading-overlay.js" defer></script>
 
         <!-- ✅ Error Toast (feedback de erros para módulos) -->
-        <script src="js/error-toast.js"></script>
+        <script src="js/error-toast.js" defer></script>
 
         <!-- ✅ Botão de Atualização Manual -->
-        <script src="js/participante-refresh-button.js"></script>
+        <script src="js/participante-refresh-button.js" defer></script>
 
         <!-- ✅ Tabelas Esportivas (Brasileirão, Copa, etc) -->
-        <script src="js/tabelas-esportes.js"></script>
+        <script src="js/tabelas-esportes.js" defer></script>
 
         <!-- ✅ Tela de Manutenção (antes do versionamento que a aciona) -->
-        <script src="js/noticias-time.js"></script>
-        <script src="js/manutencao-screen.js"></script>
+        <script src="js/noticias-time.js" defer></script>
+        <script src="js/manutencao-screen.js" defer></script>
 
         <!-- ✅ Sistema de Versionamento (com PWA) -->
-        <script src="/js/app/app-version.js"></script>
+        <script src="/js/app/app-version.js" defer></script>
 
         <!-- ✅ PWA Install Prompt (v1.0) -->
-        <script src="js/install-prompt.js"></script>
+        <script src="js/install-prompt.js" defer></script>
 
         <!-- ✅ Quick Access Bar -->
-        <script src="js/participante-quick-bar.js"></script>
+        <script src="js/participante-quick-bar.js" defer></script>
 
         <!-- ============================================
              TEASER TEMPORADA 2026 - Botão Flutuante + Modal

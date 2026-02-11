@@ -20,6 +20,7 @@ const CACHE_NAME = "super-cartola-v21-ttl-dinamico";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
+    "/participante/css/tailwind.css",
     "/participante/css/participante.css",
     "/participante/css/splash-screen.css",
     "/participante/css/pull-refresh.css",

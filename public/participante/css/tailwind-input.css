@@ -1,0 +1,26 @@
+/* Tailwind CSS v4 - Input file para build estático */
+/* Substitui o CDN cdn.tailwindcss.com que era carregado em runtime */
+
+@import "tailwindcss";
+
+/* Plugins (equivalente a ?plugins=forms,typography do CDN) */
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+
+/* Source paths - garantir scan do HTML e JS do participante */
+@source "../index.html";
+@source "../js/**/*.js";
+
+/* Theme customizations (migrado do inline config do index.html) */
+@theme {
+  /* Colors */
+  --color-primary: var(--app-primary);
+  --color-background-light: #f6f8f7;
+  --color-background-dark: #101010;
+  --color-surface-dark: var(--app-surface-elevated);
+
+  /* Font Families */
+  --font-display: "Inter", "-apple-system", sans-serif;
+  --font-brand: "Russo One", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
