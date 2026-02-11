@@ -5,15 +5,17 @@ import {
     buscarHistoricoCompleto,
     verificarStatusConsolidacao,
 } from "../controllers/consolidacaoController.js";
+import { verificarAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 
 // Consolida uma rodada específica
-router.post("/ligas/:ligaId/rodadas/:rodada/consolidar", consolidarRodada);
+router.post("/ligas/:ligaId/rodadas/:rodada/consolidar", verificarAdmin, consolidarRodada);
 
 // Consolida múltiplas rodadas (script de recuperação)
 router.post(
     "/ligas/:ligaId/consolidar-historico",
+    verificarAdmin,
     consolidarTodasRodadasPassadas,
 );
 
