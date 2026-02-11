@@ -142,22 +142,9 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
                 }
             }
 
-            // Só re-renderizar se dados mudaram ou se não usou cache antes
-            const dadosMudaram = !usouCache ||
-                !dadosCache ||
-                dadosCache.length !== dados.length ||
-                JSON.stringify(dadosCache[0]?.classificacao?.slice(0,3)) !== JSON.stringify(dados[0]?.classificacao?.slice(0,3)) ||
-                JSON.stringify(dadosCache[0]?.confrontos?.[0]?.time1?.nome) !== JSON.stringify(dados[0]?.confrontos?.[0]?.time1?.nome);
-
-            if (dadosMudaram) {
-                if (window.Log) Log.info(`[PONTOS-CORRIDOS] ✅ ${dados.length} rodadas carregadas`);
-                renderizarInterface();
-                if (usouCache && window.Log) {
-                    Log.info("[PONTOS-CORRIDOS] 🔄 Re-renderizado com dados frescos");
-                }
-            } else if (window.Log) {
-                Log.info("[PONTOS-CORRIDOS] ✅ Dados iguais, mantendo renderização do cache");
-            }
+            // ✅ v5.4: Sempre re-renderizar com dados frescos da API (evita cache stale)
+            if (window.Log) Log.info(`[PONTOS-CORRIDOS] ✅ ${dados.length} rodadas carregadas`);
+            renderizarInterface();
         } else {
             // ✅ AUDIT-FIX: API retornou 0 rodadas - limpar cache stale do IndexedDB
             if (usouCache && window.OfflineCache) {
