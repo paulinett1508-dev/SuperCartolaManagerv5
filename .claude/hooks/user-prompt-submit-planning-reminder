@@ -1,0 +1,5 @@
+#!/bin/bash
+# Hook de UserPromptSubmit para reforçar protocolo de planejamento
+# Executado automaticamente a cada mensagem do usuário
+
+echo "🎯 LEMBRETE: Antes de programar, crie planejamento + TaskCreate + questione usuário"
