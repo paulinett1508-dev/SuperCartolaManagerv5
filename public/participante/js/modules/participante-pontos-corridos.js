@@ -1,11 +1,12 @@
-// PARTICIPANTE PONTOS CORRIDOS - v5.3
+// PARTICIPANTE PONTOS CORRIDOS - v5.5
+// ✅ v5.5: Auto-refresh 60s para parciais ao vivo (mercado fechado)
 // ✅ v5.3: FIX - totalRodadas calculado a partir do número de times (N-1), não dados.length
 // ✅ v5.2: FIX - Double RAF para garantir container no DOM após refresh
 // ✅ v5.1: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v4.9: Emojis substituídos por Material Icons + Card "Seu Desempenho"
 // ✅ v5.0: Posição na liga integrada no card + card ao final da página
 
-if (window.Log) Log.info("[PONTOS-CORRIDOS] 📊 Módulo v5.3 carregando...");
+if (window.Log) Log.info("[PONTOS-CORRIDOS] 📊 Módulo v5.5 carregando...");
 
 const estadoPC = {
     ligaId: null,
@@ -21,6 +22,8 @@ const estadoPC = {
     mercadoAberto: true,
     ligaEncerrou: false,
     rodadaInicial: 2, // ✅ v5.3: Default 2026, será atualizado pela config API
+    _refreshInterval: null, // ✅ v5.5: Timer do auto-refresh de parciais
+    _refreshAtivo: false,
 };
 
 // ✅ v5.3: Calcula total de rodadas real baseado no número de times (N-1 para par, N para ímpar)
@@ -37,7 +40,10 @@ function calcularTotalRodadas(dados) {
 // ============================================
 
 export async function inicializarPontosCorridosParticipante(params = {}) {
-    if (window.Log) Log.info("[PONTOS-CORRIDOS] 🚀 Inicializando v5.3...", params);
+    if (window.Log) Log.info("[PONTOS-CORRIDOS] 🚀 Inicializando v5.5...", params);
+
+    // ✅ v5.5: Parar auto-refresh anterior (re-inicialização)
+    pararAutoRefresh();
 
     // ✅ v5.2: Aguardar DOM estar renderizado (double RAF)
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -145,6 +151,9 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
             // ✅ v5.4: Sempre re-renderizar com dados frescos da API (evita cache stale)
             if (window.Log) Log.info(`[PONTOS-CORRIDOS] ✅ ${dados.length} rodadas carregadas`);
             renderizarInterface();
+
+            // ✅ v5.5: Iniciar auto-refresh se parciais ao vivo
+            iniciarAutoRefresh();
         } else {
             // ✅ AUDIT-FIX: API retornou 0 rodadas - limpar cache stale do IndexedDB
             if (usouCache && window.OfflineCache) {
@@ -208,6 +217,87 @@ async function carregarDados() {
     const data = await response.json();
     if (window.Log) Log.info(`[PONTOS-CORRIDOS] ✅ ${data.length} rodadas carregadas (temporada ${estadoPC.temporada})`);
     return Array.isArray(data) ? data : [];
+}
+
+// ============================================
+// AUTO-REFRESH PARCIAIS AO VIVO - v5.5
+// ============================================
+
+const REFRESH_INTERVAL_MS = 60000; // 60 segundos
+
+function isParciaisAoVivo() {
+    // Mercado fechado = jogos em andamento
+    if (estadoPC.mercadoAberto) return false;
+    // Liga já encerrou todas as rodadas
+    if (estadoPC.ligaEncerrou) return false;
+    // Rodada atual da liga deve ser > 0
+    const rodadaAtualLiga = estadoPC.rodadaAtual;
+    if (rodadaAtualLiga <= 0) return false;
+    return true;
+}
+
+function iniciarAutoRefresh() {
+    pararAutoRefresh();
+
+    if (!isParciaisAoVivo()) {
+        if (window.Log) Log.info("[PONTOS-CORRIDOS] ⏸️ Auto-refresh não necessário (sem parciais ao vivo)");
+        return;
+    }
+
+    estadoPC._refreshAtivo = true;
+    if (window.Log) Log.info(`[PONTOS-CORRIDOS] 🔄 Auto-refresh ativado (${REFRESH_INTERVAL_MS / 1000}s)`);
+
+    estadoPC._refreshInterval = setInterval(async () => {
+        if (!isParciaisAoVivo()) {
+            pararAutoRefresh();
+            return;
+        }
+
+        try {
+            if (window.Log) Log.info("[PONTOS-CORRIDOS] 🔄 Atualizando parciais...");
+
+            // Buscar status do mercado (pode ter mudado para aberto)
+            await buscarStatusMercado();
+            if (estadoPC.mercadoAberto) {
+                if (window.Log) Log.info("[PONTOS-CORRIDOS] ✅ Mercado abriu, parando auto-refresh");
+                pararAutoRefresh();
+                return;
+            }
+
+            // Buscar dados frescos da API
+            const dados = await carregarDados();
+            if (dados.length > 0) {
+                estadoPC.dados = dados;
+
+                // Atualizar cache IndexedDB
+                if (window.OfflineCache) {
+                    try {
+                        const cacheKey = `${estadoPC.ligaId}:${estadoPC.temporada}`;
+                        await window.OfflineCache.set('pontosCorridos', cacheKey, dados);
+                    } catch (e) { /* ignore */ }
+                }
+
+                // Re-renderizar apenas as views (sem resetar seletor/header)
+                renderizarView();
+                renderizarCardDesempenho();
+
+                if (window.Log) Log.info("[PONTOS-CORRIDOS] ✅ Parciais atualizadas");
+            }
+        } catch (e) {
+            if (window.Log) Log.warn("[PONTOS-CORRIDOS] ⚠️ Erro no auto-refresh:", e.message);
+        }
+    }, REFRESH_INTERVAL_MS);
+}
+
+function pararAutoRefresh() {
+    if (estadoPC._refreshInterval) {
+        clearInterval(estadoPC._refreshInterval);
+        estadoPC._refreshInterval = null;
+    }
+    if (estadoPC._refreshAtivo) {
+        estadoPC._refreshAtivo = false;
+        if (window.Log) Log.info("[PONTOS-CORRIDOS] ⏹️ Auto-refresh parado");
+    }
 }
 
 // ============================================
@@ -1064,9 +1154,14 @@ window.recarregarPontosCorridos = function () {
         timeId: estadoPC.timeId,
     });
 };
+// ✅ v5.5: Cleanup ao sair do módulo (chamado pela navegação)
+window.destruirPontosCorridosParticipante = function () {
+    pararAutoRefresh();
+    if (window.Log) Log.info("[PONTOS-CORRIDOS] 🧹 Módulo destruído, auto-refresh limpo");
+};
 window.inicializarPontosCorridosParticipante =
     inicializarPontosCorridosParticipante;
 
 if (window.Log) Log.info(
-    "[PONTOS-CORRIDOS] ✅ Módulo v5.1 carregado (Cache-First IndexedDB)",
+    "[PONTOS-CORRIDOS] ✅ Módulo v5.5 carregado (Auto-refresh parciais)",
 );

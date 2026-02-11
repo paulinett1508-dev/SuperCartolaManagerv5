@@ -806,6 +806,13 @@ class ParticipanteNavigation {
             // ✅ CORREÇÃO: Limpar timeout de segurança
             clearTimeout(timeoutId);
 
+            // ✅ v5.5: Cleanup do módulo anterior (parar timers, polling, etc)
+            if (this.moduloAtual && window[`destruir${this.moduloAtual.replace(/-./g, c => c[1].toUpperCase()).replace(/^./, c => c.toUpperCase())}Participante`]) {
+                try {
+                    window[`destruir${this.moduloAtual.replace(/-./g, c => c[1].toUpperCase()).replace(/^./, c => c.toUpperCase())}Participante`]();
+                } catch (e) { /* ignore cleanup errors */ }
+            }
+
             container.innerHTML = html;
 
             // ✅ v4.2: Aguardar DOM renderizar antes de carregar JS do módulo
