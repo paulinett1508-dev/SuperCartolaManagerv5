@@ -2,11 +2,17 @@
 # Hook PreToolUse: Bloqueia Edit/Write se planejamento não foi feito
 # Mecanismo: verifica flag /tmp/.claude-planning-done
 #
+# Input: JSON via stdin com tool_name e tool_input
+# Output: JSON com permissionDecision ou exit code 2
+#
 # - TaskCreate/TaskUpdate → cria o flag (planejamento feito)
 # - Edit/Write → verifica se flag existe, bloqueia se não
 
-TOOL_NAME="$CLAUDE_TOOL_NAME"
 FLAG_FILE="/tmp/.claude-planning-done"
+INPUT=$(cat)
+
+# Extrai tool_name do JSON via grep/sed (sem jq)
+TOOL_NAME=$(echo "$INPUT" | grep -o '"tool_name"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*"tool_name"[[:space:]]*:[[:space:]]*"//;s/"//')
 
 # Se é TaskCreate ou TaskUpdate, marca que planejamento foi feito
 if [[ "$TOOL_NAME" == "TaskCreate" || "$TOOL_NAME" == "TaskUpdate" ]]; then
@@ -17,8 +23,7 @@ fi
 # Se é Edit ou Write, verifica se planejamento foi feito
 if [[ "$TOOL_NAME" == "Edit" || "$TOOL_NAME" == "Write" ]]; then
     if [[ ! -f "$FLAG_FILE" ]]; then
-        echo "❌ BLOQUEADO: Crie planejamento com TaskCreate antes de editar/escrever código."
-        echo "💡 Use TaskCreate para listar as tarefas, valide com o usuário, e depois prossiga."
+        echo "BLOQUEADO: Crie planejamento com TaskCreate antes de editar/escrever codigo." >&2
         exit 2
     fi
 fi
