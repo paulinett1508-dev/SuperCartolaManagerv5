@@ -113,7 +113,9 @@
       "Bash(npx:*)",
       "Bash(git rebase:*)",
       "Bash(GIT_EDITOR=true git rebase:*)",
-      "Bash(git -c core.editor=true rebase:*)"
+      "Bash(git -c core.editor=true rebase:*)",
+      "Bash(test:*)",
+      "mcp__stitch__list_projects"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -4,6 +4,7 @@
 // =====================================================================
 
 import express from 'express';
+import mongoose from 'mongoose';
 import marketGate from '../utils/marketGate.js';
 import RodadaSnapshot from '../models/RodadaSnapshot.js';
 import Liga from '../models/Liga.js';
@@ -152,7 +153,7 @@ router.get('/', verificarAdmin, async (req, res) => {
         // 5. Database Status
         const databaseStatus = {
             status: 'online',
-            connected: global.mongoose?.connection?.readyState === 1,
+            connected: mongoose.connection.readyState === 1,
             uptime_seconds: Math.floor(process.uptime()),
             collections: {
                 rodadas_consolidadas: await RodadaSnapshot.countDocuments({ status: 'consolidada' }),

@@ -1,4 +1,7 @@
-// PARTICIPANTE-JOGOS.JS - v5.6 (ACORDEÃO POR CAMPEONATO)
+// PARTICIPANTE-JOGOS.JS - v5.7 (TEMPO + REFRESH OTIMIZADO)
+// ✅ v5.7: Exibe período (1º T/2º T) quando minutos não disponíveis
+//          Polling reduzido de 60s para 30s (alinha com cache backend)
+//          Indicador de última atualização no footer
 // ✅ v5.6: Jogos agrupados por campeonato em menus expandíveis
 // ✅ v5.5: Botão "Fechar" visível no footer do modal de detalhes
 // ✅ v5.4: Separação correta em 3 seções
@@ -39,7 +42,8 @@ const EVENTO_ICONES = {
 };
 
 // Intervalo de auto-refresh (ms)
-const AUTO_REFRESH_INTERVAL = 60000; // 60 segundos
+// v5.7: Reduzido de 60s para 30s para acompanhar TTL do cache backend
+const AUTO_REFRESH_INTERVAL = 30000; // 30 segundos
 let refreshTimer = null;
 
 // Status que indicam jogo ao vivo
@@ -61,7 +65,8 @@ export async function obterJogosAoVivo() {
             fonte: data.fonte || 'soccerdata',
             aoVivo: data.aoVivo || false,
             estatisticas: data.estatisticas || {},
-            mensagem: data.mensagem || null
+            mensagem: data.mensagem || null,
+            atualizadoEm: data.atualizadoEm || new Date().toISOString()
         };
     } catch (err) {
         console.error('[JOGOS] Erro ao buscar jogos:', err);
@@ -98,12 +103,32 @@ function isJogoAgendado(jogo) {
 }
 
 /**
- * Renderiza card de jogos do dia - v5.6 (Campeonatos expandíveis)
+ * Formata ISO timestamp para hora local (HH:MM)
+ * @param {string} isoString - ISO timestamp
+ * @returns {string} Hora formatada (ex: "14:35")
+ */
+function formatarTimestamp(isoString) {
+    if (!isoString) return '';
+    try {
+        const date = new Date(isoString);
+        return date.toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'America/Sao_Paulo'
+        });
+    } catch {
+        return '';
+    }
+}
+
+/**
+ * Renderiza card de jogos do dia - v5.7 (Campeonatos expandíveis + timestamp)
  * @param {Array} jogos - Lista de jogos
  * @param {string} fonte - Fonte dos dados (soccerdata, cache-stale, globo)
  * @param {boolean} aoVivo - Se ha jogos ao vivo
+ * @param {string} atualizadoEm - ISO timestamp da última atualização
  */
-export function renderizarJogosAoVivo(jogos, fonte = 'soccerdata', aoVivo = false) {
+export function renderizarJogosAoVivo(jogos, fonte = 'soccerdata', aoVivo = false, atualizadoEm = null) {
     if (!jogos || !jogos.length) return '';
 
     // ✅ v5.6: Agenda do dia (agendados) em bloco separado
@@ -160,8 +185,9 @@ export function renderizarJogosAoVivo(jogos, fonte = 'soccerdata', aoVivo = fals
             </details>
             `;
         }).join('')}
-        <div class="text-center">
+        <div class="text-center flex flex-col gap-0.5">
             <span class="text-[10px] text-white/30">Dados: ${fonteTexto}</span>
+            ${atualizadoEm ? `<span class="text-[9px] text-white/20">Atualizado: ${formatarTimestamp(atualizadoEm)}</span>` : ''}
         </div>
     </div>
     `;
@@ -306,17 +332,30 @@ function renderizarCardJogo(jogo) {
 
 /**
  * Renderiza badge de status (AO VIVO, Intervalo, Encerrado)
+ * v5.7: Exibe período (1º T / 2º T) quando minutos não disponíveis
  */
 function renderizarBadgeStatus(jogo, aoVivo, encerrado) {
     if (aoVivo) {
         // Ao vivo: badge pulsante com tempo
-        const tempoDisplay = jogo.tempoExtra
-            ? `${jogo.tempo}+${jogo.tempoExtra}'`
-            : jogo.tempo || 'AO VIVO';
+        let tempoDisplay;
+
+        if (jogo.tempo) {
+            // Tem minutos: exibir "45'" ou "45+2'"
+            tempoDisplay = jogo.tempoExtra
+                ? `${jogo.tempo}+${jogo.tempoExtra}'`
+                : `${jogo.tempo}'`;
+        } else {
+            // Sem minutos: exibir período baseado no statusRaw
+            tempoDisplay = jogo.statusRaw === '1H' ? '1º T'
+                : jogo.statusRaw === '2H' ? '2º T'
+                : jogo.statusRaw === 'LIVE' ? 'AO VIVO'
+                : 'AO VIVO';
+        }
 
         const statusTexto = jogo.statusRaw === 'HT' ? 'Intervalo'
             : jogo.statusRaw === 'ET' ? 'Prorrog.'
             : jogo.statusRaw === 'P' ? 'Penaltis'
+            : jogo.statusRaw === 'BT' ? 'Interv. Prorr.'
             : tempoDisplay;
 
         return `

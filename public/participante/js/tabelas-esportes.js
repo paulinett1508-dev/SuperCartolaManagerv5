@@ -1,6 +1,8 @@
 // =====================================================================
-// tabelas-esportes.js - Seção "Tabelas" na Home do Participante v2.0
+// tabelas-esportes.js - Seção "Tabelas" na Home do Participante v2.1
 // =====================================================================
+// v2.1: Exibe período (1º T/2º T) quando minutos não disponíveis
+//       Auto-refresh reduzido de 60s para 30s para jogos ao vivo
 // v2.0: "Jogos do Dia" com sub-categorias por liga + "Jogos do Mês" no Meu Time
 // Componente com abas: Meu Time | Jogos do Dia | Copa BR | Libertadores | Copa do Mundo
 // Exibe dados internamente (sem links externos)
@@ -18,6 +20,30 @@ const _CLUBES_TABELAS = {
 
 function _getNomeClube(clubeId) {
     return _CLUBES_TABELAS[Number(clubeId)] || 'Meu Time';
+}
+
+/**
+ * Formata o tempo do jogo para exibição
+ * Se tem minutos, exibe "45'" ou "45+2'"
+ * Se não tem, exibe período baseado no statusRaw (1º T, 2º T, etc.)
+ * @param {Object} jogo - Objeto do jogo com tempo, tempoExtra e statusRaw
+ * @returns {string} Tempo formatado para exibição
+ */
+function _formatarTempoJogo(jogo) {
+    if (jogo.tempo) {
+        return jogo.tempoExtra ? `${jogo.tempo}+${jogo.tempoExtra}'` : `${jogo.tempo}'`;
+    }
+    // Sem minutos: mostrar período baseado no statusRaw
+    switch (jogo.statusRaw) {
+        case '1H': return '1º T';
+        case '2H': return '2º T';
+        case 'HT': return 'Intervalo';
+        case 'ET': return 'Prorrog.';
+        case 'P': return 'Penaltis';
+        case 'BT': return 'Interv. Prorr.';
+        case 'LIVE': return 'AO VIVO';
+        default: return 'AO VIVO';
+    }
 }
 
 const TabelasEsportes = {
@@ -319,7 +345,7 @@ const TabelasEsportes = {
         const temPlacar = isAoVivo || isEncerrado;
 
         const statusBadge = isAoVivo
-            ? `<span class="tabelas-badge-live"><div class="tabelas-live-dot-sm"></div>${jogo.tempo || 'AO VIVO'}</span>`
+            ? `<span class="tabelas-badge-live"><div class="tabelas-live-dot-sm"></div>${_formatarTempoJogo(jogo)}</span>`
             : isEncerrado
                 ? `<span class="tabelas-badge-encerrado">Encerrado</span>`
                 : `<span class="tabelas-badge-horario">${jogo.horario || '--:--'}</span>`;
@@ -484,7 +510,7 @@ const TabelasEsportes = {
         const visitanteAbrev = (jogo.visitante || '???').substring(0, 3).toUpperCase();
 
         const statusBadge = isAoVivo
-            ? `<div class="tabelas-badge-live"><div class="tabelas-live-dot-sm"></div>${jogo.tempo || 'AO VIVO'}</div>`
+            ? `<div class="tabelas-badge-live"><div class="tabelas-live-dot-sm"></div>${_formatarTempoJogo(jogo)}</div>`
             : isEncerrado
                 ? `<div class="tabelas-badge-encerrado">Encerrado</div>`
                 : `<div class="tabelas-badge-horario">${jogo.horario || '--:--'}</div>`;
@@ -574,7 +600,7 @@ const TabelasEsportes = {
         const temAoVivo = jogos.some(j => ['1H','2H','HT','ET','P','BT','LIVE'].includes(j.statusRaw));
         if (!temAoVivo) return;
 
-        console.log('[TABELAS] Auto-refresh iniciado (60s)');
+        console.log('[TABELAS] Auto-refresh iniciado (30s)');
 
         this._autoRefreshTimer = setInterval(async () => {
             try {
@@ -605,7 +631,7 @@ const TabelasEsportes = {
             } catch (err) {
                 console.warn('[TABELAS] Erro no auto-refresh:', err.message);
             }
-        }, 60000);
+        }, 30000); // v2.1: Reduzido de 60s para 30s
     },
 
     _pararAutoRefresh() {
@@ -655,7 +681,7 @@ const TabelasEsportes = {
 
             if (targetBadge) {
                 if (isAoVivo) {
-                    targetBadge.outerHTML = `<div class="tabelas-badge-live"><div class="tabelas-live-dot-sm"></div>${jogo.tempo || 'AO VIVO'}</div>`;
+                    targetBadge.outerHTML = `<div class="tabelas-badge-live"><div class="tabelas-live-dot-sm"></div>${_formatarTempoJogo(jogo)}</div>`;
                     card.classList.add('tabelas-card-live');
                     card.classList.remove('tabelas-card-encerrado');
                 } else if (isEncerrado) {
@@ -715,4 +741,4 @@ const TabelasEsportes = {
 // Expor globalmente
 window.TabelasEsportes = TabelasEsportes;
 
-console.log('[TABELAS-ESPORTES] Componente v2.0 carregado');
+console.log('[TABELAS-ESPORTES] Componente v2.1 carregado (tempo + refresh 30s)');

@@ -1,6 +1,8 @@
 // =====================================================================
-// service-worker.js - Service Worker do PWA v4.0 (MODULE IMPORT FIX)
+// service-worker.js - Service Worker do PWA v4.2 (TTL DINÂMICO)
 // Destino: /participante/service-worker.js
+// ✅ v4.2: TTL DINÂMICO - Backend usa 30s com jogos ao vivo, 5min sem
+// ✅ v4.1: CACHE BUST - Forçar atualização de tabelas-esportes.js (tempo jogos + refresh 30s)
 // ✅ v4.0: FIX MOBILE MODULES - Não interceptar ES module imports (causa falha em mobile)
 // ✅ v3.9: FIX MOBILE - Normalizar query params no cache, preservar fallback offline
 // ✅ v3.8: RANKING FIX - Corrigir temporada 2025 hardcoded para dinâmica
@@ -11,10 +13,10 @@
 // ✅ v3.2: FORCE CACHE CLEAR - Limpar cache antigo que causava erros
 // ✅ v3.1: Network-First com cache fallback (FIX fetch failures)
 // ✅ v3.0: Força limpeza de caches antigos
-// BUILD: 2026-02-07T12:00:00Z
+// BUILD: 2026-02-11T01:10:00Z
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v19-liga-logos";
+const CACHE_NAME = "super-cartola-v21-ttl-dinamico";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [

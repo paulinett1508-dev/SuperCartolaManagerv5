@@ -1,5 +1,8 @@
 // routes/jogos-ao-vivo-routes.js
-// v4.1 - TTL reduzido para jogos ao vivo (30s) por feedback de usuários
+// v4.3 - TTL dinâmico blindado para jogos ao vivo
+// ✅ v4.3: TTL DINÂMICO BLINDADO - Cache da agenda usa 30s com jogos ao vivo, 5min sem
+//          Proteção: verifica jogos ao vivo no cache antigo e força refresh
+// ✅ v4.2: Campo atualizadoEm (ISO timestamp) em todas as respostas para exibir no frontend
 // ✅ v4.1: CACHE_TTL_AO_VIVO reduzido de 2min para 30s (melhora experiência ao vivo)
 //          Resolve: usuários reclamaram de demora excessiva na atualização de placares
 // ✅ v4.0: Busca agenda do dia do ge.globo.com (SSR data) e mescla com livescores
@@ -147,11 +150,15 @@ const CACHE_STALE_MAX = 30 * 60 * 1000;     // 30 minutos máximo para cache sta
 // Path do scraper Globo (fallback legado - arquivo JSON)
 const GLOBO_CACHE_PATH = path.join(process.cwd(), 'data', 'jogos-globo.json');
 
-// ✅ v4.0: Cache da agenda do dia (ge.globo.com SSR data)
+// ✅ v4.3: Cache da agenda com TTL DINÂMICO (blindagem para jogos ao vivo)
 let cacheAgendaDia = null;
 let cacheAgendaTimestamp = 0;
-const CACHE_AGENDA_TTL = 2 * 60 * 60 * 1000; // 2 horas (agenda muda pouco)
 let cacheAgendaDataRef = null;
+let cacheAgendaTemAoVivo = false; // 🛡️ BLINDAGEM: marca se cache tem jogos ao vivo
+
+// TTLs da agenda (dinâmico baseado em jogos ao vivo)
+const CACHE_AGENDA_TTL_AO_VIVO = 30 * 1000;      // 30 segundos com jogos ao vivo
+const CACHE_AGENDA_TTL_SEM_JOGOS = 5 * 60 * 1000; // 5 minutos sem jogos ao vivo
 
 // ✅ v4.1: Cache de jogos do mês (multi-datas ge.globo.com)
 let cacheMesDados = null;
@@ -159,7 +166,25 @@ let cacheMesTimestamp = 0;
 const CACHE_MES_TTL = 4 * 60 * 60 * 1000; // 4 horas
 
 /**
- * Busca agenda do dia do ge.globo.com (com cache de 2h)
+ * 🛡️ BLINDAGEM: Verifica se há jogos ao vivo em um array de jogos
+ */
+function temJogosAoVivoNoArray(jogos) {
+  if (!jogos || !Array.isArray(jogos)) return false;
+  return jogos.some(j => STATUS_AO_VIVO.includes(j.statusRaw));
+}
+
+/**
+ * 🛡️ BLINDAGEM: Calcula TTL dinâmico baseado em jogos ao vivo
+ * - Com jogos ao vivo: 30 segundos (atualização frequente)
+ * - Sem jogos ao vivo: 5 minutos (economia de recursos)
+ */
+function calcularTTLAgenda() {
+  return cacheAgendaTemAoVivo ? CACHE_AGENDA_TTL_AO_VIVO : CACHE_AGENDA_TTL_SEM_JOGOS;
+}
+
+/**
+ * Busca agenda do dia do ge.globo.com com TTL DINÂMICO BLINDADO
+ * 🛡️ PROTEÇÃO: TTL varia automaticamente baseado em jogos ao vivo
  * Retorna jogos no formato padrão (compatível com SoccerDataAPI)
  */
 async function buscarAgendaDoDia() {
@@ -168,30 +193,46 @@ async function buscarAgendaDoDia() {
 
   // Invalidar cache se a data mudou
   if (cacheAgendaDataRef && cacheAgendaDataRef !== dataHoje) {
+    console.log(`[JOGOS-DIA] 🔄 Data mudou (${cacheAgendaDataRef} → ${dataHoje}) - invalidando cache agenda`);
     cacheAgendaDia = null;
     cacheAgendaTimestamp = 0;
     cacheAgendaDataRef = null;
+    cacheAgendaTemAoVivo = false;
   }
 
-  // Retornar cache válido
-  if (cacheAgendaDia && (agora - cacheAgendaTimestamp) < CACHE_AGENDA_TTL) {
+  // 🛡️ BLINDAGEM: Calcular TTL dinâmico baseado em jogos ao vivo
+  const ttlAtual = calcularTTLAgenda();
+  const cacheValido = cacheAgendaDia && (agora - cacheAgendaTimestamp) < ttlAtual;
+
+  if (cacheValido) {
+    const idadeSegundos = Math.round((agora - cacheAgendaTimestamp) / 1000);
+    console.log(`[JOGOS-DIA] 📦 Cache agenda válido (${idadeSegundos}s/${ttlAtual/1000}s, aoVivo=${cacheAgendaTemAoVivo})`);
     return cacheAgendaDia;
   }
 
   try {
-    console.log('[JOGOS-DIA] Buscando agenda do dia via ge.globo.com...');
+    console.log(`[JOGOS-DIA] 🔄 Buscando agenda via ge.globo.com (TTL=${ttlAtual/1000}s)...`);
     const jogos = await obterJogosGloboEsporte(dataHoje);
-    console.log(`[JOGOS-DIA] ✅ Agenda ge.globo.com: ${jogos.length} jogos`);
+
+    // 🛡️ BLINDAGEM: Detectar se há jogos ao vivo para ajustar TTL da próxima vez
+    const temAoVivo = temJogosAoVivoNoArray(jogos);
 
     cacheAgendaDia = jogos;
     cacheAgendaTimestamp = agora;
     cacheAgendaDataRef = dataHoje;
+    cacheAgendaTemAoVivo = temAoVivo; // 🛡️ Atualiza flag de blindagem
+
+    const proximoTTL = temAoVivo ? CACHE_AGENDA_TTL_AO_VIVO : CACHE_AGENDA_TTL_SEM_JOGOS;
+    console.log(`[JOGOS-DIA] ✅ Agenda ge.globo.com: ${jogos.length} jogos (aoVivo=${temAoVivo}, próximoTTL=${proximoTTL/1000}s)`);
 
     return jogos;
   } catch (err) {
-    console.error('[JOGOS-DIA] Erro ao buscar agenda ge.globo.com:', err.message);
+    console.error('[JOGOS-DIA] ❌ Erro ao buscar agenda ge.globo.com:', err.message);
     // Retornar cache stale se disponível
-    if (cacheAgendaDia) return cacheAgendaDia;
+    if (cacheAgendaDia) {
+      console.log('[JOGOS-DIA] ⚠️ Usando cache stale da agenda');
+      return cacheAgendaDia;
+    }
     return [];
   }
 }
@@ -525,10 +566,11 @@ router.delete('/cache', (req, res) => {
   cacheAgendaDia = null;
   cacheAgendaTimestamp = 0;
   cacheAgendaDataRef = null;
+  cacheAgendaTemAoVivo = false; // 🛡️ Reset blindagem
   cacheMesDados = null;
   cacheMesTimestamp = 0;
 
-  console.log('[JOGOS-DIA] Cache limpo manualmente (livescores + agenda + mês)');
+  console.log('[JOGOS-DIA] 🧹 Cache limpo manualmente (livescores + agenda + mês + blindagem)');
 
   res.json({
     sucesso: true,
@@ -601,6 +643,7 @@ router.get('/', async (req, res) => {
         aoVivo: temAoVivo,
         estatisticas: stats,
         quantidade: jogosMesclados.length,
+        atualizadoEm: new Date(agora).toISOString(),
         mensagem: soccerData.jogos.length > 0
           ? `Livescores + agenda (${soccerData.jogos.length} ao vivo, ${jogosMesclados.length - soccerData.jogos.length} agendados)`
           : `Agenda do dia (${jogosMesclados.length} jogos programados)`
@@ -643,6 +686,7 @@ router.get('/', async (req, res) => {
       fonte: 'globo-arquivo',
       aoVivo: false,
       estatisticas: calcularEstatisticas(jogosGlobo),
+      atualizadoEm: new Date().toISOString(),
       mensagem: jogosGlobo.length > 0
         ? 'Dados do arquivo Globo (agenda legada)'
         : 'Sem jogos brasileiros hoje'
@@ -699,8 +743,10 @@ router.get('/status', async (req, res) => {
         descricao: 'Agenda do dia via ge.globo.com (jogos agendados)',
         cacheAgenda: {
           jogosEmCache: cacheAgendaDia?.length || 0,
-          idadeMinutos: cacheAgendaTimestamp ? Math.round((agora - cacheAgendaTimestamp) / 60000) : null,
-          ttl: '2 horas'
+          idadeSegundos: cacheAgendaTimestamp ? Math.round((agora - cacheAgendaTimestamp) / 1000) : null,
+          temAoVivo: cacheAgendaTemAoVivo,
+          ttlAtual: cacheAgendaTemAoVivo ? '30s (ao vivo)' : '5min (sem jogos)',
+          blindagem: '🛡️ TTL dinâmico ativo'
         }
       },
       'cache-stale': {
@@ -746,15 +792,19 @@ router.get('/invalidar', async (req, res) => {
   cacheJogosDia = null;
   cacheTimestamp = 0;
   cacheTemJogosAoVivo = false;
+  cacheDataReferencia = null;
   cacheAgendaDia = null;
   cacheAgendaTimestamp = 0;
   cacheAgendaDataRef = null;
+  cacheAgendaTemAoVivo = false; // 🛡️ Reset blindagem
   cacheMesDados = null;
   cacheMesTimestamp = 0;
 
+  console.log('[JOGOS-DIA] 🔄 Cache invalidado via API (+ blindagem resetada)');
+
   res.json({
     success: true,
-    mensagem: 'Cache invalidado (livescores + agenda + mês). Próxima requisição buscará dados frescos.'
+    mensagem: 'Cache invalidado (livescores + agenda + mês + blindagem). Próxima requisição buscará dados frescos.'
   });
 });
 

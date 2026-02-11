@@ -56,7 +56,7 @@
         }
 
         .saude-subtitle {
-            color: #9ca3af;
+            color: var(--text-muted);
             margin-top: 0.5rem;
         }
 
@@ -149,13 +149,13 @@
 
         .saude-score-label {
             font-size: 1.25rem;
-            color: #d1d5db;
+            color: var(--text-secondary);
         }
 
         .saude-last-update {
             margin-top: 1rem;
             font-size: 0.875rem;
-            color: #9ca3af;
+            color: var(--text-muted);
         }
 
         /* Components Grid */
@@ -213,6 +213,7 @@
             font-weight: 600;
             display: flex;
             align-items: center;
+            color: var(--text-primary);
         }
 
         .saude-component-icon {
@@ -222,16 +223,18 @@
 
         .saude-component-details {
             font-size: 0.875rem;
+            color: var(--text-secondary);
         }
 
         .saude-detail-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 0.5rem;
+            color: var(--text-primary);
         }
 
         .saude-detail-label {
-            color: #9ca3af;
+            color: var(--text-muted);
         }
 
         /* Status Indicators */
@@ -269,6 +272,7 @@
             font-size: 1.25rem;
             font-weight: 600;
             margin-bottom: 1rem;
+            color: var(--text-primary);
         }
 
         .saude-consolidacao-item {
@@ -289,24 +293,25 @@
 
         .saude-consolidacao-liga {
             font-weight: 500;
+            color: var(--text-primary);
         }
 
         .saude-consolidacao-rodada {
-            color: #9ca3af;
+            color: var(--text-muted);
             margin-left: 0.5rem;
         }
 
         .saude-consolidacao-time {
-            color: #9ca3af;
+            color: var(--text-muted);
             font-size: 0.875rem;
         }
 
         /* Utility Classes */
         .saude-hidden { display: none; }
-        .saude-text-green { color: #10b981; }
-        .saude-text-yellow { color: #fbbf24; }
-        .saude-text-red { color: #ef4444; }
-        .saude-text-gray { color: #9ca3af; }
+        .saude-text-green { color: var(--color-success); }
+        .saude-text-yellow { color: var(--color-warning); }
+        .saude-text-red { color: var(--color-danger); }
+        .saude-text-gray { color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -448,6 +453,42 @@
             </div>
         </main>
     </div>
+
+    <script>
+        // ✅ Carregar sidebar do layout.html
+        async function carregarLayout() {
+            try {
+                const response = await fetch('layout.html');
+                const layoutHtml = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(layoutHtml, 'text/html');
+                const sidebar = doc.querySelector('.app-sidebar');
+                if (sidebar) {
+                    document.getElementById('sidebar-placeholder')?.replaceWith(sidebar);
+                }
+                const scripts = doc.querySelectorAll('script');
+                scripts.forEach(script => {
+                    if (script.textContent.trim()) {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = `(function(){${script.textContent}})();`;
+                        document.head.appendChild(newScript);
+                    }
+                });
+
+                // Verificar menu super admin
+                setTimeout(() => {
+                    if (typeof window.verificarMenuSuperAdmin === 'function') {
+                        window.verificarMenuSuperAdmin();
+                    }
+                }, 150);
+            } catch (error) {
+                console.error('[Dashboard Saúde] Erro ao carregar layout:', error);
+            }
+        }
+
+        // Carregar layout imediatamente
+        carregarLayout();
+    </script>
 
     <script type="module">
         // ✅ Cleanup de instância anterior (SPA re-navigation)
