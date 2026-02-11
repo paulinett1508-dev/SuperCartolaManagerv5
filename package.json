@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "webhook": "node webhook-server.js",
-    "prestart": "npm run build:css",
+    "prestart": "npm run build:css 2>/dev/null || true",
     "predev": "npm run build:css",
     "start": "cross-env NODE_ENV=production node index.js",
     "dev": "cross-env NODE_ENV=development node index.js",
