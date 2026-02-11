@@ -2208,7 +2208,7 @@
                                     <img src="${escudoUrl}"
                                          alt="Escudo"
                                          class="w-8 h-8 object-contain"
-                                         onerror="this.src='/escudos/default.png'">
+                                         onerror="this.onerror=null;this.src='/escudos/default.png'">
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-semibold text-white truncate">${p.nome_cartola}</p>
@@ -2620,7 +2620,7 @@
                         <img src="/escudos/${clubeId}.png"
                              alt="Clube"
                              class="w-7 h-7 object-contain"
-                             onerror="this.src='/escudos/default.png'">
+                             onerror="this.onerror=null;this.src='/escudos/default.png'">
                         ${badgeHtml}
                     </div>
                     <div class="flex-1 min-w-0">

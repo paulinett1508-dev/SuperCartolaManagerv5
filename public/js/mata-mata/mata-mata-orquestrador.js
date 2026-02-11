@@ -522,7 +522,7 @@ async function carregarClassificadosParciais(contentElement, ligaId, edicaoId, e
         <td class="jogo-cell">${i + 1}º</td>
         <td class="time-cell">
           <div class="time-info">
-            <img src="/escudos/${t.clube_id}.png" class="escudo-img" onerror="this.src='/escudos/default.png'">
+            <img src="/escudos/${t.clube_id}.png" class="escudo-img" onerror="this.onerror=null;this.src='/escudos/default.png'">
             <div class="time-details">
               <span class="time-nome">${t.nome_time || "—"}</span>
               <span class="time-cartoleiro">${t.nome_cartola || "—"}</span>
@@ -539,7 +539,7 @@ async function carregarClassificadosParciais(contentElement, ligaId, edicaoId, e
         <td class="jogo-cell">${tamanhoTorneioVal + i + 1}º</td>
         <td class="time-cell">
           <div class="time-info">
-            <img src="/escudos/${t.clube_id}.png" class="escudo-img" onerror="this.src='/escudos/default.png'">
+            <img src="/escudos/${t.clube_id}.png" class="escudo-img" onerror="this.onerror=null;this.src='/escudos/default.png'">
             <div class="time-details">
               <span class="time-nome">${t.nome_time || "—"}</span>
               <span class="time-cartoleiro">${t.nome_cartola || "—"}</span>

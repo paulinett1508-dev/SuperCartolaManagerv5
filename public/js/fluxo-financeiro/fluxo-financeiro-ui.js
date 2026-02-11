@@ -1054,7 +1054,7 @@ export class FluxoFinanceiroUI {
         const escudoTimeCoracao = timeCoracaoId
             ? `<img src="/escudos/${timeCoracaoId}.png"
                    alt="" class="escudo-coracao"
-                   onerror="this.src='/escudos/default.png'"
+                   onerror="this.onerror=null;this.src='/escudos/default.png'"
                    title="Time do Coração">`
             : '<span class="material-icons" style="font-size: 16px; color: #666;">favorite_border</span>';
 
@@ -1213,7 +1213,7 @@ export class FluxoFinanceiroUI {
         const escudoTimeCoracao = timeCoracaoId
             ? `<img src="/escudos/${timeCoracaoId}.png"
                    alt="" class="escudo-coracao"
-                   onerror="this.src='/escudos/default.png'"
+                   onerror="this.onerror=null;this.src='/escudos/default.png'"
                    title="Time do Coração">`
             : '<span class="material-icons" style="font-size: 16px; color: #666;">favorite_border</span>';
 
@@ -4550,10 +4550,10 @@ window.abrirNovoParticipante = function() {
             resultados.innerHTML = times.map(time => `
                 <div class="resultado-busca-item-novo"
                      onclick="window.selecionarTimeNovoParticipante(${time.time_id || time.id}, '${escapeHtml(time.nome_time || time.nome || '')}', '${escapeHtml(time.nome_cartoleiro || time.nome_cartola || '')}', '${escapeHtml(time.escudo_url || time.url_escudo_png || time.escudo || '')}')">
-                    <img src="${escapeHtml(time.escudo_url || time.url_escudo_png || time.escudo || '/img/default-escudo.png')}"
+                    <img src="${escapeHtml(time.escudo_url || time.url_escudo_png || time.escudo || '/escudos/default.png')}"
                          alt="Escudo"
                          style="width: 36px; height: 36px; border-radius: 4px; margin-right: 12px;"
-                         onerror="this.src='/img/default-escudo.png'">
+                         onerror="this.onerror=null;this.src='/escudos/default.png'">
                     <div style="flex: 1;">
                         <div style="color: #fff; font-weight: 600;">${escapeHtml(time.nome_time || time.nome || 'Time sem nome')}</div>
                         <small style="color: #888;">${escapeHtml(time.nome_cartoleiro || time.nome_cartola || '')}</small>
@@ -4585,7 +4585,7 @@ window.abrirNovoParticipante = function() {
 
         // Mostrar time selecionado
         document.getElementById('timeSelecionadoNovo').style.display = 'block';
-        document.getElementById('escudoSelecionadoNovo').src = escudo || '/img/default-escudo.png';
+        document.getElementById('escudoSelecionadoNovo').src = escudo || '/escudos/default.png';
         document.getElementById('nomeTimeSelecionadoNovo').textContent = nomeTime || 'Time';
         document.getElementById('nomeCartoleiroSelecionadoNovo').textContent = nomeCartoleiro || '';
 

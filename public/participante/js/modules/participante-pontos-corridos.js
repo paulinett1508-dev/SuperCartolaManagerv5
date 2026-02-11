@@ -523,7 +523,7 @@ function renderizarBannerCampeao() {
     const escudoCampeao =
         campeao.escudo ||
         campeao.url_escudo_png ||
-        "/assets/escudo-placeholder.png";
+        "/escudos/default.png";
     const pontosCampeao = campeao.pontos || 0;
     const vitoriasCampeao = campeao.vitorias || 0;
     const empatesCampeao = campeao.empates || 0;
@@ -544,7 +544,7 @@ function renderizarBannerCampeao() {
                 </div>
                 <div class="flex items-center justify-center gap-4 bg-black/30 rounded-xl p-3">
                     <div class="relative">
-                        <img src="${escudoCampeao}" class="w-16 h-16 rounded-full border-2 border-yellow-500 shadow-lg shadow-yellow-500/30" onerror="this.src='/assets/escudo-placeholder.png'">
+                        <img src="${escudoCampeao}" class="w-16 h-16 rounded-full border-2 border-yellow-500 shadow-lg shadow-yellow-500/30" onerror="this.onerror=null;this.src='/escudos/default.png'">
                         <span class="material-symbols-outlined absolute -bottom-1 -right-1 text-yellow-400" style="font-size: 20px;">military_tech</span>
                     </div>
                     <div class="text-left">
@@ -832,11 +832,11 @@ function buildLinhaConfronto(confronto, meuTimeId) {
     const esc1 =
         time1.escudo ||
         time1.url_escudo_png ||
-        "/assets/escudo-placeholder.png";
+        "/escudos/default.png";
     const esc2 =
         time2.escudo ||
         time2.url_escudo_png ||
-        "/assets/escudo-placeholder.png";
+        "/escudos/default.png";
     const cor1 =
         vencedor === 1
             ? "text-green-500"
@@ -870,7 +870,7 @@ function buildLinhaConfronto(confronto, meuTimeId) {
     return `
         <div class="py-3 px-3 flex items-center justify-between ${bg}">
             <div class="flex items-center min-w-0 flex-1 ${vencedor === 2 ? "opacity-60" : ""}">
-                <img src="${esc1}" class="w-10 h-10 rounded-full mr-3 shrink-0 bg-zinc-700 object-cover" onerror="this.src='/assets/escudo-placeholder.png'">
+                <img src="${esc1}" class="w-10 h-10 rounded-full mr-3 shrink-0 bg-zinc-700 object-cover" onerror="this.onerror=null;this.src='/escudos/default.png'">
                 <div class="min-w-0 flex-1">
                     <p class="font-semibold text-sm truncate ${isMeu1 ? "text-primary" : "text-white"}">${nome1}</p>
                     <p class="text-[10px] text-gray-500 truncate">${cartoleiro1}</p>
@@ -884,7 +884,7 @@ function buildLinhaConfronto(confronto, meuTimeId) {
                     <p class="text-[10px] text-gray-500 truncate">${cartoleiro2}</p>
                     <div class="flex items-center justify-end space-x-1.5 mt-0.5"><p class="text-sm font-bold ${cor2}">${p2 !== null ? p2.toFixed(1) : "-"}</p>${modal2}</div>
                 </div>
-                <img src="${esc2}" class="w-10 h-10 rounded-full ml-3 shrink-0 bg-zinc-700 object-cover" onerror="this.src='/assets/escudo-placeholder.png'">
+                <img src="${esc2}" class="w-10 h-10 rounded-full ml-3 shrink-0 bg-zinc-700 object-cover" onerror="this.onerror=null;this.src='/escudos/default.png'">
             </div>
             <div class="w-14 text-right ml-2 shrink-0"><p class="font-bold text-sm text-white">${diferenca != null ? diferenca.toFixed(1) : "-"}</p></div>
         </div>
@@ -967,7 +967,7 @@ function buildLinhaClassificacao(
     const nome = time.nome || time.nome_time || "Time";
     const cartoleiro = time.nome_cartola || "";
     const esc =
-        time.escudo || time.url_escudo_png || "/assets/escudo-placeholder.png";
+        time.escudo || time.url_escudo_png || "/escudos/default.png";
     const inativoStyle = isInativo ? "opacity-50 grayscale-[60%]" : "";
     const bgClass = isCampeao
         ? "bg-gradient-to-r from-yellow-500/20 to-yellow-600/10 border-l-2 border-yellow-500"
@@ -996,7 +996,7 @@ function buildLinhaClassificacao(
         <div class="flex items-center px-3 py-2.5 ${bgClass} ${inativoStyle}">
             <div class="w-8 flex items-center justify-center shrink-0">${posicaoBadge}</div>
             <div class="flex items-center gap-2.5 pl-2 min-w-0 flex-1">
-                <img src="${esc}" class="w-8 h-8 rounded-full bg-zinc-700 object-cover shrink-0 ${isCampeao ? "ring-2 ring-yellow-500" : ""}" onerror="this.src='/assets/escudo-placeholder.png'">
+                <img src="${esc}" class="w-8 h-8 rounded-full bg-zinc-700 object-cover shrink-0 ${isCampeao ? "ring-2 ring-yellow-500" : ""}" onerror="this.onerror=null;this.src='/escudos/default.png'">
                 <div class="min-w-0 flex-1">
                     <span class="text-xs font-medium truncate block ${isCampeao ? "text-yellow-400 font-bold" : isMeu && !isInativo ? "text-primary font-bold" : isInativo ? "text-gray-500" : "text-white"}">${nome}${nomeSufixo}</span>
                     <span class="text-[10px] ${isInativo ? "text-gray-600" : "text-gray-500"} truncate block">${cartoleiro}</span>

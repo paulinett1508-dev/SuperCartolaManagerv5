@@ -736,7 +736,7 @@ async function carregarNaoEscalaram(container) {
                         ${naoEscalaram.map(p => `
                             <div class="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
                                 <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                                    ${p.clube_id ? `<img src="/escudos/${p.clube_id}.png" onerror="this.src='/escudos/default.png'" class="w-5 h-5">` : '<span class="material-icons text-white/30 text-sm">person</span>'}
+                                    ${p.clube_id ? `<img src="/escudos/${p.clube_id}.png" onerror="this.onerror=null;this.src='/escudos/default.png'" class="w-5 h-5">` : '<span class="material-icons text-white/30 text-sm">person</span>'}
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-white truncate">${p.nome_time || 'Time'}</p>

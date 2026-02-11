@@ -349,7 +349,7 @@ function renderizarCardApp(rank, index, posLabel, banco, isParcial = false) {
         <div class="rc-pos-num">${index + 1}</div>
         <div class="rc-pos-idx ${varPosClass}">${varPosIcon}</div>
       </div>
-      <img src="${escudoUrl}" class="rc-shield" onerror="this.src='/escudos/default.png'">
+      <img src="${escudoUrl}" class="rc-shield" onerror="this.onerror=null;this.src='/escudos/default.png'">
       <div class="rc-team">
         <div class="rc-info">
           <div class="rc-team-name">${rank.nome_time || "Time Sem Nome"}</div>
@@ -456,7 +456,7 @@ export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
         listHTML += `
           <div class="ranking-card inativo" style="opacity: 0.6; filter: grayscale(1);">
             <div class="rc-pos"><div class="rc-pos-num">-</div></div>
-            <img src="${escudoUrl}" class="rc-shield" onerror="this.src='/escudos/default.png'">
+            <img src="${escudoUrl}" class="rc-shield" onerror="this.onerror=null;this.src='/escudos/default.png'">
             <div class="rc-team">
                <div class="rc-info">
                   <div class="rc-team-name">${rank.nome_time || "N/D"}</div>
@@ -532,7 +532,7 @@ export function exibirRankingParciais(
         listHTML += `
           <div class="ranking-card inativo" style="opacity: 0.6; filter: grayscale(1);">
             <div class="rc-pos"><div class="rc-pos-num">-</div></div>
-            <img src="${escudoUrl}" class="rc-shield" onerror="this.src='/escudos/default.png'">
+            <img src="${escudoUrl}" class="rc-shield" onerror="this.onerror=null;this.src='/escudos/default.png'">
             <div class="rc-team">
                <div class="rc-info">
                   <div class="rc-team-name">${rank.nome_time || "N/D"}</div>

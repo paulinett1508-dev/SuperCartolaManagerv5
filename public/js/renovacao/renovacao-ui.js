@@ -777,7 +777,7 @@ const RenovacaoUI = (function() {
         // Atualizar UI
         document.getElementById('timeSelecionado').classList.remove('d-none');
         document.getElementById('secaoConfirmacao').classList.remove('d-none');
-        document.getElementById('escudoSelecionado').src = dados.escudo || '/img/default-escudo.png';
+        document.getElementById('escudoSelecionado').src = dados.escudo || '/escudos/default.png';
         document.getElementById('nomeTimeSelecionado').textContent = dados.nomeTime;
         document.getElementById('nomeCartoleiroSelecionado').textContent = dados.nomeCartoleiro;
 

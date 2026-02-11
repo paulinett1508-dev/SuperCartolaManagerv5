@@ -866,7 +866,7 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
                     <span style="background:${pos.cor};color:var(--app-text-white);font-size:9px;padding:3px 7px;border-radius:4px;font-weight:bold;">${pos.nome}</span>
                 </td>
                 <td style="padding:8px 4px;text-align:center;">
-                    <img src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;">
+                    <img src="${escudoSrc}" alt="" onerror="this.onerror=null;this.src='/escudos/default.png'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;">
                 </td>
                 <td style="padding:8px 8px;font-size:13px;color:#e5e7eb;">
                     <div>${a.apelido || 'Atleta'}${capitaoBadge}${luxoBadge}</div>${subBadge}
@@ -1747,7 +1747,7 @@ function abrirCampinhoModal(targetTimeId, rodada, rodadaData = null) {
                     <span style="background:${pos.cor};color:var(--app-text-white);font-size:9px;padding:3px 7px;border-radius:4px;font-weight:bold;">${pos.nome}</span>
                 </td>
                 <td style="padding:8px 4px;text-align:center;">
-                    <img src="${escudoSrc}" alt="" onerror="this.src='/escudos/default.png'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;">
+                    <img src="${escudoSrc}" alt="" onerror="this.onerror=null;this.src='/escudos/default.png'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;">
                 </td>
                 <td style="padding:8px 8px;font-size:13px;color:#e5e7eb;">
                     <div>${a.apelido || 'Atleta'}${capitaoBadge}</div>${subBadge}

@@ -199,7 +199,7 @@ function renderParticipanteCard(p) {
           src="/escudos/${p.escudo}.png"
           alt="${p.nome}"
           style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;"
-          onerror="this.src='/escudos/default.png'"
+          onerror="this.onerror=null;this.src='/escudos/default.png'"
         >
         <div style="flex: 1; min-width: 0;">
           <p style="font-weight: 600; font-size: 13px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -242,7 +242,7 @@ function renderParticipanteListItem(p, idx) {
           src="/escudos/${p.escudo}.png"
           alt="${p.nome}"
           style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
-          onerror="this.src='/escudos/default.png'"
+          onerror="this.onerror=null;this.src='/escudos/default.png'"
         >
       </div>
 

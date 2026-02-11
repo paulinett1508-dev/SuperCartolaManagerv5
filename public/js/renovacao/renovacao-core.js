@@ -266,9 +266,9 @@ const RenovacaoCore = (function() {
                     </div>
                     <div class="modal-body">
                         <div class="d-flex align-items-center mb-3">
-                            <img src="${participante.escudo || participante.escudo_url || '/img/default-escudo.png'}"
+                            <img src="${participante.escudo || participante.escudo_url || '/escudos/default.png'}"
                                  alt="Escudo" class="rounded me-3" style="width: 48px; height: 48px;"
-                                 onerror="this.src='/img/default-escudo.png'">
+                                 onerror="this.onerror=null;this.src='/escudos/default.png'">
                             <div>
                                 <h6 class="mb-0">${RenovacaoModals.escapeHtml(participante.nome_time) || ''}</h6>
                                 <small class="text-muted">${RenovacaoModals.escapeHtml(participante.nome_cartoleiro || participante.nome_cartola) || ''}</small>

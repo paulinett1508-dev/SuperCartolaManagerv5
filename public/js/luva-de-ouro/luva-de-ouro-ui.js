@@ -408,7 +408,7 @@ export function renderizarRanking(dados) {
       return `
       <tr class="${rowClass}">
         <td class="col-pos"><span class="pos-badge ${posClass}">${posIcon}</span></td>
-        <td class="col-escudo"><img src="/escudos/${escudoId}.png" alt="" class="escudo-img" onerror="this.src='/escudos/default.png'"></td>
+        <td class="col-escudo"><img src="/escudos/${escudoId}.png" alt="" class="escudo-img" onerror="this.onerror=null;this.src='/escudos/default.png'"></td>
         <td class="col-nome"><span class="participante-nome">${item.participanteNome}</span></td>
         <td class="col-total"><span class="pontos-total">${pontosTotais}</span></td>
         ${celulasRodadas}
@@ -773,7 +773,7 @@ export function renderizarSecaoInativos(dados, rodadasExibir, rodadaParcial) {
       return `
       <tr class="luva-ranking-row inativo">
         <td class="col-pos"><span class="pos-badge pos-inativo">—</span></td>
-        <td class="col-escudo"><img src="/escudos/${escudoId}.png" alt="" class="escudo-img" onerror="this.src='/escudos/default.png'" style="opacity:0.5;filter:grayscale(80%);"></td>
+        <td class="col-escudo"><img src="/escudos/${escudoId}.png" alt="" class="escudo-img" onerror="this.onerror=null;this.src='/escudos/default.png'" style="opacity:0.5;filter:grayscale(80%);"></td>
         <td class="col-nome">
           <span class="participante-nome" style="color:#888;">${item.participanteNome}</span>
           <span class="desistencia-badge">SAIU R${item.rodada_desistencia || "?"}</span>

@@ -411,7 +411,7 @@ class AdminTesouraria {
             <div class="linha-financeira ${statusClass}" data-time-id="${timeId}" onclick="adminTesouraria.toggleExpand(this)">
                 <!-- ESQUERDA: Perfil -->
                 <div class="linha-perfil">
-                    <img src="${escudoUrl}" alt="" class="escudo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%232d2d2d%22/%3E%3C/svg%3E'">
+                    <img src="${escudoUrl}" alt="" class="escudo" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%232d2d2d%22/%3E%3C/svg%3E'">
                     <div class="perfil-info">
                         <span class="nome-cartola">${this._escapeHtml(nome)}</span>
                         <span class="nome-time">${this._escapeHtml(nomeTime || '')}</span>
@@ -618,7 +618,7 @@ class AdminTesouraria {
                        : participante.saldoFinal > 0.01 ? 'var(--color-success)' : 'var(--text-dim)';
 
         headerEl.innerHTML = `
-            <img src="${escudoUrl}" alt="" class="escudo-lg" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%232d2d2d%22/%3E%3C/svg%3E'">
+            <img src="${escudoUrl}" alt="" class="escudo-lg" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%232d2d2d%22/%3E%3C/svg%3E'">
             <div class="panel-header-info">
                 <h3>${this._escapeHtml(participante.nome)}</h3>
                 <p>${this._escapeHtml(participante.nomeTime || '')}</p>

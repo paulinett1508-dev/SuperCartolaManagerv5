@@ -682,7 +682,7 @@ function renderizarRankingParcial(resultados, rodada, temporada) {
                     ${medalha || posicao}
                 </div>
                 <div class="parciais-time-info">
-                    <img src="${escudoUrl}" alt="Escudo ${time.nome_time}" class="parciais-escudo" onerror="this.src='/escudos/default.png'">
+                    <img src="${escudoUrl}" alt="Escudo ${time.nome_time}" class="parciais-escudo" onerror="this.onerror=null;this.src='/escudos/default.png'">
                     <div class="parciais-time-nomes">
                         <span class="parciais-time-nome">${time.nome_time}</span>
                         <span class="parciais-cartola-nome">${time.nome_cartola}</span>

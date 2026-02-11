@@ -753,7 +753,7 @@ function renderizarLinhaLista(atleta, capitaoId, reservaLuxoId, isReserva = fals
     return `
         <div class="campinho-tabela-jogador ${classeCard} ${classeReserva} ${classeNegativo}">
             <div class="campinho-tabela-escudo">
-                <img src="/escudos/${clubeId}.png" alt="${esc(nome)}" onerror="this.src='/escudos/default.png'">
+                <img src="/escudos/${clubeId}.png" alt="${esc(nome)}" onerror="this.onerror=null;this.src='/escudos/default.png'">
                 ${badgeHtml}
             </div>
             <div class="campinho-tabela-info">
@@ -863,7 +863,7 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
         <div class="${classes.join(' ')}">
             <div class="campinho-jogador-avatar pos-${posicao.cor}">
                 <img src="/escudos/${clubeId}.png"
-                     onerror="this.src='/escudos/default.png'"
+                     onerror="this.onerror=null;this.src='/escudos/default.png'"
                      alt="${esc(nome)}">
                 ${badgeHtml}
                 <span class="campinho-jogador-pontos ${classePontos}">${pontosExibir.toFixed(1)}</span>

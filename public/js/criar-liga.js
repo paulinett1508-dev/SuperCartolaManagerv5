@@ -100,7 +100,7 @@ async function buscarTime() {
                     <div class="result-info">
                         <img src="${escudo}"
                              class="result-escudo"
-                             onerror="this.src='/escudos/default.png'"
+                             onerror="this.onerror=null;this.src='/escudos/default.png'"
                              alt="Escudo do time">
                         <div class="result-details">
                             <div class="result-nome">${nomeTime}</div>
@@ -192,7 +192,7 @@ function atualizarListaTimes() {
                 <li class="time-item">
                     <div class="time-info">
                         <img src="${time.escudo}" class="time-escudo"
-                             onerror="this.src='/escudos/default.png'"
+                             onerror="this.onerror=null;this.src='/escudos/default.png'"
                              alt="Escudo do time">
                         <div class="time-details">
                             <div class="time-nome">${time.nome}</div>
@@ -254,7 +254,7 @@ function atualizarResumo() {
                 <li class="time-item">
                     <div class="time-info">
                         <img src="${time.escudo}" class="time-escudo" 
-                             onerror="this.src='/escudos/default.png'"
+                             onerror="this.onerror=null;this.src='/escudos/default.png'"
                              alt="Escudo do time">
                         <div class="time-details">
                             <div class="time-nome">${time.nome}</div>

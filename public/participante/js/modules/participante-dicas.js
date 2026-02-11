@@ -283,7 +283,7 @@ function renderizarCardJogador(j) {
     return `
         <div class="dicas-jogador-card" onclick="window.abrirDetalheJogador(${j.atletaId})">
             <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-                <img src="/escudos/${j.clubeId}.png" onerror="this.src='/escudos/default.png'" class="w-6 h-6" alt="">
+                <img src="/escudos/${j.clubeId}.png" onerror="this.onerror=null;this.src='/escudos/default.png'" class="w-6 h-6" alt="">
             </div>
             <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
@@ -354,7 +354,7 @@ function renderizarTabConfrontos() {
                     <div class="dicas-confronto-card">
                         <div class="flex items-center gap-3">
                             <span class="w-6 text-center text-xs font-bold ${i < 3 ? 'text-red-400' : 'text-white/40'}">${i + 1}</span>
-                            <img src="/escudos/${c.clubeId}.png" onerror="this.src='/escudos/default.png'" class="w-8 h-8" alt="">
+                            <img src="/escudos/${c.clubeId}.png" onerror="this.onerror=null;this.src='/escudos/default.png'" class="w-8 h-8" alt="">
                             <span class="text-sm text-white">${c.clubeNome}</span>
                         </div>
                         <div class="text-right">
@@ -646,7 +646,7 @@ function renderizarResultadoSugestao(data) {
                 jogadores.map(j => `
                     <div class="sugestao-jogador ${j.capitao ? 'capitao' : ''}">
                         <span class="sugestao-posicao-badge ${posicaoClasses[j.posicaoId]}">${j.posicao}</span>
-                        <img src="/escudos/${j.clubeId}.png" onerror="this.src='/escudos/default.png'"
+                        <img src="/escudos/${j.clubeId}.png" onerror="this.onerror=null;this.src='/escudos/default.png'"
                              class="w-7 h-7" alt="">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2">

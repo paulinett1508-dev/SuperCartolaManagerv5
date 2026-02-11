@@ -833,7 +833,7 @@ async function buscarPorId() {
                 <img
                     class="pt-resultado-escudo"
                     src="${time.escudo || '/escudos/default.png'}"
-                    onerror="this.src='/escudos/default.png'"
+                    onerror="this.onerror=null;this.src='/escudos/default.png'"
                     alt="Escudo"
                 />
                 <div class="pt-resultado-info">
@@ -928,7 +928,7 @@ async function buscarTimes(query) {
                 <img
                     class="pt-resultado-escudo"
                     src="${time.escudo || '/escudos/default.png'}"
-                    onerror="this.src='/escudos/default.png'"
+                    onerror="this.onerror=null;this.src='/escudos/default.png'"
                     alt="Escudo"
                 />
                 <div class="pt-resultado-info">
@@ -975,7 +975,7 @@ async function selecionarTime(time) {
             <div class="pt-time-selecionado">
                 <img
                     src="${time.escudo || '/escudos/default.png'}"
-                    onerror="this.src='/escudos/default.png'"
+                    onerror="this.onerror=null;this.src='/escudos/default.png'"
                     alt="Escudo"
                 />
                 <h4>${time.nome_time}</h4>
@@ -1029,7 +1029,7 @@ function renderizarConfirmacao(time) {
             <div class="pt-time-selecionado">
                 <img
                     src="${fotoUrl || '/escudos/default.png'}"
-                    onerror="this.src='/escudos/default.png'"
+                    onerror="this.onerror=null;this.src='/escudos/default.png'"
                     alt="Escudo"
                 />
                 <h4>${timeData.nome || time.nome_time}</h4>

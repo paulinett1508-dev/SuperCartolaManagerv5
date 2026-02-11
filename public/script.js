@@ -53,7 +53,7 @@ function renderizarGaleria() {
     }
 
     card.innerHTML = `
-      <img src="${obterEscudo(time)}" alt="Escudo" style="width: 60px; height: 60px; margin-bottom: 10px; border-radius: 50%; object-fit: cover;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiNlOWVjZWYiLz4KPHN2ZyB4PSIxNSIgeT0iMTUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjNmM3NTdkIj4KPHA+4pqgPC9wPgo8L3N2Zz4KPC9zdmc+'" />
+      <img src="${obterEscudo(time)}" alt="Escudo" style="width: 60px; height: 60px; margin-bottom: 10px; border-radius: 50%; object-fit: cover;" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiNlOWVjZWYiLz4KPHN2ZyB4PSIxNSIgeT0iMTUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjNmM3NTdkIj4KPHA+4pqgPC9wPgo8L3N2Zz4KPC9zdmc+'" />
       <div style="font-weight: bold; color: #2c3e50;">🛡️ ${time.nome}</div>
       <div style="color: #555; font-size: 14px; margin: 6px 0;">👤 ${time.nome_cartola}</div>
       <button onclick="removerTime(${index})" style="margin-top: 8px; background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Remover</button>

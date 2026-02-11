@@ -818,7 +818,7 @@ const LuvaDeOuroUtils = {
               '<td style="text-align:center; padding: 8px 6px;">' +
               '<img src="/escudos/' +
               item.clubeId +
-              '.png" alt="" style="width:20px; height:20px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.src=\'/escudos/default.png\'"/>' +
+              '.png" alt="" style="width:20px; height:20px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.onerror=null;this.src=\'/escudos/default.png\'"/>' +
               "</td>" +
               '<td style="text-align:left; padding: 8px 6px;">' +
               '<div style="font-weight:600; font-size: 12px;">' +

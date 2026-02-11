@@ -262,7 +262,7 @@ async function carregarParticipantesPorTemporada(temporada) {
                     <div class="participante-avatar-mini">
                         <img src="${p.escudo || CLUBES_CONFIG.PATHS.defaultImage}"
                              alt="${p.nome_cartoleiro}"
-                             onerror="this.src='${CLUBES_CONFIG.PATHS.defaultImage}'">
+                             onerror="this.onerror=null;this.src='${CLUBES_CONFIG.PATHS.defaultImage}'">
                         <span class="status-dot ${estaAtivo ? "status-ativo" : "status-inativo"}"></span>
                     </div>
 
@@ -275,7 +275,7 @@ async function carregarParticipantesPorTemporada(temporada) {
                     <div class="participante-clube-mini" title="${BrasoesHelper.getNomeClube(p.clube_id)}">
                         <img src="${BrasoesHelper.getClubeBrasao(p.clube_id)}"
                              alt="${BrasoesHelper.getNomeClube(p.clube_id)}"
-                             onerror="this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
+                             onerror="this.onerror=null;this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
                     </div>
                     ` : ""}
 
@@ -655,7 +655,7 @@ async function carregarParticipantesComBrasoes() {
                     <div class="participante-avatar-mini">
                         <img src="${BrasoesHelper.getTimeFantasyBrasao(timeData)}"
                              alt="${timeData.nome_cartoleiro}"
-                             onerror="this.src='${CLUBES_CONFIG.PATHS.defaultImage}'">
+                             onerror="this.onerror=null;this.src='${CLUBES_CONFIG.PATHS.defaultImage}'">
                         <span class="status-dot ${statusClass}"></span>
                     </div>
 
@@ -668,7 +668,7 @@ async function carregarParticipantesComBrasoes() {
                     <div class="participante-clube-mini" title="${BrasoesHelper.getNomeClube(timeData.clube_id)}">
                         <img src="${BrasoesHelper.getClubeBrasao(timeData.clube_id)}"
                              alt="${BrasoesHelper.getNomeClube(timeData.clube_id)}"
-                             onerror="this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
+                             onerror="this.onerror=null;this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
                     </div>
                     ` : ''}
 
@@ -1312,7 +1312,7 @@ function renderizarAtletasCards(atletas) {
                 <div class="jv-atleta-foto">
                     <img src="${atleta.foto || '/escudos/placeholder.png'}"
                          alt="${atleta.apelido}"
-                         onerror="this.src='/escudos/placeholder.png'" />
+                         onerror="this.onerror=null;this.src='/escudos/placeholder.png'" />
                     ${atleta.capitao ? '<span class="jv-capitao">C</span>' : ''}
                 </div>
                 <div class="jv-atleta-info">
@@ -1807,7 +1807,7 @@ function criarModalApiCartola(timeId, nomeCartoleiro, nomeTime, data) {
                                 <img src="${time.url_escudo_png || time.url_escudo_svg}"
                                      alt="Escudo do Time"
                                      class="escudo-grande"
-                                     onerror="this.src='/escudos/default.png'">
+                                     onerror="this.onerror=null;this.src='/escudos/default.png'">
                             ` : `
                                 <div class="escudo-placeholder">
                                     <span class="material-symbols-outlined">shield</span>
@@ -2113,7 +2113,7 @@ function criarModalDadosGlobo(timeId, nomeCartoleiro, nomeTime, data) {
                 <div class="atletas-grid">
                     ${atletas.slice(0, 12).map(a => `
                         <div class="atleta-card">
-                            <img src="${a.foto || '/escudos/placeholder.png'}" alt="${a.apelido}" onerror="this.src='/escudos/placeholder.png'">
+                            <img src="${a.foto || '/escudos/placeholder.png'}" alt="${a.apelido}" onerror="this.onerror=null;this.src='/escudos/placeholder.png'">
                             <span class="atleta-nome">${a.apelido || a.nome}</span>
                             <span class="atleta-pontos">${a.pontos_num?.toFixed(1) || '-'} pts</span>
                         </div>
@@ -2500,7 +2500,7 @@ async function validarIdParticipante(timeId, nome, btn) {
                                 clubeDiv.innerHTML = `
                                     <img src="${clubeImg}"
                                          alt="${clubeNome}"
-                                         onerror="this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
+                                         onerror="this.onerror=null;this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
                                 `;
                                 // Inserir antes das ações
                                 if (actionsDiv) {
@@ -3614,7 +3614,7 @@ window.buscarTimeNovoParticipante = async function() {
             <div class="resultado-item" onclick="window.selecionarTimeParaAdicionar(${JSON.stringify(time).replace(/"/g, '&quot;')})">
                 <img src="${time.url_escudo_png || time.escudo || '/escudos/default.png'}"
                      alt="Escudo"
-                     onerror="this.src='/escudos/default.png'">
+                     onerror="this.onerror=null;this.src='/escudos/default.png'">
                 <div class="resultado-info">
                     <div class="resultado-nome">${time.nome_time || time.nome || 'Time sem nome'}</div>
                     <div class="resultado-cartoleiro">${time.nome_cartoleiro || time.nome_cartola || '-'}</div>

@@ -305,7 +305,7 @@ class WizardPrimeiraLiga {
             <div class="time-item">
                 <img src="${time.foto || 'https://s.sde.globo.com/media/organizations/2024/04/11/Cartola_Escudo.svg'}"
                      alt="${time.nome}"
-                     onerror="this.src='https://s.sde.globo.com/media/organizations/2024/04/11/Cartola_Escudo.svg'">
+                     onerror="this.onerror=null;this.src='https://s.sde.globo.com/media/organizations/2024/04/11/Cartola_Escudo.svg'">
                 <div class="time-info">
                     <div class="nome">${time.nome}</div>
                     <div class="cartoleiro">${time.cartoleiro} (ID: ${time.id})</div>

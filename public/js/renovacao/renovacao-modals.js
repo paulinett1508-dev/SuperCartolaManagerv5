@@ -389,11 +389,11 @@ const RenovacaoModals = (function() {
                     <div class="modal-body">
                         <!-- Header do Participante -->
                         <div class="d-flex align-items-center mb-4 p-3 bg-gray-900 rounded">
-                            <img src="${participante.escudo || '/img/default-escudo.png'}"
+                            <img src="${participante.escudo || '/escudos/default.png'}"
                                  alt="Escudo"
                                  class="rounded me-3"
                                  style="width: 48px; height: 48px; object-fit: contain;"
-                                 onerror="this.src='/img/default-escudo.png'">
+                                 onerror="this.onerror=null;this.src='/escudos/default.png'">
                             <div>
                                 <h6 class="mb-0">${escapeHtml(participante.nome_time) || 'Time'}</h6>
                                 <small class="text-muted">${escapeHtml(participante.nome_cartoleiro) || ''}</small>
@@ -565,11 +565,11 @@ const RenovacaoModals = (function() {
                     <div class="modal-body">
                         <!-- Header do Participante -->
                         <div class="d-flex align-items-center mb-4 p-3 bg-gray-900 rounded">
-                            <img src="${participante.escudo || '/img/default-escudo.png'}"
+                            <img src="${participante.escudo || '/escudos/default.png'}"
                                  alt="Escudo"
                                  class="rounded me-3"
                                  style="width: 48px; height: 48px; object-fit: contain;"
-                                 onerror="this.src='/img/default-escudo.png'">
+                                 onerror="this.onerror=null;this.src='/escudos/default.png'">
                             <div>
                                 <h6 class="mb-0">${escapeHtml(participante.nome_time) || 'Time'}</h6>
                                 <small class="text-muted">${escapeHtml(participante.nome_cartoleiro) || ''}</small>
@@ -878,11 +878,11 @@ const RenovacaoModals = (function() {
              style="cursor: pointer;"
              onmouseover="this.classList.add('bg-gray-700')"
              onmouseout="this.classList.remove('bg-gray-700')">
-            <img src="${escapeHtml(time.escudo) || '/img/default-escudo.png'}"
+            <img src="${escapeHtml(time.escudo) || '/escudos/default.png'}"
                  alt="Escudo"
                  class="rounded me-3"
                  style="width: 36px; height: 36px; object-fit: contain;"
-                 onerror="this.src='/img/default-escudo.png'">
+                 onerror="this.onerror=null;this.src='/escudos/default.png'">
             <div class="flex-grow-1">
                 <div class="fw-bold">${escapeHtml(time.nome_time) || 'Time sem nome'}</div>
                 <small class="text-muted">${escapeHtml(time.nome_cartoleiro) || ''}</small>
@@ -1214,11 +1214,11 @@ const RenovacaoModals = (function() {
                     <div class="modal-body">
                         <!-- Header do Participante -->
                         <div class="d-flex align-items-center mb-3 p-3 bg-gray-900 rounded">
-                            <img src="${escapeHtml(participante.escudo) || '/img/default-escudo.png'}"
+                            <img src="${escapeHtml(participante.escudo) || '/escudos/default.png'}"
                                  alt="Escudo"
                                  class="rounded me-3"
                                  style="width: 56px; height: 56px; object-fit: contain;"
-                                 onerror="this.src='/img/default-escudo.png'">
+                                 onerror="this.onerror=null;this.src='/escudos/default.png'">
                             <div class="flex-grow-1">
                                 <h5 class="mb-0">${escapeHtml(participante.nome_time) || 'Time'}</h5>
                                 <small class="text-muted">${escapeHtml(participante.nome_cartola) || ''}</small>

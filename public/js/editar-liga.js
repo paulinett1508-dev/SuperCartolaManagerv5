@@ -384,7 +384,7 @@ class EditarLigaManager {
                          class="escudo-mini"
                          alt="Escudo"
                          style="display: ${time.timeDoCoracao ? "block" : "none"};"
-                         onerror="this.src='/escudos/placeholder.png';">
+                         onerror="this.onerror=null;this.src='/escudos/placeholder.png';">
                 </td>
                 <td class="col-premium">
                     <label class="toggle-switch-mini" title="${time.premium ? 'Premium ativo' : 'Premium inativo'}">

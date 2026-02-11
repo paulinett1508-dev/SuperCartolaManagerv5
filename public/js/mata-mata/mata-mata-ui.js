@@ -261,7 +261,7 @@ export function renderTabelaMataMata(
                 <td class="jogo-cell">${c.jogo}</td>
                 <td class="time-cell">
                   <div class="time-info">
-                    <img src="/escudos/${c.timeA.clube_id}.png" class="escudo-img" onerror="this.src='/escudos/default.png'">
+                    <img src="/escudos/${c.timeA.clube_id}.png" class="escudo-img" onerror="this.onerror=null;this.src='/escudos/default.png'">
                     <div class="time-details">
                       <span class="time-nome">${esc(c.timeA.nome_time)}</span>
                       <span class="time-cartoleiro">${esc(c.timeA.nome_cartoleiro || c.timeA.nome_cartola) || "—"}</span>
@@ -283,7 +283,7 @@ export function renderTabelaMataMata(
                 </td>
                 <td class="time-cell">
                   <div class="time-info">
-                    <img src="/escudos/${c.timeB.clube_id}.png" class="escudo-img" onerror="this.src='/escudos/default.png'">
+                    <img src="/escudos/${c.timeB.clube_id}.png" class="escudo-img" onerror="this.onerror=null;this.src='/escudos/default.png'">
                     <div class="time-details">
                       <span class="time-nome">${esc(c.timeB.nome_time)}</span>
                       <span class="time-cartoleiro">${esc(c.timeB.nome_cartoleiro || c.timeB.nome_cartola) || "—"}</span>
@@ -338,7 +338,7 @@ export function renderBannerCampeao(
   const timeCoracaoHTML = timeCoracaoNome
     ? `
     <div class="campeao-time-coracao">
-      <img src="/escudos/${campeao.clube_id}.png" onerror="this.src='/escudos/default.png'">
+      <img src="/escudos/${campeao.clube_id}.png" onerror="this.onerror=null;this.src='/escudos/default.png'">
       <span>Torcedor ${esc(timeCoracaoNome)}</span>
     </div>
   `
@@ -355,7 +355,7 @@ export function renderBannerCampeao(
         <div class="campeao-info-principal">
           <img src="/escudos/${campeao.clube_id}.png" 
                class="campeao-escudo" 
-               onerror="this.src='/escudos/default.png'">
+               onerror="this.onerror=null;this.src='/escudos/default.png'">
           <div class="campeao-detalhes">
             <div class="campeao-time-nome">${esc(campeao.nome_time)}</div>
             <div class="campeao-cartoleiro">${esc(campeao.nome_cartoleiro || campeao.nome_cartola) || "—"}</div>
@@ -369,7 +369,7 @@ export function renderBannerCampeao(
           <div class="vice-detalhes">
             <img src="/escudos/${viceCampeao.clube_id}.png" 
                  class="vice-escudo" 
-                 onerror="this.src='/escudos/default.png'">
+                 onerror="this.onerror=null;this.src='/escudos/default.png'">
             <span class="vice-nome">${esc(viceCampeao.nome_time)}</span>
             <span class="vice-pontos">${viceCampeao.pontos.toFixed(2).replace(".", ",")} pts</span>
           </div>
