@@ -179,9 +179,16 @@
     gap: 10px;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 480px) {
     .regras-grid {
-        grid-template-columns: repeat(3, 1fr); /* Tablet+: 3 colunas */
+        grid-template-columns: repeat(3, 1fr); /* Tablet: 3 colunas */
+        gap: 12px;
+    }
+}
+
+@media (min-width: 768px) {
+    .regras-grid {
+        grid-template-columns: repeat(4, 1fr); /* Desktop: 4 colunas (máximo) */
         gap: 12px;
     }
 }

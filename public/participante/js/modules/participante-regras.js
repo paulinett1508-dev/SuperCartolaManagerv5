@@ -65,7 +65,7 @@ export async function inicializarRegrasParticipante(params) {
         renderizarRegras(data.regras, listaEl);
 
         if (listaEl) {
-            listaEl.style.display = 'flex';
+            listaEl.style.display = 'grid';
             if (window.Log) Log.info('PARTICIPANTE-REGRAS', '✅ Container exibido, innerHTML length:', listaEl.innerHTML.length);
         }
 
