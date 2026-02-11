@@ -376,18 +376,19 @@ function renderTransactionTimeline(rodadas, acertos, lancamentosIniciais, ligaId
         const subitems = [];
 
         if (bonusOnus !== 0) {
-            let bancoLabel = 'Banco';
-            if (isMito) bancoLabel = 'MITO';
-            else if (isMico) bancoLabel = 'MICO';
-            else if (zonaLabel) bancoLabel = `Banco (${zonaLabel})`;
-            subitems.push({ icon: 'casino', label: bancoLabel, valor: bonusOnus });
+            let bancoLabel = bonusOnus > 0 ? 'Bônus de posição' : 'Ônus de posição';
+            if (isMito) bancoLabel = 'MITO da Rodada';
+            else if (isMico) bancoLabel = 'MICO da Rodada';
+            else if (zonaLabel) bancoLabel = `${bonusOnus > 0 ? 'Bônus' : 'Ônus'} (${zonaLabel})`;
+            const bancoColor = isMito ? 'var(--app-gold)' : isMico ? 'var(--app-danger)' : 'var(--app-pos-tec)';
+            subitems.push({ icon: 'casino', label: bancoLabel, valor: bonusOnus, color: bancoColor });
         }
-        if (pontosCorridos !== 0) subitems.push({ icon: 'sports_soccer', label: 'Pontos Corridos', valor: pontosCorridos });
-        if (mataMata !== 0) subitems.push({ icon: 'emoji_events', label: 'Mata-Mata', valor: mataMata });
+        if (pontosCorridos !== 0) subitems.push({ icon: 'sports_soccer', label: 'Pontos Corridos', valor: pontosCorridos, color: 'var(--app-indigo)' });
+        if (mataMata !== 0) subitems.push({ icon: 'emoji_events', label: 'Mata-Mata', valor: mataMata, color: 'var(--app-danger)' });
         if (top10 !== 0) {
             const posTop10 = calcularPosicaoTop10(top10, ligaId);
             const labelTop10 = top10 > 0 ? `${posTop10}º Melhor Mito` : `${posTop10}º Pior Mico`;
-            subitems.push({ icon: top10 > 0 ? 'military_tech' : 'sentiment_sad', label: labelTop10, valor: top10 });
+            subitems.push({ icon: top10 > 0 ? 'military_tech' : 'sentiment_sad', label: labelTop10, valor: top10, color: 'var(--app-warning)' });
         }
 
         const hasMultiple = subitems.length > 1;
@@ -410,8 +411,8 @@ function renderTransactionTimeline(rodadas, acertos, lancamentosIniciais, ligaId
             <div class="extrato-timeline__subitems">
                 ${subitems.map(si => `
                     <div class="extrato-timeline__subitem">
-                        <span class="material-icons extrato-timeline__subitem-icon" style="color: var(--app-text-dim)">${si.icon}</span>
-                        <span class="extrato-timeline__subitem-label">${si.label}</span>
+                        <span class="material-icons extrato-timeline__subitem-icon" style="color: ${si.color || 'var(--app-text-dim)'}">${si.icon}</span>
+                        <span class="extrato-timeline__subitem-label" style="color: ${si.color || 'var(--app-text-dim)'}">${si.label}</span>
                         <span class="extrato-timeline__subitem-value" style="color: ${si.valor >= 0 ? 'var(--app-success-light)' : 'var(--app-danger-light)'}">
                             ${si.valor > 0 ? '+' : ''}${si.valor.toFixed(2).replace('.', ',')}
                         </span>
