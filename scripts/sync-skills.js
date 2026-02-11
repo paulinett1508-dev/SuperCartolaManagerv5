@@ -21,6 +21,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { detectIDE as detectIDEInternal, getDetectionScores } from './ide-detector.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,12 +62,17 @@ function log(message, level = 'info') {
 
 /**
  * Detecta qual IDE está sendo usado
- * @returns {string} 'vscode' | 'cursor' | 'antigravity'
+ * @returns {string} 'vscode' | 'cursor' | 'antigravity' | 'windsurf' | 'unknown'
  */
 function detectIDE() {
-  // TODO DIA 2: Implementar detecção
-  log('Detecção de IDE ainda não implementada', 'debug');
-  return 'vscode';
+  const rootPath = path.join(__dirname, '..');
+  const ide = detectIDEInternal(rootPath);
+  const scores = getDetectionScores(rootPath);
+
+  log(`IDE detectado: ${ide}`, 'success');
+  log(`Scores de detecção: ${JSON.stringify(scores)}`, 'debug');
+
+  return ide;
 }
 
 /**
@@ -112,9 +118,13 @@ function main() {
   }
 
   log('Estrutura base verificada', 'success');
+
+  // Testar detecção de IDE
+  const ideDetectado = detectIDE();
+
   log('', 'info');
   log('⚠️  IMPLEMENTAÇÃO PENDENTE:', 'warning');
-  log('  - DIA 2: detectIDE()', 'info');
+  log('  ✅ DIA 2: detectIDE() - CONCLUÍDO', 'success');
   log('  - DIA 3: readAllSkills()', 'info');
   log('  - DIA 15: syncToIDE()', 'info');
   log('', 'info');

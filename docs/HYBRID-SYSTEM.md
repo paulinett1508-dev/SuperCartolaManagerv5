@@ -50,6 +50,108 @@ O **Sistema Híbrido** combina o melhor do sistema de skills atual do Super Cart
 
 ---
 
+## 🔍 Detecção de IDE
+
+O sistema detecta automaticamente qual IDE está sendo usado para rotear skills corretamente.
+
+### Método de Detecção
+
+**Sistema de Scoring (0-100):**
+- Cada IDE tem múltiplos indicadores (variáveis env, arquivos, diretórios)
+- Cada indicador adiciona pontos ao score do IDE
+- IDE com maior score vence (threshold mínimo: 30)
+- Se nenhum atingir threshold → `unknown`
+
+### Indicadores por IDE
+
+#### VS Code
+| Indicador | Tipo | Score | Confiança |
+|-----------|------|-------|-----------|
+| `VSCODE_*` env vars | Env | +50 | Alta |
+| `TERM_PROGRAM=vscode` | Env | +40 | Alta |
+| `.vscode/` directory | Filesystem | +20 | Média |
+| `.claude/` directory | Filesystem | +15 | Baixa* |
+
+*Baixa porque `.claude/` é compartilhado com Cursor
+
+#### Cursor
+| Indicador | Tipo | Score | Confiança |
+|-----------|------|-------|-----------|
+| `CURSOR_*` env vars | Env | +50 | Alta |
+| `TERM_PROGRAM=Cursor` | Env | +40 | Alta |
+| `.cursorrules` file | Filesystem | +30 | Alta |
+| `.claude/` directory | Filesystem | +10 | Baixa* |
+
+*Compartilhado com VS Code
+
+#### Windsurf
+| Indicador | Tipo | Score | Confiança |
+|-----------|------|-------|-----------|
+| `WINDSURF_*` env vars | Env | +50 | Alta |
+| `CODEIUM_*` env vars | Env | +40 | Alta |
+| Parent process name | Process | +30 | Média |
+| `.windsurf/` directory | Filesystem | +20 | Média |
+
+#### Antigravity
+| Indicador | Tipo | Score | Confiança |
+|-----------|------|-------|-----------|
+| `ANTIGRAVITY_*` env vars | Env | +50 | Alta |
+| `AG_*` env vars | Env | +30 | Alta |
+| `.agent/` directory | Filesystem | +40 | Alta |
+| `agent.config.json` file | Filesystem | +30 | Alta |
+
+### Exemplo de Detecção
+
+```bash
+# Executar detecção
+node scripts/sync-skills.js
+
+# Output:
+# ✅ [HYBRID-SYSTEM] IDE detectado: cursor
+# 🔍 [HYBRID-SYSTEM] Scores: {"vscode":35,"cursor":70,"windsurf":0,"antigravity":0}
+```
+
+**Interpretação:**
+- **Cursor** detectado com score 70
+- Provavelmente tem `CURSOR_*` env vars (50) + `.cursorrules` (30)
+
+### API de Detecção
+
+```javascript
+import { detectIDE, getDetectionScores } from './scripts/ide-detector.js';
+
+// Detectar IDE atual
+const ide = detectIDE(); // 'vscode' | 'cursor' | 'windsurf' | 'antigravity' | 'unknown'
+
+// Ver scores detalhados (debug)
+const scores = getDetectionScores();
+console.log(scores);
+// { vscode: 35, cursor: 70, windsurf: 0, antigravity: 0 }
+```
+
+### Prioridade em Caso de Empate
+
+Se múltiplos IDEs tiverem o mesmo score, a ordem de prioridade é:
+1. **vscode** (mais comum)
+2. **cursor** (segunda opção)
+3. **windsurf** (terceira opção)
+4. **antigravity** (experimental)
+
+### Testes
+
+Cobertura completa em `scripts/__tests__/ide-detector.test.js`:
+- ✅ 24 testes unitários
+- ✅ Mock de filesystem e env vars
+- ✅ Cenários de empate
+- ✅ Fallback para `unknown`
+
+```bash
+# Rodar testes
+node --test scripts/__tests__/ide-detector.test.js
+```
+
+---
+
 ## 📂 Estrutura de Diretórios
 
 ```
@@ -364,8 +466,23 @@ O sistema coleta métricas de:
 
 ---
 
-**Status:** 🚧 Em construção (Fase 1 - Dia 1)
+## 📅 Histórico de Desenvolvimento
+
+### ✅ DIA 1 (2026-02-11)
+- Infraestrutura base do sistema híbrido
+- Estrutura de diretórios (`docs/skills/`, `.agent/`)
+- Script `sync-skills.js` (estrutura base)
+
+### ✅ DIA 2 (2026-02-11)
+- Módulo `scripts/ide-detector.js` com detecção robusta
+- Integração no `sync-skills.js`
+- 24 testes unitários com 100% de aprovação
+- Documentação completa do método de detecção
+
+---
+
+**Status:** 🚧 Em construção (Fase 1 - Dia 2 concluído)
 
 **Última atualização:** 2026-02-11
 
-**Versão:** 0.1.0
+**Versão:** 0.2.0
