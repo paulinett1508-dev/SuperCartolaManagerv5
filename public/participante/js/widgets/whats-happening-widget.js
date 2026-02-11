@@ -757,7 +757,7 @@ function renderTimestamp() {
 
 function renderRankingSection() {
     const data = WHState.data.ranking;
-    if (!data?.ranking || data.ranking.length === 0) return null;
+    if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
 
     const ranking = data.ranking;
     const meuTime = ranking.find((r) => String(r.timeId) === String(WHState.timeId));
@@ -1010,9 +1010,10 @@ function renderArtilheiroSection() {
 
 function renderLuvaOuroSection() {
     const data = WHState.data.luvaOuro;
-    if (!data?.ranking || data.ranking.length === 0) return null;
+    if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
 
     const top = data.ranking[0];
+    if (!top) return null;
 
     return `
         <div class="wh-section wh-section--luva-ouro">
@@ -1044,9 +1045,10 @@ function renderLuvaOuroSection() {
 
 function renderCapitaoSection() {
     const data = WHState.data.capitao;
-    if (!data?.ranking || data.ranking.length === 0) return null;
+    if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
 
     const top = data.ranking[0];
+    if (!top) return null;
 
     return `
         <div class="wh-section wh-section--capitao">
