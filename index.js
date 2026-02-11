@@ -98,7 +98,6 @@ const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
 
 // Importar rotas do sistema
 import jogosHojeRoutes from "./routes/jogos-hoje-routes.js";
-import liveResultsRoutes from "./routes/live-results-routes.js";
 import jogosHojeGloboRoutes from "./routes/jogos-hoje-globo.js"; // NOVA ROTA
 import jogosAoVivoRoutes from "./routes/jogos-ao-vivo-routes.js"; // API-Football
 import ligaRoutes from "./routes/ligas.js";
@@ -461,7 +460,6 @@ app.use(express.static("public"));
 
 // Rotas da API
 app.use("/api/jogos-hoje", jogosHojeRoutes);
-app.use("/api/live-results", liveResultsRoutes);
 
 // ✅ FEAT-026: Modo Matchday
 app.use('/api/matchday', matchdayRoutes);

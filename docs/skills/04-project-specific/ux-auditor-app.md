@@ -60,7 +60,6 @@ public/participante/
 │   ├── artilheiro.html
 │   ├── luva-ouro.html
 │   ├── dicas.html
-│   ├── live-results.html
 │   ├── copa-times-sc.html
 │   ├── configuracoes.html
 │   ├── historico.html
@@ -212,7 +211,6 @@ Toda tela/componente DEVE ter 5 estados visuais:
 - [ ] `artilheiro.html` - 5 estados implementados
 - [ ] `luva-ouro.html` - 5 estados implementados
 - [ ] `dicas.html` - 5 estados implementados
-- [ ] `live-results.html` - 5 estados implementados
 - [ ] `copa-times-sc.html` - 5 estados implementados
 - [ ] `configuracoes.html` - 5 estados implementados
 - [ ] `historico.html` - 5 estados implementados

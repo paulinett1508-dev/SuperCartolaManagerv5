@@ -587,8 +587,8 @@ import matchdayRoutes from "./routes/matchday-routes.js";
 import capitaoRoutes from "./routes/capitao-routes.js";
 ```
 
-**PROCURAR LINHA COM:** `app.use('/api/live-results', liveResultsRoutes);`
-**APÓS ESTA LINHA: ADICIONAR**
+**NOTA:** Rota `/api/live-results` foi removida (código morto). Adicionar após rotas da API:
+**ADICIONAR:**
 ```javascript
 // ✅ FEAT-026: Modo Matchday
 app.use('/api/matchday', matchdayRoutes);

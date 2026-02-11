@@ -37,8 +37,8 @@ Implementar **duas features integradas** que transformam o Super Cartola de app 
 - `services/parciaisRankingService.js` (~100 linhas) - Cálculo ranking parcial
   - Busca escalações por time/rodada
   - Calcula pontos considerando capitão (x2)
-- `controllers/liveResultsController.js` - Controller parciais existente
-- `routes/live-results-routes.js` - Rotas parciais existentes
+- ~~`controllers/liveResultsController.js`~~ - Removido (código morto)
+- ~~`routes/live-results-routes.js`~~ - Removido (código morto)
 
 #### Backend - Models
 **Arquivos mapeados:**
@@ -47,7 +47,7 @@ Implementar **duas features integradas** que transformam o Super Cartola de app 
   - Métodos: `buscarConfig()`, `ativarModulo()`, `isModuloAtivo()`
   - Override financeiro/calendário por liga
 - `models/Liga.js` - Campo `modulos_ativos` (compatibilidade legado)
-- `models/LiveMatch.js` - Modelo de partidas ao vivo (existente)
+- ~~`models/LiveMatch.js`~~ - Removido (código morto)
 
 #### Frontend - Estrutura Modular
 **Arquivos mapeados:**
@@ -56,7 +56,7 @@ Implementar **duas features integradas** que transformam o Super Cartola de app 
   - Carrega `modulosAtivos` da liga via API
   - Renderiza menu dinâmico
 - `public/participante/js/modules/` (20 módulos mapeados)
-  - `participante-live-results.js` - Frontend parciais existente
+  - ~~`participante-live-results.js`~~ - Removido (código morto)
   - `participante-rodada-parcial.js` - Parciais por rodada
   - `participante-ranking.js` - Ranking geral
   - `participante-campinho.js` - Visualização campo (19kb CSS)
