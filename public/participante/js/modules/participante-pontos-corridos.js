@@ -146,7 +146,8 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
             const dadosMudaram = !usouCache ||
                 !dadosCache ||
                 dadosCache.length !== dados.length ||
-                JSON.stringify(dadosCache[0]?.classificacao?.slice(0,3)) !== JSON.stringify(dados[0]?.classificacao?.slice(0,3));
+                JSON.stringify(dadosCache[0]?.classificacao?.slice(0,3)) !== JSON.stringify(dados[0]?.classificacao?.slice(0,3)) ||
+                JSON.stringify(dadosCache[0]?.confrontos?.[0]?.time1?.nome) !== JSON.stringify(dados[0]?.confrontos?.[0]?.time1?.nome);
 
             if (dadosMudaram) {
                 if (window.Log) Log.info(`[PONTOS-CORRIDOS] ✅ ${dados.length} rodadas carregadas`);

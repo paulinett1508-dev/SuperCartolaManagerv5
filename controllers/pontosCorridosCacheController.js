@@ -591,8 +591,8 @@ async function calcularRodadaComParciais(
         // 4. Montar confrontos com resultados
         const confrontos = [];
         for (const jogo of jogosDaRodada) {
-            const tid1 = String(jogo.timeA);
-            const tid2 = String(jogo.timeB);
+            const tid1 = String(typeof jogo.timeA === 'object' ? jogo.timeA.time_id || jogo.timeA.id || jogo.timeA._id : jogo.timeA);
+            const tid2 = String(typeof jogo.timeB === 'object' ? jogo.timeB.time_id || jogo.timeB.id || jogo.timeB._id : jogo.timeB);
             const p1 = parciaisMap[tid1] || 0;
             const p2 = parciaisMap[tid2] || 0;
             const resultado = calcularResultado(p1, p2, config);
