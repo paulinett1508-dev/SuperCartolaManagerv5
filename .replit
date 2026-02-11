@@ -90,7 +90,7 @@ exposeLocalhost = true
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["sh", "-c", "npm install && npm run build:css"]
+build = ["sh", "-c", "npm install --include=dev && npm run build:css"]
 run = ["npm", "start"]
 
 [nix]

@@ -37,6 +37,9 @@ const WHState = {
         luvaOuro: null,
         capitao: null,
         ranking: null,
+        parciais: null, // Parciais da liga (ranking em tempo real)
+        meuConfrontoPc: null, // Confronto do participante no Pontos Corridos
+        meuConfrontoMm: null, // Confronto do participante no Mata-Mata
     },
     hasUpdates: false,
     // Drag state
@@ -443,6 +446,11 @@ async function fetchAllData() {
     // Ranking da Rodada (sempre ativo)
     promises.push(fetchRanking());
 
+    // Parciais (para confrontos em tempo real)
+    if (WHState.mercadoStatus?.bola_rolando) {
+        promises.push(fetchParciais());
+    }
+
     await Promise.allSettled(promises);
 
     WHState.isLoading = false;
@@ -468,9 +476,47 @@ async function fetchPontosCorridos() {
             // Encontrar rodada atual
             const rodadaData = data.find((r) => r.rodada === rodada);
             WHState.data.pontosCorridos = rodadaData;
+
+            // Encontrar MEU confronto nesta rodada
+            if (rodadaData?.confrontos) {
+                const meuConfronto = rodadaData.confrontos.find((c) => {
+                    const id1 = String(c.time1?.id);
+                    const id2 = String(c.time2?.id);
+                    const meuId = String(WHState.timeId);
+                    return id1 === meuId || id2 === meuId;
+                });
+
+                if (meuConfronto) {
+                    // Normalizar para sempre ter "eu" como time1
+                    const sou1 = String(meuConfronto.time1?.id) === String(WHState.timeId);
+                    WHState.data.meuConfrontoPc = {
+                        rodada,
+                        eu: sou1 ? meuConfronto.time1 : meuConfronto.time2,
+                        adversario: sou1 ? meuConfronto.time2 : meuConfronto.time1,
+                        meusPontos: sou1 ? meuConfronto.pontos1 : meuConfronto.pontos2,
+                        pontosAdv: sou1 ? meuConfronto.pontos2 : meuConfronto.pontos1,
+                        tipo: meuConfronto.tipo,
+                        raw: meuConfronto
+                    };
+                    if (window.Log) Log.info("[WHATS-HAPPENING] Meu confronto PC encontrado:", WHState.data.meuConfrontoPc);
+                }
+            }
         }
     } catch (e) {
         if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Pontos Corridos:", e);
+    }
+}
+
+async function fetchParciais() {
+    try {
+        const res = await fetch(`/api/matchday/parciais/${WHState.ligaId}`);
+        if (res.ok) {
+            const data = await res.json();
+            WHState.data.parciais = data;
+            if (window.Log) Log.info("[WHATS-HAPPENING] Parciais:", data.ranking?.length, "times");
+        }
+    } catch (e) {
+        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Parciais:", e);
     }
 }
 
@@ -499,8 +545,38 @@ async function fetchMataMata() {
             WHState.data.mataMata = {
                 edicao: ultimaEdicao.edicao,
                 confrontos: data.confrontos || [],
-                faseAtual: data.fase_atual || "quartas"
+                faseAtual: data.fase_atual || "quartas",
+                dados: data.dados
             };
+
+            // Encontrar MEU confronto no Mata-Mata
+            const meuId = String(WHState.timeId);
+            const fases = ["primeira", "oitavas", "quartas", "semi", "final"];
+
+            for (const fase of fases) {
+                const confrontosFase = data.dados?.[fase];
+                if (!confrontosFase || !Array.isArray(confrontosFase)) continue;
+
+                const meuConfronto = confrontosFase.find((c) => {
+                    const idA = String(c.timeA?.timeId || c.timeA?.time_id);
+                    const idB = String(c.timeB?.timeId || c.timeB?.time_id);
+                    return idA === meuId || idB === meuId;
+                });
+
+                if (meuConfronto) {
+                    const souA = String(meuConfronto.timeA?.timeId || meuConfronto.timeA?.time_id) === meuId;
+                    WHState.data.meuConfrontoMm = {
+                        fase,
+                        edicao: ultimaEdicao.edicao,
+                        jogo: meuConfronto.jogo,
+                        eu: souA ? meuConfronto.timeA : meuConfronto.timeB,
+                        adversario: souA ? meuConfronto.timeB : meuConfronto.timeA,
+                        raw: meuConfronto
+                    };
+                    if (window.Log) Log.info("[WHATS-HAPPENING] Meu confronto MM encontrado:", WHState.data.meuConfrontoMm);
+                    break;
+                }
+            }
         }
     } catch (e) {
         if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Mata-Mata:", e);
@@ -514,10 +590,10 @@ async function fetchArtilheiro() {
         );
         if (res.ok) {
             const data = await res.json();
-            // Normalizar formato
-            WHState.data.artilheiro = {
-                ranking: data.ranking || data.data || data
-            };
+            // API retorna: { success, data: { ranking: [...] } }
+            const ranking = data?.data?.ranking || data?.ranking || [];
+            WHState.data.artilheiro = { ranking };
+            if (window.Log) Log.info("[WHATS-HAPPENING] Artilheiro:", ranking.length, "participantes");
         }
     } catch (e) {
         if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Artilheiro:", e);
@@ -531,10 +607,10 @@ async function fetchLuvaOuro() {
         );
         if (res.ok) {
             const data = await res.json();
-            // Normalizar formato
-            WHState.data.luvaOuro = {
-                ranking: data.ranking || data.data || data
-            };
+            // API retorna: { success, data: { ranking: [...] } }
+            const ranking = data?.data?.ranking || data?.ranking || [];
+            WHState.data.luvaOuro = { ranking };
+            if (window.Log) Log.info("[WHATS-HAPPENING] Luva de Ouro:", ranking.length, "participantes");
         }
     } catch (e) {
         if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Luva de Ouro:", e);
@@ -548,10 +624,10 @@ async function fetchCapitao() {
         );
         if (res.ok) {
             const data = await res.json();
-            // Normalizar formato
-            WHState.data.capitao = {
-                ranking: data.ranking || data.data || data
-            };
+            // API retorna: { success, ranking: [...] }
+            const ranking = data?.ranking || data?.data?.ranking || [];
+            WHState.data.capitao = { ranking };
+            if (window.Log) Log.info("[WHATS-HAPPENING] Capitão:", ranking.length, "participantes");
         }
     } catch (e) {
         if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Capitão:", e);
@@ -691,17 +767,31 @@ function renderContent() {
     // Timestamp
     sections.push(renderTimestamp());
 
-    // Ranking da Rodada (sempre primeiro)
+    // ========== MEUS CONFRONTOS (DESTAQUE PRINCIPAL) ==========
+    // Meu Confronto no Pontos Corridos
+    if (WHState.modulosAtivos.pontosCorridos && WHState.data.meuConfrontoPc) {
+        const meuPcSection = renderMeuConfrontoPontosCorridos();
+        if (meuPcSection) sections.push(meuPcSection);
+    }
+
+    // Meu Confronto no Mata-Mata
+    if (WHState.modulosAtivos.mataMata && WHState.data.meuConfrontoMm) {
+        const meuMmSection = renderMeuConfrontoMataMata();
+        if (meuMmSection) sections.push(meuMmSection);
+    }
+
+    // ========== OUTROS MÓDULOS ==========
+    // Ranking da Rodada
     const rankingSection = renderRankingSection();
     if (rankingSection) sections.push(rankingSection);
 
-    // Pontos Corridos
+    // Pontos Corridos (outros confrontos quentes)
     if (WHState.modulosAtivos.pontosCorridos) {
         const pcSection = renderPontosCorridosSection();
         if (pcSection) sections.push(pcSection);
     }
 
-    // Mata-Mata
+    // Mata-Mata (outros confrontos)
     if (WHState.modulosAtivos.mataMata) {
         const mmSection = renderMataMataSection();
         if (mmSection) sections.push(mmSection);
@@ -966,15 +1056,22 @@ function renderArtilheiroSection() {
     const top = data.ranking[0];
     if (!top) return null;
 
+    // API retorna: golsPro, nome, nomeTime, escudo (pode ser null)
+    const gols = top.golsPro || top.gols || 0;
+    const nome = top.nome || top.nome_cartola || top.nomeCartola || "Líder";
+    const escudo = top.escudo || `/escudos/${top.clubeId || "default"}.png`;
+    const rodadas = top.rodadasProcessadas || top.rodadas || "?";
+
     const segundo = data.ranking[1];
-    const diff = segundo ? (top.gols || 0) - (segundo.gols || 0) : 999;
+    const golsSegundo = segundo ? (segundo.golsPro || segundo.gols || 0) : 0;
+    const diff = gols - golsSegundo;
 
     const disputaAcirrada =
-        diff <= 1
+        diff <= 1 && segundo
             ? `
         <div class="wh-disputa-acirrada">
             <span class="material-icons">warning</span>
-            Disputa acirrada! ${segundo?.nome_cartola || "2º lugar"} está a apenas ${diff} gol(s)
+            Disputa acirrada! ${segundo.nome || segundo.nome_cartola || "2º lugar"} está a apenas ${diff} gol(s)
         </div>
     `
             : "";
@@ -990,17 +1087,17 @@ function renderArtilheiroSection() {
             <div class="wh-section-body">
                 <div class="wh-leader-card">
                     <div class="wh-leader-avatar">
-                        <img class="wh-leader-escudo" src="${top.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
+                        <img class="wh-leader-escudo" src="${escudo}" onerror="this.src='/escudos/default.png'" alt="">
                         <span class="wh-leader-crown">👑</span>
                     </div>
                     <div class="wh-leader-info">
-                        <div class="wh-leader-nome">${top.nome_cartola || top.nomeCartola}</div>
+                        <div class="wh-leader-nome">${nome}</div>
                         <div class="wh-leader-stat">
                             <span class="material-icons">sports_soccer</span>
-                            ${top.gols || 0} gol(s) em ${top.rodadas || "?"} rodadas
+                            ${gols} gol(s) em ${rodadas} rodadas
                         </div>
                     </div>
-                    <div class="wh-leader-value">${top.gols || 0}</div>
+                    <div class="wh-leader-value">${gols}</div>
                 </div>
                 ${disputaAcirrada}
             </div>
@@ -1015,6 +1112,13 @@ function renderLuvaOuroSection() {
     const top = data.ranking[0];
     if (!top) return null;
 
+    // API retorna: participanteNome, pontosTotais, clubeId, rodadasJogadas, ultimaRodada
+    const nome = top.participanteNome || top.nome_cartola || top.nomeCartola || "Líder";
+    const pontos = top.pontosTotais || top.pontos || 0;
+    const escudo = top.escudo || `/escudos/${top.clubeId || "default"}.png`;
+    const rodadas = top.rodadasJogadas || top.rodadas?.length || "?";
+    const ultimoGoleiro = top.ultimaRodada?.goleiroNome || "";
+
     return `
         <div class="wh-section wh-section--luva-ouro">
             <div class="wh-section-header">
@@ -1026,17 +1130,18 @@ function renderLuvaOuroSection() {
             <div class="wh-section-body">
                 <div class="wh-leader-card">
                     <div class="wh-leader-avatar">
-                        <img class="wh-leader-escudo" src="${top.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
+                        <img class="wh-leader-escudo" src="${escudo}" onerror="this.src='/escudos/default.png'" alt="">
                         <span class="wh-leader-crown">🧤</span>
                     </div>
                     <div class="wh-leader-info">
-                        <div class="wh-leader-nome">${top.nome_cartola || top.nomeCartola}</div>
+                        <div class="wh-leader-nome">${nome}</div>
                         <div class="wh-leader-stat">
                             <span class="material-icons">shield</span>
-                            ${top.defesas || 0} defesas | ${top.saldo_gols || 0} SG
+                            ${pontos.toFixed(1)} pts em ${rodadas} rodadas
+                            ${ultimoGoleiro ? `<br><small>Último: ${ultimoGoleiro}</small>` : ""}
                         </div>
                     </div>
-                    <div class="wh-leader-value">${(top.pontos || 0).toFixed(0)}</div>
+                    <div class="wh-leader-value">${pontos.toFixed(1)}</div>
                 </div>
             </div>
         </div>
@@ -1050,6 +1155,13 @@ function renderCapitaoSection() {
     const top = data.ranking[0];
     if (!top) return null;
 
+    // API retorna: nome_cartola, media_capitao, pontuacao_total, escudo, melhor_capitao
+    const nome = top.nome_cartola || top.nomeCartola || "Líder";
+    const media = top.media_capitao || top.media || 0;
+    const total = top.pontuacao_total || top.total || 0;
+    const escudo = top.escudo || `/escudos/${top.clube_id || "default"}.png`;
+    const melhorCapitao = top.melhor_capitao?.atleta_nome || "";
+
     return `
         <div class="wh-section wh-section--capitao">
             <div class="wh-section-header">
@@ -1061,17 +1173,172 @@ function renderCapitaoSection() {
             <div class="wh-section-body">
                 <div class="wh-leader-card">
                     <div class="wh-leader-avatar">
-                        <img class="wh-leader-escudo" src="${top.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
+                        <img class="wh-leader-escudo" src="${escudo}" onerror="this.src='/escudos/default.png'" alt="">
                         <span class="wh-leader-crown">🎖️</span>
                     </div>
                     <div class="wh-leader-info">
-                        <div class="wh-leader-nome">${top.nome_cartola || top.nomeCartola}</div>
+                        <div class="wh-leader-nome">${nome}</div>
                         <div class="wh-leader-stat">
                             <span class="material-icons">trending_up</span>
-                            Média: ${(top.media || 0).toFixed(1)} pts
+                            Média: ${media.toFixed(1)} pts
+                            ${melhorCapitao ? `<br><small>Melhor: ${melhorCapitao}</small>` : ""}
                         </div>
                     </div>
-                    <div class="wh-leader-value">${(top.total || 0).toFixed(0)}</div>
+                    <div class="wh-leader-value">${total.toFixed(0)}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ============================================
+// MEU CONFRONTO - PONTOS CORRIDOS
+// ============================================
+function renderMeuConfrontoPontosCorridos() {
+    const confronto = WHState.data.meuConfrontoPc;
+    if (!confronto) return null;
+
+    const { eu, adversario, rodada } = confronto;
+
+    // Buscar pontuação atual das parciais (se disponível)
+    const parciais = WHState.data.parciais?.ranking || [];
+    const minhaParcial = parciais.find((p) => String(p.timeId) === String(WHState.timeId));
+    const advParcial = parciais.find((p) => String(p.timeId) === String(adversario.id));
+
+    const meusPontos = minhaParcial?.pontos_rodada_atual || eu?.pontos || 0;
+    const pontosAdv = advParcial?.pontos_rodada_atual || adversario?.pontos || 0;
+    const diff = meusPontos - pontosAdv;
+
+    const vencendo = diff > 0;
+    const perdendo = diff < 0;
+    const empatado = diff === 0;
+
+    const statusClass = vencendo ? "winning" : perdendo ? "losing" : "tied";
+    const statusEmoji = vencendo ? "🔥" : perdendo ? "😰" : "⚔️";
+    const statusText = vencendo ? "Vencendo!" : perdendo ? "Perdendo..." : "Empatado";
+
+    const isLive = WHState.mercadoStatus?.bola_rolando;
+
+    return `
+        <div class="wh-section wh-section--meu-confronto wh-section--pontos-corridos ${statusClass}">
+            <div class="wh-section-header">
+                <div class="wh-section-icon">
+                    <span class="material-icons">stadium</span>
+                </div>
+                <div class="wh-section-title">Seu Confronto - Rodada ${rodada}</div>
+                ${isLive ? '<span class="wh-live-badge">🔴 AO VIVO</span>' : ''}
+            </div>
+            <div class="wh-section-body">
+                <div class="wh-meu-confronto">
+                    <div class="wh-mc-times">
+                        <div class="wh-mc-time wh-mc-time--eu ${vencendo ? 'winning' : ''}">
+                            <img class="wh-mc-escudo" src="${eu?.escudo || '/escudos/default.png'}" onerror="this.src='/escudos/default.png'" alt="">
+                            <div class="wh-mc-info">
+                                <div class="wh-mc-label">VOCÊ</div>
+                                <div class="wh-mc-nome">${eu?.nome || 'Meu Time'}</div>
+                            </div>
+                            <div class="wh-mc-pontos ${vencendo ? 'winning' : ''}">${meusPontos.toFixed(1)}</div>
+                        </div>
+
+                        <div class="wh-mc-vs">
+                            <span class="wh-mc-vs-emoji">${statusEmoji}</span>
+                            <span class="wh-mc-vs-diff ${statusClass}">${diff > 0 ? '+' : ''}${diff.toFixed(1)}</span>
+                        </div>
+
+                        <div class="wh-mc-time wh-mc-time--adv ${perdendo ? 'winning' : ''}">
+                            <img class="wh-mc-escudo" src="${adversario?.escudo || '/escudos/default.png'}" onerror="this.src='/escudos/default.png'" alt="">
+                            <div class="wh-mc-info">
+                                <div class="wh-mc-label">ADVERSÁRIO</div>
+                                <div class="wh-mc-nome">${adversario?.nome || adversario?.nome_cartola || 'Rival'}</div>
+                            </div>
+                            <div class="wh-mc-pontos ${perdendo ? 'winning' : ''}">${pontosAdv.toFixed(1)}</div>
+                        </div>
+                    </div>
+
+                    <div class="wh-mc-status ${statusClass}">
+                        <span class="material-icons">${vencendo ? 'trending_up' : perdendo ? 'trending_down' : 'trending_flat'}</span>
+                        ${statusText} por ${Math.abs(diff).toFixed(1)} pts
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ============================================
+// MEU CONFRONTO - MATA-MATA
+// ============================================
+function renderMeuConfrontoMataMata() {
+    const confronto = WHState.data.meuConfrontoMm;
+    if (!confronto) return null;
+
+    const { eu, adversario, fase, edicao } = confronto;
+
+    // Buscar pontuação atual das parciais (se disponível)
+    const parciais = WHState.data.parciais?.ranking || [];
+    const minhaParcial = parciais.find((p) => String(p.timeId) === String(WHState.timeId));
+    const advParcial = parciais.find((p) => String(p.timeId) === String(adversario?.timeId || adversario?.time_id));
+
+    const meusPontos = minhaParcial?.pontos_rodada_atual || eu?.pontos || 0;
+    const pontosAdv = advParcial?.pontos_rodada_atual || adversario?.pontos || 0;
+    const diff = meusPontos - pontosAdv;
+
+    const vencendo = diff > 0;
+    const perdendo = diff < 0;
+
+    const statusClass = vencendo ? "winning" : perdendo ? "losing" : "tied";
+    const statusEmoji = vencendo ? "🏆" : perdendo ? "⚠️" : "⚔️";
+
+    const faseLabel = {
+        primeira: "1ª Fase",
+        oitavas: "Oitavas",
+        quartas: "Quartas",
+        semi: "Semifinal",
+        final: "FINAL"
+    }[fase] || fase;
+
+    const isLive = WHState.mercadoStatus?.bola_rolando;
+
+    return `
+        <div class="wh-section wh-section--meu-confronto wh-section--mata-mata ${statusClass}">
+            <div class="wh-section-header">
+                <div class="wh-section-icon">
+                    <span class="material-icons">emoji_events</span>
+                </div>
+                <div class="wh-section-title">Mata-Mata - ${faseLabel}</div>
+                ${isLive ? '<span class="wh-live-badge">🔴 AO VIVO</span>' : ''}
+            </div>
+            <div class="wh-section-body">
+                <div class="wh-meu-confronto">
+                    <div class="wh-mc-times">
+                        <div class="wh-mc-time wh-mc-time--eu ${vencendo ? 'winning' : ''}">
+                            <img class="wh-mc-escudo" src="${eu?.url_escudo_png || '/escudos/default.png'}" onerror="this.src='/escudos/default.png'" alt="">
+                            <div class="wh-mc-info">
+                                <div class="wh-mc-label">VOCÊ</div>
+                                <div class="wh-mc-nome">${eu?.nome_time || eu?.nome_cartola || 'Meu Time'}</div>
+                            </div>
+                            <div class="wh-mc-pontos ${vencendo ? 'winning' : ''}">${meusPontos.toFixed(1)}</div>
+                        </div>
+
+                        <div class="wh-mc-vs">
+                            <span class="wh-mc-vs-emoji">${statusEmoji}</span>
+                            <span class="wh-mc-vs-diff ${statusClass}">${diff > 0 ? '+' : ''}${diff.toFixed(1)}</span>
+                        </div>
+
+                        <div class="wh-mc-time wh-mc-time--adv ${perdendo ? 'winning' : ''}">
+                            <img class="wh-mc-escudo" src="${adversario?.url_escudo_png || '/escudos/default.png'}" onerror="this.src='/escudos/default.png'" alt="">
+                            <div class="wh-mc-info">
+                                <div class="wh-mc-label">ADVERSÁRIO</div>
+                                <div class="wh-mc-nome">${adversario?.nome_time || adversario?.nome_cartola || 'Rival'}</div>
+                            </div>
+                            <div class="wh-mc-pontos ${perdendo ? 'winning' : ''}">${pontosAdv.toFixed(1)}</div>
+                        </div>
+                    </div>
+
+                    <div class="wh-mc-status ${statusClass}">
+                        <span class="material-icons">${vencendo ? 'thumb_up' : perdendo ? 'thumb_down' : 'compare_arrows'}</span>
+                        ${vencendo ? 'Avançando!' : perdendo ? 'Em risco de eliminação' : 'Confronto equilibrado'}
+                    </div>
                 </div>
             </div>
         </div>
