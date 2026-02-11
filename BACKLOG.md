@@ -56,6 +56,24 @@ _Resolver ASAP - Bloqueia funcionalidades ou compromete segurança_
 
 _Próximas sprints - Impacto significativo no sistema_
 
+- [ ] [PERF-003] **Adicionar timeout (AbortController) nos fetches do frontend de parciais**
+  - **Arquivo:** `public/participante/js/modules/participante-rodada-parcial.js`
+  - **Contexto:** Fetches para API Cartola não têm timeout no frontend. Se a API demorar, a UI trava sem recovery
+  - **Solução:** Usar AbortController com timeout de ~8s nos fetches de `/api/cartola-proxy/atletas/pontuados` e escalações
+  - **Impacto:** Estabilidade do Ao Vivo durante rodadas
+
+- [ ] [PERF-004] **Implementar retry com backoff em caso de 429 no parciaisRankingService**
+  - **Arquivo:** `services/parciaisRankingService.js`
+  - **Contexto:** API Cartola pode retornar 429 (rate limit) durante picos (fechamento de mercado). Sem retry, parciais falham silenciosamente
+  - **Solução:** Exponential backoff (1s, 2s, 4s) com max 3 retries em respostas 429
+  - **Impacto:** Resiliência do backend durante picos de acesso
+
+- [ ] [BUG-002] **Corrigir timezone no calendário de polling**
+  - **Arquivo:** `public/participante/js/modules/participante-rodadas-calendar.js:78-94`
+  - **Contexto:** Mistura UTC (`toISOString().split('T')[0]`) com timezone local (`getHours()`). Em horário noturno (BRT UTC-3), a data pode virar para o dia seguinte em UTC, perdendo jogos agendados
+  - **Solução:** Usar `toLocaleDateString('en-CA')` para manter timezone local consistente
+  - **Impacto:** Polling pode não ativar para jogos noturnos
+
 - [x] [FEAT-003] **Notificações Push (Web Push API)** 🔔 ✅ IMPLEMENTADO 25/01/2026
   - **Descrição:** Sistema completo de notificações push para alertar participantes sobre eventos importantes da liga
   - **Status Atual:** 100% implementado (Fases 1-5 concluídas, Fase 6 testes pendente)
