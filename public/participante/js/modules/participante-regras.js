@@ -87,50 +87,77 @@ function renderizarRegras(regras, container) {
     }
     if (window.Log) Log.info('PARTICIPANTE-REGRAS', `🔧 renderizarRegras() - ${regras.length} regras`);
 
+    // Armazenar regras globalmente para acesso no modal
+    window.__regrasData = regras;
+
     container.innerHTML = regras.map((regra, index) => {
         const cor = regra.cor || 'var(--app-primary)';
         const icone = regra.icone || 'description';
         const titulo = regra.titulo || regra.modulo;
-        const conteudo = regra.conteudo_html || '<p>Conteúdo não disponível.</p>';
-
-        // Primeiro item aberto por padrão
-        const openClass = index === 0 ? 'open' : '';
 
         return `
-            <div class="regra-accordion ${openClass}" data-modulo="${regra.modulo}">
-                <div class="regra-accordion-header" onclick="toggleRegraAccordion(this)">
-                    <div class="regra-acc-icon" style="background:${cor}20;">
-                        <span class="material-icons" style="color:${cor};">${icone}</span>
-                    </div>
-                    <div class="regra-acc-info">
-                        <div class="regra-acc-titulo">${titulo}</div>
-                        <div class="regra-acc-sub">Toque para ver detalhes</div>
-                    </div>
-                    <span class="material-icons regra-acc-chevron">expand_more</span>
+            <div class="regra-chip" onclick="abrirModalRegra(${index})" data-modulo="${regra.modulo}">
+                <div class="regra-chip-icon" style="background:${cor}20;">
+                    <span class="material-icons" style="color:${cor};">${icone}</span>
                 </div>
-                <div class="regra-accordion-body">
-                    <div class="regra-accordion-content">
-                        ${conteudo}
-                    </div>
-                </div>
+                <div class="regra-chip-titulo">${titulo}</div>
             </div>
         `;
     }).join('');
 }
 
-// Toggle accordion global function
-window.toggleRegraAccordion = function(headerEl) {
-    const accordion = headerEl.closest('.regra-accordion');
-    if (!accordion) return;
-
-    const wasOpen = accordion.classList.contains('open');
-
-    // Toggle
-    accordion.classList.toggle('open');
-
-    // Update subtitle
-    const sub = accordion.querySelector('.regra-acc-sub');
-    if (sub) {
-        sub.textContent = wasOpen ? 'Toque para ver detalhes' : 'Toque para recolher';
+// Abrir modal com detalhes da regra
+window.abrirModalRegra = function(index) {
+    const regras = window.__regrasData;
+    if (!regras || !regras[index]) {
+        if (window.Log) Log.error('PARTICIPANTE-REGRAS', '❌ Regra não encontrada:', index);
+        return;
     }
+
+    const regra = regras[index];
+    const cor = regra.cor || 'var(--app-primary)';
+    const icone = regra.icone || 'description';
+    const titulo = regra.titulo || regra.modulo;
+    const conteudo = regra.conteudo_html || '<p>Conteúdo não disponível.</p>';
+
+    // Elementos do modal
+    const modal = document.getElementById('regras-modal');
+    const modalIcon = document.getElementById('regras-modal-icon');
+    const modalTitulo = document.getElementById('regras-modal-titulo');
+    const modalBody = document.getElementById('regras-modal-body');
+
+    if (!modal || !modalIcon || !modalTitulo || !modalBody) {
+        if (window.Log) Log.error('PARTICIPANTE-REGRAS', '❌ Elementos do modal não encontrados');
+        return;
+    }
+
+    // Preencher modal
+    modalIcon.style.background = `${cor}20`;
+    modalIcon.innerHTML = `<span class="material-icons" style="color:${cor};">${icone}</span>`;
+    modalTitulo.textContent = titulo;
+    modalBody.innerHTML = conteudo;
+
+    // Resetar scroll
+    modalBody.scrollTop = 0;
+
+    // Exibir modal
+    modal.style.display = 'block';
+
+    // Prevenir scroll do body
+    document.body.style.overflow = 'hidden';
+
+    if (window.Log) Log.info('PARTICIPANTE-REGRAS', `✅ Modal aberto para: ${titulo}`);
+};
+
+// Fechar modal
+window.fecharModalRegra = function() {
+    const modal = document.getElementById('regras-modal');
+    if (!modal) return;
+
+    modal.style.display = 'none';
+
+    // Restaurar scroll do body
+    document.body.style.overflow = '';
+
+    if (window.Log) Log.info('PARTICIPANTE-REGRAS', '✅ Modal fechado');
 };
