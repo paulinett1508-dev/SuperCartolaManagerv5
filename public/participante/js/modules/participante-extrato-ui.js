@@ -449,9 +449,9 @@ function renderTransactionTimeline(rodadas, acertos, lancamentosIniciais, ligaId
                             </div>
                             <div class="extrato-timeline__item-content">
                                 <div class="extrato-timeline__item-title">
-                                    ${subitems.length === 1 ? subitems[0].label : `${r.posicao ? r.posicao + 'º lugar' : 'Rodada ' + r.rodada}`}
+                                    ${r.posicao ? r.posicao + 'º lugar' : 'Rodada ' + r.rodada}
                                 </div>
-                                ${subitems.length > 1 ? `<div class="extrato-timeline__item-subtitle">${subitems.length} módulos</div>` : ''}
+                                <div class="extrato-timeline__item-subtitle">${subitems.length === 1 ? subitems[0].label : subitems.length + ' módulos'}</div>
                             </div>
                             <div class="extrato-timeline__item-value" style="color: ${saldoRodada >= 0 ? 'var(--app-success-light)' : 'var(--app-danger-light)'}">
                                 ${sinalMoeda(saldoRodada)}
