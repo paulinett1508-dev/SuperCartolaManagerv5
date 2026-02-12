@@ -610,6 +610,9 @@ async function buscarCamposComoObjeto(ligaId, timeId, temporada = CURRENT_SEASON
 export const getExtratoCache = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
+        if (isNaN(Number(timeId))) {
+            return res.status(400).json({ erro: "ID do time inválido" });
+        }
         const { temporada } = req.query;
         // ✅ v5.9 FIX: Temporada usa getFinancialSeason() como default
         // Durante pré-temporada, busca dados de 2025 (temporada anterior)
@@ -987,6 +990,9 @@ export const getExtratoCache = async (req, res) => {
 export const salvarExtratoCache = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
+        if (isNaN(Number(timeId))) {
+            return res.status(400).json({ erro: "ID do time inválido" });
+        }
         const {
             historico_transacoes,
             extrato,
@@ -1425,6 +1431,9 @@ export const verificarCacheValido = async (req, res) => {
 export const lerCacheExtratoFinanceiro = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
+        if (isNaN(Number(timeId))) {
+            return res.status(400).json({ erro: "ID do time inválido" });
+        }
         const { rodadaAtual, temporada } = req.query;
         const rodadaAtualNum = parseInt(rodadaAtual) || 1;
         // ✅ v5.9 FIX: Temporada usa getFinancialSeason() como default

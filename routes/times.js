@@ -175,6 +175,10 @@ router.get("/liga/:ligaId", async (req, res) => {
 router.put("/:id/senha", async (req, res) => {
     try {
         const Time = getTimeModel();
+        const timeId = parseInt(req.params.id);
+        if (isNaN(timeId)) {
+            return res.status(400).json({ erro: "ID do time inválido" });
+        }
         const { senha } = req.body;
         if (!senha || senha.length < 4) {
             return res
@@ -184,7 +188,7 @@ router.put("/:id/senha", async (req, res) => {
 
         // ✅ Buscar por 'id' (campo correto do schema)
         const time = await Time.findOneAndUpdate(
-            { id: parseInt(req.params.id) },
+            { id: timeId },
             { senha_acesso: senha.trim() },
             { new: true },
         );
