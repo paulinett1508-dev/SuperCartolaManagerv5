@@ -900,26 +900,29 @@ function renderRankingSection() {
     const top3 = ranking.slice(0, 3);
 
     // Montar HTML
+    // API retorna: pontos_totais (ranking geral) ou pontos (ranking por rodada)
     let items = top3.map((r, i) => {
         const posClass = i === 0 ? "gold" : i === 1 ? "silver" : "bronze";
         const isMe = String(r.timeId) === String(WHState.timeId);
+        const pontos = r.pontos_totais || r.pontos || 0;
         return `
             <div class="wh-ranking-item ${posClass} ${isMe ? "me" : ""}">
                 <div class="wh-ranking-pos">${i + 1}</div>
                 <div class="wh-ranking-nome">${r.nome_time || r.nomeTime}</div>
-                <div class="wh-ranking-valor">${(r.pontos || 0).toFixed(1)}</div>
+                <div class="wh-ranking-valor">${pontos.toFixed(1)}</div>
             </div>
         `;
     }).join("");
 
     // Se eu não estou no top 3, mostrar minha posição
     if (minhaPosicao && minhaPosicao > 3) {
+        const meusPontos = meuTime.pontos_totais || meuTime.pontos || 0;
         items += `
             <div class="wh-ranking-separator">···</div>
             <div class="wh-ranking-item me">
                 <div class="wh-ranking-pos">${minhaPosicao}º</div>
                 <div class="wh-ranking-nome">${meuTime.nome_time || meuTime.nomeTime}</div>
-                <div class="wh-ranking-valor">${(meuTime.pontos || 0).toFixed(1)}</div>
+                <div class="wh-ranking-valor">${meusPontos.toFixed(1)}</div>
             </div>
         `;
     }
