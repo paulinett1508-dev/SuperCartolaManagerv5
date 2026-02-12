@@ -441,5 +441,45 @@ rm -rf node_modules/.cache
 
 ---
 
-**Última atualização**: 2026-01-20
-**Versão**: 2.0 (High Senior Protocol)
+## 🔀 SISTEMA HÍBRIDO (Novo - 2026-02)
+
+### Compatibilidade Multi-IDE
+
+Este projeto agora suporta:
+- ✅ **VS Code** (via .claude/)
+- ✅ **Cursor** (via .agent/ - você está aqui!)
+- ✅ **Windsurf** (via .agent/)
+- ✅ **Antigravity** (via .agent/)
+
+### Source of Truth
+
+Skills residem em `docs/skills/` (único source of truth).
+
+A estrutura `.agent/` é **GERADA AUTOMATICAMENTE** via `scripts/sync-skills.js`.
+
+### Sincronização
+
+```bash
+# Manual
+node scripts/sync-skills.js
+
+# Automático (será configurado no DIA 7 do plano)
+git commit -m "..." # Sincroniza automaticamente
+```
+
+### Novas Capacidades (Em Implementação)
+
+**Fase 1 (Dias 1-3):** Infraestrutura base
+**Fase 2 (Dias 4-7):** Validação automatizada
+**Fase 3 (Dias 8-12):** Testes E2E com Playwright
+**Fase 4 (Dias 13-15):** Novas skills (orchestrate, test-runner)
+**Fase 5 (Dias 16-17):** Documentação e rollout
+
+### Documentação
+
+Veja [docs/HYBRID-SYSTEM.md](docs/HYBRID-SYSTEM.md) para arquitetura completa.
+
+---
+
+**Última atualização**: 2026-02-11
+**Versão**: 2.1 (High Senior Protocol + Sistema Híbrido)

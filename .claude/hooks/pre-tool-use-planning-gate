@@ -14,8 +14,8 @@ INPUT=$(cat)
 # Extrai tool_name do JSON via grep/sed (sem jq)
 TOOL_NAME=$(echo "$INPUT" | grep -o '"tool_name"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*"tool_name"[[:space:]]*:[[:space:]]*"//;s/"//')
 
-# Se é TaskCreate ou TaskUpdate, marca que planejamento foi feito
-if [[ "$TOOL_NAME" == "TaskCreate" || "$TOOL_NAME" == "TaskUpdate" ]]; then
+# Se é TaskCreate, TaskUpdate ou TodoWrite, marca que planejamento foi feito
+if [[ "$TOOL_NAME" == "TaskCreate" || "$TOOL_NAME" == "TaskUpdate" || "$TOOL_NAME" == "TodoWrite" ]]; then
     touch "$FLAG_FILE"
     exit 0
 fi
