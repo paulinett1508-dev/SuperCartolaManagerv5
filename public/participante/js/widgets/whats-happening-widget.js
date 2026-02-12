@@ -4,18 +4,34 @@
  * Widget flutuante de engajamento em tempo real
  * Mostra disputas internas ativas nos módulos da liga
  *
- * @version 1.0.0
+ * @version 2.0.0 - FAB Game Status Sync
+ *
+ * Máquina de Estados do Foguinho:
+ * - HIDDEN:   FAB invisível (mercado aberto, pré-temporada, sem rodada)
+ * - WAITING:  Fogo dim/cinza (mercado fechou, jogos não começaram)
+ * - LIVE:     Fogo vibrante máximo (jogos em andamento)
+ * - INTERVAL: Fogo sutil/pulsação lenta (entre blocos de jogos)
+ * - COOLING:  Fogo diminuindo (jogos acabaram, rodada não finalizada)
+ * - FINISHED: Fogo apagado/estático (todos jogos encerrados)
  *
  * Módulos suportados:
- * - Pontos Corridos (confrontos da rodada)
- * - Mata-Mata (confrontos ativos)
- * - Artilheiro (disputa pelo topo)
- * - Luva de Ouro (melhor goleiro)
- * - Capitão de Luxo (melhor capitão)
- * - Ranking da Rodada (top 3 + posição do usuário)
+ * - Pontos Corridos, Mata-Mata, Artilheiro, Luva de Ouro
+ * - Capitão de Luxo, Ranking da Rodada
  */
 
-if (window.Log) Log.info("[WHATS-HAPPENING] 🔥 Widget v1.0 carregando...");
+if (window.Log) Log.info("[WHATS-HAPPENING] 🔥 Widget v2.0 carregando...");
+
+// ============================================
+// MÁQUINA DE ESTADOS DO FOGUINHO
+// ============================================
+const FAB_GAME_STATE = {
+    HIDDEN:   'hidden',   // FAB não visível
+    WAITING:  'waiting',  // Mercado fechou, jogos não começaram
+    LIVE:     'live',     // Jogos em andamento
+    INTERVAL: 'interval', // Entre blocos de jogos
+    COOLING:  'cooling',  // Jogos acabaram, rodada não finalizada
+    FINISHED: 'finished', // Todos jogos da rodada encerrados
+};
 
 // ============================================
 // ESTADO DO WIDGET
@@ -30,6 +46,11 @@ const WHState = {
     mercadoStatus: null,
     lastUpdate: null,
     pollingInterval: null,
+    // Máquina de estados do FAB
+    fabState: FAB_GAME_STATE.HIDDEN,
+    fabPreviousState: null,
+    gameStatusData: null,      // Dados do /api/jogos-ao-vivo/game-status
+    gameStatusPollTimer: null, // Timer de polling do game-status
     data: {
         pontosCorridos: null,
         mataMata: null,
@@ -37,16 +58,16 @@ const WHState = {
         luvaOuro: null,
         capitao: null,
         ranking: null,
-        parciais: null, // Parciais da liga (ranking em tempo real)
-        meuConfrontoPc: null, // Confronto do participante no Pontos Corridos
-        meuConfrontoMm: null, // Confronto do participante no Mata-Mata
+        parciais: null,
+        meuConfrontoPc: null,
+        meuConfrontoMm: null,
     },
     hasUpdates: false,
     // Drag state
     isDragging: false,
     dragStartX: 0,
     dragStartY: 0,
-    fabPosition: { right: 16, bottom: 80 }, // Posição padrão
+    fabPosition: { right: 16, bottom: 80 },
 };
 
 // ============================================
@@ -223,6 +244,190 @@ const WH_CONFIG = {
     MIN_DIFF_HOT: 10, // Diferença mínima para ser "disputa quente"
 };
 
+// ============================================
+// MÁQUINA DE ESTADOS - TRANSIÇÕES DO FOGUINHO
+// ============================================
+
+/**
+ * Determina o estado do FAB baseado no mercado + jogos ao vivo
+ * Prioridade: mercado status > game status da API
+ */
+function calcularFabState(mercadoStatus, gameStatusData) {
+    // 1. Mercado aberto → HIDDEN (FAB some)
+    if (mercadoStatus?.status_mercado === 1 || mercadoStatus?.mercado_aberto) {
+        return FAB_GAME_STATE.HIDDEN;
+    }
+
+    // 2. Pré-temporada → HIDDEN
+    if (mercadoStatus?.temporada_encerrada || mercadoStatus?.status_mercado === 6) {
+        return FAB_GAME_STATE.HIDDEN;
+    }
+
+    // 3. Rodada encerrada oficialmente (status >= 4) → FINISHED
+    if (mercadoStatus?.status_mercado >= 4 && mercadoStatus?.status_mercado < 6) {
+        return FAB_GAME_STATE.FINISHED;
+    }
+
+    // 4. Mercado fechado (status === 2) → consultar game-status para granularidade
+    if (mercadoStatus?.status_mercado === 2 || mercadoStatus?.mercado_fechado) {
+        if (!gameStatusData) {
+            // Sem dados de jogos → fallback para bola_rolando
+            return mercadoStatus?.bola_rolando
+                ? FAB_GAME_STATE.LIVE
+                : FAB_GAME_STATE.WAITING;
+        }
+
+        // Usar recomendação do backend
+        const state = gameStatusData.fabState;
+        if (state && FAB_GAME_STATE[state.toUpperCase()]) {
+            return state;
+        }
+
+        // Fallback por stats
+        const stats = gameStatusData.stats;
+        if (stats?.aoVivo > 0) return FAB_GAME_STATE.LIVE;
+        if (stats?.agendados > 0 && stats?.encerrados > 0) return FAB_GAME_STATE.INTERVAL;
+        if (stats?.agendados > 0) return FAB_GAME_STATE.WAITING;
+        if (stats?.encerrados > 0) return FAB_GAME_STATE.COOLING;
+
+        return FAB_GAME_STATE.WAITING;
+    }
+
+    // 5. Mercado reaberto (status === 3) → HIDDEN
+    if (mercadoStatus?.status_mercado === 3) {
+        return FAB_GAME_STATE.HIDDEN;
+    }
+
+    return FAB_GAME_STATE.HIDDEN;
+}
+
+/**
+ * Aplica transição de estado no FAB com classes CSS
+ */
+function transicionarFabState(novoEstado) {
+    const estadoAnterior = WHState.fabState;
+    if (estadoAnterior === novoEstado) return;
+
+    WHState.fabPreviousState = estadoAnterior;
+    WHState.fabState = novoEstado;
+
+    const fab = document.getElementById("wh-fab");
+    if (!fab) return;
+
+    if (window.Log) {
+        Log.info(`[WHATS-HAPPENING] 🔄 FAB State: ${estadoAnterior} → ${novoEstado}`);
+    }
+
+    // Remover todas as classes de estado
+    Object.values(FAB_GAME_STATE).forEach(state => {
+        fab.classList.remove(`wh-fab--${state}`);
+    });
+
+    // Aplicar novo estado
+    fab.classList.add(`wh-fab--${novoEstado}`);
+
+    // Visibilidade: HIDDEN = esconder com fade
+    if (novoEstado === FAB_GAME_STATE.HIDDEN) {
+        fab.classList.add('wh-fab--hiding');
+        setTimeout(() => {
+            fab.style.display = 'none';
+            fab.classList.remove('wh-fab--hiding');
+        }, 400); // Tempo da animação de fade out
+    } else if (estadoAnterior === FAB_GAME_STATE.HIDDEN) {
+        // Reaparecendo: fade in
+        fab.style.display = 'flex';
+        fab.classList.add('wh-fab--appearing');
+        setTimeout(() => {
+            fab.classList.remove('wh-fab--appearing');
+        }, 600);
+    }
+
+    // Ajustar polling baseado no estado
+    ajustarPollingPorEstado(novoEstado);
+}
+
+/**
+ * Ajusta frequência de polling baseado no estado do FAB
+ */
+function ajustarPollingPorEstado(estado) {
+    // Parar polling existente de game-status
+    if (WHState.gameStatusPollTimer) {
+        clearInterval(WHState.gameStatusPollTimer);
+        WHState.gameStatusPollTimer = null;
+    }
+
+    // Definir intervalo baseado no estado
+    let intervalo;
+    switch (estado) {
+        case FAB_GAME_STATE.LIVE:
+            intervalo = 30000;   // 30s - jogos rolando, máxima frequência
+            break;
+        case FAB_GAME_STATE.INTERVAL:
+            intervalo = 120000;  // 2min - entre blocos de jogos
+            break;
+        case FAB_GAME_STATE.WAITING:
+            intervalo = 300000;  // 5min - aguardando jogos
+            break;
+        case FAB_GAME_STATE.COOLING:
+            intervalo = 180000;  // 3min - jogos acabaram
+            break;
+        case FAB_GAME_STATE.FINISHED:
+            intervalo = 600000;  // 10min - rodada acabou, polling lento
+            break;
+        case FAB_GAME_STATE.HIDDEN:
+        default:
+            intervalo = 600000;  // 10min - verificar se mercado fechou
+            break;
+    }
+
+    WHState.gameStatusPollTimer = setInterval(() => {
+        syncFabGameState();
+    }, intervalo);
+
+    if (window.Log) {
+        Log.info(`[WHATS-HAPPENING] ⏱️ Polling game-status: ${intervalo / 1000}s (estado: ${estado})`);
+    }
+}
+
+/**
+ * Busca /api/jogos-ao-vivo/game-status e atualiza o estado do FAB
+ */
+async function fetchGameStatus() {
+    try {
+        const res = await fetchWithTimeout("/api/jogos-ao-vivo/game-status", 3000);
+        if (res.ok) {
+            WHState.gameStatusData = await res.json();
+            return WHState.gameStatusData;
+        }
+    } catch (e) {
+        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro ao buscar game-status:", e.name === 'AbortError' ? 'Timeout' : e.message);
+    }
+    return null;
+}
+
+/**
+ * Sincroniza o estado do FAB com mercado + jogos ao vivo
+ * Chamado periodicamente e na inicialização
+ */
+async function syncFabGameState() {
+    // 1. Buscar mercado status
+    await fetchMercadoStatus();
+
+    // 2. Buscar game status (jogos ao vivo)
+    await fetchGameStatus();
+
+    // 3. Calcular e transicionar
+    const novoEstado = calcularFabState(WHState.mercadoStatus, WHState.gameStatusData);
+    transicionarFabState(novoEstado);
+
+    // 4. Se está em estado ativo, buscar dados dos módulos
+    if (novoEstado === FAB_GAME_STATE.LIVE ||
+        novoEstado === FAB_GAME_STATE.INTERVAL ||
+        novoEstado === FAB_GAME_STATE.COOLING) {
+        await fetchAllData();
+    }
+}
+
 // Helper: fetch com timeout
 async function fetchWithTimeout(url, timeout = WH_CONFIG.API_TIMEOUT) {
     const controller = new AbortController();
@@ -244,7 +449,7 @@ async function fetchWithTimeout(url, timeout = WH_CONFIG.API_TIMEOUT) {
 // INICIALIZAÇÃO
 // ============================================
 export async function initWhatsHappeningWidget(params = {}) {
-    if (window.Log) Log.info("[WHATS-HAPPENING] 🚀 Inicializando widget...", params);
+    if (window.Log) Log.info("[WHATS-HAPPENING] 🚀 Inicializando widget v2.0...", params);
 
     // Extrair parâmetros
     WHState.ligaId = params.ligaId || window.participanteData?.ligaId;
@@ -257,20 +462,35 @@ export async function initWhatsHappeningWidget(params = {}) {
         return;
     }
 
-    // 1) Criar FAB IMEDIATAMENTE (não bloquear UX)
+    // 1) Criar FAB (inicialmente HIDDEN até determinar estado)
     createWidgetElements();
+    const fab = document.getElementById("wh-fab");
+    if (fab) fab.style.display = 'none'; // Esconder até saber o estado
 
-    // 2) Buscar status do mercado (rápido, ~0.5s)
-    fetchMercadoStatus().then(() => {
-        // 3) Buscar dados em background (não bloquear)
+    // 2) Sincronizar estado: mercado + jogos ao vivo
+    //    Isso determina se o FAB aparece ou não
+    await syncFabGameState();
+
+    // 3) Se estado é ativo, buscar dados dos módulos em background
+    const estadoAtivo = [
+        FAB_GAME_STATE.LIVE,
+        FAB_GAME_STATE.INTERVAL,
+        FAB_GAME_STATE.WAITING,
+        FAB_GAME_STATE.COOLING,
+        FAB_GAME_STATE.FINISHED
+    ].includes(WHState.fabState);
+
+    if (estadoAtivo) {
         fetchAllData().then(() => {
-            // 4) Iniciar polling se bola rolando
-            if (WHState.mercadoStatus?.bola_rolando) {
+            // 4) Iniciar polling de dados dos módulos se LIVE
+            if (WHState.fabState === FAB_GAME_STATE.LIVE) {
                 startPolling();
             }
-            if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget inicializado com sucesso");
+            if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget v2.0 inicializado", { fabState: WHState.fabState });
         });
-    });
+    } else {
+        if (window.Log) Log.info("[WHATS-HAPPENING] ℹ️ FAB oculto - estado:", WHState.fabState);
+    }
 }
 
 // ============================================
@@ -700,18 +920,16 @@ async function fetchRanking() {
 }
 
 // ============================================
-// POLLING (ATUALIZAÇÃO AUTOMÁTICA)
+// POLLING (ATUALIZAÇÃO AUTOMÁTICA DE DADOS)
 // ============================================
 function startPolling() {
     if (WHState.pollingInterval) return;
 
-    if (window.Log) Log.info("[WHATS-HAPPENING] 🔄 Iniciando polling (60s)...");
+    if (window.Log) Log.info("[WHATS-HAPPENING] 🔄 Iniciando polling de dados (60s)...");
 
     WHState.pollingInterval = setInterval(async () => {
-        // Verificar se ainda está rolando
-        await fetchMercadoStatus();
-
-        if (!WHState.mercadoStatus?.bola_rolando) {
+        // Verificar estado do FAB - só faz polling de dados se LIVE
+        if (WHState.fabState !== FAB_GAME_STATE.LIVE) {
             stopPolling();
             return;
         }
@@ -724,7 +942,7 @@ function stopPolling() {
     if (WHState.pollingInterval) {
         clearInterval(WHState.pollingInterval);
         WHState.pollingInterval = null;
-        if (window.Log) Log.info("[WHATS-HAPPENING] ⏹️ Polling parado");
+        if (window.Log) Log.info("[WHATS-HAPPENING] ⏹️ Polling de dados parado");
     }
 }
 
@@ -1406,6 +1624,17 @@ function renderMeuConfrontoMataMata() {
 export function destroyWhatsHappeningWidget() {
     stopPolling();
 
+    // Limpar timer de game-status
+    if (WHState.gameStatusPollTimer) {
+        clearInterval(WHState.gameStatusPollTimer);
+        WHState.gameStatusPollTimer = null;
+    }
+
+    // Reset estado
+    WHState.fabState = FAB_GAME_STATE.HIDDEN;
+    WHState.fabPreviousState = null;
+    WHState.gameStatusData = null;
+
     const fab = document.getElementById("wh-fab");
     const panel = document.getElementById("wh-panel");
     const backdrop = document.getElementById("wh-backdrop");
@@ -1427,8 +1656,10 @@ if (typeof window !== "undefined") {
         open: openPanel,
         close: closePanel,
         refresh: fetchAllData,
+        syncState: syncFabGameState,
         state: WHState,
+        FAB_GAME_STATE,
     };
 }
 
-if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget v1.0 carregado");
+if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget v2.0 carregado");
