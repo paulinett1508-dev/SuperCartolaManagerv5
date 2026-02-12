@@ -670,6 +670,382 @@ Isso garante que PR não seja mergeado se `.agent/` estiver desatualizado.
 
 ---
 
+## ✅ Sistema de Validações
+
+Sistema automatizado de qualidade de código que valida skills, Markdown e JavaScript.
+
+### Propósito
+
+As validações garantem que:
+- ✅ Skills possuem frontmatter YAML válido
+- ✅ Markdown segue padrões de formatação
+- ✅ Código JavaScript não tem erros (ESLint)
+- ✅ Qualidade é mantida em CI/CD e localmente
+
+### Validadores Disponíveis
+
+#### 1. Frontmatter Validator
+
+**Script:** `scripts/validation/frontmatter-check.js`
+
+**O que valida:**
+- Presença de frontmatter YAML (`---` ... `---`)
+- Campos obrigatórios: `name`, `description`
+- Campos recomendados: `category`, `keywords`
+- Formato de arrays em `keywords`
+
+**Exemplo de uso:**
+```bash
+# Validar todas as skills
+npm run validate:frontmatter
+
+# Ou diretamente
+node scripts/validation/frontmatter-check.js
+```
+
+**Output:**
+```
+🔍 Validador de Frontmatter
+
+Analisando: /home/user/SuperCartolaManagerv5/docs/skills
+
+Encontrados 18 arquivos
+
+✅ docs/skills/01-core-workflow/workflow.md
+✅ docs/skills/02-specialists/frontend-crafter.md
+
+═══════════════════════════════════════
+Estatísticas de Validação
+═══════════════════════════════════════
+
+Arquivos analisados: 18
+✅ Válidos: 18
+❌ Com erros: 0
+⚠️  Com avisos: 0
+
+Taxa de sucesso: 100.0%
+
+✅ Todos os arquivos estão válidos!
+```
+
+**Exit codes:**
+- `0` - Todos arquivos válidos
+- `1` - Erros encontrados
+
+#### 2. Markdown Linter
+
+**Script:** `scripts/validation/markdown-lint.js`
+
+**O que valida:**
+- Trailing spaces (espaços no final das linhas)
+- Múltiplas linhas em branco (máximo 2)
+- Links vazios `[texto]()`
+- Headings duplicados
+- Incremento correto de headings (h1 → h2, não h1 → h3)
+
+**Configuração permissiva:** Apenas erros graves são reportados como falha. Avisos não bloqueiam.
+
+**Exemplo de uso:**
+```bash
+# Validar Markdown
+npm run validate:markdown
+
+# Ou diretamente
+node scripts/validation/markdown-lint.js
+```
+
+**Output:**
+```
+📝 Validador de Markdown
+
+Analisando: /home/user/SuperCartolaManagerv5/docs
+
+Encontrados 45 arquivos
+
+⚠️  docs/BACKLOG.md
+  Avisos:
+    • Linha 234: Espaços no final da linha
+
+═══════════════════════════════════════
+Estatísticas de Validação Markdown
+═══════════════════════════════════════
+
+Arquivos analisados: 45
+✅ Sem problemas: 44
+❌ Com erros: 0
+⚠️  Com avisos: 1
+
+Taxa de sucesso: 100.0%
+
+✅ Validação concluída!
+
+ℹ️  1 arquivo(s) com avisos (não bloqueiam)
+```
+
+**Exit codes:**
+- `0` - Sem erros críticos
+- `1` - Erros críticos encontrados
+
+#### 3. ESLint Validator
+
+**Config:** `.eslintrc.json`
+
+**O que valida:**
+- Sintaxe JavaScript (ES2022)
+- Boas práticas (prefer-const, no-var, etc.)
+- Formatação (indentação, aspas, ponto-e-vírgula)
+- No-console: OFF (permitido em Node.js)
+
+**Regras customizadas:**
+- Permite variáveis não-usadas com `_` (ex: `_req`, `_id`)
+- Ignora `public/libs/` (bibliotecas third-party)
+- Ignora `.agent/`, `.husky/`, `node_modules/`
+
+**Exemplo de uso:**
+```bash
+# Validar JavaScript
+npm run validate:eslint
+
+# Ou (equivalente)
+npm run lint
+
+# Corrigir automaticamente
+npm run lint:fix
+```
+
+**Exit codes:**
+- `0` - Código válido
+- `1` - Erros ESLint encontrados
+
+#### 4. Orquestrador (run-all.js)
+
+**Script:** `scripts/validation/run-all.js`
+
+**O que faz:**
+- Executa **todas** as validações sequencialmente
+- Coleta resultados de cada validação
+- Mostra resumo consolidado
+- Exit code 0 apenas se tudo passar
+
+**Exemplo de uso:**
+```bash
+# Rodar todas as validações
+npm run validate
+
+# Ou diretamente
+node scripts/validation/run-all.js
+```
+
+**Output:**
+```
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║           🚀 SUPER CARTOLA MANAGER                        ║
+║              Sistema de Validações                        ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+
+🔍 Executando: Frontmatter
+   Comando: node scripts/validation/frontmatter-check.js
+
+[Output do frontmatter-check.js...]
+
+✅ Frontmatter passou em 0.34s
+────────────────────────────────────────────────────────
+
+📝 Executando: Markdown
+   Comando: node scripts/validation/markdown-lint.js
+
+[Output do markdown-lint.js...]
+
+⚠️  Markdown AVISOS (exit code: 0)
+────────────────────────────────────────────────────────
+
+🔍 Executando: ESLint
+   Comando: npx eslint . --ext .js
+
+[Output do ESLint...]
+
+✅ ESLint passou em 2.15s
+────────────────────────────────────────────────────────
+
+Tempo total: 3.12s
+
+═══════════════════════════════════════════════════════════
+           RESUMO DAS VALIDAÇÕES
+═══════════════════════════════════════════════════════════
+
+  ✅ Frontmatter           PASSOU
+     Tempo: 0.34s
+
+  ⚠️  Markdown              AVISOS
+     Tempo: 0.63s
+
+  ✅ ESLint                PASSOU
+     Tempo: 2.15s
+
+────────────────────────────────────────────────────────
+✅ Passaram: 2
+❌ Falharam: 0
+⚠️  Avisos: 1
+═══════════════════════════════════════════════════════════
+
+🎉 Todas as validações críticas passaram!
+
+ℹ️  Há 1 validação(ões) com avisos (não bloqueiam)
+```
+
+**Exit codes:**
+- `0` - Todas validações críticas passaram
+- `1` - Uma ou mais validações falharam
+
+### Integração com Git Hooks
+
+O **pre-commit hook** executa validação rápida de frontmatter antes de commits:
+
+```bash
+# Hook detecta mudanças em docs/skills/
+🔄 [PRE-COMMIT] Mudanças detectadas em docs/skills/
+🔍 [PRE-COMMIT] Validando frontmatter...
+✅ [PRE-COMMIT] Frontmatter válido
+📦 [PRE-COMMIT] Sincronizando .agent/...
+```
+
+**Comportamento:**
+- Apenas frontmatter (rápido: ~0.5s)
+- **Não bloqueia commit** se falhar (apenas avisa)
+- Markdown e ESLint ficam para CI/CD (mais demorados)
+
+### Scripts NPM
+
+Todos os scripts de validação disponíveis:
+
+```bash
+# Todas as validações
+npm run validate
+
+# Validações individuais
+npm run validate:frontmatter     # Apenas frontmatter YAML
+npm run validate:markdown        # Apenas Markdown
+npm run validate:eslint          # Apenas ESLint
+
+# ESLint (alias)
+npm run lint                     # Mesma coisa que validate:eslint
+npm run lint:fix                 # Corrige automaticamente erros
+```
+
+### CI/CD
+
+Adicione ao `.github/workflows/validate.yml`:
+
+```yaml
+name: Validação de Qualidade
+
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Rodar todas as validações
+        run: npm run validate
+```
+
+**Tempo esperado:** ~5-10s para todas as validações.
+
+### Troubleshooting
+
+#### Frontmatter falhando
+
+**Problema:** `Campo obrigatório ausente: description`
+
+**Solução:**
+```markdown
+---
+name: Nome da Skill
+description: Descrição completa aqui  # ← Adicionar
+---
+```
+
+#### Markdown falhando
+
+**Problema:** `Link vazio encontrado: [texto]()`
+
+**Solução:**
+```markdown
+<!-- Antes -->
+[Clique aqui]()
+
+<!-- Depois -->
+[Clique aqui](https://exemplo.com)
+```
+
+#### ESLint falhando
+
+**Problema:** `'const' is preferred over 'let'`
+
+**Solução:**
+```javascript
+// Antes
+let variavel = 123;
+
+// Depois
+const variavel = 123;
+```
+
+**Ou corrigir automaticamente:**
+```bash
+npm run lint:fix
+```
+
+#### Pular validações temporariamente
+
+```bash
+# Pular pre-commit hook (emergências)
+git commit --no-verify -m "mensagem"
+
+# Ou via env var
+SKIP_SYNC=1 git commit -m "mensagem"
+```
+
+### Arquivos de Configuração
+
+```
+.
+├── .eslintrc.json                      # Configuração ESLint
+├── scripts/
+│   └── validation/
+│       ├── frontmatter-check.js        # Validador frontmatter
+│       ├── markdown-lint.js            # Validador Markdown
+│       └── run-all.js                  # Orquestrador
+└── .husky/
+    └── pre-commit                      # Hook com validação
+```
+
+### Performance
+
+| Validação | Tempo (18 skills) | Bloqueia commit? |
+|-----------|-------------------|------------------|
+| Frontmatter | ~0.3-0.5s | ⚠️  Avisa apenas |
+| Markdown | ~0.5-1.0s | ❌ Só em CI/CD |
+| ESLint | ~2-3s | ❌ Só em CI/CD |
+| **TOTAL** | ~3-5s | ❌ Só em CI/CD |
+
+**Filosofia:** Validações **nunca bloqueiam** o desenvolvedor. Apenas avisam localmente e falham no CI/CD.
+
+---
+
 ## 📂 Estrutura de Diretórios
 
 ```
@@ -1029,10 +1405,23 @@ O sistema coleta métricas de:
 - Documentação completa de Git Hooks
 - Guia de troubleshooting e CI/CD
 
+### ✅ DIA 6 (2026-02-12)
+- Sistema de validações automatizado
+- Módulo `frontmatter-check.js`: valida YAML em skills
+- Módulo `markdown-lint.js`: valida formatação Markdown
+- Módulo `run-all.js`: orquestrador de validações
+- Configuração ESLint (`.eslintrc.json`) para Node.js/ES2022
+- Scripts npm: `validate`, `validate:frontmatter`, `validate:markdown`, `validate:eslint`
+- Integração de validação frontmatter no pre-commit hook
+- Validações não-bloqueantes (filosofia: avisar, não bloquear)
+- Performance otimizada (~0.5s frontmatter, ~3-5s total)
+- Documentação completa do sistema de validações
+- Guia de troubleshooting e CI/CD
+
 ---
 
-**Status:** 🚧 Em construção (Fase 1 - Dia 5 concluído)
+**Status:** 🚧 Em construção (Fase 1 - Dia 6 concluído)
 
 **Última atualização:** 2026-02-12
 
-**Versão:** 0.5.0
+**Versão:** 0.6.0

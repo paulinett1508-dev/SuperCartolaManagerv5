@@ -1,0 +1,65 @@
+{
+  "env": {
+    "node": true,
+    "es2022": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", {
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_"
+    }],
+    "no-console": "off",
+    "prefer-const": "warn",
+    "no-var": "error",
+    "eqeqeq": ["warn", "always"],
+    "curly": ["warn", "all"],
+    "brace-style": ["warn", "1tbs"],
+    "semi": ["error", "always"],
+    "quotes": ["warn", "single", { "avoidEscape": true }],
+    "indent": ["warn", 2, { "SwitchCase": 1 }],
+    "comma-dangle": ["warn", "always-multiline"],
+    "no-trailing-spaces": "warn",
+    "eol-last": ["warn", "always"],
+    "space-before-function-paren": ["warn", {
+      "anonymous": "always",
+      "named": "never",
+      "asyncArrow": "always"
+    }]
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    ".agent/",
+    ".husky/",
+    "public/libs/",
+    "*.min.js",
+    "coverage/",
+    "dist/"
+  ],
+  "overrides": [
+    {
+      "files": ["scripts/**/*.js"],
+      "rules": {
+        "no-process-exit": "off"
+      }
+    },
+    {
+      "files": ["public/**/*.js"],
+      "env": {
+        "browser": true,
+        "node": false
+      },
+      "globals": {
+        "fetch": "readonly",
+        "FormData": "readonly",
+        "URLSearchParams": "readonly"
+      }
+    }
+  ]
+}

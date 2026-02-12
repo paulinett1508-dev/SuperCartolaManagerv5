@@ -21,7 +21,11 @@
     "prepare": "husky",
     "postinstall": "husky || true",
     "sync-skills": "node scripts/sync-skills.js",
-    "sync-skills:force": "node scripts/sync-skills.js --force"
+    "sync-skills:force": "node scripts/sync-skills.js --force",
+    "validate": "node scripts/validation/run-all.js",
+    "validate:frontmatter": "node scripts/validation/frontmatter-check.js",
+    "validate:markdown": "node scripts/validation/markdown-lint.js",
+    "validate:eslint": "eslint . --ext .js"
   },
   "keywords": [
     "cartola",

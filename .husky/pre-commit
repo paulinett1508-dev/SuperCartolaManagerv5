@@ -29,6 +29,16 @@ fi
 
 echo ""
 echo "🔄 [PRE-COMMIT] Mudanças detectadas em docs/skills/"
+
+# Validação rápida de frontmatter (apenas arquivos staged)
+echo "🔍 [PRE-COMMIT] Validando frontmatter..."
+if node scripts/validation/frontmatter-check.js > /dev/null 2>&1; then
+  echo "✅ [PRE-COMMIT] Frontmatter válido"
+else
+  echo "⚠️  [PRE-COMMIT] Avisos no frontmatter (não bloqueia commit)"
+  echo "    Execute: npm run validate:frontmatter"
+fi
+
 echo "📦 [PRE-COMMIT] Sincronizando .agent/..."
 echo ""
 
