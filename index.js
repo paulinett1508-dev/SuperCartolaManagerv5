@@ -189,6 +189,7 @@ import adminClienteAuthRoutes from "./routes/admin-cliente-auth.js";
 import adminMobileRoutes from "./routes/admin-mobile-routes.js";
 import adminMigracaoRoutes from "./routes/admin/migracao.js";
 import adminMigracaoValidacaoRoutes from "./routes/admin/migracao-validacao.js";
+import githubAnalyticsRoutes from "./routes/github-analytics-routes.js";
 console.log("[DEBUG] adminAuthRoutes type:", typeof adminAuthRoutes);
 console.log(
   "[DEBUG] adminAuthRoutes.stack length:",
@@ -428,6 +429,10 @@ console.log("[SERVER] ✅ Rota de validação de migração registrada");
 // 📱 Admin Mobile - App PWA para administradores
 app.use("/api/admin/mobile", adminMobileRoutes);
 console.log("[SERVER] 📱 Rotas de Admin Mobile registradas");
+
+// 🐙 GitHub Analytics - Integração com GitHub API (admin)
+app.use("/api/github", githubAnalyticsRoutes);
+console.log("[SERVER] 🐙 Rotas de GitHub Analytics registradas");
 
 // 🔧 Modo Manutenção do App
 app.use("/api/admin", manutencaoRoutes);
