@@ -152,6 +152,134 @@ node --test scripts/__tests__/ide-detector.test.js
 
 ---
 
+## 📚 Skill Reader
+
+Sistema de leitura e parsing de skills em Markdown com YAML frontmatter.
+
+### Formato de Skill
+
+Todas as skills em `docs/skills/` seguem este formato:
+
+```markdown
+---
+name: Nome da Skill
+description: Descrição detalhada da skill
+allowed-tools: Tool1, Tool2, Tool3  # Opcional
+---
+
+# Nome da Skill
+
+## Seção 1
+Conteúdo da skill...
+
+## Seção 2
+Mais conteúdo...
+```
+
+**Campos obrigatórios:**
+- `name`: Nome da skill (usado para referência)
+- `description`: Descrição completa da funcionalidade
+
+**Campos opcionais:**
+- `allowed-tools`: Lista de ferramentas permitidas (separadas por vírgula)
+
+### API do Skill Reader
+
+```javascript
+import {
+  readSkillFile,
+  readAllSkills,
+  parseSkill,
+  groupSkillsByCategory,
+  filterSkillsByCategory
+} from './scripts/lib/skill-reader.js';
+
+// Ler uma skill específica
+const skill = readSkillFile('/path/to/skill.md');
+console.log(skill.metadata.name);        // "Nome da Skill"
+console.log(skill.metadata.description); // "Descrição..."
+console.log(skill.category);             // "core-workflow"
+console.log(skill.content);              // Markdown sem frontmatter
+
+// Ler todas as skills
+const skills = readAllSkills('./docs/skills');
+console.log(`${skills.length} skills encontradas`);
+
+// Agrupar por categoria
+const grouped = groupSkillsByCategory(skills);
+console.log(grouped['core-workflow']); // Array de skills
+
+// Filtrar por categoria
+const coreSkills = filterSkillsByCategory(skills, 'core-workflow');
+```
+
+### Detecção de Categoria
+
+A categoria é inferida automaticamente do caminho do arquivo:
+
+| Path | Categoria |
+|------|-----------|
+| `docs/skills/01-core-workflow/pesquisa.md` | `core-workflow` |
+| `docs/skills/02-specialists/frontend-crafter.md` | `specialists` |
+| `docs/skills/03-utilities/git-commit-push.md` | `utilities` |
+
+**Prefixos numéricos** (`01-`, `02-`, etc.) são **removidos** da categoria.
+
+### Tratamento de Erros
+
+O reader é **tolerante a falhas**:
+- Skills inválidas são **ignoradas** (não quebram o processo)
+- Erros são **logados** com detalhes do arquivo
+- Retorna apenas skills válidas
+
+```bash
+# Exemplo de saída com erros
+⚠️  [SKILL-READER] 3 arquivo(s) com erro:
+   - newsession.md: Frontmatter YAML não encontrado
+   - invalid.md: Campo obrigatório "name" ausente
+   - broken.md: Campo obrigatório "description" ausente
+```
+
+### Validação
+
+Skills são validadas em **duas etapas**:
+
+1. **Estrutural:** Presença de frontmatter YAML
+2. **Conteúdo:** Campos obrigatórios (`name`, `description`)
+
+### Testes
+
+Cobertura completa em `scripts/__tests__/skill-reader.test.js`:
+- ✅ 21 testes unitários
+- ✅ Mock de skills com diferentes formatos
+- ✅ Teste de leitura recursiva
+- ✅ Teste de agrupamento e filtragem
+- ✅ Tratamento de erros
+
+```bash
+# Rodar testes
+node --test scripts/__tests__/skill-reader.test.js
+```
+
+### Exemplo Real
+
+```bash
+# Executar sync-skills.js para ver skills em ação
+node scripts/sync-skills.js
+
+# Output:
+# ✅ [HYBRID-SYSTEM] IDE detectado: cursor
+# ✅ [HYBRID-SYSTEM] 18 skills lidas
+# 🔍 [HYBRID-SYSTEM] Categorias: core-workflow, specialists, utilities, project-specific, meta
+# 🔍 [HYBRID-SYSTEM]   - core-workflow: 4 skill(s)
+# 🔍 [HYBRID-SYSTEM]   - specialists: 5 skill(s)
+# 🔍 [HYBRID-SYSTEM]   - utilities: 3 skill(s)
+# 🔍 [HYBRID-SYSTEM]   - project-specific: 5 skill(s)
+# 🔍 [HYBRID-SYSTEM]   - meta: 1 skill(s)
+```
+
+---
+
 ## 📂 Estrutura de Diretórios
 
 ```
@@ -479,10 +607,19 @@ O sistema coleta métricas de:
 - 24 testes unitários com 100% de aprovação
 - Documentação completa do método de detecção
 
+### ✅ DIA 3 (2026-02-12)
+- Módulo `scripts/lib/skill-reader.js` com parser Markdown
+- Parser de YAML frontmatter (name, description, allowed-tools)
+- Detecção automática de categoria por path
+- Implementação de `readAllSkills()` no sync-skills.js
+- 21 testes unitários com 100% de aprovação
+- Tratamento tolerante a falhas
+- Documentação completa da API
+
 ---
 
-**Status:** 🚧 Em construção (Fase 1 - Dia 2 concluído)
+**Status:** 🚧 Em construção (Fase 1 - Dia 3 concluído)
 
-**Última atualização:** 2026-02-11
+**Última atualização:** 2026-02-12
 
-**Versão:** 0.2.0
+**Versão:** 0.3.0

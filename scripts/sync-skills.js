@@ -22,6 +22,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { detectIDE as detectIDEInternal, getDetectionScores } from './ide-detector.js';
+import { readAllSkills as readAllSkillsInternal, groupSkillsByCategory } from './lib/skill-reader.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -80,9 +81,23 @@ function detectIDE() {
  * @returns {Array} Lista de objetos skill
  */
 function readAllSkills() {
-  // TODO DIA 3: Implementar leitura recursiva
-  log('Leitura de skills ainda não implementada', 'debug');
-  return [];
+  try {
+    const skills = readAllSkillsInternal(CONFIG.skillsSource);
+    const grouped = groupSkillsByCategory(skills);
+
+    log(`${skills.length} skills lidas`, 'success');
+    log(`Categorias: ${Object.keys(grouped).join(', ')}`, 'debug');
+
+    // Log de breakdown por categoria
+    Object.entries(grouped).forEach(([cat, skillList]) => {
+      log(`  - ${cat}: ${skillList.length} skill(s)`, 'debug');
+    });
+
+    return skills;
+  } catch (error) {
+    log(`Erro ao ler skills: ${error.message}`, 'error');
+    return [];
+  }
 }
 
 /**
@@ -121,11 +136,15 @@ function main() {
 
   // Testar detecção de IDE
   const ideDetectado = detectIDE();
-
   log('', 'info');
+
+  // Testar leitura de skills
+  const skills = readAllSkills();
+  log('', 'info');
+
   log('⚠️  IMPLEMENTAÇÃO PENDENTE:', 'warning');
   log('  ✅ DIA 2: detectIDE() - CONCLUÍDO', 'success');
-  log('  - DIA 3: readAllSkills()', 'info');
+  log('  ✅ DIA 3: readAllSkills() - CONCLUÍDO', 'success');
   log('  - DIA 15: syncToIDE()', 'info');
   log('', 'info');
   log('Este script será completado nos próximos dias conforme o plano.', 'info');
