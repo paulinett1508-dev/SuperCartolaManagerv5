@@ -280,6 +280,204 @@ node scripts/sync-skills.js
 
 ---
 
+## 🤖 Agent Generator
+
+Sistema de geração automática de estrutura `.agent/` para Antigravity, Cursor e Windsurf.
+
+### Propósito
+
+O **Agent Generator** converte skills de `docs/skills/` para o formato `.agent/` usado por IDEs que não leem Markdown diretamente. Isso permite:
+
+- ✅ **Antigravity:** Estrutura nativa de workflows/agents/skills
+- ✅ **Cursor/Windsurf:** Compatibilidade com slash commands
+- ✅ **Sincronização automática:** Mantém `.agent/` sempre atualizado
+
+### Mapeamento de Categorias
+
+| Categoria em `docs/skills/` | Diretório em `.agent/` | Descrição |
+|------------------------------|------------------------|-----------|
+| `01-core-workflow` | `workflows/` | Processos core (workflow, pesquisa, spec, code) |
+| `02-specialists` | `agents/` | Especialistas técnicos (frontend-crafter, league-architect, etc.) |
+| `03-utilities` | `skills/` | Ferramentas auxiliares (git-commit-push, restart-server, etc.) |
+| `04-project-specific` | `skills/` | Skills específicas do projeto (cache-auditor, auditor-module, etc.) |
+| `05-meta` | `skills/` | Meta-skills (skill-creator, skill-installer) |
+
+### Estrutura Gerada
+
+```
+.agent/
+├── workflows/
+│   ├── README.md              # Documentação de workflows
+│   ├── workflow.md            # Orquestrador principal
+│   ├── pesquisa.md            # FASE 1: Research
+│   ├── spec.md                # FASE 2: Especificação
+│   └── code.md                # FASE 3: Implementação
+│
+├── agents/
+│   ├── README.md              # Documentação de agents
+│   ├── frontend-crafter.md    # Especialista UI/UX
+│   ├── league-architect.md    # Especialista regras de negócio
+│   ├── db-guardian.md         # Especialista MongoDB
+│   ├── code-inspector.md      # Code review e segurança
+│   └── system-scribe.md       # Documentação e explicações
+│
+└── skills/
+    ├── README.md              # Documentação de skills
+    ├── git-commit-push.md     # Versionamento
+    ├── restart-server.md      # Gerenciamento servidor
+    ├── cache-auditor.md       # Auditoria cache
+    ├── auditor-module.md      # Auditoria módulos
+    └── ...
+```
+
+### Formato de Arquivos
+
+Cada arquivo `.md` gerado preserva o **frontmatter YAML** original:
+
+```markdown
+---
+name: Frontend Crafter
+description: Especialista em UI/UX
+allowed-tools: Read, Edit, Write, Bash
+category: specialists
+---
+
+# Frontend Crafter
+
+## Descrição
+Especialista em criação e ajuste de interfaces...
+
+## Uso
+Use esta skill para...
+```
+
+**Campos preservados:**
+- ✅ `name` - Nome da skill
+- ✅ `description` - Descrição completa
+- ✅ `allowed-tools` - Ferramentas permitidas (se presente)
+- ✅ `category` - Categoria original (rastreabilidade)
+
+### API do Agent Generator
+
+```javascript
+import { generateAgentStructure, cleanAgentStructure } from './scripts/lib/agent-generator.js';
+
+// Gerar estrutura .agent/
+const skills = readAllSkills('./docs/skills');
+const stats = generateAgentStructure(skills, '/path/to/project');
+
+// stats = {
+//   workflows: 4,  // Número de workflows gerados
+//   agents: 5,     // Número de agents gerados
+//   skills: 9,     // Número de skills gerados
+//   errors: 0      // Número de erros
+// }
+
+// Limpar estrutura (útil para testes)
+cleanAgentStructure('/path/to/project');
+```
+
+### Sincronização por IDE
+
+O `sync-skills.js` decide automaticamente o que fazer baseado no IDE detectado:
+
+```javascript
+// VS Code: SKIP (usa docs/skills/ diretamente)
+if (ide === 'vscode') {
+  console.log('VS Code usa docs/skills/ diretamente');
+  return { action: 'skip' };
+}
+
+// Antigravity/Cursor/Windsurf: GERA .agent/
+if (ide === 'antigravity' || ide === 'cursor' || ide === 'windsurf') {
+  const stats = generateAgentStructure(skills, rootDir);
+  return { action: 'generated', stats };
+}
+```
+
+### READMEs Gerados
+
+Cada subdiretório recebe um `README.md` explicativo:
+
+**workflows/README.md:**
+- Explica o High Senior Protocol
+- Lista workflows disponíveis (workflow, pesquisa, spec, code)
+- Documenta o fluxo FASE 1 → FASE 2 → FASE 3
+
+**agents/README.md:**
+- Lista especialistas disponíveis
+- Explica domínio de cada agent
+- Referencia documentação original
+
+**skills/README.md:**
+- Agrupa utilities + project-specific + meta
+- Lista ferramentas auxiliares
+- Links para source of truth
+
+### Comportamento com Erros
+
+O generator é **tolerante a falhas**:
+
+```javascript
+// Skill com categoria desconhecida
+const unknownSkill = { category: 'categoria-invalida' };
+// → Incrementa stats.errors, não quebra processo
+
+// Skills válidas são processadas normalmente
+// Erros são logados, mas não interrompem geração
+```
+
+### Exemplo de Saída
+
+```bash
+$ node scripts/sync-skills.js
+
+🤖 [AGENT-GENERATOR] Gerando estrutura .agent/ para Antigravity...
+
+✅ Estrutura criada: /home/user/SuperCartolaManagerv5/.agent
+✅ README.md criados em workflows/, agents/, skills/
+
+📊 Estatísticas de Geração:
+
+   Workflows:  4 arquivos
+   Agents:     5 arquivos
+   Skills:     9 arquivos
+
+✅ Estrutura .agent/ pronta para Antigravity!
+```
+
+### Testes
+
+Cobertura completa em `scripts/__tests__/agent-generator.test.js`:
+- ✅ 15 testes unitários
+- ✅ Validação de estrutura gerada
+- ✅ Verificação de mapeamento de categorias
+- ✅ Testes de preservação de frontmatter
+- ✅ Teste de READMEs
+- ✅ Tratamento de erros
+
+```bash
+# Rodar testes
+node --test scripts/__tests__/agent-generator.test.js
+```
+
+### Controle de Versão
+
+**Decisão de design:** `.agent/` é **commitado** (não no `.gitignore`)
+
+**Razões:**
+1. **Portabilidade:** Desenvolvedores podem usar Antigravity sem setup
+2. **Auditoria:** Mudanças em skills são versionadas em `.agent/` também
+3. **CI/CD:** Permite validação da estrutura gerada
+4. **Docs:** `.agent/README.md` serve como documentação extra
+
+**Regeneração:**
+- Automática no `pre-commit` hook
+- Manual via `node scripts/sync-skills.js`
+- Forçada via `--force` flag
+
+---
+
 ## 📂 Estrutura de Diretórios
 
 ```
@@ -616,10 +814,21 @@ O sistema coleta métricas de:
 - Tratamento tolerante a falhas
 - Documentação completa da API
 
+### ✅ DIA 4 (2026-02-12)
+- Módulo `scripts/lib/agent-generator.js` com geração de `.agent/`
+- Mapeamento de categorias para Antigravity (workflows/agents/skills)
+- Geração automática de READMEs em cada subdiretório
+- Implementação completa de `syncToIDE()` no sync-skills.js
+- Lógica de decisão por IDE (VS Code skip, Antigravity gera)
+- 15 testes unitários com 100% de aprovação
+- Preservação de frontmatter YAML nos arquivos gerados
+- Documentação completa do Agent Generator
+- `.agent/` commitado para portabilidade
+
 ---
 
-**Status:** 🚧 Em construção (Fase 1 - Dia 3 concluído)
+**Status:** 🚧 Em construção (Fase 1 - Dia 4 concluído)
 
 **Última atualização:** 2026-02-12
 
-**Versão:** 0.3.0
+**Versão:** 0.4.0
