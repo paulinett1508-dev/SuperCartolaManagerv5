@@ -85,7 +85,7 @@ const RODADA_INICIAL_PONTOS_CORRIDOS = 7;
  * @param {number} rodada - Número da rodada (para configs temporais)
  * @returns {Object} { valores: {posicao: valor}, temporal: boolean }
  */
-function getConfigRankingRodada(liga, rodada = 1) {
+export function getConfigRankingRodada(liga, rodada = 1) {
     const config = liga?.configuracoes?.ranking_rodada;
 
     if (!config) {
@@ -140,7 +140,7 @@ function getConfigTop10(liga) {
  * @param {string} modulo - Nome do módulo (pontos_corridos, mata_mata, top10, etc.)
  * @returns {boolean}
  */
-function isModuloHabilitado(liga, modulo) {
+export function isModuloHabilitado(liga, modulo) {
     // ✅ v8.9.1 FIX: Só usar configuracoes se módulo estiver CONFIGURADO
     // Ligas com config parcial (configurado: false) devem usar modulos_ativos como fallback
     const configModulo = liga?.configuracoes?.[modulo];
@@ -251,7 +251,7 @@ function detectarModulosFaltantesNoCache(cache, liga, rodadaLimite) {
  * @param {Array} pontuacoes - Lista de pontuações da rodada
  * @returns {Object|null} { valor, descricao, posicao, totalTimes }
  */
-function calcularBanco(liga, timeId, rodadaNumero, pontuacoes) {
+export function calcularBanco(liga, timeId, rodadaNumero, pontuacoes) {
     const ranking = [...pontuacoes].sort((a, b) => b.pontos - a.pontos);
     const posicao =
         ranking.findIndex((p) => String(p.timeId) === String(timeId)) + 1;
@@ -359,7 +359,7 @@ async function calcularTop10Historico(liga, timeId, temporada) {
 // ⚽ PONTOS CORRIDOS
 // ============================================================================
 
-async function calcularConfrontoPontosCorridos(
+export async function calcularConfrontoPontosCorridos(
     liga,
     timeId,
     rodadaCartola,

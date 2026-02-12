@@ -32,6 +32,10 @@ class AdminTesouraria {
         this.container = null;
         this.isLoading = false;
 
+        // v3.1: Projecao financeira em tempo real
+        this.projecaoData = null;
+        this.projecaoRefreshInterval = null;
+
         // Modulos ativos da liga (carregados da API)
         this.modulosAtivos = {
             banco: true,
@@ -106,6 +110,9 @@ class AdminTesouraria {
                 <div class="kpi-grid" id="kpi-container">
                     ${this._renderKPIsLoading()}
                 </div>
+
+                <!-- v3.1: Status de Consolidacao -->
+                <div id="consolidacao-status-container"></div>
 
                 <!-- Toolbar: Filtros + Search + Sort -->
                 <div class="toolbar">
@@ -248,12 +255,193 @@ class AdminTesouraria {
             this._renderTabela();
             this._atualizarContador();
 
+            // v3.1: Buscar projecao financeira + status consolidacao
+            this._buscarProjecao();
+            this._buscarStatusConsolidacao();
+
         } catch (error) {
             console.error('[TESOURARIA] Erro ao carregar dados:', error);
             this._renderErro('Erro ao carregar dados financeiros');
         } finally {
             this.isLoading = false;
         }
+    }
+
+    // ==========================================================================
+    // v3.1: PROJECAO FINANCEIRA EM TEMPO REAL
+    // ==========================================================================
+
+    async _buscarProjecao() {
+        try {
+            const url = `/api/fluxo-financeiro/${this.ligaId}/projecao`;
+            const response = await fetch(url);
+            if (!response.ok) return;
+
+            const data = await response.json();
+
+            if (!data.projecao) {
+                this.projecaoData = null;
+                this._removerBannerProjecao();
+                this._pararAutoRefreshProjecao();
+                return;
+            }
+
+            this.projecaoData = data;
+            this._renderBannerProjecao(data);
+            this._iniciarAutoRefreshProjecao();
+
+            console.log(`[TESOURARIA] Projecao R${data.rodada}: ${data.projecoes?.length} participantes`);
+        } catch (error) {
+            console.warn('[TESOURARIA] Projecao indisponivel:', error.message);
+        }
+    }
+
+    _renderBannerProjecao(data) {
+        // Remove banner anterior
+        this._removerBannerProjecao();
+
+        const kpiContainer = document.getElementById('kpi-container');
+        if (!kpiContainer) return;
+
+        const { rodada, kpis, atualizado_em, projecoes } = data;
+        const hora = atualizado_em
+            ? new Date(atualizado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            : '--:--';
+
+        const bonusFmt = (kpis?.totalBonusProjetado || 0).toFixed(2).replace('.', ',');
+        const onusFmt = Math.abs(kpis?.totalOnusProjetado || 0).toFixed(2).replace('.', ',');
+
+        const bannerHtml = `
+            <div id="tesouraria-projecao-banner" style="
+                margin-bottom: 16px;
+                padding: 14px 16px;
+                background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.02) 100%);
+                border: 1.5px dashed rgba(34, 197, 94, 0.35);
+                border-radius: 12px;
+                display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+            ">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="
+                        display: inline-block; width: 8px; height: 8px;
+                        background: #22c55e; border-radius: 50%;
+                        animation: projecaoPulseAdmin 2s ease-in-out infinite;
+                    "></span>
+                    <span style="font-size: 12px; font-weight: 700; color: #22c55e; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Projecao R${rodada}
+                    </span>
+                    <span style="font-size: 11px; color: var(--text-dim, #6b7280);">${hora}</span>
+                </div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <div>
+                        <span style="font-size: 10px; color: var(--text-dim, #6b7280);">Bonus proj.</span>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--color-success, #22c55e);">+R$ ${bonusFmt}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 10px; color: var(--text-dim, #6b7280);">Onus proj.</span>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--color-danger, #ef4444);">-R$ ${onusFmt}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 10px; color: var(--text-dim, #6b7280);">Participantes</span>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--text-primary, #e5e5e5);">${projecoes?.length || 0}</div>
+                    </div>
+                </div>
+            </div>
+            <style>
+                @keyframes projecaoPulseAdmin {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.4; transform: scale(1.3); }
+                }
+            </style>
+        `;
+
+        kpiContainer.insertAdjacentHTML('afterend', bannerHtml);
+    }
+
+    _removerBannerProjecao() {
+        const banner = document.getElementById('tesouraria-projecao-banner');
+        if (banner) banner.remove();
+        // Also remove the style element if orphaned
+        const styles = document.querySelectorAll('style');
+        styles.forEach(s => {
+            if (s.textContent.includes('projecaoPulseAdmin')) s.remove();
+        });
+    }
+
+    _iniciarAutoRefreshProjecao() {
+        if (this.projecaoRefreshInterval) return;
+        this.projecaoRefreshInterval = setInterval(() => {
+            this._buscarProjecao();
+        }, 60000); // 60s
+    }
+
+    _pararAutoRefreshProjecao() {
+        if (this.projecaoRefreshInterval) {
+            clearInterval(this.projecaoRefreshInterval);
+            this.projecaoRefreshInterval = null;
+        }
+    }
+
+    // ==========================================================================
+    // v3.1: STATUS DE CONSOLIDACAO POR RODADA
+    // ==========================================================================
+
+    async _buscarStatusConsolidacao() {
+        try {
+            const url = `/api/consolidacao/ligas/${this.ligaId}/status`;
+            const response = await fetch(url);
+            if (!response.ok) return;
+
+            const data = await response.json();
+            this._renderStatusConsolidacao(data);
+        } catch (error) {
+            console.warn('[TESOURARIA] Status consolidacao indisponivel:', error.message);
+        }
+    }
+
+    _renderStatusConsolidacao(data) {
+        const container = document.getElementById('consolidacao-status-container');
+        if (!container) return;
+
+        const rodadaAtual = data.rodada_atual || data.rodadaAtual || 0;
+        const consolidadas = data.rodadas_consolidadas || data.consolidadas || [];
+        const totalConsolidadas = Array.isArray(consolidadas) ? consolidadas.length : consolidadas;
+
+        // Gerar badges para as ultimas 5 rodadas
+        const badges = [];
+        const inicio = Math.max(1, rodadaAtual - 4);
+        for (let r = inicio; r <= rodadaAtual; r++) {
+            const consolidada = Array.isArray(consolidadas) ? consolidadas.includes(r) : r <= totalConsolidadas;
+            const isAtual = r === rodadaAtual;
+
+            badges.push(`
+                <span style="
+                    display: inline-flex; align-items: center; gap: 4px;
+                    padding: 4px 10px;
+                    font-size: 11px; font-weight: 600;
+                    border-radius: 6px;
+                    background: ${consolidada ? 'rgba(16,185,129,0.15)' : isAtual ? 'rgba(234,179,8,0.15)' : 'rgba(239,68,68,0.15)'};
+                    color: ${consolidada ? 'var(--color-success, #22c55e)' : isAtual ? 'var(--color-warning, #eab308)' : 'var(--color-danger, #ef4444)'};
+                    border: 1px solid ${consolidada ? 'rgba(16,185,129,0.3)' : isAtual ? 'rgba(234,179,8,0.3)' : 'rgba(239,68,68,0.3)'};
+                ">
+                    <span class="material-icons" style="font-size: 14px;">
+                        ${consolidada ? 'check_circle' : isAtual ? 'schedule' : 'error_outline'}
+                    </span>
+                    R${r}
+                </span>
+            `);
+        }
+
+        container.innerHTML = `
+            <div style="
+                display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+                padding: 10px 0; margin-bottom: 8px;
+            ">
+                <span style="font-size: 11px; color: var(--text-dim, #6b7280); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Consolidacao:
+                </span>
+                ${badges.join('')}
+            </div>
+        `;
     }
 
     // ==========================================================================

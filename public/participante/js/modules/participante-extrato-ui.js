@@ -1357,4 +1357,187 @@ function renderizarErro() {
     `;
 }
 
-if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v11.0 carregado (BANK DIGITAL REDESIGN)");
+// =====================================================================
+// ✅ v11.1: PROJEÇÃO FINANCEIRA EM TEMPO REAL
+// Card exibido durante rodada em andamento (status_mercado === 2)
+// =====================================================================
+
+export function renderizarProjecaoFinanceira(projecaoData) {
+    if (!projecaoData || !projecaoData.projecao) return;
+
+    // Encontrar ou criar container da projeção
+    let card = document.getElementById("projecaoFinanceiraCard");
+
+    if (!card) {
+        // Inserir após o hero card
+        const heroCard = document.querySelector(".extrato-hero");
+        if (heroCard && heroCard.parentNode) {
+            card = document.createElement("div");
+            card.id = "projecaoFinanceiraCard";
+            heroCard.parentNode.insertBefore(card, heroCard.nextSibling);
+        } else {
+            // Fallback: inserir no topo do container principal
+            const mainContainer = document.getElementById("fluxoFinanceiroContent");
+            if (!mainContainer) return;
+            card = document.createElement("div");
+            card.id = "projecaoFinanceiraCard";
+            mainContainer.insertBefore(card, mainContainer.firstChild);
+        }
+    }
+
+    const { rodada, time, financeiro, saldo, atualizado_em } = projecaoData;
+    const impacto = financeiro?.impactoProjetado || 0;
+    const impactoPositivo = impacto > 0;
+    const impactoNegativo = impacto < 0;
+    const impactoCor = impactoPositivo ? 'var(--app-success)' : impactoNegativo ? 'var(--app-danger)' : 'var(--app-text-dim)';
+    const impactoSinal = impactoPositivo ? '+' : '';
+
+    const horaAtualizada = atualizado_em
+        ? new Date(atualizado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        : '--:--';
+
+    // Banco info
+    const banco = financeiro?.banco;
+    const bancoValor = banco?.valor || 0;
+    const bancoCor = bancoValor > 0 ? 'var(--app-success-light)' : bancoValor < 0 ? 'var(--app-danger-light)' : 'var(--app-text-dim)';
+
+    // PC info
+    const pc = financeiro?.pontosCorridos;
+    const pcValor = pc?.valor || 0;
+    const pcCor = pcValor > 0 ? 'var(--app-success-light)' : pcValor < 0 ? 'var(--app-danger-light)' : 'var(--app-text-dim)';
+
+    // Saldo projetado
+    const saldoProjetado = saldo?.projetado || 0;
+    const saldoProjetadoCor = saldoProjetado >= 0 ? 'var(--app-success-light)' : 'var(--app-danger-light)';
+
+    card.innerHTML = `
+        <div style="
+            margin: 12px 0;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.06) 0%, rgba(34, 197, 94, 0.02) 100%);
+            border: 1.5px dashed rgba(34, 197, 94, 0.35);
+            border-radius: var(--app-radius-xl, 16px);
+            position: relative;
+            overflow: hidden;
+        ">
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="
+                        display: inline-block;
+                        width: 8px; height: 8px;
+                        background: #22c55e;
+                        border-radius: 50%;
+                        animation: projecaoPulse 2s ease-in-out infinite;
+                    "></span>
+                    <span style="
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        color: #22c55e;
+                    ">Projecao R${rodada} ao vivo</span>
+                </div>
+                <span style="font-size: 10px; color: var(--app-text-dim, #6b7280);">
+                    ${horaAtualizada}
+                </span>
+            </div>
+
+            <!-- Position + Points -->
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+                <div style="
+                    width: 44px; height: 44px;
+                    border-radius: var(--app-radius-lg, 12px);
+                    background: rgba(34, 197, 94, 0.12);
+                    display: flex; align-items: center; justify-content: center;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 18px; font-weight: 800;
+                    color: #22c55e;
+                ">${time?.posicao_parcial || '-'}°</div>
+                <div>
+                    <div style="font-size: 13px; font-weight: 600; color: var(--app-text-primary, #e5e5e5);">
+                        ${time?.nome_time || 'Meu Time'}
+                    </div>
+                    <div style="font-size: 11px; color: var(--app-text-dim, #6b7280);">
+                        ${(time?.pontos_parciais || 0).toFixed(2).replace('.', ',')} pts parciais
+                        &middot; ${time?.total_times || '?'} times
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Breakdown -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                <!-- Banco -->
+                <div style="
+                    background: var(--app-glass-bg, rgba(255,255,255,0.04));
+                    border-radius: var(--app-radius-md, 8px);
+                    padding: 10px;
+                ">
+                    <div style="font-size: 10px; color: var(--app-text-dim, #6b7280); margin-bottom: 4px;">
+                        Banco (${banco?.posicao || '-'}° lugar)
+                    </div>
+                    <div style="
+                        font-family: 'JetBrains Mono', monospace;
+                        font-size: 16px; font-weight: 700;
+                        color: ${bancoCor};
+                    ">${bancoValor >= 0 ? '+' : ''}${bancoValor.toFixed(2).replace('.', ',')}</div>
+                </div>
+
+                <!-- Pontos Corridos -->
+                <div style="
+                    background: var(--app-glass-bg, rgba(255,255,255,0.04));
+                    border-radius: var(--app-radius-md, 8px);
+                    padding: 10px;
+                ">
+                    <div style="font-size: 10px; color: var(--app-text-dim, #6b7280); margin-bottom: 4px;">
+                        ${pc ? 'Pontos Corridos' : 'PC (inativo)'}
+                    </div>
+                    <div style="
+                        font-family: 'JetBrains Mono', monospace;
+                        font-size: 16px; font-weight: 700;
+                        color: ${pc ? pcCor : 'var(--app-text-dim, #6b7280)'};
+                    ">${pc ? `${pcValor >= 0 ? '+' : ''}${pcValor.toFixed(2).replace('.', ',')}` : '--'}</div>
+                    ${pc?.oponente ? `<div style="font-size: 9px; color: var(--app-text-dim, #6b7280); margin-top: 2px;">vs ${pc.oponente}</div>` : ''}
+                </div>
+            </div>
+
+            <!-- Impact Total -->
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 12px;
+                background: ${impactoPositivo ? 'rgba(34, 197, 94, 0.1)' : impactoNegativo ? 'rgba(239, 68, 68, 0.1)' : 'var(--app-glass-bg, rgba(255,255,255,0.04))'};
+                border-radius: var(--app-radius-md, 8px);
+            ">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span class="material-icons" style="font-size: 16px; color: ${impactoCor};">
+                        ${impactoPositivo ? 'trending_up' : impactoNegativo ? 'trending_down' : 'remove'}
+                    </span>
+                    <span style="font-size: 12px; font-weight: 600; color: var(--app-text-primary, #e5e5e5);">
+                        Impacto projetado
+                    </span>
+                </div>
+                <span style="
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 18px; font-weight: 800;
+                    color: ${impactoCor};
+                ">${impactoSinal}${impacto.toFixed(2).replace('.', ',')}</span>
+            </div>
+
+            <!-- Disclaimer -->
+            <div style="margin-top: 10px; font-size: 9px; color: var(--app-text-dim, #6b7280); text-align: center; opacity: 0.7;">
+                Valores provisorios baseados em parciais. Atualiza a cada 60s. Resultado final apos consolidacao.
+            </div>
+        </div>
+
+        <style>
+            @keyframes projecaoPulse {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.4; transform: scale(1.3); }
+            }
+        </style>
+    `;
+}
+
+if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v11.1 carregado (BANK DIGITAL + PROJEÇÃO AO VIVO)");
