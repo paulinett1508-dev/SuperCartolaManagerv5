@@ -985,10 +985,31 @@ async function carregarFase(fase, ligaId) {
       timesParaConfronto = vencedoresAnteriores;
     }
 
-    // ✅ USAR CACHE LOCAL PARA PONTOS DA RODADA ATUAL
-    const pontosRodadaAtual = isPending
-      ? {}
-      : await getPontosDaRodadaCached(ligaId, rodadaPontosNum);
+    // ✅ v8.0: Se pendente E mercado fechado (jogos em andamento), buscar parciais ao vivo
+    let pontosRodadaAtual = {};
+    let parciaisAoVivo = false;
+
+    if (isPending) {
+      try {
+        const resParciais = await fetch(`/api/matchday/parciais/${ligaId}`);
+        if (resParciais.ok) {
+          const dataParciais = await resParciais.json();
+          if (dataParciais && dataParciais.disponivel && dataParciais.ranking) {
+            // Converter ranking para mapa de pontos (formato esperado por montarConfrontos)
+            dataParciais.ranking.forEach(t => {
+              const tid = String(t.timeId);
+              pontosRodadaAtual[tid] = t.pontos || 0;
+            });
+            parciaisAoVivo = true;
+            console.log(`[MATA-ORQUESTRADOR] 🔴 Parciais AO VIVO: ${dataParciais.ranking.length} times (R${dataParciais.rodada})`);
+          }
+        }
+      } catch (err) {
+        console.warn("[MATA-ORQUESTRADOR] ⚠️ Parciais não disponíveis:", err.message);
+      }
+    } else {
+      pontosRodadaAtual = await getPontosDaRodadaCached(ligaId, rodadaPontosNum);
+    }
 
     const fasesDoTorneioCalc = getFasesParaTamanho(tamanhoTorneio);
     const primeiraFaseCalc = fasesDoTorneioCalc[0];
@@ -1020,17 +1041,28 @@ async function carregarFase(fase, ligaId) {
     // Calcular valores dos confrontos
     calcularValoresConfronto(confrontos, isPending, fase);
 
+    // ✅ v8.0: Inserir header de parciais AO VIVO antes da tabela
+    if (parciaisAoVivo) {
+      contentElement.innerHTML = `
+        <div class="parciais-header">
+          <span class="parciais-live-badge">AO VIVO</span>
+          <h4>${faseLabel} — ${edicaoSelecionada.nome || "Edição " + edicaoAtual}</h4>
+          <p>Pontuações parciais da Rodada ${rodadaPontosNum}. Sujeito a alteração.</p>
+        </div>
+      `;
+    }
+
     // Renderizar tabela
     renderTabelaMataMata(
       confrontos,
       contentId,
       faseLabel,
       edicaoAtual,
-      isPending,
+      isPending && !parciaisAoVivo, // ✅ v8.0: Se tem parciais, não mostrar como "pendente"
     );
 
-    // Renderizar mensagem de rodada pendente se necessário
-    if (isPending) {
+    // Renderizar mensagem de rodada pendente se necessário (só se NÃO tem parciais)
+    if (isPending && !parciaisAoVivo) {
       renderRodadaPendente(contentId, rodadaPontosNum);
     }
 
@@ -1081,4 +1113,4 @@ function setupCleanup() {
 // Inicialização do módulo
 setupCleanup();
 
-console.log("[MATA-ORQUESTRADOR] Módulo v1.5 carregado - Suporte a torneios 8/16/32 times");
+console.log("[MATA-ORQUESTRADOR] Módulo v1.6 carregado - Parciais AO VIVO nas fases ativas");

@@ -1866,4 +1866,48 @@
         background: rgba(255, 255, 255, 0.1);
         color: var(--mm-text);
     }
+
+    /* =====================================================
+       v8.0 - AO VIVO: Barra de atualização + Refresh
+       ===================================================== */
+    .mm-live-update-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 8px;
+        margin-bottom: 12px;
+    }
+
+    .mm-last-update {
+        font-size: 10px;
+        color: var(--mm-text-dim);
+    }
+
+    .mm-refresh-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--mm-text-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .mm-refresh-btn:hover {
+        background: rgba(255, 106, 56, 0.15);
+        border-color: var(--participante-primary, #ff6a38);
+        color: var(--participante-primary, #ff6a38);
+    }
+
+    .mm-refresh-btn .material-symbols-outlined {
+        font-size: 16px;
+    }
+
+    .mm-refresh-btn.mm-spinning .material-symbols-outlined {
+        animation: mm-spin 0.8s linear infinite;
+    }
 </style>

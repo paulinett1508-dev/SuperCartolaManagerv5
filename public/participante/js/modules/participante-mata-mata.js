@@ -1,5 +1,8 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v7.5 (Botão Classificados)
+// PARTICIPANTE MATA-MATA v8.0 (Resultados em Tempo Real)
+// ✅ v8.0: FEAT - Auto-polling 60s com parciais AO VIVO nas fases ativas
+// ✅ v8.0: FEAT - Badge AO VIVO + indicador de última atualização
+// ✅ v8.0: FEAT - Cleanup lifecycle (Page Visibility, AbortController)
 // ✅ v7.5: FEAT - Botão "Classificados" mostra os N classificados e seus adversários
 // ✅ v7.4: FIX - Mostra mensagem adequada quando não há edições na temporada
 // ✅ v7.3: FIX - Fases dinâmicas baseadas no tamanho real do torneio
@@ -127,6 +130,12 @@ let estado = {
   cacheConfrontos: {},
   historicoParticipacao: {},
   tamanhoTorneio: 8, // ✅ v7.2: Carregado da config do módulo
+  // ✅ v8.0: Estado de mercado e polling
+  mercadoAberto: true,
+  _refreshInterval: null,
+  _refreshAtivo: false,
+  _abortController: null,
+  _ultimaAtualizacao: null,
 };
 
 // =====================================================================
@@ -215,6 +224,10 @@ export async function inicializarMataMata(params) {
     if (!usouCache) {
       setupEventListeners();
     }
+
+    // ✅ v8.0: Iniciar auto-refresh se parciais ao vivo disponíveis
+    iniciarAutoRefresh();
+    setupVisibilityListener();
   } catch (error) {
     if (window.Log) Log.error("[MATA-MATA] Erro:", error);
     if (!usouCache) {
@@ -234,10 +247,186 @@ async function carregarStatusMercado() {
     if (res.ok) {
       const data = await res.json();
       estado.rodadaAtual = data.rodada_atual || 37;
+      estado.mercadoAberto = data.status_mercado === 1;
     }
   } catch (e) {
     estado.rodadaAtual = 37;
+    estado.mercadoAberto = true;
   }
+}
+
+// =====================================================================
+// AUTO-REFRESH PARCIAIS AO VIVO - v8.0
+// =====================================================================
+
+const REFRESH_INTERVAL_MS = 60000; // 60 segundos
+
+function isParciaisAoVivo() {
+  // Mercado fechado = jogos em andamento
+  if (estado.mercadoAberto) return false;
+  // Precisa ter edição selecionada
+  if (!estado.edicaoSelecionada) return false;
+  // Verificar se a fase atual está em andamento (rodada não consolidada)
+  const faseAtiva = getFaseRodada(estado.edicaoSelecionada, estado.faseSelecionada);
+  if (!faseAtiva) return false;
+  // Rodada da fase deve ser >= rodadaAtual (ainda não consolidou)
+  return estado.rodadaAtual >= faseAtiva.rodadaInicial && estado.rodadaAtual <= faseAtiva.rodadaPontos;
+}
+
+// Retorna info da rodada de pontos para a fase selecionada
+function getFaseRodada(edicao, fase) {
+  const config = EDICOES_MATA_MATA.find(e => e.id === edicao);
+  if (!config) return null;
+  const fasesAtivas = getFasesAtuais();
+  const faseIndex = fasesAtivas.indexOf(fase);
+  if (faseIndex < 0) return null;
+  const rodadaPontos = config.rodadaInicial + faseIndex;
+  return { rodadaInicial: config.rodadaInicial, rodadaPontos };
+}
+
+// Verifica se a fase atual tem confrontos definidos mas rodada ainda em andamento
+function isFaseEmAndamento(edicao, fase) {
+  const faseInfo = getFaseRodada(edicao, fase);
+  if (!faseInfo) return false;
+  // Rodada atual é igual à rodada de pontos da fase (em andamento)
+  return estado.rodadaAtual === faseInfo.rodadaPontos && !estado.mercadoAberto;
+}
+
+function iniciarAutoRefresh() {
+  pararAutoRefresh();
+
+  if (!isParciaisAoVivo()) {
+    if (window.Log) Log.info("[MATA-MATA] ⏸️ Auto-refresh não necessário");
+    return;
+  }
+
+  estado._refreshAtivo = true;
+  if (window.Log) Log.info(`[MATA-MATA] 🔄 Auto-refresh ativado (${REFRESH_INTERVAL_MS / 1000}s)`);
+
+  estado._refreshInterval = setInterval(async () => {
+    if (!isParciaisAoVivo()) {
+      pararAutoRefresh();
+      return;
+    }
+
+    try {
+      if (window.Log) Log.info("[MATA-MATA] 🔄 Atualizando parciais...");
+
+      // Verificar se mercado mudou
+      await carregarStatusMercado();
+      if (estado.mercadoAberto) {
+        if (window.Log) Log.info("[MATA-MATA] ✅ Mercado abriu, parando auto-refresh");
+        pararAutoRefresh();
+        return;
+      }
+
+      // Recarregar fase atual com parciais frescos
+      if (estado.edicaoSelecionada && estado.faseSelecionada) {
+        await carregarFase(estado.edicaoSelecionada, estado.faseSelecionada);
+        estado._ultimaAtualizacao = new Date();
+        atualizarIndicadorAtualizacao();
+        if (window.Log) Log.info("[MATA-MATA] ✅ Parciais atualizadas");
+      }
+    } catch (e) {
+      if (window.Log) Log.warn("[MATA-MATA] ⚠️ Erro no auto-refresh:", e.message);
+    }
+  }, REFRESH_INTERVAL_MS);
+}
+
+function pararAutoRefresh() {
+  if (estado._refreshInterval) {
+    clearInterval(estado._refreshInterval);
+    estado._refreshInterval = null;
+  }
+  if (estado._abortController) {
+    estado._abortController.abort();
+    estado._abortController = null;
+  }
+  if (estado._refreshAtivo) {
+    estado._refreshAtivo = false;
+    if (window.Log) Log.info("[MATA-MATA] ⏹️ Auto-refresh parado");
+  }
+}
+
+// ✅ v8.0: Page Visibility API - pausa/retoma polling
+function setupVisibilityListener() {
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      pararAutoRefresh();
+    } else {
+      // Ao voltar, recarregar e reiniciar polling
+      if (estado.edicaoSelecionada && estado.faseSelecionada) {
+        carregarStatusMercado().then(() => {
+          carregarFase(estado.edicaoSelecionada, estado.faseSelecionada);
+          iniciarAutoRefresh();
+        });
+      }
+    }
+  });
+}
+
+function atualizarIndicadorAtualizacao() {
+  const el = document.getElementById("mmLastUpdate");
+  if (!el || !estado._ultimaAtualizacao) return;
+  const agora = new Date();
+  const diffSeg = Math.round((agora - estado._ultimaAtualizacao) / 1000);
+  if (diffSeg < 60) {
+    el.textContent = `Atualizado há ${diffSeg}s`;
+  } else {
+    el.textContent = `Atualizado há ${Math.round(diffSeg / 60)}min`;
+  }
+}
+
+// ✅ v8.0: Buscar parciais para fase ativa e enriquecer confrontos com pontos ao vivo
+async function buscarParciaisFaseAtiva(confrontos) {
+  try {
+    estado._abortController = new AbortController();
+    const res = await fetch(`/api/matchday/parciais/${estado.ligaId}`, {
+      signal: estado._abortController.signal,
+    });
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    if (!data || !data.disponivel || !data.ranking) return null;
+
+    // Criar mapa de pontos por timeId
+    const pontosMap = new Map();
+    data.ranking.forEach(t => {
+      pontosMap.set(String(t.timeId), t.pontos || 0);
+    });
+
+    // Enriquecer confrontos com pontos parciais
+    const confrontosAoVivo = confrontos.map(c => {
+      const timeAId = String(extrairTimeId(c.timeA));
+      const timeBId = String(extrairTimeId(c.timeB));
+
+      return {
+        ...c,
+        timeA: {
+          ...c.timeA,
+          pontos: pontosMap.get(timeAId) ?? c.timeA?.pontos ?? 0,
+        },
+        timeB: {
+          ...c.timeB,
+          pontos: pontosMap.get(timeBId) ?? c.timeB?.pontos ?? 0,
+        },
+        _aoVivo: true,
+      };
+    });
+
+    estado._ultimaAtualizacao = new Date();
+    return { confrontos: confrontosAoVivo, rodada: data.rodada };
+  } catch (e) {
+    if (e.name === "AbortError") return null;
+    if (window.Log) Log.warn("[MATA-MATA] ⚠️ Erro ao buscar parciais fase:", e.message);
+    return null;
+  }
+}
+
+// ✅ v8.0: Destruir módulo (chamado externamente ao navegar para fora)
+export function destruirMataMata() {
+  pararAutoRefresh();
+  if (window.Log) Log.info("[MATA-MATA] 🧹 Módulo destruído");
 }
 
 // =====================================================================
@@ -436,6 +625,7 @@ function setupEventListeners() {
   const select = document.getElementById("mmEditionSelect");
   if (select) {
     select.addEventListener("change", async (e) => {
+      pararAutoRefresh(); // ✅ v8.0: Parar polling ao mudar edição
       estado.edicaoSelecionada = parseInt(e.target.value);
       // ✅ v7.3: Usar primeira fase válida para o tamanho do torneio
       const primeiraFaseValida = getFasesAtuais()[0] || "quartas";
@@ -443,6 +633,7 @@ function setupEventListeners() {
       atualizarBotoesFases();
       await carregarTodasFases(estado.edicaoSelecionada);
       await carregarFase(estado.edicaoSelecionada, primeiraFaseValida);
+      iniciarAutoRefresh(); // ✅ v8.0: Reiniciar se aplicável
     });
   }
 
@@ -455,9 +646,11 @@ function setupEventListeners() {
       const fase = btn.dataset.fase;
       if (!fase) return;
 
+      pararAutoRefresh(); // ✅ v8.0: Parar polling ao mudar fase
       estado.faseSelecionada = fase;
       atualizarBotoesFases();
       await carregarFase(estado.edicaoSelecionada, fase);
+      iniciarAutoRefresh(); // ✅ v8.0: Reiniciar se aplicável
     });
   }
 
@@ -713,7 +906,8 @@ async function carregarFase(edicao, fase) {
 
     if (!confrontos || confrontos.length === 0) {
       // ✅ v7.2: Se é a primeira fase, mostrar opções de parciais
-      if (fase === "primeira") {
+      const primeiraFaseValida = getFasesAtuais()[0] || "primeira";
+      if (fase === primeiraFaseValida) {
         renderParciaisOptionsApp(container, edicao);
         return;
       }
@@ -727,7 +921,18 @@ async function carregarFase(edicao, fase) {
       return;
     }
 
-    renderConfrontosCards(confrontos, fase);
+    // ✅ v8.0: Se fase está em andamento, enriquecer confrontos com parciais ao vivo
+    const faseAoVivo = isFaseEmAndamento(edicao, fase);
+    if (faseAoVivo) {
+      const parciais = await buscarParciaisFaseAtiva(confrontos);
+      if (parciais && parciais.confrontos) {
+        renderConfrontosCards(parciais.confrontos, fase, true, parciais.rodada);
+        iniciarAutoRefresh();
+        return;
+      }
+    }
+
+    renderConfrontosCards(confrontos, fase, false);
   } catch (error) {
     if (window.Log) Log.error("[MATA-MATA] Erro:", error);
     container.innerHTML = `
@@ -743,7 +948,7 @@ async function carregarFase(edicao, fase) {
 // =====================================================================
 // RENDERIZAR CONFRONTOS EM CARDS
 // =====================================================================
-function renderConfrontosCards(confrontos, fase) {
+function renderConfrontosCards(confrontos, fase, aoVivo = false, rodadaParciais = null) {
   const container = document.getElementById("mata-mata-container");
   if (!container) return;
 
@@ -756,6 +961,26 @@ function renderConfrontosCards(confrontos, fase) {
   );
 
   let html = "";
+
+  // ✅ v8.0: Header AO VIVO quando fase em andamento
+  if (aoVivo) {
+    const edicaoConfig = EDICOES_MATA_MATA.find(e => e.id === estado.edicaoSelecionada);
+    const edicaoNome = edicaoConfig ? edicaoConfig.nome : `${estado.edicaoSelecionada}ª Edição`;
+    const nomeFase = { primeira: "1ª Fase", oitavas: "Oitavas", quartas: "Quartas", semis: "Semifinal", final: "Final" }[fase] || fase;
+    html += `
+      <div class="mm-parciais-live-header">
+        <span class="mm-live-dot"></span>
+        <span class="mm-live-text">AO VIVO</span>
+        <span class="mm-live-info">${nomeFase} — ${edicaoNome}${rodadaParciais ? ` (R${rodadaParciais})` : ""}</span>
+      </div>
+      <div class="mm-live-update-bar">
+        <span id="mmLastUpdate" class="mm-last-update">${estado._ultimaAtualizacao ? "Atualizado agora" : ""}</span>
+        <button class="mm-refresh-btn" id="mmRefreshBtn" title="Atualizar agora">
+          <span class="material-symbols-outlined">refresh</span>
+        </button>
+      </div>
+    `;
+  }
 
   if (meuConfronto) {
     html += renderMeuConfrontoCard(meuConfronto, meuTimeId);
@@ -802,6 +1027,17 @@ function renderConfrontosCards(confrontos, fase) {
   html += renderCardDesempenho();
 
   container.innerHTML = html;
+
+  // ✅ v8.0: Bind refresh manual quando AO VIVO
+  if (aoVivo) {
+    atualizarIndicadorAtualizacao();
+    document.getElementById("mmRefreshBtn")?.addEventListener("click", async () => {
+      const btn = document.getElementById("mmRefreshBtn");
+      if (btn) btn.classList.add("mm-spinning");
+      await carregarFase(estado.edicaoSelecionada, estado.faseSelecionada);
+      if (btn) btn.classList.remove("mm-spinning");
+    });
+  }
 }
 
 // =====================================================================
@@ -1499,4 +1735,4 @@ function truncate(str, len) {
   return str.length > len ? str.substring(0, len) + "..." : str;
 }
 
-if (window.Log) Log.info("[MATA-MATA] ✅ Módulo v7.5 carregado (Botão Classificados)");
+if (window.Log) Log.info("[MATA-MATA] ✅ Módulo v8.0 carregado (Tempo Real + Auto-Polling)");
