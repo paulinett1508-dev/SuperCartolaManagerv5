@@ -478,6 +478,198 @@ node --test scripts/__tests__/agent-generator.test.js
 
 ---
 
+## 🪝 Git Hooks Automáticos
+
+Sistema de hooks Git para sincronização automática de `.agent/` usando Husky.
+
+### Propósito
+
+Os hooks Git garantem que `.agent/` esteja **sempre sincronizado** com `docs/skills/` sem intervenção manual, melhorando a experiência do desenvolvedor e prevenindo inconsistências.
+
+### Hooks Disponíveis
+
+#### 1. pre-commit (Antes de Commit)
+
+**Quando executa:** Antes de cada `git commit`
+
+**O que faz:**
+1. Detecta se `docs/skills/` tem mudanças staged
+2. Se sim, executa `sync-skills.js` automaticamente
+3. Adiciona `.agent/` modificado ao staging
+4. Permite commit mesmo se sincronização falhar (apenas avisa)
+
+**Exemplo de uso:**
+```bash
+# Editar skill
+$ vim docs/skills/02-specialists/frontend-crafter.md
+
+# Adicionar ao staging
+$ git add docs/skills/02-specialists/frontend-crafter.md
+
+# Commit (hook sincroniza automaticamente)
+$ git commit -m "feat: atualizar frontend-crafter"
+
+🔄 [PRE-COMMIT] Mudanças detectadas em docs/skills/
+📦 [PRE-COMMIT] Sincronizando .agent/...
+
+✅ Estrutura .agent/ pronta para Antigravity!
+
+✅ [PRE-COMMIT] Sincronização concluída com sucesso
+✅ [PRE-COMMIT] .agent/ adicionado ao commit
+```
+
+**Pular sincronização:**
+```bash
+# Quando necessário (emergências)
+SKIP_SYNC=1 git commit -m "mensagem"
+```
+
+#### 2. post-checkout (Após Trocar de Branch)
+
+**Quando executa:** Após cada `git checkout`
+
+**O que faz:**
+1. Sempre executa após trocar de branch
+2. Sincroniza `.agent/` para garantir consistência
+3. NÃO adiciona ao staging (apenas atualiza working tree)
+4. Modo quiet (apenas erros são mostrados)
+
+**Exemplo de uso:**
+```bash
+$ git checkout feature/nova-skill
+
+🔄 [POST-CHECKOUT] Sincronizando .agent/ após checkout...
+✅ [POST-CHECKOUT] .agent/ sincronizado com sucesso
+```
+
+**Pular sincronização:**
+```bash
+SKIP_SYNC=1 git checkout branch
+```
+
+### Configuração
+
+**Instalação automática:**
+```bash
+# Hooks são instalados automaticamente ao rodar
+npm install
+
+# Ou manualmente
+npm run prepare
+```
+
+**Scripts disponíveis:**
+```bash
+# Sincronizar manualmente
+npm run sync-skills
+
+# Forçar re-sincronização
+npm run sync-skills:force
+
+# Modo quiet (apenas erros)
+node scripts/sync-skills.js --quiet
+```
+
+### Comportamento em Caso de Falha
+
+**Filosofia:** Hooks **nunca bloqueiam** operações Git.
+
+```bash
+# Se sincronização falhar
+⚠️  [PRE-COMMIT] Sincronização falhou, mas permitindo commit
+⚠️  [PRE-COMMIT] Execute manualmente: npm run sync-skills
+```
+
+**Por quê não bloquear?**
+1. Desenvolvedor pode estar com ambiente quebrado temporariamente
+2. Permite commits de emergência
+3. Sincronização pode ser feita depois manualmente
+4. Git não deve bloquear por problemas de tooling
+
+### Flags do sync-skills.js
+
+| Flag | Descrição | Uso |
+|------|-----------|-----|
+| `--force` | Força re-sincronização mesmo sem mudanças | `npm run sync-skills:force` |
+| `--ide=X` | Sincroniza apenas para IDE específico | `node scripts/sync-skills.js --ide=cursor` |
+| `--dry-run` | Mostra o que seria feito sem executar | `node scripts/sync-skills.js --dry-run` |
+| `--quiet` | Modo silencioso (apenas erros) | Usado no post-checkout |
+
+### Estrutura de Arquivos
+
+```
+.husky/
+├── _/                    # Scripts internos do Husky
+├── pre-commit            # Hook de pre-commit
+└── post-checkout         # Hook de post-checkout
+```
+
+**Permissões:**
+- Todos os hooks têm permissão de execução (`chmod +x`)
+- Gerenciados pelo Husky automaticamente
+
+### Troubleshooting
+
+#### Hook não executou
+
+**Problema:** Commit não sincronizou `.agent/`
+
+**Soluções:**
+1. Verificar se Husky está instalado: `ls .husky/`
+2. Reinstalar hooks: `npm run prepare`
+3. Verificar permissões: `chmod +x .husky/pre-commit`
+4. Sincronizar manualmente: `npm run sync-skills`
+
+#### Sincronização lenta
+
+**Problema:** Hook demora muito (>5s)
+
+**Soluções:**
+1. Verificar se há muitas skills (esperado: ~1-2s para 20 skills)
+2. Usar `--quiet` para reduzir logging
+3. Considerar pular em checkouts frequentes: `SKIP_SYNC=1`
+
+#### Desabilitar hooks temporariamente
+
+```bash
+# Variável de ambiente (sessão atual)
+export SKIP_SYNC=1
+
+# Commits sem hook
+SKIP_SYNC=1 git commit -m "mensagem"
+
+# Checkouts sem hook
+SKIP_SYNC=1 git checkout branch
+```
+
+#### Desabilitar Husky completamente (não recomendado)
+
+```bash
+# Remover hooks (temporário)
+rm -rf .husky/
+
+# Reinstalar quando necessário
+npm run prepare
+```
+
+### CI/CD
+
+**Importante:** Hooks Git são **locais** (não rodam em CI/CD).
+
+**Para CI/CD**, adicione validação separada:
+
+```yaml
+# .github/workflows/validate.yml
+- name: Validar sincronização .agent/
+  run: |
+    node scripts/sync-skills.js --dry-run
+    git diff --exit-code .agent/
+```
+
+Isso garante que PR não seja mergeado se `.agent/` estiver desatualizado.
+
+---
+
 ## 📂 Estrutura de Diretórios
 
 ```
@@ -825,10 +1017,22 @@ O sistema coleta métricas de:
 - Documentação completa do Agent Generator
 - `.agent/` commitado para portabilidade
 
+### ✅ DIA 5 (2026-02-12)
+- Instalação e configuração do Husky (v9.1.7)
+- Hook `pre-commit`: sincronização automática antes de commits
+- Hook `post-checkout`: sincronização após trocar de branch
+- Flag `--quiet` no sync-skills.js (modo silencioso)
+- Scripts npm: `sync-skills`, `sync-skills:force`
+- Variável `SKIP_SYNC=1` para pular hooks quando necessário
+- Hooks não bloqueantes (permitem commit mesmo se falhar)
+- Detecção inteligente de mudanças em `docs/skills/`
+- Documentação completa de Git Hooks
+- Guia de troubleshooting e CI/CD
+
 ---
 
-**Status:** 🚧 Em construção (Fase 1 - Dia 4 concluído)
+**Status:** 🚧 Em construção (Fase 1 - Dia 5 concluído)
 
 **Última atualização:** 2026-02-12
 
-**Versão:** 0.4.0
+**Versão:** 0.5.0

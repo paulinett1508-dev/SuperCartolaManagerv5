@@ -1,0 +1,54 @@
+# ============================================================================
+# PRE-COMMIT HOOK - Sistema Híbrido de Skills
+# ============================================================================
+#
+# Sincroniza automaticamente .agent/ quando docs/skills/ mudar
+#
+# Comportamento:
+# - Detecta se docs/skills/ tem mudanças staged
+# - Se sim, executa sync-skills.js
+# - Adiciona .agent/ modificado ao staging
+# - NÃO bloqueia commit se falhar (apenas avisa)
+#
+# Para pular: SKIP_SYNC=1 git commit -m "mensagem"
+# ============================================================================
+
+# Verificar se deve pular sincronização
+if [ "$SKIP_SYNC" = "1" ]; then
+  echo "⏭️  [PRE-COMMIT] Sincronização pulada (SKIP_SYNC=1)"
+  exit 0
+fi
+
+# Verificar se docs/skills/ tem mudanças staged
+SKILLS_CHANGED=$(git diff --cached --name-only | grep "^docs/skills/" || true)
+
+if [ -z "$SKILLS_CHANGED" ]; then
+  # Nenhuma mudança em docs/skills/, pular sincronização
+  exit 0
+fi
+
+echo ""
+echo "🔄 [PRE-COMMIT] Mudanças detectadas em docs/skills/"
+echo "📦 [PRE-COMMIT] Sincronizando .agent/..."
+echo ""
+
+# Executar sincronização
+if node scripts/sync-skills.js; then
+  echo ""
+  echo "✅ [PRE-COMMIT] Sincronização concluída com sucesso"
+
+  # Adicionar .agent/ modificado ao staging
+  git add .agent/
+
+  echo "✅ [PRE-COMMIT] .agent/ adicionado ao commit"
+  echo ""
+else
+  echo ""
+  echo "⚠️  [PRE-COMMIT] Sincronização falhou, mas permitindo commit"
+  echo "⚠️  [PRE-COMMIT] Execute manualmente: npm run sync-skills"
+  echo ""
+  # Não bloquear commit, apenas avisar
+  exit 0
+fi
+
+exit 0

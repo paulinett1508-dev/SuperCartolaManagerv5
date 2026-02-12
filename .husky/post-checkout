@@ -1,0 +1,47 @@
+# ============================================================================
+# POST-CHECKOUT HOOK - Sistema Híbrido de Skills
+# ============================================================================
+#
+# Sincroniza .agent/ após trocar de branch para garantir consistência
+#
+# Comportamento:
+# - Executado após git checkout
+# - Sempre sincroniza .agent/ (garante que está atualizado)
+# - NÃO adiciona ao staging (apenas atualiza working tree)
+# - NÃO bloqueia se falhar (apenas avisa)
+#
+# Para pular: SKIP_SYNC=1 git checkout branch
+# ============================================================================
+
+# Parâmetros do hook
+# $1 = ref anterior
+# $2 = ref novo
+# $3 = flag (1 = checkout de branch, 0 = checkout de arquivo)
+
+# Verificar se deve pular sincronização
+if [ "$SKIP_SYNC" = "1" ]; then
+  echo "⏭️  [POST-CHECKOUT] Sincronização pulada (SKIP_SYNC=1)"
+  exit 0
+fi
+
+# Só executar em checkout de branch (não de arquivos individuais)
+if [ "$3" = "0" ]; then
+  exit 0
+fi
+
+echo ""
+echo "🔄 [POST-CHECKOUT] Sincronizando .agent/ após checkout..."
+
+# Executar sincronização (modo quiet - apenas erros)
+if node scripts/sync-skills.js --quiet; then
+  echo "✅ [POST-CHECKOUT] .agent/ sincronizado com sucesso"
+  echo ""
+else
+  echo "⚠️  [POST-CHECKOUT] Sincronização falhou"
+  echo "⚠️  [POST-CHECKOUT] Execute manualmente: npm run sync-skills"
+  echo ""
+  # Não bloquear checkout, apenas avisar
+  exit 0
+fi
+
+exit 0

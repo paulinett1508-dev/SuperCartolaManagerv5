@@ -17,7 +17,11 @@
     "test:artilheiro": "cross-env NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest test/artilheiro.test.js --detectOpenHandles --forceExit",
     "predeploy": "npm version patch --no-git-tag-version",
     "lint": "eslint . --ext .js",
-    "lint:fix": "eslint . --ext .js --fix"
+    "lint:fix": "eslint . --ext .js --fix",
+    "prepare": "husky",
+    "postinstall": "husky || true",
+    "sync-skills": "node scripts/sync-skills.js",
+    "sync-skills:force": "node scripts/sync-skills.js --force"
   },
   "keywords": [
     "cartola",
@@ -62,6 +66,7 @@
   "devDependencies": {
     "cross-env": "^7.0.3",
     "eslint": "^8.57.0",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "nodemon": "^3.0.2"
   },

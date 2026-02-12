@@ -8,12 +8,13 @@
  * - .agent/ (Cursor/Windsurf/Antigravity)
  *
  * Uso:
- *   node scripts/sync-skills.js [--force] [--ide=vscode|cursor|all]
+ *   node scripts/sync-skills.js [--force] [--ide=vscode|cursor|all] [--quiet]
  *
  * Flags:
  *   --force      Força re-sincronização mesmo sem mudanças
  *   --ide=X      Sincroniza apenas para IDE específico (default: all)
  *   --dry-run    Mostra o que seria feito sem executar
+ *   --quiet      Modo silencioso (apenas erros)
  *
  * Parte do Sistema Híbrido - Super Cartola Manager
  */
@@ -41,11 +42,19 @@ const CONFIG = {
   }
 };
 
+// Estado global para modo quiet
+let QUIET_MODE = false;
+
 // ============================================================================
 // UTILITÁRIOS
 // ============================================================================
 
 function log(message, level = 'info') {
+  // Modo quiet: apenas erros e warnings
+  if (QUIET_MODE && level !== 'error' && level !== 'warning') {
+    return;
+  }
+
   const prefix = '[HYBRID-SYSTEM]';
   const levels = {
     info: '📘',
@@ -155,8 +164,14 @@ function main() {
   const flags = {
     force: args.includes('--force'),
     dryRun: args.includes('--dry-run'),
+    quiet: args.includes('--quiet'),
     ide: args.find(a => a.startsWith('--ide='))?.split('=')[1] || 'all'
   };
+
+  // Ativar modo quiet se flag presente
+  if (flags.quiet) {
+    QUIET_MODE = true;
+  }
 
   log('Sincronizador de Skills Multi-IDE', 'info');
   log(`Modo: ${flags.dryRun ? 'DRY-RUN' : 'EXECUÇÃO'}`, 'info');
