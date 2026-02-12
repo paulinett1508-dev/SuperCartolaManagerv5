@@ -151,8 +151,9 @@ class ParticipanteNavigation {
         // Navegar para módulo (salvo ou inicial)
         await this.navegarPara(moduloInicial);
 
-        // ✅ v4.8: Refresh modulosAtivos em background via endpoint correto (com defaults)
-        this.refreshModulosAtivos();
+        // ✅ v4.8: Refresh modulosAtivos via endpoint correto (com defaults)
+        // ⚠️ IMPORTANTE: Aguardar para que o Widget tenha os módulos corretos
+        await this.refreshModulosAtivos();
 
         // ✅ v4.9: Inicializar Widget "O que tá rolando?" (engajamento ao vivo)
         this.inicializarWhatsHappeningWidget();
