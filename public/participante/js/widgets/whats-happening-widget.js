@@ -85,12 +85,13 @@ function applyFabPosition(fab) {
 function initFabDrag(fab) {
     let startX, startY, startRight, startBottom;
     let hasMoved = false;
+    let touchStartTime = 0;
 
     // Mostrar hint de drag na primeira vez
     showDragHintIfNeeded(fab);
 
     // Touch events (mobile)
-    fab.addEventListener("touchstart", handleDragStart, { passive: false });
+    fab.addEventListener("touchstart", handleDragStart, { passive: true }); // passive para melhor performance
     fab.addEventListener("touchmove", handleDragMove, { passive: false });
     fab.addEventListener("touchend", handleDragEnd);
 
@@ -104,6 +105,7 @@ function initFabDrag(fab) {
 
         WHState.isDragging = true;
         hasMoved = false;
+        touchStartTime = Date.now();
         fab.classList.add("dragging");
         fab.classList.remove("show-drag-hint");
 
@@ -113,9 +115,7 @@ function initFabDrag(fab) {
         startRight = WHState.fabPosition.right;
         startBottom = WHState.fabPosition.bottom;
 
-        if (e.type === "touchstart") {
-            e.preventDefault(); // Prevenir scroll durante drag no mobile
-        }
+        // NÃO chamar preventDefault aqui - permite click/tap funcionar
     }
 
     function handleDragMove(e) {
@@ -125,10 +125,16 @@ function initFabDrag(fab) {
         const deltaX = startX - touch.clientX;
         const deltaY = startY - touch.clientY;
 
-        // Considerar como "moveu" se deslocou mais de 5px
-        if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+        // Considerar como "moveu" se deslocou mais de 10px (aumentado para evitar falsos positivos)
+        if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
             hasMoved = true;
+            // Só prevenir scroll DEPOIS de confirmar que é drag
+            if (e.type === "touchmove" && e.cancelable) {
+                e.preventDefault();
+            }
         }
+
+        if (!hasMoved) return; // Não mover até confirmar drag
 
         // Calcular nova posição
         let newRight = startRight + deltaX;
@@ -147,19 +153,18 @@ function initFabDrag(fab) {
         WHState.fabPosition.bottom = newBottom;
 
         applyFabPosition(fab);
-
-        if (e.type === "touchmove") {
-            e.preventDefault();
-        }
     }
 
     function handleDragEnd(e) {
         if (!WHState.isDragging) return;
 
+        const wasDragging = hasMoved;
+        const touchDuration = Date.now() - touchStartTime;
+
         WHState.isDragging = false;
         fab.classList.remove("dragging");
 
-        if (hasMoved) {
+        if (wasDragging) {
             // Efeito visual de "soltar"
             fab.classList.add("just-dropped");
             setTimeout(() => fab.classList.remove("just-dropped"), 400);
@@ -167,11 +172,17 @@ function initFabDrag(fab) {
             // Salvar posição
             saveFabPosition();
             markDragHintShown();
-
-            // Prevenir click se arrastou
-            e.preventDefault();
-            e.stopPropagation();
+        } else if (e.type === "touchend" && touchDuration < 300) {
+            // TAP detectado no mobile - abrir painel diretamente
+            // (click event pode não disparar em alguns dispositivos)
+            setTimeout(() => {
+                if (!WHState.isOpen) {
+                    togglePanel();
+                }
+            }, 10);
         }
+
+        hasMoved = false;
     }
 }
 
