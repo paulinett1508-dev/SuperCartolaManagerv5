@@ -100,6 +100,7 @@ const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
 import jogosHojeRoutes from "./routes/jogos-hoje-routes.js";
 import jogosHojeGloboRoutes from "./routes/jogos-hoje-globo.js"; // NOVA ROTA
 import jogosAoVivoRoutes from "./routes/jogos-ao-vivo-routes.js"; // API-Football
+import apiOrchestrator from "./services/api-orchestrator.js"; // Orquestrador multi-API
 import ligaRoutes from "./routes/ligas.js";
 import cartolaRoutes from "./routes/cartola.js";
 import cartolaProxyRoutes from "./routes/cartola-proxy.js";
@@ -214,6 +215,14 @@ const PORT = process.env.PORT || 3000;
 
 // Conectar ao Banco de Dados (Otimizado)
 await connectDB();
+
+// Inicializar orquestrador multi-API (API-Football + SoccerDataAPI)
+import { getDB } from "./config/database.js";
+try {
+  await apiOrchestrator.init(getDB());
+} catch (err) {
+  console.warn('[INDEX] Orquestrador init falhou (não-crítico):', err.message);
+}
 
 // ====================================================================
 // 🛡️ MIDDLEWARES DE SEGURANÇA (PRIMEIRO!)
