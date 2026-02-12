@@ -1,5 +1,6 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v8.0 (Resultados em Tempo Real)
+// PARTICIPANTE MATA-MATA v8.1 (Resultados em Tempo Real)
+// ✅ v8.1: FIX - Auto-refresh inicia sempre que fase está em andamento (corrige bug de parciais não atualizando)
 // ✅ v8.0: FEAT - Auto-polling 60s com parciais AO VIVO nas fases ativas
 // ✅ v8.0: FEAT - Badge AO VIVO + indicador de última atualização
 // ✅ v8.0: FEAT - Cleanup lifecycle (Page Visibility, AbortController)
@@ -924,14 +925,24 @@ async function carregarFase(edicao, fase) {
     // ✅ v8.0: Se fase está em andamento, enriquecer confrontos com parciais ao vivo
     const faseAoVivo = isFaseEmAndamento(edicao, fase);
     if (faseAoVivo) {
+      // ✅ FIX: SEMPRE iniciar auto-refresh se fase está em andamento
+      // Mesmo que parciais não estejam disponíveis AGORA, elas podem ficar disponíveis depois
       const parciais = await buscarParciaisFaseAtiva(confrontos);
       if (parciais && parciais.confrontos) {
+        // Parciais disponíveis: renderizar com dados ao vivo
         renderConfrontosCards(parciais.confrontos, fase, true, parciais.rodada);
-        iniciarAutoRefresh();
-        return;
+      } else {
+        // Parciais ainda não disponíveis: renderizar confrontos normais mas com indicador AO VIVO
+        // O auto-refresh vai buscar parciais periodicamente até ficarem disponíveis
+        if (window.Log) Log.info("[MATA-MATA] 🔄 Fase ao vivo mas parciais indisponíveis - iniciando polling...");
+        renderConfrontosCards(confrontos, fase, true, null); // true = ao vivo, null = sem rodada ainda
       }
+      // ✅ FIX CRÍTICO: Iniciar auto-refresh SEMPRE que fase está em andamento
+      iniciarAutoRefresh();
+      return;
     }
 
+    // Fase não está em andamento: renderizar normalmente sem auto-refresh
     renderConfrontosCards(confrontos, fase, false);
   } catch (error) {
     if (window.Log) Log.error("[MATA-MATA] Erro:", error);
