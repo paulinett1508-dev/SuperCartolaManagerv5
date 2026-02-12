@@ -153,6 +153,7 @@ export async function buscarRankingParcial(ligaId) {
             const resultado = {
                 disponivel: false,
                 motivo: "sem_pontuacao",
+                retry: true, // v1.1: Motivo temporário - frontend deve continuar tentando
                 rodada: rodadaAtual,
                 message: "Aguardando os jogos começarem para computar os pontos.",
             };

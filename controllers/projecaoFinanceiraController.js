@@ -83,6 +83,7 @@ export const getProjecaoTime = async (req, res) => {
             return res.json({
                 projecao: false,
                 motivo: rankingParcial?.motivo || "indisponivel",
+                retry: rankingParcial?.retry || false, // v1.1: Indica se frontend deve continuar tentando
                 message: rankingParcial?.message || "Projeção não disponível no momento",
                 rodada: rankingParcial?.rodada || null,
             });

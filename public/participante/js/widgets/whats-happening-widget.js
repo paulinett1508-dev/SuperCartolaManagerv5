@@ -4,7 +4,7 @@
  * Widget flutuante de engajamento em tempo real
  * Mostra disputas internas ativas nos módulos da liga
  *
- * @version 2.0.0 - FAB Game Status Sync
+ * @version 2.1.0 - FIX: FAB LIVE state falso (bola_rolando → gameStatus real)
  *
  * Máquina de Estados do Foguinho:
  * - HIDDEN:   FAB invisível (mercado aberto, pré-temporada, sem rodada)
@@ -19,7 +19,7 @@
  * - Capitão de Luxo, Ranking da Rodada
  */
 
-if (window.Log) Log.info("[WHATS-HAPPENING] 🔥 Widget v2.0 carregando...");
+if (window.Log) Log.info("[WHATS-HAPPENING] 🔥 Widget v2.1 carregando...");
 
 // ============================================
 // MÁQUINA DE ESTADOS DO FOGUINHO
@@ -32,6 +32,15 @@ const FAB_GAME_STATE = {
     COOLING:  'cooling',  // Jogos acabaram, rodada não finalizada
     FINISHED: 'finished', // Todos jogos da rodada encerrados
 };
+
+/**
+ * v2.1: Helper centralizado para verificar se jogos estão REALMENTE ao vivo
+ * Usa gameStatusData.stats.aoVivo (fonte confiável) ao invés de bola_rolando
+ */
+function isJogosAoVivo() {
+    return WHState.gameStatusData?.stats?.aoVivo > 0
+        || WHState.fabState === FAB_GAME_STATE.LIVE;
+}
 
 // ============================================
 // ESTADO DO WIDGET
@@ -271,10 +280,9 @@ function calcularFabState(mercadoStatus, gameStatusData) {
     // 4. Mercado fechado (status === 2) → consultar game-status para granularidade
     if (mercadoStatus?.status_mercado === 2 || mercadoStatus?.mercado_fechado) {
         if (!gameStatusData) {
-            // Sem dados de jogos → fallback para bola_rolando
-            return mercadoStatus?.bola_rolando
-                ? FAB_GAME_STATE.LIVE
-                : FAB_GAME_STATE.WAITING;
+            // v2.1 FIX: Sem dados de jogos → WAITING (seguro)
+            // bola_rolando NÃO indica jogos ao vivo, apenas que parciais existem
+            return FAB_GAME_STATE.WAITING;
         }
 
         // Usar recomendação do backend
@@ -391,16 +399,30 @@ function ajustarPollingPorEstado(estado) {
 
 /**
  * Busca /api/jogos-ao-vivo/game-status e atualiza o estado do FAB
+ * v2.1: Timeout 5s + cache stale fallback (último dado válido < 10min)
  */
+let _lastValidGameStatus = null;
+let _lastValidGameStatusAt = 0;
+const GAME_STATUS_STALE_TTL = 600000; // 10 minutos
+
 async function fetchGameStatus() {
     try {
-        const res = await fetchWithTimeout("/api/jogos-ao-vivo/game-status", 3000);
+        const res = await fetchWithTimeout("/api/jogos-ao-vivo/game-status", 5000);
         if (res.ok) {
             WHState.gameStatusData = await res.json();
+            // Salvar como último dado válido
+            _lastValidGameStatus = WHState.gameStatusData;
+            _lastValidGameStatusAt = Date.now();
             return WHState.gameStatusData;
         }
     } catch (e) {
         if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro ao buscar game-status:", e.name === 'AbortError' ? 'Timeout' : e.message);
+    }
+    // v2.1: Fallback para último dado válido (se < 10min)
+    if (_lastValidGameStatus && (Date.now() - _lastValidGameStatusAt) < GAME_STATUS_STALE_TTL) {
+        if (window.Log) Log.debug("[WHATS-HAPPENING] 📦 Usando game-status stale (idade: " + Math.round((Date.now() - _lastValidGameStatusAt) / 1000) + "s)");
+        WHState.gameStatusData = _lastValidGameStatus;
+        return _lastValidGameStatus;
     }
     return null;
 }
@@ -694,8 +716,8 @@ async function fetchAllData() {
     // Ranking da Rodada (sempre ativo)
     promises.push(fetchRanking());
 
-    // Parciais (para confrontos em tempo real)
-    if (WHState.mercadoStatus?.bola_rolando) {
+    // Parciais (para confrontos em tempo real) - v2.1: usa game-status ao invés de bola_rolando
+    if (isJogosAoVivo()) {
         promises.push(fetchParciais());
     }
 
@@ -1099,7 +1121,7 @@ function renderTimestamp() {
     const now = WHState.lastUpdate || new Date();
     const time = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
-    const isLive = WHState.mercadoStatus?.bola_rolando;
+    const isLive = isJogosAoVivo(); // v2.1: usa game-status real
 
     return `
         <div class="wh-timestamp">
@@ -1281,7 +1303,7 @@ function renderMataMataSection() {
             <div class="wh-confronto ${diff < 15 ? "hot" : ""}">
                 <div class="wh-confronto-header">
                     <span class="wh-confronto-rodada">${data.edicao || "Mata-Mata"} - ${fase}</span>
-                    ${WHState.mercadoStatus?.bola_rolando ? '<span class="wh-confronto-status live"><span class="material-icons" style="font-size:12px">sensors</span> AO VIVO</span>' : ""}
+                    ${isJogosAoVivo() ? '<span class="wh-confronto-status live"><span class="material-icons" style="font-size:12px">sensors</span> AO VIVO</span>' : ""}
                 </div>
                 <div class="wh-confronto-times">
                     <div class="wh-time wh-time--home ${aWinning ? "winning" : bWinning ? "losing" : ""}">
@@ -1490,7 +1512,7 @@ function renderMeuConfrontoPontosCorridos() {
     const statusEmoji = vencendo ? "🔥" : perdendo ? "😰" : "⚔️";
     const statusText = vencendo ? "Vencendo!" : perdendo ? "Perdendo..." : "Empatado";
 
-    const isLive = WHState.mercadoStatus?.bola_rolando;
+    const isLive = isJogosAoVivo(); // v2.1: usa game-status real
 
     return `
         <div class="wh-section wh-section--meu-confronto wh-section--pontos-corridos ${statusClass}">
@@ -1570,7 +1592,7 @@ function renderMeuConfrontoMataMata() {
         final: "FINAL"
     }[fase] || fase;
 
-    const isLive = WHState.mercadoStatus?.bola_rolando;
+    const isLive = isJogosAoVivo(); // v2.1: usa game-status real
 
     return `
         <div class="wh-section wh-section--meu-confronto wh-section--mata-mata ${statusClass}">

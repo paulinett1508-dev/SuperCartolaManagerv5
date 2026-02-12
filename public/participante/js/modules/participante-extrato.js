@@ -1,7 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v4.12 (FIX 502 TRATADO COMO DADOS VÁLIDOS)
+// PARTICIPANTE-EXTRATO.JS - v5.1 (FIX PROJEÇÃO RODADA ATUAL)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v5.1: FIX CRÍTICO - Projeção financeira não enxergava rodada em andamento
+//          - ultimoStatusMercado agora é atualizado periodicamente (status check 60s)
+//          - Auto-refresh NÃO para quando motivo é temporário (sem_pontuacao)
+//          - Re-check do status do mercado detecta transição 1→2 automaticamente
+//          - visibilityChange re-verifica status ao invés de depender de valor stale
 // ✅ v4.12: FIX CRÍTICO - 502 Bad Gateway tratado como dados válidos
 //          - verificarRenovacao: 5xx não cacheia renovado=false (permite retry)
 //          - mercado/status: fallback marcado com serverError flag
@@ -777,11 +782,13 @@ async function carregarExtrato(ligaId, timeId) {
         // ✅ v4.6: Limpar timeout de segurança
         if (timeoutId) clearTimeout(timeoutId);
 
-        // ✅ v5.0: PROJEÇÃO FINANCEIRA - buscar se rodada em andamento
+        // ✅ v5.1: PROJEÇÃO FINANCEIRA - buscar se rodada em andamento
         if (ultimoStatusMercado === 2 && extratoData) {
             buscarEExibirProjecao(ligaId, timeId);
         } else {
             pararAutoRefreshProjecao();
+            // v5.1: Ativar status check periódico para detectar transição 1→2
+            iniciarStatusCheck(ligaId, timeId);
         }
 
         if (window.Log)
@@ -1352,11 +1359,52 @@ window.mostrarLoadingExtrato = function () {
 };
 
 // =====================================================================
-// ✅ v5.0: PROJEÇÃO FINANCEIRA EM TEMPO REAL
+// ✅ v5.1: PROJEÇÃO FINANCEIRA EM TEMPO REAL (FIX RODADA ATUAL)
 // Busca e exibe projeção durante rodada em andamento (status_mercado === 2)
+// FIX: Re-check periódico do status do mercado para detectar transição 1→2
+// FIX: Não parar auto-refresh quando motivo é temporário (sem_pontuacao)
+// FIX: Atualizar ultimoStatusMercado no ciclo de refresh
 // =====================================================================
 
 const PROJECAO_REFRESH_MS = 60000; // 60 segundos
+const STATUS_CHECK_MS = 60000; // 60 segundos para re-check do status do mercado
+let statusCheckInterval = null;
+
+/**
+ * v5.1: Re-consulta o status do mercado e ativa projeção se transitou para 2
+ */
+async function verificarStatusEAtivarProjecao(ligaId, timeId) {
+    try {
+        const response = await fetch("/api/cartola/mercado/status", {
+            signal: AbortSignal.timeout(5000),
+        });
+        if (!response.ok) return;
+
+        const mercadoData = await response.json();
+        const novoStatus = mercadoData?.status_mercado || null;
+
+        // Detectar transição: mercado era aberto (1) e agora fechou (2)
+        if (novoStatus === 2 && ultimoStatusMercado !== 2) {
+            if (window.Log)
+                Log.info("EXTRATO-PARTICIPANTE", `🔄 Transição detectada: mercado ${ultimoStatusMercado} → 2 (rodada em andamento)`);
+            ultimoStatusMercado = novoStatus;
+            buscarEExibirProjecao(ligaId, timeId);
+        } else if (novoStatus === 1 && ultimoStatusMercado === 2) {
+            // Transição 2→1: rodada finalizou, parar projeção e recarregar extrato
+            if (window.Log)
+                Log.info("EXTRATO-PARTICIPANTE", `🏁 Transição detectada: mercado 2 → 1 (rodada finalizou)`);
+            ultimoStatusMercado = novoStatus;
+            pararAutoRefreshProjecao();
+            const cardExistente = document.getElementById("projecaoFinanceiraCard");
+            if (cardExistente) cardExistente.remove();
+        }
+
+        // Sempre manter ultimoStatusMercado atualizado
+        if (novoStatus) ultimoStatusMercado = novoStatus;
+    } catch (error) {
+        if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", "⚠️ Erro ao re-verificar status mercado:", error.message);
+    }
+}
 
 async function buscarEExibirProjecao(ligaId, timeId) {
     try {
@@ -1377,12 +1425,25 @@ async function buscarEExibirProjecao(ligaId, timeId) {
 
         if (!projecaoData.projecao) {
             if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", `ℹ️ Projeção: ${projecaoData.motivo}`);
-            pararAutoRefreshProjecao();
+
+            // v5.1: Se motivo é temporário (retry:true), MANTER auto-refresh ativo
+            if (projecaoData.retry) {
+                if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", `🔄 Motivo temporário (${projecaoData.motivo}), mantendo refresh ativo`);
+                // Manter refresh rodando - não chamar pararAutoRefreshProjecao()
+                iniciarAutoRefreshProjecao(ligaId, timeId);
+            } else {
+                // Motivo definitivo (mercado_aberto, indisponivel) - parar refresh
+                pararAutoRefreshProjecao();
+            }
+
             // Remover card se existia
             const cardExistente = document.getElementById("projecaoFinanceiraCard");
             if (cardExistente) cardExistente.remove();
             return;
         }
+
+        // v5.1: Projeção disponível = confirma que mercado está fechado
+        ultimoStatusMercado = 2;
 
         if (window.Log) Log.info("EXTRATO-PARTICIPANTE", `✅ Projeção R${projecaoData.rodada}:`, {
             posicao: projecaoData.time?.posicao_parcial,
@@ -1414,6 +1475,28 @@ function iniciarAutoRefreshProjecao(ligaId, timeId) {
     if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", `🔄 Auto-refresh projeção ativado (${PROJECAO_REFRESH_MS / 1000}s)`);
 }
 
+/**
+ * v5.1: Inicia verificação periódica do status do mercado
+ * Detecta transição 1→2 para ativar projeção automaticamente
+ */
+function iniciarStatusCheck(ligaId, timeId) {
+    if (statusCheckInterval) return;
+
+    statusCheckInterval = setInterval(() => {
+        verificarStatusEAtivarProjecao(ligaId, timeId);
+    }, STATUS_CHECK_MS);
+
+    if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", `🔍 Status check ativado (${STATUS_CHECK_MS / 1000}s)`);
+}
+
+function pararStatusCheck() {
+    if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+        statusCheckInterval = null;
+        if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", "⏹️ Status check desativado");
+    }
+}
+
 function pararAutoRefreshProjecao() {
     if (projecaoRefreshInterval) {
         clearInterval(projecaoRefreshInterval);
@@ -1426,8 +1509,17 @@ function pararAutoRefreshProjecao() {
 document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
         pararAutoRefreshProjecao();
-    } else if (ultimoStatusMercado === 2 && PARTICIPANTE_IDS.ligaId && PARTICIPANTE_IDS.timeId) {
-        buscarEExibirProjecao(PARTICIPANTE_IDS.ligaId, PARTICIPANTE_IDS.timeId);
+        pararStatusCheck();
+    } else if (PARTICIPANTE_IDS.ligaId && PARTICIPANTE_IDS.timeId) {
+        // v5.1: Ao voltar à aba, SEMPRE re-verificar status (não depender de ultimoStatusMercado stale)
+        verificarStatusEAtivarProjecao(PARTICIPANTE_IDS.ligaId, PARTICIPANTE_IDS.timeId);
+        if (ultimoStatusMercado === 2) {
+            buscarEExibirProjecao(PARTICIPANTE_IDS.ligaId, PARTICIPANTE_IDS.timeId);
+        }
+        // Reiniciar status check se mercado não está confirmado como em andamento
+        if (ultimoStatusMercado !== 2) {
+            iniciarStatusCheck(PARTICIPANTE_IDS.ligaId, PARTICIPANTE_IDS.timeId);
+        }
     }
 });
 
