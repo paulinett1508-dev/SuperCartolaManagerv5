@@ -207,9 +207,27 @@ function markDragHintShown() {
 // ============================================
 const WH_CONFIG = {
     POLLING_INTERVAL: 60000, // 60 segundos
-    API_TIMEOUT: 10000,
+    API_TIMEOUT: 3000, // Timeout agressivo para UX responsivo
+    API_TIMEOUT_SLOW: 5000, // Timeout para APIs lentas (luva, parciais)
     MIN_DIFF_HOT: 10, // Diferença mínima para ser "disputa quente"
 };
+
+// Helper: fetch com timeout
+async function fetchWithTimeout(url, timeout = WH_CONFIG.API_TIMEOUT) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    try {
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        return res;
+    } catch (e) {
+        clearTimeout(timeoutId);
+        if (e.name === 'AbortError') {
+            if (window.Log) Log.warn(`[WHATS-HAPPENING] ⏱️ Timeout em ${url}`);
+        }
+        throw e;
+    }
+}
 
 // ============================================
 // INICIALIZAÇÃO
@@ -228,21 +246,20 @@ export async function initWhatsHappeningWidget(params = {}) {
         return;
     }
 
-    // Verificar status do mercado
-    await fetchMercadoStatus();
-
-    // Criar elementos do DOM
+    // 1) Criar FAB IMEDIATAMENTE (não bloquear UX)
     createWidgetElements();
 
-    // Buscar dados iniciais
-    await fetchAllData();
-
-    // Iniciar polling se bola rolando
-    if (WHState.mercadoStatus?.bola_rolando) {
-        startPolling();
-    }
-
-    if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget inicializado com sucesso");
+    // 2) Buscar status do mercado (rápido, ~0.5s)
+    fetchMercadoStatus().then(() => {
+        // 3) Buscar dados em background (não bloquear)
+        fetchAllData().then(() => {
+            // 4) Iniciar polling se bola rolando
+            if (WHState.mercadoStatus?.bola_rolando) {
+                startPolling();
+            }
+            if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget inicializado com sucesso");
+        });
+    });
 }
 
 // ============================================
@@ -399,8 +416,8 @@ function setupSwipeToClose(panel) {
 // ============================================
 async function fetchMercadoStatus() {
     try {
-        // Usar proxy interno para evitar CORS
-        const res = await fetch("/api/cartola/mercado-status");
+        // Usar proxy interno para evitar CORS (timeout 2s)
+        const res = await fetchWithTimeout("/api/cartola/mercado-status", 2000);
         if (res.ok) {
             WHState.mercadoStatus = await res.json();
         }
@@ -468,7 +485,7 @@ async function fetchAllData() {
 async function fetchPontosCorridos() {
     try {
         const rodada = WHState.mercadoStatus?.rodada_atual || 1;
-        const res = await fetch(
+        const res = await fetchWithTimeout(
             `/api/pontos-corridos/${WHState.ligaId}?temporada=${WHState.temporada}`
         );
         if (res.ok) {
@@ -509,21 +526,22 @@ async function fetchPontosCorridos() {
 
 async function fetchParciais() {
     try {
-        const res = await fetch(`/api/matchday/parciais/${WHState.ligaId}`);
+        // Parciais é lento (~4s), usar timeout maior
+        const res = await fetchWithTimeout(`/api/matchday/parciais/${WHState.ligaId}`, WH_CONFIG.API_TIMEOUT_SLOW);
         if (res.ok) {
             const data = await res.json();
             WHState.data.parciais = data;
             if (window.Log) Log.info("[WHATS-HAPPENING] Parciais:", data.ranking?.length, "times");
         }
     } catch (e) {
-        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Parciais:", e);
+        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Parciais:", e.name === 'AbortError' ? 'Timeout' : e);
     }
 }
 
 async function fetchMataMata() {
     try {
         // Primeiro buscar edições disponíveis
-        const edicoesRes = await fetch(
+        const edicoesRes = await fetchWithTimeout(
             `/api/mata-mata/cache/${WHState.ligaId}/edicoes?temporada=${WHState.temporada}`
         );
 
@@ -536,7 +554,7 @@ async function fetchMataMata() {
         const ultimaEdicao = edicoesData.edicoes[edicoesData.edicoes.length - 1];
 
         // Buscar dados da edição
-        const res = await fetch(
+        const res = await fetchWithTimeout(
             `/api/mata-mata/cache/${WHState.ligaId}/${ultimaEdicao.edicao}?temporada=${WHState.temporada}`
         );
 
@@ -585,7 +603,7 @@ async function fetchMataMata() {
 
 async function fetchArtilheiro() {
     try {
-        const res = await fetch(
+        const res = await fetchWithTimeout(
             `/api/artilheiro-campeao/${WHState.ligaId}/ranking?temporada=${WHState.temporada}`
         );
         if (res.ok) {
@@ -596,14 +614,16 @@ async function fetchArtilheiro() {
             if (window.Log) Log.info("[WHATS-HAPPENING] Artilheiro:", ranking.length, "participantes");
         }
     } catch (e) {
-        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Artilheiro:", e);
+        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Artilheiro:", e.name === 'AbortError' ? 'Timeout' : e);
     }
 }
 
 async function fetchLuvaOuro() {
     try {
-        const res = await fetch(
-            `/api/luva-de-ouro/${WHState.ligaId}/ranking?temporada=${WHState.temporada}`
+        // API luva-de-ouro é MUITO lenta (~8s), usar timeout curto e aceitar falha
+        const res = await fetchWithTimeout(
+            `/api/luva-de-ouro/${WHState.ligaId}/ranking?temporada=${WHState.temporada}`,
+            WH_CONFIG.API_TIMEOUT_SLOW
         );
         if (res.ok) {
             const data = await res.json();
@@ -613,13 +633,14 @@ async function fetchLuvaOuro() {
             if (window.Log) Log.info("[WHATS-HAPPENING] Luva de Ouro:", ranking.length, "participantes");
         }
     } catch (e) {
-        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Luva de Ouro:", e);
+        // Luva de Ouro é lenta, timeout é esperado
+        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Luva de Ouro:", e.name === 'AbortError' ? 'Timeout (API lenta)' : e);
     }
 }
 
 async function fetchCapitao() {
     try {
-        const res = await fetch(
+        const res = await fetchWithTimeout(
             `/api/capitao/${WHState.ligaId}/ranking?temporada=${WHState.temporada}`
         );
         if (res.ok) {
@@ -630,14 +651,14 @@ async function fetchCapitao() {
             if (window.Log) Log.info("[WHATS-HAPPENING] Capitão:", ranking.length, "participantes");
         }
     } catch (e) {
-        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Capitão:", e);
+        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Capitão:", e.name === 'AbortError' ? 'Timeout' : e);
     }
 }
 
 async function fetchRanking() {
     try {
         const rodada = WHState.mercadoStatus?.rodada_atual || 1;
-        const res = await fetch(
+        const res = await fetchWithTimeout(
             `/api/ligas/${WHState.ligaId}/ranking/${rodada}?temporada=${WHState.temporada}`
         );
         if (res.ok) {
@@ -648,7 +669,7 @@ async function fetchRanking() {
             };
         }
     } catch (e) {
-        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Ranking:", e);
+        if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Ranking:", e.name === 'AbortError' ? 'Timeout' : e);
     }
 }
 
