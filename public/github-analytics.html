@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>GitHub Analytics - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+        <link rel="stylesheet" href="css/_admin-tokens.css" />
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <style>
+            .analytics-page {
+                background: #121212;
+                min-height: 100vh;
+            }
+            .analytics-content {
+                padding: 20px 16px;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            .analytics-header {
+                background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+                border-radius: 12px;
+                padding: 24px;
+                margin-bottom: 24px;
+                border: 1px solid #2d2d2d;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+            .analytics-header-icon {
+                width: 56px;
+                height: 56px;
+                background: linear-gradient(135deg, #6e5494 0%, #4d3a6e 100%);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .analytics-header-icon .material-icons {
+                font-size: 28px;
+                color: white;
+            }
+            .analytics-header h1 {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin: 0 0 4px 0;
+            }
+            .analytics-header p {
+                font-size: 0.85rem;
+                color: #9ca3af;
+                margin: 0;
+            }
+
+            /* Stats Cards */
+            .stats-row {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+            .stat-card {
+                background: #1a1a1a;
+                border-radius: 12px;
+                padding: 20px;
+                border: 1px solid #2d2d2d;
+            }
+            .stat-card-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 12px;
+            }
+            .stat-card-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .stat-card-icon.purple { background: rgba(110, 84, 148, 0.15); }
+            .stat-card-icon.purple .material-icons { color: #6e5494; }
+            .stat-card-icon.green { background: rgba(16, 185, 129, 0.15); }
+            .stat-card-icon.green .material-icons { color: #10b981; }
+            .stat-card-icon.orange { background: rgba(245, 158, 11, 0.15); }
+            .stat-card-icon.orange .material-icons { color: #f59e0b; }
+            .stat-card-icon.blue { background: rgba(59, 130, 246, 0.15); }
+            .stat-card-icon.blue .material-icons { color: #3b82f6; }
+            .stat-card-icon.red { background: rgba(239, 68, 68, 0.15); }
+            .stat-card-icon.red .material-icons { color: #ef4444; }
+            .stat-card-label {
+                font-size: 0.75rem;
+                font-weight: 600;
+                color: #9ca3af;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .stat-card-value {
+                font-size: 2rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 4px;
+            }
+            .stat-card-sub {
+                font-size: 0.75rem;
+                color: #6b7280;
+            }
+            .stat-card-sub.success { color: #10b981; }
+            .stat-card-sub.warning { color: #f59e0b; }
+            .stat-card-sub.danger { color: #ef4444; }
+
+            /* Sections */
+            .section {
+                background: #1a1a1a;
+                border-radius: 12px;
+                border: 1px solid #2d2d2d;
+                margin-bottom: 24px;
+                overflow: hidden;
+            }
+            .section-header {
+                padding: 16px 20px;
+                border-bottom: 1px solid #2d2d2d;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .section-title {
+                font-size: 1rem;
+                font-weight: 600;
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .section-title .material-icons {
+                color: #6e5494;
+                font-size: 20px;
+            }
+            .section-body {
+                padding: 20px;
+            }
+
+            /* PRs Table */
+            .prs-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .prs-table th,
+            .prs-table td {
+                padding: 12px 16px;
+                text-align: left;
+                border-bottom: 1px solid #2d2d2d;
+            }
+            .prs-table th {
+                font-size: 0.7rem;
+                font-weight: 600;
+                color: #9ca3af;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .prs-table td {
+                font-size: 0.85rem;
+                color: #ffffff;
+            }
+            .prs-table tr:last-child td {
+                border-bottom: none;
+            }
+            .pr-number {
+                font-family: monospace;
+                background: #252525;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                color: #9ca3af;
+            }
+            .pr-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-size: 0.7rem;
+                font-weight: 600;
+            }
+            .pr-badge.open {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+            .pr-badge.merged {
+                background: rgba(139, 92, 246, 0.15);
+                color: #8b5cf6;
+            }
+            .pr-badge.closed {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+            .branch-name {
+                font-family: monospace;
+                font-size: 0.8rem;
+                color: #6e5494;
+            }
+            .pr-author {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .pr-author img {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+            }
+
+            /* Branches List */
+            .branches-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            .branch-item {
+                background: #252525;
+                border-radius: 10px;
+                padding: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                border: 1px solid #2d2d2d;
+            }
+            .branch-info {
+                flex: 1;
+            }
+            .branch-info h4 {
+                margin: 0 0 4px 0;
+                font-size: 0.9rem;
+                color: #ffffff;
+                font-family: monospace;
+            }
+            .branch-info p {
+                margin: 0;
+                font-size: 0.75rem;
+                color: #6b7280;
+            }
+            .branch-status {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .sync-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 14px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                font-weight: 600;
+            }
+            .sync-badge.synced {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+            .sync-badge.behind {
+                background: rgba(245, 158, 11, 0.15);
+                color: #f59e0b;
+            }
+            .sync-badge.ahead {
+                background: rgba(59, 130, 246, 0.15);
+                color: #3b82f6;
+            }
+            .sync-badge.diverged {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+
+            /* Sync Button */
+            .sync-button {
+                background: linear-gradient(135deg, #6e5494 0%, #4d3a6e 100%);
+                border: none;
+                color: #ffffff;
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: all 0.2s ease;
+            }
+            .sync-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(110, 84, 148, 0.3);
+            }
+            .sync-button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            /* Refresh Button */
+            .refresh-btn {
+                background: #252525;
+                border: 1px solid #3d3d3d;
+                color: #ffffff;
+                padding: 8px 16px;
+                border-radius: 8px;
+                font-size: 0.8rem;
+                font-weight: 500;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.2s ease;
+            }
+            .refresh-btn:hover {
+                background: #3d3d3d;
+                border-color: #6e5494;
+            }
+            .refresh-btn .material-icons {
+                font-size: 18px;
+            }
+            .refresh-btn.loading .material-icons {
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+
+            /* Back Link */
+            .back-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                color: #9ca3af;
+                text-decoration: none;
+                font-size: 0.85rem;
+                margin-bottom: 16px;
+                transition: color 0.2s;
+            }
+            .back-link:hover {
+                color: #6e5494;
+            }
+
+            /* No Data */
+            .no-data {
+                text-align: center;
+                padding: 40px;
+                color: #6b7280;
+            }
+            .no-data .material-icons {
+                font-size: 48px;
+                margin-bottom: 12px;
+                opacity: 0.5;
+            }
+
+            /* Token Missing Alert */
+            .token-alert {
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                border-radius: 10px;
+                padding: 16px 20px;
+                margin-bottom: 24px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .token-alert .material-icons {
+                color: #ef4444;
+                font-size: 24px;
+            }
+            .token-alert-text {
+                flex: 1;
+            }
+            .token-alert-text h4 {
+                margin: 0 0 4px 0;
+                color: #ef4444;
+                font-size: 0.9rem;
+            }
+            .token-alert-text p {
+                margin: 0;
+                color: #9ca3af;
+                font-size: 0.8rem;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="app-container">
+            <div id="sidebar-placeholder"></div>
+
+            <main class="app-main analytics-page">
+                <div class="analytics-content">
+                    <!-- Back Link -->
+                    <a href="ferramentas.html" class="back-link">
+                        <span class="material-icons">arrow_back</span>
+                        Voltar para Ferramentas
+                    </a>
+
+                    <!-- Header -->
+                    <header class="analytics-header">
+                        <div class="analytics-header-icon">
+                            <span class="material-icons">code</span>
+                        </div>
+                        <div>
+                            <h1>GitHub Analytics</h1>
+                            <p>Pull Requests, Branches e Sincronização com o repositório remoto</p>
+                        </div>
+                    </header>
+
+                    <!-- Token Alert (hidden by default) -->
+                    <div class="token-alert" id="tokenAlert" style="display: none;">
+                        <span class="material-icons">warning</span>
+                        <div class="token-alert-text">
+                            <h4>GITHUB_TOKEN não configurado</h4>
+                            <p>Configure a variável de ambiente GITHUB_TOKEN para acessar a API do GitHub e visualizar Pull Requests.</p>
+                        </div>
+                    </div>
+
+                    <!-- Stats Row -->
+                    <div class="stats-row">
+                        <!-- PRs Abertas -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon purple">
+                                    <span class="material-icons">merge_type</span>
+                                </div>
+                                <span class="stat-card-label">PRs Abertas</span>
+                            </div>
+                            <div class="stat-card-value" id="prs-abertas">-</div>
+                            <div class="stat-card-sub" id="prs-sub">Carregando...</div>
+                        </div>
+
+                        <!-- Branches Ativas -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon green">
+                                    <span class="material-icons">account_tree</span>
+                                </div>
+                                <span class="stat-card-label">Branches Ativas</span>
+                            </div>
+                            <div class="stat-card-value" id="branches-ativas">-</div>
+                            <div class="stat-card-sub" id="branches-sub">Sem merge</div>
+                        </div>
+
+                        <!-- Sync Status -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon blue">
+                                    <span class="material-icons">sync</span>
+                                </div>
+                                <span class="stat-card-label">Sincronização</span>
+                            </div>
+                            <div class="stat-card-value" style="font-size: 1.2rem;" id="sync-status">-</div>
+                            <div class="stat-card-sub" id="sync-branch">Branch: -</div>
+                        </div>
+
+                        <!-- Repository Info -->
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon orange">
+                                    <span class="material-icons">folder_open</span>
+                                </div>
+                                <span class="stat-card-label">Repositório</span>
+                            </div>
+                            <div class="stat-card-value" style="font-size: 0.9rem;" id="repo-name">-</div>
+                            <div class="stat-card-sub" id="repo-url">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Pull Requests Section -->
+                    <div class="section">
+                        <div class="section-header">
+                            <span class="section-title">
+                                <span class="material-icons">merge_type</span>
+                                Pull Requests Recentes
+                            </span>
+                            <button class="refresh-btn" onclick="carregarPRs()">
+                                <span class="material-icons">refresh</span>
+                                Atualizar
+                            </button>
+                        </div>
+                        <div class="section-body" style="padding: 0;">
+                            <div id="prs-container">
+                                <div class="no-data">
+                                    <span class="material-icons">code</span>
+                                    <p>Carregando Pull Requests...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Branches Section -->
+                    <div class="section">
+                        <div class="section-header">
+                            <span class="section-title">
+                                <span class="material-icons">account_tree</span>
+                                Branches Remotas
+                            </span>
+                            <button class="refresh-btn" onclick="carregarBranches()">
+                                <span class="material-icons">refresh</span>
+                                Atualizar
+                            </button>
+                        </div>
+                        <div class="section-body">
+                            <div class="branches-list" id="branches-container">
+                                <div class="no-data">
+                                    <span class="material-icons">account_tree</span>
+                                    <p>Carregando branches...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sync Section -->
+                    <div class="section">
+                        <div class="section-header">
+                            <span class="section-title">
+                                <span class="material-icons">sync</span>
+                                Sincronização Local vs Remoto
+                            </span>
+                            <button class="sync-button" id="syncButton" onclick="sincronizarManual()">
+                                <span class="material-icons">cloud_download</span>
+                                Sincronizar Agora
+                            </button>
+                        </div>
+                        <div class="section-body">
+                            <div id="sync-container">
+                                <div class="no-data">
+                                    <span class="material-icons">sync</span>
+                                    <p>Verificando sincronização...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Scripts -->
+        <script type="module">
+            // Carregar sidebar
+            async function loadLayout() {
+                try {
+                    if (document.querySelector('.app-sidebar')) {
+                        console.log("[GITHUB] Sidebar já existe");
+                        return;
+                    }
+
+                    const response = await fetch("layout.html");
+                    const layoutHtml = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, "text/html");
+
+                    const sidebar = doc.querySelector(".app-sidebar");
+                    if (sidebar) {
+                        document.getElementById("sidebar-placeholder")?.replaceWith(sidebar);
+                    }
+
+                    if (!window.__layoutScriptsInjected) {
+                        window.__layoutScriptsInjected = true;
+                        const scripts = doc.querySelectorAll("script");
+                        scripts.forEach((script) => {
+                            if (script.textContent.trim()) {
+                                const newScript = document.createElement("script");
+                                newScript.textContent = `(function(){${script.textContent}})();`;
+                                document.head.appendChild(newScript);
+                            }
+                        });
+                    }
+
+                    setTimeout(() => {
+                        if (window.AccordionManager && !window.AccordionManager._initialized) {
+                            window.AccordionManager.init();
+                        }
+                        if (typeof window.verificarMenuSuperAdmin === 'function') {
+                            window.verificarMenuSuperAdmin();
+                        }
+                    }, 150);
+                } catch (error) {
+                    console.error("Erro ao carregar layout:", error);
+                }
+            }
+
+            // API Helper
+            async function fetchAPI(endpoint) {
+                try {
+                    const response = await fetch(endpoint);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return await response.json();
+                } catch (error) {
+                    console.error(`Erro em ${endpoint}:`, error);
+                    return null;
+                }
+            }
+
+            // Carregar status geral
+            async function carregarStatus() {
+                const data = await fetchAPI('/api/github/status');
+                if (!data || !data.ok) return;
+
+                // Repository Info
+                if (data.repository) {
+                    document.getElementById('repo-name').textContent = `${data.repository.owner}/${data.repository.repo}`;
+                    document.getElementById('repo-url').innerHTML = `<a href="${data.repository.url}" target="_blank" style="color: #6e5494;">Ver no GitHub →</a>`;
+                }
+
+                // Current Branch
+                if (data.currentBranch) {
+                    document.getElementById('sync-branch').textContent = `Branch: ${data.currentBranch}`;
+                }
+
+                // Token Alert
+                if (!data.configured) {
+                    document.getElementById('tokenAlert').style.display = 'flex';
+                }
+            }
+
+            // Carregar Pull Requests
+            window.carregarPRs = async function() {
+                const container = document.getElementById('prs-container');
+                container.innerHTML = '<div class="no-data"><span class="material-icons">sync</span><p>Carregando...</p></div>';
+
+                const data = await fetchAPI('/api/github/prs?state=all&limit=20');
+
+                if (!data || !data.ok) {
+                    if (data && data.requiresToken) {
+                        container.innerHTML = '<div class="no-data"><span class="material-icons">lock</span><p>GITHUB_TOKEN não configurado</p></div>';
+                    } else {
+                        container.innerHTML = '<div class="no-data"><span class="material-icons">error</span><p>Erro ao carregar PRs</p></div>';
+                    }
+                    return;
+                }
+
+                // Update stats
+                const prsAbertas = data.pulls.filter(pr => pr.state === 'open').length;
+                const prsMerged = data.pulls.filter(pr => pr.merged).length;
+                document.getElementById('prs-abertas').textContent = prsAbertas;
+                document.getElementById('prs-sub').textContent = `${prsMerged} mergeadas`;
+
+                if (data.pulls.length === 0) {
+                    container.innerHTML = '<div class="no-data"><span class="material-icons">check_circle</span><p>Nenhum Pull Request encontrado</p></div>';
+                    return;
+                }
+
+                // Render table
+                let html = '<table class="prs-table"><thead><tr>';
+                html += '<th>#</th><th>Título</th><th>Estado</th><th>Branch</th><th>Autor</th><th>Criado</th>';
+                html += '</tr></thead><tbody>';
+
+                data.pulls.forEach(pr => {
+                    let badge = 'open';
+                    let badgeText = 'Aberta';
+                    if (pr.merged) {
+                        badge = 'merged';
+                        badgeText = 'Mergeada';
+                    } else if (pr.state === 'closed') {
+                        badge = 'closed';
+                        badgeText = 'Fechada';
+                    }
+
+                    const date = new Date(pr.created_at).toLocaleDateString('pt-BR');
+
+                    html += '<tr>';
+                    html += `<td><a href="${pr.url}" target="_blank" class="pr-number">#${pr.number}</a></td>`;
+                    html += `<td>${pr.title}</td>`;
+                    html += `<td><span class="pr-badge ${badge}">${badgeText}</span></td>`;
+                    html += `<td><span class="branch-name">${pr.branch.head}</span></td>`;
+                    html += `<td><div class="pr-author"><img src="${pr.author.avatar}" />${pr.author.login}</div></td>`;
+                    html += `<td>${date}</td>`;
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            };
+
+            // Carregar Branches
+            window.carregarBranches = async function() {
+                const container = document.getElementById('branches-container');
+                container.innerHTML = '<div class="no-data"><span class="material-icons">sync</span><p>Carregando...</p></div>';
+
+                const data = await fetchAPI('/api/github/branches?incluirMergeadas=false&limit=20');
+
+                if (!data || !data.ok) {
+                    container.innerHTML = '<div class="no-data"><span class="material-icons">error</span><p>Erro ao carregar branches</p></div>';
+                    return;
+                }
+
+                // Update stats
+                document.getElementById('branches-ativas').textContent = data.total;
+
+                if (data.branches.length === 0) {
+                    container.innerHTML = '<div class="no-data"><span class="material-icons">check_circle</span><p>Nenhuma branch ativa</p></div>';
+                    return;
+                }
+
+                let html = '';
+                data.branches.forEach(branch => {
+                    const date = new Date(branch.dataCriacao).toLocaleDateString('pt-BR');
+                    html += `<div class="branch-item">`;
+                    html += `<div class="branch-info">`;
+                    html += `<h4>${branch.nome}</h4>`;
+                    html += `<p>Criada em ${date} por ${branch.autor}</p>`;
+                    html += `</div>`;
+                    html += `<span class="pr-badge ${branch.mergeada ? 'merged' : 'open'}">${branch.mergeada ? 'Mergeada' : 'Ativa'}</span>`;
+                    html += `</div>`;
+                });
+
+                container.innerHTML = html;
+            };
+
+            // Carregar Sync Status
+            async function carregarSyncStatus() {
+                const container = document.getElementById('sync-container');
+                const syncStatus = document.getElementById('sync-status');
+
+                const data = await fetchAPI('/api/github/sync-status');
+
+                if (!data || !data.ok) {
+                    container.innerHTML = '<div class="no-data"><span class="material-icons">error</span><p>Erro ao verificar sincronização</p></div>';
+                    return;
+                }
+
+                // Update main stat
+                const branch = data.branchAtual;
+                if (branch.sincronizado) {
+                    syncStatus.innerHTML = '<span class="sync-badge synced"><span class="material-icons" style="font-size: 16px;">check_circle</span>Sincronizado</span>';
+                } else if (branch.divergente) {
+                    syncStatus.innerHTML = `<span class="sync-badge diverged"><span class="material-icons" style="font-size: 16px;">warning</span>Divergente (${branch.commitsAtras}↓ ${branch.commitsAFrente}↑)</span>`;
+                } else if (branch.commitsAtras > 0) {
+                    syncStatus.innerHTML = `<span class="sync-badge behind"><span class="material-icons" style="font-size: 16px;">arrow_downward</span>${branch.commitsAtras} commit(s) atrás</span>`;
+                } else if (branch.commitsAFrente > 0) {
+                    syncStatus.innerHTML = `<span class="sync-badge ahead"><span class="material-icons" style="font-size: 16px;">arrow_upward</span>${branch.commitsAFrente} commit(s) à frente</span>`;
+                }
+
+                // Render todas as branches
+                let html = `<div style="margin-bottom: 16px; padding: 16px; background: #252525; border-radius: 8px;">`;
+                html += `<h4 style="margin: 0 0 8px 0; color: #fff; font-size: 0.9rem;">Branch Atual: <span style="color: #6e5494;">${branch.branchAtual}</span></h4>`;
+                html += `<p style="margin: 0; color: #6b7280; font-size: 0.8rem;">Sincronizadas: ${data.resumo.sincronizadas} | Atrasadas: ${data.resumo.atrasadas} | À frente: ${data.resumo.aFrente}</p>`;
+                html += `</div>`;
+
+                html += '<div class="branches-list">';
+                data.todasBranches.forEach(b => {
+                    let badge = 'synced';
+                    let badgeText = 'Sincronizada';
+                    let icon = 'check_circle';
+
+                    if (b.commitsAtras > 0 && b.commitsAFrente > 0) {
+                        badge = 'diverged';
+                        badgeText = `Divergente (${b.commitsAtras}↓ ${b.commitsAFrente}↑)`;
+                        icon = 'warning';
+                    } else if (b.commitsAtras > 0) {
+                        badge = 'behind';
+                        badgeText = `${b.commitsAtras} atrás`;
+                        icon = 'arrow_downward';
+                    } else if (b.commitsAFrente > 0) {
+                        badge = 'ahead';
+                        badgeText = `${b.commitsAFrente} à frente`;
+                        icon = 'arrow_upward';
+                    }
+
+                    html += `<div class="branch-item">`;
+                    html += `<div class="branch-info">`;
+                    html += `<h4>${b.nome}</h4>`;
+                    html += `</div>`;
+                    html += `<span class="sync-badge ${badge}"><span class="material-icons" style="font-size: 14px;">${icon}</span>${badgeText}</span>`;
+                    html += `</div>`;
+                });
+                html += '</div>';
+
+                container.innerHTML = html;
+            }
+
+            // Sincronizar manualmente
+            window.sincronizarManual = async function() {
+                const btn = document.getElementById('syncButton');
+                if (btn.disabled) return;
+
+                if (!confirm('Deseja sincronizar a branch atual com o remoto? (git pull)')) return;
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-icons">sync</span>Sincronizando...';
+
+                try {
+                    const response = await fetch('/api/github/sync-trigger', { method: 'POST' });
+                    const data = await response.json();
+
+                    if (data.ok) {
+                        alert('Sincronização realizada com sucesso!');
+                        carregarSyncStatus();
+                    } else {
+                        alert(`Erro: ${data.error}`);
+                    }
+                } catch (error) {
+                    alert(`Erro ao sincronizar: ${error.message}`);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-icons">cloud_download</span>Sincronizar Agora';
+                }
+            };
+
+            // Inicialização
+            async function init() {
+                console.log("[GITHUB] Inicializando página...");
+                await loadLayout();
+                await carregarStatus();
+                await Promise.all([
+                    carregarPRs(),
+                    carregarBranches(),
+                    carregarSyncStatus()
+                ]);
+            }
+
+            // Auto-refresh a cada 2 minutos
+            setInterval(() => {
+                carregarPRs();
+                carregarBranches();
+                carregarSyncStatus();
+            }, 120000);
+
+            // Guards SPA
+            if (!window.__github_analytics_state) {
+                window.__github_analytics_state = { initialized: false };
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    if (!window.__github_analytics_state.initialized) {
+                        window.__github_analytics_state.initialized = true;
+                        init();
+                    }
+                });
+            } else if (!window.__github_analytics_state.initialized) {
+                window.__github_analytics_state.initialized = true;
+                init();
+            }
+        </script>
+    </body>
+</html>
