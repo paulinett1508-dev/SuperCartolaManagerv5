@@ -187,6 +187,7 @@ import adminGestaoRoutes from "./routes/admin-gestao-routes.js";
 import systemHealthRoutes from "./routes/system-health-routes.js";
 import adminClienteAuthRoutes from "./routes/admin-cliente-auth.js";
 import adminMobileRoutes from "./routes/admin-mobile-routes.js";
+import * as analyticsController from "./controllers/analyticsController.js";
 import adminMigracaoRoutes from "./routes/admin/migracao.js";
 import adminMigracaoValidacaoRoutes from "./routes/admin/migracao-validacao.js";
 import githubAnalyticsRoutes from "./routes/github-analytics-routes.js";
@@ -533,6 +534,14 @@ console.log("[SERVER] 📦 Data Lake dos Participantes registrado em /api/data-l
 // 🔔 Push Notifications
 app.use("/api/notifications", notificationsRoutes);
 console.log("[SERVER] 🔔 Rotas de Push Notifications registradas em /api/notifications");
+
+// 📊 Analytics - Branches & Merges (session auth, para SPA desktop)
+app.get("/api/admin/analytics/resumo", analyticsController.getAnalyticsResumo);
+app.get("/api/admin/analytics/branch/:nomeBranch", analyticsController.getAnatyticsBranchDetalhes);
+app.get("/api/admin/analytics/merges", analyticsController.getAnalyticsMerges);
+app.get("/api/admin/analytics/funcionalidades", analyticsController.getAnalyticsFuncionalidades);
+app.get("/api/admin/analytics/estatisticas", analyticsController.getAnalyticsEstatisticas);
+console.log("[SERVER] 📊 Rotas de Analytics (session) registradas em /api/admin/analytics");
 
 // 📢 Avisos In-App (Notificador)
 app.use("/api/admin/avisos", avisosAdminRoutes);

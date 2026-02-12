@@ -6,6 +6,7 @@
 import express from 'express';
 import { validateAdminToken } from '../middleware/adminMobileAuth.js';
 import * as controller from '../controllers/adminMobileController.js';
+import * as analyticsController from '../controllers/analyticsController.js';
 
 const router = express.Router();
 
@@ -110,5 +111,41 @@ router.put('/quitacoes/:id/recusar', controller.recusarQuitacao);
  * Dashboard de saúde adaptado para mobile
  */
 router.get('/health', controller.getHealth);
+
+// ========== ANALYTICS - BRANCHES, MERGES E FUNCIONALIDADES ========== //
+
+/**
+ * GET /api/admin/mobile/analytics/resumo
+ * Resumo geral de branches e commits
+ * Query params: periodo (dia|semana|mês), desde (YYYY-MM-DD), ate (YYYY-MM-DD)
+ */
+router.get('/analytics/resumo', analyticsController.getAnalyticsResumo);
+
+/**
+ * GET /api/admin/mobile/analytics/branch/:nomeBranch
+ * Detalhes de uma branch específica (commits, status, etc)
+ * Query params: desde, ate
+ */
+router.get('/analytics/branch/:nomeBranch', analyticsController.getAnatyticsBranchDetalhes);
+
+/**
+ * GET /api/admin/mobile/analytics/merges
+ * Histórico de merges realizados
+ * Query params: periodo (dia|semana|mês), desde (YYYY-MM-DD), ate (YYYY-MM-DD)
+ */
+router.get('/analytics/merges', analyticsController.getAnalyticsMerges);
+
+/**
+ * GET /api/admin/mobile/analytics/funcionalidades
+ * Lista de funcionalidades do BACKLOG com status
+ */
+router.get('/analytics/funcionalidades', analyticsController.getAnalyticsFuncionalidades);
+
+/**
+ * GET /api/admin/mobile/analytics/estatisticas
+ * Estatísticas gerais de desenvolvimento
+ * Query params: periodo (dia|semana|mês)
+ */
+router.get('/analytics/estatisticas', analyticsController.getAnalyticsEstatisticas);
 
 export default router;

@@ -119,7 +119,9 @@
       "Bash(cd /home/runner/workspace/public __NEW_LINE_5959da0240686acc__ echo \"=== 1. onerror SEM proteção \\(deve ser ZERO\\) ===\" grep -rn 'onerror=\"\"\"\"this\\\\.src=' --include=\"*.js\" --include=\"*.html\")",
       "Bash(replit:*)",
       "Bash(git hash-object:*)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "mcp__ide__executeCode",
+      "Bash(gh api:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
