@@ -512,7 +512,10 @@ async function carregarClassificadosParciais(contentElement, ligaId, edicaoId, e
       return;
     }
 
-    const ranking = data.ranking || [];
+    // Re-ordenar por pontos da rodada atual (não acumulado) para classificação MM
+    const ranking = (data.ranking || [])
+      .map(t => ({ ...t, _pontosRodada: t.pontos_rodada_atual ?? t.pontos ?? 0 }))
+      .sort((a, b) => b._pontosRodada - a._pontosRodada);
     const classificados = ranking.slice(0, tamanhoTorneioVal);
     const eliminados = ranking.slice(tamanhoTorneioVal);
     const edicaoNome = edicaoSelecionada.nome || `Edição ${edicaoId}`;
@@ -530,7 +533,7 @@ async function carregarClassificadosParciais(contentElement, ligaId, edicaoId, e
           </div>
         </td>
         <td class="pontos-cell valor-positivo">
-          <div class="pontos-valor">${t.pontos?.toFixed(2).replace(".", ",") || "0,00"}</div>
+          <div class="pontos-valor">${t._pontosRodada?.toFixed(2).replace(".", ",") || "0,00"}</div>
         </td>
       </tr>`).join("");
 
@@ -547,7 +550,7 @@ async function carregarClassificadosParciais(contentElement, ligaId, edicaoId, e
           </div>
         </td>
         <td class="pontos-cell">
-          <div class="pontos-valor">${t.pontos?.toFixed(2).replace(".", ",") || "0,00"}</div>
+          <div class="pontos-valor">${t._pontosRodada?.toFixed(2).replace(".", ",") || "0,00"}</div>
         </td>
       </tr>`).join("");
 
@@ -625,7 +628,10 @@ async function carregarConfrontosParciais(contentElement, ligaId, edicaoId, edic
       return;
     }
 
-    const ranking = data.ranking || [];
+    // Re-ordenar por pontos da rodada atual (não acumulado) para classificação MM
+    const ranking = (data.ranking || [])
+      .map(t => ({ ...t, _pontosRodada: t.pontos_rodada_atual ?? t.pontos ?? 0 }))
+      .sort((a, b) => b._pontosRodada - a._pontosRodada);
     if (ranking.length < tamanhoTorneioVal) {
       contentElement.innerHTML = `
         <div class="mata-mata-aguardando-fase">
@@ -648,7 +654,7 @@ async function carregarConfrontosParciais(contentElement, ligaId, edicaoId, edic
       nome_time: t.nome_time,
       nome_cartoleiro: t.nome_cartola,
       clube_id: t.clube_id,
-      pontos: t.pontos,
+      pontos: t._pontosRodada,
       posicao: i + 1,
     }));
 
@@ -995,10 +1001,10 @@ async function carregarFase(fase, ligaId) {
         if (resParciais.ok) {
           const dataParciais = await resParciais.json();
           if (dataParciais && dataParciais.disponivel && dataParciais.ranking) {
-            // Converter ranking para mapa de pontos (formato esperado por montarConfrontos)
+            // Converter ranking para mapa de pontos (usar pontos_rodada_atual, não acumulado)
             dataParciais.ranking.forEach(t => {
               const tid = String(t.timeId);
-              pontosRodadaAtual[tid] = t.pontos || 0;
+              pontosRodadaAtual[tid] = t.pontos_rodada_atual ?? t.pontos ?? 0;
             });
             parciaisAoVivo = true;
             console.log(`[MATA-ORQUESTRADOR] 🔴 Parciais AO VIVO: ${dataParciais.ranking.length} times (R${dataParciais.rodada})`);

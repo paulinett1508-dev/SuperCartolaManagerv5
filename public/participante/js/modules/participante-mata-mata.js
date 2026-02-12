@@ -390,10 +390,10 @@ async function buscarParciaisFaseAtiva(confrontos) {
     const data = await res.json();
     if (!data || !data.disponivel || !data.ranking) return null;
 
-    // Criar mapa de pontos por timeId
+    // Criar mapa de pontos por timeId (usar pontos_rodada_atual, não acumulado)
     const pontosMap = new Map();
     data.ranking.forEach(t => {
-      pontosMap.set(String(t.timeId), t.pontos || 0);
+      pontosMap.set(String(t.timeId), t.pontos_rodada_atual ?? t.pontos ?? 0);
     });
 
     // Enriquecer confrontos com pontos parciais
@@ -1462,7 +1462,10 @@ async function carregarClassificadosParciais(container, edicao) {
       return;
     }
 
-    const ranking = data.ranking || [];
+    // Re-ordenar por pontos da rodada atual (não acumulado) para classificação MM
+    const ranking = (data.ranking || [])
+      .map(t => ({ ...t, _pontosRodada: t.pontos_rodada_atual ?? t.pontos ?? 0 }))
+      .sort((a, b) => b._pontosRodada - a._pontosRodada);
     const tamanho = estado.tamanhoTorneio;
     const classificados = ranking.slice(0, tamanho);
     const eliminados = ranking.slice(tamanho, tamanho + 5);
@@ -1490,7 +1493,7 @@ async function carregarClassificadosParciais(container, edicao) {
             <span class="mm-parciais-rank-nome">${truncate(t.nome_time || "—", 16)}</span>
             <span class="mm-parciais-rank-cartola">${truncate(t.nome_cartola || "—", 18)}</span>
           </div>
-          <span class="mm-parciais-rank-pts">${typeof truncarPontos === 'function' ? truncarPontos(t.pontos || 0) : (t.pontos?.toFixed(2) || "0.00")}</span>
+          <span class="mm-parciais-rank-pts">${typeof truncarPontos === 'function' ? truncarPontos(t.pontos_rodada_atual ?? t.pontos ?? 0) : ((t.pontos_rodada_atual ?? t.pontos)?.toFixed(2) || "0.00")}</span>
         </div>`;
     });
 
@@ -1505,7 +1508,7 @@ async function carregarClassificadosParciais(container, edicao) {
               <span class="mm-parciais-rank-nome">${truncate(t.nome_time || "—", 16)}</span>
               <span class="mm-parciais-rank-cartola">${truncate(t.nome_cartola || "—", 18)}</span>
             </div>
-            <span class="mm-parciais-rank-pts">${typeof truncarPontos === 'function' ? truncarPontos(t.pontos || 0) : (t.pontos?.toFixed(2) || "0.00")}</span>
+            <span class="mm-parciais-rank-pts">${typeof truncarPontos === 'function' ? truncarPontos(t.pontos_rodada_atual ?? t.pontos ?? 0) : ((t.pontos_rodada_atual ?? t.pontos)?.toFixed(2) || "0.00")}</span>
           </div>`;
       });
     }
@@ -1565,7 +1568,10 @@ async function carregarConfrontosParciais(container, edicao) {
       return;
     }
 
-    const ranking = data.ranking || [];
+    // Re-ordenar por pontos da rodada atual (não acumulado) para classificação MM
+    const ranking = (data.ranking || [])
+      .map(t => ({ ...t, _pontosRodada: t.pontos_rodada_atual ?? t.pontos ?? 0 }))
+      .sort((a, b) => b._pontosRodada - a._pontosRodada);
     const tamanho = estado.tamanhoTorneio;
 
     if (ranking.length < tamanho) {
