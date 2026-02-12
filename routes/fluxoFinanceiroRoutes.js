@@ -1,8 +1,19 @@
 import express from "express";
 import { verificarAdmin } from "../middleware/auth.js";
 import * as fluxoController from "../controllers/fluxoFinanceiroController.js";
+import * as projecaoController from "../controllers/projecaoFinanceiraController.js";
 
 const router = express.Router();
+
+// === PROJEÇÃO FINANCEIRA EM TEMPO REAL (v1.0) ===
+// Projeção efêmera durante rodada em andamento (status_mercado === 2)
+// Retorna { projecao: false } quando mercado aberto (rodada finalizada)
+// ✅ GET público - participante pode ver projeção da sua rodada
+router.get("/:ligaId/projecao/:timeId", projecaoController.getProjecaoTime);
+
+// Projeção de todos os participantes (admin/tesouraria)
+// ✅ GET público - usado pelo admin para visão geral
+router.get("/:ligaId/projecao", projecaoController.getProjecaoLiga);
 
 // === ROTA PRINCIPAL (EXTRATO FINANCEIRO) ===
 // Esta é a rota que o frontend novo vai chamar para pegar o JSON consolidado

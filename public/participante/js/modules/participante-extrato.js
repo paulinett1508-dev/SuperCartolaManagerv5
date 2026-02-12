@@ -72,6 +72,10 @@ let statusRenovacaoCache = null;
 // ✅ v4.5: Temporada selecionada pelo usuário (via seletor)
 let temporadaSelecionadaPeloUsuario = null;
 
+// ✅ v5.0: Projeção financeira em tempo real (rodada em andamento)
+let projecaoRefreshInterval = null;
+let ultimoStatusMercado = null;
+
 // ✅ v4.5: Ouvir mudanças do seletor de temporada
 window.addEventListener("temporada-alterada", (event) => {
     const { ano, isHistorico } = event.detail || {};
@@ -408,6 +412,7 @@ async function carregarExtrato(ligaId, timeId) {
 
         statusRenovacao = statusRenovacaoResult || { renovado: false };
         rodadaAtual = mercadoResult?.rodada_atual || 1;
+        ultimoStatusMercado = mercadoResult?.status_mercado || null;
 
         // Detectar se AMBAS as requisições falharam (servidor fora do ar)
         const renovacaoFalhou = statusRenovacao?.serverError === true;
@@ -772,6 +777,13 @@ async function carregarExtrato(ligaId, timeId) {
         // ✅ v4.6: Limpar timeout de segurança
         if (timeoutId) clearTimeout(timeoutId);
 
+        // ✅ v5.0: PROJEÇÃO FINANCEIRA - buscar se rodada em andamento
+        if (ultimoStatusMercado === 2 && extratoData) {
+            buscarEExibirProjecao(ligaId, timeId);
+        } else {
+            pararAutoRefreshProjecao();
+        }
+
         if (window.Log)
             Log.info(
                 "EXTRATO-PARTICIPANTE",
@@ -1081,11 +1093,35 @@ function mostrarVazio() {
                 </div>
             </div>
         `;
+    } else if (ultimoStatusMercado === 2) {
+        // ✅ v5.0: Rodada em andamento - informar sobre projeção
+        container.innerHTML = `
+            <div style="text-align: center; padding: 32px 20px;">
+                <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+                            border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 16px; padding: 24px;">
+                    <div style="font-size: 40px; margin-bottom: 12px;">
+                        <span style="animation: pulse 2s infinite;">&#9917;</span>
+                    </div>
+                    <h3 style="color: #22c55e; margin: 0 0 8px 0; font-size: 18px; font-weight: 700;">
+                        Rodada em Andamento
+                    </h3>
+                    <p style="color: #9ca3af; font-size: 13px; margin: 0 0 16px 0; line-height: 1.5;">
+                        O extrato financeiro sera consolidado quando a rodada finalizar.
+                        Acompanhe a projecao ao vivo no modulo de <strong style="color: #22c55e;">Parciais</strong>.
+                    </p>
+                    <div id="projecaoFinanceiraCard"></div>
+                </div>
+            </div>
+        `;
+        // Buscar projeção para exibir dentro do card
+        if (PARTICIPANTE_IDS.ligaId && PARTICIPANTE_IDS.timeId) {
+            buscarEExibirProjecao(PARTICIPANTE_IDS.ligaId, PARTICIPANTE_IDS.timeId);
+        }
     } else {
         // Mensagem padrao (temporada ativa sem dados ainda)
         container.innerHTML = `
             <div style="text-align: center; padding: 40px 20px; color: #999;">
-                <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">📊</div>
+                <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">&#128202;</div>
                 <h3 style="color: #ccc; margin-bottom: 8px;">Sem dados ainda</h3>
                 <p style="font-size: 13px;">O extrato sera gerado apos a primeira rodada.</p>
             </div>
@@ -1314,6 +1350,86 @@ window.mostrarLoadingExtrato = function () {
         `;
     }
 };
+
+// =====================================================================
+// ✅ v5.0: PROJEÇÃO FINANCEIRA EM TEMPO REAL
+// Busca e exibe projeção durante rodada em andamento (status_mercado === 2)
+// =====================================================================
+
+const PROJECAO_REFRESH_MS = 60000; // 60 segundos
+
+async function buscarEExibirProjecao(ligaId, timeId) {
+    try {
+        const url = `/api/fluxo-financeiro/${ligaId}/projecao/${timeId}`;
+        if (window.Log)
+            Log.debug("EXTRATO-PARTICIPANTE", `📡 Buscando projeção: ${url}`);
+
+        const response = await fetch(url, {
+            signal: AbortSignal.timeout(10000),
+        });
+
+        if (!response.ok) {
+            if (window.Log) Log.warn("EXTRATO-PARTICIPANTE", `⚠️ Projeção indisponível (${response.status})`);
+            return;
+        }
+
+        const projecaoData = await response.json();
+
+        if (!projecaoData.projecao) {
+            if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", `ℹ️ Projeção: ${projecaoData.motivo}`);
+            pararAutoRefreshProjecao();
+            // Remover card se existia
+            const cardExistente = document.getElementById("projecaoFinanceiraCard");
+            if (cardExistente) cardExistente.remove();
+            return;
+        }
+
+        if (window.Log) Log.info("EXTRATO-PARTICIPANTE", `✅ Projeção R${projecaoData.rodada}:`, {
+            posicao: projecaoData.time?.posicao_parcial,
+            impacto: projecaoData.financeiro?.impactoProjetado,
+            saldoProjetado: projecaoData.saldo?.projetado,
+        });
+
+        // Renderizar card de projeção via UI module
+        const uiMod = await import(`./participante-extrato-ui.js?v=${Date.now()}`);
+        if (uiMod.renderizarProjecaoFinanceira) {
+            uiMod.renderizarProjecaoFinanceira(projecaoData);
+        }
+
+        // Iniciar auto-refresh se ainda não está rodando
+        iniciarAutoRefreshProjecao(ligaId, timeId);
+
+    } catch (error) {
+        if (window.Log) Log.warn("EXTRATO-PARTICIPANTE", "⚠️ Erro projeção:", error.message);
+    }
+}
+
+function iniciarAutoRefreshProjecao(ligaId, timeId) {
+    if (projecaoRefreshInterval) return; // Já rodando
+
+    projecaoRefreshInterval = setInterval(() => {
+        buscarEExibirProjecao(ligaId, timeId);
+    }, PROJECAO_REFRESH_MS);
+
+    if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", `🔄 Auto-refresh projeção ativado (${PROJECAO_REFRESH_MS / 1000}s)`);
+}
+
+function pararAutoRefreshProjecao() {
+    if (projecaoRefreshInterval) {
+        clearInterval(projecaoRefreshInterval);
+        projecaoRefreshInterval = null;
+        if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", "⏹️ Auto-refresh projeção desativado");
+    }
+}
+
+// Parar refresh quando página fica oculta (economia de bateria mobile)
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        pararAutoRefreshProjecao();
+    } else if (ultimoStatusMercado === 2 && PARTICIPANTE_IDS.ligaId && PARTICIPANTE_IDS.timeId) {
+        buscarEExibirProjecao(PARTICIPANTE_IDS.ligaId, PARTICIPANTE_IDS.timeId);
+    }
+});
 
 // =====================================================================
 // EXPORTS GLOBAIS

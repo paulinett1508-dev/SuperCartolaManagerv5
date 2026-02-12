@@ -1,15 +1,17 @@
 import RodadaSnapshot from "../models/RodadaSnapshot.js";
 import Rodada from "../models/Rodada.js";
 import Liga from "../models/Liga.js";
+import SchedulerState from "../models/SchedulerState.js";
 import marketGate from "./marketGate.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
 
 // ============================================================================
-// ⏰ SCHEDULER DE CONSOLIDAÇÃO AUTOMÁTICA - v3.0
+// ⏰ SCHEDULER DE CONSOLIDAÇÃO AUTOMÁTICA - v4.0
+// v4.0: PERSISTÊNCIA DE ESTADO + SAFETY NET ROBUSTO
+//   - ultimoStatusMercado persistido no MongoDB (sobrevive restart)
+//   - garantirRodadaConsolidada verifica TODAS as rodadas passadas
+//   - Não faz break após primeira liga sem consolidação
 // v3.0: POPULA rodadas automaticamente antes de consolidar
-//   - Detecta rodadas finalizadas sem dados na collection "rodadas"
-//   - Chama popularRodadas antes de consolidar
-//   - Garante que dados existem para temporada atual (CURRENT_SEASON)
 // v2.0: Usa MarketGate singleton ao invés de fetch direto
 // ============================================================================
 
@@ -163,12 +165,21 @@ async function verificarEConsolidar() {
             );
         }
 
-        // Se mercado está aberto, garantir que rodada anterior está consolidada
-        if (mercadoAberto && rodadaAtual > 1) {
+        // ✅ v4.0: Garantir consolidação independente do status do mercado
+        // Quando mercado aberto: rodadas 1 até rodadaAtual-1 devem estar consolidadas
+        // Quando mercado fechado: rodadas 1 até rodadaAtual-1 também (rodada atual está em andamento)
+        if (rodadaAtual > 1) {
             await garantirRodadaConsolidada(rodadaAtual - 1);
         }
 
         ultimoStatusMercado = statusAtual;
+
+        // ✅ v4.0: Persistir estado no MongoDB (sobrevive restart)
+        try {
+            await SchedulerState.salvarStatusMercado(statusAtual);
+        } catch (e) {
+            console.warn("[SCHEDULER] ⚠️ Falha ao persistir estado:", e.message);
+        }
     } catch (error) {
         console.error("[SCHEDULER] ❌ Erro na verificação:", error);
     }
@@ -268,24 +279,41 @@ async function consolidarRodadaAutomatica(rodada) {
     }
 }
 
-// Garante que uma rodada específica está consolidada
-async function garantirRodadaConsolidada(rodada) {
+// ✅ v4.0: Garante que TODAS as rodadas até a rodada indicada estão consolidadas
+// Verifica cada liga independentemente (sem break prematuro)
+async function garantirRodadaConsolidada(rodadaFinal) {
     try {
         const ligas = await Liga.find({ ativa: { $ne: false } }).select("_id nome").lean();
 
         for (const liga of ligas) {
-            const existente = await RodadaSnapshot.findOne({
-                liga_id: liga._id.toString(),
-                rodada: rodada,
-                status: "consolidada",
-            }).lean();
+            for (let rodada = 1; rodada <= rodadaFinal; rodada++) {
+                const existente = await RodadaSnapshot.findOne({
+                    liga_id: liga._id.toString(),
+                    rodada: rodada,
+                    status: "consolidada",
+                }).lean();
 
-            if (!existente) {
-                console.log(
-                    `[SCHEDULER] ⚠️ Liga ${liga.nome} R${rodada} não consolidada, disparando...`,
-                );
-                await consolidarRodadaAutomatica(rodada);
-                break; // Só precisa disparar uma vez
+                if (!existente) {
+                    // Verificar se existem dados para consolidar
+                    const dadosExistem = await Rodada.findOne({
+                        ligaId: liga._id,
+                        rodada: rodada,
+                        temporada: CURRENT_SEASON,
+                    }).lean();
+
+                    if (dadosExistem) {
+                        console.log(
+                            `[SCHEDULER] ⚠️ Liga ${liga.nome} R${rodada} não consolidada (dados existem), disparando...`,
+                        );
+                        await consolidarRodadaAutomatica(rodada);
+                        // Delay entre consolidações para não sobrecarregar
+                        await new Promise((resolve) => setTimeout(resolve, 2000));
+                    } else {
+                        console.log(
+                            `[SCHEDULER] ℹ️ Liga ${liga.nome} R${rodada} sem dados e sem snapshot (aguardando população)`,
+                        );
+                    }
+                }
             }
         }
     } catch (error) {
@@ -297,14 +325,29 @@ async function garantirRodadaConsolidada(rodada) {
 // 🚀 INICIAR SCHEDULER
 // ============================================================================
 
-export function iniciarSchedulerConsolidacao() {
+export async function iniciarSchedulerConsolidacao() {
     if (schedulerAtivo) {
         console.log("[SCHEDULER] ⚠️ Scheduler já está ativo");
         return null;
     }
 
-    console.log("[SCHEDULER] 🚀 Iniciando scheduler v3.0 (auto-populate + consolidação)...");
+    console.log("[SCHEDULER] 🚀 Iniciando scheduler v4.0 (persistência + safety net robusto)...");
     console.log("[SCHEDULER] ⏰ Intervalo: 30 minutos");
+
+    // ✅ v4.0: Carregar último estado persistido do MongoDB
+    try {
+        const estadoSalvo = await SchedulerState.carregarStatusMercado();
+        if (estadoSalvo) {
+            ultimoStatusMercado = estadoSalvo;
+            console.log(
+                `[SCHEDULER] 📂 Estado restaurado: status_mercado=${estadoSalvo.status_mercado}, rodada=${estadoSalvo.rodada_atual}`,
+            );
+        } else {
+            console.log("[SCHEDULER] 📂 Nenhum estado anterior encontrado (primeira execução)");
+        }
+    } catch (e) {
+        console.warn("[SCHEDULER] ⚠️ Falha ao carregar estado salvo:", e.message);
+    }
 
     // Executar imediatamente na inicialização
     verificarEConsolidar();
@@ -315,7 +358,7 @@ export function iniciarSchedulerConsolidacao() {
     const intervalId = setInterval(verificarEConsolidar, INTERVALO);
 
     schedulerAtivo = true;
-    console.log("[SCHEDULER] ✅ Scheduler v3.0 ativo!");
+    console.log("[SCHEDULER] ✅ Scheduler v4.0 ativo!");
 
     // Retornar intervalId para permitir clearInterval durante graceful shutdown
     return intervalId;
