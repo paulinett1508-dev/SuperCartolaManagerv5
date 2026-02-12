@@ -1091,39 +1091,40 @@
     animation: wh-live-pulse 1.5s ease-in-out infinite;
 }
 
-/* Meu Confronto Container */
+/* Meu Confronto Container - v1.3: Compactado */
 .wh-meu-confronto {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 6px; /* v1.3: Reduzido de 12px */
 }
 
 /* Times Container */
 .wh-mc-times {
     display: flex;
     align-items: stretch;
-    gap: 8px;
+    gap: 4px; /* v1.3: Reduzido de 8px */
 }
 
-/* Cada Time */
+/* Cada Time - v1.3: Layout horizontal compacto */
 .wh-mc-time {
     flex: 1;
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* v1.3: Horizontal em vez de coluna */
     align-items: center;
-    padding: 12px 8px;
+    padding: 8px 6px; /* v1.3: Reduzido de 12px 8px */
     background: var(--app-surface);
-    border-radius: 12px;
-    gap: 8px;
+    border-radius: 8px; /* v1.3: Reduzido de 12px */
+    gap: 6px; /* v1.3: Reduzido de 8px */
     transition: all 0.3s ease;
 }
 
 .wh-mc-time--eu {
-    border-left: 3px solid var(--app-primary);
+    border-left: 2px solid var(--app-primary); /* v1.3: Reduzido de 3px */
 }
 
 .wh-mc-time--adv {
-    border-right: 3px solid var(--app-text-dim);
+    border-right: 2px solid var(--app-text-dim); /* v1.3: Reduzido de 3px */
+    flex-direction: row-reverse; /* v1.3: Pontuação à direita */
 }
 
 .wh-mc-time.winning {
@@ -1134,78 +1135,88 @@
     color: var(--app-success);
 }
 
-/* Escudo */
+/* Escudo - v1.3: Compactado */
 .wh-mc-escudo {
-    width: 48px;
-    height: 48px;
+    width: 28px; /* v1.3: Reduzido de 48px */
+    height: 28px;
     border-radius: 50%;
     object-fit: contain;
     background: var(--app-bg);
-    border: 2px solid var(--app-border);
+    border: 1px solid var(--app-border); /* v1.3: Reduzido de 2px */
+    flex-shrink: 0;
 }
 
-/* Info do Time */
+/* Info do Time - v1.3: Compactado */
 .wh-mc-info {
-    text-align: center;
+    flex: 1;
+    min-width: 0;
+    text-align: left; /* v1.3: Alinhado à esquerda */
+}
+
+.wh-mc-time--adv .wh-mc-info {
+    text-align: right; /* v1.3: Adversário à direita */
 }
 
 .wh-mc-label {
-    font-size: var(--app-font-xs);
+    font-size: 9px; /* v1.3: Reduzido */
     font-weight: 600;
     color: var(--app-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    line-height: 1;
 }
 
 .wh-mc-nome {
-    font-size: var(--app-font-sm);
+    font-size: var(--app-font-xs); /* v1.3: Reduzido de sm */
     font-weight: 600;
     color: var(--app-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
+    max-width: 70px; /* v1.3: Reduzido de 100px */
+    line-height: 1.2;
 }
 
-/* Pontuação */
+/* Pontuação - v1.3: Destaque mas compacto */
 .wh-mc-pontos {
     font-family: var(--app-font-mono);
-    font-size: var(--app-font-2xl);
+    font-size: var(--app-font-lg); /* v1.3: Reduzido de 2xl */
     font-weight: 700;
     color: var(--app-text-primary);
+    flex-shrink: 0;
 }
 
 .wh-mc-pontos.winning {
     color: var(--app-success);
 }
 
-/* VS Central */
+/* VS Central - v1.3: Compactado */
 .wh-mc-vs {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 8px 4px;
-    min-width: 50px;
+    padding: 4px 2px; /* v1.3: Reduzido */
+    min-width: 36px; /* v1.3: Reduzido de 50px */
 }
 
 .wh-mc-vs-emoji {
-    font-size: 24px;
+    font-size: 16px; /* v1.3: Reduzido de 24px */
     animation: wh-vs-pulse 2s ease-in-out infinite;
 }
 
 @keyframes wh-vs-pulse {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.15); }
+    50% { transform: scale(1.1); }
 }
 
 .wh-mc-vs-diff {
     font-family: var(--app-font-mono);
-    font-size: var(--app-font-sm);
+    font-size: var(--app-font-xs); /* v1.3: Reduzido de sm */
     font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 6px;
-    margin-top: 4px;
+    padding: 1px 4px; /* v1.3: Reduzido */
+    border-radius: 4px;
+    margin-top: 2px; /* v1.3: Reduzido */
 }
 
 .wh-mc-vs-diff.winning {
@@ -1223,15 +1234,15 @@
     color: var(--app-warning);
 }
 
-/* Status do Confronto */
+/* Status do Confronto - v1.3: Compactado */
 .wh-mc-status {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: var(--app-font-sm);
+    gap: 4px; /* v1.3: Reduzido de 6px */
+    padding: 6px 10px; /* v1.3: Reduzido de 10px 12px */
+    border-radius: 6px;
+    font-size: var(--app-font-xs); /* v1.3: Reduzido de sm */
     font-weight: 600;
 }
 
@@ -1251,5 +1262,5 @@
 }
 
 .wh-mc-status .material-icons {
-    font-size: 18px;
+    font-size: 14px; /* v1.3: Reduzido de 18px */
 }
