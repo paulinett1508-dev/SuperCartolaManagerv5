@@ -1336,7 +1336,7 @@ function renderMeuConfrontoMataMata() {
         primeira: "1ª Fase",
         oitavas: "Oitavas",
         quartas: "Quartas",
-        semi: "Semifinal",
+        semis: "Semifinal", // ✅ FIX: "semi" → "semis"
         final: "FINAL"
     }[fase] || fase;
 
