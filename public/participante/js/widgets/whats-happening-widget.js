@@ -218,8 +218,8 @@ function markDragHintShown() {
 // ============================================
 const WH_CONFIG = {
     POLLING_INTERVAL: 60000, // 60 segundos
-    API_TIMEOUT: 3000, // Timeout agressivo para UX responsivo
-    API_TIMEOUT_SLOW: 5000, // Timeout para APIs lentas (luva, parciais)
+    API_TIMEOUT: 5000, // Timeout padrão (aumentado de 3s para 5s)
+    API_TIMEOUT_SLOW: 10000, // Timeout para APIs lentas (luva, parciais) - 10s
     MIN_DIFF_HOT: 10, // Diferença mínima para ser "disputa quente"
 };
 
@@ -580,7 +580,7 @@ async function fetchMataMata() {
 
             // Encontrar MEU confronto no Mata-Mata
             const meuId = String(WHState.timeId);
-            const fases = ["primeira", "oitavas", "quartas", "semi", "final"];
+            const fases = ["primeira", "oitavas", "quartas", "semis", "final"]; // ✅ FIX: "semi" → "semis"
 
             for (const fase of fases) {
                 const confrontosFase = data.dados?.[fase];
@@ -669,15 +669,26 @@ async function fetchCapitao() {
 async function fetchRanking() {
     try {
         const rodada = WHState.mercadoStatus?.rodada_atual || 1;
-        const res = await fetchWithTimeout(
+
+        // Tentar ranking da rodada específica primeiro
+        let res = await fetchWithTimeout(
             `/api/ligas/${WHState.ligaId}/ranking/${rodada}?temporada=${WHState.temporada}`
         );
+
+        // Se 404 (rodada não consolidada), usar ranking geral
+        if (res.status === 404) {
+            if (window.Log) Log.info(`[WHATS-HAPPENING] 📊 Rodada ${rodada} não consolidada, usando ranking geral`);
+            res = await fetchWithTimeout(
+                `/api/ligas/${WHState.ligaId}/ranking?temporada=${WHState.temporada}`
+            );
+        }
+
         if (res.ok) {
             const data = await res.json();
-            // Normalizar formato
-            WHState.data.ranking = {
-                ranking: data.ranking || data.data || data
-            };
+            // Normalizar formato (API geral retorna array direto)
+            const ranking = Array.isArray(data) ? data : (data.ranking || data.data || []);
+            WHState.data.ranking = { ranking };
+            if (window.Log) Log.info("[WHATS-HAPPENING] 📊 Ranking:", ranking.length, "participantes");
         }
     } catch (e) {
         if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Ranking:", e.name === 'AbortError' ? 'Timeout' : e);
