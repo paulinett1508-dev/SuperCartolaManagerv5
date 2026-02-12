@@ -899,68 +899,107 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
         ? reservas.map(a => renderAtleta(a, true, substituicoes.get(a.atleta_id) || null)).join("")
         : '';
 
+    // Verificar se escalação está expandida (padrão: colapsado)
+    const isExpanded = localStorage.getItem('superCartola_escalacaoExpandida') === 'true';
+    const expandedClass = isExpanded ? 'expanded' : '';
+
     container.innerHTML = `
         <div class="minha-escalacao-container" style="background:#111827;border-radius:16px;overflow:hidden;margin-bottom:16px;border:1px solid #1f2937;">
-            <!-- Header -->
-            <div style="padding:16px;background:linear-gradient(135deg, rgba(255, 85, 0, 0.08) 0%, transparent 100%);border-bottom:1px solid #1f2937;">
-                <div style="font-family:'Russo One',sans-serif;font-size:16px;color:var(--app-text-white);">${nomeTime}</div>
-                <div style="font-size:12px;color:var(--app-text-muted);margin-top:2px;">${nomeCartola}</div>
+            <!-- Toggle Header (sempre visível) -->
+            <div class="me-toggle-header ${expandedClass}" onclick="window.toggleMinhaEscalacao()">
+                <div class="me-toggle-header-left">
+                    <span class="material-icons">sports_soccer</span>
+                    <div>
+                        <div class="me-toggle-title">Minha Escalação</div>
+                        <div class="me-toggle-subtitle">${nomeTime} • ${pontosFormatados} pts • ${posicao}º/${totalPart}</div>
+                    </div>
+                </div>
+                <span class="material-icons me-toggle-chevron">expand_more</span>
             </div>
 
-            <!-- Stats -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px;">
-                <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
-                    <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Pontos</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:var(--app-primary);">${pontosFormatados}</div>
+            <!-- Conteúdo Colapsável -->
+            <div class="me-collapsible-content ${expandedClass}" id="minhaEscalacaoContent">
+                <!-- Header com info do time -->
+                <div style="padding:16px;background:linear-gradient(135deg, rgba(255, 85, 0, 0.08) 0%, transparent 100%);border-bottom:1px solid #1f2937;">
+                    <div style="font-family:'Russo One',sans-serif;font-size:16px;color:var(--app-text-white);">${nomeTime}</div>
+                    <div style="font-size:12px;color:var(--app-text-muted);margin-top:2px;">${nomeCartola}</div>
                 </div>
-                <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
-                    <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Posição</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:var(--app-text-white);">${posicao}º <span style="font-size:12px;color:var(--app-text-muted);">/${totalPart}</span></div>
-                </div>
-            </div>
 
-            <!-- Tabela de Titulares -->
-            <div style="padding:8px 16px 16px;">
-                <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Titulares (${titulares.length})</div>
-                <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                    <thead>
-                        <tr style="border-bottom:2px solid var(--app-border);color:var(--app-text-muted);font-size:10px;text-transform:uppercase;">
-                            <th style="padding:6px 4px;text-align:center;font-weight:600;">POS</th>
-                            <th style="padding:6px 4px;text-align:center;font-weight:600;">TIME</th>
-                            <th style="padding:6px 8px;text-align:left;font-weight:600;">JOGADOR</th>
-                            <th style="padding:6px 4px;text-align:right;font-weight:600;">PTS</th>
-                            <th style="padding:6px 4px;text-align:right;font-weight:600;">C$</th>
-                            <th style="padding:6px 4px;text-align:center;font-weight:600;">STATUS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${titularesHTML}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Separador Banco de Reservas -->
-            ${reservas.length > 0 ? `
-                <div style="margin:0 16px;padding:12px 0;display:flex;align-items:center;gap:8px;">
-                    <div style="flex:1;border-top:1px dashed #374151;"></div>
-                    <span style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:4px;">
-                        <span class="material-icons" style="font-size:14px;">event_seat</span>
-                        BANCO
-                    </span>
-                    <div style="flex:1;border-top:1px dashed #374151;"></div>
+                <!-- Stats -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px;">
+                    <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
+                        <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Pontos</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:var(--app-primary);">${pontosFormatados}</div>
+                    </div>
+                    <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
+                        <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Posição</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:var(--app-text-white);">${posicao}º <span style="font-size:12px;color:var(--app-text-muted);">/${totalPart}</span></div>
+                    </div>
                 </div>
-                <div style="padding:8px 16px 16px;background:rgba(107,114,128,0.06);border-radius:0 0 16px 16px;">
-                    <div style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
-                    <table style="width:100%;border-collapse:collapse;font-size:13px;opacity:0.7;">
+
+                <!-- Tabela de Titulares -->
+                <div style="padding:8px 16px 16px;">
+                    <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Titulares (${titulares.length})</div>
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead>
+                            <tr style="border-bottom:2px solid var(--app-border);color:var(--app-text-muted);font-size:10px;text-transform:uppercase;">
+                                <th style="padding:6px 4px;text-align:center;font-weight:600;">POS</th>
+                                <th style="padding:6px 4px;text-align:center;font-weight:600;">TIME</th>
+                                <th style="padding:6px 8px;text-align:left;font-weight:600;">JOGADOR</th>
+                                <th style="padding:6px 4px;text-align:right;font-weight:600;">PTS</th>
+                                <th style="padding:6px 4px;text-align:right;font-weight:600;">C$</th>
+                                <th style="padding:6px 4px;text-align:center;font-weight:600;">STATUS</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            ${reservasHTML}
+                            ${titularesHTML}
                         </tbody>
                     </table>
                 </div>
-            ` : ''}
+
+                <!-- Separador Banco de Reservas -->
+                ${reservas.length > 0 ? `
+                    <div style="margin:0 16px;padding:12px 0;display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;border-top:1px dashed #374151;"></div>
+                        <span style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:4px;">
+                            <span class="material-icons" style="font-size:14px;">event_seat</span>
+                            BANCO
+                        </span>
+                        <div style="flex:1;border-top:1px dashed #374151;"></div>
+                    </div>
+                    <div style="padding:8px 16px 16px;background:rgba(107,114,128,0.06);border-radius:0 0 16px 16px;">
+                        <div style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;opacity:0.7;">
+                            <tbody>
+                                ${reservasHTML}
+                            </tbody>
+                        </table>
+                    </div>
+                ` : ''}
+            </div>
         </div>
     `;
 }
+
+// Toggle para expandir/colapsar Minha Escalação
+window.toggleMinhaEscalacao = function() {
+    const header = document.querySelector('.me-toggle-header');
+    const content = document.getElementById('minhaEscalacaoContent');
+
+    if (!header || !content) return;
+
+    const isExpanded = header.classList.contains('expanded');
+
+    if (isExpanded) {
+        header.classList.remove('expanded');
+        content.classList.remove('expanded');
+        localStorage.setItem('superCartola_escalacaoExpandida', 'false');
+    } else {
+        header.classList.add('expanded');
+        content.classList.add('expanded');
+        localStorage.setItem('superCartola_escalacaoExpandida', 'true');
+    }
+};
 
 // Helper para extrair clube_id da foto do atleta (fallback)
 function extrairClubeIdDaFoto(foto) {
