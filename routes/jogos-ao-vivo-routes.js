@@ -857,6 +857,112 @@ function filtrarJogosPorTime(dadosMultiDatas, nomeTime) {
   return resultado;
 }
 
+// =====================================================================
+// GET /api/jogos-ao-vivo/game-status
+// Endpoint otimizado para o FAB - retorna estado consolidado dos jogos
+// Usado pela máquina de estados do foguinho para sincronismo total
+// =====================================================================
+router.get('/game-status', async (req, res) => {
+  try {
+    const agora = Date.now();
+    const dataHoje = getDataHoje();
+
+    // Usar cache existente se disponível, senão buscar fresh
+    let jogos = cacheJogosDia;
+    let fonte = cacheFonte || 'cache';
+
+    // Se cache está muito velho ou não existe, tentar refresh
+    const cacheIdade = cacheTimestamp ? agora - cacheTimestamp : Infinity;
+    const ttlAtual = cacheTemJogosAoVivo ? CACHE_TTL_AO_VIVO : CACHE_TTL_SEM_JOGOS;
+
+    if (!jogos || cacheIdade > ttlAtual) {
+      try {
+        const [soccerData, jogosAgenda] = await Promise.all([
+          buscarJogosSoccerDataAPI(),
+          buscarAgendaDoDia()
+        ]);
+        jogos = mesclarJogos(soccerData.jogos, jogosAgenda);
+
+        if (jogos.length > 0) {
+          const temAoVivo = jogos.some(j => STATUS_AO_VIVO.includes(j.statusRaw));
+          cacheJogosDia = jogos;
+          cacheTimestamp = agora;
+          cacheTemJogosAoVivo = temAoVivo;
+          cacheDataReferencia = dataHoje;
+          cacheFonte = soccerData.jogos.length > 0 ? 'soccerdata+globo' : 'globo';
+          fonte = cacheFonte;
+        }
+      } catch (e) {
+        if (cacheJogosDia) {
+          jogos = cacheJogosDia;
+          fonte = 'cache-stale';
+        }
+      }
+    }
+
+    // Estatísticas granulares
+    const stats = jogos ? calcularEstatisticas(jogos) : { total: 0, aoVivo: 0, agendados: 0, encerrados: 0 };
+
+    // Próximo jogo agendado (para WAITING/INTERVAL)
+    let proximoJogo = null;
+    if (jogos && jogos.length > 0) {
+      const agendados = jogos
+        .filter(j => STATUS_AGENDADO.includes(j.statusRaw) && j.timestamp)
+        .sort((a, b) => a.timestamp - b.timestamp);
+
+      if (agendados.length > 0) {
+        const prox = agendados[0];
+        proximoJogo = {
+          mandante: prox.mandante,
+          visitante: prox.visitante,
+          horario: prox.horario,
+          liga: prox.liga,
+          timestamp: prox.timestamp,
+          minutosRestantes: prox.timestamp ? Math.max(0, Math.round((prox.timestamp - agora / 1000) / 60)) : null
+        };
+      }
+    }
+
+    // FAB state recomendado (frontend decide, backend sugere)
+    let fabStateRecomendado = 'hidden';
+    if (stats.aoVivo > 0) {
+      fabStateRecomendado = 'live';
+    } else if (stats.agendados > 0 && stats.encerrados > 0) {
+      fabStateRecomendado = 'interval';
+    } else if (stats.agendados > 0 && stats.encerrados === 0) {
+      fabStateRecomendado = 'waiting';
+    } else if (stats.encerrados > 0 && stats.agendados === 0) {
+      fabStateRecomendado = 'cooling';
+    }
+
+    // TTL recomendado para próximo poll do FAB (segundos)
+    let pollInterval = 300;
+    if (fabStateRecomendado === 'live') pollInterval = 30;
+    else if (fabStateRecomendado === 'interval') pollInterval = 120;
+    else if (fabStateRecomendado === 'waiting') pollInterval = 300;
+    else if (fabStateRecomendado === 'cooling') pollInterval = 180;
+
+    res.json({
+      fabState: fabStateRecomendado,
+      pollInterval,
+      stats,
+      proximoJogo,
+      atualizadoEm: new Date(cacheTimestamp || agora).toISOString(),
+      fonte
+    });
+  } catch (err) {
+    console.error('[JOGOS-DIA] Erro em /game-status:', err.message);
+    res.json({
+      fabState: 'hidden',
+      pollInterval: 300,
+      stats: { total: 0, aoVivo: 0, agendados: 0, encerrados: 0 },
+      proximoJogo: null,
+      atualizadoEm: new Date().toISOString(),
+      fonte: 'fallback-error'
+    });
+  }
+});
+
 // GET /api/jogos-ao-vivo/:fixtureId/eventos - Eventos de um jogo especifico
 router.get('/:fixtureId/eventos', async (req, res) => {
   try {
