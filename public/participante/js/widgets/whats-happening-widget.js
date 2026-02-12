@@ -496,8 +496,10 @@ async function fetchAllData() {
 async function fetchPontosCorridos() {
     try {
         const rodada = WHState.mercadoStatus?.rodada_atual || 1;
+        // API pontos-corridos é lenta (~6s), usar timeout maior
         const res = await fetchWithTimeout(
-            `/api/pontos-corridos/${WHState.ligaId}?temporada=${WHState.temporada}`
+            `/api/pontos-corridos/${WHState.ligaId}?temporada=${WHState.temporada}`,
+            WH_CONFIG.API_TIMEOUT_SLOW // 10s
         );
         if (res.ok) {
             const data = await res.json();
@@ -669,6 +671,7 @@ async function fetchCapitao() {
 async function fetchRanking() {
     try {
         const rodada = WHState.mercadoStatus?.rodada_atual || 1;
+        let isRankingGeral = false;
 
         // Tentar ranking da rodada específica primeiro
         let res = await fetchWithTimeout(
@@ -681,14 +684,15 @@ async function fetchRanking() {
             res = await fetchWithTimeout(
                 `/api/ligas/${WHState.ligaId}/ranking?temporada=${WHState.temporada}`
             );
+            isRankingGeral = true;
         }
 
         if (res.ok) {
             const data = await res.json();
             // Normalizar formato (API geral retorna array direto)
             const ranking = Array.isArray(data) ? data : (data.ranking || data.data || []);
-            WHState.data.ranking = { ranking };
-            if (window.Log) Log.info("[WHATS-HAPPENING] 📊 Ranking:", ranking.length, "participantes");
+            WHState.data.ranking = { ranking, isRankingGeral, rodada };
+            if (window.Log) Log.info("[WHATS-HAPPENING] 📊 Ranking:", ranking.length, "participantes", isRankingGeral ? "(geral)" : `(rodada ${rodada})`);
         }
     } catch (e) {
         if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro Ranking:", e.name === 'AbortError' ? 'Timeout' : e);
@@ -927,13 +931,18 @@ function renderRankingSection() {
         `;
     }
 
+    // Título dinâmico: "Ranking Geral" se rodada não consolidada, senão "Ranking Rodada X"
+    const rankingTitle = data.isRankingGeral
+        ? "Ranking Geral"
+        : `Ranking Rodada ${data.rodada || WHState.mercadoStatus?.rodada_atual || "?"}`;
+
     return `
         <div class="wh-section wh-section--ranking">
             <div class="wh-section-header">
                 <div class="wh-section-icon">
                     <span class="material-icons">leaderboard</span>
                 </div>
-                <div class="wh-section-title">Ranking Rodada ${WHState.mercadoStatus?.rodada_atual || "?"}</div>
+                <div class="wh-section-title">${rankingTitle}</div>
             </div>
             <div class="wh-section-body">
                 <div class="wh-ranking-mini">
