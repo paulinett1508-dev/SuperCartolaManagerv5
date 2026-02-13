@@ -1156,46 +1156,54 @@ function renderContent() {
 
     content.innerHTML = sections.join("");
 
-    // Event delegation: expand/collapse
-    content.querySelectorAll('.wh-expand-trigger').forEach(trigger => {
-        trigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const targetId = trigger.dataset.target;
-            const targetEl = document.getElementById(targetId);
-            if (!targetEl) return;
+    // Event delegation: carrossel scroll → atualizar dots
+    content.querySelectorAll('.wh-section-body--carousel').forEach(carousel => {
+        carousel.addEventListener('scroll', () => {
+            const scrollLeft = carousel.scrollLeft;
+            const cardWidth = carousel.firstElementChild?.offsetWidth || 1;
+            const gap = 10;
+            const activeIndex = Math.round(scrollLeft / (cardWidth + gap));
 
-            const isExpanded = targetEl.classList.toggle('expanded');
-            trigger.classList.toggle('expanded', isExpanded);
-            const icon = trigger.querySelector('.wh-expand-icon');
-            if (icon) icon.textContent = isExpanded ? 'expand_less' : 'expand_more';
-            trigger.querySelector('.wh-expand-icon')?.nextSibling;
-            // Atualizar texto
-            const textNode = trigger.childNodes;
-            for (const node of textNode) {
-                if (node.nodeType === 3 && node.textContent.trim()) {
-                    node.textContent = isExpanded ? ' Ocultar' : node.textContent;
-                    break;
-                }
+            // Atualizar dots correspondentes
+            const dotsContainer = carousel.closest('.wh-section')?.querySelector('.wh-carousel-dots');
+            if (dotsContainer) {
+                dotsContainer.querySelectorAll('.wh-carousel-dot').forEach((dot, i) => {
+                    dot.classList.toggle('active', i === activeIndex);
+                });
             }
-        });
+
+            // Esconder hint de swipe após primeira rolagem
+            const hint = carousel.closest('.wh-section')?.querySelector('.wh-swipe-hint');
+            if (hint) hint.classList.add('hidden');
+        }, { passive: true });
     });
 
     // Event delegation: tap-to-navigate para módulo
     content.querySelectorAll('[data-navigate]').forEach(el => {
-        // Não adicionar cursor/click em elementos dentro de expanded content
-        if (el.closest('.wh-collapsed-content') && !el.classList.contains('wh-confronto')) return;
-
         el.style.cursor = 'pointer';
         el.addEventListener('click', (e) => {
-            // Ignorar se clicou em expand trigger
-            if (e.target.closest('.wh-expand-trigger')) return;
+            // Ignorar se estava arrastando carrossel
+            if (e.target.closest('.wh-section-body--carousel')) return;
 
             const modulo = el.dataset.navigate;
             if (modulo && window.participanteNav) {
                 closePanel();
                 setTimeout(() => {
                     window.participanteNav.navegarPara(modulo);
-                }, 300); // Esperar animação de fechar
+                }, 300);
+            }
+        });
+    });
+
+    // Navegação: clicar no header da seção
+    content.querySelectorAll('.wh-section-header[data-navigate]').forEach(header => {
+        header.addEventListener('click', (e) => {
+            const modulo = header.dataset.navigate;
+            if (modulo && window.participanteNav) {
+                closePanel();
+                setTimeout(() => {
+                    window.participanteNav.navegarPara(modulo);
+                }, 300);
             }
         });
     });
@@ -1376,19 +1384,24 @@ function renderPontosCorridosSection() {
         `;
     }
 
-    const visibleHtml = visible.map((c, i) => renderSingleConfronto(c, i)).join("");
+    const allHtml = allConfrontos.map((c, i) => renderSingleConfronto(c, i)).join("");
+    const useCarousel = allConfrontos.length > 2;
+    const hotCount = allConfrontos.filter(c => Math.abs((c.pontosA || 0) - (c.pontosB || 0)) < WH_CONFIG.MIN_DIFF_HOT).length;
 
-    const collapsedHtml = collapsed.length > 0 ? `
-        <div class="wh-expand-trigger" data-target="wh-pc-collapsed">
-            <span class="material-icons wh-expand-icon">expand_more</span>
-            Ver mais ${collapsed.length} confronto${collapsed.length > 1 ? 's' : ''}
-        </div>
-        <div class="wh-collapsed-content" id="wh-pc-collapsed">
-            ${collapsed.map((c, i) => renderSingleConfronto(c, visibleCount + i)).join("")}
+    // Dots do carrossel
+    const dotsHtml = useCarousel ? `
+        <div class="wh-carousel-dots" id="wh-pc-dots">
+            ${allConfrontos.map((_, i) => `<span class="wh-carousel-dot ${i === 0 ? 'active' : ''}"></span>`).join('')}
         </div>
     ` : '';
 
-    const hotCount = allConfrontos.filter(c => Math.abs((c.pontosA || 0) - (c.pontosB || 0)) < WH_CONFIG.MIN_DIFF_HOT).length;
+    // Hint de swipe
+    const swipeHint = useCarousel ? `
+        <div class="wh-swipe-hint">
+            <span class="material-icons">swipe</span>
+            Arraste para ver ${allConfrontos.length} confrontos
+        </div>
+    ` : '';
 
     return `
         <div class="wh-section wh-section--pontos-corridos">
@@ -1400,10 +1413,11 @@ function renderPontosCorridosSection() {
                 ${hotCount > 0 ? `<span class="wh-section-badge wh-badge--hot">${hotCount} quente${hotCount > 1 ? 's' : ''}</span>` : ''}
                 <span class="material-icons wh-navigate-hint">open_in_new</span>
             </div>
-            <div class="wh-section-body">
-                ${visibleHtml}
-                ${collapsedHtml}
+            <div class="wh-section-body ${useCarousel ? 'wh-section-body--carousel' : ''}" ${useCarousel ? 'id="wh-pc-carousel"' : ''}>
+                ${allHtml}
             </div>
+            ${dotsHtml}
+            ${swipeHint}
         </div>
     `;
 }
@@ -1535,21 +1549,27 @@ function renderMataMataSection() {
         `;
     }
 
-    const visibleHtml = visible.map(c => renderMmConfronto(c)).join("");
-    const collapsedHtml = collapsed.length > 0 ? `
-        <div class="wh-expand-trigger" data-target="wh-mm-collapsed">
-            <span class="material-icons wh-expand-icon">expand_more</span>
-            Ver mais ${collapsed.length} confronto${collapsed.length > 1 ? 's' : ''}
-        </div>
-        <div class="wh-collapsed-content" id="wh-mm-collapsed">
-            ${collapsed.map(c => renderMmConfronto(c)).join("")}
-        </div>
-    ` : '';
+    const allMmHtml = sorted.map(c => renderMmConfronto(c)).join("");
+    const useCarouselMm = sorted.length > 2;
 
     const hotCount = confrontosFase.filter(c => {
         const diff = Math.abs((c.timeA?.pontos || 0) - (c.timeB?.pontos || 0));
         return diff < 15 && !c.vencedor;
     }).length;
+
+    // Dots do carrossel
+    const dotsHtml = useCarouselMm ? `
+        <div class="wh-carousel-dots" id="wh-mm-dots">
+            ${sorted.map((_, i) => `<span class="wh-carousel-dot ${i === 0 ? 'active' : ''}"></span>`).join('')}
+        </div>
+    ` : '';
+
+    const swipeHint = useCarouselMm ? `
+        <div class="wh-swipe-hint">
+            <span class="material-icons">swipe</span>
+            Arraste para ver ${sorted.length} confrontos
+        </div>
+    ` : '';
 
     return `
         <div class="wh-section wh-section--mata-mata">
@@ -1561,10 +1581,11 @@ function renderMataMataSection() {
                 ${hotCount > 0 ? `<span class="wh-section-badge wh-badge--hot">${hotCount} quente${hotCount > 1 ? 's' : ''}</span>` : ''}
                 <span class="material-icons wh-navigate-hint">open_in_new</span>
             </div>
-            <div class="wh-section-body">
-                ${visibleHtml}
-                ${collapsedHtml}
+            <div class="wh-section-body ${useCarouselMm ? 'wh-section-body--carousel' : ''}" ${useCarouselMm ? 'id="wh-mm-carousel"' : ''}>
+                ${allMmHtml}
             </div>
+            ${dotsHtml}
+            ${swipeHint}
         </div>
     `;
 }
