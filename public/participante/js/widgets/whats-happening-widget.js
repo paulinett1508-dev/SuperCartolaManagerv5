@@ -1397,18 +1397,28 @@ function renderPontosCorridosSection() {
     if (!data?.confrontos || data.confrontos.length === 0) return null;
 
     const meuId = String(WHState.timeId);
-    const allConfrontos = [...data.confrontos];
 
-    // Ordenar: meu confronto > hot (< 10pts) > demais
-    allConfrontos.sort((a, b) => {
-        const aIsMine = String(a.time1?.id) === meuId || String(a.time2?.id) === meuId;
-        const bIsMine = String(b.time1?.id) === meuId || String(b.time2?.id) === meuId;
-        if (aIsMine && !bIsMine) return -1;
-        if (!aIsMine && bIsMine) return 1;
+    // v3.0: Remover confronto do usuário desta seção (já aparece em "Meu Confronto" acima)
+    const hasMeuConfrontoAbove = !!WHState.data.meuConfrontoPc;
+    const filteredConfrontos = hasMeuConfrontoAbove
+        ? data.confrontos.filter(c => {
+            const id1 = String(c.time1?.id);
+            const id2 = String(c.time2?.id);
+            return id1 !== meuId && id2 !== meuId;
+        })
+        : [...data.confrontos];
+
+    // Se só tinha o confronto do usuário, não mostra esta seção
+    if (filteredConfrontos.length === 0) return null;
+
+    // Ordenar: hot (< 10pts) primeiro (menores diferenças)
+    filteredConfrontos.sort((a, b) => {
         const diffA = Math.abs((a.time1?.pontos || 0) - (a.time2?.pontos || 0));
         const diffB = Math.abs((b.time1?.pontos || 0) - (b.time2?.pontos || 0));
         return diffA - diffB; // Menores diferenças primeiro
     });
+
+    const allConfrontos = filteredConfrontos;
 
     // Separar: primeiros 3 visíveis, restante colapsado
     const visibleCount = 3;
@@ -1553,12 +1563,21 @@ function renderMataMataSection() {
 
     const isLive = isJogosAoVivo();
 
-    // Ordenar: meu confronto > hot > demais
-    const sorted = [...confrontosFase].sort((a, b) => {
-        const aIsMine = String(a.timeA?.timeId || a.timeA?.time_id) === meuId || String(a.timeB?.timeId || a.timeB?.time_id) === meuId;
-        const bIsMine = String(b.timeA?.timeId || b.timeA?.time_id) === meuId || String(b.timeB?.timeId || b.timeB?.time_id) === meuId;
-        if (aIsMine && !bIsMine) return -1;
-        if (!aIsMine && bIsMine) return 1;
+    // v3.0: Remover confronto do usuário desta seção (já aparece em "Meu Confronto" acima)
+    const hasMeuConfrontoAbove = !!WHState.data.meuConfrontoMm;
+    const filteredConfrontos = hasMeuConfrontoAbove
+        ? confrontosFase.filter(c => {
+            const idA = String(c.timeA?.timeId || c.timeA?.time_id);
+            const idB = String(c.timeB?.timeId || c.timeB?.time_id);
+            return idA !== meuId && idB !== meuId;
+        })
+        : confrontosFase;
+
+    // Se só tinha o confronto do usuário, não mostra esta seção
+    if (filteredConfrontos.length === 0) return null;
+
+    // Ordenar: hot (menor diferença) primeiro
+    const sorted = [...filteredConfrontos].sort((a, b) => {
         const diffA = Math.abs((a.timeA?.pontos || 0) - (a.timeB?.pontos || 0));
         const diffB = Math.abs((b.timeA?.pontos || 0) - (b.timeB?.pontos || 0));
         return diffA - diffB;
@@ -1677,8 +1696,8 @@ function renderMataMataSection() {
 }
 
 /**
- * Renderiza seção genérica de ranking por módulo (top 3 em carrossel)
- * @param {Object} opts - { data, title, icon, sectionClass, navigateTo, emoji, getValue, getLabel, getSubLabel }
+ * Renderiza seção genérica de ranking por módulo (tabela compacta)
+ * v3.0 - Redesign: tabela inline sem boxes aninhados + badge separado
  */
 function renderModuleRankingSection(opts) {
     const { data, title, icon, sectionClass, navigateTo, getValue, getLabel } = opts;
@@ -1686,55 +1705,39 @@ function renderModuleRankingSection(opts) {
 
     const top3 = data.ranking.slice(0, 3);
     const meuId = String(WHState.timeId);
-    const posColors = ['gold', 'silver', 'bronze'];
 
     // Verificar se eu estou no top 3
     const matchId = (r) => String(r.timeId || r.time_id || r.participanteId || '') === meuId;
     const meuIndex = data.ranking.findIndex(matchId);
-    const meuNoTop3 = meuIndex >= 0 && meuIndex < 3;
+    const meInTop3 = meuIndex >= 0 && meuIndex < 3;
 
-    const chipsHtml = top3.map((r, i) => {
+    // Tabela TOP 3
+    const tableRows = top3.map((r, i) => {
         const isMe = matchId(r);
         const valor = getValue(r);
         const nome = getLabel(r);
         return `
-            <div class="wh-rank-card ${posColors[i] || ''} ${isMe ? 'me' : ''}">
-                <div class="wh-rank-pos">${i + 1}</div>
-                <img class="wh-rank-escudo" src="${resolverEscudo(r)}" onerror="this.src='/escudos/default.png'" alt="">
-                <div class="wh-rank-nome">${nome}</div>
-                <div class="wh-rank-pontos">${valor}</div>
-            </div>
+            <tr class="${isMe ? 'me' : ''}">
+                <td class="wh-podium-pos">${i + 1}</td>
+                <td class="wh-podium-escudo"><img src="${resolverEscudo(r)}" onerror="this.src='/escudos/default.png'" alt=""></td>
+                <td class="wh-podium-nome">${nome}</td>
+                <td class="wh-podium-valor">${valor}</td>
+            </tr>
         `;
     }).join('');
 
-    // Minha posição se fora do top 3
-    let meuChipHtml = '';
-    if (!meuNoTop3 && meuIndex >= 0) {
+    // Badge de "Minha Posição" separado (fora da tabela) se não estou no top 3
+    let myBadgeHtml = '';
+    if (meuIndex >= 3) {
         const meuItem = data.ranking[meuIndex];
-        meuChipHtml = `
-            <div class="wh-rank-card me">
-                <div class="wh-rank-pos">${meuIndex + 1}</div>
-                <img class="wh-rank-escudo" src="${resolverEscudo(meuItem)}" onerror="this.src='/escudos/default.png'" alt="">
-                <div class="wh-rank-nome">${getLabel(meuItem)}</div>
-                <div class="wh-rank-pontos">${getValue(meuItem)}</div>
+        myBadgeHtml = `
+            <div class="wh-my-position-badge">
+                <span class="wh-mpb-pos">#${meuIndex + 1}</span>
+                <img class="wh-mpb-escudo" src="${resolverEscudo(meuItem)}" onerror="this.src='/escudos/default.png'" alt="">
+                <span class="wh-mpb-nome">${getLabel(meuItem)}</span>
+                <span class="wh-mpb-valor">${getValue(meuItem)}</span>
             </div>
         `;
-    }
-
-    // Disputa acirrada entre 1o e 2o
-    let disputaHtml = '';
-    if (top3.length >= 2) {
-        const v1 = parseFloat(getValue(top3[0])) || 0;
-        const v2 = parseFloat(getValue(top3[1])) || 0;
-        const diff = v1 - v2;
-        if (diff <= 1 && diff >= 0) {
-            disputaHtml = `
-                <div class="wh-disputa-acirrada">
-                    <span class="material-icons">whatshot</span>
-                    ${getLabel(top3[1])} cola no 1o!
-                </div>
-            `;
-        }
     }
 
     return `
@@ -1746,11 +1749,12 @@ function renderModuleRankingSection(opts) {
                 <div class="wh-section-title">${title}</div>
                 ${navigateTo ? '<span class="material-icons wh-navigate-hint">open_in_new</span>' : ''}
             </div>
-            <div class="wh-section-body wh-section-body--chips">
-                ${chipsHtml}
-                ${meuChipHtml}
+            <div class="wh-section-body wh-section-body--podium">
+                <table class="wh-podium-table">
+                    ${tableRows}
+                </table>
             </div>
-            ${disputaHtml}
+            ${myBadgeHtml}
         </div>
     `;
 }
@@ -1758,13 +1762,12 @@ function renderModuleRankingSection(opts) {
 function renderArtilheiroSection() {
     return renderModuleRankingSection({
         data: WHState.data.artilheiro,
-        title: 'Artilheiro Campeao',
+        title: 'Artilheiro Campeão',
         icon: 'sports_soccer',
         sectionClass: 'artilheiro',
         navigateTo: 'artilheiro',
-        getValue: (r) => String(r.golsPro || r.gols || 0),
-        getLabel: (r) => r.nome || r.nome_cartola || r.nomeCartola || 'Jogador',
-        getSubLabel: (r) => `${r.golsPro || r.gols || 0} gol(s)`
+        getValue: (r) => `${r.golsPro || r.gols || 0} gols`,
+        getLabel: (r) => r.nome || r.nome_cartola || r.nomeCartola || 'Jogador'
     });
 }
 
@@ -1775,25 +1778,20 @@ function renderLuvaOuroSection() {
         icon: 'sports_handball',
         sectionClass: 'luva-ouro',
         navigateTo: 'luva-de-ouro',
-        getValue: (r) => (r.pontosTotais || r.pontos || 0).toFixed(1),
-        getLabel: (r) => r.participanteNome || r.nome_cartola || r.nomeCartola || 'Jogador',
-        getSubLabel: (r) => `${r.pontosTotais || r.pontos || 0 > 0 ? (r.pontosTotais || r.pontos || 0).toFixed(1) + ' pts' : ''}`
+        getValue: (r) => `${(r.pontosTotais || r.pontos || 0).toFixed(1)} pts`,
+        getLabel: (r) => r.participanteNome || r.nome_cartola || r.nomeCartola || 'Jogador'
     });
 }
 
 function renderCapitaoSection() {
     return renderModuleRankingSection({
         data: WHState.data.capitao,
-        title: 'Capitao de Luxo',
+        title: 'Capitão de Luxo',
         icon: 'military_tech',
         sectionClass: 'capitao',
         navigateTo: 'capitao',
-        getValue: (r) => (r.pontuacao_total || r.total || 0).toFixed(0),
-        getLabel: (r) => r.nome_cartola || r.nomeCartola || 'Jogador',
-        getSubLabel: (r) => {
-            const media = r.media_capitao || r.media || 0;
-            return media > 0 ? `Media: ${media.toFixed(1)}` : '';
-        }
+        getValue: (r) => `${(r.pontuacao_total || r.total || 0).toFixed(0)} pts`,
+        getLabel: (r) => r.nome_cartola || r.nomeCartola || 'Jogador'
     });
 }
 
