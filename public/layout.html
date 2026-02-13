@@ -228,21 +228,15 @@
                     <div class="sidebar-accordion-content">
                         <ul class="sidebar-accordion-menu">
                             <li>
-                                <a href="dashboard-analytics.html" class="sidebar-accordion-item" data-page="dashboard-analytics.html">
-                                    <span class="material-icons">account_tree</span>
-                                    <span>Branches & Merges</span>
+                                <a href="github-analytics-unified.html" class="sidebar-accordion-item" data-page="github-analytics-unified.html">
+                                    <span class="material-icons">merge_type</span>
+                                    <span>Repositório</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="api-football-analytics.html" class="sidebar-accordion-item" data-page="api-football-analytics.html">
                                     <span class="material-icons">api</span>
                                     <span>APIs</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="github-analytics.html" class="sidebar-accordion-item" data-page="github-analytics.html">
-                                    <span class="material-icons">code</span>
-                                    <span>GitHub</span>
                                 </a>
                             </li>
                             <li>
@@ -279,20 +273,6 @@
                 </div>
             </nav>
 
-            <!-- Apps Mobile (antes do user section) -->
-            <div class="sidebar-section-bottom">
-                <a href="participante/index.html" class="sidebar-menu-item sidebar-app-link" target="_blank" data-tooltip="App Participante">
-                    <span class="material-icons">phone_android</span>
-                    <span>App Participante</span>
-                    <span class="material-icons" style="font-size: 14px; margin-left: auto; color: #9ca3af;">open_in_new</span>
-                </a>
-                <a href="admin-mobile/" class="sidebar-menu-item sidebar-app-link" target="_blank" data-tooltip="App Admin">
-                    <span class="material-icons">admin_panel_settings</span>
-                    <span>App Admin</span>
-                    <span class="material-icons" style="font-size: 14px; margin-left: auto; color: #9ca3af;">open_in_new</span>
-                </a>
-            </div>
-
             <!-- User Section com Menu Dropup -->
             <div class="sidebar-user-new" id="sidebarUserSection">
                 <!-- Menu Dropup (aparece ao clicar) -->
@@ -304,6 +284,17 @@
                     <button class="sidebar-user-menu-item menu-super-admin-only" id="menuAdministradores" data-action="administradores" style="display: none;">
                         <span class="material-icons">admin_panel_settings</span>
                         <span>Administradores</span>
+                    </button>
+                    <div class="sidebar-user-menu-divider"></div>
+                    <button class="sidebar-user-menu-item" data-action="app-participante">
+                        <span class="material-icons">phone_android</span>
+                        <span>App Participante</span>
+                        <span class="material-icons" style="font-size: 16px; margin-left: auto; color: #9ca3af;">open_in_new</span>
+                    </button>
+                    <button class="sidebar-user-menu-item" data-action="app-admin">
+                        <span class="material-icons">tablet_android</span>
+                        <span>App Admin</span>
+                        <span class="material-icons" style="font-size: 16px; margin-left: auto; color: #9ca3af;">open_in_new</span>
                     </button>
                     <div class="sidebar-user-menu-divider"></div>
                     <button class="sidebar-user-menu-item logout" data-action="logout">
@@ -647,7 +638,7 @@
                         // Operações
                         'ferramentas-rodadas.html': 'operacoes',
                         // Analytics
-                        'dashboard-analytics.html': 'analytics',
+                        'github-analytics-unified.html': 'analytics',
                         'dashboard-saude.html': 'analytics',
                         'api-football-analytics.html': 'analytics',
                         // Administração
@@ -1548,6 +1539,12 @@
                                 break;
                             case 'administradores':
                                 window.location.href = 'admin-gestao.html';
+                                break;
+                            case 'app-participante':
+                                window.open('participante/index.html', '_blank');
+                                break;
+                            case 'app-admin':
+                                window.open('admin-mobile/', '_blank');
                                 break;
                             case 'logout':
                                 fazerLogoutAdmin();

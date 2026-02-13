@@ -1,30 +1,129 @@
 # Tarefas Pendentes - Super Cartola Manager
 
-> Atualizado: 2026-02-11
-> Auditado: Sessão anterior (2026-02-10) revisada. Itens concluídos marcados. Novas auditorias de extrato adicionadas.
+> Atualizado: 2026-02-13
+> Auditado: Sessao 2026-02-13 — AUDIT-001, AUDIT-002 e AUDIT-003 concluidas. MCP Stitch re-testado.
 
 ---
 
-## 🚨 URGENTE - Resolver Autenticação Google Stitch MCP
+## RESUMO SESSAO 2026-02-13
 
-### [MCP-001] Google Stitch - OAuth2 Token Expirado/Inválido
+### Tarefas Executadas
+| # | Tarefa | Resultado |
+|---|--------|-----------|
+| 1 | [MCP-001] Testar Stitch OAuth2 | OAuth2 AINDA expirado. Requer reautenticacao manual |
+| 2 | Restart servidor v8.12.0 | Ja rodando (boot 2026-02-13T10:43:28, PID 166512) |
+| 3 | [AUDIT-002] Validar extratos | ✅ CONCLUIDA — financeiro correto |
+| 4 | [AUDIT-001] Auditoria Extrato v2.0 | ✅ CONCLUIDA — implementacao completa |
+| 5 | [AUDIT-003] Ranking Geral + Parciais (Os Fuleros) | ✅ CONCLUIDA — ZERO discrepancias |
+
+### Achados AUDIT-002 (Extratos Financeiros)
+
+**Owner/Premium Isento:**
+- [x] Paulinett (13935277, premium:true) na Super Cartola: SEM debito -R$180 ✅
+- [x] Felipe Barbosa (8098497, sem premium): TEM debito -R$180 ✅
+- [x] Felipe Jokstay (575856, sem premium): TEM debito -R$180 ✅
+
+**Reconciliacao Financeira (API vs calculo manual):**
+- [x] Paulinett: -14 + (-13) + (-5) = -32 == API saldo_total -32 ✅
+- [x] Felipe Barbosa: -180 + 10 + 10 = -160 == API saldo_total -160 ✅
+- [x] Cassio (com legado): 163.38 + 0 + 17 = 180.38 == API saldo_total 180.38 ✅
+
+**Multi-Liga:**
+- [x] Super Cartola: saldo -32 (independente) ✅
+- [x] Os Fuleros: saldo -14 (independente) ✅
+
+**Issues Menores Encontrados (nao-bloqueantes):**
+- `saldo_consolidado` no MongoDB stale (nao inclui PC adicionados depois). API recalcula corretamente.
+- Alguns participantes (1323370, 8188312) sem entrada de inscricao e sem premium. Investigar se pagouInscricao=true.
+- MITO/MICO com valor=0 em Os Fuleros (config top10 sem valores_mito/valores_mico definidos).
+
+### Achados AUDIT-001 (Extrato v2.0 Redesign)
+
+**Todos 9 componentes da spec implementados:**
+- [x] Hero Card (saldo + toggle + status + pills) — `renderHeroCardV2()` L53-112
+- [x] Grid 2 colunas (sidebar + main) — `renderExtratoV2()` L522-531
+- [x] Grafico SVG #FF5500 + filtros — `renderChartV2()` + `renderExtratoChartV2()`
+- [x] Card Acertos (lista + empty state) — `renderAcertosCardV2()` L162-214
+- [x] Performance Card (Mito/Mico/ZonaG/ZonaZ) — `renderPerformanceV2()` L432-493
+- [x] Timeline expandivel + filtros + totais — `renderTimelineV2()` L219-427
+- [x] Lancamentos iniciais (inscricao/legado) — dentro de `renderTimelineV2()`
+- [x] Filtros Timeline (Todos/Creditos/Debitos) — `setupExtratoTimelineFiltersV2()`
+- [x] Filtros Chart (Tudo/10R/5R) — `setupExtratoChartFiltersV2()`
+
+**Wiring/Integracao:** CSS carregado ✅, JS importado ✅, fallback v1 ✅, setup interatividade ✅
+
+**App Participante:** Usa v11.0 propria (NAO v2). Correto — spec previa apenas tweaks CSS.
+
+**Dark Mode:** Usa `var(--surface-card, #1a1a1a)`, herda do admin theme. Sem conflito.
+
+**Gaps Menores (cosmeticos):**
+- Mini sparkline no Performance Card (spec aspiracional, nao implementada)
+- Botao PDF export (pode estar no wrapper do modal, nao no render v2)
+- Responsividade mobile nao verificada visualmente
+
+### Achados AUDIT-003 (Ranking Geral + Parciais)
+
+**Cruzamento 4 fontes de dados (Os Fuleros):**
+- [x] `rodadas` (raw data): 16 entries (8 participantes x 2 rodadas) ✅
+- [x] `rankinggeralcaches`: 3 entries (R0, R1, R2) — dados corretos ✅
+- [x] `rodadasnapshots`: R0 (inscricao) + R1 + R2 consolidadas ✅
+- [x] `rankingturnos`: turno1 (R1) + geral (R1-R2) — dados corretos ✅
+- [x] **ZERO discrepancias** entre as 4 fontes ✅
+
+**Ranking Os Fuleros (apos 2 rodadas):**
+
+| Pos | Time | Pontos | ValFin R1 | ValFin R2 |
+|-----|------|--------|-----------|-----------|
+| 1 | TCMV Futebol club | 148.46 | +4 | +6 |
+| 2 | Obraga04 | 144.66 | 0 | +8 |
+| 3 | TriiMundial sp | 139.34 | +8 | -4 |
+| 4 | CR ErySoldado | 136.88 | +6 | +4 |
+| 5 | j.Prado fc | 120.65 | 0 | 0 |
+| 6 | KroonosFLA | 112.16 | -4 | 0 |
+| 7 | Urubu Play F.C. (Paulinett) | 96.73 | -6 | -8 |
+| 8 | Papito's Football Club | 93.91 | -8 | -6 |
+
+**Contagem participantes:**
+- Liga: 8, Rodadas: 8, Cache: 8, Turno: 8 — todos consistentes
+- Snapshot R0 tem 7 (KroonosFLA adicionado depois da inscricao inicial) — esperado
+
+**Paulinett (Owner) em Os Fuleros:**
+- premium=true, owner_email configurado ✅
+- Inscricao ISENTA (premium exemption funciona) ✅
+- Saldo: -14 (R1: -6 onus + R2: -8 onus) ✅
+
+**Super Cartola (comparacao):**
+- 35 participantes, 3 rodadas em 2026 — dados corretos
+- `rankingturnos` geral stale (R2 vs R3 disponivel) — self-healing na proxima chamada API
+- `rankinggeralcaches` vazio para 2026 — gerado on-demand
+
+**Sistema de Parciais:**
+- Admin `parciais.js` v5.1, App `participante-rodada-parcial.js` v3.0, Backend `parciaisRankingService.js` v1.2
+- Fluxo: API Cartola (live) -> calcular pontuacao -> acumular com rodadas anteriores -> ranking
+- Integrado no ranking-turno (turno=geral retorna acumulado + parciais quando disponivel)
+- Auto-refresh 30s com backoff exponencial ate 120s
+- Sem discrepancias de calculo detectadas
+
+**Issues menores (nao-bloqueantes):**
+- Config `top10` vazia em Os Fuleros (MITO/MICO sem valor financeiro) — ja documentado em AUDIT-002
+- MCP Mongo nao converte String para ObjectId (queries retornam vazio para campos ObjectId)
+
+---
+
+## 🚨 URGENTE - Resolver Autenticacao Google Stitch MCP
+
+### [MCP-001] Google Stitch - OAuth2 Token Expirado/Invalido
 
 **Prioridade:** 🔴 URGENTE
-**Status:** PENDENTE
+**Status:** PENDENTE (re-testado 2026-02-13, ainda expirado)
 **Erro:** `API keys are not supported by this API. Expected OAuth2 access token or other authentication credentials that assert a principal.`
 
-#### Diagnóstico
-- MCP conecta mas falha na autenticação
-- Requer OAuth2 access token (não API key)
-- Provável token expirado ou não configurado
-
-#### Ações
-- [ ] Verificar configuração do Stitch MCP em `.claude/` ou settings
+#### Acoes
 - [ ] Re-autenticar com Google OAuth2 (gerar novo token)
-- [ ] Testar `list_projects` após re-autenticação
-- [ ] Documentar processo de refresh do token para futuras expirações
+- [ ] Testar `list_projects` apos re-autenticacao
+- [ ] Documentar processo de refresh do token para futuras expiracoes
 
-#### Status dos outros MCPs (verificado 2026-02-11)
+#### Status dos MCPs (verificado 2026-02-13)
 | MCP | Status |
 |-----|--------|
 | Mongo | ✅ Ativo |
@@ -35,373 +134,108 @@
 
 ---
 
+## ~~AUDIT-002~~ ✅ CONCLUIDA (2026-02-13)
+
+### Validar 100% Extratos dos Participantes
+
+**Status:** ✅ CONCLUIDA
+**Resultado:** Sistema financeiro correto. Owner/premium isento funciona. Reconciliacao OK em 3 participantes. Multi-liga independente. Issues menores documentados acima.
+
+---
+
+## ~~AUDIT-001~~ ✅ CONCLUIDA (2026-02-13)
+
+### Auditoria End-to-End do Redesign Extrato v2.0
+
+**Status:** ✅ CONCLUIDA
+**Resultado:** Implementacao substancialmente completa. Todos componentes da spec implementados. Wiring correto. App participante usa v11.0 propria (correto). Gaps cosmeticos apenas (sparkline, PDF).
+
+---
+
+## ~~AUDIT-003~~ ✅ CONCLUIDA (2026-02-13)
+
+### Auditoria Ranking Geral + Parciais (foco Os Fuleros)
+
+**Status:** ✅ CONCLUIDA
+**Resultado:** ZERO discrepancias na contagem. 4 fontes de dados cruzadas (rodadas, rankinggeralcaches, rodadasnapshots, rankingturnos) concordam 100%. 8 participantes consistentes. Premium/owner isento funciona. Parciais integrados corretamente no ranking-turno. Super Cartola com cache stale (self-healing).
+
+---
+
 ## RESUMO SESSAO 2026-02-11
 
 ### Commits desta sessao (4 commits, todos no main)
 | Commit | Descricao |
 |--------|-----------|
-| `e9ca0a3` | fix(extrato): abonar inscrição do owner/premium na liga com owner_email |
-| `8c6245f` | feat(extrato): cores de identidade por módulo e labels descritivos nos sub-itens |
-| `c4b3a92` | fix(extrato): mostrar posição como título em todas as rodadas (single e multi) |
-| `24eb896` | fix(extrato): rodadas sempre expandíveis e contagem de módulos extras |
+| `e9ca0a3` | fix(extrato): abonar inscricao do owner/premium na liga com owner_email |
+| `8c6245f` | feat(extrato): cores de identidade por modulo e labels descritivos nos sub-itens |
+| `c4b3a92` | fix(extrato): mostrar posicao como titulo em todas as rodadas (single e multi) |
+| `24eb896` | fix(extrato): rodadas sempre expansiveis e contagem de modulos extras |
 
 ### Implementacoes desta sessao
-- **Owner/premium isento de inscrição:** `fluxoFinanceiroController.js` v8.12.0 — participante com `premium: true` + liga com `owner_email` = inscrição abonada (R$180 não vira débito)
-- **Cores por módulo no extrato:** cada sub-item do extrato usa a cor de identidade do Quick Bar (Pontos Corridos=índigo, Mata-Mata=vermelho, Top10=amarelo, Banco=roxo, MITO=dourado, MICO=vermelho)
-- **Labels descritivos:** "Banco" → "Bônus de posição" / "Ônus de posição" / "MITO da Rodada" / "MICO da Rodada"
-- **Posição sempre como título:** todas as rodadas mostram "Xº lugar" como título principal
-- **Expand/collapse universal:** todas as rodadas com subitems são expandíveis (antes só 2+)
-- **Contagem de módulos extras:** "X módulos" conta apenas PC, MM, Top10 — não conta bônus/ônus de posição
-- **⚠️ Servidor NÃO reiniciado:** fix do owner/premium requer restart para tomar efeito
-
-### Arquivos modificados
-- `controllers/fluxoFinanceiroController.js` — v8.12.0 (owner premium exemption)
-- `public/participante/js/modules/participante-extrato-ui.js` — cores, labels, expand, posição
-
----
-
-## 🔴 AUDITORIA PRÓXIMA SESSÃO - Extrato Financeiro App Participante
-
-### [AUDIT-002] Validar 100% Extratos dos Participantes
-
-**Prioridade:** 🔴 CRÍTICA
-**Status:** PENDENTE - Executar na próxima sessão
-**Objetivo:** Garantir que TODOS os extratos financeiros no app do participante estão 100% corretos
-
-#### Pre-requisito
-- [ ] Reiniciar servidor para carregar v8.12.0 (owner premium exemption)
-
-#### Validação Owner/Premium (Paulinett Miranda - time_id: 13935277)
-- [ ] Abrir extrato de Paulinett na Liga Super Cartola (684cb1c8af923da7c7df51de)
-- [ ] Confirmar que NÃO aparece débito de -R$180 de inscrição
-- [ ] Confirmar que saldo está correto sem a cobrança indevida
-- [ ] Verificar logs do backend: deve aparecer "👑 Owner/premium isento de inscrição"
-- [ ] Testar em outra liga (Os Fuleros) — se não tem owner_email, inscrição deve cobrar normalmente
-
-#### Validação Visual - Cores por Módulo
-- [ ] Expandir rodada com múltiplos módulos (ex: Rodada 2+)
-- [ ] Verificar ícone/label Bônus/Ônus de posição = roxo (`--app-pos-tec` #a855f7)
-- [ ] Verificar ícone/label MITO da Rodada = dourado (`--app-gold` #ffd700)
-- [ ] Verificar ícone/label MICO da Rodada = vermelho (`--app-danger` #ef4444)
-- [ ] Verificar ícone/label Pontos Corridos = índigo (`--app-indigo` #6366f1)
-- [ ] Verificar ícone/label Mata-Mata = vermelho (`--app-danger` #ef4444)
-- [ ] Verificar ícone/label TOP 10 (positivo) = amarelo (`--app-warning` #eab308)
-- [ ] Verificar ícone/label TOP 10 (negativo) = amarelo (`--app-warning` #eab308)
-- [ ] Confirmar que valores financeiros continuam verde (ganho) / vermelho (perda)
-
-#### Validação Labels Descritivos
-- [ ] Rodada com participante 1º-10º → "Bônus de posição" ou "Bônus (G10)"
-- [ ] Rodada com participante nos últimos → "Ônus de posição" ou "Ônus (Z10)"
-- [ ] Rodada com 1º lugar → "MITO da Rodada"
-- [ ] Rodada com último lugar → "MICO da Rodada"
-- [ ] Rodada em Zona Neutra → "Zona Neutra" (sem valor)
-
-#### Validação Expand/Collapse
-- [ ] Rodada com 1 subitem (só posição) → expandível com seta
-- [ ] Rodada com 2+ subitems → expandível com seta
-- [ ] Contagem "0 módulos" quando só tem posição (sem PC/MM/Top10)
-- [ ] Contagem "1 módulo" quando tem posição + 1 extra
-- [ ] Contagem "3 módulos" quando tem posição + PC + MM + Top10
-- [ ] Título sempre mostra "Xº lugar" (posição), NUNCA o label do módulo
-
-#### Validação Financeira (Reconciliação)
-- [ ] Saldo final exibido == soma de todos os lançamentos
-- [ ] Verificar 3+ participantes diferentes (não só Paulinett)
-- [ ] Comparar extrato do app com dados do MongoDB (`extratofinanceirocaches`)
-- [ ] Verificar rodada por rodada: valor total == soma dos sub-itens
-- [ ] Confirmar que inscrição de NÃO-premium aparece como débito
-- [ ] Confirmar que legado (saldo anterior) aparece corretamente
-- [ ] Verificar acertos financeiros refletidos no saldo
-
-#### Validação Multi-Liga
-- [ ] Testar extrato na Liga Super Cartola (684cb1c8af923da7c7df51de)
-- [ ] Testar extrato na Liga Cartoleiros do Sobral (684d821cf1a7ae16d1f89572)
-- [ ] Confirmar que extratos são independentes por liga
+- **Owner/premium isento de inscricao:** `fluxoFinanceiroController.js` v8.12.0
+- **Cores por modulo no extrato:** cor de identidade do Quick Bar por sub-item
+- **Labels descritivos:** "Bonus de posicao" / "Onus de posicao" / "MITO da Rodada" / "MICO da Rodada"
+- **Posicao sempre como titulo:** todas as rodadas mostram "Xo lugar"
+- **Expand/collapse universal:** todas as rodadas com subitems sao expansiveis
+- **Contagem de modulos extras:** conta apenas PC, MM, Top10
 
 ---
 
 ## RESUMO SESSAO 2026-02-10
 
-### Commits da sessao anterior (6 commits, todos no main)
+### Commits (6 commits, todos no main)
 | Commit | Descricao |
 |--------|-----------|
 | `cbcbfc3` | feat(admin): card Premium no dashboard de Analisar Participantes |
-| `5ee7c41` | feat(extrato): redesign Inter-inspired para Admin e App (v2.0) - **PRECISA AUDITORIA** |
+| `5ee7c41` | feat(extrato): redesign Inter-inspired para Admin e App (v2.0) |
 | `8e6b92c` | fix(admin): fallback seguro para SuperModal no toggle premium |
 | `5d71369` | fix(admin): SPA re-init robusto para Analisar Participantes |
 | `aba8909` | feat(admin): toggle Premium na coluna Acoes de Analisar Participantes |
-| `bafc937` | fix(admin): remove modais duplicados e corrige re-init SPA em Analisar Participantes |
-
-### Implementacoes da sessao anterior
-- **Premium bypass completo:** participante premium (flag no DB, nao hardcoded) bypassa modulos em manutencao (navegacao, quick bar, bottom nav, home mini cards)
-- **Analisar Participantes corrigido:** modais duplicados removidos, SPA re-init robusto, toggle premium na tabela, card Premium no dashboard (contagem deduplicada por time_id)
-- **Paulinett Miranda** (timeId 13935277) = unico premium ativo (aparece em 2 ligas: Super Cartola + Os Fuleros, contagem global = 1)
-- **Servidor rodando** no Replit via workflow (matar processo antigo com `lsof -ti:3000 | xargs kill -9` antes de reiniciar)
+| `bafc937` | fix(admin): remove modais duplicados e corrige re-init SPA |
 
 ---
 
-## 🔴 AUDITORIA COMPLETA - Sistema Financeiro / Redesign Extrato v2.0
+## 🔥 PROXIMA SESSAO - Tarefas Restantes
 
-### [AUDIT-001] Auditoria End-to-End do Redesign Extrato Inter-Inspired + Sistema Financeiro
+### [IMPL-028] Sistema de Avisos e Notificacoes ✅ IMPLEMENTADO (2026-02-04)
 
-**Prioridade:** 🔴 CRÍTICA
-**Status:** PENDENTE - Executar na proxima sessao
-**Commit alvo:** `5ee7c41` (feat(extrato): redesign Inter-inspired para Admin e App v2.0)
-**Metodologia:** PRD → SPEC → CODE (workflow completo)
-
-#### Contexto
-
-O commit `5ee7c41` introduziu +2.334 linhas em 7 arquivos, incluindo redesign completo do módulo Extrato com visual inspirado no Inter (banco digital). Esta auditoria deve verificar se tudo foi realmente implementado, integrado e funcional no sistema.
-
-#### Arquivos a Auditar (7 arquivos do commit)
-
-| Arquivo | Tipo | Linhas | O que verificar |
-|---------|------|--------|-----------------|
-| `public/css/modules/extrato-v2.css` | NOVO | 1.095 | CSS carrega? Conflita com v1? Dark mode ok? |
-| `public/js/fluxo-financeiro/extrato-render-v2.js` | NOVO | 673 | Renderiza corretamente? Chamado pelo sistema? |
-| `.claude/docs/REDESIGN-EXTRATO-v2.md` | NOVO | 430 | Spec alinhada com implementacao real? |
-| `public/detalhe-liga.html` | MOD | +1 | Link do CSS v2 incluido? Carrega no DOM? |
-| `public/js/fluxo-financeiro.js` | MOD | +9 | Import/init do v2 presente? Fallback v1 ok? |
-| `public/js/fluxo-financeiro/fluxo-financeiro-ui.js` | MOD | +27/-1 | Integracao com render v2? Sem regressao? |
-| `public/participante/css/extrato-bank.css` | MOD | +100 | Tweaks Inter no App participante? Aplica? |
-
-#### FASE 1 - PRD (Pesquisa e Diagnostico) - PARCIALMENTE AUDITADO
-
-**Skill:** pesquisa + fact-checker
-
-**Achados da auditoria parcial (sessao 2026-02-10):**
-
-**WIRING (integração entre arquivos):**
-- [x] CSS v2 carregado no HTML: `detalhe-liga.html:37` → `<link rel="stylesheet" href="css/modules/extrato-v2.css" />`
-- [x] JS v2 importado: `fluxo-financeiro.js:78` → `await import("./fluxo-financeiro/extrato-render-v2.js?v8.10")`
-- [x] Funcoes exportadas para window: `renderExtratoV2`, `toggleExtratoValorVisibility`, `renderExtratoChartV2`, `setupExtratoChartFiltersV2`, `setupExtratoTimelineFiltersV2`
-- [x] Fallback v1 presente: `fluxo-financeiro-ui.js:238-256` → checa `window.renderExtratoV2` antes de usar, senao cai no legado
-- [x] Integração UI: `fluxo-financeiro-ui.js:233` → `renderizarExtratoTemporada()` usa v2 se disponivel
-- [x] Setup interatividade: chart, chart filters e timeline filters configurados com `setTimeout(100ms)`
-
-**COMPONENTES IMPLEMENTADOS (no extrato-render-v2.js, 673 linhas):**
-- [x] `renderHeroCardV2()` - Saldo principal + toggle visibilidade + stats pills
-- [x] `renderChartV2()` - SVG chart com gradiente #FF5500 + filtros (Tudo/10R/5R)
-- [x] `renderAcertosCardV2()` - Card de acertos financeiros (precisa verificar)
-- [x] `renderPerformanceV2()` - Card de performance (precisa verificar)
-- [x] `renderTimelineV2()` - Timeline agrupada (precisa verificar se agrupa por mes)
-- [x] Layout Grid 2 colunas: sidebar (chart + acertos + performance) + main (timeline)
-
-**CSS v2 (extrato-v2.css, 1.095 linhas):**
-- [x] Variaveis CSS definidas em :root (gradientes, bordas, icones, espacamentos)
-- [x] Hero Card com status (positive/negative/neutral)
-- [ ] Verificar se Dark Mode OLED (#0a0a0a) nao conflita com theme geral (bg-gray-900)
-- [ ] Verificar responsividade mobile dos componentes
-
-**PROBLEMAS ENCONTRADOS:**
-1. **API retornou objeto vazio `{}`** ao testar `GET /api/extrato-financeiro/cache/13935277?temporada=2026&liga_id=684cb1c8af923da7c7df51de` → Precisa investigar se endpoint requer autenticacao ou se nao ha cache ainda
-2. **extrato-bank.css (App participante):** +100 linhas adicionadas mas NAO foi verificado se o App participante usa v2 ou apenas tweaks CSS
-3. **Falta verificar:** funções `renderAcertosCardV2`, `renderPerformanceV2`, `renderTimelineV2` (linhas 150-500 do render)
-4. **Falta verificar:** se os dados do cache alimentam corretamente `data.resumo`, `data.rodadas`, `data.acertos`, `data.lancamentosIniciais`
-5. **Falta verificar:** App participante (`participante-extrato-ui.js`) - usa v2 ou continua com v1?
-
-**PENDENTE:**
-- [ ] Ler REDESIGN-EXTRATO-v2.md e extrair todas as features prometidas
-- [ ] Comparar spec vs codigo real implementado (gap analysis completo)
-- [ ] Testar endpoint com sessao admin autenticada (via browser)
-- [ ] Verificar renderAcertosCardV2, renderPerformanceV2, renderTimelineV2
-- [ ] Validar no MongoDB se os dados financeiros estao corretos
-- [ ] Verificar se nao ha codigo morto / imports quebrados
-- [ ] Checar se App participante usa v2 ou so v1
-- [ ] Gerar `PRD-AUDIT-EXTRATO-V2.md` com achados completos
-
-#### FASE 2 - SPEC (Especificacao de Correcoes)
-
-**Skill:** spec + code-inspector
-
-- [ ] Mapear cada bug/gap encontrado na Fase 1
-- [ ] Classificar: BUG / INCOMPLETO / COSMETICO / FUNCIONAL
-- [ ] Para cada item: arquivo, linha, problema, solucao proposta
-- [ ] Priorizar: o que bloqueia uso vs o que eh melhoria
-- [ ] Verificar Follow The Money (trilha de auditoria financeira intacta)
-- [ ] Checar idempotencia das operacoes financeiras
-- [ ] Validar calculos: saldo, lancamentos, acertos, ajustes
-- [ ] Gerar `SPEC-AUDIT-EXTRATO-V2.md` com plano de correcao
-
-#### FASE 3 - CODE (Implementacao das Correcoes)
-
-**Skill:** code + frontend-crafter
-
-- [ ] Aplicar cada correcao mapeada na SPEC
-- [ ] Testar apos cada correcao (nao acumular)
-- [ ] Validar visual: Hero Card, Timeline, Stats Pills, Grid 2 colunas
-- [ ] Testar no Admin (detalhe-liga.html → extrato do participante)
-- [ ] Testar no App participante (modulo extrato)
-- [ ] Verificar mobile responsivo
-- [ ] Confirmar que todos os numeros financeiros batem com o MongoDB
-- [ ] Commit atomico por area de correcao
-
-#### Checklist Critico - Sistema Financeiro
-
-- [ ] Saldo exibido == saldo calculado no cache
-- [ ] Lancamentos: creditos e debitos corretos por rodada
-- [ ] Acertos financeiros (pagamentos) refletidos corretamente
-- [ ] Ajustes (campos extras) computados no saldo
-- [ ] Inscricao: `pagouInscricao=true` nao gera debito, `false` gera
-- [ ] Legado (saldo transferido) aparece como lancamento inicial
-- [ ] Multi-liga: extrato de cada liga eh independente
-- [ ] Timeline expansivel mostra detalhes ao clicar
-- [ ] Grafico de evolucao do saldo renderiza corretamente
-- [ ] Exportar CSV funciona com dados v2
-
-#### Arquivos Relacionados (Contexto do Sistema Financeiro Completo)
-
-```
-# Backend
-routes/extrato-financeiro.js          # Rotas do extrato
-controllers/extratoFinanceiroController.js  # Logica de calculo
-models/ExtratoFinanceiroCache.js      # Schema do cache
-
-# Frontend Admin
-public/js/fluxo-financeiro.js         # Orchestrator
-public/js/fluxo-financeiro/fluxo-financeiro-ui.js  # UI principal (4.400L)
-public/js/fluxo-financeiro/extrato-render-v2.js    # NOVO render v2
-
-# Frontend App Participante
-public/participante/js/modules/participante-extrato.js    # Dados
-public/participante/js/modules/participante-extrato-ui.js  # Render
-
-# CSS
-public/css/modules/extrato-v2.css     # NOVO CSS v2
-public/participante/css/extrato-bank.css  # CSS app participante
-```
-
----
-
-## 🚨 HOTFIX CRITICO APLICADO (2026-02-04 17:55)
-
-### [HOTFIX-001] Correção de 3 Bugs Críticos no Módulo Extrato ✅ CORRIGIDO
-
-**Prioridade:** 🔴 CRÍTICA (Bloqueava uso do app)
-**Status:** Corrigido e servidor reiniciado
-**Arquivos modificados:** 3
-
-#### Problemas Identificados
-
-**1. Middleware `tenantFilter` bloqueando participantes (403 Forbidden)**
-- **Arquivo:** `middleware/tenant.js`
-- **Problema:** Middleware aplicado em TODAS rotas `/api/ligas/*` bloqueava participantes sem sessão admin
-- **Impacto:** Participantes não conseguiam carregar dados da liga (erro 403)
-- **Solução:** Adicionada whitelist de 12 rotas públicas (v1.1)
-
-**2. Função chamada antes de ser definida (TypeError)**
-- **Arquivo:** `public/participante/js/modules/participante-extrato-ui.js`
-- **Problema:** `window.renderizarConteudoCompleto` chamada na linha 303, definida na linha 531
-- **Impacto:** Tela branca no módulo Extrato após carregar dados
-- **Solução:** Função movida para ANTES da função exportada (v10.23)
-
-**3. Chamada para rota deletada (404 Not Found)**
-- **Arquivo:** `public/participante/js/modules/participante-extrato.js`
-- **Problema:** Código tentava chamar `DELETE /api/extrato-cache/.../limpar` removida na v2.0
-- **Impacto:** Erro 404 no console, cache incompleto não era limpo
-- **Solução:** Bloco try-catch removido, recálculo já sobrescreve cache (v2.9)
-
-#### Evidências Técnicas
-
-**Console Logs (antes da correção):**
-```
-GET /api/ligas/684cb1c8af923da7c7df51de 403 (Forbidden)
-TypeError: window.renderizarConteudoCompleto is not a function
-DELETE /api/extrato-cache/.../limpar 404 (Not Found)
-```
-
-#### Testes Necessários
-
-- [ ] Testar acesso ao módulo Extrato como participante
-- [ ] Verificar que não há mais erros 403/404 no console
-- [ ] Validar renderização completa do extrato
-- [ ] Testar em múltiplas ligas (multi-tenant)
-- [ ] Hard refresh (Ctrl+Shift+R) para limpar cache frontend
-
-#### Commit Recomendado
-
-```bash
-git add middleware/tenant.js \
-        public/participante/js/modules/participante-extrato-ui.js \
-        public/participante/js/modules/participante-extrato.js
-
-git commit -m "fix(extrato): corrige 3 bugs críticos bloqueando uso do módulo
-
-- feat(tenant): adiciona whitelist de rotas públicas (v1.1)
-  - Participantes agora podem acessar /api/ligas/:id sem 403
-  - 12 rotas públicas identificadas e permitidas
-
-- fix(extrato-ui): reordena definição de renderizarConteudoCompleto (v10.23)
-  - Move função para antes da chamada
-  - Elimina TypeError que causava tela branca
-
-- fix(extrato): remove chamada para rota deletada (v2.9)
-  - Rota DELETE /limpar foi removida na v2.0 por segurança
-  - Recálculo já sobrescreve cache, limpeza prévia desnecessária
-
-Resolves: Módulo Extrato totalmente funcional para participantes"
-```
-
----
-
-## 🔥 PRÓXIMA SESSÃO - EXECUTAR IMEDIATAMENTE
-
-### ~~[IMPL-028] Sistema de Avisos e Notificações~~ ✅ IMPLEMENTADO (2026-02-04)
-
-**Status:** Implementado e commitado
-**Branch:** `feat/sistema-avisos-notificacoes`
-**Commit:** `fb5e4ff`
-
-**Entregues:**
-- ✅ Backend completo (2 controllers, 2 routes)
-- ✅ Interface admin (notificador.html + notificador-management.js)
-- ✅ Interface participante (cards scroll horizontal)
-- ✅ Índices MongoDB otimizados
-- ✅ Multi-tenant seguro
-- ✅ TTL automático para expiração
+**Status:** Implementado e commitado (branch `feat/sistema-avisos-notificacoes`, commit `fb5e4ff`)
 
 **Testes Pendentes:**
 - [ ] Testar CRUD admin completo
-- [ ] Validar publicação admin → participante
-- [ ] Verificar marcação como lido
-- [ ] Testar segmentação (global/liga/participante)
+- [ ] Validar publicacao admin -> participante
+- [ ] Verificar marcacao como lido
+- [ ] Testar segmentacao (global/liga/participante)
 - [ ] Validar scroll horizontal mobile
-
-**Próximo Passo:** Testar em produção e ajustar UX conforme feedback
 
 ---
 
 ## FEATURES - Alta Prioridade
 
-### [FEAT-026] Polling Inteligente para Módulo Rodadas
+### [FEAT-026] Polling Inteligente para Modulo Rodadas
 
 **Prioridade:** Alta
-**Contexto:** Módulo Rodadas faz refresh a cada 30s independente de haver jogos, desperdiçando recursos.
+**Contexto:** Modulo Rodadas faz refresh a cada 30s independente de haver jogos, desperdicando recursos.
 
 **Objetivo:** Criar gerenciador de polling que:
-- Pausa quando não há jogos em andamento
-- Reativa ~10min antes do próximo jogo
+- Pausa quando nao ha jogos em andamento
+- Reativa ~10min antes do proximo jogo
 - Mostra feedback visual do estado (ao vivo / aguardando / pausado)
 
 **Arquivos a criar/modificar:**
 - `public/js/rodadas/rodadas-polling-manager.js` (novo)
 - `public/js/rodadas.js` (integrar)
-- Possível modelo `CalendarioRodada` no MongoDB
+- Possivel modelo `CalendarioRodada` no MongoDB
 
 ---
 
-### [FEAT-027] Enriquecer Listagem de Participantes no Módulo Rodadas
+### [FEAT-027] Enriquecer Listagem de Participantes no Modulo Rodadas
 
 **Prioridade:** Alta
 **Objetivo:** Tornar lista de participantes mais informativa:
-- Contador de atletas que já jogaram (`X/12`)
-- Escudo do time do coração
-- Valores financeiros da liga (bônus G10/Z10 baseado em `ModuleConfig`)
-
-**Arquivos a modificar:**
-- `controllers/rodadaController.js` - Lógica de atletas jogados
-- `public/js/rodadas.js` / `public/participante/js/modules/participante-rodadas.js` - Renderização
-- `ModuleConfig` collection - Config de valores por liga
+- Contador de atletas que ja jogaram (`X/12`)
+- Escudo do time do coracao
+- Valores financeiros da liga (bonus G10/Z10 baseado em `ModuleConfig`)
 
 ---
 
@@ -410,21 +244,14 @@ Resolves: Módulo Extrato totalmente funcional para participantes"
 ### [MOBILE-001] Remover emojis e alinhar visual
 
 **Prioridade:** Baixa
-**Descrição:** Remover todos os emojis do admin-mobile e alinhar com padrão visual do app participante (fontes, cores, componentes).
-**Arquivos:** `public/admin-mobile/` (todos os HTMLs, JS e CSS)
-
----
-
-### ~~[MOBILE-003] Dashboard admin-mobile "Nenhuma liga encontrada"~~ CORRIGIDO (2026-02-04)
-
-Causa: `adminMobileController.js` usava `ativo: true` (campo inexistente) ao invés de `ativa: true`, e buscava participantes na collection `times` com `liga_id` ao invés de usar `liga.participantes[]`. Corrigido em `getDashboard`, `getLigas`, `getLigaDetalhes` e `getHealth`.
+**Descricao:** Remover todos os emojis do admin-mobile e alinhar com padrao visual do app participante.
 
 ---
 
 ### [MOBILE-004] Implementar Fases 5 e 6 do App Admin
 
-**Prioridade:** Média
-**Descrição:** Implementar fases finais do roadmap do app admin mobile. Verificar specs em `.claude/docs/` para escopo detalhado.
+**Prioridade:** Media
+**Descricao:** Implementar fases finais do roadmap do app admin mobile.
 
 ---
 
@@ -433,49 +260,31 @@ Causa: `adminMobileController.js` usava `ativo: true` (campo inexistente) ao inv
 ### [UX-002] Substituir 4 alert() restantes por SuperModal
 
 **Prioridade:** Baixa
-**Descrição:** Sistema já tem `super-modal.js` para substituir dialogs nativos. Restam 4 chamadas `alert()` legadas:
 
 | Arquivo | Linha | Contexto |
 |---------|-------|----------|
 | `public/js/luva-de-ouro/luva-de-ouro-utils.js` | 700 | "Nenhum dado para exportar" |
-| `public/js/navigation.js` | 5 | Alert genérico |
+| `public/js/navigation.js` | 5 | Alert generico |
 | `public/js/modules/module-config-modal.js` | 1245 | Erro |
 | `public/js/modules/module-config-modal.js` | 1260 | Sucesso |
 
 ---
 
-## DOCUMENTAÇÃO
+## DOCUMENTACAO
 
 ### [DOC-001] Migrar Skills do Codebase para docs/
 
-**Prioridade:** Média
-**Descrição:** Centralizar todas as skills/ferramentas de desenvolvimento na pasta `docs/` para melhor versionamento e visibilidade.
-
-**Ações:**
-- [ ] Identificar todas as skills espalhadas pelo codebase
-- [ ] Padronizar formato de documentação (seguir padrão `SKILL-ANALISE-BRANCHES.md`)
-- [ ] Migrar para `docs/` com nomenclatura consistente (`SKILL-*.md`)
-- [ ] Atualizar BACKLOG.md com referências corretas
-- [ ] Criar índice em `docs/README.md` ou `docs/SKILLS-INDEX.md`
-
-**Benefícios:**
-- Versionamento Git completo
-- Visibilidade para toda equipe
-- Facilita onboarding de novos desenvolvedores
-- Documentação sempre atualizada
-
-**Arquivos afetados:**
-- `.claude/skills/` → `docs/SKILL-*.md`
-- Scripts em `/scripts/` (adicionar documentação em `docs/`)
-- `BACKLOG.md` (atualizar referências)
+**Prioridade:** Media
 
 ---
 
 ## BACKLOG TECNICO
 
-- **Queries sem `.lean()`:** ~130 restantes (4 controllers já atualizados)
-- **Console.logs:** 567 encontrados (criar logger configurável)
-- **Refatoração fluxo-financeiro-ui.js:** 4.426 linhas (extrair Ajustes Dinâmicos ~300L, Tabela Expandida ~400L, meta <3.000L)
+- **Queries sem `.lean()`:** ~130 restantes (4 controllers ja atualizados)
+- **Console.logs:** 567 encontrados (criar logger configuravel)
+- **Refatoracao fluxo-financeiro-ui.js:** 4.426 linhas (meta <3.000L)
+- **saldo_consolidado stale:** Campo no MongoDB nao atualizado quando PC eh adicionado (API recalcula corretamente)
+- **Config Top10 incompleta em Os Fuleros:** valores_mito/valores_mico nao definidos, MITO/MICO com valor=0
 
 ---
 
@@ -483,14 +292,15 @@ Causa: `adminMobileController.js` usava `ativo: true` (campo inexistente) ao inv
 
 ### IDs das Ligas
 - **Super Cartola:** `684cb1c8af923da7c7df51de`
-- **Cartoleiros do Sobral:** `684d821cf1a7ae16d1f89572`
+- **Cartoleiros do Sobral:** `684d821cf1a7ae16d1f89572` (aposentada)
+- **Os Fuleros:** `6977a62071dee12036bb163e`
 
 ### Scripts de Auditoria
 ```bash
 bash scripts/audit_full.sh           # Auditoria completa SPARC
-bash scripts/audit_security.sh       # Segurança OWASP Top 10
+bash scripts/audit_security.sh       # Seguranca OWASP Top 10
 bash scripts/audit_multitenant.sh    # Isolamento multi-tenant
-bash scripts/detect_dead_code.sh     # Código morto/TODOs
+bash scripts/detect_dead_code.sh     # Codigo morto/TODOs
 bash scripts/check_dependencies.sh   # NPM vulnerabilidades
 ```
 

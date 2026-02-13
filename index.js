@@ -192,7 +192,6 @@ import adminMobileRoutes from "./routes/admin-mobile-routes.js";
 import * as analyticsController from "./controllers/analyticsController.js";
 import adminMigracaoRoutes from "./routes/admin/migracao.js";
 import adminMigracaoValidacaoRoutes from "./routes/admin/migracao-validacao.js";
-import githubAnalyticsRoutes from "./routes/github-analytics-routes.js";
 console.log("[DEBUG] adminAuthRoutes type:", typeof adminAuthRoutes);
 console.log(
   "[DEBUG] adminAuthRoutes.stack length:",
@@ -445,10 +444,6 @@ console.log("[SERVER] ✅ Rota de validação de migração registrada");
 app.use("/api/admin/mobile", adminMobileRoutes);
 console.log("[SERVER] 📱 Rotas de Admin Mobile registradas");
 
-// 🐙 GitHub Analytics - Integração com GitHub API (admin)
-app.use("/api/github", githubAnalyticsRoutes);
-console.log("[SERVER] 🐙 Rotas de GitHub Analytics registradas");
-
 // 🔧 Modo Manutenção do App
 app.use("/api/admin", manutencaoRoutes);
 console.log("[SERVER] 🔧 Rotas de modo manutenção registradas");
@@ -557,6 +552,8 @@ app.get("/api/admin/analytics/branch/:nomeBranch", analyticsController.getAnatyt
 app.get("/api/admin/analytics/merges", analyticsController.getAnalyticsMerges);
 app.get("/api/admin/analytics/funcionalidades", analyticsController.getAnalyticsFuncionalidades);
 app.get("/api/admin/analytics/estatisticas", analyticsController.getAnalyticsEstatisticas);
+app.get("/api/admin/analytics/sync-status", analyticsController.getGitSyncStatus);
+app.post("/api/admin/analytics/sync-trigger", analyticsController.postGitSyncTrigger);
 console.log("[SERVER] 📊 Rotas de Analytics (session) registradas em /api/admin/analytics");
 
 // 📢 Avisos In-App (Notificador)

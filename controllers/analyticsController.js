@@ -733,10 +733,129 @@ export async function getAnalyticsEstatisticas(req, res) {
   }
 }
 
+// =====================================================================
+// SYNC FUNCTIONS (Git Local Integration)
+// =====================================================================
+
+import { execSync } from 'child_process';
+
+// Cache simples (TTL: 2 minutos)
+const syncCache = {
+  status: { data: null, timestamp: 0, ttl: 120000 }
+};
+
+function getSyncCachedData() {
+  const cached = syncCache.status;
+  if (cached.data && (Date.now() - cached.timestamp) < cached.ttl) {
+    return cached.data;
+  }
+  return null;
+}
+
+function setSyncCachedData(data) {
+  syncCache.status.data = data;
+  syncCache.status.timestamp = Date.now();
+}
+
+function executeGitCommand(command) {
+  try {
+    return execSync(command, {
+      encoding: 'utf-8',
+      maxBuffer: 10 * 1024 * 1024,
+      stdio: ['pipe', 'pipe', 'ignore']
+    }).trim();
+  } catch (error) {
+    console.error(`[Analytics] Erro ao executar comando: ${command}`, error.message);
+    return '';
+  }
+}
+
+/**
+ * GET /api/admin/analytics/sync-status
+ * Retorna status de sincronização local vs remoto
+ */
+export async function getGitSyncStatus(req, res) {
+  try {
+    // Verificar cache
+    const cached = getSyncCachedData();
+    if (cached) {
+      return res.json(cached);
+    }
+
+    // Fetch origin
+    executeGitCommand('git fetch origin --quiet 2>/dev/null');
+
+    // Branch atual
+    const currentBranch = executeGitCommand('git rev-parse --abbrev-ref HEAD');
+
+    // Commits behind/ahead
+    const behindCmd = `git rev-list --count HEAD..origin/${currentBranch}`;
+    const aheadCmd = `git rev-list --count origin/${currentBranch}..HEAD`;
+
+    const behind = parseInt(executeGitCommand(behindCmd)) || 0;
+    const ahead = parseInt(executeGitCommand(aheadCmd)) || 0;
+
+    const status = {
+      currentBranch,
+      behind,
+      ahead,
+      synced: behind === 0 && ahead === 0,
+      message: behind === 0 && ahead === 0 ? 'Sincronizado' :
+               behind > 0 && ahead === 0 ? `${behind} commits atrás` :
+               behind === 0 && ahead > 0 ? `${ahead} commits à frente` :
+               `${behind} atrás, ${ahead} à frente`
+    };
+
+    setSyncCachedData(status);
+    res.json(status);
+
+  } catch (erro) {
+    console.error('[Analytics] Erro em getGitSyncStatus:', erro.message);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao verificar status de sincronização',
+      message: erro.message
+    });
+  }
+}
+
+/**
+ * POST /api/admin/analytics/sync-trigger
+ * Executa git pull para sincronizar
+ */
+export async function postGitSyncTrigger(req, res) {
+  try {
+    // Limpar cache
+    syncCache.status.data = null;
+
+    const currentBranch = executeGitCommand('git rev-parse --abbrev-ref HEAD');
+
+    // Executar git pull
+    const output = executeGitCommand(`git pull origin ${currentBranch}`);
+
+    res.json({
+      success: true,
+      message: 'Sincronização concluída',
+      branch: currentBranch,
+      output: output.substring(0, 500) // Limitar tamanho
+    });
+
+  } catch (erro) {
+    console.error('[Analytics] Erro em postGitSyncTrigger:', erro.message);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao sincronizar',
+      message: erro.message
+    });
+  }
+}
+
 export default {
   getAnalyticsResumo,
   getAnatyticsBranchDetalhes,
   getAnalyticsMerges,
   getAnalyticsFuncionalidades,
-  getAnalyticsEstatisticas
+  getAnalyticsEstatisticas,
+  getGitSyncStatus,
+  postGitSyncTrigger
 };

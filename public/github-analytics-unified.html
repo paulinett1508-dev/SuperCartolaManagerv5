@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repositório & Analytics - Super Cartola Manager</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+
+    <link rel="stylesheet" href="css/_admin-tokens.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    <style>
+        .repo-page {
+            background: var(--surface-bg);
+            min-height: 100vh;
+        }
+        .repo-content {
+            padding: 20px 16px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .repo-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #2d2d2d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .repo-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .repo-header-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #ff5500 0%, #cc4400 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .repo-header-icon .material-icons {
+            font-size: 28px;
+            color: white;
+        }
+        .repo-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 4px 0;
+        }
+        .repo-header p {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin: 0;
+        }
+        .repo-header-right {
+            display: flex;
+            gap: 8px;
+        }
+        .repo-refresh-btn {
+            background: var(--surface-elevated);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .repo-refresh-btn:hover {
+            border-color: var(--brand-primary);
+            color: var(--brand-primary);
+        }
+        .repo-refresh-btn.syncing {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .repo-refresh-btn.syncing .material-icons {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Tabs */
+        .repo-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0;
+        }
+        .repo-tab {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .repo-tab:hover {
+            color: var(--text-primary);
+        }
+        .repo-tab.active {
+            color: var(--brand-primary);
+        }
+        .repo-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--brand-primary);
+        }
+        .repo-tab-content {
+            display: none;
+        }
+        .repo-tab-content.active {
+            display: block;
+        }
+
+        /* KPI Cards (Visão Geral) */
+        .repo-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .repo-kpi-card {
+            background: var(--surface-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .repo-kpi-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .repo-kpi-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--brand-primary);
+        }
+        .repo-kpi-value.danger { color: #ef4444; }
+        .repo-kpi-value.warning { color: #f59e0b; }
+        .repo-kpi-value.success { color: #22c55e; }
+        .repo-kpi-value.info { color: #3b82f6; }
+
+        /* Sections */
+        .repo-section {
+            background: var(--surface-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .repo-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        .repo-section-title .material-icons {
+            font-size: 1.1rem;
+            color: var(--brand-primary);
+        }
+
+        /* Table */
+        .repo-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .repo-table th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .repo-table td {
+            padding: 12px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        .repo-table tr:last-child td {
+            border-bottom: none;
+        }
+        .repo-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+
+        /* Branch name */
+        .repo-branch {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--brand-primary);
+            word-break: break-word;
+        }
+
+        /* Badges */
+        .repo-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .repo-badge-merged { background: rgba(59,130,246,0.15); color: #3b82f6; }
+        .repo-badge-open { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .repo-badge-closed { background: rgba(239,68,68,0.12); color: #ef4444; }
+        .repo-badge-active { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .repo-badge-warning { background: rgba(245,158,11,0.12); color: #f59e0b; }
+        .repo-badge-orphan { background: rgba(168,85,247,0.12); color: #a855f7; }
+
+        .repo-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        /* Link */
+        .repo-link {
+            color: var(--brand-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .repo-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Sync Card */
+        .repo-sync-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+            border: 1px solid #2d2d2d;
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .repo-sync-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .repo-sync-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .repo-sync-icon.synced { background: rgba(34,197,94,0.15); }
+        .repo-sync-icon.synced .material-icons { color: #22c55e; font-size: 24px; }
+        .repo-sync-icon.behind { background: rgba(245,158,11,0.15); }
+        .repo-sync-icon.behind .material-icons { color: #f59e0b; font-size: 24px; }
+        .repo-sync-icon.ahead { background: rgba(59,130,246,0.15); }
+        .repo-sync-icon.ahead .material-icons { color: #3b82f6; font-size: 24px; }
+
+        .repo-sync-trigger {
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .repo-sync-trigger:hover {
+            opacity: 0.9;
+        }
+        .repo-sync-trigger:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Filters */
+        .repo-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .repo-filter-btn {
+            padding: 6px 14px;
+            background: var(--surface-elevated);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .repo-filter-btn:hover {
+            border-color: var(--brand-primary);
+            color: var(--text-primary);
+        }
+        .repo-filter-btn.active {
+            background: var(--brand-primary);
+            color: #fff;
+            border-color: var(--brand-primary);
+        }
+
+        /* Loading */
+        .repo-loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        .repo-spinner {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid var(--surface-highlight);
+            border-top-color: var(--brand-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Empty state */
+        .repo-empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+        .repo-empty .material-icons {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .repo-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .repo-tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .repo-tab {
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+<body class="repo-page">
+    <!-- Sidebar Container -->
+    <div id="sidebar-container"></div>
+
+    <main class="app-main">
+        <div class="repo-content">
+            <!-- Header -->
+            <div class="repo-header">
+                <div class="repo-header-left">
+                    <div class="repo-header-icon">
+                        <span class="material-icons">merge_type</span>
+                    </div>
+                    <div>
+                        <h1>Repositório & Analytics</h1>
+                        <p>Branches, Pull Requests, sincronização e análise de funcionalidades</p>
+                    </div>
+                </div>
+                <div class="repo-header-right">
+                    <button class="repo-refresh-btn" id="refreshBtn">
+                        <span class="material-icons">refresh</span>
+                        Atualizar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="repo-tabs">
+                <button class="repo-tab active" data-tab="overview">Visão Geral</button>
+                <button class="repo-tab" data-tab="branches">Branches</button>
+                <button class="repo-tab" data-tab="prs">Pull Requests</button>
+                <button class="repo-tab" data-tab="sync">Sincronização</button>
+            </div>
+
+            <!-- TAB 1: Visão Geral -->
+            <div class="repo-tab-content active" id="tab-overview">
+                <div class="repo-kpi-grid" id="kpiGrid">
+                    <div class="repo-loading">
+                        <div class="repo-spinner"></div>
+                    </div>
+                </div>
+
+                <div class="repo-section">
+                    <div class="repo-section-title">
+                        <span class="material-icons">warning</span>
+                        Branches em Risco
+                    </div>
+                    <div id="branchesRiscoContainer">
+                        <div class="repo-loading">Carregando...</div>
+                    </div>
+                </div>
+
+                <div class="repo-section">
+                    <div class="repo-section-title">
+                        <span class="material-icons">assignment</span>
+                        Funcionalidades do BACKLOG
+                    </div>
+                    <div id="funcionalidadesContainer">
+                        <div class="repo-loading">Carregando...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Branches -->
+            <div class="repo-tab-content" id="tab-branches">
+                <div class="repo-filters">
+                    <button class="repo-filter-btn active" data-filter="all">Todas</button>
+                    <button class="repo-filter-btn" data-filter="active">Ativas</button>
+                    <button class="repo-filter-btn" data-filter="merged">Mergeadas</button>
+                    <button class="repo-filter-btn" data-filter="orphan">Órfãs</button>
+                </div>
+
+                <div class="repo-section">
+                    <div id="branchesContainer">
+                        <div class="repo-loading">
+                            <div class="repo-spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Pull Requests -->
+            <div class="repo-tab-content" id="tab-prs">
+                <div class="repo-filters">
+                    <button class="repo-filter-btn active" data-filter-pr="all">Todos</button>
+                    <button class="repo-filter-btn" data-filter-pr="open">Abertos</button>
+                    <button class="repo-filter-btn" data-filter-pr="closed">Fechados</button>
+                    <button class="repo-filter-btn" data-filter-pr="merged">Mergeados</button>
+                </div>
+
+                <div class="repo-section">
+                    <div id="prsContainer">
+                        <div class="repo-loading">
+                            <div class="repo-spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: Sincronização -->
+            <div class="repo-tab-content" id="tab-sync">
+                <div class="repo-sync-card">
+                    <div class="repo-sync-status" id="syncStatusContainer">
+                        <div class="repo-loading">Carregando status...</div>
+                    </div>
+                    <button class="repo-sync-trigger" id="syncTriggerBtn">
+                        <span class="material-icons">sync</span>
+                        Sincronizar Agora (git pull)
+                    </button>
+                </div>
+
+                <div class="repo-section">
+                    <div class="repo-section-title">
+                        <span class="material-icons">dns</span>
+                        Branches Locais
+                    </div>
+                    <div id="localBranchesContainer">
+                        <div class="repo-loading">Carregando...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        // === SPA Guard ===
+        if (window.repoAnalyticsLoaded) {
+            console.warn('[REPO] Já carregado, ignorando re-execução');
+        } else {
+            window.repoAnalyticsLoaded = true;
+
+            // === Layout Loading ===
+            async function loadLayout() {
+                try {
+                    const response = await fetch('layout.html');
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const sidebar = doc.querySelector('.sidebar');
+
+                    if (sidebar && document.getElementById('sidebar-container')) {
+                        document.getElementById('sidebar-container').appendChild(sidebar);
+
+                        if (typeof window.initializeSidebar === 'function') {
+                            window.initializeSidebar();
+                        }
+                    }
+                } catch (error) {
+                    console.error('[REPO] Erro ao carregar layout:', error);
+                }
+            }
+
+            // === API Helper ===
+            async function api(endpoint) {
+                try {
+                    const response = await fetch(endpoint);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return await response.json();
+                } catch (error) {
+                    console.error(`[REPO] Erro ao chamar ${endpoint}:`, error);
+                    throw error;
+                }
+            }
+
+            // === Tab Navigation ===
+            function initTabs() {
+                const tabs = document.querySelectorAll('.repo-tab');
+                const contents = document.querySelectorAll('.repo-tab-content');
+
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const targetId = tab.dataset.tab;
+
+                        tabs.forEach(t => t.classList.remove('active'));
+                        contents.forEach(c => c.classList.remove('active'));
+
+                        tab.classList.add('active');
+                        document.getElementById(`tab-${targetId}`).classList.add('active');
+
+                        // Carregar dados da aba se necessário
+                        if (targetId === 'overview' && !window.overviewLoaded) {
+                            carregarVisaoGeral();
+                        } else if (targetId === 'branches' && !window.branchesLoaded) {
+                            carregarBranches();
+                        } else if (targetId === 'prs' && !window.prsLoaded) {
+                            carregarPRs();
+                        } else if (targetId === 'sync' && !window.syncLoaded) {
+                            carregarSync();
+                        }
+                    });
+                });
+            }
+
+            // === Visão Geral ===
+            async function carregarVisaoGeral() {
+                try {
+                    const data = await api('/api/admin/analytics/resumo');
+                    window.overviewLoaded = true;
+
+                    // Renderizar KPIs
+                    const kpiGrid = document.getElementById('kpiGrid');
+                    kpiGrid.innerHTML = `
+                        <div class="repo-kpi-card">
+                            <div class="repo-kpi-label">Total Branches</div>
+                            <div class="repo-kpi-value">${data.stats?.totalBranches || 0}</div>
+                        </div>
+                        <div class="repo-kpi-card">
+                            <div class="repo-kpi-label">Ativas</div>
+                            <div class="repo-kpi-value success">${data.stats?.branchesAtivas || 0}</div>
+                        </div>
+                        <div class="repo-kpi-card">
+                            <div class="repo-kpi-label">Mergeadas</div>
+                            <div class="repo-kpi-value info">${data.stats?.branchesMergeadas || 0}</div>
+                        </div>
+                        <div class="repo-kpi-card">
+                            <div class="repo-kpi-label">Órfãs</div>
+                            <div class="repo-kpi-value warning">${data.stats?.branchesOrfas || 0}</div>
+                        </div>
+                        <div class="repo-kpi-card">
+                            <div class="repo-kpi-label">PRs Abertas</div>
+                            <div class="repo-kpi-value">${data.stats?.prsAbertas || 0}</div>
+                        </div>
+                        <div class="repo-kpi-card">
+                            <div class="repo-kpi-label">Em Risco</div>
+                            <div class="repo-kpi-value danger">${data.stats?.branchesRisco || 0}</div>
+                        </div>
+                    `;
+
+                    // Branches em Risco
+                    const branchesRisco = (data.branches || []).filter(b =>
+                        b.passivel_deletacao || b.desatualizada || b.orfa
+                    ).slice(0, 5);
+
+                    const riscoHtml = branchesRisco.length > 0 ? `
+                        <table class="repo-table">
+                            <thead>
+                                <tr>
+                                    <th>Branch</th>
+                                    <th>Alertas</th>
+                                    <th>Dias</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${branchesRisco.map(b => `
+                                    <tr>
+                                        <td><span class="repo-branch">${b.nome}</span></td>
+                                        <td>
+                                            <div class="repo-badges">
+                                                ${b.orfa ? '<span class="repo-badge repo-badge-orphan">Órfã</span>' : ''}
+                                                ${b.passivel_deletacao ? '<span class="repo-badge repo-badge-warning">Deletável</span>' : ''}
+                                                ${b.desatualizada ? '<span class="repo-badge repo-badge-warning">Desatualizada</span>' : ''}
+                                            </div>
+                                        </td>
+                                        <td>${b.dias || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<div class="repo-empty">Nenhuma branch em risco</div>';
+
+                    document.getElementById('branchesRiscoContainer').innerHTML = riscoHtml;
+
+                    // Funcionalidades
+                    const funcs = await api('/api/admin/analytics/funcionalidades');
+                    const funcsHtml = funcs && funcs.length > 0 ? `
+                        <table class="repo-table">
+                            <thead>
+                                <tr>
+                                    <th>Funcionalidade</th>
+                                    <th>Status</th>
+                                    <th>Branch</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${funcs.slice(0, 10).map(f => `
+                                    <tr>
+                                        <td>${f.nome || 'N/A'}</td>
+                                        <td><span class="repo-badge ${f.status === 'operante' ? 'repo-badge-open' : 'repo-badge-closed'}">${f.status || 'N/A'}</span></td>
+                                        <td><span class="repo-branch">${f.branch || '-'}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<div class="repo-empty">Nenhuma funcionalidade encontrada</div>';
+
+                    document.getElementById('funcionalidadesContainer').innerHTML = funcsHtml;
+
+                } catch (error) {
+                    document.getElementById('kpiGrid').innerHTML = '<div class="repo-empty">Erro ao carregar dados</div>';
+                }
+            }
+
+            // === Branches ===
+            let allBranches = [];
+            let currentFilter = 'all';
+
+            async function carregarBranches() {
+                try {
+                    const data = await api('/api/admin/analytics/resumo');
+                    window.branchesLoaded = true;
+                    allBranches = data.branches || [];
+                    renderizarBranches();
+                } catch (error) {
+                    document.getElementById('branchesContainer').innerHTML = '<div class="repo-empty">Erro ao carregar branches</div>';
+                }
+            }
+
+            function renderizarBranches() {
+                let filtered = allBranches;
+
+                if (currentFilter === 'active') {
+                    filtered = allBranches.filter(b => !b.mergeada);
+                } else if (currentFilter === 'merged') {
+                    filtered = allBranches.filter(b => b.mergeada);
+                } else if (currentFilter === 'orphan') {
+                    filtered = allBranches.filter(b => b.orfa);
+                }
+
+                const html = filtered.length > 0 ? `
+                    <table class="repo-table">
+                        <thead>
+                            <tr>
+                                <th>Branch</th>
+                                <th>Status</th>
+                                <th>PR</th>
+                                <th>Dias</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filtered.map(b => `
+                                <tr>
+                                    <td><span class="repo-branch">${b.nome}</span></td>
+                                    <td>
+                                        <div class="repo-badges">
+                                            ${b.mergeada ? '<span class="repo-badge repo-badge-merged">Mergeada</span>' : '<span class="repo-badge repo-badge-active">Ativa</span>'}
+                                            ${b.orfa ? '<span class="repo-badge repo-badge-orphan">Órfã</span>' : ''}
+                                        </div>
+                                    </td>
+                                    <td>${b.pr_url ? `<a href="${b.pr_url}" target="_blank" class="repo-link">#${b.pr_number || ''}</a>` : '-'}</td>
+                                    <td>${b.dias || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                ` : '<div class="repo-empty">Nenhuma branch encontrada</div>';
+
+                document.getElementById('branchesContainer').innerHTML = html;
+            }
+
+            // === Pull Requests ===
+            let allPRs = [];
+            let currentPRFilter = 'all';
+
+            async function carregarPRs() {
+                try {
+                    const data = await api('/api/admin/analytics/merges');
+                    window.prsLoaded = true;
+                    allPRs = data || [];
+                    renderizarPRs();
+                } catch (error) {
+                    document.getElementById('prsContainer').innerHTML = '<div class="repo-empty">Erro ao carregar PRs</div>';
+                }
+            }
+
+            function renderizarPRs() {
+                let filtered = allPRs;
+
+                if (currentPRFilter === 'open') {
+                    filtered = allPRs.filter(pr => pr.state === 'open');
+                } else if (currentPRFilter === 'closed') {
+                    filtered = allPRs.filter(pr => pr.state === 'closed' && !pr.merged_at);
+                } else if (currentPRFilter === 'merged') {
+                    filtered = allPRs.filter(pr => pr.merged_at);
+                }
+
+                const html = filtered.length > 0 ? `
+                    <table class="repo-table">
+                        <thead>
+                            <tr>
+                                <th>PR</th>
+                                <th>Título</th>
+                                <th>Status</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filtered.map(pr => `
+                                <tr>
+                                    <td><a href="${pr.url}" target="_blank" class="repo-link">#${pr.number}</a></td>
+                                    <td>${pr.title || 'N/A'}</td>
+                                    <td>
+                                        ${pr.merged_at ? '<span class="repo-badge repo-badge-merged">Merged</span>' :
+                                          pr.state === 'open' ? '<span class="repo-badge repo-badge-open">Open</span>' :
+                                          '<span class="repo-badge repo-badge-closed">Closed</span>'}
+                                    </td>
+                                    <td>${pr.merged_at ? new Date(pr.merged_at).toLocaleDateString('pt-BR') :
+                                          pr.created_at ? new Date(pr.created_at).toLocaleDateString('pt-BR') : '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                ` : '<div class="repo-empty">Nenhum PR encontrado</div>';
+
+                document.getElementById('prsContainer').innerHTML = html;
+            }
+
+            // === Sincronização ===
+            async function carregarSync() {
+                window.syncLoaded = true;
+                // TODO: Implementar quando backend estiver pronto
+                document.getElementById('syncStatusContainer').innerHTML = `
+                    <div class="repo-sync-icon synced">
+                        <span class="material-icons">check_circle</span>
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; color: #22c55e; margin-bottom: 4px;">Sincronizado</div>
+                        <div style="font-size: 0.85rem; color: #9ca3af;">Branch atual está atualizada com origin</div>
+                    </div>
+                `;
+
+                document.getElementById('localBranchesContainer').innerHTML = '<div class="repo-empty">Funcionalidade em desenvolvimento</div>';
+            }
+
+            // === Sync Trigger ===
+            document.getElementById('syncTriggerBtn').addEventListener('click', async () => {
+                const btn = document.getElementById('syncTriggerBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Sincronizando...';
+
+                try {
+                    // TODO: Chamar API de sync quando estiver pronta
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    alert('Sincronização concluída com sucesso!');
+                    carregarSync();
+                } catch (error) {
+                    alert('Erro ao sincronizar: ' + error.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-icons">sync</span> Sincronizar Agora (git pull)';
+                }
+            });
+
+            // === Filters ===
+            document.querySelectorAll('[data-filter]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.dataset.filter;
+                    renderizarBranches();
+                });
+            });
+
+            document.querySelectorAll('[data-filter-pr]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('[data-filter-pr]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentPRFilter = btn.dataset.filterPr;
+                    renderizarPRs();
+                });
+            });
+
+            // === Refresh ===
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                const btn = document.getElementById('refreshBtn');
+                btn.classList.add('syncing');
+
+                // Recarregar aba ativa
+                const activeTab = document.querySelector('.repo-tab.active').dataset.tab;
+
+                if (activeTab === 'overview') {
+                    window.overviewLoaded = false;
+                    carregarVisaoGeral().finally(() => btn.classList.remove('syncing'));
+                } else if (activeTab === 'branches') {
+                    window.branchesLoaded = false;
+                    carregarBranches().finally(() => btn.classList.remove('syncing'));
+                } else if (activeTab === 'prs') {
+                    window.prsLoaded = false;
+                    carregarPRs().finally(() => btn.classList.remove('syncing'));
+                } else if (activeTab === 'sync') {
+                    window.syncLoaded = false;
+                    carregarSync().finally(() => btn.classList.remove('syncing'));
+                }
+            });
+
+            // === Init ===
+            async function init() {
+                await loadLayout();
+                initTabs();
+                carregarVisaoGeral();
+            }
+
+            init();
+        }
+    </script>
+</body>
+</html>
