@@ -195,6 +195,32 @@
 
 ---
 
+## 🔴 BUG - Cache Stale Apos Pontos Corridos
+
+### [BUG-001] ganhos/perdas_consolidadas nao recalculados na consolidacao PC
+
+**Prioridade:** 🔴 ALTA
+**Status:** PENDENTE (detectado 2026-02-12, confirmado 2026-02-13)
+**Afeta:** TODOS participantes Super Cartola 2026 com resultados PC
+**Delta:** R$5 por participante (valor PC da R2)
+
+**Root cause:** `fluxoFinanceiroController.js` L1207-1213 — consolidacao PC faz `$push` em `historico_transacoes` e incrementa `saldo_consolidado`, mas NAO recalcula `ganhos_consolidados` e `perdas_consolidadas`. Path de rodada atual (L835-841) faz corretamente.
+
+**Participantes afetados (auditoria 12/02):**
+| Participante | Cache | Real | Delta |
+|---|---|---|---|
+| China Guardiola | R$248,54 | R$243,54 | -R$5 |
+| Diego Barbosa | R$20,00 | R$25,00 | +R$5 |
+| Felipe Barbosa | R$15,00 | R$20,00 | +R$5 |
+| Paulinett Miranda | R$-27,00 | R$-32,00 | -R$5 |
+
+**Acoes:**
+- [ ] Fix no path de consolidacao (replicar L835-841 em L1207-1213)
+- [ ] Rodar `scripts/reconciliar-saldos-financeiros.js --dry-run` para validar
+- [ ] Rodar reconciliacao com `--force` para corrigir caches afetados
+
+---
+
 ## 🔥 PROXIMA SESSAO - Tarefas Restantes
 
 ### [IMPL-028] Sistema de Avisos e Notificacoes ✅ IMPLEMENTADO (2026-02-04)
@@ -285,6 +311,7 @@
 - **Refatoracao fluxo-financeiro-ui.js:** 4.426 linhas (meta <3.000L)
 - **saldo_consolidado stale:** Campo no MongoDB nao atualizado quando PC eh adicionado (API recalcula corretamente)
 - **Config Top10 incompleta em Os Fuleros:** valores_mito/valores_mico nao definidos, MITO/MICO com valor=0
+- ~~**Arquivos nao commitados (analytics):**~~ Resolvido 2026-02-13 — 4/5 ja commitados, `dashboard-analytics.html` nao existe (removido ou nunca criado)
 
 ---
 

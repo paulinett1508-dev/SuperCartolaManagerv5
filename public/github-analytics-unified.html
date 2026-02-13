@@ -373,6 +373,81 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Search Bar */
+        .repo-search-container {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .repo-search-box {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .repo-search-icon {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            font-size: 20px;
+            pointer-events: none;
+        }
+
+        .repo-search-input {
+            width: 100%;
+            padding: 10px 40px 10px 44px;
+            background: var(--surface-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .repo-search-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.1);
+        }
+
+        .repo-search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .repo-search-clear {
+            position: absolute;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .repo-search-clear:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .repo-search-results {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .repo-badge-info {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .repo-header {
@@ -411,6 +486,26 @@
                         <span class="material-icons">refresh</span>
                         Atualizar
                     </button>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="repo-search-container">
+                <div class="repo-search-box">
+                    <span class="material-icons repo-search-icon">search</span>
+                    <input
+                        type="text"
+                        id="repoSearchInput"
+                        class="repo-search-input"
+                        placeholder="Buscar branches, PRs, merges..."
+                        autocomplete="off"
+                    />
+                    <button class="repo-search-clear" id="searchClearBtn" style="display: none;">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="repo-search-results" id="searchResultsCounter" style="display: none;">
+                    <span class="repo-badge repo-badge-info" id="resultsCount">0 resultados</span>
                 </div>
             </div>
 
@@ -457,7 +552,7 @@
                     <button class="repo-filter-btn active" data-filter="all">Todas</button>
                     <button class="repo-filter-btn" data-filter="active">Ativas</button>
                     <button class="repo-filter-btn" data-filter="merged">Mergeadas</button>
-                    <button class="repo-filter-btn" data-filter="orphan">Órfãs</button>
+                    <button class="repo-filter-btn" data-filter="orphan">Sem PR</button>
                 </div>
 
                 <div class="repo-section">
@@ -522,19 +617,44 @@
             // === Layout Loading ===
             async function loadLayout() {
                 try {
-                    const response = await fetch('layout.html');
-                    const html = await response.text();
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const sidebar = doc.querySelector('.sidebar');
+                    // Não recarregar se sidebar já existe (navegação SPA)
+                    if (document.querySelector('.app-sidebar')) {
+                        console.log('[REPO] Sidebar já existe, pulando loadLayout');
+                        return;
+                    }
 
+                    const response = await fetch('layout.html');
+                    const layoutHtml = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, 'text/html');
+
+                    const sidebar = doc.querySelector('.app-sidebar');
                     if (sidebar && document.getElementById('sidebar-container')) {
                         document.getElementById('sidebar-container').appendChild(sidebar);
-
-                        if (typeof window.initializeSidebar === 'function') {
-                            window.initializeSidebar();
-                        }
                     }
+
+                    // Injetar scripts do layout na PRIMEIRA carga
+                    if (!window.__layoutScriptsInjected) {
+                        window.__layoutScriptsInjected = true;
+                        const scripts = doc.querySelectorAll('script');
+                        scripts.forEach((script) => {
+                            if (script.textContent.trim()) {
+                                const newScript = document.createElement('script');
+                                newScript.textContent = `(function(){${script.textContent}})();`;
+                                document.head.appendChild(newScript);
+                            }
+                        });
+                    }
+
+                    // Inicializar AccordionManager após scripts carregados
+                    setTimeout(() => {
+                        if (window.AccordionManager && !window.AccordionManager._initialized) {
+                            window.AccordionManager.init();
+                        }
+                        if (typeof window.verificarMenuSuperAdmin === 'function') {
+                            window.verificarMenuSuperAdmin();
+                        }
+                    }, 150);
                 } catch (error) {
                     console.error('[REPO] Erro ao carregar layout:', error);
                 }
@@ -603,7 +723,7 @@
                             <div class="repo-kpi-value info">${data.stats?.branchesMergeadas || 0}</div>
                         </div>
                         <div class="repo-kpi-card">
-                            <div class="repo-kpi-label">Órfãs</div>
+                            <div class="repo-kpi-label">Sem PR</div>
                             <div class="repo-kpi-value warning">${data.stats?.branchesOrfas || 0}</div>
                         </div>
                         <div class="repo-kpi-card">
@@ -636,7 +756,7 @@
                                         <td><span class="repo-branch">${b.nome}</span></td>
                                         <td>
                                             <div class="repo-badges">
-                                                ${b.orfa ? '<span class="repo-badge repo-badge-orphan">Órfã</span>' : ''}
+                                                ${b.orfa ? '<span class="repo-badge repo-badge-orphan">Falta PR</span>' : ''}
                                                 ${b.passivel_deletacao ? '<span class="repo-badge repo-badge-warning">Deletável</span>' : ''}
                                                 ${b.desatualizada ? '<span class="repo-badge repo-badge-warning">Desatualizada</span>' : ''}
                                             </div>
@@ -683,6 +803,7 @@
             // === Branches ===
             let allBranches = [];
             let currentFilter = 'all';
+            let searchQuery = '';
 
             async function carregarBranches() {
                 try {
@@ -706,6 +827,15 @@
                     filtered = allBranches.filter(b => b.orfa);
                 }
 
+                // Aplicar busca (SE houver query) - múltiplas palavras
+                if (searchQuery.trim()) {
+                    const keywords = searchQuery.toLowerCase().split(/\s+/).filter(k => k.length > 0);
+                    filtered = filtered.filter(b => {
+                        const nome = b.nome.toLowerCase();
+                        return keywords.some(keyword => nome.includes(keyword));
+                    });
+                }
+
                 const html = filtered.length > 0 ? `
                     <table class="repo-table">
                         <thead>
@@ -723,7 +853,7 @@
                                     <td>
                                         <div class="repo-badges">
                                             ${b.mergeada ? '<span class="repo-badge repo-badge-merged">Mergeada</span>' : '<span class="repo-badge repo-badge-active">Ativa</span>'}
-                                            ${b.orfa ? '<span class="repo-badge repo-badge-orphan">Órfã</span>' : ''}
+                                            ${b.orfa ? '<span class="repo-badge repo-badge-orphan">Falta PR</span>' : ''}
                                         </div>
                                     </td>
                                     <td>${b.pr_url ? `<a href="${b.pr_url}" target="_blank" class="repo-link">#${b.pr_number || ''}</a>` : '-'}</td>
@@ -763,6 +893,18 @@
                     filtered = allPRs.filter(pr => pr.merged_at);
                 }
 
+                // Aplicar busca (SE houver query) - múltiplas palavras
+                if (searchQuery.trim()) {
+                    const keywords = searchQuery.toLowerCase().split(/\s+/).filter(k => k.length > 0);
+                    filtered = filtered.filter(pr => {
+                        const title = (pr.title || '').toLowerCase();
+                        const branch = (pr.head?.ref || '').toLowerCase();
+                        return keywords.some(keyword =>
+                            title.includes(keyword) || branch.includes(keyword)
+                        );
+                    });
+                }
+
                 const html = filtered.length > 0 ? `
                     <table class="repo-table">
                         <thead>
@@ -793,6 +935,69 @@
 
                 document.getElementById('prsContainer').innerHTML = html;
             }
+
+            // === Search Functionality ===
+            function updateSearchCounter() {
+                const query = searchQuery.toLowerCase().trim();
+                if (!query) {
+                    document.getElementById('searchResultsCounter').style.display = 'none';
+                    return;
+                }
+
+                const keywords = query.split(/\s+/).filter(k => k.length > 0);
+
+                // Contar resultados filtrados (múltiplas palavras)
+                let branchCount = 0;
+                let prCount = 0;
+
+                if (allBranches.length > 0) {
+                    branchCount = allBranches.filter(b => {
+                        const nome = b.nome.toLowerCase();
+                        return keywords.some(keyword => nome.includes(keyword));
+                    }).length;
+                }
+
+                if (allPRs.length > 0) {
+                    prCount = allPRs.filter(pr => {
+                        const title = (pr.title || '').toLowerCase();
+                        const branch = (pr.head?.ref || '').toLowerCase();
+                        return keywords.some(keyword =>
+                            title.includes(keyword) || branch.includes(keyword)
+                        );
+                    }).length;
+                }
+
+                const totalResults = branchCount + prCount;
+                document.getElementById('resultsCount').textContent =
+                    totalResults === 0 ? 'Nenhum resultado' :
+                    totalResults === 1 ? '1 resultado' :
+                    `${totalResults} resultados`;
+                document.getElementById('searchResultsCounter').style.display = 'flex';
+            }
+
+            function applySearch() {
+                updateSearchCounter();
+                renderizarBranches();
+                renderizarPRs();
+            }
+
+            function clearSearch() {
+                searchQuery = '';
+                document.getElementById('repoSearchInput').value = '';
+                document.getElementById('searchClearBtn').style.display = 'none';
+                applySearch();
+            }
+
+            // Debounce helper
+            function debounce(func, wait) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            const debouncedSearch = debounce(applySearch, 300);
 
             // === Sincronização ===
             async function carregarSync() {
@@ -876,6 +1081,22 @@
             async function init() {
                 await loadLayout();
                 initTabs();
+
+                // Search event listeners
+                document.getElementById('repoSearchInput').addEventListener('input', (e) => {
+                    searchQuery = e.target.value;
+                    document.getElementById('searchClearBtn').style.display = searchQuery ? 'block' : 'none';
+                    debouncedSearch();
+                });
+
+                document.getElementById('searchClearBtn').addEventListener('click', clearSearch);
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && searchQuery) {
+                        clearSearch();
+                    }
+                });
+
                 carregarVisaoGeral();
             }
 
