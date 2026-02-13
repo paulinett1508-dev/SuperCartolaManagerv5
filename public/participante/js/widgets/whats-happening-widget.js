@@ -1330,6 +1330,29 @@ function getPontosAoVivo(timeId, fallback = 0) {
 }
 
 /**
+ * Resolve escudo de um participante usando todas as fontes disponíveis no WHState
+ */
+function resolverEscudo(item) {
+    // Campos diretos do item
+    const direto = item.escudo || item.url_escudo_png;
+    if (direto) return direto;
+
+    // Lookup no ranking/parciais (fonte mais confiável para escudos)
+    const timeId = String(item.timeId || item.time_id || item.participanteId || '');
+    if (timeId) {
+        const parciais = WHState.data.parciais?.ranking || [];
+        const found = parciais.find(p => String(p.timeId || p.time_id) === timeId);
+        if (found?.escudo) return found.escudo;
+    }
+
+    // Fallback local por clubeId
+    const clubeId = item.clubeId || item.clube_id;
+    if (clubeId) return `/escudos/${clubeId}.png`;
+
+    return '/escudos/default.png';
+}
+
+/**
  * Gera insight dinâmico baseado na diferença de pontos
  */
 function getConfrontoInsight(diff) {
@@ -1657,12 +1680,10 @@ function renderModuleRankingSection(opts) {
         const isMe = String(r.timeId || r.time_id) === meuId;
         const valor = getValue(r);
         const nome = getLabel(r);
-        const escudo = r.escudo || r.url_escudo_png || `/escudos/${r.clubeId || r.clube_id || 'default'}.png`;
-
         return `
             <div class="wh-rank-card ${posColors[i] || ''} ${isMe ? 'me' : ''}">
                 <div class="wh-rank-pos">${i + 1}</div>
-                <img class="wh-rank-escudo" src="${escudo}" onerror="this.src='/escudos/default.png'" alt="">
+                <img class="wh-rank-escudo" src="${resolverEscudo(r)}" onerror="this.src='/escudos/default.png'" alt="">
                 <div class="wh-rank-nome">${nome}</div>
                 <div class="wh-rank-pontos">${valor}</div>
             </div>
@@ -1673,11 +1694,10 @@ function renderModuleRankingSection(opts) {
     let meuChipHtml = '';
     if (!meuNoTop3 && meuIndex >= 0) {
         const meuItem = data.ranking[meuIndex];
-        const escudo = meuItem.escudo || meuItem.url_escudo_png || `/escudos/${meuItem.clubeId || meuItem.clube_id || 'default'}.png`;
         meuChipHtml = `
             <div class="wh-rank-card me">
                 <div class="wh-rank-pos">${meuIndex + 1}</div>
-                <img class="wh-rank-escudo" src="${escudo}" onerror="this.src='/escudos/default.png'" alt="">
+                <img class="wh-rank-escudo" src="${resolverEscudo(meuItem)}" onerror="this.src='/escudos/default.png'" alt="">
                 <div class="wh-rank-nome">${getLabel(meuItem)}</div>
                 <div class="wh-rank-pontos">${getValue(meuItem)}</div>
             </div>
