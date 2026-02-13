@@ -57,6 +57,7 @@ class ParticipanteNavigation {
             configuracoes: "/participante/fronts/configuracoes.html",
             "copa-times-sc": "/participante/fronts/copa-times-sc.html",
             regras: "/participante/fronts/regras.html",
+            "rodada-xray": "/participante/fronts/rodada-xray.html",
         };
 
         // ✅ v3.0: Controles simplificados (apenas debounce por tempo)
@@ -967,6 +968,7 @@ class ParticipanteNavigation {
             configuracoes: "/participante/js/modules/participante-notifications.js",
             "copa-times-sc": "/participante/js/modules/participante-copa-sc.js",
             regras: "/participante/js/modules/participante-regras.js",
+            "rodada-xray": "/participante/js/modules/participante-rodada-xray.js",
         };
 
         const jsPath = modulosPaths[modulo];
