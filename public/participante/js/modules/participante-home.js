@@ -960,8 +960,10 @@ function renderizarHome(container, data, ligaId) {
     // Link para rodada - usar última rodada disputada + verbo contextual
     const linkRodadaEl = document.getElementById('home-link-rodada');
     const rodadaNumEl = document.getElementById('home-rodada-num');
-    const rodadaEmAndamento = statusMercadoNum === 2;
-    const rodadaParaExibir = rodadaEmAndamento ? rodadaMercado : (ultimaRodadaDisputada || Math.max(1, rodadaAtual - 1));
+    const statusMercado = Number(mercadoStatus?.status_mercado ?? 1) || 1;
+    const rodadaEmAndamento = statusMercado === 2;
+    const rodadaMercadoAtual = mercadoStatus?.rodada_atual || rodadaAtual;
+    const rodadaParaExibir = rodadaEmAndamento ? rodadaMercadoAtual : (ultimaRodadaDisputada || Math.max(1, rodadaAtual - 1));
     if (rodadaNumEl) {
         rodadaNumEl.textContent = `Rodada ${rodadaParaExibir}`;
     }
