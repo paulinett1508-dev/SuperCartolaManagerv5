@@ -15,7 +15,7 @@ const MARKET_LABELS = {
 };
 
 const FASES = [
-  { id: 'aguardando', label: 'Aguardando', emoji: '⏳' },
+  { id: 'aguardando', label: 'Ocioso', emoji: '⏳' },
   { id: 'coletando_dados', label: 'Coletando', emoji: '📥' },
   { id: 'atualizando_live', label: 'Live', emoji: '📡' },
   { id: 'finalizando', label: 'Finalizando', emoji: '🏁' },

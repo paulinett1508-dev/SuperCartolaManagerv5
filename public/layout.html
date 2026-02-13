@@ -1075,6 +1075,11 @@
                             return !src.includes('sidebar') && !src.includes('layout');
                         });
 
+                        // Executar cleanups de página antes de trocar conteúdo
+                        if (window.__adminShell) {
+                            window.__adminShell.runCleanups();
+                        }
+
                         // Substituir conteúdo + sincronizar classes do main
                         mainContent.innerHTML = newMain.innerHTML;
                         if (newMain.className && mainContent.className !== newMain.className) {

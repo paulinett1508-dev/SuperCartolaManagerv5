@@ -4,17 +4,14 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Dashboard - Super Cartola Manager</title>
-        <!-- Design Tokens (SEMPRE PRIMEIRO) -->
-        <link rel="stylesheet" href="css/_admin-tokens.css" />
-        <link rel="stylesheet" href="style.css" />
+        <!-- Admin Shell (tokens + style + sidebar + modal) -->
+        <link rel="stylesheet" href="css/admin-shell.css" />
+        <!-- Page-specific CSS -->
         <link rel="stylesheet" href="css/modules/dashboard.css" />
-        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
         <link rel="stylesheet" href="css/modules/dashboard-unified.css" />
+        <link rel="stylesheet" href="css/modules/admin-tesouraria.css" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-        <link rel="stylesheet" href="css/modules/super-modal.css" />
-        <link rel="stylesheet" href="css/modules/admin-tesouraria.css" />
-        <script src="js/super-modal.js"></script>
     </head>
     <body>
         <div class="app-container">
@@ -395,6 +392,7 @@
             </div>
         </div>
 
+        <script src="js/admin-shell.js"></script>
         <script type="module">
             import { carregarLigas as carregarLigasAPI } from "./js/gerenciar-ligas.js";
             import { cacheManager } from "./js/core/cache-manager.js";
@@ -417,92 +415,16 @@
                 };
             }
 
-            // === CARREGAR LAYOUT ===
+            // === CARREGAR LAYOUT (delegado ao admin-shell.js) ===
             async function loadLayout() {
-                try {
-                    // ✅ FIX: Não recarregar layout se já existe sidebar (navegação SPA)
-                    if (document.querySelector('.app-sidebar')) {
-                        console.log("[PAINEL] Sidebar já existe, pulando loadLayout");
-                        return;
-                    }
-
-                    const response = await fetch("layout.html");
-                    const layoutHtml = await response.text();
-
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(layoutHtml, "text/html");
-
-                    // Injetar sidebar (com proteção contra re-execução)
-                    const sidebar = doc.querySelector(".app-sidebar");
-                    const placeholder = document.getElementById("sidebar-placeholder");
-                    if (sidebar && placeholder) {
-                        placeholder.replaceWith(sidebar);
-                    } else if (sidebar && !placeholder) {
-                        console.log("[PAINEL] Sidebar já injetado, pulando...");
-                    }
-
-                    // ✅ FIX: Só injetar scripts do layout na PRIMEIRA carga
-                    if (!window.__layoutScriptsInjected) {
-                        window.__layoutScriptsInjected = true;
-                        const scripts = doc.querySelectorAll("script");
-                        console.log("[PAINEL] Scripts encontrados no layout:", scripts.length);
-                        scripts.forEach((script, index) => {
-                            if (script.textContent.trim()) {
-                                console.log("[PAINEL] Injetando script", index + 1, "- primeiros 100 chars:", script.textContent.substring(0, 100));
-                                const newScript = document.createElement("script");
-                                newScript.textContent = `(function(){${script.textContent}})();`;
-                                document.head.appendChild(newScript);
-                            }
-                        });
-                    }
-                    console.log("[PAINEL] verificarMenuSuperAdmin disponível?", typeof window.verificarMenuSuperAdmin);
-
-                    // Garantir que AccordionManager seja inicializado
-                    setTimeout(() => {
-                        if (window.AccordionManager && !window.AccordionManager._initialized) {
-                            window.AccordionManager.init();
-                        }
-                        // Verificar Super Admin para menu Administradores
-                        verificarSuperAdminDireto();
-                    }, 200);
-
-                    // Função local para verificar Super Admin
-                    async function verificarSuperAdminDireto() {
-                        try {
-                            console.log('[PAINEL] Verificando Super Admin...');
-                            const response = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
-                            if (!response.ok) {
-                                console.log('[PAINEL] check-super falhou:', response.status);
-                                return;
-                            }
-                            const data = await response.json();
-                            console.log('[PAINEL] check-super result:', data);
-                            const menuAdmin = document.getElementById('menuAdministradores');
-                            if (menuAdmin) {
-                                if (data.isSuperAdmin) {
-                                    menuAdmin.style.cssText = 'display: list-item !important;';
-                                    console.log('[PAINEL] Menu Administradores VISÍVEL');
-                                } else {
-                                    menuAdmin.style.cssText = 'display: none !important;';
-                                    console.log('[PAINEL] Menu Administradores OCULTO');
-                                }
-                            } else {
-                                console.log('[PAINEL] Elemento menuAdministradores não encontrado');
-                            }
-                        } catch (e) {
-                            console.error('[PAINEL] Erro ao verificar Super Admin:', e);
-                        }
-                    }
-
-                    // Definir funções de logo após injetar sidebar
-                    definirFuncoesLogo();
-
-                    // ✅ v9.5 FIX: Remoção de chamada duplicada
-                    // NavigationSystem do layout.html já chama carregarLigasLayout() automaticamente
-                    // Não chamar aqui para evitar dupla requisição
-                } catch (error) {
-                    console.error("Erro ao carregar layout:", error);
+                // admin-shell.js carrega layout automaticamente.
+                // Aqui apenas aguarda sidebar e define funções de logo.
+                let tentativas = 0;
+                while (!document.querySelector('.app-sidebar') && tentativas < 30) {
+                    await new Promise(r => setTimeout(r, 100));
+                    tentativas++;
                 }
+                definirFuncoesLogo();
             }
 
             // === LOGOS DAS LIGAS (Dinâmico via campo liga.logo) ===
@@ -1208,6 +1130,17 @@
                 usuariosOnlineInterval = setInterval(carregarUsuariosOnline, 30000);
             }
 
+            // Registrar cleanup para quando SPA navegar para outra página
+            if (window.__adminShell) {
+                window.__adminShell.registerCleanup(() => {
+                    if (usuariosOnlineInterval) {
+                        clearInterval(usuariosOnlineInterval);
+                        usuariosOnlineInterval = null;
+                    }
+                    console.log('[PAINEL] Cleanup: interval de usuarios online limpo');
+                });
+            }
+
             // === HISTÓRICO DE ACESSOS ===
             let historicoPage = 1;
             let historicoHasMore = false;
@@ -1554,7 +1487,7 @@
             };
 
             const ORCH_FASES = [
-                { id: 'aguardando', label: 'Aguardando', icon: 'hourglass_empty' },
+                { id: 'aguardando', label: 'Ocioso', icon: 'hourglass_empty' },
                 { id: 'coletando_dados', label: 'Coletando', icon: 'download' },
                 { id: 'atualizando_live', label: 'Live', icon: 'cell_tower' },
                 { id: 'finalizando', label: 'Finalizando', icon: 'flag' },
