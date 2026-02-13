@@ -1474,18 +1474,26 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
             itemExtraClass = 'rk-item-mico';
         }
 
+        const finHtml = !isParcial && financeiroTexto !== "0,00"
+            ? `<div class="rk-fin ${financeiroClass}">${financeiroTexto}</div>`
+            : '';
+
         return `
             <div class="rk-item ${isMeuTime ? "rk-meu-time" : ""} ${itemExtraClass}" ${curiosarAttr}>
                 <div class="rk-pos">${posicaoContent}</div>
                 ${escudoHTML}
                 <div class="rk-info">
-                    <div class="rk-nome">${nomeTime} ${naoJogouBadge}</div>
+                    <div class="rk-nome-row">
+                        <div class="rk-nome">${nomeTime}</div>
+                        ${naoJogouBadge}
+                        ${badgeEmCampo}
+                    </div>
                     <div class="rk-cartola">${participante.nome_cartola || ""}</div>
                 </div>
-                ${badgeEmCampo}
-                <div class="rk-pts">${pontosFormatados}</div>
-                <div class="rk-fin ${financeiroClass}">${isParcial ? '' : financeiroTexto}</div>
-                ${!participante.rodadaNaoJogada ? '<span class="material-icons rk-eye">visibility</span>' : ''}
+                <div class="rk-stats">
+                    <div class="rk-pts">${pontosFormatados}</div>
+                    ${finHtml}
+                </div>
             </div>
         `;
     }

@@ -607,7 +607,7 @@
 }
 
 .ranking-container-pro {
-    padding: 16px;
+    padding: 8px;
     max-height: 60vh;
     overflow-y: auto;
 }
@@ -615,7 +615,7 @@
 .ranking-list-pro {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 }
 
 .ranking-item-pro {
@@ -2055,16 +2055,17 @@
     background: rgba(239, 68, 68, 0.03);
 }
 
-/* Item Compacto */
+/* Item Compacto v9.0 - Layout respirável */
 .rk-item {
     display: grid;
-    grid-template-columns: 32px 24px 1fr auto auto auto auto;
+    grid-template-columns: 28px 24px 1fr auto;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
+    padding: 10px 10px;
     border-bottom: 1px solid rgba(255,255,255,0.04);
     cursor: pointer;
     transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .rk-item:hover {
@@ -2078,7 +2079,7 @@
 /* Meu time destacado */
 .rk-meu-time {
     background: rgba(255, 69, 0, 0.08) !important;
-    border-left: 2px solid var(--rodadas-primary);
+    border-left: 3px solid var(--rodadas-primary);
 }
 
 /* MITO e MICO */
@@ -2093,10 +2094,9 @@
 /* Posição */
 .rk-pos {
     font-family: var(--rodadas-font-brand);
-    font-size: 12px;
+    font-size: 13px;
     color: var(--rodadas-text-muted);
     text-align: center;
-    min-width: 32px;
 }
 
 .rk-item-mito .rk-pos {
@@ -2108,14 +2108,14 @@
 }
 
 .rk-trophy {
-    font-size: 16px !important;
+    font-size: 18px !important;
     color: var(--rodadas-gold) !important;
 }
 
 /* Escudo do Time do Coração */
 .rk-escudo {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     object-fit: contain;
     background: var(--rodadas-surface-elevated);
@@ -2123,21 +2123,27 @@
 }
 
 .rk-escudo-placeholder {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: var(--rodadas-surface-elevated);
     flex-shrink: 0;
 }
 
-/* Info (Nome e Cartola) */
+/* Info (Nome e Cartola) - v9.0: sem truncamento agressivo */
 .rk-info {
     min-width: 0;
     overflow: hidden;
 }
 
+.rk-nome-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .rk-nome {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--rodadas-text-white);
     white-space: nowrap;
@@ -2146,22 +2152,24 @@
 }
 
 .rk-cartola {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--rodadas-text-dim);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-top: 1px;
 }
 
-/* Badge Em Campo (Parciais) */
+/* Badge Em Campo (Parciais) - v9.0: inline com nome */
 .rk-em-campo {
     font-family: var(--rodadas-font-mono);
     font-size: 9px;
-    padding: 2px 6px;
+    padding: 1px 5px;
     border-radius: 4px;
     background: rgba(107, 114, 128, 0.2);
     color: var(--rodadas-text-dim);
     flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .rk-em-campo.ativo {
@@ -2169,23 +2177,25 @@
     color: var(--rodadas-success);
 }
 
-/* Pontos */
-.rk-pts {
-    font-family: var(--rodadas-font-mono);
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--rodadas-text-white);
+/* Stats (Pontos + Financeiro empilhados) */
+.rk-stats {
     text-align: right;
-    min-width: 50px;
+    flex-shrink: 0;
 }
 
-/* Financeiro */
+.rk-pts {
+    font-family: var(--rodadas-font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--rodadas-text-white);
+    line-height: 1.2;
+}
+
 .rk-fin {
     font-family: var(--rodadas-font-mono);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    text-align: right;
-    min-width: 45px;
+    line-height: 1.2;
 }
 
 .rk-fin.positivo {
@@ -2200,48 +2210,29 @@
     color: var(--rodadas-text-dim);
 }
 
-/* Ícone de visualizar */
-.rk-eye {
-    font-size: 14px !important;
-    color: var(--rodadas-text-dim);
-    opacity: 0.5;
-    transition: opacity 0.15s;
-}
-
-.rk-item:hover .rk-eye {
-    opacity: 1;
-    color: var(--rodadas-primary);
-}
-
 /* Responsivo - telas menores */
 @media (max-width: 400px) {
     .rk-item {
-        grid-template-columns: 28px 20px 1fr auto auto auto;
+        grid-template-columns: 24px 22px 1fr auto;
         gap: 6px;
-        padding: 6px 10px;
+        padding: 8px 8px;
     }
 
     .rk-escudo {
-        width: 18px;
-        height: 18px;
+        width: 22px;
+        height: 22px;
     }
 
     .rk-nome {
-        font-size: 12px;
+        font-size: 13px;
+    }
+
+    .rk-cartola {
+        font-size: 10px;
     }
 
     .rk-pts {
-        font-size: 12px;
-        min-width: 42px;
-    }
-
-    .rk-fin {
-        font-size: 10px;
-        min-width: 38px;
-    }
-
-    .rk-eye {
-        display: none;
+        font-size: 13px;
     }
 }
 </style>
