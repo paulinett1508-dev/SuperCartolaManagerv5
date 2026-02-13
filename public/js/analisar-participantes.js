@@ -463,6 +463,131 @@
   let dumpHistorico = [];
   let dumpRodadaAtual = null;
 
+  // =====================================================================
+  // HELPERS - Agrupamento por posição e stats (estilo participante)
+  // =====================================================================
+
+  function agruparPorPosicao(atletas) {
+    const lista = Array.isArray(atletas) ? atletas : [];
+    const groups = {
+      goleiros: [], laterais: [], zagueiros: [],
+      meias: [], atacantes: [], tecnicos: [], defensores: []
+    };
+    lista.forEach(a => {
+      const pos = Number(a.posicao_id ?? a.posicaoId ?? a.posicao);
+      if (pos === 1) groups.goleiros.push(a);
+      else if (pos === 2) groups.laterais.push(a);
+      else if (pos === 3) groups.zagueiros.push(a);
+      else if (pos === 4) groups.meias.push(a);
+      else if (pos === 5) groups.atacantes.push(a);
+      else if (pos === 6) groups.tecnicos.push(a);
+    });
+    groups.defensores = [...groups.laterais, ...groups.zagueiros];
+    return groups;
+  }
+
+  function calcularStatsJogoDump(titulares, reservas) {
+    const STATUS_NAO_JOGOU = [2, 3, 5, 6];
+    const totalEscalados = titulares.length;
+    const titularesQueJogaram = titulares.filter(a => {
+      const pts = parseFloat(a.pontos_num ?? a.pontos ?? 0);
+      const status = a.status_id ?? a.statusId ?? a.status ?? 7;
+      return !isNaN(pts) && !STATUS_NAO_JOGOU.includes(Number(status));
+    });
+    const titularesQueSairam = titulares.filter(a => {
+      const pts = parseFloat(a.pontos_num ?? a.pontos ?? 0);
+      const status = a.status_id ?? a.statusId ?? a.status ?? 7;
+      return isNaN(pts) || STATUS_NAO_JOGOU.includes(Number(status));
+    });
+    const reservasQueEntraram = reservas.filter(a => {
+      const pts = parseFloat(a.pontos_num ?? a.pontos ?? 0);
+      return !isNaN(pts) && pts !== 0;
+    });
+    let sairam = titularesQueSairam.length;
+    let entraram = reservasQueEntraram.length;
+    if (entraram > sairam && sairam === 0) entraram = 0;
+    return {
+      escalados: totalEscalados,
+      jogaram: titularesQueJogaram.length + entraram,
+      sairam, entraram
+    };
+  }
+
+  function calcularPontosComMultiplicadores(atletas, capitaoId, reservaLuxoId) {
+    if (!Array.isArray(atletas)) return 0;
+    return atletas.reduce((total, a) => {
+      const id = Number(a.atleta_id ?? a.atletaId ?? a.id);
+      let pts = parseFloat(a.pontos_num ?? a.pontos ?? 0) || 0;
+      if (id && Number(capitaoId) && id === Number(capitaoId)) pts *= 1.5;
+      else if (id && Number(reservaLuxoId) && id === Number(reservaLuxoId) && pts !== 0) pts *= 1.5;
+      return total + pts;
+    }, 0);
+  }
+
+  function renderizarGrupoPosicao(label, icone, atletas, capitaoId, reservaLuxoId) {
+    if (!Array.isArray(atletas) || atletas.length === 0) return '';
+    return `
+      <div class="dl-esc-grupo">
+        <div class="dl-esc-grupo-title">
+          <span class="material-icons dl-esc-grupo-icon">${icone}</span>
+          <span>${label}</span>
+          <span class="dl-esc-grupo-count">(${atletas.length})</span>
+        </div>
+        ${atletas.map(a => renderizarLinhaJogador(a, capitaoId, reservaLuxoId, false)).join('')}
+      </div>
+    `;
+  }
+
+  function renderizarLinhaJogador(atleta, capitaoId, reservaLuxoId, isReserva) {
+    if (!atleta) return '';
+    const atletaId = Number(atleta.atleta_id ?? atleta.atletaId ?? atleta.id);
+    const pos = POSICOES[atleta.posicao_id ?? atleta.posicaoId ?? atleta.posicao] || { nome: '?', abreviacao: '?' };
+    const nome = atleta.apelido || atleta.nome || 'Jogador';
+    const clubeId = atleta.clube_id || atleta.clubeId || 'default';
+    const isCapitao = Number(capitaoId) && atletaId === Number(capitaoId);
+    const isLuxo = Number(reservaLuxoId) && atletaId === Number(reservaLuxoId);
+
+    let pontos = parseFloat(atleta.pontos_num ?? atleta.pontos ?? 0) || 0;
+    let pontosExibir = pontos;
+    let multiplicador = '';
+    if (isCapitao) { pontosExibir = pontos * 1.5; multiplicador = '1.5x'; }
+    else if (isLuxo && pontos !== 0) { pontosExibir = pontos * 1.5; multiplicador = '1.5x'; }
+
+    const scoreClass = pontosExibir > 0 ? 'positive' : (pontosExibir < 0 ? 'negative' : 'neutral');
+    const cardClass = isCapitao ? 'capitao' : isLuxo ? 'luxo' : '';
+    const reservaClass = isReserva ? 'reserva' : '';
+    const negClass = pontosExibir < 0 ? 'negativo-bg' : '';
+
+    let badgeHtml = '';
+    if (isCapitao) badgeHtml = '<div class="dl-esc-badge badge-c"><span>C</span></div>';
+    else if (isLuxo) badgeHtml = '<div class="dl-esc-badge badge-l"><span>L</span></div>';
+
+    const multHtml = multiplicador && pontos !== 0
+      ? `<span class="dl-esc-multiplicador ${isCapitao ? 'cap' : 'lux'}">(${pontos.toFixed(2)} x${multiplicador.replace('x', '')})</span>`
+      : '';
+
+    return `
+      <div class="dl-esc-jogador ${cardClass} ${reservaClass} ${negClass}">
+        <div class="dl-esc-escudo">
+          <img src="/escudos/${clubeId}.png" onerror="this.onerror=null;this.src='/escudos/default.png'" />
+          ${badgeHtml}
+        </div>
+        <div class="dl-esc-info">
+          <span class="dl-esc-nome">${escapeHtml(nome)}</span>
+          <span class="dl-esc-pos">${pos.abreviacao}${isCapitao ? ' - Capitao (1.5x)' : ''}${isLuxo ? ' - Luxo (1.5x)' : ''}</span>
+        </div>
+        <div class="dl-esc-pontos">
+          <span class="dl-esc-pontos-valor ${scoreClass}">${pontosExibir.toFixed(2)}</span>
+          ${multHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  // =====================================================================
+  // DUMP / DATA LAKE MODAL
+  // =====================================================================
+
   function fecharModalDump() {
     const modal = document.getElementById("modalDump");
     if (modal) modal.classList.remove("active");
@@ -475,7 +600,6 @@
       modal.className = "modal-overlay";
       modal.id = "modalDump";
       document.body.appendChild(modal);
-      // Event delegation: click overlay to close, click .dl-close-btn to close
       modal.addEventListener("click", (e) => {
         if (e.target === modal || e.target.closest(".dl-close-btn")) {
           fecharModalDump();
@@ -499,7 +623,16 @@
       const data = await res.json();
       dumpAtual = { timeId, nomeCartola, nomeTime };
       dumpHistorico = data.historico || [];
-      renderizarDumpGlobo(modal, data, timeId, nomeCartola, nomeTime);
+
+      // Auto-detectar e carregar última rodada disponível
+      const rodadasDisp = data.rodadas_disponiveis || [];
+      if (rodadasDisp.length > 0) {
+        const ultimaRodada = Math.max(...rodadasDisp);
+        carregarRodadaDump(timeId, nomeCartola, nomeTime, ultimaRodada);
+      } else {
+        // Sem rodadas - mostra estado vazio com opção de sincronizar
+        renderizarDumpGlobo(modal, data, timeId, nomeCartola, nomeTime);
+      }
     } catch (error) {
       console.error("[ANALISAR] Erro ao buscar dump:", error);
       modal.querySelector(".modal-content").innerHTML = `
@@ -539,14 +672,6 @@
     const dump = data.dump_atual;
     const raw = dump.raw_json || {};
     const time = raw.time || {};
-    const atletas = raw.atletas || [];
-    const patrimonio = raw.patrimonio;
-    const pontos = raw.pontos;
-    const capitaoId = raw.capitao_id;
-    const rodadaAtual = dump.rodada || raw.rodada_atual || null;
-    const rodadasDisp = data.rodadas_disponiveis || [];
-    const pontosTotal = data.pontos_total_temporada;
-    const historico = data.historico || [];
     const escudo = time.url_escudo_png || time.url_escudo_svg || '';
     const fotoPerfil = time.foto_perfil || '';
     const assinante = time.assinante || false;
@@ -554,35 +679,36 @@
     const nomeCartolaApi = time.nome_cartola || nomeCartola;
     const dataColeta = dump.data_coleta ? new Date(dump.data_coleta).toLocaleString("pt-BR") : '';
 
-    // Separate titulares (first 12) and reservas
-    // In Cartola, the lineup has 12 players (11 starters + 1 coach)
-    // The bench is typically the 13th player onward
-    const titulares = atletas.slice(0, 12);
-    const reservas = atletas.slice(12);
+    const capitaoId = raw.capitao_id;
+    const reservaLuxoId = raw.reserva_luxo_id;
+    const rodadaAtual = dump.rodada || raw.rodada_atual || null;
+    const rodadasDisp = data.rodadas_disponiveis || [];
+    const historico = data.historico || [];
+    const pontosTotal = data.pontos_total_temporada;
+    const patrimonio = raw.patrimonio;
+    const variacao = raw.variacao_patrimonio || 0;
 
-    // Find captain, best and worst scorer
-    let capitao = null;
-    let maiorPontuador = null;
-    let menorPontuador = null;
+    // Separar titulares e reservas corretamente (Cartola API: atletas = titulares, reservas = banco)
+    const atletasRaw = Array.isArray(raw.atletas) ? raw.atletas : Object.values(raw.atletas || {});
+    const reservasRaw = Array.isArray(raw.reservas) ? raw.reservas : Object.values(raw.reservas || {});
+    const titulares = reservasRaw.length > 0 ? atletasRaw : atletasRaw.slice(0, 12);
+    const reservas = reservasRaw.length > 0 ? reservasRaw : atletasRaw.slice(12);
 
-    if (titulares.length > 0) {
-      for (const a of titulares) {
-        if (a.atleta_id === capitaoId) capitao = a;
-        if (!maiorPontuador || a.pontos_num > maiorPontuador.pontos_num) maiorPontuador = a;
-        if (!menorPontuador || a.pontos_num < menorPontuador.pontos_num) menorPontuador = a;
-      }
-    }
+    // Agrupamento por posição (estilo participante)
+    const grupos = agruparPorPosicao(titulares);
+    const totalEscalados = grupos.goleiros.length + grupos.defensores.length + grupos.meias.length + grupos.atacantes.length + grupos.tecnicos.length;
+    const formacao = `${grupos.defensores.length}-${grupos.meias.length}-${grupos.atacantes.length}`;
+    const statsJogo = calcularStatsJogoDump(titulares, reservas);
+    const pontos = raw.pontos !== undefined ? raw.pontos : calcularPontosComMultiplicadores(titulares, capitaoId, reservaLuxoId);
 
-    // Build the modal HTML
     let html = '';
 
-    // Header
+    // ── HEADER (info do time) ──
     html += `
       <div class="dl-header">
         <button class="dl-close-btn" aria-label="Fechar">
           <span class="material-icons">close</span>
         </button>
-        <div class="dl-header-label">${rodadaAtual ? 'Rodada ' + rodadaAtual : 'Dados do Time'}</div>
         <div class="dl-team-badge">
           ${escudo ? `<img src="${escapeHtml(escudo)}" onerror="this.style.display='none'" alt="" />` : '<span class="material-icons" style="font-size:40px;color:#4b5563;">shield</span>'}
           ${fotoPerfil ? `<img class="dl-foto-perfil" src="${escapeHtml(fotoPerfil)}" onerror="this.style.display='none'" alt="" />` : ''}
@@ -593,160 +719,124 @@
       </div>
     `;
 
-    // Sync bar
+    // ── SELETOR DE RODADA + REFRESH (topo) ──
     html += `
-      <div class="dl-sync-bar">
-        <span class="dl-sync-info">${dataColeta}</span>
-        <button class="dl-sync-btn" id="dlSyncBtn" data-time-id="${timeId}">
-          <span class="material-icons">refresh</span> Atualizar
-        </button>
+      <div class="dl-round-control">
+        <div class="dl-round-control-left">
+          <select class="dl-round-select" id="dlRoundSelect">
+            ${rodadasDisp.length > 0
+              ? rodadasDisp.map(r => `<option value="${r}" ${r === rodadaAtual ? 'selected' : ''}>Rodada ${r}${r === rodadaAtual ? ' (visualizando)' : ''}</option>`).join('')
+              : '<option value="">Sem rodadas disponíveis</option>'
+            }
+          </select>
+        </div>
+        <div class="dl-round-control-right">
+          <span class="dl-sync-info">${dataColeta}</span>
+          <button class="dl-refresh-btn" id="dlSyncBtn" title="Re-coletar da API Globo e regravar no banco">
+            <span class="material-icons">refresh</span>
+          </button>
+        </div>
       </div>
     `;
 
-    // Round slider (if we know the round)
-    if (rodadaAtual) {
-      const pct = ((rodadaAtual - 1) / 37 * 100).toFixed(1);
+    html += '<div class="dl-body">';
+
+    // ── CARD DESEMPENHO (estilo participante) ──
+    if (titulares.length > 0 || pontos !== undefined) {
+      const variacaoIcone = variacao > 0 ? '&#x25B2;' : variacao < 0 ? '&#x25BC;' : '';
+      const variacaoClasse = variacao >= 0 ? 'up' : 'down';
+
       html += `
-        <div class="dl-round-bar">
-          <div class="dl-round-slider">
-            <div class="dl-round-track">
-              <div class="dl-round-fill" style="width:${pct}%"></div>
-              <div class="dl-round-ball" style="left:${pct}%">${rodadaAtual}</div>
+        <div class="dl-desemp-card">
+          <div class="dl-desemp-header">
+            <span class="material-icons">bar_chart</span>
+            <span>Desempenho</span>
+            ${rodadaAtual ? `<span class="dl-desemp-rodada">Rodada ${rodadaAtual}</span>` : ''}
+          </div>
+          <div class="dl-desemp-main">
+            <div class="dl-desemp-pontos-box">
+              <span class="dl-desemp-pontos-valor">${typeof pontos === 'number' ? pontos.toFixed(2) : (pontos || '0.00')}</span>
+              <span class="dl-desemp-pontos-label">Pontos na Rodada</span>
             </div>
           </div>
-          <div class="dl-round-labels">
-            <span>1</span><span>38</span>
+          <div class="dl-desemp-stats">
+            ${patrimonio !== undefined ? `
+            <div class="dl-desemp-stat">
+              <span class="dl-desemp-stat-valor">C$ ${patrimonio.toFixed(2)}</span>
+              <span class="dl-desemp-stat-label">Patrimonio</span>
+            </div>` : ''}
+            ${variacao !== 0 ? `
+            <div class="dl-desemp-stat">
+              <span class="dl-desemp-stat-valor ${variacaoClasse}">${variacao >= 0 ? '+' : ''}${variacao.toFixed(2)} ${variacaoIcone}</span>
+              <span class="dl-desemp-stat-label">Variacao</span>
+            </div>` : ''}
+            ${pontosTotal !== undefined && pontosTotal !== pontos ? `
+            <div class="dl-desemp-stat">
+              <span class="dl-desemp-stat-valor">${typeof pontosTotal === 'number' ? pontosTotal.toFixed(2) : pontosTotal}</span>
+              <span class="dl-desemp-stat-label">Total Temp.</span>
+            </div>` : ''}
           </div>
-          <div class="dl-round-cta">Veja como voce se saiu na <strong>Rodada ${rodadaAtual}</strong></div>
+          ${titulares.length > 0 ? `
+          <div class="dl-desemp-esc-stats">
+            <div class="dl-desemp-esc-item"><span class="dl-esc-dot escalados">&#x25CF;</span> <strong>${statsJogo.escalados}</strong> escalados</div>
+            <div class="dl-desemp-esc-item"><span class="dl-esc-dot jogaram">&#x25CF;</span> <strong>${statsJogo.jogaram}</strong> jogaram</div>
+            <div class="dl-desemp-esc-item"><span class="dl-esc-dot sairam">&#x25BC;</span> <strong>${statsJogo.sairam}</strong> saiu</div>
+            <div class="dl-desemp-esc-item"><span class="dl-esc-dot entraram">&#x25B2;</span> <strong>${statsJogo.entraram}</strong> entrou</div>
+          </div>` : ''}
         </div>
       `;
     }
 
-    html += '<div class="dl-body">';
-
-    // Score section (pontos + patrimonio)
-    if (pontos !== undefined || patrimonio !== undefined) {
-      html += '<div class="dl-score-section">';
-
-      if (pontos !== undefined) {
-        html += `
-          <div class="dl-score-row">
-            <div class="dl-score-left">
-              <div class="dl-score-icon"><span class="material-icons" style="font-size:36px;color:#3b82f6;">sports_soccer</span></div>
-              <div>
-                <div class="dl-score-label">Pontuacao${rodadaAtual ? ' Rodada ' + rodadaAtual : ''}</div>
-                <div class="dl-score-value">${typeof pontos === 'number' ? pontos.toFixed(2) : pontos}</div>
-              </div>
-            </div>
-            ${pontosTotal !== undefined && pontosTotal !== pontos ? `
-            <div class="dl-score-right">
-              <div class="dl-score-label">Total Temporada</div>
-              <div class="dl-score-value">${typeof pontosTotal === 'number' ? pontosTotal.toFixed(2) : pontosTotal}</div>
-            </div>` : ''}
-          </div>
-        `;
-      }
-
-      if (patrimonio !== undefined) {
-        html += `
-          <div class="dl-score-row">
-            <div class="dl-score-left">
-              <div class="dl-score-icon"><span class="material-icons" style="font-size:36px;color:#22c55e;">account_balance_wallet</span></div>
-              <div>
-                <div class="dl-score-label">Patrimonio</div>
-                <div class="dl-score-value">C$${patrimonio.toFixed(2)}</div>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      html += '</div>';
-    }
-
-    // Player highlight cards (Capitao, Maior, Menor)
-    if (titulares.length > 0 && (capitao || maiorPontuador || menorPontuador)) {
-      html += '<div class="dl-players-section"><div class="dl-players-grid">';
-
-      if (capitao) {
-        html += renderPlayerCard('Capitao', capitao, true);
-      }
-      if (maiorPontuador) {
-        html += renderPlayerCard('Maior Pontuador', maiorPontuador, false, true);
-      }
-      if (menorPontuador) {
-        html += renderPlayerCard('Menor Pontuador', menorPontuador, false, false, true);
-      }
-
-      html += '</div></div>';
-    }
-
-    // Full lineup
+    // ── ESCALACAO POR POSICAO (estilo participante) ──
     if (titulares.length > 0) {
       html += `
-        <div class="dl-lineup-section">
-          <div class="dl-lineup-title">Escalacao Completa</div>
-          <div class="dl-lineup-grid">
+        <div class="dl-escalacao-section">
+          <div class="dl-escalacao-header-bar">
+            <div class="dl-escalacao-header-left">
+              <span class="material-icons">stadium</span>
+              <span>Titulares</span>
+              <span class="dl-escalacao-count">(${totalEscalados})</span>
+            </div>
+            <div class="dl-escalacao-header-right">
+              <span class="dl-escalacao-formacao">${formacao}</span>
+            </div>
+          </div>
+          <div class="dl-escalacao-body">
+            ${renderizarGrupoPosicao('GOL', 'sports_soccer', grupos.goleiros, capitaoId, reservaLuxoId)}
+            ${renderizarGrupoPosicao('LAT', 'directions_run', grupos.laterais, capitaoId, reservaLuxoId)}
+            ${renderizarGrupoPosicao('ZAG', 'shield', grupos.zagueiros, capitaoId, reservaLuxoId)}
+            ${renderizarGrupoPosicao('MEI', 'sync_alt', grupos.meias, capitaoId, reservaLuxoId)}
+            ${renderizarGrupoPosicao('ATA', 'sports_score', grupos.atacantes, capitaoId, reservaLuxoId)}
+            ${renderizarGrupoPosicao('TEC', 'person', grupos.tecnicos, capitaoId, reservaLuxoId)}
+          </div>
       `;
-      for (const a of titulares) {
-        const isCap = a.atleta_id === capitaoId;
-        const pos = POSICOES[a.posicao_id] || { nome: '?', abreviacao: '?' };
-        const cor = CORES_CLUBES[a.clube_id] || '#555';
-        const scoreClass = a.pontos_num > 0 ? 'positive' : (a.pontos_num < 0 ? 'negative' : 'neutral');
-        let pontosDisplay = typeof a.pontos_num === 'number' ? a.pontos_num.toFixed(2) : (a.pontos_num || '0.00');
+
+      // Banco de Reservas
+      if (reservas.length > 0) {
         html += `
-          <div class="dl-lineup-player ${isCap ? 'is-captain' : ''}">
-            <div class="dl-bench-jersey" style="background:${cor}">
-              <img class="dl-jersey-badge" src="/escudos/${a.clube_id}.png" onerror="this.style.display='none'" />
+          <div class="dl-escalacao-divisoria"></div>
+          <div class="dl-escalacao-banco">
+            <div class="dl-escalacao-banco-title">
+              <span class="material-icons">event_seat</span>
+              <span>Banco de Reservas</span>
+              <span class="dl-escalacao-count">(${reservas.length})</span>
             </div>
-            <div class="dl-bench-info">
-              <div class="dl-bench-name">${escapeHtml(a.apelido)}${isCap ? ' <span style="color:#FF5500;font-size:0.6rem;">C</span>' : ''}</div>
-              <div class="dl-bench-pos">${pos.abreviacao}</div>
-            </div>
-            <div class="dl-bench-score dl-player-score ${scoreClass}">${pontosDisplay}</div>
+            ${reservas.map(a => renderizarLinhaJogador(a, capitaoId, reservaLuxoId, true)).join('')}
           </div>
         `;
       }
-      html += '</div></div>';
+
+      html += '</div>'; // close dl-escalacao-section
     }
 
-    // Bench / Reservas
-    if (reservas.length > 0) {
-      html += `
-        <div class="dl-bench-section">
-          <div class="dl-bench-title">Banco de Reservas</div>
-          <div class="dl-bench-grid">
-      `;
-      for (const a of reservas) {
-        const pos = POSICOES[a.posicao_id] || { nome: '?', abreviacao: '?' };
-        const cor = CORES_CLUBES[a.clube_id] || '#888';
-        const scoreClass = a.pontos_num > 0 ? 'positive' : (a.pontos_num < 0 ? 'negative' : 'neutral');
-        let pontosDisplay = typeof a.pontos_num === 'number' ? a.pontos_num.toFixed(2) : (a.pontos_num || '0.00');
-        html += `
-          <div class="dl-bench-player">
-            <div class="dl-bench-jersey" style="background:${cor};position:relative;">
-              <img class="dl-jersey-badge" src="/escudos/${a.clube_id}.png" onerror="this.style.display='none'" style="position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:50%;border:1px solid #374151;background:#252525;object-fit:contain;" />
-            </div>
-            <div class="dl-bench-info">
-              <div class="dl-bench-name">${escapeHtml(a.apelido)}</div>
-              <div class="dl-bench-pos">${pos.abreviacao}</div>
-            </div>
-            <div class="dl-bench-score dl-player-score ${scoreClass}">${pontosDisplay}</div>
-          </div>
-        `;
-      }
-      html += '</div></div>';
-    }
-
-    // Performance chart
+    // ── GRAFICO DE PERFORMANCE ──
     if (historico.length > 0) {
       const maxPontos = Math.max(...historico.map(h => Math.abs(h.pontos || 0)), 1);
       html += `
         <div class="dl-chart-section">
-          <div class="dl-chart-title">Sua performance rodada a rodada</div>
+          <div class="dl-chart-title">Performance rodada a rodada</div>
           <div class="dl-chart-container">
       `;
-      // Show all 38 rounds
       for (let r = 1; r <= 38; r++) {
         const h = historico.find(x => x.rodada === r);
         const pts = h ? (h.pontos || 0) : 0;
@@ -763,37 +853,32 @@
       html += '</div>';
       html += '<div class="dl-chart-labels">';
       for (let r = 1; r <= 38; r++) {
-        const isSelected = r === rodadaAtual;
-        html += `<div class="dl-chart-label ${isSelected ? 'selected' : ''}">${r}</div>`;
+        html += `<div class="dl-chart-label ${r === rodadaAtual ? 'selected' : ''}">${r}</div>`;
       }
       html += '</div></div>';
-    }
-
-    // Round selector
-    if (rodadasDisp.length > 0) {
-      html += `
-        <div class="dl-round-selector">
-          <select class="dl-round-select" id="dlRoundSelect">
-            <option value="">Selecionar rodada...</option>
-            ${rodadasDisp.map(r => `<option value="${r}" ${r === rodadaAtual ? 'selected' : ''}>Rodada ${r}${r === rodadaAtual ? ' (atual)' : ''}</option>`).join('')}
-          </select>
-        </div>
-      `;
     }
 
     html += '</div>'; // close dl-body
 
     content.innerHTML = html;
 
-    // Event listeners
-    content.querySelector("#dlSyncBtn")?.addEventListener("click", () => sincronizarDump(timeId, nomeCartola, nomeTime));
-
+    // ── EVENT LISTENERS ──
+    // Seletor de rodada
     content.querySelector("#dlRoundSelect")?.addEventListener("change", (e) => {
       const rodada = parseInt(e.target.value);
       if (rodada) carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
     });
 
-    // Chart bar click to load round
+    // Refresh = re-coletar da Globo e regravar no Mongo
+    content.querySelector("#dlSyncBtn")?.addEventListener("click", () => {
+      if (rodadaAtual) {
+        sincronizarRodadaDump(timeId, nomeCartola, nomeTime, rodadaAtual);
+      } else {
+        sincronizarDump(timeId, nomeCartola, nomeTime);
+      }
+    });
+
+    // Click na barra do gráfico carrega rodada
     content.querySelectorAll(".dl-chart-bar-wrap[data-rodada]").forEach(bar => {
       bar.addEventListener("click", async () => {
         const rodada = parseInt(bar.dataset.rodada);
@@ -801,38 +886,12 @@
         if (h) {
           carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
         } else if (rodada) {
-          if (await SuperModal.confirm({ title: 'Confirmar', message: `Rodada ${rodada} nao esta no Data Lake. Deseja sincronizar da API Cartola?` })) {
+          if (await SuperModal.confirm({ title: 'Sincronizar', message: `Rodada ${rodada} nao esta no Data Lake. Deseja buscar da API Cartola?` })) {
             sincronizarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
           }
         }
       });
     });
-  }
-
-  function renderPlayerCard(label, atleta, isCaptain, isBest, isWorst) {
-    const pos = POSICOES[atleta.posicao_id] || { nome: '?', abreviacao: '?' };
-    const cor = CORES_CLUBES[atleta.clube_id] || '#555';
-    let pontosDisplay = typeof atleta.pontos_num === 'number' ? atleta.pontos_num.toFixed(2) : (atleta.pontos_num || '0.00');
-    const scoreClass = atleta.pontos_num > 0 ? 'positive' : (atleta.pontos_num < 0 ? 'negative' : 'neutral');
-
-    let thumbHtml = '';
-    if (isBest) thumbHtml = '<div class="dl-thumb-icon" style="color:#22c55e;">&#x1F44D;</div>';
-    if (isWorst) thumbHtml = '<div class="dl-thumb-icon" style="color:#ef4444;">&#x1F44E;</div>';
-
-    return `
-      <div class="dl-player-card">
-        <div class="dl-player-card-label">${escapeHtml(label)}</div>
-        <div class="dl-jersey" style="background:${cor}">
-          <div class="dl-jersey-badge"><img src="/escudos/${atleta.clube_id}.png" onerror="this.style.display='none'" /></div>
-          ${isCaptain ? '<div class="dl-captain-icon">C</div>' : ''}
-          ${thumbHtml}
-        </div>
-        <div class="dl-player-name">${escapeHtml(atleta.apelido)}</div>
-        <div class="dl-player-pos">${pos.nome}</div>
-        <div class="dl-player-score ${scoreClass}">${pontosDisplay}</div>
-        ${isCaptain ? '<div class="dl-captain-multiplier">Pontuacao em dobro</div>' : ''}
-      </div>
-    `;
   }
 
   async function carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada) {

@@ -607,7 +607,7 @@
 }
 
 .ranking-container-pro {
-    padding: 16px;
+    padding: 8px;
     max-height: 60vh;
     overflow-y: auto;
 }
@@ -615,7 +615,7 @@
 .ranking-list-pro {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 }
 
 .ranking-item-pro {
@@ -1035,6 +1035,30 @@
 
 .btn-atualizar-parciais .material-icons {
     font-size: 18px;
+}
+
+/* === BOTÃO RAIO-X === */
+.rodada-xray-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+    background: rgba(255, 69, 0, 0.08);
+    border: 1px solid rgba(255, 69, 0, 0.2);
+    border-radius: 10px;
+    color: var(--rodadas-primary);
+    font-family: var(--rodadas-font-body);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.rodada-xray-btn:active {
+    background: rgba(255, 69, 0, 0.15);
+    transform: scale(0.98);
 }
 
 /* === SEÇÃO INATIVOS === */
@@ -1981,6 +2005,259 @@
     font-size: 32px;
     margin-bottom: 8px;
     display: block;
+}
+
+/* ============================================
+   RANKING v8.0 - Layout Compacto com Zonas
+   ============================================ */
+
+/* Header de Zona */
+.rk-zona-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 8px 8px 0 0;
+    margin-top: 12px;
+}
+
+.rk-zona-header:first-child {
+    margin-top: 0;
+}
+
+.rk-zona-header .material-icons {
+    font-size: 16px;
+}
+
+.rk-zona-count {
+    margin-left: auto;
+    background: rgba(255,255,255,0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+}
+
+/* Cores das Zonas */
+.rk-zona-ganho {
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
+    color: var(--rodadas-success);
+    border-left: 3px solid var(--rodadas-success);
+}
+
+.rk-zona-neutra {
+    background: linear-gradient(90deg, rgba(156, 163, 175, 0.1) 0%, rgba(156, 163, 175, 0.03) 100%);
+    color: var(--rodadas-text-muted);
+    border-left: 3px solid var(--rodadas-text-muted);
+}
+
+.rk-zona-perda {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
+    color: var(--rodadas-danger);
+    border-left: 3px solid var(--rodadas-danger);
+}
+
+/* Container de Zona */
+.rk-zona-container {
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.rk-bg-ganho {
+    background: rgba(34, 197, 94, 0.03);
+}
+
+.rk-bg-neutra {
+    background: rgba(156, 163, 175, 0.02);
+}
+
+.rk-bg-perda {
+    background: rgba(239, 68, 68, 0.03);
+}
+
+/* Item Compacto v9.0 - Layout respirável */
+.rk-item {
+    display: grid;
+    grid-template-columns: 28px 24px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.rk-item:hover {
+    background: rgba(255,255,255,0.03);
+}
+
+.rk-item:last-child {
+    border-bottom: none;
+}
+
+/* Meu time destacado */
+.rk-meu-time {
+    background: rgba(255, 69, 0, 0.08) !important;
+    border-left: 3px solid var(--rodadas-primary);
+}
+
+/* MITO e MICO */
+.rk-item-mito {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, transparent 50%) !important;
+}
+
+.rk-item-mico {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, transparent 50%) !important;
+}
+
+/* Posição */
+.rk-pos {
+    font-family: var(--rodadas-font-brand);
+    font-size: 13px;
+    color: var(--rodadas-text-muted);
+    text-align: center;
+}
+
+.rk-item-mito .rk-pos {
+    color: var(--rodadas-gold);
+}
+
+.rk-item-mico .rk-pos {
+    color: var(--rodadas-danger);
+}
+
+.rk-trophy {
+    font-size: 18px !important;
+    color: var(--rodadas-gold) !important;
+}
+
+/* Escudo do Time do Coração */
+.rk-escudo {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--rodadas-surface-elevated);
+    flex-shrink: 0;
+}
+
+.rk-escudo-placeholder {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--rodadas-surface-elevated);
+    flex-shrink: 0;
+}
+
+/* Info (Nome e Cartola) - v9.0: sem truncamento agressivo */
+.rk-info {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.rk-nome-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rk-nome {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--rodadas-text-white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rk-cartola {
+    font-size: 11px;
+    color: var(--rodadas-text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+}
+
+/* Badge Em Campo (Parciais) - v9.0: inline com nome */
+.rk-em-campo {
+    font-family: var(--rodadas-font-mono);
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(107, 114, 128, 0.2);
+    color: var(--rodadas-text-dim);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.rk-em-campo.ativo {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--rodadas-success);
+}
+
+/* Stats (Pontos + Financeiro empilhados) */
+.rk-stats {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.rk-pts {
+    font-family: var(--rodadas-font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--rodadas-text-white);
+    line-height: 1.2;
+}
+
+.rk-fin {
+    font-family: var(--rodadas-font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.rk-fin.positivo {
+    color: var(--rodadas-success);
+}
+
+.rk-fin.negativo {
+    color: var(--rodadas-danger);
+}
+
+.rk-fin.neutro {
+    color: var(--rodadas-text-dim);
+}
+
+/* Responsivo - telas menores */
+@media (max-width: 400px) {
+    .rk-item {
+        grid-template-columns: 24px 22px 1fr auto;
+        gap: 6px;
+        padding: 8px 8px;
+    }
+
+    .rk-escudo {
+        width: 22px;
+        height: 22px;
+    }
+
+    .rk-nome {
+        font-size: 13px;
+    }
+
+    .rk-cartola {
+        font-size: 10px;
+    }
+
+    .rk-pts {
+        font-size: 13px;
+    }
 }
 </style>
 

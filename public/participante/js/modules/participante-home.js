@@ -300,6 +300,12 @@ function pararAutoRefreshHome() {
         homeAutoRefreshId = null;
     }
 
+    // Parar refresh dos destaques ao vivo
+    if (_destaquesRefreshTimer) {
+        clearInterval(_destaquesRefreshTimer);
+        _destaquesRefreshTimer = null;
+    }
+
     // Parar parciais também
     if (ParciaisModule?.pararAutoRefresh) {
         ParciaisModule.pararAutoRefresh();
@@ -957,12 +963,19 @@ function renderizarHome(container, data, ligaId) {
         sliderTotalEl.textContent = totalParticipantes || 38;
     }
 
-    // Link para rodada - usar última rodada consolidada
+    // Link para rodada - usar última rodada disputada + verbo contextual
     const linkRodadaEl = document.getElementById('home-link-rodada');
     const rodadaNumEl = document.getElementById('home-rodada-num');
-    const rodadaParaExibir = ultimaRodadaDisputada || Math.max(1, rodadaAtual - 1);
+    const statusMercado = Number(mercadoStatus?.status_mercado ?? 1) || 1;
+    const rodadaEmAndamento = statusMercado === 2;
+    const rodadaMercadoAtual = mercadoStatus?.rodada_atual || rodadaAtual;
+    const rodadaParaExibir = rodadaEmAndamento ? rodadaMercadoAtual : (ultimaRodadaDisputada || Math.max(1, rodadaAtual - 1));
     if (rodadaNumEl) {
         rodadaNumEl.textContent = `Rodada ${rodadaParaExibir}`;
+    }
+    if (linkRodadaEl) {
+        const verbo = rodadaEmAndamento ? 'está se saindo' : 'se saiu';
+        linkRodadaEl.innerHTML = `Veja como você ${verbo} na <span id="home-rodada-num">Rodada ${rodadaParaExibir}</span>`;
     }
 
     // === CARDS DE STATS ===
@@ -1072,20 +1085,14 @@ function renderizarHome(container, data, ligaId) {
         if (rodadaParaDestaques > 0 && ultimaRodada) {
             destaquesSection.classList.remove('hidden');
 
-            // Durante jogos ao vivo, iniciar colapsado
+            // ✅ FIX: Sempre expandido por padrão (especialmente durante jogos ao vivo)
             const status = mercadoStatus?.status_mercado;
             const isJogosAoVivo = status === 2;
 
-            if (isJogosAoVivo) {
-                destaquesSection.classList.remove('expanded');
-                if (destaquesContent) destaquesContent.classList.add('collapsed');
-            } else {
-                // Fim de rodada: expandido por padrão
-                destaquesSection.classList.add('expanded');
-                if (destaquesContent) destaquesContent.classList.remove('collapsed');
-            }
+            destaquesSection.classList.add('expanded');
+            if (destaquesContent) destaquesContent.classList.remove('collapsed');
 
-            carregarDestaquesRodada(ligaId, rodadaParaDestaques, timeId);
+            carregarDestaquesRodada(ligaId, rodadaParaDestaques, timeId, isJogosAoVivo);
         } else {
             destaquesSection.classList.add('hidden');
         }
@@ -1152,7 +1159,10 @@ async function aplicarCorEscudoTime(escudoEl, clubeId) {
 // =====================================================================
 // CARREGAR DESTAQUES DA RODADA
 // =====================================================================
-async function carregarDestaquesRodada(ligaId, rodada, timeId) {
+// Timer de auto-refresh dos destaques
+let _destaquesRefreshTimer = null;
+
+async function carregarDestaquesRodada(ligaId, rodada, timeId, isAoVivo = false) {
     try {
         // Atualizar badge com número da rodada
         const rodadaBadgeEl = document.getElementById('home-destaques-rodada');
@@ -1160,11 +1170,28 @@ async function carregarDestaquesRodada(ligaId, rodada, timeId) {
             rodadaBadgeEl.textContent = `Rodada ${rodada}`;
         }
 
+        // ✅ Badge AO VIVO
+        const liveBadgeEl = document.getElementById('home-destaques-live-badge');
+        if (liveBadgeEl) {
+            liveBadgeEl.style.display = isAoVivo ? 'inline-flex' : 'none';
+        }
+
         // Buscar escalação do time na rodada
         const response = await fetch(`/api/cartola/time/id/${timeId}/${rodada}`);
         if (!response.ok) {
+            // ✅ FIX: Fallback para rodada anterior em caso de 404
+            if (response.status === 404 && rodada > 1) {
+                if (window.Log) Log.debug("PARTICIPANTE-HOME", `Rodada ${rodada} sem dados, tentando rodada ${rodada - 1}`);
+                const fallbackResp = await fetch(`/api/cartola/time/id/${timeId}/${rodada - 1}`);
+                if (fallbackResp.ok) {
+                    const fallbackData = await fallbackResp.json();
+                    if (fallbackData?.atletas?.length) {
+                        _renderizarDestaques(fallbackData, rodada - 1);
+                        return;
+                    }
+                }
+            }
             if (window.Log) Log.debug("PARTICIPANTE-HOME", "Escalação não encontrada");
-            // Esconder seção se não tiver dados
             const destaquesSection = document.getElementById('home-destaques-section');
             if (destaquesSection) destaquesSection.classList.add('hidden');
             return;
@@ -1177,32 +1204,88 @@ async function carregarDestaquesRodada(ligaId, rodada, timeId) {
             return;
         }
 
-        const atletas = escalacao.atletas || [];
-        const capitaoId = escalacao.capitao_id;
+        // ✅ FIX: Detectar se todos os atletas têm pontos_num 0 (jogos não começaram)
+        const todosAtletas = [...(escalacao.atletas || []), ...(escalacao.reservas || [])];
+        const todosZerados = todosAtletas.every(a => !a.pontos_num || a.pontos_num === 0);
 
-        // Encontrar capitão, maior e menor pontuador
-        let capitao = atletas.find(a => a.atleta_id === capitaoId) || atletas[0];
-        let maiorPontuador = atletas.reduce((max, a) => (a.pontos_num > (max?.pontos_num || -999) ? a : max), null);
-        let menorPontuador = atletas.reduce((min, a) => (a.pontos_num < (min?.pontos_num || 999) ? a : min), null);
+        if (todosZerados && isAoVivo && rodada > 1) {
+            // Jogos não começaram ainda - buscar rodada anterior como fallback
+            if (window.Log) Log.debug("PARTICIPANTE-HOME", `Rodada ${rodada} sem pontos ainda, usando rodada ${rodada - 1}`);
+            const fallbackResp = await fetch(`/api/cartola/time/id/${timeId}/${rodada - 1}`);
+            if (fallbackResp.ok) {
+                const fallbackData = await fallbackResp.json();
+                const fallbackAtletas = [...(fallbackData.atletas || []), ...(fallbackData.reservas || [])];
+                const fallbackTemPontos = fallbackAtletas.some(a => a.pontos_num && a.pontos_num !== 0);
+                if (fallbackTemPontos) {
+                    _renderizarDestaques(fallbackData, rodada - 1);
+                    // Atualizar badge para indicar rodada anterior
+                    if (rodadaBadgeEl) rodadaBadgeEl.textContent = `Rodada ${rodada - 1}`;
+                    // Esconder badge AO VIVO (dados são da rodada anterior)
+                    if (liveBadgeEl) liveBadgeEl.style.display = 'none';
+                } else {
+                    _renderizarDestaques(escalacao, rodada);
+                }
+            } else {
+                _renderizarDestaques(escalacao, rodada);
+            }
+        } else {
+            _renderizarDestaques(escalacao, rodada);
+        }
 
-        // Popular cards de destaques (Capitão / Maior / Menor)
-        popularDestaqueCard('capitao', capitao, true);
-        popularDestaqueCard('maior', maiorPontuador, false);
-        popularDestaqueCard('menor', menorPontuador, false);
-
-        // Popular card de módulos (Artilheiro / Luva / Capitão de Luxo)
-        popularCardModulos(atletas, capitao);
-
-        if (window.Log) Log.info("PARTICIPANTE-HOME", `Destaques carregados - Rodada ${rodada}`);
+        // ✅ Auto-refresh durante jogos ao vivo (a cada 60s)
+        if (_destaquesRefreshTimer) clearInterval(_destaquesRefreshTimer);
+        if (isAoVivo) {
+            _destaquesRefreshTimer = setInterval(() => {
+                // Verificar se ainda está na home e se jogos continuam
+                const homeContainer = document.getElementById('home-destaques-section');
+                if (!homeContainer || !document.contains(homeContainer)) {
+                    clearInterval(_destaquesRefreshTimer);
+                    _destaquesRefreshTimer = null;
+                    return;
+                }
+                if (window.Log) Log.debug("PARTICIPANTE-HOME", "Auto-refresh destaques ao vivo...");
+                carregarDestaquesRodada(ligaId, rodada, timeId, true);
+            }, 60000);
+        }
 
     } catch (error) {
         if (window.Log) Log.warn("PARTICIPANTE-HOME", "Erro ao carregar destaques:", error);
-        // Esconder seções em caso de erro
         const destaquesSection = document.getElementById('home-destaques-section');
         if (destaquesSection) destaquesSection.classList.add('hidden');
         const modulosSection = document.getElementById('home-modulos-section');
         if (modulosSection) modulosSection.classList.add('hidden');
     }
+}
+
+/**
+ * Renderiza os cards de destaques a partir dos dados da escalação
+ */
+function _renderizarDestaques(escalacao, rodada) {
+    // ✅ FIX: Incluir reservas na análise
+    const atletas = [
+        ...(escalacao.atletas || []),
+        ...(escalacao.reservas || [])
+    ];
+    const capitaoId = escalacao.capitao_id;
+
+    // Encontrar capitão, maior e menor pontuador
+    let capitao = atletas.find(a => a.atleta_id === capitaoId) || atletas[0];
+    let maiorPontuador = atletas.reduce((max, a) => (a.pontos_num > (max?.pontos_num || -999) ? a : max), null);
+    let menorPontuador = atletas.reduce((min, a) => (a.pontos_num < (min?.pontos_num || 999) ? a : min), null);
+
+    // Popular cards de destaques (Capitão / Maior / Menor)
+    popularDestaqueCard('capitao', capitao, true);
+    popularDestaqueCard('maior', maiorPontuador, false);
+    popularDestaqueCard('menor', menorPontuador, false);
+
+    // Popular card de módulos (Artilheiro / Luva / Capitão de Luxo)
+    popularCardModulos(atletas, capitao);
+
+    // Atualizar badge da rodada (caso fallback)
+    const rodadaBadgeEl = document.getElementById('home-destaques-rodada');
+    if (rodadaBadgeEl) rodadaBadgeEl.textContent = `Rodada ${rodada}`;
+
+    if (window.Log) Log.info("PARTICIPANTE-HOME", `Destaques carregados - Rodada ${rodada}`);
 }
 
 // =====================================================================

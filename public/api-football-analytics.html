@@ -3,338 +3,92 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>APIs Jogos ao Vivo - Analytics | Super Cartola Manager</title>
+        <title>APIs Jogos ao Vivo | Super Cartola Manager</title>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
         <link rel="stylesheet" href="css/_admin-tokens.css" />
         <link rel="stylesheet" href="style.css" />
         <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
         <style>
-            .analytics-page {
-                background: #121212;
-                min-height: 100vh;
-            }
-            .analytics-content {
-                padding: 20px 16px;
-                max-width: 1200px;
-                margin: 0 auto;
-            }
-            .analytics-header {
-                background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
-                border-radius: 12px;
-                padding: 24px;
-                margin-bottom: 24px;
-                border: 1px solid #2d2d2d;
-                display: flex;
-                align-items: center;
-                gap: 16px;
-            }
-            .analytics-header-icon {
-                width: 56px;
-                height: 56px;
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .analytics-header-icon .material-icons {
-                font-size: 28px;
-                color: white;
-            }
-            .analytics-header h1 {
-                font-size: 1.5rem;
-                font-weight: 700;
-                color: #ffffff;
-                margin: 0 0 4px 0;
-            }
-            .analytics-header p {
-                font-size: 0.85rem;
-                color: #9ca3af;
-                margin: 0;
-            }
+            .ap { background: #121212; min-height: 100vh; }
+            .ap-c { padding: 16px; max-width: 1100px; margin: 0 auto; }
+            .ap-back { display: inline-flex; align-items: center; gap: 4px; color: #9ca3af; text-decoration: none; font-size: 0.8rem; margin-bottom: 12px; }
+            .ap-back:hover { color: #FF5500; }
 
-            /* Stats Cards */
-            .stats-row {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 16px;
-                margin-bottom: 24px;
-            }
-            .stat-card {
-                background: #1a1a1a;
-                border-radius: 12px;
-                padding: 20px;
-                border: 1px solid #2d2d2d;
-            }
-            .stat-card-header {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                margin-bottom: 12px;
-            }
-            .stat-card-icon {
-                width: 40px;
-                height: 40px;
-                border-radius: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .stat-card-icon.green { background: rgba(16, 185, 129, 0.15); }
-            .stat-card-icon.green .material-icons { color: #10b981; }
-            .stat-card-icon.orange { background: rgba(255, 85, 0, 0.15); }
-            .stat-card-icon.orange .material-icons { color: #FF5500; }
-            .stat-card-icon.blue { background: rgba(59, 130, 246, 0.15); }
-            .stat-card-icon.blue .material-icons { color: #3b82f6; }
-            .stat-card-icon.yellow { background: rgba(245, 158, 11, 0.15); }
-            .stat-card-icon.yellow .material-icons { color: #f59e0b; }
-            .stat-card-label {
-                font-size: 0.75rem;
-                font-weight: 600;
-                color: #9ca3af;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-            }
-            .stat-card-value {
-                font-size: 2rem;
-                font-weight: 700;
-                color: #ffffff;
-                margin-bottom: 4px;
-            }
-            .stat-card-sub {
-                font-size: 0.75rem;
-                color: #6b7280;
-            }
-            .stat-card-sub.success { color: #10b981; }
-            .stat-card-sub.warning { color: #f59e0b; }
-            .stat-card-sub.danger { color: #ef4444; }
+            /* Header compacto */
+            .ap-hdr { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px 16px; background: #1a1a1a; border-radius: 8px; border: 1px solid #2d2d2d; }
+            .ap-hdr-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+            .ap-hdr-icon .material-icons { font-size: 20px; color: #fff; }
+            .ap-hdr h1 { font-size: 1.1rem; font-weight: 700; color: #fff; margin: 0; }
+            .ap-hdr p { font-size: 0.75rem; color: #6b7280; margin: 0; }
 
-            /* Progress Bar */
-            .progress-container {
-                margin-top: 12px;
-            }
-            .progress-bar {
-                height: 8px;
-                background: #2d2d2d;
-                border-radius: 4px;
-                overflow: hidden;
-            }
-            .progress-fill {
-                height: 100%;
-                border-radius: 4px;
-                transition: width 0.5s ease;
-            }
-            .progress-fill.green { background: linear-gradient(90deg, #10b981, #059669); }
-            .progress-fill.yellow { background: linear-gradient(90deg, #f59e0b, #d97706); }
-            .progress-fill.red { background: linear-gradient(90deg, #ef4444, #dc2626); }
+            /* Fluxo */
+            .ap-fluxo { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #10b981; background: #1a1a1a; padding: 8px 12px; border-radius: 6px; border: 1px solid #2d2d2d; margin-bottom: 16px; }
+            .ap-fluxo label { color: #6b7280; font-family: 'Inter', sans-serif; margin-right: 6px; }
 
-            /* Sections */
-            .section {
-                background: #1a1a1a;
-                border-radius: 12px;
-                border: 1px solid #2d2d2d;
-                margin-bottom: 24px;
-                overflow: hidden;
-            }
-            .section-header {
-                padding: 16px 20px;
-                border-bottom: 1px solid #2d2d2d;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-            .section-title {
-                font-size: 1rem;
-                font-weight: 600;
-                color: #ffffff;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            .section-title .material-icons {
-                color: #FF5500;
-                font-size: 20px;
-            }
-            .section-body {
-                padding: 20px;
-            }
+            /* Grid 2 colunas */
+            .ap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+            @media (max-width: 768px) { .ap-grid { grid-template-columns: 1fr; } }
 
-            /* Leagues Table */
-            .leagues-table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            .leagues-table th,
-            .leagues-table td {
-                padding: 12px 16px;
-                text-align: left;
-                border-bottom: 1px solid #2d2d2d;
-            }
-            .leagues-table th {
-                font-size: 0.7rem;
-                font-weight: 600;
-                color: #9ca3af;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-            }
-            .leagues-table td {
-                font-size: 0.85rem;
-                color: #ffffff;
-            }
-            .leagues-table tr:last-child td {
-                border-bottom: none;
-            }
-            .league-id {
-                font-family: monospace;
-                background: #252525;
-                padding: 4px 8px;
-                border-radius: 4px;
-                font-size: 0.75rem;
-                color: #9ca3af;
-            }
+            /* Painel API */
+            .api-panel { background: #1a1a1a; border-radius: 8px; border: 1px solid #2d2d2d; overflow: hidden; }
+            .api-panel-hdr { padding: 10px 14px; border-bottom: 1px solid #2d2d2d; display: flex; align-items: center; justify-content: space-between; }
+            .api-panel-title { font-size: 0.8rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px; }
+            .api-panel-body { padding: 10px 14px; }
 
-            /* Live Games */
-            .live-games-list {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-            }
-            .live-game {
-                background: #252525;
-                border-radius: 10px;
-                padding: 16px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-            .live-game-teams {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                flex: 1;
-            }
-            .live-game-team {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            .live-game-team img {
-                width: 28px;
-                height: 28px;
-                object-fit: contain;
-            }
-            .live-game-team span {
-                font-size: 0.9rem;
-                font-weight: 500;
-                color: #ffffff;
-            }
-            .live-game-score {
-                font-size: 1.25rem;
-                font-weight: 700;
-                color: #ffffff;
-                padding: 0 16px;
-            }
-            .live-game-info {
-                text-align: right;
-            }
-            .live-game-time {
-                font-size: 0.85rem;
-                font-weight: 600;
-                color: #10b981;
-            }
-            .live-game-league {
-                font-size: 0.7rem;
-                color: #6b7280;
-            }
-            .no-games {
-                text-align: center;
-                padding: 40px;
-                color: #6b7280;
-            }
-            .no-games .material-icons {
-                font-size: 48px;
-                margin-bottom: 12px;
-                opacity: 0.5;
-            }
+            /* Tabela compacta de dados */
+            .dt { width: 100%; border-collapse: collapse; }
+            .dt td { padding: 4px 0; font-size: 0.78rem; vertical-align: top; }
+            .dt td:first-child { color: #6b7280; width: 120px; white-space: nowrap; }
+            .dt td:last-child { color: #d1d5db; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
+            .dt tr + tr td { border-top: 1px solid #1f1f1f; }
 
-            /* Status Badge */
-            .status-badge {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                padding: 6px 12px;
-                border-radius: 20px;
-                font-size: 0.75rem;
-                font-weight: 600;
-            }
-            .status-badge.online {
-                background: rgba(16, 185, 129, 0.15);
-                color: #10b981;
-            }
-            .status-badge.offline {
-                background: rgba(239, 68, 68, 0.15);
-                color: #ef4444;
-            }
-            .status-badge .dot {
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-                background: currentColor;
-            }
-            .status-badge.online .dot {
-                animation: pulse 2s infinite;
-            }
-            @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.5; }
-            }
+            /* Badge */
+            .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 0.68rem; font-weight: 600; }
+            .badge.on { background: rgba(16,185,129,0.15); color: #10b981; }
+            .badge.sec { background: rgba(139,92,246,0.15); color: #8b5cf6; }
+            .badge.off { background: rgba(239,68,68,0.15); color: #ef4444; }
+            .badge.warn { background: rgba(245,158,11,0.15); color: #f59e0b; }
+            .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-            /* Refresh Button */
-            .refresh-btn {
-                background: #252525;
-                border: 1px solid #3d3d3d;
-                color: #ffffff;
-                padding: 8px 16px;
-                border-radius: 8px;
-                font-size: 0.8rem;
-                font-weight: 500;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                transition: all 0.2s ease;
-            }
-            .refresh-btn:hover {
-                background: #3d3d3d;
-                border-color: #FF5500;
-            }
-            .refresh-btn .material-icons {
-                font-size: 18px;
-            }
-            .refresh-btn.loading .material-icons {
-                animation: spin 1s linear infinite;
-            }
-            @keyframes spin {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
+            /* Barra de quota */
+            .quota-bar { height: 6px; background: #2d2d2d; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+            .quota-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+            .quota-fill.g { background: #10b981; }
+            .quota-fill.y { background: #f59e0b; }
+            .quota-fill.r { background: #ef4444; }
 
-            /* Back Link */
-            .back-link {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                color: #9ca3af;
-                text-decoration: none;
-                font-size: 0.85rem;
-                margin-bottom: 16px;
-                transition: color 0.2s;
-            }
-            .back-link:hover {
-                color: #FF5500;
-            }
+            /* Protecoes inline */
+            .protecoes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+            .protecoes span { font-size: 0.68rem; background: #252525; color: #9ca3af; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+
+            /* Jogos section */
+            .jogos-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+            .jogos-hdr-title { font-size: 0.85rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px; }
+            .refresh-btn { background: #252525; border: 1px solid #3d3d3d; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+            .refresh-btn:hover { border-color: #FF5500; }
+            .refresh-btn .material-icons { font-size: 14px; }
+            .refresh-btn.loading .material-icons { animation: spin 1s linear infinite; }
+            @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+            /* Lista de jogos compacta */
+            .jogo-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #1a1a1a; border: 1px solid #2d2d2d; border-radius: 6px; margin-bottom: 4px; }
+            .jogo-item:last-child { margin-bottom: 0; }
+            .jogo-teams { display: flex; align-items: center; gap: 6px; flex: 1; font-size: 0.78rem; color: #d1d5db; }
+            .jogo-teams img { width: 18px; height: 18px; object-fit: contain; }
+            .jogo-score { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; color: #fff; min-width: 40px; text-align: center; }
+            .jogo-meta { text-align: right; font-size: 0.68rem; }
+            .jogo-meta .time { color: #10b981; font-weight: 600; }
+            .jogo-meta .league { color: #6b7280; }
+            .no-jogos { text-align: center; padding: 20px; color: #6b7280; font-size: 0.8rem; }
+
+            /* Tabela de fontes */
+            .fontes-tbl { width: 100%; border-collapse: collapse; }
+            .fontes-tbl th { font-size: 0.65rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 10px; text-align: left; border-bottom: 1px solid #2d2d2d; }
+            .fontes-tbl td { font-size: 0.75rem; color: #d1d5db; padding: 6px 10px; border-bottom: 1px solid #1f1f1f; }
+            .fontes-tbl code { background: #252525; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; }
+            .ord { display: inline-block; color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 0.65rem; font-weight: 600; }
         </style>
     </head>
 
@@ -342,576 +96,263 @@
         <div class="app-container">
             <div id="sidebar-placeholder"></div>
 
-            <main class="app-main analytics-page">
-                <div class="analytics-content">
-                    <!-- Back Link -->
-                    <a href="ferramentas.html" class="back-link">
-                        <span class="material-icons">arrow_back</span>
-                        Voltar para Ferramentas
-                    </a>
+            <main class="app-main ap">
+                <div class="ap-c">
+                    <a href="ferramentas.html" class="ap-back"><span class="material-icons" style="font-size:16px">arrow_back</span> Ferramentas</a>
 
-                    <!-- Header -->
-                    <header class="analytics-header">
-                        <div class="analytics-header-icon">
-                            <span class="material-icons">sports_soccer</span>
-                        </div>
+                    <div class="ap-hdr">
+                        <div class="ap-hdr-icon"><span class="material-icons">sports_soccer</span></div>
                         <div>
-                            <h1>APIs Jogos ao Vivo</h1>
-                            <p>Monitoramento de uso e status das APIs de jogos ao vivo (SoccerDataAPI Principal + Fallbacks)</p>
-                        </div>
-                    </header>
-
-                    <!-- Fluxo de Fallback -->
-                    <div class="section" style="margin-bottom: 24px;">
-                        <div class="section-body" style="padding: 16px 20px;">
-                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                <span style="color: #9ca3af; font-size: 0.8rem;">Fluxo:</span>
-                                <span id="fluxo-fallback" style="font-family: monospace; font-size: 0.85rem; color: #10b981;">Carregando...</span>
-                            </div>
+                            <h1>Orquestrador Multi-API</h1>
+                            <p>SoccerDataAPI + API-Football v3 + Globo SSR | Jogos ao Vivo</p>
                         </div>
                     </div>
 
-                    <!-- Stats Row - SoccerDataAPI -->
-                    <div style="margin-bottom: 8px; margin-top: 24px; color: #9ca3af; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
-                        <span class="material-icons" style="font-size: 16px; color: #10b981;">looks_one</span>
-                        SoccerDataAPI (PRINCIPAL)
-                    </div>
-                    <div class="stats-row">
-                        <!-- Status SoccerDataAPI -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-card-icon green">
-                                    <span class="material-icons">check_circle</span>
-                                </div>
-                                <span class="stat-card-label">Status</span>
+                    <div class="ap-fluxo"><label>Fluxo:</label> <span id="fluxo-fallback">Carregando...</span></div>
+
+                    <!-- ═══ APIs lado a lado ═══ -->
+                    <div class="ap-grid">
+                        <!-- SoccerDataAPI -->
+                        <div class="api-panel">
+                            <div class="api-panel-hdr">
+                                <span class="api-panel-title"><span class="material-icons" style="font-size:16px;color:#10b981">cloud</span> SoccerDataAPI</span>
+                                <span id="soccerdata-badge" class="badge off"><span class="dot"></span> ...</span>
                             </div>
-                            <div id="soccerdata-status">
-                                <span class="status-badge offline">
-                                    <span class="dot"></span>
-                                    Verificando...
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Limite SoccerDataAPI -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-card-icon orange">
-                                    <span class="material-icons">speed</span>
-                                </div>
-                                <span class="stat-card-label">Limite Diario</span>
-                            </div>
-                            <div class="stat-card-value" id="soccerdata-limite">75</div>
-                            <div class="stat-card-sub">requests/dia (free)</div>
-                        </div>
-
-                        <!-- Aviso SoccerDataAPI -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-card-icon yellow">
-                                    <span class="material-icons">info</span>
-                                </div>
-                                <span class="stat-card-label">Info</span>
-                            </div>
-                            <div class="stat-card-value" style="font-size: 0.9rem;" id="soccerdata-info">-</div>
-                        </div>
-                    </div>
-
-                    <!-- Stats Row - Cache e Jogos -->
-                    <div style="margin-bottom: 8px; margin-top: 24px; color: #9ca3af; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
-                        <span class="material-icons" style="font-size: 16px; color: #3b82f6;">cached</span>
-                        Cache & Jogos ao Vivo
-                    </div>
-                    <div class="stats-row">
-                        <!-- Jogos ao Vivo -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-card-icon yellow">
-                                    <span class="material-icons">live_tv</span>
-                                </div>
-                                <span class="stat-card-label">Jogos Brasileiros</span>
-                            </div>
-                            <div class="stat-card-value" id="jogos-ao-vivo">-</div>
-                            <div class="stat-card-sub" id="jogos-fonte">Fonte: -</div>
-                        </div>
-
-                        <!-- Cache Status -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-card-icon blue">
-                                    <span class="material-icons">storage</span>
-                                </div>
-                                <span class="stat-card-label">Cache</span>
-                            </div>
-                            <div class="stat-card-value" style="font-size: 1rem;" id="cache-status">-</div>
-                            <div class="stat-card-sub" id="cache-idade">-</div>
-                        </div>
-
-                        <!-- Cache TTL -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-card-icon green">
-                                    <span class="material-icons">timer</span>
-                                </div>
-                                <span class="stat-card-label">TTL Atual</span>
-                            </div>
-                            <div class="stat-card-value" style="font-size: 1.25rem;" id="cache-ttl">-</div>
-                            <div class="stat-card-sub" id="cache-jogos">- jogos em cache</div>
-                        </div>
-                    </div>
-
-                    <!-- Header Jogos do Dia -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="material-icons" style="color: #FF5500;">calendar_today</span>
-                            <span style="font-size: 1rem; font-weight: 600; color: #fff;" id="data-jogos">Jogos do Dia</span>
-                        </div>
-                        <button class="refresh-btn" onclick="carregarJogos()">
-                            <span class="material-icons">refresh</span>
-                            Atualizar
-                        </button>
-                    </div>
-
-                    <!-- Jogos em Andamento -->
-                    <div class="section">
-                        <div class="section-header">
-                            <span class="section-title">
-                                <span class="material-icons" style="color: #10b981;">play_circle</span>
-                                Jogos em Andamento
-                            </span>
-                            <span id="count-andamento" style="background: #10b981; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">0</span>
-                        </div>
-                        <div class="section-body">
-                            <div class="live-games-list" id="jogos-andamento">
-                                <div class="no-games">
-                                    <span class="material-icons">sports_soccer</span>
-                                    <p>Carregando...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Jogos Encerrados -->
-                    <div class="section">
-                        <div class="section-header">
-                            <span class="section-title">
-                                <span class="material-icons" style="color: #6b7280;">check_circle</span>
-                                Jogos Encerrados
-                            </span>
-                            <span id="count-encerrados" style="background: #6b7280; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">0</span>
-                        </div>
-                        <div class="section-body">
-                            <div class="live-games-list" id="jogos-encerrados">
-                                <div class="no-games">
-                                    <span class="material-icons">sports_soccer</span>
-                                    <p>Carregando...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Ligas Monitoradas -->
-                    <div class="section">
-                        <div class="section-header">
-                            <span class="section-title">
-                                <span class="material-icons">flag</span>
-                                Ligas Brasileiras Monitoradas
-                            </span>
-                        </div>
-                        <div class="section-body" style="padding: 0;">
-                            <table class="leagues-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Liga</th>
-                                        <th>Temporada</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><span class="league-id">71</span></td>
-                                        <td>Brasileirao Serie A</td>
-                                        <td>2026</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="league-id">72</span></td>
-                                        <td>Brasileirao Serie B</td>
-                                        <td>2026</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="league-id">73</span></td>
-                                        <td>Copa do Brasil</td>
-                                        <td>2026</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="league-id">475</span></td>
-                                        <td>Campeonato Carioca</td>
-                                        <td>2026</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="league-id">76</span></td>
-                                        <td>Campeonato Paulista</td>
-                                        <td>2026</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="league-id">629</span></td>
-                                        <td>Copa Verde</td>
-                                        <td>2026</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="league-id">630</span></td>
-                                        <td>Copa do Nordeste</td>
-                                        <td>2026</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="league-id">618</span></td>
-                                        <td>Copinha (Sao Paulo Youth Cup)</td>
-                                        <td>2026</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Informacoes Tecnicas -->
-                    <div class="section">
-                        <div class="section-header">
-                            <span class="section-title">
-                                <span class="material-icons">info</span>
-                                Informacoes Tecnicas
-                            </span>
-                        </div>
-                        <div class="section-body">
-                            <table class="leagues-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 80px;">Ordem</th>
-                                        <th>Fonte</th>
-                                        <th>Endpoint</th>
-                                        <th>Limite</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><span style="background:#10b981;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">1</span></td>
-                                        <td style="font-weight: 600;">SoccerDataAPI</td>
-                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">api.soccerdataapi.com</code></td>
-                                        <td>75 req/dia</td>
-                                    </tr>
-                                    <tr style="opacity: 0.5;">
-                                        <td><span style="background:#ef4444;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">❌</span></td>
-                                        <td style="font-weight: 600; text-decoration: line-through;">API-Football</td>
-                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">DESABILITADA (banido)</code></td>
-                                        <td>-</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span style="background:#3b82f6;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">2</span></td>
-                                        <td style="font-weight: 600;">Cache Stale</td>
-                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">Ultimo cache valido</code></td>
-                                        <td>Max 30 min</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span style="background:#6b7280;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.7rem;">3</span></td>
-                                        <td style="font-weight: 600;">Globo Esporte</td>
-                                        <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.75rem;">Scraper (agenda)</code></td>
-                                        <td>Ilimitado</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #2d2d2d;">
-                                <table class="leagues-table">
-                                    <tbody>
-                                        <tr>
-                                            <td style="color: #9ca3af; width: 200px;">Rota Interna</td>
-                                            <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.8rem;">/api/jogos-ao-vivo</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td style="color: #9ca3af;">Rota Status</td>
-                                            <td><code style="background:#252525;padding:4px 8px;border-radius:4px;font-size:0.8rem;">/api/jogos-ao-vivo/status</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td style="color: #9ca3af;">Cache TTL (ao vivo)</td>
-                                            <td>2 minutos</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="color: #9ca3af;">Cache TTL (sem jogos)</td>
-                                            <td>10 minutos</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="color: #9ca3af;">Reset Limites</td>
-                                            <td>00:00 UTC</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="color: #9ca3af;">Total Requests/dia</td>
-                                            <td style="color: #10b981; font-weight: 600;">75 (SoccerDataAPI)</td>
-                                        </tr>
-                                    </tbody>
+                            <div class="api-panel-body">
+                                <table class="dt">
+                                    <tr><td>Papel</td><td style="color:#10b981">PRINCIPAL (livescores)</td></tr>
+                                    <tr><td>Limite</td><td>75 req/dia (free)</td></tr>
+                                    <tr><td>Info</td><td id="soccerdata-info">-</td></tr>
                                 </table>
                             </div>
                         </div>
+
+                        <!-- API-Football -->
+                        <div class="api-panel">
+                            <div class="api-panel-hdr">
+                                <span class="api-panel-title"><span class="material-icons" style="font-size:16px;color:#8b5cf6">api</span> API-Football v3</span>
+                                <span id="apifootball-badge" class="badge off"><span class="dot"></span> ...</span>
+                            </div>
+                            <div class="api-panel-body">
+                                <table class="dt">
+                                    <tr><td>Papel</td><td style="color:#8b5cf6">SECUNDARIA (fallback + eventos)</td></tr>
+                                    <tr><td>Quota</td><td><span id="af-used">0</span>/<span id="af-cap">90</span> <span id="af-pct" style="color:#6b7280">(0%)</span></td></tr>
+                                    <tr><td colspan="2"><div class="quota-bar"><div class="quota-fill g" id="af-bar" style="width:0%"></div></div></td></tr>
+                                    <tr><td>Restante API</td><td id="af-remaining">?</td></tr>
+                                    <tr><td>Circuit Breaker</td><td id="af-circuit"><span class="badge on"><span class="dot"></span> Fechado</span></td></tr>
+                                    <tr><td>Stats</td><td id="af-stats">-</td></tr>
+                                </table>
+                                <div class="protecoes" id="af-protecoes">
+                                    <span>Hard Cap 90</span>
+                                    <span>2 req/min</span>
+                                    <span>30s intervalo</span>
+                                    <span>CB < 10</span>
+                                    <span>Dedup 60s</span>
+                                    <span>Backoff 429</span>
+                                    <span>MongoDB persist</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Cache -->
+                    <div class="api-panel" style="margin-bottom: 16px;">
+                        <div class="api-panel-hdr">
+                            <span class="api-panel-title"><span class="material-icons" style="font-size:16px;color:#3b82f6">cached</span> Cache</span>
+                            <span id="cache-badge" class="badge off"><span class="dot"></span> -</span>
+                        </div>
+                        <div class="api-panel-body">
+                            <table class="dt">
+                                <tr><td>Fonte</td><td id="cache-fonte">-</td></tr>
+                                <tr><td>TTL</td><td id="cache-ttl">-</td></tr>
+                                <tr><td>Idade</td><td id="cache-idade">-</td></tr>
+                                <tr><td>Jogos</td><td id="cache-jogos">0</td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Jogos do Dia -->
+                    <div class="jogos-hdr">
+                        <span class="jogos-hdr-title"><span class="material-icons" style="font-size:18px;color:#FF5500">calendar_today</span> Jogos do Dia <span id="jogos-total" style="color:#6b7280;font-weight:400;font-size:0.75rem">(0)</span></span>
+                        <button class="refresh-btn" onclick="carregarJogos()"><span class="material-icons">refresh</span> Atualizar</button>
+                    </div>
+                    <div id="jogos-container" class="no-jogos">Carregando...</div>
+
+                    <!-- Arquitetura (tabela compacta) -->
+                    <div class="api-panel" style="margin-top: 16px;">
+                        <div class="api-panel-hdr">
+                            <span class="api-panel-title"><span class="material-icons" style="font-size:16px;color:#FF5500">architecture</span> Arquitetura</span>
+                        </div>
+                        <div class="api-panel-body" style="padding: 0;">
+                            <table class="fontes-tbl">
+                                <thead><tr><th>#</th><th>Fonte</th><th>Endpoint</th><th>Limite</th></tr></thead>
+                                <tbody>
+                                    <tr><td><span class="ord" style="background:#10b981">1</span></td><td>SoccerDataAPI</td><td><code>api.soccerdataapi.com</code></td><td>75/dia</td></tr>
+                                    <tr><td><span class="ord" style="background:#8b5cf6">2</span></td><td>API-Football v3</td><td><code>v3.football.api-sports.io</code></td><td>90/dia (cap)</td></tr>
+                                    <tr><td><span class="ord" style="background:#3b82f6">||</span></td><td>Globo SSR</td><td><code>ge.globo.com (scraper)</code></td><td>Ilimitado</td></tr>
+                                    <tr><td><span class="ord" style="background:#f59e0b">3</span></td><td>Cache Stale</td><td><code>Ultimo valido</code></td><td>30 min</td></tr>
+                                    <tr><td><span class="ord" style="background:#6b7280">4</span></td><td>Globo JSON</td><td><code>data/jogos-globo.json</code></td><td>Estatico</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>
 
-        <!-- Scripts -->
         <script type="module">
-            if (window.__api_football_guard) {
-                console.warn('[API-FOOTBALL] Script já inicializado, pulando...');
-            } else {
+            if (window.__api_football_guard) return;
             window.__api_football_guard = true;
-            // Carregar layout
+
             async function loadLayout() {
                 try {
-                    // ✅ FIX: Não recarregar layout se já existe sidebar (navegação SPA)
-                    if (document.querySelector('.app-sidebar')) {
-                        console.log("[API-FOOTBALL] Sidebar já existe, pulando loadLayout");
-                        return;
-                    }
-
-                    const response = await fetch("layout.html");
-                    const layoutHtml = await response.text();
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(layoutHtml, "text/html");
-
-                    const sidebar = doc.querySelector(".app-sidebar");
-                    if (sidebar) {
-                        document.getElementById("sidebar-placeholder")?.replaceWith(sidebar);
-                    }
-
-                    // ✅ FIX: Só injetar scripts do layout na PRIMEIRA carga
+                    if (document.querySelector('.app-sidebar')) return;
+                    const r = await fetch("layout.html");
+                    const html = await r.text();
+                    const doc = new DOMParser().parseFromString(html, "text/html");
+                    const sb = doc.querySelector(".app-sidebar");
+                    if (sb) document.getElementById("sidebar-placeholder")?.replaceWith(sb);
                     if (!window.__layoutScriptsInjected) {
                         window.__layoutScriptsInjected = true;
-                        const scripts = doc.querySelectorAll("script");
-                        scripts.forEach((script) => {
-                            if (script.textContent.trim()) {
-                                const newScript = document.createElement("script");
-                                newScript.textContent = `(function(){${script.textContent}})();`;
-                                document.head.appendChild(newScript);
+                        doc.querySelectorAll("script").forEach(s => {
+                            if (s.textContent.trim()) {
+                                const ns = document.createElement("script");
+                                ns.textContent = `(function(){${s.textContent}})();`;
+                                document.head.appendChild(ns);
                             }
                         });
                     }
-                } catch (error) {
-                    console.error("Erro ao carregar layout:", error);
-                }
+                } catch (e) { console.error("Layout:", e); }
             }
 
-            // Carregar status da API
             async function carregarStatus() {
+                const fluxoEl = document.getElementById('fluxo-fallback');
+                if (!fluxoEl) return;
+
                 try {
-                    // Guard: verifica se ainda estamos na página correta
-                    const fluxoEl = document.getElementById('fluxo-fallback');
-                    if (!fluxoEl) {
-                        console.warn('[Jogos-Dia] Elementos não encontrados, página mudou');
-                        return;
+                    const data = await (await fetch('/api/jogos-ao-vivo/status')).json();
+
+                    if (data.fluxo) fluxoEl.textContent = data.fluxo;
+
+                    // SoccerDataAPI
+                    const sd = data.fontes?.['soccerdata'];
+                    const sdBadge = document.getElementById('soccerdata-badge');
+                    const sdInfo = document.getElementById('soccerdata-info');
+                    if (sdBadge) {
+                        sdBadge.className = `badge ${sd?.configurado ? 'on' : 'off'}`;
+                        sdBadge.innerHTML = `<span class="dot"></span> ${sd?.configurado ? 'Ativa' : 'Sem key'}`;
                     }
+                    if (sdInfo) sdInfo.textContent = sd?.configurado ? 'Operacional' : (sd?.aviso || 'SOCCERDATA_API_KEY ausente');
 
-                    const response = await fetch('/api/jogos-ao-vivo/status');
-                    const data = await response.json();
-
-                    // Fluxo de fallback
-                    if (data.fluxo && fluxoEl) {
-                        fluxoEl.textContent = data.fluxo;
-                    }
-
-                    // === SoccerDataAPI ===
-                    const soccerData = data.fontes?.['soccerdata'];
-                    const statusSoccerData = document.getElementById('soccerdata-status');
-                    const soccerdataInfo = document.getElementById('soccerdata-info');
-
-                    if (!statusSoccerData) return; // Guard: elemento não existe
-
-                    if (soccerData?.configurado) {
-                        statusSoccerData.innerHTML = `
-                            <span class="status-badge online">
-                                <span class="dot"></span>
-                                Configurada
-                            </span>
-                        `;
-                        if (soccerdataInfo) {
-                            soccerdataInfo.textContent = 'Fonte principal ativa';
-                            soccerdataInfo.style.color = '#10b981';
-                        }
-                    } else {
-                        statusSoccerData.innerHTML = `
-                            <span class="status-badge offline">
-                                <span class="dot"></span>
-                                Nao configurada
-                            </span>
-                        `;
-                        if (soccerdataInfo) {
-                            soccerdataInfo.textContent = soccerData?.aviso || 'API key nao definida';
-                            soccerdataInfo.style.color = '#f59e0b';
-                        }
-                    }
-
-                    // === Cache ===
-                    const cache = data.cache;
-                    if (cache) {
-                        const cacheStatusEl = document.getElementById('cache-status');
-                        const cacheIdadeEl = document.getElementById('cache-idade');
-                        const cacheTtlEl = document.getElementById('cache-ttl');
-                        const cacheJogosEl = document.getElementById('cache-jogos');
-
-                        if (!cacheStatusEl) return; // Guard: elementos não existem
-
-                        // Fonte atual do cache
-                        const fonteMap = {
-                            'api-football': 'API-Football (REMOVIDA)',
-                            'cache-stale': 'Cache Stale',
-                            'soccerdata': 'SoccerDataAPI',
-                            'globo': 'Globo Esporte'
-                        };
-                        if (cacheStatusEl) {
-                            cacheStatusEl.textContent = fonteMap[cache.fonte] || cache.fonte || '-';
+                    // API-Football
+                    const af = data.fontes?.['api-football'];
+                    if (af) {
+                        const afBadge = document.getElementById('apifootball-badge');
+                        if (afBadge) {
+                            const cls = af.habilitado ? 'sec' : af.configurado ? 'warn' : 'off';
+                            const txt = af.habilitado ? 'Ativa' : af.configurado ? 'Inativa' : 'Sem key';
+                            afBadge.className = `badge ${cls}`;
+                            afBadge.innerHTML = `<span class="dot"></span> ${txt}`;
                         }
 
-                        // Idade do cache
-                        if (cacheIdadeEl) {
-                            if (cache.idadeMinutos !== null) {
-                                const idadeText = cache.stale
-                                    ? `${cache.idadeMinutos} min (stale)`
-                                    : `${cache.idadeMinutos} min`;
-                                cacheIdadeEl.textContent = idadeText;
-                                cacheIdadeEl.style.color = cache.stale ? '#f59e0b' : '#9ca3af';
-                            } else {
-                                cacheIdadeEl.textContent = 'Sem cache';
-                            }
+                        const q = af.quota || {};
+                        const pct = q.percentUsado || 0;
+                        const el = (id) => document.getElementById(id);
+                        if (el('af-used')) el('af-used').textContent = q.usadas || 0;
+                        if (el('af-cap')) el('af-cap').textContent = q.limite || 90;
+                        if (el('af-pct')) el('af-pct').textContent = `(${pct}%)`;
+                        if (el('af-remaining')) el('af-remaining').textContent = q.restanteApi ?? '?';
+                        if (el('af-bar')) {
+                            el('af-bar').style.width = `${Math.min(pct, 100)}%`;
+                            el('af-bar').className = `quota-fill ${pct > 80 ? 'r' : pct > 50 ? 'y' : 'g'}`;
                         }
-
-                        // TTL
-                        if (cacheTtlEl) cacheTtlEl.textContent = cache.ttlAtual || '-';
-                        if (cacheJogosEl) cacheJogosEl.textContent = `${cache.jogosEmCache || 0} jogos em cache`;
+                        if (el('af-circuit')) {
+                            el('af-circuit').innerHTML = q.circuitBreaker
+                                ? `<span class="badge off"><span class="dot"></span> ABERTO</span> ${q.circuitReason || ''}`
+                                : `<span class="badge on"><span class="dot"></span> Fechado</span>`;
+                        }
+                        const s = af.stats || {};
+                        if (el('af-stats')) {
+                            el('af-stats').textContent = `OK:${s.successCount||0} ERR:${s.errorCount||0} 429:${s.rateLimitHits||0} Cache:${s.cacheHits||0}`;
+                        }
                     }
 
-                } catch (error) {
-                    console.error('Erro ao carregar status:', error);
-                    const statusEl = document.getElementById('api-football-status');
-                    if (statusEl) {
-                        statusEl.innerHTML = `
-                            <span class="status-badge offline">
-                                <span class="dot"></span>
-                                Erro
-                            </span>
-                        `;
+                    // Cache
+                    const c = data.cache;
+                    if (c) {
+                        const fonteMap = { soccerdata:'SoccerData', 'soccerdata+globo':'SoccerData+Globo', 'api-football':'API-Football', 'api-football+globo':'API-Football+Globo', 'cache-stale':'Stale', globo:'Globo' };
+                        const el = (id) => document.getElementById(id);
+                        if (el('cache-fonte')) el('cache-fonte').textContent = fonteMap[c.fonte] || c.fonte || '-';
+                        if (el('cache-ttl')) el('cache-ttl').textContent = c.ttlAtual || '-';
+                        if (el('cache-idade')) {
+                            el('cache-idade').textContent = c.idadeMinutos !== null ? `${c.idadeMinutos} min${c.stale ? ' (stale)' : ''}` : 'Sem cache';
+                            el('cache-idade').style.color = c.stale ? '#f59e0b' : '#d1d5db';
+                        }
+                        if (el('cache-jogos')) el('cache-jogos').textContent = c.jogosEmCache || 0;
+                        const cb = document.getElementById('cache-badge');
+                        if (cb) {
+                            cb.className = `badge ${c.temJogosAoVivo ? 'on' : 'warn'}`;
+                            cb.innerHTML = `<span class="dot"></span> ${c.temJogosAoVivo ? 'Ao vivo' : 'Normal'}`;
+                        }
                     }
-                }
+                } catch (e) { console.error('Status:', e); }
             }
 
-            // Carregar jogos ao vivo
             window.carregarJogos = async function() {
                 const btn = document.querySelector('.refresh-btn');
                 if (btn) btn.classList.add('loading');
-
                 try {
-                    const response = await fetch('/api/jogos-ao-vivo');
-                    const data = await response.json();
+                    const data = await (await fetch('/api/jogos-ao-vivo')).json();
+                    const total = document.getElementById('jogos-total');
+                    if (total) total.textContent = `(${data.jogos?.length || 0} - ${data.fonte || '?'})`;
 
-                    // Contador (com null checks)
-                    const countEl = document.getElementById('jogos-ao-vivo');
-                    const fonteEl = document.getElementById('jogos-fonte');
-                    const fonteFriendly = {
-                        'soccerdata': 'SoccerDataAPI',
-                        'cache-stale': 'Cache Stale',
-                        'globo': 'Globo Esporte',
-                        'api-football': 'API-Football (REMOVIDA)'
-                    }[data.fonte] || data.fonte || '-';
-                    if (countEl) countEl.textContent = data.jogos?.length || 0;
-                    if (fonteEl) fonteEl.textContent = `Fonte: ${fonteFriendly}`;
+                    const container = document.getElementById('jogos-container');
+                    if (!container) return;
 
-                    // Lista de jogos (usa jogos-andamento como container principal)
-                    const container = document.getElementById('jogos-andamento');
-                    if (!container) {
-                        console.warn('[Jogos-Dia] Container jogos-andamento nao encontrado');
+                    if (!data.jogos || data.jogos.length === 0) {
+                        container.innerHTML = `<div class="no-jogos">${data.mensagem || 'Nenhum jogo'} <span style="color:#4b5563">(${data.fonte || '-'})</span></div>`;
                         return;
                     }
 
-                    if (!data.jogos || data.jogos.length === 0) {
-                        container.innerHTML = `
-                            <div class="no-games">
-                                <span class="material-icons">sports_soccer</span>
-                                <p>${data.mensagem || 'Nenhum jogo ao vivo no momento'}</p>
-                                <p style="font-size: 0.75rem; margin-top: 8px;">Fonte: ${data.fonte || '-'}</p>
+                    container.innerHTML = data.jogos.map(j => `
+                        <div class="jogo-item">
+                            <div class="jogo-teams">
+                                ${j.logoMandante ? `<img src="${j.logoMandante}" alt="">` : ''}
+                                <span>${j.mandante}</span>
                             </div>
-                        `;
-                    } else {
-                        container.innerHTML = data.jogos.map(jogo => `
-                            <div class="live-game">
-                                <div class="live-game-teams">
-                                    <div class="live-game-team">
-                                        ${jogo.logoMandante ? `<img src="${jogo.logoMandante}" alt="${jogo.mandante}">` : ''}
-                                        <span>${jogo.mandante}</span>
-                                    </div>
-                                    <div class="live-game-score">${jogo.placar || 'vs'}</div>
-                                    <div class="live-game-team">
-                                        <span>${jogo.visitante}</span>
-                                        ${jogo.logoVisitante ? `<img src="${jogo.logoVisitante}" alt="${jogo.visitante}">` : ''}
-                                    </div>
-                                </div>
-                                <div class="live-game-info">
-                                    <div class="live-game-time">${jogo.tempo || jogo.status || jogo.horario}</div>
-                                    <div class="live-game-league">${jogo.liga || ''}</div>
-                                </div>
+                            <div class="jogo-score">${j.placar || 'vs'}</div>
+                            <div class="jogo-teams" style="justify-content:flex-end">
+                                <span>${j.visitante}</span>
+                                ${j.logoVisitante ? `<img src="${j.logoVisitante}" alt="">` : ''}
                             </div>
-                        `).join('');
-                    }
-
-                } catch (error) {
-                    console.error('Erro ao carregar jogos:', error);
-                    const errorContainer = document.getElementById('jogos-andamento');
-                    if (errorContainer) {
-                        errorContainer.innerHTML = `
-                            <div class="no-games">
-                                <span class="material-icons">error</span>
-                                <p>Erro ao carregar jogos</p>
+                            <div class="jogo-meta">
+                                <div class="time">${j.tempo || j.status || j.horario}</div>
+                                <div class="league">${j.liga || ''}</div>
                             </div>
-                        `;
-                    }
+                        </div>
+                    `).join('');
+                } catch (e) {
+                    console.error('Jogos:', e);
+                    const c = document.getElementById('jogos-container');
+                    if (c) c.innerHTML = '<div class="no-jogos">Erro ao carregar</div>';
                 } finally {
                     if (btn) btn.classList.remove('loading');
                 }
             }
 
-            // Variável global para armazenar o interval ID
-            let autoRefreshInterval = null;
+            let interval = null;
+            function cleanup() { if (interval) { clearInterval(interval); interval = null; } }
 
-            // Função para limpar o interval quando sair da página
-            function cleanupApiFootballPage() {
-                if (autoRefreshInterval) {
-                    clearInterval(autoRefreshInterval);
-                    autoRefreshInterval = null;
-                    console.log('[Jogos-Dia] Auto-refresh limpo');
-                }
-            }
-
-            // Inicializar
             document.addEventListener("DOMContentLoaded", () => {
                 loadLayout();
                 carregarStatus();
                 carregarJogos();
-
-                // Limpar interval anterior se existir
-                cleanupApiFootballPage();
-
-                // Auto-refresh a cada 60 segundos
-                autoRefreshInterval = setInterval(() => {
-                    carregarStatus();
-                    carregarJogos();
-                }, 60000);
-
-                // Limpar interval quando navegar para outra página (SPA)
-                // Detecta quando elementos principais desaparecem
-                const observer = new MutationObserver(() => {
-                    if (!document.getElementById('fluxo-fallback')) {
-                        cleanupApiFootballPage();
-                        observer.disconnect();
-                    }
-                });
-
-                observer.observe(document.body, { childList: true, subtree: true });
+                cleanup();
+                interval = setInterval(() => { carregarStatus(); carregarJogos(); }, 60000);
+                new MutationObserver((_, obs) => {
+                    if (!document.getElementById('fluxo-fallback')) { cleanup(); obs.disconnect(); }
+                }).observe(document.body, { childList: true, subtree: true });
             });
-            } // guard
         </script>
     </body>
 </html>

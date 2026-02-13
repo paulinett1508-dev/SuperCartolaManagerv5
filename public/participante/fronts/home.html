@@ -170,12 +170,13 @@
                 <span class="material-icons home-destaques-icon">emoji_events</span>
                 <span class="home-destaques-header-title">Meus Destaques da Rodada</span>
                 <span class="home-destaques-rodada-badge" id="home-destaques-rodada">Rodada --</span>
+                <span class="home-destaques-live-badge" id="home-destaques-live-badge" style="display:none">AO VIVO</span>
             </div>
             <span class="material-icons home-destaques-chevron" id="home-destaques-chevron">expand_more</span>
         </button>
 
-        <!-- Conteúdo Colapsável -->
-        <div class="home-destaques-content collapsed" id="home-destaques-content">
+        <!-- Conteúdo Colapsável (JS controla estado expanded/collapsed) -->
+        <div class="home-destaques-content" id="home-destaques-content">
             <div class="home-destaques-grid">
                 <!-- Capitão -->
                 <div class="home-destaque-card" id="home-destaque-capitao">
@@ -705,6 +706,25 @@
     background: rgba(255,255,255,0.08);
     padding: 3px 8px;
     border-radius: 6px;
+}
+
+.home-destaques-live-badge {
+    display: inline-flex;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    color: #fff;
+    background: #ef4444;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
 }
 
 .home-destaques-chevron {

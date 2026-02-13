@@ -539,14 +539,53 @@
     color: var(--app-danger);
 }
 
-/* Content */
+/* Content - v3.0: Scroll fluido com indicadores */
 .wh-content {
     flex: 1;
     overflow-y: auto;
-    padding: 12px; /* v1.2: Reduzido de 16px */
+    overflow-x: hidden;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 12px; /* v1.2: Reduzido de 16px */
+    gap: 12px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    /* Scrollbar customizada */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+    /* Mask: gradient fade no topo e fundo */
+    mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        black 16px,
+        black calc(100% - 24px),
+        transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        black 16px,
+        black calc(100% - 24px),
+        transparent 100%
+    );
+}
+
+/* Webkit scrollbar */
+.wh-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.wh-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.wh-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+.wh-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 /* Timestamp */
@@ -567,11 +606,33 @@
 /* ========================================
    3. MODULE SECTIONS
    ======================================== */
+/* Seções com animação de entrada stagger */
 .wh-section {
     background: var(--app-bg);
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid var(--app-border);
+    animation: wh-section-enter 0.4s ease-out both;
+}
+
+.wh-section:nth-child(1) { animation-delay: 0s; }
+.wh-section:nth-child(2) { animation-delay: 0.06s; }
+.wh-section:nth-child(3) { animation-delay: 0.12s; }
+.wh-section:nth-child(4) { animation-delay: 0.18s; }
+.wh-section:nth-child(5) { animation-delay: 0.24s; }
+.wh-section:nth-child(6) { animation-delay: 0.30s; }
+.wh-section:nth-child(7) { animation-delay: 0.36s; }
+.wh-section:nth-child(8) { animation-delay: 0.42s; }
+
+@keyframes wh-section-enter {
+    0% {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .wh-section-header {
@@ -638,30 +699,121 @@
     color: var(--app-primary);
 }
 
-/* Section Body */
+/* Section Body - v3.0: scrollável internamente */
 .wh-section-body {
-    padding: 8px; /* v1.2: Reduzido de 12px */
+    padding: 8px;
+}
+
+/* Confrontos em carrossel horizontal dentro da section */
+.wh-section-body--carousel {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+.wh-section-body--carousel::-webkit-scrollbar {
+    display: none;
+}
+
+/* Confrontos grandes: 85% width no carrossel */
+.wh-section-body--carousel > .wh-confronto {
+    min-width: 85%;
+    max-width: 85%;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    margin-bottom: 0;
+}
+
+/* Chips: flow horizontal com wrap */
+.wh-section-body--chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+}
+
+/* Indicador de scroll horizontal (dots) */
+.wh-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 0 2px;
+}
+
+.wh-carousel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--app-border);
+    transition: all 0.2s ease;
+}
+
+.wh-carousel-dot.active {
+    background: var(--app-primary);
+    width: 16px;
+    border-radius: 3px;
+}
+
+/* Swipe hint (arraste para ver mais) */
+.wh-swipe-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 0;
+    font-size: 11px;
+    color: var(--app-text-dim);
+    animation: wh-swipe-nudge 2s ease-in-out infinite;
+    transition: opacity 0.3s ease;
+}
+
+.wh-swipe-hint.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.wh-swipe-hint .material-icons {
+    font-size: 16px;
+}
+
+@keyframes wh-swipe-nudge {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(6px); }
+    75% { transform: translateX(-6px); }
 }
 
 /* ========================================
    4. CONFRONTO CARD (Disputas Diretas)
    ======================================== */
+/* v3.0: Cards com feedback tátil e transições suaves */
 .wh-confronto {
     background: var(--app-surface);
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 8px;
     border: 1px solid transparent;
-    transition: all 0.3s ease;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    will-change: transform;
 }
 
 .wh-confronto:last-child {
     margin-bottom: 0;
 }
 
+.wh-confronto:active {
+    transform: scale(0.97);
+}
+
 .wh-confronto.hot {
     border-color: var(--app-primary-border);
     background: linear-gradient(135deg, var(--app-surface) 0%, rgba(255, 85, 0, 0.05) 100%);
+    box-shadow: 0 0 12px rgba(255, 85, 0, 0.08);
 }
 
 .wh-confronto-header {
@@ -746,9 +898,25 @@
     font-size: var(--app-font-sm);
     font-weight: 600;
     color: var(--app-text-primary);
+    /* v2.0: Permitir 2 linhas para nomes longos */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.2;
+}
+
+.wh-time-cartola {
+    font-size: 10px;
+    color: var(--app-text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.wh-time--away .wh-time-cartola {
+    text-align: right;
 }
 
 .wh-time-pontos {
@@ -1091,39 +1259,40 @@
     animation: wh-live-pulse 1.5s ease-in-out infinite;
 }
 
-/* Meu Confronto Container */
+/* Meu Confronto Container - v1.3: Compactado */
 .wh-meu-confronto {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 6px; /* v1.3: Reduzido de 12px */
 }
 
 /* Times Container */
 .wh-mc-times {
     display: flex;
     align-items: stretch;
-    gap: 8px;
+    gap: 4px; /* v1.3: Reduzido de 8px */
 }
 
-/* Cada Time */
+/* Cada Time - v1.3: Layout horizontal compacto */
 .wh-mc-time {
     flex: 1;
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* v1.3: Horizontal em vez de coluna */
     align-items: center;
-    padding: 12px 8px;
+    padding: 8px 6px; /* v1.3: Reduzido de 12px 8px */
     background: var(--app-surface);
-    border-radius: 12px;
-    gap: 8px;
+    border-radius: 8px; /* v1.3: Reduzido de 12px */
+    gap: 6px; /* v1.3: Reduzido de 8px */
     transition: all 0.3s ease;
 }
 
 .wh-mc-time--eu {
-    border-left: 3px solid var(--app-primary);
+    border-left: 2px solid var(--app-primary); /* v1.3: Reduzido de 3px */
 }
 
 .wh-mc-time--adv {
-    border-right: 3px solid var(--app-text-dim);
+    border-right: 2px solid var(--app-text-dim); /* v1.3: Reduzido de 3px */
+    flex-direction: row-reverse; /* v1.3: Pontuação à direita */
 }
 
 .wh-mc-time.winning {
@@ -1134,78 +1303,89 @@
     color: var(--app-success);
 }
 
-/* Escudo */
+/* Escudo - v1.3: Compactado */
 .wh-mc-escudo {
-    width: 48px;
-    height: 48px;
+    width: 28px; /* v1.3: Reduzido de 48px */
+    height: 28px;
     border-radius: 50%;
     object-fit: contain;
     background: var(--app-bg);
-    border: 2px solid var(--app-border);
+    border: 1px solid var(--app-border); /* v1.3: Reduzido de 2px */
+    flex-shrink: 0;
 }
 
-/* Info do Time */
+/* Info do Time - v1.3: Compactado */
 .wh-mc-info {
-    text-align: center;
+    flex: 1;
+    min-width: 0;
+    text-align: left; /* v1.3: Alinhado à esquerda */
+}
+
+.wh-mc-time--adv .wh-mc-info {
+    text-align: right; /* v1.3: Adversário à direita */
 }
 
 .wh-mc-label {
-    font-size: var(--app-font-xs);
+    font-size: 9px; /* v1.3: Reduzido */
     font-weight: 600;
     color: var(--app-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    line-height: 1;
 }
 
 .wh-mc-nome {
-    font-size: var(--app-font-sm);
+    font-size: var(--app-font-sm); /* v2.0: Aumentado para legibilidade */
     font-weight: 600;
     color: var(--app-text-primary);
-    white-space: nowrap;
+    /* v2.0: Permitir 2 linhas */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100px;
+    line-height: 1.2;
 }
 
-/* Pontuação */
+/* Pontuação - v1.3: Destaque mas compacto */
 .wh-mc-pontos {
     font-family: var(--app-font-mono);
-    font-size: var(--app-font-2xl);
+    font-size: var(--app-font-lg); /* v1.3: Reduzido de 2xl */
     font-weight: 700;
     color: var(--app-text-primary);
+    flex-shrink: 0;
 }
 
 .wh-mc-pontos.winning {
     color: var(--app-success);
 }
 
-/* VS Central */
+/* VS Central - v1.3: Compactado */
 .wh-mc-vs {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 8px 4px;
-    min-width: 50px;
+    padding: 4px 2px; /* v1.3: Reduzido */
+    min-width: 36px; /* v1.3: Reduzido de 50px */
 }
 
 .wh-mc-vs-emoji {
-    font-size: 24px;
+    font-size: 16px; /* v1.3: Reduzido de 24px */
     animation: wh-vs-pulse 2s ease-in-out infinite;
 }
 
 @keyframes wh-vs-pulse {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.15); }
+    50% { transform: scale(1.1); }
 }
 
 .wh-mc-vs-diff {
     font-family: var(--app-font-mono);
-    font-size: var(--app-font-sm);
+    font-size: var(--app-font-xs); /* v1.3: Reduzido de sm */
     font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 6px;
-    margin-top: 4px;
+    padding: 1px 4px; /* v1.3: Reduzido */
+    border-radius: 4px;
+    margin-top: 2px; /* v1.3: Reduzido */
 }
 
 .wh-mc-vs-diff.winning {
@@ -1223,15 +1403,15 @@
     color: var(--app-warning);
 }
 
-/* Status do Confronto */
+/* Status do Confronto - v1.3: Compactado */
 .wh-mc-status {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: var(--app-font-sm);
+    gap: 4px; /* v1.3: Reduzido de 6px */
+    padding: 6px 10px; /* v1.3: Reduzido de 10px 12px */
+    border-radius: 6px;
+    font-size: var(--app-font-xs); /* v1.3: Reduzido de sm */
     font-weight: 600;
 }
 
@@ -1251,5 +1431,547 @@
 }
 
 .wh-mc-status .material-icons {
-    font-size: 18px;
+    font-size: 14px; /* v1.3: Reduzido de 18px */
+}
+
+/* ========================================
+   12. EXPAND/COLLAPSE - Seções Expandíveis
+   ======================================== */
+.wh-expand-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    margin-top: 6px;
+    background: var(--app-surface);
+    border-radius: 8px;
+    border: 1px dashed var(--app-border);
+    color: var(--app-text-muted);
+    font-size: var(--app-font-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wh-expand-trigger:hover,
+.wh-expand-trigger:active {
+    background: var(--app-surface-hover);
+    color: var(--app-text-secondary);
+    border-color: var(--app-primary-border);
+}
+
+.wh-expand-icon {
+    font-size: 20px !important;
+    transition: transform 0.3s ease;
+}
+
+.wh-expand-trigger.expanded .wh-expand-icon {
+    transform: rotate(180deg);
+}
+
+.wh-collapsed-content {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    animation: wh-collapse-in 0.3s ease;
+}
+
+.wh-collapsed-content.expanded {
+    display: flex;
+}
+
+@keyframes wh-collapse-in {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   13. BARRA DE PROPORÇÃO VISUAL
+   ======================================== */
+.wh-barra-proporcao {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 8px;
+    background: var(--app-bg);
+}
+
+.wh-barra-a {
+    background: var(--app-info);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    transition: width 0.5s ease;
+    border-radius: 3px 0 0 3px;
+    position: relative;
+}
+
+.wh-barra-b {
+    background: var(--app-warning);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    transition: width 0.5s ease;
+    border-radius: 0 3px 3px 0;
+    position: relative;
+}
+
+.wh-barra-a span,
+.wh-barra-b span {
+    font-size: 0;
+    line-height: 0;
+    opacity: 0;
+}
+
+/* ========================================
+   14. INSIGHTS POR NÍVEL DE INTENSIDADE
+   ======================================== */
+.wh-insight--inferno {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(255, 69, 0, 0.1)) !important;
+    color: var(--app-danger) !important;
+    border-left: 3px solid var(--app-danger);
+    animation: wh-insight-pulse 1s ease-in-out infinite;
+}
+
+.wh-insight--hot {
+    background: var(--app-primary-muted) !important;
+    color: var(--app-primary-light) !important;
+    border-left: 3px solid var(--app-primary);
+}
+
+.wh-insight--warm {
+    background: var(--app-warning-muted) !important;
+    color: var(--app-warning) !important;
+    border-left: 3px solid var(--app-warning);
+}
+
+.wh-insight--tied {
+    background: rgba(168, 85, 247, 0.1) !important;
+    color: #a855f7 !important;
+    border-left: 3px solid #a855f7;
+    animation: wh-insight-pulse 1.2s ease-in-out infinite;
+}
+
+.wh-insight--blowout {
+    background: rgba(34, 197, 94, 0.1) !important;
+    color: var(--app-success) !important;
+    border-left: 3px solid var(--app-success);
+}
+
+@keyframes wh-insight-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* ========================================
+   15. CONFRONTO INTERATIVO - TAP & NAVIGATE
+   ======================================== */
+.wh-confronto[data-navigate],
+.wh-section[data-navigate],
+.wh-section-header[data-navigate] {
+    cursor: pointer;
+}
+
+.wh-confronto[data-navigate]:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+}
+
+/* Highlight: meu confronto nos listados */
+.wh-confronto.mine {
+    border-left: 3px solid var(--app-primary);
+    background: linear-gradient(90deg, rgba(255, 85, 0, 0.05) 0%, var(--app-surface) 30%);
+}
+
+/* Confronto decidido (mata-mata com vencedor) */
+.wh-confronto.decided {
+    opacity: 0.7;
+}
+
+.wh-mm-decided {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: var(--app-success-muted);
+    border-radius: 6px;
+    font-size: var(--app-font-xs);
+    font-weight: 600;
+    color: var(--app-success);
+}
+
+.wh-mm-decided .material-icons {
+    font-size: 14px;
+}
+
+.wh-confronto-status.decided {
+    background: var(--app-success-muted);
+    color: var(--app-success);
+}
+
+/* Navigate hint icon no header das seções */
+.wh-navigate-hint {
+    font-size: 14px !important;
+    color: var(--app-text-dim);
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.wh-section-header[data-navigate]:hover .wh-navigate-hint,
+.wh-section-header[data-navigate]:active .wh-navigate-hint {
+    opacity: 1;
+    color: var(--app-primary);
+}
+
+/* Section badge - "X quentes" */
+.wh-section-badge.wh-badge--hot {
+    background: var(--app-danger-muted);
+    color: var(--app-danger);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    animation: wh-live-pulse 2s ease-in-out infinite;
+}
+
+/* ========================================
+   16. RANK CHIPS - Ranking discreto e elegante
+   ======================================== */
+.wh-rank-card {
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px 5px 5px;
+    background: var(--app-surface);
+    border-radius: 20px;
+    border: 1px solid var(--app-border);
+    transition: transform 0.1s ease;
+    white-space: nowrap;
+    height: 32px;
+}
+
+.wh-rank-card:active {
+    transform: scale(0.97);
+}
+
+/* Posições com borda sutil */
+.wh-rank-card.gold { border-color: rgba(255, 215, 0, 0.4); }
+.wh-rank-card.silver { border-color: rgba(192, 192, 192, 0.3); }
+.wh-rank-card.bronze { border-color: rgba(205, 127, 50, 0.3); }
+
+.wh-rank-card.me {
+    border-color: var(--app-primary);
+    background: rgba(255, 85, 0, 0.08);
+}
+
+.wh-rank-pos {
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--app-font-mono);
+    line-height: 1;
+    min-width: 14px;
+    text-align: center;
+}
+
+.wh-rank-card.gold .wh-rank-pos { color: var(--app-gold); }
+.wh-rank-card.silver .wh-rank-pos { color: var(--app-silver); }
+.wh-rank-card.bronze .wh-rank-pos { color: var(--app-bronze); }
+.wh-rank-card.me .wh-rank-pos { color: var(--app-primary); }
+
+.wh-rank-escudo {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--app-bg);
+    flex-shrink: 0;
+}
+
+.wh-rank-nome {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--app-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70px;
+    line-height: 1;
+}
+
+.wh-rank-card.me .wh-rank-nome {
+    color: var(--app-text-primary);
+    font-weight: 600;
+}
+
+.wh-rank-pontos {
+    font-family: var(--app-font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--app-text-primary);
+    margin-left: auto;
+}
+
+.wh-rank-card.me .wh-rank-pontos {
+    color: var(--app-primary);
+}
+
+.wh-rank-sub {
+    display: none; /* Oculto em chips - info já no pontos */
+}
+
+/* Disputa acirrada dentro de seção com carousel */
+.wh-section .wh-disputa-acirrada {
+    margin: 6px 8px 4px;
+}
+
+/* ========================================
+   17. RANK LIST - Lista vertical compacta v2.0
+   ======================================== */
+.wh-section-body--list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 8px;
+}
+
+.wh-rank-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--app-surface);
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+
+.wh-rank-row:active {
+    background: var(--app-surface-hover);
+}
+
+/* Primeiro lugar com destaque sutil */
+.wh-rank-row.first {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.08) 0%, var(--app-surface) 100%);
+    border-left: 2px solid var(--app-gold);
+}
+
+/* Minha posição destacada */
+.wh-rank-row.me {
+    background: linear-gradient(90deg, rgba(255, 85, 0, 0.1) 0%, var(--app-surface) 100%);
+    border-left: 2px solid var(--app-primary);
+}
+
+/* Posição numérica */
+.wh-rank-row .wh-rank-pos {
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--app-font-mono);
+    min-width: 20px;
+    text-align: center;
+    color: var(--app-text-muted);
+}
+
+.wh-rank-row.first .wh-rank-pos { color: var(--app-gold); }
+.wh-rank-row.me .wh-rank-pos { color: var(--app-primary); }
+
+/* Escudo */
+.wh-rank-row .wh-rank-escudo {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--app-bg);
+    flex-shrink: 0;
+}
+
+/* Info container */
+.wh-rank-row .wh-rank-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+/* Nome - agora com espaço suficiente */
+.wh-rank-row .wh-rank-nome {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--app-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wh-rank-row.me .wh-rank-nome {
+    color: var(--app-primary-light);
+}
+
+/* Sublabel */
+.wh-rank-row .wh-rank-sub {
+    display: block;
+    font-size: 10px;
+    color: var(--app-text-muted);
+}
+
+/* Valor principal */
+.wh-rank-row .wh-rank-valor {
+    font-family: var(--app-font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--app-text-primary);
+    flex-shrink: 0;
+}
+
+.wh-rank-row.first .wh-rank-valor { color: var(--app-gold); }
+.wh-rank-row.me .wh-rank-valor { color: var(--app-primary); }
+
+/* Separador ... */
+.wh-rank-separator {
+    text-align: center;
+    font-size: 12px;
+    color: var(--app-text-dim);
+    padding: 2px 0;
+}
+
+/* ========================================
+   18. PODIUM TABLE - Formato tabela compacta v3.0
+   ======================================== */
+
+/* Container da tabela (remove o body padrão) */
+.wh-section-body--podium {
+    padding: 0;
+}
+
+/* Tabela de ranking inline */
+.wh-podium-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.wh-podium-table tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.wh-podium-table tr:last-child {
+    border-bottom: none;
+}
+
+.wh-podium-table td {
+    padding: 8px 10px;
+    vertical-align: middle;
+}
+
+/* Coluna posição */
+.wh-podium-pos {
+    width: 28px;
+    font-family: var(--app-font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    text-align: center;
+    color: var(--app-text-muted);
+}
+
+.wh-podium-table tr:first-child .wh-podium-pos { color: var(--app-gold); }
+.wh-podium-table tr:nth-child(2) .wh-podium-pos { color: var(--app-silver); }
+.wh-podium-table tr:nth-child(3) .wh-podium-pos { color: var(--app-bronze); }
+.wh-podium-table tr.me .wh-podium-pos { color: var(--app-primary); }
+
+/* Coluna escudo */
+.wh-podium-escudo {
+    width: 32px;
+}
+
+.wh-podium-escudo img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+/* Coluna nome (expande) */
+.wh-podium-nome {
+    font-weight: 500;
+    color: var(--app-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.wh-podium-table tr.me .wh-podium-nome {
+    color: var(--app-primary-light);
+    font-weight: 600;
+}
+
+/* Coluna valor (direita) */
+.wh-podium-valor {
+    text-align: right;
+    font-family: var(--app-font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--app-text-primary);
+    white-space: nowrap;
+}
+
+.wh-podium-table tr:first-child .wh-podium-valor { color: var(--app-gold); }
+.wh-podium-table tr.me .wh-podium-valor { color: var(--app-primary); }
+
+/* Badge de posição do usuário (fora da tabela) */
+.wh-my-position-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 10px 8px 10px;
+    padding: 8px 12px;
+    background: linear-gradient(90deg, var(--app-primary-muted) 0%, transparent 100%);
+    border-left: 3px solid var(--app-primary);
+    border-radius: 0 8px 8px 0;
+    font-size: 12px;
+}
+
+.wh-my-position-badge .wh-mpb-pos {
+    font-family: var(--app-font-mono);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--app-primary);
+    min-width: 24px;
+}
+
+.wh-my-position-badge .wh-mpb-escudo {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: contain;
+}
+
+.wh-my-position-badge .wh-mpb-nome {
+    flex: 1;
+    font-weight: 600;
+    color: var(--app-primary-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wh-my-position-badge .wh-mpb-valor {
+    font-family: var(--app-font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--app-primary);
 }

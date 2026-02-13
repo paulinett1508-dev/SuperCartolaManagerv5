@@ -210,6 +210,12 @@
                                     <span>Notificador</span>
                                 </a>
                             </li>
+                            <li>
+                                <a href="admin-orchestrator.html" class="sidebar-accordion-item" data-page="admin-orchestrator.html">
+                                    <span class="material-icons">hub</span>
+                                    <span>Orchestrator</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -227,6 +233,12 @@
                     </div>
                     <div class="sidebar-accordion-content">
                         <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="github-analytics-unified.html" class="sidebar-accordion-item" data-page="github-analytics-unified.html">
+                                    <span class="material-icons">merge_type</span>
+                                    <span>Repositório</span>
+                                </a>
+                            </li>
                             <li>
                                 <a href="api-football-analytics.html" class="sidebar-accordion-item" data-page="api-football-analytics.html">
                                     <span class="material-icons">api</span>
@@ -267,20 +279,6 @@
                 </div>
             </nav>
 
-            <!-- Apps Mobile (antes do user section) -->
-            <div class="sidebar-section-bottom">
-                <a href="participante/index.html" class="sidebar-menu-item sidebar-app-link" target="_blank" data-tooltip="App Participante">
-                    <span class="material-icons">phone_android</span>
-                    <span>App Participante</span>
-                    <span class="material-icons" style="font-size: 14px; margin-left: auto; color: #9ca3af;">open_in_new</span>
-                </a>
-                <a href="admin-mobile/" class="sidebar-menu-item sidebar-app-link" target="_blank" data-tooltip="App Admin">
-                    <span class="material-icons">admin_panel_settings</span>
-                    <span>App Admin</span>
-                    <span class="material-icons" style="font-size: 14px; margin-left: auto; color: #9ca3af;">open_in_new</span>
-                </a>
-            </div>
-
             <!-- User Section com Menu Dropup -->
             <div class="sidebar-user-new" id="sidebarUserSection">
                 <!-- Menu Dropup (aparece ao clicar) -->
@@ -292,6 +290,17 @@
                     <button class="sidebar-user-menu-item menu-super-admin-only" id="menuAdministradores" data-action="administradores" style="display: none;">
                         <span class="material-icons">admin_panel_settings</span>
                         <span>Administradores</span>
+                    </button>
+                    <div class="sidebar-user-menu-divider"></div>
+                    <button class="sidebar-user-menu-item" data-action="app-participante">
+                        <span class="material-icons">phone_android</span>
+                        <span>App Participante</span>
+                        <span class="material-icons" style="font-size: 16px; margin-left: auto; color: #9ca3af;">open_in_new</span>
+                    </button>
+                    <button class="sidebar-user-menu-item" data-action="app-admin">
+                        <span class="material-icons">tablet_android</span>
+                        <span>App Admin</span>
+                        <span class="material-icons" style="font-size: 16px; margin-left: auto; color: #9ca3af;">open_in_new</span>
                     </button>
                     <div class="sidebar-user-menu-divider"></div>
                     <button class="sidebar-user-menu-item logout" data-action="logout">
@@ -634,7 +643,9 @@
                         'historico-acessos.html': 'participantes',
                         // Operações
                         'ferramentas-rodadas.html': 'operacoes',
+                        'admin-orchestrator.html': 'operacoes',
                         // Analytics
+                        'github-analytics-unified.html': 'analytics',
                         'dashboard-saude.html': 'analytics',
                         'api-football-analytics.html': 'analytics',
                         // Administração
@@ -876,6 +887,7 @@
                         "admin-gestao.html": { title: "Administradores", subtitle: "Gerenciar Usuarios Admin" },
                         "historico-acessos.html": { title: "Historico de Acessos", subtitle: "Monitorar Acessos ao App" },
                         "analisar-participantes.html": { title: "Analisar Participantes", subtitle: "Gestao Unificada de Participantes" },
+                        "admin-orchestrator.html": { title: "Orchestrator", subtitle: "Round-Market Orchestrator" },
                     };
 
                     const pageInfo = titles[currentPage] || {
@@ -942,7 +954,9 @@
                     'historico-acessos.html',
                     'auditoria-extratos.html',
                     'api-football-analytics.html',
-                    'dashboard-saude.html'
+                    'dashboard-analytics.html',
+                    'dashboard-saude.html',
+                    'admin-orchestrator.html'
                 ],
 
                 init() {
@@ -1060,6 +1074,11 @@
                             // Ignorar scripts do layout
                             return !src.includes('sidebar') && !src.includes('layout');
                         });
+
+                        // Executar cleanups de página antes de trocar conteúdo
+                        if (window.__adminShell) {
+                            window.__adminShell.runCleanups();
+                        }
 
                         // Substituir conteúdo + sincronizar classes do main
                         mainContent.innerHTML = newMain.innerHTML;
@@ -1296,6 +1315,31 @@
                 }
             }
 
+            // Cache da ligaId para evitar múltiplas requisições
+            let _cachedLigaId = null;
+
+            window.getLigaIdPrincipal = async function() {
+                if (_cachedLigaId) return _cachedLigaId;
+
+                try {
+                    const response = await fetch('/api/ligas');
+                    if (!response.ok) throw new Error('Erro ao buscar ligas');
+
+                    const data = await response.json();
+                    const ligas = data.ligas || data;
+
+                    if (!ligas || ligas.length === 0) {
+                        throw new Error('Nenhuma liga disponível');
+                    }
+
+                    _cachedLigaId = ligas[0]._id;
+                    return _cachedLigaId;
+                } catch (error) {
+                    console.error('[CONSOLIDAR] Erro ao buscar ligaId:', error);
+                    throw error;
+                }
+            };
+
             window.abrirConsolidarRodadaSidebar = async function(event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -1330,10 +1374,11 @@
                     const listaRodadas = document.getElementById('listaRodadas');
                     listaRodadas.innerHTML = '';
 
-                    // Buscar informações de consolidação
-                    const consolidacaoRes = await fetch('/api/admin/rodadas/consolidadas');
-                    const rodadasConsolidadas = consolidacaoRes.ok ? await consolidacaoRes.json() : [];
-                    const setConsolidadas = new Set(rodadasConsolidadas.map(r => r.rodada));
+                    // Buscar informações de consolidação usando endpoint correto (snapshots v2)
+                    const ligaId = await getLigaIdPrincipal();
+                    const consolidacaoRes = await fetch(`/api/consolidacao/ligas/${ligaId}/status`);
+                    const statusData = consolidacaoRes.ok ? await consolidacaoRes.json() : { rodadas_consolidadas: [] };
+                    const setConsolidadas = new Set(statusData.rodadas_consolidadas || []);
 
                     // Gerar lista de rodadas (do atual até 1, ordem reversa)
                     for (let r = rodadaAtual; r >= 1; r--) {
@@ -1418,25 +1463,61 @@
                 `;
 
                 try {
-                    // Consolidar rodadas uma por uma
+                    // Buscar ligaId
+                    const ligaId = await getLigaIdPrincipal();
+
+                    let sucessos = 0;
+                    let jaConsolidadas = 0;
+
+                    // Consolidar rodadas uma por uma usando endpoint correto (snapshots v2)
                     for (const rodada of rodadas) {
-                        const response = await fetch('/api/admin/consolidar-rodada', {
+                        btn.innerHTML = `
+                            <div class="loading-spinner-consolidar" style="width: 20px; height: 20px; border-width: 2px;"></div>
+                            Consolidando rodada ${rodada}...
+                        `;
+
+                        const response = await fetch(`/api/consolidacao/ligas/${ligaId}/rodadas/${rodada}/consolidar`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ rodada })
+                            headers: { 'Content-Type': 'application/json' }
                         });
 
                         if (!response.ok) {
-                            const error = await response.text();
-                            throw new Error(`Erro na rodada ${rodada}: ${error}`);
+                            const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+
+                            // Se já consolidada, não é erro fatal
+                            if (response.status === 409 || errorData.message?.includes('já consolidada')) {
+                                jaConsolidadas++;
+                                continue;
+                            }
+
+                            throw new Error(`Erro na rodada ${rodada}: ${errorData.message || response.statusText}`);
                         }
+
+                        sucessos++;
                     }
 
-                    alert(`✓ ${rodadas.length} rodada(s) consolidada(s) com sucesso!`);
+                    // Feedback detalhado
+                    let mensagem = '';
+                    if (sucessos > 0) mensagem += `✓ ${sucessos} rodada(s) consolidada(s) com sucesso!\n`;
+                    if (jaConsolidadas > 0) mensagem += `ℹ ${jaConsolidadas} rodada(s) já estava(m) consolidada(s).\n`;
+
+                    alert(mensagem || 'Consolidação concluída!');
                     fecharModalConsolidar();
                 } catch (error) {
                     console.error('[CONSOLIDAR] Erro:', error);
-                    alert('Erro ao consolidar rodadas: ' + error.message);
+
+                    let mensagemErro = 'Erro ao consolidar rodadas:\n\n';
+                    if (error.message.includes('liga')) {
+                        mensagemErro += '❌ Nenhuma liga disponível. Verifique se você tem acesso a alguma liga.';
+                    } else if (error.message.includes('API Cartola')) {
+                        mensagemErro += '❌ API do Cartola indisponível. Tente novamente mais tarde.';
+                    } else if (error.message.includes('mercado')) {
+                        mensagemErro += '❌ Mercado ainda não fechou para esta rodada.';
+                    } else {
+                        mensagemErro += error.message;
+                    }
+
+                    alert(mensagemErro);
                     btn.disabled = false;
                     atualizarBotaoConsolidar();
                 }
@@ -1534,6 +1615,12 @@
                                 break;
                             case 'administradores':
                                 window.location.href = 'admin-gestao.html';
+                                break;
+                            case 'app-participante':
+                                window.open('participante/index.html', '_blank');
+                                break;
+                            case 'app-admin':
+                                window.open('admin-mobile/', '_blank');
                                 break;
                             case 'logout':
                                 fazerLogoutAdmin();

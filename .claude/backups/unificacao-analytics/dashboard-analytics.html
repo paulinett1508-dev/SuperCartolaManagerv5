@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics - Super Cartola Manager</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+
+    <link rel="stylesheet" href="css/_admin-tokens.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="css/modules/super-modal.css" />
+    <script src="js/super-modal.js"></script>
+
+    <style>
+        .an { background: var(--surface-bg); min-height: 100vh; font-family: var(--font-family-base); }
+        .an-wrap { padding: 16px; max-width: 1400px; margin: 0 auto; }
+
+        /* ── Header ── */
+        .an-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; }
+        .an-title { font-family: 'Russo One', sans-serif; font-size: 1.25rem; color: #fff; display: flex; align-items: center; gap: 0.5rem; }
+        .an-title .material-icons { font-size: 1.5rem; color: var(--brand-primary); }
+        .an-filtros { display: flex; gap: 0.5rem; }
+        .an-filtro-btn {
+            padding: 4px 12px; background: var(--surface-elevated); color: var(--text-muted);
+            border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+            cursor: pointer; font-size: 0.75rem; font-weight: 500; transition: all 0.15s;
+        }
+        .an-filtro-btn:hover { border-color: var(--brand-primary); color: var(--text-primary); }
+        .an-filtro-btn.ativo { background: var(--brand-primary); color: #fff; border-color: var(--brand-primary); }
+
+        /* ── KPI Bar ── */
+        .an-kpi { display: flex; gap: 2px; margin-bottom: 1rem; border-radius: var(--radius-md); overflow: hidden; }
+        .an-kpi-item {
+            flex: 1; background: var(--surface-elevated); padding: 10px 12px;
+            display: flex; flex-direction: column; gap: 2px; min-width: 0;
+            border-right: 1px solid var(--border-color);
+        }
+        .an-kpi-item:last-child { border-right: none; }
+        .an-kpi-label { font-size: 0.625rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .an-kpi-val { font-family: 'JetBrains Mono', monospace; font-size: 1.125rem; font-weight: 700; color: var(--brand-primary); line-height: 1; }
+        .an-kpi-val.danger { color: #ef4444; }
+        .an-kpi-val.warning { color: #f59e0b; }
+        .an-kpi-val.info { color: #3b82f6; }
+        .an-kpi-val.purple { color: #a855f7; }
+
+        /* ── Section Title ── */
+        .an-section {
+            display: flex; align-items: center; gap: 0.5rem;
+            margin: 1rem 0 0.5rem; font-size: 0.75rem; font-weight: 600;
+            color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .an-section .material-icons { font-size: 1rem; }
+
+        /* ── Table ── */
+        .an-table { width: 100%; border-collapse: collapse; background: var(--surface-elevated); border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-color); }
+        .an-table th {
+            text-align: left; padding: 8px 10px; font-size: 0.675rem; font-weight: 600;
+            color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;
+            background: var(--surface-highlight); border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        .an-table td { padding: 7px 10px; font-size: 0.8rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .an-table tr:last-child td { border-bottom: none; }
+        .an-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .an-branch { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 600; color: var(--brand-primary); word-break: break-all; }
+        .an-mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+        .an-muted { color: var(--text-muted); font-size: 0.75rem; }
+
+        /* ── Badges ── */
+        .an-badge {
+            display: inline-block; padding: 2px 6px; border-radius: 3px;
+            font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.3px; white-space: nowrap; vertical-align: middle;
+        }
+        .an-badge-merged { background: rgba(59,130,246,0.15); color: #3b82f6; }
+        .an-badge-active { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .an-badge-danger { background: rgba(239,68,68,0.12); color: #ef4444; }
+        .an-badge-warning { background: rgba(245,158,11,0.12); color: #f59e0b; }
+        .an-badge-orphan { background: rgba(168,85,247,0.12); color: #a855f7; }
+        .an-badge-draft { background: rgba(107,114,128,0.15); color: #9ca3af; }
+        .an-badges { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 2px; }
+
+        .an-pr-link { color: var(--brand-primary); text-decoration: none; font-size: 0.75rem; font-weight: 500; }
+        .an-pr-link:hover { text-decoration: underline; }
+
+        /* ── Status dot ── */
+        .an-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
+        .an-dot-green { background: #22c55e; }
+        .an-dot-blue { background: #3b82f6; }
+        .an-dot-red { background: #ef4444; }
+        .an-dot-yellow { background: #f59e0b; }
+
+        /* ── Loading / Error ── */
+        .an-loading { text-align: center; padding: 2rem; color: var(--text-muted); }
+        .an-spinner { display: inline-block; width: 1.5rem; height: 1.5rem; border: 2px solid var(--surface-highlight); border-top-color: var(--brand-primary); border-radius: 50%; animation: an-spin 0.8s linear infinite; }
+        @keyframes an-spin { to { transform: rotate(360deg); } }
+        .an-error { background: rgba(239,68,68,0.1); color: #ef4444; padding: 8px 12px; border-radius: var(--radius-sm); margin-bottom: 0.75rem; font-size: 0.8rem; }
+        .an-empty { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.8rem; }
+
+        /* ── Sync Button ── */
+        .an-sync-area { display: flex; align-items: center; gap: 0.5rem; }
+        .an-sync-btn {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 12px; background: var(--surface-elevated); color: var(--text-muted);
+            border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+            cursor: pointer; font-size: 0.75rem; font-weight: 500; transition: all 0.15s;
+        }
+        .an-sync-btn:hover { border-color: var(--brand-primary); color: var(--text-primary); }
+        .an-sync-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .an-sync-btn .material-icons { font-size: 1rem; transition: transform 0.3s; }
+        .an-sync-btn.syncing .material-icons { animation: an-spin 0.8s linear infinite; }
+        .an-sync-ts { font-size: 0.625rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .an-kpi { flex-wrap: wrap; }
+            .an-kpi-item { flex: 1 1 calc(33% - 2px); }
+            .an-table { display: block; overflow-x: auto; }
+        }
+        @media (max-width: 600px) {
+            .an-kpi-item { flex: 1 1 calc(50% - 2px); }
+            .an-header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+
+        <main class="app-main an">
+            <div class="an-wrap">
+                <!-- HEADER -->
+                <div class="an-header">
+                    <h1 class="an-title">
+                        <span class="material-icons">analytics</span>
+                        Analytics
+                    </h1>
+                    <div class="an-sync-area">
+                        <div class="an-filtros">
+                            <button class="an-filtro-btn ativo" data-periodo="tudo">Tudo</button>
+                            <button class="an-filtro-btn" data-periodo="mes">Mes</button>
+                            <button class="an-filtro-btn" data-periodo="semana">Semana</button>
+                            <button class="an-filtro-btn" data-periodo="dia">Hoje</button>
+                        </div>
+                        <button class="an-sync-btn" id="btnSync" title="Sincronizar com GitHub">
+                            <span class="material-icons">sync</span> Sync
+                        </button>
+                        <span class="an-sync-ts" id="syncTs"></span>
+                    </div>
+                </div>
+
+                <!-- ERROR -->
+                <div id="anError" class="an-error" style="display:none;"></div>
+
+                <!-- LOADING -->
+                <div id="anLoading" class="an-loading" style="display:none;">
+                    <div class="an-spinner"></div>
+                    <p style="margin-top:0.5rem; font-size:0.8rem;">Carregando...</p>
+                </div>
+
+                <!-- CONTENT -->
+                <div id="anContent" style="display:none;">
+
+                    <!-- KPI BAR -->
+                    <div class="an-kpi">
+                        <div class="an-kpi-item">
+                            <span class="an-kpi-label">Branches</span>
+                            <span class="an-kpi-val" id="kTotal">-</span>
+                        </div>
+                        <div class="an-kpi-item">
+                            <span class="an-kpi-label">Ativas</span>
+                            <span class="an-kpi-val" id="kAtivas">-</span>
+                        </div>
+                        <div class="an-kpi-item">
+                            <span class="an-kpi-label">Mergeadas</span>
+                            <span class="an-kpi-val info" id="kMerged">-</span>
+                        </div>
+                        <div class="an-kpi-item">
+                            <span class="an-kpi-label">Commits</span>
+                            <span class="an-kpi-val" id="kCommits">-</span>
+                        </div>
+                        <div class="an-kpi-item">
+                            <span class="an-kpi-label">Deletar</span>
+                            <span class="an-kpi-val danger" id="kDeletar">-</span>
+                        </div>
+                        <div class="an-kpi-item">
+                            <span class="an-kpi-label">Desatualiz.</span>
+                            <span class="an-kpi-val warning" id="kDesatual">-</span>
+                        </div>
+                        <div class="an-kpi-item">
+                            <span class="an-kpi-label">Orfas</span>
+                            <span class="an-kpi-val purple" id="kOrfas">-</span>
+                        </div>
+                        <div class="an-kpi-item">
+                            <span class="an-kpi-label">PRs Abertos</span>
+                            <span class="an-kpi-val info" id="kPrs">-</span>
+                        </div>
+                    </div>
+
+                    <!-- BRANCHES TABLE -->
+                    <div class="an-section">
+                        <span class="material-icons">account_tree</span> Branches
+                        <span id="branchCount" style="color:var(--text-muted); font-weight:400;"></span>
+                    </div>
+                    <table class="an-table" id="tblBranches">
+                        <thead>
+                            <tr>
+                                <th style="width:25%;">Branch</th>
+                                <th style="width:25%;">Funcionalidade</th>
+                                <th>Commits</th>
+                                <th>Status</th>
+                                <th>Dias</th>
+                                <th>PR</th>
+                                <th>Alertas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyBranches">
+                            <tr><td colspan="7" class="an-empty">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+
+                    <!-- MERGES TABLE -->
+                    <div class="an-section" style="margin-top:1.5rem;">
+                        <span class="material-icons">merge_type</span> Merges Recentes
+                        <span id="mergeCount" style="color:var(--text-muted); font-weight:400;"></span>
+                    </div>
+                    <table class="an-table" id="tblMerges">
+                        <thead>
+                            <tr>
+                                <th style="width:30%;">Branch</th>
+                                <th>PR</th>
+                                <th>Autor</th>
+                                <th>Data</th>
+                                <th>Link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyMerges">
+                            <tr><td colspan="5" class="an-empty">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+
+                    <!-- FUNCIONALIDADES TABLE -->
+                    <div class="an-section" style="margin-top:1.5rem;">
+                        <span class="material-icons">bolt</span> Funcionalidades
+                        <span id="funcCount" style="color:var(--text-muted); font-weight:400;"></span>
+                    </div>
+                    <table class="an-table" id="tblFuncs">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th style="width:40%;">Descricao</th>
+                                <th>Status</th>
+                                <th>Branch</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyFuncs">
+                            <tr><td colspan="4" class="an-empty">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        if (window.__dashboard_analytics_guard) {
+            console.warn('[ANALYTICS] Ja inicializado, pulando...');
+        } else {
+        window.__dashboard_analytics_guard = true;
+
+        // ── Layout (sidebar) ──
+        async function loadLayout() {
+            try {
+                if (document.querySelector('.app-sidebar')) return;
+                const response = await fetch("layout.html");
+                const layoutHtml = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(layoutHtml, "text/html");
+                const sidebar = doc.querySelector(".app-sidebar");
+                if (sidebar) document.getElementById("sidebar-placeholder")?.replaceWith(sidebar);
+                if (!window.__layoutScriptsInjected) {
+                    window.__layoutScriptsInjected = true;
+                    doc.querySelectorAll("script").forEach((script) => {
+                        if (script.textContent.trim()) {
+                            const s = document.createElement("script");
+                            s.textContent = `(function(){${script.textContent}})();`;
+                            document.head.appendChild(s);
+                        }
+                    });
+                }
+            } catch (e) { console.error("Erro layout:", e); }
+        }
+
+        const API = '/api/admin';
+        let periodo = 'tudo';
+        let repoUrl = null;
+        const $ = id => document.getElementById(id);
+
+        // ── Inferir funcionalidade a partir do nome da branch ──
+        const TIPOS_BRANCH = {
+            'fix': { label: 'Correção', css: 'an-badge-danger' },
+            'feat': { label: 'Feature', css: 'an-badge-active' },
+            'audit': { label: 'Auditoria', css: 'an-badge-merged' },
+            'refactor': { label: 'Refatoração', css: 'an-badge-warning' },
+            'chore': { label: 'Manutenção', css: 'an-badge-draft' },
+            'perf': { label: 'Performance', css: 'an-badge-warning' },
+            'docs': { label: 'Documentação', css: 'an-badge-draft' },
+            'evaluate': { label: 'Avaliação', css: 'an-badge-orphan' },
+            'planning': { label: 'Planejamento', css: 'an-badge-draft' },
+            'hotfix': { label: 'Hotfix', css: 'an-badge-danger' },
+            'document': { label: 'Documentação', css: 'an-badge-draft' },
+            'code-review': { label: 'Code Review', css: 'an-badge-merged' },
+        };
+
+        const MODULOS_CONHECIDOS = {
+            'mata-mata': 'Mata-Mata', 'matamat': 'Mata-Mata',
+            'pontos-corridos': 'Pontos Corridos', 'campinho': 'Campinho',
+            'capitao-luxo': 'Capitão de Luxo', 'capitao': 'Capitão de Luxo',
+            'artilheiro': 'Artilheiro', 'luva-de-ouro': 'Luva de Ouro', 'luva': 'Luva de Ouro',
+            'extrato': 'Extrato', 'financial': 'Financeiro', 'financeiro': 'Financeiro',
+            'ranking': 'Ranking', 'hall-da-fama': 'Hall da Fama',
+            'whats-happening': 'Widget FAB', 'fab': 'Widget FAB',
+            'escudo': 'Escudos', 'campeonato': 'Campeonato',
+            'server': 'Servidor', 'deploy': 'Deploy',
+            'stitch': 'Stitch/Design', 'rules': 'Regras',
+            'team': 'Times', 'jogos': 'Jogos ao Vivo',
+            'mcp': 'MCP Servers', 'agent': 'Agentes IA',
+            'security': 'Segurança', 'cache': 'Cache',
+        };
+
+        function inferirFuncionalidade(nome) {
+            if (!nome) return { tipo: null, descricao: nome };
+
+            // 1. Remover prefixos de agente/origin
+            let limpo = nome.replace(/^(origin\/|claude\/|copilot\/|dependabot\/)/, '');
+
+            // 2. Remover sufixo hash do Claude Code (ex: -JCIZL, -Q831E, -8pGZj)
+            limpo = limpo.replace(/-[A-Za-z0-9]{4,6}$/, '');
+
+            // 3. Detectar tipo
+            let tipoDetectado = null;
+            for (const [prefixo, info] of Object.entries(TIPOS_BRANCH)) {
+                if (limpo.startsWith(prefixo + '-') || limpo.startsWith(prefixo + '/')) {
+                    tipoDetectado = info;
+                    limpo = limpo.substring(prefixo.length + 1);
+                    break;
+                }
+            }
+
+            // 4. Detectar módulo conhecido
+            let moduloDetectado = null;
+            for (const [chave, nomeModulo] of Object.entries(MODULOS_CONHECIDOS)) {
+                if (limpo.includes(chave)) {
+                    moduloDetectado = nomeModulo;
+                    break;
+                }
+            }
+
+            // 5. Humanizar: kebab-case → Title Case
+            const descricao = limpo
+                .replace(/[-_]/g, ' ')
+                .replace(/\b\w/g, c => c.toUpperCase())
+                .trim();
+
+            return { tipo: tipoDetectado, modulo: moduloDetectado, descricao };
+        }
+
+        // ── Filtros ──
+        document.querySelectorAll('.an-filtro-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                document.querySelectorAll('.an-filtro-btn').forEach(b => b.classList.remove('ativo'));
+                e.target.classList.add('ativo');
+                periodo = e.target.dataset.periodo;
+                carregar();
+            });
+        });
+
+        // ── API ──
+        async function api(endpoint) {
+            const params = new URLSearchParams();
+            if (periodo !== 'tudo') params.append('periodo', periodo);
+            const url = params.toString() ? `${API}${endpoint}?${params}` : `${API}${endpoint}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        }
+
+        // ── Sync button ──
+        const btnSync = $('btnSync');
+        btnSync.addEventListener('click', () => carregar());
+
+        function atualizarTimestamp() {
+            const agora = new Date();
+            const hh = String(agora.getHours()).padStart(2, '0');
+            const mm = String(agora.getMinutes()).padStart(2, '0');
+            $('syncTs').textContent = `${hh}:${mm}`;
+        }
+
+        function setSyncing(ativo) {
+            btnSync.disabled = ativo;
+            btnSync.classList.toggle('syncing', ativo);
+        }
+
+        // ── Carregar tudo ──
+        async function carregar() {
+            if (!$('anContent')) return;
+            setSyncing(true);
+            showLoading();
+            try {
+                const [resumo, merges, funcs] = await Promise.all([
+                    api('/analytics/resumo'),
+                    api('/analytics/merges'),
+                    api('/analytics/funcionalidades')
+                ]);
+
+                if (resumo?.success) {
+                    repoUrl = resumo.repoUrl || null;
+                    renderKPI(resumo.stats);
+                    renderBranches(resumo.branches);
+                }
+                if (merges?.success) renderMerges(merges.merges);
+                if (funcs?.success) renderFuncs(funcs.funcionalidades || []);
+
+                showContent();
+                atualizarTimestamp();
+            } catch (e) {
+                showError('Erro ao carregar analytics: ' + e.message);
+            } finally {
+                setSyncing(false);
+            }
+        }
+
+        // ── Render KPI ──
+        function renderKPI(s) {
+            $('kTotal').textContent = s.totalBranches || 0;
+            $('kAtivas').textContent = s.branchesAcativas || 0;
+            $('kMerged').textContent = s.branchesMergeadas || 0;
+            $('kCommits').textContent = s.totalCommits || 0;
+            $('kDeletar').textContent = s.branchesPassivDeletacao || 0;
+            $('kDesatual').textContent = s.branchesDesatualizadas || 0;
+            $('kOrfas').textContent = s.branchesOrfas || 0;
+            $('kPrs').textContent = s.prsEmRevisao || 0;
+        }
+
+        // ── Render Branches ──
+        function renderBranches(branches) {
+            const tbody = $('tbodyBranches');
+            if (!branches || !branches.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="an-empty">Nenhuma branch</td></tr>';
+                $('branchCount').textContent = '';
+                return;
+            }
+            $('branchCount').textContent = `(${branches.length})`;
+            tbody.innerHTML = branches.map(b => {
+                const badges = [];
+                if (b.riscoDeletacao) badges.push('<span class="an-badge an-badge-danger">deletar</span>');
+                if (b.statusAtualizacao) badges.push('<span class="an-badge an-badge-warning">desatual.</span>');
+                if (b.pr?.isDraft) badges.push('<span class="an-badge an-badge-draft">draft</span>');
+                if (b.pr?.emRevisaoHaTempo) badges.push('<span class="an-badge an-badge-warning">lenta</span>');
+                if (b.pr?.nuncaMergeado) badges.push('<span class="an-badge an-badge-danger">rejeitada</span>');
+
+                // Órfã → link acionável "Criar PR"
+                if (b.statusOrfa && repoUrl) {
+                    const branchEncoded = encodeURIComponent(b.nome);
+                    badges.push(`<a href="${repoUrl}/compare/${branchEncoded}?expand=1" target="_blank" class="an-badge an-badge-orphan" style="text-decoration:none;">+ Criar PR</a>`);
+                } else if (b.statusOrfa) {
+                    badges.push('<span class="an-badge an-badge-orphan">sem PR</span>');
+                }
+
+                const statusBadge = b.mergeada
+                    ? '<span class="an-dot an-dot-blue"></span><span class="an-badge an-badge-merged">merged</span>'
+                    : '<span class="an-dot an-dot-green"></span><span class="an-badge an-badge-active">ativa</span>';
+
+                // PR: link para PR existente ou "-"
+                const prCell = b.pr
+                    ? `<a href="${b.pr.url}" target="_blank" class="an-pr-link">#${b.pr.numero}</a>`
+                    : '<span class="an-muted">-</span>';
+
+                // Branch name: link para /tree/{branch} no GitHub
+                const branchCell = repoUrl
+                    ? `<a href="${repoUrl}/tree/${encodeURIComponent(b.nome)}" target="_blank" class="an-branch" style="text-decoration:none;">${b.nome}</a>`
+                    : `<span class="an-branch">${b.nome}</span>`;
+
+                // Inferir funcionalidade do nome da branch
+                const func = inferirFuncionalidade(b.nome);
+                const tipoBadge = func.tipo
+                    ? `<span class="an-badge ${func.tipo.css}">${func.tipo.label}</span> `
+                    : '';
+                const moduloBadge = func.modulo
+                    ? `<span style="color:var(--brand-primary); font-size:0.7rem; font-weight:600;">${func.modulo}</span><br>`
+                    : '';
+                const funcCell = `${moduloBadge}${tipoBadge}<span class="an-muted" style="font-size:0.75rem;">${func.descricao}</span>`;
+
+                return `<tr>
+                    <td>${branchCell}</td>
+                    <td>${funcCell}</td>
+                    <td class="an-mono">${b.totalCommits || 0}</td>
+                    <td>${statusBadge}</td>
+                    <td class="an-mono">${b.diasDesdeUltimoCommit != null ? b.diasDesdeUltimoCommit + 'd' : '-'}</td>
+                    <td>${prCell}</td>
+                    <td>${badges.length ? '<div class="an-badges">' + badges.join('') + '</div>' : '<span class="an-muted">-</span>'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ── Render Merges ──
+        function renderMerges(merges) {
+            const tbody = $('tbodyMerges');
+            if (!merges || !merges.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="an-empty">Nenhum merge</td></tr>';
+                $('mergeCount').textContent = '';
+                return;
+            }
+            $('mergeCount').textContent = `(${merges.length})`;
+            tbody.innerHTML = merges.map(m => `<tr>
+                <td class="an-branch">${m.branch}</td>
+                <td class="an-mono">${m.prNumero ? '#' + m.prNumero : '-'}</td>
+                <td class="an-muted">${m.autor || '-'}</td>
+                <td class="an-muted">${m.data || '-'}</td>
+                <td>${m.url ? '<a href="' + m.url + '" target="_blank" class="an-pr-link">Ver PR</a>' : '-'}</td>
+            </tr>`).join('');
+        }
+
+        // ── Render Funcionalidades ──
+        function renderFuncs(funcs) {
+            const tbody = $('tbodyFuncs');
+            if (!funcs || !funcs.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="an-empty">Nenhuma funcionalidade</td></tr>';
+                $('funcCount').textContent = '';
+                return;
+            }
+            $('funcCount').textContent = `(${funcs.length})`;
+            tbody.innerHTML = funcs.map(f => {
+                const statusBadge = f.status === 'Completo'
+                    ? '<span class="an-badge an-badge-merged">completo</span>'
+                    : '<span class="an-badge an-badge-warning">pendente</span>';
+                return `<tr>
+                    <td class="an-mono" style="color:var(--brand-primary); font-weight:600;">${f.id}</td>
+                    <td>${f.titulo}</td>
+                    <td>${statusBadge}</td>
+                    <td class="an-branch">${f.branch || '-'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ── UI states ──
+        function showLoading() { $('anContent').style.display = 'none'; $('anLoading').style.display = 'block'; $('anError').style.display = 'none'; }
+        function showContent() { $('anContent').style.display = 'block'; $('anLoading').style.display = 'none'; $('anError').style.display = 'none'; }
+        function showError(msg) { $('anError').textContent = msg; $('anError').style.display = 'block'; $('anContent').style.display = 'none'; $('anLoading').style.display = 'none'; }
+
+        // ── Init ──
+        document.addEventListener("DOMContentLoaded", () => {
+            loadLayout();
+            carregar();
+        });
+        } // guard
+    </script>
+</body>
+</html>

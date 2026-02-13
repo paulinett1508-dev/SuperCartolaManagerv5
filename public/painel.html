@@ -4,17 +4,14 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Dashboard - Super Cartola Manager</title>
-        <!-- Design Tokens (SEMPRE PRIMEIRO) -->
-        <link rel="stylesheet" href="css/_admin-tokens.css" />
-        <link rel="stylesheet" href="style.css" />
+        <!-- Admin Shell (tokens + style + sidebar + modal) -->
+        <link rel="stylesheet" href="css/admin-shell.css" />
+        <!-- Page-specific CSS -->
         <link rel="stylesheet" href="css/modules/dashboard.css" />
-        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
         <link rel="stylesheet" href="css/modules/dashboard-unified.css" />
+        <link rel="stylesheet" href="css/modules/admin-tesouraria.css" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-        <link rel="stylesheet" href="css/modules/super-modal.css" />
-        <link rel="stylesheet" href="css/modules/admin-tesouraria.css" />
-        <script src="js/super-modal.js"></script>
     </head>
     <body>
         <div class="app-container">
@@ -162,6 +159,40 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- ========================================
+                         ORCHESTRATOR STATUS
+                         ======================================== -->
+                    <section class="health-section" id="orchestratorSection" style="margin-bottom: 20px;">
+                        <div class="health-section-header" onclick="toggleOrchestratorSection()" style="cursor: pointer;">
+                            <div class="health-section-title">
+                                <span class="material-icons">hub</span>
+                                <span>Orchestrator</span>
+                            </div>
+                            <div class="health-section-meta">
+                                <div id="orchStatusBadge" style="
+                                    display: inline-flex; align-items: center; gap: 6px;
+                                    padding: 4px 12px; border-radius: 20px;
+                                    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+                                    background: rgba(255,255,255,0.05); color: var(--text-secondary, #aaa);
+                                ">
+                                    <span id="orchDot" style="width: 8px; height: 8px; border-radius: 50%; background: #555;"></span>
+                                    <span id="orchBadgeText">Carregando...</span>
+                                </div>
+                                <span class="material-icons health-toggle-icon">expand_more</span>
+                            </div>
+                        </div>
+                        <div class="health-section-content" id="orchContent">
+                            <div class="health-section-inner">
+                                <div id="orchestratorContainer" style="padding: 16px;">
+                                    <div style="text-align: center; color: var(--text-secondary, #aaa); padding: 16px;">
+                                        <span class="material-icons" style="font-size: 24px;">hourglass_empty</span>
+                                        <p style="margin-top: 8px;">Carregando status...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
                     <!-- ========================================
                          SAÚDE DO SISTEMA - Colapsável (Fase 2)
@@ -361,6 +392,7 @@
             </div>
         </div>
 
+        <script src="js/admin-shell.js"></script>
         <script type="module">
             import { carregarLigas as carregarLigasAPI } from "./js/gerenciar-ligas.js";
             import { cacheManager } from "./js/core/cache-manager.js";
@@ -383,92 +415,16 @@
                 };
             }
 
-            // === CARREGAR LAYOUT ===
+            // === CARREGAR LAYOUT (delegado ao admin-shell.js) ===
             async function loadLayout() {
-                try {
-                    // ✅ FIX: Não recarregar layout se já existe sidebar (navegação SPA)
-                    if (document.querySelector('.app-sidebar')) {
-                        console.log("[PAINEL] Sidebar já existe, pulando loadLayout");
-                        return;
-                    }
-
-                    const response = await fetch("layout.html");
-                    const layoutHtml = await response.text();
-
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(layoutHtml, "text/html");
-
-                    // Injetar sidebar (com proteção contra re-execução)
-                    const sidebar = doc.querySelector(".app-sidebar");
-                    const placeholder = document.getElementById("sidebar-placeholder");
-                    if (sidebar && placeholder) {
-                        placeholder.replaceWith(sidebar);
-                    } else if (sidebar && !placeholder) {
-                        console.log("[PAINEL] Sidebar já injetado, pulando...");
-                    }
-
-                    // ✅ FIX: Só injetar scripts do layout na PRIMEIRA carga
-                    if (!window.__layoutScriptsInjected) {
-                        window.__layoutScriptsInjected = true;
-                        const scripts = doc.querySelectorAll("script");
-                        console.log("[PAINEL] Scripts encontrados no layout:", scripts.length);
-                        scripts.forEach((script, index) => {
-                            if (script.textContent.trim()) {
-                                console.log("[PAINEL] Injetando script", index + 1, "- primeiros 100 chars:", script.textContent.substring(0, 100));
-                                const newScript = document.createElement("script");
-                                newScript.textContent = `(function(){${script.textContent}})();`;
-                                document.head.appendChild(newScript);
-                            }
-                        });
-                    }
-                    console.log("[PAINEL] verificarMenuSuperAdmin disponível?", typeof window.verificarMenuSuperAdmin);
-
-                    // Garantir que AccordionManager seja inicializado
-                    setTimeout(() => {
-                        if (window.AccordionManager && !window.AccordionManager._initialized) {
-                            window.AccordionManager.init();
-                        }
-                        // Verificar Super Admin para menu Administradores
-                        verificarSuperAdminDireto();
-                    }, 200);
-
-                    // Função local para verificar Super Admin
-                    async function verificarSuperAdminDireto() {
-                        try {
-                            console.log('[PAINEL] Verificando Super Admin...');
-                            const response = await fetch('/api/admin/gestao/check-super', { credentials: 'include' });
-                            if (!response.ok) {
-                                console.log('[PAINEL] check-super falhou:', response.status);
-                                return;
-                            }
-                            const data = await response.json();
-                            console.log('[PAINEL] check-super result:', data);
-                            const menuAdmin = document.getElementById('menuAdministradores');
-                            if (menuAdmin) {
-                                if (data.isSuperAdmin) {
-                                    menuAdmin.style.cssText = 'display: list-item !important;';
-                                    console.log('[PAINEL] Menu Administradores VISÍVEL');
-                                } else {
-                                    menuAdmin.style.cssText = 'display: none !important;';
-                                    console.log('[PAINEL] Menu Administradores OCULTO');
-                                }
-                            } else {
-                                console.log('[PAINEL] Elemento menuAdministradores não encontrado');
-                            }
-                        } catch (e) {
-                            console.error('[PAINEL] Erro ao verificar Super Admin:', e);
-                        }
-                    }
-
-                    // Definir funções de logo após injetar sidebar
-                    definirFuncoesLogo();
-
-                    // ✅ v9.5 FIX: Remoção de chamada duplicada
-                    // NavigationSystem do layout.html já chama carregarLigasLayout() automaticamente
-                    // Não chamar aqui para evitar dupla requisição
-                } catch (error) {
-                    console.error("Erro ao carregar layout:", error);
+                // admin-shell.js carrega layout automaticamente.
+                // Aqui apenas aguarda sidebar e define funções de logo.
+                let tentativas = 0;
+                while (!document.querySelector('.app-sidebar') && tentativas < 30) {
+                    await new Promise(r => setTimeout(r, 100));
+                    tentativas++;
                 }
+                definirFuncoesLogo();
             }
 
             // === LOGOS DAS LIGAS (Dinâmico via campo liga.logo) ===
@@ -1174,6 +1130,17 @@
                 usuariosOnlineInterval = setInterval(carregarUsuariosOnline, 30000);
             }
 
+            // Registrar cleanup para quando SPA navegar para outra página
+            if (window.__adminShell) {
+                window.__adminShell.registerCleanup(() => {
+                    if (usuariosOnlineInterval) {
+                        clearInterval(usuariosOnlineInterval);
+                        usuariosOnlineInterval = null;
+                    }
+                    console.log('[PAINEL] Cleanup: interval de usuarios online limpo');
+                });
+            }
+
             // === HISTÓRICO DE ACESSOS ===
             let historicoPage = 1;
             let historicoHasMore = false;
@@ -1508,6 +1475,216 @@
 
             // Função global para retry
             window.carregarDadosLigas = carregarDadosLigas;
+        </script>
+
+        <!-- ========================================
+             ORCHESTRATOR STATUS - JavaScript
+             ======================================== -->
+        <script>
+            const ORCH_MARKET_LABELS = {
+                1: 'ABERTO', 2: 'FECHADO', 3: 'DESBLOQUEADO',
+                4: 'ENCERRADO', 5: 'FUTURO', 6: 'TEMP. ENCERRADA',
+            };
+
+            const ORCH_FASES = [
+                { id: 'aguardando', label: 'Ocioso', icon: 'hourglass_empty' },
+                { id: 'coletando_dados', label: 'Coletando', icon: 'download' },
+                { id: 'atualizando_live', label: 'Live', icon: 'cell_tower' },
+                { id: 'finalizando', label: 'Finalizando', icon: 'flag' },
+                { id: 'consolidando', label: 'Consolidando', icon: 'analytics' },
+                { id: 'concluida', label: 'Concluida', icon: 'check_circle' },
+            ];
+
+            window.toggleOrchestratorSection = function() {
+                const section = document.getElementById('orchestratorSection');
+                if (!section) return;
+
+                const isOpen = section.classList.contains('open');
+                if (isOpen) {
+                    section.classList.remove('open');
+                    localStorage.setItem('orch_section_open', 'false');
+                } else {
+                    section.classList.add('open');
+                    localStorage.setItem('orch_section_open', 'true');
+                    if (!section.dataset.loaded) {
+                        loadOrchestratorData();
+                        section.dataset.loaded = 'true';
+                    }
+                }
+            };
+
+            async function loadOrchestratorData() {
+                try {
+                    const resp = await fetch('/api/orchestrator/status');
+                    const data = await resp.json();
+                    if (data.success) {
+                        renderOrchestratorStatus(data);
+                    }
+                } catch (err) {
+                    console.warn('[DASHBOARD] Orchestrator indisponivel:', err.message);
+                    const container = document.getElementById('orchestratorContainer');
+                    if (container) {
+                        container.innerHTML = `
+                            <div style="text-align: center; color: var(--color-danger, #ef4444); padding: 16px;">
+                                <span class="material-icons">error_outline</span>
+                                <p style="margin-top: 8px;">Orchestrator indisponivel</p>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            function renderOrchestratorStatus(data) {
+                const live = data.live || {};
+                const db = data.persistido || {};
+                const statusNum = live.statusMercado;
+                const statusLabel = live.statusMercadoLabel || ORCH_MARKET_LABELS[statusNum] || '?';
+                const faseAtual = live.faseRodada || 'aguardando';
+
+                // Badge no header
+                const badge = document.getElementById('orchStatusBadge');
+                const dot = document.getElementById('orchDot');
+                const badgeText = document.getElementById('orchBadgeText');
+
+                if (dot && badgeText) {
+                    let dotColor = '#555';
+                    if (statusNum === 1) dotColor = 'var(--color-success, #10b981)';
+                    else if (statusNum === 2) dotColor = 'var(--color-danger, #ef4444)';
+                    else if (statusNum === 4) dotColor = 'var(--color-warning, #eab308)';
+
+                    dot.style.background = dotColor;
+                    badgeText.textContent = `${statusLabel} · R${live.rodadaAtual || '?'}`;
+                }
+
+                // Acao status
+                let acaoIcon, acaoTexto, acaoCor;
+                if (faseAtual === 'erro') {
+                    acaoIcon = 'error'; acaoTexto = 'Acao necessaria'; acaoCor = 'var(--color-danger, #ef4444)';
+                } else if (live.consolidandoAgora) {
+                    acaoIcon = 'hourglass_top'; acaoTexto = 'Consolidando...'; acaoCor = 'var(--color-warning, #eab308)';
+                } else if (statusNum === 1 && (faseAtual === 'concluida' || faseAtual === 'aguardando')) {
+                    acaoIcon = 'check_circle'; acaoTexto = 'Tudo automatico'; acaoCor = 'var(--color-success, #10b981)';
+                } else if (statusNum === 2) {
+                    acaoIcon = 'sports_soccer'; acaoTexto = 'Rodada em andamento'; acaoCor = 'var(--color-info, #3b82f6)';
+                } else {
+                    acaoIcon = 'cell_tower'; acaoTexto = 'Monitorando'; acaoCor = 'var(--text-secondary, #aaa)';
+                }
+
+                // Ultima consolidacao
+                let ultimaConsol = 'Nunca';
+                if (db.ultima_consolidacao) {
+                    const diff = Date.now() - new Date(db.ultima_consolidacao).getTime();
+                    const min = Math.floor(diff / 60000);
+                    const hrs = Math.floor(diff / 3600000);
+                    const dias = Math.floor(diff / 86400000);
+                    if (min < 1) ultimaConsol = 'Agora mesmo';
+                    else if (min < 60) ultimaConsol = `ha ${min} min`;
+                    else if (hrs < 24) ultimaConsol = `ha ${hrs}h`;
+                    else ultimaConsol = `ha ${dias}d`;
+                }
+
+                const container = document.getElementById('orchestratorContainer');
+                if (!container) return;
+
+                // Construir barra de fases separadamente (evita template literals aninhados)
+                var fasesHtml = '';
+                var faseIdx = ORCH_FASES.findIndex(function(x) { return x.id === faseAtual; });
+                ORCH_FASES.forEach(function(f, i) {
+                    var bg = 'var(--surface-card-elevated, #2a2a2a)';
+                    var cor = '#555';
+                    if (f.id === faseAtual) {
+                        bg = 'rgba(255, 85, 0, 0.15)';
+                        cor = 'var(--color-primary, #FF5500)';
+                    } else if (i < faseIdx) {
+                        bg = 'rgba(16, 185, 129, 0.1)';
+                        cor = 'var(--color-success, #10b981)';
+                    }
+                    fasesHtml += '<div style="flex:1;text-align:center;padding:6px 2px;border-radius:6px;background:' + bg + ';font-size:10px;font-weight:600;color:' + cor + ';">'
+                        + '<span class="material-icons" style="font-size:16px;display:block;">' + f.icon + '</span>'
+                        + f.label + '</div>';
+                });
+
+                var errosCor = (db.total_erros || 0) > 0 ? 'var(--color-danger, #ef4444)' : 'var(--text-secondary, #aaa)';
+
+                container.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                        <div style="
+                            display: flex; align-items: center; gap: 10px;
+                            padding: 12px; border-radius: 10px;
+                            background: var(--surface-card-elevated, #2a2a2a);
+                        ">
+                            <span class="material-icons" style="color: ${acaoCor}; font-size: 28px;">${acaoIcon}</span>
+                            <div>
+                                <div style="font-weight: 600; font-size: 13px; color: ${acaoCor};">${acaoTexto}</div>
+                                <div style="font-size: 11px; color: var(--text-secondary, #aaa);">Consolidacao: ${ultimaConsol}</div>
+                            </div>
+                        </div>
+                        <div style="
+                            text-align: center; padding: 12px; border-radius: 10px;
+                            background: var(--surface-card-elevated, #2a2a2a);
+                        ">
+                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--color-primary, #FF5500);">
+                                ${db.total_consolidacoes || 0}
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-secondary, #aaa);">Consolidacoes</div>
+                        </div>
+                        <div style="
+                            text-align: center; padding: 12px; border-radius: 10px;
+                            background: var(--surface-card-elevated, #2a2a2a);
+                        ">
+                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: ${errosCor};">
+                                ${db.total_erros || 0}
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-secondary, #aaa);">Erros</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 3px; margin-bottom: 16px;">
+                        ${fasesHtml}
+                    </div>
+
+                    <div style="text-align: center;">
+                        <a href="admin-orchestrator.html" style="
+                            color: var(--color-primary, #FF5500);
+                            font-weight: 600; font-size: 13px;
+                            text-decoration: none;
+                            display: inline-flex; align-items: center; gap: 4px;
+                        ">
+                            <span class="material-icons" style="font-size: 16px;">open_in_new</span>
+                            Ver detalhes completos
+                        </a>
+                    </div>
+                `;
+            }
+
+            // Carregar automaticamente + restaurar estado
+            function initOrchestratorSection() {
+                // Sempre carrega o badge (visivel mesmo colapsado)
+                loadOrchestratorData();
+
+                const isOpen = localStorage.getItem('orch_section_open') === 'true';
+                if (isOpen) {
+                    const section = document.getElementById('orchestratorSection');
+                    if (section) {
+                        section.classList.add('open');
+                        section.dataset.loaded = 'true';
+                    }
+                }
+            }
+
+            // DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initOrchestratorSection);
+            } else {
+                initOrchestratorSection();
+            }
+
+            // SPA: reinicializar
+            window.addEventListener('spa:navigated', (e) => {
+                if (e.detail?.pageName === 'painel.html') {
+                    initOrchestratorSection();
+                }
+            });
         </script>
 
         <!-- ========================================

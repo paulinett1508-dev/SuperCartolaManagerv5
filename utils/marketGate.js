@@ -6,8 +6,10 @@
 import NodeCache from 'node-cache';
 import { CURRENT_SEASON } from '../config/seasons.js';
 
-// Cache de 5 minutos (sincronizado com cartolaApiService)
-const cache = new NodeCache({ stdTTL: 300 });
+// v1.1: TTL dinâmico - 2min durante rodada ativa, 5min quando mercado aberto
+const DEFAULT_TTL = 300; // 5 minutos
+const ACTIVE_ROUND_TTL = 120; // 2 minutos durante rodada em andamento
+const cache = new NodeCache({ stdTTL: DEFAULT_TTL });
 const CACHE_KEY = 'mercado_status';
 
 class MarketGate {
@@ -61,11 +63,12 @@ class MarketGate {
 
                 // Metadata
                 _fetched_at: new Date().toISOString(),
-                _cache_ttl: 300 // 5 minutos em segundos
+                _cache_ttl: data.status_mercado === 2 ? ACTIVE_ROUND_TTL : DEFAULT_TTL
             };
 
-            // Salvar no cache
-            cache.set(CACHE_KEY, status);
+            // v1.1: TTL dinâmico - menor durante rodada ativa para detectar transições mais rápido
+            const ttl = status.mercado_fechado ? ACTIVE_ROUND_TTL : DEFAULT_TTL;
+            cache.set(CACHE_KEY, status, ttl);
             this.ultimoStatus = status;
             this.ultimaAtualizacao = new Date();
 

@@ -1,5 +1,9 @@
 // routes/jogos-ao-vivo-routes.js
+// v5.0 - API-Football reativada como SECUNDÁRIA com proteções anti-ban
 // v4.3 - TTL dinâmico blindado para jogos ao vivo
+// ✅ v5.0: API-FOOTBALL REATIVADA como SECUNDÁRIA via orquestrador multi-API
+//          Proteções: circuit breaker, rate limiter, quota tracker MongoDB, hard cap 90/dia
+//          Eventos de jogo reativados (on-demand via API-Football)
 // ✅ v4.3: TTL DINÂMICO BLINDADO - Cache da agenda usa 30s com jogos ao vivo, 5min sem
 //          Proteção: verifica jogos ao vivo no cache antigo e força refresh
 // ✅ v4.2: Campo atualizadoEm (ISO timestamp) em todas as respostas para exibir no frontend
@@ -24,6 +28,7 @@ import fetch from 'node-fetch';
 import fs from 'fs/promises';
 import path from 'path';
 import obterJogosGloboEsporte, { obterJogosGloboMultiDatas } from '../scripts/scraper-jogos-globo.js';
+import apiOrchestrator from '../services/api-orchestrator.js';
 
 const router = express.Router();
 
@@ -309,12 +314,18 @@ function getDataHoje() {
 // async function buscarJogosDoDia() { ... CÓDIGO REMOVIDO ... }
 
 /**
- * ❌ API-FOOTBALL REMOVIDA - Eventos de jogo desabilitados
- * Endpoint: GET /api/jogos-ao-vivo/:fixtureId/eventos (DESABILITADO)
+ * ✅ API-FOOTBALL REATIVADA (v5.0) - Eventos de jogo via orquestrador
+ * Endpoint: GET /api/jogos-ao-vivo/:fixtureId/eventos
+ * Custo: 1 request API-Football (on-demand, baixa prioridade)
  */
-async function buscarEventosJogo(fixtureId) {
-  console.warn('[JOGOS-DIA] Eventos desabilitados - API-Football removida');
-  return { eventos: [], mensagem: 'Feature desabilitada (API-Football removida)' };
+async function buscarEventosJogoViaOrquestrador(fixtureId) {
+  try {
+    const result = await apiOrchestrator.buscarEventos(fixtureId);
+    return result;
+  } catch (err) {
+    console.error('[JOGOS-DIA] Erro ao buscar eventos:', err.message);
+    return { eventos: [], error: err.message };
+  }
 }
 
 /**
@@ -614,18 +625,26 @@ router.get('/', async (req, res) => {
     }
 
     // 2º Buscar SoccerDataAPI + Agenda do Globo em paralelo
+    // Se SoccerDataAPI falhar, orquestrador ativa API-Football como fallback
     console.log('[JOGOS-DIA] Buscando SoccerDataAPI + agenda ge.globo.com em paralelo...');
-    const [soccerData, jogosAgenda] = await Promise.all([
-      buscarJogosSoccerDataAPI(),
+
+    const [livescoresResult, jogosAgenda] = await Promise.all([
+      apiOrchestrator.buscarLivescores(buscarJogosSoccerDataAPI),
       buscarAgendaDoDia()
     ]);
+
+    const soccerData = {
+      jogos: livescoresResult.jogos || [],
+      temAoVivo: livescoresResult.temAoVivo || false
+    };
+    const livescoreFonte = livescoresResult.fonte || 'nenhuma';
 
     // 3º Mesclar livescores com agenda (livescores têm prioridade)
     const jogosMesclados = mesclarJogos(soccerData.jogos, jogosAgenda);
 
     if (jogosMesclados.length > 0) {
       const temAoVivo = jogosMesclados.some(j => STATUS_AO_VIVO.includes(j.statusRaw));
-      const fontePrincipal = soccerData.jogos.length > 0 ? 'soccerdata+globo' : 'globo';
+      const fontePrincipal = soccerData.jogos.length > 0 ? `${livescoreFonte}+globo` : 'globo';
 
       cacheJogosDia = jogosMesclados;
       cacheTimestamp = agora;
@@ -635,7 +654,7 @@ router.get('/', async (req, res) => {
 
       const stats = calcularEstatisticas(jogosMesclados);
 
-      console.log(`[JOGOS-DIA] ✅ Mesclado: ${soccerData.jogos.length} ao vivo + ${jogosAgenda.length} agenda = ${jogosMesclados.length} jogos`);
+      console.log(`[JOGOS-DIA] ✅ Mesclado: ${soccerData.jogos.length} ao vivo (${livescoreFonte}) + ${jogosAgenda.length} agenda = ${jogosMesclados.length} jogos`);
 
       return res.json({
         jogos: jogosMesclados,
@@ -645,7 +664,7 @@ router.get('/', async (req, res) => {
         quantidade: jogosMesclados.length,
         atualizadoEm: new Date(agora).toISOString(),
         mensagem: soccerData.jogos.length > 0
-          ? `Livescores + agenda (${soccerData.jogos.length} ao vivo, ${jogosMesclados.length - soccerData.jogos.length} agendados)`
+          ? `Livescores (${livescoreFonte}) + agenda (${soccerData.jogos.length} ao vivo, ${jogosMesclados.length - soccerData.jogos.length} agendados)`
           : `Agenda do dia (${jogosMesclados.length} jogos programados)`
       });
     }
@@ -711,32 +730,52 @@ router.get('/status', async (req, res) => {
   const cacheIdadeMin = cacheIdadeMs ? Math.round(cacheIdadeMs / 60000) : null;
   const cacheStale = cacheIdadeMs && cacheIdadeMs > (cacheTemJogosAoVivo ? CACHE_TTL_AO_VIVO : CACHE_TTL_SEM_JOGOS);
 
+  // Obter status do orquestrador (inclui API-Football)
+  const orquestradorStatus = apiOrchestrator.getStatusConsolidado();
+  const apiFootballStatus = orquestradorStatus.apiFootball || {};
+  const apiFootballQuota = apiFootballStatus.quota || {};
+
   const resultado = {
-    fluxo: '✅ SoccerDataAPI + Agenda ge.globo.com (PARALELO) → Cache Stale (30min) → Arquivo JSON',
-    observacao: 'v4.0: Agenda do dia via ge.globo.com SSR data resolve jogos agendados que SoccerDataAPI não retorna',
+    fluxo: '✅ SoccerDataAPI (PRIMÁRIA) + API-Football (SECUNDÁRIA/FALLBACK) + Agenda ge.globo.com (PARALELO) → Cache Stale (30min) → Arquivo JSON',
+    observacao: 'v5.0: API-Football reativada como SECUNDÁRIA com proteções anti-ban (circuit breaker, rate limiter, quota tracker)',
     fontes: {
-      'api-football': {
-        ordem: 0,
-        configurado: false,
-        tipo: '🚫 REMOVIDA',
-        descricao: 'API-Football foi banida e não participa mais do fluxo',
-        alerta: 'Bloqueada / Usuário banido',
-        plano: 'REMOVIDA',
-        conta: 'Banida',
-        requisicoes: {
-          atual: 0,
-          limite: 0
-        }
-      },
       'soccerdata': {
         ordem: 1,
         configurado: !!soccerDataKey,
         tipo: '🟢 PRINCIPAL',
         limite: '75 req/dia (free)',
-        descricao: 'Fonte principal de dados'
+        descricao: 'Fonte principal de livescores'
+      },
+      'api-football': {
+        ordem: 2,
+        configurado: apiFootballStatus.configurado || false,
+        habilitado: apiFootballStatus.habilitado || false,
+        tipo: apiFootballStatus.tipo || '🔴 DESABILITADA',
+        descricao: 'Fallback de livescores + eventos on-demand',
+        plano: 'Free (100 req/dia)',
+        quota: {
+          usadas: apiFootballQuota.dailyRequests || 0,
+          limite: apiFootballQuota.dailyHardCap || 90,
+          limiteReal: apiFootballQuota.dailyLimit || 100,
+          restante: apiFootballQuota.remaining ?? 0,
+          restanteApi: apiFootballQuota.remainingFromApi,
+          percentUsado: apiFootballQuota.percentUsed || 0,
+          circuitBreaker: apiFootballQuota.circuitOpen || false,
+          circuitReason: apiFootballQuota.circuitReason || null,
+          resetAt: '00:00 UTC'
+        },
+        protecoes: {
+          hardCap: '90 req/dia (buffer 10)',
+          rateLimitMinuto: '2 req/min max',
+          intervaloMinimo: '30s entre requests',
+          circuitBreaker: 'Auto-desabilita com < 10 restantes',
+          deduplicacao: '60s cache por endpoint',
+          backoff: 'Exponential em 429'
+        },
+        stats: apiFootballQuota.stats || {}
       },
       'globo-agenda': {
-        ordem: 2,
+        ordem: 3,
         configurado: true,
         tipo: '🟢 PARALELO',
         limite: 'Sem limite (scraper SSR)',
@@ -750,20 +789,21 @@ router.get('/status', async (req, res) => {
         }
       },
       'cache-stale': {
-        ordem: 3,
+        ordem: 4,
         ativo: cacheStale && cacheJogosDia?.length > 0,
-        tipo: 'fallback-1',
+        tipo: 'fallback-2',
         maxIdade: '30 min',
-        descricao: 'Ultimo cache valido quando SoccerDataAPI + Agenda falharem'
+        descricao: 'Ultimo cache valido quando todas as APIs falharem'
       },
       'globo-arquivo': {
-        ordem: 4,
+        ordem: 5,
         configurado: true,
         tipo: 'fallback-final',
         limite: 'Arquivo JSON estático',
         descricao: 'Legado: arquivo jogos-globo.json (backup)'
       }
     },
+    orquestrador: orquestradorStatus.orquestrador,
     cache: {
       temJogosAoVivo: cacheTemJogosAoVivo,
       fonte: cacheFonte,
@@ -877,11 +917,11 @@ router.get('/game-status', async (req, res) => {
 
     if (!jogos || cacheIdade > ttlAtual) {
       try {
-        const [soccerData, jogosAgenda] = await Promise.all([
-          buscarJogosSoccerDataAPI(),
+        const [livescoresResult, jogosAgenda] = await Promise.all([
+          apiOrchestrator.buscarLivescores(buscarJogosSoccerDataAPI),
           buscarAgendaDoDia()
         ]);
-        jogos = mesclarJogos(soccerData.jogos, jogosAgenda);
+        jogos = mesclarJogos(livescoresResult.jogos || [], jogosAgenda);
 
         if (jogos.length > 0) {
           const temAoVivo = jogos.some(j => STATUS_AO_VIVO.includes(j.statusRaw));
@@ -889,7 +929,7 @@ router.get('/game-status', async (req, res) => {
           cacheTimestamp = agora;
           cacheTemJogosAoVivo = temAoVivo;
           cacheDataReferencia = dataHoje;
-          cacheFonte = soccerData.jogos.length > 0 ? 'soccerdata+globo' : 'globo';
+          cacheFonte = livescoresResult.jogos?.length > 0 ? `${livescoresResult.fonte}+globo` : 'globo';
           fonte = cacheFonte;
         }
       } catch (e) {
@@ -964,6 +1004,7 @@ router.get('/game-status', async (req, res) => {
 });
 
 // GET /api/jogos-ao-vivo/:fixtureId/eventos - Eventos de um jogo especifico
+// ✅ v5.0: Reativado via API-Football (on-demand, 1 req por clique)
 router.get('/:fixtureId/eventos', async (req, res) => {
   try {
     const { fixtureId } = req.params;
@@ -971,7 +1012,7 @@ router.get('/:fixtureId/eventos', async (req, res) => {
       return res.status(400).json({ error: 'fixtureId invalido' });
     }
 
-    const result = await buscarEventosJogo(fixtureId);
+    const result = await buscarEventosJogoViaOrquestrador(fixtureId);
     res.json(result);
   } catch (err) {
     console.error('[JOGOS-EVENTOS] Erro na rota:', err);

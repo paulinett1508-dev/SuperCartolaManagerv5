@@ -899,68 +899,107 @@ function renderizarMinhaEscalacao(rodadaData, isParcial) {
         ? reservas.map(a => renderAtleta(a, true, substituicoes.get(a.atleta_id) || null)).join("")
         : '';
 
+    // Verificar se escalação está expandida (padrão: colapsado)
+    const isExpanded = localStorage.getItem('superCartola_escalacaoExpandida') === 'true';
+    const expandedClass = isExpanded ? 'expanded' : '';
+
     container.innerHTML = `
         <div class="minha-escalacao-container" style="background:#111827;border-radius:16px;overflow:hidden;margin-bottom:16px;border:1px solid #1f2937;">
-            <!-- Header -->
-            <div style="padding:16px;background:linear-gradient(135deg, rgba(255, 85, 0, 0.08) 0%, transparent 100%);border-bottom:1px solid #1f2937;">
-                <div style="font-family:'Russo One',sans-serif;font-size:16px;color:var(--app-text-white);">${nomeTime}</div>
-                <div style="font-size:12px;color:var(--app-text-muted);margin-top:2px;">${nomeCartola}</div>
+            <!-- Toggle Header (sempre visível) -->
+            <div class="me-toggle-header ${expandedClass}" onclick="window.toggleMinhaEscalacao()">
+                <div class="me-toggle-header-left">
+                    <span class="material-icons">sports_soccer</span>
+                    <div>
+                        <div class="me-toggle-title">Minha Escalação</div>
+                        <div class="me-toggle-subtitle">${nomeTime} • ${pontosFormatados} pts • ${posicao}º/${totalPart}</div>
+                    </div>
+                </div>
+                <span class="material-icons me-toggle-chevron">expand_more</span>
             </div>
 
-            <!-- Stats -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px;">
-                <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
-                    <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Pontos</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:var(--app-primary);">${pontosFormatados}</div>
+            <!-- Conteúdo Colapsável -->
+            <div class="me-collapsible-content ${expandedClass}" id="minhaEscalacaoContent">
+                <!-- Header com info do time -->
+                <div style="padding:16px;background:linear-gradient(135deg, rgba(255, 85, 0, 0.08) 0%, transparent 100%);border-bottom:1px solid #1f2937;">
+                    <div style="font-family:'Russo One',sans-serif;font-size:16px;color:var(--app-text-white);">${nomeTime}</div>
+                    <div style="font-size:12px;color:var(--app-text-muted);margin-top:2px;">${nomeCartola}</div>
                 </div>
-                <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
-                    <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Posição</div>
-                    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:var(--app-text-white);">${posicao}º <span style="font-size:12px;color:var(--app-text-muted);">/${totalPart}</span></div>
-                </div>
-            </div>
 
-            <!-- Tabela de Titulares -->
-            <div style="padding:8px 16px 16px;">
-                <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Titulares (${titulares.length})</div>
-                <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                    <thead>
-                        <tr style="border-bottom:2px solid var(--app-border);color:var(--app-text-muted);font-size:10px;text-transform:uppercase;">
-                            <th style="padding:6px 4px;text-align:center;font-weight:600;">POS</th>
-                            <th style="padding:6px 4px;text-align:center;font-weight:600;">TIME</th>
-                            <th style="padding:6px 8px;text-align:left;font-weight:600;">JOGADOR</th>
-                            <th style="padding:6px 4px;text-align:right;font-weight:600;">PTS</th>
-                            <th style="padding:6px 4px;text-align:right;font-weight:600;">C$</th>
-                            <th style="padding:6px 4px;text-align:center;font-weight:600;">STATUS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${titularesHTML}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Separador Banco de Reservas -->
-            ${reservas.length > 0 ? `
-                <div style="margin:0 16px;padding:12px 0;display:flex;align-items:center;gap:8px;">
-                    <div style="flex:1;border-top:1px dashed #374151;"></div>
-                    <span style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:4px;">
-                        <span class="material-icons" style="font-size:14px;">event_seat</span>
-                        BANCO
-                    </span>
-                    <div style="flex:1;border-top:1px dashed #374151;"></div>
+                <!-- Stats -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px;">
+                    <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
+                        <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Pontos</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:var(--app-primary);">${pontosFormatados}</div>
+                    </div>
+                    <div style="background:#1f2937;border-radius:8px;padding:10px;text-align:center;">
+                        <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;">Posição</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:bold;color:var(--app-text-white);">${posicao}º <span style="font-size:12px;color:var(--app-text-muted);">/${totalPart}</span></div>
+                    </div>
                 </div>
-                <div style="padding:8px 16px 16px;background:rgba(107,114,128,0.06);border-radius:0 0 16px 16px;">
-                    <div style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
-                    <table style="width:100%;border-collapse:collapse;font-size:13px;opacity:0.7;">
+
+                <!-- Tabela de Titulares -->
+                <div style="padding:8px 16px 16px;">
+                    <div style="font-size:11px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:bold;">Titulares (${titulares.length})</div>
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead>
+                            <tr style="border-bottom:2px solid var(--app-border);color:var(--app-text-muted);font-size:10px;text-transform:uppercase;">
+                                <th style="padding:6px 4px;text-align:center;font-weight:600;">POS</th>
+                                <th style="padding:6px 4px;text-align:center;font-weight:600;">TIME</th>
+                                <th style="padding:6px 8px;text-align:left;font-weight:600;">JOGADOR</th>
+                                <th style="padding:6px 4px;text-align:right;font-weight:600;">PTS</th>
+                                <th style="padding:6px 4px;text-align:right;font-weight:600;">C$</th>
+                                <th style="padding:6px 4px;text-align:center;font-weight:600;">STATUS</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            ${reservasHTML}
+                            ${titularesHTML}
                         </tbody>
                     </table>
                 </div>
-            ` : ''}
+
+                <!-- Separador Banco de Reservas -->
+                ${reservas.length > 0 ? `
+                    <div style="margin:0 16px;padding:12px 0;display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;border-top:1px dashed #374151;"></div>
+                        <span style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:4px;">
+                            <span class="material-icons" style="font-size:14px;">event_seat</span>
+                            BANCO
+                        </span>
+                        <div style="flex:1;border-top:1px dashed #374151;"></div>
+                    </div>
+                    <div style="padding:8px 16px 16px;background:rgba(107,114,128,0.06);border-radius:0 0 16px 16px;">
+                        <div style="font-size:10px;color:var(--app-text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:0.5px;">Reservas (${reservas.length})</div>
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;opacity:0.7;">
+                            <tbody>
+                                ${reservasHTML}
+                            </tbody>
+                        </table>
+                    </div>
+                ` : ''}
+            </div>
         </div>
     `;
 }
+
+// Toggle para expandir/colapsar Minha Escalação
+window.toggleMinhaEscalacao = function() {
+    const header = document.querySelector('.me-toggle-header');
+    const content = document.getElementById('minhaEscalacaoContent');
+
+    if (!header || !content) return;
+
+    const isExpanded = header.classList.contains('expanded');
+
+    if (isExpanded) {
+        header.classList.remove('expanded');
+        content.classList.remove('expanded');
+        localStorage.setItem('superCartola_escalacaoExpandida', 'false');
+    } else {
+        header.classList.add('expanded');
+        content.classList.add('expanded');
+        localStorage.setItem('superCartola_escalacaoExpandida', 'true');
+    }
+};
 
 // Helper para extrair clube_id da foto do atleta (fallback)
 function extrairClubeIdDaFoto(foto) {
@@ -1376,7 +1415,13 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         `;
     }
 
-    let html = meuResumoHTML + participantesOrdenados.map((participante, index) => {
+    // ✅ v8.0: Agrupar participantes por zona financeira
+    const zonaGanho = participantesOrdenados.filter(p => (p.valorFinanceiro || 0) > 0);
+    const zonaNeutra = participantesOrdenados.filter(p => (p.valorFinanceiro || 0) === 0);
+    const zonaPerda = participantesOrdenados.filter(p => (p.valorFinanceiro || 0) < 0);
+
+    // Função para renderizar um item compacto
+    function renderItemCompacto(participante, index) {
         const timeId = participante.timeId || participante.time_id;
         const isMeuTime = String(timeId) === String(meuTimeId);
         const posicao = participante.posicao || index + 1;
@@ -1387,17 +1432,11 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
             maximumFractionDigits: 2,
         });
 
-        const financeiroTexto = valorFinanceiro > 0 ? `+R$ ${valorFormatado}` : valorFinanceiro < 0 ? `-R$ ${valorFormatado}` : "R$ 0,00";
+        const financeiroTexto = valorFinanceiro > 0 ? `+${valorFormatado}` : valorFinanceiro < 0 ? `-${valorFormatado}` : "0,00";
         const financeiroClass = valorFinanceiro > 0 ? "positivo" : valorFinanceiro < 0 ? "negativo" : "neutro";
 
-        // ✅ v7.0: Classes visuais por zona financeira
         const isMito = posicao === 1;
         const isMico = posicao === totalParticipantes && totalParticipantes > 1;
-        let posicaoClass = "pos-default";
-        if (isMito) posicaoClass = "pos-mito";
-        else if (isMico) posicaoClass = "pos-mico";
-        else if (valorFinanceiro > 0) posicaoClass = "pos-ganho";
-        else if (valorFinanceiro < 0) posicaoClass = "pos-danger";
 
         const pontosFormatados = Number(participante.pontos || 0).toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
@@ -1407,57 +1446,122 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         const nomeTime = participante.nome || participante.nome_time || "N/D";
         const naoJogouBadge = participante.rodadaNaoJogada ? '<span class="badge-nao-jogou">N/E</span>' : "";
 
-        // ✅ v6.0: Badge de zona (MITO, G2-G12, Z1-Z11, MICO)
-        const zonaBadge = !isParcial ? calcularZonaLabel(posicao, totalParticipantes, valorFinanceiro, totalPerda) : '';
+        // ✅ v8.0: Escudo do time do coração
+        const clubeId = participante.clube_id;
+        const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : null;
+        const escudoHTML = escudoSrc
+            ? `<img src="${escudoSrc}" alt="" class="rk-escudo" onerror="this.style.display='none'">`
+            : '<span class="rk-escudo-placeholder"></span>';
 
-        // ✅ Badge "X/12 em campo" - mostrar escalados + jogando ao vivo
+        // Badge "X/12 em campo" para parciais
         const escalados = participante.atletas ? participante.atletas.filter(a => !a.is_reserva).length : 0;
         const jogandoAoVivo = participante.atletas ? participante.atletas.filter(a => !a.is_reserva && a.entrou_em_campo).length : 0;
         const badgeEmCampo = isParcial && escalados > 0
-            ? `<span class="badge-em-campo ${jogandoAoVivo > 0 ? 'ativo' : ''}">${escalados}/12 <span style="color:var(--app-success-light);font-weight:600;font-size:9px;margin-left:2px">${jogandoAoVivo}</span></span>`
+            ? `<span class="rk-em-campo ${jogandoAoVivo > 0 ? 'ativo' : ''}">${jogandoAoVivo}/${escalados}</span>`
             : "";
 
-        // ✅ v8.0: Curiosar disponível em TODAS rodadas (não só parciais)
         const curiosarAttr = !participante.rodadaNaoJogada
-            ? `data-curiosar-time-id="${timeId}" style="cursor: pointer;"`
+            ? `data-curiosar-time-id="${timeId}"`
             : "";
 
-        // ✅ v7.0: Ícones especiais para MITO e MICO
-        let posicaoContent, itemExtraClass = '';
+        // Ícone especial para MITO
+        let posicaoContent = `${posicao}º`;
+        let itemExtraClass = '';
         if (isMito && !isParcial) {
-            posicaoContent = '<span class="material-icons" style="font-size:20px;">emoji_events</span>';
-            itemExtraClass = 'item-mito';
+            posicaoContent = '<span class="material-icons rk-trophy">emoji_events</span>';
+            itemExtraClass = 'rk-item-mito';
         } else if (isMico && !isParcial) {
-            posicaoContent = `${posicao}º`;
-            itemExtraClass = 'item-mico';
-        } else {
-            posicaoContent = `${posicao}º`;
+            itemExtraClass = 'rk-item-mico';
         }
 
-        // Label de destaque sob o nome do cartoleiro
-        let statusLabel = '';
-        if (isMito && !isParcial) {
-            statusLabel = `<div class="mito-icon-row"><span class="material-icons">star</span> REI DA RODADA</div>`;
-        } else if (isMico && !isParcial) {
-            statusLabel = `<div class="mico-icon-row"><span class="material-icons">trending_down</span> PIOR DA RODADA</div>`;
-        }
+        const finHtml = !isParcial && financeiroTexto !== "0,00"
+            ? `<div class="rk-fin ${financeiroClass}">${financeiroTexto}</div>`
+            : '';
 
         return `
-            <div class="ranking-item-pro ${isMeuTime ? "meu-time" : ""} ${itemExtraClass}" ${curiosarAttr}>
-                <div class="posicao-badge-pro ${posicaoClass}">${posicaoContent}</div>
-                <div class="ranking-info-pro">
-                    <div class="ranking-nome-time">${nomeTime} ${naoJogouBadge} ${badgeEmCampo}</div>
-                    <div class="ranking-nome-cartola">${participante.nome_cartola || "N/D"}${zonaBadge}</div>
-                    ${statusLabel}
+            <div class="rk-item ${isMeuTime ? "rk-meu-time" : ""} ${itemExtraClass}" ${curiosarAttr}>
+                <div class="rk-pos">${posicaoContent}</div>
+                ${escudoHTML}
+                <div class="rk-info">
+                    <div class="rk-nome-row">
+                        <div class="rk-nome">${nomeTime}</div>
+                        ${naoJogouBadge}
+                        ${badgeEmCampo}
+                    </div>
+                    <div class="rk-cartola">${participante.nome_cartola || ""}</div>
                 </div>
-                <div class="ranking-stats-pro">
-                    <div class="ranking-pontos-pro">${pontosFormatados}</div>
-                    <div class="ranking-financeiro-pro ${financeiroClass}">${isParcial ? '' : financeiroTexto}</div>
+                <div class="rk-stats">
+                    <div class="rk-pts">${pontosFormatados}</div>
+                    ${finHtml}
                 </div>
-                ${!participante.rodadaNaoJogada ? '<span class="material-icons curiosar-icon" style="font-size:16px;color:var(--app-text-muted);margin-left:4px;">visibility</span>' : ''}
             </div>
         `;
-    }).join("");
+    }
+
+    // Botão Raio-X da Rodada (somente se não for parcial e tiver dados do meu time)
+    let xrayBtnHTML = '';
+    if (!isParcial && meuPartIndex >= 0) {
+        xrayBtnHTML = `
+            <button class="rodada-xray-btn" onclick="window.xrayParams={rodada:${rodadaNum},temporada:${TEMPORADA_ATUAL}};window.participanteNav?.navegarPara('rodada-xray')">
+                <span class="material-icons" style="font-size:16px">biotech</span>
+                Raio-X da Rodada
+            </button>
+        `;
+    }
+
+    // Construir HTML com separadores de zona
+    let html = meuResumoHTML + xrayBtnHTML;
+
+    // Zona de Ganho
+    if (zonaGanho.length > 0 && !isParcial) {
+        html += `
+            <div class="rk-zona-header rk-zona-ganho">
+                <span class="material-icons">trending_up</span>
+                <span>Zona de Ganho</span>
+                <span class="rk-zona-count">${zonaGanho.length}</span>
+            </div>
+            <div class="rk-zona-container rk-bg-ganho">
+                ${zonaGanho.map((p, i) => renderItemCompacto(p, i)).join("")}
+            </div>
+        `;
+    }
+
+    // Zona Neutra
+    if (zonaNeutra.length > 0 && !isParcial) {
+        html += `
+            <div class="rk-zona-header rk-zona-neutra">
+                <span class="material-icons">remove</span>
+                <span>Zona Neutra</span>
+                <span class="rk-zona-count">${zonaNeutra.length}</span>
+            </div>
+            <div class="rk-zona-container rk-bg-neutra">
+                ${zonaNeutra.map((p, i) => renderItemCompacto(p, i)).join("")}
+            </div>
+        `;
+    }
+
+    // Zona de Perda
+    if (zonaPerda.length > 0 && !isParcial) {
+        html += `
+            <div class="rk-zona-header rk-zona-perda">
+                <span class="material-icons">trending_down</span>
+                <span>Zona de Perda</span>
+                <span class="rk-zona-count">${zonaPerda.length}</span>
+            </div>
+            <div class="rk-zona-container rk-bg-perda">
+                ${zonaPerda.map((p, i) => renderItemCompacto(p, i)).join("")}
+            </div>
+        `;
+    }
+
+    // Para parciais, renderizar sem agrupamento de zona
+    if (isParcial) {
+        html += `
+            <div class="rk-zona-container">
+                ${participantesOrdenados.map((p, i) => renderItemCompacto(p, i)).join("")}
+            </div>
+        `;
+    }
 
     if (participantesInativos.length > 0) {
         html += renderizarSecaoInativos(participantesInativos, rodadaData.numero);

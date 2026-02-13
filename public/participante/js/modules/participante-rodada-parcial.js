@@ -252,6 +252,7 @@ function mapearInativos(timesInativos = []) {
         nome_time: time.nome_time || time.nome || "N/D",
         nome_cartola: time.nome_cartola || "N/D",
         escudo: time.url_escudo_png || time.escudo || null,
+        clube_id: time.clube_id || null, // ✅ FIX: Escudo do time do coração
         ativo: false,
         rodada_desistencia: time.rodada_desistencia || null,
     }));
@@ -379,6 +380,7 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
                         nome_time: time.nome_time || time.nome || "N/D",
                         nome_cartola: time.nome_cartola || time.cartoleiro || "N/D",
                         escudo: time.url_escudo_png || time.escudo || null,
+                        clube_id: time.clube_id || null, // ✅ FIX: Escudo do time do coração
                         pontos: 0,
                         atletasEmCampo: 0,
                         totalAtletas: 0,
@@ -585,6 +587,7 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
             nome_time: nomeTime,
             nome_cartola: nomeCartola,
             escudo: escudo,
+            clube_id: time.clube_id || null, // ✅ FIX: Escudo do time do coração
             pontos: pontos,
             pontos_parcial: pontos,
             patrimonio: dadosEscalacao.time?.patrimonio || 0,
@@ -608,6 +611,7 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
             nome_time: time.nome_time || time.nome || "N/D",
             nome_cartola: time.nome_cartola || "N/D",
             escudo: time.url_escudo_png || time.escudo || null,
+            clube_id: time.clube_id || null, // ✅ FIX: Escudo do time do coração
             pontos: 0,
             atletasEmCampo: 0,
             totalAtletas: 0,

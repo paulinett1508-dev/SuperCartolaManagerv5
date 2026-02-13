@@ -148,8 +148,9 @@ export function renderizarJogosAoVivo(jogos, fonte = 'soccerdata', aoVivo = fals
     const fonteTexto = fonte === 'soccerdata' ? 'SoccerDataAPI'
         : fonte === 'cache-stale' ? 'Cache Stale'
         : fonte === 'globo' ? 'Globo Esporte'
-        : fonte === 'api-football' ? 'API-Football (REMOVIDA)'
-        : 'Fonte desconhecida';
+        : fonte === 'api-football' ? 'API-Football'
+        : fonte?.includes('+') ? fonte.replace('soccerdata', 'SoccerData').replace('api-football', 'API-Football').replace('globo', 'Globo')
+        : fonte || 'Fonte desconhecida';
 
     return `
     <div class="jogos-ao-vivo mx-4 mb-8 space-y-3">

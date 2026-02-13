@@ -199,6 +199,9 @@ const ManutencaoScreen = {
             return;
         }
 
+        // Invalidar cache do outro painel (compartilham mesmo container)
+        this._rankingRodadaCarregado = false;
+
         // Loading state
         if (btn) {
             btn.disabled = true;
@@ -278,6 +281,9 @@ const ManutencaoScreen = {
             return;
         }
 
+        // Invalidar cache do outro painel (compartilham mesmo container)
+        this._rankingGeralCarregado = false;
+
         // Loading state
         if (btn) {
             btn.disabled = true;
@@ -333,44 +339,81 @@ const ManutencaoScreen = {
         }
     },
 
-    async _carregarRankingRodadaLiga(ligaId, timeId) {
+    async _carregarRankingRodadaLiga(ligaId, timeId, forceRefresh = false) {
         const container = document.getElementById('manutencaoRankingRodadaContainer');
         if (!container) return;
 
+        const cacheBust = forceRefresh ? `&_t=${Date.now()}` : '';
         container.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;"><span class="material-icons" style="animation:spin 1s linear infinite;font-size:24px;">autorenew</span><div style="margin-top:8px;font-size:0.8rem;">Buscando ranking da rodada...</div></div>';
 
         try {
-            const parciaisRes = await fetch(`/api/matchday/parciais/${ligaId}`).then(r => r.ok ? r.json() : null);
+            const parciaisRes = await fetch(`/api/matchday/parciais/${ligaId}${forceRefresh ? `?_t=${Date.now()}` : ''}`).then(r => r.ok ? r.json() : null);
 
-            if (!parciaisRes || !parciaisRes.disponivel || !parciaisRes.ranking?.length) {
-                const motivo = parciaisRes?.motivo === 'mercado_aberto'
-                    ? 'Mercado aberto - aguarde o início da rodada'
-                    : 'Dados da rodada ainda indisponíveis';
-                container.innerHTML = `<div style="text-align:center;padding:16px;color:#9ca3af;">${motivo}</div>`;
+            // Parciais ao vivo disponíveis (rodada em andamento)
+            if (parciaisRes && parciaisRes.disponivel && parciaisRes.ranking?.length) {
+                let atletasInfo = null;
+                if (timeId && parciaisRes.rodada) {
+                    try {
+                        const [escRes, pontRes] = await Promise.all([
+                            fetch(`/api/cartola/time/id/${timeId}/${parciaisRes.rodada}`).then(r => r.ok ? r.json() : null),
+                            fetch(`/api/cartola/atletas/pontuados`).then(r => r.ok ? r.json() : null)
+                        ]);
+
+                        if (escRes?.atletas?.length && pontRes?.atletas) {
+                            const meusAtletaIds = escRes.atletas.map(a => a.atleta_id);
+                            const pontuados = pontRes.atletas;
+                            const emCampo = meusAtletaIds.filter(id => pontuados[id]?.entrou_em_campo === true).length;
+                            atletasInfo = { total: meusAtletaIds.length, emCampo };
+                        }
+                    } catch (e) {
+                        console.warn('[MANUTENCAO] Não foi possível buscar dados dos atletas:', e);
+                    }
+                }
+
+                container.innerHTML = this._renderizarRankingRodada(parciaisRes, timeId, atletasInfo);
                 return;
             }
 
-            // Buscar dados dos atletas do participante logado (em paralelo)
-            let atletasInfo = null;
-            if (timeId && parciaisRes.rodada) {
-                try {
-                    const [escRes, pontRes] = await Promise.all([
-                        fetch(`/api/cartola/time/id/${timeId}/${parciaisRes.rodada}`).then(r => r.ok ? r.json() : null),
-                        fetch(`/api/cartola/atletas/pontuados`).then(r => r.ok ? r.json() : null)
-                    ]);
+            // Parciais indisponíveis - fallback: buscar última rodada CONSOLIDADA
+            // Quando mercado aberto para rodada N, a rodada N-1 é a última com dados reais
+            const rodadaAberta = parciaisRes?.rodada;
+            const rodadaConsolidada = rodadaAberta ? rodadaAberta - 1 : null;
+            const temporada = window.participanteAuth?.temporada || new Date().getFullYear();
 
-                    if (escRes?.atletas?.length && pontRes?.atletas) {
-                        const meusAtletaIds = escRes.atletas.map(a => a.atleta_id);
-                        const pontuados = pontRes.atletas;
-                        const emCampo = meusAtletaIds.filter(id => pontuados[id]?.entrou_em_campo === true).length;
-                        atletasInfo = { total: meusAtletaIds.length, emCampo };
-                    }
-                } catch (e) {
-                    console.warn('[MANUTENCAO] Não foi possível buscar dados dos atletas:', e);
+            if (rodadaConsolidada && rodadaConsolidada >= 1) {
+                console.log(`[MANUTENCAO] Mercado aberto (R${rodadaAberta}) - buscando rodada consolidada R${rodadaConsolidada}`);
+                const rodadaRes = await fetch(`/api/rodadas/${ligaId}/rodadas?rodada=${rodadaConsolidada}&temporada=${temporada}${cacheBust}`).then(r => r.ok ? r.json() : null);
+
+                if (Array.isArray(rodadaRes) && rodadaRes.length) {
+                    // Transformar docs Rodada para formato ranking
+                    const ranking = rodadaRes
+                        .filter(r => r.pontos !== undefined)
+                        .map(r => ({
+                            timeId: r.timeId || r.time_id,
+                            nome_cartola: r.nome_cartola || r.nome_time,
+                            nome_time: r.nome_time,
+                            clube_id: r.clube_id,
+                            pontos_rodada_atual: r.pontos || 0,
+                            escalou: !r.rodadaNaoJogada,
+                        }));
+
+                    const dataConsolidada = {
+                        ranking,
+                        rodada: rodadaConsolidada,
+                        consolidado: true,
+                        atualizado_em: null,
+                    };
+
+                    container.innerHTML = this._renderizarRankingRodada(dataConsolidada, timeId);
+                    return;
                 }
             }
 
-            container.innerHTML = this._renderizarRankingRodada(parciaisRes, timeId, atletasInfo);
+            // Nenhum dado disponível
+            const motivo = parciaisRes?.motivo === 'mercado_aberto'
+                ? `Mercado aberto para rodada ${rodadaAberta || '?'} - sem dados da rodada anterior`
+                : 'Dados da rodada ainda indisponíveis';
+            container.innerHTML = `<div style="text-align:center;padding:16px;color:#9ca3af;">${motivo}</div>`;
         } catch (error) {
             console.error('[MANUTENCAO] Erro ao carregar ranking da rodada:', error);
             container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--app-danger-light);">Erro ao carregar ranking da rodada</div>';
@@ -439,7 +482,10 @@ const ManutencaoScreen = {
                 <h3 style="font-family:'Russo One',sans-serif;font-size:1rem;color:#34d399;margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                     <span class="material-icons" style="font-size:20px;">leaderboard</span>
                     Ranking da Rodada ${rodadaAtual}
-                    <span style="font-size:0.7rem;color:#34d399;font-weight:400;font-family:'Inter',sans-serif;background:rgba(52,211,153,0.12);padding:2px 8px;border-radius:999px;">Parcial</span>
+                    ${data.consolidado
+                        ? '<span style="font-size:0.7rem;color:#60a5fa;font-weight:400;font-family:\'Inter\',sans-serif;background:rgba(96,165,250,0.12);padding:2px 8px;border-radius:999px;">Consolidado</span>'
+                        : '<span style="font-size:0.7rem;color:#34d399;font-weight:400;font-family:\'Inter\',sans-serif;background:rgba(52,211,153,0.12);padding:2px 8px;border-radius:999px;">Parcial</span>'
+                    }
                     ${atualizadoEm ? `<span style="font-size:0.65rem;color:#6b7280;font-weight:400;font-family:'Inter',sans-serif;margin-left:auto;">🕐 ${atualizadoEm}</span>` : ''}
                 </h3>
                 <div style="background:#1f2937;border-radius:12px;overflow:hidden;border:1px solid #374151;">
@@ -530,9 +576,13 @@ const ManutencaoScreen = {
             const ligaAtiva = window.participanteAuth?.ligaId;
 
             if (!ligaAtiva || !conteudo) {
-                if (btnText) btnText.textContent = 'Atualizar Parciais';
+                if (btnText) btnText.textContent = 'Atualizar';
                 btn.disabled = false;
                 if (icon) icon.style.animation = '';
+                if (conteudo) {
+                    conteudo.style.display = 'block';
+                    conteudo.innerHTML = '<div style="text-align:center;padding:20px;color:var(--app-danger-light);">Faça login para atualizar os dados</div>';
+                }
                 return;
             }
 
@@ -556,7 +606,7 @@ const ManutencaoScreen = {
                 });
             }
 
-            await this._carregarRankingRodadaLiga(ligaAtiva, timeId);
+            await this._carregarRankingRodadaLiga(ligaAtiva, timeId, true);
 
             this._rankingRodadaCarregado = true;
             this._painelAtivo = 'rodada';
@@ -569,7 +619,7 @@ const ManutencaoScreen = {
             if (window.Log) Log.error('MANUTENCAO', 'Erro ao atualizar parciais:', error);
         } finally {
             if (icon) icon.style.animation = '';
-            if (btnText) btnText.textContent = 'Atualizar Parciais';
+            if (btnText) btnText.textContent = 'Atualizar';
             btn.disabled = false;
         }
     },
@@ -1116,16 +1166,15 @@ const ManutencaoScreen = {
             }
 
             // 2) Fallback: ranking-turno (cache consolidado)
+            // O backend já retorna o snapshot correto (última rodada consolidada).
+            // Quando mercado aberto (rodada N), o ranking-turno retorna dados até rodada N-1,
+            // que é perfeitamente válido - é a última rodada com dados reais.
             if (!dados) {
                 const rankingRes = await fetch(`/api/ranking-turno/${ligaId}?turno=geral&temporada=${temporada}`).then(r => r.ok ? r.json() : null);
 
-                const cacheAtualizado = rankingRes?.rodada_atual >= (parciaisRes?.rodada || 1);
-
-                if (rankingRes?.success && rankingRes.ranking?.length && cacheAtualizado) {
+                if (rankingRes?.success && rankingRes.ranking?.length) {
                     dados = rankingRes;
-                    console.log('[MANUTENCAO] Pontos carregados via ranking-turno:', rankingRes.ranking.length, 'times');
-                } else if (rankingRes && !cacheAtualizado) {
-                    console.warn('[MANUTENCAO] Ranking-turno desatualizado! Cache rodada:', rankingRes.rodada_atual, 'Real:', parciaisRes?.rodada);
+                    console.log('[MANUTENCAO] Pontos carregados via ranking-turno:', rankingRes.ranking.length, 'times, rodada consolidada:', rankingRes.rodada_atual);
                 }
             }
 

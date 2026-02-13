@@ -93,6 +93,7 @@ class Router {
       '/consolidacao': 'Operações',
       '/financeiro': 'Financeiro',
       '/health': 'Saúde do Sistema',
+      '/orchestrator': 'Orchestrator',
       '/profile': 'Perfil'
     };
 
@@ -129,6 +130,11 @@ router.addRoute('/financeiro', async (params) => {
 
 router.addRoute('/health', async (params) => {
   const { render } = await import('./pages/health.js');
+  await render(params);
+});
+
+router.addRoute('/orchestrator', async (params) => {
+  const { render } = await import('./pages/orchestrator.js');
   await render(params);
 });
 

@@ -94,10 +94,11 @@ async function reconciliarSaldos() {
             const temporada = Number(cache.temporada);
 
             // 2a. Recalcular saldo das transações
+            // ✅ FIX: usar t.valor (valor real da transação), não t.saldo (campo auxiliar sempre 0)
             let saldoTransacoes = 0;
             if (cache.historico_transacoes && cache.historico_transacoes.length > 0) {
                 for (const t of cache.historico_transacoes) {
-                    saldoTransacoes += (t.saldo || 0);
+                    saldoTransacoes += (t.valor || 0);
                 }
             } else {
                 resultados.semTransacoes++;
@@ -159,6 +160,14 @@ async function reconciliarSaldos() {
             const diffConsolidado = Math.abs(saldoCache - saldoTransacoes);
 
             if (diffConsolidado > TOLERANCIA) {
+                // Recalcular ganhos/perdas a partir do array
+                const ganhosRecalculados = (cache.historico_transacoes || [])
+                    .filter(t => (t.valor || 0) > 0)
+                    .reduce((acc, t) => acc + t.valor, 0);
+                const perdasRecalculadas = (cache.historico_transacoes || [])
+                    .filter(t => (t.valor || 0) < 0)
+                    .reduce((acc, t) => acc + t.valor, 0);
+
                 resultados.divergentes.push({
                     liga_id: ligaId,
                     time_id: timeId,
@@ -170,6 +179,8 @@ async function reconciliarSaldos() {
                     totalAjustes,
                     saldoAcertos,
                     saldoFinalEsperado: parseFloat(saldoFinalEsperado.toFixed(2)),
+                    ganhosRecalculados: parseFloat(ganhosRecalculados.toFixed(2)),
+                    perdasRecalculadas: parseFloat(perdasRecalculadas.toFixed(2)),
                     rodadas: cache.historico_transacoes?.length || 0,
                     cacheId: cache._id,
                 });
@@ -226,6 +237,8 @@ async function reconciliarSaldos() {
                         {
                             $set: {
                                 saldo_consolidado: d.saldoRecalculado,
+                                ganhos_consolidados: d.ganhosRecalculados,
+                                perdas_consolidadas: d.perdasRecalculadas,
                                 'metadados.motivoRecalculo': `Reconciliação automática (diff: R$ ${d.diferenca.toFixed(2)})`,
                                 'metadados.timestampCalculo': new Date(),
                                 'metadados.origem': 'script:reconciliar-saldos',

@@ -4,7 +4,22 @@
  * Widget flutuante de engajamento em tempo real
  * Mostra disputas internas ativas nos módulos da liga
  *
- * @version 2.0.0 - FAB Game Status Sync
+ * @version 3.1.0 - Parciais ao vivo + Carrossel total
+ *   - getPontosAoVivo() overlay em TODOS os confrontos (PC + MM)
+ *   - Ranking da Rodada ao vivo via parciais (substitui ranking geral)
+ *   - Artilheiro/Luva/Capitão redesenhados com top 3 em carrossel
+ *   - Rank cards horizontais com destaque no participante logado
+ *   - Badge AO VIVO no ranking quando parciais disponíveis
+ *
+ * @version 3.0.0 - Confrontos Diretos: interatividade total
+ *   - Todos os confrontos PC e MM visíveis em carrossel horizontal
+ *   - Insights dinâmicos por nível (inferno/hot/warm/tied/blowout)
+ *   - Barra visual de proporção de pontos
+ *   - Tap-to-navigate: clicar no confronto abre o módulo
+ *   - Badge numérico (contagem de disputas quentes)
+ *   - Mata-Mata mostra todos os confrontos da fase atual
+ *
+ * @version 2.1.0 - FIX: FAB LIVE state falso (bola_rolando → gameStatus real)
  *
  * Máquina de Estados do Foguinho:
  * - HIDDEN:   FAB invisível (mercado aberto, pré-temporada, sem rodada)
@@ -19,7 +34,7 @@
  * - Capitão de Luxo, Ranking da Rodada
  */
 
-if (window.Log) Log.info("[WHATS-HAPPENING] 🔥 Widget v2.0 carregando...");
+if (window.Log) Log.info("[WHATS-HAPPENING] 🔥 Widget v3.1 carregando...");
 
 // ============================================
 // MÁQUINA DE ESTADOS DO FOGUINHO
@@ -32,6 +47,15 @@ const FAB_GAME_STATE = {
     COOLING:  'cooling',  // Jogos acabaram, rodada não finalizada
     FINISHED: 'finished', // Todos jogos da rodada encerrados
 };
+
+/**
+ * v2.1: Helper centralizado para verificar se jogos estão REALMENTE ao vivo
+ * Usa gameStatusData.stats.aoVivo (fonte confiável) ao invés de bola_rolando
+ */
+function isJogosAoVivo() {
+    return WHState.gameStatusData?.stats?.aoVivo > 0
+        || WHState.fabState === FAB_GAME_STATE.LIVE;
+}
 
 // ============================================
 // ESTADO DO WIDGET
@@ -271,10 +295,9 @@ function calcularFabState(mercadoStatus, gameStatusData) {
     // 4. Mercado fechado (status === 2) → consultar game-status para granularidade
     if (mercadoStatus?.status_mercado === 2 || mercadoStatus?.mercado_fechado) {
         if (!gameStatusData) {
-            // Sem dados de jogos → fallback para bola_rolando
-            return mercadoStatus?.bola_rolando
-                ? FAB_GAME_STATE.LIVE
-                : FAB_GAME_STATE.WAITING;
+            // v2.1 FIX: Sem dados de jogos → WAITING (seguro)
+            // bola_rolando NÃO indica jogos ao vivo, apenas que parciais existem
+            return FAB_GAME_STATE.WAITING;
         }
 
         // Usar recomendação do backend
@@ -391,16 +414,30 @@ function ajustarPollingPorEstado(estado) {
 
 /**
  * Busca /api/jogos-ao-vivo/game-status e atualiza o estado do FAB
+ * v2.1: Timeout 5s + cache stale fallback (último dado válido < 10min)
  */
+let _lastValidGameStatus = null;
+let _lastValidGameStatusAt = 0;
+const GAME_STATUS_STALE_TTL = 600000; // 10 minutos
+
 async function fetchGameStatus() {
     try {
-        const res = await fetchWithTimeout("/api/jogos-ao-vivo/game-status", 3000);
+        const res = await fetchWithTimeout("/api/jogos-ao-vivo/game-status", 5000);
         if (res.ok) {
             WHState.gameStatusData = await res.json();
+            // Salvar como último dado válido
+            _lastValidGameStatus = WHState.gameStatusData;
+            _lastValidGameStatusAt = Date.now();
             return WHState.gameStatusData;
         }
     } catch (e) {
         if (window.Log) Log.warn("[WHATS-HAPPENING] ⚠️ Erro ao buscar game-status:", e.name === 'AbortError' ? 'Timeout' : e.message);
+    }
+    // v2.1: Fallback para último dado válido (se < 10min)
+    if (_lastValidGameStatus && (Date.now() - _lastValidGameStatusAt) < GAME_STATUS_STALE_TTL) {
+        if (window.Log) Log.debug("[WHATS-HAPPENING] 📦 Usando game-status stale (idade: " + Math.round((Date.now() - _lastValidGameStatusAt) / 1000) + "s)");
+        WHState.gameStatusData = _lastValidGameStatus;
+        return _lastValidGameStatus;
     }
     return null;
 }
@@ -486,7 +523,7 @@ export async function initWhatsHappeningWidget(params = {}) {
             if (WHState.fabState === FAB_GAME_STATE.LIVE) {
                 startPolling();
             }
-            if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget v2.0 inicializado", { fabState: WHState.fabState });
+            if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget v3.1 inicializado", { fabState: WHState.fabState });
         });
     } else {
         if (window.Log) Log.info("[WHATS-HAPPENING] ℹ️ FAB oculto - estado:", WHState.fabState);
@@ -694,8 +731,8 @@ async function fetchAllData() {
     // Ranking da Rodada (sempre ativo)
     promises.push(fetchRanking());
 
-    // Parciais (para confrontos em tempo real)
-    if (WHState.mercadoStatus?.bola_rolando) {
+    // Parciais (para confrontos em tempo real) - v2.1: usa game-status ao invés de bola_rolando
+    if (isJogosAoVivo()) {
         promises.push(fetchParciais());
     }
 
@@ -715,7 +752,7 @@ async function fetchAllData() {
 
 async function fetchPontosCorridos() {
     try {
-        const rodada = WHState.mercadoStatus?.rodada_atual || 1;
+        const rodadaAtual = WHState.mercadoStatus?.rodada_atual || 1;
         // API pontos-corridos é lenta (~6s), usar timeout maior
         const res = await fetchWithTimeout(
             `/api/pontos-corridos/${WHState.ligaId}?temporada=${WHState.temporada}`,
@@ -723,8 +760,9 @@ async function fetchPontosCorridos() {
         );
         if (res.ok) {
             const data = await res.json();
-            // Encontrar rodada atual
-            const rodadaData = data.find((r) => r.rodada === rodada);
+            // Encontrar rodada: tentar match exato, senão pegar a mais recente
+            const rodadaData = data.find((r) => r.rodada === rodadaAtual)
+                || (Array.isArray(data) && data.length > 0 ? data[data.length - 1] : null);
             WHState.data.pontosCorridos = rodadaData;
 
             // Encontrar MEU confronto nesta rodada
@@ -740,11 +778,11 @@ async function fetchPontosCorridos() {
                     // Normalizar para sempre ter "eu" como time1
                     const sou1 = String(meuConfronto.time1?.id) === String(WHState.timeId);
                     WHState.data.meuConfrontoPc = {
-                        rodada,
+                        rodada: rodadaData.rodada || rodadaAtual,
                         eu: sou1 ? meuConfronto.time1 : meuConfronto.time2,
                         adversario: sou1 ? meuConfronto.time2 : meuConfronto.time1,
-                        meusPontos: sou1 ? meuConfronto.pontos1 : meuConfronto.pontos2,
-                        pontosAdv: sou1 ? meuConfronto.pontos2 : meuConfronto.pontos1,
+                        meusPontos: sou1 ? meuConfronto.time1?.pontos : meuConfronto.time2?.pontos,
+                        pontosAdv: sou1 ? meuConfronto.time2?.pontos : meuConfronto.time1?.pontos,
                         tipo: meuConfronto.tipo,
                         raw: meuConfronto
                     };
@@ -950,16 +988,48 @@ function stopPolling() {
 // VERIFICAR NOVIDADES
 // ============================================
 function checkForUpdates() {
-    // Lógica simples: se há disputas "quentes", mostrar badge
-    const hasHotDisputes =
-        hasHotPontosCorridos() ||
-        hasHotMataMata() ||
-        hasHotArtilheiro();
+    // Contar disputas "quentes" para badge numérico
+    const hotCount = countHotDisputes();
 
-    if (hasHotDisputes && !WHState.isOpen) {
+    if (hotCount > 0 && !WHState.isOpen) {
         WHState.hasUpdates = true;
+        WHState.hotCount = hotCount;
         updateFabBadge();
     }
+}
+
+/**
+ * Conta total de disputas quentes para badge numérico
+ */
+function countHotDisputes() {
+    let count = 0;
+
+    // Pontos Corridos: confrontos com < MIN_DIFF_HOT
+    const pcData = WHState.data.pontosCorridos;
+    if (pcData?.confrontos) {
+        count += pcData.confrontos.filter(c => {
+            const diff = Math.abs((c.time1?.pontos || 0) - (c.time2?.pontos || 0));
+            return diff < WH_CONFIG.MIN_DIFF_HOT;
+        }).length;
+    }
+
+    // Mata-Mata: confrontos da fase atual com < 15pts
+    const mmData = WHState.data.mataMata;
+    if (mmData?.dados) {
+        const faseAtual = mmData.faseAtual || 'quartas';
+        const confrontosFase = mmData.dados[faseAtual];
+        if (Array.isArray(confrontosFase)) {
+            count += confrontosFase.filter(c => {
+                const diff = Math.abs((c.timeA?.pontos || 0) - (c.timeB?.pontos || 0));
+                return diff < 15 && !c.vencedor;
+            }).length;
+        }
+    }
+
+    // Artilheiro: top 2 com <= 1 gol de diferença
+    if (hasHotArtilheiro()) count++;
+
+    return count;
 }
 
 function hasHotPontosCorridos() {
@@ -967,7 +1037,7 @@ function hasHotPontosCorridos() {
     if (!data?.confrontos) return false;
 
     return data.confrontos.some((c) => {
-        const diff = Math.abs((c.pontosA || 0) - (c.pontosB || 0));
+        const diff = Math.abs((c.time1?.pontos || 0) - (c.time2?.pontos || 0));
         return diff < WH_CONFIG.MIN_DIFF_HOT;
     });
 }
@@ -998,12 +1068,12 @@ function updateFabBadge() {
     const existingBadge = fab.querySelector(".wh-fab-badge");
     if (existingBadge) existingBadge.remove();
 
-    // Adicionar classe de pulsação e badge se há updates
+    // Adicionar classe de pulsação e badge numérico se há updates
     if (WHState.hasUpdates) {
         fab.classList.add("has-updates");
         const badge = document.createElement("span");
         badge.className = "wh-fab-badge";
-        badge.textContent = "!";
+        badge.textContent = WHState.hotCount > 0 ? String(WHState.hotCount) : "!";
         fab.appendChild(badge);
     } else {
         fab.classList.remove("has-updates");
@@ -1093,13 +1163,65 @@ function renderContent() {
     }
 
     content.innerHTML = sections.join("");
+
+    // Event delegation: carrossel scroll → atualizar dots
+    content.querySelectorAll('.wh-section-body--carousel').forEach(carousel => {
+        carousel.addEventListener('scroll', () => {
+            const scrollLeft = carousel.scrollLeft;
+            const cardWidth = carousel.firstElementChild?.offsetWidth || 1;
+            const gap = 10;
+            const activeIndex = Math.round(scrollLeft / (cardWidth + gap));
+
+            // Atualizar dots correspondentes
+            const dotsContainer = carousel.closest('.wh-section')?.querySelector('.wh-carousel-dots');
+            if (dotsContainer) {
+                dotsContainer.querySelectorAll('.wh-carousel-dot').forEach((dot, i) => {
+                    dot.classList.toggle('active', i === activeIndex);
+                });
+            }
+
+            // Esconder hint de swipe após primeira rolagem
+            const hint = carousel.closest('.wh-section')?.querySelector('.wh-swipe-hint');
+            if (hint) hint.classList.add('hidden');
+        }, { passive: true });
+    });
+
+    // Event delegation: tap-to-navigate para módulo
+    content.querySelectorAll('[data-navigate]').forEach(el => {
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', (e) => {
+            // Ignorar se estava arrastando carrossel
+            if (e.target.closest('.wh-section-body--carousel')) return;
+
+            const modulo = el.dataset.navigate;
+            if (modulo && window.participanteNav) {
+                closePanel();
+                setTimeout(() => {
+                    window.participanteNav.navegarPara(modulo);
+                }, 300);
+            }
+        });
+    });
+
+    // Navegação: clicar no header da seção
+    content.querySelectorAll('.wh-section-header[data-navigate]').forEach(header => {
+        header.addEventListener('click', (e) => {
+            const modulo = header.dataset.navigate;
+            if (modulo && window.participanteNav) {
+                closePanel();
+                setTimeout(() => {
+                    window.participanteNav.navegarPara(modulo);
+                }, 300);
+            }
+        });
+    });
 }
 
 function renderTimestamp() {
     const now = WHState.lastUpdate || new Date();
     const time = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
-    const isLive = WHState.mercadoStatus?.bola_rolando;
+    const isLive = isJogosAoVivo(); // v2.1: usa game-status real
 
     return `
         <div class="wh-timestamp">
@@ -1111,62 +1233,161 @@ function renderTimestamp() {
 }
 
 function renderRankingSection() {
-    const data = WHState.data.ranking;
-    if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
+    // v3.1: Priorizar parciais ao vivo como ranking da rodada
+    const parciais = WHState.data.parciais?.ranking || [];
+    const isLive = isJogosAoVivo() && parciais.length > 0;
 
-    const ranking = data.ranking;
-    const meuTime = ranking.find((r) => String(r.timeId) === String(WHState.timeId));
-    const minhaPosicao = meuTime ? ranking.indexOf(meuTime) + 1 : null;
+    let ranking;
+    let rankingTitle;
 
-    // Top 3
-    const top3 = ranking.slice(0, 3);
+    if (isLive) {
+        // Ranking ao vivo baseado em parciais
+        ranking = [...parciais]
+            .map(p => ({
+                timeId: String(p.timeId || p.time_id),
+                nome_time: p.nome_time || p.nomeTime || p.slug || 'Time',
+                pontos: p.pontos_rodada_atual ?? p.pontos ?? 0,
+                escudo: p.url_escudo_png || p.escudo || `/escudos/default.png`
+            }))
+            .sort((a, b) => b.pontos - a.pontos);
+        const rodada = WHState.mercadoStatus?.rodada_atual || '?';
+        rankingTitle = `Ranking Rodada ${rodada}`;
+    } else {
+        // Fallback: ranking salvo
+        const data = WHState.data.ranking;
+        if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
+        ranking = data.ranking.map(r => ({
+            timeId: String(r.timeId),
+            nome_time: r.nome_time || r.nomeTime,
+            pontos: r.pontos_totais || r.pontos || 0,
+            escudo: r.url_escudo_png || r.escudo || `/escudos/default.png`
+        }));
+        rankingTitle = data.isRankingGeral
+            ? "Ranking Geral"
+            : `Ranking Rodada ${data.rodada || WHState.mercadoStatus?.rodada_atual || "?"}`;
+    }
 
-    // Montar HTML
-    // API retorna: pontos_totais (ranking geral) ou pontos (ranking por rodada)
-    let items = top3.map((r, i) => {
-        const posClass = i === 0 ? "gold" : i === 1 ? "silver" : "bronze";
-        const isMe = String(r.timeId) === String(WHState.timeId);
-        const pontos = r.pontos_totais || r.pontos || 0;
+    if (ranking.length === 0) return null;
+
+    const meuId = String(WHState.timeId);
+    const minhaPosicao = ranking.findIndex(r => r.timeId === meuId) + 1;
+
+    // Top 5 como chips + minha posição
+    const top5 = ranking.slice(0, 5);
+    const posColors = ['gold', 'silver', 'bronze'];
+
+    let items = top5.map((r, i) => {
+        const isMe = r.timeId === meuId;
         return `
-            <div class="wh-ranking-item ${posClass} ${isMe ? "me" : ""}">
-                <div class="wh-ranking-pos">${i + 1}</div>
-                <div class="wh-ranking-nome">${r.nome_time || r.nomeTime}</div>
-                <div class="wh-ranking-valor">${pontos.toFixed(1)}</div>
+            <div class="wh-rank-card ${i < 3 ? posColors[i] : ''} ${isMe ? 'me' : ''}">
+                <div class="wh-rank-pos">${i + 1}</div>
+                <img class="wh-rank-escudo" src="${r.escudo}" onerror="this.src='/escudos/default.png'" alt="">
+                <div class="wh-rank-nome">${r.nome_time}</div>
+                <div class="wh-rank-pontos">${r.pontos.toFixed(1)}</div>
             </div>
         `;
-    }).join("");
+    }).join('');
 
-    // Se eu não estou no top 3, mostrar minha posição
-    if (minhaPosicao && minhaPosicao > 3) {
-        const meusPontos = meuTime.pontos_totais || meuTime.pontos || 0;
-        items += `
-            <div class="wh-ranking-separator">···</div>
-            <div class="wh-ranking-item me">
-                <div class="wh-ranking-pos">${minhaPosicao}º</div>
-                <div class="wh-ranking-nome">${meuTime.nome_time || meuTime.nomeTime}</div>
-                <div class="wh-ranking-valor">${meusPontos.toFixed(1)}</div>
+    // Minha posição se fora do top 5
+    let meuItemHtml = '';
+    if (minhaPosicao > 5) {
+        const meuTime = ranking[minhaPosicao - 1];
+        meuItemHtml = `
+            <div class="wh-rank-card me">
+                <div class="wh-rank-pos">${minhaPosicao}o</div>
+                <img class="wh-rank-escudo" src="${meuTime.escudo}" onerror="this.src='/escudos/default.png'" alt="">
+                <div class="wh-rank-nome">${meuTime.nome_time}</div>
+                <div class="wh-rank-pontos">${meuTime.pontos.toFixed(1)}</div>
             </div>
         `;
     }
 
-    // Título dinâmico: "Ranking Geral" se rodada não consolidada, senão "Ranking Rodada X"
-    const rankingTitle = data.isRankingGeral
-        ? "Ranking Geral"
-        : `Ranking Rodada ${data.rodada || WHState.mercadoStatus?.rodada_atual || "?"}`;
-
     return `
         <div class="wh-section wh-section--ranking">
-            <div class="wh-section-header">
+            <div class="wh-section-header" data-navigate="home">
                 <div class="wh-section-icon">
                     <span class="material-icons">leaderboard</span>
                 </div>
                 <div class="wh-section-title">${rankingTitle}</div>
+                ${isLive ? '<span class="wh-live-badge">AO VIVO</span>' : ''}
             </div>
-            <div class="wh-section-body">
-                <div class="wh-ranking-mini">
-                    ${items}
-                </div>
+            <div class="wh-section-body wh-section-body--chips">
+                ${items}
+                ${meuItemHtml}
             </div>
+        </div>
+    `;
+}
+
+/**
+ * Helper: busca pontuação ao vivo de um time via parciais
+ * Retorna a pontuação parcial se disponível, senão o fallback
+ */
+function getPontosAoVivo(timeId, fallback = 0) {
+    if (!isJogosAoVivo()) return fallback;
+    const parciais = WHState.data.parciais?.ranking || [];
+    const found = parciais.find(p => String(p.timeId || p.time_id) === String(timeId));
+    return found?.pontos_rodada_atual ?? found?.pontos ?? fallback;
+}
+
+/**
+ * Resolve escudo de um participante usando todas as fontes disponíveis no WHState
+ */
+function resolverEscudo(item) {
+    // Campos diretos do item
+    const direto = item.escudo || item.url_escudo_png;
+    if (direto) return direto;
+
+    // Lookup por timeId em múltiplas fontes
+    const timeId = String(item.timeId || item.time_id || item.participanteId || '');
+    if (timeId) {
+        // 1. Parciais (ao vivo)
+        const parciais = WHState.data.parciais?.ranking || [];
+        const p = parciais.find(r => String(r.timeId || r.time_id) === timeId);
+        if (p?.url_escudo_png || p?.escudo) return p.url_escudo_png || p.escudo;
+
+        // 2. Ranking salvo
+        const rankSalvo = WHState.data.ranking?.ranking || [];
+        const rs = rankSalvo.find(r => String(r.timeId || r.time_id) === timeId);
+        if (rs?.url_escudo_png || rs?.escudo) return rs.url_escudo_png || rs.escudo;
+
+        // 3. Pontos Corridos classificação (tem escudos)
+        const pcClass = WHState.data.pontosCorridos?.classificacao || [];
+        const pc = pcClass.find(r => String(r.timeId) === timeId);
+        if (pc?.escudo) return pc.escudo;
+    }
+
+    // Fallback local por clubeId
+    const clubeId = item.clubeId || item.clube_id;
+    if (clubeId) return `/escudos/${clubeId}.png`;
+
+    return '/escudos/default.png';
+}
+
+/**
+ * Gera insight dinâmico baseado na diferença de pontos
+ */
+function getConfrontoInsight(diff) {
+    if (diff === 0) return { text: "Empatado! Qualquer lance decide", icon: "balance", level: "tied" };
+    if (diff < 3) return { text: `Ponto a ponto! Apenas ${diff.toFixed(1)} pts`, icon: "local_fire_department", level: "inferno" };
+    if (diff < 5) return { text: `Virada iminente! ${diff.toFixed(1)} pts de diferença`, icon: "whatshot", level: "hot" };
+    if (diff < 10) return { text: `Disputa acirrada! ${diff.toFixed(1)} pts`, icon: "trending_flat", level: "warm" };
+    if (diff >= 25) return { text: `Goleada à vista! ${diff.toFixed(1)} pts`, icon: "rocket_launch", level: "blowout" };
+    return null;
+}
+
+/**
+ * Renderiza barra visual de proporção de pontos entre dois times
+ */
+function renderBarraProporção(pontosA, pontosB) {
+    const total = (pontosA || 0) + (pontosB || 0);
+    if (total === 0) return '';
+    const pctA = ((pontosA || 0) / total * 100).toFixed(0);
+    const pctB = (100 - pctA);
+    return `
+        <div class="wh-barra-proporcao">
+            <div class="wh-barra-a" style="width:${pctA}%"><span>${pctA}%</span></div>
+            <div class="wh-barra-b" style="width:${pctB}%"><span>${pctB}%</span></div>
         </div>
     `;
 }
@@ -1175,119 +1396,241 @@ function renderPontosCorridosSection() {
     const data = WHState.data.pontosCorridos;
     if (!data?.confrontos || data.confrontos.length === 0) return null;
 
-    // Filtrar confrontos que envolvem meu time ou são "quentes"
-    const myConfrontos = data.confrontos.filter((c) => {
-        const isMyGame =
-            String(c.timeAId) === String(WHState.timeId) ||
-            String(c.timeBId) === String(WHState.timeId);
-        const diff = Math.abs((c.pontosA || 0) - (c.pontosB || 0));
-        const isHot = diff < WH_CONFIG.MIN_DIFF_HOT;
-        return isMyGame || isHot;
+    const meuId = String(WHState.timeId);
+
+    // v3.0: Remover confronto do usuário desta seção (já aparece em "Meu Confronto" acima)
+    const hasMeuConfrontoAbove = !!WHState.data.meuConfrontoPc;
+    const filteredConfrontos = hasMeuConfrontoAbove
+        ? data.confrontos.filter(c => {
+            const id1 = String(c.time1?.id);
+            const id2 = String(c.time2?.id);
+            return id1 !== meuId && id2 !== meuId;
+        })
+        : [...data.confrontos];
+
+    // Se só tinha o confronto do usuário, não mostra esta seção
+    if (filteredConfrontos.length === 0) return null;
+
+    // Ordenar: hot (< 10pts) primeiro (menores diferenças)
+    filteredConfrontos.sort((a, b) => {
+        const diffA = Math.abs((a.time1?.pontos || 0) - (a.time2?.pontos || 0));
+        const diffB = Math.abs((b.time1?.pontos || 0) - (b.time2?.pontos || 0));
+        return diffA - diffB; // Menores diferenças primeiro
     });
 
-    if (myConfrontos.length === 0) return null;
+    const allConfrontos = filteredConfrontos;
 
-    const confrontosHtml = myConfrontos.slice(0, 3).map((c) => {
-        const diff = Math.abs((c.pontosA || 0) - (c.pontosB || 0));
+    // Separar: primeiros 3 visíveis, restante colapsado
+    const visibleCount = 3;
+    const visible = allConfrontos.slice(0, visibleCount);
+    const collapsed = allConfrontos.slice(visibleCount);
+
+    function renderSingleConfronto(c, index) {
+        const t1 = c.time1 || {};
+        const t2 = c.time2 || {};
+        // v3.1: Overlay de parciais ao vivo
+        const pontosA = getPontosAoVivo(t1.id, t1.pontos || 0);
+        const pontosB = getPontosAoVivo(t2.id, t2.pontos || 0);
+        const diff = Math.abs(pontosA - pontosB);
         const isHot = diff < WH_CONFIG.MIN_DIFF_HOT;
-        const isMyGame =
-            String(c.timeAId) === String(WHState.timeId) ||
-            String(c.timeBId) === String(WHState.timeId);
+        const isMyGame = String(t1.id) === meuId || String(t2.id) === meuId;
+        const aWinning = pontosA > pontosB;
+        const bWinning = pontosB > pontosA;
 
-        const aWinning = (c.pontosA || 0) > (c.pontosB || 0);
-        const bWinning = (c.pontosB || 0) > (c.pontosA || 0);
-
-        let insight = "";
-        if (isHot) {
-            insight = `
-                <div class="wh-confronto-insight">
-                    <span class="material-icons">whatshot</span>
-                    Disputa acirrada! Apenas ${diff.toFixed(1)} pts de diferença
-                </div>
-            `;
-        }
+        const insight = getConfrontoInsight(diff);
+        const insightHtml = insight ? `
+            <div class="wh-confronto-insight wh-insight--${insight.level}">
+                <span class="material-icons">${insight.icon}</span>
+                ${insight.text}
+            </div>
+        ` : '';
 
         return `
-            <div class="wh-confronto ${isHot ? "hot" : ""}">
+            <div class="wh-confronto ${isHot ? "hot" : ""} ${isMyGame ? "mine" : ""}" data-navigate="pontos-corridos">
                 <div class="wh-confronto-header">
-                    <span class="wh-confronto-rodada">Rodada ${data.rodada}</span>
+                    <span class="wh-confronto-rodada">${isMyGame ? "Seu jogo" : `Jogo ${index + 1}`}</span>
+                    ${isJogosAoVivo() ? '<span class="wh-confronto-status live"><span class="material-icons" style="font-size:12px">sensors</span> AO VIVO</span>' : ''}
                     ${isHot ? '<span class="wh-confronto-status tight"><span class="material-icons" style="font-size:12px">local_fire_department</span> Quente!</span>' : ""}
                 </div>
                 <div class="wh-confronto-times">
                     <div class="wh-time wh-time--home ${aWinning ? "winning" : bWinning ? "losing" : ""}">
-                        <img class="wh-time-escudo" src="${c.escudoA || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
+                        <img class="wh-time-escudo" src="${t1.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
                         <div class="wh-time-info">
-                            <div class="wh-time-nome">${c.nomeTimeA || "Time A"}</div>
+                            <div class="wh-time-nome">${t1.nome || t1.nome_cartola || "Time 1"}</div>
                         </div>
-                        <div class="wh-time-pontos">${(c.pontosA || 0).toFixed(1)}</div>
+                        <div class="wh-time-pontos">${pontosA.toFixed(1)}</div>
                     </div>
                     <div class="wh-vs">
                         <span class="wh-vs-text">VS</span>
                     </div>
                     <div class="wh-time wh-time--away ${bWinning ? "winning" : aWinning ? "losing" : ""}">
-                        <div class="wh-time-pontos">${(c.pontosB || 0).toFixed(1)}</div>
+                        <div class="wh-time-pontos">${pontosB.toFixed(1)}</div>
                         <div class="wh-time-info">
-                            <div class="wh-time-nome">${c.nomeTimeB || "Time B"}</div>
+                            <div class="wh-time-nome">${t2.nome || t2.nome_cartola || "Time 2"}</div>
                         </div>
-                        <img class="wh-time-escudo" src="${c.escudoB || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
+                        <img class="wh-time-escudo" src="${t2.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
                     </div>
                 </div>
-                ${insight}
+                ${renderBarraProporção(pontosA, pontosB)}
+                ${insightHtml}
             </div>
         `;
-    }).join("");
+    }
+
+    const allHtml = allConfrontos.map((c, i) => renderSingleConfronto(c, i)).join("");
+    const useCarousel = allConfrontos.length > 2;
+    const hotCount = allConfrontos.filter(c => Math.abs((c.time1?.pontos || 0) - (c.time2?.pontos || 0)) < WH_CONFIG.MIN_DIFF_HOT).length;
+
+    // Dots do carrossel
+    const dotsHtml = useCarousel ? `
+        <div class="wh-carousel-dots" id="wh-pc-dots">
+            ${allConfrontos.map((_, i) => `<span class="wh-carousel-dot ${i === 0 ? 'active' : ''}"></span>`).join('')}
+        </div>
+    ` : '';
+
+    // Hint de swipe
+    const swipeHint = useCarousel ? `
+        <div class="wh-swipe-hint">
+            <span class="material-icons">swipe</span>
+            Arraste para ver ${allConfrontos.length} confrontos
+        </div>
+    ` : '';
 
     return `
         <div class="wh-section wh-section--pontos-corridos">
-            <div class="wh-section-header">
+            <div class="wh-section-header" data-navigate="pontos-corridos">
                 <div class="wh-section-icon">
                     <span class="material-icons">swap_horiz</span>
                 </div>
-                <div class="wh-section-title">Pontos Corridos</div>
+                <div class="wh-section-title">Confrontos da Rodada</div>
+                ${hotCount > 0 ? `<span class="wh-section-badge wh-badge--hot">${hotCount} quente${hotCount > 1 ? 's' : ''}</span>` : ''}
+                <span class="material-icons wh-navigate-hint">open_in_new</span>
             </div>
-            <div class="wh-section-body">
-                ${confrontosHtml}
+            <div class="wh-section-body ${useCarousel ? 'wh-section-body--carousel' : ''}" ${useCarousel ? 'id="wh-pc-carousel"' : ''}>
+                ${allHtml}
             </div>
+            ${dotsHtml}
+            ${swipeHint}
         </div>
     `;
 }
 
 function renderMataMataSection() {
     const data = WHState.data.mataMata;
-    if (!data?.confrontos || data.confrontos.length === 0) return null;
+    if (!data?.dados) return null;
 
-    // Filtrar confrontos que envolvem meu time
-    const myConfrontos = data.confrontos.filter((c) => {
-        const timeAId = c.timeA?.time_id || c.timeA?.timeId;
-        const timeBId = c.timeB?.time_id || c.timeB?.timeId;
-        return (
-            String(timeAId) === String(WHState.timeId) ||
-            String(timeBId) === String(WHState.timeId)
-        );
+    // Determinar fase atual - percorrer do final para o início
+    const fases = ["final", "semis", "quartas", "oitavas", "primeira"];
+    let faseAtual = data.faseAtual || null;
+    let confrontosFase = [];
+
+    // Se faseAtual não definida, encontrar a fase com confrontos sem vencedor
+    if (!faseAtual) {
+        for (const fase of fases) {
+            const cf = data.dados[fase];
+            if (Array.isArray(cf) && cf.length > 0) {
+                const temAberto = cf.some(c => !c.vencedor);
+                if (temAberto) {
+                    faseAtual = fase;
+                    confrontosFase = cf;
+                    break;
+                }
+            }
+        }
+    } else {
+        confrontosFase = data.dados[faseAtual] || [];
+    }
+
+    // Se não encontrou fase aberta, pegar a última com dados
+    if (!faseAtual || confrontosFase.length === 0) {
+        for (const fase of fases) {
+            const cf = data.dados[fase];
+            if (Array.isArray(cf) && cf.length > 0) {
+                faseAtual = fase;
+                confrontosFase = cf;
+                break;
+            }
+        }
+    }
+
+    if (confrontosFase.length === 0) return null;
+
+    const meuId = String(WHState.timeId);
+    const faseLabel = {
+        primeira: "1a Fase", oitavas: "Oitavas", quartas: "Quartas",
+        semis: "Semifinal", final: "FINAL"
+    }[faseAtual] || faseAtual;
+
+    const isLive = isJogosAoVivo();
+
+    // v3.0: Remover confronto do usuário desta seção (já aparece em "Meu Confronto" acima)
+    const hasMeuConfrontoAbove = !!WHState.data.meuConfrontoMm;
+    const filteredConfrontos = hasMeuConfrontoAbove
+        ? confrontosFase.filter(c => {
+            const idA = String(c.timeA?.timeId || c.timeA?.time_id);
+            const idB = String(c.timeB?.timeId || c.timeB?.time_id);
+            return idA !== meuId && idB !== meuId;
+        })
+        : confrontosFase;
+
+    // Se só tinha o confronto do usuário, não mostra esta seção
+    if (filteredConfrontos.length === 0) return null;
+
+    // Ordenar: hot (menor diferença) primeiro
+    const sorted = [...filteredConfrontos].sort((a, b) => {
+        const diffA = Math.abs((a.timeA?.pontos || 0) - (a.timeB?.pontos || 0));
+        const diffB = Math.abs((b.timeA?.pontos || 0) - (b.timeB?.pontos || 0));
+        return diffA - diffB;
     });
 
-    if (myConfrontos.length === 0) return null;
+    // Primeiros 2 visíveis, restante colapsado
+    const visibleCount = 2;
+    const visible = sorted.slice(0, visibleCount);
+    const collapsed = sorted.slice(visibleCount);
 
-    const confrontosHtml = myConfrontos.map((c) => {
-        const pontosA = parseFloat(c.timeA?.pontos) || 0;
-        const pontosB = parseFloat(c.timeB?.pontos) || 0;
+    function renderMmConfronto(c) {
+        // v3.1: Overlay de parciais ao vivo
+        const idA = String(c.timeA?.timeId || c.timeA?.time_id);
+        const idB = String(c.timeB?.timeId || c.timeB?.time_id);
+        const pontosA = getPontosAoVivo(idA, parseFloat(c.timeA?.pontos) || 0);
+        const pontosB = getPontosAoVivo(idB, parseFloat(c.timeB?.pontos) || 0);
         const diff = Math.abs(pontosA - pontosB);
         const aWinning = pontosA > pontosB;
         const bWinning = pontosB > pontosA;
+        const isMyGame = idA === meuId || idB === meuId;
+        const isDecided = !!c.vencedor;
+        const isHot = diff < 15 && !isDecided;
 
-        const fase = c.fase || "Fase";
+        const insight = !isDecided ? getConfrontoInsight(diff) : null;
+        const insightHtml = insight ? `
+            <div class="wh-confronto-insight wh-insight--${insight.level}">
+                <span class="material-icons">${insight.icon}</span>
+                ${insight.text}
+            </div>
+        ` : '';
+
+        // Status de decisão
+        let decisionHtml = '';
+        if (isDecided) {
+            const vencedorNome = String(c.vencedor) === idA
+                ? (c.timeA?.nome_time || c.timeA?.nome || 'Time A')
+                : (c.timeB?.nome_time || c.timeB?.nome || 'Time B');
+            decisionHtml = `<div class="wh-mm-decided"><span class="material-icons">check_circle</span> ${vencedorNome} classificado</div>`;
+        }
 
         return `
-            <div class="wh-confronto ${diff < 15 ? "hot" : ""}">
+            <div class="wh-confronto wh-mm-confronto ${isHot ? "hot" : ""} ${isMyGame ? "mine" : ""} ${isDecided ? "decided" : ""}" data-navigate="mata-mata">
                 <div class="wh-confronto-header">
-                    <span class="wh-confronto-rodada">${data.edicao || "Mata-Mata"} - ${fase}</span>
-                    ${WHState.mercadoStatus?.bola_rolando ? '<span class="wh-confronto-status live"><span class="material-icons" style="font-size:12px">sensors</span> AO VIVO</span>' : ""}
+                    <span class="wh-confronto-rodada">${isMyGame ? "Seu jogo" : `Jogo ${c.jogo || ''}`}</span>
+                    ${isLive && !isDecided ? '<span class="wh-confronto-status live"><span class="material-icons" style="font-size:12px">sensors</span> AO VIVO</span>' : ""}
+                    ${isDecided ? '<span class="wh-confronto-status decided"><span class="material-icons" style="font-size:12px">check</span> Definido</span>' : ""}
                 </div>
                 <div class="wh-confronto-times">
                     <div class="wh-time wh-time--home ${aWinning ? "winning" : bWinning ? "losing" : ""}">
-                        <img class="wh-time-escudo" src="${c.timeA?.url_escudo_png || c.timeA?.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
+                        <img class="wh-time-escudo" src="${resolverEscudo({timeId: idA, escudo: c.timeA?.escudo || c.timeA?.url_escudo_png})}" onerror="this.src='/escudos/default.png'" alt="">
                         <div class="wh-time-info">
-                            <div class="wh-time-nome">${c.timeA?.nome_time || "Time A"}</div>
+                            <div class="wh-time-nome">${c.timeA?.nome_time || c.timeA?.nome || "Time A"}</div>
+                            ${c.timeA?.nome_cartola ? `<div class="wh-time-cartola">${c.timeA.nome_cartola}</div>` : ''}
                         </div>
                         <div class="wh-time-pontos">${pontosA.toFixed(1)}</div>
                     </div>
@@ -1298,170 +1641,158 @@ function renderMataMataSection() {
                     <div class="wh-time wh-time--away ${bWinning ? "winning" : aWinning ? "losing" : ""}">
                         <div class="wh-time-pontos">${pontosB.toFixed(1)}</div>
                         <div class="wh-time-info">
-                            <div class="wh-time-nome">${c.timeB?.nome_time || "Time B"}</div>
+                            <div class="wh-time-nome">${c.timeB?.nome_time || c.timeB?.nome || "Time B"}</div>
+                            ${c.timeB?.nome_cartola ? `<div class="wh-time-cartola">${c.timeB.nome_cartola}</div>` : ''}
                         </div>
-                        <img class="wh-time-escudo" src="${c.timeB?.url_escudo_png || c.timeB?.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
+                        <img class="wh-time-escudo" src="${resolverEscudo({timeId: idB, escudo: c.timeB?.escudo || c.timeB?.url_escudo_png})}" onerror="this.src='/escudos/default.png'" alt="">
                     </div>
                 </div>
+                ${!isDecided ? renderBarraProporção(pontosA, pontosB) : ''}
+                ${insightHtml}
+                ${decisionHtml}
             </div>
         `;
-    }).join("");
+    }
+
+    const allMmHtml = sorted.map(c => renderMmConfronto(c)).join("");
+    const useCarouselMm = sorted.length > 2;
+
+    const hotCount = confrontosFase.filter(c => {
+        const diff = Math.abs((c.timeA?.pontos || 0) - (c.timeB?.pontos || 0));
+        return diff < 15 && !c.vencedor;
+    }).length;
+
+    // Dots do carrossel
+    const dotsHtml = useCarouselMm ? `
+        <div class="wh-carousel-dots" id="wh-mm-dots">
+            ${sorted.map((_, i) => `<span class="wh-carousel-dot ${i === 0 ? 'active' : ''}"></span>`).join('')}
+        </div>
+    ` : '';
+
+    const swipeHint = useCarouselMm ? `
+        <div class="wh-swipe-hint">
+            <span class="material-icons">swipe</span>
+            Arraste para ver ${sorted.length} confrontos
+        </div>
+    ` : '';
 
     return `
         <div class="wh-section wh-section--mata-mata">
-            <div class="wh-section-header">
+            <div class="wh-section-header" data-navigate="mata-mata">
                 <div class="wh-section-icon">
                     <span class="material-icons">emoji_events</span>
                 </div>
-                <div class="wh-section-title">Mata-Mata</div>
+                <div class="wh-section-title">Mata-Mata - ${faseLabel}</div>
+                ${hotCount > 0 ? `<span class="wh-section-badge wh-badge--hot">${hotCount} quente${hotCount > 1 ? 's' : ''}</span>` : ''}
+                <span class="material-icons wh-navigate-hint">open_in_new</span>
             </div>
-            <div class="wh-section-body">
-                ${confrontosHtml}
+            <div class="wh-section-body ${useCarouselMm ? 'wh-section-body--carousel' : ''}" ${useCarouselMm ? 'id="wh-mm-carousel"' : ''}>
+                ${allMmHtml}
             </div>
+            ${dotsHtml}
+            ${swipeHint}
+        </div>
+    `;
+}
+
+/**
+ * Renderiza seção genérica de ranking por módulo (tabela compacta)
+ * v3.0 - Redesign: tabela inline sem boxes aninhados + badge separado
+ */
+function renderModuleRankingSection(opts) {
+    const { data, title, icon, sectionClass, navigateTo, getValue, getLabel } = opts;
+    if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
+
+    const top3 = data.ranking.slice(0, 3);
+    const meuId = String(WHState.timeId);
+
+    // Verificar se eu estou no top 3
+    const matchId = (r) => String(r.timeId || r.time_id || r.participanteId || '') === meuId;
+    const meuIndex = data.ranking.findIndex(matchId);
+    const meInTop3 = meuIndex >= 0 && meuIndex < 3;
+
+    // Tabela TOP 3
+    const tableRows = top3.map((r, i) => {
+        const isMe = matchId(r);
+        const valor = getValue(r);
+        const nome = getLabel(r);
+        return `
+            <tr class="${isMe ? 'me' : ''}">
+                <td class="wh-podium-pos">${i + 1}</td>
+                <td class="wh-podium-escudo"><img src="${resolverEscudo(r)}" onerror="this.src='/escudos/default.png'" alt=""></td>
+                <td class="wh-podium-nome">${nome}</td>
+                <td class="wh-podium-valor">${valor}</td>
+            </tr>
+        `;
+    }).join('');
+
+    // Badge de "Minha Posição" separado (fora da tabela) se não estou no top 3
+    let myBadgeHtml = '';
+    if (meuIndex >= 3) {
+        const meuItem = data.ranking[meuIndex];
+        myBadgeHtml = `
+            <div class="wh-my-position-badge">
+                <span class="wh-mpb-pos">#${meuIndex + 1}</span>
+                <img class="wh-mpb-escudo" src="${resolverEscudo(meuItem)}" onerror="this.src='/escudos/default.png'" alt="">
+                <span class="wh-mpb-nome">${getLabel(meuItem)}</span>
+                <span class="wh-mpb-valor">${getValue(meuItem)}</span>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="wh-section wh-section--${sectionClass}">
+            <div class="wh-section-header" ${navigateTo ? `data-navigate="${navigateTo}"` : ''}>
+                <div class="wh-section-icon">
+                    <span class="material-icons">${icon}</span>
+                </div>
+                <div class="wh-section-title">${title}</div>
+                ${navigateTo ? '<span class="material-icons wh-navigate-hint">open_in_new</span>' : ''}
+            </div>
+            <div class="wh-section-body wh-section-body--podium">
+                <table class="wh-podium-table">
+                    ${tableRows}
+                </table>
+            </div>
+            ${myBadgeHtml}
         </div>
     `;
 }
 
 function renderArtilheiroSection() {
-    const data = WHState.data.artilheiro;
-    if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
-
-    const top = data.ranking[0];
-    if (!top) return null;
-
-    // API retorna: golsPro, nome, nomeTime, escudo (pode ser null)
-    const gols = top.golsPro || top.gols || 0;
-    const nome = top.nome || top.nome_cartola || top.nomeCartola || "Líder";
-    const escudo = top.escudo || `/escudos/${top.clubeId || "default"}.png`;
-    const rodadas = top.rodadasProcessadas || top.rodadas || "?";
-
-    const segundo = data.ranking[1];
-    const golsSegundo = segundo ? (segundo.golsPro || segundo.gols || 0) : 0;
-    const diff = gols - golsSegundo;
-
-    const disputaAcirrada =
-        diff <= 1 && segundo
-            ? `
-        <div class="wh-disputa-acirrada">
-            <span class="material-icons">warning</span>
-            Disputa acirrada! ${segundo.nome || segundo.nome_cartola || "2º lugar"} está a apenas ${diff} gol(s)
-        </div>
-    `
-            : "";
-
-    return `
-        <div class="wh-section wh-section--artilheiro">
-            <div class="wh-section-header">
-                <div class="wh-section-icon">
-                    <span class="material-icons">sports_soccer</span>
-                </div>
-                <div class="wh-section-title">Artilheiro Campeão</div>
-            </div>
-            <div class="wh-section-body">
-                <div class="wh-leader-card">
-                    <div class="wh-leader-avatar">
-                        <img class="wh-leader-escudo" src="${escudo}" onerror="this.src='/escudos/default.png'" alt="">
-                        <span class="wh-leader-crown">👑</span>
-                    </div>
-                    <div class="wh-leader-info">
-                        <div class="wh-leader-nome">${nome}</div>
-                        <div class="wh-leader-stat">
-                            <span class="material-icons">sports_soccer</span>
-                            ${gols} gol(s) em ${rodadas} rodadas
-                        </div>
-                    </div>
-                    <div class="wh-leader-value">${gols}</div>
-                </div>
-                ${disputaAcirrada}
-            </div>
-        </div>
-    `;
+    return renderModuleRankingSection({
+        data: WHState.data.artilheiro,
+        title: 'Artilheiro Campeão',
+        icon: 'sports_soccer',
+        sectionClass: 'artilheiro',
+        navigateTo: 'artilheiro',
+        getValue: (r) => `${r.golsPro || r.gols || 0} gols`,
+        getLabel: (r) => r.nome || r.nome_cartola || r.nomeCartola || 'Jogador'
+    });
 }
 
 function renderLuvaOuroSection() {
-    const data = WHState.data.luvaOuro;
-    if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
-
-    const top = data.ranking[0];
-    if (!top) return null;
-
-    // API retorna: participanteNome, pontosTotais, clubeId, rodadasJogadas, ultimaRodada
-    const nome = top.participanteNome || top.nome_cartola || top.nomeCartola || "Líder";
-    const pontos = top.pontosTotais || top.pontos || 0;
-    const escudo = top.escudo || `/escudos/${top.clubeId || "default"}.png`;
-    const rodadas = top.rodadasJogadas || top.rodadas?.length || "?";
-    const ultimoGoleiro = top.ultimaRodada?.goleiroNome || "";
-
-    return `
-        <div class="wh-section wh-section--luva-ouro">
-            <div class="wh-section-header">
-                <div class="wh-section-icon">
-                    <span class="material-icons">sports_handball</span>
-                </div>
-                <div class="wh-section-title">Luva de Ouro</div>
-            </div>
-            <div class="wh-section-body">
-                <div class="wh-leader-card">
-                    <div class="wh-leader-avatar">
-                        <img class="wh-leader-escudo" src="${escudo}" onerror="this.src='/escudos/default.png'" alt="">
-                        <span class="wh-leader-crown">🧤</span>
-                    </div>
-                    <div class="wh-leader-info">
-                        <div class="wh-leader-nome">${nome}</div>
-                        <div class="wh-leader-stat">
-                            <span class="material-icons">shield</span>
-                            ${pontos.toFixed(1)} pts em ${rodadas} rodadas
-                            ${ultimoGoleiro ? `<br><small>Último: ${ultimoGoleiro}</small>` : ""}
-                        </div>
-                    </div>
-                    <div class="wh-leader-value">${pontos.toFixed(1)}</div>
-                </div>
-            </div>
-        </div>
-    `;
+    return renderModuleRankingSection({
+        data: WHState.data.luvaOuro,
+        title: 'Luva de Ouro',
+        icon: 'sports_handball',
+        sectionClass: 'luva-ouro',
+        navigateTo: 'luva-de-ouro',
+        getValue: (r) => `${(r.pontosTotais || r.pontos || 0).toFixed(1)} pts`,
+        getLabel: (r) => r.participanteNome || r.nome_cartola || r.nomeCartola || 'Jogador'
+    });
 }
 
 function renderCapitaoSection() {
-    const data = WHState.data.capitao;
-    if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
-
-    const top = data.ranking[0];
-    if (!top) return null;
-
-    // API retorna: nome_cartola, media_capitao, pontuacao_total, escudo, melhor_capitao
-    const nome = top.nome_cartola || top.nomeCartola || "Líder";
-    const media = top.media_capitao || top.media || 0;
-    const total = top.pontuacao_total || top.total || 0;
-    const escudo = top.escudo || `/escudos/${top.clube_id || "default"}.png`;
-    const melhorCapitao = top.melhor_capitao?.atleta_nome || "";
-
-    return `
-        <div class="wh-section wh-section--capitao">
-            <div class="wh-section-header">
-                <div class="wh-section-icon">
-                    <span class="material-icons">military_tech</span>
-                </div>
-                <div class="wh-section-title">Capitão de Luxo</div>
-            </div>
-            <div class="wh-section-body">
-                <div class="wh-leader-card">
-                    <div class="wh-leader-avatar">
-                        <img class="wh-leader-escudo" src="${escudo}" onerror="this.src='/escudos/default.png'" alt="">
-                        <span class="wh-leader-crown">🎖️</span>
-                    </div>
-                    <div class="wh-leader-info">
-                        <div class="wh-leader-nome">${nome}</div>
-                        <div class="wh-leader-stat">
-                            <span class="material-icons">trending_up</span>
-                            Média: ${media.toFixed(1)} pts
-                            ${melhorCapitao ? `<br><small>Melhor: ${melhorCapitao}</small>` : ""}
-                        </div>
-                    </div>
-                    <div class="wh-leader-value">${total.toFixed(0)}</div>
-                </div>
-            </div>
-        </div>
-    `;
+    return renderModuleRankingSection({
+        data: WHState.data.capitao,
+        title: 'Capitão de Luxo',
+        icon: 'military_tech',
+        sectionClass: 'capitao',
+        navigateTo: 'capitao',
+        getValue: (r) => `${(r.pontuacao_total || r.total || 0).toFixed(0)} pts`,
+        getLabel: (r) => r.nome_cartola || r.nomeCartola || 'Jogador'
+    });
 }
 
 // ============================================
@@ -1484,16 +1815,15 @@ function renderMeuConfrontoPontosCorridos() {
 
     const vencendo = diff > 0;
     const perdendo = diff < 0;
-    const empatado = diff === 0;
 
     const statusClass = vencendo ? "winning" : perdendo ? "losing" : "tied";
     const statusEmoji = vencendo ? "🔥" : perdendo ? "😰" : "⚔️";
     const statusText = vencendo ? "Vencendo!" : perdendo ? "Perdendo..." : "Empatado";
 
-    const isLive = WHState.mercadoStatus?.bola_rolando;
+    const isLive = isJogosAoVivo();
 
     return `
-        <div class="wh-section wh-section--meu-confronto wh-section--pontos-corridos ${statusClass}">
+        <div class="wh-section wh-section--meu-confronto wh-section--pontos-corridos ${statusClass}" data-navigate="pontos-corridos">
             <div class="wh-section-header">
                 <div class="wh-section-icon">
                     <span class="material-icons">stadium</span>
@@ -1545,7 +1875,7 @@ function renderMeuConfrontoMataMata() {
     const confronto = WHState.data.meuConfrontoMm;
     if (!confronto) return null;
 
-    const { eu, adversario, fase, edicao } = confronto;
+    const { eu, adversario, fase } = confronto;
 
     // Buscar pontuação atual das parciais (se disponível)
     const parciais = WHState.data.parciais?.ranking || [];
@@ -1570,10 +1900,10 @@ function renderMeuConfrontoMataMata() {
         final: "FINAL"
     }[fase] || fase;
 
-    const isLive = WHState.mercadoStatus?.bola_rolando;
+    const isLive = isJogosAoVivo(); // v2.1: usa game-status real
 
     return `
-        <div class="wh-section wh-section--meu-confronto wh-section--mata-mata ${statusClass}">
+        <div class="wh-section wh-section--meu-confronto wh-section--mata-mata ${statusClass}" data-navigate="mata-mata">
             <div class="wh-section-header">
                 <div class="wh-section-icon">
                     <span class="material-icons">emoji_events</span>
@@ -1662,4 +1992,4 @@ if (typeof window !== "undefined") {
     };
 }
 
-if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget v2.0 carregado");
+if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget v3.1 carregado");

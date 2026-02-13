@@ -100,6 +100,7 @@ const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
 import jogosHojeRoutes from "./routes/jogos-hoje-routes.js";
 import jogosHojeGloboRoutes from "./routes/jogos-hoje-globo.js"; // NOVA ROTA
 import jogosAoVivoRoutes from "./routes/jogos-ao-vivo-routes.js"; // API-Football
+import apiOrchestrator from "./services/api-orchestrator.js"; // Orquestrador multi-API
 import ligaRoutes from "./routes/ligas.js";
 import cartolaRoutes from "./routes/cartola.js";
 import cartolaProxyRoutes from "./routes/cartola-proxy.js";
@@ -107,6 +108,7 @@ import timesRoutes from "./routes/times.js";
 import timesAdminRoutes from "./routes/times-admin.js";
 import analisarParticipantesRoutes from "./routes/analisar-participantes.js";
 import rodadasRoutes from "./routes/rodadas-routes.js";
+import rodadaXrayRoutes from "./routes/rodada-xray-routes.js";
 import rodadasCacheRoutes from "./routes/rodadasCacheRoutes.js";
 import rodadasCorrecaoRoutes from "./routes/rodadasCorrecaoRoutes.js";
 import calendarioRodadasRoutes from "./routes/calendario-rodadas-routes.js";
@@ -190,6 +192,7 @@ import adminGestaoRoutes from "./routes/admin-gestao-routes.js";
 import systemHealthRoutes from "./routes/system-health-routes.js";
 import adminClienteAuthRoutes from "./routes/admin-cliente-auth.js";
 import adminMobileRoutes from "./routes/admin-mobile-routes.js";
+import * as analyticsController from "./controllers/analyticsController.js";
 import adminMigracaoRoutes from "./routes/admin/migracao.js";
 import adminMigracaoValidacaoRoutes from "./routes/admin/migracao-validacao.js";
 console.log("[DEBUG] adminAuthRoutes type:", typeof adminAuthRoutes);
@@ -205,6 +208,10 @@ import {
 } from "./controllers/participanteStatusController.js";
 import { iniciarSchedulerConsolidacao } from "./utils/consolidacaoScheduler.js";
 
+// 🎯 Round-Market Orchestrator
+import orchestratorRoutes from "./routes/orchestrator-routes.js";
+import orchestrator from "./services/orchestrator/roundMarketOrchestrator.js";
+
 // Middleware de proteção
 import { protegerRotas, injetarSessaoDevAdmin } from "./middleware/auth.js";
 
@@ -215,6 +222,14 @@ const PORT = process.env.PORT || 3000;
 
 // Conectar ao Banco de Dados (Otimizado)
 await connectDB();
+
+// Inicializar orquestrador multi-API (API-Football + SoccerDataAPI)
+import { getDB } from "./config/database.js";
+try {
+  await apiOrchestrator.init(getDB());
+} catch (err) {
+  console.warn('[INDEX] Orquestrador init falhou (não-crítico):', err.message);
+}
 
 // ====================================================================
 // 🛡️ MIDDLEWARES DE SEGURANÇA (PRIMEIRO!)
@@ -479,6 +494,7 @@ app.use("/api/cartola-pro", cartolaProRoutes);
 app.use("/api/times", timesRoutes);
 app.use("/api/time", timesRoutes);
 app.use("/api/rodadas", rodadasRoutes);
+app.use("/api/rodada-xray", rodadaXrayRoutes);
 app.use("/api/rodadas-cache", rodadasCacheRoutes);
 app.use("/api/rodadas-correcao", rodadasCorrecaoRoutes);
 app.use("/api/calendario-rodadas", calendarioRodadasRoutes);
@@ -494,6 +510,7 @@ app.use("/api/extrato-cache", extratoFinanceiroCacheRoutes);
 app.use("/api/ranking-cache", rankingGeralCacheRoutes);
 app.use("/api/ranking-turno", rankingTurnoRoutes);
 app.use("/api/consolidacao", consolidacaoRoutes);
+app.use("/api/orchestrator", orchestratorRoutes);
 app.use("/api/pontos-corridos", pontosCorridosCacheRoutes);
 app.use("/api/pontos-corridos", pontosCorridosMigracaoRoutes);
 app.use("/api/top10", top10CacheRoutes);
@@ -531,6 +548,16 @@ console.log("[SERVER] 📦 Data Lake dos Participantes registrado em /api/data-l
 // 🔔 Push Notifications
 app.use("/api/notifications", notificationsRoutes);
 console.log("[SERVER] 🔔 Rotas de Push Notifications registradas em /api/notifications");
+
+// 📊 Analytics - Branches & Merges (session auth, para SPA desktop)
+app.get("/api/admin/analytics/resumo", analyticsController.getAnalyticsResumo);
+app.get("/api/admin/analytics/branch/:nomeBranch", analyticsController.getAnatyticsBranchDetalhes);
+app.get("/api/admin/analytics/merges", analyticsController.getAnalyticsMerges);
+app.get("/api/admin/analytics/funcionalidades", analyticsController.getAnalyticsFuncionalidades);
+app.get("/api/admin/analytics/estatisticas", analyticsController.getAnalyticsEstatisticas);
+app.get("/api/admin/analytics/sync-status", analyticsController.getGitSyncStatus);
+app.post("/api/admin/analytics/sync-trigger", analyticsController.postGitSyncTrigger);
+console.log("[SERVER] 📊 Rotas de Analytics (session) registradas em /api/admin/analytics");
 
 // 📢 Avisos In-App (Notificador)
 app.use("/api/admin/avisos", avisosAdminRoutes);
@@ -709,6 +736,17 @@ if (process.env.NODE_ENV !== "test") {
     consolidacaoIntervalId = iniciarSchedulerConsolidacao();
   }, 10000);
 
+  // 🎯 Inicializar Round-Market Orchestrator (15s após boot para garantir DB)
+  setTimeout(async () => {
+    try {
+      console.log('[SERVER] 🎯 Iniciando Round-Market Orchestrator v1.0.0...');
+      await orchestrator.iniciar();
+      console.log('[SERVER] 🎯 Orchestrator ativo e monitorando mercado');
+    } catch (err) {
+      console.error('[SERVER] ⚠️ Orchestrator falhou ao iniciar (não-crítico):', err.message);
+    }
+  }, 15000);
+
   // 🔔 CRON: Limpeza de push subscriptions expiradas
   // Toda segunda-feira às 3h da manhã
   cron.schedule("0 3 * * 1", async () => {
@@ -790,6 +828,15 @@ async function gracefulShutdown(signal) {
       logShutdown("[SHUTDOWN] ✅ Scheduler de consolidação parado");
     }
     
+    // 3.5. Parar Round-Market Orchestrator
+    try {
+      logShutdown("[SHUTDOWN] Parando Round-Market Orchestrator...");
+      await orchestrator.parar();
+      logShutdown("[SHUTDOWN] ✅ Orchestrator parado");
+    } catch (e) {
+      logShutdown("[SHUTDOWN] ⚠️ Erro ao parar orchestrator: " + e.message);
+    }
+
     // 4. Limpar timer de rate limiting
     if (rateLimitCleanupIntervalId) {
       logShutdown("[SHUTDOWN] Parando limpeza de rate limiting...");

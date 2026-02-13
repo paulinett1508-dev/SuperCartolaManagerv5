@@ -146,32 +146,64 @@ Os IDs de estaduais **variam entre temporadas** na API-Football. Por isso, são 
 
 ---
 
-## 3. Arquitetura de Fallback
+## 3. Arquitetura de Fallback (v5.0)
 
-O sistema agora opera com **3 camadas resilientes**, porque a API-Football foi removida do fluxo (usuário banido). O tráfego principal parte direto para o SoccerDataAPI e só usa cache/globo quando necessário.
+O sistema opera com um **orquestrador multi-API** de 4 camadas. A API-Football foi **REATIVADA** (v5.0) como fonte SECUNDÁRIA com proteções anti-banimento.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    FLUXO DE DADOS ATUAL                     │
+│              FLUXO DE DADOS v5.0 (ORQUESTRADOR)             │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  1. SoccerDataAPI (Principal)                               │
-│     └─ 75 req/dia (free) │ Tempo real │ Dados básicos      │
+│  1. SoccerDataAPI (PRIMÁRIA - livescores)                   │
+│     └─ 75 req/dia (free) │ Tempo real │ Polling 30s        │
 │            │                                                │
-│            ▼ (falha, cota ou indisponível)                  │
+│            ▼ (falha → orquestrador ativa API-Football)      │
 │                                                             │
-│  2. Cache Stale (Fallback 1)                                │
+│  2. API-Football v3 (SECUNDÁRIA - fallback + eventos)       │
+│     └─ 90 req/dia cap (100 real) │ Tempo real │ Completa   │
+│     └─ Proteções: circuit breaker, rate limiter, MongoDB    │
+│            │                                                │
+│  || Globo SSR (PARALELO - agenda)                           │
+│     └─ Ilimitado │ ge.globo.com scraper                    │
+│            │                                                │
+│            ▼ (todas falharam)                               │
+│                                                             │
+│  3. Cache Stale (Fallback)                                  │
 │     └─ Último cache válido │ Máx 30 min │ Com aviso        │
 │            │                                                │
-│            ▼ (cache muito antigo ou vazio)                  │
-│                                                             │
-│  3. Globo Esporte (Fallback Final)                          │
-│     └─ Scraper │ Ilimitado │ Apenas agenda (sem placar)    │
+│  4. Globo JSON (Fallback Final)                             │
+│     └─ Arquivo estático │ Backup legado                    │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-> ⚠️ API-Football foi banida e permanece **DESABILITADA**; o sistema não faz mais requisições a ela e exibe o alerta de bloqueio em todos os painéis.
+### Proteções Anti-Banimento (API-Football)
+
+| Proteção | Configuração | Descrição |
+|----------|-------------|-----------|
+| Hard Cap | 90 req/dia | Buffer de 10 (limite real = 100) |
+| Rate Limiter | 2 req/min | Respeita TOS da API |
+| Intervalo | 30s entre requests | Evita burst |
+| Circuit Breaker | Auto com < 10 restantes | Para antes de esgotar |
+| Deduplicação | 60s cache por endpoint | Evita requests duplicados |
+| Backoff | Exponencial em 429 | Para, respira, tenta depois |
+| Persistência | MongoDB `apiQuotaTracker` | Sobrevive restarts |
+| Prioridade | low rejeitado com > 70% | Preserva budget |
+
+### Orquestração
+
+```
+API-Football é ativada SOMENTE quando:
+  ✅ SoccerDataAPI falha/indisponível → livescores fallback
+  ✅ Usuário clica em jogo → eventos on-demand (1 req)
+  ✅ Fixtures do dia → 1x de manhã (agenda enriquecida)
+
+API-Football NUNCA é chamada se:
+  ❌ SoccerDataAPI retornou dados com sucesso
+  ❌ Circuit breaker está aberto (quota baixa)
+  ❌ Request de prioridade 'low' e quota > 70%
+```
 
 ### TTL do Cache
 
@@ -189,61 +221,17 @@ O sistema agora opera com **3 camadas resilientes**, porque a API-Football foi r
 
 ## 4. Configuração de Ambiente
 
-### Variáveis Obrigatórias
+### Variáveis de Ambiente
 
 ```env
-# SoccerDataAPI (Principal da arquitetura atual)
-# Obter em: https://rapidapi.com/soccerdata/api/soccerdata
+# SoccerDataAPI (PRIMÁRIA)
 SOCCERDATA_API_KEY=sua_chave_aqui
+
+# API-Football v3 (SECUNDÁRIA) - Obter em dashboard.api-football.com
+API_FOOTBALL_KEY=sua_chave_aqui
 ```
 
-> ⚠️ A API-Football está bloqueada e não faz parte da arquitetura. Não é necessário manter nenhuma `API_FOOTBALL_KEY` ativa.
-
-### Verificar Configuração
-
-```bash
-# Via endpoint de status
-curl https://supercartolamanager.com.br/api/jogos-ao-vivo/status
-```
-
-**Resposta esperada (exemplo simplificado):**
-```json
-{
-  "fluxo": "✅ SoccerDataAPI (PRINCIPAL) → Cache Stale (30min) → Globo",
-  "fontes": {
-    "api-football": {
-      "configurado": false,
-      "tipo": "🚫 REMOVIDA",
-      "alerta": "Usuário banido / API desabilitada",
-      "requisicoes": {
-        "atual": 0,
-        "limite": 0
-      }
-    },
-    "soccerdata": {
-      "configurado": true,
-      "tipo": "🟢 PRINCIPAL",
-      "limite": "75 req/dia (free)",
-      "mensagem": "Fonte principal ativa"
-    },
-    "cache-stale": {
-      "ativo": false,
-      "tipo": "fallback-1",
-      "maxIdade": "30 min"
-    },
-    "globo": {
-      "configurado": true,
-      "tipo": "fallback-final",
-      "descricao": "Scraper de agenda"
-    }
-  },
-  "cache": {
-    "temJogosAoVivo": true,
-    "fonte": "soccerdata",
-    "ttlAtual": "2 min"
-  }
-}
-```
+> Se `API_FOOTBALL_KEY` não estiver configurada, o serviço fica desabilitado (graceful degradation). SoccerDataAPI continua funcionando normalmente como primária.
 
 ---
 
@@ -336,10 +324,12 @@ curl /api/jogos-ao-vivo
 
 | Arquivo | Função |
 |---------|--------|
-| `routes/jogos-ao-vivo-routes.js` | Rota principal, lógica de fallback |
+| `services/api-football-service.js` | Smart client API-Football (rate limiter, circuit breaker) |
+| `services/api-orchestrator.js` | Orquestrador multi-API (prioridades, budget) |
+| `routes/jogos-ao-vivo-routes.js` | Rota principal, integra orquestrador |
 | `scripts/scraper-jogos-globo.js` | Scraper do Globo Esporte |
-| `scripts/save-jogos-globo.js` | Salva cache do scraper |
 | `data/jogos-globo.json` | Cache local do scraper |
+| `public/api-football-analytics.html` | Dashboard admin (quotas, status APIs) |
 | `public/participante/js/modules/participante-jogos.js` | Frontend do app |
 
 ---
@@ -348,14 +338,16 @@ curl /api/jogos-ao-vivo
 
 | Versão | Data | Mudança |
 |--------|------|---------|
+| **v5.0** | **Fev/2026** | **API-Football REATIVADA como SECUNDÁRIA com orquestrador multi-API** |
+| v4.3 | Fev/2026 | TTL dinâmico blindado para agenda |
+| v4.2 | Fev/2026 | Campo atualizadoEm em respostas |
+| v4.1 | Fev/2026 | Cache TTL 2min → 30s |
+| v4.0 | Jan/2026 | Agenda do dia via ge.globo.com SSR |
 | v3.6 | Jan/2026 | Invalidação de cache por mudança de data |
-| v3.5 | Jan/2026 | SoccerDataAPI como fallback |
+| v3.5 | Jan/2026 | SoccerDataAPI como principal (API-Football removida) |
 | v3.4 | Jan/2026 | Cache stale quando APIs falham |
-| v3.3 | Jan/2026 | Fix IDs de estaduais |
-| v3.2 | Jan/2026 | Nomes populares (Paulistão, etc.) |
 
 ---
 
-> **Mantenedor:** Sistema automatizado
-> **Última atualização:** 27/01/2026
-> **Versão:** 1.0
+> **Última atualização:** 12/02/2026
+> **Versão:** 5.0

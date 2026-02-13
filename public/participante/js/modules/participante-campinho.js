@@ -78,9 +78,11 @@ export async function inicializarCampinhoParticipante(params) {
         const rodadaMercado = statusMercado?.rodada_atual || 1;
         const mercadoAberto = statusMercado?.status_mercado === 1;
 
-        // Sempre mostrar última rodada consolidada
-        // Se mercado aberto, a rodada atual é a próxima (ainda não jogada), então usa anterior
-        const rodadaConsolidada = mercadoAberto ? Math.max(1, rodadaMercado - 1) : rodadaMercado;
+        // Sempre mostrar última rodada CONSOLIDADA (com pontuação final)
+        // Em AMBOS os casos (mercado aberto ou fechado), a consolidada é sempre rodada_atual - 1:
+        // - Mercado ABERTO: rodada_atual = próxima rodada (não jogada) → consolidada = -1
+        // - Mercado FECHADO: rodada_atual = rodada em andamento → consolidada = -1
+        const rodadaConsolidada = Math.max(1, rodadaMercado - 1);
 
         const [escalacao, confrontos] = await Promise.all([
             buscarEscalacaoCompleta(ligaId, timeId, rodadaConsolidada),
@@ -309,7 +311,7 @@ function calcularPontosTotais(data) {
     return atletas.reduce((total, a) => {
         const atletaId = Number(a.atleta_id ?? a.atletaId ?? a.id);
         let pontos = parseFloat(a.pontos_atual ?? a.pontos_num ?? (a.pontos || 0)) || 0;
-        if (atletaId && Number(capitaoId) && atletaId === Number(capitaoId)) pontos *= 2;
+        if (atletaId && Number(capitaoId) && atletaId === Number(capitaoId)) pontos *= 1.5;
         else if (atletaId && Number(reservaLuxoId) && atletaId === Number(reservaLuxoId) && pontos !== 0) pontos *= 1.5;
         return total + pontos;
     }, 0);
@@ -723,9 +725,9 @@ function renderizarLinhaLista(atleta, capitaoId, reservaLuxoId, isReserva = fals
     let multiplicador = '';
     let infoExtra = '';
     if (isCapitao) {
-        pontosExibir = pontos * 2;
-        multiplicador = '2x';
-        infoExtra = ' - Capitão (2x)';
+        pontosExibir = pontos * 1.5;
+        multiplicador = '1.5x';
+        infoExtra = ' - Capitão (1.5x)';
     } else if (isReservaLuxo && pontos !== 0) {
         pontosExibir = pontos * 1.5;
         multiplicador = '1.5x';
@@ -833,9 +835,9 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
     const isCapitao = Number(capitaoId) && atletaId === Number(capitaoId);
     const isReservaLuxo = Number(reservaLuxoId) && atletaId === Number(reservaLuxoId);
 
-    // Multiplicadores
+    // Multiplicadores (Capitão: 1.5x, Reserva de Luxo: 1.5x)
     let pontosExibir = pontos;
-    if (isCapitao) pontosExibir = pontos * 2;
+    if (isCapitao) pontosExibir = pontos * 1.5;
     else if (isReservaLuxo && pontos !== 0) pontosExibir = pontos * 1.5;
 
     // Classes especiais
