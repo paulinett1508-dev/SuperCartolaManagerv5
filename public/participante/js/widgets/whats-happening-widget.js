@@ -752,7 +752,7 @@ async function fetchAllData() {
 
 async function fetchPontosCorridos() {
     try {
-        const rodada = WHState.mercadoStatus?.rodada_atual || 1;
+        const rodadaAtual = WHState.mercadoStatus?.rodada_atual || 1;
         // API pontos-corridos é lenta (~6s), usar timeout maior
         const res = await fetchWithTimeout(
             `/api/pontos-corridos/${WHState.ligaId}?temporada=${WHState.temporada}`,
@@ -760,8 +760,9 @@ async function fetchPontosCorridos() {
         );
         if (res.ok) {
             const data = await res.json();
-            // Encontrar rodada atual
-            const rodadaData = data.find((r) => r.rodada === rodada);
+            // Encontrar rodada: tentar match exato, senão pegar a mais recente
+            const rodadaData = data.find((r) => r.rodada === rodadaAtual)
+                || (Array.isArray(data) && data.length > 0 ? data[data.length - 1] : null);
             WHState.data.pontosCorridos = rodadaData;
 
             // Encontrar MEU confronto nesta rodada
@@ -777,11 +778,11 @@ async function fetchPontosCorridos() {
                     // Normalizar para sempre ter "eu" como time1
                     const sou1 = String(meuConfronto.time1?.id) === String(WHState.timeId);
                     WHState.data.meuConfrontoPc = {
-                        rodada,
+                        rodada: rodadaData.rodada || rodadaAtual,
                         eu: sou1 ? meuConfronto.time1 : meuConfronto.time2,
                         adversario: sou1 ? meuConfronto.time2 : meuConfronto.time1,
-                        meusPontos: sou1 ? meuConfronto.pontos1 : meuConfronto.pontos2,
-                        pontosAdv: sou1 ? meuConfronto.pontos2 : meuConfronto.pontos1,
+                        meusPontos: sou1 ? meuConfronto.time1?.pontos : meuConfronto.time2?.pontos,
+                        pontosAdv: sou1 ? meuConfronto.time2?.pontos : meuConfronto.time1?.pontos,
                         tipo: meuConfronto.tipo,
                         raw: meuConfronto
                     };
@@ -1007,7 +1008,7 @@ function countHotDisputes() {
     const pcData = WHState.data.pontosCorridos;
     if (pcData?.confrontos) {
         count += pcData.confrontos.filter(c => {
-            const diff = Math.abs((c.pontosA || 0) - (c.pontosB || 0));
+            const diff = Math.abs((c.time1?.pontos || 0) - (c.time2?.pontos || 0));
             return diff < WH_CONFIG.MIN_DIFF_HOT;
         }).length;
     }
@@ -1036,7 +1037,7 @@ function hasHotPontosCorridos() {
     if (!data?.confrontos) return false;
 
     return data.confrontos.some((c) => {
-        const diff = Math.abs((c.pontosA || 0) - (c.pontosB || 0));
+        const diff = Math.abs((c.time1?.pontos || 0) - (c.time2?.pontos || 0));
         return diff < WH_CONFIG.MIN_DIFF_HOT;
     });
 }
@@ -1389,12 +1390,12 @@ function renderPontosCorridosSection() {
 
     // Ordenar: meu confronto > hot (< 10pts) > demais
     allConfrontos.sort((a, b) => {
-        const aIsMine = String(a.timeAId) === meuId || String(a.timeBId) === meuId;
-        const bIsMine = String(b.timeAId) === meuId || String(b.timeBId) === meuId;
+        const aIsMine = String(a.time1?.id) === meuId || String(a.time2?.id) === meuId;
+        const bIsMine = String(b.time1?.id) === meuId || String(b.time2?.id) === meuId;
         if (aIsMine && !bIsMine) return -1;
         if (!aIsMine && bIsMine) return 1;
-        const diffA = Math.abs((a.pontosA || 0) - (a.pontosB || 0));
-        const diffB = Math.abs((b.pontosA || 0) - (b.pontosB || 0));
+        const diffA = Math.abs((a.time1?.pontos || 0) - (a.time2?.pontos || 0));
+        const diffB = Math.abs((b.time1?.pontos || 0) - (b.time2?.pontos || 0));
         return diffA - diffB; // Menores diferenças primeiro
     });
 
@@ -1404,12 +1405,14 @@ function renderPontosCorridosSection() {
     const collapsed = allConfrontos.slice(visibleCount);
 
     function renderSingleConfronto(c, index) {
+        const t1 = c.time1 || {};
+        const t2 = c.time2 || {};
         // v3.1: Overlay de parciais ao vivo
-        const pontosA = getPontosAoVivo(c.timeAId || c.time1?.id, c.pontosA || 0);
-        const pontosB = getPontosAoVivo(c.timeBId || c.time2?.id, c.pontosB || 0);
+        const pontosA = getPontosAoVivo(t1.id, t1.pontos || 0);
+        const pontosB = getPontosAoVivo(t2.id, t2.pontos || 0);
         const diff = Math.abs(pontosA - pontosB);
         const isHot = diff < WH_CONFIG.MIN_DIFF_HOT;
-        const isMyGame = String(c.timeAId) === meuId || String(c.timeBId) === meuId;
+        const isMyGame = String(t1.id) === meuId || String(t2.id) === meuId;
         const aWinning = pontosA > pontosB;
         const bWinning = pontosB > pontosA;
 
@@ -1430,9 +1433,9 @@ function renderPontosCorridosSection() {
                 </div>
                 <div class="wh-confronto-times">
                     <div class="wh-time wh-time--home ${aWinning ? "winning" : bWinning ? "losing" : ""}">
-                        <img class="wh-time-escudo" src="${c.escudoA || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
+                        <img class="wh-time-escudo" src="${t1.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
                         <div class="wh-time-info">
-                            <div class="wh-time-nome">${c.nomeTimeA || "Time A"}</div>
+                            <div class="wh-time-nome">${t1.nome || t1.nome_cartola || "Time 1"}</div>
                         </div>
                         <div class="wh-time-pontos">${pontosA.toFixed(1)}</div>
                     </div>
@@ -1442,9 +1445,9 @@ function renderPontosCorridosSection() {
                     <div class="wh-time wh-time--away ${bWinning ? "winning" : aWinning ? "losing" : ""}">
                         <div class="wh-time-pontos">${pontosB.toFixed(1)}</div>
                         <div class="wh-time-info">
-                            <div class="wh-time-nome">${c.nomeTimeB || "Time B"}</div>
+                            <div class="wh-time-nome">${t2.nome || t2.nome_cartola || "Time 2"}</div>
                         </div>
-                        <img class="wh-time-escudo" src="${c.escudoB || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
+                        <img class="wh-time-escudo" src="${t2.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
                     </div>
                 </div>
                 ${renderBarraProporção(pontosA, pontosB)}
@@ -1455,7 +1458,7 @@ function renderPontosCorridosSection() {
 
     const allHtml = allConfrontos.map((c, i) => renderSingleConfronto(c, i)).join("");
     const useCarousel = allConfrontos.length > 2;
-    const hotCount = allConfrontos.filter(c => Math.abs((c.pontosA || 0) - (c.pontosB || 0)) < WH_CONFIG.MIN_DIFF_HOT).length;
+    const hotCount = allConfrontos.filter(c => Math.abs((c.time1?.pontos || 0) - (c.time2?.pontos || 0)) < WH_CONFIG.MIN_DIFF_HOT).length;
 
     // Dots do carrossel
     const dotsHtml = useCarousel ? `
