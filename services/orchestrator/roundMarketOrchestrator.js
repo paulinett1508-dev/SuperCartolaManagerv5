@@ -93,8 +93,7 @@ class RoundMarketOrchestrator extends EventEmitter {
         this._inicializado = false;
         this._consolidandoAgora = false;
 
-        // Bind events
-        this._setupEventHandlers();
+        // Event handlers são configurados externamente via .on()
     }
 
     // ========================================================================
