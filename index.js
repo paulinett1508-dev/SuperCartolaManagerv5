@@ -173,6 +173,9 @@ import manutencaoParticipanteRoutes from "./routes/manutencao-participante-route
 import avisosAdminRoutes from "./routes/avisos-admin-routes.js";
 import avisosParticipanteRoutes from "./routes/avisos-participante-routes.js";
 
+// 🤖 Análises IA - Interface Admin
+import iaAnalysisRoutes from "./routes/iaAnalysisRoutes.js";
+
 // 📦 Versionamento do App
 import appVersionRoutes from "./routes/appVersionRoutes.js";
 
@@ -534,6 +537,10 @@ app.use("/api/admin/avisos", avisosAdminRoutes);
 console.log("[SERVER] 📢 Rotas de avisos admin registradas em /api/admin/avisos");
 app.use("/api/avisos", avisosParticipanteRoutes);
 console.log("[SERVER] 📢 Rotas de avisos participante registradas em /api/avisos");
+
+// 🤖 Análises IA (Claude LLM)
+app.use("/api/admin/ia-analysis", iaAnalysisRoutes);
+console.log("[SERVER] 🤖 Rotas de Análises IA registradas em /api/admin/ia-analysis");
 
 // 🎯 Dicas Premium
 app.use("/api/dicas-premium", dicasPremiumRoutes);

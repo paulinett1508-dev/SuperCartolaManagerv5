@@ -34,6 +34,7 @@
   "author": "Super Cartola Team",
   "license": "MIT",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
     "@babel/parser": "^7.27.5",
     "@babel/traverse": "^7.27.4",
     "@modelcontextprotocol/sdk": "^1.24.3",
