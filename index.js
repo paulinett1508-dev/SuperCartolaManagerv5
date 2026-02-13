@@ -108,6 +108,7 @@ import timesRoutes from "./routes/times.js";
 import timesAdminRoutes from "./routes/times-admin.js";
 import analisarParticipantesRoutes from "./routes/analisar-participantes.js";
 import rodadasRoutes from "./routes/rodadas-routes.js";
+import rodadaXrayRoutes from "./routes/rodada-xray-routes.js";
 import rodadasCacheRoutes from "./routes/rodadasCacheRoutes.js";
 import rodadasCorrecaoRoutes from "./routes/rodadasCorrecaoRoutes.js";
 import calendarioRodadasRoutes from "./routes/calendario-rodadas-routes.js";
@@ -204,6 +205,10 @@ import {
   alternarStatusParticipante,
 } from "./controllers/participanteStatusController.js";
 import { iniciarSchedulerConsolidacao } from "./utils/consolidacaoScheduler.js";
+
+// 🎯 Round-Market Orchestrator
+import orchestratorRoutes from "./routes/orchestrator-routes.js";
+import orchestrator from "./services/orchestrator/roundMarketOrchestrator.js";
 
 // Middleware de proteção
 import { protegerRotas, injetarSessaoDevAdmin } from "./middleware/auth.js";
@@ -491,6 +496,7 @@ app.use("/api/cartola-pro", cartolaProRoutes);
 app.use("/api/times", timesRoutes);
 app.use("/api/time", timesRoutes);
 app.use("/api/rodadas", rodadasRoutes);
+app.use("/api/rodada-xray", rodadaXrayRoutes);
 app.use("/api/rodadas-cache", rodadasCacheRoutes);
 app.use("/api/rodadas-correcao", rodadasCorrecaoRoutes);
 app.use("/api/calendario-rodadas", calendarioRodadasRoutes);
@@ -506,6 +512,7 @@ app.use("/api/extrato-cache", extratoFinanceiroCacheRoutes);
 app.use("/api/ranking-cache", rankingGeralCacheRoutes);
 app.use("/api/ranking-turno", rankingTurnoRoutes);
 app.use("/api/consolidacao", consolidacaoRoutes);
+app.use("/api/orchestrator", orchestratorRoutes);
 app.use("/api/pontos-corridos", pontosCorridosCacheRoutes);
 app.use("/api/pontos-corridos", pontosCorridosMigracaoRoutes);
 app.use("/api/top10", top10CacheRoutes);
@@ -725,6 +732,17 @@ if (process.env.NODE_ENV !== "test") {
     consolidacaoIntervalId = iniciarSchedulerConsolidacao();
   }, 10000);
 
+  // 🎯 Inicializar Round-Market Orchestrator (15s após boot para garantir DB)
+  setTimeout(async () => {
+    try {
+      console.log('[SERVER] 🎯 Iniciando Round-Market Orchestrator v1.0.0...');
+      await orchestrator.iniciar();
+      console.log('[SERVER] 🎯 Orchestrator ativo e monitorando mercado');
+    } catch (err) {
+      console.error('[SERVER] ⚠️ Orchestrator falhou ao iniciar (não-crítico):', err.message);
+    }
+  }, 15000);
+
   // 🔔 CRON: Limpeza de push subscriptions expiradas
   // Toda segunda-feira às 3h da manhã
   cron.schedule("0 3 * * 1", async () => {
@@ -806,6 +824,15 @@ async function gracefulShutdown(signal) {
       logShutdown("[SHUTDOWN] ✅ Scheduler de consolidação parado");
     }
     
+    // 3.5. Parar Round-Market Orchestrator
+    try {
+      logShutdown("[SHUTDOWN] Parando Round-Market Orchestrator...");
+      await orchestrator.parar();
+      logShutdown("[SHUTDOWN] ✅ Orchestrator parado");
+    } catch (e) {
+      logShutdown("[SHUTDOWN] ⚠️ Erro ao parar orchestrator: " + e.message);
+    }
+
     // 4. Limpar timer de rate limiting
     if (rateLimitCleanupIntervalId) {
       logShutdown("[SHUTDOWN] Parando limpeza de rate limiting...");
