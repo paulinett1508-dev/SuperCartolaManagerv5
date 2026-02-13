@@ -1271,20 +1271,15 @@ function renderRankingSection() {
     const meuId = String(WHState.timeId);
     const minhaPosicao = ranking.findIndex(r => r.timeId === meuId) + 1;
 
-    // Top 5 em carrossel horizontal + minha posição
+    // Top 5 como chips + minha posição
     const top5 = ranking.slice(0, 5);
-    const useCarousel = top5.length > 3;
-
-    const medalIcons = ['', '', ''];
     const posColors = ['gold', 'silver', 'bronze'];
 
     let items = top5.map((r, i) => {
         const isMe = r.timeId === meuId;
-        const posClass = i < 3 ? posColors[i] : '';
-        const medal = i < 3 ? medalIcons[i] : '';
         return `
-            <div class="wh-rank-card ${posClass} ${isMe ? 'me' : ''}">
-                <div class="wh-rank-pos">${medal || (i + 1)}</div>
+            <div class="wh-rank-card ${i < 3 ? posColors[i] : ''} ${isMe ? 'me' : ''}">
+                <div class="wh-rank-pos">${i + 1}</div>
                 <img class="wh-rank-escudo" src="${r.escudo}" onerror="this.src='/escudos/default.png'" alt="">
                 <div class="wh-rank-nome">${r.nome_time}</div>
                 <div class="wh-rank-pontos">${r.pontos.toFixed(1)}</div>
@@ -1315,7 +1310,7 @@ function renderRankingSection() {
                 <div class="wh-section-title">${rankingTitle}</div>
                 ${isLive ? '<span class="wh-live-badge">AO VIVO</span>' : ''}
             </div>
-            <div class="wh-section-body wh-section-body--carousel" id="wh-rank-carousel">
+            <div class="wh-section-body wh-section-body--chips">
                 ${items}
                 ${meuItemHtml}
             </div>
@@ -1647,32 +1642,47 @@ function renderMataMataSection() {
  * @param {Object} opts - { data, title, icon, sectionClass, navigateTo, emoji, getValue, getLabel, getSubLabel }
  */
 function renderModuleRankingSection(opts) {
-    const { data, title, icon, sectionClass, navigateTo, emoji, getValue, getLabel, getSubLabel } = opts;
+    const { data, title, icon, sectionClass, navigateTo, getValue, getLabel } = opts;
     if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
 
     const top3 = data.ranking.slice(0, 3);
     const meuId = String(WHState.timeId);
-
-    const medalIcons = ['', '', ''];
     const posColors = ['gold', 'silver', 'bronze'];
 
-    const cardsHtml = top3.map((r, i) => {
+    // Verificar se eu estou no top 3
+    const meuIndex = data.ranking.findIndex(r => String(r.timeId || r.time_id) === meuId);
+    const meuNoTop3 = meuIndex >= 0 && meuIndex < 3;
+
+    const chipsHtml = top3.map((r, i) => {
         const isMe = String(r.timeId || r.time_id) === meuId;
         const valor = getValue(r);
         const nome = getLabel(r);
-        const sub = getSubLabel ? getSubLabel(r) : '';
         const escudo = r.escudo || r.url_escudo_png || `/escudos/${r.clubeId || r.clube_id || 'default'}.png`;
 
         return `
             <div class="wh-rank-card ${posColors[i] || ''} ${isMe ? 'me' : ''}">
-                <div class="wh-rank-pos">${medalIcons[i] || (i + 1)}</div>
+                <div class="wh-rank-pos">${i + 1}</div>
                 <img class="wh-rank-escudo" src="${escudo}" onerror="this.src='/escudos/default.png'" alt="">
                 <div class="wh-rank-nome">${nome}</div>
                 <div class="wh-rank-pontos">${valor}</div>
-                ${sub ? `<div class="wh-rank-sub">${sub}</div>` : ''}
             </div>
         `;
     }).join('');
+
+    // Minha posição se fora do top 3
+    let meuChipHtml = '';
+    if (!meuNoTop3 && meuIndex >= 0) {
+        const meuItem = data.ranking[meuIndex];
+        const escudo = meuItem.escudo || meuItem.url_escudo_png || `/escudos/${meuItem.clubeId || meuItem.clube_id || 'default'}.png`;
+        meuChipHtml = `
+            <div class="wh-rank-card me">
+                <div class="wh-rank-pos">${meuIndex + 1}</div>
+                <img class="wh-rank-escudo" src="${escudo}" onerror="this.src='/escudos/default.png'" alt="">
+                <div class="wh-rank-nome">${getLabel(meuItem)}</div>
+                <div class="wh-rank-pontos">${getValue(meuItem)}</div>
+            </div>
+        `;
+    }
 
     // Disputa acirrada entre 1o e 2o
     let disputaHtml = '';
@@ -1681,11 +1691,10 @@ function renderModuleRankingSection(opts) {
         const v2 = parseFloat(getValue(top3[1])) || 0;
         const diff = v1 - v2;
         if (diff <= 1 && diff >= 0) {
-            const nomeSegundo = getLabel(top3[1]);
             disputaHtml = `
                 <div class="wh-disputa-acirrada">
                     <span class="material-icons">whatshot</span>
-                    ${nomeSegundo} cola no 1o lugar!
+                    ${getLabel(top3[1])} cola no 1o!
                 </div>
             `;
         }
@@ -1700,8 +1709,9 @@ function renderModuleRankingSection(opts) {
                 <div class="wh-section-title">${title}</div>
                 ${navigateTo ? '<span class="material-icons wh-navigate-hint">open_in_new</span>' : ''}
             </div>
-            <div class="wh-section-body wh-section-body--carousel">
-                ${cardsHtml}
+            <div class="wh-section-body wh-section-body--chips">
+                ${chipsHtml}
+                ${meuChipHtml}
             </div>
             ${disputaHtml}
         </div>
