@@ -1415,7 +1415,13 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         `;
     }
 
-    let html = meuResumoHTML + participantesOrdenados.map((participante, index) => {
+    // ✅ v8.0: Agrupar participantes por zona financeira
+    const zonaGanho = participantesOrdenados.filter(p => (p.valorFinanceiro || 0) > 0);
+    const zonaNeutra = participantesOrdenados.filter(p => (p.valorFinanceiro || 0) === 0);
+    const zonaPerda = participantesOrdenados.filter(p => (p.valorFinanceiro || 0) < 0);
+
+    // Função para renderizar um item compacto
+    function renderItemCompacto(participante, index) {
         const timeId = participante.timeId || participante.time_id;
         const isMeuTime = String(timeId) === String(meuTimeId);
         const posicao = participante.posicao || index + 1;
@@ -1426,17 +1432,11 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
             maximumFractionDigits: 2,
         });
 
-        const financeiroTexto = valorFinanceiro > 0 ? `+R$ ${valorFormatado}` : valorFinanceiro < 0 ? `-R$ ${valorFormatado}` : "R$ 0,00";
+        const financeiroTexto = valorFinanceiro > 0 ? `+${valorFormatado}` : valorFinanceiro < 0 ? `-${valorFormatado}` : "0,00";
         const financeiroClass = valorFinanceiro > 0 ? "positivo" : valorFinanceiro < 0 ? "negativo" : "neutro";
 
-        // ✅ v7.0: Classes visuais por zona financeira
         const isMito = posicao === 1;
         const isMico = posicao === totalParticipantes && totalParticipantes > 1;
-        let posicaoClass = "pos-default";
-        if (isMito) posicaoClass = "pos-mito";
-        else if (isMico) posicaoClass = "pos-mico";
-        else if (valorFinanceiro > 0) posicaoClass = "pos-ganho";
-        else if (valorFinanceiro < 0) posicaoClass = "pos-danger";
 
         const pontosFormatados = Number(participante.pontos || 0).toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
@@ -1446,57 +1446,103 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         const nomeTime = participante.nome || participante.nome_time || "N/D";
         const naoJogouBadge = participante.rodadaNaoJogada ? '<span class="badge-nao-jogou">N/E</span>' : "";
 
-        // ✅ v6.0: Badge de zona (MITO, G2-G12, Z1-Z11, MICO)
-        const zonaBadge = !isParcial ? calcularZonaLabel(posicao, totalParticipantes, valorFinanceiro, totalPerda) : '';
+        // ✅ v8.0: Escudo do time do coração
+        const clubeId = participante.clube_id;
+        const escudoSrc = clubeId ? `/escudos/${clubeId}.png` : null;
+        const escudoHTML = escudoSrc
+            ? `<img src="${escudoSrc}" alt="" class="rk-escudo" onerror="this.style.display='none'">`
+            : '<span class="rk-escudo-placeholder"></span>';
 
-        // ✅ Badge "X/12 em campo" - mostrar escalados + jogando ao vivo
+        // Badge "X/12 em campo" para parciais
         const escalados = participante.atletas ? participante.atletas.filter(a => !a.is_reserva).length : 0;
         const jogandoAoVivo = participante.atletas ? participante.atletas.filter(a => !a.is_reserva && a.entrou_em_campo).length : 0;
         const badgeEmCampo = isParcial && escalados > 0
-            ? `<span class="badge-em-campo ${jogandoAoVivo > 0 ? 'ativo' : ''}">${escalados}/12 <span style="color:var(--app-success-light);font-weight:600;font-size:9px;margin-left:2px">${jogandoAoVivo}</span></span>`
+            ? `<span class="rk-em-campo ${jogandoAoVivo > 0 ? 'ativo' : ''}">${jogandoAoVivo}/${escalados}</span>`
             : "";
 
-        // ✅ v8.0: Curiosar disponível em TODAS rodadas (não só parciais)
         const curiosarAttr = !participante.rodadaNaoJogada
-            ? `data-curiosar-time-id="${timeId}" style="cursor: pointer;"`
+            ? `data-curiosar-time-id="${timeId}"`
             : "";
 
-        // ✅ v7.0: Ícones especiais para MITO e MICO
-        let posicaoContent, itemExtraClass = '';
+        // Ícone especial para MITO
+        let posicaoContent = `${posicao}º`;
+        let itemExtraClass = '';
         if (isMito && !isParcial) {
-            posicaoContent = '<span class="material-icons" style="font-size:20px;">emoji_events</span>';
-            itemExtraClass = 'item-mito';
+            posicaoContent = '<span class="material-icons rk-trophy">emoji_events</span>';
+            itemExtraClass = 'rk-item-mito';
         } else if (isMico && !isParcial) {
-            posicaoContent = `${posicao}º`;
-            itemExtraClass = 'item-mico';
-        } else {
-            posicaoContent = `${posicao}º`;
-        }
-
-        // Label de destaque sob o nome do cartoleiro
-        let statusLabel = '';
-        if (isMito && !isParcial) {
-            statusLabel = `<div class="mito-icon-row"><span class="material-icons">star</span> REI DA RODADA</div>`;
-        } else if (isMico && !isParcial) {
-            statusLabel = `<div class="mico-icon-row"><span class="material-icons">trending_down</span> PIOR DA RODADA</div>`;
+            itemExtraClass = 'rk-item-mico';
         }
 
         return `
-            <div class="ranking-item-pro ${isMeuTime ? "meu-time" : ""} ${itemExtraClass}" ${curiosarAttr}>
-                <div class="posicao-badge-pro ${posicaoClass}">${posicaoContent}</div>
-                <div class="ranking-info-pro">
-                    <div class="ranking-nome-time">${nomeTime} ${naoJogouBadge} ${badgeEmCampo}</div>
-                    <div class="ranking-nome-cartola">${participante.nome_cartola || "N/D"}${zonaBadge}</div>
-                    ${statusLabel}
+            <div class="rk-item ${isMeuTime ? "rk-meu-time" : ""} ${itemExtraClass}" ${curiosarAttr}>
+                <div class="rk-pos">${posicaoContent}</div>
+                ${escudoHTML}
+                <div class="rk-info">
+                    <div class="rk-nome">${nomeTime} ${naoJogouBadge}</div>
+                    <div class="rk-cartola">${participante.nome_cartola || ""}</div>
                 </div>
-                <div class="ranking-stats-pro">
-                    <div class="ranking-pontos-pro">${pontosFormatados}</div>
-                    <div class="ranking-financeiro-pro ${financeiroClass}">${isParcial ? '' : financeiroTexto}</div>
-                </div>
-                ${!participante.rodadaNaoJogada ? '<span class="material-icons curiosar-icon" style="font-size:16px;color:var(--app-text-muted);margin-left:4px;">visibility</span>' : ''}
+                ${badgeEmCampo}
+                <div class="rk-pts">${pontosFormatados}</div>
+                <div class="rk-fin ${financeiroClass}">${isParcial ? '' : financeiroTexto}</div>
+                ${!participante.rodadaNaoJogada ? '<span class="material-icons rk-eye">visibility</span>' : ''}
             </div>
         `;
-    }).join("");
+    }
+
+    // Construir HTML com separadores de zona
+    let html = meuResumoHTML;
+
+    // Zona de Ganho
+    if (zonaGanho.length > 0 && !isParcial) {
+        html += `
+            <div class="rk-zona-header rk-zona-ganho">
+                <span class="material-icons">trending_up</span>
+                <span>Zona de Ganho</span>
+                <span class="rk-zona-count">${zonaGanho.length}</span>
+            </div>
+            <div class="rk-zona-container rk-bg-ganho">
+                ${zonaGanho.map((p, i) => renderItemCompacto(p, i)).join("")}
+            </div>
+        `;
+    }
+
+    // Zona Neutra
+    if (zonaNeutra.length > 0 && !isParcial) {
+        html += `
+            <div class="rk-zona-header rk-zona-neutra">
+                <span class="material-icons">remove</span>
+                <span>Zona Neutra</span>
+                <span class="rk-zona-count">${zonaNeutra.length}</span>
+            </div>
+            <div class="rk-zona-container rk-bg-neutra">
+                ${zonaNeutra.map((p, i) => renderItemCompacto(p, i)).join("")}
+            </div>
+        `;
+    }
+
+    // Zona de Perda
+    if (zonaPerda.length > 0 && !isParcial) {
+        html += `
+            <div class="rk-zona-header rk-zona-perda">
+                <span class="material-icons">trending_down</span>
+                <span>Zona de Perda</span>
+                <span class="rk-zona-count">${zonaPerda.length}</span>
+            </div>
+            <div class="rk-zona-container rk-bg-perda">
+                ${zonaPerda.map((p, i) => renderItemCompacto(p, i)).join("")}
+            </div>
+        `;
+    }
+
+    // Para parciais, renderizar sem agrupamento de zona
+    if (isParcial) {
+        html += `
+            <div class="rk-zona-container">
+                ${participantesOrdenados.map((p, i) => renderItemCompacto(p, i)).join("")}
+            </div>
+        `;
+    }
 
     if (participantesInativos.length > 0) {
         html += renderizarSecaoInativos(participantesInativos, rodadaData.numero);
