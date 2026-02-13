@@ -210,6 +210,12 @@
                                     <span>Notificador</span>
                                 </a>
                             </li>
+                            <li>
+                                <a href="admin-orchestrator.html" class="sidebar-accordion-item" data-page="admin-orchestrator.html">
+                                    <span class="material-icons">hub</span>
+                                    <span>Orchestrator</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -637,6 +643,7 @@
                         'historico-acessos.html': 'participantes',
                         // Operações
                         'ferramentas-rodadas.html': 'operacoes',
+                        'admin-orchestrator.html': 'operacoes',
                         // Analytics
                         'github-analytics-unified.html': 'analytics',
                         'dashboard-saude.html': 'analytics',
@@ -880,6 +887,7 @@
                         "admin-gestao.html": { title: "Administradores", subtitle: "Gerenciar Usuarios Admin" },
                         "historico-acessos.html": { title: "Historico de Acessos", subtitle: "Monitorar Acessos ao App" },
                         "analisar-participantes.html": { title: "Analisar Participantes", subtitle: "Gestao Unificada de Participantes" },
+                        "admin-orchestrator.html": { title: "Orchestrator", subtitle: "Round-Market Orchestrator" },
                     };
 
                     const pageInfo = titles[currentPage] || {
@@ -947,7 +955,8 @@
                     'auditoria-extratos.html',
                     'api-football-analytics.html',
                     'dashboard-analytics.html',
-                    'dashboard-saude.html'
+                    'dashboard-saude.html',
+                    'admin-orchestrator.html'
                 ],
 
                 init() {
