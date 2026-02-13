@@ -3,38 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Round-Market Orchestrator</title>
-    <link rel="stylesheet" href="css/_admin-tokens.css" />
+    <title>Orchestrator - Super Cartola Manager</title>
+    <link rel="stylesheet" href="css/admin-shell.css" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
+        /* Tudo escopado sob .orch-page para não vazar no SPA */
+        .orch-page {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--surface-bg, #121212);
-            min-height: 100vh;
-            padding: 20px;
-            color: var(--text-primary, #fff);
+            padding: 12px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
-
-        .container { max-width: 1400px; margin: 0 auto; }
 
         /* Header */
-        .header {
+        .orch-page .orch-header {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 16px;
         }
-        .header h1 {
+        .orch-page .orch-header h1 {
             font-family: 'Russo One', sans-serif;
-            font-size: 1.8em;
+            font-size: 1.4em;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
+            color: var(--text-primary, #fff);
         }
-        .header h1 .material-icons { font-size: 1.2em; color: var(--color-primary, #FF5500); }
-        .version-badge {
+        .orch-page .orch-header h1 .material-icons { font-size: 1.2em; color: var(--color-primary, #FF5500); }
+        .orch-page .orch-version-badge {
             display: inline-block;
             background: var(--color-primary, #FF5500);
             padding: 4px 12px;
@@ -42,138 +39,142 @@
             font-size: 0.4em;
             font-family: 'JetBrains Mono', monospace;
             vertical-align: middle;
+            color: #fff;
         }
-        .subtitle {
+        .orch-page .orch-subtitle {
             color: var(--text-secondary, #aaa);
             margin-top: 8px;
             font-size: 0.9em;
         }
 
         /* Semáforo do Mercado */
-        .market-semaforo {
+        .orch-page .orch-semaforo {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 24px;
-            padding: 24px;
+            gap: 16px;
+            padding: 14px;
             background: var(--surface-card, #1a1a1a);
             border-radius: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 14px;
             border: 1px solid var(--border-default, #333);
         }
-        .semaforo-light {
-            width: 60px;
-            height: 60px;
+        .orch-page .orch-semaforo-light {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.5s ease;
         }
-        .semaforo-light .material-icons { font-size: 32px; color: #fff; }
-        .semaforo-light.aberto {
+        .orch-page .orch-semaforo-light .material-icons { font-size: 22px; color: #fff; }
+        .orch-page .orch-semaforo-light.aberto {
             background: var(--color-success, #10b981);
             box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
         }
-        .semaforo-light.fechado {
+        .orch-page .orch-semaforo-light.fechado {
             background: var(--color-danger, #ef4444);
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
-            animation: pulse-red 2s infinite;
+            animation: orch-pulse-red 2s infinite;
         }
-        .semaforo-light.encerrado {
+        .orch-page .orch-semaforo-light.encerrado {
             background: var(--color-warning, #eab308);
             box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
         }
-        .semaforo-light.desconhecido {
+        .orch-page .orch-semaforo-light.desconhecido {
             background: #555;
         }
 
-        @keyframes pulse-red {
+        @keyframes orch-pulse-red {
             0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
             50% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.8); }
         }
 
-        .semaforo-info {
+        .orch-page .orch-semaforo-info {
             text-align: left;
         }
-        .semaforo-info .label {
+        .orch-page .orch-semaforo-info .orch-label {
             font-family: 'Russo One', sans-serif;
-            font-size: 1.5em;
+            font-size: 1.2em;
+            color: var(--text-primary, #fff);
         }
-        .semaforo-info .detail {
+        .orch-page .orch-semaforo-info .orch-detail {
             color: var(--text-secondary, #aaa);
             font-size: 0.9em;
             margin-top: 4px;
         }
-        .semaforo-info .detail span {
+        .orch-page .orch-semaforo-info .orch-detail span {
             font-family: 'JetBrains Mono', monospace;
             color: var(--color-primary, #FF5500);
         }
 
         /* Stats Row */
-        .stats-row {
+        .orch-page .orch-stats-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
         }
-        .stat-card {
+        .orch-page .orch-stat-card {
             background: var(--surface-card, #1a1a1a);
             border-radius: 12px;
-            padding: 16px;
+            padding: 10px;
             text-align: center;
             border: 1px solid var(--border-default, #333);
         }
-        .stat-card .stat-value {
+        .orch-page .orch-stat-card .orch-stat-value {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 1.8em;
+            font-size: 1.4em;
             font-weight: 700;
             color: var(--color-primary, #FF5500);
         }
-        .stat-card .stat-label {
+        .orch-page .orch-stat-card .orch-stat-label {
             color: var(--text-secondary, #aaa);
             font-size: 0.8em;
             margin-top: 4px;
         }
 
-        /* Managers Grid */
-        .section-title {
+        /* Section titles */
+        .orch-page .orch-section-title {
             font-family: 'Russo One', sans-serif;
-            font-size: 1.2em;
-            margin-bottom: 16px;
+            font-size: 1em;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 8px;
+            color: var(--text-primary, #fff);
         }
-        .section-title .material-icons { color: var(--color-primary, #FF5500); }
+        .orch-page .orch-section-title .material-icons { color: var(--color-primary, #FF5500); }
 
-        .managers-grid {
+        /* Managers Grid */
+        .orch-page .orch-managers-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 12px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            margin-bottom: 14px;
         }
-        .manager-card {
+        .orch-page .orch-manager-card {
             background: var(--surface-card, #1a1a1a);
             border-radius: 12px;
-            padding: 16px;
+            padding: 10px;
             border: 1px solid var(--border-default, #333);
             transition: border-color 0.3s;
         }
-        .manager-card:hover {
+        .orch-page .orch-manager-card:hover {
             border-color: var(--color-primary-border, rgba(255, 85, 0, 0.3));
         }
-        .manager-header {
+        .orch-page .orch-manager-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 8px;
         }
-        .manager-name {
+        .orch-page .orch-manager-name {
             font-weight: 600;
             font-size: 0.95em;
         }
-        .manager-badge {
+        .orch-page .orch-manager-badge {
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 0.7em;
@@ -181,75 +182,75 @@
             text-transform: uppercase;
             font-family: 'JetBrains Mono', monospace;
         }
-        .manager-badge.idle { background: #333; color: #888; }
-        .manager-badge.coletando { background: var(--color-info-muted); color: #60a5fa; }
-        .manager-badge.processando { background: var(--color-warning-muted); color: #fbbf24; }
-        .manager-badge.consolidando { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
-        .manager-badge.concluido { background: var(--color-success-muted); color: #4ade80; }
-        .manager-badge.erro { background: var(--color-danger-muted); color: #f87171; }
+        .orch-page .orch-manager-badge.idle { background: #333; color: #888; }
+        .orch-page .orch-manager-badge.coletando { background: var(--color-info-muted); color: #60a5fa; }
+        .orch-page .orch-manager-badge.processando { background: var(--color-warning-muted); color: #fbbf24; }
+        .orch-page .orch-manager-badge.consolidando { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+        .orch-page .orch-manager-badge.concluido { background: var(--color-success-muted); color: #4ade80; }
+        .orch-page .orch-manager-badge.erro { background: var(--color-danger-muted); color: #f87171; }
 
-        .manager-meta {
+        .orch-page .orch-manager-meta {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }
-        .manager-tag {
+        .orch-page .orch-manager-tag {
             font-size: 0.7em;
             padding: 2px 6px;
             border-radius: 4px;
             background: #2a2a2a;
             color: var(--text-secondary, #aaa);
         }
-        .manager-tag.base { background: var(--color-success-muted); color: #4ade80; }
-        .manager-tag.coleta { background: var(--color-info-muted); color: #60a5fa; }
-        .manager-tag.financeiro { background: var(--color-gold-muted, rgba(255, 215, 0, 0.15)); color: var(--color-gold, #ffd700); }
+        .orch-page .orch-manager-tag.base { background: var(--color-success-muted); color: #4ade80; }
+        .orch-page .orch-manager-tag.coleta { background: var(--color-info-muted); color: #60a5fa; }
+        .orch-page .orch-manager-tag.financeiro { background: var(--color-gold-muted, rgba(255, 215, 0, 0.15)); color: var(--color-gold, #ffd700); }
 
         /* Timeline de Eventos */
-        .timeline {
+        .orch-page .orch-timeline {
             background: var(--surface-card, #1a1a1a);
             border-radius: 12px;
-            padding: 20px;
+            padding: 12px;
             border: 1px solid var(--border-default, #333);
-            margin-bottom: 24px;
-            max-height: 400px;
+            margin-bottom: 14px;
+            max-height: 300px;
             overflow-y: auto;
         }
-        .timeline-item {
+        .orch-page .orch-timeline-item {
             display: flex;
             gap: 12px;
             padding: 8px 0;
             border-bottom: 1px solid #2a2a2a;
         }
-        .timeline-item:last-child { border-bottom: none; }
-        .timeline-dot {
+        .orch-page .orch-timeline-item:last-child { border-bottom: none; }
+        .orch-page .orch-timeline-dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
             margin-top: 5px;
             flex-shrink: 0;
         }
-        .timeline-dot.transicao { background: var(--color-primary, #FF5500); }
-        .timeline-dot.consolidacao { background: var(--color-success, #10b981); }
-        .timeline-dot.erro { background: var(--color-danger, #ef4444); }
-        .timeline-dot.outro { background: #555; }
-        .timeline-time {
+        .orch-page .orch-timeline-dot.transicao { background: var(--color-primary, #FF5500); }
+        .orch-page .orch-timeline-dot.consolidacao { background: var(--color-success, #10b981); }
+        .orch-page .orch-timeline-dot.erro { background: var(--color-danger, #ef4444); }
+        .orch-page .orch-timeline-dot.outro { background: #555; }
+        .orch-page .orch-timeline-time {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75em;
             color: var(--text-secondary, #aaa);
             min-width: 80px;
         }
-        .timeline-text {
+        .orch-page .orch-timeline-text {
             font-size: 0.85em;
         }
 
         /* Ações */
-        .actions-row {
+        .orch-page .orch-actions-row {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
-            margin-bottom: 24px;
+            margin-bottom: 14px;
         }
-        .btn {
+        .orch-page .orch-btn {
             padding: 10px 20px;
             border: none;
             border-radius: 8px;
@@ -261,36 +262,36 @@
             gap: 6px;
             transition: all 0.2s;
         }
-        .btn:hover { transform: translateY(-1px); }
-        .btn:active { transform: translateY(0); }
-        .btn-primary {
+        .orch-page .orch-btn:hover { transform: translateY(-1px); }
+        .orch-page .orch-btn:active { transform: translateY(0); }
+        .orch-page .orch-btn-primary {
             background: var(--gradient-primary, linear-gradient(135deg, #FF5500, #e8472b));
             color: #fff;
         }
-        .btn-secondary {
+        .orch-page .orch-btn-secondary {
             background: var(--surface-card-elevated, #2a2a2a);
             color: var(--text-primary, #fff);
             border: 1px solid var(--border-default, #333);
         }
-        .btn .material-icons { font-size: 1.1em; }
+        .orch-page .orch-btn .material-icons { font-size: 1.1em; }
 
         /* Fase da Rodada */
-        .fase-bar {
+        .orch-page .orch-fase-bar {
             display: flex;
             align-items: center;
             gap: 4px;
-            margin-bottom: 24px;
-            padding: 16px;
+            margin-bottom: 14px;
+            padding: 10px;
             background: var(--surface-card, #1a1a1a);
             border-radius: 12px;
             border: 1px solid var(--border-default, #333);
             overflow-x: auto;
         }
-        .fase-step {
+        .orch-page .orch-fase-step {
             flex: 1;
-            min-width: 100px;
+            min-width: 80px;
             text-align: center;
-            padding: 8px;
+            padding: 6px;
             border-radius: 8px;
             font-size: 0.75em;
             font-weight: 600;
@@ -298,35 +299,35 @@
             color: #666;
             transition: all 0.3s;
         }
-        .fase-step.ativa {
+        .orch-page .orch-fase-step.ativa {
             background: var(--color-primary-muted, rgba(255, 85, 0, 0.1));
             color: var(--color-primary, #FF5500);
             border: 1px solid var(--color-primary-border, rgba(255, 85, 0, 0.3));
         }
-        .fase-step.completa {
+        .orch-page .orch-fase-step.completa {
             background: var(--color-success-muted);
             color: #4ade80;
         }
-        .fase-arrow {
+        .orch-page .orch-fase-arrow {
             color: #444;
             flex-shrink: 0;
         }
 
         /* Loading */
-        .loading {
+        .orch-page .orch-loading {
             text-align: center;
             padding: 40px;
             color: var(--text-secondary, #aaa);
         }
-        .loading .material-icons {
+        .orch-page .orch-loading .material-icons {
             font-size: 48px;
-            animation: spin 1s linear infinite;
+            animation: orch-spin 1s linear infinite;
             color: var(--color-primary, #FF5500);
         }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes orch-spin { 100% { transform: rotate(360deg); } }
 
         /* Connection status */
-        .connection-status {
+        .orch-connection-status {
             position: fixed;
             bottom: 16px;
             right: 16px;
@@ -337,39 +338,43 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            z-index: 100;
         }
-        .connection-status.connected {
+        .orch-connection-status.connected {
             background: var(--color-success-muted);
             color: #4ade80;
         }
-        .connection-status.disconnected {
+        .orch-connection-status.disconnected {
             background: var(--color-danger-muted);
             color: #f87171;
         }
-        .connection-dot {
+        .orch-connection-status .orch-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
         }
-        .connection-dot.on { background: #4ade80; }
-        .connection-dot.off { background: #f87171; }
+        .orch-connection-status .orch-dot.on { background: #4ade80; }
+        .orch-connection-status .orch-dot.off { background: #f87171; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+        <main class="app-main">
+    <div class="orch-page">
         <!-- Header -->
-        <div class="header">
+        <div class="orch-header">
             <h1>
                 <span class="material-icons">hub</span>
                 Round-Market Orchestrator
-                <span class="version-badge">v1.0.0</span>
+                <span class="orch-version-badge">v1.0.0</span>
             </h1>
-            <div class="subtitle">Monitoramento em tempo real do ciclo de vida mercado/rodada</div>
+            <div class="orch-subtitle">Monitoramento em tempo real do ciclo de vida mercado/rodada</div>
         </div>
 
         <!-- Conteúdo carregado via JS -->
-        <div id="app">
-            <div class="loading">
+        <div id="orch-app">
+            <div class="orch-loading">
                 <span class="material-icons">sync</span>
                 <p style="margin-top: 12px">Conectando ao orchestrator...</p>
             </div>
@@ -377,9 +382,9 @@
     </div>
 
     <!-- Connection Status -->
-    <div id="connectionStatus" class="connection-status disconnected">
-        <div class="connection-dot off" id="connectionDot"></div>
-        <span id="connectionText">Desconectado</span>
+    <div id="orchConnectionStatus" class="orch-connection-status disconnected">
+        <div class="orch-dot off" id="orchConnectionDot"></div>
+        <span id="orchConnectionText">Desconectado</span>
     </div>
 
     <script>
@@ -397,7 +402,7 @@
     };
 
     const FASES = [
-        { id: 'aguardando', label: 'Aguardando' },
+        { id: 'aguardando', label: 'Ocioso' },
         { id: 'coletando_dados', label: 'Coletando' },
         { id: 'atualizando_live', label: 'Live' },
         { id: 'finalizando', label: 'Finalizando' },
@@ -423,15 +428,18 @@
             }
         } catch (err) {
             console.error('Erro ao carregar status:', err);
-            document.getElementById('app').innerHTML = `
-                <div class="loading">
-                    <span class="material-icons" style="animation:none; color: var(--color-danger)">error</span>
-                    <p style="margin-top:12px">Erro ao conectar: ${err.message}</p>
-                    <button class="btn btn-primary" style="margin:16px auto" onclick="carregarStatus()">
-                        <span class="material-icons">refresh</span> Tentar novamente
-                    </button>
-                </div>
-            `;
+            const orchApp = document.getElementById('orch-app');
+            if (orchApp) {
+                orchApp.innerHTML = `
+                    <div class="orch-loading">
+                        <span class="material-icons" style="animation:none; color: var(--color-danger)">error</span>
+                        <p style="margin-top:12px">Erro ao conectar: ${err.message}</p>
+                        <button class="orch-btn orch-btn-primary" style="margin:16px auto" onclick="carregarStatus()">
+                            <span class="material-icons">refresh</span> Tentar novamente
+                        </button>
+                    </div>
+                `;
+            }
         }
     }
 
@@ -476,12 +484,13 @@
     }
 
     function setConnectionStatus(connected) {
-        const el = document.getElementById('connectionStatus');
-        const dot = document.getElementById('connectionDot');
-        const text = document.getElementById('connectionText');
+        const el = document.getElementById('orchConnectionStatus');
+        const dot = document.getElementById('orchConnectionDot');
+        const text = document.getElementById('orchConnectionText');
+        if (!el) return;
 
-        el.className = `connection-status ${connected ? 'connected' : 'disconnected'}`;
-        dot.className = `connection-dot ${connected ? 'on' : 'off'}`;
+        el.className = `orch-connection-status ${connected ? 'connected' : 'disconnected'}`;
+        dot.className = `orch-dot ${connected ? 'on' : 'off'}`;
         text.textContent = connected ? 'Conectado (SSE)' : 'Desconectado';
     }
 
@@ -490,6 +499,12 @@
     // ========================================================================
 
     function renderDashboard(data) {
+        const orchApp = document.getElementById('orch-app');
+        if (!orchApp) {
+            console.error('[ORCHESTRATOR] Elemento orch-app não encontrado no DOM');
+            return;
+        }
+
         const live = data.live || {};
         const db = data.persistido || {};
         const statusNum = live.statusMercado;
@@ -505,15 +520,15 @@
         const faseAtual = live.faseRodada || 'aguardando';
         const eventos = (db.eventos || []).slice().reverse();
 
-        document.getElementById('app').innerHTML = `
+        orchApp.innerHTML = `
             <!-- Semáforo -->
-            <div class="market-semaforo">
-                <div class="semaforo-light ${semaforoClass}">
+            <div class="orch-semaforo">
+                <div class="orch-semaforo-light ${semaforoClass}">
                     <span class="material-icons">${semaforoIcon}</span>
                 </div>
-                <div class="semaforo-info">
-                    <div class="label">Mercado ${statusLabel}</div>
-                    <div class="detail">
+                <div class="orch-semaforo-info">
+                    <div class="orch-label">Mercado ${statusLabel}</div>
+                    <div class="orch-detail">
                         Rodada <span>${live.rodadaAtual || '?'}</span> &middot;
                         Temporada <span>${live.temporada || '?'}</span> &middot;
                         Live: <span>${live.liveUpdatesAtivos ? 'SIM' : 'NAO'}</span>
@@ -522,89 +537,89 @@
             </div>
 
             <!-- Stats -->
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-value">${live.rodadaAtual || '-'}</div>
-                    <div class="stat-label">Rodada Atual</div>
+            <div class="orch-stats-row">
+                <div class="orch-stat-card">
+                    <div class="orch-stat-value">${live.rodadaAtual || '-'}</div>
+                    <div class="orch-stat-label">Rodada Atual</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value">${db.total_transicoes || 0}</div>
-                    <div class="stat-label">Transicoes</div>
+                <div class="orch-stat-card">
+                    <div class="orch-stat-value">${db.total_transicoes || 0}</div>
+                    <div class="orch-stat-label">Transicoes</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value">${db.total_consolidacoes || 0}</div>
-                    <div class="stat-label">Consolidacoes</div>
+                <div class="orch-stat-card">
+                    <div class="orch-stat-value">${db.total_consolidacoes || 0}</div>
+                    <div class="orch-stat-label">Consolidacoes</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value">${db.total_erros || 0}</div>
-                    <div class="stat-label">Erros</div>
+                <div class="orch-stat-card">
+                    <div class="orch-stat-value">${db.total_erros || 0}</div>
+                    <div class="orch-stat-label">Erros</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value">${(live.managers || []).length}</div>
-                    <div class="stat-label">Managers</div>
+                <div class="orch-stat-card">
+                    <div class="orch-stat-value">${(live.managers || []).length}</div>
+                    <div class="orch-stat-label">Managers</div>
                 </div>
             </div>
 
             <!-- Fase da Rodada -->
-            <div class="section-title">
+            <div class="orch-section-title">
                 <span class="material-icons">timeline</span>
                 Fase da Rodada
             </div>
-            <div class="fase-bar">
+            <div class="orch-fase-bar">
                 ${FASES.map((f, i) => {
                     const faseIdx = FASES.findIndex(x => x.id === faseAtual);
                     let cls = '';
                     if (f.id === faseAtual) cls = 'ativa';
                     else if (FASES.indexOf(f) < faseIdx) cls = 'completa';
                     return `
-                        ${i > 0 ? '<span class="fase-arrow material-icons">chevron_right</span>' : ''}
-                        <div class="fase-step ${cls}">${f.label}</div>
+                        ${i > 0 ? '<span class="orch-fase-arrow material-icons">chevron_right</span>' : ''}
+                        <div class="orch-fase-step ${cls}">${f.label}</div>
                     `;
                 }).join('')}
             </div>
 
             <!-- Acoes -->
-            <div class="actions-row">
-                <button class="btn btn-primary" onclick="forcarVerificacao()">
+            <div class="orch-actions-row">
+                <button class="orch-btn orch-btn-primary" onclick="forcarVerificacao()">
                     <span class="material-icons">refresh</span> Verificar Mercado
                 </button>
-                <button class="btn btn-secondary" onclick="promptConsolidacao()">
+                <button class="orch-btn orch-btn-secondary" onclick="promptConsolidacao()">
                     <span class="material-icons">build</span> Forcar Consolidacao
                 </button>
-                <button class="btn btn-secondary" onclick="carregarStatus()">
+                <button class="orch-btn orch-btn-secondary" onclick="carregarStatus()">
                     <span class="material-icons">sync</span> Atualizar Dashboard
                 </button>
             </div>
 
             <!-- Managers -->
-            <div class="section-title">
+            <div class="orch-section-title">
                 <span class="material-icons">extension</span>
                 Module Managers (${(live.managers || []).length})
             </div>
-            <div class="managers-grid">
+            <div class="orch-managers-grid">
                 ${(live.managers || []).map(m => `
-                    <div class="manager-card">
-                        <div class="manager-header">
-                            <span class="manager-name">${m.nome}</span>
-                            <span class="manager-badge ${m.status}">${m.status}</span>
+                    <div class="orch-manager-card">
+                        <div class="orch-manager-header">
+                            <span class="orch-manager-name">${m.nome}</span>
+                            <span class="orch-manager-badge ${m.status}">${m.status}</span>
                         </div>
-                        <div class="manager-meta">
-                            <span class="manager-tag">P:${m.prioridade}</span>
-                            ${m.sempreAtivo ? '<span class="manager-tag base">BASE</span>' : ''}
-                            ${m.temColeta ? '<span class="manager-tag coleta">COLETA</span>' : ''}
-                            ${m.temFinanceiro ? '<span class="manager-tag financeiro">R$</span>' : ''}
-                            ${m.dependencias.length ? `<span class="manager-tag">dep: ${m.dependencias.join(', ')}</span>` : ''}
+                        <div class="orch-manager-meta">
+                            <span class="orch-manager-tag">P:${m.prioridade}</span>
+                            ${m.sempreAtivo ? '<span class="orch-manager-tag base">BASE</span>' : ''}
+                            ${m.temColeta ? '<span class="orch-manager-tag coleta">COLETA</span>' : ''}
+                            ${m.temFinanceiro ? '<span class="orch-manager-tag financeiro">R$</span>' : ''}
+                            ${m.dependencias.length ? `<span class="orch-manager-tag">dep: ${m.dependencias.join(', ')}</span>` : ''}
                         </div>
                     </div>
                 `).join('')}
             </div>
 
             <!-- Timeline -->
-            <div class="section-title">
+            <div class="orch-section-title">
                 <span class="material-icons">history</span>
                 Eventos Recentes
             </div>
-            <div class="timeline">
+            <div class="orch-timeline">
                 ${eventos.length === 0 ? '<div style="text-align:center;color:#666;padding:20px">Nenhum evento registrado</div>' : ''}
                 ${eventos.map(e => {
                     let dotClass = 'outro';
@@ -616,10 +631,10 @@
                     const desc = formatEvento(e);
 
                     return `
-                        <div class="timeline-item">
-                            <div class="timeline-dot ${dotClass}"></div>
-                            <div class="timeline-time">${time}</div>
-                            <div class="timeline-text">${desc}</div>
+                        <div class="orch-timeline-item">
+                            <div class="orch-timeline-dot ${dotClass}"></div>
+                            <div class="orch-timeline-time">${time}</div>
+                            <div class="orch-timeline-text">${desc}</div>
                         </div>
                     `;
                 }).join('')}
@@ -696,11 +711,22 @@
     // INIT
     // ========================================================================
 
+    const refreshInterval = setInterval(carregarStatus, 60000);
+
+    // Registrar cleanup para quando SPA navegar para outra página
+    if (window.__adminShell) {
+        window.__adminShell.registerCleanup(() => {
+            if (eventSource) { eventSource.close(); eventSource = null; }
+            clearInterval(refreshInterval);
+            console.log('[ORCHESTRATOR] Cleanup: SSE fechado, interval limpo');
+        });
+    }
+
     carregarStatus();
     conectarSSE();
-
-    // Refresh automático a cada 60s como safety net
-    setInterval(carregarStatus, 60000);
     </script>
+    <script src="js/admin-shell.js"></script>
+        </main>
+    </div>
 </body>
 </html>
